@@ -8,7 +8,7 @@
 
 本会话总槽位 4（包含主控）；新会话必须重新核对工具上限。通常主控 + 两名开发 + 一名独立测试/reviewer。所有后代也计入容量，子 agent 不自行再派发。若后续会话没有协作工具，则先继续能独立执行的工作并如实记录独立 review 待完成，不把作者自查写成独立审查。
 
-派发前查状态与资源，调用 spawn_agent，取得真实 agent 标识并登记；随后要求 START_ACK（任务/attempt、工作区、base SHA、合同版本、写入范围）。没有 ACK 不能宣称已经开展编码。send_message 用于在途纠偏，followup_task 用于已有空闲 agent 的新任务；实际工具可用性以当前会话为准。
+派发按以下顺序：先核对状态与资源，持久化 DISPATCHING attempt（task/attempt/epoch、worktree、base SHA、合同、写集和资源占用，agent_id暂为null），然后调用 spawn_agent 并补记返回的真实ID。初始任务只允许读取核对和返回 START_ACK，不允许改代码或启动进程；ACK须确认任务/attempt、工作区、base、合同与写入范围。主控核对ACK，持久化转ACTIVE后用followup_task明确下发执行许可；已有运行agent用send_message传递。没有ACK和明确许可不能宣称开始编码。spawn返回前后中断的DISPATCHING也要核对实际agent/worktree/资源，不能直接再次派发。
 
 ## 2. 文件与权威
 
@@ -31,6 +31,8 @@ READY 检查 `depends_on`；VERIFIED/DONE 还检查 `acceptance_dependencies`。
 
 Attempt 状态：`DISPATCHING / ACTIVE / SUBMITTED / INTERRUPTED / SUPERSEDED / ACCEPTED / FAILED`。失联时标记需要核对，保留容量与资源占用，不能直接当停止。RUNNING 任务最多一个当前 active_attempt；每条迟到结果校验完整执行身份，不匹配则保留为 NOT_ADOPTED，不能覆盖新结果。
 
+恢复字段约定：需要核对的attempt用 `state=INTERRUPTED, reconciliation_required=true`，资源用 `state=QUARANTINED`，记录reason和最后执行身份；确认停止/隔离及结果后才清除此标记。DISPATCHING但缺agent ID的尝试同样占资源。主控直接实现或跑测试也建立 `executor_kind=CONTROLLER` 的attempt和真实holder，不以空holder执行后台任务；只读规划咨询单列planning_agents，不算产品attempt。
+
 每个任务同时记录 author_tests、independent_review、integration_check、local_acceptance、cloud_acceptance 状态。结果取 `NOT_RUN/PASS/FAIL/BLOCKED/STALE/NOT_APPLICABLE`；只有真正不适用的门可带理由记 NOT_APPLICABLE，云未测必须为 NOT_RUN/BLOCKED。
 
 C02的完成范围是V01—V18及发布准备；证据齐备可记cloud_acceptance=PASS并按其他门禁DONE。最终V19另记release_gate，只有用户对固定候选的发布决定和实际邀请执行证据都具备才能关闭。发布决定不阻塞此前真实云测试。不得把用户对开发计划的授权解释为远端合并或对外发布批准。
@@ -49,7 +51,7 @@ JSON 的 owner/epoch 是协作约定，不能物理阻止旧agent写文件，也
 
 ## 5. 合同先行与变更
 
-只在接口、状态转移、失败窗口等耦合处做短“提案—反例—确认”：提供方提交带revision的schema/样例；消费方指出重复、超时、部分成功、旧结果反例；主控收敛，写入consumer ACK。内部团队未反馈时可发布本地合同，不假装内部已接受。
+只在接口、状态转移、失败窗口等耦合处做短“提案—反例—确认”：提供方提交带revision的schema/样例；消费方指出重复、超时、部分成功、旧结果反例；主控收敛，写入consumer ACK。这里的ACK是消费视角的合同审查，可由只读review任务完成，不要求依赖该合同的下游实现先完成，避免D01的隐含循环。内部团队未反馈时可发布本地合同，不假装内部已接受。
 
 接口认可与集成成功是两个门。前者证明双方理解一致；后者必须在固定候选和环境中实际运行。合同变化时先更新台账和影响任务，把受影响ACK、候选及证据标STALE，再通知开发者。无关任务继续；保留既有证据须记录其依赖输入未变化的依据。没有通过重评的新合同不能继续消耗旧通过结论。
 

@@ -13,6 +13,8 @@
 - required_cases、实际测试名与命令/cwd、通过结果：
 - 允许的操作、资源限制、何时报告阻塞：
 - 第一次START_ACK内容：已读规范、目标理解、base/合同/路径/资源确认。
+- DISPATCHING已落盘的位置；ACK前仅只读核对，主控持久化ACTIVE并明确许可后才实施。
+- executor_kind（SUBAGENT/CONTROLLER）、reconciliation_required、最后实际执行身份及中断核对方法：
 
 ## 作者交付
 

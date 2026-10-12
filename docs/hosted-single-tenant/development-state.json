@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project_id": "hindsight-hosted-single-tenant",
-  "revision": 2,
-  "updated_at": "2026-10-12T14:18:17.906145+00:00",
+  "revision": 3,
+  "updated_at": "2026-10-12T14:19:31.318119+00:00",
   "phase": "PLANNING_REVIEW",
   "source_baseline_sha": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
   "controller": {
@@ -635,32 +635,80 @@
       "state": "UNKNOWN",
       "owner": null,
       "blocks": [
-        "C01"
-      ]
+        "C01",
+        "C02"
+      ],
+      "case_mapping": {
+        "C01": [
+          "C-V03"
+        ],
+        "C02": [
+          "C-V01",
+          "C-V02",
+          "C-V08",
+          "C-V15",
+          "C-V16",
+          "C-V17"
+        ]
+      }
     },
     {
       "id": "obs",
       "state": "UNKNOWN",
       "owner": null,
       "blocks": [
-        "C01"
-      ]
+        "C01",
+        "C02"
+      ],
+      "case_mapping": {
+        "C01": [
+          "C-V06",
+          "C-V07"
+        ],
+        "C02": [
+          "C-V08",
+          "C-V17"
+        ]
+      }
     },
     {
       "id": "internal-models",
       "state": "UNKNOWN",
       "owner": null,
       "blocks": [
-        "C01"
-      ]
+        "C01",
+        "C02"
+      ],
+      "case_mapping": {
+        "C01": [
+          "C-V04"
+        ],
+        "C02": [
+          "C-V05",
+          "C-V14",
+          "C-V15"
+        ]
+      }
     },
     {
       "id": "identity-gateway",
       "state": "UNKNOWN",
       "owner": null,
       "blocks": [
+        "C01",
         "C02"
-      ]
+      ],
+      "case_mapping": {
+        "C01": [
+          "C-V13"
+        ],
+        "C02": [
+          "C-V08",
+          "C-V12",
+          "C-V13",
+          "C-V14"
+        ]
+      }
     },
     {
       "id": "platform-agent-manager",
@@ -668,7 +716,18 @@
       "owner": null,
       "blocks": [
         "C02"
-      ]
+      ],
+      "case_mapping": {
+        "C02": [
+          "C-V01",
+          "C-V02",
+          "C-V12",
+          "C-V15",
+          "C-V16",
+          "C-V17",
+          "C-V18"
+        ]
+      }
     },
     {
       "id": "registry-observability",
@@ -676,7 +735,13 @@
       "owner": null,
       "blocks": [
         "C02"
-      ]
+      ],
+      "case_mapping": {
+        "C02": [
+          "C-V16",
+          "C-V18"
+        ]
+      }
     }
   ],
   "decisions": [
