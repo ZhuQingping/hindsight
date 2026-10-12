@@ -4,7 +4,7 @@
 
 读取顺序：[README](README.md)（产品边界）→ [development-state.json](development-state.json)（真实状态）→ [DEVELOPMENT-PLAN](DEVELOPMENT-PLAN.md)（任务）→ [AGENT-WORKFLOW](AGENT-WORKFLOW.md)（并发/恢复/质量）→ 活跃任务包及证据。
 
-本次交付时：开发工作流已编制并进入独立审查；产品 D00—D14 尚未开始，不把规划agent的运行算成产品开发。当前源码基线为 `99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58`；integration worktree/branch/SHA 尚未创建，读state获取后续值。原生API体验进程会使用主工作区源码，产品开发必须在隔离checkout进行。
+本次交付时：开发工作流 planning-v3 已经两名非文件作者agent独立静态审查通过，见 [审查记录](evidence/planning/REVIEW.md)；产品 D00—D14 尚未开始，不把规划agent的运行算成产品开发。源码基线为 `99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58`，审查的计划提交为 `5d5d8a3078fd361e34d1e1d4c6a40aa68af4fa2d`；integration worktree/branch/SHA 尚未创建，读state获取后续值。原生API体验进程会使用主工作区源码，产品开发必须在隔离checkout进行。
 
 下一动作：核对旧agent与后台进程是否仍有写入，确认本地主控所有权；按D00建立专用integration和attempt工作区、精确登记资源；然后D01合同、D02启动底座/D04管理API逐步推进。当前全部真实云与产品运行验收仍NOT_RUN；旧本地health观察不改变这个状态。
 

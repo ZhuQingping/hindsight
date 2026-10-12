@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "project_id": "hindsight-hosted-single-tenant",
-  "revision": 3,
-  "updated_at": "2026-10-12T14:19:31.318119+00:00",
-  "phase": "PLANNING_REVIEW",
+  "revision": 4,
+  "updated_at": "2026-10-12T14:21:49.589576+00:00",
+  "phase": "DEVELOPMENT_READY",
   "source_baseline_sha": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
   "controller": {
     "owner": "/root",
@@ -781,22 +781,22 @@
     {
       "agent_id": "/root/quality_review_plan",
       "purpose": "仓库测试与review门禁审视",
-      "state": "REVIEWING_PLANNING_CANDIDATE",
+      "state": "COMPLETED_PLAN_REVIEW_PASS",
       "product_implementation": false
     },
     {
       "agent_id": "/root/continuity_design",
       "purpose": "状态续接与恢复审视",
-      "state": "REVIEWING_PLANNING_CANDIDATE",
+      "state": "COMPLETED_PLAN_REVIEW_PASS",
       "product_implementation": false
     }
   ],
   "next_actions": [
-    "完成本计划的独立审查并记录结论",
-    "核对执行者、工作区和资源，执行D00",
-    "D01发布本地合同后并行D02与D04；D02完成后并行D03与D06"
+    "核对旧执行者和资源；D00建立隔离integration/attempt工作区，先持久DISPATCHING再派发",
+    "D01发布本地合同后并行D02与D04",
+    "D02完成后并行D03与D06，独立review槽轮换，尽早贯通D05真实链路"
   ],
-  "planning_snapshot_commit": "c4300058d60eee8cb894a31b982df22094a3dc04",
+  "planning_snapshot_commit": "5d5d8a3078fd361e34d1e1d4c6a40aa68af4fa2d",
   "release_gate": {
     "id": "USER_RELEASE",
     "candidate_id": null,
@@ -808,5 +808,17 @@
     "execution_status": "NOT_RUN",
     "remote_merge_status": "NOT_RUN",
     "note": "C02可先完成云验收并提交发布检查；邀请和远端合并单独等待用户实际决定"
+  },
+  "planning_review": {
+    "candidate_id": "planning-v3",
+    "candidate_commit": "5d5d8a3078fd361e34d1e1d4c6a40aa68af4fa2d",
+    "result": "PASS_PLAN_ONLY",
+    "must_fix_remaining": 0,
+    "reviewers": [
+      "/root/quality_review_plan",
+      "/root/continuity_design"
+    ],
+    "receipt": "docs/hosted-single-tenant/evidence/planning/REVIEW.md",
+    "validation": "docs/hosted-single-tenant/evidence/planning/validation-v3.json"
   }
 }
