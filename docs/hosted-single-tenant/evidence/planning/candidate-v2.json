@@ -1,0 +1,60 @@
+{
+  "candidate_id": "planning-v2",
+  "kind": "DOCUMENTATION_AND_INITIAL_STATE_ONLY",
+  "supersedes": "planning-v1",
+  "source_baseline": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
+  "files": [
+    {
+      "path": "docs/hosted-single-tenant/AGENT-WORKFLOW.md",
+      "sha256": "f5c428138fe7c11d60ab203a4333416495f0a8e387d07f6cf527236b1f9f4aac"
+    },
+    {
+      "path": "docs/hosted-single-tenant/DEVELOPMENT-PLAN.md",
+      "sha256": "65101114bc636a3f7cf75de9c74a3fc799614fb5d030553fe80fac73ed95ec80"
+    },
+    {
+      "path": "docs/hosted-single-tenant/EXECUTION-PLAN.md",
+      "sha256": "91adb7f6a6f64ac409e7fd352f4fad2c435108bd787da45f7f4401b59818f26d"
+    },
+    {
+      "path": "docs/hosted-single-tenant/EXPLORATION-AND-PLAN-20261012.md",
+      "sha256": "47d37ed47dd0cf22d42a6acb785e4705c0a1a558f31a29cfb872ee371bb1c53a"
+    },
+    {
+      "path": "docs/hosted-single-tenant/INTEGRATION-AND-ACCEPTANCE.md",
+      "sha256": "9ca06e0cfebbb2e542f9ad05bb64309df52c1932503134135d618f769da36cab"
+    },
+    {
+      "path": "docs/hosted-single-tenant/INTERNAL-HANDOFF.md",
+      "sha256": "4b007714ef73fb21590650e4f96be6bff14685a8c413782654473766612081cc"
+    },
+    {
+      "path": "docs/hosted-single-tenant/README.md",
+      "sha256": "ecc8249b56965ff1331ffcffb602e611bf100c01acbd86bfb821147800a35d97"
+    },
+    {
+      "path": "docs/hosted-single-tenant/START-HERE.md",
+      "sha256": "4ad199f0c870b6ee6ff10dcb0944cd55e0beae513563afb33690ec105d888d4c"
+    },
+    {
+      "path": "docs/hosted-single-tenant/WORK-ITEMS.md",
+      "sha256": "ef339daae0a6915c214043d03bff2a01222594e8091fb27f952fff37a658b598"
+    },
+    {
+      "path": "docs/hosted-single-tenant/development-state.json",
+      "sha256": "3c3ae25e22e53f2ce345bf9878a770174d13b11a92f4a9260056920ab26cae4b"
+    },
+    {
+      "path": "docs/hosted-single-tenant/templates/TASK-PACKET.md",
+      "sha256": "e60772a290f1bfdf826bcbcff03845899c5d17730345a8b926fc83a7d1cee06d"
+    }
+  ],
+  "checks": {
+    "task_count": 17,
+    "start_and_acceptance_dag": "PASS",
+    "bootstrap_cases_do_not_require_successors": "PASS",
+    "release_separate_from_cloud_acceptance": "PASS",
+    "product_tests": "NOT_RUN"
+  },
+  "review_status": "PENDING"
+}

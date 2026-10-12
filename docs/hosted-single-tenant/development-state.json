@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project_id": "hindsight-hosted-single-tenant",
-  "revision": 1,
-  "updated_at": "2026-10-12T14:13:36.437749+00:00",
+  "revision": 2,
+  "updated_at": "2026-10-12T14:18:17.906145+00:00",
   "phase": "PLANNING_REVIEW",
   "source_baseline_sha": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
   "controller": {
@@ -38,7 +38,7 @@
       ],
       "scope_status": "PROVISIONAL_REQUIRES_EXACT_DISPATCH_SCOPE",
       "required_cases": [
-        "B01"
+        "P00"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -51,7 +51,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "建立integration及独立attempt工作区，核对依赖和资源"
+      "next_action": "建立integration及独立attempt工作区，核对依赖和资源",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D01",
@@ -66,9 +68,7 @@
       ],
       "scope_status": "PROVISIONAL_REQUIRES_EXACT_DISPATCH_SCOPE",
       "required_cases": [
-        "A02",
-        "A04",
-        "K01"
+        "P01"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -81,7 +81,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "定义操作/状态/配置/身份schema与消费方ACK"
+      "next_action": "定义操作/状态/配置/身份schema与消费方ACK",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D02",
@@ -112,7 +114,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "构建正式API/UI并连接独立PG，完成最小SDK smoke"
+      "next_action": "构建正式API/UI并连接独立PG，完成最小SDK smoke",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D03",
@@ -142,7 +146,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "真实deploy/start/stop/status及资源边界"
+      "next_action": "真实deploy/start/stop/status及资源边界",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D04",
@@ -172,7 +178,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "持久操作/目标/领取/结果API与重启测试"
+      "next_action": "持久操作/目标/领取/结果API与重启测试",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D05",
@@ -205,7 +213,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "注册心跳、领取执行、持久上报并贯通真实部署"
+      "next_action": "注册心跳、领取执行、持久上报并贯通真实部署",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D06",
@@ -237,7 +247,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "实例PG扩展表、认证、管理API/CLI与测试"
+      "next_action": "实例PG扩展表、认证、管理API/CLI与测试",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D07",
@@ -271,7 +283,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "逐入口审计实现及SDK/MCP拒绝回归；新增核心文件先授予独占写权"
+      "next_action": "逐入口审计实现及SDK/MCP拒绝回归；新增核心文件先授予独占写权",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D08",
@@ -308,7 +322,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "补配置升级释放及持久失败窗口，真实重启验证"
+      "next_action": "补配置升级释放及持久失败窗口，真实重启验证",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D09",
@@ -336,7 +352,12 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "按合同开发，真实agent就绪后浏览器联调"
+      "next_action": "按合同开发，真实agent就绪后浏览器联调",
+      "acceptance_dependencies": [
+        "D05",
+        "D08"
+      ],
+      "required_decisions": []
     },
     {
       "id": "D10",
@@ -365,7 +386,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "先声明具体文件写集，再改品牌布局导航与身份适配"
+      "next_action": "先声明具体文件写集，再改品牌布局导航与身份适配",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D11",
@@ -397,7 +420,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "分配独占system-test故事文件，补文件/S3/SDK/MCP/派生终态"
+      "next_action": "分配独占system-test故事文件，补文件/S3/SDK/MCP/派生终态",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D13",
@@ -430,7 +455,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "观测脱敏及新目录检查覆盖，根CI改动申请主控独占窗口"
+      "next_action": "观测脱敏及新目录检查覆盖，根CI改动申请主控独占窗口",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D12",
@@ -469,7 +496,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "固定组合候选，真实管理/agent/授权/UI/双实例与失败场景"
+      "next_action": "固定组合候选，真实管理/agent/授权/UI/双实例与失败场景",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "D14",
@@ -500,7 +529,9 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "冻结制品和文档、独立review并关闭本地发布门"
+      "next_action": "冻结制品和文档、独立review并关闭本地发布门",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "C01",
@@ -532,7 +563,9 @@
         "真实资源和相应平台接口，按case记录"
       ],
       "blocked_by": [],
-      "next_action": "按内部资源实际到位滚动联调，缺少条件只阻塞对应case"
+      "next_action": "按内部资源实际到位滚动联调，缺少条件只阻塞对应case",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     },
     {
       "id": "C02",
@@ -563,8 +596,7 @@
         "C-V15",
         "C-V16",
         "C-V17",
-        "C-V18",
-        "C-V19"
+        "C-V18"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -579,7 +611,9 @@
         "真实资源和相应平台接口，按case记录"
       ],
       "blocked_by": [],
-      "next_action": "接入真实平台身份/控制通道，验收两套专属资源并交用户发布检查"
+      "next_action": "接入真实平台身份/控制通道，验收两套专属资源并交用户发布检查",
+      "acceptance_dependencies": [],
+      "required_decisions": []
     }
   ],
   "attempts": [],
@@ -682,13 +716,13 @@
     {
       "agent_id": "/root/quality_review_plan",
       "purpose": "仓库测试与review门禁审视",
-      "state": "COMPLETED_ADVISORY",
+      "state": "REVIEWING_PLANNING_CANDIDATE",
       "product_implementation": false
     },
     {
       "agent_id": "/root/continuity_design",
       "purpose": "状态续接与恢复审视",
-      "state": "COMPLETED_ADVISORY",
+      "state": "REVIEWING_PLANNING_CANDIDATE",
       "product_implementation": false
     }
   ],
@@ -696,5 +730,18 @@
     "完成本计划的独立审查并记录结论",
     "核对执行者、工作区和资源，执行D00",
     "D01发布本地合同后并行D02与D04；D02完成后并行D03与D06"
-  ]
+  ],
+  "planning_snapshot_commit": "c4300058d60eee8cb894a31b982df22094a3dc04",
+  "release_gate": {
+    "id": "USER_RELEASE",
+    "candidate_id": null,
+    "required_cases": [
+      "C-V19"
+    ],
+    "approval_status": "NOT_REQUESTED",
+    "approval_evidence": null,
+    "execution_status": "NOT_RUN",
+    "remote_merge_status": "NOT_RUN",
+    "note": "C02可先完成云验收并提交发布检查；邀请和远端合并单独等待用户实际决定"
+  }
 }

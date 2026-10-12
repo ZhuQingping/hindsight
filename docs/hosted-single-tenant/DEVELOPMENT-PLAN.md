@@ -25,7 +25,7 @@
 | D06 / M2 | Key 存储/迁移、认证、管理 API/CLI；`hindsight-extensions/hosted-single-tenant/` 的 store/auth/admin 及私有测试 | D02 | 实例 PG 存校验值、一次性明文交付、UTC 到期和停用；管理身份独立，重启保持；检查扩展表和原生数据工具兼容边界 |
 | D07 / M2 | Bank validator 与逐入口授权；同扩展 validator、独占 SDK/MCP 测试文件 | D06 | 列表/分页、别名、懒创建、任务/chunk/附件、clone/transfer 源目标、MCP 会话拒绝通过；已受理任务继续原生语义 |
 | D08 / M2 | 配置/restart/upgrade/release、失联与恢复；接续 D03—D05 原写入范围，禁止与原作者同时写 | D05 | 单实例操作互斥；持久化前后及副作用后的故障案例通过；释放保留数据，迁移部分成功不假报完成；实际进程重启有证据 |
-| D09 / M2 | 可操作真实本地实例的管理页面；`manager-ui/` | D04 | 浏览器可查看实例/版本/资源/操作，错误和进度可见；D05/D08 到位即跑真实联调；仅 fixture 的页面不得关闭 M2 |
+| D09 / M2 | 可操作真实本地实例的管理页面；`manager-ui/` | 启动需 D04；验收需 D05、D08 | 浏览器可查看实例/版本/资源/操作，错误和进度可见；D05/D08 到位即跑真实联调；仅 fixture 的页面不得标 VERIFIED/DONE 或关闭 M2 |
 | D10 / M2 | 原生功能 UI 品牌/布局/导航、会话适配；`hindsight-control-plane/` 的明确文件清单 | D02 | 主要原生页面可用，本地受保护登录/退出、stream/文件；全权限 key 留后端；完整授权组合在 D12 验收 |
 | D11 / M2 | 原生 SDK/MCP、S3 文件与派生回归；独占 `hindsight-system-tests/tests/` 故事及 `deploy/hosted-single-tenant/tests/native/` | D02 | 文件全生命周期、bank/document/knowledge 能力、后台派生终态、SDK/MCP 通过；明确 stub/现有模型；共享 fixture 变动由主控协调 |
 | D13 / M2 | 日志/metrics/诊断、构建/CI覆盖及配置模板；`observability/`、`checks/` 和 `ci/`；根 CI 改动单独授权 | D05、D06 | 能定位实例/版本/操作；探针区分 API/UI/依赖/任务；新目录进入 lint/type/test/CI，脱敏及依赖失败可观测 |
@@ -35,6 +35,8 @@
 | C02 / M4 | 内部管理/身份/agent/观测适配及发布验收 | D14、C01 + 平台接口 | 真实 V01—V18、两套资源隔离、客户接入和支持交付齐备；发布/远端合并检查由用户保留 |
 
 D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之前完成。状态文件持有同一依赖图。内部等待只记录 C01/C02 对应子案例，其他 READY 工作继续。
+
+`depends_on` 是可启动依赖，`acceptance_dependencies` 是完成验收额外需要的任务；两者都必须无环。D09 可以先写页面，但真实运行依赖未就绪前不能接受为已完成。C02 的 CLOUD_ACCEPTED/DONE 指 V01—V18 通过及发布材料就绪；最终邀请 V19 单列 release_gate，需用户对固定候选的发布决定和实际执行记录，不能以计划批准代替。
 
 ## 3. 里程碑与并发批次
 
@@ -56,6 +58,7 @@ D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之
 
 | 类别 | 必测案例 |
 | --- | --- |
+| P00—P01 开发前置 | P00：隔离工作区、依赖可用、资源登记及现有环境保护；P01：合同schema/样例/失败反例/消费方ACK。仅证明开发前置，不关闭任何真实产品运行案例 |
 | B01—B03 部署 | 干净资源构建启动；配置/PG故障拒绝就绪；API与UI分别检查、重复部署不污染其他实例 |
 | K01—K05 Key | 多 key/期限临界点；停用及scope变更；普通 key 无管理权；重启持久/查询脱敏；管理变更后下一新请求生效 |
 | S01—S07 Scope | bank允许/拒绝；分页/total/别名；重复文档ID/chunk/附件；任务读写控制；clone/transfer双端/manifest；MCP旧session后续请求；已受理任务及派生继续、新请求拒绝 |
@@ -65,7 +68,7 @@ D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之
 | U01—U03 浏览器 | 管理页真实操作和失败展示；功能UI等价、登录退出和stream/文件；凭证不进入浏览器且未授权实例拒绝 |
 | O01—O03 交付 | 日志/诊断脱敏及关联；探针/任务/磁盘/依赖可区分；新模块lint/type/CI与制品清单覆盖 |
 | I01—I03 集成 | 同候选全链路；两个实例/不同PG凭证/bucket交叉访问拒绝；重启与干净重复部署 |
-| C-V01—C-V19 | 原 [INTEGRATION-AND-ACCEPTANCE](INTEGRATION-AND-ACCEPTANCE.md) 的真实云案例，逐条保持运行状态 |
+| C-V01—C-V18 / 发布门C-V19 | 原 [INTEGRATION-AND-ACCEPTANCE](INTEGRATION-AND-ACCEPTANCE.md) 的真实云案例；前18项由C01/C02验证，邀请公测V19在独立release_gate记录，不作为提交用户发布检查的前置条件 |
 
 原生 Hindsight 黑盒走已发布 Python client；agent/管理 API 使用自身公开 HTTP 接口与真实执行后端；MCP 使用实际 session/tool 调用；浏览器使用真实页面。不同测试入口各尽其责，不为统一形式绕过原生 SDK 或伪造控制面效果。
 

@@ -27,9 +27,13 @@
 
 任务状态：`PLANNED → READY → RUNNING → IN_REVIEW → VERIFIED → DONE`；另有 `REWORK / BLOCKED / CANCELLED`。进入 READY 须前置任务 DONE 或已有被显式批准、版本固定的接口先行条件；本项目初始无此例外。VERIFIED 表示作者测试及独立 review 对该候选通过；DONE 还要求集成及受影响验证通过。不能从 READY 跳 DONE。
 
+READY 检查 `depends_on`；VERIFIED/DONE 还检查 `acceptance_dependencies`。运行依赖未就绪时可提交局部代码review，但任务保持RUNNING并记录缺失案例，不能把fixture通过当真实验收。D00/D01只用P00/P01前置案例，不要求后继产品才有的B/A/K运行案例。
+
 Attempt 状态：`DISPATCHING / ACTIVE / SUBMITTED / INTERRUPTED / SUPERSEDED / ACCEPTED / FAILED`。失联时标记需要核对，保留容量与资源占用，不能直接当停止。RUNNING 任务最多一个当前 active_attempt；每条迟到结果校验完整执行身份，不匹配则保留为 NOT_ADOPTED，不能覆盖新结果。
 
 每个任务同时记录 author_tests、independent_review、integration_check、local_acceptance、cloud_acceptance 状态。结果取 `NOT_RUN/PASS/FAIL/BLOCKED/STALE/NOT_APPLICABLE`；只有真正不适用的门可带理由记 NOT_APPLICABLE，云未测必须为 NOT_RUN/BLOCKED。
+
+C02的完成范围是V01—V18及发布准备；证据齐备可记cloud_acceptance=PASS并按其他门禁DONE。最终V19另记release_gate，只有用户对固定候选的发布决定和实际邀请执行证据都具备才能关闭。发布决定不阻塞此前真实云测试。不得把用户对开发计划的授权解释为远端合并或对外发布批准。
 
 循环：读取合同与任务 → 最小实现 → 对应测试 → 修复 → lint/type/必要生成 → 提交固定候选 → 独立review → 修复及新候选 → 集成 → 受影响测试 → 台账及交接。自动测试失败先区分代码、环境和基线问题；记录具体证据，不通过削弱断言、换mock、删除案例或无理由xfail把失败刷绿。
 
