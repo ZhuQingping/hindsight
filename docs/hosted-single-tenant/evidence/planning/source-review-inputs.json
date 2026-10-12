@@ -1,0 +1,138 @@
+{
+  "kind": "READ_ONLY_INPUT_AND_SOURCE_CHECK",
+  "source_baseline": "d55551f1ea24b952f60969bc36897dbb42943a0c",
+  "inputs": [
+    {
+      "path": "docs/hosted-single-tenant/REVIEW-SUMMARY-AND-REUSE-20261012.md",
+      "sha256": "fe4cefc7a53b75bd9736cf9610ca820428601238941c427c27455dc11d0468c9"
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/manifest.json",
+      "sha256": "81c7ed97c218498a0fbbecf57737ccf537415df1151d8ea02c94c8db3aec4c5b"
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/README.md",
+      "sha256": "61a5e9f82482881a7ab01f1fbefb1dd57fd59d7b1528629511fff87d3eb92ce2"
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/FINDINGS-AND-ARCHITECTURE.md",
+      "sha256": "c9fa63aba33d51e5eb2117265e0d62fac0d60e42856fe14993eb823e3481bd1a"
+    }
+  ],
+  "archive_verified": [
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/cloud-openapi.json",
+      "sha256": "a1ff0c333160193f2347a83efe96dabce977495f118c936fb133c55cc6316595",
+      "bytes": 641110
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/oss-openapi.json",
+      "sha256": "4fe146e6de97153673ddab2fd802e85af47f7d372c7437cc7a400e1d9c2386e2",
+      "bytes": 617549
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/openapi-comparison.json",
+      "sha256": "626f9126be5306f2b8b569fa7cb28d55a39370e63bb30982d7017aed1178bb00",
+      "bytes": 34318
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/parameter-notes.json",
+      "sha256": "9c1f69603f27cf1c26643a16240331ca4bd9f4c109af774c4daedec18a5bd865",
+      "bytes": 20630
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/deletion-review.json",
+      "sha256": "3065edf91e5fb5eaa8990af53b17ed60b9d3381b43a3f2208bfad536ebd27b46",
+      "bytes": 17813
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/lifecycle-review.json",
+      "sha256": "26b29aa4cfb0a63fc6138a499dea12b7bfff8845cb2a147324aa7fb97bbefd19",
+      "bytes": 79329
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/runtime-findings.json",
+      "sha256": "97d43c55f2ab9dce7701723e5c79dfb97d6446472ce1b954e63476a037974a8f",
+      "bytes": 15574
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/cleanup.json",
+      "sha256": "8501511f6911fff5651487aece442a7c5a5e80b5ec93cef6d19c471cd65acefe",
+      "bytes": 3446
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/execution-notes.json",
+      "sha256": "582b57a59a78a713a6cc8a20412a6a4de57301530e7bef6ae6380d0f801c8693",
+      "bytes": 1234
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/inference-transport-diagnosis.json",
+      "sha256": "0777242aa20064ff493a2dd0cea99adbe5d7232f97f29de783ce4ca665442f9d",
+      "bytes": 591
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/rea-application-summary.json",
+      "sha256": "fea6b1d01834e52a758d7ee9ad348647300632eeda5a32af70ddd635b99b8d69",
+      "bytes": 4053
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/rea-client-summary.json",
+      "sha256": "f4643ad98f2f4605af263122fcf3a103f8159f82c147b929766c7f48a05006a5",
+      "bytes": 1837
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/control-plane-mechanisms.json",
+      "sha256": "29947481f269779abed97e898c597cc48089ff8de5765f05443c593384de4905",
+      "bytes": 63323
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/sources-governance-privacy.json",
+      "sha256": "23ed1c168277fc1c47817ee8602689e9452402ad96d1997eb86c5efb63684499",
+      "bytes": 102341
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/comparison-summary.json",
+      "sha256": "3b9469be10174ec6184569a8a4c66c11f474d652d89312d9428afc147e212a40",
+      "bytes": 20907
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/../README.md",
+      "sha256": "61a5e9f82482881a7ab01f1fbefb1dd57fd59d7b1528629511fff87d3eb92ce2",
+      "bytes": 2025
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/../FINDINGS-AND-ARCHITECTURE.md",
+      "sha256": "c9fa63aba33d51e5eb2117265e0d62fac0d60e42856fe14993eb823e3481bd1a",
+      "bytes": 39115
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/../diagrams/cloud-logical-architecture.dot",
+      "sha256": "d00b197faaedced9407ad7823d927bc63883063f2468f71aa25ba5999493c026",
+      "bytes": 1164
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/../diagrams/cloud-logical-architecture.svg",
+      "sha256": "c1c36162bb46a7135d6761c62000df991f243a07fc2f6536f06dda898ef1aaca",
+      "bytes": 7971
+    },
+    {
+      "path": "docs/cloud-vs-oss-20261012/evidence/../diagrams/cloud-logical-architecture.mmd",
+      "sha256": "ec6cfcea15602595d6c05b63434c1e95b1ac1a6eab8483245ea5e029aaa0a4b9",
+      "bytes": 337
+    }
+  ],
+  "counts": {
+    "cloud_operations": 111,
+    "oss_operations": 99,
+    "shared_operations": 96
+  },
+  "core_dtos_identical": {
+    "RetainRequest": true,
+    "RecallRequest": true,
+    "ReflectRequest": true
+  },
+  "source_diff_from_research_baseline": "EMPTY_IN_FOUR_RELEVANT_PATHS",
+  "cloud_requests_this_turn": 0,
+  "product_runtime": "NOT_RUN",
+  "input_git_status": "Original review and Cloud directory remain untracked; this receipt is independently persisted"
+}

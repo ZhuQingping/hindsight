@@ -2,6 +2,8 @@
 
 本文件是 [DEVELOPMENT-PLAN](DEVELOPMENT-PLAN.md) 的执行约定。基于本会话已提供的 collaboration 工具执行，不依赖另建 Agents SDK 服务、递归 Codex CLI 或自动调度守护进程。
 
+本轮补充见[审查采纳与Cloud影响](REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md)：外部研究先分证据层再形成当前反例；不得直接把旧PR/Cloud的通过结果充当本地验收。
+
 ## 1. 主控与短期 agent
 
 主控持续负责目标、依赖、任务包、状态、资源、候选集成与对用户汇报。子 agent 只接一个有界任务，提交候选和证据后退出或接受下一个明确任务；不依靠永久角色积累全部项目记忆。默认沿用当前模型，不自行切换型号或增加付费执行器。
@@ -28,6 +30,8 @@
 任务状态：`PLANNED → READY → RUNNING → IN_REVIEW → VERIFIED → DONE`；另有 `REWORK / BLOCKED / CANCELLED`。进入 READY 须前置任务 DONE 或已有被显式批准、版本固定的接口先行条件；本项目初始无此例外。VERIFIED 表示作者测试及独立 review 对该候选通过；DONE 还要求集成及受影响验证通过。不能从 READY 跳 DONE。
 
 READY 检查 `depends_on`；VERIFIED/DONE 还检查 `acceptance_dependencies`。运行依赖未就绪时可提交局部代码review，但任务保持RUNNING并记录缺失案例，不能把fixture通过当真实验收。D00/D01只用P00/P01前置案例，不要求后继产品才有的B/A/K运行案例。
+
+含subdeliveries的任务还有子项就绪条件：每次派发指定一个subdelivery_id，核对该项depends_on、external_inputs及已发布模块接口；同父任务最多一个active attempt。无子项就绪时仅该任务BLOCKED，其他READY工作继续。子项允许按就绪次序执行，记录自己的候选/case；父任务VERIFIED/DONE仍需全部必需子交付、最终依赖与完整案例。此机制用于D07早期审计、D08可审查增量和C02分批适配，不复制一套子调度器。
 
 Attempt 状态：`DISPATCHING / ACTIVE / SUBMITTED / INTERRUPTED / SUPERSEDED / ACCEPTED / FAILED`。失联时标记需要核对，保留容量与资源占用，不能直接当停止。RUNNING 任务最多一个当前 active_attempt；每条迟到结果校验完整执行身份，不匹配则保留为 NOT_ADOPTED，不能覆盖新结果。
 
@@ -79,6 +83,10 @@ review报告含 severity、文件/行、具体反例、影响、要求的回归�
 | 云端 | 真资源/身份/网关/平台通道/模型下记录C-V案例，不能从本地结果继承PASS |
 
 修改Python/TS执行 `./scripts/hooks/lint.sh`；按包执行pytest、类型检查、UI测试与必要build；API变化同步OpenAPI、SDK及UI代理。Python 3.11基线及支持矩阵、typed models、生产异步aiohttp、无新增BaseHTTPMiddleware/PG advisory lock等硬规则继续生效。控制面专属能力测试放其本身的suite，不强迫经Hindsight SDK调用不存在的管理接口。
+
+新模块首次候选就必须提供实际可运行的lint/type/test入口和最小测试，不能等待D13。上游复用记录固定SHA、合同差异、当前落点和补充测试；已合入能力不重复移植。源码推断的风险先建立隔离反例，核心补点按实际文件独占；外部Cloud现象、本地复现、修复后回归分别编号。
+
+行为核对案例允许附 `observation_class=OBSERVED_LIMITATION` 表达复现的原生限制，但测试receipt的PASS只说明指定核对已执行且输出符合其明示预期，不表示限制已修复。UI或文档若仍宣称更强保证，相关用户验收应FAIL；权限越界和HOSTED错误放行不可用此分类豁免。
 
 每条测试receipt记录case_id、命令/cwd、开始结束、退出码、PASS/FAIL/NOT_RUN、候选/环境/config、脱敏日志路径及摘要hash。门禁无法执行就明确BLOCKED/NOT_RUN，不写“应当通过”。依赖或代码变化只使受影响结果失效，并补必要组合检查；不无理由反复跑全套。
 

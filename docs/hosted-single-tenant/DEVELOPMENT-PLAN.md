@@ -2,6 +2,8 @@
 
 2026-10-12。产品范围见 [README](README.md)，本地优先的决策见 [EXECUTION-PLAN](EXECUTION-PLAN.md)。本文件将 E0—E6 拆成可分配给 agent 的任务；[development-state.json](development-state.json) 记录实际进度；[AGENT-WORKFLOW](AGENT-WORKFLOW.md) 规定如何派发、验收和续接。
 
+本轮已按[外部审查采纳及Cloud影响](REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md)修订R01—R14和研究反例。目标仍是单租托管；新增的是配置、授权、任务与数据完成语义的精确验收，不复刻Cloud控制面或新增派生算法。
+
 ## 1. 交付目标与工作原则
 
 本地最终交付：从干净隔离资源，使用固定制品部署 Hindsight；管理服务经 agent 执行真实启停、配置、升级与释放；页面能操作和查询；多 key/有效期/bank 授权覆盖 REST/MCP/间接资源；原生主要能力与数据生命周期通过回归；异常可恢复或明确失败；结果可复现、可审查、可接续。
@@ -18,25 +20,29 @@
 | --- | --- | --- | --- |
 | D00 / M0 | 隔离 integration/worktree、构建依赖和资源登记；`deploy/hosted-single-tenant/README.md`、包骨架及 `bootstrap/` | 无 | 当前体验源码/服务不变；基线 SHA、工作区和运行目录可核对；依赖可用，资源与定向清理方法登记 |
 | D01 / M0 | 类型化合同及示例：部署、操作、状态、结果、配置、key 管理、本地身份；`deploy/hosted-single-tenant/contracts/` | D00 | schema/revision/error/幂等/旧结果语义和最小请求响应可校验；消费方确认后发布本地合同 v1，不等内部最终协议 |
-| D02 / M1 | 正式源码构建 API/UI，独立外部测试 PG，启动/停止及探针；`runtime/`、`fixtures/`（以下均相对 deploy/hosted-single-tenant） | D01 | 真实 API/UI 启动，版本/digest 可核对，PG 就绪；一次最小 SDK 请求通过；完整 S3/派生回归不阻塞下一任务 |
+| D02 / M1 | 正式源码API/UI、锁定构建输入与制品清单、独立PG、明确进程拓扑、隔离TLS代理fixture；`runtime/`、`fixtures/` | D01 | 真实启动/停止/探针，基础镜像/工具/锁文件/平台/build args可核对；SDK文本写入→操作终态→recall通过；完整S3/派生回归不阻塞下一任务；不承诺未证明的字节级重建 |
 | D03 / M1 | 真实 Docker 执行器：deploy/start/stop/status；`executor/` 及对应测试 | D02 | 显式登记资源才可操作，执行真实容器，失败不会返回成功；命令输入不拼接任意 shell |
 | D04 / M1 | 本地管理 API、实例目标状态、持久操作与领取/结果接口；`manager/` 及对应测试 | D01 | 操作持久受理、同 ID 幂等/冲突、旧 revision 拒绝、重启保留记录；本任务可用 fixture 验接口，M1 集成必须接真实 executor |
 | D05 / M1 | 常驻 agent 的注册/心跳/执行/持久待上报，贯通管理 API；`agent/` 及对应测试 | D03、D04 | 管理 API 提交 deploy → 真实 agent/执行器 → API/UI 就绪 → 管理端查询实际状态；不以 fake executor 关闭本 Gate |
-| D06 / M2 | Key 存储/迁移、认证、管理 API/CLI；`hindsight-extensions/hosted-single-tenant/` 的 store/auth/admin 及私有测试 | D02 | 实例 PG 存校验值、一次性明文交付、UTC 到期和停用；管理身份独立，重启保持；检查扩展表和原生数据工具兼容边界 |
-| D07 / M2 | Bank validator 与逐入口授权；同扩展 validator、独占 SDK/MCP 测试文件 | D06 | 列表/分页、别名、懒创建、任务/chunk/附件、clone/transfer 源目标、MCP 会话拒绝通过；已受理任务继续原生语义 |
-| D08 / M2 | 配置/restart/upgrade/release、失联与恢复；接续 D03—D05 原写入范围，禁止与原作者同时写 | D05 | 单实例操作互斥；持久化前后及副作用后的故障案例通过；释放保留数据，迁移部分成功不假报完成；实际进程重启有证据 |
+| D06 / M2 | Key存储/独立迁移、认证和管理API/CLI、扩展打包及检查入口；`hindsight-extensions/hosted-single-tenant/` 的store/auth/admin | D02 | 实例PG校验值、UTC期限/停用、scope元数据事务、独立管理身份、共享store生命周期；正式HOSTED坏配置拒绝；最终镜像实际加载包和迁移。数据面scope执行归D07，不反向依赖 |
+| D07 / M2 | 提前入口审计、validator、独占SDK/MCP故事及必要核心补点 | 启动审计需D01；扩展/最终验收需D06，运行反例需D02 | 三个子交付逐段固定候选；覆盖原S类、挂靠bank与归档行归属、scope变更下一请求、空集合/internal/删除重建；授权拒绝在业务副作用前，合法导入能力保留 |
+| D08 / M2 | 配置重启、升级、释放恢复三个子交付；接续D03—D05原写入范围，必要启动包装独占修改 | D05 | 数据身份变更默认拒绝、同资源凭证轮换单列；按真实拓扑验证分层停止预算及长任务恢复；父取消不冒称全部停止；单实例互斥，释放保留数据，迁移部分成功准确上报 |
 | D09 / M2 | 可操作真实本地实例的管理页面；`manager-ui/` | 启动需 D04；验收需 D05、D08 | 浏览器可查看实例/版本/资源/操作，错误和进度可见；D05/D08 到位即跑真实联调；仅 fixture 的页面不得标 VERIFIED/DONE 或关闭 M2 |
 | D10 / M2 | 原生功能 UI 品牌/布局/导航、会话适配；`hindsight-control-plane/` 的明确文件清单 | D02 | 主要原生页面可用，本地受保护登录/退出、stream/文件；全权限 key 留后端；完整授权组合在 D12 验收 |
-| D11 / M2 | 原生 SDK/MCP、S3 文件与派生回归；独占 `hindsight-system-tests/tests/` 故事及 `deploy/hosted-single-tenant/tests/native/` | D02 | 文件全生命周期、bank/document/knowledge 能力、后台派生终态、SDK/MCP 通过；明确 stub/现有模型；共享 fixture 变动由主控协调 |
-| D13 / M2 | 日志/metrics/诊断、构建/CI覆盖及配置模板；`observability/`、`checks/` 和 `ci/`；根 CI 改动单独授权 | D05、D06 | 能定位实例/版本/操作；探针区分 API/UI/依赖/任务；新目录进入 lint/type/test/CI，脱敏及依赖失败可观测 |
+| D11 / M2 | 原生SDK/MCP、S3文件、显式派生故事与Cloud反例本地复现；独占system-test故事及`tests/native/` | D02 | 明确stub/现有模型；分别触发consolidation、MM及知识页刷新；验证来源撤回、父子取消、转换/入库、MCP业务error、协议参数与列表详情一致性，不外推未测模式 |
+| D13 / M2 | 日志/metrics/诊断、统一CI及规格默认清单；`observability/`、`checks/`、`ci/`；根CI独占 | D05、D06 | 新模块首次交付已有检查，本包查遗漏并整合；实例/版本/操作定位和脱敏；连接池/并发/日志保留/磁盘告警默认值有来源，目标容量由C01实测 |
 | D12 / M3 | 全栈组合与独立验收；`tests/acceptance/`、`tests/browser/` | D07、D08、D09、D10、D11、D13 | 真实管理页→管理 API→agent→Hindsight；权限+后台/文件/MCP组合、双实例隔离、异常和干净重复部署通过 |
 | D14 / M3 | 本地固定候选、交接、原生回归结果和操作说明；发布清单及 evidence | D12 | 独立 review、集成 SHA 的必要测试、制品可重复交付；内部未接入点逐项列明，任务完成不等于云发布 |
-| C01 / M4 | 真实云依赖接入与兼容验证，沿用代码和场景 | D02 + 对应真实资源 | PG/OBS/内部三模型/TLS 在一套真实专属实例通过；资源分批到位分批验证，不等待全套 |
-| C02 / M4 | 内部管理/身份/agent/观测适配及发布验收 | D14、C01 + 平台接口 | 真实 V01—V18、两套资源隔离、客户接入和支持交付齐备；发布/远端合并检查由用户保留 |
+| C01 / M4 | 真实PG/OBS/模型/TLS及目标规格最小运行基线 | D02 + 对应真实资源 | 按子案例分批验；含资源规格/连接池/并发/日志与磁盘基线。任一资源缺失不阻止其他子案例 |
+| C02 / M4 | 身份网关、agent通道、资源管理、观测发布四个适配子项 | 启动需D01+对应模块接口/平台样例；最终验收需D14、C01 | 不等整个C01/D14才开始适配；逐项就绪逐项做，最终V01—V18及两实例隔离全部通过，V19/远端合并仍独立 |
 
 D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之前完成。状态文件持有同一依赖图。内部等待只记录 C01/C02 对应子案例，其他 READY 工作继续。
 
 `depends_on` 是可启动依赖，`acceptance_dependencies` 是完成验收额外需要的任务；两者都必须无环。D09 可以先写页面，但真实运行依赖未就绪前不能接受为已完成。C02 的 CLOUD_ACCEPTED/DONE 指 V01—V18 通过及发布材料就绪；最终邀请 V19 单列 release_gate，需用户对固定候选的发布决定和实际执行记录，不能以计划批准代替。
+
+D07/D08/C02使用父任务内的子交付清单，不另建调度层；同一父任务最多一个active attempt，attempt必须标subdelivery_id及自己的就绪条件。D07审计可先开始，数据面实现仍等D06；C02身份子项需D10会话接口与平台样例、agent子项需D05及控制协议、资源管理子项需D04与资源样例、观测发布子项需D13及平台样例。样例未到只阻塞对应子项。公共文件修改依旧独占；所有子交付与父任务必测案例共同满足后才DONE。
+
+D01合同补充：BOOTSTRAP/HOSTED配置区分；同请求policy及scope空集合/无限制；key表属于实例身份而非机械bank-scoped表；删除/同名重建/导入恢复和凭证不随transfer迁移；共享store初始化/关闭所有者及可信internal；部署数据身份（embedding型号/版本/维度、PG/schema、bucket）与同资源凭证轮换。consumer ACK是合同审查，不要求下游先实现。
 
 ## 3. 里程碑与并发批次
 
@@ -59,14 +65,17 @@ D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之
 | 类别 | 必测案例 |
 | --- | --- |
 | P00—P01 开发前置 | P00：隔离工作区、依赖可用、资源登记及现有环境保护；P01：合同schema/样例/失败反例/消费方ACK。仅证明开发前置，不关闭任何真实产品运行案例 |
-| B01—B03 部署 | 干净资源构建启动；配置/PG故障拒绝就绪；API与UI分别检查、重复部署不污染其他实例 |
-| K01—K05 Key | 多 key/期限临界点；停用及scope变更；普通 key 无管理权；重启持久/查询脱敏；管理变更后下一新请求生效 |
+| B01—B06 部署 | B01—03保留；B04构建输入/锁/工具/制品身份；B05隔离TLS代理和测试客户端信任；B06 SDK写入→对应操作终态→recall，stub每次调用明确声明 |
+| K01—K08 Key | K01多key/期限；K02认证停用与scope元数据事务；K03无管理提权；K04持久/脱敏；K05停用/期限对下一认证请求生效，保留已存在资源配对探测；K06坏HOSTED配置及授权存储故障不放行；K07最终镜像加载扩展及迁移；K08同请求认证policy/store生命周期。数据面scope效果不计入D06完成条件 |
 | S01—S07 Scope | bank允许/拒绝；分页/total/别名；重复文档ID/chunk/附件；任务读写控制；clone/transfer双端/manifest；MCP旧session后续请求；已受理任务及派生继续、新请求拒绝 |
+| S08—S11 Scope补充 | S08导入操作挂靠bank必须授权；S09混入第三方bank/子记录的归档在业务副作用前拒绝，合法同ID/改名/历史/组件归档通过；S10 scope收缩后下一真实请求和旧MCP session生效；S11空scope、可信internal、bank删除重建及transfer不复制凭证按合同验证 |
 | A01—A04 Agent基础 | 真实deploy与状态；指令同ID重复/冲突；身份/路径/secret/资源范围；旧目标和延迟结果不能覆盖新revision |
 | F01—F08 失败窗口 | 受理前后持久化；副作用完成但记录未落；结果已落但未上报；上报ACK丢失；agent/manager真实重启及第二执行者冲突；控制面失联/恢复；迁移成功但API/UI失败；release中断重试且PG/OBS数据保留 |
-| N01—N05 原生 | retain→观察/mental model/knowledge各终态；recall/reflect/stream；文件/导入导出/清理/S3签名；SDK/MCP；bank/文档/图/配置/诊断等清单回归 |
-| U01—U03 浏览器 | 管理页真实操作和失败展示；功能UI等价、登录退出和stream/文件；凭证不进入浏览器且未授权实例拒绝 |
-| O01—O03 交付 | 日志/诊断脱敏及关联；探针/任务/磁盘/依赖可区分；新模块lint/type/CI与制品清单覆盖 |
+| F09—F10 维护补充 | F09已有数据时同维度换embedding模型、切PG/schema/bucket拒绝，同资源凭证轮换成功或安全失败；F10分层停止预算、超过排空期限任务的取消/归还/重启恢复、PG故障时有界结束及未决状态 |
+| N01—N05 原生 | N01三个独立故事：retain+配置启用consolidation、显式MM创建刷新、显式知识页创建刷新；N02 recall/reflect/stream；N03文件/transfer/S3；N04 SDK/MCP；N05 bank/文档/图/配置/诊断 |
+| N06—N11 Cloud反例的本地验证 | N06全部来源删除后的MM delta及配对Reflect，其他模式独立标识；N07父取消/子状态/实际写入；N08转换/入库/版本与可检索；N09多层MCP业务错误；N10 REST/SDK参数、MM detail、410与特定nullable Schema；N11同名重建及ID/列表/详情/统计配对。每项必须记实际行为，不能把正确暴露原生限制写成已修复 |
+| U01—U04 浏览器 | 原U01—03保留；U04经本地TLS代理验证可信头、伪造头、直连后端边界、会话退出/Cookie及MCP/stream/文件；阶段状态按实际证据显示，不能虚构完整任务血缘 |
+| O01—O04 交付 | O01脱敏关联；O02探针/任务/磁盘/依赖区分；O03新模块lint/type/CI与制品清单；O04有出处的部署默认规格/连接池/并发/日志保留/磁盘告警及目标规格基线记录 |
 | I01—I03 集成 | 同候选全链路；两个实例/不同PG凭证/bucket交叉访问拒绝；重启与干净重复部署 |
 | C-V01—C-V18 / 发布门C-V19 | 原 [INTEGRATION-AND-ACCEPTANCE](INTEGRATION-AND-ACCEPTANCE.md) 的真实云案例；前18项由C01/C02验证，邀请公测V19在独立release_gate记录，不作为提交用户发布检查的前置条件 |
 
@@ -77,5 +86,9 @@ D 编号是稳定标识，不代表必须按数值顺序执行；D13 在 D12 之
 工作包开发完成仅表示提交候选；独立 review 和集成后的证据通过才标 DONE。M3 必须覆盖本地所有必测案例且无未解决 must-fix；should-fix 有明确处置和理由，影响隔离/数据/恢复/主要能力的不能以延期绕过。M4 还需要真实资源证据。
 
 原生扩展优先，必要核心补点以最小复现和独占文件任务处理。保留 PostgreSQL 扩展表与原生备份/导出/恢复工具的兼容性检查，不能把 key 凭证随 bank transfer 泄露；这不扩大为建设云备份。新 API、配置、SDK、UI代理和迁移的同步要求沿用 CLAUDE.md。
+
+上游复用先使用已合入read/write/create/list_scope和static-keys范式；PR2262等只按固定SHA借机制与测试，不引入组织Supabase体系、可逆key或跨请求正缓存。复用记录必须列合同差异和当前测试，不把旧PR的CI当本地通过。
+
+N06/N07等是行为核对案例：若原生限制被复现，记录OBSERVED_LIMITATION及明确范围，local_acceptance不能被用来表示强撤回/级联取消已经成立。授权越界、错误HOSTED配置放行、数据身份静默替换必须修复；其他原生语义不为追求测试绿灯而重写。需要新增强保证时单列产品决定，既不假称修复，也不自动降低已接受的授权与数据边界。
 
 已有体验进程以 editable 方式使用当前源码，产品实现一律在独立 checkout；本轮计划文档可在主工作区维护。严禁把 `git clean/reset --hard` 当作接续手段，严禁清理未登记的现有容器、数据库、bucket 或其他项目进程。

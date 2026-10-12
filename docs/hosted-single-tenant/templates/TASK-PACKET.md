@@ -5,6 +5,7 @@
 ## 派发
 
 - task_id / attempt_id / controller_epoch / agent_id：
+- subdelivery_id（父任务有子交付时必填）、本子项模块/平台就绪条件及父任务剩余案例：
 - 用户可观察的目标与明确不包含内容：
 - baseline SHA / branch / worktree绝对路径：
 - 合同revision与依赖candidate、消费方ACK：
@@ -22,6 +23,7 @@
 - 合同/依赖、配置/迁移revision、锁文件hash、制品digest（不适用说明）：
 - 已实现行为、关键取舍、变化范围：
 - 测试receipt：case、环境种类、命令、退出码、结果、日志路径/hash：
+- 外部研究反例来源及固定版本；本地复现/原生限制/修复后回归分开记录，不用Cloud或旧PR结果充当本地PASS：
 - 未决缺陷、失败/未运行项、内部条件：
 - 运行进程/资源状态与安全停止方法：
 - 下一步可执行动作与复现步骤：
