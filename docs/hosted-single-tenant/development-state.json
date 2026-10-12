@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "project_id": "hindsight-hosted-single-tenant",
-  "revision": 6,
-  "updated_at": "2026-10-12T15:51:18.067877+00:00",
-  "phase": "PLAN_REVISION_REVIEW",
+  "revision": 7,
+  "updated_at": "2026-10-12T15:52:56.922812+00:00",
+  "phase": "DEVELOPMENT_READY",
   "source_baseline_sha": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
   "controller": {
     "owner": "/root",
@@ -1064,11 +1064,11 @@
     }
   ],
   "next_actions": [
-    "独立审查planning-v4及R01-R14/Cloud影响采纳",
-    "本轮仅分析与计划修订，产品尝试保持0",
-    "后续D00隔离→D01合同→D02/D04并行；D07审计提前；C02按子项就绪滚动适配"
+    "本轮仅分析与计划优化已完成；不启动产品尝试",
+    "后续D00隔离→D01合同→D02/D04并行；D07入口审计可先行",
+    "D06认证元数据与D07业务scope分开验；C02按单项模块和样例就绪滚动适配"
   ],
-  "planning_snapshot_commit": "5d5d8a3078fd361e34d1e1d4c6a40aa68af4fa2d",
+  "planning_snapshot_commit": "e5d97ccf85cd4c5f9f33d668157e9424d7b4fdbb",
   "release_gate": {
     "id": "USER_RELEASE",
     "candidate_id": null,
@@ -1083,10 +1083,19 @@
   },
   "planning_review": {
     "candidate_id": "planning-v5",
-    "candidate_commit": null,
-    "result": "PENDING",
-    "supersedes": "planning-v3",
-    "reason": "外部审查R01-R14及Cloud归档补充了源码/任务语义，旧静态审查不覆盖本次变更"
+    "candidate_commit": "e5d97ccf85cd4c5f9f33d668157e9424d7b4fdbb",
+    "result": "PASS_PLAN_ONLY",
+    "must_fix_remaining": 0,
+    "should_fix_remaining": 0,
+    "reviewers": [
+      "/root/quality_review_plan"
+    ],
+    "prior_candidate_reviewers": [
+      "/root/quality_review_plan",
+      "/root/continuity_design"
+    ],
+    "receipt": "docs/hosted-single-tenant/evidence/planning/REVIEW-v5.md",
+    "scope": "v4双独立复核通过；v5增量独立复核通过；产品运行NOT_RUN"
   },
   "planning_reviews_history": [
     {
