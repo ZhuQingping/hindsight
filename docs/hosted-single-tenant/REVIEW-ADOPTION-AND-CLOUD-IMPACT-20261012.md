@@ -38,7 +38,7 @@ Cloud原研究325个HTTP操作、77个MCP定义是覆盖清单，不是325种功
 | --- | --- | --- |
 | R01 | 修订接受 | D00/D02固定基础镜像、uv等构建工具、平台/target/build args及UI锁定安装，记录OS包和digest，B04检查输入漂移。SDK阶段已是npm ci，不能笼统说全仓无锁；系统包也可能漂移，不承诺尚未证明的字节级重建一致 |
 | R02 | 接受 | D01区分BOOTSTRAP与HOSTED配置；D06/K06验证缺tenant/validator、旧MCP token冲突、免认证开关、授权存储失败不放行业务。MCP空session GET probe的200不视为业务授权 |
-| R03 | 接受 | D06负责扩展代码/独立迁移进入最终镜像，K07用镜像跑授权；每新模块首次交付即有lint/type/test入口，D13再统一检查CI覆盖，不把检查推迟到最后 |
+| R03 | 接受 | D06负责打包及K07认证候选镜像的包/迁移/管理认证检查；D07/S12与D12验包含真实validator的最终HOSTED镜像，避免D06反向等待D07。每新模块首次交付即有lint/type/test入口，D13统一查CI遗漏 |
 | R04 | 修订接受 | D07预留MemoryEngine/importer独占最小补点。S08检查操作挂靠bank，S09检查归档内部行归属，保留合法历史/组件选择格式；不预先强制所有归档必须恰有一条banks行。拒绝前无业务对象、operation或第三方记录变更，正常拒绝审计可以保留 |
 | R05 | 接受 | D01/D06明确同请求policy、store唯一生命周期所有者、扩展独立Alembic树；D07明确空scope/无限制、可信internal、bank删除重建及transfer不复制key。不能依赖未被API调用的validator startup hook |
 | R06 | 接受 | D01数据身份指纹；D08/F09区分普通参数、同资源凭证轮换和数据身份变化。有数据时同维度换模型、PG/schema/bucket变化默认拒绝；地址文本变化不自动等于换资源，按已登记资源身份核对 |
@@ -48,7 +48,7 @@ Cloud原研究325个HTTP操作、77个MCP定义是覆盖清单，不是325种功
 | R10 | 接受 | D06/K02/K05只验认证停用/期限和scope元数据事务；业务scope修改后下一请求的允许/拒绝归D07/S10，再由D12复验，避免D06隐含依赖后继D07 |
 | R11 | 接受 | D07拆审计/扩展/最小核心补点，D08拆配置重启/升级/释放恢复；每段固定候选、独占写集和案例，父任务最终门不减少 |
 | R12 | 接受 | D11/N01分retain+配置开启consolidation、显式MM创建刷新、显式知识页创建刷新；分别记录触发与终态，不新增retain自动创建知识页算法 |
-| R13 | 修订接受 | 内部条件增加负责人/样例/可用时间待回填字段，仍保留真实UNKNOWN；D13/O04准备有出处的规格/连接池/并发/日志/磁盘默认值，C01在目标规格验证，不能填造负责人或容量承诺 |
+| R13 | 修订接受 | 内部条件增加负责人/样例/可用时间待回填字段，仍保留UNKNOWN；D13/O04-LOCAL准备有出处的规格/连接池/并发/日志/磁盘默认值，C01/O04-CLOUD在目标规格验证，不能用本地配置代替云容量证据或伪造负责人 |
 | R14 | 接受 | D02/B06固定SDK文本写入→对应操作终态→recall校验的小故事，stub明确标注；M1按实际构建、补点和接口差异重估投入 |
 
 R04的当前链路：`submit_bank_import_async`解析后验证tenant、tag scope和target create，然后在URL挂靠bank下存对象/操作；tag scope检查不等于bank gate。`parse_bank_archive`接受bank/directive/webhook等行，importer仅在source与target不同条件下重写bank_id。故target合法不能推出所有实际写入合法。此为源码支持的静态风险；修复前先在隔离环境建立反例，运行复现仍NOT_RUN。

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project_id": "hindsight-hosted-single-tenant",
-  "revision": 5,
-  "updated_at": "2026-10-12T15:48:08.956103+00:00",
+  "revision": 6,
+  "updated_at": "2026-10-12T15:51:18.067877+00:00",
   "phase": "PLAN_REVISION_REVIEW",
   "source_baseline_sha": "99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58",
   "controller": {
@@ -259,7 +259,7 @@
       },
       "external_conditions": [],
       "blocked_by": [],
-      "next_action": "先固化policy/store/迁移合同；实例PG认证与scope元数据，HOSTED拒绝配置，扩展进镜像；数据面scope归D07",
+      "next_action": "先固化policy/store/迁移合同；认证与scope元数据、HOSTED负配置及认证候选镜像；完整HOSTED正向发布镜像归D07/S12与D12",
       "acceptance_dependencies": [],
       "required_decisions": [],
       "subdeliveries": []
@@ -287,7 +287,8 @@
         "S08",
         "S09",
         "S10",
-        "S11"
+        "S11",
+        "S12"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -366,6 +367,9 @@
       "core_patch_scope_candidates": [
         "hindsight-api-slim/hindsight_api/engine/memory_engine.py",
         "hindsight-api-slim/hindsight_api/engine/transfer/importer.py"
+      ],
+      "final_only_cases": [
+        "S12"
       ]
     },
     {
@@ -596,7 +600,7 @@
         "O01",
         "O02",
         "O03",
-        "O04"
+        "O04-LOCAL"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -646,7 +650,8 @@
         "N09",
         "S08",
         "S09",
-        "S10"
+        "S10",
+        "S12"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -714,7 +719,7 @@
         "C-V06",
         "C-V07",
         "C-V13",
-        "O04"
+        "O04-CLOUD"
       ],
       "active_attempt_id": null,
       "accepted_candidate_id": null,
@@ -1077,7 +1082,7 @@
     "note": "C02可先完成云验收并提交发布检查；邀请和远端合并单独等待用户实际决定"
   },
   "planning_review": {
-    "candidate_id": "planning-v4",
+    "candidate_id": "planning-v5",
     "candidate_commit": null,
     "result": "PENDING",
     "supersedes": "planning-v3",
@@ -1095,6 +1100,16 @@
       ],
       "receipt": "docs/hosted-single-tenant/evidence/planning/REVIEW.md",
       "validation": "docs/hosted-single-tenant/evidence/planning/validation-v3.json"
+    },
+    {
+      "candidate_id": "planning-v4",
+      "candidate_commit": "2b5c5bfa2af280adc78efb5f39055b6f3ea992a8",
+      "result": "PASS_PLAN_ONLY_WITH_TWO_NONBLOCKING_CLARIFICATIONS",
+      "reviewers": [
+        "/root/quality_review_plan",
+        "/root/continuity_design"
+      ],
+      "note": "本候选细化O04环境及D06镜像阶段，需静态复核"
     }
   ],
   "case_definitions_added_or_refined": {
@@ -1104,7 +1119,7 @@
     "K02": "认证停用及scope元数据事务更新；不包含数据面scope允许/拒绝",
     "K05": "到期或停用对下一认证请求生效，已存在资源配对；业务scope变更归S10",
     "K06": "坏HOSTED授权配置及授权存储故障不放行业务",
-    "K07": "最终制品含扩展及独立迁移，实际加载后授权黑盒",
+    "K07": "认证候选镜像包/独立迁移/管理认证加载验证；完整HOSTED真实validator正向授权另由S12验证",
     "K08": "同请求认证policy、共享store所有者及初始化/关闭；不依赖validator未调用hook",
     "S08": "导入操作挂靠bank授权，拒绝前无业务对象/operation/数据写入",
     "S09": "归档所有实际行绑定合法源/目标；第三方混入拒绝，合法旧格式和组件选择通过",
@@ -1120,7 +1135,9 @@
     "N10": "REST/SDK参数、MM detail、410及特定nullable Schema有界兼容",
     "N11": "同名重建后的ID/列表/详情/统计配对，不预设缓存或副本原因",
     "U04": "LOCAL TLS/可信和伪造代理头/直连后端/会话Cookie/MCP/stream/文件",
-    "O04": "规格/连接池/并发/日志保留/磁盘告警默认出处及目标规格最小基线"
+    "S12": "最终HOSTED发布镜像真实tenant/validator/迁移的REST/MCP允许拒绝；D07父任务最终及D12组合，不允许占位validator放行",
+    "O04-LOCAL": "D13有出处默认规格/连接池/并发/日志/磁盘配置与本地检查，不依赖云资源",
+    "O04-CLOUD": "C01目标云规格最小运行基线独立实测，不由本地参数检查继承PASS"
   },
   "source_review_ref": "docs/hosted-single-tenant/REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md",
   "open_product_choices": [

@@ -4,7 +4,7 @@
 
 读取顺序：[README](README.md)（产品边界）→ [development-state.json](development-state.json)（真实状态）→ [DEVELOPMENT-PLAN](DEVELOPMENT-PLAN.md)（任务）→ [AGENT-WORKFLOW](AGENT-WORKFLOW.md)（并发/恢复/质量）→ 活跃任务包及证据。
 
-当前计划已按[外部审查和Cloud研究](REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md)修订为planning-v4，最新审查状态以state为准。历史planning-v3通过记录保留在[旧审查记录](evidence/planning/REVIEW.md)，不覆盖本次新内容。产品D00—D14尚未开始，不把规划agent的运行算成产品开发。源码基线仍为 `99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58`；integration worktree/branch/SHA尚未创建。原生API体验进程使用主工作区源码，产品开发必须在隔离checkout进行。
+当前计划已按[外部审查和Cloud研究](REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md)修订，最新候选及审查状态以state为准。历史planning-v3通过记录保留在[旧审查记录](evidence/planning/REVIEW.md)，不覆盖本次新内容。产品D00—D14尚未开始，不把规划agent的运行算成产品开发。源码基线仍为 `99f7750bfaa7dbbbc28cc644cdbd6b0c542bdb58`；integration worktree/branch/SHA尚未创建。原生API体验进程使用主工作区源码，产品开发必须在隔离checkout进行。
 
 用户本轮要求先分析两份其他会话材料，本轮不启动产品实现。后续开发下一动作仍为：核对旧agent/进程写入和主控所有权，D00隔离与资源登记→D01合同→D02/D04并行；D07先审计、D06后落授权；C02按模块接口和平台样例就绪逐项适配，不等整个D14/C01。全部真实云与产品运行验收仍NOT_RUN；旧health或Cloud归档观察不能改写本地状态。
 

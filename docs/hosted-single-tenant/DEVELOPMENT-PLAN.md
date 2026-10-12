@@ -24,7 +24,7 @@
 | D03 / M1 | 真实 Docker 执行器：deploy/start/stop/status；`executor/` 及对应测试 | D02 | 显式登记资源才可操作，执行真实容器，失败不会返回成功；命令输入不拼接任意 shell |
 | D04 / M1 | 本地管理 API、实例目标状态、持久操作与领取/结果接口；`manager/` 及对应测试 | D01 | 操作持久受理、同 ID 幂等/冲突、旧 revision 拒绝、重启保留记录；本任务可用 fixture 验接口，M1 集成必须接真实 executor |
 | D05 / M1 | 常驻 agent 的注册/心跳/执行/持久待上报，贯通管理 API；`agent/` 及对应测试 | D03、D04 | 管理 API 提交 deploy → 真实 agent/执行器 → API/UI 就绪 → 管理端查询实际状态；不以 fake executor 关闭本 Gate |
-| D06 / M2 | Key存储/独立迁移、认证和管理API/CLI、扩展打包及检查入口；`hindsight-extensions/hosted-single-tenant/` 的store/auth/admin | D02 | 实例PG校验值、UTC期限/停用、scope元数据事务、独立管理身份、共享store生命周期；正式HOSTED坏配置拒绝；最终镜像实际加载包和迁移。数据面scope执行归D07，不反向依赖 |
+| D06 / M2 | Key存储/独立迁移、认证和管理API/CLI、扩展打包及检查入口；`hindsight-extensions/hosted-single-tenant/` 的store/auth/admin | D02 | 实例PG校验值、UTC期限/停用、scope元数据事务、独立管理身份、共享store生命周期；HOSTED坏配置拒绝；认证候选镜像加载包/迁移。完整HOSTED正向镜像授权由D07/S12、D12验，不反向依赖 |
 | D07 / M2 | 提前入口审计、validator、独占SDK/MCP故事及必要核心补点 | 启动审计需D01；扩展/最终验收需D06，运行反例需D02 | 三个子交付逐段固定候选；覆盖原S类、挂靠bank与归档行归属、scope变更下一请求、空集合/internal/删除重建；授权拒绝在业务副作用前，合法导入能力保留 |
 | D08 / M2 | 配置重启、升级、释放恢复三个子交付；接续D03—D05原写入范围，必要启动包装独占修改 | D05 | 数据身份变更默认拒绝、同资源凭证轮换单列；按真实拓扑验证分层停止预算及长任务恢复；父取消不冒称全部停止；单实例互斥，释放保留数据，迁移部分成功准确上报 |
 | D09 / M2 | 可操作真实本地实例的管理页面；`manager-ui/` | 启动需 D04；验收需 D05、D08 | 浏览器可查看实例/版本/资源/操作，错误和进度可见；D05/D08 到位即跑真实联调；仅 fixture 的页面不得标 VERIFIED/DONE 或关闭 M2 |
@@ -66,16 +66,17 @@ D01合同补充：BOOTSTRAP/HOSTED配置区分；同请求policy及scope空集�
 | --- | --- |
 | P00—P01 开发前置 | P00：隔离工作区、依赖可用、资源登记及现有环境保护；P01：合同schema/样例/失败反例/消费方ACK。仅证明开发前置，不关闭任何真实产品运行案例 |
 | B01—B06 部署 | B01—03保留；B04构建输入/锁/工具/制品身份；B05隔离TLS代理和测试客户端信任；B06 SDK写入→对应操作终态→recall，stub每次调用明确声明 |
-| K01—K08 Key | K01多key/期限；K02认证停用与scope元数据事务；K03无管理提权；K04持久/脱敏；K05停用/期限对下一认证请求生效，保留已存在资源配对探测；K06坏HOSTED配置及授权存储故障不放行；K07最终镜像加载扩展及迁移；K08同请求认证policy/store生命周期。数据面scope效果不计入D06完成条件 |
+| K01—K08 Key | K01多key/期限；K02认证停用与scope元数据事务；K03无管理提权；K04持久/脱敏；K05停用/期限对下一认证请求生效，保留已存在资源配对探测；K06坏HOSTED配置及授权存储故障不放行；K07认证候选镜像加载扩展/迁移及管理认证，完整HOSTED正向授权归S12；K08同请求认证policy/store生命周期。数据面scope效果不计入D06完成条件 |
 | S01—S07 Scope | bank允许/拒绝；分页/total/别名；重复文档ID/chunk/附件；任务读写控制；clone/transfer双端/manifest；MCP旧session后续请求；已受理任务及派生继续、新请求拒绝 |
 | S08—S11 Scope补充 | S08导入操作挂靠bank必须授权；S09混入第三方bank/子记录的归档在业务副作用前拒绝，合法同ID/改名/历史/组件归档通过；S10 scope收缩后下一真实请求和旧MCP session生效；S11空scope、可信internal、bank删除重建及transfer不复制凭证按合同验证 |
+| S12 最终HOSTED镜像 | D07父任务最终验收与D12组合：包含真实tenant/validator和独立迁移的固定发布镜像，REST/MCP正负例通过；禁止用占位validator放行冒充完整授权。D06无需等待此项完成 |
 | A01—A04 Agent基础 | 真实deploy与状态；指令同ID重复/冲突；身份/路径/secret/资源范围；旧目标和延迟结果不能覆盖新revision |
 | F01—F08 失败窗口 | 受理前后持久化；副作用完成但记录未落；结果已落但未上报；上报ACK丢失；agent/manager真实重启及第二执行者冲突；控制面失联/恢复；迁移成功但API/UI失败；release中断重试且PG/OBS数据保留 |
 | F09—F10 维护补充 | F09已有数据时同维度换embedding模型、切PG/schema/bucket拒绝，同资源凭证轮换成功或安全失败；F10分层停止预算、超过排空期限任务的取消/归还/重启恢复、PG故障时有界结束及未决状态 |
 | N01—N05 原生 | N01三个独立故事：retain+配置启用consolidation、显式MM创建刷新、显式知识页创建刷新；N02 recall/reflect/stream；N03文件/transfer/S3；N04 SDK/MCP；N05 bank/文档/图/配置/诊断 |
 | N06—N11 Cloud反例的本地验证 | N06全部来源删除后的MM delta及配对Reflect，其他模式独立标识；N07父取消/子状态/实际写入；N08转换/入库/版本与可检索；N09多层MCP业务错误；N10 REST/SDK参数、MM detail、410与特定nullable Schema；N11同名重建及ID/列表/详情/统计配对。每项必须记实际行为，不能把正确暴露原生限制写成已修复 |
 | U01—U04 浏览器 | 原U01—03保留；U04经本地TLS代理验证可信头、伪造头、直连后端边界、会话退出/Cookie及MCP/stream/文件；阶段状态按实际证据显示，不能虚构完整任务血缘 |
-| O01—O04 交付 | O01脱敏关联；O02探针/任务/磁盘/依赖区分；O03新模块lint/type/CI与制品清单；O04有出处的部署默认规格/连接池/并发/日志保留/磁盘告警及目标规格基线记录 |
+| O01—O03 / O04-LOCAL / O04-CLOUD | O01脱敏关联；O02探针/任务/磁盘/依赖区分；O03新模块lint/type/CI与制品清单；D13只验O04-LOCAL默认规格/连接池/并发/日志/磁盘配置来源与本地检查；C01单独验O04-CLOUD目标规格实测，本地完成不等云也不能替代云容量证据 |
 | I01—I03 集成 | 同候选全链路；两个实例/不同PG凭证/bucket交叉访问拒绝；重启与干净重复部署 |
 | C-V01—C-V18 / 发布门C-V19 | 原 [INTEGRATION-AND-ACCEPTANCE](INTEGRATION-AND-ACCEPTANCE.md) 的真实云案例；前18项由C01/C02验证，邀请公测V19在独立release_gate记录，不作为提交用户发布检查的前置条件 |
 

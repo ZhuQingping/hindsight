@@ -1,0 +1,72 @@
+{
+  "candidate_id": "planning-v5",
+  "kind": "PLAN_REVISION_FROM_SOURCE_REVIEW_AND_CLOUD_ARCHIVE",
+  "supersedes": "planning-v4",
+  "source_baseline": "2b5c5bfa2af280adc78efb5f39055b6f3ea992a8",
+  "files": [
+    {
+      "path": "docs/hosted-single-tenant/README.md",
+      "sha256": "4c9acdc12e07acca23c2affff0329a1edb4cb12732a22c85dcb4f613e9fbe54a"
+    },
+    {
+      "path": "docs/hosted-single-tenant/WORK-ITEMS.md",
+      "sha256": "f09c5bf367dac881b984e3d7e05fe77c04a6bceacdf70cd5afd2adf700f826b4"
+    },
+    {
+      "path": "docs/hosted-single-tenant/INTEGRATION-AND-ACCEPTANCE.md",
+      "sha256": "3566e8b60fd7b8ddf684503d64d9c1e1b9312b46b4d329b4ba89fc701382966f"
+    },
+    {
+      "path": "docs/hosted-single-tenant/EXPLORATION-AND-PLAN-20261012.md",
+      "sha256": "47d37ed47dd0cf22d42a6acb785e4705c0a1a558f31a29cfb872ee371bb1c53a"
+    },
+    {
+      "path": "docs/hosted-single-tenant/EXECUTION-PLAN.md",
+      "sha256": "9454137f3c2768d6c9890daf57e42a7e10ede8d2b990e6c98d323ec78a1a4b7e"
+    },
+    {
+      "path": "docs/hosted-single-tenant/INTERNAL-HANDOFF.md",
+      "sha256": "c5c23b66e688a127325ab67dec773a1ed7be854002584a61ece9918d64deb403"
+    },
+    {
+      "path": "docs/hosted-single-tenant/DEVELOPMENT-PLAN.md",
+      "sha256": "996ff013a20a5b4fd234efa569a6d001490dee6987761b6e40b4adad092c67ae"
+    },
+    {
+      "path": "docs/hosted-single-tenant/AGENT-WORKFLOW.md",
+      "sha256": "91027fec80e1f9e95bcaa3dd0fea277d3893d7e19a41d87e871d6f68bfe67e30"
+    },
+    {
+      "path": "docs/hosted-single-tenant/START-HERE.md",
+      "sha256": "1cab9c5a9f6025434043742239ceeac6b73f8e4ab625befc36ee13e3999214a2"
+    },
+    {
+      "path": "docs/hosted-single-tenant/REVIEW-ADOPTION-AND-CLOUD-IMPACT-20261012.md",
+      "sha256": "3bc999a01bcfca684f13f4999c0b594a323e2b74bbb0a168e0f2fa75c130543e"
+    },
+    {
+      "path": "docs/hosted-single-tenant/templates/TASK-PACKET.md",
+      "sha256": "dccf56df117d7cd78205a510a4298fa43d3ca11da168429f64c72ad5e5b1c268"
+    },
+    {
+      "path": "docs/hosted-single-tenant/development-state.json",
+      "sha256": "ded19a010c71f6e25eb94aafdde938934f609835e78d61f223e4c5170145a005"
+    },
+    {
+      "path": "docs/hosted-single-tenant/evidence/planning/source-review-inputs.json",
+      "sha256": "eb4eaf7c3659ab01fc550d46e449d650780d40f9a960f8832803cf1b45995a6f"
+    }
+  ],
+  "checks": {
+    "task_count": 17,
+    "start_and_acceptance_dag": "PASS",
+    "subdelivery_references_and_cases": "PASS",
+    "C02_identity_ready_while_OBS_missing": "PASS",
+    "local_links": 89,
+    "truthful_product_state": "PASS",
+    "clarified_local_cloud_case": "O04-LOCAL versus O04-CLOUD",
+    "clarified_auth_image_stages": "D06 K07 identity image; D07/D12 S12 final HOSTED image"
+  },
+  "review_status": "PENDING",
+  "product_runtime": "NOT_RUN"
+}
