@@ -12,7 +12,11 @@
 | 发布版本 | 在 T01 中选择并固定版本、镜像 digest 和配置；导入基线不等于已通过发布验收 |
 | 代码与运行状态 | 本次仅提交方案；功能改造、云部署和端到端验收均未执行 |
 
-配套清单：[工作分解与依赖](WORK-ITEMS.md)、[组件对接与上线验收](INTEGRATION-AND-ACCEPTANCE.md)。
+配套清单：[当前执行计划](EXECUTION-PLAN.md)、[内部协作交付清单](INTERNAL-HANDOFF.md)、[工作分解与依赖](WORK-ITEMS.md)、[组件对接与上线验收](INTEGRATION-AND-ACCEPTANCE.md)。
+
+开发入口：[START-HERE](START-HERE.md) → [开发工作包与里程碑](DEVELOPMENT-PLAN.md) → [Agent 协作、续接与质量规则](AGENT-WORKFLOW.md)。[development-state.json](development-state.json) 是开发进度的唯一结构化台账；计划存在不表示实现已完成。
+
+历史探索：[2026-10-12 源码与当前环境核对](EXPLORATION-AND-PLAN-20261012.md)。其中环境记录保留为当时观察；后续用户要求尽量在当前环境实现可交付能力，包括管控 agent。执行顺序与分工以当前执行计划为准，不再以内部平台合同全部就绪作为本地开发前置条件。计划更新不表示对应功能已实现或云端已验收。
 
 ## 已确认的首期范围
 
