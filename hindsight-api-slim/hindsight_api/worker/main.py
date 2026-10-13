@@ -419,6 +419,8 @@ def main():
                 pass
 
         # Close memory engine
+        if memory.tenant_extension is not None:
+            await memory.tenant_extension.on_shutdown()
         await memory.close()
 
         # Flush queued spans before exiting: a consolidation span can be minutes

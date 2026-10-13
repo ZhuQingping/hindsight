@@ -62,7 +62,7 @@ def create_app(
     if http_api_enabled:
         from .http import create_app as create_http_app
 
-        app = create_http_app(memory=memory, initialize_memory=initialize_memory)
+        app = create_http_app(memory=memory, initialize_memory=initialize_memory, defer_extension_middleware=True)
         logger.info("HTTP REST API enabled")
     else:
         # Create minimal FastAPI app
@@ -106,6 +106,11 @@ def create_app(
 
         logger.info(f"MCP server enabled at {mcp_mount_path}/")
 
+    # MCPMiddleware dispatches its mounted app directly rather than through the
+    # HTTP router. Extension request-drain guards must therefore wrap BOTH
+    # transports, outside that middleware, not just the native REST router.
+    for middleware in getattr(app.state, "extension_transport_middleware", []):
+        app.add_middleware(middleware.cls, *middleware.args, **middleware.kwargs)
     return app
 
 

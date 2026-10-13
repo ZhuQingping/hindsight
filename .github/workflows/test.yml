@@ -51,6 +51,7 @@ jobs:
       integrations-copilot-cli: ${{ steps.filter.outputs.integrations-copilot-cli }}
       extensions-supabase-tenant: ${{ steps.filter.outputs.extensions-supabase-tenant }}
       extensions-static-keys-tenant: ${{ steps.filter.outputs.extensions-static-keys-tenant }}
+      extensions-contextdb-service: ${{ steps.filter.outputs.extensions-contextdb-service }}
       integrations-crewai: ${{ steps.filter.outputs.integrations-crewai }}
       integrations-litellm: ${{ steps.filter.outputs.integrations-litellm }}
       integrations-pydantic-ai: ${{ steps.filter.outputs.integrations-pydantic-ai }}
@@ -218,6 +219,8 @@ jobs:
             - 'hindsight-extensions/supabase-tenant/**'
           extensions-static-keys-tenant:
             - 'hindsight-extensions/static-keys-tenant/**'
+          extensions-contextdb-service:
+            - 'hindsight-extensions/contextdb-service/**'
           integrations-crewai:
             - 'hindsight-integrations/crewai/**'
           integrations-litellm:
@@ -3625,6 +3628,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.system-tests == 'true' ||
+      needs.detect-changes.outputs.extensions-contextdb-service == 'true' ||
       needs.detect-changes.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -4075,6 +4079,40 @@ jobs:
     - name: Run tests
       working-directory: ./hindsight-integrations/copilot-cli
       run: uv run pytest tests -v
+
+  test-extension-contextdb-service:
+    needs: [detect-changes]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.extensions-contextdb-service == 'true' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+    - name: Install extension test environment
+      working-directory: ./hindsight-extensions/contextdb-service
+      # Extension lockfiles are not committed. Resolve and create one on first
+      # install; subsequent steps use that generated lock with --frozen.
+      run: uv sync
+    - name: Run ContextDB metadata, HTTP and policy tests
+      working-directory: ./hindsight-extensions/contextdb-service
+      run: uv run --frozen pytest tests -v
+    - name: Check ContextDB Python quality
+      working-directory: ./hindsight-extensions/contextdb-service
+      # The root lint script does not discover optional server extensions.
+      # Keep ty aligned with the host's pinned checker, not a floating release.
+      run: |
+        uv run --frozen --with ruff ruff check --config ../../ruff.toml .
+        uv run --frozen --with ruff ruff format --check --config ../../ruff.toml .
+        uv run --frozen --with ty==0.0.84 ty check hindsight_ext_contextdb
 
   test-extension-supabase-tenant:
     needs: [detect-changes]
@@ -5855,6 +5893,7 @@ jobs:
       - test-agent-framework-integration
       - test-extension-supabase-tenant
       - test-extension-static-keys-tenant
+      - test-extension-contextdb-service
       - test-crewai-integration
       - test-langgraph-integration
       - test-superagent-integration
