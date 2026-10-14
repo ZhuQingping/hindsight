@@ -21,7 +21,7 @@ pub struct FileEntry {
     pub hash: String,
 }
 
-/// The persisted state file (`<dir>/.hindsight-fs/state.json`).
+/// The persisted state file (`<dir>/.agentstratum-fs/state.json`).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SyncState {
     pub version: u32,

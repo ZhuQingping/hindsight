@@ -52,16 +52,16 @@ describe("configuration reference", () => {
     expect(undocumented).toEqual([]);
   });
 
-  it("documents the env-var rule truthfully — every key really is HINDSIGHT_<FIELD_IN_CAPS>", () => {
+  it("documents the env-var rule truthfully — every key really is AGENTSTRATUM_<FIELD_IN_CAPS>", () => {
     // The README documents the env layer as a RULE rather than a 35-row table, so the rule has to
     // hold for every key: one deviating name would be a setting nobody could derive from the docs.
     const src = readFileSync(join(pkgRoot, "src", "core", "config.ts"), "utf8");
     const block = /const ENV_KEYS = \{([\s\S]*?)\n\} as const/.exec(src);
     if (!block) throw new Error("could not find ENV_KEYS in core/config.ts");
-    const pairs = [...block[1].matchAll(/^\s*(\w+): "(HINDSIGHT_\w+)"/gm)];
+    const pairs = [...block[1].matchAll(/^\s*(\w+): "(AGENTSTRATUM_\w+)"/gm)];
     expect(pairs.length).toBeGreaterThan(30);
     const expected = (field: string) =>
-      "HINDSIGHT_" + field.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase();
+      "AGENTSTRATUM_" + field.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase();
     expect(pairs.filter(([, field, env]) => expected(field) !== env).map(([, f]) => f)).toEqual([]);
   });
 
@@ -70,7 +70,7 @@ describe("configuration reference", () => {
     // flattening into one variable. If one ever gained an env var, that sentence would be a lie.
     const src = readFileSync(join(pkgRoot, "src", "core", "config.ts"), "utf8");
     const block = /const ENV_KEYS = \{([\s\S]*?)\n\} as const/.exec(src);
-    const fields = [...block![1].matchAll(/^\s*(\w+): "HINDSIGHT_/gm)].map((m) => m[1]);
+    const fields = [...block![1].matchAll(/^\s*(\w+): "AGENTSTRATUM_/gm)].map((m) => m[1]);
     for (const fileOnly of ["mapPathToBank", "harnesses", "banks", "retainMetadata"]) {
       expect(fields).not.toContain(fileOnly);
     }

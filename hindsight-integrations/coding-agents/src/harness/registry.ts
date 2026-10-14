@@ -84,21 +84,21 @@ export const HARNESS_NAMES = [
 ];
 
 const HOOK_BINS: Record<string, string> = {
-  "claude-code": "hindsight-claude-hook",
-  "cursor-cli": "hindsight-cursor-hook",
-  codex: "hindsight-codex-hook",
-  dcode: "hindsight-dcode-hook",
-  "antigravity-cli": "hindsight-antigravity-hook",
-  "devin-cli": "hindsight-devin-hook",
-  "copilot-cli": "hindsight-copilot-hook",
-  "grok-build": "hindsight-grok-hook",
-  "qwen-code": "hindsight-qwen-hook",
-  "factory-droid": "hindsight-droid-hook",
-  zcode: "hindsight-zcode-hook",
-  traecode: "hindsight-traecode-hook",
-  "kimi-code": "hindsight-kimi-hook",
-  workbuddy: "hindsight-workbuddy-hook",
-  codebuddy: "hindsight-codebuddy-hook",
+  "claude-code": "agentstratum-claude-hook",
+  "cursor-cli": "agentstratum-cursor-hook",
+  codex: "agentstratum-codex-hook",
+  dcode: "agentstratum-dcode-hook",
+  "antigravity-cli": "agentstratum-antigravity-hook",
+  "devin-cli": "agentstratum-devin-hook",
+  "copilot-cli": "agentstratum-copilot-hook",
+  "grok-build": "agentstratum-grok-hook",
+  "qwen-code": "agentstratum-qwen-hook",
+  "factory-droid": "agentstratum-droid-hook",
+  zcode: "agentstratum-zcode-hook",
+  traecode: "agentstratum-traecode-hook",
+  "kimi-code": "agentstratum-kimi-hook",
+  workbuddy: "agentstratum-workbuddy-hook",
+  codebuddy: "agentstratum-codebuddy-hook",
   // more hook harnesses: add a HookSpec entry point (see src/cursor-hook.ts) + a registration here.
 };
 

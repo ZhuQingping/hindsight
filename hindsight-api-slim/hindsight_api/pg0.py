@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_USERNAME = "hindsight"
-DEFAULT_PASSWORD = "hindsight"
-DEFAULT_DATABASE = "hindsight"
+DEFAULT_USERNAME = "agentstratum"
+DEFAULT_PASSWORD = "agentstratum"
+DEFAULT_DATABASE = "agentstratum"
 
 
 class EmbeddedPostgres:
@@ -25,7 +25,7 @@ class EmbeddedPostgres:
         username: str = DEFAULT_USERNAME,
         password: str = DEFAULT_PASSWORD,
         database: str = DEFAULT_DATABASE,
-        name: str = "hindsight",
+        name: str = "agentstratum",
         config: dict[str, str] | None = None,
         **kwargs,
     ):
@@ -48,7 +48,7 @@ class EmbeddedPostgres:
             except ImportError:
                 raise ImportError(
                     "pg0-embedded is required for embedded PostgreSQL. "
-                    "Install it with: pip install 'hindsight-api-slim[embedded-db]'"
+                    "Install the embedded-db extra from your configured API distribution."
                 )
             # A kwargs BAG, assembled conditionally below. Inferred, its value type is the union
             # of everything in it, so the `**` unpack is checked as if every key could be every
@@ -174,7 +174,7 @@ def parse_pg0_url(db_url: str) -> Pg0Url:
     """
     if db_url == "pg0" or db_url.startswith("pg0?"):
         config = dict(parse_qsl(db_url[4:])) or None
-        return Pg0Url(is_pg0=True, instance_name="hindsight", config=config)
+        return Pg0Url(is_pg0=True, instance_name="agentstratum", config=config)
 
     if not db_url.startswith("pg0://"):
         return Pg0Url(is_pg0=False)
@@ -203,7 +203,7 @@ def parse_pg0_url(db_url: str) -> Pg0Url:
 
     return Pg0Url(
         is_pg0=True,
-        instance_name=instance_name or "hindsight",
+        instance_name=instance_name or "agentstratum",
         port=port,
         username=username,
         password=password,

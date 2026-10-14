@@ -1,5 +1,5 @@
 /**
- * Harness-agnostic Hindsight HTTP client (raw fetch, no SDK dep).
+ * Harness-agnostic agentstratum HTTP client (raw fetch, no SDK dep).
  *
  * Every harness adapter and the backfill CLI go through this one client: it configures the bank
  * (missions + git/chat retain strategies), retains memories, reflects, drains async operations, and
@@ -127,7 +127,7 @@ export interface ClientOpts {
    *  `RateLimitedError`. Default 0: a hook answers to its host's deadline and must fail fast.
    *  Background work that has nobody waiting on it (deepen) sets this, because a 429 it does not
    *  wait out is an item missing from the bank — deepen used to log "failed to enqueue" and carry
-   *  on, dropping about a third of a repo's chats against a rate-limited Hindsight Cloud. */
+   *  on, dropping about a third of a repo's chats against a rate-limited agentstratum Cloud. */
   rateLimitPatienceMs?: number;
 }
 
@@ -176,7 +176,7 @@ export function retryAfterMs(header: string | null | undefined): number {
 export class KnowledgePagesUnavailableError extends Error {
   readonly code = "knowledge_pages_unavailable";
   constructor() {
-    super("Hindsight server does not support knowledge pages");
+    super("agentstratum server does not support knowledge pages");
     this.name = "KnowledgePagesUnavailableError";
   }
 }
@@ -240,7 +240,7 @@ export class ReflectError extends Error {
 
 export const DEFAULT_MAX_PARALLEL_RETAINS = 10;
 /** Knowledge pages returned by one search — the hook's injection and the agent-facing
- *  `hindsight_search_knowledge_pages` tool both get this, so tuning it moves both.
+ *  `agentstratum_search_knowledge_pages` tool both get this, so tuning it moves both.
  *
  *  Ten, not three. Three was set when the page roster was injected wholesale and search was a
  *  rarely-used fallback; search is now the way in, and a repo's pages are narrow by design, so the
@@ -314,7 +314,7 @@ function shapePage(page: unknown): unknown {
 export class HindsightClient {
   readonly apiUrl: string;
   /** The credential the NEXT request will sign with — NOT the one the config file holds. The two
-   *  diverge exactly when #3600 bites, which is why `hindsight_diagnose` reports both. */
+   *  diverge exactly when #3600 bites, which is why `agentstratum_diagnose` reports both. */
   private token: string | undefined;
   private readonly tokenProvider?: () => string | undefined;
   readonly bank: string;
@@ -392,6 +392,8 @@ export class HindsightClient {
    * bounds the whole call.
    */
   private async fetchWithAuth(url: string, init: RequestInit): Promise<Response> {
+    if (!this.apiUrl)
+      throw new Error("Set apiUrl or AGENTSTRATUM_API_URL before connecting to the service.");
     const send = () => fetch(url, { ...init, headers: this.headers() });
     const r = await send();
     if (r.status !== 401 || !this.refreshToken()) return r;
@@ -403,7 +405,7 @@ export class HindsightClient {
   private authHint(status: number): string {
     if (status !== 401) return "";
     return this.token
-      ? " (the configured apiToken was rejected — check ~/.hindsight/coding-agent.json)"
+      ? " (the configured apiToken was rejected — check ~/.agentstratum/coding-agent.json)"
       : " (no apiToken is configured, so no Authorization header was sent)";
   }
 
@@ -854,7 +856,7 @@ export class HindsightClient {
 
   /** Hybrid (BM25 + vector, RRF-fused) server-side search over the bank's knowledge pages.
    *  Returns page-level hits with a relevance snippet — the real search behind
-   *  hindsight_search_knowledge_pages. */
+   *  agentstratum_search_knowledge_pages. */
   async searchKnowledgePages(
     query: string,
     opts: { limit?: number; timeoutMs?: number } = {}

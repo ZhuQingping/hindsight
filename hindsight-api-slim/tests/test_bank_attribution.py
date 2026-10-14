@@ -307,12 +307,12 @@ async def test_litellm_proxy_sends_bank_header():
         await encoder.initialize()
         with patch(
             "hindsight_api.engine.cross_encoder.reranker_bank_attribution_headers",
-            return_value={"X-Hindsight-Bank-Id": "bank-litellm-proxy"},
+            return_value={"X-Agentstratum-Bank-Id": "bank-litellm-proxy"},
         ):
             scores = await encoder.predict([("query", "document")])
 
     assert scores == [0.91]
-    assert received[0]["X-Hindsight-Bank-Id"] == "bank-litellm-proxy"
+    assert received[0]["X-Agentstratum-Bank-Id"] == "bank-litellm-proxy"
 
 
 # ── Executor context propagation ──────────────────────────────────────────────

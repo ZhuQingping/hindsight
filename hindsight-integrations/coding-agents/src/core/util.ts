@@ -73,7 +73,7 @@ export async function pool<T>(
 }
 
 /** Name ownership alone is insufficient: users can legitimately register another server as
- * `hindsight`. Match the exact script shape this package has emitted under its source, npm, and
+ * `agentstratum`. Match the exact script shape this package has emitted under its source, npm, and
  * staged directory names; an incidental "coding-agents" string must not grant ownership. */
 export function isOurMcpEntry(entry: unknown): boolean {
   if (!entry || typeof entry !== "object") return false;
@@ -85,6 +85,6 @@ export function isOurMcpEntry(entry: unknown): boolean {
   return (
     parts.at(-1) === "mcp-server.js" &&
     parts.at(-2) === "dist" &&
-    (parts.at(-3) === "coding-agents" || parts.at(-3) === "hindsight-coding-agents")
+    (parts.at(-3) === "coding-agents" || parts.at(-3) === "agentstratum-coding-agents")
   );
 }

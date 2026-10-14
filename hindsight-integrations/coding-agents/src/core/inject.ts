@@ -33,11 +33,11 @@ export function buildReflectQuery(prompt: string): string {
 }
 
 const PAGE_FALLBACK_LEAD =
-  "(Hindsight's synthesis was unavailable this turn; these knowledge pages matched the goal by " +
-  "search. Read one with hindsight_read_knowledge_page(<id>) if it looks relevant.)";
+  "(agentstratum's synthesis was unavailable this turn; these knowledge pages matched the goal by " +
+  "search. Read one with agentstratum_read_knowledge_page(<id>) if it looks relevant.)";
 export const PAGE_INJECT_LEAD =
   "(These knowledge pages matched the goal by search. Read one with " +
-  "hindsight_read_knowledge_page(<id>) if it looks relevant.)";
+  "agentstratum_read_knowledge_page(<id>) if it looks relevant.)";
 
 /** The memory body injected from knowledge-page search: after a failed reflect (default lead), or
  *  as the configured `autoInject: "pages"` source. */
@@ -60,7 +60,7 @@ export function formatPageFallback(
 // bank that recalls world/experience facts would otherwise be told they are consolidated
 // observations — a claim about provenance that the injected block has no business guessing at.
 const RECALL_FALLBACK_LEAD =
-  "(Hindsight's synthesis was unavailable this turn; these memories were recalled from the bank " +
+  "(agentstratum's synthesis was unavailable this turn; these memories were recalled from the bank " +
   "for the goal, unsynthesized.)";
 export const RECALL_INJECT_LEAD =
   "(These memories were recalled from the bank for the goal, unsynthesized.)";
@@ -72,7 +72,7 @@ export function formatRecallFallback(observations: string[], lead = RECALL_FALLB
 }
 
 export function buildSystemInjection(memory: string): string {
-  // The <hindsight_memory> wrapper is LOAD-BEARING: the transcript readers strip this exact tag
+  // The <agentstratum_memory> wrapper is LOAD-BEARING: the transcript readers strip this exact tag
   // (transcript-util MEMORY_TAG_RE) so the session write-back never re-ingests the injected
   // synthesis back into the bank (a retain→reflect feedback loop).
   //
@@ -82,11 +82,11 @@ export function buildSystemInjection(memory: string): string {
   // off-target memory reads exactly like a prompt injection, and skeptical models rightly
   // discard the whole channel.
   return (
-    "<hindsight_memory>\n" +
+    "<agentstratum_memory>\n" +
     // Provenance is stated as what the bank MAY hold, not what it does: the block is built with no
     // knowledge of the workspace, and promising "git rationale" in a directory that is not a git
     // repository contradicted the very pages it then quoted (#4607).
-    "Automatically retrieved by Hindsight from this workspace's own memory — whatever it has " +
+    "Automatically retrieved by agentstratum from this workspace's own memory — whatever it has " +
     "recorded so far (past developer sessions, and commit rationale where there is a git " +
     "history). Real memory, but retrieval is heuristic: it may or may not bear on the current " +
     "task.\n" +
@@ -100,13 +100,13 @@ export function buildSystemInjection(memory: string): string {
     "numbers, set members, mappings), apply them as given rather than substituting a plausible " +
     "alternative, and verify against the current code before editing. When it informs part of " +
     "your answer, attribute that part visibly, starting with:\n" +
-    "> 🧠 **From Hindsight memory** — <the specific facts you drew on>\n" +
+    "> 🧠 **From agentstratum memory** — <the specific facts you drew on>\n" +
     "Never attribute memory that did not contribute.\n" +
     "If you VERIFY this memory is wrong or outdated (the code or facts contradict it), CORRECT " +
-    "the record: call hindsight_ingest_document with a short correction titled " +
+    "the record: call agentstratum_ingest_document with a short correction titled " +
     '"Correction: <topic>" stating (1) what memory claimed, (2) what is actually true now, and ' +
     "(3) the evidence you verified — the newer fact supersedes the stale one in future retrieval.\n\n" +
     memory +
-    "\n</hindsight_memory>"
+    "\n</agentstratum_memory>"
   );
 }

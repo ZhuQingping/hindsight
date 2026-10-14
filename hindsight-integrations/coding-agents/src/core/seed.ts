@@ -74,8 +74,8 @@ export function seedControl(
     startBackgroundSeed(args.repo, { limit: args.limit, spawn: args.spawn });
     return {
       ok: true,
-      message: `🧠 Hindsight is learning this repo → memory bank “${args.bankId}”`,
+      message: `🧠 agentstratum is learning this repo → memory bank “${args.bankId}”`,
     };
   }
-  return { ok: false, message: "usage: hindsight-seed seed --repo <dir>" };
+  return { ok: false, message: "usage: agentstratum-seed seed --repo <dir>" };
 }

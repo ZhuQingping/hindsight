@@ -4,7 +4,7 @@
 
 set -e
 
-HINDSIGHT_URL="${HINDSIGHT_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
 BANK_ID="main-methods-sh-demo-bank"
 
 # =============================================================================
@@ -22,35 +22,35 @@ echo "The team uses GitHub for code reviews." > docs/process.txt
 
 # [docs:main-retain]
 # Store a single fact
-hindsight memory retain "$BANK_ID" "Alice joined Google in March 2024 as a Senior ML Engineer"
+agentstratum memory retain "$BANK_ID" "Alice joined Google in March 2024 as a Senior ML Engineer"
 
 # Store from a file
-hindsight memory retain-files "$BANK_ID" conversation.txt --context "Daily standup"
+agentstratum memory retain-files "$BANK_ID" conversation.txt --context "Daily standup"
 
 # Store multiple files
-hindsight memory retain-files "$BANK_ID" docs/
+agentstratum memory retain-files "$BANK_ID" docs/
 # [/docs:main-retain]
 
 # [docs:main-recall]
 # Basic search
-hindsight memory recall "$BANK_ID" "What does Alice do at Google?"
+agentstratum memory recall "$BANK_ID" "What does Alice do at Google?"
 
 # Search with options
-hindsight memory recall "$BANK_ID" "What happened last spring?" \
+agentstratum memory recall "$BANK_ID" "What happened last spring?" \
     --budget high \
     --max-tokens 8192 \
     --fact-type world,experience
 
 # Verbose output
-hindsight memory recall "$BANK_ID" "Tell me about Alice" -v
+agentstratum memory recall "$BANK_ID" "Tell me about Alice" -v
 # [/docs:main-recall]
 
 # [docs:main-reflect]
 # Basic reflect
-hindsight memory reflect "$BANK_ID" "Should we adopt TypeScript for our backend?"
+agentstratum memory reflect "$BANK_ID" "Should we adopt TypeScript for our backend?"
 
 # With higher reasoning budget
-hindsight memory reflect "$BANK_ID" "Analyze our tech stack" --budget high
+agentstratum memory reflect "$BANK_ID" "Analyze our tech stack" --budget high
 # [/docs:main-reflect]
 
 # =============================================================================

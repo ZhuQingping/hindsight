@@ -595,6 +595,10 @@ def validate_sql_schema(sql: str) -> None:
                         )
 
 
+from hindsight_api.brand import WEBHOOK_EVENT_HEADER, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_SIGNATURE_V2_HEADER
+from hindsight_api.public_errors import public_error_message
+from hindsight_api.tracing import customer_span
+
 from .cross_encoder import RANK_SCORE_PROVIDERS, CrossEncoderModel
 from .embeddings import Embeddings, create_embeddings_from_env
 from .interface import BankConfigState, BankTemplateImportWrite, MemoryEngineInterface
@@ -5034,18 +5038,29 @@ class MemoryEngine(MemoryEngineInterface):
         else:
             payload_bytes = str(raw_payload).encode()
 
-        # User-supplied headers are spread FIRST so the Hindsight-controlled headers
+        # Header names are case-insensitive. Remove reserved names before merging
+        # so differently-cased custom values cannot shadow generated signatures.
+        reserved_headers = {
+            WEBHOOK_EVENT_HEADER.lower(),
+            WEBHOOK_SIGNATURE_HEADER.lower(),
+            WEBHOOK_SIGNATURE_V2_HEADER.lower(),
+            "x-hub-signature-256",
+        }
+        custom_headers = {
+            key: value for key, value in http_config.headers.items() if key.lower() not in reserved_headers
+        }
+        # User-supplied headers are spread FIRST so the service-controlled headers
         # below always win: a custom header must never be able to forge the event type
         # or overwrite a signature. Content-Type stays overridable -- some receivers
         # insist on a vendor media type, and the body is JSON either way.
         headers: dict[str, str] = {
             "Content-Type": "application/json",
-            **http_config.headers,
-            "X-Hindsight-Event": event_type,
+            **custom_headers,
+            WEBHOOK_EVENT_HEADER: event_type,
         }
         if secret and self._webhook_manager:
             signature = self._webhook_manager._sign_payload(secret, payload_bytes)
-            headers["X-Hindsight-Signature"] = signature
+            headers[WEBHOOK_SIGNATURE_HEADER] = signature
             # Byte-identical to the header above. `sha256=<hex>` over the raw body is
             # the construction GitHub popularised, so emitting the conventional name
             # too lets stock receivers verify without a Hindsight-specific shim.
@@ -5054,7 +5069,7 @@ class MemoryEngine(MemoryEngineInterface):
             # The body-only signatures above have no notion of freshness, which leaves
             # a captured delivery replayable forever; receivers that check `t` against
             # a tolerance window get replay protection.
-            headers["X-Hindsight-Signature-V2"] = self._webhook_manager._sign_payload_v2(
+            headers[WEBHOOK_SIGNATURE_V2_HEADER] = self._webhook_manager._sign_payload_v2(
                 secret, payload_bytes, int(datetime.now(UTC).timestamp())
             )
 
@@ -5192,8 +5207,8 @@ class MemoryEngine(MemoryEngineInterface):
         try:
             backend = await self._get_backend()
             # Truncate error message to avoid extremely long strings
-            full_error = f"{error_message}\n\nTraceback:\n{error_traceback}"
-            truncated_error = full_error[:5000] if len(full_error) > 5000 else full_error
+            logger.error("Operation %s failed: %s\n%s", operation_id, error_message, error_traceback)
+            truncated_error = public_error_message(error_message)[:5000]
 
             async with acquire_with_retry(backend) as conn:
                 async with conn.transaction():
@@ -9019,13 +9034,13 @@ class MemoryEngine(MemoryEngineInterface):
 
         tracer = get_tracer()
         # Use start_as_current_span to ensure child spans are linked properly
-        recall_span_context = tracer.start_as_current_span("hindsight.recall")
+        recall_span_context = customer_span(tracer, "agentstratum.recall")
         recall_span = recall_span_context.__enter__()
-        recall_span.set_attribute("hindsight.bank_id", bank_id)
-        recall_span.set_attribute("hindsight.query", query[:100])
-        recall_span.set_attribute("hindsight.fact_types", ",".join(fact_type))
-        recall_span.set_attribute("hindsight.thinking_budget", thinking_budget)
-        recall_span.set_attribute("hindsight.max_tokens", max_tokens)
+        recall_span.set_attribute("agentstratum.bank_id", bank_id)
+        recall_span.set_attribute("agentstratum.query", query[:100])
+        recall_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
+        recall_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
+        recall_span.set_attribute("agentstratum.max_tokens", max_tokens)
 
         try:
             # Backpressure: limit concurrent recalls to prevent overwhelming the database
@@ -9330,9 +9345,9 @@ class MemoryEngine(MemoryEngineInterface):
             # Step 1: Generate query embedding (for semantic search)
             step_start = time.time()
 
-            embedding_span = tracer_otel.start_span("hindsight.recall_embedding")
-            embedding_span.set_attribute("hindsight.bank_id", bank_id)
-            embedding_span.set_attribute("hindsight.query", query[:100])
+            embedding_span = tracer_otel.start_span("agentstratum.recall_embedding")
+            embedding_span.set_attribute("agentstratum.bank_id", bank_id)
+            embedding_span.set_attribute("agentstratum.query", query[:100])
 
             try:
                 get_metrics_collector().record_recall_phase("swr_prelude", time.time() - backend_acquire_start)
@@ -9488,10 +9503,10 @@ class MemoryEngine(MemoryEngineInterface):
                 retrieve_all_fact_types_parallel,
             )
 
-            retrieval_span = tracer_otel.start_span("hindsight.recall_retrieval")
-            retrieval_span.set_attribute("hindsight.bank_id", bank_id)
-            retrieval_span.set_attribute("hindsight.fact_types", ",".join(fact_type))
-            retrieval_span.set_attribute("hindsight.thinking_budget", thinking_budget)
+            retrieval_span = tracer_otel.start_span("agentstratum.recall_retrieval")
+            retrieval_span.set_attribute("agentstratum.bank_id", bank_id)
+            retrieval_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
+            retrieval_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
 
             try:
                 # Run optimized retrieval with connection budget
@@ -9797,12 +9812,12 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             from .search.fusion import interleave_fusion, reciprocal_rank_fusion
 
-            fusion_span = tracer_otel.start_span("hindsight.recall_fusion")
-            fusion_span.set_attribute("hindsight.bank_id", bank_id)
-            fusion_span.set_attribute("hindsight.semantic_count", len(semantic_results))
-            fusion_span.set_attribute("hindsight.bm25_count", len(bm25_results))
-            fusion_span.set_attribute("hindsight.graph_count", len(graph_results))
-            fusion_span.set_attribute("hindsight.temporal_count", len(temporal_results) if temporal_results else 0)
+            fusion_span = tracer_otel.start_span("agentstratum.recall_fusion")
+            fusion_span.set_attribute("agentstratum.bank_id", bank_id)
+            fusion_span.set_attribute("agentstratum.semantic_count", len(semantic_results))
+            fusion_span.set_attribute("agentstratum.bm25_count", len(bm25_results))
+            fusion_span.set_attribute("agentstratum.graph_count", len(graph_results))
+            fusion_span.set_attribute("agentstratum.temporal_count", len(temporal_results) if temporal_results else 0)
 
             try:
                 # Merge 3 or 4 result lists depending on temporal constraint
@@ -9818,7 +9833,7 @@ class MemoryEngine(MemoryEngineInterface):
                     f"{len(merged_candidates)} unique candidates in {step_duration:.3f}s"
                 )
             finally:
-                fusion_span.set_attribute("hindsight.merged_count", len(merged_candidates))
+                fusion_span.set_attribute("agentstratum.merged_count", len(merged_candidates))
                 fusion_span.end()
 
             # The payload build is gated on `enable_trace`; the phase metric is not. The
@@ -9838,9 +9853,9 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             reranker_instance = self._cross_encoder_reranker
 
-            rerank_span = tracer_otel.start_span("hindsight.recall_rerank")
-            rerank_span.set_attribute("hindsight.bank_id", bank_id)
-            rerank_span.set_attribute("hindsight.candidates_count", len(merged_candidates))
+            rerank_span = tracer_otel.start_span("agentstratum.recall_rerank")
+            rerank_span.set_attribute("agentstratum.bank_id", bank_id)
+            rerank_span.set_attribute("agentstratum.candidates_count", len(merged_candidates))
 
             scored_results: list = []
             # Provider that produced scored_results for THIS call. None until a
@@ -9952,9 +9967,9 @@ class MemoryEngine(MemoryEngineInterface):
                     f"scored in {step_duration:.3f}s{pre_filter_note}"
                 )
             finally:
-                rerank_span.set_attribute("hindsight.scored_count", len(scored_results))
+                rerank_span.set_attribute("agentstratum.scored_count", len(scored_results))
                 if pre_filtered_count > 0:
-                    rerank_span.set_attribute("hindsight.pre_filtered_count", pre_filtered_count)
+                    rerank_span.set_attribute("agentstratum.pre_filtered_count", pre_filtered_count)
                 rerank_span.end()
 
             # Step 4.5: Combine cross-encoder score with retrieval signals via multiplicative boosts.
@@ -17426,7 +17441,7 @@ class MemoryEngine(MemoryEngineInterface):
         if refresh_cutoff is None:
             return None
         # Run reflect with the source query, excluding the mental model being refreshed
-        # Skip creating a nested "hindsight.reflect" span since we already have "hindsight.mental_model_refresh"
+        # Skip creating a nested "agentstratum.reflect" span since we already have "agentstratum.mental_model_refresh"
         mm_name = mental_model.get("name") or mental_model_id
 
         reflect_kwargs: dict[str, Any] = dict(
@@ -18932,7 +18947,7 @@ class MemoryEngine(MemoryEngineInterface):
                 "kind": _MM_HISTORY_KIND_FAILURE,
                 "outcome": outcome,
                 "failure_reason": failure_reason,
-                "error_message": error_message,
+                "error_message": public_error_message(error_message),
             }
         )
         try:

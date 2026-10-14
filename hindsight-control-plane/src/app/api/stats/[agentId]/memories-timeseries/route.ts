@@ -1,3 +1,4 @@
+import { publicErrorPayload } from "@/lib/public-errors";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -16,7 +17,9 @@ export async function GET(
     );
     const upstream = await fetch(url, { headers: getDataplaneHeaders() });
     const body = await upstream.json();
-    return NextResponse.json(body, { status: upstream.status });
+    return NextResponse.json(upstream.ok ? body : publicErrorPayload(body), {
+      status: upstream.status,
+    });
   } catch (error) {
     console.error("Error fetching memories timeseries:", error);
     return NextResponse.json(

@@ -280,6 +280,7 @@ def _parse_tag_groups_query(raw: str | None, tags: list[str] | None) -> list[Tag
         raise HTTPException(status_code=400, detail=f"Invalid tag_groups: {e.errors(include_url=False)}")
 
 
+from hindsight_api.brand import API_SERVICE_NAME, API_TITLE
 from hindsight_api.engine.structured_output import validate_response_schema
 from hindsight_api.engine.time_filter import DocumentTimeField, MemoryTimeField
 from hindsight_api.extensions import HttpExtension, OperationValidationError, load_extension
@@ -291,6 +292,7 @@ from hindsight_api.metrics import (
     reset_metrics_collector,
 )
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -301,8 +303,8 @@ def _internal_error(exc: Exception, where: str) -> HTTPException:
     Every route's catch-all used to do this inline — 72 byte-identical copies of
     the same four lines, plus seven near-copies that logged the traceback without
     the message. The duplication is why the policy had already drifted: what gets
-    logged, and the fact that the client sees ``detail=str(exc)`` rather than a
-    traceback, was re-decided per route instead of once.
+    logged was re-decided per route instead of once. The internal diagnostic
+    stays in the log; the client receives a stable public message.
 
     ``traceback.format_exc()`` reads the *currently handled* exception, so this
     must be called from inside an ``except`` block — which is where every call
@@ -313,7 +315,7 @@ def _internal_error(exc: Exception, where: str) -> HTTPException:
     handler instead of hidden behind a call.
     """
     logger.error(f"Error in {where}: {exc}\n\nTraceback:\n{traceback.format_exc()}")
-    return HTTPException(status_code=500, detail=str(exc))
+    return HTTPException(status_code=500, detail=PUBLIC_INTERNAL_ERROR)
 
 
 def _parse_iso_datetime(value: str | None, param: str) -> datetime | None:
@@ -398,7 +400,9 @@ async def run_cancellable_on_disconnect(
         return await coro
     except OperationCancelledError as e:
         logger.info(f"[{operation.upper()} CANCELLED] bank={bank_id} reason={e.reason}")
-        raise HTTPException(status_code=_CLIENT_CLOSED_REQUEST_STATUS_CODE, detail=e.reason) from e
+        raise HTTPException(
+            status_code=_CLIENT_CLOSED_REQUEST_STATUS_CODE, detail=public_error_message(e.reason)
+        ) from e
 
 
 async def run_task_cancellable_on_disconnect(
@@ -1101,7 +1105,7 @@ def canonicalize_item_content(
             attachment_limit_path=f"items[{item_index}]",
         )
     except ContentValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(status_code=400, detail=public_error_message(e)) from e
 
 
 class MemoryItem(BaseModel):
@@ -2127,7 +2131,7 @@ class BankConfigUpdate(BaseModel):
 
     updates: dict[str, Any] = Field(
         description="Configuration overrides. Keys can be in Python field format (retain_extraction_mode) "
-        "or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE). "
+        "or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). "
         "Only hierarchical fields can be overridden per-bank."
     )
 
@@ -2441,7 +2445,7 @@ class PromptBlockModel(BaseModel):
 
     text: str = Field(description="The block's text; empty when the block is inactive.")
     source: Literal["config", "builtin"] = Field(
-        description="`config` — produced by a setting (`field` names it); `builtin` — Hindsight's own wording."
+        description="`config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording."
     )
     field: str = Field(default="", description="Config field behind this block; empty when no single field owns it.")
     section: str = Field(
@@ -4062,7 +4066,7 @@ class BankTemplateManifest(BaseModel):
         if ver > int(BANK_TEMPLATE_CURRENT_VERSION):
             raise ValueError(
                 f"version '{v}' is not supported by this server "
-                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade Hindsight."
+                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade agentstratum."
             )
         return v
 
@@ -5378,9 +5382,9 @@ def _name_server_span_after_operation(span: "Span", scope: dict[str, Any]) -> No
         match = pattern.search(path)
         if match is None:
             continue
-        span.update_name(f"hindsight.{operation}")
-        span.set_attribute("hindsight.operation", operation)
-        span.set_attribute("hindsight.bank_id", match.group("bank_id"))
+        span.update_name(f"agentstratum.{operation}")
+        span.set_attribute("agentstratum.operation", operation)
+        span.set_attribute("agentstratum.bank_id", match.group("bank_id"))
         return
 
 
@@ -5606,7 +5610,7 @@ def _register_routes(app: FastAPI):
     async def authentication_error_handler(request, exc: AuthenticationError):
         return JSONResponse(
             status_code=401,
-            content={"detail": str(exc)},
+            content={"detail": public_error_message(exc)},
         )
 
     # A bank briefly closed to writes — a store migrating it between backends holds it for a few
@@ -5618,7 +5622,7 @@ def _register_routes(app: FastAPI):
     async def store_write_unavailable_handler(request, exc: StoreWriteUnavailable):
         return JSONResponse(
             status_code=503,
-            content={"detail": str(exc)},
+            content={"detail": public_error_message(exc)},
             headers={"Retry-After": str(getattr(exc, "retry_after", 30))},
         )
 
@@ -5782,7 +5786,7 @@ def _register_routes(app: FastAPI):
             )
             return data
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -5873,9 +5877,9 @@ def _register_routes(app: FastAPI):
             await _attach_to_memories(app.state.memory, bank_id, data.get("items") or [], request_context)
             return data
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -5892,7 +5896,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_dry_run_extract:
             raise HTTPException(
                 status_code=404,
-                detail="Dry-run extraction is disabled. Set HINDSIGHT_API_ENABLE_DRY_RUN_EXTRACT=true to re-enable.",
+                detail="Dry-run extraction is disabled. Contact your service administrator to enable this capability.",
             )
 
     @app.post(
@@ -5944,11 +5948,11 @@ def _register_routes(app: FastAPI):
                 request_context=request_context,
             )
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except VisionNotSupportedError as e:
-            raise HTTPException(status_code=422, detail=str(e))
+            raise HTTPException(status_code=422, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6013,7 +6017,7 @@ def _register_routes(app: FastAPI):
                 skipped_reason=preview.skipped_reason,
             )
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6043,9 +6047,9 @@ def _register_routes(app: FastAPI):
             await _attach_to_memories(app.state.memory, bank_id, [data], request_context)
             return data
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6099,9 +6103,9 @@ def _register_routes(app: FastAPI):
             await _attach_to_memories(app.state.memory, bank_id, [data], request_context)
             return data
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6130,9 +6134,9 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Memory unit '{memory_id}' not found")
             return data
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6359,7 +6363,7 @@ def _register_routes(app: FastAPI):
         except HTTPException:
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except (asyncio.TimeoutError, TimeoutError):
@@ -6379,7 +6383,7 @@ def _register_routes(app: FastAPI):
             logger.error(
                 f"[RECALL ERROR] bank={bank_id} handler_duration={handler_duration:.3f}s error={str(e)}\n{error_detail}"
             )
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
 
     @app.post(
         "/v1/default/banks/{bank_id}/reflect",
@@ -6525,11 +6529,11 @@ def _register_routes(app: FastAPI):
             )
 
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except LLMNotAvailableError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except ReflectNoAnswerError as e:
             # The loop ran but produced no answer (a done call with an empty answer,
             # a final synthesis that returned nothing). Reflect used to substitute a
@@ -6537,25 +6541,26 @@ def _register_routes(app: FastAPI):
             # every caller and got stored as one (#2959). There is nothing to
             # return, so this is a failure like any other.
             logger.warning("Reflect produced no answer in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except ReflectToolCallError as e:
             # The configured model/transport can't drive reflect's tool-calling loop.
             # The request itself is fine, so this is a server-side (500) failure, not a
             # 4xx -- but log at warning, not error: it's a misconfiguration, not a bug.
             logger.warning("Reflect tool-calling failure in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except ReflectToolExecutionError as e:
             # A retrieval tool raised, so the loop could not finish gathering the
             # evidence it was asked for. Answering anyway would return a confident
             # reply built on a partial (often empty) evidence set, which callers
             # store as a real answer (#2894). Returning the failure lets them retry.
             logger.warning("Reflect retrieval failure in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except TimeoutError as e:
             logger.error("Timeout in /v1/default/banks/%s/reflect: %s", bank_id, e)
             raise HTTPException(
                 status_code=504,
-                detail=str(e) or "Reflect operation timed out. Consider reducing the budget or simplifying the query.",
+                detail=public_error_message(e)
+                or "Reflect operation timed out. Consider reducing the budget or simplifying the query.",
             )
         except Exception as e:
             raise _internal_error(e, f"/v1/default/banks/{bank_id}/reflect")
@@ -6640,7 +6645,7 @@ def _register_routes(app: FastAPI):
                 total_observations=stats["total_observations"],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6654,7 +6659,7 @@ def _register_routes(app: FastAPI):
         "each (configs shared across operations are probed once), so you can discover 'not configured / unreachable' "
         "instead of a silent stall. Deliberate action (makes a real provider call); not for polling. Returns status "
         "only — never the provider, model, endpoint, API key, or raw error. Disable with "
-        "HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=false.",
+        "the server bank LLM health setting.",
         operation_id="test_bank_llm",
         tags=["Banks"],
     )
@@ -6663,7 +6668,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_llm_health:
             raise HTTPException(
                 status_code=404,
-                detail="Bank LLM health check is disabled. Set HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=true to enable.",
+                detail="Bank LLM health check is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             result = await app.state.memory.check_bank_llm(bank_id, request_context=request_context)
@@ -6675,7 +6680,7 @@ def _register_routes(app: FastAPI):
                 ],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6710,7 +6715,7 @@ def _register_routes(app: FastAPI):
             )
             return MemoriesTimeseriesResponse(**data)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6758,7 +6763,7 @@ def _register_routes(app: FastAPI):
                 offset=data["offset"],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6800,7 +6805,7 @@ def _register_routes(app: FastAPI):
                 request_context=request_context,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6855,9 +6860,9 @@ def _register_routes(app: FastAPI):
                 ],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6945,7 +6950,7 @@ def _register_routes(app: FastAPI):
                 offset=offset,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -6983,9 +6988,9 @@ def _register_routes(app: FastAPI):
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except Exception as e:
             raise _internal_error(e, f"GET /v1/default/banks/{bank_id}/mental-models/{mental_model_id}")
 
@@ -7014,9 +7019,9 @@ def _register_routes(app: FastAPI):
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except Exception as e:
             raise _internal_error(e, f"GET /v1/default/banks/{bank_id}/mental-models/{mental_model_id}/history")
 
@@ -7059,11 +7064,11 @@ def _register_routes(app: FastAPI):
             )
             return CreateMentalModelResponse(mental_model_id=mental_model["id"], operation_id=result["operation_id"])
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(e, f"POST /v1/default/banks/{bank_id}/mental-models")
 
@@ -7091,13 +7096,13 @@ def _register_routes(app: FastAPI):
             )
             return AsyncOperationSubmitResponse(operation_id=result["operation_id"], status="queued")
         except LLMNotAvailableError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=404, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(e, f"POST /v1/default/banks/{bank_id}/mental-models/{mental_model_id}/refresh")
 
@@ -7139,13 +7144,13 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Mental model {mental_model_id} not found")
             return result
         except LLMNotAvailableError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(
                 e, f"POST /v1/default/banks/{bank_id}/mental-models/{mental_model_id}/dry-run-refresh"
@@ -7181,7 +7186,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Mental model '{mental_model_id}' not found")
             return MentalModelResponse(**mental_model)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7224,7 +7229,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Mental model '{mental_model_id}' not found")
             return MentalModelResponse(**mental_model)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7254,9 +7259,9 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Mental model '{mental_model_id}' not found")
             return {"status": "deleted"}
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7291,7 +7296,7 @@ def _register_routes(app: FastAPI):
             )
             return KnowledgeTreeResponse(roots=_build_knowledge_tree(nodes))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7321,9 +7326,9 @@ def _register_routes(app: FastAPI):
             )
             return _knowledge_node_model(node)
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7374,9 +7379,9 @@ def _register_routes(app: FastAPI):
                 operation_id=result["operation_id"],
             )
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7419,7 +7424,7 @@ def _register_routes(app: FastAPI):
                     )
             return KnowledgePageBundleResponse(files=files)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7454,7 +7459,7 @@ def _register_routes(app: FastAPI):
                 total=len(results),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7484,7 +7489,7 @@ def _register_routes(app: FastAPI):
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(e, f"GET /v1/default/banks/{bank_id}/knowledge-base/pages/{page_id}")
 
@@ -7549,11 +7554,11 @@ def _register_routes(app: FastAPI):
                 )
             return _knowledge_node_model(updated)
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(e, f"PATCH /v1/default/banks/{bank_id}/knowledge-base/nodes/{node_id}")
 
@@ -7580,7 +7585,7 @@ def _register_routes(app: FastAPI):
         except (AuthenticationError, HTTPException):
             raise
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except Exception as e:
             raise _internal_error(e, f"DELETE /v1/default/banks/{bank_id}/knowledge-base/nodes/{node_id}")
 
@@ -7631,7 +7636,7 @@ def _register_routes(app: FastAPI):
                 offset=offset,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7661,7 +7666,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Directive '{directive_id}' not found")
             return DirectiveResponse(**directive)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7694,9 +7699,9 @@ def _register_routes(app: FastAPI):
             )
             return DirectiveResponse(**directive)
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7733,7 +7738,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Directive '{directive_id}' not found")
             return DirectiveResponse(**directive)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7763,7 +7768,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Directive '{directive_id}' not found")
             return {"status": "deleted"}
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7833,9 +7838,9 @@ def _register_routes(app: FastAPI):
             )
             return data
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7891,7 +7896,7 @@ def _register_routes(app: FastAPI):
                     chunk["attachments"] = [_attachment_payload(bank_id, record) for record in records]
             return result
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7934,7 +7939,7 @@ def _register_routes(app: FastAPI):
                 items_count=result["items_count"],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -7971,7 +7976,7 @@ def _register_routes(app: FastAPI):
                 document["attachments"] = [_attachment_payload(bank_id, record) for record in by_document[document_id]]
             return document
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8038,7 +8043,7 @@ def _register_routes(app: FastAPI):
                 )
             return data
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8077,7 +8082,7 @@ def _register_routes(app: FastAPI):
                     chunk["attachments"] = [_attachment_payload(chunk_bank, record) for record in by_chunk[chunk_id]]
             return chunk
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8129,7 +8134,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail="Document not found")
             return UpdateDocumentResponse(success=True)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8172,7 +8177,7 @@ def _register_routes(app: FastAPI):
                 memory_units_deleted=result["memory_units_deleted"],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8220,7 +8225,7 @@ def _register_routes(app: FastAPI):
                 operations=[OperationResponse(**op) for op in result["operations"]],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8258,7 +8263,7 @@ def _register_routes(app: FastAPI):
             )
             return OperationStatusResponse(**result)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8293,9 +8298,9 @@ def _register_routes(app: FastAPI):
             result = await app.state.memory.cancel_operation(bank_id, operation_id, request_context=request_context)
             return CancelOperationResponse(**result)
         except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=404, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8323,9 +8328,9 @@ def _register_routes(app: FastAPI):
             result = await app.state.memory.retry_operation(bank_id, operation_id, request_context=request_context)
             return RetryOperationResponse(**result)
         except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=404, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8353,9 +8358,9 @@ def _register_routes(app: FastAPI):
             result = await app.state.memory.delete_operation(bank_id, operation_id, request_context=request_context)
             return DeleteOperationResponse(**result)
         except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=404, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8461,7 +8466,7 @@ def _register_routes(app: FastAPI):
         try:
             return await _alias_response(bank_id, request_context)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8492,7 +8497,7 @@ def _register_routes(app: FastAPI):
             )
             return await _alias_response(bank_id, request_context)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8527,7 +8532,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' has no alias '{alias}'")
             return await _alias_response(bank_id, request_context)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8555,7 +8560,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' has no alias '{alias}'")
             return await _alias_response(bank_id, request_context)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8598,9 +8603,9 @@ def _register_routes(app: FastAPI):
                 background=mission,  # Backwards compat
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8644,9 +8649,9 @@ def _register_routes(app: FastAPI):
                 background=mission,  # Backwards compat
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8674,7 +8679,7 @@ def _register_routes(app: FastAPI):
                 + result.get("documents_deleted", 0),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8763,9 +8768,9 @@ def _register_routes(app: FastAPI):
                 detail=f"Bank '{e.bank_id}' changed or was deleted during template import; retry the import.",
             )
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8852,7 +8857,7 @@ def _register_routes(app: FastAPI):
                 directives=template_directives if template_directives else None,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8931,7 +8936,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document export API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             profile = await app.state.memory.get_bank_profile(bank_id, request_context=request_context)
             if profile is None:
@@ -8947,10 +8952,10 @@ def _register_routes(app: FastAPI):
                 )
             except ValueError as e:
                 # e.g. include_observations combined with a document_id subset.
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=public_error_message(e))
             return DocumentExportSubmitResponse(operation_id=submission["operation_id"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -8986,7 +8991,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document import API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             if on_conflict not in ("skip", "replace", "new-id"):
                 raise HTTPException(
@@ -8999,10 +9004,10 @@ def _register_routes(app: FastAPI):
                 )
             except ValueError as e:
                 # Invalid archive / unsupported schema version — fail fast.
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=public_error_message(e))
             return DocumentImportSubmitResponse(operation_id=submission["operation_id"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9065,7 +9070,7 @@ def _register_routes(app: FastAPI):
             if not get_config().enable_document_export_api:
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank export API is disabled. Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    detail="Bank export API is disabled. Contact your service administrator to enable this capability.",
                 )
             if not (include_data or include_bank_config or include_history):
                 raise HTTPException(
@@ -9105,10 +9110,10 @@ def _register_routes(app: FastAPI):
                         ),
                     )
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=public_error_message(e))
             return BankTransferSubmitResponse(operation_id=submission["operation_id"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9163,7 +9168,7 @@ def _register_routes(app: FastAPI):
             if not get_config().enable_document_import_api:
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank import API is disabled. Set HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API=true to enable.",
+                    detail="Bank import API is disabled. Contact your service administrator to enable this capability.",
                 )
             if mode not in ("restore", "merge"):
                 raise HTTPException(status_code=400, detail=f"Invalid mode '{mode}' (expected restore|merge)")
@@ -9211,10 +9216,10 @@ def _register_routes(app: FastAPI):
             except ValueError as e:
                 # Invalid archive, unsupported schema version, or a target bank
                 # that already exists — all caller errors.
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=public_error_message(e))
             return BankTransferSubmitResponse(operation_id=submission["operation_id"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9267,8 +9272,7 @@ def _register_routes(app: FastAPI):
             if not (config.enable_document_export_api and config.enable_document_import_api):
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank clone API is disabled. It requires both "
-                    "HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API and HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API.",
+                    detail="Bank clone API is disabled. It requires both the document export and import capabilities.",
                 )
             if not (include_data or include_bank_config or include_history):
                 raise HTTPException(
@@ -9294,10 +9298,10 @@ def _register_routes(app: FastAPI):
                 )
             except ValueError as e:
                 # Target already exists, an invalid bank id, or cloning onto itself.
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=public_error_message(e))
             return BankTransferSubmitResponse(operation_id=submission["operation_id"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9351,7 +9355,7 @@ def _register_routes(app: FastAPI):
                 },
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9379,7 +9383,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document export API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             # Only bank-scoped keys are downloadable. Parse the bank id out of the
             # "tenants/{schema}/banks/{bank_id}/..." key — or the "banks/{bank_id}/..."
@@ -9412,7 +9416,7 @@ def _register_routes(app: FastAPI):
                 headers=headers,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9449,7 +9453,7 @@ def _register_routes(app: FastAPI):
                 deleted_count=result.get("deleted_count", 0),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9483,7 +9487,7 @@ def _register_routes(app: FastAPI):
                 bank_id, limit=limit, offset=offset, request_context=request_context
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9518,7 +9522,7 @@ def _register_routes(app: FastAPI):
                 request_context=request_context,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9543,7 +9547,7 @@ def _register_routes(app: FastAPI):
             result = await app.state.memory.retry_failed_consolidation(bank_id, request_context=request_context)
             return RecoverConsolidationResponse(retried_count=result["retried_count"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9574,7 +9578,7 @@ def _register_routes(app: FastAPI):
             )
             return ClearMemoryObservationsResponse(deleted_count=result["deleted_count"])
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9586,7 +9590,7 @@ def _register_routes(app: FastAPI):
         summary="Get bank configuration",
         description="Get fully resolved configuration for a bank including all hierarchical overrides (global → tenant → bank). "
         "The 'config' field contains all resolved config values. The 'overrides' field shows only bank-specific overrides. "
-        "Always available: HINDSIGHT_API_ENABLE_BANK_CONFIG_API gates only the write operations on this resource.",
+        "Always available: the server bank configuration setting gates only writes on this resource.",
         operation_id="get_bank_config",
         tags=["Banks"],
         responses=_BANK_NOT_FOUND_RESPONSES,
@@ -9603,7 +9607,7 @@ def _register_routes(app: FastAPI):
             state = await app.state.memory.get_bank_config(bank_id, request_context=request_context)
             return BankConfigResponse(bank_id=bank_id, config=state.config, overrides=state.overrides)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9615,7 +9619,7 @@ def _register_routes(app: FastAPI):
         summary="Update bank configuration",
         description="Update configuration overrides for a bank. Only hierarchical behavioral settings can be "
         "overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format "
-        "(retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE).",
+        "(retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).",
         operation_id="update_bank_config",
         tags=["Banks"],
     )
@@ -9627,7 +9631,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_config_api:
             raise HTTPException(
                 status_code=404,
-                detail="Bank configuration API is disabled. Set HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true to re-enable.",
+                detail="Bank configuration API is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             state = await app.state.memory.update_bank_config(
@@ -9637,10 +9641,10 @@ def _register_routes(app: FastAPI):
             )
             return BankConfigResponse(bank_id=bank_id, config=state.config, overrides=state.overrides)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except ValueError as e:
             # Validation error (e.g., trying to override static field)
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9661,13 +9665,13 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_config_api:
             raise HTTPException(
                 status_code=404,
-                detail="Bank configuration API is disabled. Set HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true to re-enable.",
+                detail="Bank configuration API is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             state = await app.state.memory.reset_bank_config(bank_id, request_context=request_context)
             return BankConfigResponse(bank_id=bank_id, config=state.config, overrides=state.overrides)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9701,7 +9705,7 @@ def _register_routes(app: FastAPI):
                 deduplicated=result.get("deduplicated", False),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9727,7 +9731,7 @@ def _register_routes(app: FastAPI):
         try:
             validate_url_syntax(url, allowlist)
         except WebhookURLError as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
+            raise HTTPException(status_code=400, detail=public_error_message(exc))
 
     def _parse_webhook_id(webhook_id: str) -> uuid.UUID:
         """Parse a webhook path parameter without turning client input into a 500."""
@@ -9791,7 +9795,7 @@ def _register_routes(app: FastAPI):
                 else str(row["updated_at"]),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9854,7 +9858,7 @@ def _register_routes(app: FastAPI):
                 offset=data["offset"],
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9885,7 +9889,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail="Webhook not found")
             return DeleteResponse(success=True)
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -9968,7 +9972,7 @@ def _register_routes(app: FastAPI):
                 else str(row["updated_at"]),
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10014,7 +10018,7 @@ def _register_routes(app: FastAPI):
                 next_cursor=next_cursor,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10208,10 +10212,10 @@ def _register_routes(app: FastAPI):
                     raise HTTPException(
                         status_code=400,
                         detail=(
-                            "Batch API is enabled (HINDSIGHT_API_RETAIN_BATCH_ENABLED=true) but async=false. "
+                            "Batch processing is enabled but async=false. "
                             "Batch operations can take several minutes to hours and will timeout in synchronous mode. "
                             "Please set async=true in your request to use background processing, or disable batch API "
-                            "by setting HINDSIGHT_API_RETAIN_BATCH_ENABLED=false in your environment."
+                            "through your service administrator."
                         ),
                     )
 
@@ -10270,22 +10274,22 @@ def _register_routes(app: FastAPI):
                     }
                 )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except RetainOperationConflictError as e:
             # Caller reused an async retain operation_id that already belongs to
             # a different operation.
-            raise HTTPException(status_code=409, detail=str(e))
+            raise HTTPException(status_code=409, detail=public_error_message(e))
         except VisionNotSupportedError as e:
             # The request is well-formed; the server's retain LLM cannot read the
             # images it carries. 422 rather than 400 for that distinction.
-            raise HTTPException(status_code=422, detail=str(e))
+            raise HTTPException(status_code=422, detail=public_error_message(e))
         except (AuthenticationError, HTTPException):
             raise
         except ValueError as e:
             # Invalid request parameters (e.g. duplicate document_ids, or
             # update_mode='append' when document text storage is disabled) are
             # client errors, not server faults.
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=public_error_message(e))
         except Exception as e:
             from dataclasses import asdict
 
@@ -10323,7 +10327,7 @@ def _register_routes(app: FastAPI):
                 f"Traceback:\n{traceback.format_exc()}"
             )
             logger.error(f"Error in /v1/default/banks/{bank_id}/memories (retain): {error_detail}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
 
     @app.post(
         "/v1/default/banks/{bank_id}/files/retain",
@@ -10351,7 +10355,7 @@ def _register_routes(app: FastAPI):
         "- Set `parser` inside a `files_metadata` entry for per-file control.\n"
         "- Pass a list (e.g. `['iris', 'markitdown']`) to define an ordered fallback chain — "
         "each parser is tried in sequence until one succeeds.\n"
-        "- Falls back to the server default (`HINDSIGHT_API_FILE_PARSER`) if not specified.\n"
+        "- Falls back to the server default (`file_parser`) if not specified.\n"
         "- Only parsers enabled on the server may be requested; others return HTTP 400.",
         operation_id="file_retain",
         tags=["Files"],
@@ -10373,7 +10377,7 @@ def _register_routes(app: FastAPI):
         if not config.enable_file_upload_api:
             raise HTTPException(
                 status_code=404,
-                detail="File upload API is disabled. Set HINDSIGHT_API_ENABLE_FILE_UPLOAD_API=true to enable.",
+                detail="File upload API is disabled. Contact your service administrator to enable this capability.",
             )
 
         try:
@@ -10488,7 +10492,7 @@ def _register_routes(app: FastAPI):
             )
 
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10525,7 +10529,7 @@ def _register_routes(app: FastAPI):
                 deleted_count=deleted,
             )
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10575,7 +10579,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
             return result
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10608,7 +10612,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
             return result
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10618,7 +10622,7 @@ def _register_routes(app: FastAPI):
         "/v1/default/banks/{bank_id}/llm-requests",
         summary="List LLM request traces",
         description="List traced LLM requests for a bank, ordered by most recent first. "
-        "Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED).",
+        "Requires LLM request tracing to be enabled.",
         operation_id="list_llm_requests",
         tags=["LLM Traces"],
         response_model=LLMRequestListResponse,
@@ -10666,7 +10670,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
             return result
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:
@@ -10699,7 +10703,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
             return result
         except OperationValidationError as e:
-            raise HTTPException(status_code=e.status_code, detail=e.reason)
+            raise HTTPException(status_code=e.status_code, detail=public_error_message(e.reason))
         except (AuthenticationError, HTTPException):
             raise
         except Exception as e:

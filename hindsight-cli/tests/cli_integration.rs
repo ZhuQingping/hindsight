@@ -1,7 +1,7 @@
 //! Integration tests for the hindsight CLI commands.
 //!
 //! These tests require a running hindsight API server.
-//! Set HINDSIGHT_API_URL environment variable to point to the server.
+//! Set AGENTSTRATUM_API_URL environment variable to point to the server.
 //! Tests will be skipped if the server is not available.
 
 use std::env;
@@ -10,7 +10,7 @@ use std::process::Command;
 /// Check if the API server is available
 fn server_available() -> bool {
     let api_url =
-        env::var("HINDSIGHT_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+        env::var("AGENTSTRATUM_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
     let health_url = format!("{}/health", api_url);
 
     match reqwest::blocking::get(&health_url) {
@@ -31,16 +31,16 @@ macro_rules! skip_if_no_server {
 
 /// Get the path to the hindsight binary
 fn hindsight_binary() -> String {
-    env::var("CARGO_BIN_EXE_hindsight").unwrap_or_else(|_| {
+    env::var("CARGO_BIN_EXE_agentstratum").unwrap_or_else(|_| {
         // Try common locations
-        let target_debug = "./target/debug/hindsight";
-        let target_release = "./target/release/hindsight";
+        let target_debug = "./target/debug/agentstratum";
+        let target_release = "./target/release/agentstratum";
         if std::path::Path::new(target_debug).exists() {
             target_debug.to_string()
         } else if std::path::Path::new(target_release).exists() {
             target_release.to_string()
         } else {
-            "hindsight".to_string()
+            "agentstratum".to_string()
         }
     })
 }
@@ -54,10 +54,10 @@ fn test_bank_id(test_name: &str) -> String {
 /// Run a hindsight CLI command
 fn run_hindsight(args: &[&str]) -> std::process::Output {
     let api_url =
-        env::var("HINDSIGHT_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+        env::var("AGENTSTRATUM_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
 
     Command::new(hindsight_binary())
-        .env("HINDSIGHT_API_URL", &api_url)
+        .env("AGENTSTRATUM_API_URL", &api_url)
         .args(args)
         .output()
         .expect("Failed to execute hindsight command")

@@ -35,7 +35,7 @@ def daemon_log_path() -> Path:
     config is then cached for the process, every later reader would see the wrong
     values too (a whole `.env` silently ignored).
     """
-    return Path(get_config().daemon_log or Path.home() / ".hindsight" / "daemon.log")
+    return Path(get_config().daemon_log or Path.home() / ".agentstratum" / "daemon.log")
 
 
 # Internal env var: set by daemonize() in the re-exec'd child so the child

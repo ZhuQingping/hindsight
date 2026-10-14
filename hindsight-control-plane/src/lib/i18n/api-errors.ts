@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicErrorPayload } from "@/lib/public-errors";
 import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
 
 import en from "@/messages/en.json";
@@ -23,7 +24,7 @@ const resources = {
 
 const localeSet = new Set<string>(locales);
 const localizedErrorFields = ["error", "message", "detail", "details"] as const;
-const localeCookieNames = ["NEXT_LOCALE", "hindsight_cp_locale"] as const;
+const localeCookieNames = ["NEXT_LOCALE", "agentstratum_cp_locale"] as const;
 
 const localeAliases: Partial<Record<string, Locale>> = {
   "zh-Hans": "zh-CN",
@@ -197,7 +198,7 @@ export function localizeApiErrorPayload<TPayload extends ApiErrorPayload>(
     localizedPayload.error = message;
   }
 
-  return localizedPayload as TPayload;
+  return publicErrorPayload(localizedPayload) as TPayload;
 }
 
 /** 400 response for a missing required query parameter on a control-plane route. */

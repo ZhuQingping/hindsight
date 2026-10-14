@@ -3,7 +3,9 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from hindsight_api.public_errors import public_error_message
 
 
 class WebhookEventType(StrEnum):
@@ -17,6 +19,11 @@ class ConsolidationEventData(BaseModel):
     observations_updated: int | None = None
     observations_deleted: int | None = None
     error_message: str | None = None
+
+    @field_validator("error_message")
+    @classmethod
+    def public_diagnostic(cls, value: str | None) -> str | None:
+        return public_error_message(value) if value is not None else None
 
 
 class RetainEventData(BaseModel):

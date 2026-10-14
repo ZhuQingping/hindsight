@@ -899,7 +899,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
         String::new()
     };
 
-    let title = format!("Hindsight Explorer - {}{}", app.view.title(), bank_info);
+    let title = format!("Agentstratum Explorer - {}{}", app.view.title(), bank_info);
 
     let header = Paragraph::new(title)
         .style(
@@ -1470,7 +1470,7 @@ fn render_query(f: &mut Frame, app: &mut App, area: Rect) {
 fn render_help(f: &mut Frame, area: Rect) {
     let help_text = vec![
         Line::from(Span::styled(
-            "Hindsight Explorer - Keyboard Shortcuts",
+            "Agentstratum Explorer - Keyboard Shortcuts",
             Style::default()
                 .fg(BRAND_START)
                 .add_modifier(Modifier::BOLD),

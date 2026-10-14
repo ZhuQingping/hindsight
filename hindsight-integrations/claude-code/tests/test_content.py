@@ -46,9 +46,9 @@ class TestStripChannelEnvelope:
 
 
 class TestStripMemoryTags:
-    def test_strips_hindsight_memories_block(self):
-        raw = "before\n<hindsight_memories>secret</hindsight_memories>\nafter"
-        assert "hindsight_memories" not in strip_memory_tags(raw)
+    def test_strips_agentstratum_memories_block(self):
+        raw = "before\n<agentstratum_memories>secret</agentstratum_memories>\nafter"
+        assert "agentstratum_memories" not in strip_memory_tags(raw)
         assert "before" in strip_memory_tags(raw)
         assert "after" in strip_memory_tags(raw)
 
@@ -63,7 +63,7 @@ class TestStripMemoryTags:
         assert strip_memory_tags(raw) == raw
 
     def test_strips_multiline_block(self):
-        raw = "<hindsight_memories>\n- mem1\n- mem2\n</hindsight_memories>"
+        raw = "<agentstratum_memories>\n- mem1\n- mem2\n</agentstratum_memories>"
         assert strip_memory_tags(raw).strip() == ""
 
 
@@ -147,10 +147,10 @@ class TestComposeRecallQuery:
 
     def test_strips_memory_tags_from_context(self):
         msgs = _msgs(
-            ("user", "<hindsight_memories>secret</hindsight_memories> actual question"),
+            ("user", "<agentstratum_memories>secret</agentstratum_memories> actual question"),
         )
         result = compose_recall_query("now", msgs, recall_context_turns=2)
-        assert "hindsight_memories" not in result
+        assert "agentstratum_memories" not in result
         assert "secret" not in result
 
     def test_filters_by_recall_roles(self):
@@ -240,7 +240,7 @@ class TestIsChannelMessageTool:
         assert _is_channel_message_tool(block) is True
 
     def test_operational_recall_tool_excluded(self):
-        block = {"type": "tool_use", "name": "mcp__hindsight__recall", "input": {"query": "test"}}
+        block = {"type": "tool_use", "name": "mcp__agentstratum__recall", "input": {"query": "test"}}
         assert _is_channel_message_tool(block) is False
 
     def test_builtin_bash_tool_excluded(self):
@@ -318,7 +318,7 @@ class TestPrepareRetentionTranscript:
         assert count == 4
 
     def test_strips_memory_tags(self):
-        msgs = _msgs(("user", "<hindsight_memories>leaked</hindsight_memories> actual question"))
+        msgs = _msgs(("user", "<agentstratum_memories>leaked</agentstratum_memories> actual question"))
         transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True)
         assert "leaked" not in transcript
         assert "actual question" in transcript
@@ -363,9 +363,7 @@ class TestPrepareRetentionTranscript:
                 ],
             },
         ]
-        transcript, count = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, count = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         assert transcript is not None
         data = json.loads(transcript)
         assert len(data) == 2
@@ -380,8 +378,8 @@ class TestPrepareRetentionTranscript:
         assert tool_block["name"] == "Edit"
         assert tool_block["input"]["file_path"] == "/tmp/foo.py"
 
-    def test_json_format_excludes_hindsight_mcp_tools(self):
-        """Hindsight MCP tools should be excluded even in JSON mode."""
+    def test_json_format_excludes_agentstratum_mcp_tools(self):
+        """agentstratum MCP tools should be excluded even in JSON mode."""
         import json
 
         msgs = [
@@ -390,13 +388,11 @@ class TestPrepareRetentionTranscript:
                 "role": "assistant",
                 "content": [
                     {"type": "text", "text": "Let me check."},
-                    {"type": "tool_use", "name": "mcp__hindsight__recall", "input": {"query": "test"}},
+                    {"type": "tool_use", "name": "mcp__agentstratum__recall", "input": {"query": "test"}},
                 ],
             },
         ]
-        transcript, _ = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         data = json.loads(transcript)
         assistant_blocks = data[1]["content"]
         assert len(assistant_blocks) == 1
@@ -423,9 +419,7 @@ class TestPrepareRetentionTranscript:
                 ],
             },
         ]
-        transcript, _ = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         data = json.loads(transcript)
         result_msg = next(m for m in data if any(b.get("type") == "tool_result" for b in m["content"]))
         result_block = next(b for b in result_msg["content"] if b["type"] == "tool_result")
@@ -457,9 +451,7 @@ class TestPrepareRetentionTranscript:
                 ],
             },
         ]
-        transcript, _ = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         data = json.loads(transcript)
         result_msg = next(m for m in data if any(b.get("type") == "tool_result" for b in m["content"]))
         result_block = next(b for b in result_msg["content"] if b["type"] == "tool_result")

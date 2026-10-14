@@ -38,7 +38,7 @@ def _startup_manager(is_running: MagicMock) -> DaemonEmbedManager:
     manager._clear_port = MagicMock(return_value=True)
     manager.is_running = is_running
     manager._component_version = MagicMock(return_value="0.0.0")
-    manager._find_api_command = MagicMock(return_value=["hindsight-api"])
+    manager._find_api_command = MagicMock(return_value=["agentstratum-api"])
     return manager
 
 
@@ -62,8 +62,8 @@ def test_start_timeout_terminates_spawned_daemon_group(tmp_path, monkeypatch):
     with patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", return_value=process) as popen:
         assert manager._start_daemon_locked({}, "test", paths) is False
 
-    assert popen.call_args.args[0] == ["hindsight-api", "--idle-timeout", "0", "--port", "9177"]
-    # The whole group, so a uvx launcher's hindsight-api grandchild goes too.
+    assert popen.call_args.args[0] == ["agentstratum-api", "--idle-timeout", "0", "--port", "9177"]
+    # The whole group, so a uvx launcher's agentstratum-api grandchild goes too.
     killpg.assert_called_once_with(4321, signal.SIGTERM)
     process.wait.assert_called_once_with(timeout=10)
 
@@ -109,19 +109,19 @@ def _spawned_env(manager, tmp_path, monkeypatch) -> dict:
 def test_uvx_fallback_does_not_inherit_the_parent_interpreter_env(tmp_path, monkeypatch):
     """A host that finds its own site-packages via PYTHONPATH (Hermes' package-manager install
     exports its Python 3.14 generation) must not hand that directory to uvx's own interpreter:
-    hindsight-api would import the host's pydantic and fail on the missing compiled extension."""
+    agentstratum-api would import the host's pydantic and fail on the missing compiled extension."""
     monkeypatch.setenv("PYTHONPATH", "/host/venv/lib/python3.14/site-packages")
     monkeypatch.setenv("PYTHONHOME", "/host/python")
     monkeypatch.setenv("VIRTUAL_ENV", "/host/venv")
     monkeypatch.setenv("PATH", "/host/venv/bin:/usr/bin")
     manager = _startup_manager(MagicMock(return_value=False))
-    manager._find_api_command = MagicMock(return_value=["uvx", "hindsight-api@0.0.0"])
+    manager._find_api_command = MagicMock(return_value=["uvx", "agentstratum-api@0.0.0"])
 
     env = _spawned_env(manager, tmp_path, monkeypatch)
 
     assert "PYTHONPATH" not in env and "PYTHONHOME" not in env and "VIRTUAL_ENV" not in env
     assert env["PATH"] == "/host/venv/bin:/usr/bin"  # uvx itself is found through PATH
-    assert env["HINDSIGHT_API_DAEMON_LOG"] == str(tmp_path / "daemon.log")
+    assert env["AGENTSTRATUM_API_DAEMON_LOG"] == str(tmp_path / "daemon.log")
 
 
 def test_the_dev_uv_run_command_does_not_inherit_it_either(tmp_path, monkeypatch):
@@ -130,7 +130,7 @@ def test_the_dev_uv_run_command_does_not_inherit_it_either(tmp_path, monkeypatch
     monkeypatch.setenv("PYTHONPATH", "/host/venv/lib/python3.14/site-packages")
     manager = _startup_manager(MagicMock(return_value=False))
     manager._find_api_command = MagicMock(
-        return_value=["uv", "run", "--project", "/repo/hindsight-api-slim", "--extra", "all", "hindsight-api"]
+        return_value=["uv", "run", "--project", "/repo/agentstratum-api-slim", "--extra", "all", "agentstratum-api"]
     )
 
     assert "PYTHONPATH" not in _spawned_env(manager, tmp_path, monkeypatch)
@@ -141,17 +141,17 @@ def test_a_resolved_launcher_path_is_still_recognised(tmp_path, monkeypatch):
     resolved, so resolving the launcher too must not silently stop the scrub."""
     monkeypatch.setenv("PYTHONPATH", "/host/site-packages")
     manager = _startup_manager(MagicMock(return_value=False))
-    manager._find_api_command = MagicMock(return_value=["/opt/tools/uvx", "hindsight-api@0.0.0"])
+    manager._find_api_command = MagicMock(return_value=["/opt/tools/uvx", "agentstratum-api@0.0.0"])
 
     assert "PYTHONPATH" not in _spawned_env(manager, tmp_path, monkeypatch)
 
 
 def test_only_uv_launchers_count_as_foreign():
-    assert _runs_a_foreign_interpreter(["uvx", "hindsight-api@1.0.0"])
-    assert _runs_a_foreign_interpreter(["uv", "run", "--project", "/x", "hindsight-api"])
-    assert _runs_a_foreign_interpreter(["/opt/bin/uvx.exe", "hindsight-api@1.0.0"])
-    assert not _runs_a_foreign_interpreter(["/venv/bin/hindsight-api"])
-    assert not _runs_a_foreign_interpreter(["/target/bin/hindsight-api"])
+    assert _runs_a_foreign_interpreter(["uvx", "agentstratum-api@1.0.0"])
+    assert _runs_a_foreign_interpreter(["uv", "run", "--project", "/x", "agentstratum-api"])
+    assert _runs_a_foreign_interpreter(["/opt/bin/uvx.exe", "agentstratum-api@1.0.0"])
+    assert not _runs_a_foreign_interpreter(["/venv/bin/agentstratum-api"])
+    assert not _runs_a_foreign_interpreter(["/target/bin/agentstratum-api"])
 
 
 def test_installed_binary_keeps_the_parent_interpreter_env(tmp_path, monkeypatch):
@@ -159,7 +159,7 @@ def test_installed_binary_keeps_the_parent_interpreter_env(tmp_path, monkeypatch
     the scrub applies only to the uvx fallback."""
     monkeypatch.setenv("PYTHONPATH", "/target")
     manager = _startup_manager(MagicMock(return_value=False))
-    manager._find_api_command = MagicMock(return_value=["/target/bin/hindsight-api"])
+    manager._find_api_command = MagicMock(return_value=["/target/bin/agentstratum-api"])
 
     env = _spawned_env(manager, tmp_path, monkeypatch)
 
@@ -167,14 +167,14 @@ def test_installed_binary_keeps_the_parent_interpreter_env(tmp_path, monkeypatch
 
 
 def test_strip_parent_interpreter_env_leaves_everything_else():
-    env = {"PYTHONPATH": "x", "PYTHONSAFEPATH": "1", "HINDSIGHT_API_LLM_MODEL": "m", "HOME": "/h"}
-    assert _strip_parent_interpreter_env(env) == {"HINDSIGHT_API_LLM_MODEL": "m", "HOME": "/h"}
+    env = {"PYTHONPATH": "x", "PYTHONSAFEPATH": "1", "AGENTSTRATUM_API_LLM_MODEL": "m", "HOME": "/h"}
+    assert _strip_parent_interpreter_env(env) == {"AGENTSTRATUM_API_LLM_MODEL": "m", "HOME": "/h"}
 
 
 @_posix_only
 def test_start_timeout_kills_daemon_group_that_ignores_terminate(monkeypatch):
     process = _running_process()
-    process.wait.side_effect = [subprocess.TimeoutExpired("hindsight-api", 10), 0]
+    process.wait.side_effect = [subprocess.TimeoutExpired("agentstratum-api", 10), 0]
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
     killpg = MagicMock()
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.os.killpg", killpg)
@@ -187,7 +187,7 @@ def test_start_timeout_kills_daemon_group_that_ignores_terminate(monkeypatch):
 
 def test_start_timeout_kills_daemon_on_windows(monkeypatch):
     process = _running_process()
-    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
+    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.sys.platform", "win32")
 
     _terminate_startup_process(process)
 
@@ -199,28 +199,28 @@ def test_sanitize_profile_name_via_db_url():
     manager = get_embed_manager()
 
     # Test None defaults to "default"
-    assert manager.get_database_url(None) == "pg0://hindsight-embed-default"
+    assert manager.get_database_url(None) == "pg0://agentstratum-embed-default"
 
     # Test simple alphanumeric names
-    assert manager.get_database_url("myapp") == "pg0://hindsight-embed-myapp"
-    assert manager.get_database_url("my-app") == "pg0://hindsight-embed-my-app"
-    assert manager.get_database_url("my_app") == "pg0://hindsight-embed-my_app"
-    assert manager.get_database_url("app123") == "pg0://hindsight-embed-app123"
+    assert manager.get_database_url("myapp") == "pg0://agentstratum-embed-myapp"
+    assert manager.get_database_url("my-app") == "pg0://agentstratum-embed-my-app"
+    assert manager.get_database_url("my_app") == "pg0://agentstratum-embed-my_app"
+    assert manager.get_database_url("app123") == "pg0://agentstratum-embed-app123"
 
     # Test special characters get replaced with dashes
-    assert manager.get_database_url("my app") == "pg0://hindsight-embed-my-app"
-    assert manager.get_database_url("my.app") == "pg0://hindsight-embed-my-app"
-    assert manager.get_database_url("my@app!") == "pg0://hindsight-embed-my-app-"
-    assert manager.get_database_url("My App 2.0!") == "pg0://hindsight-embed-My-App-2-0-"
+    assert manager.get_database_url("my app") == "pg0://agentstratum-embed-my-app"
+    assert manager.get_database_url("my.app") == "pg0://agentstratum-embed-my-app"
+    assert manager.get_database_url("my@app!") == "pg0://agentstratum-embed-my-app-"
+    assert manager.get_database_url("My App 2.0!") == "pg0://agentstratum-embed-My-App-2-0-"
 
 
 def test_get_database_url_default():
     """Test database URL generation with default pg0."""
     manager = get_embed_manager()
 
-    assert manager.get_database_url("myapp") == "pg0://hindsight-embed-myapp"
-    assert manager.get_database_url("myapp", None) == "pg0://hindsight-embed-myapp"
-    assert manager.get_database_url("myapp", "pg0") == "pg0://hindsight-embed-myapp"
+    assert manager.get_database_url("myapp") == "pg0://agentstratum-embed-myapp"
+    assert manager.get_database_url("myapp", None) == "pg0://agentstratum-embed-myapp"
+    assert manager.get_database_url("myapp", "pg0") == "pg0://agentstratum-embed-myapp"
 
 
 def test_get_database_url_custom():
@@ -246,7 +246,7 @@ def test_manager_singleton():
 
 def test_register_profile_skips_when_no_api_keys():
     """
-    When config carries no HINDSIGHT_API_* keys there is nothing to persist, so
+    When config carries no AGENTSTRATUM_API_* keys there is nothing to persist, so
     _register_profile must not call create_profile — which would rewrite the
     profile .env from an empty config.
 
@@ -255,7 +255,7 @@ def test_register_profile_skips_when_no_api_keys():
     manager = DaemonEmbedManager()
     manager._profile_manager = MagicMock()
 
-    manager._register_profile("myprofile", 8100, {"HINDSIGHT_EMBED_API_URL": "http://elsewhere"})
+    manager._register_profile("myprofile", 8100, {"AGENTSTRATUM_EMBED_API_URL": "http://elsewhere"})
 
     manager._profile_manager.create_profile.assert_not_called()
 
@@ -264,8 +264,8 @@ def test_register_profile_does_not_overwrite_configured_values(tmp_path, monkeyp
     """A daemon start seeds missing keys but never rewrites configured ones.
 
     `config` reaching _register_profile is the profile merged with this
-    invocation's ambient HINDSIGHT_* environment. Letting it win would make a
-    one-off `HINDSIGHT_API_LLM_MODEL=... hindsight-embed recall` permanently
+    invocation's ambient AGENTSTRATUM_* environment. Letting it win would make a
+    one-off `AGENTSTRATUM_API_LLM_MODEL=... agentstratum-embed recall` permanently
     rewrite the user's profile; the file is owned by `configure` and the
     control center.
     """
@@ -274,32 +274,32 @@ def test_register_profile_does_not_overwrite_configured_values(tmp_path, monkeyp
 
     manager = DaemonEmbedManager()
     manager._profile_manager.create_profile(
-        "p", {"HINDSIGHT_API_LLM_PROVIDER": "anthropic", "HINDSIGHT_API_LLM_MODEL": "claude-sonnet-4-20250514"}
+        "p", {"AGENTSTRATUM_API_LLM_PROVIDER": "anthropic", "AGENTSTRATUM_API_LLM_MODEL": "claude-sonnet-4-20250514"}
     )
 
     manager._register_profile(
         "p",
         9100,
-        {"HINDSIGHT_API_LLM_MODEL": "gpt-4o", "HINDSIGHT_API_LLM_BASE_URL": "https://example.com/v1"},
+        {"AGENTSTRATUM_API_LLM_MODEL": "gpt-4o", "AGENTSTRATUM_API_LLM_BASE_URL": "https://example.com/v1"},
     )
 
-    env = (tmp_path / ".hindsight" / "profiles" / "p.env").read_text(encoding="utf-8")
-    assert "HINDSIGHT_API_LLM_MODEL=claude-sonnet-4-20250514" in env  # configured value kept
-    assert "HINDSIGHT_API_LLM_MODEL=gpt-4o" not in env
-    assert "HINDSIGHT_API_LLM_BASE_URL=https://example.com/v1" in env  # missing key seeded
+    env = (tmp_path / ".agentstratum" / "profiles" / "p.env").read_text(encoding="utf-8")
+    assert "AGENTSTRATUM_API_LLM_MODEL=claude-sonnet-4-20250514" in env  # configured value kept
+    assert "AGENTSTRATUM_API_LLM_MODEL=gpt-4o" not in env
+    assert "AGENTSTRATUM_API_LLM_BASE_URL=https://example.com/v1" in env  # missing key seeded
 
 
 def test_register_profile_calls_create_when_api_keys_present():
     """
-    When config contains HINDSIGHT_API_* keys, _register_profile should
+    When config contains AGENTSTRATUM_API_* keys, _register_profile should
     forward them to create_profile.
     """
     manager = DaemonEmbedManager()
     manager._profile_manager = MagicMock()
 
     config = {
-        "HINDSIGHT_API_LLM_PROVIDER": "openai",
-        "HINDSIGHT_API_LLM_API_KEY": "sk-123",
+        "AGENTSTRATUM_API_LLM_PROVIDER": "openai",
+        "AGENTSTRATUM_API_LLM_API_KEY": "sk-123",
         "some_internal_key": "ignored",
     }
     manager._register_profile("myprofile", 8100, config)
@@ -307,7 +307,7 @@ def test_register_profile_calls_create_when_api_keys_present():
     manager._profile_manager.create_profile.assert_called_once_with(
         "myprofile",
         8100,
-        {"HINDSIGHT_API_LLM_PROVIDER": "openai", "HINDSIGHT_API_LLM_API_KEY": "sk-123"},
+        {"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "AGENTSTRATUM_API_LLM_API_KEY": "sk-123"},
     )
 
 
@@ -316,11 +316,12 @@ def test_find_ui_command_uses_npx_yes_flag_when_npx_not_on_path(monkeypatch):
     surrounding FileNotFoundError handler can report a clean install hint."""
     manager = DaemonEmbedManager()
 
+    monkeypatch.setenv("AGENTSTRATUM_EMBED_CP_PACKAGE", "agentstratum-control-plane@9.9.9")
     with patch("pathlib.Path.exists", return_value=False), patch("shutil.which", return_value=None):
         assert manager._find_ui_command("9.9.9") == [
             "npx",
             "-y",
-            "@vectorize-io/hindsight-control-plane@9.9.9",
+            "agentstratum-control-plane@9.9.9",
         ]
 
 
@@ -330,26 +331,27 @@ def test_find_ui_command_resolves_npx_absolute_path_with_yes_flag(monkeypatch):
     Either way, `-y` must be set so first-run installs don't block on a prompt."""
     manager = DaemonEmbedManager()
 
+    monkeypatch.setenv("AGENTSTRATUM_EMBED_CP_PACKAGE", "agentstratum-control-plane@9.9.9")
     with patch("pathlib.Path.exists", return_value=False), patch("shutil.which", return_value="/usr/local/bin/npx"):
         cmd = manager._find_ui_command("9.9.9")
 
     assert cmd == [
         "/usr/local/bin/npx",
         "-y",
-        "@vectorize-io/hindsight-control-plane@9.9.9",
+        "agentstratum-control-plane@9.9.9",
     ]
 
 
 def test_find_api_command_prefers_installed_binary_over_uvx(tmp_path, monkeypatch):
     """
-    When hindsight-api is installed alongside hindsight-embed (e.g. via
-    `pip install hindsight-all`), _find_api_command should invoke that
+    When agentstratum-api is installed alongside agentstratum-embed (e.g. via
+    `pip install agentstratum-all`), _find_api_command should invoke that
     binary directly rather than shelling out to uvx. Uses sysconfig to
     locate the venv's scripts directory (issue #1401, #1240).
     """
     scripts_dir = tmp_path / "bin"
     scripts_dir.mkdir()
-    api_binary = scripts_dir / "hindsight-api"
+    api_binary = scripts_dir / "agentstratum-api"
     api_binary.touch()
 
     manager = DaemonEmbedManager()
@@ -367,13 +369,13 @@ def test_find_api_command_prefers_installed_binary_over_uvx(tmp_path, monkeypatc
 def test_find_api_command_skips_slim_binary_without_local_ml(tmp_path, monkeypatch):
     """Default local embeddings/reranker need sentence-transformers.
 
-    A slim sibling hindsight-api binary can exist without local ML extras
+    A slim sibling agentstratum-api binary can exist without local ML extras
     installed. In that case, use the uvx full-package fallback instead of
     starting a daemon that immediately fails during local provider init.
     """
     scripts_dir = tmp_path / "venv_bin"
     scripts_dir.mkdir()
-    (scripts_dir / "hindsight-api").touch()
+    (scripts_dir / "agentstratum-api").touch()
 
     # Realistic venv layout: the module lives under site-packages, so the
     # __file__-relative --target path (<site-packages>/bin) is distinct from the
@@ -390,14 +392,20 @@ def test_find_api_command_skips_slim_binary_without_local_ml(tmp_path, monkeypat
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.find_spec", lambda name: None)
 
-    assert manager._find_api_command("1.2.3", env={}) == ["uvx", "hindsight-api@1.2.3"]
+    assert manager._find_api_command("1.2.3", env={"AGENTSTRATUM_EMBED_API_PACKAGE": "agentstratum-api==1.2.3"}) == [
+        "uvx",
+        "--quiet",
+        "--from",
+        "agentstratum-api==1.2.3",
+        "agentstratum-api",
+    ]
 
 
 def test_find_api_command_allows_slim_binary_with_external_providers(tmp_path, monkeypatch):
     """Slim installs are valid when both embeddings and reranker are external."""
     scripts_dir = tmp_path / "bin"
     scripts_dir.mkdir()
-    api_binary = scripts_dir / "hindsight-api"
+    api_binary = scripts_dir / "agentstratum-api"
     api_binary.touch()
 
     manager = DaemonEmbedManager()
@@ -409,8 +417,8 @@ def test_find_api_command_allows_slim_binary_with_external_providers(tmp_path, m
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.find_spec", lambda name: None)
 
     env = {
-        "HINDSIGHT_API_EMBEDDINGS_PROVIDER": "cohere",
-        "HINDSIGHT_API_RERANKER_PROVIDER": "cohere",
+        "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER": "cohere",
+        "AGENTSTRATUM_API_RERANKER_PROVIDER": "cohere",
     }
     assert manager._find_api_command("1.2.3", env=env) == [str(api_binary)]
 
@@ -431,7 +439,7 @@ def test_find_api_command_target_install_uses_file_relative_fallback(tmp_path, m
     pkg_dir.mkdir(parents=True)
     fake_module = pkg_dir / "daemon_embed_manager.py"
     fake_module.write_text("")
-    sibling_bin = target_dir / "bin" / "hindsight-api"
+    sibling_bin = target_dir / "bin" / "agentstratum-api"
     sibling_bin.parent.mkdir()
     sibling_bin.touch()
 
@@ -462,7 +470,7 @@ def test_find_api_command_target_install_uses_sibling_even_without_local_ml(tmp_
     pkg_dir.mkdir(parents=True)
     fake_module = pkg_dir / "daemon_embed_manager.py"
     fake_module.write_text("")
-    sibling_bin = target_dir / "bin" / "hindsight-api"
+    sibling_bin = target_dir / "bin" / "agentstratum-api"
     sibling_bin.parent.mkdir()
     sibling_bin.touch()
 
@@ -481,7 +489,7 @@ def test_find_api_command_falls_back_to_uvx_when_no_binary(tmp_path, monkeypatch
     """Without an installed binary or dev checkout, fall back to uvx."""
     scripts_dir = tmp_path / "bin"
     scripts_dir.mkdir()
-    # No hindsight-api binary in scripts_dir
+    # No agentstratum-api binary in scripts_dir
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(
@@ -490,7 +498,14 @@ def test_find_api_command_falls_back_to_uvx_when_no_binary(tmp_path, monkeypatch
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.sysconfig.get_path", lambda key: str(scripts_dir))
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
 
-    assert manager._find_api_command("1.2.3") == ["uvx", "hindsight-api@1.2.3"]
+    monkeypatch.setenv("AGENTSTRATUM_EMBED_API_PACKAGE", "agentstratum-api==1.2.3")
+    assert manager._find_api_command("1.2.3") == [
+        "uvx",
+        "--quiet",
+        "--from",
+        "agentstratum-api==1.2.3",
+        "agentstratum-api",
+    ]
 
 
 def test_find_api_command_windows_uses_exe_suffix(tmp_path, monkeypatch):
@@ -504,7 +519,7 @@ def test_find_api_command_windows_uses_exe_suffix(tmp_path, monkeypatch):
     """
     scripts_dir = tmp_path / "Scripts"
     scripts_dir.mkdir()
-    api_binary = scripts_dir / "hindsight-api.exe"
+    api_binary = scripts_dir / "agentstratum-api.exe"
     api_binary.touch()
     interp_dir = tmp_path / "interp"
     interp_dir.mkdir()
@@ -526,14 +541,14 @@ def test_find_api_command_windows_uses_exe_suffix(tmp_path, monkeypatch):
 def test_find_api_command_windows_prefers_gui_interpreter(tmp_path, monkeypatch):
     """On Windows, launch via pythonw.exe instead of the console exe (issue #1885).
 
-    The console-subsystem hindsight-api.exe makes Windows Terminal's ConPTY pop a
+    The console-subsystem agentstratum-api.exe makes Windows Terminal's ConPTY pop a
     visible tab on daemon start; the GUI-subsystem pythonw.exe never allocates a
     console. When pythonw.exe sits next to sys.executable, _find_api_command must
     return `pythonw.exe -m hindsight_api.main`.
     """
     scripts_dir = tmp_path / "Scripts"
     scripts_dir.mkdir()
-    (scripts_dir / "hindsight-api.exe").touch()
+    (scripts_dir / "agentstratum-api.exe").touch()
     (scripts_dir / "python.exe").touch()
     pythonw = scripts_dir / "pythonw.exe"
     pythonw.touch()
@@ -555,13 +570,13 @@ def test_find_api_command_windows_prefers_scripts_dir_pythonw_for_wrappers(tmp_p
     """pip/uv wrapper executables can make sys.executable differ from Scripts."""
     scripts_dir = tmp_path / "Scripts"
     scripts_dir.mkdir()
-    (scripts_dir / "hindsight-api.exe").touch()
+    (scripts_dir / "agentstratum-api.exe").touch()
     pythonw = scripts_dir / "pythonw.exe"
     pythonw.touch()
 
     wrapper_dir = tmp_path / "wrapper"
     wrapper_dir.mkdir()
-    (wrapper_dir / "hindsight-embed.exe").touch()
+    (wrapper_dir / "agentstratum-embed.exe").touch()
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(
@@ -570,7 +585,9 @@ def test_find_api_command_windows_prefers_scripts_dir_pythonw_for_wrappers(tmp_p
     )
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.sysconfig.get_path", lambda key: str(scripts_dir))
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
-    monkeypatch.setattr("hindsight_embed.daemon_embed_manager.sys.executable", str(wrapper_dir / "hindsight-embed.exe"))
+    monkeypatch.setattr(
+        "hindsight_embed.daemon_embed_manager.sys.executable", str(wrapper_dir / "agentstratum-embed.exe")
+    )
     _mock_sentence_transformers_present(monkeypatch)
 
     assert manager._find_api_command("0.0.0") == [str(pythonw), "-m", "hindsight_api.main"]
@@ -629,22 +646,24 @@ def test_stop_ui_kills_recorded_and_configured_ports(tmp_path, monkeypatch):
 def test_register_profile_preserves_existing_embed_keys(tmp_path, monkeypatch):
     """_register_profile rewrites the .env on daemon start; it must merge the
     existing non-API keys (UI port, idle timeout, ...) forward instead of
-    dropping them. Regression for the HINDSIGHT_EMBED_CP_PORT wipe."""
+    dropping them. Regression for the AGENTSTRATUM_EMBED_CP_PORT wipe."""
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
 
     manager = DaemonEmbedManager()
     # Seed a profile .env that already carries an embed-only key.
     manager._profile_manager.create_profile(
-        "p", {"HINDSIGHT_API_LLM_PROVIDER": "openai", "HINDSIGHT_EMBED_CP_PORT": "25000"}
+        "p", {"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "AGENTSTRATUM_EMBED_CP_PORT": "25000"}
     )
 
-    # Daemon start passes only HINDSIGHT_API_* config to _register_profile.
-    manager._register_profile("p", 9100, {"HINDSIGHT_API_LLM_PROVIDER": "openai", "HINDSIGHT_API_LLM_API_KEY": "sk-x"})
+    # Daemon start passes only AGENTSTRATUM_API_* config to _register_profile.
+    manager._register_profile(
+        "p", 9100, {"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "AGENTSTRATUM_API_LLM_API_KEY": "sk-x"}
+    )
 
-    env = (tmp_path / ".hindsight" / "profiles" / "p.env").read_text()
-    assert "HINDSIGHT_EMBED_CP_PORT=25000" in env  # preserved, not wiped
-    assert "HINDSIGHT_API_LLM_API_KEY=sk-x" in env
+    env = (tmp_path / ".agentstratum" / "profiles" / "p.env").read_text()
+    assert "AGENTSTRATUM_EMBED_CP_PORT=25000" in env  # preserved, not wiped
+    assert "AGENTSTRATUM_API_LLM_API_KEY=sk-x" in env
 
 
 def test_component_version_resolution(tmp_path, monkeypatch):
@@ -654,21 +673,21 @@ def test_component_version_resolution(tmp_path, monkeypatch):
     from hindsight_embed import __version__
 
     manager = DaemonEmbedManager()
-    manager._profile_manager.create_profile("p", {"HINDSIGHT_API_LLM_PROVIDER": "openai"})
+    manager._profile_manager.create_profile("p", {"AGENTSTRATUM_API_LLM_PROVIDER": "openai"})
 
     # default = embed version
-    monkeypatch.delenv("HINDSIGHT_EMBED_CP_VERSION", raising=False)
-    assert manager._component_version("p", "HINDSIGHT_EMBED_CP_VERSION") == __version__
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_CP_VERSION", raising=False)
+    assert manager._component_version("p", "AGENTSTRATUM_EMBED_CP_VERSION") == __version__
 
     # env var overrides the default
-    monkeypatch.setenv("HINDSIGHT_EMBED_CP_VERSION", "9.9.9")
-    assert manager._component_version("p", "HINDSIGHT_EMBED_CP_VERSION") == "9.9.9"
+    monkeypatch.setenv("AGENTSTRATUM_EMBED_CP_VERSION", "9.9.9")
+    assert manager._component_version("p", "AGENTSTRATUM_EMBED_CP_VERSION") == "9.9.9"
 
     # profile .env override beats the env var
     manager._profile_manager.create_profile(
-        "p", {"HINDSIGHT_API_LLM_PROVIDER": "openai", "HINDSIGHT_EMBED_CP_VERSION": "1.2.3"}
+        "p", {"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "AGENTSTRATUM_EMBED_CP_VERSION": "1.2.3"}
     )
-    assert manager._component_version("p", "HINDSIGHT_EMBED_CP_VERSION") == "1.2.3"
+    assert manager._component_version("p", "AGENTSTRATUM_EMBED_CP_VERSION") == "1.2.3"
 
 
 def test_is_ui_running_detects_ipv6_only_ui(tmp_path, monkeypatch):
@@ -927,3 +946,20 @@ def test_windows_daemon_descendants_inherit_console(tmp_path: Path) -> None:
     console_pids = {int(pid) for pid in output.split()}
     assert process.pid in console_pids
     assert os.getpid() not in console_pids
+
+
+def test_download_requires_an_operator_distribution(monkeypatch):
+    manager = DaemonEmbedManager()
+    monkeypatch.setattr(manager, "_dev_api_command", lambda: None)
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_API_PACKAGE", raising=False)
+    with patch("pathlib.Path.exists", return_value=False):
+        with pytest.raises(ValueError, match="AGENTSTRATUM_EMBED_API_PACKAGE"):
+            manager._find_api_command("1.2.3", env={})
+
+
+def test_web_download_requires_an_operator_distribution(monkeypatch):
+    manager = DaemonEmbedManager()
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_CP_PACKAGE", raising=False)
+    with patch("pathlib.Path.exists", return_value=False):
+        with pytest.raises(ValueError, match="AGENTSTRATUM_EMBED_CP_PACKAGE"):
+            manager._find_ui_command("1.2.3")

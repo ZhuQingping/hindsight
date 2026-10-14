@@ -1,14 +1,14 @@
-"""Hindsight-embed daemon lifecycle management.
+"""agentstratum-embed daemon lifecycle management.
 
 Mirrors `hindsight-integrations/codex/scripts/lib/daemon.py` with the
 profile name rebranded for the ZCode integration. Manages three
 connection modes:
 
-  1. External API — user provides hindsightApiUrl (skip daemon entirely)
-  2. Existing local server — user already has hindsight running
-  3. Auto-managed daemon — integration starts/stops hindsight-embed
+  1. External API — user provides apiUrl (skip daemon entirely)
+  2. Existing local server — user already has agentstratum running
+  3. Auto-managed daemon — integration starts/stops agentstratum-embed
 
-Daemon state is tracked via files in ~/.hindsight/zcode/state/.
+Daemon state is tracked via files in ~/.agentstratum/zcode/state/.
 """
 
 import os
@@ -26,19 +26,25 @@ DAEMON_STATE_FILE = "daemon.json"
 PROFILE_NAME = "zcode"
 
 
+def _diagnostic(value):
+    text = str(value)
+    return "Local engine operation failed; check its configuration." if "hindsight" in text.casefold() else text
+
+
 def _get_embed_command(config):
-    """Get the command to run hindsight-embed."""
+    """Get the command to run agentstratum-embed."""
     embed_path = config.get("embedPackagePath")
     if embed_path:
-        return ["uv", "run", "--directory", embed_path, "hindsight-embed"]
+        return ["uv", "run", "--directory", embed_path, "agentstratum-embed"]
 
-    version = config.get("embedVersion", "latest")
-    package = f"hindsight-embed@{version}" if version else "hindsight-embed@latest"
-    return ["uvx", package]
+    package = config.get("embedPackage") or os.environ.get("AGENTSTRATUM_EMBED_PACKAGE")
+    if not package:
+        raise RuntimeError("Set AGENTSTRATUM_EMBED_PACKAGE or embedPackagePath for local engine mode.")
+    return ["uvx", "--quiet", "--from", package, "agentstratum-embed"]
 
 
 def _run_embed(config, args, env=None, timeout=10):
-    """Run a hindsight-embed command and return the result."""
+    """Run a agentstratum-embed command and return the result."""
     cmd = _get_embed_command(config) + args
     run_env = dict(os.environ)
     if env:
@@ -53,17 +59,17 @@ def _run_embed(config, args, env=None, timeout=10):
 
 
 def _is_embed_available(config):
-    """Quick check if hindsight-embed is available on PATH."""
+    """Quick check if agentstratum-embed is available on PATH."""
     import shutil
 
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return os.path.isdir(embed_path)
-    return shutil.which("uvx") is not None or shutil.which("hindsight-embed") is not None
+    return shutil.which("uvx") is not None or shutil.which("agentstratum-embed") is not None
 
 
 def _check_health(base_url, timeout=2):
-    """Quick health check against a Hindsight server."""
+    """Quick health check against a agentstratum server."""
     try:
         url = f"{base_url.rstrip('/')}/health"
         req = urllib.request.Request(url, method="GET", headers={"User-Agent": USER_AGENT})
@@ -77,11 +83,11 @@ def get_api_url(config, debug_fn=None, allow_daemon_start=False):
     """Determine the API URL, optionally starting daemon if needed.
 
     Connection mode priority:
-      1. External API (hindsightApiUrl configured)
+      1. External API (apiUrl configured)
       2. Existing local server (check port health)
       3. Auto-managed daemon (only if allow_daemon_start=True)
     """
-    external_url = config.get("hindsightApiUrl")
+    external_url = config.get("apiUrl")
     if external_url:
         if debug_fn:
             debug_fn(f"Using external API: {external_url}")
@@ -97,8 +103,8 @@ def get_api_url(config, debug_fn=None, allow_daemon_start=False):
 
     if not allow_daemon_start:
         raise RuntimeError(
-            f"No Hindsight server on port {port}. Set hindsightApiUrl for external "
-            "API, start hindsight-embed manually, or wait for the retain hook to "
+            f"No agentstratum server on port {port}. Set apiUrl for external "
+            "API, start agentstratum-embed manually, or wait for the retain hook to "
             "auto-start the daemon."
         )
 
@@ -109,21 +115,21 @@ def get_api_url(config, debug_fn=None, allow_daemon_start=False):
         _ensure_daemon_running(config, port, debug_fn)
     except Exception as e:
         if debug_fn:
-            debug_fn(f"Daemon start failed: {e}")
+            debug_fn(f"Daemon start failed: {_diagnostic(e)}")
         raise RuntimeError(
-            "No Hindsight server available. Set hindsightApiUrl for external API, "
-            "or ensure hindsight-embed is installed for local daemon mode."
+            "No agentstratum server available. Set apiUrl for external API, "
+            "or ensure agentstratum-embed is installed for local daemon mode."
         ) from e
 
     return base_url
 
 
 def _ensure_daemon_running(config, port, debug_fn=None):
-    """Start the hindsight-embed daemon if not already running."""
+    """Start the agentstratum-embed daemon if not already running."""
     if not _is_embed_available(config):
         raise RuntimeError(
-            "hindsight-embed not found (uvx not on PATH). "
-            "Install with: pip install hindsight-embed, or set hindsightApiUrl."
+            "agentstratum-embed not found (uvx not on PATH). "
+            "Install with: configure AGENTSTRATUM_EMBED_PACKAGE, or set apiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -131,17 +137,17 @@ def _ensure_daemon_running(config, port, debug_fn=None):
     try:
         llm_config = detect_llm_config(config)
     except RuntimeError as e:
-        raise RuntimeError(f"Cannot start daemon: {e}") from e
+        raise RuntimeError(f"Cannot start daemon: {_diagnostic(e)}") from e
 
     llm_env = get_llm_env_vars(llm_config)
 
     daemon_env = dict(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 0)
-    daemon_env["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
 
     if platform.system() == "Darwin":
-        daemon_env["HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     if debug_fn:
         debug_fn(f'Configuring "{PROFILE_NAME}" profile...')
@@ -162,16 +168,16 @@ def _ensure_daemon_running(config, port, debug_fn=None):
         result = _run_embed(config, profile_args, daemon_env, timeout=10)
         if result.returncode != 0:
             if debug_fn:
-                debug_fn(f"Profile create stderr: {result.stderr.strip()}")
-            raise RuntimeError(f"Profile create failed (exit {result.returncode}): {result.stderr}")
+                debug_fn(f"Profile create stderr: {_diagnostic(result.stderr.strip())}")
+            raise RuntimeError(f"Profile create failed (exit {result.returncode}): {_diagnostic(result.stderr)}")
         if debug_fn:
             debug_fn("Profile configured")
     except subprocess.TimeoutExpired:
         raise RuntimeError("Profile create timed out")
     except FileNotFoundError:
         raise RuntimeError(
-            "hindsight-embed not found. Install with: pip install hindsight-embed "
-            "or set hindsightApiUrl for external API mode."
+            "agentstratum-embed not found. Install with: configure AGENTSTRATUM_EMBED_PACKAGE "
+            "or set apiUrl for external API mode."
         )
 
     if debug_fn:
@@ -185,9 +191,9 @@ def _ensure_daemon_running(config, port, debug_fn=None):
             timeout=30,
         )
         if debug_fn:
-            debug_fn(f"Daemon start exit={result.returncode} stdout={result.stdout.strip()}")
+            debug_fn(f"Daemon start exit={result.returncode} stdout={_diagnostic(result.stdout.strip())}")
         if result.returncode != 0 and "already running" not in result.stderr.lower():
-            raise RuntimeError(f"Daemon start failed (exit {result.returncode}): {result.stderr}")
+            raise RuntimeError(f"Daemon start failed (exit {result.returncode}): {_diagnostic(result.stderr)}")
     except subprocess.TimeoutExpired:
         raise RuntimeError("Daemon start timed out")
 
@@ -219,7 +225,7 @@ def prestart_daemon_background(config, debug_fn=None):
     Called from sessionStart to warm up the daemon before the first
     recall or retain hook fires.
     """
-    if config.get("hindsightApiUrl"):
+    if config.get("apiUrl"):
         return
 
     port = config.get("apiPort", 9077)
@@ -230,24 +236,24 @@ def prestart_daemon_background(config, debug_fn=None):
 
     if not _is_embed_available(config):
         if debug_fn:
-            debug_fn("hindsight-embed not available, skipping pre-start")
+            debug_fn("agentstratum-embed not available, skipping pre-start")
         return
 
     try:
         llm_config = detect_llm_config(config)
     except RuntimeError as e:
         if debug_fn:
-            debug_fn(f"No LLM configured, skipping daemon pre-start: {e}")
+            debug_fn(f"No LLM configured, skipping daemon pre-start: {_diagnostic(e)}")
         return
 
     llm_env = get_llm_env_vars(llm_config)
     daemon_env = dict(os.environ)
     daemon_env.update(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 0)
-    daemon_env["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
     if platform.system() == "Darwin":
-        daemon_env["HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     embed_cmd = _get_embed_command(config)
 

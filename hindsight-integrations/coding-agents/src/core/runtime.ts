@@ -9,7 +9,7 @@
  *                                     NOT computed here; onPrompt builds it per session)
  *   - onPrompt(sessionId, prompt)   : each user turn -> recall + build this turn's injection
  *   - getInjection(sessionId)       : the system-prompt text to inject this turn (or undefined)
- *   - toolSpecs()                   : the hindsight_* knowledge/recall tools to register natively
+ *   - toolSpecs()                   : the agentstratum_* knowledge/recall tools to register natively
  *   - onTranscript(sessionId, turns, lastTurnComplete): full transcript -> write back (on by default)
  *   - onSessionIdle(sessionId)      : assistant finished -> refetch + write back the completed
  *                                     exchange (the Stop-equivalent these hosts lack)
@@ -80,7 +80,7 @@ export class RuntimeCore {
     this.fetchTranscript = fetch;
   }
 
-  /** The hindsight_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
+  /** The agentstratum_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
   toolSpecs(): ToolSpec[] {
     return buildKnowledgeTools(this.client, this.bankId, {
       repoDir: this.projectDir,
@@ -113,9 +113,9 @@ export class RuntimeCore {
    */
   async seedIfCold(repoPath: string | undefined): Promise<void> {
     // Anti-recursion: a headless survey session runs the agent (which loads this plugin) with
-    // HINDSIGHT_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
+    // AGENTSTRATUM_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
     // but seeding/recall/write-back must no-op or the survey would re-seed itself (see core/survey.ts).
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return;
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
     // Companion skill, the same housekeeping `runSessionStartHook` does for hook harnesses — but
     // with `install`, because a persistent-plugin host can be wired by its OWN plugin manager
     // (`dsh plugin add …`, `cline plugin install`), a route our installer never sees, leaving the
@@ -147,7 +147,7 @@ export class RuntimeCore {
       if (out.systemMessage) {
         const plain = out.systemMessage.replace(/\x1b\[[0-9;]*m/g, "");
         log.info(this.harness, plain);
-        this.notify?.("Hindsight", plain.replace(/^Hindsight is /, "Is "));
+        this.notify?.("agentstratum", plain.replace(/^agentstratum is /, "Is "));
       }
       this.deferInitialReflect = out.deferInitialReflect === true;
     } catch {
@@ -161,7 +161,7 @@ export class RuntimeCore {
    * identical across hosts while this adapter retains only delivery-specific state.
    */
   async onPrompt(sessionId: string | undefined, prompt: string): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!sessionId || !prompt.trim()) return;
     const turns = (this.turnCount.get(sessionId) ?? 0) + 1;
     this.turnCount.set(sessionId, turns);
@@ -201,7 +201,7 @@ export class RuntimeCore {
     if (output.notice) {
       const preview = output.notice.replace(/\s+/g, " ").trim().slice(0, 140);
       log.info(this.harness, "reflect goal", { preview });
-      this.notify?.("Hindsight · recalled past decisions", preview);
+      this.notify?.("agentstratum · recalled past decisions", preview);
     }
     const block = blocks.filter(Boolean).join("\n\n");
     this.injection.set(sessionId, block);
@@ -240,7 +240,7 @@ export class RuntimeCore {
      *  a wrong default records every turn one late and never the session's last. */
     lastTurnComplete: boolean
   ): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!this.writeBackEnabled || !sessionId || !turns.length) return;
     this.recordUsage(sessionId, turns, lastTurnComplete);
     const st = this.stateFor(sessionId);
@@ -260,7 +260,7 @@ export class RuntimeCore {
    * turn must not wait for a threshold it will never reach.
    */
   async onSessionIdle(sessionId: string): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!this.writeBackEnabled || !sessionId || !this.fetchTranscript) return;
     let turns: TransportTurn[];
     try {

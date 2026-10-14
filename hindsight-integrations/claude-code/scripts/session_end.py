@@ -2,7 +2,7 @@
 """SessionEnd hook: daemon cleanup.
 
 Fires once when a Claude Code session terminates. If the plugin
-auto-started a hindsight-embed daemon, this is where we stop it.
+auto-started a agentstratum-embed daemon, this is where we stop it.
 
 Port of: Openclaw's service.stop() in index.js
 """
@@ -33,9 +33,10 @@ def main():
     if config.get("autoRetain") and hook_input.get("transcript_path"):
         try:
             from retain import run_retain
+
             run_retain(hook_input, force=True)
         except Exception as e:
-            print(f"[Hindsight] SessionEnd final retain error: {e}", file=sys.stderr)
+            print(f"[agentstratum] SessionEnd final retain error: {e}", file=sys.stderr)
 
     # Stop daemon if we started it
     def _dbg(*a):
@@ -48,5 +49,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionEnd error: {e}", file=sys.stderr)
+        print(f"[agentstratum] SessionEnd error: {e}", file=sys.stderr)
         sys.exit(0)

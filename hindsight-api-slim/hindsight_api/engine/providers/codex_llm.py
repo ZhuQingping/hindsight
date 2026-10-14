@@ -75,7 +75,7 @@ logger = logging.getLogger(__name__)
 # browser-shaped User-Agent returned "Model not found" for Luna (#2643).
 # Use a neutral version because Hindsight must not claim a specific Codex release.
 _CODEX_ORIGINATOR = "codex_cli_rs"
-_CODEX_USER_AGENT = "codex_cli_rs/0.0.0 (Hindsight)"
+_CODEX_USER_AGENT = "codex_cli_rs/0.0.0 (agentstratum)"
 
 # Name of the single forced function tool used to carry structured output when
 # strict_schema is on. The Codex backend speaks the OpenAI Responses API, so a

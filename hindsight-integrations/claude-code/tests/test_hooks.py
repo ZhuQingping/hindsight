@@ -33,9 +33,9 @@ def _run_hook(
     (tmp_path / "plugin_root").mkdir(exist_ok=True)
     (tmp_path / "plugin_data").mkdir(exist_ok=True)
 
-    # Strip real HINDSIGHT_* env vars and neutralize user config (~/.hindsight/claude-code.json)
+    # Strip real AGENTSTRATUM_* env vars and neutralize user config (~/.agentstratum/claude-code.json)
     for k in list(os.environ):
-        if k.startswith("HINDSIGHT_"):
+        if k.startswith("AGENTSTRATUM_"):
             monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
 
@@ -43,7 +43,7 @@ def _run_hook(
         monkeypatch.setenv(k, v)
 
     # Write a minimal settings.json enabling fast retains
-    settings = {"autoRecall": True, "autoRetain": True, "retainEveryNTurns": 1, "hindsightApiUrl": "http://fake:9077"}
+    settings = {"autoRecall": True, "autoRetain": True, "retainEveryNTurns": 1, "apiUrl": "http://fake:9077"}
     if extra_settings:
         settings.update(extra_settings)
     (tmp_path / "plugin_root" / "settings.json").write_text(json.dumps(settings))
@@ -86,7 +86,7 @@ class TestRecallHook:
         data = json.loads(output)
         context = data["hookSpecificOutput"]["additionalContext"]
         assert "Paris is the capital of France" in context
-        assert "<hindsight_memories>" in context
+        assert "<agentstratum_memories>" in context
 
     def test_recall_min_scores_filters_low_scoring_memories(self, monkeypatch, tmp_path):
         low_semantic = make_memory("Marginal match")
@@ -174,7 +174,7 @@ class TestRecallHook:
         # Override to use multi-turn recall
         settings = {
             "autoRecall": True,
-            "hindsightApiUrl": "http://fake:9077",
+            "apiUrl": "http://fake:9077",
             "recallContextTurns": 2,
             "retainEveryNTurns": 1,
             "autoRetain": True,
@@ -190,7 +190,7 @@ class TestRecallHook:
             return FakeHTTPResponse({"results": []})
 
         for k in list(os.environ):
-            if k.startswith("HINDSIGHT_"):
+            if k.startswith("AGENTSTRATUM_"):
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path / "plugin_root"))
         monkeypatch.setenv("CLAUDE_PLUGIN_DATA", str(tmp_path / "plugin_data"))
@@ -306,11 +306,11 @@ class TestRecallHook:
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         (tmp_path / "plugin_root").mkdir(exist_ok=True)
         (tmp_path / "plugin_data").mkdir(exist_ok=True)
-        settings = {"autoRecall": False, "autoRetain": False, "hindsightApiUrl": "http://fake:9077"}
+        settings = {"autoRecall": False, "autoRetain": False, "apiUrl": "http://fake:9077"}
         (tmp_path / "plugin_root" / "settings.json").write_text(json.dumps(settings))
 
         for k in list(os.environ):
-            if k.startswith("HINDSIGHT_"):
+            if k.startswith("AGENTSTRATUM_"):
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path / "plugin_root"))
         monkeypatch.setenv("CLAUDE_PLUGIN_DATA", str(tmp_path / "plugin_data"))
@@ -367,7 +367,7 @@ class TestRetainHook:
 
     def test_strips_memory_tags_before_retaining(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "<hindsight_memories>old memories</hindsight_memories> actual question"},
+            {"role": "user", "content": "<agentstratum_memories>old memories</agentstratum_memories> actual question"},
             {"role": "assistant", "content": "sure!"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
@@ -412,7 +412,7 @@ class TestRetainHook:
         assert item["tags"] == ["sess-tag-test", "claude-code", "custom-tag"]
 
     def test_retain_tag_resolves_user_id_when_env_set(self, monkeypatch, tmp_path):
-        """retainTags with {user_id} resolves from HINDSIGHT_USER_ID env var."""
+        """retainTags with {user_id} resolves from AGENTSTRATUM_USER_ID env var."""
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-user-test")
@@ -429,7 +429,7 @@ class TestRetainHook:
             monkeypatch,
             tmp_path,
             urlopen_side_effect=capture,
-            extra_env={"HINDSIGHT_USER_ID": "alice"},
+            extra_env={"AGENTSTRATUM_USER_ID": "alice"},
             extra_settings={"retainTags": ["user:{user_id}", "session:{session_id}"]},
         )
 
@@ -465,7 +465,7 @@ class TestRetainHook:
 
     def test_retain_tag_without_colon_preserved(self, monkeypatch, tmp_path):
         """Tags without ':' are never dropped, regardless of env state."""
-        # _run_hook strips all HINDSIGHT_* env vars, so unset state is the default.
+        # _run_hook strips all AGENTSTRATUM_* env vars, so unset state is the default.
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-plain")
@@ -491,7 +491,7 @@ class TestRetainHook:
 
     def test_retain_tag_all_dropped_yields_no_tags_field(self, monkeypatch, tmp_path):
         """If all tags resolve to dangling, the outgoing request omits the tags field."""
-        # _run_hook strips all HINDSIGHT_* env vars, so unset state is the default.
+        # _run_hook strips all AGENTSTRATUM_* env vars, so unset state is the default.
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-none")
@@ -756,7 +756,7 @@ class TestRetainHook:
             "autoRecall": True,
             "retainMode": "chunked",
             "retainEveryNTurns": 5,
-            "hindsightApiUrl": "http://fake:9077",
+            "apiUrl": "http://fake:9077",
         }
         (tmp_path / "plugin_root" / "settings.json").write_text(json.dumps(settings))
 
@@ -772,11 +772,11 @@ class TestRetainHook:
             return FakeHTTPResponse({})
 
         for k in list(os.environ):
-            if k.startswith("HINDSIGHT_"):
+            if k.startswith("AGENTSTRATUM_"):
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path / "plugin_root"))
         monkeypatch.setenv("CLAUDE_PLUGIN_DATA", str(tmp_path / "plugin_data"))
-        monkeypatch.setenv("HINDSIGHT_RETAIN_MODE", "chunked")
+        monkeypatch.setenv("AGENTSTRATUM_RETAIN_MODE", "chunked")
         monkeypatch.setenv("HOME", str(tmp_path))
 
         stdin_data = io.StringIO(json.dumps(hook_input))
@@ -843,7 +843,7 @@ class TestRetainHook:
     def test_disabled_auto_retain_does_not_call_api(self, monkeypatch, tmp_path):
         (tmp_path / "plugin_root").mkdir(exist_ok=True)
         (tmp_path / "plugin_data").mkdir(exist_ok=True)
-        settings = {"autoRetain": False, "autoRecall": False, "hindsightApiUrl": "http://fake:9077"}
+        settings = {"autoRetain": False, "autoRecall": False, "apiUrl": "http://fake:9077"}
         (tmp_path / "plugin_root" / "settings.json").write_text(json.dumps(settings))
 
         messages = [{"role": "user", "content": "hello"}]
@@ -856,7 +856,7 @@ class TestRetainHook:
             return FakeHTTPResponse({})
 
         for k in list(os.environ):
-            if k.startswith("HINDSIGHT_"):
+            if k.startswith("AGENTSTRATUM_"):
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path / "plugin_root"))
         monkeypatch.setenv("CLAUDE_PLUGIN_DATA", str(tmp_path / "plugin_data"))

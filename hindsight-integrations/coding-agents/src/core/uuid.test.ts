@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HINDSIGHT_NAMESPACE, uuidV5 } from "./uuid";
+import { AGENTSTRATUM_NAMESPACE, uuidV5 } from "./uuid";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const DNS_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
@@ -21,7 +21,7 @@ describe("uuidV5", () => {
   });
 
   it("separates names across namespaces", () => {
-    expect(uuidV5("a", HINDSIGHT_NAMESPACE)).not.toBe(uuidV5("a", DNS_NAMESPACE));
+    expect(uuidV5("a", AGENTSTRATUM_NAMESPACE)).not.toBe(uuidV5("a", DNS_NAMESPACE));
   });
 
   it("rejects a malformed namespace rather than silently hashing garbage", () => {

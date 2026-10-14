@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicErrorPayload } from "@/lib/public-errors";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
 
@@ -30,7 +31,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ban
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
-      return NextResponse.json(error, { status: response.status });
+      return NextResponse.json(publicErrorPayload(error), { status: response.status });
     }
 
     return NextResponse.json(await response.json(), { status: 200 });

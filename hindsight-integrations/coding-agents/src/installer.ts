@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * hindsight-coding-agents install|uninstall [harness...]
+ * agentstratum-coding-agents install|uninstall [harness...]
  *
  * ONE setup command for every supported coding agent. With no harness arguments it detects which
  * agents exist on this machine (binary on PATH or config dir present) and wires each one's NATIVE
@@ -9,7 +9,7 @@
  *   opencode     add this package to `plugin` in ~/.config/opencode/opencode.json
  *   claude-code  3 hooks in ~/.claude/settings.json + `claude mcp add` (user scope)
  *   codex        3 hooks in ~/.codex/hooks.json + [features]/[mcp_servers] in config.toml
- *   antigravity-cli PreInvocation + Stop hooks, Hindsight status line + MCP
+ *   antigravity-cli PreInvocation + Stop hooks, agentstratum status line + MCP
  *   devin-cli     SessionStart + UserPromptSubmit + Stop hooks in ~/.config/devin/config.json + MCP
  *   cursor-cli   sessionStart + beforeSubmitPrompt + stop hooks in ~/.cursor/hooks.json + ~/.cursor/mcp.json
  *   copilot-cli  sessionStart + userPromptTransformed + agentStop hooks in ~/.copilot/hooks/ + MCP
@@ -17,10 +17,10 @@
  *   dcode        native Agent Plugin via `dcode plugin marketplace/install`
  *   dsh          native Cordis plugin row in $DSH_HOME/cordis.patch.yml (DeepSeek Harness)
  *
- * IDEMPOTENT: our entries are recognized by the package path in their command ("hindsight-coding-
+ * IDEMPOTENT: our entries are recognized by the package path in their command ("agentstratum-coding-
  * agents"), replaced on re-install (so moving the package just needs `install` again) and removed
  * on `uninstall`. Everything else in the host's config files is preserved; files are created when
- * missing. Backups: the first time we touch an existing file we write `<file>.hindsight-backup`.
+ * missing. Backups: the first time we touch an existing file we write `<file>.agentstratum-backup`.
  */
 import { execFileSync } from "node:child_process";
 import {
@@ -68,9 +68,9 @@ import { createInstallerUi, type SelectOption } from "./install-ui";
  * `uninstall` removes exactly what we added.
  *
  * It must appear in the package path under BOTH layouts: npm
- * (`node_modules/@vectorize-io/hindsight-coding-agents/...`) and a repo checkout
+ * (`node_modules/agentstratum-coding-agents/...`) and a repo checkout
  * (`hindsight-integrations/coding-agents/...`). The old value was the full package name, which the
- * repo path stopped containing when the directory dropped its `hindsight-` prefix — silently
+ * repo path stopped containing when the directory dropped its `agentstratum-` prefix — silently
  * breaking dedupe-on-reinstall and uninstall for anyone running from a checkout.
  */
 export const MARKER = "coding-agents";
@@ -172,8 +172,8 @@ function writeJson(path: string, value: unknown): void {
 
 /** The first time we touch an existing file, keep a copy of what the user had. */
 function backupOnce(path: string): void {
-  if (existsSync(path) && !existsSync(`${path}.hindsight-backup`)) {
-    copyFileSync(path, `${path}.hindsight-backup`);
+  if (existsSync(path) && !existsSync(`${path}.agentstratum-backup`)) {
+    copyFileSync(path, `${path}.agentstratum-backup`);
   }
 }
 
@@ -239,8 +239,8 @@ const processHook = (dist: string, file: string, timeoutMs: number) => ({
  * The MCP registration for a JSON-configured host.
  *
  * Every harness launches the SAME `dist/mcp-server.js`, so the command line alone cannot say who
- * is calling. `HINDSIGHT_MCP_HARNESS` is what the server reads to answer that; without it it falls
- * back to "claude-code", which is why a Codex `hindsight_ingest_document` landed tagged
+ * is calling. `AGENTSTRATUM_MCP_HARNESS` is what the server reads to answer that; without it it falls
+ * back to "claude-code", which is why a Codex `agentstratum_ingest_document` landed tagged
  * `harness:claude-code` (and derived its bank as Claude Code's) on machines running both. Every
  * registration MUST name its own harness — pass it here, never rely on the fallback.
  * `extraArgs` is Cursor-only: Agents Window ignores stdio `cwd`, but interpolates
@@ -253,8 +253,24 @@ const mcpServerEntry = (
 ) => ({
   command: "node",
   args: [join(dist, "mcp-server.js"), ...extraArgs],
-  env: { HINDSIGHT_MCP_HARNESS: harness },
+  env: { AGENTSTRATUM_MCP_HARNESS: harness },
 });
+
+/** A shared server name is not proof of ownership: keep user-managed remote registrations. */
+function preserveMcpEntry(
+  c: InstallCtx,
+  existing: unknown,
+  harness: HookHarnessName | "cline-cli",
+  extraArgs: string[] = []
+): unknown {
+  if (existing && !isOurMcpEntry(existing)) {
+    c.log?.(
+      harness + ": preserved the existing agentstratum MCP registration managed outside this plugin"
+    );
+    return existing;
+  }
+  return mcpServerEntry(c.dist, harness, extraArgs);
+}
 
 /** Install/uninstall consume the same lifecycle declaration as the runtime entrypoints. Keeping
  * event names and command files here would allow a host to run a different lifecycle than it installs. */
@@ -315,14 +331,14 @@ function installSkill(c: InstallCtx, harness: string): void {
   const src = join(c.pkgRoot, "skill");
   if (!existsSync(join(src, "SKILL.md"))) return;
   const skillsBase = skillsBaseFor(c, harness);
-  const dst = join(skillsBase, "hindsight-coding-agent");
+  const dst = join(skillsBase, "agentstratum-coding-agent");
   mkdirSync(skillsBase, { recursive: true });
   cpSync(src, dst, { recursive: true });
   c.log?.(`${harness}: skill installed at ${dst}`);
 }
 
 function uninstallSkill(c: InstallCtx, harness: string): void {
-  rmSync(join(skillsBaseFor(c, harness), "hindsight-coding-agent"), {
+  rmSync(join(skillsBaseFor(c, harness), "agentstratum-coding-agent"), {
     recursive: true,
     force: true,
   });
@@ -579,22 +595,22 @@ const claudeCode: HarnessInstaller = {
     // codex via the ~/.agents/skills standard).
     installSkill(c, "claude-code");
     const mcp = c.claudeMcp ?? defaultClaudeMcp;
-    // `claude mcp add` REFUSES when the name is taken ("MCP server hindsight already exists in
-    // user config") — so on a machine that already had Hindsight, a re-install could never
+    // `claude mcp add` REFUSES when the name is taken ("MCP server agentstratum already exists in
+    // user config") — so on a machine that already had agentstratum, a re-install could never
     // repoint the server. After the package moved, the stale registration survived and Claude
-    // Code reported "Failed to connect — Connection closed" with the hindsight_* tools dead.
+    // Code reported "Failed to connect — Connection closed" with the agentstratum_* tools dead.
     // Remove first (a no-op when absent) so the add always lands, matching how every other host
     // wiring is replaced rather than skipped.
-    mcp(["mcp", "remove", "--scope", "user", "hindsight"]);
+    mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
     if (
       mcp([
         "mcp",
         "add",
         "--scope",
         "user",
-        "hindsight",
+        "agentstratum",
         "--env",
-        "HINDSIGHT_MCP_HARNESS=claude-code",
+        "AGENTSTRATUM_MCP_HARNESS=claude-code",
         "--",
         "node",
         join(c.dist, "mcp-server.js"),
@@ -604,7 +620,7 @@ const claudeCode: HarnessInstaller = {
     } else {
       c.log?.(
         `claude-code: could not run \`claude mcp add\` — register the tools manually:\n` +
-          `  claude mcp add --scope user hindsight --env HINDSIGHT_MCP_HARNESS=claude-code -- node "${join(c.dist, "mcp-server.js")}"`
+          `  claude mcp add --scope user agentstratum --env AGENTSTRATUM_MCP_HARNESS=claude-code -- node "${join(c.dist, "mcp-server.js")}"`
       );
     }
   },
@@ -619,7 +635,7 @@ const claudeCode: HarnessInstaller = {
       }
     }
     const mcp = c.claudeMcp ?? defaultClaudeMcp;
-    mcp(["mcp", "remove", "--scope", "user", "hindsight"]);
+    mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
     uninstallSkill(c, "claude-code");
     c.log?.("claude-code: hooks + MCP registration + skill removed");
   },
@@ -635,15 +651,16 @@ function defaultClaudeMcp(args: string[]): boolean {
 }
 
 /**
- * Our `[mcp_servers.hindsight]` table (plus any sub-table of it): the header line through to the
+ * Our `[mcp_servers.agentstratum]` table (plus any sub-table of it): the header line through to the
  * next table header or EOF. Shared by install — which REPLACES the block — and uninstall.
  */
-const CODEX_MCP_BLOCK_RE = /^\[mcp_servers\.hindsight(?:\.[^\]]+)?\][^\n]*\n(?:(?!\[)[^\n]*\n?)*/gm;
+const CODEX_MCP_BLOCK_RE =
+  /^\[mcp_servers\.agentstratum(?:\.[^\]]+)?\][^\n]*\n(?:(?!\[)[^\n]*\n?)*/gm;
 
-/** Inline `env`, so CODEX_MCP_BLOCK_RE never has to straddle a `[mcp_servers.hindsight.env]` table. */
+/** Inline `env`, so CODEX_MCP_BLOCK_RE never has to straddle a `[mcp_servers.agentstratum.env]` table. */
 const codexMcpBlock = (dist: string) =>
-  `[mcp_servers.hindsight]\ncommand = "node"\nargs = [${JSON.stringify(join(dist, "mcp-server.js"))}]\n` +
-  `env = { HINDSIGHT_MCP_HARNESS = "codex" }`;
+  `[mcp_servers.agentstratum]\ncommand = "node"\nargs = [${JSON.stringify(join(dist, "mcp-server.js"))}]\n` +
+  `env = { AGENTSTRATUM_MCP_HARNESS = "codex" }`;
 
 const codex: HarnessInstaller = {
   name: "codex",
@@ -678,8 +695,8 @@ const codex: HarnessInstaller = {
     additions.push(codexMcpBlock(c.dist));
     const next = `${toml.replace(/\n*$/, "\n\n")}${additions.join("\n\n")}\n`;
     if (next !== existing) {
-      if (existsSync(tomlPath) && !existsSync(`${tomlPath}.hindsight-backup`)) {
-        copyFileSync(tomlPath, `${tomlPath}.hindsight-backup`);
+      if (existsSync(tomlPath) && !existsSync(`${tomlPath}.agentstratum-backup`)) {
+        copyFileSync(tomlPath, `${tomlPath}.agentstratum-backup`);
       }
       mkdirSync(dirname(tomlPath), { recursive: true });
       writeFileSync(tomlPath, next);
@@ -719,7 +736,7 @@ const antigravity: HarnessInstaller = {
     const hooksPath = join(c.home, ".gemini", "config", "hooks.json");
     const hooks = readJson(hooksPath);
     // Antigravity's hooks.json is a map of named customizations, not a direct event map. Keep
-    // Hindsight in its own namespace so it cannot collide with other global hook bundles.
+    // agentstratum in its own namespace so it cannot collide with other global hook bundles.
     // Drop any namespace we wrote under a PREVIOUS marker value. This file is keyed BY the marker,
     // so unlike every other host — where entries are matched by substring — a changed marker
     // orphans the old namespace instead of replacing it, leaving both registered and every hook
@@ -740,20 +757,20 @@ const antigravity: HarnessInstaller = {
     const mcp = readJson(mcpPath);
     mcp.mcpServers = {
       ...(mcp.mcpServers ?? {}),
-      hindsight: mcpServerEntry(c.dist, "antigravity-cli"),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "antigravity-cli"),
     };
     writeJson(mcpPath, mcp);
     const settingsPath = join(c.home, ".gemini", "antigravity-cli", "settings.json");
     const settings = readJson(settingsPath);
     // A custom status-line command owns the whole rendered line. Do not overwrite a user's
-    // formatter; Hindsight can only add its native indicator when no formatter is already set.
+    // formatter; agentstratum can only add its native indicator when no formatter is already set.
     if (!settings.statusLine) {
       settings.statusLine = {
         type: "command",
         command: `node "${join(c.dist, "antigravity-statusline.js")}"`,
       };
       writeJson(settingsPath, settings);
-      c.log?.(`antigravity-cli: Hindsight status line enabled in ${settingsPath}`);
+      c.log?.(`antigravity-cli: agentstratum status line enabled in ${settingsPath}`);
     } else if (JSON.stringify(settings.statusLine).includes(MARKER)) {
       settings.statusLine = {
         type: "command",
@@ -762,7 +779,7 @@ const antigravity: HarnessInstaller = {
       writeJson(settingsPath, settings);
     } else {
       c.log?.(
-        "antigravity-cli: existing custom status line preserved (Hindsight indicator not added)"
+        "antigravity-cli: existing custom status line preserved (agentstratum indicator not added)"
       );
     }
     c.log?.(`antigravity-cli: hooks merged into ${hooksPath}, MCP into ${mcpPath}`);
@@ -785,8 +802,8 @@ const antigravity: HarnessInstaller = {
     const mcpPath = join(c.home, ".gemini", "config", "mcp_config.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -832,12 +849,12 @@ function pathNodeVersion(): string {
 /**
  * Where the runtime is copied to, and therefore what every hook command points at.
  *
- * Under ~/.hindsight, which this package already owns (the config file lives there), and named
+ * Under ~/.agentstratum, which this package already owns (the config file lives there), and named
  * `coding-agents` on purpose: MARKER matching is what lets a re-install replace our entries and
  * `uninstall` remove them, and it looks for exactly that substring in the command path.
  */
 export function runtimeDir(home: string): string {
-  return join(home, ".hindsight", "coding-agents");
+  return join(home, ".agentstratum", "coding-agents");
 }
 
 /** Names the directory `stageRuntime` copied from — read by core/auto-update.ts. */
@@ -932,11 +949,11 @@ export function flagValueArgs(args: string[], names: string[]): Set<string> {
   return taken;
 }
 
-const CONFIG_RELATIVE = [".hindsight", "coding-agent.json"];
-/** The runtime resolves its config as HINDSIGHT_CONFIG || ~/.hindsight/coding-agent.json
+const CONFIG_RELATIVE = [".agentstratum", "coding-agent.json"];
+/** The runtime resolves its config as AGENTSTRATUM_CONFIG || ~/.agentstratum/coding-agent.json
  *  (core/config.ts CONFIG_PATH); every installer read/write must honor the same override. */
 const hindsightConfigPath = (c: InstallCtx): string =>
-  process.env.HINDSIGHT_CONFIG || join(c.home, ...CONFIG_RELATIVE);
+  process.env.AGENTSTRATUM_CONFIG || join(c.home, ...CONFIG_RELATIVE);
 
 /**
  * Ask which of the three connection modes to use, once.
@@ -947,12 +964,16 @@ const hindsightConfigPath = (c: InstallCtx): string =>
  * one to answer. Non-interactive callers pass `--server`.
  */
 const SERVER_CHOICES: { mode: ServerMode; label: string; hint: string }[] = [
-  { mode: "cloud", label: "Hindsight Cloud", hint: "hosted, needs an API token" },
-  { mode: "self-hosted", label: "Self-hosted server", hint: "a Hindsight server you already run" },
+  { mode: "cloud", label: "agentstratum Cloud", hint: "hosted, needs an API token" },
+  {
+    mode: "self-hosted",
+    label: "Self-hosted server",
+    hint: "a agentstratum server you already run",
+  },
   {
     mode: "daemon",
     label: "Local daemon (on-device)",
-    hint: "runs hindsight-embed here; no account, needs uv + an LLM key",
+    hint: "runs agentstratum-embed here; no account, needs uv + an LLM key",
   },
 ];
 
@@ -1015,7 +1036,7 @@ function readLineSync(c: InstallCtx, prompt: string): string {
 }
 
 /**
- * Resolve and persist the connection mode into ~/.hindsight/coding-agent.json.
+ * Resolve and persist the connection mode into ~/.agentstratum/coding-agent.json.
  *
  * Returns false to abort the install. Everything else here is advisory: a daemon whose
  * prerequisites are missing is still worth configuring, because `uv` or an API key can be
@@ -1027,7 +1048,7 @@ function configureServer(c: InstallCtx, args: string[], installing: readonly str
     c.log?.(`unknown --server "${explicit}" — expected one of: ${SERVER_MODES.join(", ")}`);
     return false;
   }
-  // Same override as the runtime, or a user with HINDSIGHT_CONFIG set would be configured into a
+  // Same override as the runtime, or a user with AGENTSTRATUM_CONFIG set would be configured into a
   // file their sessions never read.
   const configPath = hindsightConfigPath(c);
   const existing = readJson(configPath);
@@ -1057,7 +1078,7 @@ function configureServer(c: InstallCtx, args: string[], installing: readonly str
     }
     if (!c.interactive) {
       c.log?.(
-        `\nserver: defaulting to Hindsight Cloud. Re-run with --server self-hosted|daemon to change,\n` +
+        `\nserver: configure --server cloud|self-hosted --api-url <url>, or --server daemon,\n` +
           `        or edit ${configPath}.`
       );
       return true;
@@ -1068,13 +1089,22 @@ function configureServer(c: InstallCtx, args: string[], installing: readonly str
 
   const next: Record<string, unknown> = { ...existing, serverMode: mode };
   if (mode === "cloud") {
-    delete next.apiUrl; // fall back to the built-in Cloud URL rather than pinning a stale one
+    const url =
+      flagValue(args, "api-url") ??
+      existing.apiUrl ??
+      process.env.AGENTSTRATUM_API_URL ??
+      (c.interactive ? readLineSync(c, "Service URL (required): ").trim() : undefined);
+    if (!url) {
+      c.log?.("Cloud mode requires --api-url <url> or AGENTSTRATUM_API_URL.");
+      return false;
+    }
+    next.apiUrl = url;
     // Cloud always authenticates — a config without a token only surfaces later as 401s on the
     // first session, so the token is REQUIRED here (it used to be "blank to set later").
     const token = flagValue(args, "api-token") ?? (c.interactive ? askToken(c) : undefined);
     if (!token) {
       c.log?.(
-        `❌ Hindsight Cloud needs an API token — pass --api-token <token> (or set apiToken in ${configPath}).`
+        `❌ agentstratum Cloud needs an API token — pass --api-token <token> (or set apiToken in ${configPath}).`
       );
       return false;
     }
@@ -1109,9 +1139,9 @@ function configureServer(c: InstallCtx, args: string[], installing: readonly str
  *  and let the cloud branch abort with the actionable message. */
 function askToken(c: InstallCtx): string | undefined {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const token = readLineSync(c, "API token (required for Hindsight Cloud): ").trim();
+    const token = readLineSync(c, "API token (required for agentstratum Cloud): ").trim();
     if (token) return token;
-    c.log?.("  a token is required — find yours in the Hindsight Cloud dashboard");
+    c.log?.("  a token is required — find yours in the agentstratum Cloud dashboard");
   }
   return undefined;
 }
@@ -1171,7 +1201,7 @@ const devin: HarnessInstaller = {
     const mcp = readJson(mcpPath);
     mcp.mcpServers = {
       ...(mcp.mcpServers ?? {}),
-      hindsight: mcpServerEntry(c.dist, "devin-cli"),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "devin-cli"),
     };
     writeJson(mcpPath, mcp);
     c.log?.(`devin-cli: hooks merged into ${configPath}, MCP into ${mcpPath}`);
@@ -1189,8 +1219,8 @@ const devin: HarnessInstaller = {
     const mcpPath = join(c.home, ".config", "devin", "mcp_config.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -1216,7 +1246,9 @@ const cursor: HarnessInstaller = {
     const mcp = readJson(mcpPath);
     mcp.mcpServers = {
       ...(mcp.mcpServers ?? {}),
-      hindsight: mcpServerEntry(c.dist, "cursor-cli", ["${workspaceFolder}"]),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "cursor-cli", [
+        "${workspaceFolder}",
+      ]),
     };
     writeJson(mcpPath, mcp);
     c.log?.(`cursor-cli: hooks merged into ${hooksPath}, MCP into ${mcpPath}`);
@@ -1235,8 +1267,8 @@ const cursor: HarnessInstaller = {
     const mcpPath = join(c.home, ".cursor", "mcp.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -1249,7 +1281,7 @@ const copilot: HarnessInstaller = {
   name: "copilot-cli",
   detect: (c) => onPath("copilot") || existsSync(join(c.home, ".copilot")),
   install(c) {
-    const hooksPath = join(c.home, ".copilot", "hooks", "hindsight-coding-agents.json");
+    const hooksPath = join(c.home, ".copilot", "hooks", "agentstratum-coding-agents.json");
     const hooks: Record<string, any> = {};
     mergeHarnessHooks(hooks, "copilot-cli", c.dist);
     writeJson(hooksPath, { version: 1, hooks });
@@ -1258,21 +1290,21 @@ const copilot: HarnessInstaller = {
     const mcp = readJson(mcpPath);
     mcp.mcpServers = {
       ...(mcp.mcpServers ?? {}),
-      hindsight: mcpServerEntry(c.dist, "copilot-cli"),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "copilot-cli"),
     };
     writeJson(mcpPath, mcp);
     installSkill(c, "copilot-cli");
     c.log?.(`copilot-cli: hooks installed at ${hooksPath}, MCP into ${mcpPath}`);
   },
   uninstall(c) {
-    rmSync(join(c.home, ".copilot", "hooks", "hindsight-coding-agents.json"), {
+    rmSync(join(c.home, ".copilot", "hooks", "agentstratum-coding-agents.json"), {
       force: true,
     });
     const mcpPath = join(c.home, ".copilot", "mcp-config.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -1281,13 +1313,13 @@ const copilot: HarnessInstaller = {
   },
 };
 
-const GROK_MARKER_START = "# HINDSIGHT_CODING_AGENTS_GROK_START";
-const GROK_MARKER_END = "# HINDSIGHT_CODING_AGENTS_GROK_END";
+const GROK_MARKER_START = "# AGENTSTRATUM_CODING_AGENTS_GROK_START";
+const GROK_MARKER_END = "# AGENTSTRATUM_CODING_AGENTS_GROK_END";
 /** Our sentinel-delimited block; shared by install (replace) and uninstall (strip). */
 const GROK_BLOCK_RE = new RegExp(`\\n?${GROK_MARKER_START}[\\s\\S]*?${GROK_MARKER_END}\\n?`, "g");
 
 /** Hook scripts only this package writes; their basenames identify our entries in a foreign TOML. */
-const GROK_HOOK_SCRIPT_RE = /(grok-(?:sessionstart-|stop-)?hook\.js|hindsight-coding-agents)/;
+const GROK_HOOK_SCRIPT_RE = /(grok-(?:sessionstart-|stop-)?hook\.js|agentstratum-coding-agents)/;
 
 /** The slice of Grok's config.toml this installer touches. */
 interface GrokToml {
@@ -1305,10 +1337,10 @@ function parseGrokToml(text: string): GrokToml | null {
 }
 
 /**
- * Does the config still declare Hindsight entries outside our markers?
+ * Does the config still declare agentstratum entries outside our markers?
  *
- * Decided from the PARSED document, so a `[mcp_servers.hindsight]` written in any legal TOML
- * spelling (dotted key, inline table, `[mcp_servers]` with a `hindsight` sub-table) is recognized —
+ * Decided from the PARSED document, so a `[mcp_servers.agentstratum]` written in any legal TOML
+ * spelling (dotted key, inline table, `[mcp_servers]` with a `agentstratum` sub-table) is recognized —
  * not just the exact text an old release happened to emit. Only the `[table]` form is removed
  * automatically; any other spelling survives the strip and the install's final parse refuses to
  * write, telling the user to remove it. Falls back to a textual probe only when the file no longer
@@ -1317,8 +1349,10 @@ function parseGrokToml(text: string): GrokToml | null {
 function hasUnmarkedGrokEntries(text: string): boolean {
   const cfg = parseGrokToml(text);
   if (!cfg)
-    return /\[\s*mcp_servers\s*\.\s*hindsight\s*[.\]]/.test(text) || GROK_HOOK_SCRIPT_RE.test(text);
-  if (cfg.mcp_servers && "hindsight" in cfg.mcp_servers) return true;
+    return (
+      /\[\s*mcp_servers\s*\.\s*agentstratum\s*[.\]]/.test(text) || GROK_HOOK_SCRIPT_RE.test(text)
+    );
+  if (cfg.mcp_servers && "agentstratum" in cfg.mcp_servers) return true;
   return Object.values(cfg.hooks ?? {}).some((entries) =>
     (entries ?? []).some((entry) =>
       (entry?.hooks ?? []).some(
@@ -1329,10 +1363,10 @@ function hasUnmarkedGrokEntries(text: string): boolean {
 }
 
 /**
- * Remove Hindsight's Grok tables that are NOT wrapped in our markers.
+ * Remove agentstratum's Grok tables that are NOT wrapped in our markers.
  *
  * Configs written before the markers existed (or hand-edited so the markers were lost) keep a
- * `[mcp_servers.hindsight]` table and `[[hooks.*]]` entries pointing at our scripts. TOML forbids
+ * `[mcp_servers.agentstratum]` table and `[[hooks.*]]` entries pointing at our scripts. TOML forbids
  * redefining a table, so appending a fresh marked block on top of those makes the whole file
  * unparsable — Grok then reports "No MCP servers configured" and silently disables every server.
  *
@@ -1355,7 +1389,7 @@ function stripUnmarkedGrokEntries(toml: string): string {
     s.lines.slice(1).some((l) => /^\s*[^#\s]/.test(l));
 
   const drop = sections.map((s) => {
-    if (/^\[mcp_servers\.hindsight(\.|\])/.test(s.header)) return true;
+    if (/^\[mcp_servers\.agentstratum(\.|\])/.test(s.header)) return true;
     if (/^\[\[hooks\..+\.hooks\]\]$/.test(s.header)) return isOurs(s);
     return false;
   });
@@ -1389,7 +1423,7 @@ function stripUnmarkedGrokEntries(toml: string): string {
  * "unrecognized config key". The hooks directory is the documented global location and draws no
  * warning, so the hooks live in a file this package owns; config.toml keeps only the MCP server.
  */
-const grokHooksPath = (c: InstallCtx) => join(c.home, ".grok", "hooks", "hindsight.json");
+const grokHooksPath = (c: InstallCtx) => join(c.home, ".grok", "hooks", "agentstratum.json");
 
 const grok: HarnessInstaller = {
   name: "grok-build",
@@ -1411,19 +1445,19 @@ const grok: HarnessInstaller = {
     const tomlString = (value: string) => JSON.stringify(value);
     const block =
       `\n${GROK_MARKER_START}\n` +
-      `[mcp_servers.hindsight]\ncommand = \"node\"\nargs = [${tomlString(join(c.dist, "mcp-server.js"))}]\n` +
-      `env = { HINDSIGHT_MCP_HARNESS = \"grok-build\" }\n${GROK_MARKER_END}\n`;
+      `[mcp_servers.agentstratum]\ncommand = \"node\"\nargs = [${tomlString(join(c.dist, "mcp-server.js"))}]\n` +
+      `env = { AGENTSTRATUM_MCP_HARNESS = \"grok-build\" }\n${GROK_MARKER_END}\n`;
     const next = `${withoutOurs.replace(/\n*$/, "\n")}${block}`;
     // Never hand Grok a config it cannot parse: one bad table takes down every MCP server it has.
     if (parseGrokToml(next) === null) {
       c.log?.(
         `grok-build: refusing to write ${path} — the result would not be valid TOML. ` +
-          `Remove the Hindsight hooks and [mcp_servers.hindsight] from it by hand, then re-run install.`
+          `Remove the agentstratum hooks and [mcp_servers.agentstratum] from it by hand, then re-run install.`
       );
       return false;
     }
-    if (existsSync(path) && !existsSync(`${path}.hindsight-backup`))
-      copyFileSync(path, `${path}.hindsight-backup`);
+    if (existsSync(path) && !existsSync(`${path}.agentstratum-backup`))
+      copyFileSync(path, `${path}.agentstratum-backup`);
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, next);
 
@@ -1463,8 +1497,8 @@ const grok: HarnessInstaller = {
   },
 };
 
-const KIMI_MARKER_START = "# HINDSIGHT_CODING_AGENTS_KIMI_START";
-const KIMI_MARKER_END = "# HINDSIGHT_CODING_AGENTS_KIMI_END";
+const KIMI_MARKER_START = "# AGENTSTRATUM_CODING_AGENTS_KIMI_START";
+const KIMI_MARKER_END = "# AGENTSTRATUM_CODING_AGENTS_KIMI_END";
 const KIMI_BLOCK_RE = new RegExp(`\\n?${KIMI_MARKER_START}[\\s\\S]*?${KIMI_MARKER_END}\\n?`);
 
 /**
@@ -1500,17 +1534,20 @@ const kimi: HarnessInstaller = {
       )
       .join("\n");
     const block = `\n${KIMI_MARKER_START}\n${entries}${KIMI_MARKER_END}\n`;
-    if (existsSync(path) && !existsSync(`${path}.hindsight-backup`))
-      copyFileSync(path, `${path}.hindsight-backup`);
+    if (existsSync(path) && !existsSync(`${path}.agentstratum-backup`))
+      copyFileSync(path, `${path}.agentstratum-backup`);
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, `${withoutOurs.replace(/\n*$/, "\n")}${block}`);
     // Kimi keeps MCP registration in its own mcp.json, not config.toml. Register the packaged
-    // stdio server: it reads the endpoint and token from ~/.hindsight/coding-agent.json, so the
-    // entry needs no bearerTokenEnvVar. An http entry would need HINDSIGHT_API_KEY exported into
+    // stdio server: it reads the endpoint and token from ~/.agentstratum/coding-agent.json, so the
+    // entry needs no bearerTokenEnvVar. An http entry would need AGENTSTRATUM_API_KEY exported into
     // Kimi's environment, and silently 401s when it is not.
     const mcpPath = join(kimiHome(c), "mcp.json");
     const mcp = readJson(mcpPath);
-    mcp.mcpServers = { ...(mcp.mcpServers ?? {}), hindsight: mcpServerEntry(c.dist, "kimi-code") };
+    mcp.mcpServers = {
+      ...(mcp.mcpServers ?? {}),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "kimi-code"),
+    };
     writeJson(mcpPath, mcp);
     installSkill(c, "kimi-code");
     c.log?.(`kimi-code: native hooks installed in ${path}, MCP in ${mcpPath}`);
@@ -1525,8 +1562,8 @@ const kimi: HarnessInstaller = {
     const mcpPath = join(kimiHome(c), "mcp.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -1535,9 +1572,9 @@ const kimi: HarnessInstaller = {
   },
 };
 
-const CLINE_HOOK_MARKER = "HINDSIGHT_CODING_AGENTS_CLINE";
+const CLINE_HOOK_MARKER = "AGENTSTRATUM_CODING_AGENTS_CLINE";
 const CLINE_OLD_HOOK_EVENTS = ["TaskStart", "UserPromptSubmit", "TaskComplete"];
-const CLINE_PLUGIN_NAME = "@vectorize-io/hindsight-coding-agents";
+const CLINE_PLUGIN_NAME = "agentstratum-coding-agents";
 
 /** Remove only wrappers from the short-lived file-hook implementation. Cline file hooks cannot
  * mutate a prompt; keeping them would falsely imply that old installs still inject memory. */
@@ -1566,7 +1603,7 @@ const cline: HarnessInstaller = {
     const mcp = readJson(mcpPath);
     mcp.mcpServers = {
       ...(mcp.mcpServers ?? {}),
-      hindsight: mcpServerEntry(c.dist, "cline-cli"),
+      agentstratum: preserveMcpEntry(c, mcp.mcpServers?.agentstratum, "cline-cli"),
     };
     writeJson(mcpPath, mcp);
     installSkill(c, "cline-cli");
@@ -1584,8 +1621,8 @@ const cline: HarnessInstaller = {
     const mcpPath = join(c.home, ".cline", "data", "settings", "cline_mcp_settings.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (mcp.mcpServers?.hindsight) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         writeJson(mcpPath, mcp);
       }
     }
@@ -1597,18 +1634,18 @@ const cline: HarnessInstaller = {
 /** Dcode's plugin manager owns its cache and enablement state. Keep this installer as a thin
  * native CLI invocation: the package's bundled marketplace points back at the staged package,
  * while Dcode performs the copy, validation, enablement, and foreign-state preservation. */
-const DCODE_MARKETPLACE = "hindsight-coding-agents";
-const DCODE_PLUGIN_ID = "hindsight-coding-agents@hindsight-coding-agents";
+const DCODE_MARKETPLACE = "agentstratum-coding-agents";
+const DCODE_PLUGIN_ID = "agentstratum-coding-agents@agentstratum-coding-agents";
 const DCODE_MARKETPLACE_RELATIVE_PATH = join(".agents", "plugins", "marketplace.json");
-const DCODE_FALLBACK_MARKETPLACE = "hindsight-coding-agents-marketplace.json";
+const DCODE_FALLBACK_MARKETPLACE = "agentstratum-coding-agents-marketplace.json";
 
 /**
  * Prepare a local marketplace without taking ownership of a foreign manifest at the conventional
- * path. A custom JSON file still has the same ~/.hindsight root, so ./coding-agents remains valid,
+ * path. A custom JSON file still has the same ~/.agentstratum root, so ./coding-agents remains valid,
  * while Dcode records it as its own marketplace and the foreign top-level name is untouched.
  */
 function prepareDcodeMarketplace(c: InstallCtx): string | false {
-  const root = join(c.home, ".hindsight");
+  const root = join(c.home, ".agentstratum");
   const conventionalPath = join(root, DCODE_MARKETPLACE_RELATIVE_PATH);
   let path = conventionalPath;
   let registrationSource = root;
@@ -1654,13 +1691,13 @@ function prepareDcodeMarketplace(c: InstallCtx): string | false {
     (entry: unknown) =>
       !entry ||
       typeof entry !== "object" ||
-      (entry as Record<string, unknown>).name !== "hindsight-coding-agents"
+      (entry as Record<string, unknown>).name !== "agentstratum-coding-agents"
   );
   marketplace.name = DCODE_MARKETPLACE;
   marketplace.plugins = [
     ...foreign,
     {
-      name: "hindsight-coding-agents",
+      name: "agentstratum-coding-agents",
       source: { source: "local", path: "./coding-agents" },
     },
   ];
@@ -1683,7 +1720,7 @@ const dcode: HarnessInstaller = {
     if (installed) {
       c.log?.(`dcode: native Agent Plugin installed (${DCODE_PLUGIN_ID})`);
     } else {
-      const source = marketplacePath === false ? join(c.home, ".hindsight") : marketplacePath;
+      const source = marketplacePath === false ? join(c.home, ".agentstratum") : marketplacePath;
       c.log?.(
         `dcode: could not install the native plugin — run \
 ` + `  dcode plugin marketplace add "${source}" && dcode plugin install ${DCODE_PLUGIN_ID}`
@@ -1713,8 +1750,8 @@ const dcode: HarnessInstaller = {
   },
 };
 
-const DSH_MARKER_START = "# HINDSIGHT_CODING_AGENTS_DSH_START";
-const DSH_MARKER_END = "# HINDSIGHT_CODING_AGENTS_DSH_END";
+const DSH_MARKER_START = "# AGENTSTRATUM_CODING_AGENTS_DSH_START";
+const DSH_MARKER_END = "# AGENTSTRATUM_CODING_AGENTS_DSH_END";
 const DSH_BLOCK_RE = new RegExp(`\\n?${DSH_MARKER_START}[\\s\\S]*?${DSH_MARKER_END}\\n?`);
 
 /**
@@ -1748,7 +1785,7 @@ function dshHome(c: InstallCtx): string {
  * DeepSeek Harness — a native Cordis plugin, wired through the HOME-level patch layer
  * (`$DSH_HOME/cordis.patch.yml`), which every profile composes after its bundles.
  *
- * The alternative is `dsh plugin --profile <name> add @vectorize-io/hindsight-coding-agents`, which
+ * The alternative is `dsh plugin --profile <name> add agentstratum-coding-agents`, which
  * pnpm-installs the package into ONE profile and picks up the `dsh.bundle.patch` this package
  * ships. That is the right route for a published install and is what the docs recommend, but it
  * needs pnpm, a network, and a repeat per profile — so the installer takes the path that always
@@ -1771,16 +1808,16 @@ const dsh: HarnessInstaller = {
     const block =
       `${DSH_MARKER_START}\n` +
       `- insert:\n` +
-      `    - id: hindsight\n` +
+      `    - id: agentstratum\n` +
       `      name: ${JSON.stringify(entry)}\n` +
       `${DSH_MARKER_END}\n`;
-    if (existsSync(path) && !existsSync(`${path}.hindsight-backup`))
-      copyFileSync(path, `${path}.hindsight-backup`);
+    if (existsSync(path) && !existsSync(`${path}.agentstratum-backup`))
+      copyFileSync(path, `${path}.agentstratum-backup`);
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, others ? `${others}\n\n${block}` : block);
     // dsh's skill provider scans the shared agentskills root, the same one Codex reads.
     installSkill(c, "dsh");
-    // A running `dsh web` hot-loads the new patch entry, so its open sessions gain the hindsight_*
+    // A running `dsh web` hot-loads the new patch entry, so its open sessions gain the agentstratum_*
     // tools mid-conversation — a tool-set change that invalidates the provider prompt cache (#4317).
     c.log?.(
       `dsh: plugin registered in ${path} (applies to every dsh profile; start new sessions — ones already open would gain the tools mid-conversation)`
@@ -1818,7 +1855,7 @@ const qwen: HarnessInstaller = {
     const mcp = c.qwenMcp ?? defaultQwenMcp;
     // Same rationale as claude-code: `qwen mcp add` refuses a name that already exists, so a
     // re-install could never repoint a stale server. Remove first (a no-op when absent).
-    mcp(["mcp", "remove", "hindsight"]);
+    mcp(["mcp", "remove", "agentstratum"]);
     if (
       mcp([
         "mcp",
@@ -1826,8 +1863,8 @@ const qwen: HarnessInstaller = {
         "-s",
         "user",
         "-e",
-        "HINDSIGHT_MCP_HARNESS=qwen-code",
-        "hindsight",
+        "AGENTSTRATUM_MCP_HARNESS=qwen-code",
+        "agentstratum",
         "node",
         join(c.dist, "mcp-server.js"),
       ])
@@ -1836,7 +1873,7 @@ const qwen: HarnessInstaller = {
     } else {
       c.log?.(
         `qwen-code: could not run \`qwen mcp add\` — register the tools manually:\n` +
-          `  qwen mcp add -s user -e HINDSIGHT_MCP_HARNESS=qwen-code hindsight node "${join(c.dist, "mcp-server.js")}"`
+          `  qwen mcp add -s user -e AGENTSTRATUM_MCP_HARNESS=qwen-code agentstratum node "${join(c.dist, "mcp-server.js")}"`
       );
     }
   },
@@ -1851,7 +1888,7 @@ const qwen: HarnessInstaller = {
       }
     }
     const mcp = c.qwenMcp ?? defaultQwenMcp;
-    mcp(["mcp", "remove", "hindsight"]);
+    mcp(["mcp", "remove", "agentstratum"]);
     uninstallSkill(c, "qwen-code");
     c.log?.("qwen-code: hooks + MCP registration + skill removed");
   },
@@ -1874,8 +1911,8 @@ function defaultQwenMcp(args: string[]): boolean {
  *   this file (unlike Claude Code, which nests it under a `hooks` key inside settings.json), so
  *   `mergeHarnessHooks` is applied to the root object, not to a `hooks` property. The matcher-group
  *   entries themselves are Claude-shaped, which is exactly what the "nested" configStyle emits.
- * - `mcp.json` - `mcpServers.hindsight` runs the same stdio `dist/mcp-server.js` as every other
- *   host, tagged with `HINDSIGHT_MCP_HARNESS=factory-droid`. A same-named foreign server blocks
+ * - `mcp.json` - `mcpServers.agentstratum` runs the same stdio `dist/mcp-server.js` as every other
+ *   host, tagged with `AGENTSTRATUM_MCP_HARNESS=factory-droid`. A same-named foreign server blocks
  *   install instead of being overwritten. Droid reloads this file on change.
  * - `skills/` - the companion skill, same copy/uninstall dance as the other hosts.
  */
@@ -1884,10 +1921,10 @@ const factoryDroid: HarnessInstaller = {
   detect: (c) => onPath("droid") || existsSync(join(c.home, ".factory")),
   preflight(c) {
     const mcpPath = join(c.home, ".factory", "mcp.json");
-    const existing = readJson(mcpPath).mcpServers?.hindsight;
+    const existing = readJson(mcpPath).mcpServers?.agentstratum;
     if (existing && !isOurMcpEntry(existing)) {
       return (
-        `${mcpPath} already contains a user-managed MCP server named "hindsight". ` +
+        `${mcpPath} already contains a user-managed MCP server named "agentstratum". ` +
         "Rename or remove that entry, then re-run install."
       );
     }
@@ -1897,7 +1934,7 @@ const factoryDroid: HarnessInstaller = {
     const hooks = readJson(hooksPath);
     if (!existsSync(hooksPath)) {
       // A standalone hooks.json takes precedence over settings.json. Copy fallback declarations
-      // before creating it, otherwise installing Hindsight silently disables every existing hook.
+      // before creating it, otherwise installing agentstratum silently disables every existing hook.
       const fallback = readJson(join(c.home, ".factory", "settings.json")).hooks;
       if (fallback && typeof fallback === "object" && !Array.isArray(fallback)) {
         Object.assign(hooks, fallback);
@@ -1911,7 +1948,7 @@ const factoryDroid: HarnessInstaller = {
     const mcpPath = join(c.home, ".factory", "mcp.json");
     const mcp = readJson(mcpPath);
     mcp.mcpServers = mcp.mcpServers ?? {};
-    mcp.mcpServers.hindsight = mcpServerEntry(c.dist, "factory-droid");
+    mcp.mcpServers.agentstratum = mcpServerEntry(c.dist, "factory-droid");
     writeJson(mcpPath, mcp);
     c.log?.(`factory-droid: MCP server registered in ${mcpPath}`);
   },
@@ -1926,8 +1963,8 @@ const factoryDroid: HarnessInstaller = {
     const mcpPath = join(c.home, ".factory", "mcp.json");
     if (existsSync(mcpPath)) {
       const mcp = readJson(mcpPath);
-      if (isOurMcpEntry(mcp.mcpServers?.hindsight)) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         if (Object.keys(mcp.mcpServers).length) writeJson(mcpPath, mcp);
         else rmSync(mcpPath);
       }
@@ -1953,8 +1990,8 @@ const factoryDroid: HarnessInstaller = {
  *
  * MCP and the companion skill land in the same config/home, so ZCode gets the full surface:
  *
- * - `mcp.servers.hindsight` runs the same stdio `dist/mcp-server.js` as every other host, tagged
- *   `HINDSIGHT_MCP_HARNESS=zcode`. ZCode's schema is `{type, command, args?, cwd?, env?}` and its
+ * - `mcp.servers.agentstratum` runs the same stdio `dist/mcp-server.js` as every other host, tagged
+ *   `AGENTSTRATUM_MCP_HARNESS=zcode`. ZCode's schema is `{type, command, args?, cwd?, env?}` and its
  *   loader infers `type: "stdio"` from a `command`, so the shared `mcpServerEntry` drops straight
  *   in. A same-named foreign server blocks install instead of being overwritten.
  * - `~/.zcode/skills` — ZCode's own user-level skill root (see SKILL_DIRS for why not the shared
@@ -1968,10 +2005,10 @@ const zcode: HarnessInstaller = {
   detect: (c) => onPath("zcode") || existsSync(join(c.home, ".zcode")),
   preflight(c) {
     const configPath = zcodeConfigPath(c);
-    const existing = readJson(configPath).mcp?.servers?.hindsight;
+    const existing = readJson(configPath).mcp?.servers?.agentstratum;
     if (existing && !isOurMcpEntry(existing)) {
       return (
-        `${configPath} already contains a user-managed MCP server named "hindsight". ` +
+        `${configPath} already contains a user-managed MCP server named "agentstratum". ` +
         "Rename or remove that entry, then re-run install."
       );
     }
@@ -1986,7 +2023,7 @@ const zcode: HarnessInstaller = {
     mergeHarnessHooks(hooks.events, "zcode", c.dist);
     config.mcp = config.mcp ?? {};
     config.mcp.servers = config.mcp.servers ?? {};
-    config.mcp.servers.hindsight = mcpServerEntry(c.dist, "zcode");
+    config.mcp.servers.agentstratum = mcpServerEntry(c.dist, "zcode");
     writeJson(configPath, config);
     c.log?.(`zcode: hooks + MCP server merged into ${configPath}`);
     installSkill(c, "zcode");
@@ -1995,8 +2032,8 @@ const zcode: HarnessInstaller = {
     const configPath = zcodeConfigPath(c);
     if (existsSync(configPath)) {
       const config = readJson(configPath);
-      if (isOurMcpEntry(config.mcp?.servers?.hindsight)) {
-        delete config.mcp.servers.hindsight;
+      if (isOurMcpEntry(config.mcp?.servers?.agentstratum)) {
+        delete config.mcp.servers.agentstratum;
         if (!Object.keys(config.mcp.servers).length) delete config.mcp;
       }
       const hooks = config.hooks;
@@ -2034,8 +2071,8 @@ function removeTraecodeUserMcpEntry(c: InstallCtx): boolean {
     const mcpPath = traecodeMcpPath(c);
     if (!existsSync(mcpPath)) return false;
     const mcp = readJson(mcpPath);
-    if (!isOurMcpEntry(mcp.mcpServers?.hindsight)) return false;
-    delete mcp.mcpServers.hindsight;
+    if (!isOurMcpEntry(mcp.mcpServers?.agentstratum)) return false;
+    delete mcp.mcpServers.agentstratum;
     if (Object.keys(mcp.mcpServers).length) writeJson(mcpPath, mcp);
     else rmSync(mcpPath);
     return true;
@@ -2047,7 +2084,7 @@ function removeTraecodeUserMcpEntry(c: InstallCtx): boolean {
 /**
  * Trae gates workspace-level MCP files behind `trae.mcp.enableWorkspaceMcp` (global, default
  * false) — without it the per-repo `.trae/mcp.json` this install relies on is never read and
- * hindsight's MCP tools stay hidden. Flipping a global setting is the user's call, so it is
+ * agentstratum's MCP tools stay hidden. Flipping a global setting is the user's call, so it is
  * asked HERE, on the installer's TTY: `install` is idempotent and re-run often, and the gate
  * state makes the prompt self-silencing once answered. Non-interactive runs (CI, scripts, the
  * test suite) print the manual step and touch nothing — a global setting must never flip
@@ -2059,7 +2096,7 @@ function ensureTraecodeWorkspaceMcpGate(c: InstallCtx): void {
   const ask =
     "\n" +
     "  Trae ignores per-repo MCP configs until workspace MCP is enabled, which keeps\n" +
-    "  hindsight's MCP tools hidden. Enable it globally now? (one-time setting)\n";
+    "  agentstratum's MCP tools hidden. Enable it globally now? (one-time setting)\n";
   const skipNote =
     '  Skipped. Enable later in Trae settings (search "enableWorkspaceMcp") or re-run with\n' +
     "  --enable-workspace-mcp.";
@@ -2098,18 +2135,18 @@ function ensureTraecodeWorkspaceMcpGate(c: InstallCtx): void {
  *   top level the way Droid's hooks.json is read. The host also writes and expects a top-level
  *   `version` field, so the installer seeds it at 1 when absent and leaves it alone otherwise.
  * - `skills/` - the companion skill, in TraeCode's own user-level root (see SKILL_DIRS).
- * - `sandbox.json` - `filesystem.readWrite` rules for `~/.hindsight` (logs, config — without them
+ * - `sandbox.json` - `filesystem.readWrite` rules for `~/.agentstratum` (logs, config — without them
  *   the hooks fail silently, verified on a live install) and for Trae's per-window storage DBs
  *   (`<userData>/User/workspaceStorage`), which the SessionStart hook seeds with the workspace's
  *   MCP enable switch (core/traecode-mcp.ts).
  *
  * Deliberately NOT touched: the user-level MCP file (`<userData>/User/mcp.json`). Trae launches
- * user-level servers with the ELECTRON process's cwd (home), so a hindsight entry there is wrong
+ * user-level servers with the ELECTRON process's cwd (home), so a agentstratum entry there is wrong
  * in every configuration — with `optInOnly` it self-disables (zero tools), without it the tools
  * resolve the HOME bank instead of the repo's. The only correct registration is per-repo
  * `<repo>/.trae/mcp.json`, which install pre-seeds and the SessionStart hook tops up
  * (core/traecode-mcp.ts); install migrates a stale user-level entry left by earlier versions
- * away (ours only — a foreign `hindsight` entry is the user's own server and is never touched).
+ * away (ours only — a foreign `agentstratum` entry is the user's own server and is never touched).
  *
  * TraeCode keeps sessions in an encrypted local DB or the cloud — there is no transcript file — so
  * the journal-based lifecycle (see HOOK_HARNESSES.traecode) is the whole write-back path.
@@ -2139,7 +2176,7 @@ const traecode: HarnessInstaller = {
 
     // TraeCode runs every hook inside its sandbox; the profile is generated per session from the
     // defaults plus the user's `~/.trae-cn/sandbox.json` rules. The defaults cover network and the
-    // journal's tmpdir but NOT `~/.hindsight` (logs, config), so without this rule the hooks fail
+    // journal's tmpdir but NOT `~/.agentstratum` (logs, config), so without this rule the hooks fail
     // silently (exit 0, zero effect) and the only workaround would be running hooks unsandboxed.
     // The per-window storage DBs get the same treatment: the SessionStart hook seeds the
     // workspace's MCP enable switch there (core/traecode-mcp.ts).
@@ -2147,7 +2184,7 @@ const traecode: HarnessInstaller = {
     const sandbox = readJson(sandboxPath);
     const fsRules = (sandbox.filesystem = sandbox.filesystem ?? {});
     const readWrite = (fsRules.readWrite = fsRules.readWrite ?? []);
-    const needed = [join(c.home, ".hindsight"), traecodeWorkspaceStorageDir(c.home)];
+    const needed = [join(c.home, ".agentstratum"), traecodeWorkspaceStorageDir(c.home)];
     let sandboxChanged = false;
     for (const dir of needed) {
       if (!readWrite.includes(dir)) {
@@ -2193,7 +2230,7 @@ const traecode: HarnessInstaller = {
       if (written.length) c.log?.(`  registered: ${written.join(", ")}`);
       if (skipped.length) {
         c.log?.(
-          `  skipped (missing repo, no dist build, or a foreign hindsight entry): ` +
+          `  skipped (missing repo, no dist build, or a foreign agentstratum entry): ` +
             skipped.join(", ")
         );
       }
@@ -2227,7 +2264,7 @@ const traecode: HarnessInstaller = {
     }
     // The per-repo registrations the installer (or the hook) wrote: drop our entry from every
     // opted-in repo's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
-    // servers and foreign "hindsight" entries are never touched — same ownership check as the
+    // servers and foreign "agentstratum" entries are never touched — same ownership check as the
     // hook's. Missing repos skip silently; the storage sweep below still catches their switches.
     const config = readJson(hindsightConfigPath(c));
     const repoEntries = Object.keys(config.mapPathToBank ?? {}).sort();
@@ -2242,7 +2279,7 @@ const traecode: HarnessInstaller = {
       const sandbox = readJson(sandboxPath);
       const readWrite = sandbox.filesystem?.readWrite;
       if (Array.isArray(readWrite)) {
-        const ours = [join(c.home, ".hindsight"), traecodeWorkspaceStorageDir(c.home)];
+        const ours = [join(c.home, ".agentstratum"), traecodeWorkspaceStorageDir(c.home)];
         const filtered = readWrite.filter((p: string) => !ours.includes(p));
         if (filtered.length !== readWrite.length) {
           sandbox.filesystem.readWrite = filtered;
@@ -2287,7 +2324,7 @@ const genieInstaller = (
     const mcpPath = paths.find((p) => existsSync(p)) ?? paths[0];
     const mcp = readJson(mcpPath);
     mcp.mcpServers = mcp.mcpServers ?? {};
-    mcp.mcpServers.hindsight = mcpServerEntry(c.dist, name);
+    mcp.mcpServers.agentstratum = mcpServerEntry(c.dist, name);
     writeJson(mcpPath, mcp);
     c.log?.(`${name}: MCP server registered in ${mcpPath}`);
 
@@ -2306,8 +2343,8 @@ const genieInstaller = (
     for (const mcpPath of mcpPaths(c.home)) {
       if (!existsSync(mcpPath)) continue;
       const mcp = readJson(mcpPath);
-      if (isOurMcpEntry(mcp.mcpServers?.hindsight)) {
-        delete mcp.mcpServers.hindsight;
+      if (isOurMcpEntry(mcp.mcpServers?.agentstratum)) {
+        delete mcp.mcpServers.agentstratum;
         if (!Object.keys(mcp.mcpServers).length) delete mcp.mcpServers;
         writeJson(mcpPath, mcp);
       }
@@ -2392,7 +2429,7 @@ function importConversations(harness: string, ctx: InstallCtx): void {
     return;
   }
   const turns = found.sessions.reduce((n, s) => n + s.turns.length, 0);
-  const file = join(mkdtempSync(join(tmpdir(), "hindsight-import-")), "conversations.json");
+  const file = join(mkdtempSync(join(tmpdir(), "agentstratum-import-")), "conversations.json");
   writeFileSync(file, JSON.stringify(found.sessions));
   ctx.log?.(
     `${harness}: importing ${found.sessions.length} past sessions (${turns} turns) from ${repo} — ` +
@@ -2433,7 +2470,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   // to keep a global install of a tool whose only job is to set other tools up.
   if (command === "install" || command === "update") ctx = stageRuntime(ctx);
   // `update` is `install`'s staging half and nothing else: it replaces the runtime every wired
-  // agent already points at (~/.hindsight/coding-agents/dist, a path that is stable across
+  // agent already points at (~/.agentstratum/coding-agents/dist, a path that is stable across
   // versions) and writes to NO host config. That separation is what makes it safe to run
   // unattended from `core/auto-update.ts` — an `install` would need a harness list, and choosing
   // one on the user's behalf would rewire agents they never asked us to touch.
@@ -2451,9 +2488,9 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   }
   if (command !== "install" && command !== "uninstall") {
     ctx.log?.(
-      `usage: hindsight-coding-agents <install|uninstall> <all|harness...>\n` +
-        `       hindsight-coding-agents update\n` +
-        `       hindsight-coding-agents stats\n` +
+      `usage: agentstratum-coding-agents <install|uninstall> <all|harness...>\n` +
+        `       agentstratum-coding-agents update\n` +
+        `       agentstratum-coding-agents stats\n` +
         `       [--server cloud|self-hosted|daemon] [--api-url <url>] [--api-token <token>]\n` +
         `       [--import-conversations] [--enable-workspace-mcp]\n` +
         `  all      every agent detected on this machine\n` +
@@ -2489,8 +2526,8 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   } else {
     ctx.log?.(
       `${command}: name a harness, or "all" for every agent detected on this machine.\n` +
-        `  hindsight-coding-agents ${command} claude-code\n` +
-        `  hindsight-coding-agents ${command} all\n` +
+        `  agentstratum-coding-agents ${command} claude-code\n` +
+        `  agentstratum-coding-agents ${command} all\n` +
         `harnesses: ${INSTALLERS.map((i) => i.name).join(", ")} (agy aliases antigravity-cli)`
     );
     return 1;
@@ -2568,7 +2605,7 @@ if (isMain || mainPath?.endsWith("installer.js")) {
     harnessNames: INSTALLERS.map((i) => i.name),
     // configureServer's messages render as their own "server" group, but don't count as an agent.
     auxNames: ["server"],
-    configPath: process.env.HINDSIGHT_CONFIG || undefined,
+    configPath: process.env.AGENTSTRATUM_CONFIG || undefined,
   });
   ui.intro();
   const code = run(process.argv.slice(2), {

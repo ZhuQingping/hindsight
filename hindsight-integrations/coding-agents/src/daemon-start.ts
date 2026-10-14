@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Start the local `hindsight-embed` daemon. Spawned DETACHED by core/daemon.ts — never run inline
+ * Start the local `agentstratum-embed` daemon. Spawned DETACHED by core/daemon.ts — never run inline
  * by a hook, because a cold start (uvx download + model load) outlives every hook timeout.
  *
  * Blocking here is the point: this process exists purely to own that wait, and exits once the
@@ -26,12 +26,13 @@ async function main(): Promise<void> {
   if (await isServerHealthy(cfg.apiUrl)) return;
   if (!preflightDaemon(cfg, harness)) return;
 
-  const { HindsightServer } = await import("@vectorize-io/hindsight-all");
-  const server = new HindsightServer({
+  const { AgentstratumServer } = await import("agentstratum-local-engine");
+  const server = new AgentstratumServer({
     profile: cfg.daemonProfile,
     port: cfg.apiPort,
     env: daemonEnv(cfg),
     embedVersion: cfg.embedVersion,
+    embedPackage: cfg.embedPackage,
     embedPackagePath: cfg.embedPackagePath,
     logger: {
       debug: (m) => log.debug(harness, m),

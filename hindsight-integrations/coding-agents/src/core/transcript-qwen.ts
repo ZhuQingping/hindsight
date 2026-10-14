@@ -44,7 +44,7 @@ import { log } from "./log";
  * injected — the retain→recall feedback loop `stripInjectedMemory` exists to prevent.
  *
  * That shared stripper cannot do it here. Qwen HTML-escapes `<`/`>` in `additionalContext` before
- * the model sees it, so what lands on disk is `&lt;hindsight_memories&gt;` and `MEMORY_TAG_RE` —
+ * the model sees it, so what lands on disk is `&lt;agentstratum_memories&gt;` and `MEMORY_TAG_RE` —
  * which matches raw tags — sees nothing. Measured: all 55 injections in the live corpus are stored
  * escaped, 0 raw, and all 55 sit inside the wrapper.
  *

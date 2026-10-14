@@ -1,3 +1,4 @@
+import { publicErrorPayload } from "@/lib/public-errors";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -39,7 +40,7 @@ export async function GET(
     const response = await fetch(`${DATAPLANE_URL}${path}`, { headers: getDataplaneHeaders() });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
-      return NextResponse.json(error, { status: response.status });
+      return NextResponse.json(publicErrorPayload(error), { status: response.status });
     }
 
     const body = await response.arrayBuffer();

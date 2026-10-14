@@ -4,7 +4,7 @@
  * Kilo is a FORK OF OPENCODE: same config schema (it still reads legacy `opencode.json`), the same
  * `plugin` array, and `@kilocode/plugin` re-exports opencode's Plugin/Hooks/PluginInput types. So
  * Kilo needs no adapter of its own — it loads this default export as a persistent plugin and drives
- * the exact opencode runtime (recall+inject, cold seed, native hindsight_* tools, write-back).
+ * the exact opencode runtime (recall+inject, cold seed, native agentstratum_* tools, write-back).
  *
  * Kilo has NO hooks system, which is why it is a plugin harness rather than a hook-binary harness
  * like claude-code/cursor/codex.
@@ -15,7 +15,7 @@
  */
 import { createPluginEntry } from "./harness/plugin-entry";
 
-const HindsightKiloPlugin = createPluginEntry("kilo");
+const AgentstratumKiloPlugin = createPluginEntry("kilo");
 
-export default HindsightKiloPlugin;
-export { HindsightKiloPlugin };
+export default AgentstratumKiloPlugin;
+export { AgentstratumKiloPlugin };

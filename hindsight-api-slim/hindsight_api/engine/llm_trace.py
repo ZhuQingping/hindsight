@@ -31,6 +31,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from ..public_errors import public_error_message
 from .background_writes import PendingWrites
 from .db_utils import acquire_with_retry
 
@@ -540,7 +541,7 @@ class LLMTraceRecorder:
             # this call as if they had been part of its prompt.
             input=list(messages) if isinstance(messages, list) else messages,
             output=None if error is not None else response_content,
-            error=f"{type(error).__name__}: {error}" if error is not None else None,
+            error=public_error_message(f"{type(error).__name__}: {error}") if error is not None else None,
             input_tokens=input_tokens or None,
             output_tokens=output_tokens or None,
             cached_tokens=cached_tokens or None,

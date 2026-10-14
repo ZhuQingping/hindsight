@@ -26,8 +26,8 @@ class TestDefaultBankUsesProjectCwd:
 
     def test_default_bank_prefers_launcher_project_cwd(self):
         src = _read_mcp_server_source()
-        assert "HINDSIGHT_MCP_PROJECT_CWD" in src
-        assert 'os.environ.get("HINDSIGHT_MCP_PROJECT_CWD", os.getcwd())' in src
+        assert "AGENTSTRATUM_MCP_PROJECT_CWD" in src
+        assert 'os.environ.get("AGENTSTRATUM_MCP_PROJECT_CWD", os.getcwd())' in src
         assert '_hook_input = {"cwd": _project_cwd, "session_id": ""}' in src
 
 
@@ -70,7 +70,7 @@ class TestDisabledKnowledgeToolsKeepsServerAlive:
         assert gate > 0, "expected the enableKnowledgeTools startup gate"
         # The disabled branch ends at the next top-level statement (`try:`).
         branch = src[gate : src.find("\ntry:", gate)]
-        assert "mcp.run(transport=\"stdio\")" in branch, (
+        assert 'mcp.run(transport="stdio")' in branch, (
             "disabled path must run an empty MCP server so the process stays "
             "alive — exiting triggers a -32000 reconnect loop (issue #1995)"
         )

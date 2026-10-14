@@ -62,14 +62,14 @@ describe.skipIf(!sqlite)("readDevinTranscript", () => {
   let diagFile: string;
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "hindsight-devin-"));
+    dir = mkdtempSync(join(tmpdir(), "agentstratum-devin-"));
     dbPath = join(dir, "sessions.db");
     diagFile = join(dir, "diag.log");
-    process.env.HINDSIGHT_DIAG_FILE = diagFile;
+    process.env.AGENTSTRATUM_DIAG_FILE = diagFile;
   });
 
   afterEach(() => {
-    delete process.env.HINDSIGHT_DIAG_FILE;
+    delete process.env.AGENTSTRATUM_DIAG_FILE;
     rmSync(dir, { recursive: true, force: true });
   });
 

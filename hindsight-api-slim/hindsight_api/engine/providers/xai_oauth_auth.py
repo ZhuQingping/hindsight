@@ -241,7 +241,7 @@ def default_token_path() -> Path:
     configured = get_config().xai_oauth_token_path
     if configured:
         return Path(configured).expanduser()
-    return Path.home() / ".hindsight" / "xai_oauth.json"
+    return Path.home() / ".agentstratum" / "xai_oauth.json"
 
 
 @contextlib.asynccontextmanager

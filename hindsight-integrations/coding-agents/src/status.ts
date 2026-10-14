@@ -2,7 +2,7 @@
 /**
  * status — print the bank's sync status as one JSON line (see core/status.ts). Harness plumbing,
  * not a user CLI: the benchmark and e2e suites poll this until `synced` before measuring; users
- * ask the agent via the `hindsight_sync_status` tool instead.
+ * ask the agent via the `agentstratum_sync_status` tool instead.
  *
  * usage: node status.js --repo <path> [--bank <id>] [--harness <name>] [--api-url U] [--api-token X] [--config path]
  */

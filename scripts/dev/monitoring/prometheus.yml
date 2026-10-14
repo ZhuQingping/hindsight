@@ -1,4 +1,4 @@
-# Prometheus configuration for Grafana LGTM with Hindsight API scraping
+# Prometheus configuration for Grafana LGTM with agentstratum API scraping
 ---
 global:
   scrape_interval: 5s
@@ -21,14 +21,14 @@ storage:
   tsdb:
     out_of_order_time_window: 10m
 
-# Scrape configs for pulling metrics from Hindsight API
+# Scrape configs for pulling metrics from agentstratum API
 scrape_configs:
-  - job_name: 'hindsight-api'
+  - job_name: 'agentstratum-api'
     static_configs:
       - targets: ['host.docker.internal:8888']
     metrics_path: '/metrics'
     scrape_interval: 5s
-  - job_name: 'hindsight-worker'
+  - job_name: 'agentstratum-worker'
     static_configs:
       # Dedicated workers (helm: worker.enabled, port 8889). Harmless 404-less
       # no-op when no worker runs on the host.

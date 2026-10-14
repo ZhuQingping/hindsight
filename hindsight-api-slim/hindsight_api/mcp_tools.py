@@ -28,6 +28,7 @@ from hindsight_api.engine.response_models import VALID_RECALL_FACT_TYPES, MinSco
 from hindsight_api.engine.search.tags import TagGroup, TagsMatch
 from hindsight_api.extensions import OperationValidationError
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import public_error_message
 
 _TAG_GROUP_LIST_ADAPTER = TypeAdapter(list[TagGroup])
 
@@ -348,7 +349,7 @@ def _error_json(message: object, **extra: Any) -> str:
     (``results``/``items``/``banks``/``text``) so a caller can keep reading the
     response with its normal shape.
     """
-    return json.dumps({"error": str(message), **extra})
+    return json.dumps({"error": public_error_message(message), **extra})
 
 
 class _ToolError(Exception):
@@ -428,7 +429,7 @@ async def _run_tool(
         return json.dumps(value, indent=indent, default=str) if as_json else value
 
     def _err(message: object) -> Any:
-        return _error_json(message, **extra) if as_json else {"error": str(message), **extra}
+        return _error_json(message, **extra) if as_json else {"error": public_error_message(message), **extra}
 
     try:
         target_bank = await _resolve_bank(config, bank_id)
@@ -1350,7 +1351,7 @@ def _register_recall(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return recall_result.model_dump_json()
             except OperationValidationError as e:
                 logger.warning(f"Recall rejected: {e}")
-                return json.dumps({"error": str(e), "results": []})
+                return json.dumps({"error": public_error_message(e), "results": []})
             except ValueError as e:
                 return _error_json(e, results=[])
             except Exception as e:
@@ -1449,12 +1450,12 @@ def _register_recall(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return recall_result.model_dump()
             except OperationValidationError as e:
                 logger.warning(f"Recall rejected: {e}")
-                return {"error": str(e), "results": []}
+                return {"error": public_error_message(e), "results": []}
             except ValueError as e:
-                return {"error": str(e), "results": []}
+                return {"error": public_error_message(e), "results": []}
             except Exception as e:
                 logger.error(f"Error searching: {e}", exc_info=True)
-                return {"error": str(e), "results": []}
+                return {"error": public_error_message(e), "results": []}
 
 
 def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1550,7 +1551,7 @@ def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig
                 return json.dumps(result_data, indent=2)
             except OperationValidationError as e:
                 logger.warning(f"Reflect rejected: {e}")
-                return json.dumps({"error": str(e)})
+                return json.dumps({"error": public_error_message(e)})
             except Exception as e:
                 logger.error(f"Error reflecting: {e}", exc_info=True)
                 return _error_json(e, text="")
@@ -1643,10 +1644,10 @@ def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig
                 return result_data
             except OperationValidationError as e:
                 logger.warning(f"Reflect rejected: {e}")
-                return {"error": str(e)}
+                return {"error": public_error_message(e)}
             except Exception as e:
                 logger.error(f"Error reflecting: {e}", exc_info=True)
-                return {"error": str(e), "text": ""}
+                return {"error": public_error_message(e), "text": ""}
 
 
 def _register_list_banks(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1679,7 +1680,7 @@ def _register_list_banks(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCon
             return json.dumps(data, indent=2)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e), "banks": []})
+            return json.dumps({"error": public_error_message(e), "banks": []})
         except Exception as e:
             logger.error(f"Error listing banks: {e}", exc_info=True)
             return _error_json(e, banks=[])
@@ -1721,7 +1722,7 @@ def _register_create_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
             return json.dumps(profile, indent=2)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e)})
+            return json.dumps({"error": public_error_message(e)})
         except Exception as e:
             logger.error(f"Error creating bank: {e}", exc_info=True)
             return _error_json(e)
@@ -4373,7 +4374,7 @@ def _register_get_bank_stats(mcp: FastMCP, memory: MemoryEngine, config: MCPTool
             return json.dumps(result, indent=2, default=str)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e)})
+            return json.dumps({"error": public_error_message(e)})
         except Exception as e:
             logger.error(f"Error getting bank stats: {e}", exc_info=True)
             return _error_json(e)

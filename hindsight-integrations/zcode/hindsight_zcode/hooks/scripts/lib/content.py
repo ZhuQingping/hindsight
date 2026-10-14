@@ -1,6 +1,6 @@
 """Content processing utilities for the ZCode integration.
 
-Adapts `hindsight-integrations/codex/scripts/lib/content.py` for ZCode's
+Adapts `agentstratum-integrations/codex/scripts/lib/content.py` for ZCode's
 on-disk transcript format.
 
 ZCode transcript formats (JSONL):
@@ -44,14 +44,14 @@ _MAX_TOOL_OUTPUT_CHARS = 2000
 
 
 def strip_memory_tags(content):
-    """Remove <hindsight_memories> and <relevant_memories> blocks.
+    """Remove <agentstratum_memories> and <relevant_memories> blocks.
 
     Prevents retain feedback loop — these were injected during recall and
     should not be re-stored.
     """
     if not isinstance(content, str):
         return content
-    content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
+    content = re.sub(r"<agentstratum_memories>[\s\S]*?</agentstratum_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
     return content
 

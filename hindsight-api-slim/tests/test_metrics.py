@@ -120,7 +120,7 @@ class TestMetricsCollector:
         Recall/reflect run the engine call inside record_operation; when the
         client disconnects the engine raises OperationCancelledError (issue
         #2122). That abandoned request must not be recorded on
-        hindsight.operation.total at all -- inflating neither the failure nor
+        agentstratum.operation.total at all -- inflating neither the failure nor
         the success rate -- even though the exception still propagates.
         """
         from hindsight_api.cancellation import OperationCancelledError

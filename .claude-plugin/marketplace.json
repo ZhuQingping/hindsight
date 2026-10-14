@@ -1,20 +1,20 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "hindsight",
+  "name": "agentstratum",
   "version": "0.7.6",
-  "description": "Official Hindsight integrations for Claude Code",
+  "description": "agentstratum integrations for coding agents",
   "owner": {
-    "name": "vectorize-io"
+    "name": "agentstratum"
   },
   "plugins": [
     {
-      "name": "hindsight-memory",
-      "description": "Automatic long-term memory for Claude Code via Hindsight",
+      "name": "agentstratum-memory",
+      "description": "Automatic long-term memory for Claude Code via agentstratum",
       "source": "./hindsight-integrations/claude-code"
     },
     {
-      "name": "hindsight-zcode",
-      "description": "No-MCP long-term memory for ZCode via Hindsight hooks",
+      "name": "agentstratum-zcode",
+      "description": "No-MCP long-term memory for ZCode via agentstratum hooks",
       "source": "./hindsight-integrations/zcode"
     }
   ]

@@ -37,7 +37,7 @@ export const JOURNAL_MAX_BYTES = 8 * 1024 * 1024;
 
 /** The journal file for one session. Same directory as the session cache and the retain cursor. */
 export function journalPath(harness: string, sessionId: string | undefined): string {
-  return join(tmpdir(), `hindsight-${harness}`, `${sessionId || "no-session"}.journal.jsonl`);
+  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId || "no-session"}.journal.jsonl`);
 }
 
 /**

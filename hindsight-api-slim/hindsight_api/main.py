@@ -188,8 +188,8 @@ class ParsedCliArgs:
 
 def _parse_cli_args(argv: list[str], config: HindsightConfig) -> ParsedCliArgs:
     parser = argparse.ArgumentParser(
-        prog="hindsight-api",
-        description="Hindsight API Server",
+        prog="agentstratum-api",
+        description="agentstratum API Server",
     )
 
     # Server options
@@ -198,19 +198,19 @@ def _parse_cli_args(argv: list[str], config: HindsightConfig) -> ParsedCliArgs:
         default=argparse.SUPPRESS,
         # config.host is None when nothing configured one; show the address that will
         # actually be bound, not the sentinel that stands for "operator said nothing".
-        help=f"Host to bind to (default: {config.host or DEFAULT_HOST}, env: HINDSIGHT_API_HOST)",
+        help=f"Host to bind to (default: {config.host or DEFAULT_HOST}, env: AGENTSTRATUM_API_HOST)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=argparse.SUPPRESS,
-        help=f"Port to bind to (default: {config.port}, env: HINDSIGHT_API_PORT)",
+        help=f"Port to bind to (default: {config.port}, env: AGENTSTRATUM_API_PORT)",
     )
     parser.add_argument(
         "--log-level",
         default=config.log_level,
         choices=["critical", "error", "warning", "info", "debug", "trace"],
-        help=f"Log level (default: {config.log_level}, env: HINDSIGHT_API_LOG_LEVEL)",
+        help=f"Log level (default: {config.log_level}, env: AGENTSTRATUM_API_LOG_LEVEL)",
     )
 
     # Development options

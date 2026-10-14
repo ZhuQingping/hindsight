@@ -1596,7 +1596,7 @@ jobs:
       HINDSIGHT_API_LLM_PROVIDER: vertexai
       HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
       HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
-      HINDSIGHT_API_URL: http://localhost:8888
+      AGENTSTRATUM_API_URL: http://localhost:8888
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -1658,7 +1658,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: hindsight-cli
-        path: hindsight-cli/target/release/hindsight
+        path: hindsight-cli/target/release/agentstratum
         retention-days: 1
 
     - name: Install uv
@@ -1728,7 +1728,7 @@ jobs:
 
     - name: Run CLI smoke test
       run: |
-        HINDSIGHT_CLI=hindsight-cli/target/release/hindsight ./hindsight-cli/smoke-test.sh
+        AGENTSTRATUM_CLI=hindsight-cli/target/release/agentstratum ./hindsight-cli/smoke-test.sh
 
     - name: Show API server logs
       if: always()
@@ -4783,9 +4783,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      HINDSIGHT_API_LLM_PROVIDER: vertexai
-      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
-      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      AGENTSTRATUM_API_LLM_PROVIDER: vertexai
+      AGENTSTRATUM_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
+      AGENTSTRATUM_API_LLM_MODEL: google/gemini-2.5-flash-lite
       # Prefer CPU-only PyTorch in CI
 
     steps:
@@ -4797,7 +4797,7 @@ jobs:
       run: |
         printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > /tmp/gcp-credentials.json
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
-        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+        echo "AGENTSTRATUM_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
@@ -4831,6 +4831,16 @@ jobs:
       working-directory: ./hindsight-embed
       run: uv run pytest tests/ -v
 
+    # Exercise the repository build; a public CLI distribution has not been selected.
+    - name: Install Rust for the local CLI fixture
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build and stage the local CLI fixture
+      run: |
+        cargo build --release --manifest-path hindsight-cli/Cargo.toml
+        mkdir -p "$HOME/.local/bin"
+        cp hindsight-cli/target/release/agentstratum "$HOME/.local/bin/agentstratum"
+
     - name: Run smoke test
       working-directory: ./hindsight-embed
       run: ./test.sh
@@ -4851,9 +4861,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     env:
-      HINDSIGHT_API_LLM_PROVIDER: vertexai
-      HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: ${{ github.workspace }}/gcp-credentials.json
-      HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
+      AGENTSTRATUM_API_LLM_PROVIDER: vertexai
+      AGENTSTRATUM_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: ${{ github.workspace }}/gcp-credentials.json
+      AGENTSTRATUM_API_LLM_MODEL: google/gemini-2.5-flash-lite
       # Force UTF-8 I/O so the CLI's ✓/box-drawing output doesn't crash the
       # default Windows cp1252 codec. Also applied at runtime via
       # sys.stdout.reconfigure in cli.py; this belt-and-suspenders covers
@@ -4862,7 +4872,7 @@ jobs:
       PYTHONUTF8: "1"
       # pg0-embedded unpacks Postgres on first boot — noticeably slower on a
       # cold Windows runner than POSIX. Double the embed startup budget.
-      HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT: "360"
+      AGENTSTRATUM_EMBED_DAEMON_STARTUP_TIMEOUT: "360"
 
     steps:
     - uses: actions/checkout@v6
@@ -4874,7 +4884,7 @@ jobs:
       run: |
         printf '%s' '${{ secrets.GCP_VERTEXAI_CREDENTIALS }}' > gcp-credentials.json
         PROJECT_ID=$(jq -r '.project_id' gcp-credentials.json)
-        echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+        echo "AGENTSTRATUM_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
@@ -4938,8 +4948,8 @@ jobs:
         set -euo pipefail
         install_dir="$HOME/.local/bin"
         mkdir -p "$install_dir"
-        cp hindsight-cli/target/release/hindsight.exe "$install_dir/hindsight.exe"
-        "$install_dir/hindsight.exe" --version
+        cp hindsight-cli/target/release/agentstratum.exe "$install_dir/agentstratum.exe"
+        "$install_dir/agentstratum.exe" --version
 
     - name: Run smoke test
       shell: bash
@@ -4970,10 +4980,10 @@ jobs:
       run: |
         set -euo pipefail
         target="$RUNNER_TEMP/install-test"
-        if [ -f "$target/Scripts/hindsight-api.exe" ]; then
-          echo "Found $target/Scripts/hindsight-api.exe"
-        elif [ -f "$target/bin/hindsight-api.exe" ]; then
-          echo "Found $target/bin/hindsight-api.exe"
+        if [ -f "$target/Scripts/agentstratum-api.exe" ]; then
+          echo "Found $target/Scripts/agentstratum-api.exe"
+        elif [ -f "$target/bin/agentstratum-api.exe" ]; then
+          echo "Found $target/bin/agentstratum-api.exe"
         else
           echo "::error::hindsight-api.exe not found in install target"
           ls "$target/"
@@ -4990,8 +5000,8 @@ jobs:
         # api_version is only used for the uvx fallback; the binary branch ignores it.
         cmd = DaemonEmbedManager()._find_api_command('0.0.0')
         print('Resolved command:', cmd)
-        assert len(cmd) == 1 and cmd[0].endswith('hindsight-api.exe'), (
-            f'Expected sibling hindsight-api.exe, got {cmd!r}. '
+        assert len(cmd) == 1 and cmd[0].endswith('agentstratum-api.exe'), (
+            f'Expected sibling agentstratum-api.exe, got {cmd!r}. '
             'Falling back to uvx on --target installs reintroduces issue #1240.'
         )
         "
@@ -5002,10 +5012,10 @@ jobs:
         set -euo pipefail
         target="$RUNNER_TEMP/install-test"
         export PYTHONPATH="$target"
-        if [ -f "$target/Scripts/hindsight-embed.exe" ]; then
-          "$target/Scripts/hindsight-embed.exe" --help
+        if [ -f "$target/Scripts/agentstratum-embed.exe" ]; then
+          "$target/Scripts/agentstratum-embed.exe" --help
         else
-          "$target/bin/hindsight-embed.exe" --help
+          "$target/bin/agentstratum-embed.exe" --help
         fi
 
     - name: Collect daemon logs on failure
@@ -5247,7 +5257,7 @@ jobs:
       working-directory: hindsight-cli
       run: |
         cargo build --release
-        cp target/release/hindsight /usr/local/bin/hindsight
+        cp target/release/agentstratum /usr/local/bin/agentstratum
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7

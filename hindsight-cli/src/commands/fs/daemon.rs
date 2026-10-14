@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use super::config::{save_config, MountConfig};
 use super::paths::{CONTROL_DIR, LOG_FILE, PID_FILE};
 
-/// Persisted daemon metadata (`<dir>/.hindsight-fs/daemon.pid`).
+/// Persisted daemon metadata (`<dir>/.agentstratum-fs/daemon.pid`).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PidRecord {
     pub pid: i32,
@@ -125,7 +125,7 @@ pub fn start_daemon(config: &MountConfig) -> Result<StartResult> {
 #[cfg(not(unix))]
 pub fn start_daemon(_config: &MountConfig) -> Result<StartResult> {
     Err(anyhow::anyhow!(
-        "Background daemon mode is only supported on Unix. Use `hindsight fs mount` (foreground) instead."
+        "Background daemon mode is only supported on Unix. Use `agentstratum fs mount` (foreground) instead."
     ))
 }
 

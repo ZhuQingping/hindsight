@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hindsight MCP server for Claude Code plugin.
+"""agentstratum MCP server for Claude Code plugin.
 
 Runs as a stdio subprocess managed by the plugin system.
 Exposes knowledge tools (list/get/create/update/delete pages, recall, ingest).
@@ -27,7 +27,7 @@ from mcp.server.fastmcp import FastMCP
 
 # ── Server setup ────────────────────────────────────────
 
-mcp = FastMCP("hindsight")
+mcp = FastMCP("agentstratum")
 
 # Resolve config at startup
 _config = load_config()
@@ -51,15 +51,15 @@ if not _config.get("enableKnowledgeTools"):
 try:
     _api_url = get_api_url(_config, debug_fn=_dbg, allow_daemon_start=True)
 except Exception as e:
-    print(f"[Hindsight MCP] Failed to resolve API URL: {e}", file=sys.stderr)
+    print(f"[agentstratum MCP] Failed to resolve API URL: {e}", file=sys.stderr)
     sys.exit(1)
 
-_project_cwd = os.environ.get("HINDSIGHT_MCP_PROJECT_CWD", os.getcwd())
+_project_cwd = os.environ.get("AGENTSTRATUM_MCP_PROJECT_CWD", os.getcwd())
 _hook_input = {"cwd": _project_cwd, "session_id": ""}
 _default_bank_id = derive_bank_id(_hook_input, _config)
 _client = HindsightClient(
     _api_url,
-    _config.get("hindsightApiToken"),
+    _config.get("apiToken"),
     request_timeout_override=_config.get("requestTimeoutSeconds"),
 )
 
@@ -159,7 +159,9 @@ def agent_knowledge_update_page(page_id: str, name: str = "", source_query: str 
 @mcp.tool()
 def agent_knowledge_delete_page(page_id: str) -> str:
     """Permanently delete a knowledge page."""
-    resp = _client.request("DELETE", f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models/{page_id}", timeout=10)
+    resp = _client.request(
+        "DELETE", f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models/{page_id}", timeout=10
+    )
     return json.dumps(resp, indent=2)
 
 

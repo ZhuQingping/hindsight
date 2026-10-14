@@ -1,1 +1,1 @@
-"""Tests for hindsight-embed."""
+"""Tests for agentstratum-embed."""

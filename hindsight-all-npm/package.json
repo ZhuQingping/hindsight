@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/hindsight-all",
+  "name": "agentstratum-local-engine",
   "version": "0.10.3",
-  "description": "Node.js programmatic lifecycle manager for Hindsight — embeds a local hindsight daemon in a Node application. Pair with @vectorize-io/hindsight-client for memory operations.",
+  "description": "Local agentstratum engine lifecycle manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -12,22 +12,12 @@
     }
   },
   "keywords": [
-    "hindsight",
-    "hindsight-all",
-    "memory",
-    "ai",
-    "agent",
-    "long-term-memory",
-    "llm",
-    "embedded-server"
+    "agentstratum",
+    "local-engine",
+    "memory"
   ],
   "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
-    "directory": "hindsight-all-npm"
-  },
   "files": [
     "dist",
     "README.md"
@@ -53,5 +43,6 @@
     "rollup": "^4.59.0",
     "picomatch": ">=2.3.2 <3.0.0 || >=4.0.4",
     "vite": ">=8.0.5"
-  }
+  },
+  "private": true
 }

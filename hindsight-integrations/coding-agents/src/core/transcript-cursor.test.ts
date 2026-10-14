@@ -32,7 +32,7 @@ describe("readCursorTranscript", () => {
             content: [
               {
                 type: "text",
-                text: "<hindsight_memories>old</hindsight_memories> I found the bug",
+                text: "<agentstratum_memories>old</agentstratum_memories> I found the bug",
               },
               { type: "tool_use", name: "read", input: { path: "src/parser.ts" } },
             ],

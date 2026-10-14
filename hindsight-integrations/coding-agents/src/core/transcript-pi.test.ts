@@ -40,7 +40,10 @@ describe("readPiMessages", () => {
       {
         role: "user",
         content: [
-          { type: "text", text: "<hindsight_memories>\nleak\n</hindsight_memories>\nWhy retry?" },
+          {
+            type: "text",
+            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+          },
         ],
       },
     ];
@@ -127,7 +130,7 @@ describe("readPiTranscript", () => {
           content: [
             {
               type: "text",
-              text: "<hindsight_memories>only 429 and 408 retry</hindsight_memories>\nship it",
+              text: "<agentstratum_memories>only 429 and 408 retry</agentstratum_memories>\nship it",
             },
           ],
         },

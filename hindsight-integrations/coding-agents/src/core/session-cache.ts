@@ -22,7 +22,7 @@ export interface SessionCache {
 }
 
 export function sessionCacheFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `hindsight-${harness}`, `${sessionId}.json`);
+  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.json`);
 }
 
 export function readSessionCache(cacheFile: string): SessionCache {
@@ -68,7 +68,7 @@ export function writeSessionCache(cacheFile: string, cache: SessionCache): void 
 
 /** The session root's own file, deliberately NOT the shared session cache — see sessionRootDir. */
 function sessionRootFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `hindsight-${harness}`, `${sessionId}.root`);
+  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.root`);
 }
 
 /**
@@ -119,7 +119,7 @@ export function sessionRootDir(
  */
 export function fileUsageCursorStore(harness: string): UsageCursorStore {
   const file = (sessionId: string) =>
-    join(tmpdir(), `hindsight-${harness}`, `${sessionId}.usage.json`);
+    join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.usage.json`);
   return {
     read: (sessionId) => {
       try {
@@ -142,7 +142,7 @@ export function fileUsageCursorStore(harness: string): UsageCursorStore {
 
 /** The cursor's own file, deliberately NOT the shared session cache — see fileCursorStore. */
 function cursorFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `hindsight-${harness}`, `${sessionId}.retain.json`);
+  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.retain.json`);
 }
 
 /**

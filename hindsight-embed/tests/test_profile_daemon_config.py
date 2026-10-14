@@ -29,11 +29,11 @@ def test_profile_config_is_loaded_for_daemon(temp_home):
     """Test that profile .env config is loaded when preparing daemon startup.
 
     Before the fix, the daemon would ignore all values from the profile's .env file,
-    using only os.environ or hardcoded defaults. This caused HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT
+    using only os.environ or hardcoded defaults. This caused AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT
     and other profile-specific settings to be silently ignored.
     """
     # Create a profile with custom configuration
-    profile_dir = temp_home / ".hindsight" / "profiles"
+    profile_dir = temp_home / ".agentstratum" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     profile_name = "test-timeout"
@@ -41,11 +41,11 @@ def test_profile_config_is_loaded_for_daemon(temp_home):
 
     # Write profile config with custom values
     profile_env_path.write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=openai\n"
-        "HINDSIGHT_API_LLM_API_KEY=sk-test-fake-key\n"
-        "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
-        "HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT=0\n"
-        "HINDSIGHT_API_LOG_LEVEL=debug\n"
+        "AGENTSTRATUM_API_LLM_PROVIDER=openai\n"
+        "AGENTSTRATUM_API_LLM_API_KEY=sk-test-fake-key\n"
+        "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini\n"
+        "AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT=0\n"
+        "AGENTSTRATUM_API_LOG_LEVEL=debug\n"
     )
 
     # Create metadata to register the profile with a port
@@ -80,16 +80,16 @@ def test_profile_config_is_loaded_for_daemon(temp_home):
     profile_config = pm.load_profile_config(profile_name)
 
     # Verify config was loaded correctly
-    assert profile_config["HINDSIGHT_API_LLM_PROVIDER"] == "openai"
-    assert profile_config["HINDSIGHT_API_LLM_API_KEY"] == "sk-test-fake-key"
-    assert profile_config["HINDSIGHT_API_LLM_MODEL"] == "gpt-4o-mini"
-    assert profile_config["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] == "0"
-    assert profile_config["HINDSIGHT_API_LOG_LEVEL"] == "debug"
+    assert profile_config["AGENTSTRATUM_API_LLM_PROVIDER"] == "openai"
+    assert profile_config["AGENTSTRATUM_API_LLM_API_KEY"] == "sk-test-fake-key"
+    assert profile_config["AGENTSTRATUM_API_LLM_MODEL"] == "gpt-4o-mini"
+    assert profile_config["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] == "0"
+    assert profile_config["AGENTSTRATUM_API_LOG_LEVEL"] == "debug"
 
     # Keys are returned under their environment-variable names only. The
     # lowercase aliases this used to also inject ("idle_timeout", "llm_base_url",
     # ...) are gone: they were a second, hand-maintained list a setting had to
-    # appear in to be seen, which is how HINDSIGHT_API_LLM_BASE_URL went missing
+    # appear in to be seen, which is how AGENTSTRATUM_API_LLM_BASE_URL went missing
     # (issue #4094).
     assert not [key for key in profile_config if key.islower()]
 
@@ -107,26 +107,26 @@ def test_load_config_file_uses_correct_profile(temp_home, monkeypatch):
 
     set_cli_profile_override(None)
 
-    # Must clear HINDSIGHT_EMBED_PROFILE env var to ensure test isolation
-    monkeypatch.delenv("HINDSIGHT_EMBED_PROFILE", raising=False)
+    # Must clear AGENTSTRATUM_EMBED_PROFILE env var to ensure test isolation
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
 
     from hindsight_embed.cli import load_config_file
     from hindsight_embed.profile_manager import ProfileManager
 
     # Create default profile with one provider
-    default_config_dir = temp_home / ".hindsight"
+    default_config_dir = temp_home / ".agentstratum"
     default_config_dir.mkdir(parents=True, exist_ok=True)
     (default_config_dir / "embed").write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=openai\nHINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
+        "AGENTSTRATUM_API_LLM_PROVIDER=openai\nAGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini\n"
     )
 
     # Create a named profile with a DIFFERENT provider
-    profile_dir = temp_home / ".hindsight" / "profiles"
+    profile_dir = temp_home / ".agentstratum" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     profile_name = "myapp"
     profile_env_path = profile_dir / f"{profile_name}.env"
-    profile_env_path.write_text("HINDSIGHT_API_LLM_PROVIDER=groq\nHINDSIGHT_API_LLM_MODEL=llama-3.1-70b\n")
+    profile_env_path.write_text("AGENTSTRATUM_API_LLM_PROVIDER=groq\nAGENTSTRATUM_API_LLM_MODEL=llama-3.1-70b\n")
 
     # Create metadata
     import json
@@ -145,27 +145,29 @@ def test_load_config_file_uses_correct_profile(temp_home, monkeypatch):
     metadata_path.write_text(json.dumps(metadata, indent=2))
 
     # Clear env to ensure we're testing file loading
-    monkeypatch.delenv("HINDSIGHT_API_LLM_PROVIDER", raising=False)
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL", raising=False)
 
     # Test 1: Load default profile (no profile specified)
     set_cli_profile_override(None)
     load_config_file()
 
-    assert os.environ.get("HINDSIGHT_API_LLM_PROVIDER") == "openai"
-    assert os.environ.get("HINDSIGHT_API_LLM_MODEL") == "gpt-4o-mini"
+    assert os.environ.get("AGENTSTRATUM_API_LLM_PROVIDER") == "openai"
+    assert os.environ.get("AGENTSTRATUM_API_LLM_MODEL") == "gpt-4o-mini"
 
     # Clear env
-    monkeypatch.delenv("HINDSIGHT_API_LLM_PROVIDER")
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL")
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_PROVIDER")
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL")
 
     # Test 2: Load named profile - should load ONLY that profile, not default
     set_cli_profile_override(profile_name)
     load_config_file()
 
     # Should have loaded from the named profile
-    assert os.environ.get("HINDSIGHT_API_LLM_PROVIDER") == "groq", "Should load from named profile, not default"
-    assert os.environ.get("HINDSIGHT_API_LLM_MODEL") == "llama-3.1-70b", "Should load from named profile, not default"
+    assert os.environ.get("AGENTSTRATUM_API_LLM_PROVIDER") == "groq", "Should load from named profile, not default"
+    assert os.environ.get("AGENTSTRATUM_API_LLM_MODEL") == "llama-3.1-70b", (
+        "Should load from named profile, not default"
+    )
 
 
 def test_load_config_file_reads_utf8_profile(temp_home, monkeypatch):
@@ -176,13 +178,13 @@ def test_load_config_file_reads_utf8_profile(temp_home, monkeypatch):
     from hindsight_embed.cli import load_config_file, set_cli_profile_override
 
     set_cli_profile_override(None)
-    monkeypatch.delenv("HINDSIGHT_EMBED_PROFILE", raising=False)
-    monkeypatch.delenv("HINDSIGHT_API_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_PROVIDER", raising=False)
 
-    config_path = temp_home / ".hindsight" / "embed"
+    config_path = temp_home / ".agentstratum" / "embed"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
-        "# memory — retained\nHINDSIGHT_API_LLM_PROVIDER=openai\n",
+        "# memory — retained\nAGENTSTRATUM_API_LLM_PROVIDER=openai\n",
         encoding="utf-8",
     )
 
@@ -197,7 +199,7 @@ def test_load_config_file_reads_utf8_profile(temp_home, monkeypatch):
 
     load_config_file()
 
-    assert os.environ["HINDSIGHT_API_LLM_PROVIDER"] == "openai"
+    assert os.environ["AGENTSTRATUM_API_LLM_PROVIDER"] == "openai"
 
 
 def test_get_config_respects_profile(temp_home, monkeypatch):
@@ -208,24 +210,24 @@ def test_get_config_respects_profile(temp_home, monkeypatch):
     from hindsight_embed.profile_manager import ProfileManager
 
     # Create default profile
-    default_config_dir = temp_home / ".hindsight"
+    default_config_dir = temp_home / ".agentstratum"
     default_config_dir.mkdir(parents=True, exist_ok=True)
     (default_config_dir / "embed").write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=openai\n"
-        "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
-        "HINDSIGHT_API_LLM_API_KEY=sk-default-key\n"
+        "AGENTSTRATUM_API_LLM_PROVIDER=openai\n"
+        "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini\n"
+        "AGENTSTRATUM_API_LLM_API_KEY=sk-default-key\n"
     )
 
     # Create named profile
-    profile_dir = temp_home / ".hindsight" / "profiles"
+    profile_dir = temp_home / ".agentstratum" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     profile_name = "production"
     profile_env_path = profile_dir / f"{profile_name}.env"
     profile_env_path.write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=anthropic\n"
-        "HINDSIGHT_API_LLM_MODEL=claude-sonnet-4-20250514\n"
-        "HINDSIGHT_API_LLM_API_KEY=sk-ant-production\n"
+        "AGENTSTRATUM_API_LLM_PROVIDER=anthropic\n"
+        "AGENTSTRATUM_API_LLM_MODEL=claude-sonnet-4-20250514\n"
+        "AGENTSTRATUM_API_LLM_API_KEY=sk-ant-production\n"
     )
 
     # Create metadata
@@ -245,9 +247,9 @@ def test_get_config_respects_profile(temp_home, monkeypatch):
     metadata_path.write_text(json.dumps(metadata, indent=2))
 
     # Clear env
-    monkeypatch.delenv("HINDSIGHT_API_LLM_PROVIDER", raising=False)
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
-    monkeypatch.delenv("HINDSIGHT_API_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     # Test with named profile
@@ -255,35 +257,35 @@ def test_get_config_respects_profile(temp_home, monkeypatch):
     config = get_config()
 
     # Should have loaded from production profile, NOT default
-    assert config["HINDSIGHT_API_LLM_PROVIDER"] == "anthropic", "Should use profile's provider"
-    assert config["HINDSIGHT_API_LLM_MODEL"] == "claude-sonnet-4-20250514", "Should use profile's model"
-    assert config["HINDSIGHT_API_LLM_API_KEY"] == "sk-ant-production", "Should use profile's API key"
+    assert config["AGENTSTRATUM_API_LLM_PROVIDER"] == "anthropic", "Should use profile's provider"
+    assert config["AGENTSTRATUM_API_LLM_MODEL"] == "claude-sonnet-4-20250514", "Should use profile's model"
+    assert config["AGENTSTRATUM_API_LLM_API_KEY"] == "sk-ant-production", "Should use profile's API key"
 
 
-def test_profile_env_propagates_arbitrary_hindsight_keys_to_daemon(temp_home, monkeypatch):
-    """Regression test: HINDSIGHT_* keys in profile .env must reach the daemon subprocess env.
+def test_profile_env_propagates_arbitrary_agentstratum_keys_to_daemon(temp_home, monkeypatch):
+    """Regression test: AGENTSTRATUM_* keys in profile .env must reach the daemon subprocess env.
 
     Previously `_start_daemon` only copied a whitelist of keys (llm_*, log_level,
     idle_timeout) from the merged profile config into the daemon env. Anything else
-    in the profile's .env — e.g. HINDSIGHT_API_EMBEDDINGS_PROVIDER or
-    HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU on non-macOS — was silently dropped.
+    in the profile's .env — e.g. AGENTSTRATUM_API_EMBEDDINGS_PROVIDER or
+    AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU on non-macOS — was silently dropped.
     """
     import json
     from unittest.mock import MagicMock, patch
 
     from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
 
-    # Write a profile .env containing non-whitelisted HINDSIGHT_API_* keys.
-    profile_dir = temp_home / ".hindsight" / "profiles"
+    # Write a profile .env containing non-whitelisted AGENTSTRATUM_API_* keys.
+    profile_dir = temp_home / ".agentstratum" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
     profile_name = "forwarding"
     (profile_dir / f"{profile_name}.env").write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=openai\n"
-        "HINDSIGHT_API_LLM_API_KEY=sk-x\n"
-        "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
-        "HINDSIGHT_API_EMBEDDINGS_PROVIDER=tei\n"
-        "HINDSIGHT_API_EMBEDDINGS_TEI_URL=http://localhost:8080\n"
-        "HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU=1\n"
+        "AGENTSTRATUM_API_LLM_PROVIDER=openai\n"
+        "AGENTSTRATUM_API_LLM_API_KEY=sk-x\n"
+        "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini\n"
+        "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER=tei\n"
+        "AGENTSTRATUM_API_EMBEDDINGS_TEI_URL=http://localhost:8080\n"
+        "AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU=1\n"
     )
     (profile_dir / "metadata.json").write_text(
         json.dumps(
@@ -302,9 +304,9 @@ def test_profile_env_propagates_arbitrary_hindsight_keys_to_daemon(temp_home, mo
 
     # Clear shell env so we're only testing profile propagation.
     for key in (
-        "HINDSIGHT_API_EMBEDDINGS_PROVIDER",
-        "HINDSIGHT_API_EMBEDDINGS_TEI_URL",
-        "HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU",
+        "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER",
+        "AGENTSTRATUM_API_EMBEDDINGS_TEI_URL",
+        "AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -327,20 +329,20 @@ def test_profile_env_propagates_arbitrary_hindsight_keys_to_daemon(temp_home, mo
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
         patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Linux"),
     ):
         manager._start_daemon(config={}, profile=profile_name)
 
     env = captured["env"]
-    assert env.get("HINDSIGHT_API_EMBEDDINGS_PROVIDER") == "tei"
-    assert env.get("HINDSIGHT_API_EMBEDDINGS_TEI_URL") == "http://localhost:8080"
-    assert env.get("HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU") == "1"
+    assert env.get("AGENTSTRATUM_API_EMBEDDINGS_PROVIDER") == "tei"
+    assert env.get("AGENTSTRATUM_API_EMBEDDINGS_TEI_URL") == "http://localhost:8080"
+    assert env.get("AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU") == "1"
 
 
 def test_daemon_child_env_var_set_in_daemon_env(temp_home, monkeypatch):
-    """hindsight-embed must set _HINDSIGHT_DAEMON_CHILD=1 so the daemon child
+    """agentstratum-embed must set _HINDSIGHT_DAEMON_CHILD=1 so the daemon child
     skips the redundant re-exec in daemonize()."""
     from unittest.mock import MagicMock, patch
 
@@ -364,7 +366,7 @@ def test_daemon_child_env_var_set_in_daemon_env(temp_home, monkeypatch):
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
     ):
         manager._start_daemon(
@@ -374,6 +376,8 @@ def test_daemon_child_env_var_set_in_daemon_env(temp_home, monkeypatch):
 
     env = captured["env"]
     assert env.get("_HINDSIGHT_DAEMON_CHILD") == "1"
+    assert env["HINDSIGHT_API_LLM_PROVIDER"] == env["AGENTSTRATUM_API_LLM_PROVIDER"]
+    assert env["HINDSIGHT_API_DATABASE_URL"] == env["AGENTSTRATUM_API_DATABASE_URL"]
 
 
 def test_daemon_preserves_uv_python_for_nested_uvx(temp_home, monkeypatch):
@@ -389,7 +393,7 @@ def test_daemon_preserves_uv_python_for_nested_uvx(temp_home, monkeypatch):
 
     def fake_find_api_command(api_version, env=None):
         captured["find_env"] = env
-        return ["uvx", f"hindsight-api@{api_version}"]
+        return ["uvx", f"agentstratum-api@{api_version}"]
 
     def fake_popen(cmd, env, **kwargs):
         captured["popen_env"] = env
@@ -454,7 +458,7 @@ def test_windows_popen_uses_windowless_process_flags(temp_home: Path, monkeypatc
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
         patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Windows"),
     ):
@@ -500,7 +504,7 @@ def test_posix_popen_uses_start_new_session(temp_home, monkeypatch):
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
         patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Linux"),
     ):
@@ -542,7 +546,7 @@ def test_posix_popen_redirects_stdout_stderr_to_log(temp_home, monkeypatch):
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
         patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Linux"),
     ):
@@ -566,28 +570,28 @@ def test_posix_popen_redirects_stdout_stderr_to_log(temp_home, monkeypatch):
 def test_get_config_does_not_default_llm_model(temp_home, monkeypatch):
     """Regression test for issue #1360.
 
-    When `HINDSIGHT_API_LLM_MODEL` is unset, `get_config()` must return None
+    When `AGENTSTRATUM_API_LLM_MODEL` is unset, `get_config()` must return None
     rather than a hardcoded `gpt-4o-mini`. Previously the CLI tried to import
     `hindsight_api.config.PROVIDER_DEFAULT_MODELS` to compute a provider-keyed
-    default, but that import fails in standalone venvs (`uvx hindsight-embed`,
-    bundled installs) where `hindsight-api` isn't installed, and the fallback
+    default, but that import fails in standalone venvs (`uvx agentstratum-embed`,
+    bundled installs) where `agentstratum-api` isn't installed, and the fallback
     silently routed every non-OpenAI provider to `gpt-4o-mini` — which they
     reject, causing retain to silently store zero memories.
 
-    Leaving the value unset lets the daemon (which has hindsight-api) resolve
+    Leaving the value unset lets the daemon (which has agentstratum-api) resolve
     the correct provider default itself.
     """
     from hindsight_embed.cli import get_config, set_cli_profile_override
 
     set_cli_profile_override(None)
-    monkeypatch.delenv("HINDSIGHT_EMBED_PROFILE", raising=False)
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
-    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "gemini")
+    monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL", raising=False)
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_PROVIDER", "gemini")
 
     config = get_config()
 
-    assert config["HINDSIGHT_API_LLM_PROVIDER"] == "gemini"
-    assert "HINDSIGHT_API_LLM_MODEL" not in config, (
+    assert config["AGENTSTRATUM_API_LLM_PROVIDER"] == "gemini"
+    assert "AGENTSTRATUM_API_LLM_MODEL" not in config, (
         "the model must stay unset when the env var is unset so the daemon "
         "resolves the provider default; got a hardcoded fallback instead"
     )
@@ -596,7 +600,7 @@ def test_get_config_does_not_default_llm_model(temp_home, monkeypatch):
 def test_configure_from_env_omits_model_when_unset(temp_home, monkeypatch):
     """Regression test for issue #1360.
 
-    `_do_configure_from_env` must not write a hardcoded `HINDSIGHT_API_LLM_MODEL`
+    `_do_configure_from_env` must not write a hardcoded `AGENTSTRATUM_API_LLM_MODEL`
     line into the profile .env when the user didn't set one — that line would
     then be re-injected on every daemon start and suppress the daemon's
     provider-keyed default lookup.
@@ -606,25 +610,25 @@ def test_configure_from_env_omits_model_when_unset(temp_home, monkeypatch):
     # CONFIG_DIR/CONFIG_FILE are computed from Path.home() at module import time,
     # so the temp_home fixture's HOME override doesn't reach them. Redirect the
     # module-level constants for the duration of this test.
-    config_dir = temp_home / ".hindsight"
+    config_dir = temp_home / ".agentstratum"
     monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
 
-    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "gemini")
-    monkeypatch.setenv("HINDSIGHT_API_LLM_API_KEY", "test-key")
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_API_KEY", "test-key")
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL", raising=False)
 
     rc = cli._do_configure_from_env()
     assert rc == 0
 
     contents = (config_dir / "embed").read_text()
-    assert "HINDSIGHT_API_LLM_PROVIDER=gemini" in contents
+    assert "AGENTSTRATUM_API_LLM_PROVIDER=gemini" in contents
     # The config is seeded from .env.example, which carries a commented
-    # `# HINDSIGHT_API_LLM_MODEL=gpt-4o-mini` reference line. What must not
+    # `# AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini` reference line. What must not
     # appear is an *active* (uncommented) model line — that's what would get
     # re-injected on daemon start and suppress the provider-keyed default.
     active_lines = [ln.strip() for ln in contents.splitlines() if ln.strip() and not ln.strip().startswith("#")]
-    assert not any(ln.startswith("HINDSIGHT_API_LLM_MODEL=") for ln in active_lines), (
+    assert not any(ln.startswith("AGENTSTRATUM_API_LLM_MODEL=") for ln in active_lines), (
         "active model line must be omitted when the user didn't set one, so the daemon picks the provider default"
     )
 
@@ -634,60 +638,60 @@ def test_configure_from_env_accepts_providers_outside_interactive_menu(temp_home
 
     `_do_configure_from_env` previously rejected any provider not in the small
     interactive-menu set (`PROVIDER_API_KEYS`) with "Unknown
-    provider". hindsight-api supports ~18 providers (anthropic, claude-code,
+    provider". agentstratum-api supports ~18 providers (anthropic, claude-code,
     bedrock, openrouter, ...), so the gate blocked valid CI configurations.
     Validation belongs in the daemon, not in the CLI's UX-only menu list.
     """
     from hindsight_embed import cli
 
-    config_dir = temp_home / ".hindsight"
+    config_dir = temp_home / ".agentstratum"
     monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
 
-    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "anthropic")
-    monkeypatch.setenv("HINDSIGHT_API_LLM_API_KEY", "sk-ant-test")
-    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_PROVIDER", "anthropic")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_API_KEY", "sk-ant-test")
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_MODEL", raising=False)
 
     rc = cli._do_configure_from_env()
     assert rc == 0, "anthropic must be accepted — the daemon validates providers, not the CLI"
 
     contents = (config_dir / "embed").read_text()
-    assert "HINDSIGHT_API_LLM_PROVIDER=anthropic" in contents
+    assert "AGENTSTRATUM_API_LLM_PROVIDER=anthropic" in contents
 
 
 def test_configure_from_env_accepts_github_copilot_without_api_key(temp_home, monkeypatch):
     """GitHub Copilot authenticates through Copilot CLI rather than an LLM API key."""
     from hindsight_embed import cli
 
-    config_dir = temp_home / ".hindsight"
+    config_dir = temp_home / ".agentstratum"
     monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
 
-    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "github-copilot")
-    monkeypatch.setenv("HINDSIGHT_API_LLM_MODEL", "gpt-5.6-terra")
-    monkeypatch.delenv("HINDSIGHT_API_LLM_API_KEY", raising=False)
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_PROVIDER", "github-copilot")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_MODEL", "gpt-5.6-terra")
+    monkeypatch.delenv("AGENTSTRATUM_API_LLM_API_KEY", raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "unrelated-openai-key")
 
     assert cli._has_non_interactive_env() is True
     assert cli._do_configure_from_env() == 0
 
     contents = (config_dir / "embed").read_text()
-    assert "HINDSIGHT_API_LLM_PROVIDER=github-copilot" in contents
-    assert "HINDSIGHT_API_LLM_MODEL=gpt-5.6-terra" in contents
+    assert "AGENTSTRATUM_API_LLM_PROVIDER=github-copilot" in contents
+    assert "AGENTSTRATUM_API_LLM_MODEL=gpt-5.6-terra" in contents
     active_lines = [line for line in contents.splitlines() if line and not line.startswith("#")]
-    assert not any(line.startswith("HINDSIGHT_API_LLM_API_KEY=") for line in active_lines)
+    assert not any(line.startswith("AGENTSTRATUM_API_LLM_API_KEY=") for line in active_lines)
 
 
 def _windows_scripts_dir(tmp_path: Path, *, with_pythonw: bool) -> Path:
-    """Build a fake Windows venv Scripts dir with hindsight-api.exe.
+    """Build a fake Windows venv Scripts dir with agentstratum-api.exe.
 
-    The dir holds hindsight-api.exe and python.exe; when ``with_pythonw`` is
+    The dir holds agentstratum-api.exe and python.exe; when ``with_pythonw`` is
     True the GUI-subsystem interpreter (pythonw.exe) is created next to
     python.exe so `_windows_gui_api_command()` can find it.
     """
     scripts_dir = tmp_path / "Scripts"
     scripts_dir.mkdir()
-    (scripts_dir / "hindsight-api.exe").write_bytes(b"MZ")
+    (scripts_dir / "agentstratum-api.exe").write_bytes(b"MZ")
     (scripts_dir / "python.exe").write_bytes(b"MZ")
     if with_pythonw:
         (scripts_dir / "pythonw.exe").write_bytes(b"MZ")
@@ -699,7 +703,7 @@ def test_windows_daemon_launches_via_gui_interpreter(temp_home, tmp_path, monkey
 
     On Windows the daemon must be launched through the GUI-subsystem
     pythonw.exe (`pythonw.exe -m hindsight_api.main`) rather than the
-    console-subsystem hindsight-api.exe wrapper. The CUI exe makes Windows
+    console-subsystem agentstratum-api.exe wrapper. The CUI exe makes Windows
     Terminal's ConPTY pop a visible terminal tab on every daemon start; the GUI
     interpreter never allocates a console.
     """
@@ -709,6 +713,7 @@ def test_windows_daemon_launches_via_gui_interpreter(temp_home, tmp_path, monkey
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(manager, "_dev_api_command", lambda: None)
+    monkeypatch.setattr(manager, "_can_use_installed_api_binary", lambda env=None: True)
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
     monkeypatch.setattr(
         "hindsight_embed.daemon_embed_manager.sysconfig.get_path",
@@ -735,6 +740,7 @@ def test_windows_daemon_falls_back_to_console_exe_without_pythonw(temp_home, tmp
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(manager, "_dev_api_command", lambda: None)
+    monkeypatch.setattr(manager, "_can_use_installed_api_binary", lambda env=None: True)
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
     monkeypatch.setattr(
         "hindsight_embed.daemon_embed_manager.sysconfig.get_path",
@@ -746,7 +752,7 @@ def test_windows_daemon_falls_back_to_console_exe_without_pythonw(temp_home, tmp
     )
 
     cmd = manager._find_api_command("0.0.0")
-    assert cmd == [str(scripts_dir / "hindsight-api.exe")]
+    assert cmd == [str(scripts_dir / "agentstratum-api.exe")]
 
 
 def test_posix_daemon_uses_console_entrypoint(temp_home, tmp_path, monkeypatch):
@@ -755,11 +761,12 @@ def test_posix_daemon_uses_console_entrypoint(temp_home, tmp_path, monkeypatch):
 
     scripts_dir = tmp_path / "bin"
     scripts_dir.mkdir()
-    console_bin = scripts_dir / "hindsight-api"
+    console_bin = scripts_dir / "agentstratum-api"
     console_bin.write_text("#!/usr/bin/env python\n")
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(manager, "_dev_api_command", lambda: None)
+    monkeypatch.setattr(manager, "_can_use_installed_api_binary", lambda env=None: True)
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
     monkeypatch.setattr(
         "hindsight_embed.daemon_embed_manager.sysconfig.get_path",
@@ -803,6 +810,7 @@ def _windows_manager(monkeypatch, scripts_dir: Path):
 
     manager = DaemonEmbedManager()
     monkeypatch.setattr(manager, "_dev_api_command", lambda: None)
+    monkeypatch.setattr(manager, "_can_use_installed_api_binary", lambda env=None: True)
     monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Windows")
     monkeypatch.setattr(
         "hindsight_embed.daemon_embed_manager.sysconfig.get_path",
@@ -817,8 +825,8 @@ def _windows_manager(monkeypatch, scripts_dir: Path):
 
 # Non-local providers keep _find_api_command past the local-ML check (#2676).
 _EXTERNAL_PROVIDERS = {
-    "HINDSIGHT_API_EMBEDDINGS_PROVIDER": "openai",
-    "HINDSIGHT_API_RERANKER_PROVIDER": "openai",
+    "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER": "openai",
+    "AGENTSTRATUM_API_RERANKER_PROVIDER": "openai",
 }
 
 
@@ -930,7 +938,7 @@ def _capture_daemon_env(manager, profile: str, config: dict) -> dict[str, str]:
         patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
         patch("hindsight_embed.daemon_embed_manager.time.sleep"),
         patch.object(manager, "_clear_port", return_value=True),
-        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "_find_api_command", return_value=["agentstratum-api"]),
         patch.object(manager, "is_running", side_effect=fake_is_running),
     ):
         manager._start_daemon(config=config, profile=profile)
@@ -939,7 +947,7 @@ def _capture_daemon_env(manager, profile: str, config: dict) -> dict[str, str]:
 
 
 def _write_profile(temp_home: Path, name: str, body: str, port: int = 9878) -> None:
-    profile_dir = temp_home / ".hindsight" / "profiles"
+    profile_dir = temp_home / ".agentstratum" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
     (profile_dir / f"{name}.env").write_text(body, encoding="utf-8")
     (profile_dir / "metadata.json").write_text(
@@ -961,7 +969,7 @@ def _write_profile(temp_home: Path, name: str, body: str, port: int = 9878) -> N
 def test_profile_base_url_reaches_daemon_env(temp_home, monkeypatch):
     """Regression test for issue #4094.
 
-    A profile that sets HINDSIGHT_API_LLM_BASE_URL alongside KEY/MODEL was
+    A profile that sets AGENTSTRATUM_API_LLM_BASE_URL alongside KEY/MODEL was
     reported as having everything applied *except* the base URL, so LLM calls
     went to api.openai.com and failed with OpenAI's own 401. This walks the
     real path — `get_config()` -> `_start_daemon` -> the child's environment —
@@ -974,47 +982,47 @@ def test_profile_base_url_reaches_daemon_env(temp_home, monkeypatch):
     _write_profile(
         temp_home,
         "hermes",
-        "HINDSIGHT_API_LLM_API_KEY=sk-7c7e0\n"
-        "HINDSIGHT_API_LLM_MODEL=qwen3.8-27b\n"
-        f"HINDSIGHT_API_LLM_BASE_URL={base_url}\n",
+        "AGENTSTRATUM_API_LLM_API_KEY=sk-7c7e0\n"
+        "AGENTSTRATUM_API_LLM_MODEL=qwen3.8-27b\n"
+        f"AGENTSTRATUM_API_LLM_BASE_URL={base_url}\n",
     )
 
-    for key in ("HINDSIGHT_API_LLM_API_KEY", "HINDSIGHT_API_LLM_MODEL", "HINDSIGHT_API_LLM_BASE_URL"):
+    for key in ("AGENTSTRATUM_API_LLM_API_KEY", "AGENTSTRATUM_API_LLM_MODEL", "AGENTSTRATUM_API_LLM_BASE_URL"):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     set_cli_profile_override("hermes")
     try:
         config = get_config()
-        assert config["HINDSIGHT_API_LLM_BASE_URL"] == base_url
+        assert config["AGENTSTRATUM_API_LLM_BASE_URL"] == base_url
         env = _capture_daemon_env(DaemonEmbedManager(), "hermes", config)
     finally:
         set_cli_profile_override(None)
 
-    assert env.get("HINDSIGHT_API_LLM_BASE_URL") == base_url
-    assert env.get("HINDSIGHT_API_LLM_MODEL") == "qwen3.8-27b"
-    assert env.get("HINDSIGHT_API_LLM_API_KEY") == "sk-7c7e0"
+    assert env.get("AGENTSTRATUM_API_LLM_BASE_URL") == base_url
+    assert env.get("AGENTSTRATUM_API_LLM_MODEL") == "qwen3.8-27b"
+    assert env.get("AGENTSTRATUM_API_LLM_API_KEY") == "sk-7c7e0"
 
 
 def test_configure_from_env_persists_every_api_var(temp_home, monkeypatch):
     """Regression test for issue #4094.
 
     `_do_configure_from_env` wrote a hand-listed subset (provider, model, key),
-    so a base URL — or any other HINDSIGHT_API_* setting — the user exported
-    never reached the profile it generated. HINDSIGHT_EMBED_* is deliberately
+    so a base URL — or any other AGENTSTRATUM_API_* setting — the user exported
+    never reached the profile it generated. AGENTSTRATUM_EMBED_* is deliberately
     not persisted: those configure this wrapper for one invocation.
     """
     from hindsight_embed import cli
 
-    config_dir = temp_home / ".hindsight"
+    config_dir = temp_home / ".agentstratum"
     monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
 
-    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "openai")
-    monkeypatch.setenv("HINDSIGHT_API_LLM_API_KEY", "sk-x")
-    monkeypatch.setenv("HINDSIGHT_API_LLM_BASE_URL", "https://maas-api.example.com/v1")
-    monkeypatch.setenv("HINDSIGHT_API_EMBEDDINGS_PROVIDER", "tei")
-    monkeypatch.setenv("HINDSIGHT_EMBED_API_URL", "http://elsewhere:9999")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_PROVIDER", "openai")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_API_KEY", "sk-x")
+    monkeypatch.setenv("AGENTSTRATUM_API_LLM_BASE_URL", "https://maas-api.example.com/v1")
+    monkeypatch.setenv("AGENTSTRATUM_API_EMBEDDINGS_PROVIDER", "tei")
+    monkeypatch.setenv("AGENTSTRATUM_EMBED_API_URL", "http://elsewhere:9999")
 
     assert cli._do_configure_from_env() == 0
 
@@ -1023,6 +1031,6 @@ def test_configure_from_env_persists_every_api_var(temp_home, monkeypatch):
         for line in (config_dir / "embed").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
-    assert "HINDSIGHT_API_LLM_BASE_URL=https://maas-api.example.com/v1" in active
-    assert "HINDSIGHT_API_EMBEDDINGS_PROVIDER=tei" in active
-    assert not any(line.startswith("HINDSIGHT_EMBED_API_URL=") for line in active)
+    assert "AGENTSTRATUM_API_LLM_BASE_URL=https://maas-api.example.com/v1" in active
+    assert "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER=tei" in active
+    assert not any(line.startswith("AGENTSTRATUM_EMBED_API_URL=") for line in active)

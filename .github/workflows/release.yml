@@ -300,20 +300,20 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            artifact_name: hindsight
-            asset_name: hindsight-linux-amd64
+            artifact_name: agentstratum
+            asset_name: agentstratum-linux-amd64
           - os: macos-latest
             target: x86_64-apple-darwin
-            artifact_name: hindsight
-            asset_name: hindsight-darwin-amd64
+            artifact_name: agentstratum
+            asset_name: agentstratum-darwin-amd64
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact_name: hindsight
-            asset_name: hindsight-darwin-arm64
+            artifact_name: agentstratum
+            asset_name: agentstratum-darwin-arm64
           - os: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
-            artifact_name: hindsight
-            asset_name: hindsight-linux-arm64
+            artifact_name: agentstratum
+            asset_name: agentstratum-linux-arm64
 
     steps:
     - uses: actions/checkout@v6
@@ -328,30 +328,30 @@ jobs:
       run: cargo build --release --target ${{ matrix.target }}
 
     - name: Install cargo-about
-      if: matrix.asset_name == 'hindsight-linux-amd64'
+      if: matrix.asset_name == 'agentstratum-linux-amd64'
       uses: taiki-e/install-action@v2
       with:
         tool: cargo-about@0.9.1
 
     - name: Verify cargo-about
-      if: matrix.asset_name == 'hindsight-linux-amd64'
+      if: matrix.asset_name == 'agentstratum-linux-amd64'
       run: cargo about --version
 
     # The build above only fetches crates for this target; cargo-about resolves
     # the graph for every target platform, so fetch for all of them (that is what
     # `cargo fetch` without --target does) before the --offline generate.
     - name: Fetch crate sources for the license scan
-      if: matrix.asset_name == 'hindsight-linux-amd64'
+      if: matrix.asset_name == 'agentstratum-linux-amd64'
       working-directory: hindsight-cli
       run: cargo fetch
 
     - name: Generate license manifest
-      if: matrix.asset_name == 'hindsight-linux-amd64'
+      if: matrix.asset_name == 'agentstratum-linux-amd64'
       working-directory: hindsight-cli
       run: mkdir -p ../artifacts && cargo about generate --offline --manifest-path Cargo.toml --config about.toml about.hbs --output-file ../artifacts/THIRD_PARTY_LICENSES.txt
 
     - name: Verify license files
-      if: matrix.asset_name == 'hindsight-linux-amd64'
+      if: matrix.asset_name == 'agentstratum-linux-amd64'
       run: |
         test -s LICENSE
         test -s artifacts/THIRD_PARTY_LICENSES.txt
@@ -361,7 +361,7 @@ jobs:
       run: |
         mkdir -p artifacts
         cp hindsight-cli/target/${{ matrix.target }}/release/${{ matrix.artifact_name }} artifacts/${{ matrix.asset_name }}
-        if [ "${{ matrix.asset_name }}" = "hindsight-linux-amd64" ]; then
+        if [ "${{ matrix.asset_name }}" = "agentstratum-linux-amd64" ]; then
           cp LICENSE artifacts/LICENSE
         fi
         chmod +x artifacts/${{ matrix.asset_name }}
@@ -591,25 +591,25 @@ jobs:
     - name: Download Rust CLI (Linux)
       uses: actions/download-artifact@v8
       with:
-        name: rust-cli-hindsight-linux-amd64
+        name: rust-cli-agentstratum-linux-amd64
         path: ./artifacts/rust-cli-linux
 
     - name: Download Rust CLI (Linux ARM)
       uses: actions/download-artifact@v8
       with:
-        name: rust-cli-hindsight-linux-arm64
+        name: rust-cli-agentstratum-linux-arm64
         path: ./artifacts/rust-cli-linux-arm64
 
     - name: Download Rust CLI (macOS Intel)
       uses: actions/download-artifact@v8
       with:
-        name: rust-cli-hindsight-darwin-amd64
+        name: rust-cli-agentstratum-darwin-amd64
         path: ./artifacts/rust-cli-darwin-amd64
 
     - name: Download Rust CLI (macOS ARM)
       uses: actions/download-artifact@v8
       with:
-        name: rust-cli-hindsight-darwin-arm64
+        name: rust-cli-agentstratum-darwin-arm64
         path: ./artifacts/rust-cli-darwin-arm64
 
     - name: Download Helm chart
@@ -635,10 +635,10 @@ jobs:
         # Control Plane
         cp artifacts/control-plane/*.tgz release-assets/ || true
         # Rust CLI binaries
-        cp artifacts/rust-cli-linux/hindsight-linux-amd64 release-assets/ || true
-        cp artifacts/rust-cli-linux-arm64/hindsight-linux-arm64 release-assets/ || true
-        cp artifacts/rust-cli-darwin-amd64/hindsight-darwin-amd64 release-assets/ || true
-        cp artifacts/rust-cli-darwin-arm64/hindsight-darwin-arm64 release-assets/ || true
+        cp artifacts/rust-cli-linux/agentstratum-linux-amd64 release-assets/ || true
+        cp artifacts/rust-cli-linux-arm64/agentstratum-linux-arm64 release-assets/ || true
+        cp artifacts/rust-cli-darwin-amd64/agentstratum-darwin-amd64 release-assets/ || true
+        cp artifacts/rust-cli-darwin-arm64/agentstratum-darwin-arm64 release-assets/ || true
         # Rust CLI license files (shared by all four platform binaries)
         cp artifacts/rust-cli-linux/LICENSE release-assets/
         cp artifacts/rust-cli-linux/THIRD_PARTY_LICENSES.txt release-assets/

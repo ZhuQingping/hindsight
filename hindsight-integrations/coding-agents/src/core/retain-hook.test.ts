@@ -67,10 +67,10 @@ const userEvent = (text: string) =>
   });
 
 describe("buildRetain usage stats", () => {
-  it("records the Hindsight calls and credit of a real Claude Code transcript", async () => {
+  it("records the agentstratum calls and credit of a real Claude Code transcript", async () => {
     // The raw host format end to end: tool_use blocks through readClaudeTranscript's action turns.
     const usageFile = join(root, "usage.jsonl");
-    vi.stubEnv("HINDSIGHT_USAGE_FILE", usageFile);
+    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
     const msg = (type: string, content: unknown) =>
       JSON.stringify({ type, message: { role: type, content } });
     writeFileSync(
@@ -80,13 +80,13 @@ describe("buildRetain usage stats", () => {
         msg("assistant", [
           {
             type: "tool_use",
-            name: "mcp__hindsight__hindsight_search_knowledge_pages",
+            name: "mcp__agentstratum__agentstratum_search_knowledge_pages",
             input: { query: "rounding" },
           },
           { type: "tool_use", name: "Grep", input: { pattern: "round" } },
         ]),
         msg("user", [{ type: "tool_result", content: "page kp-1" }]),
-        msg("assistant", [{ type: "text", text: "> 🧠 **From Hindsight memory** — half up" }]),
+        msg("assistant", [{ type: "text", text: "> 🧠 **From agentstratum memory** — half up" }]),
       ].join("\n")
     );
     try {
@@ -103,7 +103,7 @@ describe("buildRetain usage stats", () => {
         session: "sess-usage",
         bank: "bank-1",
         turn: 1,
-        calls: ["hindsight_search_knowledge_pages"],
+        calls: ["agentstratum_search_knowledge_pages"],
         credited: true,
       });
     } finally {
@@ -465,7 +465,7 @@ describe("buildRetain", () => {
       client: undefined as never,
       retainSpy: vi.fn().mockResolvedValue(undefined),
       readTranscript: () => [{ role: "user", content: "make the change" }],
-      lastAssistantMessage: "done <hindsight_memories>injected</hindsight_memories>",
+      lastAssistantMessage: "done <agentstratum_memories>injected</agentstratum_memories>",
     });
     expect(parsed.at(-1)).toMatchObject({ role: "assistant", content: "done" });
   });
@@ -621,15 +621,15 @@ describe("buildRetain", () => {
 });
 
 describe("runRetainHook anti-recursion guard", () => {
-  const ORIGINAL = process.env.HINDSIGHT_DISABLE_HOOKS;
+  const ORIGINAL = process.env.AGENTSTRATUM_DISABLE_HOOKS;
 
   afterEach(() => {
-    if (ORIGINAL === undefined) delete process.env.HINDSIGHT_DISABLE_HOOKS;
-    else process.env.HINDSIGHT_DISABLE_HOOKS = ORIGINAL;
+    if (ORIGINAL === undefined) delete process.env.AGENTSTRATUM_DISABLE_HOOKS;
+    else process.env.AGENTSTRATUM_DISABLE_HOOKS = ORIGINAL;
   });
 
-  it("HINDSIGHT_DISABLE_HOOKS set -> returns immediately, never reads stdin or builds a client", async () => {
-    process.env.HINDSIGHT_DISABLE_HOOKS = "1";
+  it("AGENTSTRATUM_DISABLE_HOOKS set -> returns immediately, never reads stdin or builds a client", async () => {
+    process.env.AGENTSTRATUM_DISABLE_HOOKS = "1";
     const makeClient = vi.fn();
     // No stdin is provided/mocked here — if the guard didn't return before `readFileSync(0, ...)`,
     // this call would attempt to read the real process stdin. Resolving without calling makeClient
@@ -782,7 +782,7 @@ describe("runRetainHook honors retainSessions", () => {
   };
 
   beforeEach(() => {
-    vi.stubEnv("HINDSIGHT_DIAG_FILE", join(root, "diag.log"));
+    vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(root, "diag.log"));
     rawConfig = {};
     writeFileSync(
       file,

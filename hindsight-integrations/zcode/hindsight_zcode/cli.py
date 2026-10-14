@@ -1,18 +1,16 @@
-"""Command-line interface for the ZCode Hindsight integration.
+"""Command-line interface for the ZCode agentstratum integration.
 
-Exposed as the ``hindsight-zcode`` console script:
+Exposed as the ``agentstratum-zcode`` console script:
 
-    hindsight-zcode install
-    hindsight-zcode install --api-url https://api.hindsight.vectorize.io --api-token hsk_...
-    hindsight-zcode uninstall
+    agentstratum-zcode install
+    agentstratum-zcode install --api-url https://service.example --api-token hsk_...
+    agentstratum-zcode uninstall
 """
 
 import argparse
 import os
 
 from .install import run_install, run_uninstall
-
-DEFAULT_API_URL = "https://api.hindsight.vectorize.io"
 
 
 def _run_install(args: argparse.Namespace) -> int:
@@ -28,21 +26,21 @@ def _run_uninstall(_args: argparse.Namespace) -> int:
 def _add_install_parser(subparsers: argparse._SubParsersAction) -> None:
     install = subparsers.add_parser(
         "install",
-        help="Install the Hindsight hook scripts into ZCode.",
+        help="Install the agentstratum hook scripts into ZCode.",
     )
     install.add_argument(
         "--api-url",
-        default=os.environ.get("HINDSIGHT_API_URL"),
+        default=os.environ.get("AGENTSTRATUM_API_URL"),
         help=(
-            "Hindsight API base URL written to ~/.hindsight/zcode.json. "
-            f"For Hindsight Cloud use {DEFAULT_API_URL}. "
-            "Omit to connect to a local hindsight-embed daemon."
+            "agentstratum API base URL written to ~/.agentstratum/zcode.json. "
+            "For hosted mode, use the URL provided by your service administrator. "
+            "Omit to connect to a local agentstratum-embed daemon."
         ),
     )
     install.add_argument(
         "--api-token",
-        default=os.environ.get("HINDSIGHT_API_TOKEN"),
-        help="Hindsight API token (required for Hindsight Cloud).",
+        default=os.environ.get("AGENTSTRATUM_API_TOKEN"),
+        help="agentstratum API token (required for agentstratum Cloud).",
     )
     install.set_defaults(func=_run_install)
 
@@ -50,15 +48,15 @@ def _add_install_parser(subparsers: argparse._SubParsersAction) -> None:
 def _add_uninstall_parser(subparsers: argparse._SubParsersAction) -> None:
     uninstall = subparsers.add_parser(
         "uninstall",
-        help="Remove the Hindsight hook scripts from ZCode.",
+        help="Remove the agentstratum hook scripts from ZCode.",
     )
     uninstall.set_defaults(func=_run_uninstall)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="hindsight-zcode",
-        description="Install Hindsight long-term memory for ZCode.",
+        prog="agentstratum-zcode",
+        description="Install agentstratum long-term memory for ZCode.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     _add_install_parser(subparsers)

@@ -1,37 +1,38 @@
 import { describe, it, expect, vi } from "vitest";
-import { HindsightServer } from "./server.js";
+import { EventEmitter } from "node:events";
+import { AgentstratumServer } from "./server.js";
 
 const spawnMock = vi.hoisted(() => vi.fn());
 vi.mock("child_process", () => ({ spawn: spawnMock }));
 
-describe("HindsightServer construction", () => {
+describe("AgentstratumServer construction", () => {
   it("defaults base URL to http://127.0.0.1:8888", () => {
-    const server = new HindsightServer();
+    const server = new AgentstratumServer();
     expect(server.getBaseUrl()).toBe("http://127.0.0.1:8888");
     expect(server.getProfile()).toBe("default");
   });
 
   it("honours custom profile, port, and host", () => {
-    const server = new HindsightServer({ profile: "app", port: 9077, host: "0.0.0.0" });
+    const server = new AgentstratumServer({ profile: "app", port: 9077, host: "0.0.0.0" });
     expect(server.getProfile()).toBe("app");
     expect(server.getBaseUrl()).toBe("http://0.0.0.0:9077");
   });
 
   it("accepts open env pass-through without complaining about unknown keys", () => {
-    const server = new HindsightServer({
+    const server = new AgentstratumServer({
       env: {
-        HINDSIGHT_API_LLM_PROVIDER: "openai",
-        HINDSIGHT_API_LLM_MODEL: "gpt-4o-mini",
+        AGENTSTRATUM_API_LLM_PROVIDER: "openai",
+        AGENTSTRATUM_API_LLM_MODEL: "gpt-4o-mini",
         // A field that does not exist today — should still be accepted
-        HINDSIGHT_FUTURE_FLAG: "enabled",
+        AGENTSTRATUM_FUTURE_FLAG: "enabled",
       },
     });
-    expect(server).toBeInstanceOf(HindsightServer);
+    expect(server).toBeInstanceOf(AgentstratumServer);
   });
 
   it("exposes checkHealth that returns false when no daemon is running", async () => {
     // Random high port that nothing is listening on.
-    const server = new HindsightServer({ port: 1, readyTimeoutMs: 100 });
+    const server = new AgentstratumServer({ port: 1, readyTimeoutMs: 100 });
     const healthy = await server.checkHealth();
     expect(healthy).toBe(false);
   });
@@ -47,12 +48,21 @@ describe("HindsightServer construction", () => {
     };
     spawnMock.mockReturnValueOnce(child);
 
-    const server = new HindsightServer();
+    const server = new AgentstratumServer({ embedPackage: "agentstratum-embed==0.5.0" });
     await server.stop();
 
     expect(spawnMock).toHaveBeenCalledWith(
       "uvx",
-      ["hindsight-embed@latest", "daemon", "--profile", "default", "stop"],
+      [
+        "--quiet",
+        "--from",
+        "agentstratum-embed==0.5.0",
+        "agentstratum-embed",
+        "daemon",
+        "--profile",
+        "default",
+        "stop",
+      ],
       expect.objectContaining({ stdio: "pipe", windowsHide: true })
     );
   });
@@ -70,11 +80,12 @@ describe("HindsightServer construction", () => {
     spawnMock.mockReturnValue(child);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("ready")));
     try {
-      const server = new HindsightServer({
+      const server = new AgentstratumServer({
         env: {
           PATH: "/caller-toolchain/bin",
-          HINDSIGHT_TEST_SENTINEL: "same-environment",
-          HINDSIGHT_OMITTED: undefined,
+          AGENTSTRATUM_EMBED_PACKAGE: "agentstratum-embed==0.5.0",
+          AGENTSTRATUM_TEST_SENTINEL: "same-environment",
+          AGENTSTRATUM_OMITTED: undefined,
         },
         platformCpuWorkaround: false,
       });
@@ -85,14 +96,34 @@ describe("HindsightServer construction", () => {
         expect(call[2].env).toEqual(
           expect.objectContaining({
             PATH: "/caller-toolchain/bin",
-            HINDSIGHT_TEST_SENTINEL: "same-environment",
+            AGENTSTRATUM_TEST_SENTINEL: "same-environment",
           })
         );
-        expect(call[2].env.HINDSIGHT_OMITTED).toBeUndefined();
+        expect(call[2].env.AGENTSTRATUM_OMITTED).toBeUndefined();
       }
     } finally {
       vi.unstubAllGlobals();
       spawnMock.mockReset();
     }
   });
+});
+
+it("filters internal diagnostics without rewriting successful customer output", async () => {
+  const logger = { info: vi.fn(), warn: vi.fn(), debug: vi.fn() };
+  const child = Object.assign(new EventEmitter(), {
+    stdout: new EventEmitter(),
+    stderr: new EventEmitter(),
+  });
+  spawnMock.mockReturnValueOnce(child);
+  const server = new AgentstratumServer({ embedPackage: "agentstratum-embed==0.5.0", logger });
+  const started = server.start();
+  child.stdout.emit("data", Buffer.from("Created profile customer-hindsight-project\n"));
+  child.stderr.emit(
+    "data",
+    Buffer.from("hindsight_embed failed to load HINDSIGHT_API_LLM_MODEL\n")
+  );
+  child.emit("exit", 1);
+  await expect(started).rejects.toThrow("Contact your service administrator");
+  expect(logger.warn.mock.calls.flat().join(" ")).not.toMatch(/hindsight/i);
+  expect(logger.info.mock.calls.flat().join(" ")).toContain("customer-hindsight-project");
 });

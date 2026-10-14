@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-zcode"
+name = "agentstratum-zcode"
 version = "0.1.0"
-description = "ZCode (Z.ai GLM) integration for Hindsight - persistent long-term memory via ZCode hooks"
+description = "ZCode (Z.ai GLM) integration for agentstratum - persistent long-term memory via ZCode hooks"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -16,10 +16,11 @@ keywords = [
     "z.ai",
     "hooks",
     "agents",
-    "hindsight",
+    "agentstratum",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Private :: Do Not Upload",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -31,12 +32,7 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-hindsight-zcode = "hindsight_zcode.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
-Documentation = "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/zcode"
-Repository = "https://github.com/vectorize-io/hindsight"
+agentstratum-zcode = "hindsight_zcode.cli:main"
 
 [build-system]
 requires = ["hatchling"]

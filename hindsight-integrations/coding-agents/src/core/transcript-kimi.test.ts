@@ -237,7 +237,10 @@ describe("readKimiWire", () => {
       {
         type: "turn.prompt",
         input: [
-          { type: "text", text: "<hindsight_memories>\nleak\n</hindsight_memories>\nWhy retry?" },
+          {
+            type: "text",
+            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+          },
         ],
         origin: { kind: "user" },
         time: at("2026-08-21T09:18:32.595Z"),
@@ -373,7 +376,7 @@ describe("readKimiTranscript", () => {
         type: "context.append_message",
         message: {
           role: "user",
-          content: [{ type: "text", text: "<hindsight_memory>recalled</hindsight_memory>" }],
+          content: [{ type: "text", text: "<agentstratum_memory>recalled</agentstratum_memory>" }],
           toolCalls: [],
           origin: { kind: "hook_result", event: "UserPromptSubmit" },
         },

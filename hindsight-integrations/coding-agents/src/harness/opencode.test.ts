@@ -1,6 +1,6 @@
 /**
  * The opencode adapter's `config` hook: it teaches the host about the survey agent, so the recipe
- * in core/survey.ts (`opencode run --agent hindsight-survey`) needs nothing in the user's
+ * in core/survey.ts (`opencode run --agent agentstratum-survey`) needs nothing in the user's
  * opencode.json. See SURVEY_AGENT in core/survey.ts for why the built-in `plan` agent can't do it.
  */
 import { describe, expect, it } from "vitest";
@@ -36,7 +36,7 @@ describe("opencode config hook", () => {
     expect(cfg.agent[SURVEY_AGENT]).toEqual(SURVEY_AGENT_CONFIG);
   });
 
-  it("does NOT overwrite a hindsight-survey agent the user defined themselves", async () => {
+  it("does NOT overwrite a agentstratum-survey agent the user defined themselves", async () => {
     // Their file is the last word: someone who redefines this name has a reason, and silently
     // replacing it would be a plugin overriding local config.
     const theirs = { description: "customised", mode: "primary" };

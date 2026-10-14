@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Register hindsight-memory hooks into ~/.claude/settings.json.
+"""Register agentstratum-memory hooks into ~/.claude/settings.json.
 
 Claude Code's plugin installer does not currently merge hooks.json into
 settings.json automatically. Run this script once after installing the plugin:
 
     python3 setup_hooks.py
 
-Or via the /hindsight:setup skill inside a Claude Code session.
+Or via the /agentstratum:setup skill inside a Claude Code session.
 """
 
 import json
@@ -14,7 +14,7 @@ import os
 import sys
 
 SETTINGS_PATH = os.path.expanduser("~/.claude/settings.json")
-USER_CONFIG_PATH = os.path.expanduser("~/.hindsight/claude-code.json")
+USER_CONFIG_PATH = os.path.expanduser("~/.agentstratum/claude-code.json")
 
 # Default hook timeout for UserPromptSubmit (auto-recall).
 # Raised from 12s to 45s — the hooks.json shipped with the plugin also
@@ -55,12 +55,11 @@ def _recall_timeout() -> int:
 
 
 def find_plugin_root() -> str:
-    """Locate the installed hindsight-memory plugin cache directory."""
-    cache_base = os.path.expanduser("~/.claude/plugins/cache/hindsight/hindsight-memory")
+    """Locate the installed agentstratum-memory plugin cache directory."""
+    cache_base = os.path.expanduser("~/.claude/plugins/cache/agentstratum/agentstratum-memory")
     if not os.path.isdir(cache_base):
         raise RuntimeError(
-            "hindsight-memory plugin not found. "
-            "Run /plugin install hindsight-memory inside Claude Code first."
+            "agentstratum-memory plugin not found. Run /plugin install agentstratum-memory inside Claude Code first."
         )
     versions = sorted(os.listdir(cache_base), reverse=True)
     if not versions:
@@ -135,7 +134,7 @@ def main():
 
     existing_hooks = settings.get("hooks", {})
     if existing_hooks:
-        print("Existing hooks found — merging (hindsight-memory hooks take precedence).")
+        print("Existing hooks found — merging (agentstratum-memory hooks take precedence).")
 
     new_hooks = build_hooks(plugin_root)
     merged = {**existing_hooks, **new_hooks}
@@ -145,9 +144,9 @@ def main():
     with open(SETTINGS_PATH, "w") as f:
         json.dump(settings, f, indent=2)
 
-    print(f"hindsight-memory hooks registered successfully.")
+    print("agentstratum-memory hooks registered successfully.")
     print(f"Plugin root: {plugin_root}")
-    print(f"Restart Claude Code for changes to take effect.")
+    print("Restart Claude Code for changes to take effect.")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -28,8 +29,9 @@ def temp_home(tmp_path, monkeypatch):
 
 @pytest.fixture
 def hindsight_embed_cmd():
-    """Get the hindsight-embed command."""
-    return ["uv", "run", "hindsight-embed"]
+    """Get the agentstratum-embed command."""
+    # Use the tested interpreter without letting uv synchronize its environment.
+    return [sys.executable, "-m", "hindsight_embed.cli"]
 
 
 class TestProfileIntegration:
@@ -45,11 +47,11 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
                 "--env",
-                "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini",
+                "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini",
             ],
             capture_output=True,
             text=True,
@@ -60,12 +62,12 @@ class TestProfileIntegration:
         assert "Profile 'test-app' configured successfully" in result.stdout
 
         # Verify profile file was created
-        profile_path = temp_home / ".hindsight" / "profiles" / "test-app.env"
+        profile_path = temp_home / ".agentstratum" / "profiles" / "test-app.env"
         assert profile_path.exists()
 
         config_content = profile_path.read_text()
-        assert "HINDSIGHT_API_LLM_PROVIDER=openai" in config_content
-        assert "HINDSIGHT_API_LLM_API_KEY=sk-test" in config_content
+        assert "AGENTSTRATUM_API_LLM_PROVIDER=openai" in config_content
+        assert "AGENTSTRATUM_API_LLM_API_KEY=sk-test" in config_content
 
         # List profiles
         result = subprocess.run(
@@ -82,7 +84,7 @@ class TestProfileIntegration:
     def test_profile_show_default(self, temp_home, hindsight_embed_cmd):
         """Test showing the default profile."""
         # Create default config
-        config_dir = temp_home / ".hindsight"
+        config_dir = temp_home / ".agentstratum"
         config_dir.mkdir(parents=True, exist_ok=True)
         (config_dir / "embed").write_text("KEY=value")
 
@@ -100,7 +102,7 @@ class TestProfileIntegration:
         assert "Port: 8888" in output
 
     def test_profile_show_with_env_var(self, temp_home, hindsight_embed_cmd):
-        """Test profile resolution with HINDSIGHT_EMBED_PROFILE env var."""
+        """Test profile resolution with AGENTSTRATUM_EMBED_PROFILE env var."""
         # Create profile
         subprocess.run(
             hindsight_embed_cmd
@@ -109,22 +111,22 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
             env={**os.environ, "HOME": str(temp_home)},
         )
 
         # Show profile with env var
-        env = {**os.environ, "HOME": str(temp_home), "HINDSIGHT_EMBED_PROFILE": "test-app"}
+        env = {**os.environ, "HOME": str(temp_home), "AGENTSTRATUM_EMBED_PROFILE": "test-app"}
         result = subprocess.run(hindsight_embed_cmd + ["profile", "show"], capture_output=True, text=True, env=env)
 
         assert result.returncode == 0
         output = strip_ansi(result.stdout)
         assert "Active profile: test-app" in output
-        assert "Source: HINDSIGHT_EMBED_PROFILE environment variable" in output
+        assert "Source: AGENTSTRATUM_EMBED_PROFILE environment variable" in output
 
     def test_set_active_profile(self, temp_home, hindsight_embed_cmd):
         """Test setting and using active profile."""
@@ -136,9 +138,9 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
             env={**os.environ, "HOME": str(temp_home)},
@@ -157,7 +159,7 @@ class TestProfileIntegration:
         assert "Active profile set to 'test-app'" in output
 
         # Verify active_profile file
-        active_file = temp_home / ".hindsight" / "active_profile"
+        active_file = temp_home / ".agentstratum" / "active_profile"
         assert active_file.exists()
         assert active_file.read_text() == "test-app"
 
@@ -183,9 +185,9 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
         )
@@ -201,7 +203,7 @@ class TestProfileIntegration:
         assert result.returncode == 0 or "deleted" in result.stdout.lower()
 
         # Verify profile file is gone
-        profile_path = temp_home / ".hindsight" / "profiles" / "test-app.env"
+        profile_path = temp_home / ".agentstratum" / "profiles" / "test-app.env"
         # Note: Test may still have file if daemon was running and user cancelled
 
     def test_multiple_profiles_different_ports(self, temp_home, hindsight_embed_cmd):
@@ -214,9 +216,9 @@ class TestProfileIntegration:
                 "--profile",
                 "app1",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
         )
@@ -229,20 +231,20 @@ class TestProfileIntegration:
                 "--profile",
                 "app2",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
         )
 
-        # Ports now live in each profile's .env (HINDSIGHT_API_PORT)
+        # Ports now live in each profile's .env (AGENTSTRATUM_API_PORT)
         def _env_port(name):
-            env = (temp_home / ".hindsight" / "profiles" / f"{name}.env").read_text()
+            env = (temp_home / ".agentstratum" / "profiles" / f"{name}.env").read_text()
             for line in env.splitlines():
-                if line.startswith("HINDSIGHT_API_PORT="):
+                if line.startswith("AGENTSTRATUM_API_PORT="):
                     return int(line.split("=", 1)[1])
-            raise AssertionError(f"no HINDSIGHT_API_PORT in {name}.env")
+            raise AssertionError(f"no AGENTSTRATUM_API_PORT in {name}.env")
 
         app1_port = _env_port("app1")
         app2_port = _env_port("app2")
@@ -255,7 +257,7 @@ class TestProfileIntegration:
     def test_profile_validation_fails_for_nonexistent(self, temp_home, hindsight_embed_cmd):
         """Test that using non-existent profile fails."""
         # Try to use non-existent profile
-        env = {**os.environ, "HOME": str(temp_home), "HINDSIGHT_EMBED_PROFILE": "nonexistent"}
+        env = {**os.environ, "HOME": str(temp_home), "AGENTSTRATUM_EMBED_PROFILE": "nonexistent"}
         result = subprocess.run(hindsight_embed_cmd + ["profile", "show"], capture_output=True, text=True, env=env)
 
         assert result.returncode == 1
@@ -264,12 +266,12 @@ class TestProfileIntegration:
     def test_backward_compatibility_default_profile(self, temp_home, hindsight_embed_cmd):
         """Test that default profile works without any profile commands."""
         # Create default config manually (simulating old behavior)
-        config_dir = temp_home / ".hindsight"
+        config_dir = temp_home / ".agentstratum"
         config_dir.mkdir(parents=True, exist_ok=True)
         (config_dir / "embed").write_text(
-            "HINDSIGHT_API_LLM_PROVIDER=openai\n"
-            "HINDSIGHT_API_LLM_API_KEY=sk-test\n"
-            "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
+            "AGENTSTRATUM_API_LLM_PROVIDER=openai\n"
+            "AGENTSTRATUM_API_LLM_API_KEY=sk-test\n"
+            "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini\n"
         )
 
         # Show profile should work
@@ -292,9 +294,9 @@ class TestProfileIntegration:
         env = {
             **os.environ,
             "HOME": str(temp_home),
-            "HINDSIGHT_API_LLM_PROVIDER": "openai",
-            "HINDSIGHT_API_LLM_API_KEY": "sk-test",
-            "HINDSIGHT_API_LLM_MODEL": "gpt-4o-mini",
+            "AGENTSTRATUM_API_LLM_PROVIDER": "openai",
+            "AGENTSTRATUM_API_LLM_API_KEY": "sk-test",
+            "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
         }
 
         result = subprocess.run(hindsight_embed_cmd + ["configure"], capture_output=True, text=True, env=env)
@@ -303,7 +305,7 @@ class TestProfileIntegration:
         assert result.returncode == 0
 
         # Verify default config was created
-        config_path = temp_home / ".hindsight" / "embed"
+        config_path = temp_home / ".agentstratum" / "embed"
         assert config_path.exists()
 
     def test_clear_active_profile(self, temp_home, hindsight_embed_cmd):
@@ -316,9 +318,9 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
         )
@@ -339,7 +341,7 @@ class TestProfileIntegration:
         assert "Active profile cleared" in result.stdout
 
         # Verify active_profile file is gone
-        active_file = temp_home / ".hindsight" / "active_profile"
+        active_file = temp_home / ".agentstratum" / "active_profile"
         assert not active_file.exists()
 
     def test_profile_port_persistence(self, temp_home, hindsight_embed_cmd):
@@ -352,21 +354,21 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=openai",
+                "AGENTSTRATUM_API_LLM_PROVIDER=openai",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=sk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=sk-test",
             ],
             capture_output=True,
         )
 
-        # Port now lives in the profile's .env (HINDSIGHT_API_PORT)
-        env_path = temp_home / ".hindsight" / "profiles" / "test-app.env"
+        # Port now lives in the profile's .env (AGENTSTRATUM_API_PORT)
+        env_path = temp_home / ".agentstratum" / "profiles" / "test-app.env"
 
         def _env_port():
             for line in env_path.read_text().splitlines():
-                if line.startswith("HINDSIGHT_API_PORT="):
+                if line.startswith("AGENTSTRATUM_API_PORT="):
                     return int(line.split("=", 1)[1])
-            raise AssertionError("no HINDSIGHT_API_PORT in test-app.env")
+            raise AssertionError("no AGENTSTRATUM_API_PORT in test-app.env")
 
         port1 = _env_port()
 
@@ -378,9 +380,9 @@ class TestProfileIntegration:
                 "--profile",
                 "test-app",
                 "--env",
-                "HINDSIGHT_API_LLM_PROVIDER=groq",
+                "AGENTSTRATUM_API_LLM_PROVIDER=groq",
                 "--env",
-                "HINDSIGHT_API_LLM_API_KEY=gsk-test",
+                "AGENTSTRATUM_API_LLM_API_KEY=gsk-test",
             ],
             capture_output=True,
         )

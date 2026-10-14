@@ -1,5 +1,5 @@
 {
-  "hindsightApiUrl": "",
+  "apiUrl": "",
   "bankId": "claude_code",
   "bankMission": "You are a Claude Code AI assistant. Focus on technical discussions, decisions, and context relevant to the user's projects.",
   "retainMission": "Extract technical decisions, architectural choices, user preferences, project context, and people/tool relationships. Ignore routine greetings and transient operational details.",
@@ -35,7 +35,7 @@
   ],
   "retainMetadata": {},
   "retainContext": "claude-code",
-  "hindsightApiToken": null,
+  "apiToken": null,
   "apiPort": 9077,
   "daemonIdleTimeout": 0,
   "embedVersion": "latest",

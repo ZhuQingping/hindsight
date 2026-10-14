@@ -36,3 +36,42 @@ it("passes a native download stream and propagates cancellation", async () => {
   close();
   expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([1, 2]));
 });
+
+it("preserves customer filenames and file bytes containing the upstream brand", async () => {
+  const content = "customer hindsight HINDSIGHT bytes";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(content, {
+        headers: { "content-disposition": 'attachment; filename="hindsight.txt"' },
+      })
+    )
+  );
+  const response = await GET(
+    new NextRequest(
+      "http://ui/api/files/download?path=" +
+        encodeURIComponent("/v1/default/files/download/tenants/public/hindsight.txt")
+    )
+  );
+  expect(response.headers.get("content-disposition")).toContain("hindsight.txt");
+  await expect(response.text()).resolves.toBe(content);
+});
+
+it("filters download failure diagnostics while preserving upstream status", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue(
+        Response.json({ detail: "hindsight storage unavailable" }, { status: 503 })
+      )
+  );
+  const response = await GET(
+    new NextRequest(
+      "http://ui/api/files/download?path=" +
+        encodeURIComponent("/v1/default/files/download/tenants/public/file.txt")
+    )
+  );
+  expect(response.status).toBe(503);
+  expect(await response.text()).not.toMatch(/hindsight/i);
+});

@@ -1,5 +1,5 @@
 """
-Abstract interface for managing Hindsight embedded servers and profiles.
+Abstract interface for managing Agentstratum embedded servers and profiles.
 
 This module provides a clean interface for daemon lifecycle and profile management,
 abstracting away the implementation details.
@@ -10,7 +10,7 @@ from typing import Optional
 
 
 class EmbedManager(ABC):
-    """Abstract interface for managing Hindsight embedded servers and profiles."""
+    """Abstract interface for managing Agentstratum embedded servers and profiles."""
 
     @abstractmethod
     def ensure_running(self, config: dict, profile: str) -> bool:
@@ -18,7 +18,7 @@ class EmbedManager(ABC):
         Ensure daemon is running for the given profile with config.
 
         Args:
-            config: Environment configuration dict (HINDSIGHT_* vars)
+            config: Environment configuration dict (AGENTSTRATUM_* vars)
             profile: Profile name for isolation
 
         Returns:

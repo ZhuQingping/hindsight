@@ -194,7 +194,7 @@ const copilotPrompt: HookSpec = {
   }),
   emit: (context, _notice, ev) => ({
     // Copilot's userPromptTransformed hook replaces model-facing content rather than appending
-    // hook context. Preserve its transformed prompt and add the shared Hindsight injection.
+    // hook context. Preserve its transformed prompt and add the shared agentstratum injection.
     modifiedTransformedPrompt:
       `${(ev?.transformedPrompt as string | undefined) ?? ""}\n\n${context}`.trim(),
   }),

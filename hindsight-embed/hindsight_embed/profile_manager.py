@@ -1,4 +1,4 @@
-"""Profile management for hindsight-embed.
+"""Profile management for agentstratum-embed.
 
 Handles creation, deletion, and management of configuration profiles.
 Each profile has its own config, daemon lock, log file, and port.
@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import IO, Optional
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("agentstratum.embed.profile_manager")
 
 # ==============================================================================
 # Cross-platform file locking implementation
@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 # with an error naming the lock file and its recorded holder.
 # ==============================================================================
 
-ENV_LOCK_TIMEOUT = "HINDSIGHT_EMBED_LOCK_TIMEOUT"
+ENV_LOCK_TIMEOUT = "AGENTSTRATUM_EMBED_LOCK_TIMEOUT"
 # The daemon-start path holds the profile lock for the whole startup sequence
-# (up to HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT, 180s by default), so the wait
+# (up to AGENTSTRATUM_EMBED_DAEMON_STARTUP_TIMEOUT, 180s by default), so the wait
 # budget has to comfortably exceed that or a legitimate concurrent start would
 # time out waiting for the winner.
 DEFAULT_LOCK_TIMEOUT = 300.0
@@ -58,7 +58,7 @@ class ProfileLockTimeout(TimeoutError):
 
 
 def _default_lock_timeout() -> float:
-    """Lock wait budget in seconds, overridable via HINDSIGHT_EMBED_LOCK_TIMEOUT."""
+    """Lock wait budget in seconds, overridable via AGENTSTRATUM_EMBED_LOCK_TIMEOUT."""
     raw = os.getenv(ENV_LOCK_TIMEOUT)
     if raw is None:
         return DEFAULT_LOCK_TIMEOUT
@@ -185,7 +185,7 @@ def unlock_file(file_obj: IO[str]) -> None:
 from ._http_probe import probe_get
 
 # Configuration paths
-CONFIG_DIR = Path.home() / ".hindsight"
+CONFIG_DIR = Path.home() / ".agentstratum"
 PROFILES_DIR = CONFIG_DIR / "profiles"
 METADATA_FILE = PROFILES_DIR / "metadata.json"
 ACTIVE_PROFILE_FILE = CONFIG_DIR / "active_profile"
@@ -202,8 +202,8 @@ UI_PORT_OFFSET = 10000
 # Ports are stored in the profile's .env (source of truth) so they're editable
 # from the control center. The API port is allocated-then-persisted; the UI port
 # is optional and defaults to API + UI_PORT_OFFSET when unset.
-ENV_API_PORT = "HINDSIGHT_API_PORT"
-ENV_CP_PORT = "HINDSIGHT_EMBED_CP_PORT"
+ENV_API_PORT = "AGENTSTRATUM_API_PORT"
+ENV_CP_PORT = "AGENTSTRATUM_EMBED_CP_PORT"
 
 
 @dataclass
@@ -261,7 +261,7 @@ class ProfileMetadata:
 
 
 class ProfileManager:
-    """Manages configuration profiles for hindsight-embed."""
+    """Manages configuration profiles for agentstratum-embed."""
 
     def __init__(self):
         """Initialize the profile manager."""
@@ -269,7 +269,7 @@ class ProfileManager:
 
     def _get_config_dir(self) -> Path:
         """Get config directory path dynamically (supports testing with temp HOME)."""
-        return Path.home() / ".hindsight"
+        return Path.home() / ".agentstratum"
 
     def _get_profiles_dir(self) -> Path:
         """Get profiles directory path dynamically."""
@@ -515,11 +515,11 @@ class ProfileManager:
             ProfilePaths with config, lock, log, and port.
         """
         # Use dynamic path resolution to support testing with temporary HOME directories
-        config_dir = Path.home() / ".hindsight"
+        config_dir = Path.home() / ".agentstratum"
         profiles_dir = config_dir / "profiles"
 
         if not name:
-            # Default profile — port also overridable via its .env (~/.hindsight/embed).
+            # Default profile — port also overridable via its .env (~/.agentstratum/embed).
             config_path = config_dir / "embed"
             ports = self._resolve_ports("", config_path, DEFAULT_PORT)
             return ProfilePaths(
@@ -595,10 +595,10 @@ class ProfileManager:
             .env file, under their own names.
 
             This used to also inject lowercase aliases ('llm_base_url' for
-            'HINDSIGHT_API_LLM_BASE_URL', and five others). Every consumer then
+            'AGENTSTRATUM_API_LLM_BASE_URL', and five others). Every consumer then
             had to strip them back out before writing a profile, and the alias
             table was a second place a setting had to be listed to be seen at
-            all — which is how HINDSIGHT_API_LLM_BASE_URL went missing (issue
+            all — which is how AGENTSTRATUM_API_LLM_BASE_URL went missing (issue
             #4094). Callers now read the environment variable names directly.
         """
         paths = self.resolve_profile_paths(name)
@@ -743,7 +743,7 @@ def resolve_active_profile() -> str:
     """Resolve which profile to use based on priority.
 
     Priority (highest to lowest):
-    1. HINDSIGHT_EMBED_PROFILE environment variable
+    1. AGENTSTRATUM_EMBED_PROFILE environment variable
     2. CLI --profile flag (from global context)
     3. Active profile from file
     4. Default (empty string)
@@ -752,7 +752,7 @@ def resolve_active_profile() -> str:
         Profile name to use (empty string for default).
     """
     # 1. Environment variable
-    if env_profile := os.getenv("HINDSIGHT_EMBED_PROFILE"):
+    if env_profile := os.getenv("AGENTSTRATUM_EMBED_PROFILE"):
         return "" if env_profile == "default" else env_profile
 
     # 2. CLI flag (set by caller before invoking commands)
@@ -791,7 +791,7 @@ def validate_profile_exists(profile: str):
             file=sys.stderr,
         )
         print(
-            f"Create it with: hindsight-embed configure --profile {profile}",
+            f"Create it with: agentstratum-embed configure --profile {profile}",
             file=sys.stderr,
         )
         sys.exit(1)

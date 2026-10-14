@@ -19,7 +19,7 @@ let usageFile: string;
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "hs-usage-"));
   usageFile = join(root, "usage.jsonl");
-  vi.stubEnv("HINDSIGHT_USAGE_FILE", usageFile);
+  vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
 });
 
 afterEach(() => {
@@ -34,33 +34,33 @@ const lines = () =>
     .map((l) => JSON.parse(l));
 
 describe("summarizeTurns", () => {
-  it("counts only Hindsight tools, whatever prefix the host gives them", () => {
+  it("counts only agentstratum tools, whatever prefix the host gives them", () => {
     const usage = summarizeTurns([
       t("system", "REF-ID: x"), // before the first user turn: belongs to no turn
       t("user", "how do we round?"),
-      t("action", "mcp__hindsight__hindsight_search_knowledge_pages rounding"),
+      t("action", "mcp__agentstratum__agentstratum_search_knowledge_pages rounding"),
       t("action", "Read src/round.ts"),
-      t("action", "hindsight.hindsight_reflect why half-up"),
-      t("assistant", "> 🧠 **From Hindsight memory (Conventions)** — half up"),
+      t("action", "agentstratum.agentstratum_reflect why half-up"),
+      t("assistant", "> 🧠 **From agentstratum memory (Conventions)** — half up"),
       t("user", "thanks"),
-      t("action", "hindsight_read_knowledge_page kp-1"),
+      t("action", "agentstratum_read_knowledge_page kp-1"),
       t("assistant", "done"),
     ]);
     expect(usage).toEqual([
       {
         turn: 1,
-        calls: ["hindsight_search_knowledge_pages", "hindsight_reflect"],
+        calls: ["agentstratum_search_knowledge_pages", "agentstratum_reflect"],
         credited: true,
       },
-      { turn: 2, calls: ["hindsight_read_knowledge_page"], credited: false },
+      { turn: 2, calls: ["agentstratum_read_knowledge_page"], credited: false },
     ]);
   });
 
   it("reads credit from Gemini-shaped `model` turns, and never from the user's own words", () => {
     const usage = summarizeTurns([
-      t("user", "did it come From Hindsight memory?"),
+      t("user", "did it come From agentstratum memory?"),
       t("user", "second"),
-      t("model", "🧠 From Hindsight memory — yes"),
+      t("model", "🧠 From agentstratum memory — yes"),
     ]);
     expect(usage.map((u) => u.credited)).toEqual([false, true]);
   });
@@ -71,7 +71,7 @@ describe("recordUsage", () => {
 
   it("records each turn once across repeated Stops over the growing transcript", () => {
     const cursors = memoryUsageCursorStore();
-    const first = [t("user", "a"), t("action", "mcp__hindsight__hindsight_reflect q")];
+    const first = [t("user", "a"), t("action", "mcp__agentstratum__agentstratum_reflect q")];
     recordUsage({ ...base, turns: first, cursors, lastTurnComplete: true });
     recordUsage({ ...base, turns: first, cursors, lastTurnComplete: true }); // Stop re-delivered
     recordUsage({
@@ -87,7 +87,7 @@ describe("recordUsage", () => {
         session: "s1",
         bank: "bank-1",
         turn: 1,
-        calls: ["hindsight_reflect"],
+        calls: ["agentstratum_reflect"],
       },
       { turn: 2, calls: [], credited: false },
     ]);
@@ -95,7 +95,7 @@ describe("recordUsage", () => {
 
   it("re-reads the previous turn on the next Stop, so a late credit line is not lost", () => {
     const cursors = memoryUsageCursorStore();
-    const search = t("action", "hindsight_search_knowledge_pages q");
+    const search = t("action", "agentstratum_search_knowledge_pages q");
     // Stop fires before the host flushed the reply — and that reply is where the
     // credit blockquote lives, so turn 1 is written uncredited.
     recordUsage({
@@ -115,7 +115,7 @@ describe("recordUsage", () => {
         search,
         t(
           "assistant",
-          "> 🧠 **From Hindsight memory (Pricing decisions)** — the threshold is post-discount"
+          "> 🧠 **From agentstratum memory (Pricing decisions)** — the threshold is post-discount"
         ),
         t("user", "b"),
         t("assistant", "ok"),
@@ -138,11 +138,11 @@ describe("recordUsage", () => {
 
     recordUsage({
       ...base,
-      turns: [t("user", "a"), t("action", "hindsight_reflect q"), t("assistant", "done")],
+      turns: [t("user", "a"), t("action", "agentstratum_reflect q"), t("assistant", "done")],
       cursors,
       lastTurnComplete: true,
     });
-    expect(lines()).toMatchObject([{ turn: 1, calls: ["hindsight_reflect"] }]);
+    expect(lines()).toMatchObject([{ turn: 1, calls: ["agentstratum_reflect"] }]);
   });
 });
 
@@ -155,7 +155,7 @@ describe("readUsage", () => {
         harness: "codex",
         session: "a",
         turn: 1,
-        calls: ["hindsight_reflect"],
+        calls: ["agentstratum_reflect"],
         credited: true,
       })
     );
@@ -165,7 +165,7 @@ describe("readUsage", () => {
         harness: "codex",
         session: "a",
         turn: 1,
-        calls: ["hindsight_reflect"],
+        calls: ["agentstratum_reflect"],
         credited: true,
       }) +
         line({ harness: "codex", session: "a", turn: 2, calls: [], credited: false }) +
@@ -174,14 +174,14 @@ describe("readUsage", () => {
           harness: "codex",
           session: "a",
           turn: 3,
-          calls: ["hindsight_ingest_document"],
+          calls: ["agentstratum_ingest_document"],
           credited: false,
         }) +
         line({
           harness: "codex",
           session: "b",
           turn: 1,
-          calls: ["hindsight_reflect", "hindsight_search_knowledge_pages"],
+          calls: ["agentstratum_reflect", "agentstratum_search_knowledge_pages"],
           credited: false,
         }) +
         "not json\n"
@@ -197,21 +197,21 @@ describe("readUsage", () => {
         turnsWithRetrieval: 2,
         creditedTurnsWithRetrieval: 1,
         byTool: {
-          hindsight_reflect: 2,
-          hindsight_search_knowledge_pages: 1,
-          hindsight_ingest_document: 1,
+          agentstratum_reflect: 2,
+          agentstratum_search_knowledge_pages: 1,
+          agentstratum_ingest_document: 1,
         },
       },
     ]);
     expect(formatUsageReport(usage, usageFile)).toContain(
-      "codex: 4 turns · 3 with a Hindsight call (75%) · 1.00 calls/turn · " +
+      "codex: 4 turns · 3 with a agentstratum call (75%) · 1.00 calls/turn · " +
         "credited after retrieval 1/2 (50%)"
     );
   });
 
   it("says so when nothing is recorded", () => {
     expect(formatUsageReport(readUsage(usageFile), usageFile)).toBe(
-      `no Hindsight usage recorded yet (${usageFile})`
+      `no agentstratum usage recorded yet (${usageFile})`
     );
   });
 });

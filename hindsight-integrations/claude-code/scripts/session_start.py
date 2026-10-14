@@ -3,7 +3,7 @@
 
 Fires once when a Claude Code session begins. Uses additionalContext
 (supported on SessionStart) to inject an initial system note if
-Hindsight is available.
+agentstratum is available.
 
 This is the Claude Code equivalent of Openclaw's service.start() —
 verify the server is reachable early, before the first prompt.
@@ -49,11 +49,11 @@ def main():
 
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-        debug_log(config, f"Hindsight server reachable at {api_url}")
+        debug_log(config, f"agentstratum server reachable at {api_url}")
     except (RuntimeError, ValueError) as e:
         # Server not running — kick off background pre-start so it's ready
         # by the time the first recall or retain hook fires.
-        debug_log(config, f"Hindsight not running, initiating background pre-start: {e}")
+        debug_log(config, f"agentstratum not running, initiating background pre-start: {e}")
         prestart_daemon_background(config, debug_fn=_dbg)
         return
 
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionStart error: {e}", file=sys.stderr)
+        print(f"[agentstratum] SessionStart error: {e}", file=sys.stderr)
         sys.exit(0)

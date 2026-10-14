@@ -2,7 +2,7 @@
  * Harness-agnostic incremental git sync — keeps a backfilled bank current with new commits.
  *
  * It diffs the commits reachable from a target ref (default `origin/main`, falling back to HEAD) against
- * the commit document_ids already in Hindsight (tag `source:git`, id `git:<sha>`) and async-retains ONLY
+ * the commit document_ids already in agentstratum (tag `source:git`, id `git:<sha>`) and async-retains ONLY
  * the missing commits, using the SAME per-commit encoding the backfill uses (see retainCommit). The check
  * is SET-BASED, so it is correct across rebases / force-push: stale commits simply remain in memory and
  * whatever the ref now points at gets ingested. Everything is best-effort and non-blocking — a sync

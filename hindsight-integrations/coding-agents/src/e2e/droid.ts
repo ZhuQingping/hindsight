@@ -26,9 +26,9 @@ import type { HarnessDockerSetup } from "./harness";
 export const factoryDroidDockerSetup: HarnessDockerSetup = {
   name: "factory-droid",
   hindsightHarness: "factory-droid",
-  installCommand: "hindsight-coding-agents install factory-droid",
+  installCommand: "agentstratum-coding-agents install factory-droid",
   stubModelEnv: (baseUrl) => ({
-    HINDSIGHT_STUB_BASE_URL: `${baseUrl}/v1`,
+    AGENTSTRATUM_STUB_BASE_URL: `${baseUrl}/v1`,
   }),
   injectsIntoModel: false,
   command: (prompt) => ["hindsight-droid-e2e-exec", prompt],

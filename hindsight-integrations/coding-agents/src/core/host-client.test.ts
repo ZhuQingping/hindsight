@@ -8,10 +8,10 @@ let root: string;
 let cfgPath: string;
 
 /** `CONFIG_PATH` is resolved from the environment when core/config is first imported, so each case
- *  points HINDSIGHT_CONFIG at its own file and re-imports the module graph. */
+ *  points AGENTSTRATUM_CONFIG at its own file and re-imports the module graph. */
 async function loadFactory() {
   vi.resetModules();
-  process.env.HINDSIGHT_CONFIG = cfgPath;
+  process.env.AGENTSTRATUM_CONFIG = cfgPath;
   return import("./host-client");
 }
 

@@ -2,9 +2,9 @@
  * Codebase survey (Option C): on a cold repo, `session-start.ts` (hook harnesses) or
  * `runtime.ts`'s `seedIfCold` (opencode) spawns a DETACHED headless coding agent alongside the
  * git-history backfill (core/seed.ts) to explore the repo's structure and ingest what it finds as
- * memories, via the `hindsight_ingest_document` MCP tool (core/knowledge-tools.ts).
+ * memories, via the `agentstratum_ingest_document` MCP tool (core/knowledge-tools.ts).
  *
- * A Hindsight knowledge page's body is synthesized server-side from the bank's MEMORIES via its
+ * A agentstratum knowledge page's body is synthesized server-side from the bank's MEMORIES via its
  * `source_query` — it can't be authored directly. So this survey doesn't write pages itself; it
  * ingests structural findings as documents, and the existing pages (missions.ts PAGES) synthesize
  * from them on the next consolidation, same as git history and chat transcripts do.
@@ -14,19 +14,19 @@
  * builds a per-agent headless recipe and runs the survey under **the current harness's own CLI**
  * (falling back to any other available agent), so whichever agent you use can seed its own repo:
  *   - claude : `claude -p … --mcp-config <inline> --disallowedTools …`   (inline MCP, self-contained)
- *   - codex  : `codex exec --sandbox read-only -c mcp_servers.hindsight…` (inline MCP, self-contained)
+ *   - codex  : `codex exec --sandbox read-only -c mcp_servers.agentstratum…` (inline MCP, self-contained)
  *   - antigravity : `agy -p … --mode=plan --cwd <repo>` (read-only planning mode; MCP from the
  *                  global Antigravity customization config)
- *   - opencode: `opencode run --agent hindsight-survey …` (a read-only agent OUR plugin defines —
- *               see SURVEY_AGENT; tools from the loaded plugin, which under HINDSIGHT_DISABLE_HOOKS
+ *   - opencode: `opencode run --agent agentstratum-survey …` (a read-only agent OUR plugin defines —
+ *               see SURVEY_AGENT; tools from the loaded plugin, which under AGENTSTRATUM_DISABLE_HOOKS
  *               registers tools but skips seed/recall/write-back)
  * Each is read-only sandboxed (prompt-injection safety, since the survey reads untrusted repo files)
- * and spawned with HINDSIGHT_DISABLE_HOOKS=1 so the survey's own session doesn't re-fire our hooks.
+ * and spawned with AGENTSTRATUM_DISABLE_HOOKS=1 so the survey's own session doesn't re-fire our hooks.
  *
  * **Dcode is deliberately not on this list**, unlike its otherwise-full harness support. Its
  * headless runtime (`dcode -n`) rejects every MCP tool that is not annotated read-only —
  * "This MCP action requires approval, but the current headless runtime has no approval UI"
- * (`auto_mode.py:HeadlessMCPGuardMiddleware`). `hindsight_ingest_document` writes, so it is gated
+ * (`auto_mode.py:HeadlessMCPGuardMiddleware`). `agentstratum_ingest_document` writes, so it is gated
  * by design and no flag lifts it: `--yolo`/`-y` are documented as ignored in headless mode. A
  * survey that cannot call the one tool it exists to call would spend a model budget and ingest
  * nothing, so Dcode falls back to another installed agent's CLI below — the same treatment as
@@ -53,7 +53,7 @@ import {
 } from "./survey-lease";
 
 /** Deterministic doc ids of the survey's findings (its fixed titles slugified by
- *  hindsight_ingest_document). Their presence in the bank = the survey actually FINISHED —
+ *  agentstratum_ingest_document). Their presence in the bank = the survey actually FINISHED —
  *  the baseline marker only proves it was started. */
 export const SURVEY_DOC_IDS = [
   "repository-component-map",
@@ -65,11 +65,11 @@ export const SURVEY_DOC_IDS = [
 export type SurveyHarness = "claude-code" | "codex" | "antigravity-cli" | "opencode";
 
 /** Resolve the claude CLI binary for a detached spawn (a shell alias won't apply to child_process).
- *  Order: explicit arg -> env HINDSIGHT_CLAUDE_BIN -> ~/.claude/local/claude (native installer) ->
+ *  Order: explicit arg -> env AGENTSTRATUM_CLAUDE_BIN -> ~/.claude/local/claude (native installer) ->
  *  "claude" (PATH fallback, resolved by the shell/child_process at spawn time). */
 export function resolveClaudeBin(explicit?: string): string {
   if (explicit) return explicit;
-  if (process.env.HINDSIGHT_CLAUDE_BIN) return process.env.HINDSIGHT_CLAUDE_BIN;
+  if (process.env.AGENTSTRATUM_CLAUDE_BIN) return process.env.AGENTSTRATUM_CLAUDE_BIN;
   const nativeInstallPath = join(homedir(), ".claude", "local", "claude");
   try {
     if (existsSync(nativeInstallPath)) return nativeInstallPath;
@@ -87,7 +87,7 @@ export function resolveClaudeBin(explicit?: string): string {
  * system-reminder to every user message — "CRITICAL: Plan mode ACTIVE - you are in READ-ONLY phase
  * … ANY file edits, modifications, or system changes … This ABSOLUTE CONSTRAINT overrides ALL other
  * instructions" — while leaving plugin tools callable (plan denies only `edit`). The survey exists
- * to call hindsight_ingest_document, which reads as a "system change", so completion came down to
+ * to call agentstratum_ingest_document, which reads as a "system change", so completion came down to
  * how literally a model took the reminder: #3450 saw the seed stall on ~half their repos, the agent
  * asking for permission that plan mode cannot grant. Prompt wording cannot win that argument — the
  * reminder claims to override all other instructions.
@@ -97,38 +97,38 @@ export function resolveClaudeBin(explicit?: string): string {
  * write, no bash, and no `task` (plan left all three reachable, and `task` reaches a subagent that
  * CAN write). Verified against opencode 1.18.9.
  */
-export const SURVEY_AGENT = "hindsight-survey";
+export const SURVEY_AGENT = "agentstratum-survey";
 
 export const SURVEY_AGENT_CONFIG = {
   description:
-    "One-time read-only structural survey that seeds this repository's Hindsight memory.",
+    "One-time read-only structural survey that seeds this repository's agentstratum memory.",
   mode: "primary",
   permission: {
     "*": "deny",
     read: "allow",
     grep: "allow",
     glob: "allow",
-    hindsight_ingest_document: "allow",
+    agentstratum_ingest_document: "allow",
   },
 } as const;
 
-/** Resolve a harness's agent CLI binary: explicit `claudeBin` (claude only) -> `HINDSIGHT_<AGENT>_BIN`
+/** Resolve a harness's agent CLI binary: explicit `claudeBin` (claude only) -> `AGENTSTRATUM_<AGENT>_BIN`
  *  env override -> the bare command name (resolved on PATH at spawn time). */
 function resolveAgentBin(harness: SurveyHarness, claudeBin?: string): string {
   switch (harness) {
     case "claude-code":
       return resolveClaudeBin(claudeBin);
     case "codex":
-      return process.env.HINDSIGHT_CODEX_BIN || "codex";
+      return process.env.AGENTSTRATUM_CODEX_BIN || "codex";
     case "antigravity-cli":
-      return process.env.HINDSIGHT_ANTIGRAVITY_BIN || "agy";
+      return process.env.AGENTSTRATUM_ANTIGRAVITY_BIN || "agy";
     case "opencode":
-      return process.env.HINDSIGHT_OPENCODE_BIN || "opencode";
+      return process.env.AGENTSTRATUM_OPENCODE_BIN || "opencode";
   }
 }
 
 export const SURVEY_PROMPT =
-  "You are performing a one-time structural survey of THIS repository to seed its Hindsight " +
+  "You are performing a one-time structural survey of THIS repository to seed its agentstratum " +
   "memory. Work efficiently — DO NOT read every file; sample enough to understand the " +
   "architecture: the directory layout, entry points, package manifests (package.json / " +
   "pyproject.toml / Cargo.toml / go.mod), the README, and a few representative source files per " +
@@ -139,7 +139,7 @@ export const SURVEY_PROMPT =
   "are live, user-controlled instructions (not repository knowledge); capturing them as memory " +
   "would let a stale copy override the user's current instructions. Exclude them entirely from " +
   "your survey and from every ingested document.\n" +
-  "Then use the hindsight_ingest_document tool to save what you learned as separate documents (one " +
+  "Then use the agentstratum_ingest_document tool to save what you learned as separate documents (one " +
   "call each), with these titles and factual, developer-oriented content grounded in what you " +
   "actually saw:\n" +
   '- "Repository component map": the top-level modules/directories, each one\'s responsibility, ' +
@@ -180,7 +180,7 @@ interface SpawnPlan {
 }
 
 /** Build the headless survey command for one agent. `bin` is already resolved (and confirmed to
- *  exist by the caller). All recipes run read-only and set HINDSIGHT_DISABLE_HOOKS=1. */
+ *  exist by the caller). All recipes run read-only and set AGENTSTRATUM_DISABLE_HOOKS=1. */
 function buildSurveyPlan(
   harness: SurveyHarness,
   bin: string,
@@ -190,25 +190,25 @@ function buildSurveyPlan(
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     // Anti-recursion: the survey's own agent session must not fire our hooks (session-start,
-    // UserPromptSubmit/BeforeAgent, Stop/SessionEnd) or re-seed — see the HINDSIGHT_DISABLE_HOOKS
+    // UserPromptSubmit/BeforeAgent, Stop/SessionEnd) or re-seed — see the AGENTSTRATUM_DISABLE_HOOKS
     // guard in hook.ts / retain-hook.ts / session-start.ts / runtime.ts.
-    HINDSIGHT_DISABLE_HOOKS: "1",
+    AGENTSTRATUM_DISABLE_HOOKS: "1",
     // Bank scoping for the MCP server the survey agent spawns.
-    HINDSIGHT_MCP_PROJECT_CWD: repoDir,
+    AGENTSTRATUM_MCP_PROJECT_CWD: repoDir,
   };
 
   switch (harness) {
     case "claude-code": {
       const mcpConfig = JSON.stringify({
         mcpServers: {
-          hindsight: {
+          agentstratum: {
             command: "node",
             args: [opts.mcpServerPath],
-            // HINDSIGHT_MCP_HARNESS names the agent whose CLI this recipe drives — the survey's
+            // AGENTSTRATUM_MCP_HARNESS names the agent whose CLI this recipe drives — the survey's
             // ingests are its writes. mcp-server.js REQUIRES it (it used to default to
             // "claude-code", which is how the codex recipe below silently stamped its findings
             // harness:claude-code and wrote them to Claude Code's bank — #3603).
-            env: { HINDSIGHT_MCP_PROJECT_CWD: repoDir, HINDSIGHT_MCP_HARNESS: "claude-code" },
+            env: { AGENTSTRATUM_MCP_PROJECT_CWD: repoDir, AGENTSTRATUM_MCP_HARNESS: "claude-code" },
           },
         },
       });
@@ -226,7 +226,7 @@ function buildSurveyPlan(
           "Read",
           "Glob",
           "Grep",
-          "mcp__hindsight__hindsight_ingest_document",
+          "mcp__agentstratum__agentstratum_ingest_document",
           "--disallowedTools",
           ...SURVEY_DISALLOWED_TOOLS,
           "--max-budget-usd",
@@ -238,7 +238,7 @@ function buildSurveyPlan(
     case "codex": {
       // `codex exec` is non-interactive; `--sandbox read-only` is the injection boundary (read-only
       // filesystem, no network). MCP server injected inline via `-c` overrides so the recipe is
-      // self-contained (doesn't require the user's config.toml to already have hindsight). Model is
+      // self-contained (doesn't require the user's config.toml to already have agentstratum). Model is
       // left to Codex's configured default — Codex model ids differ from Claude's, and the read-only
       // sandbox + the bounded prompt are the cost/safety controls (Codex has no per-run budget flag).
       return {
@@ -248,13 +248,13 @@ function buildSurveyPlan(
           "--sandbox",
           "read-only",
           "-c",
-          `mcp_servers.hindsight.command="node"`,
+          `mcp_servers.agentstratum.command="node"`,
           "-c",
-          `mcp_servers.hindsight.args=["${opts.mcpServerPath}"]`,
+          `mcp_servers.agentstratum.args=["${opts.mcpServerPath}"]`,
           "-c",
-          `mcp_servers.hindsight.env.HINDSIGHT_MCP_PROJECT_CWD="${repoDir}"`,
+          `mcp_servers.agentstratum.env.AGENTSTRATUM_MCP_PROJECT_CWD="${repoDir}"`,
           "-c",
-          `mcp_servers.hindsight.env.HINDSIGHT_MCP_HARNESS="codex"`,
+          `mcp_servers.agentstratum.env.AGENTSTRATUM_MCP_HARNESS="codex"`,
           SURVEY_PROMPT,
         ],
         env,
@@ -274,8 +274,8 @@ function buildSurveyPlan(
       // `opencode run` under the survey agent OUR OWN PLUGIN defines (harness/opencode.ts), which
       // is both the injection boundary and the reason the seed completes: the built-in `plan` agent
       // used to fill that slot, but its read-only system-reminder talked models out of the ingest
-      // call the survey exists to make (#3450). The hindsight tools come from the loaded plugin;
-      // under HINDSIGHT_DISABLE_HOOKS it registers tools but skips seed/recall/write-back
+      // call the survey exists to make (#3450). The agentstratum tools come from the loaded plugin;
+      // under AGENTSTRATUM_DISABLE_HOOKS it registers tools but skips seed/recall/write-back
       // (runtime.ts), so this survey run doesn't re-seed itself. Model left to opencode's
       // configured default (its `provider/model` format differs per setup).
       return {
@@ -289,7 +289,7 @@ function buildSurveyPlan(
 
 /**
  * Spawn a DETACHED headless agent to survey `repoDir` and ingest structural findings via the
- * `hindsight_ingest_document` tool. Runs the survey under the current harness's own CLI when
+ * `agentstratum_ingest_document` tool. Runs the survey under the current harness's own CLI when
  * available, else falls back to any available agent (claude → codex → antigravity → opencode — claude and
  * codex first because their inline-MCP recipes are self-contained). The agent runs under the
  * detached lease supervisor (survey-supervisor.ts), so only one survey per destination runs at a
@@ -347,7 +347,7 @@ export async function startCodebaseSurvey(
         .update(JSON.stringify([cfg.apiUrl.replace(/\/+$/, ""), cfg.apiToken ?? "", bankId]))
         .digest("hex");
       const lease = acquireLease(
-        opts.lease?.dir ?? join(tmpdir(), "hindsight-coding-agent", "surveys"),
+        opts.lease?.dir ?? join(tmpdir(), "agentstratum-coding-agent", "surveys"),
         key,
         opts.lease?.staleMs ?? LEASE_STALE_MS
       );

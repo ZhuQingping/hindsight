@@ -56,7 +56,7 @@ class WebhookManager:
 
         Returns ``sha256=<hex>`` over the exact bytes sent on the wire -- the same
         construction GitHub uses, which is why it ships under both
-        ``X-Hindsight-Signature`` and ``X-Hub-Signature-256``.
+        ``X-Agentstratum-Signature`` and ``X-Hub-Signature-256``.
         """
         return "sha256=" + hmac.new(secret.encode(), payload_bytes, hashlib.sha256).hexdigest()
 

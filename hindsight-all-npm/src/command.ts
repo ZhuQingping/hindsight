@@ -1,25 +1,21 @@
-/**
- * Resolve the command that invokes the `hindsight-embed` Python CLI.
- *
- * - If `embedPackagePath` is set, runs the package from a local checkout via
- *   `uv run --directory <path> hindsight-embed`. Used for in-repo development.
- * - Otherwise runs it via `uvx hindsight-embed@<version>` so no global install
- *   is required.
- *
- * Returns the argv as `[command, ...baseArgs]` suitable for `spawn()` /
- * `execFile()` (never shell-interpolated).
- */
+/** Select an explicitly configured distribution or a local development checkout. */
 export interface EmbedCommandOptions {
-  /** Version spec passed to uvx (e.g. "latest", "0.5.0"). Default: "latest". */
+  /** Retained version metadata; the complete distribution spec controls installation. */
   embedVersion?: string;
-  /** Local checkout path. When set, overrides `embedVersion` and uses `uv run`. */
+  /** Complete Python distribution spec, e.g. an approved wheel URL or package pin. */
+  embedPackage?: string;
   embedPackagePath?: string;
 }
 
 export function getEmbedCommand(opts: EmbedCommandOptions = {}): string[] {
   if (opts.embedPackagePath) {
-    return ["uv", "run", "--directory", opts.embedPackagePath, "hindsight-embed"];
+    return ["uv", "run", "--directory", opts.embedPackagePath, "agentstratum-embed"];
   }
-  const version = opts.embedVersion && opts.embedVersion.length > 0 ? opts.embedVersion : "latest";
-  return ["uvx", `hindsight-embed@${version}`];
+  const distribution = opts.embedPackage ?? process.env.AGENTSTRATUM_EMBED_PACKAGE;
+  if (!distribution?.trim()) {
+    throw new Error(
+      "Set AGENTSTRATUM_EMBED_PACKAGE to the approved local engine distribution, or configure embedPackagePath."
+    );
+  }
+  return ["uvx", "--quiet", "--from", distribution, "agentstratum-embed"];
 }

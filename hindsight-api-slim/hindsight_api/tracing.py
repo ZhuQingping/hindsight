@@ -13,6 +13,7 @@ to Langfuse (or any OTLP-compatible backend) via OTLP HTTP protocol.
 import json
 import logging
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -22,6 +23,9 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
+
+from hindsight_api.public_errors import public_error_message
+from hindsight_api.telemetry_export import CustomerSpanExporter
 
 if TYPE_CHECKING:
     from opentelemetry.context import Context
@@ -92,6 +96,29 @@ class NoOpSpan:
     def end(self, end_time: int | None = None) -> None:
         """No-op."""
         pass
+
+
+def record_public_exception(span: trace.Span | NoOpSpan, error: Exception) -> None:
+    """Export diagnostic fields without Python module paths or stack traces."""
+    message = public_error_message(error)
+    error_type = type(error).__name__
+    if "hindsight" in error_type.casefold():
+        error_type = "ServiceError"
+    span.set_status(Status(StatusCode.ERROR, message))
+    span.set_attribute("error.type", error_type)
+    span.add_event("exception", {"exception.type": error_type, "exception.message": message})
+
+
+@contextmanager
+def customer_span(tracer: trace.Tracer | NoOpTracer, name: str, **kwargs: Any) -> Iterator[trace.Span | NoOpSpan]:
+    """Keep exception diagnostics internal while preserving trace correlation."""
+    with tracer.start_as_current_span(name, record_exception=False, set_status_on_exception=False, **kwargs) as span:
+        try:
+            yield span
+        except Exception as error:
+            logger.exception("Operation failed: %s", name)
+            record_public_exception(span, error)
+            raise
 
 
 # Global tracer instance
@@ -197,13 +224,13 @@ def initialize_tracing(
 
     # Create tracer provider with batch processor
     provider = TracerProvider(resource=resource)
-    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    provider.add_span_processor(BatchSpanProcessor(CustomerSpanExporter(otlp_exporter)))
 
     # Set global tracer provider
     trace.set_tracer_provider(provider)
 
     # Get tracer for this application
-    _tracer = trace.get_tracer(__name__)
+    _tracer = trace.get_tracer("agentstratum.tracing")
     _tracing_enabled = True
     _provider = provider
 
@@ -229,7 +256,7 @@ def initialize_tracing_from_config(
         config: Resolved Hindsight configuration (raw dataclass or the static proxy).
         default_service_name: Service name to use when HINDSIGHT_API_OTEL_SERVICE_NAME
             is not set in the environment. Lets the worker report itself as
-            "hindsight-worker" — matching the name it already reports for metrics —
+            "agentstratum-worker" — matching the name it already reports for metrics —
             without overriding an operator's explicit choice.
 
     Returns:
@@ -322,13 +349,13 @@ def create_operation_span(operation: str, bank_id: str | None = None):
         yield None
         return
 
-    span_name = f"hindsight.{operation}"
+    span_name = f"agentstratum.{operation}"
     # OpenTelemetry returns a context manager here, not the span itself. Set
     # attributes on the span yielded by that manager so exporters receive them.
-    with _tracer.start_as_current_span(span_name) as span:
-        span.set_attribute("hindsight.operation", operation)
+    with customer_span(_tracer, span_name) as span:
+        span.set_attribute("agentstratum.operation", operation)
         if bank_id:
-            span.set_attribute("hindsight.bank_id", bank_id)
+            span.set_attribute("agentstratum.bank_id", bank_id)
         yield span
 
 
@@ -456,10 +483,10 @@ class LLMSpanRecorder:
             # Determine operation name based on scope/context
             operation_name = "chat"  # Default for GenAI semantic conventions
 
-            # Create span name: "hindsight.{scope}" for consistency with parent spans
+            # Create span name: "agentstratum.{scope}" for consistency with parent spans
             # Model info is available in span attributes (gen_ai.request.model)
             if scope:
-                span_name = f"hindsight.{scope}"
+                span_name = f"agentstratum.{scope}"
             else:
                 # Fallback to chat {model} if no scope provided
                 span_name = f"{operation_name} {model}"
@@ -469,7 +496,8 @@ class LLMSpanRecorder:
             start_time_ns = end_time_ns - int(duration * 1_000_000_000)
 
             # Create span with explicit timestamps
-            with self.tracer.start_as_current_span(
+            with customer_span(
+                self.tracer,
                 span_name,
                 start_time=start_time_ns,
                 end_on_exit=False,  # We'll set end time manually
@@ -490,8 +518,8 @@ class LLMSpanRecorder:
                     span.set_attribute("gen_ai.usage.reasoning_tokens", thoughts_tokens)
 
                 # Add custom attributes for Hindsight context
-                span.set_attribute("hindsight.scope", scope)
-                span.set_attribute("hindsight.provider.internal", provider)
+                span.set_attribute("agentstratum.scope", scope)
+                span.set_attribute("agentstratum.provider.internal", provider)
 
                 # Add tool call information if present
                 if tool_calls:
@@ -535,9 +563,7 @@ class LLMSpanRecorder:
 
                 # Handle errors
                 if error:
-                    span.set_status(Status(StatusCode.ERROR, str(error)))
-                    span.set_attribute(GenAIAttributes.ERROR_TYPE, type(error).__name__)
-                    span.record_exception(error)
+                    record_public_exception(span, error)
                 else:
                     span.set_status(Status(StatusCode.OK))
 

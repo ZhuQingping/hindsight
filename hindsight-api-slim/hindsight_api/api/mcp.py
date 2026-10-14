@@ -10,6 +10,7 @@ from fastmcp import FastMCP
 from hindsight_api import MemoryEngine
 from hindsight_api import __version__ as HINDSIGHT_VERSION
 from hindsight_api.api.passthrough_headers import collect_passthrough_headers
+from hindsight_api.brand import MCP_SERVER_NAME
 from hindsight_api.config import (
     DEFAULT_MCP_RECALL_DESCRIPTION,
     DEFAULT_MCP_RETAIN_DESCRIPTION,
@@ -21,6 +22,7 @@ from hindsight_api.extensions import MCPExtension, load_extension
 from hindsight_api.extensions.tenant import AuthenticationError
 from hindsight_api.mcp_tools import _ALL_TOOLS, MCPToolsConfig, register_mcp_tools
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import public_error_message
 
 # Configure logging from the resolved config (HINDSIGHT_API_LOG_LEVEL).
 _log_level_str = get_config().log_level.lower()
@@ -484,7 +486,7 @@ class MCPMiddleware:
                 auth_tenant_id = auth_context.tenant_id
                 auth_api_key_id = auth_context.api_key_id
             except AuthenticationError as e:
-                await self._send_error(send, 401, str(e), extra_headers=e.headers)
+                await self._send_error(send, 401, public_error_message(e), extra_headers=e.headers)
                 return
 
         # Set schema from tenant context so downstream DB queries use the correct schema
@@ -622,7 +624,7 @@ class MCPMiddleware:
 
     async def _send_error(self, send, status: int, message: str, extra_headers: dict[str, str] | None = None):
         """Send an error response."""
-        body = json.dumps({"error": message}).encode()
+        body = json.dumps({"error": public_error_message(message)}).encode()
         headers = [(b"content-type", b"application/json")]
         for key, value in (extra_headers or {}).items():
             headers.append((key.encode(), value.encode()))

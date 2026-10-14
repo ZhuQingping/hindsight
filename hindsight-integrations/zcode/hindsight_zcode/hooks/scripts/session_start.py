@@ -3,7 +3,7 @@
 
 ZCode embeds the Claude Code agent runtime, so this hook speaks the standard
 Claude Code `SessionStart` protocol. Fires once when a ZCode session begins:
-verifies the Hindsight server is reachable, and kicks off a background daemon
+verifies the agentstratum server is reachable, and kicks off a background daemon
 pre-start if not — so it's ready by the first recall or retain hook.
 
 `SessionStart` is fire-and-forget here. The full recall happens on
@@ -44,10 +44,10 @@ def main():
 
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-        HindsightClient(api_url, config.get("hindsightApiToken"))
-        debug_log(config, f"Hindsight server reachable at {api_url}")
+        HindsightClient(api_url, config.get("apiToken"))
+        debug_log(config, f"agentstratum server reachable at {api_url}")
     except (RuntimeError, ValueError) as e:
-        debug_log(config, f"Hindsight not running, initiating background pre-start: {e}")
+        debug_log(config, f"agentstratum not running, initiating background pre-start: {e}")
         prestart_daemon_background(config, debug_fn=_dbg)
         return
 
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionStart error: {e}", file=sys.stderr)
+        print(f"[agentstratum] SessionStart error: {e}", file=sys.stderr)
         sys.exit(0)

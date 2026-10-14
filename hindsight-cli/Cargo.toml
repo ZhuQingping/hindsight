@@ -3,11 +3,11 @@ name = "hindsight-cli"
 version = "0.10.3"
 edition = "2021"
 authors = ["Hindsight Team"]
-description = "A beautiful CLI for Hindsight - semantic memory system"
+description = "A CLI for agentstratum - semantic memory system"
 license = "MIT"
 
 [[bin]]
-name = "hindsight"
+name = "agentstratum"
 path = "src/main.rs"
 
 [dependencies]

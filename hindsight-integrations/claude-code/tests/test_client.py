@@ -1,4 +1,4 @@
-"""Tests for lib/client.py — Hindsight REST API client."""
+"""Tests for lib/client.py — agentstratum REST API client."""
 
 import json
 import urllib.error
@@ -119,7 +119,7 @@ class TestHindsightClientRecall:
             c.recall("bank", "query")
 
         assert captured["ua"] == USER_AGENT
-        assert captured["ua"].startswith("hindsight-claude-code/")
+        assert captured["ua"].startswith("agentstratum-claude-code/")
 
     def test_http_error_raises_runtime_error(self):
         c = HindsightClient("http://localhost:9077")
@@ -167,9 +167,7 @@ class TestHindsightClientRecall:
 
         assert captured["body"]["tags"] == ["memory_type:rule"]
         assert captured["body"]["tags_match"] == "any_strict"
-        assert captured["body"]["tag_groups"] == [
-            {"op": "all", "tags": ["memory_type:rule", "tech_stack:supabase"]}
-        ]
+        assert captured["body"]["tag_groups"] == [{"op": "all", "tags": ["memory_type:rule", "tech_stack:supabase"]}]
 
 
 class TestHindsightClientRetain:
@@ -200,8 +198,6 @@ class TestHindsightClientRetain:
             c.retain("my::bank", "content")
 
         assert "my%3A%3Abank" in captured["url"]
-
-
 
 
 class TestRequestTimeoutOverride:
@@ -273,7 +269,6 @@ class TestRequestTimeoutOverride:
             c.retain("bank", "content")
 
         assert captured["timeout"] == 15
-
 
 
 class TestHindsightClientSetBankMission:

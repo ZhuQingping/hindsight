@@ -266,7 +266,7 @@ export async function buildHookOutput(args: {
     const timeoutMs = cfg.reflectTimeoutMs;
     try {
       reflectAnswer = await client.reflect(buildReflectQuery(prompt), {
-        // Automatic reflection runs inside the host's hook window. Hindsight's low budget is the
+        // Automatic reflection runs inside the host's hook window. agentstratum's low budget is the
         // supported default for bounded reflect calls; callers that explicitly invoke the MCP
         // tool still get the deeper high-budget path.
         budget: "low",
@@ -338,11 +338,11 @@ export async function buildHookOutput(args: {
   // Hook-injected context lands in the USER MESSAGE and persists in the transcript — unlike a
   // system prompt, it accumulates. The reflect block is injected exactly ONCE, the turn reflect
   // ran. No cadence re-injection: replaying the turn-1 synthesis at arbitrary later turns reads
-  // as random noise once the session drifts, and the agent holds hindsight_reflect for a FRESH
+  // as random noise once the session drifts, and the agent holds agentstratum_reflect for a FRESH
   // pass if compaction or drift makes it need memory again.
   if (reflectAnswer && reflectRanThisTurn) blocks.push(buildSystemInjection(reflectAnswer));
   // Knowledge pages are NOT auto-injected: the agent pulls them through
-  // hindsight_search_knowledge_pages when a question warrants it — an unprompted injection on
+  // agentstratum_search_knowledge_pages when a question warrants it — an unprompted injection on
   // every turn (even a plain "yes") read as phantom research. The roster below keeps the tool
   // and the page names in front of the agent.
   if (cadence > 0 && turns % cadence === 0) {
@@ -357,7 +357,7 @@ export async function buildHookOutput(args: {
 
   // User-facing notice ONLY on a turn that actually ran a source (reflect, pages or recall),
   // showing its assigned goal and a preview of what came back. Ordinary turns stay silent — page
-  // knowledge is pulled via the hindsight_search_knowledge_pages tool, a visible tool call.
+  // knowledge is pulled via the agentstratum_search_knowledge_pages tool, a visible tool call.
   let notice: string | undefined;
   if (fallback) {
     // Silent: the session still got memory, just not a synthesis. The notice used to say which
@@ -391,7 +391,7 @@ export async function runHook(
   makeClient: (opts: ClientOpts) => HookClient = (o) => new HindsightClient(o)
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless session sets this so its hooks are a no-op.
-  if (process.env.HINDSIGHT_DISABLE_HOOKS) return;
+  if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
 
   let ev: Record<string, unknown> = {};
   try {

@@ -68,7 +68,7 @@ function runDeepen(): {
   return { child, output: () => out, exited };
 }
 
-const leaseDir = () => join(home, "hindsight-coding-agent", "deepen");
+const leaseDir = () => join(home, "agentstratum-coding-agent", "deepen");
 
 async function waitForLease(): Promise<string> {
   for (let i = 0; i < 100; i++) {

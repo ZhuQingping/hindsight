@@ -1,6 +1,6 @@
 """Liveness/health probes over aiohttp, async only.
 
-hindsight-embed makes no outbound HTTP calls other than these loopback probes
+agentstratum-embed makes no outbound HTTP calls other than these loopback probes
 (is the daemon / UI / control center answering?). They run on aiohttp; the sync
 CLI and the control center's threaded HTTP handlers drive them through
 :func:`probe_get`, which owns the ``asyncio.run`` at the sync boundary.
@@ -61,7 +61,7 @@ def probe_get(url: str, *, read_timeout: float, connect_timeout: float | None = 
     The probe ALWAYS runs on its own loop in a helper thread, never on the
     caller's. Two reasons, and the second is the load-bearing one:
 
-    1. From a thread whose event loop is already running (hindsight-all's sync
+    1. From a thread whose event loop is already running (agentstratum-all's sync
        ``_ensure_started`` is reached from its async methods too), ``asyncio.run``
        cannot nest.
     2. ``asyncio.run`` does not just close the loop it created — it leaves the

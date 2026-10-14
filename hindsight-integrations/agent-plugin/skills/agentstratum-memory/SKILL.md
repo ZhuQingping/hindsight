@@ -1,15 +1,15 @@
 ---
-name: hindsight-memory
-description: Long-term memory for the agent via Hindsight. Use to recall relevant past context before answering, retain durable facts as you learn them, and reflect over accumulated memory for the "why" behind a decision. Load whenever continuity across sessions matters — the user refers to earlier work, states a lasting preference, or asks a question that prior context could answer.
+name: agentstratum-memory
+description: Long-term memory for the agent via agentstratum. Use to recall relevant past context before answering, retain durable facts as you learn them, and reflect over accumulated memory for the "why" behind a decision. Load whenever continuity across sessions matters — the user refers to earlier work, states a lasting preference, or asks a question that prior context could answer.
 ---
 
-# Hindsight long-term memory
+# agentstratum long-term memory
 
-This plugin connects the agent to **Hindsight**, a long-term memory engine. Memory
-persists across sessions in a **bank** (scoped by `HINDSIGHT_BANK_ID`), so what you
+This plugin connects the agent to **agentstratum**, a long-term memory engine. Memory
+persists across sessions in a **bank** (scoped by `AGENTSTRATUM_BANK_ID`), so what you
 retain now is available to recall in future conversations.
 
-The `hindsight` MCP server exposes the tools below. Prefer these over guessing from
+The `agentstratum` MCP server exposes the tools below. Prefer these over guessing from
 scratch when the answer might live in past context.
 
 ## When to recall (read memory)
@@ -58,7 +58,7 @@ reflect(query: "What has repeatedly caused our CI to flake, and what should we s
 
 ## Bank scope
 
-All tools operate on the bank selected by the connection (`HINDSIGHT_BANK_ID`, default
+All tools operate on the bank selected by the connection (`AGENTSTRATUM_BANK_ID`, default
 `default`). One bank = one memory store — keep a project's or a user's memory in its
 own bank so context stays isolated and relevant. You never pass a bank id to a tool;
 it is implicit from the endpoint.

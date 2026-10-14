@@ -1,4 +1,4 @@
-"""Tests for install.py — ZCode Hindsight integration installer."""
+"""Tests for install.py — ZCode agentstratum integration installer."""
 
 import json
 from pathlib import Path
@@ -24,9 +24,9 @@ def _events(config: dict) -> dict:
     return config["hooks"]["events"]
 
 
-def _hindsight_defs(config: dict, event: str) -> list:
-    """Hindsight hook definitions registered for an event."""
-    return [d for d in _events(config).get(event, []) if "hooks/hindsight" in json.dumps(d)]
+def _agentstratum_defs(config: dict, event: str) -> list:
+    """agentstratum hook definitions registered for an event."""
+    return [d for d in _events(config).get(event, []) if "hooks/agentstratum" in json.dumps(d)]
 
 
 # ---------------------------------------------------------------------------
@@ -72,14 +72,14 @@ def test_render_hooks_no_async_key() -> None:
 
 def test_install_copies_scripts_and_lib(fake_home: Path) -> None:
     install.run_install()
-    scripts = fake_home / ".zcode" / "hooks" / "hindsight" / "scripts"
+    scripts = fake_home / ".zcode" / "hooks" / "agentstratum" / "scripts"
     assert (scripts / "recall.py").exists()
     assert (scripts / "lib" / "client.py").exists()
 
 
 def test_install_writes_settings_with_version(fake_home: Path) -> None:
     install.run_install()
-    settings_path = fake_home / ".zcode" / "hooks" / "hindsight" / "settings.json"
+    settings_path = fake_home / ".zcode" / "hooks" / "agentstratum" / "settings.json"
     settings = json.loads(settings_path.read_text())
     # Version is stamped from package metadata, not the shipped template.
     assert "version" in settings
@@ -96,26 +96,26 @@ def test_install_registers_hooks_in_zcode_config(fake_home: Path) -> None:
     assert "UserPromptSubmit" in events
     inner = events["UserPromptSubmit"][0]["hooks"][0]
     script_arg = inner["args"][0]
-    assert str(fake_home) in script_arg  # absolute path to the installed script
-    assert "hooks/hindsight" in script_arg
+    assert fake_home.as_posix() in script_arg  # absolute path to the installed script
+    assert "hooks/agentstratum" in script_arg
 
 
 def test_install_seeds_user_config(fake_home: Path) -> None:
     install.run_install(api_url="https://api.example.com", api_token="hsk_x")
-    cfg = json.loads((fake_home / ".hindsight" / "zcode.json").read_text())
-    assert cfg["hindsightApiUrl"] == "https://api.example.com"
-    assert cfg["hindsightApiToken"] == "hsk_x"
+    cfg = json.loads((fake_home / ".agentstratum" / "zcode.json").read_text())
+    assert cfg["apiUrl"] == "https://api.example.com"
+    assert cfg["apiToken"] == "hsk_x"
 
 
 def test_install_preserves_existing_user_config(fake_home: Path) -> None:
-    user_config = fake_home / ".hindsight" / "zcode.json"
+    user_config = fake_home / ".agentstratum" / "zcode.json"
     user_config.parent.mkdir(parents=True)
-    user_config.write_text(json.dumps({"hindsightApiToken": "keep-me"}))
+    user_config.write_text(json.dumps({"apiToken": "keep-me"}))
 
     install.run_install(api_url="https://override.example.com")
 
     cfg = json.loads(user_config.read_text())
-    assert cfg == {"hindsightApiToken": "keep-me"}  # untouched
+    assert cfg == {"apiToken": "keep-me"}  # untouched
 
 
 # ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ def test_reinstall_does_not_duplicate(fake_home: Path) -> None:
     install.run_install()
     install.run_install()
     config = _config(fake_home)
-    assert len(_hindsight_defs(config, "Stop")) == 1
+    assert len(_agentstratum_defs(config, "Stop")) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -180,16 +180,16 @@ def test_uninstall_removes_scripts_and_strips_hooks(fake_home: Path) -> None:
     install.run_install()
     install.run_uninstall()
 
-    assert not (fake_home / ".zcode" / "hooks" / "hindsight").exists()
+    assert not (fake_home / ".zcode" / "hooks" / "agentstratum").exists()
     config = _config(fake_home)
     events = config["hooks"].get("events", {})
-    assert all("hooks/hindsight" not in json.dumps(d) for defs in events.values() for d in defs)
+    assert all("hooks/agentstratum" not in json.dumps(d) for defs in events.values() for d in defs)
 
 
 def test_uninstall_preserves_user_config(fake_home: Path) -> None:
     install.run_install(api_url="https://api.example.com")
     install.run_uninstall()
-    assert (fake_home / ".hindsight" / "zcode.json").exists()
+    assert (fake_home / ".agentstratum" / "zcode.json").exists()
 
 
 def test_uninstall_preserves_foreign_hooks(fake_home: Path) -> None:

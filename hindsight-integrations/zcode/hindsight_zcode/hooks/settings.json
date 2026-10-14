@@ -1,5 +1,5 @@
 {
-  "hindsightApiUrl": "",
+  "apiUrl": "",
   "bankId": "zcode",
   "bankMission": "You are a ZCode (Z.ai GLM) desktop coding assistant. Focus on technical decisions, code changes, debugging sessions, and project context relevant to the user's work.",
   "retainMission": "Extract technical decisions, code patterns, debugging solutions, user preferences, project context, and architectural choices. Ignore routine greetings and transient operational details.",
@@ -18,7 +18,7 @@
   "retainTags": ["{session_id}"],
   "retainMetadata": {},
   "retainContext": "zcode",
-  "hindsightApiToken": null,
+  "apiToken": null,
   "apiPort": 9077,
   "daemonIdleTimeout": 0,
   "embedVersion": "latest",

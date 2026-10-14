@@ -109,7 +109,7 @@ describe("seedControl", () => {
     for (const command of ["decline", "bogus"]) {
       const result = seedControl(command, { repo: "/r", bankId: "b", spawn });
       expect(result.ok).toBe(false);
-      expect(result.message).toBe("usage: hindsight-seed seed --repo <dir>");
+      expect(result.message).toBe("usage: agentstratum-seed seed --repo <dir>");
     }
     expect(spawn).not.toHaveBeenCalled();
   });

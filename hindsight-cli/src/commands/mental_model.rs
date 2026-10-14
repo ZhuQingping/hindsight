@@ -107,7 +107,8 @@ fn stored_trigger_as_input(
         recall_max_tokens: stored.recall_max_tokens,
         recall_chunks_max_tokens: stored.recall_chunks_max_tokens,
         reflect_search_observations_max_tokens: stored.reflect_search_observations_max_tokens,
-        reflect_search_observations_include_entities: stored.reflect_search_observations_include_entities,
+        reflect_search_observations_include_entities: stored
+            .reflect_search_observations_include_entities,
         budget: stored.budget,
         response_schema: stored.response_schema.clone(),
         keep_trace: stored.keep_trace,
@@ -509,7 +510,7 @@ pub fn refresh(
                 println!();
                 println!(
                     "{}",
-                    ui::dim("Use 'hindsight operations get' to check the operation status.")
+                    ui::dim("Use 'agentstratum operations get' to check the operation status.")
                 );
             } else {
                 output::print_output(&operation, output_format)?;

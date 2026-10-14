@@ -7,12 +7,12 @@ import { detectLegacyClaudePlugin, readLegacyEndpoint } from "./legacy";
 const homes: string[] = [];
 
 function homeWith(config: unknown, file = "claude-code.json"): string {
-  const home = mkdtempSync(join(tmpdir(), "hindsight-legacy-"));
+  const home = mkdtempSync(join(tmpdir(), "agentstratum-legacy-"));
   homes.push(home);
   if (config !== undefined) {
-    mkdirSync(join(home, ".hindsight"), { recursive: true });
+    mkdirSync(join(home, ".agentstratum"), { recursive: true });
     writeFileSync(
-      join(home, ".hindsight", file),
+      join(home, ".agentstratum", file),
       typeof config === "string" ? config : JSON.stringify(config)
     );
   }
@@ -22,8 +22,8 @@ function homeWith(config: unknown, file = "claude-code.json"): string {
 /** Both old plugins that shipped a user config; same keys, different filename. */
 function homeWithBoth(claude: unknown, codex: unknown): string {
   const home = homeWith(claude);
-  mkdirSync(join(home, ".hindsight"), { recursive: true });
-  writeFileSync(join(home, ".hindsight", "codex.json"), JSON.stringify(codex));
+  mkdirSync(join(home, ".agentstratum"), { recursive: true });
+  writeFileSync(join(home, ".agentstratum", "codex.json"), JSON.stringify(codex));
   return home;
 }
 
@@ -37,19 +37,15 @@ describe("readLegacyEndpoint", () => {
   });
 
   it("carries a self-hosted server and its token", () => {
-    const e = readLegacyEndpoint(
-      homeWith({ hindsightApiUrl: "http://box:8888", hindsightApiToken: "t" })
-    );
+    const e = readLegacyEndpoint(homeWith({ apiUrl: "http://box:8888", apiToken: "t" }));
     expect(e?.serverMode).toBe("self-hosted");
     expect(e?.apiUrl).toBe("http://box:8888");
     expect(e?.apiToken).toBe("t");
   });
 
-  it("recognises the Cloud URL as cloud, not self-hosted", () => {
-    const e = readLegacyEndpoint(
-      homeWith({ hindsightApiUrl: "https://api.hindsight.vectorize.io" })
-    );
-    expect(e?.serverMode).toBe("cloud");
+  it("treats an explicitly configured endpoint as self-hosted without a deployment cloud URL", () => {
+    const e = readLegacyEndpoint(homeWith({ apiUrl: "https://service.example" }));
+    expect(e?.serverMode).toBe("self-hosted");
   });
 
   // The old plugin treated an empty URL as "use the local daemon" (daemon.py:get_api_url), so a
@@ -74,30 +70,27 @@ describe("readLegacyEndpoint", () => {
   // Behavioural settings are deliberately not translated.
   it("carries no behavioural settings", () => {
     const e = readLegacyEndpoint(
-      homeWith({ hindsightApiUrl: "http://box:8888", recallBudget: "high", retainMode: "chunked" })
+      homeWith({ apiUrl: "http://box:8888", recallBudget: "high", retainMode: "chunked" })
     );
     expect(Object.keys(e ?? {}).sort()).toEqual(["apiUrl", "harness", "serverMode", "source"]);
   });
 
   it("reads the Codex plugin's config too", () => {
-    const e = readLegacyEndpoint(homeWith({ hindsightApiUrl: "http://cx:8888" }, "codex.json"));
+    const e = readLegacyEndpoint(homeWith({ apiUrl: "http://cx:8888" }, "codex.json"));
     expect(e?.harness).toBe("codex");
     expect(e?.apiUrl).toBe("http://cx:8888");
   });
 
   // Installing Codex must not pick up a stale claude-code.json that points somewhere else.
   it("prefers the config of the agent being installed", () => {
-    const home = homeWithBoth(
-      { hindsightApiUrl: "http://claude:8888" },
-      { hindsightApiUrl: "http://codex:8888" }
-    );
+    const home = homeWithBoth({ apiUrl: "http://claude:8888" }, { apiUrl: "http://codex:8888" });
     expect(readLegacyEndpoint(home, ["codex"])?.apiUrl).toBe("http://codex:8888");
     expect(readLegacyEndpoint(home, ["claude-code"])?.apiUrl).toBe("http://claude:8888");
   });
 
   // A harness with no legacy plugin still benefits: the common case is one server for both.
   it("falls back to any known legacy config", () => {
-    const home = homeWith({ hindsightApiUrl: "http://cx:8888" }, "codex.json");
+    const home = homeWith({ apiUrl: "http://cx:8888" }, "codex.json");
     expect(readLegacyEndpoint(home, ["cursor-cli"])?.apiUrl).toBe("http://cx:8888");
   });
 });
@@ -105,7 +98,7 @@ describe("readLegacyEndpoint", () => {
 describe("detectLegacyClaudePlugin", () => {
   /** A fake `~/.claude` with the given plugin registry and user settings. */
   function claudeDir(plugins: unknown, settings?: unknown): string {
-    const dir = mkdtempSync(join(tmpdir(), "hindsight-claude-"));
+    const dir = mkdtempSync(join(tmpdir(), "agentstratum-claude-"));
     homes.push(dir);
     mkdirSync(join(dir, "plugins"), { recursive: true });
     writeFileSync(join(dir, "plugins", "installed_plugins.json"), JSON.stringify(plugins));
@@ -115,27 +108,30 @@ describe("detectLegacyClaudePlugin", () => {
   const userInstall = { scope: "user", installPath: "/x", version: "0.7.5" };
 
   it("finds a user-scope install, whatever the marketplace is called", () => {
-    const dir = claudeDir({ version: 2, plugins: { "hindsight-memory@hindsight": [userInstall] } });
-    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("hindsight-memory@hindsight");
+    const dir = claudeDir({
+      version: 2,
+      plugins: { "agentstratum-memory@agentstratum": [userInstall] },
+    });
+    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("agentstratum-memory@agentstratum");
   });
 
   it("reads the v1 registry shape (one install object, not an array)", () => {
-    const dir = claudeDir({ plugins: { "hindsight-memory@vectorize": userInstall } });
-    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("hindsight-memory@vectorize");
+    const dir = claudeDir({ plugins: { "agentstratum-memory@vectorize": userInstall } });
+    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("agentstratum-memory@vectorize");
   });
 
   it("ignores other plugins, including similarly named ones", () => {
     const dir = claudeDir({
       version: 2,
-      plugins: { "hindsight-memory-extra@x": [userInstall], "telegram@official": [userInstall] },
+      plugins: { "agentstratum-memory-extra@x": [userInstall], "telegram@official": [userInstall] },
     });
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
   });
 
   it("skips a plugin the user explicitly disabled", () => {
     const dir = claudeDir(
-      { version: 2, plugins: { "hindsight-memory@hindsight": [userInstall] } },
-      { enabledPlugins: { "hindsight-memory@hindsight": false } }
+      { version: 2, plugins: { "agentstratum-memory@agentstratum": [userInstall] } },
+      { enabledPlugins: { "agentstratum-memory@agentstratum": false } }
     );
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
   });
@@ -143,15 +139,17 @@ describe("detectLegacyClaudePlugin", () => {
   it("counts a project-scope install only inside that project", () => {
     const dir = claudeDir({
       version: 2,
-      plugins: { "hindsight-memory@hindsight": [{ scope: "project", projectPath: "/work/app" }] },
+      plugins: {
+        "agentstratum-memory@agentstratum": [{ scope: "project", projectPath: "/work/app" }],
+      },
     });
-    expect(detectLegacyClaudePlugin("/work/app", dir)).toBe("hindsight-memory@hindsight");
-    expect(detectLegacyClaudePlugin("/work/app/src", dir)).toBe("hindsight-memory@hindsight");
+    expect(detectLegacyClaudePlugin("/work/app", dir)).toBe("agentstratum-memory@agentstratum");
+    expect(detectLegacyClaudePlugin("/work/app/src", dir)).toBe("agentstratum-memory@agentstratum");
     expect(detectLegacyClaudePlugin("/work/app-other", dir)).toBeUndefined();
   });
 
   it("is undefined when Claude has no plugin registry or it is unreadable", () => {
-    const dir = mkdtempSync(join(tmpdir(), "hindsight-claude-"));
+    const dir = mkdtempSync(join(tmpdir(), "agentstratum-claude-"));
     homes.push(dir);
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
     mkdirSync(join(dir, "plugins"));

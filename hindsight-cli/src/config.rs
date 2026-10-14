@@ -6,9 +6,9 @@ use std::path::PathBuf;
 
 const DEFAULT_API_URL: &str = "http://localhost:8888";
 const CONFIG_FILE_NAME: &str = "config";
-const CONFIG_DIR_NAME: &str = ".hindsight";
+const CONFIG_DIR_NAME: &str = ".agentstratum";
 const PROFILE_DIR_NAME: &str = "cli-profiles";
-const PROFILE_ENV_VAR: &str = "HINDSIGHT_PROFILE";
+const PROFILE_ENV_VAR: &str = "AGENTSTRATUM_PROFILE";
 
 #[derive(Debug)]
 pub struct Config {
@@ -43,16 +43,16 @@ impl Config {
     }
 
     /// Load configuration with the following priority:
-    /// 1. Environment variable (HINDSIGHT_API_URL/HINDSIGHT_API_KEY) - highest priority
-    /// 2. Named profile (from `profile_name` arg, else `$HINDSIGHT_PROFILE`)
-    ///    at `~/.hindsight/cli-profiles/<name>.toml`
-    /// 3. Local config file (`~/.hindsight/config`)
+    /// 1. Environment variable (AGENTSTRATUM_API_URL/AGENTSTRATUM_API_KEY) - highest priority
+    /// 2. Named profile (from `profile_name` arg, else `$AGENTSTRATUM_PROFILE`)
+    ///    at `~/.agentstratum/cli-profiles/<name>.toml`
+    /// 3. Local config file (`~/.agentstratum/config`)
     /// 4. Default (http://localhost:8888)
     pub fn load_with_profile(profile_name: Option<&str>) -> Result<Self> {
-        let env_api_key = env::var("HINDSIGHT_API_KEY").ok();
+        let env_api_key = env::var("AGENTSTRATUM_API_KEY").ok();
 
         // 1. Environment variable takes highest priority
-        if let Ok(api_url) = env::var("HINDSIGHT_API_URL") {
+        if let Ok(api_url) = env::var("AGENTSTRATUM_API_URL") {
             return Self::validate_and_create(api_url, env_api_key, ConfigSource::Environment);
         }
 
@@ -187,7 +187,7 @@ impl Config {
         load_profile_from_dir(&dir, name)
     }
 
-    /// Save a named profile to `~/.hindsight/cli-profiles/<name>.toml`.
+    /// Save a named profile to `~/.agentstratum/cli-profiles/<name>.toml`.
     /// Sets file permissions to 0600 on Unix to protect the API key.
     pub fn save_profile(name: &str, api_url: &str, api_key: Option<&str>) -> Result<PathBuf> {
         validate_profile_name(name)?;
@@ -224,7 +224,7 @@ fn load_profile_from_dir(dir: &std::path::Path, name: &str) -> Result<(String, O
     let path = dir.join(format!("{}.toml", name));
     if !path.exists() {
         anyhow::bail!(
-            "profile '{}' not found at {}; create with: hindsight profile create {} --api-url <url>",
+            "profile '{}' not found at {}; create with: agentstratum profile create {} --api-url <url>",
             name,
             path.display(),
             name
@@ -407,7 +407,8 @@ mod tests {
             .as_nanos();
         let counter = std::sync::atomic::AtomicU64::new(0);
         let n = counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        let dir = std::env::temp_dir().join(format!("hindsight-cli-test-{}-{}-{}", pid, nanos, n));
+        let dir =
+            std::env::temp_dir().join(format!("agentstratum-cli-test-{}-{}-{}", pid, nanos, n));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -461,7 +462,7 @@ mod tests {
         let dir = tempdir();
         let err = load_profile_from_dir(&dir, "nope").unwrap_err().to_string();
         assert!(err.contains("profile 'nope' not found"));
-        assert!(err.contains("hindsight profile create nope"));
+        assert!(err.contains("agentstratum profile create nope"));
     }
 
     #[test]

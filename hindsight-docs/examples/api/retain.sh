@@ -4,7 +4,7 @@
 
 set -e
 
-HINDSIGHT_URL="${HINDSIGHT_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SAMPLE_FILE="$SCRIPT_DIR/sample.pdf"
 
@@ -23,7 +23,7 @@ cp report.pdf documents/report.pdf
 # =============================================================================
 
 # [docs:retain-basic]
-hindsight memory retain my-bank "Alice works at Google as a software engineer"
+agentstratum memory retain my-bank "Alice works at Google as a software engineer"
 # [/docs:retain-basic]
 
 
@@ -35,43 +35,43 @@ Alice (2024-03-15T09:02:00Z): Oh no! Are you okay?
 Bob (2024-03-15T09:03:00Z): Yeah, nothing serious. Just need to carry an antihistamine.
 Alice (2024-03-15T09:04:00Z): Good to know. We'll avoid peanuts at the team lunch."
 
-hindsight memory retain my-bank "$CONVERSATION" \
+agentstratum memory retain my-bank "$CONVERSATION" \
     --context "team chat" \
     --doc-id "chat-2024-03-15-alice-bob"
 # [/docs:retain-conversation]
 
 
 # [docs:retain-with-context]
-hindsight memory retain my-bank "Alice got promoted" \
+agentstratum memory retain my-bank "Alice got promoted" \
     --context "career update"
 # [/docs:retain-with-context]
 
 
 # [docs:retain-batch]
 # Batch ingestion via individual retain calls (CLI processes items one at a time)
-hindsight memory retain my-bank "Alice works at Google" \
+agentstratum memory retain my-bank "Alice works at Google" \
     --context "career" --doc-id "conversation_001_msg_1"
-hindsight memory retain my-bank "Bob is a data scientist at Meta" \
+agentstratum memory retain my-bank "Bob is a data scientist at Meta" \
     --context "career" --doc-id "conversation_001_msg_2"
-hindsight memory retain my-bank "Alice and Bob are friends" \
+agentstratum memory retain my-bank "Alice and Bob are friends" \
     --context "relationship" --doc-id "conversation_001_msg_3"
 # [/docs:retain-batch]
 
 
 # [docs:retain-async]
-hindsight memory retain my-bank "Meeting notes" --async
+agentstratum memory retain my-bank "Meeting notes" --async
 # [/docs:retain-async]
 
 
 # [docs:retain-files]
 # Upload a single file (PDF, DOCX, PPTX, XLSX, images, audio, and more)
-hindsight memory retain-files my-bank "$SAMPLE_FILE"
+agentstratum memory retain-files my-bank "$SAMPLE_FILE"
 
 # Upload a directory of files
-hindsight memory retain-files my-bank "$SCRIPT_DIR/"
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/"
 
 # Queue files for background processing (returns immediately)
-hindsight memory retain-files my-bank "$SCRIPT_DIR/" --async
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/" --async
 # [/docs:retain-files]
 
 

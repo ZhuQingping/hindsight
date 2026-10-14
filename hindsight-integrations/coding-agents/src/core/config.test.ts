@@ -25,7 +25,7 @@ afterEach(() => {
 describe("loadConfig layering", () => {
   it("missing files yield defaults", () => {
     const cfg = loadConfig({ path: join(root, "nope.json") });
-    expect(cfg.apiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(cfg.apiUrl).toBe("");
     expect(cfg.bankId).toBeUndefined();
     expect(cfg.disabled).toBe(false);
   });
@@ -34,7 +34,7 @@ describe("loadConfig layering", () => {
     writeFileSync(globalCfg, "{not json");
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const cfg = loadConfig({ path: globalCfg });
-    expect(cfg.apiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(cfg.apiUrl).toBe("");
     expect(err).toHaveBeenCalledOnce();
     err.mockRestore();
   });
@@ -96,16 +96,16 @@ describe("maxParallelRetains", () => {
     process.env = { ...ENV };
   });
 
-  it("reads HINDSIGHT_MAX_PARALLEL_RETAINS as a number", () => {
+  it("reads AGENTSTRATUM_MAX_PARALLEL_RETAINS as a number", () => {
     writeJson(globalCfg, {});
-    process.env.HINDSIGHT_MAX_PARALLEL_RETAINS = "6";
+    process.env.AGENTSTRATUM_MAX_PARALLEL_RETAINS = "6";
     expect(loadConfig({ path: globalCfg }).maxParallelRetains).toBe(6);
   });
 
   it("ignores a malformed env value and falls back to the default", () => {
     writeJson(globalCfg, {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    process.env.HINDSIGHT_MAX_PARALLEL_RETAINS = "lots";
+    process.env.AGENTSTRATUM_MAX_PARALLEL_RETAINS = "lots";
     expect(loadConfig({ path: globalCfg }).maxParallelRetains).toBe(10);
   });
 });
@@ -127,13 +127,13 @@ describe("injectTimeoutMs (#4843)", () => {
   });
 
   it.each([2000, 15000])("reads the numeric %ims environment fallback", (ms) => {
-    vi.stubEnv("HINDSIGHT_INJECT_TIMEOUT_MS", String(ms));
+    vi.stubEnv("AGENTSTRATUM_INJECT_TIMEOUT_MS", String(ms));
     expect(readEnvConfig().injectTimeoutMs).toBe(ms);
     expect(loadConfig({ path: join(root, "missing.json") }).injectTimeoutMs).toBe(ms);
   });
 
   it("applies file, harness and bank overrides over the environment fallback", () => {
-    vi.stubEnv("HINDSIGHT_INJECT_TIMEOUT_MS", "15000");
+    vi.stubEnv("AGENTSTRATUM_INJECT_TIMEOUT_MS", "15000");
     writeJson(globalCfg, {
       injectTimeoutMs: 5000,
       harnesses: { dsh: { injectTimeoutMs: 2000 } },
@@ -147,7 +147,7 @@ describe("injectTimeoutMs (#4843)", () => {
 });
 
 /**
- * #3590: the hindsight_reflect tool aborted at a hardcoded 120s. The tool's window is now its own
+ * #3590: the agentstratum_reflect tool aborted at a hardcoded 120s. The tool's window is now its own
  * knob, defaulting ABOVE the server's 300s reflect wall timeout — and it inherits an explicitly
  * raised reflectTimeoutMs, because that is the field users reaching for a longer reflect set.
  */
@@ -182,8 +182,8 @@ describe("reflectToolTimeoutMs / reflectBudget", () => {
 
   it("reads the env fallbacks", () => {
     writeJson(globalCfg, {});
-    process.env.HINDSIGHT_REFLECT_TOOL_TIMEOUT_MS = "600000";
-    process.env.HINDSIGHT_REFLECT_BUDGET = "mid";
+    process.env.AGENTSTRATUM_REFLECT_TOOL_TIMEOUT_MS = "600000";
+    process.env.AGENTSTRATUM_REFLECT_BUDGET = "mid";
     const cfg = loadConfig({ path: globalCfg });
     expect(cfg.reflectToolTimeoutMs).toBe(600000);
     expect(cfg.reflectBudget).toBe("mid");
@@ -195,7 +195,7 @@ describe("reflectToolTimeoutMs / reflectBudget", () => {
   });
 });
 
-// A project-local .hindsight/coding-agent.json comes from the (untrusted) opened repo. It must not be
+// A project-local .agentstratum/coding-agent.json comes from the (untrusted) opened repo. It must not be
 // able to redirect the API endpoint/token or the global bank map — otherwise a malicious repo could
 // exfiltrate the user's token + prompts to its own server just by being opened.
 describe("loadConfig — untrusted project-local layer is sanitized (security)", () => {
@@ -238,7 +238,7 @@ describe("retainExtractionMode (#4560)", () => {
     });
     expect(applyBankConfig(cfg, "coding-agent::big").cfg.retainExtractionMode).toBe("chunks");
     expect(
-      readEnvConfig({ HINDSIGHT_RETAIN_EXTRACTION_MODE: "verbose" }).retainExtractionMode
+      readEnvConfig({ AGENTSTRATUM_RETAIN_EXTRACTION_MODE: "verbose" }).retainExtractionMode
     ).toBe("verbose");
   });
 });
@@ -369,8 +369,8 @@ describe("environment fallback", () => {
 
   it("supplies apiUrl and apiToken when the file omits them", () => {
     writeJson(globalCfg, { bankId: "b" }); // no apiUrl/apiToken
-    process.env.HINDSIGHT_API_URL = "http://localhost:8888";
-    process.env.HINDSIGHT_API_TOKEN = "tok-from-env";
+    process.env.AGENTSTRATUM_API_URL = "http://localhost:8888";
+    process.env.AGENTSTRATUM_API_TOKEN = "tok-from-env";
     const cfg = loadConfig({ path: globalCfg });
     expect(cfg.apiUrl).toBe("http://localhost:8888");
     expect(cfg.apiToken).toBe("tok-from-env");
@@ -378,8 +378,8 @@ describe("environment fallback", () => {
 
   it("the FILE wins over env — env is a fallback, not an override", () => {
     writeJson(globalCfg, { apiUrl: "https://from-file", apiToken: "tok-from-file" });
-    process.env.HINDSIGHT_API_URL = "https://from-env";
-    process.env.HINDSIGHT_API_TOKEN = "tok-from-env";
+    process.env.AGENTSTRATUM_API_URL = "https://from-env";
+    process.env.AGENTSTRATUM_API_TOKEN = "tok-from-env";
     const cfg = loadConfig({ path: globalCfg });
     expect(cfg.apiUrl).toBe("https://from-file");
     expect(cfg.apiToken).toBe("tok-from-file");
@@ -485,7 +485,7 @@ describe("environment fallback", () => {
     expect(resolveConfig({}).pageSearchLimit).toBe(10);
     expect(resolveConfig({ pageSearchLimit: 8 }).pageSearchLimit).toBe(8);
     writeJson(globalCfg, {});
-    process.env.HINDSIGHT_PAGE_SEARCH_LIMIT = "6";
+    process.env.AGENTSTRATUM_PAGE_SEARCH_LIMIT = "6";
     expect(loadConfig({ path: globalCfg }).pageSearchLimit).toBe(6);
   });
 
@@ -505,10 +505,10 @@ describe("environment fallback", () => {
 
   it("parses booleans and numbers rather than passing strings through", () => {
     writeJson(globalCfg, {});
-    process.env.HINDSIGHT_AUTO_REFLECT = "false";
-    process.env.HINDSIGHT_MANAGE_BANK_CONFIG = "false";
-    process.env.HINDSIGHT_DISABLED = "1";
-    process.env.HINDSIGHT_SEED_LIMIT = "5";
+    process.env.AGENTSTRATUM_AUTO_REFLECT = "false";
+    process.env.AGENTSTRATUM_MANAGE_BANK_CONFIG = "false";
+    process.env.AGENTSTRATUM_DISABLED = "1";
+    process.env.AGENTSTRATUM_SEED_LIMIT = "5";
     const cfg = loadConfig({ path: globalCfg });
     expect(cfg.autoInject).toBe("none");
     expect(cfg.manageBankConfig).toBe(false);
@@ -519,15 +519,15 @@ describe("environment fallback", () => {
   it("ignores a malformed number instead of resolving it to NaN", () => {
     writeJson(globalCfg, {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    process.env.HINDSIGHT_REFLECT_TIMEOUT_MS = "soon";
+    process.env.AGENTSTRATUM_REFLECT_TIMEOUT_MS = "soon";
     // NaN here would silently break the reflect timeout in a way that is very hard to trace.
     expect(loadConfig({ path: globalCfg }).reflectTimeoutMs).toBe(20000);
   });
 
   it("an empty env var does not mask the file or the default", () => {
     writeJson(globalCfg, { apiUrl: "https://from-file" });
-    process.env.HINDSIGHT_API_URL = "";
-    process.env.HINDSIGHT_SURVEY_MODEL = "   ";
+    process.env.AGENTSTRATUM_API_URL = "";
+    process.env.AGENTSTRATUM_SURVEY_MODEL = "   ";
     const cfg = loadConfig({ path: globalCfg });
     expect(cfg.apiUrl).toBe("https://from-file");
     expect(cfg.surveyModel).toBe("haiku");
@@ -561,25 +561,27 @@ describe("retainTags / retainMetadata", () => {
   });
 });
 
-describe("HINDSIGHT_RETAIN_TAGS", () => {
+describe("AGENTSTRATUM_RETAIN_TAGS", () => {
   it("reads a comma-separated list — the env form of retainTags (#2896)", () => {
     expect(
-      readEnvConfig({ HINDSIGHT_RETAIN_TAGS: "project:{gitProject},env:work" }).retainTags
+      readEnvConfig({ AGENTSTRATUM_RETAIN_TAGS: "project:{gitProject},env:work" }).retainTags
     ).toEqual(["project:{gitProject}", "env:work"]);
   });
 
   it("trims entries and drops empties, so a trailing comma is not an empty tag", () => {
-    expect(readEnvConfig({ HINDSIGHT_RETAIN_TAGS: " a , ,b, " }).retainTags).toEqual(["a", "b"]);
+    expect(readEnvConfig({ AGENTSTRATUM_RETAIN_TAGS: " a , ,b, " }).retainTags).toEqual(["a", "b"]);
   });
 
   it("is absent when unset or empty, leaving the file value alone", () => {
     expect(readEnvConfig({}).retainTags).toBeUndefined();
-    expect(readEnvConfig({ HINDSIGHT_RETAIN_TAGS: "" }).retainTags).toBeUndefined();
-    expect(readEnvConfig({ HINDSIGHT_RETAIN_TAGS: " , " }).retainTags).toBeUndefined();
+    expect(readEnvConfig({ AGENTSTRATUM_RETAIN_TAGS: "" }).retainTags).toBeUndefined();
+    expect(readEnvConfig({ AGENTSTRATUM_RETAIN_TAGS: " , " }).retainTags).toBeUndefined();
   });
 
   it("has no retainMetadata counterpart — map-valued settings stay file-only", () => {
-    expect(readEnvConfig({ HINDSIGHT_RETAIN_METADATA: "repo=x" }).retainMetadata).toBeUndefined();
+    expect(
+      readEnvConfig({ AGENTSTRATUM_RETAIN_METADATA: "repo=x" }).retainMetadata
+    ).toBeUndefined();
   });
 });
 
@@ -627,8 +629,8 @@ describe("observationScopes", () => {
     expect(applyBankConfig(cfg, "coding-agent::other").cfg.observationScopes).toBe("shared");
   });
 
-  it("reads HINDSIGHT_OBSERVATION_SCOPES for the scalar modes; a scope LIST stays file-only", () => {
-    expect(readEnvConfig({ HINDSIGHT_OBSERVATION_SCOPES: "per_tag" }).observationScopes).toBe(
+  it("reads AGENTSTRATUM_OBSERVATION_SCOPES for the scalar modes; a scope LIST stays file-only", () => {
+    expect(readEnvConfig({ AGENTSTRATUM_OBSERVATION_SCOPES: "per_tag" }).observationScopes).toBe(
       "per_tag"
     );
     expect(readEnvConfig({}).observationScopes).toBeUndefined();

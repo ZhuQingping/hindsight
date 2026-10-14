@@ -40,15 +40,15 @@ fn unique_tempdir(tag: &str) -> PathBuf {
 }
 
 fn hindsight_binary() -> String {
-    std::env::var("CARGO_BIN_EXE_hindsight").unwrap_or_else(|_| {
-        let debug = "./target/debug/hindsight";
-        let release = "./target/release/hindsight";
+    std::env::var("CARGO_BIN_EXE_agentstratum").unwrap_or_else(|_| {
+        let debug = "./target/debug/agentstratum";
+        let release = "./target/release/agentstratum";
         if std::path::Path::new(debug).exists() {
             debug.to_string()
         } else if std::path::Path::new(release).exists() {
             release.to_string()
         } else {
-            "hindsight".to_string()
+            "agentstratum".to_string()
         }
     })
 }
@@ -58,9 +58,9 @@ fn run_with_home(home: &std::path::Path, args: &[&str]) -> Output {
         .env("HOME", home)
         // Unset anything that would bypass the profile/config-file resolution
         // we're trying to exercise here.
-        .env_remove("HINDSIGHT_API_URL")
-        .env_remove("HINDSIGHT_API_KEY")
-        .env_remove("HINDSIGHT_PROFILE")
+        .env_remove("AGENTSTRATUM_API_URL")
+        .env_remove("AGENTSTRATUM_API_KEY")
+        .env_remove("AGENTSTRATUM_PROFILE")
         .args(args)
         .output()
         .expect("failed to spawn hindsight binary")
@@ -110,7 +110,7 @@ fn profile_create_writes_toml_and_json_output() {
     assert_eq!(payload["api_url"], "https://api.example.com");
     assert_eq!(payload["api_key_set"], true);
 
-    let path = home.join(".hindsight/cli-profiles/prod.toml");
+    let path = home.join(".agentstratum/cli-profiles/prod.toml");
     assert!(
         path.exists(),
         "profile file was not created at {}",
@@ -224,7 +224,7 @@ fn profile_show_missing_profile_errors_with_hint() {
     assert!(!out.status.success());
     let err = stderr(&out) + &stdout(&out);
     assert!(err.contains("profile 'nope' not found"));
-    assert!(err.contains("hindsight profile create nope"));
+    assert!(err.contains("agentstratum profile create nope"));
 }
 
 #[test]
@@ -240,7 +240,7 @@ fn profile_delete_removes_file() {
             "https://api.example.com",
         ],
     ));
-    let path = home.join(".hindsight/cli-profiles/prod.toml");
+    let path = home.join(".agentstratum/cli-profiles/prod.toml");
     assert!(path.exists());
 
     let out = run_with_home(&home, &["profile", "delete", "prod", "-y"]);
@@ -262,7 +262,7 @@ fn p_flag_overrides_config_file_api_url() {
     // should pick the profile URL, not the config-file URL — we verify by
     // looking at the connection-error message (no API server needed).
     let home = unique_tempdir("precedence");
-    let hindsight_dir = home.join(".hindsight");
+    let hindsight_dir = home.join(".agentstratum");
     std::fs::create_dir_all(&hindsight_dir).unwrap();
     std::fs::write(
         hindsight_dir.join("config"),
@@ -312,12 +312,12 @@ fn hindsight_profile_env_var_is_honored() {
         ],
     ));
 
-    // Re-run without `-p` but with HINDSIGHT_PROFILE set.
+    // Re-run without `-p` but with AGENTSTRATUM_PROFILE set.
     let out = Command::new(hindsight_binary())
         .env("HOME", &home)
-        .env_remove("HINDSIGHT_API_URL")
-        .env_remove("HINDSIGHT_API_KEY")
-        .env("HINDSIGHT_PROFILE", "staging")
+        .env_remove("AGENTSTRATUM_API_URL")
+        .env_remove("AGENTSTRATUM_API_KEY")
+        .env("AGENTSTRATUM_PROFILE", "staging")
         .args(["version"])
         .output()
         .unwrap();

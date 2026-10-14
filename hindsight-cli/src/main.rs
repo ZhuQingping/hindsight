@@ -30,8 +30,8 @@ impl From<Format> for OutputFormat {
 }
 
 #[derive(Parser)]
-#[command(name = "hindsight")]
-#[command(about = "Hindsight CLI - Semantic memory system", long_about = None)]
+#[command(name = "agentstratum")]
+#[command(about = "Agentstratum CLI - Semantic memory system", long_about = None)]
 #[command(version)]
 #[command(before_help = get_before_help())]
 #[command(after_help = get_after_help())]
@@ -44,10 +44,10 @@ struct Cli {
     #[arg(short = 'v', long, global = true)]
     verbose: bool,
 
-    /// Named profile to load from ~/.hindsight/cli-profiles/<name>.toml
-    /// (env var HINDSIGHT_PROFILE is used if this flag is omitted).
-    /// Environment variables (HINDSIGHT_API_URL / HINDSIGHT_API_KEY) still override profile values.
-    #[arg(short = 'p', long, global = true, env = "HINDSIGHT_PROFILE")]
+    /// Named profile to load from ~/.agentstratum/cli-profiles/<name>.toml
+    /// (env var AGENTSTRATUM_PROFILE is used if this flag is omitted).
+    /// Environment variables (AGENTSTRATUM_API_URL / AGENTSTRATUM_API_KEY) still override profile values.
+    #[arg(short = 'p', long, global = true, env = "AGENTSTRATUM_PROFILE")]
     profile: Option<String>,
 
     #[command(subcommand)]
@@ -61,7 +61,7 @@ fn get_after_help() -> String {
         None => ("http://localhost:8888", "default".to_string()),
     };
     format!(
-        "Current API URL: {} (from {})\n\nRun 'hindsight configure' to change the API URL.",
+        "Current API URL: {} (from {})\n\nRun 'agentstratum configure' to change the API URL.",
         api_url, source
     )
 }
@@ -142,7 +142,7 @@ enum Commands {
 
     /// Configure the CLI (API URL, API key, etc.)
     #[command(
-        after_help = "Configuration priority:\n  1. Environment variables (HINDSIGHT_API_URL, HINDSIGHT_API_KEY) - highest priority\n  2. Named profile (-p / HINDSIGHT_PROFILE, see 'hindsight profile')\n  3. Config file (~/.hindsight/config)\n  4. Default (http://localhost:8888)"
+        after_help = "Configuration priority:\n  1. Environment variables (AGENTSTRATUM_API_URL, AGENTSTRATUM_API_KEY) - highest priority\n  2. Named profile (-p / AGENTSTRATUM_PROFILE, see 'agentstratum profile')\n  3. Config file (~/.agentstratum/config)\n  4. Default (http://localhost:8888)"
     )]
     Configure {
         /// API URL to connect to (interactive prompt if not provided)
@@ -153,7 +153,7 @@ enum Commands {
         api_key: Option<String>,
     },
 
-    /// Manage named connection profiles (~/.hindsight/cli-profiles/<name>.toml)
+    /// Manage named connection profiles (~/.agentstratum/cli-profiles/<name>.toml)
     #[command(subcommand)]
     Profile(ProfileCommands),
 }
@@ -162,7 +162,7 @@ enum Commands {
 enum ProfileCommands {
     /// Create or overwrite a profile
     Create {
-        /// Profile name (used with -p/--profile or $HINDSIGHT_PROFILE)
+        /// Profile name (used with -p/--profile or $AGENTSTRATUM_PROFILE)
         name: String,
         /// API URL (required)
         #[arg(long)]
@@ -1424,7 +1424,7 @@ fn main() {
     // closed stdout pipe as an `EPIPE` error rather than a signal. But the
     // release profile sets `panic = "abort"`, so that write error becomes a
     // silent SIGABRT — a spurious "fatal error" with no message — whenever
-    // the reader closes early (e.g. `hindsight ... | head`).
+    // the reader closes early (e.g. `agentstratum ... | head`).
     //
     // Restore the default SIGPIPE disposition on Unix so the CLI terminates
     // cleanly on a broken pipe, like other Unix CLI tools. Note this also
@@ -2349,7 +2349,7 @@ fn handle_configure(
     let current_config = Config::load().ok();
 
     if output_format == OutputFormat::Pretty {
-        ui::print_info("Hindsight CLI Configuration");
+        ui::print_info("Agentstratum CLI Configuration");
         println!();
 
         // Show current configuration
@@ -2406,7 +2406,7 @@ fn handle_configure(
             println!("  API Key: {}", masked);
         }
         println!();
-        println!("Note: Environment variables HINDSIGHT_API_URL and HINDSIGHT_API_KEY will override these settings.");
+        println!("Note: Environment variables AGENTSTRATUM_API_URL and AGENTSTRATUM_API_KEY will override these settings.");
     } else {
         let result = serde_json::json!({
             "api_url": new_api_url,
@@ -2432,15 +2432,17 @@ fn handle_ui(profile: Option<&str>, output_format: OutputFormat) -> Result<()> {
     let api_url = config.api_url();
 
     if output_format == OutputFormat::Pretty {
-        ui::print_info("Launching Hindsight Control Plane UI...");
+        ui::print_info("Launching Agentstratum Control Plane UI...");
         println!();
         println!("  API URL: {}", api_url);
         println!();
     }
 
-    // Run npx @vectorize-io/hindsight-control-plane --api-url {api_url}
+    let distribution = std::env::var("AGENTSTRATUM_EMBED_CP_PACKAGE").map_err(|_| {
+        anyhow::anyhow!("Set AGENTSTRATUM_EMBED_CP_PACKAGE to the approved Web distribution.")
+    })?;
     let status = Command::new("npx")
-        .arg("@vectorize-io/hindsight-control-plane")
+        .arg(distribution)
         .arg("--api-url")
         .arg(api_url)
         .status();
@@ -2458,7 +2460,7 @@ fn handle_ui(profile: Option<&str>, output_format: OutputFormat) -> Result<()> {
         Err(e) => {
             ui::print_error(&format!("Failed to launch control plane UI: {}", e));
             ui::print_info("Make sure you have Node.js and npm installed.");
-            ui::print_info("You can also install the control plane globally: npm install -g @vectorize-io/hindsight-control-plane");
+            ui::print_info("Set AGENTSTRATUM_EMBED_CP_PACKAGE to the approved Web distribution.");
             std::process::exit(1);
         }
     }
@@ -2491,7 +2493,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 }
                 println!();
                 println!(
-                    "Use with: hindsight -p {} <command>  (or export HINDSIGHT_PROFILE={})",
+                    "Use with: agentstratum -p {} <command>  (or export AGENTSTRATUM_PROFILE={})",
                     name, name
                 );
             } else {
@@ -2511,7 +2513,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 if names.is_empty() {
                     ui::print_info("No profiles found.");
                     println!();
-                    println!("Create one with: hindsight profile create <name> --api-url <url>");
+                    println!("Create one with: agentstratum profile create <name> --api-url <url>");
                 } else {
                     ui::print_info("Profiles:");
                     for name in &names {
@@ -2593,7 +2595,7 @@ mod tests {
     #[test]
     fn parses_operation_delete_with_confirmation_bypass() {
         let cli = Cli::try_parse_from([
-            "hindsight",
+            "agentstratum",
             "operation",
             "delete",
             "bank-1",

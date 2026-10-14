@@ -36,7 +36,7 @@ describe("dsh pre-step injection", () => {
   it("recalls on the human prompt and appends the memory as a sourced message", async () => {
     const core = {
       onPrompt: vi.fn(async () => {}),
-      getInjection: vi.fn(() => "<hindsight_memory>past decision</hindsight_memory>"),
+      getInjection: vi.fn(() => "<agentstratum_memory>past decision</agentstratum_memory>"),
       seedIfCold: vi.fn(async () => {}),
     };
     const hooks = createDshHooks(() => fakeWorkspace(core));
@@ -51,11 +51,11 @@ describe("dsh pre-step injection", () => {
     const appended = (decision as { messages: Record<string, any>[] }).messages.at(-1)!;
     expect(appended).toMatchObject({
       role: "user",
-      content: [{ type: "text", text: "<hindsight_memory>past decision</hindsight_memory>" }],
+      content: [{ type: "text", text: "<agentstratum_memory>past decision</agentstratum_memory>" }],
     });
     // Exact, not a partial match: dsh 0.1.7 (session format V4) aborts the turn on the retired
     // `kind: "plugin"` wrapper, so no `plugin` field may ride along either.
-    expect(appended.source).toEqual({ kind: "plugin:hindsight", form: "recall" });
+    expect(appended.source).toEqual({ kind: "plugin:agentstratum", form: "recall" });
     expect(appended.id).toEqual(expect.any(String));
   });
 
@@ -213,7 +213,7 @@ describe("dshSessionEvents (alpha.4+ transcript source)", () => {
 
 describe("toDshParameters", () => {
   const spec = (inputSchema: ToolSpec["inputSchema"]): ToolSpec => ({
-    name: "hindsight_capture_initiative",
+    name: "agentstratum_capture_initiative",
     description: "…",
     inputSchema,
     annotations: {

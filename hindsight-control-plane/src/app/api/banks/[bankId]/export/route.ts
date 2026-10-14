@@ -1,3 +1,4 @@
+import { publicErrorPayload } from "@/lib/public-errors";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -16,7 +17,7 @@ export async function GET(
 
     const data = await response.json();
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+      return NextResponse.json(publicErrorPayload(data), { status: response.status });
     }
 
     return NextResponse.json(data, { status: 200 });

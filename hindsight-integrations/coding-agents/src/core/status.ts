@@ -5,7 +5,7 @@
  * so "is my memory ready?" needs an inspectable answer instead of a command exit code. `syncStatus`
  * compares the LIVE bank against the repo: gitlog seed present, how much of the recent history has
  * been deepened (per-commit diffs), chats ingested, knowledge pages present, extractions still
- * running. Agents get it as the `hindsight_sync_status` tool; harnesses (e.g. the benchmark) poll
+ * running. Agents get it as the `agentstratum_sync_status` tool; harnesses (e.g. the benchmark) poll
  * the same via `dist/status.js`.
  *
  * `synced` is the completion marker for the REQUIRED memory: gitlog seeded, pages created, and no
@@ -115,7 +115,7 @@ export async function syncStatus(
     surveyDocs,
     surveyCommitsBehind,
     activeOps,
-    // Older Hindsight servers have no page surface. They are still fully usable for the
+    // Older agentstratum servers have no page surface. They are still fully usable for the
     // legacy bank/retain pipeline, so page absence must not make syncStatus permanently false.
     synced:
       gitlogPresent &&

@@ -12,7 +12,7 @@ const TOKEN_PATTERN = /^(\d+)\.([a-f0-9]{64})\.([a-f0-9]{64})$/;
 function sessionDirectory(): string {
   const directory = process.env.HINDSIGHT_CP_SESSION_DIR;
   if (!directory || !path.isAbsolute(directory)) {
-    throw new Error("HINDSIGHT_CP_SESSION_DIR must be an absolute private directory");
+    throw new Error("Session storage must be an absolute private directory");
   }
   return directory;
 }

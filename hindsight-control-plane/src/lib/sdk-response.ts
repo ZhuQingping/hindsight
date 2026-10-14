@@ -1,3 +1,4 @@
+import { publicErrorPayload } from "@/lib/public-errors";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload, type RequestLike } from "@/lib/i18n/api-errors";
 
@@ -115,7 +116,7 @@ export function respondWithSdk<T>(
       : payload;
     localizedPayload.details = details;
 
-    return NextResponse.json(localizedPayload, { status: upstreamStatus });
+    return NextResponse.json(publicErrorPayload(localizedPayload), { status: upstreamStatus });
   }
 
   return NextResponse.json(result.data, { status: successStatus });

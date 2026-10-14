@@ -1,9 +1,9 @@
 """Bank ID derivation and mission management.
 
 ZCode context dimensions:
-  - agent   → configured name or "zcode" (HINDSIGHT_AGENT_NAME)
+  - agent   → configured name or "zcode" (AGENTSTRATUM_AGENT_NAME)
   - project → derived from ZCODE_PROJECT_DIR / hook cwd / first workspace_roots
-  - user    → from env var HINDSIGHT_USER_ID
+  - user    → from env var AGENTSTRATUM_USER_ID
 
 ZCode embeds the Claude Code agent runtime, so every hook payload carries a
 `cwd`, which is the primary project source. The channel dimension is omitted —
@@ -80,13 +80,13 @@ def derive_bank_id(hook_input, config):
     for f in fields:
         if f not in VALID_FIELDS:
             print(
-                f'[Hindsight] Unknown dynamicBankGranularity field "{f}" — '
+                f'[agentstratum] Unknown dynamicBankGranularity field "{f}" — '
                 f"valid for zcode: {', '.join(sorted(VALID_FIELDS))}",
                 file=sys.stderr,
             )
 
     agent_name = config.get("agentName", "zcode")
-    user_id = os.environ.get("HINDSIGHT_USER_ID", "")
+    user_id = os.environ.get("AGENTSTRATUM_USER_ID", "")
     session_id = _resolve_session_id(hook_input)
     project_name = _resolve_project_name(hook_input)
 

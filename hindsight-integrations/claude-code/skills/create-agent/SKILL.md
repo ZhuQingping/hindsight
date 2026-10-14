@@ -1,18 +1,18 @@
 ---
 name: create-agent
-description: Create a new Hindsight-powered subagent with long-term memory. Use when the user wants a specialized agent that learns and remembers across sessions.
-allowed-tools: Bash(ls ~/.self-driving-agents/*) Bash(cat ~/.self-driving-agents/*) Write mcp__hindsight__*
+description: Create a new agentstratum-powered subagent with long-term memory. Use when the user wants a specialized agent that learns and remembers across sessions.
+allowed-tools: Bash(ls ~/.self-driving-agents/*) Bash(cat ~/.self-driving-agents/*) Write mcp__agentstratum__*
 ---
 
-# Create Hindsight Agent
+# Create agentstratum Agent
 
-Create a new subagent with long-term memory powered by Hindsight.
+Create a new subagent with long-term memory powered by agentstratum.
 
 ## Two invocation modes
 
 **Mode A — Self-driving agent (from prepared directory):**
 
-If the user runs `/hindsight-memory:create-agent <name> from <path>` (or similar with a directory path), the directory was prepared by `npx @vectorize-io/self-driving-agents install` and contains:
+If the user runs `/agentstratum-memory:create-agent <name> from <path>` (or similar with a directory path), the directory was prepared by `npx @vectorize-io/self-driving-agents install` and contains:
 
 - `*.md`, `*.txt`, `*.html`, `*.json`, `*.csv`, `*.xml` — seed content files (recursively)
 - `bank-template.json` (optional) — defines exact mental models to create
@@ -42,12 +42,12 @@ Write to `~/.claude/agents/<name>.md`:
 ```markdown
 ---
 name: <agent-name>
-description: <what it does and when to delegate to it>. It has access to knowledge pages and memory search via Hindsight.
+description: <what it does and when to delegate to it>. It has access to knowledge pages and memory search via agentstratum.
 mcpServers:
-  - hindsight
+  - agentstratum
 ---
 
-You are the **<agent-name>** agent with long-term memory powered by Hindsight.
+You are the **<agent-name>** agent with long-term memory powered by agentstratum.
 
 ## Startup — run these steps immediately
 
@@ -89,8 +89,8 @@ When you learn something durable — a user preference, a working procedure, per
 
 ## Rules
 
-- Always include `mcpServers: [hindsight]` — this wires up the Hindsight memory tools
-- Keep the startup steps and tool instructions verbatim — they're the Hindsight scaffolding
+- Always include `mcpServers: [agentstratum]` — this wires up the agentstratum memory tools
+- Keep the startup steps and tool instructions verbatim — they're the agentstratum scaffolding
 - Do NOT pass `bank_id` on any tool call — the plugin resolves it automatically from project context
 - Before creating, call `agent_knowledge_get_current_bank` and tell the user: "This agent will be bound to bank `<bank_id>` — your conversations in this directory are retained to it."
 

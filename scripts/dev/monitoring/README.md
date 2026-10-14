@@ -1,4 +1,4 @@
-# Hindsight Monitoring Stack
+# agentstratum Monitoring Stack
 
 Docker-based monitoring stack using **Grafana LGTM** (Loki, Grafana, Tempo, Mimir) for complete observability.
 
@@ -20,29 +20,29 @@ cd scripts/dev/monitoring && docker-compose up -d
 ## Features
 
 - **Traces**: OpenTelemetry traces with GenAI semantic conventions (Tempo)
-- **Metrics**: Prometheus scraping of Hindsight API `/metrics` endpoint
+- **Metrics**: Prometheus scraping of agentstratum API `/metrics` endpoint
 - **Logs**: Loki log aggregation (future)
 - **Dashboards**: Pre-configured dashboards from `monitoring/grafana/dashboards/`:
-  - Hindsight Operations
-  - Hindsight LLM Metrics
-  - Hindsight API Service
+  - agentstratum Operations
+  - agentstratum LLM Metrics
+  - agentstratum API Service
 
-## Configure Hindsight API
+## Configure agentstratum API
 
 Set these environment variables in your `.env`:
 
 ```bash
 # Enable tracing
-HINDSIGHT_API_OTEL_TRACES_ENABLED=true
+AGENTSTRATUM_API_OTEL_TRACES_ENABLED=true
 
 # Grafana Tempo OTLP endpoint (HTTP)
-HINDSIGHT_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+AGENTSTRATUM_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 # Optional: Custom service name
-HINDSIGHT_API_OTEL_SERVICE_NAME=hindsight-api
+AGENTSTRATUM_API_OTEL_SERVICE_NAME=agentstratum-api
 
 # Optional: Deployment environment
-HINDSIGHT_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
+AGENTSTRATUM_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
 ```
 
 ## View Data
@@ -56,7 +56,7 @@ HINDSIGHT_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
 ### Metrics & Dashboards
 1. Open http://localhost:3000
 2. Go to **Dashboards** (dashboard icon)
-3. Browse the Hindsight folder
+3. Browse the agentstratum folder
 
 ### Raw Metrics
 - Prometheus metrics: http://localhost:8888/metrics
@@ -80,5 +80,5 @@ cd scripts/dev/monitoring && docker-compose down
 
 - **Single Container**: Grafana LGTM (~515MB) provides all observability components
 - **Auto-provisioned Dashboards**: Dashboards from `monitoring/grafana/dashboards/` are automatically loaded
-- **Prometheus Scraping**: Configured to scrape Hindsight API at `host.docker.internal:8888/metrics` every 5 seconds
-- **Network**: Uses `hindsight-network` (shared with API for future service-to-service tracing)
+- **Prometheus Scraping**: Configured to scrape agentstratum API at `host.docker.internal:8888/metrics` every 5 seconds
+- **Network**: Uses `agentstratum-network` (shared with API for future service-to-service tracing)

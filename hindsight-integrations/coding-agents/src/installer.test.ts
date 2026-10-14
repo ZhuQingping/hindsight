@@ -61,7 +61,7 @@ function makeCtx(): InstallCtx & {
   dcodePlugin: ReturnType<typeof vi.fn>;
   nodeSqlite: ReturnType<typeof vi.fn>;
 } {
-  const home = mkdtempSync(join(tmpdir(), "hindsight-installer-test-"));
+  const home = mkdtempSync(join(tmpdir(), "agentstratum-installer-test-"));
   homes.push(home);
   const pkgRoot = join("/opt", MARKER); // contains the marker, like the real package path
   return {
@@ -76,7 +76,7 @@ function makeCtx(): InstallCtx & {
     dcodePlugin: vi.fn(() => true),
     // Stubbed like the CLI seams above, so the suite never depends on the Node running it.
     nodeSqlite: vi.fn(() => true),
-    // Never let a developer's real ~/.hindsight/claude-code.json steer the tests.
+    // Never let a developer's real ~/.agentstratum/claude-code.json steer the tests.
     readLegacy: () => undefined,
   };
 }
@@ -90,7 +90,7 @@ function writeJsonAt(path: string, value: unknown): void {
   writeFileSync(path, JSON.stringify(value, null, 2) + "\n");
 }
 
-// configureServer honors HINDSIGHT_CONFIG — a developer shell exporting it must not leak the
+// configureServer honors AGENTSTRATUM_CONFIG — a developer shell exporting it must not leak the
 // suite's --server writes into their real config file ("" is falsy → the per-test home is used).
 //
 // DSH_HOME leaks the same way, and more sharply: `dshHome()` is `process.env.DSH_HOME ||
@@ -100,7 +100,7 @@ function writeJsonAt(path: string, value: unknown): void {
 // the whole FILE, not just the dsh block: the loops that leak live outside that block, and the
 // reader in core/history.ts honors DSH_HOME too.
 beforeEach(() => {
-  vi.stubEnv("HINDSIGHT_CONFIG", "");
+  vi.stubEnv("AGENTSTRATUM_CONFIG", "");
   vi.stubEnv("DSH_HOME", "");
   delete process.env.DSH_HOME;
 });
@@ -174,7 +174,7 @@ describe("claude-code installer", () => {
     // silently leaves a stale (possibly dead) server path registered.
     expect(removeAt).toBeGreaterThanOrEqual(0);
     expect(removeAt).toBeLessThan(addAt);
-    expect(calls[removeAt]).toEqual(["mcp", "remove", "--scope", "user", "hindsight"]);
+    expect(calls[removeAt]).toEqual(["mcp", "remove", "--scope", "user", "agentstratum"]);
   });
 
   it("registers the MCP server via `claude mcp add` (user scope)", () => {
@@ -185,11 +185,11 @@ describe("claude-code installer", () => {
       "add",
       "--scope",
       "user",
-      "hindsight",
+      "agentstratum",
       // Every host launches the same mcp-server.js, so the registration has to name its harness —
       // otherwise the server falls back to claude-code and mis-attributes the other hosts' writes.
       "--env",
-      "HINDSIGHT_MCP_HARNESS=claude-code",
+      "AGENTSTRATUM_MCP_HARNESS=claude-code",
       "--",
       "node",
       join(ctx.dist, "mcp-server.js"),
@@ -218,7 +218,13 @@ describe("claude-code installer", () => {
     expect(settings.hooks.SessionStart).toBeUndefined();
     expect(settings.hooks.UserPromptSubmit).toBeUndefined();
     expect(JSON.stringify(settings)).not.toContain(MARKER);
-    expect(ctx.claudeMcp).toHaveBeenCalledWith(["mcp", "remove", "--scope", "user", "hindsight"]);
+    expect(ctx.claudeMcp).toHaveBeenCalledWith([
+      "mcp",
+      "remove",
+      "--scope",
+      "user",
+      "agentstratum",
+    ]);
   });
 
   it("uninstall removes the hooks object entirely when nothing else remains", () => {
@@ -241,7 +247,7 @@ describe("kimi-code installer", () => {
     const ctx = makeCtx();
     expect(run(["install", "kimi-code"], ctx)).toBe(0);
     const toml = readFileSync(join(ctx.home, ".kimi-code", "config.toml"), "utf8");
-    const ours = toml.slice(toml.indexOf("# HINDSIGHT_CODING_AGENTS_KIMI_START"));
+    const ours = toml.slice(toml.indexOf("# AGENTSTRATUM_CODING_AGENTS_KIMI_START"));
     const entries = hookEntries(ours);
     expect(entries).toHaveLength(3);
     for (const e of entries) {
@@ -255,7 +261,7 @@ describe("kimi-code installer", () => {
     const ctx = makeCtx();
     expect(run(["install", "kimi-code"], ctx)).toBe(0);
     const toml = readFileSync(join(ctx.home, ".kimi-code", "config.toml"), "utf8");
-    const ours = toml.slice(toml.indexOf("# HINDSIGHT_CODING_AGENTS_KIMI_START"));
+    const ours = toml.slice(toml.indexOf("# AGENTSTRATUM_CODING_AGENTS_KIMI_START"));
     const got = hookEntries(ours).map((e) => [e.event, e.timeout]);
     const want = Object.values(HOOK_HARNESSES["kimi-code"].install).map((h) => [
       h.event,
@@ -274,14 +280,14 @@ describe("kimi-code installer", () => {
     expect(run(["install", "kimi-code"], ctx)).toBe(0);
     const toml = readFileSync(path, "utf8");
     expect(toml).toContain("their-tool");
-    expect(toml.match(/HINDSIGHT_CODING_AGENTS_KIMI_START/g)).toHaveLength(1);
+    expect(toml.match(/AGENTSTRATUM_CODING_AGENTS_KIMI_START/g)).toHaveLength(1);
     expect(toml.match(/kimi-stop-hook\.js/g)).toHaveLength(1);
   });
 
   it("registers a stdio MCP server that needs no bearer-token env var", () => {
-    // A hand-written http entry needs HINDSIGHT_API_KEY exported into Kimi's environment, or it
+    // A hand-written http entry needs AGENTSTRATUM_API_KEY exported into Kimi's environment, or it
     // 401s and the tools never appear. Ours is the packaged stdio server, which reads endpoint and
-    // token from ~/.hindsight/coding-agent.json — and it overwrites such an entry.
+    // token from ~/.agentstratum/coding-agent.json. Foreign entries are covered by ownership tests.
     const ctx = makeCtx();
     const mcpPath = join(ctx.home, ".kimi-code", "mcp.json");
     mkdirSync(dirname(mcpPath), { recursive: true });
@@ -289,7 +295,6 @@ describe("kimi-code installer", () => {
       mcpPath,
       JSON.stringify({
         mcpServers: {
-          hindsight: { url: "http://old", bearerTokenEnvVar: "HINDSIGHT_API_KEY" },
           theirs: { url: "http://keep-me" },
         },
       })
@@ -297,10 +302,10 @@ describe("kimi-code installer", () => {
     expect(run(["install", "kimi-code"], ctx)).toBe(0);
     const mcp = JSON.parse(readFileSync(mcpPath, "utf8"));
     expect(mcp.mcpServers.theirs.url).toBe("http://keep-me");
-    expect(mcp.mcpServers.hindsight.command).toBe("node");
-    expect(mcp.mcpServers.hindsight.env.HINDSIGHT_MCP_HARNESS).toBe("kimi-code");
-    expect(mcp.mcpServers.hindsight.bearerTokenEnvVar).toBeUndefined();
-    expect(mcp.mcpServers.hindsight.url).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum.command).toBe("node");
+    expect(mcp.mcpServers.agentstratum.env.AGENTSTRATUM_MCP_HARNESS).toBe("kimi-code");
+    expect(mcp.mcpServers.agentstratum.bearerTokenEnvVar).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum.url).toBeUndefined();
   });
 
   it("honours KIMI_CODE_HOME, where the CLI and the transcript reader both look", () => {
@@ -328,9 +333,9 @@ describe("kimi-code installer", () => {
     expect(run(["uninstall", "kimi-code"], ctx)).toBe(0);
     const toml = readFileSync(path, "utf8");
     expect(toml).toContain("their-tool");
-    expect(toml).not.toContain("HINDSIGHT_CODING_AGENTS_KIMI");
+    expect(toml).not.toContain("AGENTSTRATUM_CODING_AGENTS_KIMI");
     const mcp = JSON.parse(readFileSync(join(ctx.home, ".kimi-code", "mcp.json"), "utf8"));
-    expect(mcp.mcpServers.hindsight).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum).toBeUndefined();
   });
 });
 
@@ -359,7 +364,7 @@ describe("qwen-code installer", () => {
     const argv = ctx.qwenMcp.mock.calls.map((c) => c[0].join(" "));
     expect(argv.some((a) => a.startsWith("mcp remove"))).toBe(true);
     expect(
-      argv.some((a) => a.includes("mcp add") && a.includes("HINDSIGHT_MCP_HARNESS=qwen-code"))
+      argv.some((a) => a.includes("mcp add") && a.includes("AGENTSTRATUM_MCP_HARNESS=qwen-code"))
     ).toBe(true);
   });
 
@@ -444,11 +449,11 @@ describe("factory-droid installer", () => {
     const ctx = makeCtx();
     expect(run(["install", "factory-droid"], ctx)).toBe(0);
     const mcp = readJson(mcpPath(ctx));
-    expect(mcp.mcpServers.hindsight).toMatchObject({
+    expect(mcp.mcpServers.agentstratum).toMatchObject({
       command: "node",
-      env: { HINDSIGHT_MCP_HARNESS: "factory-droid" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "factory-droid" },
     });
-    expect(mcp.mcpServers.hindsight.args[0]).toContain("mcp-server.js");
+    expect(mcp.mcpServers.agentstratum.args[0]).toContain("mcp-server.js");
   });
 
   it("replaces an existing package-owned MCP entry and preserves other servers", () => {
@@ -456,16 +461,16 @@ describe("factory-droid installer", () => {
     writeJsonAt(mcpPath(ctx), {
       mcpServers: {
         playwright: { command: "npx", args: ["-y", "@playwright/mcp@latest"] },
-        hindsight: {
+        agentstratum: {
           command: "node",
-          args: ["/old/node_modules/@vectorize-io/hindsight-coding-agents/dist/mcp-server.js"],
+          args: ["/old/node_modules/agentstratum-coding-agents/dist/mcp-server.js"],
         },
       },
     });
     expect(run(["install", "factory-droid"], ctx)).toBe(0);
     const mcp = readJson(mcpPath(ctx));
     expect(mcp.mcpServers.playwright).toBeDefined();
-    expect(mcp.mcpServers.hindsight.env.HINDSIGHT_MCP_HARNESS).toBe("factory-droid");
+    expect(mcp.mcpServers.agentstratum.env.AGENTSTRATUM_MCP_HARNESS).toBe("factory-droid");
   });
 
   it("refuses to overwrite a user-managed MCP server with the same name", () => {
@@ -473,7 +478,7 @@ describe("factory-droid installer", () => {
     const existing = {
       mcpServers: {
         // An incidental marker string is not proof that this package created the registration.
-        hindsight: { command: "coding-agents-proxy", args: ["serve"] },
+        agentstratum: { command: "coding-agents-proxy", args: ["serve"] },
       },
     };
     writeJsonAt(mcpPath(ctx), existing);
@@ -486,7 +491,7 @@ describe("factory-droid installer", () => {
     ).toBe(1);
     expect(readJson(mcpPath(ctx))).toEqual(existing);
     expect(existsSync(hooksPath(ctx))).toBe(false);
-    expect(existsSync(join(ctx.home, ".hindsight", "coding-agent.json"))).toBe(false);
+    expect(existsSync(join(ctx.home, ".agentstratum", "coding-agent.json"))).toBe(false);
   });
 
   it("installs the companion skill into ~/.factory/skills", () => {
@@ -502,7 +507,7 @@ describe("factory-droid installer", () => {
     const skill = join(
       droidCtx.home,
       ...SKILL_DIRS["factory-droid"],
-      "hindsight-coding-agent",
+      "agentstratum-coding-agent",
       "SKILL.md"
     );
     expect(readFileSync(skill, "utf8")).toBe("packaged skill body");
@@ -516,7 +521,7 @@ describe("factory-droid installer", () => {
     writeJsonAt(mcpPath(ctx), {
       mcpServers: {
         playwright: { command: "npx" },
-        hindsight: {
+        agentstratum: {
           command: "node",
           args: ["/old/coding-agents/dist/mcp-server.js"],
         },
@@ -529,18 +534,18 @@ describe("factory-droid installer", () => {
     expect(JSON.stringify(hooks)).not.toContain("droid-stop-hook.js");
     const mcp = readJson(mcpPath(ctx));
     expect(mcp.mcpServers.playwright).toBeDefined();
-    expect(mcp.mcpServers.hindsight).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum).toBeUndefined();
   });
 
   it("uninstall preserves a same-named MCP server that no longer belongs to the package", () => {
     const ctx = makeCtx();
     expect(run(["install", "factory-droid"], ctx)).toBe(0);
     const mcp = readJson(mcpPath(ctx));
-    mcp.mcpServers.hindsight = { command: "coding-agents-proxy", args: ["serve"] };
+    mcp.mcpServers.agentstratum = { command: "coding-agents-proxy", args: ["serve"] };
     writeJsonAt(mcpPath(ctx), mcp);
 
     expect(run(["uninstall", "factory-droid"], ctx)).toBe(0);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toEqual({
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toEqual({
       command: "coding-agents-proxy",
       args: ["serve"],
     });
@@ -552,9 +557,9 @@ describe("factory-droid installer", () => {
     expect(run(["uninstall", "factory-droid"], ctx)).toBe(0);
     expect(existsSync(hooksPath(ctx))).toBe(false);
     expect(existsSync(mcpPath(ctx))).toBe(false);
-    expect(existsSync(join(SKILL_DIRS["factory-droid"].join("/"), "hindsight-coding-agent"))).toBe(
-      false
-    );
+    expect(
+      existsSync(join(SKILL_DIRS["factory-droid"].join("/"), "agentstratum-coding-agent"))
+    ).toBe(false);
   });
 });
 
@@ -638,18 +643,18 @@ describe("zcode installer", () => {
     // and infers type "stdio" from a command, which is why the shared entry shape drops straight in.
     const ctx = makeCtx();
     expect(run(["install", "zcode"], ctx)).toBe(0);
-    const server = readJson(configPath(ctx)).mcp.servers.hindsight;
-    expect(server).toMatchObject({ command: "node", env: { HINDSIGHT_MCP_HARNESS: "zcode" } });
+    const server = readJson(configPath(ctx)).mcp.servers.agentstratum;
+    expect(server).toMatchObject({ command: "node", env: { AGENTSTRATUM_MCP_HARNESS: "zcode" } });
     expect(server.args[0]).toContain("mcp-server.js");
   });
 
-  it("refuses to overwrite a user-managed MCP server already named hindsight", () => {
+  it("refuses to overwrite a user-managed MCP server already named agentstratum", () => {
     const ctx = makeCtx();
     writeJsonAt(configPath(ctx), {
-      mcp: { servers: { hindsight: { command: "their-own-proxy", args: ["serve"] } } },
+      mcp: { servers: { agentstratum: { command: "their-own-proxy", args: ["serve"] } } },
     });
     expect(run(["install", "zcode"], ctx)).not.toBe(0);
-    expect(readJson(configPath(ctx)).mcp.servers.hindsight.command).toBe("their-own-proxy");
+    expect(readJson(configPath(ctx)).mcp.servers.agentstratum.command).toBe("their-own-proxy");
   });
 
   /** makeCtx's pkgRoot is a synthetic /opt path the test cannot write; stage the packaged skill in
@@ -665,17 +670,21 @@ describe("zcode installer", () => {
   it("installs the companion skill in ZCode's own root, not the shared agentskills one", () => {
     const ctx = ctxWithPackagedSkill();
     expect(run(["install", "zcode"], ctx)).toBe(0);
-    const skill = join(ctx.home, ...SKILL_DIRS.zcode, "hindsight-coding-agent", "SKILL.md");
+    const skill = join(ctx.home, ...SKILL_DIRS.zcode, "agentstratum-coding-agent", "SKILL.md");
     expect(readFileSync(skill, "utf8")).toBe("packaged skill body");
     // ~/.agents/skills is Codex's and dsh's copy; uninstalling zcode must never take it.
-    expect(existsSync(join(ctx.home, ".agents", "skills", "hindsight-coding-agent"))).toBe(false);
+    expect(existsSync(join(ctx.home, ".agents", "skills", "agentstratum-coding-agent"))).toBe(
+      false
+    );
   });
 
   it("uninstall takes the skill back out of ZCode's root", () => {
     const ctx = ctxWithPackagedSkill();
     expect(run(["install", "zcode"], ctx)).toBe(0);
     expect(run(["uninstall", "zcode"], ctx)).toBe(0);
-    expect(existsSync(join(ctx.home, ...SKILL_DIRS.zcode, "hindsight-coding-agent"))).toBe(false);
+    expect(existsSync(join(ctx.home, ...SKILL_DIRS.zcode, "agentstratum-coding-agent"))).toBe(
+      false
+    );
   });
 
   it("uninstall removes our MCP entry and keeps a foreign server", () => {
@@ -687,17 +696,17 @@ describe("zcode installer", () => {
     expect(run(["uninstall", "zcode"], ctx)).toBe(0);
     const config = readJson(configPath(ctx));
     expect(config.mcp.servers.playwright).toBeDefined();
-    expect(config.mcp.servers.hindsight).toBeUndefined();
+    expect(config.mcp.servers.agentstratum).toBeUndefined();
   });
 
   it("uninstall preserves a same-named MCP server that no longer belongs to the package", () => {
     const ctx = makeCtx();
     expect(run(["install", "zcode"], ctx)).toBe(0);
     const config = readJson(configPath(ctx));
-    config.mcp.servers.hindsight = { command: "coding-agents-proxy", args: ["serve"] };
+    config.mcp.servers.agentstratum = { command: "coding-agents-proxy", args: ["serve"] };
     writeJsonAt(configPath(ctx), config);
     expect(run(["uninstall", "zcode"], ctx)).toBe(0);
-    expect(readJson(configPath(ctx)).mcp.servers.hindsight).toEqual({
+    expect(readJson(configPath(ctx)).mcp.servers.agentstratum).toEqual({
       command: "coding-agents-proxy",
       args: ["serve"],
     });
@@ -855,9 +864,9 @@ describe("traecode installer", () => {
     const stale = {
       command: "node",
       args: [join(ctx.home, "vendor", "coding-agents", "dist", "mcp-server.js")],
-      env: { HINDSIGHT_MCP_HARNESS: "traecode" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "traecode" },
     };
-    writeJsonAt(mcpPath(ctx), { mcpServers: { hindsight: stale } });
+    writeJsonAt(mcpPath(ctx), { mcpServers: { agentstratum: stale } });
     expect(run(["install", "traecode"], ctx)).toBe(0);
     expect(existsSync(mcpPath(ctx))).toBe(false); // nothing else in the file: remove it whole
   });
@@ -867,24 +876,24 @@ describe("traecode installer", () => {
     const stale = {
       command: "node",
       args: [join(ctx.home, "vendor", "coding-agents", "dist", "mcp-server.js")],
-      env: { HINDSIGHT_MCP_HARNESS: "traecode" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "traecode" },
     };
     writeJsonAt(mcpPath(ctx), {
-      mcpServers: { hindsight: stale, playwright: { command: "npx" } },
+      mcpServers: { agentstratum: stale, playwright: { command: "npx" } },
     });
     expect(run(["install", "traecode"], ctx)).toBe(0);
     const mcp = readJson(mcpPath(ctx));
     expect(mcp.mcpServers.playwright).toEqual({ command: "npx" });
-    expect(mcp.mcpServers.hindsight).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum).toBeUndefined();
   });
 
   const sandboxPath = (ctx: InstallCtx) => join(ctx.home, ".trae-cn", "sandbox.json");
 
-  it("seeds sandbox readWrite rules for ~/.hindsight and Trae's workspace storage — hooks run sandboxed", () => {
+  it("seeds sandbox readWrite rules for ~/.agentstratum and Trae's workspace storage — hooks run sandboxed", () => {
     const ctx = makeCtx();
     expect(run(["install", "traecode"], ctx)).toBe(0);
     expect(readJson(sandboxPath(ctx)).filesystem.readWrite).toEqual([
-      join(ctx.home, ".hindsight"),
+      join(ctx.home, ".agentstratum"),
       join(userDataRoot(ctx), "User", "workspaceStorage"),
     ]);
   });
@@ -899,7 +908,7 @@ describe("traecode installer", () => {
     expect(readJson(sandboxPath(ctx)).filesystem).toEqual({
       readWrite: [
         "/opt/other-tool",
-        join(ctx.home, ".hindsight"),
+        join(ctx.home, ".agentstratum"),
         join(userDataRoot(ctx), "User", "workspaceStorage"),
       ],
       readOnly: ["/etc"],
@@ -920,7 +929,7 @@ describe("traecode installer", () => {
   const repoDir = (ctx: InstallCtx, name: string) => join(ctx.home, name);
   const repoMcp = (ctx: InstallCtx, name: string) => join(repoDir(ctx, name), ".trae", "mcp.json");
   const writeMapConfig = (ctx: InstallCtx, map: Record<string, string>) =>
-    writeJsonAt(join(ctx.home, ".hindsight", "coding-agent.json"), { mapPathToBank: map });
+    writeJsonAt(join(ctx.home, ".agentstratum", "coding-agent.json"), { mapPathToBank: map });
 
   /** makeCtx's dist is a synthetic /opt path the registration's `existsSync(dist/mcp-server.js)`
    *  guard rejects; the pre-seed needs a real dist file, laid out as `coding-agents/dist/` so the
@@ -948,10 +957,10 @@ describe("traecode installer", () => {
       [a, "repo-a"],
       [b, "repo-b"],
     ] as const) {
-      expect(readJson(repoMcp(ctx, dir)).mcpServers.hindsight).toEqual({
+      expect(readJson(repoMcp(ctx, dir)).mcpServers.agentstratum).toEqual({
         command: "node",
         args: [join(ctx.dist, "mcp-server.js")],
-        env: { HINDSIGHT_MCP_HARNESS: "traecode", HINDSIGHT_MCP_PROJECT_CWD: repo },
+        env: { AGENTSTRATUM_MCP_HARNESS: "traecode", AGENTSTRATUM_MCP_PROJECT_CWD: repo },
       });
     }
     expect(existsSync(missing)).toBe(false);
@@ -970,17 +979,17 @@ describe("traecode installer", () => {
     expect(logs.join("\n")).toMatch(/0 written, 1 already current/);
   });
 
-  it("never touches a foreign hindsight entry in a repo's .trae/mcp.json", () => {
+  it("never touches a foreign agentstratum entry in a repo's .trae/mcp.json", () => {
     const ctx = ctxWithRealDist();
     const repo = repoDir(ctx, "repo-a");
     mkdirSync(repo, { recursive: true });
     writeMapConfig(ctx, { [repo]: "Agent::A" });
     writeJsonAt(repoMcp(ctx, "repo-a"), {
-      mcpServers: { hindsight: { command: "their-own-proxy", args: ["serve"] } },
+      mcpServers: { agentstratum: { command: "their-own-proxy", args: ["serve"] } },
     });
     const logs: string[] = [];
     expect(run(["install", "traecode"], { ...ctx, log: (m) => logs.push(m) })).toBe(0);
-    expect(readJson(repoMcp(ctx, "repo-a")).mcpServers.hindsight).toEqual({
+    expect(readJson(repoMcp(ctx, "repo-a")).mcpServers.agentstratum).toEqual({
       command: "their-own-proxy",
       args: ["serve"],
     });
@@ -1005,17 +1014,17 @@ describe("traecode installer", () => {
     writeJsonAt(repoMcp(ctx, "repo-b"), {
       mcpServers: {
         playwright: { command: "npx" },
-        hindsight: {
+        agentstratum: {
           command: "node",
           args: [join(ctx.dist, "mcp-server.js")],
-          env: { HINDSIGHT_MCP_HARNESS: "traecode", HINDSIGHT_MCP_PROJECT_CWD: foreign },
+          env: { AGENTSTRATUM_MCP_HARNESS: "traecode", AGENTSTRATUM_MCP_PROJECT_CWD: foreign },
         },
       },
     });
     expect(run(["uninstall", "traecode"], ctx)).toBe(0);
     const kept = readJson(repoMcp(ctx, "repo-b")).mcpServers;
     expect(kept.playwright).toEqual({ command: "npx" });
-    expect(kept.hindsight).toBeUndefined();
+    expect(kept.agentstratum).toBeUndefined();
   });
 
   it("uninstall preserves unrelated top-level data when our entry was the only server", () => {
@@ -1026,10 +1035,10 @@ describe("traecode installer", () => {
     expect(run(["install", "traecode"], ctx)).toBe(0);
     writeJsonAt(repoMcp(ctx, "repo-a"), {
       mcpServers: {
-        hindsight: {
+        agentstratum: {
           command: "node",
           args: [join(ctx.dist, "mcp-server.js")],
-          env: { HINDSIGHT_MCP_HARNESS: "traecode", HINDSIGHT_MCP_PROJECT_CWD: repo },
+          env: { AGENTSTRATUM_MCP_HARNESS: "traecode", AGENTSTRATUM_MCP_PROJECT_CWD: repo },
         },
       },
       inputs: [{ type: "promptString", id: "commitMessage" }],
@@ -1074,17 +1083,17 @@ describe("traecode installer", () => {
     mkdirSync(join(ctx.home, ".trae"), { recursive: true });
     expect(run(["install", "traecode"], ctx)).toBe(0);
     expect(existsSync(join(ctx.home, ".trae", "hooks.json"))).toBe(true);
-    expect(existsSync(join(ctx.home, ".trae", "skills", "hindsight-coding-agent"))).toBe(true);
+    expect(existsSync(join(ctx.home, ".trae", "skills", "agentstratum-coding-agent"))).toBe(true);
     expect(existsSync(join(ctx.home, ".trae-cn"))).toBe(false);
   });
 
-  it("keeps a foreign user-level hindsight entry and still installs — the installer writes no MCP file", () => {
+  it("keeps a foreign user-level agentstratum entry and still installs — the installer writes no MCP file", () => {
     const ctx = makeCtx();
     writeJsonAt(mcpPath(ctx), {
-      mcpServers: { hindsight: { command: "their-own-proxy", args: ["serve"] } },
+      mcpServers: { agentstratum: { command: "their-own-proxy", args: ["serve"] } },
     });
     expect(run(["install", "traecode"], ctx)).toBe(0);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toEqual({
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toEqual({
       command: "their-own-proxy",
       args: ["serve"],
     });
@@ -1100,7 +1109,7 @@ describe("traecode installer", () => {
     expect(run(["uninstall", "traecode"], ctx)).toBe(0);
     const mcp = readJson(mcpPath(ctx));
     expect(mcp.mcpServers.playwright).toBeDefined();
-    expect(mcp.mcpServers.hindsight).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum).toBeUndefined();
   });
 
   it.runIf(hasSqlite3)(
@@ -1144,10 +1153,10 @@ describe("traecode installer", () => {
   it("installs the companion skill in TraeCode's own root", () => {
     const ctx = ctxWithPackagedSkill();
     expect(run(["install", "traecode"], ctx)).toBe(0);
-    const skill = join(ctx.home, ...SKILL_DIRS.traecode, "hindsight-coding-agent", "SKILL.md");
+    const skill = join(ctx.home, ...SKILL_DIRS.traecode, "agentstratum-coding-agent", "SKILL.md");
     expect(readFileSync(skill, "utf8")).toBe("packaged skill body");
     expect(run(["uninstall", "traecode"], ctx)).toBe(0);
-    expect(existsSync(join(ctx.home, ...SKILL_DIRS.traecode, "hindsight-coding-agent"))).toBe(
+    expect(existsSync(join(ctx.home, ...SKILL_DIRS.traecode, "agentstratum-coding-agent"))).toBe(
       false
     );
   });
@@ -1181,8 +1190,8 @@ describe.each([
   it("registers the stdio MCP server in the host MCP file, tagged with its harness", () => {
     const ctx = makeCtx();
     expect(run(["install", harness], ctx)).toBe(0);
-    const server = readJson(mcpPath(ctx)).mcpServers.hindsight;
-    expect(server).toMatchObject({ command: "node", env: { HINDSIGHT_MCP_HARNESS: harness } });
+    const server = readJson(mcpPath(ctx)).mcpServers.agentstratum;
+    expect(server).toMatchObject({ command: "node", env: { AGENTSTRATUM_MCP_HARNESS: harness } });
     expect(server.args[0]).toContain("mcp-server.js");
   });
 
@@ -1215,7 +1224,7 @@ describe.each([
     expect(run(["install", harness], ctx)).toBe(0);
     const servers = readJson(mcpPath(ctx)).mcpServers;
     expect(servers.affine).toBeDefined();
-    expect(servers.hindsight).toBeDefined();
+    expect(servers.agentstratum).toBeDefined();
   });
 
   it("uninstall removes our hooks and MCP entry, keeping a foreign server", () => {
@@ -1226,7 +1235,7 @@ describe.each([
     expect(readJson(settingsPath(ctx)).hooks).toBeUndefined();
     const servers = readJson(mcpPath(ctx)).mcpServers;
     expect(servers.affine).toBeDefined();
-    expect(servers.hindsight).toBeUndefined();
+    expect(servers.agentstratum).toBeUndefined();
   });
 });
 
@@ -1239,7 +1248,7 @@ describe("codebuddy installer MCP file chain", () => {
   it("creates only the recommended ~/.codebuddy/.mcp.json on a fresh home", () => {
     const ctx = makeCtx();
     expect(run(["install", "codebuddy"], ctx)).toBe(0);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toBeDefined();
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toBeDefined();
     // Fresh home: the recommended file is created, no older link of the chain appears.
     expect(existsSync(deprecatedMcpPath(ctx))).toBe(false);
     expect(existsSync(legacyMcpPath(ctx))).toBe(false);
@@ -1256,7 +1265,7 @@ describe("codebuddy installer MCP file chain", () => {
     expect(existsSync(mcpPath(ctx))).toBe(false);
     const servers = readJson(deprecatedMcpPath(ctx)).mcpServers;
     expect(servers.affine).toBeDefined();
-    expect(servers.hindsight).toBeDefined();
+    expect(servers.agentstratum).toBeDefined();
   });
 
   it("falls through to the legacy ~/.codebuddy.json when it is the only file present", () => {
@@ -1264,7 +1273,7 @@ describe("codebuddy installer MCP file chain", () => {
     writeJsonAt(legacyMcpPath(ctx), { mcpServers: { affine: { command: "npx" } }, projects: {} });
     expect(run(["install", "codebuddy"], ctx)).toBe(0);
     const cfg = readJson(legacyMcpPath(ctx));
-    expect(cfg.mcpServers.hindsight).toBeDefined();
+    expect(cfg.mcpServers.agentstratum).toBeDefined();
     expect(cfg.projects).toEqual({});
     expect(existsSync(mcpPath(ctx))).toBe(false);
   });
@@ -1277,7 +1286,7 @@ describe("codebuddy installer MCP file chain", () => {
     expect(readJson(settingsPath(ctx)).hooks).toBeUndefined();
     const servers = readJson(deprecatedMcpPath(ctx)).mcpServers;
     expect(servers.affine).toBeDefined();
-    expect(servers.hindsight).toBeUndefined();
+    expect(servers.agentstratum).toBeUndefined();
   });
 
   it("uninstall sweeps our entry from every chain link, keeping foreign servers", () => {
@@ -1288,14 +1297,14 @@ describe("codebuddy installer MCP file chain", () => {
     writeJsonAt(deprecatedMcpPath(ctx), {
       mcpServers: {
         affine: { command: "npx" },
-        hindsight: { command: "node", args: [join(ctx.dist, "mcp-server.js")] },
+        agentstratum: { command: "node", args: [join(ctx.dist, "mcp-server.js")] },
       },
     });
     expect(run(["uninstall", "codebuddy"], ctx)).toBe(0);
     expect(readJson(mcpPath(ctx)).mcpServers).toBeUndefined();
     const deprecated = readJson(deprecatedMcpPath(ctx)).mcpServers;
     expect(deprecated.affine).toBeDefined();
-    expect(deprecated.hindsight).toBeUndefined();
+    expect(deprecated.agentstratum).toBeUndefined();
   });
 });
 
@@ -1317,9 +1326,9 @@ describe("codex installer", () => {
     run(["install", "codex"], ctx);
     const toml = readFileSync(tomlPath(ctx), "utf8");
     expect(toml).toContain("[features]\nhooks = true");
-    expect(toml).toContain("[mcp_servers.hindsight]");
+    expect(toml).toContain("[mcp_servers.agentstratum]");
     expect(toml).toContain(join(ctx.dist, "mcp-server.js"));
-    expect(toml).toContain('env = { HINDSIGHT_MCP_HARNESS = "codex" }');
+    expect(toml).toContain('env = { AGENTSTRATUM_MCP_HARNESS = "codex" }');
   });
 
   it("does NOT duplicate an existing [features] section (only appends mcp) and backs up the toml", () => {
@@ -1331,8 +1340,8 @@ describe("codex installer", () => {
     const toml = readFileSync(tomlPath(ctx), "utf8");
     expect(toml.match(/^\[features\]/gm)).toHaveLength(1);
     expect(toml).not.toContain("hooks = true"); // user is told to add it manually
-    expect(toml).toContain("[mcp_servers.hindsight]");
-    expect(readFileSync(`${tomlPath(ctx)}.hindsight-backup`, "utf8")).toBe(original);
+    expect(toml).toContain("[mcp_servers.agentstratum]");
+    expect(readFileSync(`${tomlPath(ctx)}.agentstratum-backup`, "utf8")).toBe(original);
   });
 
   it("appends nothing features-related when hooks is already present", () => {
@@ -1343,11 +1352,11 @@ describe("codex installer", () => {
     const toml = readFileSync(tomlPath(ctx), "utf8");
     expect(toml.match(/hooks/g)).toHaveLength(1);
     expect(toml.match(/^\[features\]/gm)).toHaveLength(1);
-    expect(toml).toContain("[mcp_servers.hindsight]");
+    expect(toml).toContain("[mcp_servers.agentstratum]");
   });
 
   // Regression: Codex sessions ingested documents tagged `harness:claude-code`. Its registration
-  // carried no HINDSIGHT_MCP_HARNESS, and install skipped whenever a block already existed — so
+  // carried no AGENTSTRATUM_MCP_HARNESS, and install skipped whenever a block already existed — so
   // the stale, harness-less block survived every re-install and the shared mcp-server.js kept
   // falling back to claude-code for the bank AND the retain stamp.
   it("re-install REPLACES a harness-less mcp block instead of leaving it stale", () => {
@@ -1355,22 +1364,22 @@ describe("codex installer", () => {
     mkdirSync(join(ctx.home, ".codex"), { recursive: true });
     writeFileSync(
       tomlPath(ctx),
-      '[features]\nhooks = true\n\n[mcp_servers.hindsight]\ncommand = "node"\n' +
+      '[features]\nhooks = true\n\n[mcp_servers.agentstratum]\ncommand = "node"\n' +
         `args = ["${join(ctx.dist, "mcp-server.js")}"]\n\n[ui]\ntheme = "dark"\n`
     );
     run(["install", "codex"], ctx);
     const toml = readFileSync(tomlPath(ctx), "utf8");
-    expect(toml.match(/^\[mcp_servers\.hindsight\]/gm)).toHaveLength(1);
-    expect(toml).toContain('env = { HINDSIGHT_MCP_HARNESS = "codex" }');
+    expect(toml.match(/^\[mcp_servers\.agentstratum\]/gm)).toHaveLength(1);
+    expect(toml).toContain('env = { AGENTSTRATUM_MCP_HARNESS = "codex" }');
     expect(toml).toContain('[ui]\ntheme = "dark"'); // foreign sections survive the rewrite
   });
 
-  it("uninstall removes the mcp_servers.hindsight block and leaves the rest of the toml", () => {
+  it("uninstall removes the mcp_servers.agentstratum block and leaves the rest of the toml", () => {
     const ctx = makeCtx();
     run(["install", "codex"], ctx);
     run(["uninstall", "codex"], ctx);
     const toml = readFileSync(tomlPath(ctx), "utf8");
-    expect(toml).not.toContain("[mcp_servers.hindsight]");
+    expect(toml).not.toContain("[mcp_servers.agentstratum]");
     expect(toml).toContain("hooks = true"); // flag deliberately left in place
     const hooks = readJson(hooksPath(ctx)).hooks;
     expect(Object.keys(hooks)).toHaveLength(0);
@@ -1386,10 +1395,10 @@ describe("cline-cli installer", () => {
     const ctx = makeCtx();
     expect(run(["install", "cline-cli"], ctx)).toBe(0);
     expect(ctx.clinePlugin).toHaveBeenCalledWith(["plugin", "install", "--force", ctx.pkgRoot]);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toEqual({
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toEqual({
       command: "node",
       args: [join(ctx.dist, "mcp-server.js")],
-      env: { HINDSIGHT_MCP_HARNESS: "cline-cli" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "cline-cli" },
     });
   });
 
@@ -1399,7 +1408,7 @@ describe("cline-cli installer", () => {
     mkdirSync(dirname(foreign), { recursive: true });
     writeFileSync(foreign, "#!/usr/bin/env sh\necho foreign\n");
     const legacy = join(hooksDir(ctx), "UserPromptSubmit");
-    writeFileSync(legacy, "#!/usr/bin/env sh\n# HINDSIGHT_CODING_AGENTS_CLINE\n");
+    writeFileSync(legacy, "#!/usr/bin/env sh\n# AGENTSTRATUM_CODING_AGENTS_CLINE\n");
     run(["install", "cline-cli"], ctx);
     expect(readFileSync(foreign, "utf8")).toContain("foreign");
     expect(existsSync(legacy)).toBe(false);
@@ -1408,9 +1417,9 @@ describe("cline-cli installer", () => {
     expect(ctx.clinePlugin).toHaveBeenLastCalledWith([
       "plugin",
       "uninstall",
-      "@vectorize-io/hindsight-coding-agents",
+      "agentstratum-coding-agents",
     ]);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toBeUndefined();
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toBeUndefined();
   });
 });
 
@@ -1424,7 +1433,7 @@ describe("dsh installer", () => {
     // A bare absolute path is not a module specifier: Cordis would fail to resolve it and skip
     // the plugin silently, which is exactly the Kilo trap this asserts against.
     expect(patch).toContain(`name: "${pathToFileURL(join(ctx.dist, "dsh.js")).href}"`);
-    expect(patch).toContain("- id: hindsight");
+    expect(patch).toContain("- id: agentstratum");
   });
 
   it("replaces its own block on re-install and preserves the user's other patches", () => {
@@ -1435,7 +1444,7 @@ describe("dsh installer", () => {
     run(["install", "dsh"], ctx);
     const patch = readFileSync(patchPath(ctx), "utf8");
     expect(patch).toContain("provider: deepseek");
-    expect(patch.match(/- id: hindsight/g)).toHaveLength(1);
+    expect(patch.match(/- id: agentstratum/g)).toHaveLength(1);
   });
 
   it("uninstall leaves a valid empty patch list rather than an unparsable file", () => {
@@ -1458,8 +1467,8 @@ describe("dsh installer", () => {
     // file as a top-level array, refuses that, and then fails BOOT for EVERY profile.
     expect(patch).not.toContain("[]");
     // Nothing precedes our block: the file opens on our marker, not on a stray `[]` document.
-    expect(patch.trim().startsWith("# HINDSIGHT_CODING_AGENTS_DSH_START")).toBe(true);
-    expect(patch.match(/- id: hindsight/g)).toHaveLength(1);
+    expect(patch.trim().startsWith("# AGENTSTRATUM_CODING_AGENTS_DSH_START")).toBe(true);
+    expect(patch.match(/- id: agentstratum/g)).toHaveLength(1);
   });
 
   it("repairs a home layer an earlier version already corrupted with a leading `[]`", () => {
@@ -1472,7 +1481,7 @@ describe("dsh installer", () => {
     // A re-install is the documented repair for a moved package, so it has to heal this too —
     // otherwise the machine stays unbootable with no way out but hand-editing the file.
     expect(patch).not.toContain("[]");
-    expect(patch.match(/- id: hindsight/g)).toHaveLength(1);
+    expect(patch.match(/- id: agentstratum/g)).toHaveLength(1);
   });
 
   it("uninstall keeps the user's own patches", () => {
@@ -1483,7 +1492,7 @@ describe("dsh installer", () => {
     run(["uninstall", "dsh"], ctx);
     const patch = readFileSync(patchPath(ctx), "utf8");
     expect(patch).toContain("provider: deepseek");
-    expect(patch).not.toContain("hindsight");
+    expect(patch).not.toContain("agentstratum");
   });
 });
 
@@ -1493,7 +1502,7 @@ describe("antigravity-cli installer", () => {
     const hooksPath = join(ctx.home, ".gemini", "config", "hooks.json");
     // Exactly what a marker rename produced: our old namespace, still pointing at a stale path.
     writeJsonAt(hooksPath, {
-      "hindsight-coding-agents": {
+      "agentstratum-coding-agents": {
         PreInvocation: [{ command: 'node "/old/path/coding-agents/dist/antigravity-hook.js"' }],
       },
       "someone-elses-bundle": { PreInvocation: [{ command: "echo other" }] },
@@ -1502,7 +1511,7 @@ describe("antigravity-cli installer", () => {
 
     const hooks = readJson(hooksPath);
     // The stale namespace is gone — otherwise Antigravity fires every hook twice.
-    expect(hooks["hindsight-coding-agents"]).toBeUndefined();
+    expect(hooks["agentstratum-coding-agents"]).toBeUndefined();
     expect(hooks[MARKER]).toBeDefined();
     expect(JSON.stringify(hooks)).not.toContain("/old/path/");
     // An unrelated bundle is untouched.
@@ -1514,7 +1523,7 @@ describe("antigravity-cli installer", () => {
   const settingsPath = (ctx: InstallCtx) =>
     join(ctx.home, ".gemini", "antigravity-cli", "settings.json");
 
-  it("installs PreInvocation and Stop hooks plus mcpServers.hindsight", () => {
+  it("installs PreInvocation and Stop hooks plus mcpServers.agentstratum", () => {
     const ctx = makeCtx();
     expect(run(["install", "antigravity-cli"], ctx)).toBe(0);
     const hooks = readJson(hooksPath(ctx));
@@ -1522,10 +1531,10 @@ describe("antigravity-cli installer", () => {
     expect(hooks[MARKER].PreInvocation[0].timeout).toBe(30);
     expect(hooks[MARKER].Stop[0].command).toContain("antigravity-stop-hook.js");
     expect(hooks[MARKER].Stop[0].timeout).toBe(30);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toEqual({
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toEqual({
       command: "node",
       args: [join(ctx.dist, "mcp-server.js")],
-      env: { HINDSIGHT_MCP_HARNESS: "antigravity-cli" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "antigravity-cli" },
     });
     expect(readJson(settingsPath(ctx)).statusLine).toEqual({
       type: "command",
@@ -1536,7 +1545,7 @@ describe("antigravity-cli installer", () => {
   it("accepts agy as the supported CLI name", () => {
     const ctx = makeCtx();
     expect(run(["install", "agy"], ctx)).toBe(0);
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight.env.HINDSIGHT_MCP_HARNESS).toBe(
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum.env.AGENTSTRATUM_MCP_HARNESS).toBe(
       "antigravity-cli"
     );
   });
@@ -1564,7 +1573,7 @@ describe("antigravity-cli installer", () => {
     run(["uninstall", "antigravity-cli"], ctx);
     expect(readJson(hooksPath(ctx))).toEqual({});
     const mcp = readJson(mcpPath(ctx));
-    expect(mcp.mcpServers.hindsight).toBeUndefined();
+    expect(mcp.mcpServers.agentstratum).toBeUndefined();
     expect(mcp.mcpServers.other).toEqual({ command: "other-tool" });
     expect(JSON.stringify(mcp)).not.toContain(MARKER);
     expect(readJson(settingsPath(ctx)).statusLine).toBeUndefined();
@@ -1891,7 +1900,7 @@ describe("pi-family companion skill", () => {
     mkdirSync(join(pkgRoot, "skill"), { recursive: true });
     writeFileSync(
       join(pkgRoot, "skill", "SKILL.md"),
-      "---\nname: hindsight-coding-agent\n---\nbody"
+      "---\nname: agentstratum-coding-agent\n---\nbody"
     );
     return { home, pkgRoot, dist: join(pkgRoot, "dist"), claudeMcp: vi.fn(() => true) };
   }
@@ -1902,9 +1911,9 @@ describe("pi-family companion skill", () => {
       const ctx = ctxWithSkill();
       const base = join(ctx.home, ...dir);
       run(["install", harness], ctx);
-      expect(existsSync(join(base, "hindsight-coding-agent", "SKILL.md"))).toBe(true);
+      expect(existsSync(join(base, "agentstratum-coding-agent", "SKILL.md"))).toBe(true);
       run(["uninstall", harness], ctx);
-      expect(existsSync(join(base, "hindsight-coding-agent"))).toBe(false);
+      expect(existsSync(join(base, "agentstratum-coding-agent"))).toBe(false);
     }
   );
 
@@ -1913,7 +1922,7 @@ describe("pi-family companion skill", () => {
     (harness) => {
       const ctx = ctxWithSkill();
       run(["install", "codex"], ctx);
-      const shared = join(ctx.home, ".agents", "skills", "hindsight-coding-agent");
+      const shared = join(ctx.home, ".agents", "skills", "agentstratum-coding-agent");
       expect(existsSync(shared)).toBe(true);
 
       run(["install", harness], ctx);
@@ -1928,7 +1937,7 @@ describe("pi-family companion skill", () => {
     const ctx = ctxWithSkill();
     run(["install", "pi"], ctx);
     run(["install", "prime-agent"], ctx);
-    const primeSkill = join(ctx.home, ".prime", "agent", "skills", "hindsight-coding-agent");
+    const primeSkill = join(ctx.home, ".prime", "agent", "skills", "agentstratum-coding-agent");
     expect(existsSync(primeSkill)).toBe(true);
 
     run(["uninstall", "pi"], ctx);
@@ -1942,7 +1951,7 @@ describe("pi-family companion skill", () => {
  * other's, reports the wrong harness, and stamps it on every document it retains. It named Prime
  * Agent's until pi got an entry of its own, which is exactly how pi mis-attributed.
  *
- * `hindsight-coding-agents install pi|prime-agent` is the supported route for both, so the key is
+ * `agentstratum-coding-agents install pi|prime-agent` is the supported route for both, so the key is
  * gone. Re-adding it would be silent: nothing in this package reads it, the wrong attribution only
  * shows up later on retained documents, and it looks like the obvious way to support `pi install`.
  */
@@ -2003,10 +2012,10 @@ describe("cursor-cli installer", () => {
     expect(hooks.stop[0].command).toContain(join(ctx.dist, "cursor-stop-hook.js"));
     expect(hooks.stop[0].timeout).toBe(30);
     const mcp = readJson(mcpPath(ctx));
-    expect(mcp.mcpServers.hindsight).toEqual({
+    expect(mcp.mcpServers.agentstratum).toEqual({
       command: "node",
       args: [join(ctx.dist, "mcp-server.js"), "${workspaceFolder}"],
-      env: { HINDSIGHT_MCP_HARNESS: "cursor-cli" },
+      env: { AGENTSTRATUM_MCP_HARNESS: "cursor-cli" },
     });
   });
 
@@ -2015,7 +2024,7 @@ describe("cursor-cli installer", () => {
     run(["install", "cursor-cli"], ctx);
     run(["uninstall", "cursor-cli"], ctx);
     expect(readJson(hooksPath(ctx)).hooks).toBeUndefined();
-    expect(readJson(mcpPath(ctx)).mcpServers.hindsight).toBeUndefined();
+    expect(readJson(mcpPath(ctx)).mcpServers.agentstratum).toBeUndefined();
   });
 
   it("fills in a missing schema version on reinstall without clobbering one already present", () => {
@@ -2041,7 +2050,7 @@ describe("cursor-cli installer", () => {
 
 describe("grok-build installer", () => {
   const configPath = (ctx: InstallCtx) => join(ctx.home, ".grok", "config.toml");
-  const hooksPath = (ctx: InstallCtx) => join(ctx.home, ".grok", "hooks", "hindsight.json");
+  const hooksPath = (ctx: InstallCtx) => join(ctx.home, ".grok", "hooks", "agentstratum.json");
 
   it("re-install REPLACES the block so a moved package is repointed, not left stale", () => {
     const ctx = makeCtx();
@@ -2055,7 +2064,7 @@ describe("grok-build installer", () => {
     expect(toml).toContain(join("/opt", MARKER, "moved-dist"));
     expect(toml).not.toContain(ctx.dist); // the old path is gone, not merely appended past
     // Exactly one block — a replace, not an accumulation.
-    expect(toml.match(/HINDSIGHT_CODING_AGENTS_GROK_START/g)).toHaveLength(1);
+    expect(toml.match(/AGENTSTRATUM_CODING_AGENTS_GROK_START/g)).toHaveLength(1);
     const hooks = readFileSync(hooksPath(ctx), "utf8");
     expect(hooks).toContain(join("/opt", MARKER, "moved-dist"));
     expect(hooks).not.toContain(ctx.dist);
@@ -2100,20 +2109,20 @@ describe("grok-build installer", () => {
     });
     const config = readFileSync(configPath(ctx), "utf8");
     expect(parseToml(config)).not.toHaveProperty("hooks");
-    expect(config).toContain("[mcp_servers.hindsight]");
+    expect(config).toContain("[mcp_servers.agentstratum]");
     expect(config).toContain(join(ctx.dist, "mcp-server.js"));
-    expect(config).toContain('env = { HINDSIGHT_MCP_HARNESS = "grok-build" }');
+    expect(config).toContain('env = { AGENTSTRATUM_MCP_HARNESS = "grok-build" }');
     expect(existsSync(join(ctx.home, ".claude"))).toBe(false);
   });
 
   // A config written before the markers existed (or hand-edited so they were lost) keeps an
-  // unmarked `[mcp_servers.hindsight]` + hook entries. TOML forbids redefining a table, so
+  // unmarked `[mcp_servers.agentstratum]` + hook entries. TOML forbids redefining a table, so
   // appending on top of them made the whole file unparsable and disabled every MCP server.
   const legacyToml = (dist: string) =>
     `[ui]\ntheme = "dark"\n\n` +
     `[[hooks.SessionStart]]\n  [[hooks.SessionStart.hooks]]\n  type = "command"\n  command = "node \\"${join(dist, "grok-sessionstart-hook.js")}\\""\n  timeout = 30\n\n` +
     `[[hooks.UserPromptSubmit]]\n  [[hooks.UserPromptSubmit.hooks]]\n  type = "command"\n  command = "node \\"${join(dist, "grok-hook.js")}\\""\n  timeout = 30\n\n` +
-    `[mcp_servers.hindsight]\ncommand = "node"\nargs = ["${join(dist, "mcp-server.js")}"]\n`;
+    `[mcp_servers.agentstratum]\ncommand = "node"\nargs = ["${join(dist, "mcp-server.js")}"]\n`;
 
   it("replaces an unmarked legacy block instead of duplicating the TOML tables", () => {
     const ctx = makeCtx();
@@ -2124,8 +2133,8 @@ describe("grok-build installer", () => {
     const toml = readFileSync(configPath(ctx), "utf8");
     // The whole point: the file still parses. A duplicate table makes Grok drop every MCP server.
     const parsed = parseToml(toml) as any;
-    expect(Object.keys(parsed.mcp_servers)).toEqual(["hindsight"]);
-    expect(toml.match(/\[mcp_servers\.hindsight\]/g)).toHaveLength(1);
+    expect(Object.keys(parsed.mcp_servers)).toEqual(["agentstratum"]);
+    expect(toml.match(/\[mcp_servers\.agentstratum\]/g)).toHaveLength(1);
     expect(parsed).not.toHaveProperty("hooks");
     expect(toml).not.toContain(join("/opt", MARKER, "old-dist"));
     expect(toml).toContain(join(ctx.dist, "mcp-server.js"));
@@ -2149,7 +2158,7 @@ describe("grok-build installer", () => {
     expect(parsed.hooks.Stop[0].hooks[0].command).toBe("my-own-script");
     expect(toml).toContain('[mcp_servers.other]\ncommand = "other-server"');
     expect(toml).toContain('command = "my-own-script"');
-    expect(toml.match(/\[mcp_servers\.hindsight\]/g)).toHaveLength(1);
+    expect(toml.match(/\[mcp_servers\.agentstratum\]/g)).toHaveLength(1);
   });
 
   // The reported end state (#4295): the duplicate already exists, so config.toml no longer parses
@@ -2162,7 +2171,7 @@ describe("grok-build installer", () => {
     run(["install", "grok-build"], ctx);
     // Re-create the pre-fix damage: the marked block appended on top of the untouched legacy one.
     const installed = readFileSync(configPath(ctx), "utf8");
-    const marked = installed.slice(installed.indexOf("# HINDSIGHT_CODING_AGENTS_GROK_START"));
+    const marked = installed.slice(installed.indexOf("# AGENTSTRATUM_CODING_AGENTS_GROK_START"));
     const broken = `${legacy}\n${marked}`;
     expect(() => parseToml(broken)).toThrow();
     writeFileSync(configPath(ctx), broken);
@@ -2170,9 +2179,9 @@ describe("grok-build installer", () => {
     expect(run(["install", "grok-build"], ctx)).toBe(0);
     const toml = readFileSync(configPath(ctx), "utf8");
     const parsed = parseToml(toml) as any;
-    expect(Object.keys(parsed.mcp_servers)).toEqual(["hindsight"]);
-    expect(parsed.mcp_servers.hindsight.args).toEqual([join(ctx.dist, "mcp-server.js")]);
-    expect(toml.match(/HINDSIGHT_CODING_AGENTS_GROK_START/g)).toHaveLength(1);
+    expect(Object.keys(parsed.mcp_servers)).toEqual(["agentstratum"]);
+    expect(parsed.mcp_servers.agentstratum.args).toEqual([join(ctx.dist, "mcp-server.js")]);
+    expect(toml.match(/AGENTSTRATUM_CODING_AGENTS_GROK_START/g)).toHaveLength(1);
   });
 
   it("uninstall removes an unmarked legacy block too", () => {
@@ -2183,7 +2192,7 @@ describe("grok-build installer", () => {
 
     const toml = readFileSync(configPath(ctx), "utf8");
     expect(parseToml(toml)).toEqual({ ui: { theme: "dark" } });
-    expect(toml).not.toContain("[mcp_servers.hindsight]");
+    expect(toml).not.toContain("[mcp_servers.agentstratum]");
     expect(toml).not.toContain("grok-sessionstart-hook.js");
     expect(toml).toContain('[ui]\ntheme = "dark"');
   });
@@ -2194,16 +2203,16 @@ describe("grok-build installer", () => {
     const old = join("/opt", MARKER, "old-dist");
     writeFileSync(
       configPath(ctx),
-      '[ui]\ntheme = "dark"\n\n# HINDSIGHT_CODING_AGENTS_GROK_START\n' +
+      '[ui]\ntheme = "dark"\n\n# AGENTSTRATUM_CODING_AGENTS_GROK_START\n' +
         `${legacyToml(old).slice('[ui]\ntheme = "dark"\n\n'.length)}` +
-        `env = { HINDSIGHT_MCP_HARNESS = "grok-build" }\n# HINDSIGHT_CODING_AGENTS_GROK_END\n`
+        `env = { AGENTSTRATUM_MCP_HARNESS = "grok-build" }\n# AGENTSTRATUM_CODING_AGENTS_GROK_END\n`
     );
     expect(run(["install", "grok-build"], ctx)).toBe(0);
 
     const parsed = parseToml(readFileSync(configPath(ctx), "utf8")) as any;
     expect(parsed).not.toHaveProperty("hooks");
     expect(parsed.ui).toEqual({ theme: "dark" });
-    expect(parsed.mcp_servers.hindsight.args).toEqual([join(ctx.dist, "mcp-server.js")]);
+    expect(parsed.mcp_servers.agentstratum.args).toEqual([join(ctx.dist, "mcp-server.js")]);
     expect(Object.keys(readJson(hooksPath(ctx)).hooks)).toEqual([
       "SessionStart",
       "UserPromptSubmit",
@@ -2263,8 +2272,8 @@ describe("grok-build installer", () => {
     run(["uninstall", "grok-build"], ctx);
     const config = readFileSync(configPath(ctx), "utf8");
     expect(config).toContain('[ui]\ntheme = "dark"');
-    expect(config).not.toContain("HINDSIGHT_CODING_AGENTS_GROK");
-    expect(config).not.toContain("[mcp_servers.hindsight]");
+    expect(config).not.toContain("AGENTSTRATUM_CODING_AGENTS_GROK");
+    expect(config).not.toContain("[mcp_servers.agentstratum]");
   });
 });
 
@@ -2272,19 +2281,25 @@ describe("dcode installer", () => {
   it("uses Dcode's native marketplace and plugin commands", () => {
     const ctx = makeCtx();
     expect(run(["install", "dcode"], ctx)).toBe(0);
-    const marketplacePath = join(ctx.home, ".hindsight", ".agents", "plugins", "marketplace.json");
+    const marketplacePath = join(
+      ctx.home,
+      ".agentstratum",
+      ".agents",
+      "plugins",
+      "marketplace.json"
+    );
     expect(readJson(marketplacePath)).toMatchObject({
-      name: "hindsight-coding-agents",
+      name: "agentstratum-coding-agents",
       plugins: [
         {
-          name: "hindsight-coding-agents",
+          name: "agentstratum-coding-agents",
           source: { source: "local", path: "./coding-agents" },
         },
       ],
     });
     expect(ctx.dcodePlugin.mock.calls.map(([args]) => args)).toEqual([
-      ["plugin", "marketplace", "add", join(ctx.home, ".hindsight")],
-      ["plugin", "install", "hindsight-coding-agents@hindsight-coding-agents"],
+      ["plugin", "marketplace", "add", join(ctx.home, ".agentstratum")],
+      ["plugin", "install", "agentstratum-coding-agents@agentstratum-coding-agents"],
     ]);
     expect(ctx.claudeMcp).not.toHaveBeenCalled();
     expect(existsSync(join(ctx.home, ".deepagents"))).toBe(false);
@@ -2292,19 +2307,25 @@ describe("dcode installer", () => {
 
   it("merges the marketplace without dropping foreign entries", () => {
     const ctx = makeCtx();
-    const path = join(ctx.home, ".hindsight", ".agents", "plugins", "marketplace.json");
+    const path = join(ctx.home, ".agentstratum", ".agents", "plugins", "marketplace.json");
     const foreign = { name: "other-plugin", source: { source: "github", repo: "acme/other" } };
-    writeJsonAt(path, { name: "hindsight-coding-agents", plugins: [foreign] });
+    writeJsonAt(path, { name: "agentstratum-coding-agents", plugins: [foreign] });
     expect(run(["install", "dcode"], ctx)).toBe(0);
     expect(readJson(path).plugins).toEqual([
       foreign,
-      { name: "hindsight-coding-agents", source: { source: "local", path: "./coding-agents" } },
+      { name: "agentstratum-coding-agents", source: { source: "local", path: "./coding-agents" } },
     ]);
   });
 
   it("isolates from a foreign marketplace name instead of rewriting it", () => {
     const ctx = makeCtx();
-    const conventionalPath = join(ctx.home, ".hindsight", ".agents", "plugins", "marketplace.json");
+    const conventionalPath = join(
+      ctx.home,
+      ".agentstratum",
+      ".agents",
+      "plugins",
+      "marketplace.json"
+    );
     const foreignMarketplace = {
       name: "team-marketplace",
       plugins: [{ name: "other-plugin", source: { source: "github", repo: "acme/other" } }],
@@ -2313,12 +2334,16 @@ describe("dcode installer", () => {
 
     expect(run(["install", "dcode"], ctx)).toBe(0);
     expect(readJson(conventionalPath)).toEqual(foreignMarketplace);
-    const fallbackPath = join(ctx.home, ".hindsight", "hindsight-coding-agents-marketplace.json");
+    const fallbackPath = join(
+      ctx.home,
+      ".agentstratum",
+      "agentstratum-coding-agents-marketplace.json"
+    );
     expect(readJson(fallbackPath)).toMatchObject({
-      name: "hindsight-coding-agents",
+      name: "agentstratum-coding-agents",
       plugins: [
         {
-          name: "hindsight-coding-agents",
+          name: "agentstratum-coding-agents",
           source: { source: "local", path: "./coding-agents" },
         },
       ],
@@ -2346,7 +2371,7 @@ describe("dcode installer", () => {
 
   it("continues a literal install all when Dcode fails", () => {
     const ctx = makeCtx();
-    const binDir = mkdtempSync(join(tmpdir(), "hindsight-installer-bin-"));
+    const binDir = mkdtempSync(join(tmpdir(), "agentstratum-installer-bin-"));
     homes.push(binDir);
     writeFileSync(join(binDir, "dcode"), "", { mode: 0o755 });
     writeFileSync(join(binDir, "claude"), "", { mode: 0o755 });
@@ -2364,8 +2389,8 @@ describe("dcode installer", () => {
     // registered — our own leftovers in Dcode's state. Only the marketplace WE named is removed,
     // so a foreign one at the conventional path is untouched.
     expect(ctx.dcodePlugin.mock.calls.map(([args]) => args)).toEqual([
-      ["plugin", "uninstall", "hindsight-coding-agents@hindsight-coding-agents"],
-      ["plugin", "marketplace", "remove", "hindsight-coding-agents"],
+      ["plugin", "uninstall", "agentstratum-coding-agents@agentstratum-coding-agents"],
+      ["plugin", "marketplace", "remove", "agentstratum-coding-agents"],
     ]);
   });
 
@@ -2377,7 +2402,7 @@ describe("dcode installer", () => {
     // The plugin is gone, which is what "uninstalled" means; the stale marketplace is reported
     // with the command to clear it rather than failing the whole run.
     expect(run(["uninstall", "dcode"], ctx)).toBe(0);
-    expect(logs.join("\n")).toContain("dcode plugin marketplace remove hindsight-coding-agents");
+    expect(logs.join("\n")).toContain("dcode plugin marketplace remove agentstratum-coding-agents");
   });
 });
 
@@ -2413,20 +2438,20 @@ describe("run() CLI behavior", () => {
     expect(existsSync(join(ctx.home, ".config", "opencode", "opencode.json"))).toBe(true);
   });
 
-  it("first write to a pre-existing json creates <file>.hindsight-backup with the original content", () => {
+  it("first write to a pre-existing json creates <file>.agentstratum-backup with the original content", () => {
     const ctx = makeCtx();
     const path = join(ctx.home, ".gemini", "config", "hooks.json");
     writeJsonAt(path, { auth: { selectedType: "oauth" } });
     const original = readFileSync(path, "utf8");
     run(["install", "antigravity-cli"], ctx);
     run(["install", "antigravity-cli"], ctx); // second write must NOT overwrite the backup
-    expect(readFileSync(`${path}.hindsight-backup`, "utf8")).toBe(original);
+    expect(readFileSync(`${path}.agentstratum-backup`, "utf8")).toBe(original);
   });
 
   it("MARKER identifies our entries under BOTH the npm and repo-checkout layouts", () => {
     // Dedupe-on-reinstall and uninstall both key off this substring appearing in the package path.
-    // It silently stopped matching a checkout when the directory dropped its `hindsight-` prefix.
-    expect("/usr/lib/node_modules/@vectorize-io/hindsight-coding-agents/dist").toContain(MARKER);
+    // It silently stopped matching a checkout when the directory dropped its `agentstratum-` prefix.
+    expect("/usr/lib/node_modules/agentstratum-coding-agents/dist").toContain(MARKER);
     expect("/repo/hindsight-integrations/coding-agents/dist").toContain(MARKER);
   });
 
@@ -2475,8 +2500,8 @@ describe("run() CLI behavior", () => {
 
 /**
  * Every host launches the SAME `dist/mcp-server.js`, so the command line cannot say who is calling
- * — only `HINDSIGHT_MCP_HARNESS` can. A registration that omits it silently inherits the server's
- * claude-code fallback, which is how a Codex `hindsight_ingest_document` was stored tagged
+ * — only `AGENTSTRATUM_MCP_HARNESS` can. A registration that omits it silently inherits the server's
+ * claude-code fallback, which is how a Codex `agentstratum_ingest_document` was stored tagged
  * `harness:claude-code` on a machine running both (#3603).
  *
  * Swept over INSTALLERS rather than a hand-written list of config paths: the harness that gets this
@@ -2522,7 +2547,7 @@ describe("MCP registrations name the calling harness", () => {
         .filter((text) => text.includes("mcp-server.js")),
     ];
     expect(registrations.length).toBeGreaterThan(0);
-    for (const text of registrations) expect(text).toContain(`HINDSIGHT_MCP_HARNESS`);
+    for (const text of registrations) expect(text).toContain(`AGENTSTRATUM_MCP_HARNESS`);
     for (const text of registrations) expect(text).toContain(harness);
   });
 });
@@ -2630,7 +2655,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, fakePackage(join(cache, "_npx", "abc123", "node_modules", "coding-agents")));
 
     expect(run(["install", "claude-code"], ctx)).toBe(0);
-    const staged = join(ctx.home, ".hindsight", "coding-agents");
+    const staged = join(ctx.home, ".agentstratum", "coding-agents");
     const command = readJson(join(ctx.home, ".claude", "settings.json")).hooks.SessionStart[0]
       .hooks[0].command as string;
     expect(command).toContain(join(staged, "dist"));
@@ -2648,7 +2673,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, fakePackage(src));
 
     run(["install", "claude-code"], ctx);
-    expect(join(ctx.home, ".hindsight", "coding-agents")).toContain(MARKER);
+    expect(join(ctx.home, ".agentstratum", "coding-agents")).toContain(MARKER);
     run(["uninstall", "claude-code"], ctx);
     expect(readJson(join(ctx.home, ".claude", "settings.json")).hooks).toBeUndefined();
   });
@@ -2660,7 +2685,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, fakePackage(src));
 
     run(["install", "opencode"], ctx);
-    const staged = join(ctx.home, ".hindsight", "coding-agents");
+    const staged = join(ctx.home, ".agentstratum", "coding-agents");
     expect(existsSync(join(staged, "package.json"))).toBe(true);
     expect(existsSync(join(staged, "skill", "SKILL.md"))).toBe(true);
     const cfg = readJson(join(ctx.home, ".config", "opencode", "opencode.json"));
@@ -2682,7 +2707,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, { pkgRoot: v2, dist: join(v2, "dist") });
     run(["install", "claude-code"], ctx);
 
-    const staged = join(ctx.home, ".hindsight", "coding-agents", "dist");
+    const staged = join(ctx.home, ".agentstratum", "coding-agents", "dist");
     expect(existsSync(join(staged, "new-only.js"))).toBe(true);
     // Merging instead of replacing would leave an entry point a host config could still name.
     expect(existsSync(join(staged, "old-only.js"))).toBe(false);
@@ -2699,7 +2724,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, { pkgRoot: src, dist: join(src, "dist") });
     run(["install", "claude-code"], ctx);
 
-    const staged = join(ctx.home, ".hindsight", "coding-agents");
+    const staged = join(ctx.home, ".agentstratum", "coding-agents");
     Object.assign(ctx, { pkgRoot: staged, dist: join(staged, "dist") });
     expect(run(["install", "claude-code"], ctx)).toBe(0);
     expect(existsSync(join(staged, "dist", "installer.js"))).toBe(true);
@@ -2724,7 +2749,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, { pkgRoot: v2, dist: join(v2, "dist") });
     expect(run(["update"], ctx)).toBe(0);
 
-    const staged = join(ctx.home, ".hindsight", "coding-agents", "dist");
+    const staged = join(ctx.home, ".agentstratum", "coding-agents", "dist");
     expect(existsSync(join(staged, "new-only.js"))).toBe(true);
     // Byte-identical: the hooks already point at the staged path, so an update has no reason to
     // rewrite them — and rewriting is exactly what would let an unattended run wire agents the
@@ -2740,7 +2765,7 @@ describe("runtime staging", () => {
     Object.assign(ctx, { pkgRoot: src, dist: join(src, "dist") });
 
     expect(run(["update"], ctx)).toBe(0);
-    expect(existsSync(join(ctx.home, ".hindsight", "coding-agents", "dist"))).toBe(true);
+    expect(existsSync(join(ctx.home, ".agentstratum", "coding-agents", "dist"))).toBe(true);
     expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
   });
 
@@ -2755,7 +2780,7 @@ describe("runtime staging", () => {
 
     run(["install", "claude-code"], ctx);
     const origin = readJson(
-      join(ctx.home, ".hindsight", "coding-agents", ".install-origin.json")
+      join(ctx.home, ".agentstratum", "coding-agents", ".install-origin.json")
     ) as { source: string };
     expect(origin.source).toBe(src);
   });
@@ -2768,7 +2793,7 @@ describe("runtime staging", () => {
     const command = readJson(join(ctx.home, ".claude", "settings.json")).hooks.SessionStart[0]
       .hooks[0].command as string;
     expect(command).toContain(ctx.dist);
-    expect(existsSync(join(ctx.home, ".hindsight", "coding-agents", "dist"))).toBe(false);
+    expect(existsSync(join(ctx.home, ".agentstratum", "coding-agents", "dist"))).toBe(false);
   });
 });
 
@@ -2779,7 +2804,7 @@ describe("skill install across skills-capable hosts", () => {
     mkdirSync(join(pkgRoot, "skill"), { recursive: true });
     writeFileSync(
       join(pkgRoot, "skill", "SKILL.md"),
-      "---\nname: hindsight-coding-agent\n---\nbody"
+      "---\nname: agentstratum-coding-agent\n---\nbody"
     );
     const ctx = {
       home,
@@ -2800,11 +2825,11 @@ describe("skill install across skills-capable hosts", () => {
     ];
     run(["install", ...targets.map(([h]) => h)], ctx);
     for (const [, base] of targets) {
-      expect(existsSync(join(base, "hindsight-coding-agent", "SKILL.md"))).toBe(true);
+      expect(existsSync(join(base, "agentstratum-coding-agent", "SKILL.md"))).toBe(true);
     }
     run(["uninstall", ...targets.map(([h]) => h)], ctx);
     for (const [, base] of targets) {
-      expect(existsSync(join(base, "hindsight-coding-agent"))).toBe(false);
+      expect(existsSync(join(base, "agentstratum-coding-agent"))).toBe(false);
     }
     rmSync(home, { recursive: true, force: true });
     rmSync(pkgRoot, { recursive: true, force: true });
@@ -2818,7 +2843,7 @@ describe("skill install across skills-capable hosts", () => {
     mkdirSync(join(pkgRoot, "skill"), { recursive: true });
     writeFileSync(
       join(pkgRoot, "skill", "SKILL.md"),
-      "---\nname: hindsight-coding-agent\n---\nbody"
+      "---\nname: agentstratum-coding-agent\n---\nbody"
     );
     const ctx = {
       home,
@@ -2831,10 +2856,10 @@ describe("skill install across skills-capable hosts", () => {
     run(["install", "codex", "prime-agent"], ctx);
     run(["uninstall", "prime-agent"], ctx);
 
-    expect(existsSync(join(home, ".agents", "skills", "hindsight-coding-agent", "SKILL.md"))).toBe(
-      true
-    );
-    expect(existsSync(join(home, ".prime", "agent", "skills", "hindsight-coding-agent"))).toBe(
+    expect(
+      existsSync(join(home, ".agents", "skills", "agentstratum-coding-agent", "SKILL.md"))
+    ).toBe(true);
+    expect(existsSync(join(home, ".prime", "agent", "skills", "agentstratum-coding-agent"))).toBe(
       false
     );
     rmSync(home, { recursive: true, force: true });
@@ -2897,14 +2922,14 @@ describe("devin-cli preflight", () => {
  * would block on stdin).
  */
 describe("server setup", () => {
-  const configPath = (ctx: InstallCtx) => join(ctx.home, ".hindsight", "coding-agent.json");
+  const configPath = (ctx: InstallCtx) => join(ctx.home, ".agentstratum", "coding-agent.json");
 
-  // The runtime reads HINDSIGHT_CONFIG first (core/config.ts CONFIG_PATH); the wizard must write
+  // The runtime reads AGENTSTRATUM_CONFIG first (core/config.ts CONFIG_PATH); the wizard must write
   // that same file, or a user with the var set is configured into a file sessions never read.
-  it("honors HINDSIGHT_CONFIG for both the already-configured check and the write", () => {
+  it("honors AGENTSTRATUM_CONFIG for both the already-configured check and the write", () => {
     const ctx = makeCtx();
     const override = join(ctx.home, "elsewhere", "config.json");
-    vi.stubEnv("HINDSIGHT_CONFIG", override);
+    vi.stubEnv("AGENTSTRATUM_CONFIG", override);
     try {
       expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
       expect(readJson(override).serverMode).toBe("daemon");
@@ -3016,7 +3041,7 @@ describe("server setup", () => {
       serverMode: "self-hosted" as const,
       apiUrl: "http://legacy:8888",
       apiToken: "tok",
-      source: "/home/u/.hindsight/claude-code.json",
+      source: "/home/u/.agentstratum/claude-code.json",
     });
     const logs: string[] = [];
     ctx.log = (m) => logs.push(m);
@@ -3037,16 +3062,42 @@ describe("server setup", () => {
       apiUrl: "http://legacy:8888",
       source: "/x",
     });
-    expect(run(["install", "claude-code", "--server", "cloud", "--api-token", "tok"], ctx)).toBe(0);
+    expect(
+      run(
+        [
+          "install",
+          "claude-code",
+          "--server",
+          "cloud",
+          "--api-url",
+          "https://service.example",
+          "--api-token",
+          "tok",
+        ],
+        ctx
+      )
+    ).toBe(0);
     const cfg = readJson(configPath(ctx));
     expect(cfg.serverMode).toBe("cloud");
-    expect(cfg.apiUrl).toBeUndefined();
+    expect(cfg.apiUrl).toBe("https://service.example");
   });
 
   it("--server cloud stores the required token", () => {
     const ctx = makeCtx();
     expect(
-      run(["install", "claude-code", "--server", "cloud", "--api-token", "sk-cloud"], ctx)
+      run(
+        [
+          "install",
+          "claude-code",
+          "--server",
+          "cloud",
+          "--api-url",
+          "https://service.example",
+          "--api-token",
+          "sk-cloud",
+        ],
+        ctx
+      )
     ).toBe(0);
     const cfg = readJson(configPath(ctx));
     expect(cfg.serverMode).toBe("cloud");
@@ -3059,7 +3110,12 @@ describe("server setup", () => {
     const ctx = makeCtx();
     const logs: string[] = [];
     ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code", "--server", "cloud"], ctx)).toBe(1);
+    expect(
+      run(
+        ["install", "claude-code", "--server", "cloud", "--api-url", "https://service.example"],
+        ctx
+      )
+    ).toBe(1);
     expect(logs.join("\n")).toContain("--api-token");
     expect(existsSync(configPath(ctx))).toBe(false);
     expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
@@ -3092,7 +3148,7 @@ describe("server setup", () => {
  * the skill actually landed, and require that the self-update refreshes that same copy.
  */
 describe("every installed companion skill is kept current by the session-start self-update", () => {
-  const SKILL_NAME = "hindsight-coding-agent";
+  const SKILL_NAME = "agentstratum-coding-agent";
 
   /** makeCtx's pkgRoot is a synthetic /opt path, so the packaged skill can't be staged in it.
    *  Build a real temp package root holding a SKILL.md the installer can copy. */
@@ -3105,7 +3161,7 @@ describe("every installed companion skill is kept current by the session-start s
     return { ...ctx, pkgRoot, dist: join(pkgRoot, "dist") };
   }
 
-  /** Every directory named `hindsight-coding-agent` under `root`, home-relative. */
+  /** Every directory named `agentstratum-coding-agent` under `root`, home-relative. */
   function findSkillCopies(root: string, prefix: string[] = []): string[][] {
     return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
       if (!entry.isDirectory()) return [];
@@ -3146,5 +3202,31 @@ describe("every installed companion skill is kept current by the session-start s
       expect(readFileSync(installed, "utf8"), harness).toBe("packaged v2");
     }
     expect(withoutSkill.sort()).toEqual(NO_SKILL_MECHANISM);
+  });
+});
+
+describe("shared MCP registration ownership", () => {
+  it.each([
+    ["antigravity-cli", [".gemini", "config", "mcp_config.json"]],
+    ["devin-cli", [".config", "devin", "mcp_config.json"]],
+    ["cursor-cli", [".cursor", "mcp.json"]],
+    ["copilot-cli", [".copilot", "mcp-config.json"]],
+    ["kimi-code", [".kimi-code", "mcp.json"]],
+    ["cline-cli", [".cline", "data", "settings", "cline_mcp_settings.json"]],
+  ] as const)("keeps a user-managed server during %s install and uninstall", (harness, parts) => {
+    const ctx = makeCtx();
+    const file = join(ctx.home, ...parts);
+    const foreign = {
+      type: "http",
+      url: "https://service.example/mcp",
+      headers: { Authorization: "Bearer user-key" },
+    };
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, JSON.stringify({ mcpServers: { agentstratum: foreign } }));
+    const installer = INSTALLERS.find((i) => i.name === harness)!;
+    installer.install(ctx);
+    expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
+    installer.uninstall(ctx);
+    expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
   });
 });

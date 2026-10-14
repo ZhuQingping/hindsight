@@ -11,7 +11,7 @@ Flow:
   4. Resolve API URL (external, existing local, or auto-start daemon)
   5. Derive bank ID and ensure mission
   6. Format transcript (strip memory tags, filter roles)
-  7. POST to Hindsight retain API (async)
+  7. POST to agentstratum retain API (async)
 
 Exit codes:
   0 — always (graceful degradation on any error)
@@ -137,7 +137,9 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
                 f"Compaction detected for session {session_id}: transcript shrank, "
                 f"retaining compacted transcript as chunk {retention_progress.chunk_index}",
             )
-        document_id = session_id if retention_progress.chunk_index == 0 else f"{session_id}-c{retention_progress.chunk_index}"
+        document_id = (
+            session_id if retention_progress.chunk_index == 0 else f"{session_id}-c{retention_progress.chunk_index}"
+        )
         debug_log(
             config,
             f"Full session retain: {len(messages_to_retain)} new messages "
@@ -164,10 +166,10 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[agentstratum] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("apiToken")
     try:
         client = HindsightClient(
             api_url,
@@ -175,7 +177,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
             request_timeout_override=config.get("requestTimeoutSeconds"),
         )
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID and ensure mission
@@ -188,7 +190,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         "session_id": session_id,
         "bank_id": bank_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "user_id": os.environ.get("HINDSIGHT_USER_ID", ""),
+        "user_id": os.environ.get("AGENTSTRATUM_USER_ID", ""),
     }
 
     def _resolve_template(value: str) -> str:
@@ -198,7 +200,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
 
     # Tags from config with template resolution.
     # Drop tags whose resolved form ends in an empty namespace part (e.g. "user:"
-    # when HINDSIGHT_USER_ID is unset). Tags without ':' are preserved as-is.
+    # when AGENTSTRATUM_USER_ID is unset). Tags without ':' are preserved as-is.
     raw_tags = config.get("retainTags", [])
     if raw_tags:
         tags = []
@@ -228,7 +230,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     if tags:
         debug_log(config, f"Tags: {tags}")
 
-    # POST to Hindsight retain API
+    # POST to agentstratum retain API
     try:
         response = client.retain(
             bank_id=bank_id,
@@ -243,14 +245,14 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
             commit_retention(session_id, len(all_messages), retention_progress.chunk_index)
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
-        print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        print(f"[agentstratum] Retain failed: {e}", file=sys.stderr)
 
 
 def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[agentstratum] Failed to read hook input", file=sys.stderr)
         return
     run_retain(hook_input, force=False)
 
@@ -259,7 +261,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in retain: {e}", file=sys.stderr)
+        print(f"[agentstratum] Unexpected error in retain: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

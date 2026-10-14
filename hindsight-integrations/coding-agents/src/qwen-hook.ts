@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * hindsight-qwen-hook — the Qwen Code entry point (a `UserPromptSubmit` hook).
+ * agentstratum-qwen-hook — the Qwen Code entry point (a `UserPromptSubmit` hook).
  *
  * Install (~/.qwen/settings.json):
  *   { "hooks": { "UserPromptSubmit": [ { "hooks": [ { "type": "command",
- *     "command": "hindsight-qwen-hook", "timeout": 30000 } ] } ] } }
+ *     "command": "agentstratum-qwen-hook", "timeout": 30000 } ] } ] } }
  *
  * Qwen speaks Claude Code's hook protocol field for field, with two differences that matter here:
  * `timeout` is MILLISECONDS (see HOOK_HARNESSES), and the genuine-submission marker is

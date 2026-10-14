@@ -185,7 +185,7 @@ class TestCohereCrossEncoder:
 
             with patch(
                 "hindsight_api.engine.cross_encoder.reranker_bank_attribution_headers",
-                return_value={"X-Hindsight-Bank-Id": "bank-cohere-http"},
+                return_value={"X-Agentstratum-Bank-Id": "bank-cohere-http"},
             ):
                 scores = await encoder.predict(pairs)
 
@@ -197,7 +197,7 @@ class TestCohereCrossEncoder:
         request = requests[0]
         assert request["path"] == AZURE_INVOKE_PATH
         assert request["headers"]["Authorization"] == "Bearer test_key"
-        assert request["headers"]["X-Hindsight-Bank-Id"] == "bank-cohere-http"
+        assert request["headers"]["X-Agentstratum-Bank-Id"] == "bank-cohere-http"
         assert request["json"]["model"] == "cohere-rerank-v3-english"
         assert request["json"]["query"] == "What is Python?"
         assert len(request["json"]["documents"]) == 3

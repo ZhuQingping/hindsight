@@ -24,7 +24,7 @@ export function forgetToken() {
 export async function api(method, path, body) {
   const resp = await fetch(path, {
     method,
-    headers: { "Content-Type": "application/json", "X-Hindsight-Control-Token": TOKEN },
+    headers: { "Content-Type": "application/json", "X-Agentstratum-Control-Token": TOKEN },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (resp.status === 401) {

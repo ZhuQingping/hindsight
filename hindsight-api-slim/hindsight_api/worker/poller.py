@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 
+from hindsight_api.public_errors import public_error_message
+
 from ..config import (
     ENV_CONSOLIDATION_WALL_TIMEOUT,
     ENV_REFLECT_WALL_TIMEOUT,
@@ -920,7 +922,7 @@ class WorkerPoller:
         """
         table = fq_table("async_operations", schema)
         # Truncate error message if too long (max 5000 chars in schema)
-        error_message = error_message[:5000] if len(error_message) > 5000 else error_message
+        error_message = public_error_message(error_message)[:5000]
 
         async with self._backend.acquire() as conn:
             async with conn.transaction():
@@ -1051,7 +1053,7 @@ class WorkerPoller:
         after being cancelled goes back to 'pending' and gets re-claimed.
         """
         table = fq_table("async_operations", schema)
-        error_message = error_message[:5000] if len(error_message) > 5000 else error_message
+        error_message = public_error_message(error_message)[:5000]
         async with self._backend.acquire() as conn:
             result = await conn.execute(
                 f"""

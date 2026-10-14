@@ -2,7 +2,14 @@ import { spawn } from "child_process";
 import { getEmbedCommand } from "./command.js";
 import { silentLogger } from "./logger.js";
 import type { Logger } from "./logger.js";
-import type { HindsightServerOptions } from "./types.js";
+import type { AgentstratumServerOptions } from "./types.js";
+
+// Only daemon diagnostics pass here; successful output and customer data stay intact.
+function publicDiagnostic(message: string): string {
+  return /hindsight/i.test(message)
+    ? "The local engine reported an internal error. Contact your service administrator."
+    : message;
+}
 
 const DEFAULT_PORT = 8888;
 const DEFAULT_HOST = "127.0.0.1";
@@ -11,12 +18,12 @@ const DEFAULT_READY_TIMEOUT_MS = 30_000;
 const DEFAULT_READY_POLL_INTERVAL_MS = 1_000;
 
 /**
- * Manages the lifecycle of a local Hindsight daemon from a Node.js process.
+ * Manages the lifecycle of a local Agentstratum daemon from a Node.js process.
  *
  * On {@link start}, this class:
- *   1. Resolves the `hindsight-embed` command (via `uvx` or a local `uv run`).
+ *   1. Resolves the `agentstratum-embed` command (via `uvx` or a local `uv run`).
  *   2. Runs `profile create <name> --merge --port <port> [--env K=V ...]`
- *      with every entry in {@link HindsightServerOptions.env} forwarded as
+ *      with every entry in {@link AgentstratumServerOptions.env} forwarded as
  *      an `--env` flag.
  *   3. Runs `daemon --profile <name> start` and waits for the start command
  *      to exit.
@@ -26,21 +33,19 @@ const DEFAULT_READY_POLL_INTERVAL_MS = 1_000;
  * On {@link stop}, it runs `daemon --profile <name> stop` and returns once
  * the command exits (or after a short grace period).
  *
- * This is the Node.js equivalent of the Python `hindsight-all` package's
- * `HindsightServer`: a thin programmatic lifecycle wrapper around the
- * Hindsight daemon. It does NOT ship an HTTP client — once `start()`
- * resolves, use `@vectorize-io/hindsight-client` against `getBaseUrl()` for
- * retain / recall / reflect.
+ * This wrapper owns the local daemon lifecycle. Use the unchanged HTTP client
+ * SDK against getBaseUrl() for retain / recall / reflect.
  *
  * The class is deliberately transparent about the daemon: new CLI flags or
  * environment variables never require a code change here — callers can pass
  * them via `env`, `extraProfileCreateArgs`, or `extraDaemonStartArgs`.
  */
-export class HindsightServer {
+export class AgentstratumServer {
   private readonly profile: string;
   private readonly port: number;
   private readonly host: string;
   private readonly baseUrl: string;
+  private readonly embedPackage: string | undefined;
   private readonly embedVersion: string | undefined;
   private readonly embedPackagePath: string | undefined;
   private readonly userEnv: Record<string, string | undefined>;
@@ -51,12 +56,13 @@ export class HindsightServer {
   private readonly readyPollIntervalMs: number;
   private readonly logger: Logger;
 
-  constructor(opts: HindsightServerOptions = {}) {
+  constructor(opts: AgentstratumServerOptions = {}) {
     this.profile = opts.profile ?? DEFAULT_PROFILE;
     this.port = opts.port ?? DEFAULT_PORT;
     this.host = opts.host ?? DEFAULT_HOST;
     this.baseUrl = `http://${this.host}:${this.port}`;
     this.embedVersion = opts.embedVersion;
+    this.embedPackage = opts.embedPackage ?? opts.env?.AGENTSTRATUM_EMBED_PACKAGE;
     this.embedPackagePath = opts.embedPackagePath;
     this.userEnv = opts.env ?? {};
     this.extraProfileCreateArgs = opts.extraProfileCreateArgs ?? [];
@@ -82,24 +88,34 @@ export class HindsightServer {
    * `profile create --merge` and `daemon start` commands tolerate re-runs.
    */
   async start(): Promise<void> {
-    this.logger.info(`[hindsight] starting daemon for profile "${this.profile}"`);
+    this.logger.info(`[agentstratum] starting daemon for profile "${this.profile}"`);
 
     const env = this.buildEnv();
     await this.configureProfile(env);
     await this.startDaemon(env);
     await this.waitForReady();
 
-    this.logger.info(`[hindsight] daemon ready at ${this.baseUrl}`);
+    this.logger.info(`[agentstratum] daemon ready at ${this.baseUrl}`);
   }
 
   /** Stop the daemon. Never throws — logs and resolves even on failure. */
   async stop(): Promise<void> {
-    this.logger.info(`[hindsight] stopping daemon for profile "${this.profile}"`);
+    this.logger.info(`[agentstratum] stopping daemon for profile "${this.profile}"`);
 
-    const [cmd, ...baseArgs] = getEmbedCommand({
-      embedVersion: this.embedVersion,
-      embedPackagePath: this.embedPackagePath,
-    });
+    let command: string[];
+    try {
+      command = getEmbedCommand({
+        embedVersion: this.embedVersion,
+        embedPackage: this.embedPackage,
+        embedPackagePath: this.embedPackagePath,
+      });
+    } catch {
+      this.logger.warn(
+        "[agentstratum] configure the local engine distribution before stopping the daemon"
+      );
+      return;
+    }
+    const [cmd, ...baseArgs] = command;
     const args = [...baseArgs, "daemon", "--profile", this.profile, "stop"];
 
     // Resolve the CLI and its profile with the same caller overrides as start.
@@ -109,17 +125,17 @@ export class HindsightServer {
 
     await new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
-        this.logger.warn(`[hindsight] daemon stop timed out after 5s`);
+        this.logger.warn(`[agentstratum] daemon stop timed out after 5s`);
         resolve();
       }, 5_000);
       child.on("exit", () => {
         clearTimeout(timeout);
-        this.logger.info(`[hindsight] daemon stopped`);
+        this.logger.info(`[agentstratum] daemon stopped`);
         resolve();
       });
       child.on("error", (err) => {
         clearTimeout(timeout);
-        this.logger.warn(`[hindsight] error stopping daemon: ${err.message}`);
+        this.logger.warn(`[agentstratum] error stopping daemon: ${publicDiagnostic(err.message)}`);
         resolve();
       });
     });
@@ -150,8 +166,8 @@ export class HindsightServer {
     const merged: NodeJS.ProcessEnv = { ...process.env };
 
     if (this.platformCpuWorkaround && process.platform === "darwin") {
-      merged["HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1";
-      merged["HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU"] = "1";
+      merged["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1";
+      merged["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1";
     }
 
     for (const [key, value] of Object.entries(this.userEnv)) {
@@ -169,10 +185,11 @@ export class HindsightServer {
    * auto-applied by the CPU workaround) is forwarded as `--env`.
    */
   private async configureProfile(env: NodeJS.ProcessEnv): Promise<void> {
-    this.logger.info(`[hindsight] configuring profile "${this.profile}"`);
+    this.logger.info(`[agentstratum] configuring profile "${this.profile}"`);
 
     const [cmd, ...baseArgs] = getEmbedCommand({
       embedVersion: this.embedVersion,
+      embedPackage: this.embedPackage,
       embedPackagePath: this.embedPackagePath,
     });
     const createArgs = [
@@ -213,8 +230,8 @@ export class HindsightServer {
     // 2. CPU workaround — only if auto-applied and not already overridden.
     if (this.platformCpuWorkaround && process.platform === "darwin") {
       const cpuKeys = [
-        "HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU",
-        "HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU",
+        "AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU",
+        "AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU",
       ];
       for (const key of cpuKeys) {
         if (!(key in out) && env[key] !== undefined) {
@@ -229,6 +246,7 @@ export class HindsightServer {
   private async startDaemon(env: NodeJS.ProcessEnv): Promise<void> {
     const [cmd, ...baseArgs] = getEmbedCommand({
       embedVersion: this.embedVersion,
+      embedPackage: this.embedPackage,
       embedPackagePath: this.embedPackagePath,
     });
     const args = [
@@ -259,14 +277,14 @@ export class HindsightServer {
       const text = data.toString();
       output += text;
       for (const line of text.trimEnd().split("\n")) {
-        if (line) this.logger.info(`[hindsight:${label}] ${line}`);
+        if (line) this.logger.info(`[agentstratum:${label}] ${line}`);
       }
     });
     child.stderr?.on("data", (data: Buffer) => {
       const text = data.toString();
       output += text;
       for (const line of text.trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[hindsight:${label}] ${line}`);
+        if (line) this.logger.warn(`[agentstratum:${label}] ${publicDiagnostic(line)}`);
       }
     });
 
@@ -275,11 +293,13 @@ export class HindsightServer {
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`${label} failed with code ${code}: ${output.trim()}`));
+          reject(
+            new Error(`${label} failed with code ${code}: ${publicDiagnostic(output.trim())}`)
+          );
         }
       });
       child.on("error", (err) => {
-        reject(new Error(`${label} failed to spawn: ${err.message}`, { cause: err }));
+        reject(new Error(`${label} failed to spawn: ${publicDiagnostic(err.message)}`));
       });
     });
   }
@@ -288,12 +308,12 @@ export class HindsightServer {
   private pipeOutput(child: ReturnType<typeof spawn>, label: string): void {
     child.stdout?.on("data", (data: Buffer) => {
       for (const line of data.toString().trimEnd().split("\n")) {
-        if (line) this.logger.info(`[hindsight:${label}] ${line}`);
+        if (line) this.logger.info(`[agentstratum:${label}] ${line}`);
       }
     });
     child.stderr?.on("data", (data: Buffer) => {
       for (const line of data.toString().trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[hindsight:${label}] ${line}`);
+        if (line) this.logger.warn(`[agentstratum:${label}] ${publicDiagnostic(line)}`);
       }
     });
   }
@@ -309,7 +329,7 @@ export class HindsightServer {
           signal: AbortSignal.timeout(this.readyPollIntervalMs),
         });
         if (res.ok) {
-          this.logger.debug(`[hindsight] health check passed (attempt ${attempt})`);
+          this.logger.debug(`[agentstratum] health check passed (attempt ${attempt})`);
           return;
         }
       } catch {
@@ -318,7 +338,7 @@ export class HindsightServer {
       await new Promise((resolve) => setTimeout(resolve, this.readyPollIntervalMs));
     }
     throw new Error(
-      `Hindsight daemon did not become ready within ${this.readyTimeoutMs}ms at ${this.baseUrl}`
+      `Agentstratum daemon did not become ready within ${this.readyTimeoutMs}ms at ${this.baseUrl}`
     );
   }
 }

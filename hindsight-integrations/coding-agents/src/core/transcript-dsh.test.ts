@@ -58,9 +58,9 @@ describe("readDshEvents", () => {
       {
         type: "user/message",
         time: at("2026-08-14T10:00:00Z"),
-        data: userMessage("<hindsight_memory>recalled</hindsight_memory>", {
+        data: userMessage("<agentstratum_memory>recalled</agentstratum_memory>", {
           kind: "plugin",
-          plugin: "hindsight",
+          plugin: "agentstratum",
           form: "recall",
         }),
       },
@@ -76,8 +76,8 @@ describe("readDshEvents", () => {
       {
         type: "user/message",
         time: at("2026-08-14T10:00:01Z"),
-        data: userMessage("<hindsight_memory>recalled</hindsight_memory>", {
-          kind: "plugin:hindsight",
+        data: userMessage("<agentstratum_memory>recalled</agentstratum_memory>", {
+          kind: "plugin:agentstratum",
           form: "recall",
         }),
       },

@@ -48,8 +48,8 @@ class TestDeriveBankIdStatic:
 class TestDeriveBankIdDynamic:
     def test_dynamic_agent_project(self):
         cfg = _cfg(dynamicBankId=True, agentName="mybot", dynamicBankGranularity=["agent", "project"])
-        result = derive_bank_id(_hook(cwd="/home/user/hindsight"), cfg)
-        assert result == "mybot::hindsight"
+        result = derive_bank_id(_hook(cwd="/home/user/agentstratum"), cfg)
+        assert result == "mybot::agentstratum"
 
     def test_dynamic_preserves_raw_special_chars(self):
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["project"])
@@ -74,20 +74,20 @@ class TestDeriveBankIdDynamic:
         assert result.startswith("v2-")
 
     def test_dynamic_channel_from_env(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_CHANNEL_ID", "telegram-123")
+        monkeypatch.setenv("AGENTSTRATUM_CHANNEL_ID", "telegram-123")
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["channel"])
         result = derive_bank_id(_hook(), cfg)
         assert "telegram-123" in result
 
     def test_dynamic_user_from_env(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_USER_ID", "user-456")
+        monkeypatch.setenv("AGENTSTRATUM_USER_ID", "user-456")
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["user"])
         result = derive_bank_id(_hook(), cfg)
         assert "user-456" in result
 
     def test_dynamic_missing_env_uses_defaults(self, monkeypatch):
-        monkeypatch.delenv("HINDSIGHT_CHANNEL_ID", raising=False)
-        monkeypatch.delenv("HINDSIGHT_USER_ID", raising=False)
+        monkeypatch.delenv("AGENTSTRATUM_CHANNEL_ID", raising=False)
+        monkeypatch.delenv("AGENTSTRATUM_USER_ID", raising=False)
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["channel", "user"])
         result = derive_bank_id(_hook(), cfg)
         assert "default" in result
@@ -134,9 +134,9 @@ class TestResolveProjectName:
 
     @patch("lib.bank.subprocess.run")
     def test_worktree_different_location(self, mock_run):
-        # Worktree at /tmp/worktrees/feature-x, main repo at /home/user/hindsight
-        mock_run.return_value = self._mock_git("/home/user/hindsight/.git\n")
-        assert _resolve_project_name("/tmp/worktrees/feature-x", _cfg()) == "hindsight"
+        # Worktree at /tmp/worktrees/feature-x, main repo at /home/user/agentstratum
+        mock_run.return_value = self._mock_git("/home/user/agentstratum/.git\n")
+        assert _resolve_project_name("/tmp/worktrees/feature-x", _cfg()) == "agentstratum"
 
     @patch("lib.bank.subprocess.run")
     def test_bare_hub_resolves_to_hidden_directory_parent(self, mock_run):
@@ -257,10 +257,12 @@ class TestDirectoryBankMap:
         assert result == "fallback"
 
     def test_multiple_entries(self):
-        cfg = _cfg(directoryBankMap={
-            "/home/user/project-a": "bank-a",
-            "/home/user/project-b": "bank-b",
-        })
+        cfg = _cfg(
+            directoryBankMap={
+                "/home/user/project-a": "bank-a",
+                "/home/user/project-b": "bank-b",
+            }
+        )
         assert derive_bank_id(_hook(cwd="/home/user/project-a"), cfg) == "bank-a"
         assert derive_bank_id(_hook(cwd="/home/user/project-b"), cfg) == "bank-b"
 
@@ -312,6 +314,7 @@ class TestEnsureBankMission:
     @pytest.mark.skipif(not hasattr(__import__("os"), "symlink"), reason="symlinks not supported")
     def test_directorybankmap_matches_symlinked_cwd(self, tmp_path):
         import os
+
         real = os.path.realpath(tmp_path / "proj")
         os.makedirs(real)
         link = str(tmp_path / "proj-link")

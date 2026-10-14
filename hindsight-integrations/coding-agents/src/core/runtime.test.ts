@@ -130,9 +130,9 @@ describe("RuntimeCore session-idle write-back", () => {
     expect(retained).toHaveLength(1);
   });
 
-  it("records Hindsight usage for a turn only once its reply is in", async () => {
+  it("records agentstratum usage for a turn only once its reply is in", async () => {
     const usageFile = join(mkdtempSync(join(tmpdir(), "hs-rt-usage-")), "usage.jsonl");
-    vi.stubEnv("HINDSIGHT_USAGE_FILE", usageFile);
+    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
     try {
       const { client } = makeClient();
       const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}), "kilo");
@@ -143,8 +143,8 @@ describe("RuntimeCore session-idle write-back", () => {
 
       runtime.setTranscriptSource(async () => [
         turn("user", "how do we round?"),
-        turn("action", "hindsight_search_knowledge_pages rounding"),
-        turn("assistant", "🧠 From Hindsight memory — half up"),
+        turn("action", "agentstratum_search_knowledge_pages rounding"),
+        turn("assistant", "🧠 From agentstratum memory — half up"),
       ]);
       await runtime.onSessionIdle("s6");
       const recorded = readFileSync(usageFile, "utf8")
@@ -157,7 +157,7 @@ describe("RuntimeCore session-idle write-back", () => {
           session: "s6",
           bank: "bank-1",
           turn: 1,
-          calls: ["hindsight_search_knowledge_pages"],
+          calls: ["agentstratum_search_knowledge_pages"],
           credited: true,
         },
       ]);
@@ -190,7 +190,7 @@ describe("RuntimeCore session-idle write-back", () => {
  *
  * A persistent-plugin host runs no hook binaries, so `runSessionStartHook`/`runRetainHook` — where
  * the hook harnesses ensure the daemon — never execute for it. dsh in daemon mode therefore never
- * started one: every `hindsight_*` call failed with ECONNREFUSED until the user ran daemon-start.js
+ * started one: every `agentstratum_*` call failed with ECONNREFUSED until the user ran daemon-start.js
  * by hand, and again after each idle-out. RuntimeCore is the one place all five plugin hosts
  * (opencode, Kilo, Cline, Prime Agent, dsh) share, so the two ensure points live here.
  */
@@ -236,10 +236,10 @@ describe("RuntimeCore daemon lifecycle", () => {
 /**
  * The plugin harnesses (opencode, kilo, cline, dsh, ...) register the tools through toolSpecs()
  * rather than the MCP server, so they hit the same #3590 bug: without these forwarded, every
- * hindsight_reflect on those hosts aborts at the client's hardcoded 120s.
+ * agentstratum_reflect on those hosts aborts at the client's hardcoded 120s.
  */
 describe("RuntimeCore reflect tool settings", () => {
-  it("forwards the resolved reflect timeout and budget into hindsight_reflect", async () => {
+  it("forwards the resolved reflect timeout and budget into agentstratum_reflect", async () => {
     const reflect = vi.fn(async () => "answer");
     const client = { reflect } as unknown as HindsightClient;
     const core = new RuntimeCore(
@@ -248,7 +248,7 @@ describe("RuntimeCore reflect tool settings", () => {
       resolveConfig({ reflectToolTimeoutMs: 660_000, reflectBudget: "mid" })
     );
 
-    const tool = core.toolSpecs().find((spec) => spec.name === "hindsight_reflect")!;
+    const tool = core.toolSpecs().find((spec) => spec.name === "agentstratum_reflect")!;
     await tool.handler({ query: "why?" });
     expect(reflect).toHaveBeenCalledWith("why?", { budget: "mid", timeoutMs: 660_000 });
   });
@@ -258,7 +258,7 @@ describe("RuntimeCore reflect tool settings", () => {
  * dsh serves several repositories from ONE process, launched in a directory that is routinely not
  * the session's — so it constructs a core per workspace and passes that root. Every tool that
  * answers "what does this repo's memory look like" has to be bound to it: otherwise
- * `hindsight_sync_status` runs its git checks in the launch directory and looks for THAT repo's
+ * `agentstratum_sync_status` runs its git checks in the launch directory and looks for THAT repo's
  * `gitlog:<name>` document in the SESSION's bank, reporting a seeded repo as unsynced.
  */
 describe("RuntimeCore tool workspace binding", () => {
@@ -269,7 +269,7 @@ describe("RuntimeCore tool workspace binding", () => {
   } as unknown as HindsightClient;
 
   const workspaceOf = async (core: RuntimeCore): Promise<string> => {
-    const diagnose = core.toolSpecs().find((spec) => spec.name === "hindsight_diagnose")!;
+    const diagnose = core.toolSpecs().find((spec) => spec.name === "agentstratum_diagnose")!;
     return (JSON.parse((await diagnose.handler({})).content[0].text) as { workspace: string })
       .workspace;
   };

@@ -144,7 +144,7 @@ async def test_tool_call_returned_despite_error_max_turns(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_1",
-                        name="mcp__hindsight_tools__recall",
+                        name="mcp__agentstratum_tools__recall",
                         input={"query": "domain family repositories"},
                     )
                 ]
@@ -203,7 +203,7 @@ async def test_stops_after_first_tool_round(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_1",
-                        name="mcp__hindsight_tools__recall",
+                        name="mcp__agentstratum_tools__recall",
                         input={"query": "first"},
                     )
                 ]
@@ -215,7 +215,7 @@ async def test_stops_after_first_tool_round(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_2",
-                        name="mcp__hindsight_tools__recall",
+                        name="mcp__agentstratum_tools__recall",
                         input={"query": "reworded"},
                     )
                 ]
