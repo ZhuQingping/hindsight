@@ -644,8 +644,8 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install pytest
-      run: pip install pytest
+    - name: Install test dependencies
+      run: python -m pip install pytest -r hindsight-integrations/claude-code/requirements.txt
 
     - name: Run tests
       working-directory: ./hindsight-integrations/claude-code
@@ -5343,7 +5343,7 @@ jobs:
 
     - name: Configure CLI
       if: matrix.language == 'cli'
-      run: hindsight configure --api-url http://localhost:8888
+      run: agentstratum configure --api-url http://localhost:8888
 
     - name: Run doc examples (${{ matrix.language }})
       run: ./scripts/test-doc-examples.sh --lang ${{ matrix.language }}
