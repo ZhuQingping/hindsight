@@ -5401,18 +5401,9 @@ class HindsightConfig:
         else:
             handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
 
-        from .public_logging import PublicLogFormatter
-
-        handler.setFormatter(PublicLogFormatter(handler.formatter or logging.Formatter()))
+        # Server stdout is operator-only; keep original messages and exception diagnostics.
+        # Customer-visible API/MCP errors are handled at their own response boundaries.
         root_logger.addHandler(handler)
-
-        # Operator-only diagnostics are explicitly configured and never forwarded
-        # to customer stdout or the customer telemetry exporter.
-        internal_log_path = os.getenv("AGENTSTRATUM_INTERNAL_LOG_FILE")
-        if internal_log_path:
-            internal_handler = logging.FileHandler(internal_log_path, encoding="utf-8")
-            internal_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
-            root_logger.addHandler(internal_handler)
 
         # Silence noisy third-party loggers
         logging.getLogger("google_genai.models").setLevel(logging.WARNING)

@@ -30,7 +30,7 @@
 
 已在 REST 内部错误、异步操作错误、失败 consolidation Webhook、MCP 错误、LLM trace 错误以及 Web 代理诊断处处理内部实现标识。过滤发生在明确的诊断字段，未对响应 body 或文件流做全局字符串替换。未知内部 500 返回固定通用诊断；内部异常仍可保留在运维专用日志。
 
-客户 stdout formatter 不暴露 Python 堆栈；可选 AGENTSTRATUM_INTERNAL_LOG_FILE 保存原始日志供内部排障，该文件不是客户可导出日志。OTLP exporter 只复制/处理诊断属性和异常事件，保留客户内容、trace ID、关联信息与正常事件。
+2026-10-15 用户确认服务端运行日志仅供运营方查看，客户不可见：已撤回默认 stdout 的 PublicLogFormatter 过滤，恢复原始日志名称、文案、异常原因链和堆栈；删除仅为该过滤配套新增的 AGENTSTRATUM_INTERNAL_LOG_FILE 分流配置，无需额外配置文件日志才能保留完整诊断。原有文本/JSON 格式、日志级别和 JSON 字段选择配置保持不变。API、MCP、Webhook 等客户可见出口的错误处理不受本次撤回影响。OTLP exporter 仍只复制/处理诊断属性和异常事件，保留客户内容、trace ID、关联信息与正常事件。
 
 ## 发行时必须提供的配置
 
@@ -89,4 +89,3 @@ CLI 安装脚本的来源尚未确认，用户对是否改为强制预装也回�
 - 本轮重新运行根 `scripts/hooks/lint.sh`：PASS（`.local/issue-2/pr-lint.log`）；`git diff --check`：PASS。
 - 本轮品牌与 tracing 回归：53 passed、1 skipped、5 errors（`.local/issue-2/pr-tracing-tests.log`）。5 项错误均发生在 `test_tracing_spans_verification.py` 的 fixture 初始化阶段：模型镜像 `hf-mirror.com` 无法提供可下载的模型元数据，且本机无缓存；未进入这些用例的业务断言，不能标为通过。
 - PR 保持 Draft，关联 Issue #2，不自动关闭 Issue；前述发行输入、实际安装验证、系统故事与 Rust/插件回归待办仍然有效。本次授权不涉及合并或发布。
-

@@ -3055,4 +3055,4 @@ For configuration issues not covered here, please [open an issue](https://github
 
 ## Hosted agentstratum diagnostics
 
-The standalone API and worker accept `AGENTSTRATUM_API_*` environment variables at startup. Customer console logs omit internal stack traces. `AGENTSTRATUM_INTERNAL_LOG_FILE` optionally writes original diagnostic records to a private operator-managed file; this file must not be included in customer log exports. It is unset by default.
+The standalone API and worker accept `AGENTSTRATUM_API_*` environment variables at startup. Server stdout is an operator-only diagnostic channel and retains original log messages and exception traces in the configured text or JSON format. Customers do not have access to these server logs. Customer-visible errors are handled separately at API, MCP, and other response boundaries; a separate file log is not required to preserve internal diagnostics.

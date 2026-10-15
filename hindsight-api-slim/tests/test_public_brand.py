@@ -3,7 +3,6 @@
 import hashlib
 import hmac
 import json
-import logging
 import subprocess
 import sys
 import time
@@ -17,7 +16,6 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from hindsight_api.config import HindsightConfig, load_dotenv_for_entrypoint, normalize_config_key
 from hindsight_api.engine.memory_engine import MemoryEngine
 from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
-from hindsight_api.public_logging import PublicLogFormatter
 from hindsight_api.telemetry_export import CustomerSpanExporter
 from hindsight_api.webhooks.manager import WebhookManager
 from hindsight_api.webhooks.url_guard import GuardedWebhookClient, parse_allowlist
@@ -36,16 +34,6 @@ def test_public_config_is_an_actual_mapping(monkeypatch, tmp_path):
 def test_diagnostics_hide_implementation_identity():
     assert public_error_message(RuntimeError("HINDSIGHT_API_LLM_MODEL failed")) == PUBLIC_INTERNAL_ERROR
     assert public_error_message(ValueError("Invalid budget")) == "Invalid budget"
-
-
-def test_console_keeps_original_record_for_internal_sink():
-    record = logging.LogRecord(
-        "hindsight_api.worker", logging.ERROR, __file__, 1, "Hindsight provider failed", (), None
-    )
-    rendered = PublicLogFormatter(logging.Formatter("%(name)s %(message)s")).format(record)
-    assert "hindsight" not in rendered.casefold()
-    assert record.name == "hindsight_api.worker"
-    assert record.getMessage() == "Hindsight provider failed"
 
 
 def test_automatic_exception_events_are_safe_but_customer_content_is_unchanged():
