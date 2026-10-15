@@ -148,7 +148,12 @@ class ClientInstallationStory(unittest.TestCase):
 
     def test_invalid_or_duplicate_checksum_cannot_install(self) -> None:
         valid = self.checksum_file().read_text()
-        for content in ["", "not-a-digest  agentstratum\n", valid + valid, valid.replace("agentstratum", "../other")]:
+        for content in [
+            "",
+            "not-a-digest  agentstratum\n",
+            valid + valid,
+            valid.replace("agentstratum", "../other"),
+        ]:
             with self.subTest(content=content):
                 self.checksum_file().write_text(content)
                 result = self.install()
@@ -175,7 +180,10 @@ class ClientInstallationStory(unittest.TestCase):
     def test_no_implicit_download_host_or_latest_version(self) -> None:
         for args in [[], ["--base-url", self.base_url]]:
             result = subprocess.run(
-                ["bash", str(INSTALLER), *args], env=self.environment, capture_output=True, text=True
+                ["bash", str(INSTALLER), *args],
+                env=self.environment,
+                capture_output=True,
+                text=True,
             )
             self.assertNotEqual(result.returncode, 0)
 
@@ -185,17 +193,28 @@ class ClientInstallationStory(unittest.TestCase):
             AGENTSTRATUM_VERSION="v" + VERSION,
             AGENTSTRATUM_BIN_DIR=str(self.bin_dir),
         )
-        result = subprocess.run(["bash", str(INSTALLER)], env=self.environment, capture_output=True, text=True)
+        result = subprocess.run(
+            ["bash", str(INSTALLER)],
+            env=self.environment,
+            capture_output=True,
+            text=True,
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.bin_dir / "agentstratum").is_file())
 
-    @unittest.skipUnless(os.environ.get("AGENTSTRATUM_TEST_NPM_TARBALL"), "provide the built Coding Agents tarball")
+    @unittest.skipUnless(
+        os.environ.get("AGENTSTRATUM_TEST_NPM_TARBALL"),
+        "provide the built Coding Agents tarball",
+    )
     def test_npm_installs_actual_tarball_by_https_url(self) -> None:
         artifact = Path(os.environ["AGENTSTRATUM_TEST_NPM_TARBALL"]).resolve()
         destination = self.origin / "downloads" / "coding-agents.tgz"
         shutil.copyfile(artifact, destination)
         prefix = self.home / "npm"
-        self.environment.update(npm_config_cafile=str(self.cert), npm_config_registry="https://registry.invalid")
+        self.environment.update(
+            npm_config_cafile=str(self.cert),
+            npm_config_registry="https://registry.invalid",
+        )
         result = subprocess.run(
             [
                 "npm",
@@ -214,9 +233,44 @@ class ClientInstallationStory(unittest.TestCase):
             timeout=60,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+        # Exercise the installed package exactly as the two OpenCode loaders
+        # resolve it: v1 follows main, v2 imports the root index.js directly.
+        package_root = prefix / "lib" / "node_modules" / "agentstratum-coding-agents"
+        probe = subprocess.run(
+            [
+                "node",
+                "--input-type=module",
+                "-e",
+                """
+                import assert from 'node:assert/strict';
+                import { readFileSync } from 'node:fs';
+                import { pathToFileURL } from 'node:url';
+                const root = process.argv[1];
+                const pkg = JSON.parse(readFileSync(root + '/package.json', 'utf8'));
+                const v1 = await import(pathToFileURL(root + '/' + pkg.main));
+                assert.equal(typeof v1.default, 'function');
+                const v2 = await import(pathToFileURL(root + '/index.js'));
+                assert.equal(v2.default, v2.AgentstratumOpencode2Plugin);
+                assert.equal(v2.default.id, 'agentstratum-opencode2');
+                assert.equal(typeof v2.default.setup, 'function');
+                """,
+                str(package_root),
+            ],
+            env=self.environment,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(probe.returncode, 0, probe.stdout + probe.stderr)
         executable = prefix / "bin" / "agentstratum-coding-agents"
         register = subprocess.run(
-            [str(executable), "install", "codex", "--api-url", "https://tenant.example.invalid"],
+            [
+                str(executable),
+                "install",
+                "codex",
+                "--api-url",
+                "https://tenant.example.invalid",
+            ],
             env=self.environment,
             text=True,
             capture_output=True,

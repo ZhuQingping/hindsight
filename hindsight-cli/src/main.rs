@@ -1456,6 +1456,12 @@ fn run() -> Result<()> {
         return handle_profile(cmd, output_format);
     }
 
+    // fs resolves its own flags/saved mount before requiring an endpoint and
+    // has local-only commands that do not need an API client at all.
+    if let Commands::Fs(fs_cmd) = cli.command {
+        return commands::fs::dispatch(fs_cmd, profile.as_deref(), output_format);
+    }
+
     // Load configuration
     let config = Config::load_with_profile(profile.as_deref()).unwrap_or_else(|e| {
         ui::print_error(&format!("Configuration error: {}", e));
@@ -1477,11 +1483,7 @@ fn run() -> Result<()> {
         Commands::Profile(_) => unreachable!(),       // Handled above
         Commands::Explore => commands::explore::run(&client),
 
-        // Filesystem mirror — talks to the API directly (blocking client), so it
-        // uses the resolved endpoint rather than the generated async client.
-        Commands::Fs(fs_cmd) => {
-            commands::fs::dispatch(fs_cmd, &api_url, api_key.as_deref(), output_format)
-        }
+        Commands::Fs(_) => unreachable!(), // Handled above
 
         // Health, Metrics, and Version
         Commands::Health => commands::health::health(&client, verbose, output_format),

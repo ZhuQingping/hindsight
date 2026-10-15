@@ -46,11 +46,25 @@ impl Config {
     /// 3. Local config file (`~/.agentstratum/config`)
     /// An explicit endpoint is required; there is no implicit local service.
     pub fn load_with_profile(profile_name: Option<&str>) -> Result<Self> {
+        let config = Self::read_optional_with_profile(profile_name)?.ok_or_else(|| anyhow::anyhow!(
+            "API Endpoint is required. Copy it from your console and run agentstratum configure --api-url <URL>, use a Profile, or set AGENTSTRATUM_API_URL."
+        ))?;
+        Self::validate_and_create(config.api_url, config.api_key, config.source)
+    }
+
+    /// Read the optional baseline without validating its URL. fs must first
+    /// merge its flags and saved mount, then validate the effective endpoint.
+    /// Profile lookup and file errors still propagate rather than being hidden.
+    pub fn read_optional_with_profile(profile_name: Option<&str>) -> Result<Option<Self>> {
         let env_api_key = env::var("AGENTSTRATUM_API_KEY").ok();
 
         // 1. Environment variable takes highest priority
         if let Ok(api_url) = env::var("AGENTSTRATUM_API_URL") {
-            return Self::validate_and_create(api_url, env_api_key, ConfigSource::Environment);
+            return Ok(Some(Self {
+                api_url,
+                api_key: env_api_key,
+                source: ConfigSource::Environment,
+            }));
         }
 
         // 2. Named profile (explicit flag takes precedence over env var)
@@ -61,18 +75,24 @@ impl Config {
         if let Some(name) = resolved_profile {
             let (api_url, file_api_key) = Self::load_profile(&name)?;
             let api_key = env_api_key.or(file_api_key);
-            return Self::validate_and_create(api_url, api_key, ConfigSource::Profile(name));
+            return Ok(Some(Self {
+                api_url,
+                api_key,
+                source: ConfigSource::Profile(name),
+            }));
         }
 
         // 3. Local config file
         if let Some((api_url, file_api_key)) = Self::load_from_file()? {
             let api_key = env_api_key.or(file_api_key);
-            return Self::validate_and_create(api_url, api_key, ConfigSource::LocalFile);
+            return Ok(Some(Self {
+                api_url,
+                api_key,
+                source: ConfigSource::LocalFile,
+            }));
         }
 
-        anyhow::bail!(
-            "API Endpoint is required. Copy it from your console and run agentstratum configure --api-url <URL>, use a Profile, or set AGENTSTRATUM_API_URL."
-        )
+        Ok(None)
     }
 
     pub fn validate_and_create(

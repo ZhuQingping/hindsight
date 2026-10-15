@@ -125,18 +125,34 @@ fn overrides_from(common: &FsCommonArgs) -> ConfigOverrides {
     }
 }
 
-/// Dispatch an `fs` subcommand. `base_api_url`/`base_api_key` are the CLI's
-/// already-resolved endpoint (profile/env/default), used as the baseline below
-/// explicit flags and any saved mount config.
+/// Resolve the optional CLI baseline only for remote commands. Local status,
+/// logs, stop and unmount must also work after credentials/profiles are removed.
 pub fn dispatch(
     command: FsCommands,
-    base_api_url: &str,
-    base_api_key: Option<&str>,
+    profile: Option<&str>,
     output_format: OutputFormat,
 ) -> Result<()> {
-    let baseline = Baseline {
-        api_url: base_api_url.to_string(),
-        api_key: base_api_key.map(|s| s.to_string()),
+    let local_only = matches!(
+        command,
+        FsCommands::Stop { .. }
+            | FsCommands::Status { .. }
+            | FsCommands::Logs { .. }
+            | FsCommands::Unmount { .. }
+    );
+    let configured = if local_only {
+        None
+    } else {
+        crate::config::Config::read_optional_with_profile(profile)?
+    };
+    let baseline = match configured {
+        Some(config) => Baseline {
+            api_url: config.api_url,
+            api_key: config.api_key,
+        },
+        None => Baseline {
+            api_url: String::new(),
+            api_key: std::env::var("AGENTSTRATUM_API_KEY").ok(),
+        },
     };
 
     match command {

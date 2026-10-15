@@ -1,3 +1,20 @@
+## 2026-10-15 R6–R8 修复与验证
+
+用户已授权继续处理剩余审查问题。R1–R8 均已完成代码修复；PR #3 仍为 Draft，未合并、未发行，Issue #2 仍待完成发行与系统验收。本节的当前状态优先于下方历史快照。
+
+- **R6**：Coding Agents 根入口改为导出实际存在的 `AgentstratumOpencode2Plugin`。在已有 HTTPS tarball 安装故事中增加安装后导入检查，分别按 OpenCode v1 的 package main 和 v2 的根 index.js 加载，验证导出形状；候选工作流已有步骤会执行此故事。
+- **R7**：CLI 在构造通用 API client 前分发 fs；远端命令按显式参数、保存的挂载配置、Profile/环境/配置文件合并，最后校验实际 endpoint 与 bank。本地 logs/status/stop/unmount 无需远端配置；明确选择的无效 Profile 仍报告错误。换地址不继承其他地址的已存 token；显式 token 和独立环境 token 仍可使用。
+- **R8**：手动 Hook 命令加入稳定的 `AGENTSTRATUM_HOOK_OWNER=agentstratum-memory` 归属标记，安装路径变化时替换本插件注册，卸载按归属删除。保留混合组中的其他 Hook、matcher、空组与其他设置；路径使用 shell quoting。当前目录原有的精确命令仍可识别，不按脚本名猜测其他目录中未标记命令的归属，不新增历史配置迁移。
+
+验证：
+
+- Rust CLI：**116 项单元 + 12 项进程回归全部通过**。新增 9 项 fs 回归驱动真实 CLI 及本地 HTTP 接收端；同一进程测试组在修复前为 4 通过、8 失败。覆盖明确地址、保存后 sync、Profile/环境回退、配置优先级、凭证目标、缺失/非法地址和本地命令。
+- Claude Code：**224 项通过**。新增的换目录/混合组保留与特殊字符路径执行用例，在修复前均失败、修复后通过。
+- Coding Agents：typecheck、ESM/DTS build、真实 npm tarball 经 HTTPS 安装及 OpenCode v1/v2 入口加载、Codex 配置注册/卸载通过。旧 tarball 在相同故事中复现根入口 SyntaxError。
+- 按仓库 code-review 规范复核变更范围、错误传播、凭证边界、Hook 归属及测试。修改文件 Ruff、Prettier、Rustfmt 和 diff whitespace 检查通过；没有新增服务端协议或依赖。
+
+限制：总 lint 在局部检出的 uv sync 阶段因缺少根 pyproject.toml 受阻。CLI 在本机 Linux 构建测试，沿用显式 OpenSSL 路径，保留两项既有 dead-code warning；未声明 macOS/Windows、真实宿主会话、华为云线上或数据库系统验收通过。Hook 未标记的其他历史安装目录不会被猜测删除，符合不做迁移的范围。
+
 > 2026-10-15 渠道补充：已确认 OBS + CDN 公开分发，Coding Agents 通过 `.tgz` URL 安装，不要求按包名 `npx`。新增固定版本 CLI 安装脚本及 HTTPS/校验回归；正式资源地址与线上验收仍待完成。详见 [CLIENT-DISTRIBUTION.md](CLIENT-DISTRIBUTION.md)。
 
 > 2026-10-15 更新：Issue #2 已确认只对外发行 CLI、Coding Agents、标准 Agent Plugin、Claude Code 四类客户端；服务端包/镜像、本地引擎、Web 安装包、SDK、Helm 不发行。远端连接收敛和客户端候选构建已继续实施。详见 [CLIENT-DISTRIBUTION.md](CLIENT-DISTRIBUTION.md) 的当前行为、测试证据与未完成门槛。下文旧的本地引擎发行和 Rust 未验证记录属于此前快照；此次没有重跑服务端全量系统验收，不据此关闭 Issue。
@@ -89,3 +106,4 @@ CLI 安装脚本的来源尚未确认，用户对是否改为强制预装也回�
 - 本轮重新运行根 `scripts/hooks/lint.sh`：PASS（`.local/issue-2/pr-lint.log`）；`git diff --check`：PASS。
 - 本轮品牌与 tracing 回归：53 passed、1 skipped、5 errors（`.local/issue-2/pr-tracing-tests.log`）。5 项错误均发生在 `test_tracing_spans_verification.py` 的 fixture 初始化阶段：模型镜像 `hf-mirror.com` 无法提供可下载的模型元数据，且本机无缓存；未进入这些用例的业务断言，不能标为通过。
 - PR 保持 Draft，关联 Issue #2，不自动关闭 Issue；前述发行输入、实际安装验证、系统故事与 Rust/插件回归待办仍然有效。本次授权不涉及合并或发布。
+

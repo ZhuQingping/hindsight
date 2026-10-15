@@ -2,7 +2,7 @@
 //!
 //! Priority (highest first): explicit CLI flags > saved mount config
 //! (`<dir>/.agentstratum-fs/config.json`) > the CLI's resolved API endpoint
-//! (profile/env/default) > `fs`-specific defaults.
+//! (profile/env/config file) > `fs`-specific defaults.
 //!
 //! The saved config is written when a folder is first mounted so that later
 //! commands run against that folder (status/stop/sync) reuse the same bank and
@@ -50,8 +50,8 @@ pub struct ConfigOverrides {
     pub writable: bool,
 }
 
-/// The CLI's already-resolved endpoint (from profile/env/default), used as the
-/// baseline below explicit flags and the saved mount config.
+/// Optional CLI endpoint (empty when absent), below explicit flags and saved
+/// mount config. Only the final effective endpoint is validated.
 #[derive(Debug, Clone)]
 pub struct Baseline {
     pub api_url: String,
@@ -74,7 +74,7 @@ struct SavedConfig {
 }
 
 fn strip_trailing_slash(url: &str) -> String {
-    url.trim_end_matches('/').to_string()
+    url.trim().trim_end_matches('/').to_string()
 }
 
 fn control_dir(dir: &Path) -> PathBuf {
@@ -91,12 +91,12 @@ fn read_saved_config(dir: &Path) -> SavedConfig {
 
 /// Resolve the effective config for a command.
 ///
-/// `require_bank` controls whether a missing bank id is a hard error (true for
-/// commands that talk to the API; false for read-only local commands).
+/// Remote commands require a valid endpoint and bank after merging all sources.
+/// Local commands can inspect or remove a mount without either being configured.
 pub fn resolve_config(
     overrides: &ConfigOverrides,
     baseline: &Baseline,
-    require_bank: bool,
+    require_remote: bool,
 ) -> Result<MountConfig> {
     let dir_input = overrides
         .dir
@@ -123,11 +123,36 @@ pub fn resolve_config(
             .unwrap_or(&baseline.api_url),
     );
 
+    // A token saved for another endpoint must not follow an explicit URL
+    // override. A standalone environment token is an explicit user setting.
     let api_token = overrides
         .api_token
         .clone()
-        .or(saved.api_token)
-        .or_else(|| baseline.api_key.clone());
+        .or_else(|| {
+            saved.api_token.filter(|_| {
+                saved
+                    .api_url
+                    .as_deref()
+                    .map(strip_trailing_slash)
+                    .as_deref()
+                    == Some(api_url.as_str())
+            })
+        })
+        .or_else(|| {
+            if baseline.api_url.is_empty() || strip_trailing_slash(&baseline.api_url) == api_url {
+                baseline.api_key.clone()
+            } else {
+                None
+            }
+        });
+
+    if require_remote {
+        crate::config::Config::validate_and_create(
+            api_url.clone(),
+            None,
+            crate::config::ConfigSource::LocalFile,
+        )?;
+    }
 
     let bank_id = overrides
         .bank_id
@@ -136,7 +161,7 @@ pub fn resolve_config(
         .or_else(|| env::var("AGENTSTRATUM_BANK_ID").ok())
         .unwrap_or_default();
 
-    if require_bank && bank_id.is_empty() {
+    if require_remote && bank_id.is_empty() {
         bail!(
             "No bank specified. Pass --bank <id>, set AGENTSTRATUM_BANK_ID, or run inside an already-mounted folder."
         );

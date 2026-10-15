@@ -12,6 +12,7 @@ Or via the /agentstratum:setup skill inside a Claude Code session.
 import argparse
 import json
 import os
+import shlex
 import sys
 
 SETTINGS_PATH = os.path.expanduser("~/.claude/settings.json")
@@ -23,6 +24,10 @@ USER_CONFIG_PATH = os.path.expanduser("~/.agentstratum/claude-code.json")
 # user has set a lower requestTimeoutSeconds (see build_hooks).
 HOOK_RECALL_TIMEOUT_DEFAULT = 45
 HOOK_RECALL_TIMEOUT_MIN = 30
+
+# Shell assignment survives install-directory changes without relying on an
+# undocumented settings.json field or matching another plugin's script names.
+HOOK_OWNER = "AGENTSTRATUM_HOOK_OWNER=agentstratum-memory"
 
 
 def _read_request_timeout() -> int | None:
@@ -63,7 +68,7 @@ def build_hooks(plugin_root: str) -> dict:
                 "hooks": [
                     {
                         "type": "command",
-                        "command": f'python3 "{plugin_root}/scripts/recall.py"',
+                        "command": f"{HOOK_OWNER} python3 {shlex.quote(os.path.join(plugin_root, 'scripts', 'recall.py'))}",
                         "timeout": recall_timeout,
                     }
                 ]
@@ -74,7 +79,7 @@ def build_hooks(plugin_root: str) -> dict:
                 "hooks": [
                     {
                         "type": "command",
-                        "command": f'python3 "{plugin_root}/scripts/retain.py"',
+                        "command": f"{HOOK_OWNER} python3 {shlex.quote(os.path.join(plugin_root, 'scripts', 'retain.py'))}",
                         "timeout": 15,
                         "async": True,
                     }
@@ -86,7 +91,7 @@ def build_hooks(plugin_root: str) -> dict:
                 "hooks": [
                     {
                         "type": "command",
-                        "command": f'python3 "{plugin_root}/scripts/session_start.py"',
+                        "command": f"{HOOK_OWNER} python3 {shlex.quote(os.path.join(plugin_root, 'scripts', 'session_start.py'))}",
                         "timeout": 5,
                     }
                 ]
@@ -97,7 +102,7 @@ def build_hooks(plugin_root: str) -> dict:
                 "hooks": [
                     {
                         "type": "command",
-                        "command": f'python3 "{plugin_root}/scripts/session_end.py"',
+                        "command": f"{HOOK_OWNER} python3 {shlex.quote(os.path.join(plugin_root, 'scripts', 'session_end.py'))}",
                         "timeout": 10,
                     }
                 ]
@@ -109,12 +114,18 @@ def build_hooks(plugin_root: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Register or remove this plugin's Claude Code hooks")
     parser.add_argument("--uninstall", action="store_true")
-    parser.add_argument("--plugin-root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    parser.add_argument(
+        "--plugin-root",
+        default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    )
     args = parser.parse_args()
     plugin_root = os.path.abspath(args.plugin_root)
 
     if not os.path.isfile(SETTINGS_PATH):
-        print(f"Error: {SETTINGS_PATH} not found. Is Claude Code installed?", file=sys.stderr)
+        print(
+            f"Error: {SETTINGS_PATH} not found. Is Claude Code installed?",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with open(SETTINGS_PATH) as f:
@@ -123,11 +134,30 @@ def main() -> None:
     new_hooks = build_hooks(plugin_root)
     existing_hooks = settings.setdefault("hooks", {})
     for event, groups in new_hooks.items():
-        owned_commands = {hook["command"] for group in groups for hook in group["hooks"]}
+        # Also recognize this exact directory's unmarked commands when setup
+        # is rerun. Do not guess ownership of arbitrary unmarked paths.
+        script_names = {
+            "UserPromptSubmit": "recall",
+            "Stop": "retain",
+            "SessionStart": "session_start",
+            "SessionEnd": "session_end",
+        }
+        unmarked_command = f'python3 "{plugin_root}/scripts/{script_names[event]}.py"'
         kept = []
         for group in existing_hooks.get(event, []):
-            remaining = [hook for hook in group.get("hooks", []) if hook.get("command") not in owned_commands]
-            if remaining:
+            remaining = [
+                hook
+                for hook in group.get("hooks", [])
+                if not (
+                    hook.get("type") == "command"
+                    and (
+                        hook.get("command", "").startswith(HOOK_OWNER + " ") or hook.get("command") == unmarked_command
+                    )
+                )
+            ]
+            if remaining == group.get("hooks", []):
+                kept.append(group)
+            elif remaining:
                 kept.append({**group, "hooks": remaining})
         if not args.uninstall:
             kept.extend(groups)
