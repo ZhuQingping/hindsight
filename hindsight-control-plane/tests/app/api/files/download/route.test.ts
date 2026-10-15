@@ -57,13 +57,13 @@ it("preserves customer filenames and file bytes containing the upstream brand", 
   await expect(response.text()).resolves.toBe(content);
 });
 
-it("filters download failure diagnostics while preserving upstream status", async () => {
+it("preserves download rejection details and upstream status", async () => {
   vi.stubGlobal(
     "fetch",
     vi
       .fn()
       .mockResolvedValue(
-        Response.json({ detail: "hindsight storage unavailable" }, { status: 503 })
+        Response.json({ detail: "Access denied to file hindsight.txt" }, { status: 403 })
       )
   );
   const response = await GET(
@@ -72,6 +72,6 @@ it("filters download failure diagnostics while preserving upstream status", asyn
         encodeURIComponent("/v1/default/files/download/tenants/public/file.txt")
     )
   );
-  expect(response.status).toBe(503);
-  expect(await response.text()).not.toMatch(/hindsight/i);
+  expect(response.status).toBe(403);
+  await expect(response.json()).resolves.toEqual({ detail: "Access denied to file hindsight.txt" });
 });

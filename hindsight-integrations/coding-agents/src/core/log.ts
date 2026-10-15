@@ -112,11 +112,5 @@ export function describeError(value: unknown, maxChars = 200): string {
     if (withCode && parts.at(-1) !== withCode) parts.push(withCode);
     current = error.cause;
   }
-  const message = parts.join(": ") || String(value);
-  // Error diagnostics may contain dependency names; customer content never uses this path.
-  return (
-    /hindsight/i.test(message)
-      ? "agentstratum operation failed; inspect the service configuration."
-      : message
-  ).slice(0, maxChars);
+  return (parts.join(": ") || String(value)).slice(0, maxChars);
 }

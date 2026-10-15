@@ -29,14 +29,3 @@ def public_error_message(error: BaseException) -> str:
     ):
         return str(error)
     return PUBLIC_INTERNAL_ERROR
-
-
-def telemetry_error_message(error: object) -> str:
-    """Existing OTLP policy; separate from client error classification.
-
-    Changing the telemetry export contract is outside the customer-response fix.
-    """
-    message = str(error)
-    if "hindsight" in message.casefold():
-        return PUBLIC_INTERNAL_ERROR
-    return message

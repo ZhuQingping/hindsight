@@ -597,7 +597,6 @@ def validate_sql_schema(sql: str) -> None:
 
 from hindsight_api.brand import WEBHOOK_EVENT_HEADER, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_SIGNATURE_V2_HEADER
 from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
-from hindsight_api.tracing import customer_span
 
 from .cross_encoder import RANK_SCORE_PROVIDERS, CrossEncoderModel
 from .embeddings import Embeddings, create_embeddings_from_env
@@ -9033,7 +9032,7 @@ class MemoryEngine(MemoryEngineInterface):
 
         tracer = get_tracer()
         # Use start_as_current_span to ensure child spans are linked properly
-        recall_span_context = customer_span(tracer, "agentstratum.recall")
+        recall_span_context = tracer.start_as_current_span("agentstratum.recall")
         recall_span = recall_span_context.__enter__()
         recall_span.set_attribute("agentstratum.bank_id", bank_id)
         recall_span.set_attribute("agentstratum.query", query[:100])

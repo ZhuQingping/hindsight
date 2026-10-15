@@ -13,7 +13,6 @@ to Langfuse (or any OTLP-compatible backend) via OTLP HTTP protocol.
 import json
 import logging
 import time
-from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -23,9 +22,6 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
-
-from hindsight_api.public_errors import telemetry_error_message
-from hindsight_api.telemetry_export import CustomerSpanExporter
 
 if TYPE_CHECKING:
     from opentelemetry.context import Context
@@ -96,29 +92,6 @@ class NoOpSpan:
     def end(self, end_time: int | None = None) -> None:
         """No-op."""
         pass
-
-
-def record_public_exception(span: trace.Span | NoOpSpan, error: Exception) -> None:
-    """Export diagnostic fields without Python module paths or stack traces."""
-    message = telemetry_error_message(error)
-    error_type = type(error).__name__
-    if "hindsight" in error_type.casefold():
-        error_type = "ServiceError"
-    span.set_status(Status(StatusCode.ERROR, message))
-    span.set_attribute("error.type", error_type)
-    span.add_event("exception", {"exception.type": error_type, "exception.message": message})
-
-
-@contextmanager
-def customer_span(tracer: trace.Tracer | NoOpTracer, name: str, **kwargs: Any) -> Iterator[trace.Span | NoOpSpan]:
-    """Keep exception diagnostics internal while preserving trace correlation."""
-    with tracer.start_as_current_span(name, record_exception=False, set_status_on_exception=False, **kwargs) as span:
-        try:
-            yield span
-        except Exception as error:
-            logger.exception("Operation failed: %s", name)
-            record_public_exception(span, error)
-            raise
 
 
 # Global tracer instance
@@ -224,7 +197,7 @@ def initialize_tracing(
 
     # Create tracer provider with batch processor
     provider = TracerProvider(resource=resource)
-    provider.add_span_processor(BatchSpanProcessor(CustomerSpanExporter(otlp_exporter)))
+    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
     # Set global tracer provider
     trace.set_tracer_provider(provider)
@@ -352,7 +325,7 @@ def create_operation_span(operation: str, bank_id: str | None = None):
     span_name = f"agentstratum.{operation}"
     # OpenTelemetry returns a context manager here, not the span itself. Set
     # attributes on the span yielded by that manager so exporters receive them.
-    with customer_span(_tracer, span_name) as span:
+    with _tracer.start_as_current_span(span_name) as span:
         span.set_attribute("agentstratum.operation", operation)
         if bank_id:
             span.set_attribute("agentstratum.bank_id", bank_id)
@@ -496,8 +469,7 @@ class LLMSpanRecorder:
             start_time_ns = end_time_ns - int(duration * 1_000_000_000)
 
             # Create span with explicit timestamps
-            with customer_span(
-                self.tracer,
+            with self.tracer.start_as_current_span(
                 span_name,
                 start_time=start_time_ns,
                 end_on_exit=False,  # We'll set end time manually
@@ -563,7 +535,9 @@ class LLMSpanRecorder:
 
                 # Handle errors
                 if error:
-                    record_public_exception(span, error)
+                    span.set_status(Status(StatusCode.ERROR, str(error)))
+                    span.set_attribute(GenAIAttributes.ERROR_TYPE, type(error).__name__)
+                    span.record_exception(error)
                 else:
                     span.set_status(Status(StatusCode.OK))
 

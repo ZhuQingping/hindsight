@@ -1,8 +1,8 @@
 """Public plugin identity and explicit local-engine distribution contract."""
 
 import pytest
-from lib.daemon import _get_embed_command
 from lib.client import USER_AGENT
+from lib.daemon import _get_embed_command
 
 
 def test_local_engine_requires_distribution_configuration(monkeypatch):
@@ -36,8 +36,22 @@ def test_user_agent_uses_product_identity():
     assert "hindsight" not in USER_AGENT.lower()
 
 
-def test_engine_diagnostic_omits_internal_package_names():
-    from lib.daemon import _diagnostic
+@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+def test_client_preserves_public_service_error(monkeypatch: pytest.MonkeyPatch, bank: str) -> None:
+    import io
+    import urllib.error
 
-    assert "hindsight" not in _diagnostic("Could not install Hindsight-embed").lower()
-    assert _diagnostic("Connection refused") == "Connection refused"
+    from lib.client import HindsightClient
+
+    message = f"Access denied to bank {bank}"
+    upstream = urllib.error.HTTPError("https://service.example", 403, "Forbidden", {}, io.BytesIO(message.encode()))
+
+    def fail(*args: object, **kwargs: object) -> None:
+        raise upstream
+
+    monkeypatch.setattr("urllib.request.urlopen", fail)
+    with pytest.raises(RuntimeError) as error:
+        HindsightClient("https://service.example")._request("GET", f"/v1/default/banks/{bank}")
+    assert "HTTP 403" in str(error.value)
+    assert message in str(error.value)
+    assert error.value.__cause__ is upstream

@@ -16,7 +16,7 @@ it("strips the generated prompt wrapper without rewriting customer text", () => 
   expect(buildSystemInjection(customerText)).toContain(customerText);
 });
 
-it("returns customer content verbatim and sanitizes only dependency diagnostics", async () => {
+it("preserves customer content and actionable service errors", async () => {
   const client = {
     getPage: vi.fn().mockResolvedValue({ body: customerText }),
   } as unknown as HindsightClient;
@@ -24,10 +24,12 @@ it("returns customer content verbatim and sanitizes only dependency diagnostics"
     (t) => t.name === "agentstratum_read_knowledge_page"
   )!;
   expect((await tool.handler({ page_id: "p" })).content[0].text).toContain(customerText);
-  vi.mocked(client.getPage).mockRejectedValue(new Error("hindsight_api: invalid configuration"));
+  vi.mocked(client.getPage).mockRejectedValue(
+    new Error("HTTP 403: access denied to bank hindsight-review")
+  );
   const failed = await tool.handler({ page_id: "p" });
   expect(failed.isError).toBe(true);
-  expect(JSON.stringify(failed)).not.toMatch(/hindsight/i);
+  expect(failed.content[0].text).toContain("HTTP 403: access denied to bank hindsight-review");
 });
 
 it("does not send credentials to an implicit cloud endpoint", async () => {

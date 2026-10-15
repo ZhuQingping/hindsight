@@ -28,11 +28,6 @@ DAEMON_STATE_FILE = "daemon.json"
 PROFILE_NAME = "claude-code"
 
 
-def _diagnostic(value):
-    text = str(value)
-    return "Local engine operation failed; check its configuration." if "hindsight" in text.casefold() else text
-
-
 def _get_embed_command(config: dict) -> list:
     """Get the command to run agentstratum-embed.
 
@@ -143,7 +138,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
         _ensure_daemon_running(config, port, debug_fn)
     except Exception as e:
         if debug_fn:
-            debug_fn(f"Daemon start failed: {_diagnostic(e)}")
+            debug_fn(f"Daemon start failed: {e}")
         raise RuntimeError(
             "No agentstratum server available. Set apiUrl for external API, "
             "or ensure agentstratum-embed is installed for local daemon mode."
@@ -169,7 +164,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     try:
         llm_config = detect_llm_config(config)
     except RuntimeError as e:
-        raise RuntimeError(f"Cannot start daemon: {_diagnostic(e)}") from e
+        raise RuntimeError(f"Cannot start daemon: {e}") from e
 
     llm_env = get_llm_env_vars(llm_config)
 
@@ -203,8 +198,8 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
         result = _run_embed(config, profile_args, daemon_env, timeout=10)
         if result.returncode != 0:
             if debug_fn:
-                debug_fn(f"Profile create stderr: {_diagnostic(result.stderr.strip())}")
-            raise RuntimeError(f"Profile create failed (exit {result.returncode}): {_diagnostic(result.stderr)}")
+                debug_fn(f"Profile create stderr: {result.stderr.strip()}")
+            raise RuntimeError(f"Profile create failed (exit {result.returncode}): {result.stderr}")
         if debug_fn:
             debug_fn("Profile configured")
     except subprocess.TimeoutExpired:
@@ -226,9 +221,9 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
             timeout=30,
         )
         if debug_fn:
-            debug_fn(f"Daemon start exit={result.returncode} stdout={_diagnostic(result.stdout.strip())}")
+            debug_fn(f"Daemon start exit={result.returncode} stdout={result.stdout.strip()}")
         if result.returncode != 0 and "already running" not in result.stderr.lower():
-            raise RuntimeError(f"Daemon start failed (exit {result.returncode}): {_diagnostic(result.stderr)}")
+            raise RuntimeError(f"Daemon start failed (exit {result.returncode}): {result.stderr}")
     except subprocess.TimeoutExpired:
         raise RuntimeError("Daemon start timed out")
 
@@ -281,7 +276,7 @@ def prestart_daemon_background(config: dict, debug_fn=None):
         llm_config = detect_llm_config(config)
     except RuntimeError as e:
         if debug_fn:
-            debug_fn(f"No LLM configured, skipping daemon pre-start: {_diagnostic(e)}")
+            debug_fn(f"No LLM configured, skipping daemon pre-start: {e}")
         return
 
     llm_env = get_llm_env_vars(llm_config)
@@ -339,10 +334,10 @@ def stop_daemon(config: dict, debug_fn=None):
             timeout=10,
         )
         if debug_fn:
-            debug_fn(f"Daemon stop: {_diagnostic(result.stdout.strip())}")
+            debug_fn(f"Daemon stop: {result.stdout.strip()}")
     except Exception as e:
         if debug_fn:
-            debug_fn(f"Daemon stop error: {_diagnostic(e)}")
+            debug_fn(f"Daemon stop error: {e}")
 
     # Clear state
     write_state(DAEMON_STATE_FILE, {})

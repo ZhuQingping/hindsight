@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { publicErrorPayload } from "@/lib/public-errors";
 import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
 
 import en from "@/messages/en.json";
@@ -198,7 +197,7 @@ export function localizeApiErrorPayload<TPayload extends ApiErrorPayload>(
     localizedPayload.error = message;
   }
 
-  return publicErrorPayload(localizedPayload) as TPayload;
+  return localizedPayload as TPayload;
 }
 
 /** 400 response for a missing required query parameter on a control-plane route. */

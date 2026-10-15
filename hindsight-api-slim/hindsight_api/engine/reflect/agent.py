@@ -17,8 +17,6 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ...cancellation import OperationCancelledError
 from ...config import DEFAULT_RECALL_CHUNKS_MAX_TOKENS, DEFAULT_RECALL_MAX_TOKENS, get_config
-from ...public_errors import telemetry_error_message
-from ...tracing import customer_span, record_public_exception
 from ..llm_interface import LLM_TOOL_CHOICE_AUTO, LLMToolChoice
 from ..llm_trace import LLMQueueWait, reset_queue_wait_sink, set_queue_wait_sink
 from ..llm_transport import describe_llm_error
@@ -1447,7 +1445,7 @@ async def _run_reflect_agent_inner(
 
             tracer = get_tracer()
             span_name = "agentstratum.reflect_tool_call"
-            with customer_span(tracer, span_name) as span:
+            with tracer.start_as_current_span(span_name) as span:
                 span.set_attribute("agentstratum.scope", "reflect_tool_call")
                 span.set_attribute("agentstratum.operation", "reflect_tool_call")
                 try:
@@ -2163,8 +2161,7 @@ async def _execute_tool_with_timing(
     # Calculate timestamps
     start_time_ns = time.time_ns()
 
-    with customer_span(
-        tracer,
+    with tracer.start_as_current_span(
         span_name,
         start_time=start_time_ns,
         end_on_exit=False,
@@ -2192,7 +2189,7 @@ async def _execute_tool_with_timing(
             if isinstance(result, dict) and "error" in result:
                 from opentelemetry.trace import Status, StatusCode
 
-                span.set_status(Status(StatusCode.ERROR, telemetry_error_message(result["error"])))
+                span.set_status(Status(StatusCode.ERROR, str(result["error"])))
             else:
                 from opentelemetry.trace import Status, StatusCode
 
@@ -2209,7 +2206,8 @@ async def _execute_tool_with_timing(
         except Exception as e:
             from opentelemetry.trace import Status, StatusCode
 
-            record_public_exception(span, e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
+            span.record_exception(e)
             duration_ms = int((time.time() - start_time) * 1000)
             span.set_attribute("agentstratum.tool.duration_ms", duration_ms)
             end_time_ns = time.time_ns()

@@ -53,11 +53,6 @@ fn server_response_section(err_str: &str) -> String {
 
 fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
     let err_str = err.to_string();
-    // This is only an error boundary. Successful memory and file output is never filtered.
-    if err_str.to_ascii_lowercase().contains("hindsight") {
-        return "The service reported an internal error. Contact your service administrator."
-            .to_string();
-    }
     // Classify the failure heading, not server-provided response text: a body
     // can mention timeout, DNS or resource numbers without changing the status.
     let error_heading = split_http_error(&err_str).map_or(err_str.as_str(), |(head, _)| head);
@@ -325,13 +320,17 @@ pub fn print_config_help() {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn implementation_names_are_not_exposed_in_error_diagnostics() {
-        let message = super::format_error_message(
-            &anyhow::anyhow!("API request failed (500): HINDSIGHT_API_DATABASE_URL is invalid"),
-            "http://localhost:8888",
-        );
-        assert!(!message.to_ascii_lowercase().contains("hindsight"));
-        assert!(message.contains("Contact your service administrator"));
+    fn business_errors_keep_customer_identifiers() {
+        for bank in ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"] {
+            let detail = format!("Invalid bank '{bank}': access denied");
+            let message = super::format_error_message(
+                &anyhow::anyhow!("API request failed (403): {}", detail),
+                "https://customer.example",
+            );
+            assert!(message.contains(&detail));
+            assert!(message.contains("403"));
+            assert!(!message.contains("internal error"));
+        }
     }
 
     use super::format_error_message;

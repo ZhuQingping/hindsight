@@ -61,22 +61,23 @@ const routes = [
     },
   },
 ];
-it.each(routes)(
-  "$name masks generated error messages and keeps status and validation input",
-  async ({ call }) => {
-    upstream.mockResolvedValue(
-      Response.json(
-        { detail: [{ msg: "HINDSIGHT_API invalid setting", input: "customer hindsight" }] },
-        { status: 422 }
-      )
-    );
-    const response = await call();
-    expect(response.status).toBe(422);
-    const body = await response.json();
-    expect(body.detail[0].msg).not.toMatch(/hindsight/i);
-    expect(body.detail[0].input).toBe("customer hindsight");
-  }
-);
+it.each(routes)("$name preserves service errors, status and validation input", async ({ call }) => {
+  upstream.mockResolvedValue(
+    Response.json(
+      {
+        detail: [
+          { msg: "Invalid bank 'HINDSIGHT-review': access denied", input: "customer hindsight" },
+        ],
+      },
+      { status: 422 }
+    )
+  );
+  const response = await call();
+  expect(response.status).toBe(422);
+  const body = await response.json();
+  expect(body.detail[0].msg).toBe("Invalid bank 'HINDSIGHT-review': access denied");
+  expect(body.detail[0].input).toBe("customer hindsight");
+});
 it.each(routes)("$name preserves successful customer data", async ({ call, name }) => {
   const data = { message: "customer hindsight", error: "customer Hindsight", content: "hindsight" };
   upstream.mockResolvedValue(Response.json(data));
@@ -89,4 +90,12 @@ it.each(routes)("$name preserves successful customer data", async ({ call, name 
     expect(file.name).toBe("hindsight.txt");
     await expect(file.text()).resolves.toBe("customer hindsight bytes");
   }
+});
+
+it.each(routes)("$name keeps proxy exceptions internal", async ({ call }) => {
+  const error = new Error("connection failed in /srv/hindsight/private-config");
+  upstream.mockRejectedValue(error);
+  const response = await call();
+  expect(response.status).toBe(500);
+  expect(await response.text()).not.toContain(error.message);
 });

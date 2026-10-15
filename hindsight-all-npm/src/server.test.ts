@@ -108,7 +108,7 @@ describe("AgentstratumServer construction", () => {
   });
 });
 
-it("filters internal diagnostics without rewriting successful customer output", async () => {
+it("preserves daemon diagnostics and customer output", async () => {
   const logger = { info: vi.fn(), warn: vi.fn(), debug: vi.fn() };
   const child = Object.assign(new EventEmitter(), {
     stdout: new EventEmitter(),
@@ -123,7 +123,9 @@ it("filters internal diagnostics without rewriting successful customer output", 
     Buffer.from("hindsight_embed failed to load HINDSIGHT_API_LLM_MODEL\n")
   );
   child.emit("exit", 1);
-  await expect(started).rejects.toThrow("Contact your service administrator");
-  expect(logger.warn.mock.calls.flat().join(" ")).not.toMatch(/hindsight/i);
+  await expect(started).rejects.toThrow("hindsight_embed failed to load HINDSIGHT_API_LLM_MODEL");
+  expect(logger.warn.mock.calls.flat().join(" ")).toContain(
+    "hindsight_embed failed to load HINDSIGHT_API_LLM_MODEL"
+  );
   expect(logger.info.mock.calls.flat().join(" ")).toContain("customer-hindsight-project");
 });

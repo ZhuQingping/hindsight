@@ -2,23 +2,18 @@
 
 import hashlib
 import hmac
-import json
 import subprocess
 import sys
 import time
 
 import pytest
 from aiohttp import web
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-from opentelemetry.sdk.trace.sampling import ALWAYS_ON
 
 from hindsight_api.config import HindsightConfig, load_dotenv_for_entrypoint, normalize_config_key
 from hindsight_api.engine.memory_engine import MemoryEngine
 from hindsight_api.extensions import OperationValidationError
 from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
-from hindsight_api.telemetry_export import CustomerSpanExporter
 from hindsight_api.webhooks.manager import WebhookManager
 from hindsight_api.webhooks.url_guard import GuardedWebhookClient, parse_allowlist
 
@@ -33,7 +28,7 @@ def test_public_config_is_an_actual_mapping(monkeypatch, tmp_path):
     assert normalize_config_key("AGENTSTRATUM_API_LLM_PROVIDER") == "llm_provider"
 
 
-def test_diagnostics_hide_implementation_identity():
+def test_unknown_errors_are_generic_and_business_rejections_are_actionable():
     assert public_error_message(RuntimeError("HINDSIGHT_API_LLM_MODEL failed")) == PUBLIC_INTERNAL_ERROR
     assert (
         public_error_message(OperationValidationError("Invalid budget"))
@@ -41,25 +36,44 @@ def test_diagnostics_hide_implementation_identity():
     )
 
 
-def test_automatic_exception_events_are_safe_but_customer_content_is_unchanged():
+def test_internal_otlp_preserves_exception_diagnostics_and_customer_content(monkeypatch: pytest.MonkeyPatch) -> None:
+    from hindsight_api import tracing
+
+    for name in ("_tracer", "_tracing_enabled", "_provider"):
+        monkeypatch.setattr(tracing, name, getattr(tracing, name))
+    monkeypatch.setenv("OTEL_TRACES_SAMPLER", "always_on")
     sink = InMemorySpanExporter()
-    provider = TracerProvider(sampler=ALWAYS_ON)
-    provider.add_span_processor(SimpleSpanProcessor(CustomerSpanExporter(sink)))
-    tracer = provider.get_tracer("agentstratum.test")
-    with pytest.raises(RuntimeError):
-        with tracer.start_as_current_span("agentstratum.operation") as span:
-            span.set_attribute("gen_ai.input.messages", "Customer says Hindsight is useful")
-            span.add_event("customer.content", {"body": "hindsight"})
-            raise RuntimeError("failure in hindsight_api.engine")
-    recorded = sink.get_finished_spans()[0]
-    assert recorded.attributes["gen_ai.input.messages"] == "Customer says Hindsight is useful"
-    assert recorded.events[0].attributes["body"] == "hindsight"
-    exception = next(event for event in recorded.events if event.name == "exception")
-    assert "exception.stacktrace" not in exception.attributes
-    assert "hindsight" not in json.dumps(dict(exception.attributes)).casefold()
-    assert recorded.status.description == PUBLIC_INTERNAL_ERROR
-    assert recorded.context.trace_id == span.get_span_context().trace_id
-    provider.shutdown()
+    monkeypatch.setattr(tracing, "OTLPSpanExporter", lambda **kwargs: sink)
+    monkeypatch.setattr(tracing.trace, "set_tracer_provider", lambda provider: None)
+    tracing.initialize_tracing("agentstratum-test", "http://unused.example")
+    provider = tracing._provider
+    try:
+        tracer = provider.get_tracer("agentstratum.test")
+        monkeypatch.setattr(tracing, "_tracer", tracer)
+        with pytest.raises(RuntimeError):
+            with tracing.create_operation_span("retain", "hindsight-review") as span:
+                span.set_attribute("gen_ai.input.messages", "Customer says Hindsight is useful")
+                span.add_event("customer.content", {"body": "hindsight"})
+                span.set_attribute("code.file.path", "/srv/hindsight_api/engine.py")
+                try:
+                    raise ValueError("original cause in hindsight_api")
+                except ValueError as cause:
+                    raise RuntimeError("failure in hindsight_api.engine") from cause
+        provider.force_flush()
+        recorded = sink.get_finished_spans()[0]
+        assert recorded.attributes["gen_ai.input.messages"] == "Customer says Hindsight is useful"
+        assert recorded.events[0].attributes["body"] == "hindsight"
+        exception = next(event for event in recorded.events if event.name == "exception")
+        assert "ValueError: original cause in hindsight_api" in exception.attributes["exception.stacktrace"]
+        assert "RuntimeError: failure in hindsight_api.engine" in exception.attributes["exception.stacktrace"]
+        assert exception.attributes["exception.message"] == "failure in hindsight_api.engine"
+        assert recorded.status.description == "RuntimeError: failure in hindsight_api.engine"
+        assert recorded.attributes["code.file.path"] == "/srv/hindsight_api/engine.py"
+        assert recorded.name == "agentstratum.retain"
+        assert recorded.attributes["agentstratum.bank_id"] == "hindsight-review"
+        assert recorded.context.trace_id == span.get_span_context().trace_id
+    finally:
+        provider.shutdown()
 
 
 @pytest.mark.asyncio

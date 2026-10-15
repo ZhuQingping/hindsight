@@ -289,3 +289,38 @@ class TestHindsightClientSetBankMission:
         assert "my-bank" in captured["url"]
         assert captured["body"]["updates"]["reflect_mission"] == "I am Claude"
         assert captured["body"]["updates"]["retain_mission"] == "Extract facts"
+
+
+@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+def test_http_rejection_preserves_service_message(bank: str) -> None:
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from threading import Thread
+
+    detail = f"Access denied to bank {bank}"
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            body = json.dumps({"detail": detail}).encode()
+            self.send_response(403)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    client = HindsightClient(f"http://127.0.0.1:{server.server_port}")
+    try:
+        with pytest.raises(RuntimeError) as error:
+            client.request("GET", f"/v1/default/banks/{bank}")
+        assert "HTTP 403" in str(error.value)
+        assert detail in str(error.value)
+        assert isinstance(error.value.__cause__, urllib.error.HTTPError)
+    finally:
+        server.shutdown()
+        thread.join()
+        server.server_close()

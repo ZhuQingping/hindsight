@@ -107,7 +107,12 @@ struct TestServer {
 
 impl TestServer {
     fn new() -> Self {
+        Self::with_response("200 OK", "{}")
+    }
+
+    fn with_response(status: &str, body: &str) -> Self {
         use std::io::{Read, Write};
+        let response = format!("HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
@@ -128,7 +133,7 @@ impl TestServer {
                             request.extend_from_slice(&buf[..n]);
                         }
                         requests.push(String::from_utf8(request).unwrap());
-                        stream.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}").unwrap();
+                        stream.write_all(response.as_bytes()).unwrap();
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                         std::thread::sleep(std::time::Duration::from_millis(5));
@@ -454,5 +459,26 @@ fn fs_saved_endpoint_precedes_profile_and_same_endpoint_credentials_are_reused()
                 "profile-key"
             }),
         );
+    }
+}
+
+#[test]
+fn service_rejections_preserve_status_and_customer_identifiers() {
+    let home = TestHome::new();
+    for bank in ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"] {
+        let detail = format!("Invalid bank '{bank}': access denied");
+        let body = serde_json::json!({ "detail": detail }).to_string();
+        let server = TestServer::with_response("403 Forbidden", &body);
+        let output = home
+            .command(&["bank", "list"])
+            .env("AGENTSTRATUM_API_URL", &server.url)
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("403"), "{stderr}");
+        assert!(stderr.contains(&detail), "{stderr}");
+        assert!(!stderr.contains("internal error"), "{stderr}");
+        assert_eq!(server.requests().len(), 1);
     }
 }

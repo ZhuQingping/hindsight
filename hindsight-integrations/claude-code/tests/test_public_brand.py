@@ -36,7 +36,7 @@ def test_user_agent_uses_product_identity():
     assert "hindsight" not in USER_AGENT.lower()
 
 
-def test_mcp_failure_omits_internal_diagnostics(monkeypatch):
+def test_mcp_failure_preserves_public_service_error(monkeypatch):
     import asyncio
     import importlib.util
     import io
@@ -57,18 +57,11 @@ def test_mcp_failure_omits_internal_diagnostics(monkeypatch):
 
     def fail(*args, **kwargs):
         raise urllib.error.HTTPError(
-            "https://service.example", 500, "error", {}, io.BytesIO(b"HINDSIGHT_API internal failure")
+            "https://service.example", 403, "error", {}, io.BytesIO(b"Access denied to bank hindsight-review")
         )
 
     monkeypatch.setattr("urllib.request.urlopen", fail)
     with pytest.raises(Exception) as error:
         asyncio.run(module.mcp.call_tool("agent_knowledge_list_pages", {}))
-    assert "HTTP 500" in str(error.value)
-    assert "hindsight" not in str(error.value).lower()
-
-
-def test_engine_diagnostic_omits_internal_package_names():
-    from lib.daemon import _diagnostic
-
-    assert "hindsight" not in _diagnostic("Could not install Hindsight-embed").lower()
-    assert _diagnostic("Connection refused") == "Connection refused"
+    assert "HTTP 403" in str(error.value)
+    assert "Access denied to bank hindsight-review" in str(error.value)

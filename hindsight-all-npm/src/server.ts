@@ -4,13 +4,6 @@ import { silentLogger } from "./logger.js";
 import type { Logger } from "./logger.js";
 import type { AgentstratumServerOptions } from "./types.js";
 
-// Only daemon diagnostics pass here; successful output and customer data stay intact.
-function publicDiagnostic(message: string): string {
-  return /hindsight/i.test(message)
-    ? "The local engine reported an internal error. Contact your service administrator."
-    : message;
-}
-
 const DEFAULT_PORT = 8888;
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PROFILE = "default";
@@ -135,7 +128,7 @@ export class AgentstratumServer {
       });
       child.on("error", (err) => {
         clearTimeout(timeout);
-        this.logger.warn(`[agentstratum] error stopping daemon: ${publicDiagnostic(err.message)}`);
+        this.logger.warn(`[agentstratum] error stopping daemon: ${err.message}`);
         resolve();
       });
     });
@@ -284,7 +277,7 @@ export class AgentstratumServer {
       const text = data.toString();
       output += text;
       for (const line of text.trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[agentstratum:${label}] ${publicDiagnostic(line)}`);
+        if (line) this.logger.warn(`[agentstratum:${label}] ${line}`);
       }
     });
 
@@ -293,13 +286,11 @@ export class AgentstratumServer {
         if (code === 0) {
           resolve();
         } else {
-          reject(
-            new Error(`${label} failed with code ${code}: ${publicDiagnostic(output.trim())}`)
-          );
+          reject(new Error(`${label} failed with code ${code}: ${output.trim()}`));
         }
       });
       child.on("error", (err) => {
-        reject(new Error(`${label} failed to spawn: ${publicDiagnostic(err.message)}`));
+        reject(new Error(`${label} failed to spawn: ${err.message}`, { cause: err }));
       });
     });
   }
@@ -313,7 +304,7 @@ export class AgentstratumServer {
     });
     child.stderr?.on("data", (data: Buffer) => {
       for (const line of data.toString().trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[agentstratum:${label}] ${publicDiagnostic(line)}`);
+        if (line) this.logger.warn(`[agentstratum:${label}] ${line}`);
       }
     });
   }

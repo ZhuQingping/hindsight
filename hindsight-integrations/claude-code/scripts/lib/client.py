@@ -82,9 +82,7 @@ class HindsightClient:
             except Exception:
                 pass
             message = f"HTTP {e.code} from {url}: {body_text}"
-            if "hindsight" in message.casefold():
-                message = f"HTTP {e.code}: agentstratum request failed; check the service configuration."
-            raise RuntimeError(message) from None
+            raise RuntimeError(message) from e
 
     def recall(
         self,

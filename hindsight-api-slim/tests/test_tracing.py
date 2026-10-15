@@ -16,7 +16,6 @@ from hindsight_api.tracing import (
     NoOpLLMSpanRecorder,
     _truncate_content,
     create_operation_span,
-    initialize_tracing,
     is_tracing_enabled,
 )
 
@@ -234,10 +233,7 @@ def test_llm_span_recorder_record_error(mock_time):
     assert attribute_calls[GenAIAttributes.ERROR_TYPE] == "ValueError"
 
     # Verify exception was recorded
-    mock_span.record_exception.assert_not_called()
-    mock_span.add_event.assert_any_call(
-        "exception", {"exception.type": "ValueError", "exception.message": "Test error"}
-    )
+    mock_span.record_exception.assert_called_once_with(error)
 
 
 @patch("hindsight_api.tracing.time")
@@ -299,9 +295,7 @@ def test_create_operation_span_enabled(mock_tracer):
         assert span is mock_span
 
     # Verify span was created with correct name
-    mock_tracer.start_as_current_span.assert_called_once_with(
-        "agentstratum.retain", record_exception=False, set_status_on_exception=False
-    )
+    mock_tracer.start_as_current_span.assert_called_once_with("agentstratum.retain")
 
     # Verify attributes were set
     mock_span.set_attribute.assert_any_call("agentstratum.operation", "retain")
@@ -322,9 +316,7 @@ def test_create_operation_span_no_bank_id(mock_tracer):
         pass
 
     # Verify span was created
-    mock_tracer.start_as_current_span.assert_called_once_with(
-        "agentstratum.consolidation", record_exception=False, set_status_on_exception=False
-    )
+    mock_tracer.start_as_current_span.assert_called_once_with("agentstratum.consolidation")
 
     # Verify only operation attribute was set (not bank_id)
     assert mock_span.set_attribute.call_count == 1
@@ -350,9 +342,7 @@ def test_create_operation_span_all_operations(mock_tracer):
             pass
 
         # Verify span was created with correct name
-        mock_tracer.start_as_current_span.assert_called_once_with(
-            f"agentstratum.{operation}", record_exception=False, set_status_on_exception=False
-        )
+        mock_tracer.start_as_current_span.assert_called_once_with(f"agentstratum.{operation}")
 
         # Verify attributes
         mock_span.set_attribute.assert_any_call("agentstratum.operation", operation)
