@@ -28,7 +28,7 @@
 | 客户监控 | agentstratum 指标、span、scope、服务名和配套 Grafana/Prometheus 配置；异常文本与 stack 在诊断出口处理 |
 | 本地运行 | agentstratum CLI/agentstratum-embed 命令、配置与缓存目录、日志、引擎启动参数和本地 control API 合同 |
 
-已在 REST 内部错误、异步操作错误、失败 consolidation Webhook、MCP 错误、LLM trace 错误以及 Web 代理诊断处处理内部实现标识。过滤发生在明确的诊断字段，未对响应 body 或文件流做全局字符串替换。未知内部 500 返回固定通用诊断；内部异常仍可保留在运维专用日志。
+REST、MCP、异步任务状态、失败 consolidation Webhook、心智模型刷新历史及 LLM 请求记录中的客户错误消息按异常类型处理，不再按品牌关键词过滤。明确的业务拒绝保留原因和客户标识；ValueError 仅在各操作已明确的参数/资源校验分支保留原文，未知内部异常返回固定通用提示。异步错误在捕获异常时完成分类，再写入客户可读记录。模型未配置、图片能力不足的文案在异常产生处直接改为客户可理解的说明。完整异常与堆栈保留在服务端日志；不对响应 body 或文件流做全局字符串替换。Web 代理诊断及 OTLP 策略未纳入本次 R5 调整。
 
 2026-10-15 用户确认服务端运行日志仅供运营方查看，客户不可见：已撤回默认 stdout 的 PublicLogFormatter 过滤，恢复原始日志名称、文案、异常原因链和堆栈；删除仅为该过滤配套新增的 AGENTSTRATUM_INTERNAL_LOG_FILE 分流配置，无需额外配置文件日志才能保留完整诊断。原有文本/JSON 格式、日志级别和 JSON 字段选择配置保持不变。API、MCP、Webhook 等客户可见出口的错误处理不受本次撤回影响。OTLP exporter 仍只复制/处理诊断属性和异常事件，保留客户内容、trace ID、关联信息与正常事件。
 

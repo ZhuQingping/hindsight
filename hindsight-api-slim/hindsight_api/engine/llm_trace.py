@@ -501,6 +501,15 @@ class LLMTraceRecorder:
         if not self.is_enabled(scope):
             return
 
+        if error is not None:
+            logger.error(
+                "LLM call failed (provider=%s, model=%s, scope=%s)",
+                provider,
+                model,
+                scope,
+                exc_info=(type(error), error, error.__traceback__),
+            )
+
         ctx = current_trace_context()
         ended_at = datetime.now(timezone.utc)
         started_at = ended_at - timedelta(seconds=max(0.0, duration))
@@ -541,7 +550,7 @@ class LLMTraceRecorder:
             # this call as if they had been part of its prompt.
             input=list(messages) if isinstance(messages, list) else messages,
             output=None if error is not None else response_content,
-            error=public_error_message(f"{type(error).__name__}: {error}") if error is not None else None,
+            error=public_error_message(error) if error is not None else None,
             input_tokens=input_tokens or None,
             output_tokens=output_tokens or None,
             cached_tokens=cached_tokens or None,

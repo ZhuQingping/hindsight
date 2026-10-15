@@ -6,7 +6,7 @@ from opentelemetry.sdk.trace import Event, ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 from opentelemetry.trace import Status
 
-from .public_errors import public_error_message
+from .public_errors import telemetry_error_message
 
 
 def public_span(span: ReadableSpan) -> ReadableSpan:
@@ -20,17 +20,17 @@ def public_span(span: ReadableSpan) -> ReadableSpan:
         attributes.pop("exception.stacktrace", None)
         for key in ("exception.message", "exception.type"):
             if key in attributes:
-                attributes[key] = public_error_message(attributes[key])
+                attributes[key] = telemetry_error_message(attributes[key])
         events.append(Event(event.name, attributes, event.timestamp))
     attributes = dict(span.attributes or {})
     for key in ("exception.stacktrace", "code.filepath", "code.file.path"):
         attributes.pop(key, None)
     for key in ("error.type", "exception.type", "exception.message"):
         if key in attributes:
-            attributes[key] = public_error_message(attributes[key])
+            attributes[key] = telemetry_error_message(attributes[key])
     status = span.status
     if status.description:
-        status = Status(status.status_code, public_error_message(status.description))
+        status = Status(status.status_code, telemetry_error_message(status.description))
     return ReadableSpan(
         name=span.name,
         context=span.context,

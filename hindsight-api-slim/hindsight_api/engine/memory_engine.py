@@ -596,7 +596,7 @@ def validate_sql_schema(sql: str) -> None:
 
 
 from hindsight_api.brand import WEBHOOK_EVENT_HEADER, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_SIGNATURE_V2_HEADER
-from hindsight_api.public_errors import public_error_message
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
 from hindsight_api.tracing import customer_span
 
 from .cross_encoder import RANK_SCORE_PROVIDERS, CrossEncoderModel
@@ -4555,7 +4555,7 @@ class MemoryEngine(MemoryEngineInterface):
                 mental_model_id,
                 outcome="refresh_failed_error",
                 failure_reason="unexpected_error",
-                error_message=f"{type(e).__name__}: {e}",
+                error_message=public_error_message(e),
                 # A provider that is down or rate-limited will answer later; only a
                 # failure that would repeat on the same prompt pauses (#5394).
                 pause_automatic=not is_transient_remote_error(e),
@@ -4748,13 +4748,14 @@ class MemoryEngine(MemoryEngineInterface):
                 import traceback
 
                 error_traceback = traceback.format_exc()
+                client_error = public_error_message(e)
 
                 if task_type == "file_convert_retain":
                     # Non-retryable: mark as failed immediately.
                     # Conversion failures won't improve on retry (missing OCR, corrupted file, etc.)
                     logger.error(f"Not retrying task {task_type} (non-retryable), marking as failed")
                     if operation_id:
-                        await self._mark_operation_failed(operation_id, error_message, error_traceback)
+                        await self._mark_operation_failed(operation_id, client_error, error_traceback)
                 elif _is_non_retryable_task_error(e):
                     # Non-retryable: deterministic task failures (integrity violations,
                     # invalid embedding dimensions, etc.) will not succeed by rerunning
@@ -4766,11 +4767,11 @@ class MemoryEngine(MemoryEngineInterface):
                             operation_id=operation_id,
                             status="failed",
                             result=None,
-                            error_message=error_message,
+                            error_message=client_error,
                             schema=schema,
                         )
                     if operation_id:
-                        await self._mark_operation_failed(operation_id, error_message, error_traceback)
+                        await self._mark_operation_failed(operation_id, client_error, error_traceback)
                 else:
                     if task_type == "consolidation" and operation_id:
                         # Fire failure webhook (non-transactional — operation not yet marked failed;
@@ -4780,7 +4781,7 @@ class MemoryEngine(MemoryEngineInterface):
                             operation_id=operation_id,
                             status="failed",
                             result=None,
-                            error_message=error_message,
+                            error_message=client_error,
                             schema=schema,
                         )
 
@@ -4813,7 +4814,7 @@ class MemoryEngine(MemoryEngineInterface):
                         raise RetryTaskAt(
                             retry_at=datetime.now(UTC) + timedelta(seconds=backoff),
                             message=error_message,
-                        )
+                        ) from e
 
                     # Retryable: use RetryTaskAt if under the retry limit, else re-raise (poller marks failed).
                     # Retry count and backoff come from config (HINDSIGHT_API_WORKER_MAX_RETRIES and
@@ -4825,7 +4826,7 @@ class MemoryEngine(MemoryEngineInterface):
                         raise RetryTaskAt(
                             retry_at=datetime.now(UTC) + timedelta(seconds=config.worker_task_retry_backoff_seconds),
                             message=error_message,
-                        )
+                        ) from e
                     raise
 
     async def on_task_wall_timeout(self, task_dict: dict[str, Any], schema: str | None, error_message: str) -> None:
@@ -4842,6 +4843,7 @@ class MemoryEngine(MemoryEngineInterface):
         for the same reason: its ``except`` blocks never ran, and without the record
         the automatic triggers would queue it again on the next tick (#4532).
         """
+        error_message = "The operation timed out. Please retry."
         if task_dict.get("type") == "refresh_mental_model":
             token = _current_schema.set(schema)
             try:
@@ -5206,9 +5208,9 @@ class MemoryEngine(MemoryEngineInterface):
         """
         try:
             backend = await self._get_backend()
-            # Truncate error message to avoid extremely long strings
+            # The executor classified this message while it still had the exception type.
             logger.error("Operation %s failed: %s\n%s", operation_id, error_message, error_traceback)
-            truncated_error = public_error_message(error_message)[:5000]
+            truncated_error = error_message[:5000]
 
             async with acquire_with_retry(backend) as conn:
                 async with conn.transaction():
@@ -8439,28 +8441,25 @@ class MemoryEngine(MemoryEngineInterface):
         # the prose and ignore every image in it.
         if get_config().retain_batch_enabled:
             raise VisionNotSupportedError(
-                "Inline image content is not supported while the batch API is enabled "
-                "(HINDSIGHT_API_RETAIN_BATCH_ENABLED=true). Disable batch mode to retain "
-                "images, or send the content as text only."
+                "Inline image content is unavailable while batch processing is enabled. "
+                "Send text-only content or contact your service administrator to enable image processing."
             )
 
         supported = self._vlm_config.supports_vision()
         if supported:
             return
 
-        model = f"{self._vlm_config.provider}/{self._vlm_config.model}"
+        logger.warning(
+            "Attachment model %s/%s image support: %s", self._vlm_config.provider, self._vlm_config.model, supported
+        )
         if supported is False:
             raise VisionNotSupportedError(
-                f"The model configured to read attachments ({model}) cannot read images, but "
-                f"this retain carries inline image content. Point HINDSIGHT_API_VLM_MODEL at a "
-                f"vision-capable model — attachment-bearing chunks alone use it, so the retain "
-                f"LLM can stay text-only — or send the content as text only."
+                "The configured attachment model cannot read images. Send text-only content "
+                "or contact your service administrator to configure an image-capable model."
             )
         raise VisionNotSupportedError(
-            f"Hindsight cannot tell whether the model configured to read attachments ({model}) "
-            f"can read images, and this retain carries inline image content. If that model is "
-            f"vision-capable, set HINDSIGHT_API_LLM_VISION=true; otherwise point "
-            f"HINDSIGHT_API_VLM_MODEL at one that is, or send the content as text only."
+            "Image support could not be verified for the configured attachment model. "
+            "Send text-only content or contact your service administrator to verify image support."
         )
 
     async def store_retain_attachments(
@@ -15295,8 +15294,8 @@ class MemoryEngine(MemoryEngineInterface):
             from .providers.none_llm import LLMNotAvailableError
 
             raise LLMNotAvailableError(
-                "Reflect requires an LLM provider. Current provider is set to 'none'. "
-                "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+                "Reflect requires a language model, but none is configured. "
+                "Contact your service administrator to enable it."
             )
 
         # Authenticate tenant and set schema in context (for fq_table())
@@ -18236,7 +18235,7 @@ class MemoryEngine(MemoryEngineInterface):
                     mental_model_id,
                     outcome="refresh_failed_error",
                     failure_reason=failure_reason,
-                    error_message=detail,
+                    error_message=public_error_message(exc),
                 )
                 raise MentalModelRefreshError(
                     f"Refresh failed for mental_model_id={mental_model_id}: {detail} "
@@ -18334,7 +18333,7 @@ class MemoryEngine(MemoryEngineInterface):
                     mental_model_id,
                     outcome=outcome,
                     failure_reason=reason,
-                    error_message=detail,
+                    error_message=PUBLIC_INTERNAL_ERROR if reason == "structured_output_failed" else detail,
                 )
                 raise MentalModelRefreshError(
                     f"Refresh failed for mental_model_id={mental_model_id}: {detail} "
@@ -18947,7 +18946,7 @@ class MemoryEngine(MemoryEngineInterface):
                 "kind": _MM_HISTORY_KIND_FAILURE,
                 "outcome": outcome,
                 "failure_reason": failure_reason,
-                "error_message": public_error_message(error_message),
+                "error_message": error_message,
             }
         )
         try:
@@ -23400,6 +23399,6 @@ class MemoryEngine(MemoryEngineInterface):
         from .providers.none_llm import LLMNotAvailableError
 
         raise LLMNotAvailableError(
-            "Mental model refresh requires an LLM provider. Current provider is set to 'none'. "
-            "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+            "Mental model refresh requires a language model, but none is configured. "
+            "Contact your service administrator to enable it."
         )

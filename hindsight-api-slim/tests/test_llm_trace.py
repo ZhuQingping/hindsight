@@ -33,6 +33,7 @@ from hindsight_api.engine.llm_trace import (
     set_trace_context,
 )
 from hindsight_api.engine.llm_wrapper import LLMProvider
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 
 # ── serialization helpers ─────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ def test_record_llm_call_keeps_the_prompt_as_sent():
     assert [m["role"] for m in rec.records[0].input] == ["system", "user"]
 
 
-def test_record_llm_call_error_record():
+def test_record_llm_call_error_record(caplog):
     rec = _CapturingRecorder()
     rec.record_llm_call(
         provider="mock",
@@ -185,7 +186,9 @@ def test_record_llm_call_error_record():
     assert len(rec.records) == 1
     r = rec.records[0]
     assert r.status == "error"
-    assert r.error == "RuntimeError: boom"
+    assert r.error == PUBLIC_INTERNAL_ERROR
+    assert "RuntimeError: boom" in caplog.text
+    assert any(record.exc_info for record in caplog.records)
     assert r.output is None
     assert r.bank_id is None
 

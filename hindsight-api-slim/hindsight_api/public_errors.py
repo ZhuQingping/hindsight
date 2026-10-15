@@ -1,14 +1,41 @@
-"""Customer error messages, separate from internal exception diagnostics.
-
-Only error boundaries use this helper. Successful responses and customer memory
-or file contents must never pass through a product-name replacement filter.
-"""
+"""Customer error boundaries, independent of internal exception diagnostics."""
 
 PUBLIC_INTERNAL_ERROR = "The service could not complete the operation. Contact your service administrator."
 
 
-def public_error_message(error: object) -> str:
-    """Keep useful errors, but do not expose implementation identity or settings."""
+def public_error_message(error: BaseException) -> str:
+    """Expose explicit client rejections; unknown failures stay in server logs.
+
+    ValueError is deliberately not allowlisted: some operations use it for caller
+    input, others raise it for internal bugs. Those boundaries must decide locally.
+    Classify before converting an exception to a string or persisting a task error.
+    """
+    # Lazy imports avoid coupling module initialization to the engine/extension graph.
+    from .engine.memory_engine import RetainOperationConflictError, VisionNotSupportedError
+    from .engine.providers.none_llm import LLMNotAvailableError
+    from .engine.retain.attachment_content import ContentValidationError
+    from .extensions import AuthenticationError, OperationValidationError
+
+    if isinstance(
+        error,
+        (
+            AuthenticationError,
+            OperationValidationError,
+            LLMNotAvailableError,
+            RetainOperationConflictError,
+            VisionNotSupportedError,
+            ContentValidationError,
+        ),
+    ):
+        return str(error)
+    return PUBLIC_INTERNAL_ERROR
+
+
+def telemetry_error_message(error: object) -> str:
+    """Existing OTLP policy; separate from client error classification.
+
+    Changing the telemetry export contract is outside the customer-response fix.
+    """
     message = str(error)
     if "hindsight" in message.casefold():
         return PUBLIC_INTERNAL_ERROR

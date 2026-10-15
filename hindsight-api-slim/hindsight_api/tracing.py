@@ -24,7 +24,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
 
-from hindsight_api.public_errors import public_error_message
+from hindsight_api.public_errors import telemetry_error_message
 from hindsight_api.telemetry_export import CustomerSpanExporter
 
 if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class NoOpSpan:
 
 def record_public_exception(span: trace.Span | NoOpSpan, error: Exception) -> None:
     """Export diagnostic fields without Python module paths or stack traces."""
-    message = public_error_message(error)
+    message = telemetry_error_message(error)
     error_type = type(error).__name__
     if "hindsight" in error_type.casefold():
         error_type = "ServiceError"

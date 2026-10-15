@@ -21,8 +21,8 @@ import pytest
 
 from hindsight_api.mcp_tools import _error_json
 
-# Messages a real backend actually produces. The PG ones are the reason this
-# matters; the others cover the remaining JSON metacharacters.
+# Serializer-only cases. The caller classifies exceptions before invoking this
+# helper; these strings exercise JSON metacharacters, not permission to expose errors.
 HOSTILE_MESSAGES = [
     'relation "memory_units" does not exist',
     'column "tags" is of type text[] but expression is of type text',
@@ -37,14 +37,14 @@ HOSTILE_MESSAGES = [
 
 @pytest.mark.parametrize("message", HOSTILE_MESSAGES)
 def test_error_payload_is_parseable_json(message):
-    parsed = json.loads(_error_json(Exception(message)))
+    parsed = json.loads(_error_json(message))
     assert parsed == {"error": message}
 
 
 @pytest.mark.parametrize("message", HOSTILE_MESSAGES)
 def test_error_payload_keeps_its_empty_collection(message):
     """Tools that return a collection include an empty one so callers keep their shape."""
-    parsed = json.loads(_error_json(Exception(message), results=[]))
+    parsed = json.loads(_error_json(message, results=[]))
     assert parsed == {"error": message, "results": []}
 
 

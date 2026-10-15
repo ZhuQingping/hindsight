@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ...cancellation import OperationCancelledError
 from ...config import DEFAULT_RECALL_CHUNKS_MAX_TOKENS, DEFAULT_RECALL_MAX_TOKENS, get_config
-from ...public_errors import public_error_message
+from ...public_errors import telemetry_error_message
 from ...tracing import customer_span, record_public_exception
 from ..llm_interface import LLM_TOOL_CHOICE_AUTO, LLMToolChoice
 from ..llm_trace import LLMQueueWait, reset_queue_wait_sink, set_queue_wait_sink
@@ -2192,7 +2192,7 @@ async def _execute_tool_with_timing(
             if isinstance(result, dict) and "error" in result:
                 from opentelemetry.trace import Status, StatusCode
 
-                span.set_status(Status(StatusCode.ERROR, public_error_message(result["error"])))
+                span.set_status(Status(StatusCode.ERROR, telemetry_error_message(result["error"])))
             else:
                 from opentelemetry.trace import Status, StatusCode
 

@@ -12,9 +12,11 @@ from aiohttp import web
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+from opentelemetry.sdk.trace.sampling import ALWAYS_ON
 
 from hindsight_api.config import HindsightConfig, load_dotenv_for_entrypoint, normalize_config_key
 from hindsight_api.engine.memory_engine import MemoryEngine
+from hindsight_api.extensions import OperationValidationError
 from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
 from hindsight_api.telemetry_export import CustomerSpanExporter
 from hindsight_api.webhooks.manager import WebhookManager
@@ -33,12 +35,15 @@ def test_public_config_is_an_actual_mapping(monkeypatch, tmp_path):
 
 def test_diagnostics_hide_implementation_identity():
     assert public_error_message(RuntimeError("HINDSIGHT_API_LLM_MODEL failed")) == PUBLIC_INTERNAL_ERROR
-    assert public_error_message(ValueError("Invalid budget")) == "Invalid budget"
+    assert (
+        public_error_message(OperationValidationError("Invalid budget"))
+        == "Operation validation failed: Invalid budget"
+    )
 
 
 def test_automatic_exception_events_are_safe_but_customer_content_is_unchanged():
     sink = InMemorySpanExporter()
-    provider = TracerProvider()
+    provider = TracerProvider(sampler=ALWAYS_ON)
     provider.add_span_processor(SimpleSpanProcessor(CustomerSpanExporter(sink)))
     tracer = provider.get_tracer("agentstratum.test")
     with pytest.raises(RuntimeError):
@@ -139,7 +144,7 @@ def test_actual_prometheus_exposition_uses_the_dashboard_prefix():
 
 
 @pytest.mark.parametrize("message", ["HINDSIGHT_API_MODEL invalid", "hindsight_api.engine failed"])
-def test_failed_webhook_event_filters_only_diagnostics(message):
+def test_failed_webhook_event_carries_classified_diagnostics(message):
     from datetime import datetime, timezone
 
     from hindsight_api.webhooks.models import ConsolidationEventData, WebhookEvent, WebhookEventType
@@ -150,7 +155,7 @@ def test_failed_webhook_event_filters_only_diagnostics(message):
         operation_id="op",
         status="failed",
         timestamp=datetime.now(timezone.utc),
-        data=ConsolidationEventData(error_message=message),
+        data=ConsolidationEventData(error_message=public_error_message(RuntimeError(message))),
     )
     payload = event.model_dump(mode="json")
     assert payload["data"]["error_message"] == PUBLIC_INTERNAL_ERROR

@@ -56,8 +56,7 @@ class NoneLLM(LLMInterface):
     ) -> LLMCallResult:
         """Raise LLMNotAvailableError — no LLM is configured."""
         raise LLMNotAvailableError(
-            "LLM provider is set to 'none'. This operation requires an LLM. "
-            "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+            "No language model is configured for this operation. Contact your service administrator to enable it."
         )
 
     async def call_with_tools(
@@ -75,8 +74,7 @@ class NoneLLM(LLMInterface):
     ) -> LLMToolCallResult:
         """Raise LLMNotAvailableError — no LLM is configured."""
         raise LLMNotAvailableError(
-            "LLM provider is set to 'none'. This operation requires an LLM. "
-            "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+            "No language model is configured for this operation. Contact your service administrator to enable it."
         )
 
     async def cleanup(self) -> None:
