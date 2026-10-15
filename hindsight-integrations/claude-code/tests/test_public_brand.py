@@ -1,8 +1,8 @@
 """Public plugin identity and explicit local-engine distribution contract."""
 
 import pytest
-from lib.daemon import _get_embed_command
 from lib.client import USER_AGENT
+from lib.daemon import _get_embed_command
 
 
 def test_local_engine_requires_distribution_configuration(monkeypatch):
@@ -43,10 +43,13 @@ def test_mcp_failure_omits_internal_diagnostics(monkeypatch):
     import urllib.error
     from pathlib import Path
 
-    from lib import config, daemon
+    from lib import config
 
-    monkeypatch.setattr(config, "load_config", lambda: {"enableKnowledgeTools": True, "bankId": "b"})
-    monkeypatch.setattr(daemon, "get_api_url", lambda *args, **kwargs: "https://service.example")
+    monkeypatch.setattr(
+        config,
+        "load_config",
+        lambda: {"enableKnowledgeTools": True, "bankId": "b", "apiUrl": "https://service.example"},
+    )
     script = Path(__file__).parent.parent / "scripts" / "mcp_server.py"
     spec = importlib.util.spec_from_file_location("brand_test_mcp_server", script)
     module = importlib.util.module_from_spec(spec)

@@ -3,6 +3,8 @@ name: agentstratum:setup
 description: Register agentstratum-memory hooks into Claude Code settings. Run this once after installing the plugin.
 ---
 
+First configure the API Endpoint and credential as described in the plugin README. Missing endpoint configuration does not start a local engine.
+
 Register the agentstratum-memory hooks into `~/.claude/settings.json` by running the setup script:
 
 ```bash
@@ -22,3 +24,4 @@ python3 ~/.claude/plugins/cache/agentstratum/agentstratum-memory/<version>/scrip
 ```
 
 After the script completes, restart Claude Code for the hooks to take effect. You should see `[agentstratum]` log lines on the next session start.
+

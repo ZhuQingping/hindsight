@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { DEFAULT_SEED_LIMIT } from "./seed";
 import { isOptedIn, pathSection } from "./bank";
 import { log } from "./log";
+import { RemoteConnectionError, validateRemoteEndpoint } from "./connection";
 import {
   DEFAULT_OBSERVATION_SCOPES,
   DEFAULT_PAGE_SEARCH_LIMIT,
@@ -49,15 +50,9 @@ export const DEFAULT_DAEMON_PROFILE = "coding-agent";
 /** Incremental git-sync settings (see core/sync.ts). */
 /** The config file's shape — every field optional; omitted fields take the documented default. */
 export interface RawConfig {
-  /** Where memory lives. All three modes speak the same HTTP API; they differ only in who runs it:
-   *   "cloud"       — agentstratum Cloud (the default `apiUrl`)
-   *   "self-hosted" — a agentstratum server you run; set `apiUrl` to it
-   *   "daemon"      — a local `agentstratum-embed` daemon this plugin starts on demand, at
-   *                   127.0.0.1:{apiPort}. `apiUrl` is ignored in this mode.
-   * Omitted, it is inferred: "daemon" is never assumed, so an existing config keeps talking to
-   * whatever `apiUrl` it already names. */
+  /** Remote service mode. "daemon" is retained for internal source tests but rejected by loadConfig. */
   serverMode?: "cloud" | "self-hosted" | "daemon";
-  apiUrl?: string; // agentstratum API base URL (required for cloud/self-hosted; daemon uses its local port)
+  apiUrl?: string; // agentstratum API Endpoint from the console; no default
   apiToken?: string; // bearer token (optional)
   /** Daemon mode: port the local daemon listens on (default 9077).
    *  NOT 8888 — that is the conventional port for a server you run yourself, and a daemon must
@@ -294,10 +289,10 @@ export interface RawConfig {
   banks?: Record<string, Omit<RawConfig, "banks" | "harnesses"> & { bank?: string }>;
   /** Per-DIRECTORY overrides, keyed by absolute path prefix (`~` allowed; longest prefix wins;
    *  a linked worktree uses its main checkout's entry). Applied after bank resolution and before
-   *  the `banks.<id>` section, so one entry can send every repo under a directory to another
-   *  server or tenant while each repo keeps its own bank. Bank-resolution fields are ignored here,
+   *  the `banks.<id>` section, so one entry can customize memory behavior for every repo under a directory.
+   *  Connection and bank-resolution fields are ignored here,
    *  as in `banks`. Example:
-   *    "paths": { "~/work/client-x": { "apiToken": "client-x-key" } } */
+   *    "paths": { "~/work/client-x": { "retainSessions": false } } */
   paths?: Record<string, Omit<RawConfig, "banks" | "harnesses" | "paths">>;
 }
 
@@ -737,7 +732,12 @@ export interface LoadOptions {
 function applyLayer(raw: RawConfig, layer: RawConfig, harness?: string): RawConfig {
   let out = mergeRaw(raw, layer);
   const perHarness = harness ? layer.harnesses?.[harness] : undefined;
-  if (perHarness) out = mergeRaw(out, perHarness);
+  if (perHarness) {
+    const overrides = { ...perHarness };
+    // One default connection across all hosts, projects and banks.
+    for (const key of CONNECTION_KEYS) delete overrides[key];
+    out = mergeRaw(out, overrides);
+  }
   return out;
 }
 
@@ -874,12 +874,31 @@ export function loadConfig(opts: LoadOptions | string = {}): Config {
   // "opencode", whose silent default misfiled every other harness's background seed into an
   // `opencode::<project>` bank (#3247). An explicit `harness:` in the config file still wins.
   if (!raw.harness && o.harness) raw.harness = o.harness;
-  return resolveConfig(raw);
+  const cfg = resolveConfig(raw);
+  if (!cfg.disabled) {
+    if (cfg.serverMode === "daemon")
+      throw new RemoteConnectionError(
+        "Local engines are not distributed. Configure your remote API Endpoint."
+      );
+    if (cfg.apiUrl.trim()) cfg.apiUrl = validateRemoteEndpoint(cfg.apiUrl);
+  }
+  return cfg;
 }
 
 /** Bank-resolution fields are meaningless inside a `banks.<id>` section (they can't change the id
  *  that selected it) — strip them so a typo there can't silently re-route memory. */
+const CONNECTION_KEYS = [
+  "apiUrl",
+  "apiToken",
+  "serverMode",
+  "apiPort",
+  "daemonProfile",
+  "embedPackage",
+  "embedPackagePath",
+] as const;
+
 const BANK_OVERRIDE_EXCLUDED = [
+  ...CONNECTION_KEYS,
   "bankId",
   "bankIdTemplate",
   "mapPathToBank",
@@ -913,7 +932,7 @@ export function applyBankConfig(
   if (byPath) {
     // A path entry never renames the bank: only `banks.<id>` may, below.
     const { bank: _rename, ...rest } = overrideFields(byPath);
-    cfg = { ...cfg, ...resolvePartial(cfg, rest as RawConfig) };
+    cfg = { ...cfg, ...resolvePartial(rest as RawConfig) };
   }
   const section = cfg.banks[resolvedId];
   if (!section) return { cfg, bankId: resolvedId };
@@ -922,7 +941,7 @@ export function applyBankConfig(
   // target's own banks section, if any, is deliberately NOT consulted: no chaining).
   const bankId = typeof safe.bank === "string" && safe.bank ? (safe.bank as string) : resolvedId;
   delete safe.bank;
-  return { cfg: { ...cfg, ...resolvePartial(cfg, safe as RawConfig) }, bankId };
+  return { cfg: { ...cfg, ...resolvePartial(safe as RawConfig) }, bankId };
 }
 
 /** An override section minus what it may not set: the resolution/approval fields and the nested
@@ -935,9 +954,8 @@ function overrideFields(section: object): Record<string, unknown> {
   return safe;
 }
 
-/** Resolve just the fields present in `patch`, defaulting against the CURRENT cfg (not the global
- *  defaults) so an override only changes what it names. */
-function resolvePartial(cfg: Config, patch: RawConfig): Partial<Config> {
+/** Resolve only fields named in an override, leaving the rest of the current config intact. */
+function resolvePartial(patch: RawConfig): Partial<Config> {
   const full = resolveConfig(patch);
   const out: Partial<Config> = {};
   for (const key of Object.keys(patch) as (keyof RawConfig)[]) {
@@ -946,18 +964,5 @@ function resolvePartial(cfg: Config, patch: RawConfig): Partial<Config> {
   }
   // The legacy key resolves into a differently-named field, so the loop above can't carry it.
   if ("autoReflect" in patch && !("autoInject" in patch)) out.autoInject = full.autoInject;
-  // `apiUrl` is derived from `serverMode` + `apiPort`, so an override naming any of the three
-  // re-derives all three against the current cfg: `{ serverMode: "daemon" }` alone must also move
-  // the URL to the local daemon, and `{ apiUrl }` under a global daemon mode stays ignored.
-  if ("serverMode" in patch || "apiUrl" in patch || "apiPort" in patch) {
-    const conn = resolveConfig({
-      serverMode: patch.serverMode ?? cfg.serverMode,
-      apiPort: patch.apiPort ?? cfg.apiPort,
-      apiUrl: patch.apiUrl ?? (cfg.serverMode === "daemon" ? undefined : cfg.apiUrl),
-    });
-    out.serverMode = conn.serverMode;
-    out.apiUrl = conn.apiUrl;
-    out.apiPort = conn.apiPort;
-  }
   return out;
 }

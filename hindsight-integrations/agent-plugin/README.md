@@ -42,7 +42,7 @@ The plugin reads two environment variables (values are interpolated into `mcp.js
 | `AGENTSTRATUM_BANK_ID` | no | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team. |
 
 **Endpoint configuration (required):** replace `${AGENTSTRATUM_MCP_URL}` in `mcp.json`
-with the full MCP endpoint provided by your service administrator for your deployment's URL. A local server with the MCP endpoint open needs no API key.
+with the full MCP endpoint provided by your service administrator for your deployment's URL. Use the credential instructions supplied by the console for this endpoint.
 
 > Env-var interpolation syntax varies by client. Most use `${VAR}`; some (VS Code,
 > Cursor) prefer `${env:VAR}`. If your client doesn't substitute, paste the literal key
@@ -102,3 +102,8 @@ python3 hindsight-integrations/agent-plugin/validate.py
 
 Checks that `plugin.json` and `mcp.json` parse and satisfy the Agent Plugins `1.0.0`
 required-field contract.
+
+
+## Distribution and connection scope
+
+The Huawei Cloud download URL is pending. This archive is one of the four client distributions; it contains Skills and remote MCP configuration, with no local engine or lifecycle hooks. Use one default `AGENTSTRATUM_MCP_URL` copied in full from the console, together with the matching credential. Do not infer the MCP URL from the API URL. Host-specific compatibility limitations above still apply.

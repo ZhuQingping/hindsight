@@ -17,7 +17,7 @@ import { readFileSync } from "node:fs";
 import { deriveBankIdOrSkip } from "./bank";
 import { retainLiveSession } from "./chat";
 import { applyBankConfig, loadConfig } from "./config";
-import { DAEMON_WAIT_RETAIN_MS, ensureDaemon } from "./daemon";
+import { ensureRemoteConnection } from "./connection";
 import { diag } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
 import type { ClientOpts } from "./hindsight";
@@ -241,7 +241,7 @@ export async function runRetainHook(
   // any hook and nothing is waiting on its result, so it can afford the longer wait.
   // Deliberately NOT gated on the result — retain proceeds either way, so an unreachable daemon
   // produces the same `retain_failed` diagnostic as an unreachable Cloud/self-hosted server.
-  await ensureDaemon(cfg, spec.harness, { waitMs: DAEMON_WAIT_RETAIN_MS });
+  await ensureRemoteConnection(cfg);
   const client = makeClient({
     apiUrl: cfg.apiUrl,
     apiToken: cfg.apiToken,

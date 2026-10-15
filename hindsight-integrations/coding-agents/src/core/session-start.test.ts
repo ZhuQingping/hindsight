@@ -405,7 +405,7 @@ describe("runSessionStartHook anti-recursion guard", () => {
 describe("runSessionStartHook host MCP registration", () => {
   let repo: string;
   const run = async (cfg: RawConfig) => {
-    rawConfig = { autoSeed: false, autoUpdate: false, ...cfg };
+    rawConfig = { apiUrl: "https://service.example", autoSeed: false, autoUpdate: false, ...cfg };
     stdin = JSON.stringify({ cwd: repo, session_id: `sess-${repo.split("/").pop()}` });
     const ensureMcpRegistration = vi.fn(() => "enable workspace MCP");
     const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);

@@ -6,7 +6,7 @@ Adapted for Claude Code hooks (ephemeral process, JSON stdin/stdout).
 
 Flow:
   1. Read hook input from stdin (prompt, session_id, transcript_path, cwd)
-  2. Resolve API URL (external, existing local, or auto-start daemon)
+  2. Resolve API URL (explicit remote endpoint)
   3. Derive bank ID (static or dynamic from project context)
   4. Ensure bank mission is set (first use only)
   5. Compose multi-turn query if recallContextTurns > 1
@@ -29,13 +29,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.bank import derive_bank_id, ensure_bank_mission
 from lib.client import HindsightClient
 from lib.config import debug_log, load_config
+from lib.connection import get_api_url
 from lib.content import (
     compose_recall_query,
     format_current_time,
     format_memories,
     truncate_recall_query,
 )
-from lib.daemon import get_api_url
 from lib.state import write_state
 
 LAST_RECALL_STATE = "last_recall.json"
@@ -129,12 +129,12 @@ def main():
         debug_log(config, "Prompt too short for recall, skipping")
         return
 
-    # Resolve API URL (handles all three connection modes)
+    # Resolve API URL (explicit remote endpoint)
     def _dbg(*a):
         debug_log(config, *a)
 
     try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
+        api_url = get_api_url(config.get("apiUrl"))
     except RuntimeError as e:
         print(f"[agentstratum] {e}", file=sys.stderr)
         return

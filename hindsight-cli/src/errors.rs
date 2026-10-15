@@ -249,7 +249,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             "The API URL format is invalid.".bright_yellow(),
             "Ensure it starts with http:// or https://".bright_white(),
             "Example:".bright_green(),
-            "export AGENTSTRATUM_API_URL=http://localhost:8888".bright_white()
+            "export AGENTSTRATUM_API_URL=<your-console-api-endpoint>".bright_white()
         );
     }
 
@@ -318,7 +318,7 @@ pub fn print_config_help() {
     println!("  {}", "Configuration priority:".bright_yellow());
     println!("    1. Environment variable (AGENTSTRATUM_API_URL) - highest priority");
     println!("    2. Config file (~/.agentstratum/config)");
-    println!("    3. Default (http://localhost:8888)");
+    println!("    An API Endpoint is required; there is no default.");
     println!();
 }
 

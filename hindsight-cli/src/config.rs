@@ -4,7 +4,6 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
-const DEFAULT_API_URL: &str = "http://localhost:8888";
 const CONFIG_FILE_NAME: &str = "config";
 const CONFIG_DIR_NAME: &str = ".agentstratum";
 const PROFILE_DIR_NAME: &str = "cli-profiles";
@@ -22,7 +21,6 @@ pub enum ConfigSource {
     LocalFile,
     Profile(String),
     Environment,
-    Default,
 }
 
 impl std::fmt::Display for ConfigSource {
@@ -31,7 +29,6 @@ impl std::fmt::Display for ConfigSource {
             ConfigSource::LocalFile => write!(f, "config file"),
             ConfigSource::Profile(name) => write!(f, "profile '{}'", name),
             ConfigSource::Environment => write!(f, "environment variable"),
-            ConfigSource::Default => write!(f, "default"),
         }
     }
 }
@@ -47,7 +44,7 @@ impl Config {
     /// 2. Named profile (from `profile_name` arg, else `$AGENTSTRATUM_PROFILE`)
     ///    at `~/.agentstratum/cli-profiles/<name>.toml`
     /// 3. Local config file (`~/.agentstratum/config`)
-    /// 4. Default (http://localhost:8888)
+    /// An explicit endpoint is required; there is no implicit local service.
     pub fn load_with_profile(profile_name: Option<&str>) -> Result<Self> {
         let env_api_key = env::var("AGENTSTRATUM_API_KEY").ok();
 
@@ -73,24 +70,33 @@ impl Config {
             return Self::validate_and_create(api_url, api_key, ConfigSource::LocalFile);
         }
 
-        // 4. Fall back to default
-        Self::validate_and_create(
-            DEFAULT_API_URL.to_string(),
-            env_api_key,
-            ConfigSource::Default,
+        anyhow::bail!(
+            "API Endpoint is required. Copy it from your console and run agentstratum configure --api-url <URL>, use a Profile, or set AGENTSTRATUM_API_URL."
         )
     }
 
-    fn validate_and_create(
+    pub fn validate_and_create(
         api_url: String,
         api_key: Option<String>,
         source: ConfigSource,
     ) -> Result<Self> {
-        if !api_url.starts_with("http://") && !api_url.starts_with("https://") {
+        let api_url = api_url.trim().trim_end_matches('/').to_string();
+        if api_url.is_empty() {
             anyhow::bail!(
-                "Invalid API URL: {}. Must start with http:// or https://",
-                api_url
+                "API Endpoint is required. Copy it from your console and set AGENTSTRATUM_API_URL."
             );
+        }
+        let parsed = reqwest::Url::parse(&api_url).context(
+            "Invalid API URL. Must start with http:// or https:// and include a hostname",
+        )?;
+        if !matches!(parsed.scheme(), "http" | "https")
+            || parsed.host_str().is_none()
+            || !parsed.username().is_empty()
+            || parsed.password().is_some()
+            || parsed.query().is_some()
+            || parsed.fragment().is_some()
+        {
+            anyhow::bail!("Invalid API URL. Must start with http:// or https://, with no credentials, query or fragment");
         }
         Ok(Config {
             api_url,
@@ -262,12 +268,12 @@ fn save_profile_to_dir(
     api_url: &str,
     api_key: Option<&str>,
 ) -> Result<PathBuf> {
-    if !api_url.starts_with("http://") && !api_url.starts_with("https://") {
-        anyhow::bail!(
-            "Invalid API URL: {}. Must start with http:// or https://",
-            api_url
-        );
-    }
+    let api_url = Config::validate_and_create(
+        api_url.to_string(),
+        None,
+        ConfigSource::Profile(name.to_string()),
+    )?
+    .api_url;
 
     if !dir.exists() {
         fs::create_dir_all(dir)
@@ -341,7 +347,7 @@ fn validate_profile_name(name: &str) -> Result<()> {
 
 /// Prompt user for API URL interactively
 pub fn prompt_api_url(current_url: Option<&str>) -> Result<String> {
-    let default = current_url.unwrap_or(DEFAULT_API_URL);
+    let default = current_url.unwrap_or("");
 
     print!("Enter API URL [{}]: ", default);
     io::stdout().flush()?;
@@ -350,6 +356,9 @@ pub fn prompt_api_url(current_url: Option<&str>) -> Result<String> {
     io::stdin().read_line(&mut input)?;
 
     let input = input.trim();
+    if input.is_empty() && default.is_empty() {
+        anyhow::bail!("API Endpoint is required; copy it from your console.");
+    }
     if input.is_empty() {
         Ok(default.to_string())
     } else {
@@ -392,7 +401,6 @@ mod tests {
             format!("{}", ConfigSource::Environment),
             "environment variable"
         );
-        assert_eq!(format!("{}", ConfigSource::Default), "default");
         assert_eq!(
             format!("{}", ConfigSource::Profile("prod".to_string())),
             "profile 'prod'"
@@ -501,12 +509,12 @@ mod tests {
         let config = Config::validate_and_create(
             "http://localhost:8888".to_string(),
             None,
-            ConfigSource::Default,
+            ConfigSource::LocalFile,
         );
         assert!(config.is_ok());
         let config = config.unwrap();
         assert_eq!(config.api_url, "http://localhost:8888");
-        assert_eq!(config.source, ConfigSource::Default);
+        assert_eq!(config.source, ConfigSource::LocalFile);
     }
 
     #[test]
@@ -525,8 +533,11 @@ mod tests {
 
     #[test]
     fn test_validate_and_create_invalid_url() {
-        let config =
-            Config::validate_and_create("localhost:8888".to_string(), None, ConfigSource::Default);
+        let config = Config::validate_and_create(
+            "localhost:8888".to_string(),
+            None,
+            ConfigSource::LocalFile,
+        );
         assert!(config.is_err());
         let err = config.unwrap_err().to_string();
         assert!(err.contains("Invalid API URL"));
@@ -538,7 +549,7 @@ mod tests {
         let config = Config::validate_and_create(
             "ftp://example.com".to_string(),
             None,
-            ConfigSource::Default,
+            ConfigSource::LocalFile,
         );
         assert!(config.is_err());
     }
@@ -623,7 +634,7 @@ mod tests {
         let config = Config {
             api_url: "http://test:8080".to_string(),
             api_key: None,
-            source: ConfigSource::Default,
+            source: ConfigSource::LocalFile,
         };
         assert_eq!(config.api_url(), "http://test:8080");
     }

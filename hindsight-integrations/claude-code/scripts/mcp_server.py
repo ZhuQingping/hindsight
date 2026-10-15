@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.bank import derive_bank_id
 from lib.client import HindsightClient
 from lib.config import debug_log, load_config
-from lib.daemon import get_api_url
+from lib.connection import get_api_url
 from mcp.server.fastmcp import FastMCP
 
 # ── Server setup ────────────────────────────────────────
@@ -49,7 +49,7 @@ if not _config.get("enableKnowledgeTools"):
     sys.exit(0)
 
 try:
-    _api_url = get_api_url(_config, debug_fn=_dbg, allow_daemon_start=True)
+    _api_url = get_api_url(_config.get("apiUrl"))
 except Exception as e:
     print(f"[agentstratum MCP] Failed to resolve API URL: {e}", file=sys.stderr)
     sys.exit(1)

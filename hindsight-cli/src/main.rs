@@ -58,7 +58,7 @@ fn get_after_help() -> String {
     let config = config::Config::load().ok();
     let (api_url, source) = match &config {
         Some(c) => (c.api_url.as_str(), c.source.to_string()),
-        None => ("http://localhost:8888", "default".to_string()),
+        None => ("not configured", "configure an API Endpoint".to_string()),
     };
     format!(
         "Current API URL: {} (from {})\n\nRun 'agentstratum configure' to change the API URL.",
@@ -137,12 +137,9 @@ enum Commands {
     #[command(alias = "tui")]
     Explore,
 
-    /// Launch the web-based control plane UI
-    Ui,
-
     /// Configure the CLI (API URL, API key, etc.)
     #[command(
-        after_help = "Configuration priority:\n  1. Environment variables (AGENTSTRATUM_API_URL, AGENTSTRATUM_API_KEY) - highest priority\n  2. Named profile (-p / AGENTSTRATUM_PROFILE, see 'agentstratum profile')\n  3. Config file (~/.agentstratum/config)\n  4. Default (http://localhost:8888)"
+        after_help = "Configuration priority:\n  1. Environment variables (AGENTSTRATUM_API_URL, AGENTSTRATUM_API_KEY) - highest priority\n  2. Named profile (-p / AGENTSTRATUM_PROFILE, see 'agentstratum profile')\n  3. Config file (~/.agentstratum/config)\n  No default endpoint; copy your API Endpoint from the console."
     )]
     Configure {
         /// API URL to connect to (interactive prompt if not provided)
@@ -1459,11 +1456,6 @@ fn run() -> Result<()> {
         return handle_profile(cmd, output_format);
     }
 
-    // Handle ui command - needs config but not API client
-    if let Commands::Ui = cli.command {
-        return handle_ui(profile.as_deref(), output_format);
-    }
-
     // Load configuration
     let config = Config::load_with_profile(profile.as_deref()).unwrap_or_else(|e| {
         ui::print_error(&format!("Configuration error: {}", e));
@@ -1483,7 +1475,6 @@ fn run() -> Result<()> {
     let result: Result<()> = match cli.command {
         Commands::Configure { .. } => unreachable!(), // Handled above
         Commands::Profile(_) => unreachable!(),       // Handled above
-        Commands::Ui => unreachable!(),               // Handled above
         Commands::Explore => commands::explore::run(&client),
 
         // Filesystem mirror — talks to the API directly (blocking client), so it
@@ -2379,16 +2370,15 @@ fn handle_configure(
         }
     };
 
-    // Validate the URL
-    if !new_api_url.starts_with("http://") && !new_api_url.starts_with("https://") {
-        anyhow::bail!(
-            "Invalid API URL: {}. Must start with http:// or https://",
-            new_api_url
-        );
-    }
-
-    // Use provided api_key, or keep existing one if not provided
-    let new_api_key = api_key.or_else(|| current_config.as_ref().and_then(|c| c.api_key.clone()));
+    let new_api_url =
+        Config::validate_and_create(new_api_url, None, config::ConfigSource::LocalFile)?.api_url;
+    // Credentials belong to an endpoint; changing the endpoint must not reuse its predecessor's key.
+    let new_api_key = api_key.or_else(|| {
+        current_config
+            .as_ref()
+            .filter(|c| c.api_url == new_api_url)
+            .and_then(|c| c.api_key.clone())
+    });
 
     // Save to config file
     let config_path = Config::save_config(&new_api_url, new_api_key.as_deref())?;
@@ -2414,55 +2404,6 @@ fn handle_configure(
             "config_path": config_path.display().to_string(),
         });
         output::print_output(&result, output_format)?;
-    }
-
-    Ok(())
-}
-
-fn handle_ui(profile: Option<&str>, output_format: OutputFormat) -> Result<()> {
-    use std::process::Command;
-
-    // Load configuration to get the API URL
-    let config = Config::load_with_profile(profile).unwrap_or_else(|e| {
-        ui::print_error(&format!("Configuration error: {}", e));
-        errors::print_config_help();
-        std::process::exit(1);
-    });
-
-    let api_url = config.api_url();
-
-    if output_format == OutputFormat::Pretty {
-        ui::print_info("Launching Agentstratum Control Plane UI...");
-        println!();
-        println!("  API URL: {}", api_url);
-        println!();
-    }
-
-    let distribution = std::env::var("AGENTSTRATUM_EMBED_CP_PACKAGE").map_err(|_| {
-        anyhow::anyhow!("Set AGENTSTRATUM_EMBED_CP_PACKAGE to the approved Web distribution.")
-    })?;
-    let status = Command::new("npx")
-        .arg(distribution)
-        .arg("--api-url")
-        .arg(api_url)
-        .status();
-
-    match status {
-        Ok(exit_status) => {
-            if !exit_status.success() {
-                if let Some(code) = exit_status.code() {
-                    std::process::exit(code);
-                } else {
-                    std::process::exit(1);
-                }
-            }
-        }
-        Err(e) => {
-            ui::print_error(&format!("Failed to launch control plane UI: {}", e));
-            ui::print_info("Make sure you have Node.js and npm installed.");
-            ui::print_info("Set AGENTSTRATUM_EMBED_CP_PACKAGE to the approved Web distribution.");
-            std::process::exit(1);
-        }
     }
 
     Ok(())

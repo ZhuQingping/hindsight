@@ -17,7 +17,7 @@
  */
 import type { Config } from "./config";
 import { maybeAutoUpdate } from "./auto-update";
-import { DAEMON_WAIT_RETAIN_MS, DAEMON_WAIT_SESSION_START_MS, ensureDaemon } from "./daemon";
+import { ensureRemoteConnection } from "./connection";
 import { diag } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
 import type { HindsightClient } from "./hindsight";
@@ -122,16 +122,11 @@ export class RuntimeCore {
     // plugin loaded with its tools registered and no skill on disk at all (#4406). No-op for a host
     // with no skills directory (opencode; opencode2 registers it in memory instead).
     syncCompanionSkill(this.harness, { install: true });
-    // Daemon mode: this is the SessionStart of a persistent-plugin host, so it owns the same
-    // warm-up the hook harnesses do in `runSessionStartHook` — start it before the user has typed
-    // anything, wait only briefly, and let a cold one keep coming up in the background. Without it
-    // these hosts never started a daemon at all and every request failed with ECONNREFUSED (#3524);
-    // `runSessionStartHook` is a hook-only wrapper, so calling `buildSessionStartContext` directly
-    // (as every plugin harness does) skipped the ensure entirely.
-    await ensureDaemon(this.cfg, this.harness, { waitMs: DAEMON_WAIT_SESSION_START_MS });
+    // Validate the same default remote connection used by hooks and tools.
+    await ensureRemoteConnection(this.cfg);
     // Same session-start housekeeping the hook harnesses do in `runSessionStartHook`: a persistent
     // plugin host is a session start too, and leaving it out would mean opencode/Kilo/Cline users
-    // never got an update — the parity gap `ensureDaemon` above already had to be fixed for.
+    // never got an update — the same lifecycle gap that connection validation must avoid.
     void maybeAutoUpdate(this.cfg);
     try {
       const out = await buildSessionStartContext({
@@ -317,13 +312,8 @@ export class RuntimeCore {
     trigger = "turn"
   ): void {
     const t0 = Date.now();
-    // Daemon mode: the write path is the last chance to get a daemon up — the Stop-hook role, for
-    // hosts that have no Stop hook. A daemon that died mid-session would otherwise take the whole
-    // exchange with it. The wait sits INSIDE the fire-and-forget chain, so
-    // unlike the Stop hook it costs the host nothing: this call already returns before the retain
-    // does. Deliberately not gated on the result — retain proceeds either way, so an unreachable
-    // daemon produces the same `retain_failed` diagnostic as an unreachable Cloud server.
-    void ensureDaemon(this.cfg, this.harness, { waitMs: DAEMON_WAIT_RETAIN_MS })
+    // Validate before write-back; failure is reported through the existing diagnostic path.
+    void ensureRemoteConnection(this.cfg)
       .then(() =>
         retainLiveSession(this.client, sessionId, turns, startTs, this.harness, {
           cursors: this.cursors,

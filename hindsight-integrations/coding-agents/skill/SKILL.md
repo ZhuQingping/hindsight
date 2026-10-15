@@ -84,25 +84,13 @@ have). That is the `update` command above, which refreshes the copy every wired 
 points at and deliberately touches no host config; re-run `install` yourself after a release that
 adds a new hook, or to wire another agent.
 
-## Local daemon settings (daemon mode)
+## Remote connection
 
-Daemon settings keep the names the old per-agent Claude Code plugin used, so an existing
-environment carries over unchanged:
+Use one default API connection across all harnesses, paths and banks. Configure `apiUrl` / `AGENTSTRATUM_API_URL` and `apiToken` / `AGENTSTRATUM_API_TOKEN`. Missing addresses produce configuration guidance; no localhost discovery or engine download occurs. Per-harness, per-path and per-bank connection overrides are ignored. CLI Profiles belong to the separate agentstratum CLI.
 
-| field               | env                                | default        | meaning                                                                                                       |
-| ------------------- | ---------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
-| `serverMode`        | `AGENTSTRATUM_SERVER_MODE`         | `cloud`        | `cloud` \| `self-hosted` \| `daemon`                                                                          |
-| `apiPort`           | `AGENTSTRATUM_API_PORT`            | `9077`         | port the local daemon listens on                                                                              |
-| `daemonIdleTimeout` | `AGENTSTRATUM_DAEMON_IDLE_TIMEOUT` | —              | deprecated, ignored: the daemon no longer exits on its own                                                    |
-| `daemonProfile`     | `AGENTSTRATUM_DAEMON_PROFILE`      | `coding-agent` | which local database it uses                                                                                  |
-| `embedVersion`      | `AGENTSTRATUM_EMBED_VERSION`       | unset          | which `agentstratum-embed` release to run                                                                     |
-| `embedPackage`      | `AGENTSTRATUM_EMBED_PACKAGE`       | unset          | Required Python distribution spec for local engine downloads; use a local path instead with embedPackagePath. |
-| `embedPackagePath`  | `AGENTSTRATUM_EMBED_PACKAGE_PATH`  | —              | run a local checkout instead (development)                                                                    |
+`serverMode` / `AGENTSTRATUM_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Historical internal fields `apiPort`, `daemonIdleTimeout`, `daemonProfile`, `embedVersion`, `embedPackage` and `embedPackagePath` have no supported customer runtime behavior. Their corresponding environment variables do not enable a local engine.
 
-Any `AGENTSTRATUM_API_*` variable you export is forwarded to the daemon, so server-side settings need
-no equivalent here.
-
-The service domain and publication namespace are deployment settings. Set `apiUrl` (or `AGENTSTRATUM_API_URL`) for cloud/self-hosted mode; there is no default cloud endpoint. For a source checkout, run `npm run build` and `node dist/installer.js install <harness>`. The commands below assume the built `agentstratum-coding-agents` CLI is on PATH. For automatic updates, set `AGENTSTRATUM_CODING_AGENTS_PACKAGE` to the administrator-approved npm package name; no registry is queried without it. Local engine mode remains supported and requires `embedPackage` (or `AGENTSTRATUM_EMBED_PACKAGE`) or an explicit `embedPackagePath`.
+Huawei Cloud distribution addresses are pending. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./agentstratum-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. No package registry is queried for automatic updates unless `AGENTSTRATUM_CODING_AGENTS_PACKAGE` is explicitly configured; leave it unset until the distribution channel is approved.
 
 ## Configuration
 
@@ -197,7 +185,7 @@ hook by Codex...), so one shared config serves several agents side by side:
 
 | field                   | default                        | meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ----------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apiUrl`                | required                       | agentstratum API base URL (set to `http://localhost:8888` for a local server)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `apiUrl`                | required                       | API Endpoint copied from the console; no default                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `apiToken`              | —                              | bearer token (agentstratum Cloud). Picked up without restarting the agent: a long-lived host re-reads it after a rejected request, so enabling auth or rotating the key mid-session recovers on the next call                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `bankId`                | —                              | **explicit static bank**; unset ⇒ per-repo dynamic resolution (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `dynamicBankId`         | dynamic iff no `bankId`        | force dynamic (`true`) or static (`false`) resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -519,29 +507,18 @@ the boundary ("everything I clone under `work/client-x` shares memory").
 
 ### Per-directory overrides — `paths.<prefix>`
 
-When a folder is the boundary for something other than the bank — typically a different server
-or tenant for client work — key the override by directory instead of by bank id:
+Use directory overrides to customize memory behavior while sharing the default connection:
 
 ```jsonc
 {
-  "apiToken": "personal-key",
   "paths": {
-    "~/work/client-x": { "apiToken": "client-x-key" },
-    "~/work/acme": { "apiUrl": "https://memory.acme.example", "apiToken": "acme-key" },
-    "~/oss": { "serverMode": "daemon" },
+    "~/work": { "retainSessions": false },
+    "~/work/app": { "retainSessions": true },
   },
 }
 ```
 
-Every repo under the prefix, present and future, keeps its own bank but uses the entry's
-settings. The longest matching prefix wins, and a linked worktree outside the tree uses its main
-checkout's entry, as with `mapPathToBank`. The section applies after bank resolution and before
-`banks.<bankId>`, so a bank section still wins for its one repo. Bank-resolution and approval
-fields (`bankId`, `mapPathToBank`, `bank`, `optInOnly`, `optInPaths`, ...) are ignored inside a
-path section. Any connection setting can be overridden — `serverMode`, `apiUrl`, `apiPort`,
-`apiToken` — so one directory can use a local daemon while another uses Cloud or a self-hosted
-server. The token is re-read on a rejected request, like the top-level `apiToken`, but only while
-the directory still points at the same server.
+The longest matching prefix wins. Linked worktrees use the main checkout's entry. Bank overrides apply afterwards. Endpoint, credential, local-engine, bank-resolution and approval fields cannot be overridden here. The same connection restriction applies to `banks` and `harnesses` sections.
 
 ### Bank resolution
 

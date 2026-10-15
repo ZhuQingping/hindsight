@@ -202,7 +202,7 @@ describe("ensureDaemon", () => {
  * something that does. Adding a harness that does neither fails here, and an entrypoint that
  * genuinely must not start one has to say why in EXEMPT.
  */
-describe("every harness entrypoint reaches a daemon", () => {
+describe("every harness entrypoint checks its remote connection", () => {
   const SRC = fileURLToPath(new URL("..", import.meta.url));
 
   /** Entrypoints that build a client but deliberately do NOT ensure a daemon, and why. */
@@ -237,7 +237,7 @@ describe("every harness entrypoint reaches a daemon", () => {
       const src = readFileSync(join(SRC, rel), "utf8");
       if (!buildsClient(src)) return false;
       // RuntimeCore is the persistent-plugin hosts' shared lifecycle; it ensures at both points.
-      return !src.includes("ensureDaemon") && !src.includes("RuntimeCore");
+      return !src.includes("ensureRemoteConnection") && !src.includes("RuntimeCore");
     });
     expect(unreached).toEqual([]);
   });

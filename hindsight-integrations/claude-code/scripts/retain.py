@@ -8,7 +8,7 @@ Flow:
   1. Read hook input from stdin (session_id, transcript_path, cwd)
   2. Read conversation transcript from transcript_path
   3. Apply chunked retention logic (retainEveryNTurns + overlap window)
-  4. Resolve API URL (external, existing local, or auto-start daemon)
+  4. Resolve API URL (explicit remote endpoint)
   5. Derive bank ID and ensure mission
   6. Format transcript (strip memory tags, filter roles)
   7. POST to agentstratum retain API (async)
@@ -27,11 +27,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.bank import derive_bank_id, ensure_bank_mission
 from lib.client import HindsightClient
 from lib.config import debug_log, load_config
+from lib.connection import get_api_url
 from lib.content import (
     prepare_retention_transcript,
     slice_last_turns_by_user_boundary,
 )
-from lib.daemon import get_api_url
 from lib.state import commit_retention, increment_turn_count, plan_retention
 
 
@@ -164,7 +164,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         debug_log(config, *a)
 
     try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
+        api_url = get_api_url(config.get("apiUrl"))
     except RuntimeError as e:
         print(f"[agentstratum] {e}", file=sys.stderr)
         return

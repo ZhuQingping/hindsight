@@ -68,9 +68,7 @@ adds a new hook, or to wire another agent.
 
 <!-- skill:end -->
 
-On a terminal it also asks **where memory should live** — agentstratum Cloud, a server you run, or a
-local daemon on this machine (see [Where memory lives](#where-memory-lives)). Scripted installs pass
-`--server cloud|self-hosted|daemon` instead; it is asked only once, and never again on re-install.
+Before installation, copy your API Endpoint and credential from the console. Set `AGENTSTRATUM_API_URL` and `AGENTSTRATUM_API_TOKEN`, or pass `--api-url` and `--api-token` to `install`. There is no default service address. Installation stops before registering hooks if the endpoint is missing. This package connects to a remote service; it never installs or starts a local engine.
 
 ### Per agent
 
@@ -461,68 +459,29 @@ history in internal SQLite databases with unversioned schemas and are skipped wi
 
 ## Where memory lives
 
-Three modes, chosen once when you install (`install` asks on a terminal; pass `--server` to script it):
+Memory lives in the remote service assigned to your account. The API Endpoint is independent of the download URL. Set the endpoint once in `~/.agentstratum/coding-agent.json`; hooks, native tools and the local MCP adapter share that connection. The adapter translates local MCP calls into remote API requests; it does not run a memory engine.
 
-| mode          | what runs                                    | needs                                    |
-| ------------- | -------------------------------------------- | ---------------------------------------- |
-| `cloud`       | Configured agentstratum service              | a service URL and API token              |
-| `self-hosted` | a agentstratum server you already run        | its URL                                  |
-| `daemon`      | a local `agentstratum-embed` on this machine | `uv` on PATH + an LLM key for extraction |
-
-```bash
-agentstratum-coding-agents install claude-code --server daemon
-agentstratum-coding-agents install claude-code --server self-hosted --api-url http://localhost:8888
-agentstratum-coding-agents install claude-code --server cloud --api-token <token>
+```json
+{
+  "apiUrl": "https://your-api-endpoint.example",
+  "apiToken": "your-credential",
+  "autoUpdate": false
+}
 ```
 
-Re-running `install` never re-asks: a config that already names a server is left alone.
+The example host is a placeholder. Copy the real API Endpoint from your console; do not substitute the MCP Endpoint here. `cloud` and `self-hosted` both connect to explicit URLs. `--server daemon` is rejected.
 
-### Local daemon mode
+<!-- skill:begin title="Remote connection" -->
 
-Nothing to sign up for and nothing to host — memory runs on your machine. The plugin starts
-`agentstratum-embed` on demand at `127.0.0.1:9077` and points every agent at it.
+Use one default API connection across all harnesses, paths and banks. Configure `apiUrl` / `AGENTSTRATUM_API_URL` and `apiToken` / `AGENTSTRATUM_API_TOKEN`. Missing addresses produce configuration guidance; no localhost discovery or engine download occurs. Per-harness, per-path and per-bank connection overrides are ignored. CLI Profiles belong to the separate agentstratum CLI.
 
-- **A server already on the port is adopted, never restarted** — so one daemon serves every agent
-  and every repo, and your own `agentstratum-embed` is reused if you already run one.
-- **Cold starts happen in the background.** The first start downloads the daemon and loads models,
-  which takes longer than any hook is allowed to run, so it is launched detached at session start.
-  A session that begins before it is ready simply has no memory for a turn or two — a daemon that
-  isn't up is treated as an unreachable server, exactly like a Cloud or self-hosted outage, with the
-  same error handling and the same diagnostics. Nothing downstream of the URL knows which mode it is.
-- **It keeps running** until you stop it. There is deliberately no stop-on-exit: one daemon is
-  shared, so ending one session must not cut memory out from under another agent still working.
-- **macOS additionally needs a current Rust toolchain.** `litellm` (a transitive dependency of the
-  API) publishes wheels only for Linux and Windows, so a Mac compiles it from source through
-  maturin and its crates pin a recent `rustc`. Install from [rustup.rs](https://rustup.rs) and keep
-  it updated — an out-of-date toolchain fails as surely as a missing one. Linux and Windows install
-  from wheels and need none of this.
-- **Fact extraction runs locally**, so it needs an LLM. `AGENTSTRATUM_API_LLM_PROVIDER` wins if set;
-  otherwise the first of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`;
-  otherwise the Claude Code CLI, which needs no key. `install` tells you which it found.
-
-<!-- skill:begin title="Local daemon settings (daemon mode)" -->
-
-Daemon settings keep the names the old per-agent Claude Code plugin used, so an existing
-environment carries over unchanged:
-
-| field               | env                                | default        | meaning                                                                                                       |
-| ------------------- | ---------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
-| `serverMode`        | `AGENTSTRATUM_SERVER_MODE`         | `cloud`        | `cloud` \| `self-hosted` \| `daemon`                                                                          |
-| `apiPort`           | `AGENTSTRATUM_API_PORT`            | `9077`         | port the local daemon listens on                                                                              |
-| `daemonIdleTimeout` | `AGENTSTRATUM_DAEMON_IDLE_TIMEOUT` | —              | deprecated, ignored: the daemon no longer exits on its own                                                    |
-| `daemonProfile`     | `AGENTSTRATUM_DAEMON_PROFILE`      | `coding-agent` | which local database it uses                                                                                  |
-| `embedVersion`      | `AGENTSTRATUM_EMBED_VERSION`       | unset          | which `agentstratum-embed` release to run                                                                     |
-| `embedPackage`      | `AGENTSTRATUM_EMBED_PACKAGE`       | unset          | Required Python distribution spec for local engine downloads; use a local path instead with embedPackagePath. |
-| `embedPackagePath`  | `AGENTSTRATUM_EMBED_PACKAGE_PATH`  | —              | run a local checkout instead (development)                                                                    |
-
-Any `AGENTSTRATUM_API_*` variable you export is forwarded to the daemon, so server-side settings need
-no equivalent here.
+`serverMode` / `AGENTSTRATUM_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Historical internal fields `apiPort`, `daemonIdleTimeout`, `daemonProfile`, `embedVersion`, `embedPackage` and `embedPackagePath` have no supported customer runtime behavior. Their corresponding environment variables do not enable a local engine.
 
 <!-- skill:end -->
 
 <!-- skill:begin -->
 
-The service domain and publication namespace are deployment settings. Set `apiUrl` (or `AGENTSTRATUM_API_URL`) for cloud/self-hosted mode; there is no default cloud endpoint. For a source checkout, run `npm run build` and `node dist/installer.js install <harness>`. The commands below assume the built `agentstratum-coding-agents` CLI is on PATH. For automatic updates, set `AGENTSTRATUM_CODING_AGENTS_PACKAGE` to the administrator-approved npm package name; no registry is queried without it. Local engine mode remains supported and requires `embedPackage` (or `AGENTSTRATUM_EMBED_PACKAGE`) or an explicit `embedPackagePath`.
+Huawei Cloud distribution addresses are pending. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./agentstratum-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. No package registry is queried for automatic updates unless `AGENTSTRATUM_CODING_AGENTS_PACKAGE` is explicitly configured; leave it unset until the distribution channel is approved.
 
 ## Configuration
 
@@ -617,7 +576,7 @@ hook by Codex...), so one shared config serves several agents side by side:
 
 | field                   | default                        | meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ----------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apiUrl`                | required                       | agentstratum API base URL (set to `http://localhost:8888` for a local server)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `apiUrl`                | required                       | API Endpoint copied from the console; no default                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `apiToken`              | —                              | bearer token (agentstratum Cloud). Picked up without restarting the agent: a long-lived host re-reads it after a rejected request, so enabling auth or rotating the key mid-session recovers on the next call                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `bankId`                | —                              | **explicit static bank**; unset ⇒ per-repo dynamic resolution (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `dynamicBankId`         | dynamic iff no `bankId`        | force dynamic (`true`) or static (`false`) resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -939,29 +898,18 @@ the boundary ("everything I clone under `work/client-x` shares memory").
 
 ### Per-directory overrides — `paths.<prefix>`
 
-When a folder is the boundary for something other than the bank — typically a different server
-or tenant for client work — key the override by directory instead of by bank id:
+Use directory overrides to customize memory behavior while sharing the default connection:
 
 ```jsonc
 {
-  "apiToken": "personal-key",
   "paths": {
-    "~/work/client-x": { "apiToken": "client-x-key" },
-    "~/work/acme": { "apiUrl": "https://memory.acme.example", "apiToken": "acme-key" },
-    "~/oss": { "serverMode": "daemon" },
+    "~/work": { "retainSessions": false },
+    "~/work/app": { "retainSessions": true },
   },
 }
 ```
 
-Every repo under the prefix, present and future, keeps its own bank but uses the entry's
-settings. The longest matching prefix wins, and a linked worktree outside the tree uses its main
-checkout's entry, as with `mapPathToBank`. The section applies after bank resolution and before
-`banks.<bankId>`, so a bank section still wins for its one repo. Bank-resolution and approval
-fields (`bankId`, `mapPathToBank`, `bank`, `optInOnly`, `optInPaths`, ...) are ignored inside a
-path section. Any connection setting can be overridden — `serverMode`, `apiUrl`, `apiPort`,
-`apiToken` — so one directory can use a local daemon while another uses Cloud or a self-hosted
-server. The token is re-read on a rejected request, like the top-level `apiToken`, but only while
-the directory still points at the same server.
+The longest matching prefix wins. Linked worktrees use the main checkout's entry. Bank overrides apply afterwards. Endpoint, credential, local-engine, bank-resolution and approval fields cannot be overridden here. The same connection restriction applies to `banks` and `harnesses` sections.
 
 ### Bank resolution
 
@@ -1085,13 +1033,7 @@ Past-conversation import accepts a normalized interchange file (engine `--conver
 chronological (a later chat can amend an earlier one). Day-to-day, conversations simply accrue from
 the live session write-back — no export step.
 
-Local agentstratum for trying it out:
-
-```bash
-docker run -d -p 8888:8888 -p 9999:9999 -e AGENTSTRATUM_API_LLM_PROVIDER=gemini \
-  -e AGENTSTRATUM_API_LLM_API_KEY=$GEMINI_API_KEY -e AGENTSTRATUM_API_LLM_MODEL=gemini-2.5-flash \
-  ghcr.io/vectorize-io/agentstratum:latest
-```
+Use a configured remote test service for integration tests. Server deployment is managed separately from client distribution.
 
 ## Companion skill (generated)
 

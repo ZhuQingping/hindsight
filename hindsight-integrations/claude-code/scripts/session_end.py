@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""SessionEnd hook: daemon cleanup.
-
-Fires once when a Claude Code session terminates. If the plugin
-auto-started a agentstratum-embed daemon, this is where we stop it.
-
-Port of: Openclaw's service.stop() in index.js
-"""
+"""SessionEnd hook: flush the final transcript to the configured remote service."""
 
 import json
 import os
@@ -14,7 +8,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.config import debug_log, load_config
-from lib.daemon import stop_daemon
 
 
 def main():
@@ -28,8 +21,7 @@ def main():
 
     debug_log(config, f"SessionEnd hook, reason: {hook_input.get('reason', 'unknown')}")
 
-    # Force a final retain before stopping the daemon — guarantees short sessions
-    # (fewer turns than retainEveryNTurns) still land on disk.
+    # Flush short sessions even when the periodic retain threshold was not met.
     if config.get("autoRetain") and hook_input.get("transcript_path"):
         try:
             from retain import run_retain
@@ -37,12 +29,6 @@ def main():
             run_retain(hook_input, force=True)
         except Exception as e:
             print(f"[agentstratum] SessionEnd final retain error: {e}", file=sys.stderr)
-
-    # Stop daemon if we started it
-    def _dbg(*a):
-        debug_log(config, *a)
-
-    stop_daemon(config, debug_fn=_dbg)
 
 
 if __name__ == "__main__":

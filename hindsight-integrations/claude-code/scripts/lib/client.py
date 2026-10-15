@@ -36,6 +36,8 @@ def _validate_api_url(url: str) -> str:
         raise ValueError(f"agentstratum API URL must use http or https, got: {parsed.scheme!r}")
     if not parsed.hostname:
         raise ValueError(f"agentstratum API URL has no hostname: {url!r}")
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise ValueError("agentstratum API Endpoint must not contain credentials, query parameters or fragments")
     return url.rstrip("/")
 
 

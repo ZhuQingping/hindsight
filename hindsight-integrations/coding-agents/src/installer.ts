@@ -43,8 +43,7 @@ import { applyEdits, modify } from "jsonc-parser";
 import { parse as parseToml } from "smol-toml";
 import { HOOK_HARNESSES, type HookHarnessName } from "./harness/hook-lifecycle";
 import { importLocalHistory } from "./core/history";
-import { detectLlm, hasRustToolchain, hasUvx, type LlmChoice } from "./core/daemon";
-import { readLegacyEndpoint } from "./core/legacy";
+import { validateRemoteEndpoint } from "./core/connection";
 import { isOurMcpEntry } from "./core/util";
 import { SKILL_DIRS, resolveSkillDirs, traecodeDotDirName } from "./core/skill-dirs";
 import {
@@ -99,12 +98,6 @@ export interface InstallCtx {
   /** Whether stdin can be prompted. Defaults to the real TTY check at the CLI entry; tests set it
    *  explicitly so the suite never blocks on a read. */
   interactive?: boolean;
-  /** Daemon prerequisite probes; injectable for tests. */
-  hasUvx?: () => boolean;
-  detectLlm?: () => LlmChoice | undefined;
-  hasRust?: () => boolean;
-  /** Reads an old per-agent plugin's endpoint; injectable for tests. */
-  readLegacy?: (home: string, prefer: readonly string[]) => ReturnType<typeof readLegacyEndpoint>;
   /** The raw CLI arguments after the command word — harness installers read flags off this
    *  (e.g. traecode's --enable-workspace-mcp) without each one re-parsing argv. */
   args?: readonly string[];
@@ -925,11 +918,11 @@ function stageRuntime(c: InstallCtx): InstallCtx {
   }
 }
 
-// ── server setup (cloud / self-hosted / local daemon) ───────────────────────────
+// ── remote service setup ───────────────────────────
 
-export type ServerMode = "cloud" | "self-hosted" | "daemon";
+export type ServerMode = "cloud" | "self-hosted";
 
-const SERVER_MODES: ServerMode[] = ["cloud", "self-hosted", "daemon"];
+const SERVER_MODES: ServerMode[] = ["cloud", "self-hosted"];
 
 /** Value of `--name value` or `--name=value`. */
 export function flagValue(args: string[], name: string): string | undefined {
@@ -954,57 +947,6 @@ const CONFIG_RELATIVE = [".agentstratum", "coding-agent.json"];
  *  (core/config.ts CONFIG_PATH); every installer read/write must honor the same override. */
 const hindsightConfigPath = (c: InstallCtx): string =>
   process.env.AGENTSTRATUM_CONFIG || join(c.home, ...CONFIG_RELATIVE);
-
-/**
- * Ask which of the three connection modes to use, once.
- *
- * Only ever asked on a TTY and only when the config doesn't already answer it: `install` is
- * idempotent and routinely re-run (after an upgrade, or to add another agent), and re-prompting
- * then would be noise — worse, it would silently rewrite a working setup in CI, where there is no
- * one to answer. Non-interactive callers pass `--server`.
- */
-const SERVER_CHOICES: { mode: ServerMode; label: string; hint: string }[] = [
-  { mode: "cloud", label: "agentstratum Cloud", hint: "hosted, needs an API token" },
-  {
-    mode: "self-hosted",
-    label: "Self-hosted server",
-    hint: "a agentstratum server you already run",
-  },
-  {
-    mode: "daemon",
-    label: "Local daemon (on-device)",
-    hint: "runs agentstratum-embed here; no account, needs uv + an LLM key",
-  },
-];
-
-function promptServerMode(c: InstallCtx): ServerMode | undefined {
-  // Preferred UX: arrow-key picker (digits still submit directly). It reports undefined when a
-  // raw TTY isn't available (no stty, exotic shell) — then the plain numbered menu below still
-  // works everywhere a line can be read.
-  if (c.selectPrompt) {
-    const picked = c.selectPrompt(
-      "Where should memory live?",
-      SERVER_CHOICES.map(({ label, hint }) => ({ label, hint })),
-      0
-    );
-    if (picked === null) {
-      c.log?.("no server chosen — leaving the server config unchanged");
-      return undefined;
-    }
-    if (picked !== undefined) return SERVER_CHOICES[picked].mode;
-  }
-  c.log?.(
-    `\nWhere should memory live?\n` +
-      SERVER_CHOICES.map((o, i) => `  ${i + 1}) ${o.label.padEnd(28)}— ${o.hint}`).join("\n") +
-      `\n`
-  );
-  const answer = readLineSync(c, "Choose [1-3] (default 1): ").trim();
-  if (answer === "") return "cloud";
-  const digit = Number.parseInt(answer, 10);
-  if (digit >= 1 && digit <= SERVER_CHOICES.length) return SERVER_CHOICES[digit - 1].mode;
-  c.log?.(`unrecognised choice "${answer}" — leaving the server config unchanged`);
-  return undefined;
-}
 
 /**
  * Read one line from stdin synchronously.
@@ -1035,144 +977,52 @@ function readLineSync(c: InstallCtx, prompt: string): string {
   }
 }
 
-/**
- * Resolve and persist the connection mode into ~/.agentstratum/coding-agent.json.
- *
- * Returns false to abort the install. Everything else here is advisory: a daemon whose
- * prerequisites are missing is still worth configuring, because `uv` or an API key can be
- * installed right after — unlike the harness preflights, which gate wiring that could never work.
- */
-function configureServer(c: InstallCtx, args: string[], installing: readonly string[]): boolean {
+/** Persist the single remote connection before changing any host registration. */
+function configureServer(c: InstallCtx, args: string[]): boolean {
   const explicit = flagValue(args, "server");
   if (explicit && !SERVER_MODES.includes(explicit as ServerMode)) {
-    c.log?.(`unknown --server "${explicit}" — expected one of: ${SERVER_MODES.join(", ")}`);
+    c.log?.(
+      "Only remote services are supported; use --api-url <API Endpoint>. Local engines are not distributed."
+    );
     return false;
   }
-  // Same override as the runtime, or a user with AGENTSTRATUM_CONFIG set would be configured into a
-  // file their sessions never read.
   const configPath = hindsightConfigPath(c);
   const existing = readJson(configPath);
-  const alreadyConfigured = !!(existing.serverMode || existing.apiUrl);
-
-  let mode = explicit as ServerMode | undefined;
-  if (!mode) {
-    if (alreadyConfigured) return true; // respect what's already there
-    // Someone coming from the old per-agent plugin already chose where their memory lives.
-    // Adopt it rather than asking again — and above all rather than defaulting to Cloud, which
-    // would quietly redirect their prompts and transcripts to a different server.
-    const legacy = (c.readLegacy ?? readLegacyEndpoint)(c.home, installing);
-    if (legacy) {
-      const carried: Record<string, unknown> = { ...existing, serverMode: legacy.serverMode };
-      if (legacy.apiUrl) carried.apiUrl = legacy.apiUrl;
-      if (legacy.apiToken) carried.apiToken = legacy.apiToken;
-      if (legacy.apiPort) carried.apiPort = legacy.apiPort;
-      writeJson(configPath, carried);
-      c.log?.(
-        `server: ${legacy.serverMode}${legacy.apiUrl ? ` (${legacy.apiUrl})` : ""} — carried over ` +
-          `from the ${legacy.harness} plugin (${legacy.source})\n` +
-          `        Only the endpoint moves; conversations do not. To bring this repo's history\n` +
-          `        across, re-run here with --import-conversations.`
-      );
-      if (legacy.serverMode === "daemon") reportDaemonPrereqs(c);
-      return true;
-    }
-    if (!c.interactive) {
-      c.log?.(
-        `\nserver: configure --server cloud|self-hosted --api-url <url>, or --server daemon,\n` +
-          `        or edit ${configPath}.`
-      );
-      return true;
-    }
-    mode = promptServerMode(c);
-    if (!mode) return true;
+  if (!explicit && existing.serverMode === "daemon") {
+    c.log?.(
+      "Local engine mode is not supported. Configure --server cloud --api-url <API Endpoint>."
+    );
+    return false;
   }
-
-  const next: Record<string, unknown> = { ...existing, serverMode: mode };
-  if (mode === "cloud") {
-    const url =
-      flagValue(args, "api-url") ??
-      existing.apiUrl ??
-      process.env.AGENTSTRATUM_API_URL ??
-      (c.interactive ? readLineSync(c, "Service URL (required): ").trim() : undefined);
-    if (!url) {
-      c.log?.("Cloud mode requires --api-url <url> or AGENTSTRATUM_API_URL.");
-      return false;
-    }
-    next.apiUrl = url;
-    // Cloud always authenticates — a config without a token only surfaces later as 401s on the
-    // first session, so the token is REQUIRED here (it used to be "blank to set later").
-    const token = flagValue(args, "api-token") ?? (c.interactive ? askToken(c) : undefined);
-    if (!token) {
-      c.log?.(
-        `❌ agentstratum Cloud needs an API token — pass --api-token <token> (or set apiToken in ${configPath}).`
-      );
-      return false;
-    }
-    next.apiToken = token;
-  } else if (mode === "self-hosted") {
-    const url =
-      flagValue(args, "api-url") ??
-      (c.interactive
-        ? readLineSync(c, "Server URL (e.g. http://localhost:8888): ").trim()
-        : undefined);
-    if (!url) {
-      c.log?.(
-        `❌ self-hosted mode needs a server URL — pass --api-url <url> (or set apiUrl in ${configPath}).`
-      );
-      return false;
-    }
-    next.apiUrl = url;
-    const token = flagValue(args, "api-token");
-    if (token) next.apiToken = token;
-  } else {
-    delete next.apiUrl; // daemon mode derives its URL from apiPort
-    reportDaemonPrereqs(c);
+  const url =
+    flagValue(args, "api-url") ??
+    existing.apiUrl ??
+    process.env.AGENTSTRATUM_API_URL ??
+    (c.interactive ? readLineSync(c, "API Endpoint from your console (required): ").trim() : "");
+  let apiUrl: string;
+  try {
+    apiUrl = validateRemoteEndpoint(typeof url === "string" ? url : "");
+  } catch (error) {
+    c.log?.(`server: ${(error as Error).message}`);
+    return false;
   }
-
+  // Never carry a stored credential to a different endpoint without explicit configuration.
+  const sameEndpoint =
+    typeof existing.apiUrl === "string" && existing.apiUrl.replace(/\/+$/, "") === apiUrl;
+  const token =
+    flagValue(args, "api-token") ??
+    (sameEndpoint ? existing.apiToken : undefined) ??
+    process.env.AGENTSTRATUM_API_TOKEN ??
+    process.env.AGENTSTRATUM_API_KEY;
+  const next: Record<string, unknown> = { ...existing, serverMode: explicit ?? "cloud", apiUrl };
+  delete next.apiToken;
+  if (typeof token === "string" && token.trim()) next.apiToken = token.trim();
+  // Credentials may be supplied later through the user's secret manager; never prompt with echo.
+  if (!next.apiToken)
+    c.log?.("server: configure apiToken or AGENTSTRATUM_API_TOKEN before authenticated requests.");
   writeJson(configPath, next);
-  c.log?.(`server: ${mode} (${configPath})`);
+  c.log?.(`server: remote connection (${configPath})`);
   return true;
-}
-
-/** Cloud tokens are mandatory: re-ask a couple of times rather than writing a config that 401s
- *  on the first session. Three blank answers mean the user doesn't have one at hand — give up
- *  and let the cloud branch abort with the actionable message. */
-function askToken(c: InstallCtx): string | undefined {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const token = readLineSync(c, "API token (required for agentstratum Cloud): ").trim();
-    if (token) return token;
-    c.log?.("  a token is required — find yours in the agentstratum Cloud dashboard");
-  }
-  return undefined;
-}
-
-/**
- * Daemon mode has two prerequisites the plugin can't supply. Report both up front rather than
- * letting the first session fail quietly with nothing but a diagnostic line.
- */
-function reportDaemonPrereqs(c: InstallCtx): void {
-  if (!(c.hasUvx ?? hasUvx)()) {
-    c.log?.(
-      `⚠️  \`uv\` is not on PATH. The daemon is fetched and run with it, so memory stays inert\n` +
-        `    until you install it: https://docs.astral.sh/uv/`
-    );
-  }
-  if (!(c.hasRust ?? hasRustToolchain)()) {
-    c.log?.(
-      `⚠️  macOS needs a current Rust toolchain to build the daemon's dependencies (litellm\n` +
-        `    publishes no macOS wheel). Install from https://rustup.rs, then\n` +
-        `    \`rustup default stable && rustup update\` — an OUT-OF-DATE toolchain fails too.`
-    );
-  }
-  const llm = (c.detectLlm ?? detectLlm)();
-  if (llm) {
-    c.log?.(`   local extraction will use ${llm.provider} (from ${llm.source})`);
-  } else {
-    c.log?.(
-      `⚠️  No LLM available for local fact extraction. Set OPENAI_API_KEY, ANTHROPIC_API_KEY or\n` +
-        `    GEMINI_API_KEY (or install the Claude Code CLI, which needs no key).`
-    );
-  }
 }
 
 const devin: HarnessInstaller = {
@@ -2491,7 +2341,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
       `usage: agentstratum-coding-agents <install|uninstall> <all|harness...>\n` +
         `       agentstratum-coding-agents update\n` +
         `       agentstratum-coding-agents stats\n` +
-        `       [--server cloud|self-hosted|daemon] [--api-url <url>] [--api-token <token>]\n` +
+        `       [--server cloud|self-hosted] [--api-url <url>] [--api-token <token>]\n` +
         `       [--import-conversations] [--enable-workspace-mcp]\n` +
         `  all      every agent detected on this machine\n` +
         `  harness  ${INSTALLERS.map((i) => i.name).join(", ")} (agy aliases antigravity-cli)\n` +
@@ -2547,16 +2397,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   const runnable = targets.filter((t) => !blocked.has(t.name));
   // Resolve the server only when at least one harness can be installed, and before wiring any of
   // them so the first session already has a config to read.
-  if (
-    command === "install" &&
-    runnable.length > 0 &&
-    !configureServer(
-      ctx,
-      rawArgs,
-      runnable.map((t) => t.name)
-    )
-  )
-    return 1;
+  if (command === "install" && runnable.length > 0 && !configureServer(ctx, rawArgs)) return 1;
 
   const failed: string[] = [];
   for (const t of runnable) {

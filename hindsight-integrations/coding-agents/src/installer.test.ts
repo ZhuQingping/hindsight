@@ -76,8 +76,6 @@ function makeCtx(): InstallCtx & {
     dcodePlugin: vi.fn(() => true),
     // Stubbed like the CLI seams above, so the suite never depends on the Node running it.
     nodeSqlite: vi.fn(() => true),
-    // Never let a developer's real ~/.agentstratum/claude-code.json steer the tests.
-    readLegacy: () => undefined,
   };
 }
 
@@ -101,6 +99,9 @@ function writeJsonAt(path: string, value: unknown): void {
 // reader in core/history.ts honors DSH_HOME too.
 beforeEach(() => {
   vi.stubEnv("AGENTSTRATUM_CONFIG", "");
+  vi.stubEnv("AGENTSTRATUM_API_URL", "https://service.example");
+  vi.stubEnv("AGENTSTRATUM_API_TOKEN", "fixture-token");
+  vi.stubEnv("AGENTSTRATUM_API_KEY", "");
   vi.stubEnv("DSH_HOME", "");
   delete process.env.DSH_HOME;
 });
@@ -2916,222 +2917,67 @@ describe("devin-cli preflight", () => {
   });
 });
 
-/**
- * Choosing where memory lives — Cloud, a self-hosted server, or a local daemon. Asked once, at
- * install time; `--server` is the non-interactive form and the only one the suite uses (a prompt
- * would block on stdin).
- */
-describe("server setup", () => {
+describe("explicit remote server setup", () => {
   const configPath = (ctx: InstallCtx) => join(ctx.home, ".agentstratum", "coding-agent.json");
-
-  // The runtime reads AGENTSTRATUM_CONFIG first (core/config.ts CONFIG_PATH); the wizard must write
-  // that same file, or a user with the var set is configured into a file sessions never read.
-  it("honors AGENTSTRATUM_CONFIG for both the already-configured check and the write", () => {
+  it("honors the same config path as the runtime", () => {
     const ctx = makeCtx();
     const override = join(ctx.home, "elsewhere", "config.json");
     vi.stubEnv("AGENTSTRATUM_CONFIG", override);
-    try {
-      expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
-      expect(readJson(override).serverMode).toBe("daemon");
-      expect(existsSync(configPath(ctx))).toBe(false); // the default path stays untouched
-    } finally {
-      vi.unstubAllEnvs();
-    }
-  });
-
-  it("uses the injected arrow-key picker when interactive, mapping index → mode", () => {
-    const ctx = makeCtx();
-    ctx.interactive = true;
-    ctx.hasUvx = () => true;
-    ctx.hasRust = () => true;
-    ctx.detectLlm = () => ({ provider: "openai", apiKey: "sk", source: "OPENAI_API_KEY" });
-    ctx.selectPrompt = vi.fn(() => 2); // third row = daemon
     expect(run(["install", "claude-code"], ctx)).toBe(0);
-    expect(ctx.selectPrompt).toHaveBeenCalledOnce();
-    expect(readJson(configPath(ctx)).serverMode).toBe("daemon");
-  });
-
-  it("a cancelled picker leaves the server config untouched but still installs", () => {
-    const ctx = makeCtx();
-    ctx.interactive = true;
-    ctx.selectPrompt = () => null;
-    expect(run(["install", "claude-code"], ctx)).toBe(0);
+    expect(readJson(override).apiUrl).toBe("https://service.example");
     expect(existsSync(configPath(ctx))).toBe(false);
-    expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(true);
   });
-
-  it("--server daemon records the mode and leaves apiUrl to the port", () => {
-    const ctx = makeCtx();
-    ctx.hasUvx = () => true;
-    ctx.detectLlm = () => ({ provider: "openai", apiKey: "sk", source: "OPENAI_API_KEY" });
-    expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
-    const cfg = readJson(configPath(ctx));
-    expect(cfg.serverMode).toBe("daemon");
-    expect(cfg.apiUrl).toBeUndefined();
-  });
-
-  it("--server self-hosted stores the URL", () => {
-    const ctx = makeCtx();
-    expect(
-      run(
-        ["install", "claude-code", "--server", "self-hosted", "--api-url", "http://box:8888"],
-        ctx
-      )
-    ).toBe(0);
-    expect(readJson(configPath(ctx)).apiUrl).toBe("http://box:8888");
-  });
-
-  // Without a URL the mode is unusable, and silently falling back to Cloud would send this user's
-  // prompts somewhere they did not choose.
-  it("self-hosted without a URL fails instead of falling back to Cloud", () => {
+  it("fails before registering hooks when no endpoint is configured", () => {
+    vi.stubEnv("AGENTSTRATUM_API_URL", "");
     const ctx = makeCtx();
     const logs: string[] = [];
     ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code", "--server", "self-hosted"], ctx)).toBe(1);
-    expect(logs.join("\n")).toContain("--api-url");
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
+    expect(logs.join("\n")).toContain("API Endpoint");
+    expect(existsSync(configPath(ctx))).toBe(false);
     expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
   });
-
-  it("rejects an unknown mode", () => {
+  it.each(["daemon", "hybrid"])("rejects unsupported mode %s", (mode) => {
     const ctx = makeCtx();
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code", "--server", "hybrid"], ctx)).toBe(1);
-    expect(logs.join("\n")).toContain("cloud, self-hosted, daemon");
+    expect(run(["install", "claude-code", "--server", mode], ctx)).toBe(1);
+    expect(existsSync(configPath(ctx))).toBe(false);
   });
-
-  // `--server daemon` puts a bare word in argv; without value-aware parsing it reads as a harness.
-  it("does not mistake a flag value for a harness name", () => {
+  it.each([
+    "file:///tmp/api",
+    "https://user:secret@service.example",
+    "https://service.example?token=secret",
+  ])("rejects invalid endpoint %s", (url) => {
     const ctx = makeCtx();
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
-    expect(logs.join("\n")).not.toContain('unknown harness "daemon"');
+    expect(run(["install", "claude-code", "--api-url", url], ctx)).toBe(1);
+    expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
   });
-
-  // install is idempotent and routinely re-run; it must not silently rewrite a working setup.
-  it("leaves an existing server config alone", () => {
-    const ctx = makeCtx();
-    writeJsonAt(configPath(ctx), { serverMode: "self-hosted", apiUrl: "http://mine:8888" });
-    expect(run(["install", "claude-code"], ctx)).toBe(0);
-    expect(readJson(configPath(ctx)).apiUrl).toBe("http://mine:8888");
-  });
-
-  it("warns when daemon prerequisites are missing, but still configures it", () => {
-    const ctx = makeCtx();
-    ctx.hasUvx = () => false;
-    ctx.hasRust = () => true;
-    ctx.detectLlm = () => undefined;
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    // Advisory, not blocking: uv and an API key can both be installed after the fact.
-    expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
-    const out = logs.join("\n");
-    expect(out).toContain("uv");
-    expect(out).toContain("OPENAI_API_KEY");
-    expect(readJson(configPath(ctx)).serverMode).toBe("daemon");
-  });
-
-  // Coming from the old per-agent plugin, the endpoint is already a decision the user made.
-  // Defaulting to Cloud instead would quietly redirect their prompts to a different server.
-  it("adopts the old plugin's endpoint instead of asking or defaulting to Cloud", () => {
-    const ctx = makeCtx();
-    ctx.readLegacy = () => ({
-      harness: "claude-code",
-      serverMode: "self-hosted" as const,
-      apiUrl: "http://legacy:8888",
-      apiToken: "tok",
-      source: "/home/u/.agentstratum/claude-code.json",
-    });
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code"], ctx)).toBe(0);
-    const cfg = readJson(configPath(ctx));
-    expect(cfg.serverMode).toBe("self-hosted");
-    expect(cfg.apiUrl).toBe("http://legacy:8888");
-    expect(cfg.apiToken).toBe("tok");
-    // Conversations are a separate, opt-in step — say so rather than implying a full migration.
-    expect(logs.join("\n")).toContain("--import-conversations");
-  });
-
-  it("an explicit --server still overrides what the old plugin used", () => {
-    const ctx = makeCtx();
-    ctx.readLegacy = () => ({
-      harness: "claude-code",
-      serverMode: "self-hosted" as const,
-      apiUrl: "http://legacy:8888",
-      source: "/x",
-    });
-    expect(
-      run(
-        [
-          "install",
-          "claude-code",
-          "--server",
-          "cloud",
-          "--api-url",
-          "https://service.example",
-          "--api-token",
-          "tok",
-        ],
-        ctx
-      )
-    ).toBe(0);
-    const cfg = readJson(configPath(ctx));
-    expect(cfg.serverMode).toBe("cloud");
-    expect(cfg.apiUrl).toBe("https://service.example");
-  });
-
-  it("--server cloud stores the required token", () => {
+  it("stores an explicit endpoint and token, and is idempotent", () => {
     const ctx = makeCtx();
     expect(
       run(
         [
           "install",
           "claude-code",
-          "--server",
-          "cloud",
           "--api-url",
-          "https://service.example",
+          "https://tenant.example/api/",
           "--api-token",
-          "sk-cloud",
+          "tenant-key",
         ],
         ctx
       )
     ).toBe(0);
-    const cfg = readJson(configPath(ctx));
-    expect(cfg.serverMode).toBe("cloud");
-    expect(cfg.apiToken).toBe("sk-cloud");
+    expect(run(["install", "claude-code"], ctx)).toBe(0);
+    expect(readJson(configPath(ctx))).toMatchObject({
+      apiUrl: "https://tenant.example/api",
+      apiToken: "tenant-key",
+    });
   });
-
-  // A Cloud config without a token only surfaces later as 401s on the first session — refuse
-  // up front instead, like self-hosted without a URL.
-  it("--server cloud without a token fails instead of writing a config that 401s", () => {
+  it("does not reuse a stored credential when changing endpoint", () => {
     const ctx = makeCtx();
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    expect(
-      run(
-        ["install", "claude-code", "--server", "cloud", "--api-url", "https://service.example"],
-        ctx
-      )
-    ).toBe(1);
-    expect(logs.join("\n")).toContain("--api-token");
-    expect(existsSync(configPath(ctx))).toBe(false);
-    expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
-  });
-
-  // litellm publishes no macOS wheel, so a Mac compiles it from source and needs cargo. Without
-  // this the failure surfaces minutes later, deep in a pip build log.
-  it("flags a missing Rust toolchain", () => {
-    const ctx = makeCtx();
-    ctx.hasUvx = () => true;
-    ctx.hasRust = () => false;
-    ctx.detectLlm = () => ({ provider: "openai", apiKey: "sk", source: "OPENAI_API_KEY" });
-    const logs: string[] = [];
-    ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code", "--server", "daemon"], ctx)).toBe(0);
-    expect(logs.join("\n")).toContain("rustup");
+    vi.stubEnv("AGENTSTRATUM_API_TOKEN", "");
+    writeJsonAt(configPath(ctx), { apiUrl: "https://old.example", apiToken: "old-key" });
+    expect(run(["install", "claude-code", "--api-url", "https://new.example"], ctx)).toBe(0);
+    expect(readJson(configPath(ctx)).apiToken).toBeUndefined();
   });
 });
 

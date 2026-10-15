@@ -9,6 +9,7 @@ settings.json automatically. Run this script once after installing the plugin:
 Or via the /agentstratum:setup skill inside a Claude Code session.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -52,19 +53,6 @@ def _recall_timeout() -> int:
     if req_timeout is not None:
         return max(req_timeout + 15, HOOK_RECALL_TIMEOUT_MIN)
     return HOOK_RECALL_TIMEOUT_DEFAULT
-
-
-def find_plugin_root() -> str:
-    """Locate the installed agentstratum-memory plugin cache directory."""
-    cache_base = os.path.expanduser("~/.claude/plugins/cache/agentstratum/agentstratum-memory")
-    if not os.path.isdir(cache_base):
-        raise RuntimeError(
-            "agentstratum-memory plugin not found. Run /plugin install agentstratum-memory inside Claude Code first."
-        )
-    versions = sorted(os.listdir(cache_base), reverse=True)
-    if not versions:
-        raise RuntimeError(f"No versions found in {cache_base}")
-    return os.path.join(cache_base, versions[0])
 
 
 def build_hooks(plugin_root: str) -> dict:
@@ -118,12 +106,12 @@ def build_hooks(plugin_root: str) -> dict:
     }
 
 
-def main():
-    try:
-        plugin_root = find_plugin_root()
-    except RuntimeError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Register or remove this plugin's Claude Code hooks")
+    parser.add_argument("--uninstall", action="store_true")
+    parser.add_argument("--plugin-root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    args = parser.parse_args()
+    plugin_root = os.path.abspath(args.plugin_root)
 
     if not os.path.isfile(SETTINGS_PATH):
         print(f"Error: {SETTINGS_PATH} not found. Is Claude Code installed?", file=sys.stderr)
@@ -132,19 +120,28 @@ def main():
     with open(SETTINGS_PATH) as f:
         settings = json.load(f)
 
-    existing_hooks = settings.get("hooks", {})
-    if existing_hooks:
-        print("Existing hooks found — merging (agentstratum-memory hooks take precedence).")
-
     new_hooks = build_hooks(plugin_root)
-    merged = {**existing_hooks, **new_hooks}
-    settings["hooks"] = merged
-    settings.setdefault("env", {})["CLAUDE_PLUGIN_ROOT"] = plugin_root
+    existing_hooks = settings.setdefault("hooks", {})
+    for event, groups in new_hooks.items():
+        owned_commands = {hook["command"] for group in groups for hook in group["hooks"]}
+        kept = []
+        for group in existing_hooks.get(event, []):
+            remaining = [hook for hook in group.get("hooks", []) if hook.get("command") not in owned_commands]
+            if remaining:
+                kept.append({**group, "hooks": remaining})
+        if not args.uninstall:
+            kept.extend(groups)
+        if kept:
+            existing_hooks[event] = kept
+        else:
+            existing_hooks.pop(event, None)
 
     with open(SETTINGS_PATH, "w") as f:
         json.dump(settings, f, indent=2)
+        f.write("\n")
 
-    print("agentstratum-memory hooks registered successfully.")
+    action = "removed" if args.uninstall else "registered"
+    print(f"agentstratum-memory hooks {action} successfully.")
     print(f"Plugin root: {plugin_root}")
     print("Restart Claude Code for changes to take effect.")
 

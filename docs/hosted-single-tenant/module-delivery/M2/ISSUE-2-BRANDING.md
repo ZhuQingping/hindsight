@@ -1,3 +1,5 @@
+> 2026-10-15 更新：Issue #2 已确认只对外发行 CLI、Coding Agents、标准 Agent Plugin、Claude Code 四类客户端；服务端包/镜像、本地引擎、Web 安装包、SDK、Helm 不发行。远端连接收敛和客户端候选构建已继续实施。详见 [CLIENT-DISTRIBUTION.md](CLIENT-DISTRIBUTION.md) 的当前行为、测试证据与未完成门槛。下文旧的本地引擎发行和 Rust 未验证记录属于此前快照；此次没有重跑服务端全量系统验收，不据此关闭 Issue。
+
 # Issue #2：agentstratum 对外品牌改造
 
 状态：IMPLEMENTED_WITH_PENDING_RELEASE_INPUTS / NOT_READY_FOR_CLOSURE。
@@ -85,3 +87,4 @@ CLI 安装脚本的来源尚未确认，用户对是否改为强制预装也回�
 - 本轮重新运行根 `scripts/hooks/lint.sh`：PASS（`.local/issue-2/pr-lint.log`）；`git diff --check`：PASS。
 - 本轮品牌与 tracing 回归：53 passed、1 skipped、5 errors（`.local/issue-2/pr-tracing-tests.log`）。5 项错误均发生在 `test_tracing_spans_verification.py` 的 fixture 初始化阶段：模型镜像 `hf-mirror.com` 无法提供可下载的模型元数据，且本机无缓存；未进入这些用例的业务断言，不能标为通过。
 - PR 保持 Draft，关联 Issue #2，不自动关闭 Issue；前述发行输入、实际安装验证、系统故事与 Rust/插件回归待办仍然有效。本次授权不涉及合并或发布。
+
