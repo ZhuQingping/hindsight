@@ -42,17 +42,42 @@ jobs:
           TARGET: ${{ matrix.target }}
           ASSET: ${{ matrix.asset }}
         run: |
-          mkdir -p artifacts
-          cp "hindsight-cli/target/$TARGET/release/agentstratum" "artifacts/$ASSET"
-          cp LICENSE artifacts/LICENSE
+          VERSION=$(sed -n 's/^version = "\([^"]*\)"/\1/p' hindsight-cli/Cargo.toml | head -n 1)
+          DEST="artifacts/agentstratum-cli/$VERSION/${ASSET#agentstratum-}"
+          mkdir -p "$DEST"
+          cp "hindsight-cli/target/$TARGET/release/agentstratum" "$DEST/agentstratum"
+          cp LICENSE "$DEST/LICENSE"
           cd hindsight-cli
           cargo fetch
           cargo about generate --offline --manifest-path Cargo.toml --config about.toml about.hbs --output-file ../artifacts/THIRD_PARTY_LICENSES.txt
-          cd ../artifacts
-          shasum -a 256 "$ASSET" LICENSE THIRD_PARTY_LICENSES.txt > SHA256SUMS
+          cd ..
+          mv artifacts/THIRD_PARTY_LICENSES.txt "$DEST/THIRD_PARTY_LICENSES.txt"
+          cd "$DEST"
+          shasum -a 256 agentstratum LICENSE THIRD_PARTY_LICENSES.txt > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset }}-candidate
+          path: artifacts/
+          if-no-files-found: error
+
+  installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Verify CLI installer over HTTPS
+        run: python hindsight-system-tests/tests/test_client_installation.py -v
+      - name: Stage installer
+        run: |
+          mkdir -p artifacts/installers
+          cp scripts/install-agentstratum.sh artifacts/installers/install-agentstratum.sh
+          cd artifacts/installers
+          sha256sum install-agentstratum.sh > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agentstratum-installer-candidate
           path: artifacts/
           if-no-files-found: error
 
@@ -81,6 +106,11 @@ jobs:
           python hindsight-integrations/agent-plugin/validate.py
       - name: Package only approved plugins
         run: python scripts/package-client-plugins.py --output artifacts
+      - name: Verify npm installation from an HTTPS tarball URL
+        run: |
+          for tarball in artifacts/agentstratum-coding-agents/*/*.tgz; do
+            AGENTSTRATUM_TEST_NPM_TARBALL="$tarball" python hindsight-system-tests/tests/test_client_installation.py ClientInstallationStory.test_npm_installs_actual_tarball_by_https_url -v
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: agentstratum-plugin-candidates

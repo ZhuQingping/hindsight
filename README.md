@@ -13,7 +13,7 @@ Agent memory delivered as a hosted service. Each customer connects using their o
 
 Only these clients are included in the public release scope. Server packages/images, local engines, local Web console packages, SDKs and Helm Charts are excluded. The operator deploys the hosted service separately; its source remains in this repository.
 
-Huawei Cloud public download resources and the production domain are pending. The release workflow builds reviewable client artifacts only; it does not publish to npm, PyPI, container registries or a customer download host.
+Public distribution uses Huawei Cloud OBS + CDN; Coding Agents installs from an explicit `.tgz` URL with npm. The actual resources and production download domain are pending. The release workflow builds reviewable client artifacts only; it does not publish to npm, PyPI, container registries or a customer download host.
 
 ## Connect
 
@@ -26,7 +26,7 @@ agentstratum profile create work --api-url "$AGENTSTRATUM_API_URL" --api-key "$A
 agentstratum -p work bank list
 ```
 
-There is no implicit localhost endpoint or local Web installer. Missing endpoint configuration produces an actionable error.
+The standalone CLI installer is [scripts/install-agentstratum.sh](scripts/install-agentstratum.sh). Supply the approved HTTPS download root and an explicit version; it verifies SHA-256 before replacing the binary. There is no implicit localhost endpoint or local Web installer. Missing endpoint configuration produces an actionable error.
 
 For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents/README.md), [Agent Plugin](hindsight-integrations/agent-plugin/README.md) and [Claude Code](hindsight-integrations/claude-code/README.md). Standard Agent Plugin supplies Skills and MCP; automatic lifecycle hooks are provided by the other integrations where supported by the host.
 

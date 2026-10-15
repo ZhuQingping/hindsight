@@ -51,20 +51,19 @@ with it.
 agentstratum-coding-agents install all          # every detected agent, wired natively
 agentstratum-coding-agents install claude-code  # or just one
 agentstratum-coding-agents uninstall all        # removes exactly what install added
-agentstratum-coding-agents update               # refresh the runtime only, no rewiring
+agentstratum-coding-agents update               # re-stage the installed package, no rewiring
 agentstratum-coding-agents stats                # how often each agent uses agentstratum
 ```
 
 `install` takes an explicit target — `all`, or one or more harness names. A bare
 `agentstratum-coding-agents install` changes nothing and prints the choice, so wiring every agent on
-the machine is never something that happens by accident. **Updating is the same `install`
-command again** — it re-copies the runtime in place.
+the machine is never something that happens by accident.
 
-Day to day you should not have to: once a day, a session start checks npm and re-stages a newer
-runtime in the background (`autoUpdate`, on by default — set it to `false` to pin the version you
-have). That is the `update` command above, which refreshes the copy every wired agent already
-points at and deliberately touches no host config; re-run `install` yourself after a release that
-adds a new hook, or to wire another agent.
+For the public OBS/CDN distribution, first install the chosen release with
+`npm install -g <HTTPS tarball URL>`, then run `install <harness>` again to refresh the staged
+runtime and host registration. `update` only re-stages the package already installed on your
+machine; it does not download a newer tarball. Leave `AGENTSTRATUM_CODING_AGENTS_PACKAGE` unset:
+this distribution does not use the optional registry-based background updater.
 
 <!-- skill:end -->
 
@@ -481,7 +480,7 @@ Use one default API connection across all harnesses, paths and banks. Configure 
 
 <!-- skill:begin -->
 
-Huawei Cloud distribution addresses are pending. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./agentstratum-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. No package registry is queried for automatic updates unless `AGENTSTRATUM_CODING_AGENTS_PACKAGE` is explicitly configured; leave it unset until the distribution channel is approved.
+Public distribution uses Huawei Cloud OBS + CDN. The concrete download root is pending. Install a published version with `npm install -g <HTTPS tarball URL>`; no public npm package-name registration is required. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./agentstratum-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. Keep `AGENTSTRATUM_CODING_AGENTS_PACKAGE` unset for this distribution. To install a new version, use its explicit tarball URL and re-run the host installation to refresh the staged runtime; the OBS/CDN release does not use registry-based automatic updates.
 
 ## Configuration
 

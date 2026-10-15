@@ -1,3 +1,5 @@
+> 2026-10-15 渠道补充：已确认 OBS + CDN 公开分发，Coding Agents 通过 `.tgz` URL 安装，不要求按包名 `npx`。新增固定版本 CLI 安装脚本及 HTTPS/校验回归；正式资源地址与线上验收仍待完成。详见 [CLIENT-DISTRIBUTION.md](CLIENT-DISTRIBUTION.md)。
+
 > 2026-10-15 更新：Issue #2 已确认只对外发行 CLI、Coding Agents、标准 Agent Plugin、Claude Code 四类客户端；服务端包/镜像、本地引擎、Web 安装包、SDK、Helm 不发行。远端连接收敛和客户端候选构建已继续实施。详见 [CLIENT-DISTRIBUTION.md](CLIENT-DISTRIBUTION.md) 的当前行为、测试证据与未完成门槛。下文旧的本地引擎发行和 Rust 未验证记录属于此前快照；此次没有重跑服务端全量系统验收，不据此关闭 Issue。
 
 # Issue #2：agentstratum 对外品牌改造
