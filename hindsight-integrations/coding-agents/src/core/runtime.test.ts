@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "./config";
 import type { HindsightClient } from "./hindsight";
 import { RuntimeCore } from "./runtime";
+import { log } from "./log";
 
 describe("RuntimeCore", () => {
   it("uses the shared prompt lifecycle and consumes the new-bank reflect deferral once", async () => {
@@ -211,14 +212,65 @@ describe("RuntimeCore session-idle write-back", () => {
 });
 
 describe("RuntimeCore remote connection", () => {
-  it("rejects local engine mode before seeding", async () => {
-    const client = { listDocumentIds: vi.fn() } as unknown as HindsightClient;
-    const core = new RuntimeCore(client, "bank-1", resolveConfig({ serverMode: "daemon" }));
-    await expect(core.seedIfCold("/repos/one")).rejects.toThrow(
-      "Local engines are not distributed"
-    );
-    expect(client.listDocumentIds).not.toHaveBeenCalled();
+  it.each([
+    { config: { apiUrl: "" }, message: "API Endpoint is required" },
+    { config: { apiUrl: "not-a-url" }, message: "API Endpoint must be a valid" },
+    {
+      config: { serverMode: "daemon" as const },
+      message: "Local engines are not distributed",
+    },
+  ])("reports $message without rejecting or seeding", async ({ config, message }) => {
+    const client = {
+      listDocumentIds: vi.fn(),
+      listPages: vi.fn(),
+      retain: vi.fn(),
+    } as unknown as HindsightClient;
+    const core = new RuntimeCore(client, "bank-1", resolveConfig(config));
+    const notify = vi.fn();
+    const warning = vi.spyOn(log, "warn");
+    core.setNotifier(notify);
+    try {
+      await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
+      expect(warning).toHaveBeenCalledWith("opencode", expect.stringContaining(message));
+      expect(notify).toHaveBeenCalledWith(
+        "agentstratum configuration",
+        expect.stringContaining(message)
+      );
+      expect(client.listDocumentIds).not.toHaveBeenCalled();
+      expect(client.listPages).not.toHaveBeenCalled();
+      expect(client.retain).not.toHaveBeenCalled();
+    } finally {
+      warning.mockRestore();
+    }
   });
+
+  it.each(["absent", "throws", "rejects"])(
+    "survives an %s host notice channel while logging configuration guidance",
+    async (channel) => {
+      const client = { listDocumentIds: vi.fn() } as unknown as HindsightClient;
+      const core = new RuntimeCore(client, "bank-1", resolveConfig({ apiUrl: "" }));
+      if (channel === "throws") {
+        core.setNotifier(() => {
+          throw new Error("host notice unavailable");
+        });
+      } else if (channel === "rejects") {
+        core.setNotifier(async () => {
+          throw new Error("host notice unavailable");
+        });
+      }
+      const warning = vi.spyOn(log, "warn");
+      try {
+        await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
+        expect(warning).toHaveBeenCalledWith(
+          "opencode",
+          expect.stringContaining("AGENTSTRATUM_API_URL")
+        );
+        expect(client.listDocumentIds).not.toHaveBeenCalled();
+      } finally {
+        warning.mockRestore();
+      }
+    }
+  );
 });
 
 /**

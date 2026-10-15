@@ -17,7 +17,7 @@
  */
 import type { Config } from "./config";
 import { maybeAutoUpdate } from "./auto-update";
-import { ensureRemoteConnection } from "./connection";
+import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
 import { diag } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
 import type { HindsightClient } from "./hindsight";
@@ -121,14 +121,13 @@ export class RuntimeCore {
     // (`dsh plugin add …`, `cline plugin install`), a route our installer never sees, leaving the
     // plugin loaded with its tools registered and no skill on disk at all (#4406). No-op for a host
     // with no skills directory (opencode; opencode2 registers it in memory instead).
-    syncCompanionSkill(this.harness, { install: true });
-    // Validate the same default remote connection used by hooks and tools.
-    await ensureRemoteConnection(this.cfg);
-    // Same session-start housekeeping the hook harnesses do in `runSessionStartHook`: a persistent
-    // plugin host is a session start too, and leaving it out would mean opencode/Kilo/Cline users
-    // never got an update — the same lifecycle gap that connection validation must avoid.
-    void maybeAutoUpdate(this.cfg);
     try {
+      syncCompanionSkill(this.harness, { install: true });
+      // Hosts may fire-and-forget initialization. Keep validation inside the fail-open boundary:
+      // a missing endpoint should prompt configuration, not reject into the host process.
+      await ensureRemoteConnection(this.cfg);
+      // Same session-start housekeeping as the fresh-process hook harnesses.
+      void maybeAutoUpdate(this.cfg);
       const out = await buildSessionStartContext({
         cwd: repoPath || process.cwd(),
         bankId: this.bankId,
@@ -145,8 +144,16 @@ export class RuntimeCore {
         this.notify?.("agentstratum", plain.replace(/^agentstratum is /, "Is "));
       }
       this.deferInitialReflect = out.deferInitialReflect === true;
-    } catch {
-      /* seeding is best-effort — a cold-check failure never breaks the agent */
+    } catch (error) {
+      if (error instanceof RemoteConnectionError) {
+        log.warn(this.harness, error.message);
+        try {
+          await this.notify?.("agentstratum configuration", error.message);
+        } catch {
+          /* the configuration warning is logged even if the host notice channel fails */
+        }
+      }
+      // Seeding is best-effort — a cold-check failure never breaks the agent.
     }
   }
 
