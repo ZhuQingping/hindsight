@@ -3,6 +3,7 @@
  * This should be used in client components, not the SDK directly
  */
 
+import { productFetch } from "@/lib/product-fetch";
 import { toast } from "sonner";
 import { bankApi, bankStatsApi, chunkApi, documentApi, memoryApi } from "./bank-url";
 import { stripBasePath, withBasePath } from "./base-path";
@@ -429,7 +430,7 @@ export class ControlPlaneClient {
     { suppressErrorToast = false }: { suppressErrorToast?: boolean } = {}
   ): Promise<T> {
     try {
-      const response = await fetch(withBasePath(path), {
+      const response = await productFetch(withBasePath(path), {
         ...options,
         headers: {
           "Content-Type": "application/json",
@@ -2059,7 +2060,9 @@ export class ControlPlaneClient {
     if (includeObservations) params.set("include_observations", "true");
     if (includeKnowledgeBase) params.set("include_knowledge_base", "true");
     // Direct fetch (not fetchApi) because the response is a binary zip, not JSON.
-    const response = await fetch(withBasePath(`/api/documents/transfer?${params.toString()}`));
+    const response = await productFetch(
+      withBasePath(`/api/documents/transfer?${params.toString()}`)
+    );
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}`;
       try {
@@ -2089,10 +2092,13 @@ export class ControlPlaneClient {
     formData.append("file", zipFile);
     const params = new URLSearchParams({ bank_id: bankId, on_conflict: onConflict });
     // Direct fetch for multipart/form-data; browser sets the boundary header.
-    const response = await fetch(withBasePath(`/api/documents/transfer?${params.toString()}`), {
-      method: "POST",
-      body: formData,
-    });
+    const response = await productFetch(
+      withBasePath(`/api/documents/transfer?${params.toString()}`),
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}`;
       try {
@@ -2145,7 +2151,7 @@ export class ControlPlaneClient {
     formData.append("request", JSON.stringify(requestData));
 
     // Use fetch directly for multipart/form-data
-    const response = await fetch(withBasePath("/api/files/retain"), {
+    const response = await productFetch(withBasePath("/api/files/retain"), {
       method: "POST",
       body: formData,
       // Don't set Content-Type - browser will set it with boundary

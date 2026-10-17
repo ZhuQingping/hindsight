@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+agentstratum HTTP API
 
-HTTP API for Hindsight
+HTTP API for agentstratum, a data foundation for agents
 
 API version: 0.10.3
 */

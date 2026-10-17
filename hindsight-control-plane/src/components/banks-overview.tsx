@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Trash2, Search, X, Plus } from "lucide-react";
+import { Trash2, Search, X, Plus, Database } from "lucide-react";
 import { toast } from "sonner";
 
 import { client } from "@/lib/api";
@@ -226,10 +226,11 @@ export function BanksOverview() {
   // A search that matches nothing still shows the table UI, so the query can be edited.
   if (!loading && total === 0 && !search) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-80px)] bg-muted/20">
-        <div className="max-w-md rounded-lg border-2 border-border bg-card p-10 text-center shadow-lg">
-          {/* Tumbling Hindsight mascot — loops forever as a friendly greeting. */}
-          <Spinner size="xl" variant="jump" className="mx-auto mb-4" />
+      <div className="flex flex-1 items-center justify-center px-6 py-20">
+        <div className="w-full max-w-xl rounded-xl border border-border bg-card px-8 py-14 text-center shadow-sm">
+          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/8 text-primary">
+            <Database className="h-7 w-7" />
+          </div>
           <h3 className="mb-3 text-2xl font-bold text-card-foreground">{t("welcomeTitle")}</h3>
           <p className="mb-6 text-muted-foreground">{t("welcomeBody")}</p>
           <Button onClick={() => window.dispatchEvent(new CustomEvent("hindsight:create-bank"))}>
@@ -242,14 +243,13 @@ export function BanksOverview() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <div className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-8 sm:py-10">
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button
-          variant="outline"
           size="sm"
           // The create dialog (with its template import) lives in the header selector;
           // this asks that component to open it rather than shipping a second copy.
@@ -347,9 +347,16 @@ export function BanksOverview() {
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium text-card-foreground">
+                      <button
+                        type="button"
+                        className="text-left font-medium text-card-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openBank(bank.bank_id);
+                        }}
+                      >
                         {bank.name || bank.bank_id}
-                      </div>
+                      </button>
                       {bank.name && bank.name !== bank.bank_id && (
                         <div className="truncate text-xs text-muted-foreground">{bank.bank_id}</div>
                       )}

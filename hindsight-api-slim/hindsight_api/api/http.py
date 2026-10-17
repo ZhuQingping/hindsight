@@ -5105,7 +5105,9 @@ def create_app(
         # closed DB pool — installed for the rest of the process (#3780).
         previous_metrics_collector = get_metrics_collector()
         try:
-            prometheus_reader = initialize_metrics(service_name="hindsight-api", service_version="1.0.0")
+            prometheus_reader = initialize_metrics(
+                service_name=f"{product.contextdb_name}-api", service_version="1.0.0"
+            )
             create_metrics_collector()
             app.state.prometheus_reader = prometheus_reader
             if config.metrics_worker_label:
@@ -5124,7 +5126,7 @@ def create_app(
         # worker entrypoint so both processes honour the same configuration.
         from hindsight_api.tracing import initialize_tracing_from_config
 
-        initialize_tracing_from_config(config)
+        initialize_tracing_from_config(config, default_service_name=f"{product.contextdb_name}-api")
 
         # Startup: Initialize database and memory system (migrations run inside initialize if enabled)
         if initialize_memory:
@@ -5232,12 +5234,15 @@ def create_app(
 
     config = get_config()
 
+    from hindsight_api.product_config import ProductConfig, product_config
+
+    product = product_config()
     app = FastAPI(
-        title="Hindsight HTTP API",
+        title=f"{product.contextdb_name} HTTP API",
         version=__version__,
-        description="HTTP API for Hindsight",
+        description=f"HTTP API for {product.contextdb_name}, a data foundation for agents",
         contact={
-            "name": "Memory System",
+            "name": product.contextdb_name,
         },
         license_info={
             "name": "Apache 2.0",
@@ -5294,6 +5299,11 @@ def create_app(
     # Per-operation admission control, consulted by the `admit_for` dependency on
     # the heavy routes. One controller per app so the limits are a process budget.
     app.state.admission = build_controller_from_config(config)
+
+    @app.get("/product-config", response_model=ProductConfig, tags=["Product"])
+    async def get_product_config(response: Response) -> ProductConfig:
+        response.headers["Cache-Control"] = "no-store"
+        return product
 
     # Register all routes
     _register_routes(app)

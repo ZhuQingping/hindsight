@@ -1,3 +1,8 @@
+import type { Metadata } from "next";
+import { connection } from "next/server";
+import { localProductConfig } from "@/lib/product-config-server";
+import { ProductRuntime } from "@/components/product-runtime";
+import { withBasePath } from "@/lib/base-path";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -26,8 +31,20 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  await connection();
+  const { locale } = await params;
+  const name = localProductConfig().contextdb_name;
+  const description = locale === "zh-CN" ? "面向 Agent 的数据底座" : "A data foundation for agents";
+  return {
+    title: `${name} | ${description}`,
+    description,
+    icons: { icon: withBasePath("/product-icon.svg") },
+  };
 }
 
 // Anti-FOUC: apply the theme's `.dark` class before first paint. ThemeProvider
@@ -52,6 +69,8 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  await connection();
+  const name = localProductConfig().contextdb_name;
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
@@ -61,20 +80,23 @@ export default async function LocaleLayout({
 
   return (
     <html
-      lang={locale}
+      lang={locale === "zh-CN" ? "zh-CN" : "en"}
+      data-contextdb-name={name}
       className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <ThemeProvider>
-          <FeaturesProvider>
-            <BankProvider>
-              <NextIntlClientProvider>{children}</NextIntlClientProvider>
-            </BankProvider>
-          </FeaturesProvider>
-        </ThemeProvider>
-        <Toaster />
+        <ProductRuntime name={name} locale={locale}>
+          <ThemeProvider>
+            <FeaturesProvider>
+              <BankProvider>
+                <NextIntlClientProvider>{children}</NextIntlClientProvider>
+              </BankProvider>
+            </FeaturesProvider>
+          </ThemeProvider>
+          <Toaster />
+        </ProductRuntime>
       </body>
     </html>
   );

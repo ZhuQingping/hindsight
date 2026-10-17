@@ -162,6 +162,8 @@ import type {
   GetOperationStatusData,
   GetOperationStatusErrors,
   GetOperationStatusResponses,
+  GetProductConfigProductConfigGetData,
+  GetProductConfigProductConfigGetResponses,
   GetReadinessData,
   GetReadinessResponses,
   GetVersionData,
@@ -318,6 +320,16 @@ export type Options<
    */
   meta?: Record<string, unknown>;
 };
+
+/**
+ * Get Product Config
+ */
+export const getProductConfigProductConfigGet = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProductConfigProductConfigGetData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<GetProductConfigProductConfigGetResponses, unknown, ThrowOnError>(
+    { url: "/product-config", ...options }
+  );
 
 /**
  * Health check endpoint

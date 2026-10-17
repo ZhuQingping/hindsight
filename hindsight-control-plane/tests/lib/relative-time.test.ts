@@ -14,9 +14,10 @@ function at(now: string) {
 
 describe("formatWatermark", () => {
   it("shows only the clock time for today", () => {
-    at("2026-08-19T18:00:00Z");
-    // A watermark earlier the same day needs no date to be unambiguous.
-    expect(formatWatermark("2026-08-19T12:38:00Z")).toMatch(/^\d{2}:\d{2}$/);
+    // Use local calendar dates: the old UTC pair crossed midnight in Asia/Shanghai.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 19, 18, 0));
+    expect(formatWatermark(new Date(2026, 7, 19, 12, 38).toISOString())).toMatch(/^\d{2}:\d{2}$/);
   });
 
   it("keeps the time when the day differs but the year does not", () => {

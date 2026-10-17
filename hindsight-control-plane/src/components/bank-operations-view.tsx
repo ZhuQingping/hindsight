@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { DocumentChunkModal } from "./document-chunk-modal";
+import { nativeFileDownloadPath } from "@/lib/file-download";
 import { withBasePath } from "@/lib/base-path";
 
 interface Operation {
@@ -152,6 +153,7 @@ export function BankOperationsView() {
   const [deletingOpId, setDeletingOpId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedOperation, setSelectedOperation] = useState<OperationDetails | null>(null);
+  const operationDownloadPath = nativeFileDownloadPath(selectedOperation?.result_metadata);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingPayload, setLoadingPayload] = useState(false);
@@ -951,7 +953,7 @@ export function BankOperationsView() {
                       {/* Export archives are downloadable straight from the completed
                           operation — the stored file is proxied through the CP so the
                           browser gets an attachment. */}
-                      {selectedOperation.result_metadata?.download_url && (
+                      {operationDownloadPath && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -959,7 +961,7 @@ export function BankOperationsView() {
                           onClick={() => {
                             const url = withBasePath(
                               `/api/files/download?path=${encodeURIComponent(
-                                String(selectedOperation.result_metadata?.download_url)
+                                operationDownloadPath
                               )}`
                             );
                             const a = document.createElement("a");

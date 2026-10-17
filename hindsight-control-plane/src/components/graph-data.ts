@@ -32,6 +32,16 @@ export interface GraphData {
   links: GraphLink[];
 }
 
+export type GraphLinkCategory = "semantic" | "temporal" | "entity" | "causal" | "unknown";
+
+export function graphLinkCategory(type?: string): GraphLinkCategory {
+  if (type === "semantic" || type === "temporal" || type === "entity") return type;
+  if (type && ["causes", "caused_by", "enables", "prevents", "causal"].includes(type)) {
+    return "causal";
+  }
+  return "unknown";
+}
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -52,8 +62,9 @@ export function convertHindsightGraphData(hindsightData: {
   }>;
   table_rows?: Array<{ id: string; text: string; entities?: string; context?: string }>;
 }): GraphData {
+  const tableRowsById = new Map((hindsightData.table_rows || []).map((row) => [row.id, row]));
   const nodes: GraphNode[] = (hindsightData.nodes || []).map((n) => {
-    const tableRow = hindsightData.table_rows?.find((r) => r.id === n.data.id);
+    const tableRow = tableRowsById.get(n.data.id);
     // Use memory text as label, truncated to ~40 chars
     let label = n.data.label;
     if (!label && tableRow?.text) {
@@ -74,8 +85,8 @@ export function convertHindsightGraphData(hindsightData: {
     source: e.data.source,
     target: e.data.target,
     color: e.data.color,
-    // Use linkType directly from API, fallback to lineStyle check, default to semantic
-    type: e.data.linkType || (e.data.lineStyle === "dashed" ? "temporal" : "semantic"),
+    // A missing type is unknown. Calling every solid edge "semantic" invents evidence.
+    type: e.data.linkType || (e.data.lineStyle === "dashed" ? "temporal" : undefined),
     entity: e.data.entityName, // API returns entityName
     weight: e.data.weight ?? e.data.similarity,
   }));

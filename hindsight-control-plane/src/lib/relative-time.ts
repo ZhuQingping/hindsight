@@ -1,8 +1,13 @@
+function displayLocale(): string {
+  return typeof document !== "undefined" ? document.documentElement.lang || "en" : "en";
+}
+
 export function formatRelativeTime(dateStr: string): string {
   const then = new Date(dateStr).getTime();
   const diffSec = Math.round((Date.now() - then) / 1000);
   const abs = Math.abs(diffSec);
-  if (abs < 60) return diffSec >= 0 ? "just now" : "in a moment";
+  const relative = new Intl.RelativeTimeFormat(displayLocale(), { numeric: "auto" });
+  if (abs < 60) return relative.format(diffSec >= 0 ? 0 : 1, "second");
   // value starts in seconds; each step divides by `factor` to reach `nextUnit`.
   // (Previously the first pair was mislabeled [60, "second"], which left every
   // unit one step too low — e.g. 8 minutes rendered as "in 8 seconds".)
@@ -21,16 +26,17 @@ export function formatRelativeTime(dateStr: string): string {
     value = value / factor;
     unit = nextUnit;
   }
-  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(-Math.round(value), unit);
+  return relative.format(-Math.round(value), unit);
 }
 
 export function formatAbsoluteDateTime(dateStr: string): string {
   const date = new Date(dateStr);
-  return `${date.toLocaleDateString("en-US", {
+  const locale = displayLocale();
+  return `${date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  })} at ${date.toLocaleTimeString("en-US", {
+  })} ${date.toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -55,15 +61,16 @@ export function formatAbsoluteDateTime(dateStr: string): string {
 export function formatWatermark(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
-  const time = date.toLocaleTimeString(undefined, {
+  const locale = displayLocale();
+  const time = date.toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
   if (date.toDateString() === now.toDateString()) return time;
-  const dayMonth = date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  const dayMonth = date.toLocaleDateString(locale, { day: "numeric", month: "short" });
   if (date.getFullYear() === now.getFullYear()) return `${dayMonth} ${time}`;
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",

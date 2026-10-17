@@ -123,7 +123,9 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
     Returns:
         Configured FastMCP server instance
     """
-    mcp = FastMCP("hindsight-mcp-server", version=HINDSIGHT_VERSION)
+    from hindsight_api.product_config import product_config
+
+    mcp = FastMCP(f"{product_config().contextdb_name}-mcp-server", version=HINDSIGHT_VERSION)
 
     global_config = _get_raw_config()
 

@@ -1,10 +1,10 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Hindsight HTTP API",
-    "description": "HTTP API for Hindsight",
+    "title": "agentstratum HTTP API",
+    "description": "HTTP API for agentstratum, a data foundation for agents",
     "contact": {
-      "name": "Memory System"
+      "name": "agentstratum"
     },
     "license": {
       "name": "Apache 2.0",
@@ -13,6 +13,27 @@
     "version": "0.10.3"
   },
   "paths": {
+    "/product-config": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Product Config",
+        "operationId": "get_product_config_product_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -16714,6 +16735,26 @@
           ],
           "total": 150
         }
+      },
+      "ProductConfig": {
+        "properties": {
+          "product_config_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Product Config Version",
+            "default": 1
+          },
+          "contextdb_name": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[a-z][a-z0-9-]{0,39}$",
+            "title": "Contextdb Name",
+            "default": "agentstratum"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProductConfig"
       },
       "PromptBlockModel": {
         "properties": {

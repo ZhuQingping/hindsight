@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { client } from "./api";
+import { stripBasePath } from "./base-path";
 
 /** Banks are fetched a page at a time; the selector pages as it is scrolled. */
 export const BANKS_PAGE_SIZE = 50;
@@ -64,6 +65,7 @@ function toBankInfo(bank: any): BankInfo {
 
 export function BankProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const loginPage = stripBasePath(pathname || "/") === "/login";
   const [currentBank, setCurrentBank] = useState<string | null>(null);
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
   const [banksLoading, setBanksLoading] = useState(true);
@@ -87,32 +89,37 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
     totalRef.current = totalBanks;
   }, [totalBanks]);
 
-  const loadFirstPage = useCallback(async (query: string) => {
-    const seq = ++requestSeq.current;
-    searchRef.current = query;
-    setBankSearch(query);
-    setBanksLoading(true);
-    try {
-      const response = await client.listBanks({
-        q: query || undefined,
-        limit: BANKS_PAGE_SIZE,
-        offset: 0,
-      });
-      if (seq !== requestSeq.current) return;
-      setBankInfos((response.banks || []).map(toBankInfo));
-      setTotalBanks(response.total ?? 0);
-    } catch (error) {
-      if (seq !== requestSeq.current) return;
-      console.error("Error loading banks:", error);
-    } finally {
-      if (seq === requestSeq.current) setBanksLoading(false);
-    }
-  }, []);
+  const loadFirstPage = useCallback(
+    async (query: string) => {
+      if (loginPage) return;
+      const seq = ++requestSeq.current;
+      searchRef.current = query;
+      setBankSearch(query);
+      setBanksLoading(true);
+      try {
+        const response = await client.listBanks({
+          q: query || undefined,
+          limit: BANKS_PAGE_SIZE,
+          offset: 0,
+        });
+        if (seq !== requestSeq.current) return;
+        setBankInfos((response.banks || []).map(toBankInfo));
+        setTotalBanks(response.total ?? 0);
+      } catch (error) {
+        if (seq !== requestSeq.current) return;
+        console.error("Error loading banks:", error);
+      } finally {
+        if (seq === requestSeq.current) setBanksLoading(false);
+      }
+    },
+    [loginPage]
+  );
 
   const searchBanks = useCallback((query: string) => loadFirstPage(query), [loadFirstPage]);
   const loadBanks = useCallback(() => loadFirstPage(searchRef.current), [loadFirstPage]);
 
   const loadMoreBanks = useCallback(async () => {
+    if (loginPage) return;
     if (loadingMoreRef.current) return;
     const offset = loadedRef.current.length;
     if (offset >= totalRef.current) return;
@@ -142,7 +149,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
       loadingMoreRef.current = false;
       setBanksLoadingMore(false);
     }
-  }, []);
+  }, [loginPage]);
 
   // Derive bank IDs for backwards compatibility
   const banks = bankInfos.map((b) => b.bank_id);
@@ -157,7 +164,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   const loaded = bankInfos.find((b) => b.bank_id === currentBank);
   const loadedBankName = loaded?.display_alias ?? loaded?.name ?? null;
   useEffect(() => {
-    if (!currentBank || loadedBankName) return;
+    if (loginPage || !currentBank || loadedBankName) return;
     let cancelled = false;
     client
       .listBanks({ q: currentBank, limit: 100 })
@@ -171,7 +178,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [currentBank, loadedBankName]);
+  }, [currentBank, loadedBankName, loginPage]);
 
   // Initialize bank from URL on mount
   useEffect(() => {
@@ -182,8 +189,19 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    loadBanks();
-  }, [loadBanks]);
+    if (loginPage) {
+      // Login has no instance data. Fence an in-flight list on logout and clear
+      // the previous screen's state instead of making an expected 401 request.
+      requestSeq.current += 1;
+      setCurrentBank(null);
+      setBankInfos([]);
+      setFetchedBankName(null);
+      setTotalBanks(0);
+      setBanksLoading(false);
+    } else {
+      loadBanks();
+    }
+  }, [loadBanks, loginPage]);
 
   return (
     <BankContext.Provider

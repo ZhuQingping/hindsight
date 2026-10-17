@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useBank } from "@/lib/bank-context";
 import { useFeatures } from "@/lib/features-context";
 import { client, MentalModel } from "@/lib/api";
@@ -37,15 +37,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import type { TooltipContentProps } from "recharts";
 
 export interface BankStats {
@@ -247,20 +239,20 @@ function parseBucketIso(iso: string): Date {
   return new Date(/[+Z-]$/.test(iso) || /[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
 }
 
-function formatBucketLabel(iso: string, trunc: string): string {
+function formatBucketLabel(iso: string, trunc: string, locale: string): string {
   const d = parseBucketIso(iso);
   if (trunc === "day") {
-    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return d.toLocaleDateString(locale, { month: "short", day: "numeric" });
   }
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatBucketTooltip(iso: string, trunc: string): string {
+function formatBucketTooltip(iso: string, trunc: string, locale: string): string {
   const d = parseBucketIso(iso);
   if (trunc === "day") {
-    return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
   }
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(locale, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -372,13 +364,15 @@ function InlineStat({
   icon: Icon,
   label,
   value,
+  hint,
 }: {
   icon: typeof Database;
   label: string;
   value: number;
+  hint?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 p-4">
+    <div className="flex items-center gap-3 p-4" title={hint}>
       <div className="p-2 rounded-md bg-muted">
         <Icon className="w-4 h-4 text-muted-foreground" />
       </div>
@@ -810,6 +804,7 @@ export function MemoryStoreCard({
   observationsEnabled: boolean;
 }) {
   const t = useTranslations("bankStats");
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   return (
     <Card>
       <CardContent className="p-0">
@@ -817,11 +812,27 @@ export function MemoryStoreCard({
         <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x divide-y md:divide-y-0 divide-border/60">
           <InlineStat icon={Database} label={t("memories")} value={stats.total_nodes} />
           <InlineStat icon={FolderOpen} label={t("documents")} value={stats.total_documents} />
-          <InlineStat icon={Link2} label={t("links")} value={stats.total_links} />
+          <InlineStat
+            icon={Link2}
+            label={t("links")}
+            value={stats.total_links}
+            hint={t("linkCountHint")}
+          />
         </div>
 
+        <button
+          type="button"
+          className="w-full border-t border-border/60 px-4 py-2 text-left text-xs font-medium text-primary md:hidden"
+          aria-expanded={mobileExpanded}
+          onClick={() => setMobileExpanded((expanded) => !expanded)}
+        >
+          {mobileExpanded ? t("hideBreakdown") : t("showBreakdown")}
+        </button>
+
         {/* Composition + Link types side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x divide-y md:divide-y-0 divide-border/60 border-t border-border/60">
+        <div
+          className={`${mobileExpanded ? "grid" : "hidden"} grid-cols-1 border-t border-border/60 divide-y divide-border/60 md:grid md:grid-cols-2 md:divide-x md:divide-y-0`}
+        >
           <div className="p-5">
             <Distribution
               title={t("memoryComposition")}
@@ -896,6 +907,7 @@ export function MemoriesActivityChart({
   observationsEnabled: boolean;
 }) {
   const t = useTranslations("bankStats");
+  const locale = useLocale();
   const timeFieldLabels = getTimeFieldLabels(t as TimeFieldTranslator);
   const [period, setPeriod] = useState<Period>("7d");
   const [timeField, setTimeField] = useState<TimeField>("created_at");
@@ -929,14 +941,18 @@ export function MemoriesActivityChart({
     : ["world", "experience"];
   const chartData = timeseries.buckets.map((b) => ({
     ...b,
-    label: formatBucketLabel(b.time, timeseries.trunc),
-    tooltipLabel: formatBucketTooltip(b.time, timeseries.trunc),
+    label: formatBucketLabel(b.time, timeseries.trunc, locale),
+    tooltipLabel: formatBucketTooltip(b.time, timeseries.trunc, locale),
   }));
   const ingestedTotal = chartData.reduce(
     (sum, b) => sum + factSeries.reduce((s, k) => s + (enabledSeries[k] ? b[k] || 0 : 0), 0),
     0
   );
-  const toggleSeries = (k: FactKey) => setEnabledSeries((prev) => ({ ...prev, [k]: !prev[k] }));
+  const toggleSeries = (k: FactKey) =>
+    setEnabledSeries((prev) => {
+      if (prev[k] && factSeries.filter((series) => prev[series]).length === 1) return prev;
+      return { ...prev, [k]: !prev[k] };
+    });
   const factLabel: Record<FactKey, string> = {
     world: t("world"),
     experience: t("experience"),
@@ -1021,15 +1037,7 @@ export function MemoriesActivityChart({
         ) : (
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
-                <defs>
-                  {factSeries.map((k) => (
-                    <linearGradient key={k} id={`grad-${k}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={FACT_META[k].color} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={FACT_META[k].color} stopOpacity={0} />
-                    </linearGradient>
-                  ))}
-                </defs>
+              <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
                 <CartesianGrid
                   vertical={false}
                   stroke={CHART_COLORS.border}
@@ -1059,20 +1067,18 @@ export function MemoriesActivityChart({
                 />
                 {factSeries.map((k) =>
                   enabledSeries[k] ? (
-                    <Area
+                    <Bar
                       key={k}
-                      type="monotone"
                       dataKey={k}
                       name={factLabel[k]}
                       stackId="a"
-                      stroke={FACT_META[k].color}
-                      strokeWidth={2}
-                      fill={`url(#grad-${k})`}
+                      fill={FACT_META[k].color}
+                      maxBarSize={36}
                       isAnimationActive={false}
                     />
                   ) : null
                 )}
-              </AreaChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         )}

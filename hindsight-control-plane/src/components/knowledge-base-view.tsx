@@ -135,6 +135,7 @@ export function KnowledgeBaseView() {
   // Obsidian-style editor tabs: multiple pages open at once; `activeId` is focused.
   const [tabs, setTabs] = useState<PageDetail[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [mobileNavigatorOpen, setMobileNavigatorOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const selected = useMemo(() => tabs.find((tb) => tb.id === activeId) ?? null, [tabs, activeId]);
   // Provenance: how many source memories grounded the open page's last synthesis.
@@ -342,6 +343,7 @@ export function KnowledgeBaseView() {
     async (pageId: string) => {
       if (!currentBank) return;
       setActiveId(pageId);
+      setMobileNavigatorOpen(false);
       // Already open → just focus its tab (the poll keeps it fresh).
       if (tabsRef.current.some((tb) => tb.id === pageId)) return;
       setLoadingDetail(true);
@@ -506,9 +508,22 @@ export function KnowledgeBaseView() {
 
   return (
     <div>
+      {selected && (
+        <div className="mb-2 flex items-center gap-2 md:hidden">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileNavigatorOpen((open) => !open)}
+          >
+            {mobileNavigatorOpen ? t("showPage") : t("showDirectory")}
+          </Button>
+        </div>
+      )}
       {/* Obsidian-style workspace: one frame, a file-explorer sidebar + editor pane. */}
-      <div className="flex items-stretch overflow-hidden h-[calc(100vh-13rem)] min-h-[520px]">
-        <aside className="w-1/3 flex-shrink-0 bg-muted/30 border-r border-border flex flex-col">
+      <div className="flex h-[calc(100dvh-14rem)] min-h-[420px] items-stretch overflow-hidden md:min-h-[520px]">
+        <aside
+          className={`${selected && !mobileNavigatorOpen ? "hidden md:flex" : "flex"} w-full flex-shrink-0 flex-col border-r border-border bg-muted/30 md:w-1/3`}
+        >
           {/* One box for both filters: free text runs the hybrid search, `#tag` tokens
               become chips that filter the tree and the search alike. The sliders open
               the same filter against the raw endpoints. */}
@@ -628,10 +643,12 @@ export function KnowledgeBaseView() {
           </div>
         </aside>
 
-        <main className="flex-1 min-w-0 overflow-y-auto bg-background">
+        <main
+          className={`${!selected || mobileNavigatorOpen ? "hidden md:block" : "block"} min-w-0 flex-1 overflow-y-auto bg-background`}
+        >
           {/* Editor tabs — open pages, click to focus, × to close. */}
           {tabs.length > 0 && (
-            <div className="sticky top-0 z-10 flex items-stretch border-b border-border bg-muted overflow-x-auto">
+            <div className="sticky top-0 z-10 hidden items-stretch overflow-x-auto border-b border-border bg-muted md:flex">
               {tabs.map((tb) => (
                 <div
                   key={tb.id}
@@ -663,9 +680,11 @@ export function KnowledgeBaseView() {
               <Spinner size="lg" variant="jump" />
             </div>
           ) : selected ? (
-            <div className="p-8 max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl p-4 md:p-8">
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{selected.name}</h1>
+                <h1 className="min-w-0 break-words text-2xl font-bold text-foreground">
+                  {selected.name}
+                </h1>
                 <Button variant="outline" size="sm" onClick={openEdit} className="shrink-0">
                   <Pencil className="w-3.5 h-3.5 mr-1.5" />
                   {t("editButton")}

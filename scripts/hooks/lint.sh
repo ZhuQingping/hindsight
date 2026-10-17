@@ -1,6 +1,5 @@
 #!/bin/bash
-# Parallel linting for all code (Node, Python)
-# Runs all linting tasks concurrently for faster execution
+# Lint all code (Node, Python); LINT_SERIAL=1 bounds peak resource usage.
 
 set -e
 
@@ -18,6 +17,7 @@ run_task() {
     shift 2
     local cmd="$@"
 
+    local run_pid
     (
         cd "$dir"
         if OUTPUT=$($cmd 2>&1); then
@@ -27,8 +27,14 @@ run_task() {
             echo "$OUTPUT" > "$TEMP_DIR/$name.output"
         fi
     ) &
-    PIDS+=($!)
+    run_pid=$!
+    PIDS+=("$run_pid")
     NAMES+=("$name")
+    # Shared bounded runners need each type checker/formatter to finish before
+    # launching the next one; the default remains concurrent for local hooks.
+    if [ "${LINT_SERIAL:-0}" = "1" ]; then
+        wait "$run_pid" || true
+    fi
 }
 
 echo "  Syncing Python dependencies..."
@@ -38,7 +44,11 @@ echo "  Syncing Python dependencies..."
 # the lockfile explicitly before linting.
 uv sync --frozen --quiet
 
-echo "  Running lints in parallel..."
+if [ "${LINT_SERIAL:-0}" = "1" ]; then
+    echo "  Running lints serially..."
+else
+    echo "  Running lints in parallel..."
+fi
 
 # Node/TypeScript tasks
 run_task "eslint" "$REPO_ROOT/hindsight-control-plane" "npx eslint --fix src/**/*.{ts,tsx}"

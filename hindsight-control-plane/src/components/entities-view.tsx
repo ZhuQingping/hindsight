@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { client } from "@/lib/api";
 import { useBank } from "@/lib/bank-context";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ const ITEMS_PER_PAGE = 50;
 
 export function EntitiesView() {
   const t = useTranslations("entitiesView");
+  const locale = useLocale();
   const { currentBank } = useBank();
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(false);
@@ -62,7 +63,7 @@ export function EntitiesView() {
   const [entityMemories, setEntityMemories] = useState<MemoryRow[]>([]);
   const [loadingMemories, setLoadingMemories] = useState(false);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("relations");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [graphData, setGraphData] = useState<EntityGraphResponse | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
 
@@ -186,7 +187,9 @@ export function EntitiesView() {
 
   const constellationData = useMemo(() => {
     if (!graphData) return { nodes: [], links: [] };
-    return convertHindsightGraphData(graphData);
+    const converted = convertHindsightGraphData(graphData);
+    // This endpoint returns entity co-occurrences, not generic memory links.
+    return { ...converted, links: converted.links.map((link) => ({ ...link, type: "entity" })) };
   }, [graphData]);
 
   // Sum co-occurrence counts (edge weights) per entity, then map to a dot
@@ -261,7 +264,7 @@ export function EntitiesView() {
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return t("na");
-    return new Date(dateStr).toLocaleDateString();
+    return new Date(dateStr).toLocaleDateString(locale);
   };
 
   return (
@@ -315,6 +318,7 @@ export function EntitiesView() {
             <Constellation
               data={constellationData}
               height={700}
+              nodeUnit="entity"
               onNodeClick={handleConstellationNodeClick}
               nodeSizeFn={nodeSizeFn}
               nodeHeatFn={recencyLookup ? nodeHeatFn : undefined}
@@ -359,7 +363,10 @@ export function EntitiesView() {
                 {t("entityCount", { count: total })}
               </div>
               <div className="overflow-x-auto">
-                <Table>
+                <p className="mb-1 text-xs text-muted-foreground md:hidden">
+                  {t("tableScrollHint")}
+                </p>
+                <Table className="min-w-[620px] md:min-w-0">
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("colName")}</TableHead>
@@ -399,7 +406,11 @@ export function EntitiesView() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-3 pt-3 border-t">
                   <div className="text-xs text-muted-foreground">
-                    {offset + 1}-{Math.min(offset + ITEMS_PER_PAGE, total)} of {total}
+                    {t("rangeLabel", {
+                      from: offset + 1,
+                      to: Math.min(offset + ITEMS_PER_PAGE, total),
+                      total,
+                    })}
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
@@ -461,7 +472,7 @@ export function EntitiesView() {
 
       {/* Entity Detail Panel - Fixed overlay */}
       {selectedEntity && (
-        <div className="fixed right-0 top-0 h-screen w-[620px] max-w-[95vw] bg-card border-l-2 border-primary shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300 ease-out">
+        <div className="animate-drawer-enter fixed right-0 top-0 z-50 h-screen w-[620px] max-w-[95vw] overflow-y-auto border-l-2 border-primary bg-card shadow-2xl">
           <div className="p-5">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">

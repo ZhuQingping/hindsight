@@ -20,7 +20,10 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
 
   function handleLocaleChange(newLocale: Locale) {
-    router.replace(pathname, { locale: newLocale });
+    // Bank views and filters live in the query string; locale changes must keep them.
+    router.replace(`${pathname}${window.location.search}${window.location.hash}`, {
+      locale: newLocale,
+    });
   }
 
   return (

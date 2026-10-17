@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
 
-import de from "@/messages/de.json";
 import en from "@/messages/en.json";
-import es from "@/messages/es.json";
-import fr from "@/messages/fr.json";
-import ja from "@/messages/ja.json";
-import ko from "@/messages/ko.json";
-import pt from "@/messages/pt.json";
-import yueHant from "@/messages/yue-Hant.json";
 import zhCN from "@/messages/zh-CN.json";
-import zhTW from "@/messages/zh-TW.json";
 
 type CookieValue = string | { value?: string } | undefined;
 export type RequestLike = {
@@ -25,17 +17,9 @@ type ApiErrorPayload = Record<string, unknown> & {
 };
 
 const resources = {
-  de,
   en,
-  es,
-  fr,
-  ja,
-  ko,
-  pt,
   "zh-CN": zhCN,
-  "zh-TW": zhTW,
-  "yue-Hant": yueHant,
-} satisfies Record<Locale, Record<string, unknown>>;
+} satisfies Record<ReturnType<typeof messageLocale>, Record<string, unknown>>;
 
 const localeSet = new Set<string>(locales);
 const localizedErrorFields = ["error", "message", "detail", "details"] as const;
@@ -155,7 +139,7 @@ export function resolveApiErrorLocale(request?: RequestLike): Locale {
 }
 
 function getTranslationValue(locale: Locale, key: string): string | undefined {
-  let current: unknown = resources[locale];
+  let current: unknown = resources[messageLocale(locale)];
 
   for (const part of key.split(".")) {
     if (!current || typeof current !== "object" || !(part in current)) {

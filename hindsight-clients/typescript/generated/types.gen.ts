@@ -5311,6 +5311,20 @@ export type OperationsListResponse = {
 };
 
 /**
+ * ProductConfig
+ */
+export type ProductConfig = {
+  /**
+   * Product Config Version
+   */
+  product_config_version?: 1;
+  /**
+   * Contextdb Name
+   */
+  contextdb_name?: string;
+};
+
+/**
  * PromptBlockModel
  *
  * One block of a message: its text, and the setting that decides it.
@@ -7105,6 +7119,23 @@ export type WebhookResponse = {
    */
   updated_at?: string | null;
 };
+
+export type GetProductConfigProductConfigGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/product-config";
+};
+
+export type GetProductConfigProductConfigGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProductConfig;
+};
+
+export type GetProductConfigProductConfigGetResponse =
+  GetProductConfigProductConfigGetResponses[keyof GetProductConfigProductConfigGetResponses];
 
 export type HealthEndpointHealthGetData = {
   body?: never;

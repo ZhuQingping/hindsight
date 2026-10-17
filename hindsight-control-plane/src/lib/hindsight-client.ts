@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Shared Hindsight API client instance for the control plane.
  * Configured to connect to the dataplane API server.

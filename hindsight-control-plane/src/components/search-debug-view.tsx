@@ -276,8 +276,8 @@ export function SearchDebugView() {
       {/* Search Input */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="min-w-0 flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -1270,12 +1270,28 @@ export function SearchDebugView() {
       {/* Empty State */}
       {!loading && !results && (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Search className="h-12 w-12 text-muted-foreground mb-4" />
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Search className="h-8 w-8 text-muted-foreground mb-3" />
             <h3 className="text-lg font-semibold mb-2">{t("readyToRecall")}</h3>
             <p className="text-muted-foreground text-center max-w-md">
               {t("readyToRecallDescription")}
             </p>
+            <div
+              className="mt-4 flex flex-wrap justify-center gap-2"
+              aria-label={t("examplesLabel")}
+            >
+              {[t("exampleOne"), t("exampleTwo")].map((example) => (
+                <Button
+                  key={example}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuery(example)}
+                >
+                  {example}
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

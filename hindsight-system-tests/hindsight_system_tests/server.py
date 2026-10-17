@@ -173,7 +173,11 @@ def stub_environment(stub_url: str) -> dict[str, str]:
 
 
 def start_hindsight_server(
-    *, stub_url: str, log_path: Path, extra_env: dict[str, str] | None = None
+    *,
+    stub_url: str,
+    log_path: Path,
+    extra_env: dict[str, str] | None = None,
+    database_url: str | None = None,
 ) -> HindsightServer:
     port = free_port()
 
@@ -194,7 +198,9 @@ def start_hindsight_server(
 
     env.update(
         {
-            "HINDSIGHT_API_DATABASE_URL": f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
+            # Bounded standalone stories may supply a separately owned database
+            # rather than touching the shared embedded system-test instance.
+            "HINDSIGHT_API_DATABASE_URL": database_url or f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
             "HINDSIGHT_API_HOST": "127.0.0.1",
             "HINDSIGHT_API_PORT": str(port),
             "HINDSIGHT_API_LOG_LEVEL": "info",

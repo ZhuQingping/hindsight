@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
+import { isNativeFileDownloadPath } from "@/lib/file-download";
 import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
 
 /**
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const path = request.nextUrl.searchParams.get("path");
     // Only proxy the file-download endpoint — never an arbitrary dataplane path (SSRF guard).
-    if (!path || !path.startsWith("/v1/default/files/download/")) {
+    if (!path || !isNativeFileDownloadPath(path)) {
       return NextResponse.json(
         localizeApiErrorPayload(request, {
           error: "A valid file download path is required",
@@ -22,15 +23,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${DATAPLANE_URL}${path}`, { headers: getDataplaneHeaders() });
+    const response = await fetch(`${DATAPLANE_URL}${path}`, {
+      headers: getDataplaneHeaders(),
+      signal: request.signal,
+    });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
       return NextResponse.json(error, { status: response.status });
     }
 
-    const body = await response.arrayBuffer();
     const fallbackName = path.split("/").pop() || "download.zip";
-    return new NextResponse(body, {
+    return new NextResponse(response.body, {
       status: 200,
       headers: {
         "Content-Type": response.headers.get("content-type") || "application/zip",

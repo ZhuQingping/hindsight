@@ -104,7 +104,7 @@ describe("respondWithSdk", () => {
       );
       const body = await response.json();
       expect(body).toEqual({
-        error: "Failed to update bank config",
+        error: "Failed to update Workspace config",
         details: "Invalid retain config",
         upstream: {
           status: HTTP_UPSTREAM_429,

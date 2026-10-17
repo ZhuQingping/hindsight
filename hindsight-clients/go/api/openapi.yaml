@@ -1,16 +1,29 @@
 openapi: 3.1.0
 info:
   contact:
-    name: Memory System
-  description: HTTP API for Hindsight
+    name: agentstratum
+  description: "HTTP API for agentstratum, a data foundation for agents"
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  title: Hindsight HTTP API
+  title: agentstratum HTTP API
   version: 0.10.3
 servers:
 - url: /
 paths:
+  /product-config:
+    get:
+      operationId: get_product_config_product_config_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductConfig'
+          description: Successful Response
+      summary: Get Product Config
+      tags:
+      - Product
   /health:
     get:
       description: "Readiness check: verifies the API can reach the database. Alias\
@@ -5761,13 +5774,10 @@ components:
       description: A single audit log entry.
       example:
         duration_ms: 5
-        request:
-          key: ""
-        metadata:
-          key: ""
+        request: "{}"
+        metadata: "{}"
         bank_id: bank_id
-        response:
-          key: ""
+        response: "{}"
         action: action
         started_at: started_at
         id: id
@@ -5796,14 +5806,17 @@ components:
           nullable: true
           type: integer
         request:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         response:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         metadata:
-          additionalProperties: {}
+          additionalProperties: false
           title: Metadata
+          type: object
       required:
       - action
       - bank_id
@@ -5824,26 +5837,20 @@ components:
         limit: 6
         items:
         - duration_ms: 5
-          request:
-            key: ""
-          metadata:
-            key: ""
+          request: "{}"
+          metadata: "{}"
           bank_id: bank_id
-          response:
-            key: ""
+          response: "{}"
           action: action
           started_at: started_at
           id: id
           transport: transport
           ended_at: ended_at
         - duration_ms: 5
-          request:
-            key: ""
-          metadata:
-            key: ""
+          request: "{}"
+          metadata: "{}"
           bank_id: bank_id
-          response:
-            key: ""
+          response: "{}"
           action: action
           started_at: started_at
           id: id
@@ -6009,14 +6016,16 @@ components:
           title: Bank Id
           type: string
         config:
-          additionalProperties: {}
+          additionalProperties: false
           description: Fully resolved configuration with all hierarchical overrides
             applied (Python field names)
           title: Config
+          type: object
         overrides:
-          additionalProperties: {}
+          additionalProperties: false
           description: Bank-specific configuration overrides only (Python field names)
           title: Overrides
+          type: object
       required:
       - bank_id
       - config
@@ -6030,11 +6039,12 @@ components:
           retain_extraction_mode: custom
       properties:
         updates:
-          additionalProperties: {}
+          additionalProperties: false
           description: Configuration overrides. Keys can be in Python field format
             (retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE).
             Only hierarchical fields can be overridden per-bank.
           title: Updates
+          type: object
       required:
       - updates
       title: BankConfigUpdate
@@ -6371,8 +6381,9 @@ components:
           nullable: true
           type: string
         retain_strategies:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         retain_chunk_batch_size:
           nullable: true
           type: integer
@@ -6398,7 +6409,9 @@ components:
           type: integer
         observation_scope_limits:
           items:
-            additionalProperties: {}
+            additionalProperties: false
+            nullable: true
+            type: object
           nullable: true
           type: array
         consolidation_strategies:
@@ -6410,11 +6423,13 @@ components:
           nullable: true
           type: integer
         knowledge_page_default_trigger:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         reflect_default_options:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         mental_model_min_refresh_interval_seconds:
           minimum: 0.0
           nullable: true
@@ -6475,8 +6490,9 @@ components:
           nullable: true
           type: integer
         memory_defense:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
       title: BankTemplateConfig
     BankTemplateDirective:
       description: |-
@@ -7451,8 +7467,7 @@ components:
           fact_types:
           - world
           - world
-          response_schema:
-            key: ""
+          response_schema: "{}"
           exclude_mental_model_ids:
           - exclude_mental_model_ids
           - exclude_mental_model_ids
@@ -7849,11 +7864,13 @@ components:
           title: Memory Unit Count
           type: integer
         retain_params:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         document_metadata:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         tags:
           default: []
           description: Tags associated with this document
@@ -7915,11 +7932,13 @@ components:
             type: string
           type: array
         document_metadata:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         retain_params:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         observation_scopes:
           $ref: '#/components/schemas/Observation_Scopes'
         attachments:
@@ -8135,8 +8154,9 @@ components:
           nullable: true
           type: string
         metadata:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         observations:
           items:
             $ref: '#/components/schemas/EntityObservationResponse'
@@ -8330,8 +8350,9 @@ components:
           nullable: true
           type: string
         metadata:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
       required:
       - canonical_name
       - id
@@ -8740,8 +8761,7 @@ components:
           fact_types:
           - world
           - world
-          response_schema:
-            key: ""
+          response_schema: "{}"
           exclude_mental_model_ids:
           - exclude_mental_model_ids
           - exclude_mental_model_ids
@@ -9010,8 +9030,7 @@ components:
             fact_types:
             - world
             - world
-            response_schema:
-              key: ""
+            response_schema: "{}"
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
@@ -9059,8 +9078,7 @@ components:
             fact_types:
             - world
             - world
-            response_schema:
-              key: ""
+            response_schema: "{}"
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
@@ -9111,13 +9129,11 @@ components:
       example:
         parent_span_id: parent_span_id
         trace_id: trace_id
-        metadata:
-          key: ""
+        metadata: "{}"
         span_id: span_id
         thoughts_tokens: 9
         error: error
-        llm_info:
-          key: ""
+        llm_info: "{}"
         input_tokens: 5
         duration_ms: 5
         output: ""
@@ -9195,11 +9211,13 @@ components:
           nullable: true
           type: string
         llm_info:
-          additionalProperties: {}
+          additionalProperties: false
           title: Llm Info
+          type: object
         metadata:
-          additionalProperties: {}
+          additionalProperties: false
           title: Metadata
+          type: object
       required:
       - bank_id
       - cached_tokens
@@ -9233,13 +9251,11 @@ components:
         items:
         - parent_span_id: parent_span_id
           trace_id: trace_id
-          metadata:
-            key: ""
+          metadata: "{}"
           span_id: span_id
           thoughts_tokens: 9
           error: error
-          llm_info:
-            key: ""
+          llm_info: "{}"
           input_tokens: 5
           duration_ms: 5
           output: ""
@@ -9258,13 +9274,11 @@ components:
           cached_tokens: 7
         - parent_span_id: parent_span_id
           trace_id: trace_id
-          metadata:
-            key: ""
+          metadata: "{}"
           span_id: span_id
           thoughts_tokens: 9
           error: error
-          llm_info:
-            key: ""
+          llm_info: "{}"
           input_tokens: 5
           duration_ms: 5
           output: ""
@@ -10184,10 +10198,11 @@ components:
             type: string
           type: array
         metadata:
-          additionalProperties: {}
+          additionalProperties: false
           default: {}
           description: Arbitrary metadata stored with the memory
           title: Metadata
+          type: object
         consolidated_at:
           nullable: true
           type: string
@@ -10215,6 +10230,7 @@ components:
           default: []
           description: An observation's source facts; empty for a source fact
           items:
+            nullable: true
             type: string
           type: array
       required:
@@ -10227,12 +10243,16 @@ components:
         applied:
           description: "Operations applied to the document, in order."
           items:
-            additionalProperties: {}
+            additionalProperties: false
+            nullable: true
+            type: object
           type: array
         skipped:
           description: "Operations dropped as invalid, each with a reason."
           items:
-            additionalProperties: {}
+            additionalProperties: false
+            nullable: true
+            type: object
           type: array
       title: MentalModelDeltaOperations
     MentalModelDryRunRefreshResult:
@@ -10313,7 +10333,8 @@ components:
         based_on:
           additionalProperties:
             items:
-              additionalProperties: {}
+              additionalProperties: false
+              type: object
           description: "The evidence this run would ground the document on, keyed\
             \ by fact type — the same shape a refresh persists under reflect_response.based_on.\
             \ Returned so a preview can show its sources without having to write them\
@@ -10422,8 +10443,7 @@ components:
             fact_types:
             - world
             - world
-            response_schema:
-              key: ""
+            response_schema: "{}"
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
@@ -10443,8 +10463,7 @@ components:
           - tags
           source_query: source_query
           bank_id: bank_id
-          reflect_response:
-            key: ""
+          reflect_response: "{}"
           name: name
           id: id
         - max_tokens: 0
@@ -10471,8 +10490,7 @@ components:
             fact_types:
             - world
             - world
-            response_schema:
-              key: ""
+            response_schema: "{}"
             exclude_mental_model_ids:
             - exclude_mental_model_ids
             - exclude_mental_model_ids
@@ -10492,8 +10510,7 @@ components:
           - tags
           source_query: source_query
           bank_id: bank_id
-          reflect_response:
-            key: ""
+          reflect_response: "{}"
           name: name
           id: id
       properties:
@@ -10686,8 +10703,7 @@ components:
           fact_types:
           - world
           - world
-          response_schema:
-            key: ""
+          response_schema: "{}"
           exclude_mental_model_ids:
           - exclude_mental_model_ids
           - exclude_mental_model_ids
@@ -10707,8 +10723,7 @@ components:
         - tags
         source_query: source_query
         bank_id: bank_id
-        reflect_response:
-          key: ""
+        reflect_response: "{}"
         name: name
         id: id
       properties:
@@ -10750,8 +10765,9 @@ components:
           nullable: true
           type: string
         reflect_response:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         is_stale:
           nullable: true
           type: boolean
@@ -10812,12 +10828,14 @@ components:
           nullable: true
           type: string
         input:
-          additionalProperties: {}
+          additionalProperties: false
           description: Tool input parameters.
           title: Input
+          type: object
         output:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         updated_at:
           format: date-time
           nullable: true
@@ -10869,8 +10887,7 @@ components:
         fact_types:
         - world
         - world
-        response_schema:
-          key: ""
+        response_schema: "{}"
         exclude_mental_model_ids:
         - exclude_mental_model_ids
         - exclude_mental_model_ids
@@ -10961,8 +10978,9 @@ components:
           nullable: true
           type: boolean
         response_schema:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         keep_trace:
           default: false
           description: "If true, every refresh of this mental model records how it\
@@ -11008,8 +11026,7 @@ components:
         fact_types:
         - world
         - world
-        response_schema:
-          key: ""
+        response_schema: "{}"
         exclude_mental_model_ids:
         - exclude_mental_model_ids
         - exclude_mental_model_ids
@@ -11100,8 +11117,9 @@ components:
           nullable: true
           type: boolean
         response_schema:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         keep_trace:
           default: false
           description: "If true, every refresh of this mental model records how it\
@@ -11368,8 +11386,9 @@ components:
         progress:
           $ref: '#/components/schemas/OperationProgress'
         result_metadata:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         details:
           $ref: '#/components/schemas/RefreshMentalModelOperationDetails'
         child_operations:
@@ -11378,8 +11397,9 @@ components:
           nullable: true
           type: array
         task_payload:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
       required:
       - operation_id
       - status
@@ -11421,6 +11441,25 @@ components:
       - operations
       - total
       title: OperationsListResponse
+    ProductConfig:
+      additionalProperties: false
+      example:
+        contextdb_name: agentstratum
+        product_config_version: 0
+      properties:
+        product_config_version:
+          default: 1
+          enum:
+          - 1
+          title: Product Config Version
+          type: integer
+        contextdb_name:
+          default: agentstratum
+          maxLength: 40
+          pattern: "^[a-z][a-z0-9-]{0,39}$"
+          title: Contextdb Name
+          type: string
+      title: ProductConfig
     PromptBlockModel:
       description: |-
         One block of a message: its text, and the setting that decides it.
@@ -11607,8 +11646,7 @@ components:
         strategies:
         - strategies
         - strategies
-        response_schema:
-          key: ""
+        response_schema: "{}"
         messages:
         - role: system
           blocks:
@@ -11687,8 +11725,9 @@ components:
             $ref: '#/components/schemas/RunSettingModel'
           type: array
         response_schema:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         skipped_reason:
           nullable: true
           type: string
@@ -11816,8 +11855,9 @@ components:
             $ref: '#/components/schemas/RecallResult'
           type: array
         trace:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         entities:
           additionalProperties:
             $ref: '#/components/schemas/EntityStateResponse'
@@ -12142,8 +12182,9 @@ components:
         include:
           $ref: '#/components/schemas/ReflectIncludeOptions'
         response_schema:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         tags:
           items:
             type: string
@@ -12250,8 +12291,9 @@ components:
         based_on:
           $ref: '#/components/schemas/ReflectBasedOn'
         structured_output:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         structured_output_error:
           nullable: true
           type: string
@@ -12270,12 +12312,14 @@ components:
           title: Tool
           type: string
         input:
-          additionalProperties: {}
+          additionalProperties: false
           description: Tool input parameters
           title: Input
+          type: object
         output:
-          additionalProperties: {}
+          additionalProperties: false
           nullable: true
+          type: object
         duration_ms:
           description: Execution time in milliseconds
           title: Duration Ms
@@ -13043,8 +13087,7 @@ components:
           fact_types:
           - world
           - world
-          response_schema:
-            key: ""
+          response_schema: "{}"
           exclude_mental_model_ids:
           - exclude_mental_model_ids
           - exclude_mental_model_ids
