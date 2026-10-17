@@ -1,0 +1,381 @@
+{
+  "status": "LOCAL_CHECKS_PASS_RUNTIME_GATES_BLOCKED_DRAFT_ONLY",
+  "captured_at": "2026-10-17T04:56:01.902032+00:00",
+  "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
+  "base": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
+  "source_paths": 548,
+  "candidate_manifest_sha256": "df6748546f2c6cf0a3930a414f21d267c7f418f9b71cd8af22d5a33015db7f88",
+  "checks": {
+    "frontend_unit": {
+      "status": "PASS",
+      "files": 55,
+      "tests": 347
+    },
+    "python_brand": {
+      "status": "PASS",
+      "tests": 11
+    },
+    "typescript_sdk_build": "PASS",
+    "typescript_noEmit": "PASS",
+    "required_repository_lint": "PASS",
+    "production_build": "PASS",
+    "openapi_python_ts_go_generation": "PASS_GENERATION_ONLY",
+    "native_api_worker_ui_start": "PASS_PARTIAL_STORY",
+    "three_locale_rendering": "PASS_RENDERING_ONLY",
+    "dual_brand_mcp_download_stale_tab_logout_full_story": "BLOCKED_NOT_RUN_TO_COMPLETION",
+    "published_sdk_brand_system_story": "NOT_RUN",
+    "vulture_knip": "BLOCKED_NOT_RUN",
+    "go_rust_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "hook_host": "NOT_RUN",
+    "real_models_production_user_acceptance": "NOT_RUN"
+  },
+  "static_checks": {
+    "base": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
+    "protected_paths_unchanged": true,
+    "forbidden_dependencies": [],
+    "templates_identical": true,
+    "paths": 560,
+    "openapi": {
+      "existing_paths_identical": true,
+      "existing_schemas_identical": true,
+      "added_path": "/product-config",
+      "added_schema": "ProductConfig"
+    }
+  },
+  "generator": {
+    "generator_source_sha256": "9795de25c943ef600bee6cc98821f210b26e75197e81a7493298852fea9f6857",
+    "adapter_sha256": "20a76717b71fa0a84c880b00429c19070df8e04e1707a3698e4ed28d93f09a56",
+    "bounded_script_sha256": "9212985514045abc2f9697062f82a150f7ee66cd8c12b27f2583b6ba0e4df382",
+    "generator_jar_sha256": "615e014705af34861e789e0b2a11075d3c80db134f881e937265479a4a83996e",
+    "spec_sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1",
+    "exit_code": 0,
+    "python_typescript_go": "GENERATED",
+    "rust_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "go_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "scope": "Native checkout only; repository patches retained; no hosted source/SDK copied"
+  },
+  "runtime_attempts": {
+    "runtime-c01": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [],
+        "pg_stopped": false,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "116cc96b05fdb344c013ba353a9792a3006c61f882adf86634780920899e984a"
+    },
+    "runtime-c02": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1372459,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "353becef6a8d158aaa2499c231d86316208a99e213e0b36780ca962a08ef83de"
+    },
+    "runtime-c03": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1373219,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1373319,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1373350,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "aa6ec08ce1ce2862bec42e90b4cd7c5da2320072a3fe596ba9ffec05c0ca26bf"
+    },
+    "runtime-c04": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1375230,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1375340,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1375372,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "4e0dfe7685c06900d81e0401e5a1790a1b0cdabdcbfd2f4ae2e1e6b5e698637b"
+    },
+    "runtime-c05": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1376359,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1376437,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1376488,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "a77f44d108e51c3c47aa8138cb47e85ac44c44d9956c3c9dc9bd4e5eaf6480af"
+    }
+  },
+  "owned_stopped_fixtures": [
+    {
+      "run": "runtime-c02",
+      "container_id": "4ef96d76b8bb62a352676f73d0bab5366ceb22dd4a11f9ac51b4081dfb7c2976",
+      "namespace": "agentstratum-brand-79c5030ad6",
+      "running": false,
+      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
+      "anonymous_data_volume_preserved": true
+    },
+    {
+      "run": "runtime-c03",
+      "container_id": "8a9b3e1b0ac603bcffb9151bf87efc80e70d29ba10b6856c4b68bcd4f6f70194",
+      "namespace": "agentstratum-brand-d417d7abc4",
+      "running": false,
+      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
+      "anonymous_data_volume_preserved": true
+    },
+    {
+      "run": "runtime-c04",
+      "container_id": "d91977a1ce4cfe9effe5a9a82baf63cddc2273abcf6afc447486721dec9aee74",
+      "namespace": "agentstratum-brand-f6b812dabd",
+      "running": false,
+      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
+      "anonymous_data_volume_preserved": true
+    },
+    {
+      "run": "runtime-c05",
+      "container_id": "0698232f0409fdcae0e8b744352c808d22d329a3b7b0b43823abf4411d22731d",
+      "namespace": "agentstratum-brand-9a6becc256",
+      "running": false,
+      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
+      "anonymous_data_volume_preserved": true
+    }
+  ],
+  "runtime_c06": {
+    "status": "NOT_STARTED_SHARED_LOCK",
+    "out_dir_exists": false,
+    "own_wait_queue_stopped": true,
+    "blocking_runner_pid": 1377292,
+    "blocking_service_status": "READY",
+    "blocking_service_verified_at": "2026-10-17T04:48:51.760743+00:00",
+    "other_service_touched": false
+  },
+  "logs_root": "/home/cimon/code/hindsight/.local/product-brand-ui/runs",
+  "logs": {
+    "npm-ci.log": {
+      "sha256": "d3abde8e87b95e6b03239cdc689a87e7b152f7ef3f2a1bba87f221d12a996b8f",
+      "bytes": 771
+    },
+    "python-deps.log": {
+      "sha256": "2d482abd92676552371f48aaf9bf1215f52978c23dd5d16d4079657960dc4e4f",
+      "bytes": 6600
+    },
+    "api-generation.log": {
+      "sha256": "28195bed1746b22a4efe6e5796af79996b1f67d76038df3cbe50521e4f9792d4",
+      "bytes": 223575
+    },
+    "sdk-ts-build.log": {
+      "sha256": "bc205c6ce4f9adae2f5f4880911faa4a9a965801cd1415f95433f995c3d76292",
+      "bytes": 650
+    },
+    "frontend-type.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "python-brand.log": {
+      "sha256": "07e17110fb24f071a0af09207976a1929bfc7a7193e0b7984ca7848eaa403314",
+      "bytes": 5209
+    },
+    "frontend-unit.log": {
+      "sha256": "3d60cf3ae079a3666db7d733fad127b2ad5342e9a5f5daa2cc84279e46cedecd",
+      "bytes": 15271
+    },
+    "frontend-unit-final.log": {
+      "sha256": "314c66e3b6a8db67a6d04ae31a2bc80f73f0152cfaac326b2fbdd481c67308ea",
+      "bytes": 382
+    },
+    "lint.log": {
+      "sha256": "70b483fd37d273cbdedb8e252f443b6cfc19ffdbd00582a7d9c3864c12a2255d",
+      "bytes": 84
+    },
+    "production-build.log": {
+      "sha256": "9d9001433b547a27142da61a7a9cb655efb745b7033aa38eb0c63e2c4f13610a",
+      "bytes": 5009
+    },
+    "unit-runner.log": {
+      "sha256": "1c5d94a0af6c4652a42da398777223494e9472d6b999d7381920485e5400caf2",
+      "bytes": 559
+    },
+    "validation-runner.log": {
+      "sha256": "07224b3ec06fed79aabae30e77d85781b9b28a6691212a161e2b2be3dab8254c",
+      "bytes": 565
+    },
+    "runtime-c02-runner.log": {
+      "sha256": "0d43c909fd1234b9bf8c1c1cb60c80160a924dbfa104917fbdb6adb15b609ac5",
+      "bytes": 7205
+    },
+    "runtime-c03-runner.log": {
+      "sha256": "7ffcffb81d4c9c0e6b8867ccac249b69181bfbd74cea4248b93db6a1214ae241",
+      "bytes": 801
+    },
+    "runtime-c04-runner.log": {
+      "sha256": "26e410e04708ec6e5d74da7f0e6466a83fe7a5ad529732d61a6f00d859003ac5",
+      "bytes": 849
+    },
+    "runtime-c05-runner.log": {
+      "sha256": "43816389a7c1e1930c6b956da5e3578e1ec76842105bf90e95d7f0affe0145f1",
+      "bytes": 1825
+    },
+    "runtime-c06-runner.queue.log": {
+      "sha256": "3d772910db63899eb592155e1d67f3bf9ed64912ed0fe763017373ddf62c757b",
+      "bytes": 2429
+    }
+  },
+  "local_resume_scripts_sha256": {
+    "queue-step.py": "6158909a4d80a8cb520fd2e9bd9d3ac117aaf8841688b06f46cf068587796e74",
+    "generate-api-clients.py": "20a76717b71fa0a84c880b00429c19070df8e04e1707a3698e4ed28d93f09a56",
+    "unit.py": "d37988bb1864d379e3240914278277305cadb6a190af38438ac7c8a66fac7c44",
+    "validation.py": "7ab4b4f56f8ce311c9415206fd8c2b29e6de504515f037c084238532cf6208d6",
+    "runtime.py": "1fe5d0b6c47b988be1b5aa1ae07589d60762165835656e589b59d91b8a342194",
+    "runtime-review.sh": "7b3adc1c22ef329f69a5348c96d3c5fcb641f4b89f3352cac686d668d62c0225",
+    "final-review.sh": "965ad22e7122e3091ad087a99c69d9623b09f693b2ed1ec7b9d7b8323ce29c59",
+    "cleanup-old-fixtures.py": "8cd883fd914f2a0ff3e86747a0fae6b127499980a0a8c548dc9c73d4b9e376b6"
+  },
+  "bounded_resources": {
+    "npm-ci.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 38.0,
+      "sampled_owned_slice_peak_bytes": 2621898752,
+      "slice_cpu_usage_usec": 13950104424,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-a376e1ef1d",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/npm-ci.log"
+    },
+    "python-deps.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 8.0,
+      "sampled_owned_slice_peak_bytes": 755027968,
+      "slice_cpu_usage_usec": 13952380640,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-01d084733f",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/python-deps.log"
+    },
+    "api-generation.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 24.0,
+      "sampled_owned_slice_peak_bytes": 1462521856,
+      "slice_cpu_usage_usec": 13983662876,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-29467bf577",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/api-generation.log"
+    },
+    "unit-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 77.0,
+      "sampled_owned_slice_peak_bytes": 1280643072,
+      "slice_cpu_usage_usec": 14148202262,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-f24a46cdeb",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/unit-runner.log"
+    },
+    "validation-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 121.1,
+      "sampled_owned_slice_peak_bytes": 2621227008,
+      "slice_cpu_usage_usec": 14320450574,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-62337dec78",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/validation-runner.log"
+    }
+  },
+  "source_snapshot_manifest_sha256": "a9539a73c8ea810305067aefa0afc25198f714c736a6dfc9abb06d6044c1aef5",
+  "draft_handoff_manifest_sha256": "5c0cc0e7c4806a49d7187887e67e0061924c5f32f9f9f7899687a6384aff158e"
+}
