@@ -4,6 +4,8 @@
 
 实现提交：`cbd42fcae66a3c4e50864a0718bbbc97165e47d0`。分支：`product/agentstratum-brand-ui-20261016`；基线及本次复查的远端 main 均为 `f51b165a5165b1042ba0b6408fcffb5bc1a80fdb`。本分支只含本任务提交；没有合并 main，没有修改其他工作区。
 
+已推送至 origin；[Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5)（base=main，保持 draft）。首次推送的证据提交为 `d6edee715`；远端已核对分支与 draft 状态。
+
 ## 已完成的实现
 
 - AgentStratum 响应式 UI、原生功能页、图表、指南与 Python/REST/MCP 接入说明；Workspace 仅为原生 bank 的展示术语。

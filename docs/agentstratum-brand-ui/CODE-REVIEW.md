@@ -35,3 +35,5 @@
 - 未引入 SQL、新列表分页问题、并发原语、HTTP 中间件、模型提示词或包装器参数变更；因此没有借本分支扩张引擎、授权、数据库或模型质量范围。
 
 允许推送供审查的 draft；保持 draft，恢复 RESULT.md 中的运行入口、修复实际失败并补交证据后，再由用户决定是否合并。
+
+交付状态：已推送并创建 [Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5)，未改为 ready，未合并。

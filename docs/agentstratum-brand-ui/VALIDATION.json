@@ -377,5 +377,18 @@
     }
   },
   "source_snapshot_manifest_sha256": "a9539a73c8ea810305067aefa0afc25198f714c736a6dfc9abb06d6044c1aef5",
-  "draft_handoff_manifest_sha256": "5c0cc0e7c4806a49d7187887e67e0061924c5f32f9f9f7899687a6384aff158e"
+  "draft_handoff_manifest_sha256": "5c0cc0e7c4806a49d7187887e67e0061924c5f32f9f9f7899687a6384aff158e",
+  "delivery": {
+    "pull_request": "https://github.com/RSIXDB/hindsight/pull/5",
+    "number": 5,
+    "isDraft": true,
+    "state": "OPEN",
+    "head": "product/agentstratum-brand-ui-20261016",
+    "base": "main",
+    "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
+    "initial_evidence_commit": "d6edee715",
+    "pushed": true,
+    "main_merged": false,
+    "remote_ci": "NOT_USED_AS_LOCAL_VALIDATION_PROOF"
+  }
 }
