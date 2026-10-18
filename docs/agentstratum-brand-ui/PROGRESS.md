@@ -24,3 +24,13 @@ runtime-c03/c04 的失败分别来自指南标题硬编码及同 URL 带 fragmen
 最终外部阻塞快照：其他会话体验服务已 READY，runner PID 1377292 持锁直到正常停止。本任务自己的 c06 等待队列已停止，未留下无人观察的后台验证。已完成静态最终审查、正式 VALIDATION.json、逐项验收状态和精确恢复入口；准备推送 draft，保持运行门槛未闭合，不称为可合并。四个自有历史 PG fixture/全部子进程均已停止，清理入口等待同一共享锁。
 
 2026-10-17T04:57:13.471882+00:00：实现与证据提交已推送，创建 Draft PR #5（https://github.com/RSIXDB/hindsight/pull/5），明确本地检查通过与动态门槛受阻，未合主干。后续恢复仍用 RESULT.md 的唯一共享 runner 入口。
+
+2026-10-18T00:40:52.647867+00:00：用户要求继续补齐全部剩余验收。同一 worktree/分支、HEAD fc0d2f545、548 项源码哈希和既有 production 制品哈希已复核一致，PR #5 仍 draft。共享锁仍由同一 READY 体验服务占用；依照 HANDOFF 的不停止其他任务规则，已请求用户选择由原会话释放或明确授权正常停用，未擅停。正在审查/补强剩余运行脚本，待锁正常释放后执行，不再以既有部分证据代替完整验收。
+
+2026-10-18T00:43:28.860063+00:00：用户明确授权正常停止 READY 体验服务，保留全部数据、配置和容器，恢复交由原会话。已核对 supervisor PID 与脚本身份，只写其自有 STOP 控制文件请求正常退出，不删除或更改服务数据/配置/容器。剩余验收已在原共享 runner 队列中等待接管。
+
+续验 c06：knip 5.88.1 files/dependencies 阻断检查通过，vulture/knip advisory 已执行；只清理了本任务四个旧 fixture 容器/匿名卷，原体验资源保留。真实语言菜单暴露 localePrefix=never 下 next-intl 强制前缀重定向丢失 fragment，已根据安装源码修复为同 basePath 的 locale cookie + Next router.refresh，补充 query/hash/重复过滤器与 cookie path 隔离回归测试。另移除两个新增但无外部调用的类型导出。当前需重跑相关 unit/type/lint/build，再继续完整原生故事。
+
+修复后 c07 完整原生故事 PASS：真实语言菜单保留 query/hash、archive CRC 与原生下载/multipart 导入及 SDK 文档回读、移动导航和接入、两品牌同制品与真实 MCP initialize/get_bank、旧页签输入与单次拒绝、故障退出/重启撤销均通过，两个 SDK 命名系统故事亦 2 passed。前端348、type、全仓lint、production build、knip阻断检查均通过。最终 advisory 复核发现语言切换改用 Next router 后，原 i18n/navigation 包装器仅剩 Link 被使用，已移除该私有模块无调用者的重导出；将对最终候选重跑同组验证，避免遗留新增死导出。
+
+2026-10-18 收尾：最终源码 9ba259fa3，c08 完整原生故事与两品牌 SDK 系统故事通过；最终前端348、type、lint、production build、knip 阻断检查全部 exit 0。advisory 已复核新增无用导出关闭，原生 Python 25 个提示的基线行相同，无新增 Must fix。补充两品牌真实 API/OpenAPI/no-store 与特殊 ID 创建/跨产品改名保留/删除通过。授权停用的原体验容器/数据/配置仍保留；所有自有服务已退出、PG 停止。已生成当前 RESULT、逐项验收、CODE-REVIEW、549 项 SOURCE-MAP 和带日志/制品/资源哈希的 VALIDATION；更新 PR，不合主干。

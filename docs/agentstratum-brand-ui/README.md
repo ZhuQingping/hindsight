@@ -1,6 +1,6 @@
 # AgentStratum 品牌与 UI 独立交付
 
-当前为 draft：实现已提交、unit/type/lint/build 已通过；原生全故事和 knip 仍受共享资源锁阻挡。验收边界与恢复命令见 [RESULT.md](RESULT.md)。
+当前必需本地验收已完成：原生 API/MCP/浏览器完整故事、两品牌 SDK、348 项前端测试、type/lint/build 与 knip 均通过。保持 Draft PR #5 供用户审查；未运行边界与资源状态见 [RESULT.md](RESULT.md)。
 
 本分支从 `origin/main` 提取 AgentStratum 产品界面，并提供同一制品通过运行配置改变产品名称的能力。原生 API、记忆引擎、数据库、授权扩展和客户端协议继续使用主干实现。
 

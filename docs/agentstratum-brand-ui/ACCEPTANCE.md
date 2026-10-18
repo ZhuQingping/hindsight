@@ -38,26 +38,26 @@
 - 完成报告应区分本地拆分技术验证、用户产品验收、生产部署与模型质量。后两者不在本次范围。
 - 若必需检查受环境阻塞，持续完成其他可执行工作，持久化准确恢复入口；不标记“可合并”或“全部通过”。
 
-## 本次实施结果（2026-10-17）
+## 本次实施结果（2026-10-18）
 
-判定：`DRAFT_ONLY / RUNTIME_GATES_BLOCKED`。本表的 PASS 均限定本候选已执行证据，不覆盖缺失的运行故事。
+判定：`LOCAL_ACCEPTANCE_PASS / CODE_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。最终源码 9ba259fa3，原生最终运行 c08；未把历史 PASS 或未运行项移作当前证明。
 
-| ID | 实际状态 |
+| ID | 最终结果与范围 |
 | --- | --- |
-| A01 | PASS：独立 origin/main 基线、保护路径和禁止依赖扫描；源提交 cbd42fcae |
-| A02 | PARTIAL：独立原生 API/Worker/PG、SDK 与生产 UI 登录/接入走通；完整原生使用故事未完成 |
-| A03 | PARTIAL：路由/链接扫描及桌面接入页无旧管理入口；移动导航检查待完成 |
-| A04 | PARTIAL：运行 agentstratum UI/metadata；unit 校验多名 API/MCP；真实双品牌/MCP/图表导出待完成 |
-| A05 | PASS：Python/TS 非法值负例与合法值单测 |
-| A06 | PARTIAL：guard/输入保留单测通过；production 旧页签、不转发完整故事待完成 |
-| A07 | PARTIAL：session/proxy 反例单测通过，真实登录与匿名访问拒绝通过；真实退出/重启撤销待完成 |
-| A08 | PARTIAL：三种 locale 实际页面通过，query/hash 单测通过；真实菜单操作待完成 |
-| A09 | PARTIAL：原生 SDK 创建/列举包含 %、中文、点号的 ID 和接入页编码已实际验证；真实 MCP 资源读取与 SDK 系统故事待完成；不声称原生支持所有斜杠 ID |
-| A10 | PASS：保护路径保持基线，原有 OpenAPI 路径和模型完全一致 |
-| A11 | PARTIAL：下载/传输/图表单测通过；真实归档与 SVG 导出、移动页面待完成 |
-| A12 | PASS_GENERATION_TS_BUILD：本分支重生成与结构检查通过，TS 编译通过；Python 新端点系统故事待完成，Go/Rust 编译缺工具链 |
-| A13 | PASS：frontend 347、Python 11、tsc、SDK build、全仓 lint、production build 实际执行 |
-| A14 | PASS_BOUNDARY：integration 代码未变，无可提取 Hook 品牌补丁；宿主运行 NOT_RUN |
-| A15 | PARTIAL：本地实现提交、静态审查完成；运行门槛和 knip 待完成；只创建 draft，不合主干 |
+| A01 | PASS：独立 main 基线；禁止路径/依赖扫描；无其他开发线提交 |
+| A02 | PASS：独立原生 API/Worker/PG + production UI 实际启动，无 management 服务；真实 SDK 与浏览器原生操作 |
+| A03 | PASS：桌面/移动导航、接入与路由链接检查；无旧访问管理、用户或 Key 签发入口 |
+| A04 | PASS：同一 production 制品双名称运行，UI/metadata/图表 SVG、两品牌 API/OpenAPI 与真实 MCP initialize/get_bank 一致 |
+| A05 | PASS：Python/TS 合法值及空值、大小写、空白、换行、中文、路径、超长负例单测 |
+| A06 | PASS：真实旧页签保留输入，Recall 仅一次拒绝、文件请求拒绝；品牌错配/离线不转发写入，无自动重发 |
+| A07 | PASS：真实登录、动态点号路由 401、复制 Cookie、离线退出、重启撤销、Origin 403/Host 421；相应 unit 反例通过 |
+| A08 | PASS：三种 locale 实际页面、真实菜单切换 query/hash，重复过滤器及 basePath cookie 隔离回归通过 |
+| A09 | PASS 实测范围：含 %、中文、点号 ID 的原生 SDK 创建/列举/跨产品改名保留/删除与 MCP 读取、UI 接入代码；不扩张为所有斜杠 ID 端到端证明 |
+| A10 | PASS：engine/worker/迁移/授权扩展等保护路径保持基线；原 API 路径和模型逐结构一致 |
+| A11 | PASS：原生归档下载与 CRC、multipart 导入、SDK 文档回读、双品牌 SVG 导出与移动页面；unit 亦通过 |
+| A12 | PASS 可用工具链范围：本分支重生成、结构检查、TS 编译和 Python 两品牌 SDK 黑盒；Go/Rust 编译 NOT_RUN 无工具链 |
+| A13 | PASS：最终 frontend 348、tsc、SDK build、全仓 lint、production build；未变化 Python 命名 11 项证据已核对 |
+| A14 | PASS 边界：integration 代码未变，无可提取 Hook 品牌补丁；宿主运行 NOT_RUN，无完成 Hook 改造的声明 |
+| A15 | PASS 本地交付与审查：没有未处理 Must fix，证据与源码已持久化，PR #5 保持 draft；不合主干 |
 
-日志、失败尝试、资源和精确恢复命令见 [RESULT.md](RESULT.md) 与 [VALIDATION.json](VALIDATION.json)。
+真实模型质量、生产部署、人工产品验收和远端 CI 均不作为本次通过结论。日志、资源、失败修复和剩余范围见 [RESULT.md](RESULT.md)、[VALIDATION.json](VALIDATION.json)。

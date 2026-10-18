@@ -1,39 +1,29 @@
 # 代码审查
 
-审查方式：同一持久实施 session 按仓库 `.claude/skills/code-review/SKILL.md` 自查；没有派生子代理，也不宣称外部独立审查。当前结论为静态审查完成、运行门槛受阻，详见末尾结论。
+2026-10-18。结论：`CODE_REVIEW_CLOSED / NO_OPEN_MUST_FIX / LOCAL_ACCEPTANCE_PASS`。采用同一持久实施 session 按仓库 `.claude/skills/code-review/SKILL.md` 自查；没有派生子代理，不宣称外部独立审查。
 
-## 已发现并修复
+审查范围：初始实现 cbd42fcae、语言修复 72218e9f2、导航导出清理 9ba259fa3，以及 SOURCE-MAP 549 个最终源码/配置/SDK/测试路径。正式证据见 RESULT.md 和 VALIDATION.json。
 
-- 草稿误删当前基线的原生 Gemini 模型配置。恢复类型、状态、保存、编辑器和两种维护语言的文案；保留新的分节导航并加入 Models 锚点。这些不是权限方案代码。
-- 产品配置模块头注释仍提 hosted management。已改成原生 API/MCP 职责。
-- 控制台 npm lint 仍调用 Next 16 已无的 next lint。改为现有 ESLint 配置入口；全仓 lint 另保留必需检查。
-- 系统测试默认会启动固定共享 pg0。启动器新增可选 database_url，品牌测试可通过 HINDSIGHT_BRAND_TEST_DATABASE_URL 指定本任务 PG；不调用共享库清扫 fixture。
-- lint 新增通用 LINT_SERIAL=1；保留默认并发模式，不加入访问管理专用检查。
+## 已关闭的问题
 
-## 静态审查要点
+1. 旧草稿误删基线 Gemini 配置：已恢复类型、状态、保存和编辑器及全部语言目录相应键；新配置导航保留。首轮目录键集失败已修复复测。
+2. 真实语言菜单切换丢失 fragment：c06 暴露 next-intl 的强制前缀/规范重定向组合问题，改为同 basePath 的 locale cookie + Next router.refresh。最终 c08 实际菜单 query/hash 保留通过；回归覆盖重复过滤器和 cookie path 隔离。
+3. 新增无调用者的类型导出与语言修复后闲置的导航重导出已移除；没有通过新 knip 忽略项隐藏问题。
+4. 早期产品与后续访问管理依赖已解耦。API/MCP 仅命名与非秘密配置端点，客户端从当前原生 API 重生成，不复制旧权限 SDK。
+5. Next 16 npm lint 入口、通用串行 lint 和独立数据库系统测试入口已补齐；无其他会话依赖环境或共享库 sweep。
 
-- API diff 仅服务命名、metrics/tracing 默认名称与非秘密 GET /product-config；MCP diff 仅 serverInfo 名称。engine、worker、alembic、授权扩展及 integrations 必须保持基线。
-- ProductRuntime 位于 Theme/Features/Bank provider 外侧；实际页面翻译 provider 包围页面，BankProvider 不调用翻译 hook。登录页不列工作空间。品牌不写入资源、session 的 origin/basePath 绑定或 MCP 工具协议。
-- proxy 使用 Next 16 的单一 proxy.ts、全动态 matcher。点号 bank ID 不作为静态资源豁免；受保护请求先验会话再校验品牌，写请求要求配置的 Host/Origin。退出与诊断不受数据服务品牌故障阻断。
-- 原生文件下载只接受规范的 API 相对路径；对象存储返回绝对地址时使用 storage_key；不向外部 URL 发送服务凭证。归档响应保持 stream 与取消 signal。
-- 旧页面 productFetch 从 HTML 读取原品牌并用于 JSON、multipart 与文件 fetch；不从可跨页签变化的 Cookie 取品牌。guard 错配时在业务处理前返回，不重发请求。
-- 恢复的 Gemini UI 与原生敏感数据策略保留；删除的 memory-defense 项仅为原厂 Cloud 营销面板。Hook 未有可提取品牌补丁。
+## 最终检查
 
-## 待完成
+- 前端 55 文件/348 项、tsc、SDK build、全仓 lint、production standalone build 均实际通过。
+- 原生 API/Worker/PostgreSQL、生产 UI、Chromium 完整 c08 故事通过，两个 SDK 系统故事 2 passed。覆盖双品牌同制品、真实 MCP 初始化/工具、特殊 ID、归档传输、移动导航、语言、旧页签和会话边界。浏览器没有未捕获异常。
+- knip 5.88.1 files/dependencies 阻断检查 exit 0。完整 advisory 及 vulture 已执行；25 个 Python advisory 指向的基线行均核对未变，保留的 UI/framework 导出提示未作为“零警告”报告。新增死导出已消除。
+- 逐路径和 schema 核对通过；engine、worker、alembic、授权扩展与 integrations 没有改动。没有新增 SQL、模型提示词、并发原语或协议身份修改；没有包装器参数不对称。
+- 源快照和交接草稿保持不可变；来源与最终源码哈希齐全，所有重型命令通过唯一共享 runner。
 
-已完成 SDK 生成、unit/type/lint/build 与差异纯度检查；待完成原生 API/MCP/browser 全故事、vulture/knip 和结果闭合。
+## 边界与说明
 
-## 当前审查结论（2026-10-17）
+Java 7.10.0 生成器在三个新增 Python/Go 文件输出 EOF 空行；保留规范生成物，未手工改写以免 CI 重生成漂移。仅 whitespace 检查忽略 blank-at-eof，其余检查正常。
 
-`STATIC_REVIEW_COMPLETE / RUNTIME_GATES_BLOCKED / DRAFT_ONLY`。
+Go/Rust 编译缺工具链为 NOT_RUN；Hook 没有提取补丁，宿主未运行；真实模型质量、生产与人工产品验收不在已证明范围。S3/其他对象存储的路径处理有单测，真实传输故事使用原生 PG 文件存储，不冒充所有对象存储部署实测。
 
-- 已对实现提交 cbd42fcae、548 路径来源清单、全部手写新文件与变更、API/MCP 最小 diff、生成物结构及维护包装器进行了审查。分支基于当次实时复核的 origin/main；没有其他开发线提交或受保护后端改动。
-- 已执行全仓 lint（ruff/ty/ESLint/Prettier）、前端 347 项、Python 品牌 11 项、tsc、TS SDK build 与 production build。首轮发现的语言目录问题已修复复测。未发现尚未处理的确定性 Must fix 源码缺陷。
-- 独立原生启动、SDK 样例、登录、特殊 ID 接入页和三种 locale 页面已有实证；不能替代尚缺的双品牌/MCP/下载/旧页签/退出全故事。上述为**未闭合验收门槛**，不是 PASS。
-- vulture/knip 尚未运行：共享锁由另一会话 READY 体验服务长期持有。人工引用检查和已通过 lint 不替代该步骤。不得将本记录描述成“全部审查通过”或“可合并”。
-- 生成器原样输出的三个新增 Python/Go 文件有 EOF 空行；仅此类 whitespace 检查采用 core.whitespace=-blank-at-eof，保留规范生成物以避免 CI 重生成漂移。不是对生成源的手工修补。
-- 未引入 SQL、新列表分页问题、并发原语、HTTP 中间件、模型提示词或包装器参数变更；因此没有借本分支扩张引擎、授权、数据库或模型质量范围。
-
-允许推送供审查的 draft；保持 draft，恢复 RESULT.md 中的运行入口、修复实际失败并补交证据后，再由用户决定是否合并。
-
-交付状态：已推送并创建 [Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5)，未改为 ready，未合并。
+当前已满足本次必需本地门槛，允许更新供用户审查的 Draft PR #5；继续保持 draft，主干合并由用户决定。

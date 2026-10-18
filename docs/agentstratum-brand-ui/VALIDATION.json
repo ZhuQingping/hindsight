@@ -1,15 +1,15 @@
 {
-  "status": "LOCAL_CHECKS_PASS_RUNTIME_GATES_BLOCKED_DRAFT_ONLY",
-  "captured_at": "2026-10-17T04:56:01.902032+00:00",
+  "status": "LOCAL_ACCEPTANCE_PASS_CODE_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
+  "captured_at": "2026-10-18T01:04:34.377569+00:00",
   "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
   "base": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
-  "source_paths": 548,
-  "candidate_manifest_sha256": "df6748546f2c6cf0a3930a414f21d267c7f418f9b71cd8af22d5a33015db7f88",
+  "source_paths": 549,
+  "candidate_manifest_sha256": "1b0a98cb40b7bed095535d4608c146510e06acd7c94b32bcc054449c071c0f16",
   "checks": {
     "frontend_unit": {
       "status": "PASS",
       "files": 55,
-      "tests": 347
+      "tests": 348
     },
     "python_brand": {
       "status": "PASS",
@@ -20,11 +20,18 @@
     "required_repository_lint": "PASS",
     "production_build": "PASS",
     "openapi_python_ts_go_generation": "PASS_GENERATION_ONLY",
-    "native_api_worker_ui_start": "PASS_PARTIAL_STORY",
-    "three_locale_rendering": "PASS_RENDERING_ONLY",
-    "dual_brand_mcp_download_stale_tab_logout_full_story": "BLOCKED_NOT_RUN_TO_COMPLETION",
-    "published_sdk_brand_system_story": "NOT_RUN",
-    "vulture_knip": "BLOCKED_NOT_RUN",
+    "native_api_worker_ui_start": "PASS",
+    "three_locale_rendering": "PASS_REAL_MENU_QUERY_HASH_AND_FALLBACK",
+    "dual_brand_mcp_download_stale_tab_logout_full_story": "PASS",
+    "published_sdk_brand_system_story": {
+      "status": "PASS",
+      "tests": 2
+    },
+    "vulture_knip": {
+      "blocking_files_dependencies": "PASS",
+      "advisory": "EXECUTED_REVIEWED_BASELINE_WARNINGS",
+      "new_unused_exports_closed": true
+    },
     "go_rust_compile": "NOT_RUN_NO_TOOLCHAIN",
     "hook_host": "NOT_RUN",
     "real_models_production_user_acceptance": "NOT_RUN"
@@ -34,7 +41,7 @@
     "protected_paths_unchanged": true,
     "forbidden_dependencies": [],
     "templates_identical": true,
-    "paths": 560,
+    "paths": 562,
     "openapi": {
       "existing_paths_identical": true,
       "existing_schemas_identical": true,
@@ -163,51 +170,202 @@
         "pg_data_preserved": true
       },
       "evidence_sha256": "a77f44d108e51c3c47aa8138cb47e85ac44c44d9956c3c9dc9bd4e5eaf6480af"
+    },
+    "runtime-c06": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1613134,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1613402,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1613456,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "b87f0ae273b0420b2e97d7e59d0e191c61a3260c3208b90fbc0362d86b2fab16"
+    },
+    "runtime-c07": {
+      "status": "PASS",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "first_brand": true,
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "artifact_sha256": "a7e5ce3d868b16eb3d944fc4b3d50f07effdb9c40a48e07e3c0f1383091ad5b0",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1618458,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1618667,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1618678,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1619060,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1619202,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1619295,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1619346,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1619492,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "552ccb3161d1d93bbb8188b302173f17d033813adb66d6f98ee07541dc166370"
+    },
+    "runtime-c08": {
+      "status": "PASS",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "first_brand": true,
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "artifact_sha256": "ead4662408389127129a975cd4ae916827710553a83bb65b816a538a4db7bd74",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1625943,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626124,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1626136,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626581,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1626743,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626835,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626870,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1627061,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "de2f1845d4068ae6f2d0a25c0acfb077a99f328a51a4ef72682b4a061223d3ec"
     }
   },
   "owned_stopped_fixtures": [
     {
-      "run": "runtime-c02",
-      "container_id": "4ef96d76b8bb62a352676f73d0bab5366ceb22dd4a11f9ac51b4081dfb7c2976",
-      "namespace": "agentstratum-brand-79c5030ad6",
+      "run": "runtime-c06",
+      "container_id": "f1098339c4d33f710dfbe3a7c90b72f0a095ed625c9ef8cd61dcaa491043d36f",
       "running": false,
-      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
-      "anonymous_data_volume_preserved": true
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c06/pg-data",
+      "data_preserved": true
     },
     {
-      "run": "runtime-c03",
-      "container_id": "8a9b3e1b0ac603bcffb9151bf87efc80e70d29ba10b6856c4b68bcd4f6f70194",
-      "namespace": "agentstratum-brand-d417d7abc4",
+      "run": "runtime-c07",
+      "container_id": "4f4e419dd38d34aae3f92f999928fd8afa6a962ff418a9e43f893d0954c98a0c",
       "running": false,
-      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
-      "anonymous_data_volume_preserved": true
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c07/pg-data",
+      "data_preserved": true
     },
     {
-      "run": "runtime-c04",
-      "container_id": "d91977a1ce4cfe9effe5a9a82baf63cddc2273abcf6afc447486721dec9aee74",
-      "namespace": "agentstratum-brand-f6b812dabd",
+      "run": "runtime-c08",
+      "container_id": "906092670aeb8c87b3edd6107e3efb1e1e47d8319a4c13980aa684d3bda76016",
       "running": false,
-      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
-      "anonymous_data_volume_preserved": true
-    },
-    {
-      "run": "runtime-c05",
-      "container_id": "0698232f0409fdcae0e8b744352c808d22d329a3b7b0b43823abf4411d22731d",
-      "namespace": "agentstratum-brand-9a6becc256",
-      "running": false,
-      "image_id": "sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f",
-      "anonymous_data_volume_preserved": true
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c08/pg-data",
+      "data_preserved": true
     }
   ],
-  "runtime_c06": {
-    "status": "NOT_STARTED_SHARED_LOCK",
-    "out_dir_exists": false,
-    "own_wait_queue_stopped": true,
-    "blocking_runner_pid": 1377292,
-    "blocking_service_status": "READY",
-    "blocking_service_verified_at": "2026-10-17T04:48:51.760743+00:00",
-    "other_service_touched": false
-  },
   "logs_root": "/home/cimon/code/hindsight/.local/product-brand-ui/runs",
   "logs": {
     "npm-ci.log": {
@@ -277,6 +435,130 @@
     "runtime-c06-runner.queue.log": {
       "sha256": "3d772910db63899eb592155e1d67f3bf9ed64912ed0fe763017373ddf62c757b",
       "bytes": 2429
+    },
+    "review-20261018.log": {
+      "sha256": "7d7f61a6c5ae5af786dfa64593bebd9988a64602ac01835f79e270aa7b85e0ba",
+      "bytes": 1136
+    },
+    "dead-code-advisory.log": {
+      "sha256": "399d88850c1b2bc93244294706c746c846f39b1dca9e788a48349a2c30ade62e",
+      "bytes": 7329
+    },
+    "knip-blocking.log": {
+      "sha256": "4e1bdea5f565bd4199485031a40d1efeb9e10ca6052b04f61ffb351dabbfd355",
+      "bytes": 219
+    },
+    "unit-final-20261018.log": {
+      "sha256": "a49319673f3fe471bf65293421f23128b8991e21bdc4df331ebe93466025b65b",
+      "bytes": 384
+    },
+    "type-final-20261018.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-final-20261018.log": {
+      "sha256": "70b483fd37d273cbdedb8e252f443b6cfc19ffdbd00582a7d9c3864c12a2255d",
+      "bytes": 84
+    },
+    "build-final-20261018.log": {
+      "sha256": "c7fb264f3962c816ff9b9ecf191f7bc9bd67c0cf80517b3a70aa402466ec006d",
+      "bytes": 5008
+    },
+    "native-c08-20261018.log": {
+      "sha256": "1be658c4343e1ef85c98000b10a82601233b8ebf8d02fa06c79e6e2f3e2477d5",
+      "bytes": 646
+    },
+    "knip-final-20261018.log": {
+      "sha256": "4e1bdea5f565bd4199485031a40d1efeb9e10ca6052b04f61ffb351dabbfd355",
+      "bytes": 219
+    },
+    "verify-final-20261018-runner.log": {
+      "sha256": "7b3e6354365a682cdce9b1f2fffbb7354972ff6b6ab0c1082cf3def12ef6b392",
+      "bytes": 891
+    },
+    "post-review-20261018-runner.log": {
+      "sha256": "e12dd86c82b7ed11226b1a0d1639a597f5fa4aa7481d1fdef3ef04e73c2a8c76",
+      "bytes": 3433
+    },
+    "knip-advisory-final-20261018.log": {
+      "sha256": "d70e0f10121a01813486762fc18d166ad6ee04b9292ce40367073dbfbc798361",
+      "bytes": 4422
+    },
+    "runtime-c08/sdk-story.log": {
+      "sha256": "556987c91d0154665c3f5a2861748229c07417769d42f9a05204f68a2d14d218",
+      "bytes": 2473
+    },
+    "runtime-c08/artifact-manifest.json": {
+      "sha256": "25c58dbf4347e6dd28c1275121b8b4fd6527c84794765f8b0abde3f6ee71e7e2",
+      "bytes": 118017
+    },
+    "runtime-c08/harness.py": {
+      "sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
+      "bytes": 25606
+    },
+    "runtime-c08/pg-cpu-proof.json": {
+      "sha256": "91c173a2ca23b0a0e976fae257f226e22ea56633032fc4a11d5df7b9baae7989",
+      "bytes": 170
+    },
+    "final-audit-20261018/result.json": {
+      "sha256": "f20170d401c80f57b45551b8be60a74bcaeac20adb8bf30c94aed1e17eac173f",
+      "bytes": 816
+    },
+    "old-fixture-cleanup.json": {
+      "sha256": "a517dc2fb2a8d72fb2ea8685aff5dcab93cbb376e355ec0ddf3542e0ab95abc6",
+      "bytes": 871
+    },
+    "experience-stop-authorized-20261018.json": {
+      "sha256": "dedaae6ff05027abb6bdd19b8c21efadf0222e543d6b02f2c1c0823cdd80e9db",
+      "bytes": 694
+    },
+    "static-result.json": {
+      "sha256": "724f3e1242917e2fa6dc85a864952a162b399e0c3d32ecaa9a1b3c05566373a7",
+      "bytes": 75209
+    },
+    "runtime-c08/guide-fr.png": {
+      "sha256": "5931c0e90b216a323c7c4d14e7b28171a35523efd9ba696410b3b11375d74463",
+      "bytes": 109749
+    },
+    "runtime-c08/guide-en.png": {
+      "sha256": "2ee645be61c67fc9822799d392f6ddf909c8879dd6e30cce4344a2e7c034e9f5",
+      "bytes": 101658
+    },
+    "runtime-c08/home-contextdb.png": {
+      "sha256": "b2209a9415a3565436a2be6a155f4a98b340c940f4b5da3d5ae4481c1e0259c1",
+      "bytes": 111144
+    },
+    "runtime-c08/connect-mobile-agentstratum.png": {
+      "sha256": "3dd13f10136c99de86edb36a0d20420d6b9a68fe2f51a00c322645b3c190f3fc",
+      "bytes": 58150
+    },
+    "runtime-c08/home-desktop-agentstratum.png": {
+      "sha256": "c9f64f9a610fd25ab24ce789357a96e5b70eb37ce59712b44d1afc6d844cc84a",
+      "bytes": 114521
+    },
+    "runtime-c08/connect-desktop-agentstratum.png": {
+      "sha256": "0421e743a51aa45089b614ddf838e6ad9ba706530c83155f72e119034b52e5ec",
+      "bytes": 101827
+    },
+    "runtime-c08/guide-zh-CN.png": {
+      "sha256": "5c076e31a297d0702fdd32422a0d4b9300950671626c0cc7be0cab70470346da",
+      "bytes": 95971
+    },
+    "runtime-c08/configuration-mobile.png": {
+      "sha256": "8ea7a04ca102843a73aa8bdc773a1b573333dde42ce184c80bd9797673b5f252",
+      "bytes": 60870
+    },
+    "runtime-c08/documents-mobile-agentstratum.png": {
+      "sha256": "6cde4e431ff24cb068093bdfb13c08bfbaf4932be628a150643ed0c631952ce5",
+      "bytes": 42396
+    },
+    "runtime-c08/home-mobile-agentstratum.png": {
+      "sha256": "4af1d42e3fca616a3ee87c98ea64d6179a752e62ad360217365ce3674c18bfbc",
+      "bytes": 44488
+    },
+    "runtime-c08/stale-tab-preserved.png": {
+      "sha256": "3a561fb93fa4966df3f6888e2f68bc882e7c1525be96a10f548125a3cdca97ef",
+      "bytes": 101454
     }
   },
   "local_resume_scripts_sha256": {
@@ -284,10 +566,14 @@
     "generate-api-clients.py": "20a76717b71fa0a84c880b00429c19070df8e04e1707a3698e4ed28d93f09a56",
     "unit.py": "d37988bb1864d379e3240914278277305cadb6a190af38438ac7c8a66fac7c44",
     "validation.py": "7ab4b4f56f8ce311c9415206fd8c2b29e6de504515f037c084238532cf6208d6",
-    "runtime.py": "1fe5d0b6c47b988be1b5aa1ae07589d60762165835656e589b59d91b8a342194",
+    "runtime.py": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
     "runtime-review.sh": "7b3adc1c22ef329f69a5348c96d3c5fcb641f4b89f3352cac686d668d62c0225",
     "final-review.sh": "965ad22e7122e3091ad087a99c69d9623b09f693b2ed1ec7b9d7b8323ce29c59",
-    "cleanup-old-fixtures.py": "8cd883fd914f2a0ff3e86747a0fae6b127499980a0a8c548dc9c73d4b9e376b6"
+    "cleanup-old-fixtures.py": "8cd883fd914f2a0ff3e86747a0fae6b127499980a0a8c548dc9c73d4b9e376b6",
+    "verify-final-20261018.py": "3fc381cd6b0e49d54b03f39ba8c2859413ca4134da5676c7500f3fa36e711a22",
+    "post-review-20261018.py": "afabf24eb7e2ed9721fe141df91d542967ea0552b80ed1e82d97c0f9ec378a61",
+    "final-audit-20261018.py": "126269b944f6e822a2c25599141abd1da5c660295b892acd55fda5cad11c2590",
+    "close-results-20261018.py": "b6d837d8ad1b4b2e54bf2f00177cf5cfe4afe2c7f65a22205ffab6bf1182aaaf"
   },
   "bounded_resources": {
     "npm-ci.log.resources.json": {
@@ -374,6 +660,91 @@
       "serial": true,
       "unit": "m2-access-work-62337dec78",
       "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/validation-runner.log"
+    },
+    "resume-20261018-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 113.1,
+      "sampled_owned_slice_peak_bytes": 1735737344,
+      "slice_cpu_usage_usec": 14829109188,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-4a375bc6da",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/resume-20261018-runner.log"
+    },
+    "verify-fix-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 338.3,
+      "sampled_owned_slice_peak_bytes": 2328911872,
+      "slice_cpu_usage_usec": 15219368308,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-a002519e10",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/verify-fix-20261018-runner.log"
+    },
+    "verify-final-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 298.2,
+      "sampled_owned_slice_peak_bytes": 2473701376,
+      "slice_cpu_usage_usec": 15597938693,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-4ef6189216",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/verify-final-20261018-runner.log"
+    },
+    "post-review-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 9.0,
+      "sampled_owned_slice_peak_bytes": 1853063168,
+      "slice_cpu_usage_usec": 15609585522,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-5b462e7ccf",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/post-review-20261018-runner.log"
+    },
+    "final-audit-20261018-02-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 43.0,
+      "sampled_owned_slice_peak_bytes": 1835712512,
+      "slice_cpu_usage_usec": 15267254252,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-75ba3489f0",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/final-audit-20261018-02-runner.log"
     }
   },
   "source_snapshot_manifest_sha256": "a9539a73c8ea810305067aefa0afc25198f714c736a6dfc9abb06d6044c1aef5",
@@ -389,6 +760,344 @@
     "initial_evidence_commit": "d6edee715",
     "pushed": true,
     "main_merged": false,
-    "remote_ci": "NOT_USED_AS_LOCAL_VALIDATION_PROOF"
-  }
+    "remote_ci": "NOT_USED_AS_LOCAL_VALIDATION_PROOF",
+    "validated_source_commit": "9ba259fa386f56c97c9b5af64901f5e3fb228815",
+    "source_fix_commits": [
+      "72218e9f2534b92149cdfda4f856236f252dc9f2",
+      "9ba259fa386f56c97c9b5af64901f5e3fb228815"
+    ],
+    "local_acceptance": "PASS"
+  },
+  "previous_blocker_at_handoff": {
+    "status": "NOT_STARTED_SHARED_LOCK",
+    "out_dir_exists": false,
+    "own_wait_queue_stopped": true,
+    "blocking_runner_pid": 1377292,
+    "blocking_service_status": "READY",
+    "blocking_service_verified_at": "2026-10-17T04:48:51.760743+00:00",
+    "other_service_touched": false
+  },
+  "validated_source_commit": "9ba259fa386f56c97c9b5af64901f5e3fb228815",
+  "runtime_final": {
+    "status": "PASS",
+    "artifact": "same production standalone; runtime environment names only",
+    "artifact_sha256": "ead4662408389127129a975cd4ae916827710553a83bb65b816a538a4db7bd74",
+    "base_path": "/brand-ui",
+    "provider": "local stub only",
+    "checks": {
+      "language_switch_and_fallback": true,
+      "native_ui_archive_download": {
+        "status": 200,
+        "bytes": [
+          80,
+          75,
+          3,
+          4
+        ]
+      },
+      "native_ui_multipart_import": true,
+      "graph_export": "agentstratum-relationship-graph.svg",
+      "mobile_navigation_and_connection": true,
+      "first_brand": true,
+      "stale_tab_preserved_without_replay": true,
+      "second_brand_same_artifact": true,
+      "mismatch_offline_logout_restart_revocation": true,
+      "no_rejected_mutations_forwarded": true,
+      "published_sdk_story": true
+    },
+    "cleanup": {
+      "children": [
+        {
+          "role": "api-agentstratum",
+          "pid": 1625943,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-agentstratum",
+          "pid": 1626124,
+          "exit_code": 143
+        },
+        {
+          "role": "chromium",
+          "pid": 1626136,
+          "exit_code": 0
+        },
+        {
+          "role": "api-contextdb",
+          "pid": 1626581,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-contextdb",
+          "pid": 1626743,
+          "exit_code": 143
+        },
+        {
+          "role": "ui-agentstratum",
+          "pid": 1626835,
+          "exit_code": 143
+        },
+        {
+          "role": "api-contextdb",
+          "pid": 1626870,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-contextdb",
+          "pid": 1627061,
+          "exit_code": 143
+        }
+      ],
+      "pg_stopped": true,
+      "pg_data_preserved": true
+    },
+    "evidence_dir": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c08",
+    "executed_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453"
+  },
+  "final_phases": [
+    {
+      "check": "unit-final-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/unit-final-20261018.log"
+    },
+    {
+      "check": "type-final-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/type-final-20261018.log"
+    },
+    {
+      "check": "lint-final-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/lint-final-20261018.log"
+    },
+    {
+      "check": "build-final-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/build-final-20261018.log"
+    },
+    {
+      "check": "native-c08-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/native-c08-20261018.log"
+    },
+    {
+      "check": "knip-final-20261018",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/knip-final-20261018.log"
+    }
+  ],
+  "supplementary_native_api_sdk": {
+    "status": "PASS",
+    "titles": {
+      "agentstratum": {
+        "title": "agentstratum HTTP API",
+        "product_config": {
+          "product_config_version": 1,
+          "contextdb_name": "agentstratum"
+        },
+        "cache_control": "no-store"
+      },
+      "contextdb": {
+        "title": "contextdb HTTP API",
+        "product_config": {
+          "product_config_version": 1,
+          "contextdb_name": "contextdb"
+        },
+        "cache_control": "no-store"
+      }
+    },
+    "sdk_special_id": {
+      "status": "PASS_CREATE_LIST_PRESERVE_ACROSS_RENAME_DELETE",
+      "bank_id": "sdk-%42-中文.probe"
+    },
+    "api_source_sha256": "34faca94bf6eefef9934c361d04950f81c5f07a33ca5aba00e5fb69ec1b350e0",
+    "knip_advisory_exit": 1,
+    "cleanup": {
+      "pg_stopped": true,
+      "api_processes_exited": true,
+      "data_preserved": true
+    }
+  },
+  "post_review": {
+    "status": "PASS_NO_NEW_REVIEW_FINDINGS",
+    "knip_blocking": "PASS_see_verify-final_result",
+    "knip_full_advisory_exit": 1,
+    "advisory_scope": "Remaining framework/UI public exports and unchanged baseline findings; no blanket suppressions added",
+    "new_unused_exports_closed": true,
+    "vulture_baseline_findings": [
+      {
+        "path": "hindsight-api-slim/hindsight_api/_pg_extensions.py",
+        "line": 55,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/alembic/env.py",
+        "line": 124,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/api/http.py",
+        "line": 62,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1277,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1278,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1280,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1281,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1413,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1450,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1451,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1563,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1611,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1643,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 2375,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/pg/link_expansion.py",
+        "line": 141,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+        "line": 106,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+        "line": 686,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memory_engine.py",
+        "line": 615,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/retain/bank_utils.py",
+        "line": 24,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
+        "line": 33,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/search/graph_retrieval.py",
+        "line": 43,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/tracing.py",
+        "line": 27,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/tracing.py",
+        "line": 92,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-dev/benchmarks/perf/recall_perf.py",
+        "line": 54,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-embed/hindsight_embed/control_center/server.py",
+        "line": 35,
+        "baseline_line_identical": true
+      }
+    ],
+    "executed_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
+    "current_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453"
+  },
+  "authorized_experience_pause": {
+    "authorized_by": "Explicit user reply in this session",
+    "action": "Request normal shutdown through owned STOP file",
+    "service": "serve-experience-c04.py",
+    "supervisor_pid": 1377300,
+    "api": "http://127.0.0.1:28910",
+    "ui": "http://127.0.0.1:28911",
+    "stop_file": "/home/cimon/code/hindsight/.local/hosted-single-tenant/development/runs/follow-up-s5-20261016/experience-c04/STOP",
+    "requested_at": "2026-10-18T00:43:28.860063+00:00",
+    "preserve": "All data/configuration/containers; no deletion",
+    "restoration": "Original session per explicit user instruction",
+    "normal_stop_result": {
+      "status": "STOPPED",
+      "cleanup_errors": [],
+      "data_preserved": true
+    },
+    "container_id": "5a9e46c20eb3c23b61bb7608171bae086a7efe4ca5f1eae4cfe77e18d9adc626",
+    "container_preserved": true,
+    "data_mounts_preserved": true
+  },
+  "old_transient_fixture_cleanup": [
+    {
+      "run": "runtime-c02",
+      "container_id": "4ef96d76b8bb62a352676f73d0bab5366ceb22dd4a11f9ac51b4081dfb7c2976",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c03",
+      "container_id": "8a9b3e1b0ac603bcffb9151bf87efc80e70d29ba10b6856c4b68bcd4f6f70194",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c04",
+      "container_id": "d91977a1ce4cfe9effe5a9a82baf63cddc2273abcf6afc447486721dec9aee74",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c05",
+      "container_id": "0698232f0409fdcae0e8b744352c808d22d329a3b7b0b43823abf4411d22731d",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "IMPLEMENTATION_COMMITTED_LOCAL_CHECKS_PASS_RUNTIME_GATES_BLOCKED",
+  "status": "LOCAL_ACCEPTANCE_COMPLETE",
   "captured_at": "2026-10-17T04:28:46.991604+00:00",
   "branch": "product/agentstratum-brand-ui-20261016",
   "base_commit": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
@@ -464,7 +464,7 @@
           "sha256": "4d16a304d2534457cccc2295eb0adb0d884b21abc0d8c434e9993d3d59ac6c12"
         }
       ],
-      "candidate_sha256": "4d16a304d2534457cccc2295eb0adb0d884b21abc0d8c434e9993d3d59ac6c12"
+      "candidate_sha256": "d717ccecc187c34a506467c300062e3c3bbded5d0b805b36a5d12323795350e6"
     },
     {
       "path": "hindsight-control-plane/src/components/home-view.tsx",
@@ -516,7 +516,7 @@
           "sha256": "d4f27dd11b97e839acb3eb3d76a405dbea8f8a98772a2fa7acc4a11b2c38297f"
         }
       ],
-      "candidate_sha256": "d4f27dd11b97e839acb3eb3d76a405dbea8f8a98772a2fa7acc4a11b2c38297f"
+      "candidate_sha256": "42ab436232a593fbf949a20ae6fc4b004b16a0e77371a966735b4d6811d90221"
     },
     {
       "path": "hindsight-control-plane/src/components/memory-defense-section.tsx",
@@ -1386,7 +1386,7 @@
           "sha256": "3ef24afcfbeedd37c360ddb1f46450c0d262306dd97d8f1c6340bd2c920e25f4"
         }
       ],
-      "candidate_sha256": "3ef24afcfbeedd37c360ddb1f46450c0d262306dd97d8f1c6340bd2c920e25f4"
+      "candidate_sha256": "844454dd48a477d7bccadbab4a2efe3684c391f0a0b72605d157c1b43b6fd603"
     },
     {
       "path": "hindsight-control-plane/src/lib/product-fetch.ts",
@@ -1537,7 +1537,7 @@
           "sha256": "4be6e547d31e5dd96c7fa42ff028562ccc09bc2f4e286e94b1ee7bbeea00cbb2"
         }
       ],
-      "candidate_sha256": "4be6e547d31e5dd96c7fa42ff028562ccc09bc2f4e286e94b1ee7bbeea00cbb2"
+      "candidate_sha256": "0e06e3526b83b82d4c7455c2175bdb4a27c6e4313d4c81da74358711e4ce61dc"
     },
     {
       "path": "hindsight-control-plane/tests/components/product-runtime.test.tsx",
@@ -7100,14 +7100,29 @@
         }
       ],
       "candidate_sha256": "5937595935e6d84df49fc54b27f26e53960391e6ee27b80ac1a6231c2f549f90"
+    },
+    {
+      "path": "hindsight-control-plane/src/i18n/navigation.ts",
+      "status": "M",
+      "disposition": "implementation_revision",
+      "sources": [
+        {
+          "kind": "native_baseline",
+          "ref": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb"
+        }
+      ],
+      "revision_reason": "Remove unused localized-navigation re-exports after preserving locale URL via cookie and refresh.",
+      "candidate_sha256": "7dbe8ba8a7535e76951eb9563bd0f5401116b7ef7c4100f521bdc66975a2c938"
     }
   ],
-  "candidate_updated_at": "2026-10-17T04:43:14.476098+00:00",
+  "candidate_updated_at": "2026-10-18T01:04:34.250570+00:00",
   "implementation_notes": {
     "hindsight-control-plane/src/components/bank-config-view.tsx": "Restore native baseline Gemini controls accidentally removed by old draft; retain product section navigation.",
     "hindsight-system-tests/hindsight_system_tests/server.py": "Optional explicit owned database URL for native blackbox validation; default behavior unchanged.",
-    "scripts/hooks/lint.sh": "Generic LINT_SERIAL only; no hosted checks."
+    "scripts/hooks/lint.sh": "Generic LINT_SERIAL only; no hosted checks.",
+    "hindsight-control-plane/src/components/language-switcher.tsx": "Real menu found fragment loss via forced locale-prefix redirect. Use a base-path-scoped locale cookie and Next refresh; actual browser query/hash, cookie scope tests, and final build passed."
   },
   "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
-  "candidate_manifest_sha256": "df6748546f2c6cf0a3930a414f21d267c7f418f9b71cd8af22d5a33015db7f88"
+  "candidate_manifest_sha256": "1b0a98cb40b7bed095535d4608c146510e06acd7c94b32bcc054449c071c0f16",
+  "validated_source_commit": "9ba259fa386f56c97c9b5af64901f5e3fb228815"
 }
