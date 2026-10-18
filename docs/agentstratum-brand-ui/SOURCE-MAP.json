@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "status": "LOCAL_ACCEPTANCE_COMPLETE",
-  "captured_at": "2026-10-17T04:28:46.991604+00:00",
+  "status": "LOCAL_ACCEPTANCE_AND_INDEPENDENT_REVIEW_COMPLETE",
+  "captured_at": "2026-10-18T02:36:28.473110+00:00",
   "branch": "product/agentstratum-brand-ui-20261016",
   "base_commit": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
   "source_snapshot_manifest_sha256": "a9539a73c8ea810305067aefa0afc25198f714c736a6dfc9abb06d6044c1aef5",
@@ -312,7 +312,8 @@
           "sha256": "54b8236c351f3f6cca4d323ee7aaaeacb08b51a79b275a8ef1479d21205946d5"
         }
       ],
-      "candidate_sha256": "54b8236c351f3f6cca4d323ee7aaaeacb08b51a79b275a8ef1479d21205946d5"
+      "candidate_sha256": "64c51e8e880c9a9db7df5183e2005954bf029500f8744561d519b73a8d9733e6",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/components/bank-selector.tsx",
@@ -331,7 +332,8 @@
           "sha256": "c14b26ecefa9e5080be166534094fd7d8553b23c21e7291a08bcfd7d28030bbd"
         }
       ],
-      "candidate_sha256": "2f72865cb0282ac2cc58ad869e350c20f3c8d97ff0f82dcc590ac64f8fd7c03e"
+      "candidate_sha256": "f043fdd917e2be6f78db85ea915625e4cf6b55a1c7036d0d3e7f9036b119cbf4",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/components/bank-stats-view.tsx",
@@ -776,7 +778,8 @@
           "sha256": "8f46cca40f04b330a410a4ac06055c6fa6b93ee93f7f48c7986b5680c34b46da"
         }
       ],
-      "candidate_sha256": "910129919dfa391e1505684f47e1e8f537a9afc87ac311f8d128c9c6af9a19d4"
+      "candidate_sha256": "f4ed0099518faa63d6b64ecf9e100d0088f724b53ac5b7c6750496a43127f074",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/en.json",
@@ -795,7 +798,8 @@
           "sha256": "af79f8f88e065c4fcf871eb0e3a7591940d422ea0996cf92b2a15526d7551310"
         }
       ],
-      "candidate_sha256": "2ade5bd7fb5730e01899ec9ff23d874fafcbf6512551f079f463959b71e7eb7a"
+      "candidate_sha256": "15def8bc12d1fb88bc4d0240d76edad5255acd06572efc6eb8361bc3a06ac543",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/es.json",
@@ -814,7 +818,8 @@
           "sha256": "0faf496be0e89ec55dfc2bbf097cd195d036bfbe69cefdfca567806f59ac30c8"
         }
       ],
-      "candidate_sha256": "93cf0931218da09ee85cf99a707c27ffca63d979bd0d102115fb96b0ce68fac6"
+      "candidate_sha256": "127c800de581b66fe728f1a0e64b74e5d8b35a475e8a21176a38c0fff4c99df8",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/fr.json",
@@ -833,7 +838,8 @@
           "sha256": "5f17a87288adb232cd7d45c94a3a3d5b5b2a2c89d42ccb563000576f1b6f73d5"
         }
       ],
-      "candidate_sha256": "f1ad1a69a2c01385a4accb0ab2c35d9a593abbffe279c15cc7aa0246e1009adb"
+      "candidate_sha256": "e5f4f154ab7f9336699c96771659e25b9e79b8c42c15be7e37bed5fb4ce5217e",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/ja.json",
@@ -852,7 +858,8 @@
           "sha256": "7fa0db2a2cd1f94bc5f6e027f22559c2ee41d05db2a5192bba75d6bc9a77d9ad"
         }
       ],
-      "candidate_sha256": "65533c0df2e727a11e38e18375347157447cf02a53474573db956de47dfd3b64"
+      "candidate_sha256": "ce374b098e440d26dc773259ceaf6965477c14de0dd0610e6d8339aac7c9f31d",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/ko.json",
@@ -871,7 +878,8 @@
           "sha256": "6778e9c8836a890010a4248941ec17320c22b094dc734cb219e4b8bb674fc30e"
         }
       ],
-      "candidate_sha256": "a3eec98f1aec2ad149bae5aa733418de7665a4fa43b9be2adf05b3239bac1b6c"
+      "candidate_sha256": "084f161a767ba739d81e5aedf558962438ec77df3daa985046c7ca26f218f7c3",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/pt.json",
@@ -890,7 +898,8 @@
           "sha256": "3ff026e994d11ea933897233e8793a8f868af9e38f84a65a9fbf54e95ab5e481"
         }
       ],
-      "candidate_sha256": "3a018a59fc39ac75d87f644f828c8f0f3fde17b7efe87b1fa75b0b924a2f22d9"
+      "candidate_sha256": "56a9a67819f4ce10ae590257f543ed789f89262211515f3b815bc6521072d7e2",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/yue-Hant.json",
@@ -909,7 +918,8 @@
           "sha256": "11057433d5d7d6c6970cac76de084b77a7dd7dcca9b03f558577cdae0f1eb497"
         }
       ],
-      "candidate_sha256": "5dfd669c0cbbda0de3629c1b2f4d0d2b2ba2e37d26646c13f633f4920ed92062"
+      "candidate_sha256": "a7e8cd1fdf75317b4851dbc1b325102853ed64bbf2197968abd735252ba8e85f",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/zh-CN.json",
@@ -928,7 +938,8 @@
           "sha256": "be80a590ae9884841510e809b726daed7c215a362f0ee2b3c910b60bfa47038e"
         }
       ],
-      "candidate_sha256": "36916f12288b358c282d95caa8b0b3e064910c288136b15f4469a724d5bb07c1"
+      "candidate_sha256": "33677721d697033f72fd5c02cd279d1d373e30a0aeea31043730d77fe2a91b6c",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/messages/zh-TW.json",
@@ -947,7 +958,8 @@
           "sha256": "1420f05108fdab2b900c4dfceb2e2d7828b5a78bbf58c3b313fd61c4221e8d59"
         }
       ],
-      "candidate_sha256": "716eb0d40d9cd4e0c7229bba22ab020eb1b1ff6d7b8042eb82a696ca5f886379"
+      "candidate_sha256": "a41b1789ccd89e4ee68d48c41652ad4478ee74b07657af754b4a553121dab36e",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/middleware.ts",
@@ -1268,7 +1280,8 @@
           "sha256": "d20dec51168fe42d2b1f6b26adcb25bf9b84cd77adf138f85bd258ba83968abd"
         }
       ],
-      "candidate_sha256": "d20dec51168fe42d2b1f6b26adcb25bf9b84cd77adf138f85bd258ba83968abd"
+      "candidate_sha256": "33c39066d52cc5983b09da6a3cf3dad64eb63b07c0ff073a6b04d275eeb060f1",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-control-plane/src/components/connection-code.tsx",
@@ -1675,7 +1688,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "8c8a1e400e549b220b57d25d258eb94fb8a5723c963adeda026dda3ab6072007"
+      "candidate_sha256": "f9cf6e316ccae231cc258e3361deeee97816999873bb9c552c57a505aa398dc0",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/go/api_audit.go",
@@ -2107,7 +2121,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "693e936ad32488b4e3f5a459beb28f083a85e3492480fa04609a76e0b3848b85"
+      "candidate_sha256": "075d09b9868fdbd8a6dbc4eda7f5f98d1aa3c52bea676803c87c400fe5560546",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/go/model_bank_template_directive.go",
@@ -3295,7 +3310,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "0827824450a50a8189004cce87b2862f5ade9956a4eab528e32010381192139c"
+      "candidate_sha256": "0333a334414ee1bce78a35a9b7d9c59edeeb096b1566c74d4d1ff1b90eb1790b",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/go/model_mental_model_delta_operations.go",
@@ -3307,7 +3323,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "f7d8780373f8bbd8a41ebbcbfa0d7cf0987ade530598c3c92aac531cc0057e9f"
+      "candidate_sha256": "7d0f78ca8a06c637e1a01c6f9a890fffb0b245e26b71482039101798d34d6fb3",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/go/model_mental_model_dry_run_refresh_result.go",
@@ -4819,7 +4836,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "cc64c1a7cb6665be1bd91f7092e87e028adb4c37fffc07436f29685adb20fe5e"
+      "candidate_sha256": "acd591b7d62743396cfd06cd8fdd4eaa021df13e2cadd5bd4701d308a918d1c4",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_directive.py",
@@ -6007,7 +6025,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "cfa1f6ea09852abbf660cbb4cb95dfc66b2bea70778acd2ae447edb298404792"
+      "candidate_sha256": "47c39a6dca668e1f37b73e2834016121bd5ebc99477c888a034b39011ea4964b",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_delta_operations.py",
@@ -6019,7 +6038,8 @@
           "sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1"
         }
       ],
-      "candidate_sha256": "bef624b3fed6eba0f79f12365b4a570b2f9098231e5b95ff0dd7e96bd0c18326"
+      "candidate_sha256": "54f07226d6cf0c5ba027389304f27f469b341f3eae01413a9a26c18f2ac3e90d",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     },
     {
       "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_dry_run_refresh_result.py",
@@ -7113,9 +7133,81 @@
       ],
       "revision_reason": "Remove unused localized-navigation re-exports after preserving locale URL via cookie and refresh.",
       "candidate_sha256": "7dbe8ba8a7535e76951eb9563bd0f5401116b7ef7c4100f521bdc66975a2c938"
+    },
+    {
+      "path": ".github/workflows/test.yml",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "ce856ba563fabf8136eac823cf66683a6991c7e51087851cd456a3de1918e0b1",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-clients/python/tests/test_nonnullable_model_items.py",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "9a750e1e3d59503331a8d1a08b64ba51a7673d10fb8dc5f785620d678b21a782",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-control-plane/tests/components/bank-operations-download.test.tsx",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "7935c6b4eba926ea8f3d135fa9fdb3a8c72bc48b2c9c726e74bd5b30f1cc9ba7",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-control-plane/tests/components/bank-selector-resource-routes.test.tsx",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "53b832a321260f0c78949c15b4ddde293162d8f6f71af52dae3bf8f63be3faba",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-control-plane/tests/components/connect-bank-chooser.test.tsx",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "8100c1b9475344c22355a1262e0e18c08bbbe5d9bf20244462703c8d4e913468",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-dev/tests/fixtures/sdk-model-api-f51b165.json",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "446fc19b2a07286a12710088aba4219f7388037e55cc961e630a77af646bd396",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "hindsight-dev/tests/test_sdk_model_compatibility.py",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "e1f1e3d745cb088f6275a77dac388a08b1c7f93212c74828faadb453927d462b",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "scripts/generate-clients.sh",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "1e9fd3aebd0adfd6ea362ea7d4d2bd14e6b4833f90cb0a5113c63e969c64d049",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    },
+    {
+      "path": "scripts/prepare-client-spec.py",
+      "status": "A",
+      "disposition": "authored_independent_review_fix",
+      "sources": [],
+      "candidate_sha256": "ab0b01757c1ffc736a26682139680b36b2e804c2cf20e4951143dbd456e2ea1e",
+      "independent_review_fix_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
     }
   ],
-  "candidate_updated_at": "2026-10-18T01:04:34.250570+00:00",
+  "candidate_updated_at": "2026-10-18T02:36:28.473110+00:00",
   "implementation_notes": {
     "hindsight-control-plane/src/components/bank-config-view.tsx": "Restore native baseline Gemini controls accidentally removed by old draft; retain product section navigation.",
     "hindsight-system-tests/hindsight_system_tests/server.py": "Optional explicit owned database URL for native blackbox validation; default behavior unchanged.",
@@ -7123,6 +7215,7 @@
     "hindsight-control-plane/src/components/language-switcher.tsx": "Real menu found fragment loss via forced locale-prefix redirect. Use a base-path-scoped locale cookie and Next refresh; actual browser query/hash, cookie scope tests, and final build passed."
   },
   "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
-  "candidate_manifest_sha256": "1b0a98cb40b7bed095535d4608c146510e06acd7c94b32bcc054449c071c0f16",
-  "validated_source_commit": "9ba259fa386f56c97c9b5af64901f5e3fb228815"
+  "candidate_manifest_sha256": "e0680fc955f976278832fc810a0dbf91e7c8f37e5132c478df47e0ba8d1d84e7",
+  "validated_source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39",
+  "source_paths": 558
 }

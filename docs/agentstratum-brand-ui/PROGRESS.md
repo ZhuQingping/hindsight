@@ -34,3 +34,11 @@ runtime-c03/c04 的失败分别来自指南标题硬编码及同 URL 带 fragmen
 修复后 c07 完整原生故事 PASS：真实语言菜单保留 query/hash、archive CRC 与原生下载/multipart 导入及 SDK 文档回读、移动导航和接入、两品牌同制品与真实 MCP initialize/get_bank、旧页签输入与单次拒绝、故障退出/重启撤销均通过，两个 SDK 命名系统故事亦 2 passed。前端348、type、全仓lint、production build、knip阻断检查均通过。最终 advisory 复核发现语言切换改用 Next router 后，原 i18n/navigation 包装器仅剩 Link 被使用，已移除该私有模块无调用者的重导出；将对最终候选重跑同组验证，避免遗留新增死导出。
 
 2026-10-18 收尾：最终源码 9ba259fa3，c08 完整原生故事与两品牌 SDK 系统故事通过；最终前端348、type、lint、production build、knip 阻断检查全部 exit 0。advisory 已复核新增无用导出关闭，原生 Python 25 个提示的基线行相同，无新增 Must fix。补充两品牌真实 API/OpenAPI/no-store 与特殊 ID 创建/跨产品改名保留/删除通过。授权停用的原体验容器/数据/配置仍保留；所有自有服务已退出、PG 停止。已生成当前 RESULT、逐项验收、CODE-REVIEW、549 项 SOURCE-MAP 和带日志/制品/资源哈希的 VALIDATION；更新 PR，不合主干。
+
+2026-10-18 独立审查轮：用户明确要求独立 review 与对应修复，已由不参与实现的独立 reviewer 审查不可变 HEAD 9341d473（完整范围/方法见 INDEPENDENT-REVIEW.md）。确认 R1 操作归档下载旧页签绕过、R2 未变 schema 的 SDK 类型漂移、R3 接入列表缺分页、R4 共享搜索状态不一致、R5 特殊 bank ID 路由误判；初审 CHANGES_REQUIRED（4 P2/1 P3）。既有自审不能代替独立审查。正在修复与添加回归，当前变更尚未验证，不继承上轮 PASS。所有重型任务继续通过唯一共享 runner，不改原体验资源。
+
+本轮新增3个组件回归首轮6 passed；全量前端58文件/354项、SDK模型与请求签名（原生基线固定清单）及Python非空元素6项、tsc已通过。R2固定生成器复现：原生基线正常、加品牌端点后3个旧模型漂移；全关nullable简化会改变其他类型，不采用。现对临时Python/Go输入的components裸items显式nullable:false，原生公开spec和Rust/TS输入保持不变；全量签名已一致。一次生成适配器预处理插入点错误导致未给Java输入，已实际失败记录并修正，不记PASS；维护README从本分支HEAD恢复后重新生成。独立reviewer静态接受修复方向，动态与确定性门槛仍在执行。
+
+生产构建通过，固定规范生成重复一轮566个已跟踪SDK文件无漂移。扩展验收c09在启动前因验证器语法错误NOT_RUN；修正后c10真实通过语言/归档导入/移动端和61工作空间分页搜索返回、特殊bank ID按钮，但验证器错误地使用不存在的?view=operations，没有打开原生配置概览里的Operations列表，最终FAIL。已按源码改为profile/general，并调整CDP闲置连接keepalive及双页失败截图；自有进程/PG均正常停止，保留数据，继续同制品c11。没有把局部通过当完整验收。
+
+2026-10-18 最终独立闭合：源码修复提交14c2d60ea，558路径摘要e0680fc9；独立reviewer逐项复审R1–R5全部CLOSED。c11操作行过滤器只找document export而真实whole-bank操作为export_bank，记录FAIL后修正验证器；同制品c12完整15组检查PASS。实际Download按钮200/ZIP CRC，改名后原旧tab409，native文件请求/保存/重发增量均0；两品牌SDK故事2 passed，两个browser事件集无未捕获异常。rest3 native/knip/advisory/extra style全0；原生/制品/清理与外层资源记录亦由独立reviewer核对。完整RESULT/CODE-REVIEW/ACCEPTANCE/SOURCE-MAP/VALIDATION更新；原体验容器仍exited且数据/配置保留，不恢复、不合主干。开始仅文档证据提交、推送和更新已有draft PR。

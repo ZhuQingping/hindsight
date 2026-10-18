@@ -1,6 +1,6 @@
 # 新实施 session 入口
 
-> 实施接收后的最新状态（2026-10-18）：必需本地验收和 code-review 已闭合，最终源码 `9ba259fa3`，原生完整 c08、SDK 两品牌系统故事及 knip 均已通过。按用户明确授权正常停止原 READY 体验服务，数据/配置/容器保留，恢复交由原会话。当前保持 [Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5) 供用户审查，不合主干；以 [RESULT.md](RESULT.md)、[VALIDATION.json](VALIDATION.json)、[PROGRESS.md](PROGRESS.md) 为当前状态。以下保留设计 session 的历史交接记录。
+> 当前交付（2026-10-18）：源码 `14c2d60ea`，独立初审4 P2/1 P3均修复并复审关闭，完整原生 c12、354前端测试、SDK兼容性与生成确定性、knip均通过。见 RESULT / INDEPENDENT-REVIEW / REVIEW-FIXES / VALIDATION；PR #5仍draft，不合主干。原体验资源保留停止状态，恢复交由原会话。以下为历史交接。
 
 状态：`DESIGN_READY / DRAFT_UNVALIDATED / IMPLEMENTATION_AUTHORIZED`。2026-10-17。
 

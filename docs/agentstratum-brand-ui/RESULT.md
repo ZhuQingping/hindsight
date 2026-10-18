@@ -1,51 +1,45 @@
 # 品牌/UI 独立交付结果
 
-状态：`LOCAL_ACCEPTANCE_PASS / CODE_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。2026-10-18。此前原生运行与 knip 阻塞已解除，必需本地验收已完成；保持 draft，由用户审查与决定合并。
+状态：`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。2026-10-18。独立初审发现4项P2、1项P3；全部修复并由原独立审查者复审关闭，无遗留 Must fix。人工产品接受与主干合并仍由用户决定。
 
-分支：`product/agentstratum-brand-ui-20261016`。基线：`f51b165a5165b1042ba0b6408fcffb5bc1a80fdb`。初始实现：`cbd42fcae`；续验修复：`72218e9f2`；最终源码提交：`9ba259fa386f56c97c9b5af64901f5e3fb228815`。PR：[Draft #5](https://github.com/RSIXDB/hindsight/pull/5)。没有合并 main。
+修复源码：`14c2d60eacf9be3e67093f374082eb4fbda3ba39`；分支 `product/agentstratum-brand-ui-20261016`；基线 `f51b165a5165b1042ba0b6408fcffb5bc1a80fdb`。[Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5)，未合并 main。
 
-## 实现及本次修复
+## 独立审查与修复
 
-独立产品 UI、运行品牌 `contextdb_name`、Workspace 展示术语、语言回落、指南与原生 SDK/REST/MCP 接入、单节点 UI 会话及文件传输均已交付。多用户、多 API Key 管理、Owner/策略/恢复账本和 Workspace schema 隔离实现未进入本分支。原生 engine、worker、迁移、授权扩展及 integrations 保持基线；Hook 无可提取品牌补丁。
+[INDEPENDENT-REVIEW.md](INDEPENDENT-REVIEW.md) 保留原始候选 `9341d473` 的 CHANGES_REQUIRED 与独立复审全过程；[REVIEW-FIXES.md](REVIEW-FIXES.md) 对应每项实现/证据。独立 reviewer 与实施者分离，仅执行静态核验并审查实施者通过共享 runner 产生的动态证据，不冒充人工审查。
 
-真实语言菜单发现了原单测未覆盖的缺陷：localePrefix=never 下 next-intl 强制前缀跳转后丢失 fragment。改为写入同 basePath 的 locale cookie 后刷新原 URL，实际浏览器已验证 query/hash 保留。补充 cookie path 隔离及重复查询参数回归；清理新增无外部调用的类型与导航重导出，没有添加 knip 忽略项。
+- R1：操作详情实际 Download 经 productFetch，失败不保存；真实按钮正常200/ZIP CRC，服务改名后同一旧页签409、零原生文件转发、零新增文件和零自动重发。
+- R2：修正固定生成器对组件裸数组元素的 nullable 漂移。公开原生 OpenAPI、Rust/TS 输入不变；全部432个旧模型/请求API公共签名保持基线，Python空元素拒绝通过，566个已跟踪SDK路径重复生成零漂移。未复制旧权限SDK。
+- R3/R4：接入工作空间选择支持有界加载更多，直接使用共享查询状态。真实61项、首50项外条目选择及 Change Workspace 返回保持查询/列表均通过。
+- R5：去除basePath后精确识别资源页，`guide`/`connect`原生bank不再隐藏 Add Document；组件和浏览器均覆盖。
 
-## 最终验证
+## 当前验证
 
-全部重型检查经同一共享 run-bounded.py 串行执行。日志根目录：`/home/cimon/code/hindsight/.local/product-brand-ui/runs`。机器可读结果、哈希和资源记录见 [VALIDATION.json](VALIDATION.json)，逐文件来源见 [SOURCE-MAP.json](SOURCE-MAP.json)。
+全部重型任务通过 HANDOFF 指定的唯一共享 run-bounded.py 串行执行。日志集中在主仓 `/home/cimon/code/hindsight/.local/product-brand-ui/runs`。机器可读证据/哈希见 [VALIDATION.json](VALIDATION.json)，558个源码路径来源和候选哈希见 [SOURCE-MAP.json](SOURCE-MAP.json)。
 
-| 检查 | 最终结果 | 证据（相对日志根目录） |
+| 检查 | 当前结果 | 日志根目录下证据 |
 | --- | --- | --- |
-| 前端单测 | PASS：55 文件、348 项，TZ=UTC | unit-final-20261018.log |
-| TypeScript 类型检查及 SDK build | PASS | type-final-20261018.log；build-final-20261018.log |
-| 全仓必需 lint（ruff/ty/ESLint/Prettier） | PASS | lint-final-20261018.log |
-| Next 16 production build / standalone | PASS，真实 /brand-ui 路径前缀 | build-final-20261018.log |
-| Python 命名单测 | PASS：11 项；涉及的 Python 源码未变化，哈希已核对 | python-brand.log |
-| 独立原生 API/Worker/PG + 生产 UI + Chromium | PASS：完整最终故事 | native-c08-20261018.log；runtime-c08/result.json |
-| 同制品 agentstratum / contextdb | PASS：UI、metadata、SVG 导出、真实 MCP initialize/get_bank | runtime-c08/mcp-*.json、downloads、截图 |
-| 两品牌原生 API/OpenAPI 标题和非秘密配置 | PASS，no-store；既有路径与模型不变 | final-audit-20261018/result.json；static-result.json |
-| 原生归档下载、CRC、multipart 导入、SDK 回读 | PASS，两个原始文档完整到达 | runtime-c08/archive-manifest.json；bank-transfer.zip；原生故事 |
-| 旧页签、品牌错配、服务故障 | PASS：输入保留，旧 Recall 仅发一次被拒绝，写入未转发；文件请求亦被拒绝 | browser-requests.json、browser-responses.json、stale-tab-preserved.png |
-| 登录/退出/重启、复制 Cookie、Origin/Host | PASS：匿名 401、错配拒绝、离线退出、重启后撤销持续、错误 Origin 403 / Host 421 | runtime-c08 原生故事及日志 |
-| 中文/英文/fr 回落、真实语言菜单、移动导航 | PASS：query/hash 保留，移动端功能页和接入无页面横向溢出，无旧管理链接 | runtime-c08/guide-*.png、documents-mobile-agentstratum.png、connect-mobile-agentstratum.png |
-| SDK 黑盒命名故事 | PASS：两个品牌，2 项 | runtime-c08/sdk-story.log |
-| 特殊 ID 跨品牌资源身份 | PASS：含 %、中文、点号的 ID：SDK 创建/列举/删除，产品名变化后 ID 保持；真实 MCP get_bank | final-audit-20261018/result.json；runtime-c08/mcp-*-get-bank.json |
-| knip 文件/依赖阻断检查 | PASS：exit 0，5.88.1 | knip-final-20261018.log；verify-final-20261018-result.json |
-| vulture / knip advisory 与最终 code-review | 已执行并审查；新增死导出已关闭，没有未处理 Must fix | post-review-20261018-result.json；CODE-REVIEW.md |
-| scope / OpenAPI / env 模板 / 来源 | PASS；原 API 路径和模型完全一致，仅新增 ProductConfig 和 /product-config | static-result.json；SOURCE-MAP.json |
+| 前端unit、TypeScript、SDK build | PASS：58文件/354项；新增6项组件回归另复测 | review-unit-all.log、review-type.log、review-build.log、review-final-extra.log |
+| 必需全仓lint、生产standalone构建 | PASS，真实 /brand-ui | review-lint.log、review-build.log |
+| SDK基线签名/空元素、重复生成 | PASS：432签名、6项pytest、566路径无漂移；guard准确拒绝初审六文件 | review-final-extra-result.json、repeat-generation-review-result.json |
+| 原生API/Worker/PG + production UI/Chromium | PASS：完整c12的15组检查，两个名称使用同一制品，MCP initialize/get_bank；无未捕获浏览器异常 | runtime-c12/result.json、mcp-*.json、两组requests/responses及截图 |
+| 实际操作归档按钮与旧页签 | PASS：200/CRC → 同一旧tab409；native文件请求/保存/重发增量均0 | runtime-c12/operation-tab-*.json、forwarded-native-requests.json、actual-operation-old-tab-refused.png |
+| 原生传输、导航、语言与会话 | PASS：ZIP CRC、multipart导入/SDK回读，移动端，三locale/切语言query/hash，错配/离线不转发写入，退出/重启撤销，Origin/Host反例 | runtime-c12完整故事/截图 |
+| 发布Python SDK命名黑盒 | PASS：两品牌2项 | runtime-c12/sdk-story.log |
+| 原生API/OpenAPI/no-store、特殊ID身份 | 既有补充证据保留；相关API源码未变，c12重验特殊ID的UI/MCP | final-audit-20261018/result.json、runtime-c12；static-review-result.json |
+| Python命名单测 | 11项既有证据保留；相关源码未变 | python-brand.log |
+| knip阻断与advisory | files/dependencies PASS；advisory实际执行并复核，25项Python提示的基线行未变，不声称零警告 | review-knip.log、review-advisory.log、review-advisory-audit.json |
+| 保护路径、公开OpenAPI与模板 | PASS：engine/worker/migrations/auth扩展/integrations不变，旧paths/schemas一致，仅增加ProductConfig及/product-config | static-review-result.json、SOURCE-MAP.json |
+| 独立最终审查 | PASS：R1–R5 CLOSED | INDEPENDENT-REVIEW.md |
 
-最终 production 制品清单摘要：`ead4662408389127129a975cd4ae916827710553a83bb65b816a538a4db7bd74`。同一制品完成两个名称的重启；清单在运行后仍逐文件匹配。最终浏览器事件中没有未捕获异常。
+同一生产制品825文件摘要：`ce68572d2ae61a4bd7eb9bd89781a9e833cb5c7082da2d0e2e8fb93713c84514`。558路径源码清单摘要：`e0680fc955f976278832fc810a0dbf91e7c8f37e5132c478df47e0ba8d1d84e7`。独立审查者均逐文件复核无漂移。
 
-## 资源与保留边界
+## 资源、范围与未运行项
 
-用户明确授权正常停止原 READY 体验服务，并指定恢复交由原会话。只通过它的 STOP 文件请求退出；记录为 STOPPED、cleanup_errors=[]、data_preserved=true。原容器 `5a9e46c20eb3c23b61bb7608171bae086a7efe4ca5f1eae4cfe77e18d9adc626`、数据挂载和配置均保留，未删除；本任务不擅自恢复该体验服务。
+用户授权停止的原 READY 体验服务保持停止；容器 `5a9e46c20eb3c23b61bb7608171bae086a7efe4ca5f1eae4cfe77e18d9adc626`、全部数据/配置保留，恢复交由原会话。本轮自有API/UI/Chromium/SDK进程全部退出，c10/c11/c12 PG停止且bind数据保留。没有修改其他worktree或其未提交内容，未绕过共享锁。
 
-所有自有 API/UI/Chromium/SDK 服务均已退出；c06/c07/c08 PG 已停止，数据在本任务 runs 的 bind mount 目录保留。四个更早的自有临时容器/匿名卷已按标签和清单核对后清理，不涉及原体验资源。共享锁未绕过、未复制。
+runner为3GiB/256pids、CPU affinity 0–1；PG另设512MiB/96pids并核验affinity。内核不支持请求的1.5核quota，明确记录false。c09验证器语法错误未启动资源；c10/c11入口或操作类型选择错误为FAIL，修正后c12完整PASS，历史失败保留。
 
-wrapper 限制为 3 GiB、256 pids、CPU affinity=0-1；PG 另设 512 MiB / 96 pids，并核验相同 affinity。内核 CPU quota 不受支持，记录 false，没有将请求的 1.5 核 quota 当成内核已执行。资源 JSON 与授权停用记录均已保留。
+原生只读inline attachment anchor/img与缓存保留基线，不带页签名称；旧页签保护声明仅覆盖携带页签标识的业务API及本分支适配的归档入口，不宣称所有asset入口保护。
 
-## 仍未运行的范围
-
-Go/Rust 编译因工具链缺失为 NOT_RUN；源码生成不替代编译。Hook 宿主、真实模型质量、生产部署、人工产品验收和远端 CI 不作为本次通过结论。特殊 ID 的端到端结论以实际测试的 %、中文、点号为界，未声称所有斜杠 ID 路由已端到端运行。
-
-历史失败保留：c01–c05 为资源参数或验证器准备问题；c06 真实发现语言 fragment 缺陷，已修复并在最终 c08 完整复测通过。没有移植旧分支 PASS、跳过测试或将未运行记成 PASS。
+未引入我们自己的多用户、多API Key管理或Workspace schema隔离；原生协议身份不变。Hook无可提取品牌补丁，宿主未运行。Go/Rust编译缺工具链，仍为NOT_RUN；真实模型质量、生产部署、远端CI及人工产品接受均不列为PASS。特殊ID端到端以已测%、中文、点号为界，不声称所有斜杠ID已实测。

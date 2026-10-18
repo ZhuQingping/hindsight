@@ -40,7 +40,7 @@
 
 ## 本次实施结果（2026-10-18）
 
-判定：`LOCAL_ACCEPTANCE_PASS / CODE_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。最终源码 9ba259fa3，原生最终运行 c08；未把历史 PASS 或未运行项移作当前证明。
+判定：`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。最终源码 14c2d60ea，原生最终运行 c12；独立初审 R1–R5 均已修复并复审关闭；未把历史 PASS 或未运行项移作当前证明。
 
 | ID | 最终结果与范围 |
 | --- | --- |
@@ -49,15 +49,17 @@
 | A03 | PASS：桌面/移动导航、接入与路由链接检查；无旧访问管理、用户或 Key 签发入口 |
 | A04 | PASS：同一 production 制品双名称运行，UI/metadata/图表 SVG、两品牌 API/OpenAPI 与真实 MCP initialize/get_bank 一致 |
 | A05 | PASS：Python/TS 合法值及空值、大小写、空白、换行、中文、路径、超长负例单测 |
-| A06 | PASS：真实旧页签保留输入，Recall 仅一次拒绝、文件请求拒绝；品牌错配/离线不转发写入，无自动重发 |
+| A06 | PASS：真实旧页签保留输入，Recall 仅一次拒绝、实际操作归档按钮 200/CRC 后，旧页签 409、零原生文件转发/保存/重发；品牌错配/离线不转发写入，无自动重发 |
 | A07 | PASS：真实登录、动态点号路由 401、复制 Cookie、离线退出、重启撤销、Origin 403/Host 421；相应 unit 反例通过 |
 | A08 | PASS：三种 locale 实际页面、真实菜单切换 query/hash，重复过滤器及 basePath cookie 隔离回归通过 |
 | A09 | PASS 实测范围：含 %、中文、点号 ID 的原生 SDK 创建/列举/跨产品改名保留/删除与 MCP 读取、UI 接入代码；不扩张为所有斜杠 ID 端到端证明 |
 | A10 | PASS：engine/worker/迁移/授权扩展等保护路径保持基线；原 API 路径和模型逐结构一致 |
 | A11 | PASS：原生归档下载与 CRC、multipart 导入、SDK 文档回读、双品牌 SVG 导出与移动页面；unit 亦通过 |
-| A12 | PASS 可用工具链范围：本分支重生成、结构检查、TS 编译和 Python 两品牌 SDK 黑盒；Go/Rust 编译 NOT_RUN 无工具链 |
-| A13 | PASS：最终 frontend 348、tsc、SDK build、全仓 lint、production build；未变化 Python 命名 11 项证据已核对 |
+| A12 | PASS 可用工具链范围：432个既有SDK公共模型/请求API与基线一致、566个SDK文件重复生成无漂移；本分支重生成、结构检查、TS 编译和 Python 两品牌 SDK 黑盒；Go/Rust 编译 NOT_RUN 无工具链 |
+| A13 | PASS：最终 frontend 354、tsc、SDK build、全仓 lint、production build；未变化 Python 命名 11 项证据已核对 |
 | A14 | PASS 边界：integration 代码未变，无可提取 Hook 品牌补丁；宿主运行 NOT_RUN，无完成 Hook 改造的声明 |
 | A15 | PASS 本地交付与审查：没有未处理 Must fix，证据与源码已持久化，PR #5 保持 draft；不合主干 |
 
 真实模型质量、生产部署、人工产品验收和远端 CI 均不作为本次通过结论。日志、资源、失败修复和剩余范围见 [RESULT.md](RESULT.md)、[VALIDATION.json](VALIDATION.json)。
+
+独立审查边界澄清（2026-10-18）：A06 的旧页签拒绝覆盖携带页签标识的业务 API 及本分支归档入口；原生只读 inline attachment anchor/img 保持基线（含缓存），不是全部 asset 入口保护。操作详情实际 Download 的改名后拒绝以本轮 runtime 证据为准，不能由 c08 的手工带头 fetch 推断。

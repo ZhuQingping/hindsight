@@ -67,7 +67,8 @@ flowchart LR
 ### 4.2 旧页签与错误
 
 - 首次 HTML 固定该页签品牌；同源 productFetch 带 `X-Product-Name`。
-- 旧名称请求返回 409 `PRODUCT_NAME_STALE`，数据 API 品牌错配返回 503 `PRODUCT_CONFIG_MISMATCH`，不可用/非法响应返回 503 `PRODUCT_CONFIG_UNAVAILABLE`。
+- 经 productFetch 携带页签名称的业务 API 和本分支归档下载入口：旧名称返回 409 `PRODUCT_NAME_STALE`，数据 API 品牌错配返回 503 `PRODUCT_CONFIG_MISMATCH`，不可用/非法响应返回 503 `PRODUCT_CONFIG_UNAVAILABLE`。
+- 原生只读 inline attachment 的 anchor/img 与其私有缓存保持基线行为，不携带页签名称；现有会话及服务配置检查继续生效。本分支不宣称全部浏览器文件/asset 请求均具备旧页签拒绝能力。
 - 拒绝发生在业务请求转发之前；不自动刷新、重发或丢弃草稿。
 - 登录、退出、会话状态与非秘密诊断仍可用；产品服务故障不能阻止退出。
 - 不增加新的幂等/恢复账本，提示不承诺本分支没有的能力。
