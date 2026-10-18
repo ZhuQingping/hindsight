@@ -1,5 +1,5 @@
 /** One fixed deployment key; never use NEXT_PUBLIC_* for runtime product names. */
-export interface ProductConfig {
+interface ProductConfig {
   product_config_version: 1;
   contextdb_name: string;
 }

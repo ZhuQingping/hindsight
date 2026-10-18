@@ -32,7 +32,7 @@ export interface GraphData {
   links: GraphLink[];
 }
 
-export type GraphLinkCategory = "semantic" | "temporal" | "entity" | "causal" | "unknown";
+type GraphLinkCategory = "semantic" | "temporal" | "entity" | "causal" | "unknown";
 
 export function graphLinkCategory(type?: string): GraphLinkCategory {
   if (type === "semantic" || type === "temporal" || type === "entity") return type;
