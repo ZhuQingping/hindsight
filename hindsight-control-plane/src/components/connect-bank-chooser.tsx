@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useBank } from "@/lib/bank-context";
+import { Button } from "@/components/ui/button";
 
 export function ConnectBankChooser() {
   const t = useTranslations("resourcePages");
-  const { bankInfos, banksLoading, searchBanks } = useBank();
-  const [query, setQuery] = useState("");
+  const tCommon = useTranslations("common");
+  const {
+    bankInfos,
+    banksLoading,
+    banksLoadingMore,
+    bankSearch,
+    totalBanks,
+    hasMoreBanks,
+    searchBanks,
+    loadMoreBanks,
+  } = useBank();
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 md:p-6">
@@ -16,9 +25,8 @@ export function ConnectBankChooser() {
       <p className="mt-1 text-sm text-muted-foreground">{t("chooseBankDescription")}</p>
       <input
         type="search"
-        value={query}
+        value={bankSearch}
         onChange={(event) => {
-          setQuery(event.target.value);
           void searchBanks(event.target.value);
         }}
         placeholder={t("searchBanks")}
@@ -40,6 +48,20 @@ export function ConnectBankChooser() {
             </span>
           </Link>
         ))}
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p role="status" className="text-sm text-muted-foreground">
+          {t("showingWorkspaces", { shown: bankInfos.length, total: totalBanks })}
+        </p>
+        {hasMoreBanks && (
+          <Button
+            variant="outline"
+            onClick={() => void loadMoreBanks()}
+            disabled={banksLoading || banksLoadingMore}
+          >
+            {banksLoadingMore ? tCommon("loading") : t("loadMore")}
+          </Button>
+        )}
       </div>
       {!banksLoading && bankInfos.length === 0 && (
         <p className="mt-4 text-sm text-muted-foreground">{t("noBanks")}</p>

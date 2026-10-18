@@ -2319,7 +2319,9 @@
     "restBody": "用只读的工作空间统计请求核对地址、密钥和工作空间 ID。",
     "mcpTitle": "MCP",
     "mcpBody": "在 MCP 客户端使用原生 API 的当前工作空间专属路径。",
-    "mcpAuth": "MCP 客户端需发送 Authorization: Bearer <API_KEY>。API 地址与当前控制台地址不同。"
+    "mcpAuth": "MCP 客户端需发送 Authorization: Bearer <API_KEY>。API 地址与当前控制台地址不同。",
+    "loadMore": "加载更多",
+    "showingWorkspaces": "已显示 {shown} / {total} 个工作空间"
   },
   "brand": {
     "console": "面向 Agent 的数据底座",

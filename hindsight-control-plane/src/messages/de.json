@@ -2319,7 +2319,9 @@
     "restBody": "Mit einer schreibgeschützten Statistikabfrage Adresse, Schlüssel und Bank-ID prüfen.",
     "mcpTitle": "MCP",
     "mcpBody": "Diesen bankgebundenen Pfad des nativen API-Servers im MCP-Client verwenden.",
-    "mcpAuth": "Im MCP-Client Authorization: Bearer <API_KEY> senden. Die API-Adresse unterscheidet sich von der Konsolenadresse."
+    "mcpAuth": "Im MCP-Client Authorization: Bearer <API_KEY> senden. Die API-Adresse unterscheidet sich von der Konsolenadresse.",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "Daten- und Gedächtnis-Engine für Agenten",

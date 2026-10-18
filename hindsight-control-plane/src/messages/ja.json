@@ -2319,7 +2319,9 @@
     "restBody": "読み取り専用の統計取得で URL、キー、バンク ID を確認します。",
     "mcpTitle": "MCP",
     "mcpBody": "MCP クライアントでネイティブ API のバンク専用パスを使用します。",
-    "mcpAuth": "MCP クライアントから Authorization: Bearer <API_KEY> を送信します。API アドレスはコンソールのアドレスとは異なります。"
+    "mcpAuth": "MCP クライアントから Authorization: Bearer <API_KEY> を送信します。API アドレスはコンソールのアドレスとは異なります。",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "エージェント向けデータ・メモリエンジン",

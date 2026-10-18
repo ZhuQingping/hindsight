@@ -2319,7 +2319,9 @@
     "restBody": "A read-only Workspace statistics request to check the address, key, and Workspace ID.",
     "mcpTitle": "MCP",
     "mcpBody": "Use this Workspace-scoped path on the native API server in an MCP client.",
-    "mcpAuth": "Send Authorization: Bearer <API_KEY> from the MCP client. The API address is different from this console address."
+    "mcpAuth": "Send Authorization: Bearer <API_KEY> from the MCP client. The API address is different from this console address.",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "A data foundation for agents",

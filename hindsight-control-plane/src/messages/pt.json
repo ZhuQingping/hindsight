@@ -2319,7 +2319,9 @@
     "restBody": "Confira URL, chave e ID do banco com uma consulta de estatísticas somente leitura.",
     "mcpTitle": "MCP",
     "mcpBody": "Use este caminho específico do banco no servidor de API nativo em um cliente MCP.",
-    "mcpAuth": "Envie Authorization: Bearer <API_KEY> pelo cliente MCP. O endereço da API é diferente do endereço do console."
+    "mcpAuth": "Envie Authorization: Bearer <API_KEY> pelo cliente MCP. O endereço da API é diferente do endereço do console.",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "Motor de dados e memória para agentes",

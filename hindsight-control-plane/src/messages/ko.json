@@ -2319,7 +2319,9 @@
     "restBody": "읽기 전용 통계 요청으로 URL, 키, 뱅크 ID를 확인합니다.",
     "mcpTitle": "MCP",
     "mcpBody": "MCP 클라이언트에서 기본 API 서버의 뱅크 전용 경로를 사용합니다.",
-    "mcpAuth": "MCP 클라이언트에서 Authorization: Bearer <API_KEY>를 전송하세요. API 주소는 콘솔 주소와 다릅니다."
+    "mcpAuth": "MCP 클라이언트에서 Authorization: Bearer <API_KEY>를 전송하세요. API 주소는 콘솔 주소와 다릅니다.",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "에이전트용 데이터·메모리 엔진",

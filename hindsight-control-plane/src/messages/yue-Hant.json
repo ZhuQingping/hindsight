@@ -2319,7 +2319,9 @@
     "restBody": "以唯讀的記憶庫統計請求核對位址、金鑰和記憶庫 ID。",
     "mcpTitle": "MCP",
     "mcpBody": "在 MCP 用戶端使用原生 API 的目前記憶庫專屬路徑。",
-    "mcpAuth": "MCP 用戶端需傳送 Authorization: Bearer <API_KEY>。API 位址與目前控制台位址不同。"
+    "mcpAuth": "MCP 用戶端需傳送 Authorization: Bearer <API_KEY>。API 位址與目前控制台位址不同。",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "面向 Agent 的資料與記憶引擎",

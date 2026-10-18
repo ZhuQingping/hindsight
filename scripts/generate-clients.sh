@@ -71,6 +71,13 @@ echo "=================================================="
 echo "Generating Python client..."
 echo "=================================================="
 
+# The pinned generator needs explicit non-null bare array items. Keep the
+# published spec (and Rust/TypeScript inputs) untouched; both Docker generators
+# must consume the same prepared private input.
+OPENAPI_GENERATOR_SPEC="$(mktemp -t hindsight-client-spec.XXXXXX)"
+trap 'rm -f "$OPENAPI_GENERATOR_SPEC"' EXIT
+python3 "$SCRIPT_DIR/prepare-client-spec.py" "$OPENAPI_SPEC" "$OPENAPI_GENERATOR_SPEC"
+
 PYTHON_CLIENT_DIR="$CLIENTS_DIR/python"
 
 # Backup the maintained wrapper file
@@ -113,7 +120,7 @@ cd "$PYTHON_CLIENT_DIR"
 # (which Docker Desktop handles via a separate driver) and rsync'ing avoids
 # the issue without changing what we ship.
 GEN_TMP_DIR="$(mktemp -d -t hindsight-py-gen.XXXXXX)"
-trap 'rm -rf "$GEN_TMP_DIR"' EXIT
+trap 'rm -rf "$GEN_TMP_DIR"; rm -f "$OPENAPI_GENERATOR_SPEC"' EXIT
 
 # Run openapi-generator via Docker (pinned version for reproducibility)
 # Use --platform linux/amd64 to ensure identical output on both macOS (arm64) and Linux CI (amd64)
@@ -124,7 +131,7 @@ trap 'rm -rf "$GEN_TMP_DIR"' EXIT
 docker run --rm \
     --platform linux/amd64 \
     --user "$(id -u):$(id -g)" \
-    -v "$OPENAPI_SPEC:/local/openapi.json" \
+    -v "$OPENAPI_GENERATOR_SPEC:/local/openapi.json" \
     -v "$GEN_TMP_DIR:/local/out" \
     -v "$PYTHON_CLIENT_DIR/openapi-generator-config.yaml:/local/config.yaml" \
     "openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION}" generate \
@@ -542,7 +549,7 @@ else
     docker run --rm \
         --platform linux/amd64 \
         --user "$(id -u):$(id -g)" \
-        -v "$OPENAPI_SPEC:/local/openapi.json" \
+        -v "$OPENAPI_GENERATOR_SPEC:/local/openapi.json" \
         -v "$GO_CLIENT_DIR:/local/out" \
         "openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION}" generate \
         -i /local/openapi.json \

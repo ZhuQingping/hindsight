@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { useBank } from "@/lib/bank-context";
 import { bankRoute } from "@/lib/bank-url";
 import { hoistCurrentBank } from "@/lib/bank-order";
-import { withBasePath } from "@/lib/base-path";
+import { stripBasePath, withBasePath } from "@/lib/base-path";
 import { client } from "@/lib/api";
 import type { RetainContentBlock as ContentBlock } from "@/lib/api";
 import {
@@ -107,7 +107,8 @@ function BankSelectorInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const resourcePage = pathname.endsWith("/guide") || pathname.endsWith("/connect");
+  const appPathname = stripBasePath(pathname);
+  const resourcePage = appPathname === "/guide" || appPathname === "/connect";
   const tNav = useTranslations("nav");
   const tBrand = useTranslations("brand");
   const tNavBank = useTranslations("nav.bank");

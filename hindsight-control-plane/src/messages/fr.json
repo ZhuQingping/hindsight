@@ -2319,7 +2319,9 @@
     "restBody": "Vérifiez l’URL, la clé et l’identifiant de banque par une requête de statistiques en lecture seule.",
     "mcpTitle": "MCP",
     "mcpBody": "Utilisez ce chemin propre à la banque sur le serveur API natif dans un client MCP.",
-    "mcpAuth": "Envoyez Authorization: Bearer <API_KEY> depuis le client MCP. L’adresse API diffère de celle de la console."
+    "mcpAuth": "Envoyez Authorization: Bearer <API_KEY> depuis le client MCP. L’adresse API diffère de celle de la console.",
+    "loadMore": "Load more",
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "Moteur de données et de mémoire pour les agents",

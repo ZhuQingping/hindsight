@@ -44,6 +44,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { DocumentChunkModal } from "./document-chunk-modal";
 import { nativeFileDownloadPath } from "@/lib/file-download";
 import { withBasePath } from "@/lib/base-path";
+import { productFetch } from "@/lib/product-fetch";
 
 interface Operation {
   id: string;
@@ -141,6 +142,7 @@ const STATUS_FILTER_VALUES = [
 
 export function BankOperationsView() {
   const t = useTranslations("bankOperations");
+  const tCommon = useTranslations("common");
   const { currentBank } = useBank();
   const [operations, setOperations] = useState<Operation[]>([]);
   const [totalOperations, setTotalOperations] = useState(0);
@@ -156,6 +158,8 @@ export function BankOperationsView() {
   const operationDownloadPath = nativeFileDownloadPath(selectedOperation?.result_metadata);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [downloadingArchive, setDownloadingArchive] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [loadingPayload, setLoadingPayload] = useState(false);
   const [payloadLoadedFor, setPayloadLoadedFor] = useState<string | null>(null);
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
@@ -463,6 +467,7 @@ export function BankOperationsView() {
     if (!currentBank) return;
 
     setLoadingDetails(true);
+    setDownloadError(null);
     setDialogOpen(true);
     setPayloadLoadedFor(null);
     try {
@@ -473,6 +478,42 @@ export function BankOperationsView() {
       setSelectedOperation({ error: t("operationDetailsLoadError") });
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const handleDownloadArchive = async () => {
+    if (!operationDownloadPath || downloadingArchive) return;
+    setDownloadingArchive(true);
+    setDownloadError(null);
+    try {
+      // A navigation to the proxy URL cannot carry this tab's product header.
+      // Fetch first so stale tabs are refused before a file can be saved.
+      const response = await productFetch(
+        withBasePath(`/api/files/download?path=${encodeURIComponent(operationDownloadPath)}`)
+      );
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null);
+        const message =
+          body && typeof body === "object" && "error" in body && typeof body.error === "string"
+            ? body.error
+            : tCommon("error");
+        throw new Error(message);
+      }
+      const url = URL.createObjectURL(await response.blob());
+      try {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = String(selectedOperation?.result_metadata?.filename ?? "export.zip");
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : tCommon("error"));
+    } finally {
+      setDownloadingArchive(false);
     }
   };
 
@@ -958,27 +999,24 @@ export function BankOperationsView() {
                           variant="outline"
                           size="sm"
                           className="text-xs"
-                          onClick={() => {
-                            const url = withBasePath(
-                              `/api/files/download?path=${encodeURIComponent(
-                                operationDownloadPath
-                              )}`
-                            );
-                            const a = document.createElement("a");
-                            a.href = url;
-                            a.download = String(
-                              selectedOperation.result_metadata?.filename ?? "export.zip"
-                            );
-                            document.body.appendChild(a);
-                            a.click();
-                            a.remove();
-                          }}
+                          onClick={handleDownloadArchive}
+                          disabled={downloadingArchive}
+                          aria-busy={downloadingArchive}
                         >
-                          <Download className="w-3 h-3 mr-1" />
+                          {downloadingArchive ? (
+                            <Spinner size="xs" className="mr-1" />
+                          ) : (
+                            <Download className="w-3 h-3 mr-1" />
+                          )}
                           {t("action.download")}
                         </Button>
                       )}
                     </div>
+                  )}
+                  {downloadError && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {downloadError}
+                    </p>
                   )}
 
                   {/* Outcome details (typed, per-operation-type) */}

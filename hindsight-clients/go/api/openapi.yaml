@@ -6088,6 +6088,7 @@ components:
             \ the search text."
           items:
             type: string
+            nullable: false
           type: array
       required:
       - bank_id
@@ -6393,6 +6394,7 @@ components:
         mcp_enabled_tools:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         consolidation_llm_batch_size:
@@ -6410,8 +6412,8 @@ components:
         observation_scope_limits:
           items:
             additionalProperties: false
-            nullable: true
             type: object
+            nullable: false
           nullable: true
           type: array
         consolidation_strategies:
@@ -6525,6 +6527,7 @@ components:
           description: Tags for filtering
           items:
             type: string
+            nullable: false
           type: array
       required:
       - content
@@ -6565,30 +6568,35 @@ components:
           description: IDs of newly created mental models
           items:
             type: string
+            nullable: false
           type: array
         mental_models_updated:
           default: []
           description: IDs of updated mental models
           items:
             type: string
+            nullable: false
           type: array
         directives_created:
           default: []
           description: Names of newly created directives
           items:
             type: string
+            nullable: false
           type: array
         directives_updated:
           default: []
           description: Names of updated directives
           items:
             type: string
+            nullable: false
           type: array
         operation_ids:
           default: []
           description: Operation IDs for mental model content generation (async)
           items:
             type: string
+            nullable: false
           type: array
         dry_run:
           default: false
@@ -6663,6 +6671,7 @@ components:
           description: Tags for scoped visibility
           items:
             type: string
+            nullable: false
           type: array
         max_tokens:
           default: 2048
@@ -6958,6 +6967,7 @@ components:
           items:
             items:
               type: string
+              nullable: false
             type: array
           nullable: true
           type: array
@@ -7003,6 +7013,7 @@ components:
           description: "fnmatch tag patterns, e.g. company:*"
           items:
             type: string
+            nullable: false
           type: array
         tags_match:
           nullable: true
@@ -7339,6 +7350,7 @@ components:
             a matching reflect scope.
           items:
             type: string
+            nullable: false
           type: array
       required:
       - content
@@ -7408,6 +7420,7 @@ components:
           description: Tags for scoped visibility
           items:
             type: string
+            nullable: false
           type: array
         max_tokens:
           default: 2048
@@ -7494,6 +7507,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         max_tokens:
@@ -7536,6 +7550,7 @@ components:
             \ 'consolidation.completed', 'memory_defense.triggered'."
           items:
             type: string
+            nullable: false
           type: array
         enabled:
           default: true
@@ -7738,6 +7753,7 @@ components:
           default: []
           items:
             type: string
+            nullable: false
           type: array
         created_at:
           nullable: true
@@ -7876,6 +7892,7 @@ components:
           description: Tags associated with this document
           items:
             type: string
+            nullable: false
           type: array
       required:
       - id
@@ -7930,6 +7947,7 @@ components:
           description: Tags associated with this document
           items:
             type: string
+            nullable: false
           type: array
         document_metadata:
           additionalProperties: false
@@ -8462,6 +8480,7 @@ components:
           description: Raw (unresolved) entity names mentioned in the fact.
           items:
             type: string
+            nullable: false
           type: array
         chunk_index:
           nullable: true
@@ -8623,6 +8642,7 @@ components:
             \ GET /v1/default/banks/{bank_id}/operations to list operations."
           items:
             type: string
+            nullable: false
           type: array
       required:
       - operation_ids
@@ -8815,6 +8835,7 @@ components:
           default: []
           items:
             type: string
+            nullable: false
           type: array
         timestamp:
           nullable: true
@@ -8901,6 +8922,7 @@ components:
           default: []
           items:
             type: string
+            nullable: false
           type: array
         timestamp:
           nullable: true
@@ -10027,6 +10049,7 @@ components:
           description: Tags on this memory unit
           items:
             type: string
+            nullable: false
           type: array
         created_at:
           nullable: true
@@ -10091,6 +10114,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         observation_scopes:
@@ -10196,6 +10220,7 @@ components:
           description: Tags on this memory unit
           items:
             type: string
+            nullable: false
           type: array
         metadata:
           additionalProperties: false
@@ -10230,8 +10255,8 @@ components:
           default: []
           description: An observation's source facts; empty for a source fact
           items:
-            nullable: true
             type: string
+            nullable: false
           type: array
       required:
       - id
@@ -10244,15 +10269,15 @@ components:
           description: "Operations applied to the document, in order."
           items:
             additionalProperties: false
-            nullable: true
             type: object
+            nullable: false
           type: array
         skipped:
           description: "Operations dropped as invalid, each with a reason."
           items:
             additionalProperties: false
-            nullable: true
             type: object
+            nullable: false
           type: array
       title: MentalModelDeltaOperations
     MentalModelDryRunRefreshResult:
@@ -10335,6 +10360,7 @@ components:
             items:
               additionalProperties: false
               type: object
+              nullable: false
           description: "The evidence this run would ground the document on, keyed\
             \ by fact type — the same shape a refresh persists under reflect_response.based_on.\
             \ Returned so a preview can show its sources without having to write them\
@@ -10375,6 +10401,7 @@ components:
           description: "Conditions worth a human's attention, in plain language."
           items:
             type: string
+            nullable: false
           type: array
       required:
       - candidate_content
@@ -10548,6 +10575,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         tags_match:
@@ -10568,6 +10596,7 @@ components:
         fact_types:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         exclude_mental_models:
@@ -10580,6 +10609,7 @@ components:
             refreshed).
           items:
             type: string
+            nullable: false
           type: array
       required:
       - exclude_mental_models
@@ -10650,6 +10680,7 @@ components:
           description: "Conditions worth a human's attention, in plain language."
           items:
             type: string
+            nullable: false
           type: array
       required:
       - effective_mode
@@ -10746,6 +10777,7 @@ components:
           default: []
           items:
             type: string
+            nullable: false
           type: array
         max_tokens:
           nullable: true
@@ -10790,6 +10822,7 @@ components:
             bank.
           items:
             type: string
+            nullable: false
           type: array
         fact_texts:
           description: "What those facts said, as the document recorded them. The\
@@ -10797,6 +10830,7 @@ components:
             \ keeps no history — so this copy is the only surviving record."
           items:
             type: string
+            nullable: false
           type: array
         applied:
           description: Whether the pass that removes them ran to completion (zero
@@ -10945,6 +10979,7 @@ components:
         exclude_mental_model_ids:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         tags_match:
@@ -11084,6 +11119,7 @@ components:
         exclude_mental_model_ids:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         tags_match:
@@ -11185,6 +11221,7 @@ components:
             list is the global/untagged scope.
           items:
             type: string
+            nullable: false
           type: array
         count:
           description: Number of observations that live under this scope
@@ -11537,6 +11574,7 @@ components:
         choices:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         editable:
@@ -11717,6 +11755,7 @@ components:
             \ them without a second call."
           items:
             type: string
+            nullable: false
           type: array
         run_settings:
           description: "Settings that shape the operation without appearing in its\
@@ -11759,6 +11798,7 @@ components:
         types:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         prefer_observations:
@@ -11790,6 +11830,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         tags_match:
@@ -11909,6 +11950,7 @@ components:
         entities:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         context:
@@ -11936,11 +11978,13 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         source_fact_ids:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         scores:
@@ -12077,6 +12121,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         metadata:
@@ -12150,6 +12195,7 @@ components:
             key_points:
               items:
                 type: string
+                nullable: false
               type: array
           required:
           - summary
@@ -12188,6 +12234,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         tags_match:
@@ -12235,6 +12282,7 @@ components:
         exclude_mental_model_ids:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
       required:
@@ -12447,6 +12495,7 @@ components:
         document_tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         operation_id:
@@ -12486,6 +12535,7 @@ components:
         operation_ids:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         usage:
@@ -12694,6 +12744,7 @@ components:
           description: The scope's tags (sorted)
           items:
             type: string
+            nullable: false
           type: array
         count:
           description: Observations in this scope
@@ -12739,6 +12790,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           type: array
         match:
           default: any_strict
@@ -12935,6 +12987,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
       title: UpdateDirectiveRequest
@@ -12961,6 +13014,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
       title: UpdateDocumentRequest
@@ -13004,6 +13058,7 @@ components:
         entities:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         resolve_entities:
@@ -13052,6 +13107,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         trigger:
@@ -13114,6 +13170,7 @@ components:
         tags:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         max_tokens:
@@ -13149,6 +13206,7 @@ components:
         event_types:
           items:
             type: string
+            nullable: false
           nullable: true
           type: array
         enabled:
@@ -13450,6 +13508,7 @@ components:
         event_types:
           items:
             type: string
+            nullable: false
           type: array
         enabled:
           title: Enabled
@@ -13486,6 +13545,7 @@ components:
       - items:
           items:
             type: string
+            nullable: false
           type: array
         type: array
       description: "The observation_scopes spec configured at retain time (e.g. 'all_combinations',\
@@ -13516,6 +13576,7 @@ components:
       - items:
           items:
             type: string
+            nullable: false
           type: array
         type: array
       description: "How to scope observations during consolidation. 'per_tag' runs\
