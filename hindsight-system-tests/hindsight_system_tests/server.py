@@ -173,7 +173,13 @@ def stub_environment(stub_url: str) -> dict[str, str]:
 
 
 def start_hindsight_server(
-    *, stub_url: str, log_path: Path, extra_env: dict[str, str] | None = None
+    *,
+    stub_url: str,
+    log_path: Path,
+    extra_env: dict[str, str] | None = None,
+    database_url: str | None = None,
+    python_executable: str | None = None,
+    app_factory: str | None = None,
 ) -> HindsightServer:
     port = free_port()
 
@@ -194,7 +200,7 @@ def start_hindsight_server(
 
     env.update(
         {
-            "HINDSIGHT_API_DATABASE_URL": f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
+            "HINDSIGHT_API_DATABASE_URL": database_url or f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
             "HINDSIGHT_API_HOST": "127.0.0.1",
             "HINDSIGHT_API_PORT": str(port),
             "HINDSIGHT_API_LOG_LEVEL": "info",
@@ -219,9 +225,29 @@ def start_hindsight_server(
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / ".env").write_text("# intentionally empty: see start_hindsight_server\n")
 
+    command = (
+        [python_executable, "-m", "hindsight_api.main"]
+        if python_executable
+        else ["uv", "run", "--project", str(API_DIR), "hindsight-api"]
+    )
+    if app_factory is not None:
+        if python_executable is None:
+            raise ValueError("An extension app factory requires an explicit test interpreter")
+        command = [
+            python_executable,
+            "-m",
+            "uvicorn",
+            app_factory,
+            "--factory",
+            "--no-proxy-headers",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
+        ]
     log_file = log_path.open("w")
     process = subprocess.Popen(
-        ["uv", "run", "--project", str(API_DIR), "hindsight-api"],
+        command,
         cwd=run_dir,
         env=env,
         stdout=log_file,
@@ -230,7 +256,16 @@ def start_hindsight_server(
 
     url = f"http://127.0.0.1:{port}"
     server = HindsightServer(url=url, log_path=log_path, _process=process)
-    _wait_until_healthy(server)
+    try:
+        _wait_until_healthy(server)
+    except BaseException:
+        # Startup never returned ownership to the fixture. Stop this process here
+        # so readiness failure/interruption cannot leave an orphan test server.
+        server.stop()
+        raise
+    finally:
+        # Popen has its own descriptor; the parent does not need to retain one.
+        log_file.close()
     return server
 
 

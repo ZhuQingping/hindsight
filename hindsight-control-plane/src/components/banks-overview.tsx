@@ -1,5 +1,8 @@
 "use client";
 
+import { ContextDBWorkspacesView } from "@/components/contextdb/workspaces-view";
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -82,6 +85,11 @@ interface DeleteProgress {
 }
 
 export function BanksOverview() {
+  const contextDB = useContextDBMode();
+  return contextDB ? <ContextDBWorkspacesView /> : <NativeBanksOverview />;
+}
+
+function NativeBanksOverview() {
   const t = useTranslations("banksOverview");
   const tCommon = useTranslations("common");
   const tNavBank = useTranslations("nav.bank");
@@ -317,6 +325,7 @@ export function BanksOverview() {
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox
+                    disabled={isDeleting}
                     checked={allSelected}
                     onCheckedChange={toggleAll}
                     aria-label={t("selectAll")}
@@ -341,6 +350,7 @@ export function BanksOverview() {
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
+                        disabled={isDeleting}
                         checked={selected.has(bank.bank_id)}
                         onCheckedChange={() => toggleBank(bank.bank_id)}
                         aria-label={t("selectBank", { bank: bank.name || bank.bank_id })}

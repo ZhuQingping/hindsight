@@ -1,9 +1,11 @@
+import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { sdk, lowLevelClient } from "@/lib/hindsight-client";
 import { respondWithSdk } from "@/lib/sdk-response";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   const { bankId } = await params;
   let body;
   try {
@@ -55,6 +57,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ba
     );
   }
 
+  if (contextDBEnabled() && Object.hasOwn(body, "name")) return contextDBLifecycleDenied();
+
   if (!bankId) {
     return NextResponse.json(
       localizeApiErrorPayload(request, {
@@ -81,6 +85,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ bankId: string }> }
 ) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   const { bankId } = await params;
 
   if (!bankId) {

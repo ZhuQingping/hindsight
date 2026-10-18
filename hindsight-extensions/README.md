@@ -18,6 +18,7 @@ Hindsight that copies the extension in — see [Packaging](#packaging-an-extensi
 | --- | --- | --- |
 | [`supabase-tenant`](./supabase-tenant) | `TENANT` | Validates [Supabase](https://supabase.com) Auth JWTs and gives each user their own Postgres schema |
 | [`static-keys-tenant`](./static-keys-tenant) | `TENANT` | Authenticates static API keys from env vars and gives each user their own Postgres schema |
+| [`contextdb-service`](./contextdb-service) | `TENANT`, `HTTP`, `OPERATION_VALIDATOR`, `MCP` | Dedicated-instance users and per-workspace Key grants, schema isolation, administrator UI and Console workspace lifecycle |
 
 Extensions maintained outside this repository can be listed here too —
 [open a feature request](https://github.com/vectorize-io/hindsight/issues/new?template=feature_request.yml)

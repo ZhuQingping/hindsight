@@ -1,5 +1,7 @@
 "use client";
 
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -89,6 +91,8 @@ type BankConfigTab =
   | "llm-requests";
 
 export default function BankPage() {
+  const contextDB = useContextDBMode();
+  const tContextDB = useTranslations("contextDB");
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -186,7 +190,7 @@ export default function BankPage() {
   };
 
   const handleDeleteBank = async () => {
-    if (!bankId) return;
+    if (!bankId || contextDB) return;
 
     setIsDeleting(true);
     try {
@@ -354,27 +358,29 @@ export default function BankPage() {
                           <Download className="w-4 h-4 mr-2" />
                           {t("exportTemplate")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCloneTargetId(bankId ? `${bankId}-copy` : "");
-                            setCloneIncludeData(true);
-                            setCloneIncludeBankConfig(true);
-                            setCloneIncludeHistory(false);
-                            setShowCloneDialog(true);
-                          }}
-                          disabled={!cloneEnabled}
-                          title={
-                            !cloneEnabled
-                              ? "Cloning needs the document export and import APIs enabled"
-                              : undefined
-                          }
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          {t("cloneBank")}
-                          {!cloneEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
-                          )}
-                        </DropdownMenuItem>
+                        {!contextDB && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setCloneTargetId(bankId ? `${bankId}-copy` : "");
+                              setCloneIncludeData(true);
+                              setCloneIncludeBankConfig(true);
+                              setCloneIncludeHistory(false);
+                              setShowCloneDialog(true);
+                            }}
+                            disabled={!cloneEnabled}
+                            title={
+                              !cloneEnabled
+                                ? "Cloning needs the document export and import APIs enabled"
+                                : undefined
+                            }
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            {t("cloneBank")}
+                            {!cloneEnabled && (
+                              <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            )}
+                          </DropdownMenuItem>
+                        )}
                         {llmHealthEnabled && (
                           <DropdownMenuItem onClick={() => setShowLlmHealthDialog(true)}>
                             <Activity className="w-4 h-4 mr-2" />
@@ -444,13 +450,19 @@ export default function BankPage() {
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => setShowDeleteDialog(true)}
-                          className="text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {t("deleteBank")}
-                        </DropdownMenuItem>
+                        {contextDB ? (
+                          <DropdownMenuItem onClick={() => router.push("/")}>
+                            {tContextDB("workspaceDirectory")}
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() => setShowDeleteDialog(true)}
+                            className="text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t("deleteBank")}
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -835,7 +847,7 @@ export default function BankPage() {
 
       {/* Delete Bank Confirmation Dialog */}
       {/* Clone bank */}
-      <Dialog open={showCloneDialog} onOpenChange={setShowCloneDialog}>
+      <Dialog open={!contextDB && showCloneDialog} onOpenChange={setShowCloneDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("cloneBankTitle")}</DialogTitle>
@@ -926,7 +938,7 @@ export default function BankPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={!contextDB && showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteMemoryBank")}</AlertDialogTitle>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { contextdbWorkspaceMessages } from "@/i18n/contextdb-messages";
 
 import de from "@/messages/de.json";
 import en from "@/messages/en.json";
@@ -164,7 +165,10 @@ function getTranslationValue(locale: Locale, key: string): string | undefined {
     current = (current as Record<string, unknown>)[part];
   }
 
-  return typeof current === "string" ? current : undefined;
+  if (typeof current !== "string") return undefined;
+  return process.env.HINDSIGHT_CP_CONTEXTDB_ENABLED === "true"
+    ? contextdbWorkspaceMessages({ message: current }, locale).message
+    : current;
 }
 
 function getFallbackMessage(payload: ApiErrorPayload): string | undefined {

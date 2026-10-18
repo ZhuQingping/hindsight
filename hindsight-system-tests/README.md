@@ -81,3 +81,22 @@ and an unscripted call still fails the test.
 - One story per file, named `test_NN_<story>.py`. The number is **reading order for
   a human, not execution order** — every test must pass when run alone.
 - Assert through the client's responses only.
+
+## ContextDB extension stories
+
+ContextDB-specific stories live in `../hindsight-extensions/contextdb-service/tests/system/`.
+They use this package's published SDK, server, payloads, waiting helpers and the
+same model stubs and call guards in `hindsight_system_tests.pytest_plugin` as
+native stories. Native server/client/Bank fixtures stay in `tests/conftest.py`;
+the extension owns only its deployment/client/UI preparation.
+
+```sh
+# Run from hindsight-system-tests; explicitly select its optional server deps.
+uv run --frozen --group contextdb pytest -c ../hindsight-extensions/contextdb-service/pytest-system.ini ../hindsight-extensions/contextdb-service/tests/system -v
+```
+
+The native `pytest tests` entry point remains lightweight and does not collect
+extension stories. ContextDB's own default pytest entry point selects only
+`tests/python`; its separate system configuration selects `tests/system`.
+Production UI acceptance additionally requires the matching stamped standalone
+bundle and both Worker variants; CI enforces this in `test-contextdb-system-ui`.

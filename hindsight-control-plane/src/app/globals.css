@@ -1,6 +1,4 @@
-/* Inter and JetBrains Mono are loaded via next/font/google in
-   src/app/[locale]/layout.tsx. The CSS variables --font-sans and
-   --font-mono are set on <html> and consumed below in :root. */
+/* System font stacks are local: builds do not fetch external font assets. */
 @import "tailwindcss";
 /* Tailwind v4 does not auto-load tailwind.config.ts. Register typography here
    so rendered Markdown gets the paragraph, heading and list styles of prose. */
@@ -24,6 +22,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
   /* Hindsight design system palette — light mode. Replaces the shadcn oklch
      defaults so every bg-card / text-foreground / border-border utility across
      the whole site picks up the design system without per-component edits. */
@@ -96,10 +96,7 @@
   --sidebar-accent-foreground: #0D1117;
   --sidebar-border: rgba(0, 0, 0, 0.05);
   --sidebar-ring: #0074D9;
-  /* --font-sans and --font-mono are set on <html> by next/font/google in
-     [locale]/layout.tsx. :root inherits them; we intentionally do NOT
-     redeclare them here so the next/font value is what utilities resolve to.
-     A separate --font-fallback chain is provided for any future use. */
+  /* Font variables are defined locally above and inherited in both themes. */
   --font-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --radius: 0.5rem;
   --shadow-x: 0px;

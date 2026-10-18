@@ -3,6 +3,10 @@
  * https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 export async function register() {
+  if (process.env.HINDSIGHT_CP_CONTEXTDB_ENABLED === "true") {
+    const { waitForContextDBAdmin } = await import("@/lib/contextdb");
+    await waitForContextDBAdmin();
+  }
   const dataplaneUrl = process.env.HINDSIGHT_CP_DATAPLANE_API_URL || "http://localhost:8888";
   const apiKey = process.env.HINDSIGHT_CP_DATAPLANE_API_KEY || "";
 

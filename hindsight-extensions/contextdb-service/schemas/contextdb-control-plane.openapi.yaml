@@ -1,0 +1,2888 @@
+openapi: 3.1.0
+info:
+  title: ContextDB management
+  version: 1.0.0
+paths:
+  /admin/identity:
+    get:
+      tags:
+      - ContextDB management
+      summary: Admin Session
+      operationId: admin_session_ext_contextdb_v1_admin_identity_get
+      parameters: []
+      responses:
+        '200':
+          description: Successful Response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminIdentity'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - AdministratorKey: []
+  /workspaces:
+    post:
+      tags:
+      - ContextDB management
+      summary: Create Workspace
+      operationId: create_workspace_ext_contextdb_v1_workspaces_post
+      security:
+      - AdministratorKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:2"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters: []
+    get:
+      tags:
+      - ContextDB management
+      summary: List Workspaces
+      operationId: list_workspaces_ext_contextdb_v1_workspaces_get
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 0
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+          default: ''
+          title: Q
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page_WorkspaceResponse_'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /workspaces/{bank_id}:
+    get:
+      tags:
+      - ContextDB management
+      summary: Get Workspace
+      operationId: get_workspace_ext_contextdb_v1_workspaces__bank_id__get
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: bank_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_]{0,53}$
+          title: Bank Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:2"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - ContextDB management
+      summary: Delete Workspace
+      operationId: delete_workspace_ext_contextdb_v1_workspaces__bank_id__delete
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: bank_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_]{0,53}$
+          title: Bank Id
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^"[0-9a-f]{32}:[1-9][0-9]{0,21}"$
+          example: '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:2"'
+      responses:
+        '204':
+          description: Successful Response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users:
+    get:
+      tags:
+      - ContextDB management
+      summary: List Users
+      operationId: list_users_ext_contextdb_v1_users_get
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+          default: ''
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 0
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page_User_'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - ContextDB management
+      summary: Create User
+      operationId: create_user_ext_contextdb_v1_users_post
+      security:
+      - AdministratorKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"1"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters: []
+  /users/{user_id}:
+    patch:
+      tags:
+      - ContextDB management
+      summary: Update User
+      operationId: update_user_ext_contextdb_v1_users__user_id__patch
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^"[1-9][0-9]{0,21}"$
+          maxLength: 24
+          example: '"1"'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"1"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - ContextDB management
+      summary: Delete User
+      operationId: delete_user_ext_contextdb_v1_users__user_id__delete
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      responses:
+        '204':
+          description: Successful Response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{user_id}/keys:
+    get:
+      tags:
+      - ContextDB management
+      summary: List Keys
+      operationId: list_keys_ext_contextdb_v1_users__user_id__keys_get
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 0
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 128
+          default: ''
+          title: Q
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page_KeyMetadata_'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - ContextDB management
+      summary: Create Key
+      operationId: create_key_ext_contextdb_v1_users__user_id__keys_post
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiKeyCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyIssued'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"1"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{user_id}/keys/{key_id}:
+    patch:
+      tags:
+      - ContextDB management
+      summary: Update Key
+      operationId: update_key_ext_contextdb_v1_users__user_id__keys__key_id__patch
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: Key Id
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^"[1-9][0-9]{0,21}"$
+          maxLength: 24
+          example: '"1"'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiKeyPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyEditable'
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            ETag:
+              schema:
+                type: string
+                example: '"1"'
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - ContextDB management
+      summary: Revoke Key
+      operationId: revoke_key_ext_contextdb_v1_users__user_id__keys__key_id__delete
+      security:
+      - AdministratorKey: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: User Id
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: Key Id
+      responses:
+        '204':
+          description: Successful Response
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+        default:
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '428':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Sanitized management error
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    AdminIdentity:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          const: admin
+          title: Role
+          default: admin
+        instance_id:
+          type: string
+          title: Instance Id
+        cloud_tenant_id:
+          type: string
+          title: Cloud Tenant Id
+      type: object
+      required:
+      - user_id
+      - instance_id
+      - cloud_tenant_id
+      title: AdminIdentity
+    AllAuthorization:
+      properties:
+        mode:
+          type: string
+          const: all
+          title: Mode
+        permission:
+          $ref: '#/components/schemas/Permission'
+          default: read_write
+      additionalProperties: false
+      type: object
+      required:
+      - mode
+      title: AllAuthorization
+    ApiKeyCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Name
+        authorization:
+          oneOf:
+          - $ref: '#/components/schemas/SelectedAuthorization'
+          - $ref: '#/components/schemas/AllAuthorization'
+          title: Authorization
+          discriminator:
+            propertyName: mode
+            mapping:
+              all: '#/components/schemas/AllAuthorization'
+              selected: '#/components/schemas/SelectedAuthorization'
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - authorization
+      title: ApiKeyCreate
+    ApiKeyPatch:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 64
+            minLength: 1
+          - type: 'null'
+          title: Name
+        authorization:
+          anyOf:
+          - oneOf:
+            - $ref: '#/components/schemas/ExplicitSelectedAuthorization'
+            - $ref: '#/components/schemas/ExplicitAllAuthorization'
+            discriminator:
+              propertyName: mode
+              mapping:
+                all: '#/components/schemas/ExplicitAllAuthorization'
+                selected: '#/components/schemas/ExplicitSelectedAuthorization'
+          - type: 'null'
+          title: Authorization
+      additionalProperties: false
+      type: object
+      title: ApiKeyPatch
+      description: Name is independent; submitted authorization is a complete, explicit
+        replacement.
+    ErrorResponse:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+        request_id:
+          type: string
+          title: Request Id
+        fields:
+          items:
+            $ref: '#/components/schemas/FieldError'
+          type: array
+          title: Fields
+      type: object
+      required:
+      - code
+      - message
+      - request_id
+      title: ErrorResponse
+    ExplicitAllAuthorization:
+      properties:
+        mode:
+          type: string
+          const: all
+          title: Mode
+        permission:
+          $ref: '#/components/schemas/Permission'
+      additionalProperties: false
+      type: object
+      required:
+      - mode
+      - permission
+      title: ExplicitAllAuthorization
+    ExplicitSelectedAuthorization:
+      properties:
+        mode:
+          type: string
+          const: selected
+          title: Mode
+          default: selected
+        workspaces:
+          items:
+            $ref: '#/components/schemas/ExplicitWorkspaceGrant'
+          type: array
+          maxItems: 1000
+          minItems: 1
+          title: Workspaces
+      additionalProperties: false
+      type: object
+      required:
+      - workspaces
+      title: ExplicitSelectedAuthorization
+    ExplicitWorkspaceGrant:
+      properties:
+        bank_id:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_]{0,53}$
+          title: Bank Id
+        workspace_id:
+          anyOf:
+          - type: string
+            pattern: ^[0-9a-f]{32}$
+          - type: 'null'
+          title: Workspace Id
+          description: Optional expected generation from the workspace picker; a stale
+            generation is rejected rather than granting its same-name successor.
+        permission:
+          $ref: '#/components/schemas/Permission'
+      additionalProperties: false
+      type: object
+      required:
+      - bank_id
+      - permission
+      title: ExplicitWorkspaceGrant
+    FieldError:
+      properties:
+        field:
+          type: string
+          title: Field
+        reason:
+          type: string
+          enum:
+          - required
+          - invalid
+          - unknown
+          title: Reason
+      type: object
+      required:
+      - field
+      - reason
+      title: FieldError
+    KeyEditable:
+      properties:
+        key_id:
+          type: string
+          title: Key Id
+        user_id:
+          type: string
+          title: User Id
+        name:
+          type: string
+          title: Name
+        authorization:
+          oneOf:
+          - $ref: '#/components/schemas/StoredSelectedAuthorization'
+          - $ref: '#/components/schemas/AllAuthorization'
+          title: Authorization
+          discriminator:
+            propertyName: mode
+            mapping:
+              all: '#/components/schemas/AllAuthorization'
+              selected: '#/components/schemas/StoredSelectedAuthorization'
+        display_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Display Key
+        version:
+          type: integer
+          title: Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - key_id
+      - user_id
+      - name
+      - authorization
+      - version
+      - created_at
+      title: KeyEditable
+    KeyIssued:
+      properties:
+        key_id:
+          type: string
+          title: Key Id
+        user_id:
+          type: string
+          title: User Id
+        name:
+          type: string
+          title: Name
+        authorization:
+          oneOf:
+          - $ref: '#/components/schemas/StoredSelectedAuthorization'
+          - $ref: '#/components/schemas/AllAuthorization'
+          title: Authorization
+          discriminator:
+            propertyName: mode
+            mapping:
+              all: '#/components/schemas/AllAuthorization'
+              selected: '#/components/schemas/StoredSelectedAuthorization'
+        display_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Display Key
+        version:
+          type: integer
+          title: Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        secret:
+          type: string
+          title: Secret
+      type: object
+      required:
+      - key_id
+      - user_id
+      - name
+      - authorization
+      - version
+      - created_at
+      - secret
+      title: KeyIssued
+    KeyMetadata:
+      properties:
+        key_id:
+          type: string
+          title: Key Id
+        user_id:
+          type: string
+          title: User Id
+        name:
+          type: string
+          title: Name
+        authorization:
+          oneOf:
+          - $ref: '#/components/schemas/StoredSelectedAuthorization'
+          - $ref: '#/components/schemas/AllAuthorization'
+          title: Authorization
+          discriminator:
+            propertyName: mode
+            mapping:
+              all: '#/components/schemas/AllAuthorization'
+              selected: '#/components/schemas/StoredSelectedAuthorization'
+        display_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Display Key
+        version:
+          type: integer
+          title: Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        last_used_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Used At
+      type: object
+      required:
+      - key_id
+      - user_id
+      - name
+      - authorization
+      - version
+      - created_at
+      - last_used_at
+      title: KeyMetadata
+      description: List projection includes approximate usage; it has no edit ETag.
+    Page_KeyMetadata_:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/KeyMetadata'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+      type: object
+      required:
+      - items
+      - total
+      - limit
+      - offset
+      title: Page[KeyMetadata]
+    Page_User_:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+      type: object
+      required:
+      - items
+      - total
+      - limit
+      - offset
+      title: Page[User]
+    Page_WorkspaceResponse_:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/WorkspaceResponse'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+      type: object
+      required:
+      - items
+      - total
+      - limit
+      - offset
+      title: Page[WorkspaceResponse]
+    Permission:
+      type: string
+      enum:
+      - read
+      - read_write
+      title: Permission
+    SelectedAuthorization:
+      properties:
+        mode:
+          type: string
+          const: selected
+          title: Mode
+          default: selected
+        workspaces:
+          items:
+            $ref: '#/components/schemas/WorkspaceGrant'
+          type: array
+          maxItems: 1000
+          minItems: 1
+          title: Workspaces
+      additionalProperties: false
+      type: object
+      required:
+      - workspaces
+      title: SelectedAuthorization
+    StoredSelectedAuthorization:
+      properties:
+        mode:
+          type: string
+          const: selected
+          title: Mode
+          default: selected
+        workspaces:
+          items:
+            $ref: '#/components/schemas/StoredWorkspaceGrant'
+          type: array
+          maxItems: 1000
+          title: Workspaces
+      additionalProperties: false
+      type: object
+      title: StoredSelectedAuthorization
+    StoredWorkspaceGrant:
+      properties:
+        bank_id:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_]{0,53}$
+          title: Bank Id
+        workspace_id:
+          type: string
+          pattern: ^[0-9a-f]{32}$
+          title: Workspace Id
+        permission:
+          $ref: '#/components/schemas/Permission'
+          default: read_write
+        workspace_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Name
+          readOnly: true
+      additionalProperties: false
+      type: object
+      required:
+      - bank_id
+      - workspace_id
+      title: StoredWorkspaceGrant
+    User:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        name:
+          type: string
+          title: Name
+        status:
+          type: string
+          title: Status
+        version:
+          type: integer
+          title: Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - user_id
+      - name
+      - status
+      - version
+      - created_at
+      title: User
+    UserCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      title: UserCreate
+    UserPatch:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 64
+            minLength: 1
+          - type: 'null'
+          title: Name
+        status:
+          anyOf:
+          - type: string
+            enum:
+            - active
+            - disabled
+          - type: 'null'
+          title: Status
+      additionalProperties: false
+      type: object
+      title: UserPatch
+    WorkspaceCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 54
+          minLength: 1
+          title: Name
+          description: 'Stable Bank ID: normalized to lowercase ASCII, starts with
+            a letter; remaining characters are letters, digits or _. Maximum 54 characters.'
+        description:
+          type: string
+          maxLength: 512
+          title: Description
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      title: WorkspaceCreate
+    WorkspaceGrant:
+      properties:
+        bank_id:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9_]{0,53}$
+          title: Bank Id
+        workspace_id:
+          anyOf:
+          - type: string
+            pattern: ^[0-9a-f]{32}$
+          - type: 'null'
+          title: Workspace Id
+          description: Optional expected generation from the workspace picker; a stale
+            generation is rejected rather than granting its same-name successor.
+        permission:
+          $ref: '#/components/schemas/Permission'
+          default: read_write
+      additionalProperties: false
+      type: object
+      required:
+      - bank_id
+      title: WorkspaceGrant
+    WorkspaceResponse:
+      properties:
+        workspace_id:
+          type: string
+          title: Workspace Id
+        bank_id:
+          type: string
+          title: Bank Id
+        etag:
+          type: string
+          title: Etag
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        state:
+          type: string
+          title: State
+        version:
+          type: integer
+          title: Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - workspace_id
+      - bank_id
+      - etag
+      - name
+      - description
+      - state
+      - version
+      - created_at
+      title: WorkspaceResponse
+  securitySchemes:
+    AdministratorKey:
+      type: http
+      scheme: bearer
+servers:
+- url: /ext/contextdb/v1
+security:
+- AdministratorKey: []

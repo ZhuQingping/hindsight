@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -22,9 +18,7 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "target": "ES2017"
   },
@@ -80,9 +74,9 @@
     ".next-32852/types/**/*.ts",
     ".next-32852/dev/types/**/*.ts",
     ".next-59588/types/**/*.ts",
-    ".next-59588/dev/types/**/*.ts"
+    ".next-59588/dev/types/**/*.ts",
+    "../hindsight-extensions/contextdb-service/tests/ui/**/*.ts",
+    "../hindsight-extensions/contextdb-service/tests/ui/**/*.tsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

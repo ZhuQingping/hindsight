@@ -1,13 +1,21 @@
 "use client";
 
+import {
+  ContextDBWorkspaceResultCheck,
+  type WorkspaceCheckTarget,
+} from "@/components/contextdb/workspace-result-check";
+import { ContextDBCreateWorkspaceDialog } from "@/components/contextdb/create-workspace-dialog";
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
 import * as React from "react";
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { locales } from "@/i18n/config";
 import { useBank } from "@/lib/bank-context";
 import { bankRoute } from "@/lib/bank-url";
 import { hoistCurrentBank } from "@/lib/bank-order";
-import { withBasePath } from "@/lib/base-path";
+import { stripBasePath, withBasePath } from "@/lib/base-path";
 import { client } from "@/lib/api";
 import type { RetainContentBlock as ContentBlock } from "@/lib/api";
 import {
@@ -99,7 +107,16 @@ function formatTimeAgo(isoDate: string): string {
 }
 
 function BankSelectorInner() {
+  const contextDB = useContextDBMode();
+  const [workspaceCheck, setWorkspaceCheck] = React.useState<WorkspaceCheckTarget | null>(null);
+  const tContextDB = useTranslations("contextDB");
   const router = useRouter();
+  const pathname = usePathname();
+  const managingUsers =
+    contextDB &&
+    ["/users", ...locales.map((locale) => `/${locale}/users`)].includes(
+      stripBasePath(pathname ?? "").replace(/\/$/, "")
+    );
   const searchParams = useSearchParams();
   const tNav = useTranslations("nav");
   const tNavBank = useTranslations("nav.bank");
@@ -121,6 +138,7 @@ function BankSelectorInner() {
   } = useBank();
   const { theme, toggleTheme } = useTheme();
   const { features } = useFeatures();
+  const workspaceSelectorRef = React.useRef<HTMLButtonElement>(null);
   const [open, setOpen] = React.useState(false);
   // One-shot spin of the header logo, fired by sidebar navigation (see the
   // "hindsight:logo-spin" listener below). Reset on animationEnd so it can replay.
@@ -216,7 +234,9 @@ function BankSelectorInner() {
   // The banks overview page has its own "create bank" button; the dialog (with its
   // template import) lives here, so that button asks for it rather than duplicating it.
   React.useEffect(() => {
-    const openCreate = () => setCreateDialogOpen(true);
+    const openCreate = () => {
+      setCreateDialogOpen(true);
+    };
     window.addEventListener("hindsight:create-bank", openCreate);
     return () => window.removeEventListener("hindsight:create-bank", openCreate);
   }, []);
@@ -272,11 +292,11 @@ function BankSelectorInner() {
     setTemplateError(null);
 
     try {
-      // Create the bank first
-      await client.createBank(newBankId.trim());
+      const createdId = newBankId.trim();
+      await client.createBank(createdId);
 
       // If template JSON is provided, import it
-      if (templateJson.trim()) {
+      if (!contextDB && templateJson.trim()) {
         let manifest: Record<string, unknown>;
         try {
           manifest = JSON.parse(templateJson.trim());
@@ -305,8 +325,8 @@ function BankSelectorInner() {
       setTemplateJson("");
       setTemplateError(null);
       // Navigate to the new bank
-      setCurrentBank(newBankId.trim());
-      router.push(bankRoute(newBankId.trim(), "?view=data"));
+      setCurrentBank(createdId);
+      router.push(bankRoute(createdId, "?view=data"));
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : tAddDocument("failedToCreateBank"));
     } finally {
@@ -557,7 +577,13 @@ function BankSelectorInner() {
 
   return (
     <div className="bg-card text-card-foreground px-5 py-3 border-b-4 border-primary-gradient">
-      <div className="flex items-center gap-4 text-sm">
+      <div
+        className={
+          contextDB
+            ? "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-sm lg:flex lg:gap-4"
+            : "flex items-center gap-4 text-sm"
+        }
+      >
         {/* Logo, split so only the mark spins on navigation while the wordmark
             stays put. The mark is the standalone favicon.png (so it can rotate
             freely); the wordmark is the right slice of the full lockup (logo.png)
@@ -589,7 +615,7 @@ function BankSelectorInner() {
         </button>
 
         {/* Separator */}
-        <div className="h-8 w-px bg-border" />
+        <div className={contextDB ? "hidden h-8 w-px bg-border lg:block" : "h-8 w-px bg-border"} />
 
         {/* Memory Bank Selector */}
         <Popover
@@ -607,9 +633,13 @@ function BankSelectorInner() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
+              ref={workspaceSelectorRef}
               role="combobox"
               aria-expanded={open}
-              className="w-[250px] justify-between font-bold border-2 border-primary hover:bg-accent"
+              className={cn(
+                "w-[250px] justify-between font-bold border-2 border-primary hover:bg-accent",
+                contextDB && "order-3 col-span-2 w-full min-w-0 lg:order-none lg:w-[250px]"
+              )}
             >
               <span className="truncate">
                 {currentBankName || currentBank || tNavBank("select")}
@@ -617,7 +647,14 @@ function BankSelectorInner() {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[420px] p-0" align="start">
+          <PopoverContent
+            className={contextDB ? "w-[min(420px,calc(100vw-2rem))] p-0" : "w-[420px] p-0"}
+            align="start"
+            onCloseAutoFocus={(event) => {
+              // The creation dialog owns focus once opened from this popover.
+              if (contextDB && createDialogOpen) event.preventDefault();
+            }}
+          >
             {/* shouldFilter={false}: matching is done by the server so search reaches
                 banks that haven't been paged in yet. */}
             <Command shouldFilter={false}>
@@ -799,14 +836,25 @@ function BankSelectorInner() {
         </Popover>
 
         {/* Separator */}
-        <div className="h-8 w-px bg-border" />
+        <div className={contextDB ? "hidden h-8 w-px bg-border lg:block" : "h-8 w-px bg-border"} />
+
+        {contextDB && (
+          <Button
+            className="order-4 min-w-0 lg:order-none"
+            variant={managingUsers ? "secondary" : "outline"}
+            aria-current={managingUsers ? "page" : undefined}
+            onClick={() => router.push("/users")}
+          >
+            {tContextDB("title")}
+          </Button>
+        )}
 
         {/* Add Document Button */}
-        {currentBank && (
+        {currentBank && !managingUsers && (
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className={cn("h-9 gap-1.5", contextDB && "order-5 min-w-0 lg:order-none")}
             onClick={() => setDocDialogOpen(true)}
             title={tAddDocument("addDocumentToCurrentBank")}
             data-add-document
@@ -817,142 +865,189 @@ function BankSelectorInner() {
         )}
 
         {/* Spacer */}
-        <div className="flex-1" />
+        <div className={contextDB ? "hidden lg:flex-1 lg:block" : "flex-1"} />
 
-        {/* GitHub Link */}
-        <a
-          href="https://github.com/vectorize-io/hindsight"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-          title={tNav("viewOnGitHub")}
+        {/* Keep account/theme controls reachable without widening ContextDB pages. */}
+        <div
+          className={
+            contextDB
+              ? "order-2 flex items-center justify-self-end gap-0.5 lg:order-none"
+              : "contents"
+          }
         >
-          <Github className="h-5 w-5" />
-          <span className="text-sm font-medium">GitHub</span>
-        </a>
-
-        {/* Separator */}
-        <div className="h-8 w-px bg-border" />
-
-        {/* Dark Mode Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="h-9 w-9"
-          title={theme === "light" ? tNav("darkMode") : tNav("lightMode")}
-        >
-          {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
-
-        <LanguageSwitcher />
-
-        {features?.access_key_auth && (
-          <>
-            <div className="h-8 w-px bg-border" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              title="Logout"
-              onClick={async () => {
-                try {
-                  await fetch(withBasePath("/api/auth/logout"), { method: "POST" });
-                } finally {
-                  window.location.href = withBasePath("/login");
-                }
-              }}
+          {/* GitHub Link */}
+          <a
+            href="https://github.com/vectorize-io/hindsight"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            title={tNav("viewOnGitHub")}
+          >
+            <Github className="h-5 w-5" />
+            <span
+              className={contextDB ? "hidden text-sm font-medium xl:inline" : "text-sm font-medium"}
             >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </>
-        )}
+              GitHub
+            </span>
+          </a>
 
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>{tAddDocument("createBankTitle")}</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <Input
-                placeholder={tAddDocument("createBankIdPlaceholder")}
-                value={newBankId}
-                onChange={(e) => setNewBankId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !isCreating && !useTemplate) {
-                    handleCreateBank();
+          {/* Separator */}
+          <div
+            className={contextDB ? "hidden h-8 w-px bg-border lg:block" : "h-8 w-px bg-border"}
+          />
+
+          {/* Dark Mode Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9"
+            title={theme === "light" ? tNav("darkMode") : tNav("lightMode")}
+          >
+            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+
+          <LanguageSwitcher />
+
+          {features?.access_key_auth && (
+            <>
+              <div
+                className={contextDB ? "hidden h-8 w-px bg-border lg:block" : "h-8 w-px bg-border"}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                title="Logout"
+                onClick={async () => {
+                  try {
+                    await fetch(withBasePath("/api/auth/logout"), { method: "POST" });
+                  } finally {
+                    window.location.href = withBasePath("/login");
                   }
                 }}
-                autoFocus
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={useTemplate}
-                    onCheckedChange={(checked) => {
-                      setUseTemplate(checked);
-                      if (!checked) {
-                        setTemplateJson("");
-                        setTemplateError(null);
-                      }
-                    }}
-                  />
-                  <label className="text-sm font-medium">
-                    {tAddDocument("importFromTemplateLabel")}
-                  </label>
-                </div>
-                {useTemplate && (
-                  <a
-                    href="https://hindsight.vectorize.io/templates"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {tAddDocument("browseTemplates")}
-                  </a>
-                )}
-              </div>
-              {useTemplate && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {tAddDocument("templateManifestHelp")}
-                  </p>
-                  <Textarea
-                    placeholder='{"version": "1", "bank": {...}, "mental_models": [...]}'
-                    value={templateJson}
-                    onChange={(e) => {
-                      setTemplateJson(e.target.value);
-                      setTemplateError(null);
-                    }}
-                    className="font-mono text-xs min-h-[120px]"
-                  />
-                </div>
-              )}
-              {templateError && (
-                <p className="text-sm text-destructive whitespace-pre-wrap">{templateError}</p>
-              )}
-              {createError && <p className="text-sm text-destructive">{createError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setCreateDialogOpen(false);
-                  setNewBankId("");
-                  setUseTemplate(false);
-                  setTemplateJson("");
-                  setCreateError(null);
-                  setTemplateError(null);
-                }}
               >
-                {tCommon("cancel")}
+                <LogOut className="h-5 w-5" />
               </Button>
-              <Button onClick={handleCreateBank} disabled={isCreating || !newBankId.trim()}>
-                {isCreating ? tAddDocument("creating") : tCommon("create")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </>
+          )}
+        </div>
+
+        {workspaceCheck && (
+          <ContextDBWorkspaceResultCheck
+            returnFocusRef={workspaceSelectorRef}
+            target={workspaceCheck}
+            onClose={() => setWorkspaceCheck(null)}
+          />
+        )}
+        {contextDB ? (
+          <ContextDBCreateWorkspaceDialog
+            returnFocusRef={workspaceSelectorRef}
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onCreated={(workspace) => {
+              void loadBanks();
+              setCurrentBank(workspace.bank_id);
+              router.push(bankRoute(workspace.bank_id, "?view=data"));
+            }}
+            onCheckResult={(bankId) => setWorkspaceCheck({ bank_id: bankId })}
+          />
+        ) : (
+          <Dialog
+            open={createDialogOpen}
+            onOpenChange={(open) => {
+              if (!isCreating) setCreateDialogOpen(open);
+            }}
+          >
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>{tAddDocument("createBankTitle")}</DialogTitle>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <Input
+                  placeholder={tAddDocument("createBankIdPlaceholder")}
+                  aria-label={tAddDocument("createBankIdPlaceholder")}
+                  value={newBankId}
+                  onChange={(e) => setNewBankId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isCreating && !useTemplate) {
+                      handleCreateBank();
+                    }
+                  }}
+                  autoFocus
+                />
+                {!contextDB && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={useTemplate}
+                        onCheckedChange={(checked) => {
+                          setUseTemplate(checked);
+                          if (!checked) {
+                            setTemplateJson("");
+                            setTemplateError(null);
+                          }
+                        }}
+                      />
+                      <label className="text-sm font-medium">
+                        {tAddDocument("importFromTemplateLabel")}
+                      </label>
+                    </div>
+                    {useTemplate && (
+                      <a
+                        href="https://hindsight.vectorize.io/templates"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {tAddDocument("browseTemplates")}
+                      </a>
+                    )}
+                  </div>
+                )}
+                {!contextDB && useTemplate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {tAddDocument("templateManifestHelp")}
+                    </p>
+                    <Textarea
+                      placeholder='{"version": "1", "bank": {...}, "mental_models": [...]}'
+                      value={templateJson}
+                      onChange={(e) => {
+                        setTemplateJson(e.target.value);
+                        setTemplateError(null);
+                      }}
+                      className="font-mono text-xs min-h-[120px]"
+                    />
+                  </div>
+                )}
+                {templateError && (
+                  <p className="text-sm text-destructive whitespace-pre-wrap">{templateError}</p>
+                )}
+                {createError && <p className="text-sm text-destructive">{createError}</p>}
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="secondary"
+                  disabled={isCreating}
+                  onClick={() => {
+                    setCreateDialogOpen(false);
+                    setNewBankId("");
+                    setUseTemplate(false);
+                    setTemplateJson("");
+                    setCreateError(null);
+                    setTemplateError(null);
+                  }}
+                >
+                  {tCommon("cancel")}
+                </Button>
+                <Button onClick={handleCreateBank} disabled={isCreating || !newBankId.trim()}>
+                  {isCreating ? tAddDocument("creating") : tCommon("create")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
           <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col">

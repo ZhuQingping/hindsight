@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import ts from "typescript";
 
+import { withContextdbMessages } from "@/i18n/contextdb-messages";
 import { defaultLocale } from "@/i18n/config";
 
 /**
@@ -186,7 +187,10 @@ function scanFile(filePath: string, leafKeys: Set<string>): MissingKey[] {
 }
 
 describe("translation key references resolve against the default catalog", () => {
-  const baseline = JSON.parse(readFileSync(join(MESSAGES_DIR, `${defaultLocale}.json`), "utf-8"));
+  const baseline = withContextdbMessages(
+    JSON.parse(readFileSync(join(MESSAGES_DIR, `${defaultLocale}.json`), "utf-8")),
+    defaultLocale
+  );
   const leafKeys = collectLeafKeys(baseline);
 
   const files: string[] = [];

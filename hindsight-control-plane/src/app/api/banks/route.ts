@@ -1,3 +1,4 @@
+import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { sdk, lowLevelClient } from "@/lib/hindsight-client";
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   let body;
   try {
     body = await request.json();
