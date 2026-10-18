@@ -5043,6 +5043,7 @@ def create_app(
     memory: MemoryEngine,
     initialize_memory: bool = True,
     http_extension: HttpExtension | None = None,
+    defer_extension_middleware: bool = False,
 ) -> FastAPI:
     """
     Create and configure the FastAPI application.
@@ -5300,6 +5301,10 @@ def create_app(
 
     # Mount HTTP extension router if available
     if http_extension:
+        app.state.extension_transport_middleware = http_extension.get_middleware(memory)
+        if not defer_extension_middleware:
+            for middleware in app.state.extension_transport_middleware:
+                app.add_middleware(middleware.cls, *middleware.args, **middleware.kwargs)
         extension_router = http_extension.get_router(memory)
         # include_router does not apply the app's route_class to a router's own
         # routes, so without this the extension loses the unknown-param reporting

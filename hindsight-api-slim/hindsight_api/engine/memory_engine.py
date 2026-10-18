@@ -14620,7 +14620,12 @@ class MemoryEngine(MemoryEngineInterface):
         return True
 
     async def _gate_mental_model_read(
-        self, bank_id: str, mental_model_id: str, *, request_context: "RequestContext"
+        self,
+        bank_id: str,
+        mental_model_id: str,
+        *,
+        request_context: "RequestContext",
+        read_origin: Literal["mental_model", "knowledge_page"] = "mental_model",
     ) -> None:
         """Run the pre-read validation for one mental model.
 
@@ -14643,6 +14648,7 @@ class MemoryEngine(MemoryEngineInterface):
                     bank_id=bank_id,
                     mental_model_id=mental_model_id,
                     request_context=request_context,
+                    read_origin=read_origin,
                 )
             )
         )
@@ -19531,7 +19537,9 @@ class MemoryEngine(MemoryEngineInterface):
         mental_model_id = row["mental_model_id"]
         meter = bool(mental_model_id) and not _nested_operation_authorized.get()
         if meter:
-            await self._gate_mental_model_read(bank_id, mental_model_id, request_context=request_context)
+            await self._gate_mental_model_read(
+                bank_id, mental_model_id, request_context=request_context, read_origin="knowledge_page"
+            )
 
         node = self._row_to_knowledge_node(row)
         node["content"] = row["mm_content"]
@@ -21010,6 +21018,7 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         *,
         status: str | None = None,
+        statuses: list[str] | None = None,
         task_type: str | None = None,
         limit: int = 20,
         offset: int = 0,
@@ -21021,6 +21030,8 @@ class MemoryEngine(MemoryEngineInterface):
         Args:
             bank_id: Bank identifier
             status: Optional status filter (pending, processing, completed, failed, cancelled)
+            statuses: Optional multi-status filter for one consistent drain snapshot.
+                Mutually exclusive with status; existing HTTP/SDK inputs are unchanged.
             task_type: Optional operation type filter (retain, consolidation, etc.)
             limit: Maximum number of operations to return (default 20)
             offset: Number of operations to skip (default 0)
@@ -21046,7 +21057,13 @@ class MemoryEngine(MemoryEngineInterface):
             where_conditions = ["bank_id = $1"]
             params: list[Any] = [bank_id]
 
-            if status:
+            if status and statuses:
+                raise ValueError("Use status or statuses, not both")
+            if statuses:
+                placeholders = [f"${len(params) + index + 1}" for index in range(len(statuses))]
+                where_conditions.append(f"status IN ({','.join(placeholders)})")
+                params.extend(statuses)
+            elif status:
                 where_conditions.append(f"status = ${len(params) + 1}")
                 params.append(status)
 
@@ -22040,7 +22057,10 @@ class MemoryEngine(MemoryEngineInterface):
 
         from hindsight_api.extensions.operation_validator import OperationValidationError
 
-        async with acquire_with_retry(backend) as conn:
+        async with (
+            self._tenant_extension.async_submission_scope(get_current_schema(), bank_id),
+            acquire_with_retry(backend) as conn,
+        ):
             async with conn.transaction():
                 # Serialize concurrent submits for this bank whenever the INSERT is
                 # conditional on what is already queued, so the check-and-insert is

@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  contextDBRequest,
+  type ContextDBWorkspace,
+  managementRequestId,
+  workspaceMutation,
+} from "@/lib/contextdb-api";
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -89,6 +97,7 @@ type BankConfigTab =
   | "llm-requests";
 
 export default function BankPage() {
+  const contextDB = useContextDBMode();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -185,18 +194,57 @@ export default function BankPage() {
     router.push(bankRoute(bankId, `?view=profile&bankConfigTab=${newTab}`));
   };
 
+  const [workspaceSnapshot, setWorkspaceSnapshot] = useState<ContextDBWorkspace | null>(null);
+  const deleteRequest = useRef<string | null>(null);
+  const deleteController = useRef<AbortController | null>(null);
+  useEffect(() => () => deleteController.current?.abort(), []);
+  useEffect(() => {
+    setWorkspaceSnapshot(null);
+    deleteRequest.current = null;
+    setShowDeleteDialog(false);
+    if (!contextDB || !bankId) return;
+    const controller = new AbortController();
+    // Capture this page's generation before opening a destructive confirmation.
+    // Fetching by name after confirmation could silently target its successor.
+    void contextDBRequest<ContextDBWorkspace>(`/workspaces/${encodeURIComponent(bankId)}`, {
+      signal: controller.signal,
+    })
+      .then((workspace) => {
+        if (!controller.signal.aborted && workspace.bank_id === bankId)
+          setWorkspaceSnapshot(workspace);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          toast.error(error instanceof Error ? error.message : "Unable to load workspace identity");
+      });
+    return () => controller.abort();
+  }, [bankId, contextDB]);
   const handleDeleteBank = async () => {
     if (!bankId) return;
 
     setIsDeleting(true);
     try {
-      await client.deleteBank(bankId);
+      if (contextDB) {
+        if (!workspaceSnapshot || workspaceSnapshot.bank_id !== bankId) return;
+        deleteRequest.current ??= managementRequestId();
+        deleteController.current = new AbortController();
+        await workspaceMutation(
+          `/workspaces/${bankId}`,
+          "DELETE",
+          deleteRequest.current,
+          undefined,
+          deleteController.current.signal,
+          workspaceSnapshot.etag
+        );
+        deleteRequest.current = null;
+      } else await client.deleteBank(bankId);
       setShowDeleteDialog(false);
       setCurrentBank(null);
       await loadBanks();
       router.push("/");
     } catch (error) {
-      // Error toast is shown automatically by the API client interceptor
+      if (contextDB)
+        toast.error(error instanceof Error ? error.message : "Workspace deletion failed");
     } finally {
       setIsDeleting(false);
     }
@@ -354,27 +402,29 @@ export default function BankPage() {
                           <Download className="w-4 h-4 mr-2" />
                           {t("exportTemplate")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCloneTargetId(bankId ? `${bankId}-copy` : "");
-                            setCloneIncludeData(true);
-                            setCloneIncludeBankConfig(true);
-                            setCloneIncludeHistory(false);
-                            setShowCloneDialog(true);
-                          }}
-                          disabled={!cloneEnabled}
-                          title={
-                            !cloneEnabled
-                              ? "Cloning needs the document export and import APIs enabled"
-                              : undefined
-                          }
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          {t("cloneBank")}
-                          {!cloneEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
-                          )}
-                        </DropdownMenuItem>
+                        {!contextDB && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setCloneTargetId(bankId ? `${bankId}-copy` : "");
+                              setCloneIncludeData(true);
+                              setCloneIncludeBankConfig(true);
+                              setCloneIncludeHistory(false);
+                              setShowCloneDialog(true);
+                            }}
+                            disabled={!cloneEnabled}
+                            title={
+                              !cloneEnabled
+                                ? "Cloning needs the document export and import APIs enabled"
+                                : undefined
+                            }
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            {t("cloneBank")}
+                            {!cloneEnabled && (
+                              <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            )}
+                          </DropdownMenuItem>
+                        )}
                         {llmHealthEnabled && (
                           <DropdownMenuItem onClick={() => setShowLlmHealthDialog(true)}>
                             <Activity className="w-4 h-4 mr-2" />
@@ -446,6 +496,10 @@ export default function BankPage() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setShowDeleteDialog(true)}
+                          disabled={
+                            contextDB &&
+                            (!workspaceSnapshot || workspaceSnapshot.bank_id !== bankId)
+                          }
                           className="text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
@@ -835,7 +889,7 @@ export default function BankPage() {
 
       {/* Delete Bank Confirmation Dialog */}
       {/* Clone bank */}
-      <Dialog open={showCloneDialog} onOpenChange={setShowCloneDialog}>
+      <Dialog open={!contextDB && showCloneDialog} onOpenChange={setShowCloneDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("cloneBankTitle")}</DialogTitle>
@@ -946,7 +1000,10 @@ export default function BankPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteBank}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDeleteBank();
+              }}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

@@ -1,5 +1,6 @@
-import type { NextConfig } from "next";
-import path from "path";
+// @ts-check
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -17,13 +18,13 @@ const distDir = process.env.PORT && process.env.PORT !== '9999'
 // which silently corrupts large document uploads. Default to 100MB to match the
 // dataplane's HINDSIGHT_API_FILE_CONVERSION_MAX_BATCH_SIZE_MB default; accepts a
 // human-readable size string ('100mb', '1gb') or a number of bytes.
-type SizeLimit = NonNullable<NonNullable<NextConfig['experimental']>['proxyClientMaxBodySize']>;
 const maxUploadEnv = process.env.HINDSIGHT_CP_MAX_UPLOAD_SIZE;
-const maxUploadBodySize: SizeLimit = maxUploadEnv
-  ? (/^\d+$/.test(maxUploadEnv) ? Number(maxUploadEnv) : (maxUploadEnv as SizeLimit))
+const maxUploadBodySize = maxUploadEnv
+  ? (/^\d+$/.test(maxUploadEnv) ? Number(maxUploadEnv) : /** @type {NonNullable<import('next').NextConfig['experimental']>['proxyClientMaxBodySize']} */ (maxUploadEnv))
   : '100mb';
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: 'standalone',
   distDir,
   basePath: basePath,
@@ -35,7 +36,7 @@ const nextConfig: NextConfig = {
   },
   // Set the monorepo root explicitly to avoid detecting wrong lockfiles in parent directories
   turbopack: {
-    root: path.resolve(__dirname, '..'),
+    root: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
   },
 };
 

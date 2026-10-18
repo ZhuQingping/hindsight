@@ -54,6 +54,7 @@ def warn_if_container_default_worker_id(worker_id: str | None) -> None:
 
 
 def mask_network_location(url):
+    """Logging-only URL: hide userinfo and omit credential-bearing query/fragment."""
     if not url:
         return url
     parsed_url = urlparse(url)
@@ -62,4 +63,4 @@ def mask_network_location(url):
         masked_network_location += f":{parsed_url.port}"
     if parsed_url.username or parsed_url.password:
         masked_network_location = f"***:***@{masked_network_location}"
-    return urlunparse(parsed_url._replace(netloc=masked_network_location))
+    return urlunparse(parsed_url._replace(netloc=masked_network_location, query="", fragment=""))

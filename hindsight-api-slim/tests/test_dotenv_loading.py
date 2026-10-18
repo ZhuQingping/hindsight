@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 API_SOURCE = str(Path(__file__).parents[1])
 
 
@@ -55,6 +57,7 @@ def test_entrypoint_dotenv_loading_is_authoritative(tmp_path: Path, monkeypatch)
     child_dir = tmp_path / "child"
     child_dir.mkdir()
     monkeypatch.chdir(child_dir)
+    monkeypatch.delenv("HINDSIGHT_API_ENV_FILE", raising=False)
     monkeypatch.setenv("HINDSIGHT_TEST_OVERRIDDEN", "from-process")
     monkeypatch.delenv("HINDSIGHT_TEST_FILLED", raising=False)
 
@@ -70,6 +73,30 @@ def test_entrypoint_dotenv_loading_is_authoritative(tmp_path: Path, monkeypatch)
     # Don't leak the .env-loaded key into the rest of the session; monkeypatch
     # cannot undo it because load_dotenv set it directly.
     monkeypatch.delenv("HINDSIGHT_TEST_FILLED", raising=False)
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_managed_entrypoint_disables_discovery_or_loads_exact_file(tmp_path: Path, monkeypatch, explicit: bool) -> None:
+    (tmp_path / ".env").write_text("HINDSIGHT_TEST_MANAGED=wrong-parent\n")
+    selected = tmp_path / "deployment.env"
+    selected.write_text("HINDSIGHT_TEST_MANAGED=selected-file\n")
+    child = tmp_path / "child"
+    child.mkdir()
+    monkeypatch.chdir(child)
+    monkeypatch.setenv("HINDSIGHT_TEST_MANAGED", "injected")
+    monkeypatch.setenv("HINDSIGHT_API_ENV_FILE", str(selected) if explicit else "")
+    from hindsight_api.config import load_dotenv_for_entrypoint
+
+    load_dotenv_for_entrypoint()
+    assert os.environ["HINDSIGHT_TEST_MANAGED"] == ("selected-file" if explicit else "injected")
+
+
+def test_explicit_missing_environment_file_fails_closed(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("HINDSIGHT_API_ENV_FILE", str(tmp_path / "absent.env"))
+    from hindsight_api.config import load_dotenv_for_entrypoint
+
+    with pytest.raises(ValueError, match="does not exist"):
+        load_dotenv_for_entrypoint()
 
 
 def test_server_entrypoint_loads_dotenv_before_engine_semaphores(tmp_path: Path) -> None:

@@ -11,6 +11,7 @@ import re
 import sys
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Literal, Union, cast
 
 from dotenv import find_dotenv, load_dotenv
@@ -48,7 +49,17 @@ def load_dotenv_for_entrypoint() -> None:
     Clearing here means the next read rebuilds against the environment this function
     just finished assembling.
     """
-    load_dotenv(find_dotenv(usecwd=True), override=True)
+    # Managed deployments must be able to prevent a parent checkout's .env from
+    # overriding injected PG/credential settings. Unset keeps native behavior;
+    # an explicitly empty value disables discovery, a path selects one file.
+    configured = os.environ.get("HINDSIGHT_API_ENV_FILE")
+    if configured is None:
+        load_dotenv(find_dotenv(usecwd=True), override=True)
+    elif configured:
+        path = Path(configured)
+        if not path.is_file():
+            raise ValueError("The configured Hindsight environment file does not exist")
+        load_dotenv(path, override=True)
     clear_config_cache()
 
 

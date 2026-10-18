@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
+from starlette.middleware import Middleware
 
 from hindsight_api.extensions.base import Extension
 
@@ -99,3 +100,13 @@ class HttpExtension(Extension, ABC):
         Returns None by default (no root routes). Override to provide root-level routes.
         """
         return None
+
+    def get_middleware(self, memory: "MemoryEngine") -> list[Middleware]:
+        """Optional pure-ASGI transport guards, including mounted MCP requests.
+
+        A router alone cannot observe native request completion. Extensions which
+        coordinate resource teardown can opt in without changing default routing.
+        Middleware must preserve streaming and cancellation; do not use
+        BaseHTTPMiddleware. The default adds no middleware.
+        """
+        return []

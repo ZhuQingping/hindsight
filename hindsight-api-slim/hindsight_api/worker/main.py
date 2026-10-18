@@ -292,7 +292,9 @@ def main():
 
         await memory.initialize()
 
-        print(f"Database connected: {config.database_url}")
+        from hindsight_api.utils import mask_network_location
+
+        print(f"Database connected: {mask_network_location(config.database_url)}")
 
         if tenant_extension:
             print("Tenant extension loaded - schemas will be discovered dynamically on each poll")
@@ -419,6 +421,8 @@ def main():
                 pass
 
         # Close memory engine
+        if memory.tenant_extension is not None:
+            await memory.tenant_extension.on_shutdown()
         await memory.close()
 
         # Flush queued spans before exiting: a consolidation span can be minutes

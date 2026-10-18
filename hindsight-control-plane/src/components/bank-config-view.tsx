@@ -1,5 +1,7 @@
 "use client";
 
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useBank } from "@/lib/bank-context";
@@ -445,6 +447,7 @@ const DEFAULT_PROFILE: ProfileData = {
 // ─── BankConfigView ───────────────────────────────────────────────────────────
 
 export function BankConfigView() {
+  const contextDB = useContextDBMode();
   const t = useTranslations("bankConfig");
   const tMentalModels = useTranslations("mentalModels");
   const { currentBank: bankId } = useBank();
@@ -1252,7 +1255,7 @@ export function BankConfigView() {
           saving={mcpSaving}
           onSave={saveMCP}
         >
-          <BankAliasRows bankId={bankId} />
+          {!contextDB && <BankAliasRows bankId={bankId} />}
           <FieldRow label={t("restrictToolsLabel")} description={t("restrictToolsDescription")}>
             <div className="flex items-center gap-2 justify-end">
               <Switch

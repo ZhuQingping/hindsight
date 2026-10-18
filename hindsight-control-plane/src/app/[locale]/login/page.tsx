@@ -1,5 +1,6 @@
 "use client";
 
+import { useContextDBMode } from "@/lib/contextdb-mode";
 import { Suspense, useState, FormEvent, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -12,6 +13,8 @@ import Image from "next/image";
 
 function LoginForm() {
   const t = useTranslations("login");
+  const tContextDB = useTranslations("contextDB");
+  const contextDB = useContextDBMode();
   const [key, setKey] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +43,7 @@ function LoginForm() {
       });
 
       if (res.ok) {
+        setKey("");
         // Navigate to the returnTo URL
         router.push(returnTo);
         router.refresh();
@@ -69,7 +73,9 @@ function LoginForm() {
             className="mx-auto"
             unoptimized
           />
-          <CardDescription>{t("description")}</CardDescription>
+          <CardDescription>
+            {contextDB ? tContextDB("loginDescription") : t("description")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,7 +83,12 @@ function LoginForm() {
               <Input
                 id="access-key"
                 type="password"
-                placeholder={t("accessKeyPlaceholder")}
+                placeholder={
+                  contextDB ? tContextDB("passwordPlaceholder") : t("accessKeyPlaceholder")
+                }
+                aria-label={
+                  contextDB ? tContextDB("passwordPlaceholder") : t("accessKeyPlaceholder")
+                }
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 autoComplete="off"

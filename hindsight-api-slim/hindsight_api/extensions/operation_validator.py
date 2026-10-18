@@ -518,6 +518,10 @@ class MentalModelGetContext:
     bank_id: str
     mental_model_id: str
     request_context: "RequestContext"
+    # Only the engine sets this after authorizing the knowledge-page read. The
+    # same backing model may expose richer data through the direct model API,
+    # so validators need to distinguish the two without trusting client headers.
+    read_origin: Literal["mental_model", "knowledge_page"] = "mental_model"
 
 
 @dataclass

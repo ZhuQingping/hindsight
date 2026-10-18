@@ -1,6 +1,8 @@
 """Tenant Extension for multi-tenancy and API key authentication."""
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -201,6 +203,33 @@ class TenantExtension(Extension, ABC):
         The default does nothing.
         """
         return None
+
+    @asynccontextmanager
+    async def async_submission_scope(self, schema: str, bank_id: str) -> AsyncIterator[None]:
+        """Optional resource admission spanning a native queue submission.
+
+        Entered BEFORE acquiring an engine connection, then held through the
+        queue transaction. Waiting for resource teardown must not occupy the
+        engine pool and starve already admitted requests. No
+        network authentication is implied: callers still pass the normal engine
+        validators. The default is a no-op for every existing backend/extension.
+        """
+        yield
+
+    @asynccontextmanager
+    async def async_execution_scope(
+        self, schema: str | None, bank_id: str, tenant_id: str | None
+    ) -> AsyncIterator[None]:
+        """Optional resource guard for an entire claimed worker execution.
+
+        Includes executor work and the poller's final/retry status writes. A
+        cancelled queue row does not prove its cooperative executor has stopped.
+        Extensions with reusable physical namespaces can reserve the immutable
+        resource generation here before any task SQL runs. Entry failure must
+        not trigger a status write into the rejected namespace. The default is
+        a no-op, preserving existing backend and tenant behavior.
+        """
+        yield
 
     async def authenticate_mcp(self, context: RequestContext) -> TenantContext:
         """

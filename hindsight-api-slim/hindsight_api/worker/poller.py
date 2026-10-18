@@ -33,6 +33,10 @@ from .backpressure import is_store_backpressure
 from .exceptions import DeferOperation, RetryTaskAt, format_task_error
 
 
+class _ExecutionNotQuiescent(Exception):
+    """Internal scope signal; task outcome was handled but old writers are uncertain."""
+
+
 def _backpressure_defer_seconds() -> int:
     """How long a task the store shed for backpressure is held before a retry.
 
@@ -1090,7 +1094,7 @@ class WorkerPoller:
         # Create background task. The holder is passed in and bound to the
         # task's own contextvar scope inside _execute_task_inner so engine
         # code running under that task sees it via stage.set_stage().
-        bg_task = asyncio.create_task(self._execute_task_inner(task, holder))
+        bg_task = asyncio.create_task(self._execute_task_guarded(task, holder))
 
         # Track this task as active
         async with self._in_flight_lock:
@@ -1108,6 +1112,32 @@ class WorkerPoller:
 
         # Add cleanup callback
         bg_task.add_done_callback(lambda _: asyncio.create_task(self._cleanup_task(task.operation_id, operation_type)))
+
+    async def _execute_task_guarded(self, task: ClaimedTask, holder: StageHolder | None = None) -> None:
+        """Reserve a tenant generation through work AND final status writes.
+
+        Scope entry is deliberately outside _execute_task_inner's error handler:
+        a rejected old generation must never be marked failed in a same-named
+        successor schema. Consume guard failures here so fire-and-forget tasks
+        cannot produce unretrieved exceptions or leak extension diagnostics.
+        """
+        try:
+            async with self._tenant_extension.async_execution_scope(
+                task.schema, task.task_dict.get("bank_id", "unknown"), task.task_dict.get("_tenant_id")
+            ):
+                if not await self._execute_task_inner(task, holder):
+                    # Task failure may have interrupted an asynchronous writer;
+                    # let resource guards keep their durable recovery barrier.
+                    # The inner handler has already written the task outcome.
+                    raise _ExecutionNotQuiescent
+        except _ExecutionNotQuiescent:
+            pass
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.warning(
+                "Worker task %s resource admission failed; no additional status write attempted", task.operation_id
+            )
 
     async def _cleanup_task(self, operation_id: str, operation_type: str):
         """Remove task from tracking after completion."""
@@ -1180,13 +1210,14 @@ class WorkerPoller:
         except Exception as e:
             logger.warning(f"Wall-timeout notification failed for task {task.operation_id}: {e}")
 
-    async def _execute_task_inner(self, task: ClaimedTask, holder: StageHolder | None = None):
+    async def _execute_task_inner(self, task: ClaimedTask, holder: StageHolder | None = None) -> bool:
         """Inner task execution with retry/fail handling.
 
         Tasks that want to be retried raise RetryTaskAt; the poller sets next_retry_at
         and resets status to 'pending'. All other exceptions are marked as failed immediately.
         Non-retryable failures (e.g., file_convert_retain) are handled by the executor
         internally — it marks the operation as failed and returns normally.
+        Returns whether execution/status handling ended without an uncertain writer.
         """
         task_type = task.task_dict.get("type", "unknown")
         bank_id = task.task_dict.get("bank_id", "unknown")
@@ -1208,6 +1239,7 @@ class WorkerPoller:
         metrics = get_metrics_collector()
         # None = not a terminal outcome (deferred/retried) → no metric.
         terminal_success: bool | None = None
+        quiescent = True
 
         # Bind the stage holder in this task's own contextvar scope so engine
         # code running under us can update it via stage.set_stage(). If holder
@@ -1225,6 +1257,7 @@ class WorkerPoller:
             await self._run_executor(task, task_type, holder)
             logger.debug(f"Task {task.operation_id} execution finished")
         except _WallTimeoutExceeded as e:
+            quiescent = False
             # The executor has already been cancelled; all that's left is to say so
             # clearly. Handled apart from the generic branch below so the operator
             # sees the wedge for what it is rather than a bare "TimeoutError", and
@@ -1239,11 +1272,13 @@ class WorkerPoller:
         except DeferOperation as e:
             # Deferral is not a terminal outcome — do not record a completion.
             defer = e
-            await self._write_terminal(task, "deferred", lambda: self._defer_all(task, defer.exec_date, defer.reason))
+            quiescent = await self._write_terminal(
+                task, "deferred", lambda: self._defer_all(task, defer.exec_date, defer.reason)
+            )
         except RetryTaskAt as e:
             # Retry is not a terminal outcome — do not record a completion.
             retry = e
-            await self._write_terminal(
+            quiescent = await self._write_terminal(
                 task, "retry", lambda: self._schedule_retry_all(task, retry.retry_at, str(retry))
             )
         except Exception as e:
@@ -1262,10 +1297,10 @@ class WorkerPoller:
                     str(e)[:200],
                 )
                 reason = f"store backpressure: {str(e)[:400]}"
-                await self._write_terminal(task, "deferred", lambda: self._defer_all(task, retry_at, reason))
-                return
+                return await self._write_terminal(task, "deferred", lambda: self._defer_all(task, retry_at, reason))
             # exc_info rather than print_exc(): the stderr copy carries no task id
             # and is the first thing lost to log rotation (issue #3218).
+            quiescent = False
             error_message = format_task_error(e)
             logger.error(f"Task {task.operation_id} failed: {error_message}", exc_info=True)
             await self._write_terminal(task, "failed", lambda: self._mark_all_failed(task, error_message))
@@ -1273,7 +1308,8 @@ class WorkerPoller:
         else:
             # Outside the except clauses on purpose: the work already ran, so a
             # failing 'completed' write must never be turned into 'failed'.
-            if await self._write_terminal(task, "completed", lambda: self._mark_all_completed(task)):
+            quiescent = await self._write_terminal(task, "completed", lambda: self._mark_all_completed(task))
+            if quiescent:
                 terminal_success = True
 
         # Record the metric outside the executor's exception scope so a metrics
@@ -1285,6 +1321,8 @@ class WorkerPoller:
                 )
             except Exception:
                 logger.warning(f"Failed to record worker operation metric for {task.operation_id}", exc_info=True)
+
+        return quiescent
 
     async def _write_terminal(self, task: ClaimedTask, status: str, write: Callable[[], Awaitable[None]]) -> bool:
         """Run a final status write, retrying until it lands or the deadline passes.

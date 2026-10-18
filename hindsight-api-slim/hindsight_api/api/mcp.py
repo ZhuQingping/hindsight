@@ -1,11 +1,19 @@
 """Hindsight MCP Server implementation using FastMCP (HTTP transport)."""
 
+from __future__ import annotations
+
 import json
 import logging
 import os
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager, ExitStack, contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass, field
+from typing import Any, cast
 
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_request
+from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 
 from hindsight_api import MemoryEngine
 from hindsight_api import __version__ as HINDSIGHT_VERSION
@@ -62,6 +70,88 @@ _current_mcp_authenticated: ContextVar[bool] = ContextVar("current_mcp_authentic
 # (HINDSIGHT_API_EXTENSION_PASSTHROUGH_HEADERS). Defaults to None rather than {}
 # so no single dict is shared as a default across requests.
 _current_extra_headers: ContextVar[dict[str, str] | None] = ContextVar("current_extra_headers", default=None)
+
+
+@dataclass(frozen=True)
+class MCPRequestIdentity:
+    """Transport-authenticated identity, attached to each actual HTTP request.
+
+    Stateful MCP handlers inherit the initialization task's ContextVars. The
+    request metadata, unlike those variables, belongs to the current message.
+    Never reconstruct this snapshot from caller-supplied identity headers.
+    """
+
+    bank_id: str
+    schema: str | None
+    api_key: str | None = field(repr=False)
+    tenant_id: str | None
+    api_key_id: str | None
+    mcp_authenticated: bool
+    extra_headers: dict[str, str]
+
+
+@contextmanager
+def _restore_request_identity(identity: MCPRequestIdentity) -> Iterator[None]:
+    bank_token = _current_bank_id.set(identity.bank_id)
+    schema_token = _current_schema.set(identity.schema)
+    key_token = _current_api_key.set(identity.api_key)
+    tenant_token = _current_tenant_id.set(identity.tenant_id)
+    key_id_token = _current_api_key_id.set(identity.api_key_id)
+    authenticated_token = _current_mcp_authenticated.set(identity.mcp_authenticated)
+    headers_token = _current_extra_headers.set(dict(identity.extra_headers))
+    try:
+        yield
+    finally:
+        _current_extra_headers.reset(headers_token)
+        _current_mcp_authenticated.reset(authenticated_token)
+        _current_api_key_id.reset(key_id_token)
+        _current_tenant_id.reset(tenant_token)
+        _current_api_key.reset(key_token)
+        _current_schema.reset(schema_token)
+        _current_bank_id.reset(bank_token)
+
+
+class MCPRequestContextMiddleware(Middleware):
+    """Restore current-message identity before tool discovery or execution.
+
+    Extensions may attach a synchronous context-manager factory to the trusted
+    ASGI scope to restore their own request-local state (for example admission
+    locks). Core need not import a service extension or understand its policy.
+    """
+
+    async def on_request(self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]) -> Any:
+        try:
+            request = get_http_request()
+        except RuntimeError:
+            # Embedded/in-process and stdio callers have no HTTP transport state.
+            return await call_next(context)
+        identity = request.scope.get("hindsight.mcp_identity")
+        if not isinstance(identity, MCPRequestIdentity):
+            # A directly embedded FastMCP app need not use our HTTP transport.
+            # Native HTTP always supplies the snapshot after authenticating it.
+            return await call_next(context)
+        with ExitStack() as stack:
+            stack.enter_context(_restore_request_identity(identity))
+            restore = request.scope.get("hindsight.request_context_restore")
+            if restore is not None:
+                factory = cast(Callable[[], AbstractContextManager[None]], restore)
+                stack.enter_context(factory())
+            return await call_next(context)
+
+
+def _report_request_failure() -> None:
+    """Notify a trusted HTTP extension when a tool hides an unexpected fault.
+
+    Resolve the current message's scope, not the initialization task's context.
+    No client header, exception, credential or memory payload is forwarded.
+    """
+    try:
+        request = get_http_request()
+    except RuntimeError:
+        return  # Embedded/stdio tools have no HTTP admission extension.
+    reporter = request.scope.get("hindsight.request_context_failure")
+    if callable(reporter):
+        reporter()
 
 
 def get_current_bank_id() -> str | None:
@@ -124,6 +214,7 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
         Configured FastMCP server instance
     """
     mcp = FastMCP("hindsight-mcp-server", version=HINDSIGHT_VERSION)
+    mcp.add_middleware(MCPRequestContextMiddleware())
 
     global_config = _get_raw_config()
 
@@ -193,6 +284,7 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
         tools=set(base_tools) if base_tools is not None else None,
         retain_description=retain_description,
         recall_description=recall_description,
+        failure_reporter=_report_request_failure,
     )
 
     register_mcp_tools(mcp, memory, config)
@@ -555,6 +647,18 @@ class MCPMiddleware:
         extra_headers_token = _current_extra_headers.set(passthrough_headers)
         try:
             new_scope = scope.copy()
+            # The MCP SDK puts this exact scope on each message's Request. A
+            # later POST in the same session must never reuse initialize's Key,
+            # schema or service-extension admission ContextVars.
+            new_scope["hindsight.mcp_identity"] = MCPRequestIdentity(
+                bank_id=bank_id,
+                schema=_current_schema.get(),
+                api_key=auth_token,
+                tenant_id=auth_tenant_id,
+                api_key_id=auth_api_key_id,
+                mcp_authenticated=mcp_pre_authenticated,
+                extra_headers=dict(passthrough_headers),
+            )
             new_scope["path"] = new_path
             # Clear root_path since we're passing directly to the app
             new_scope["root_path"] = ""

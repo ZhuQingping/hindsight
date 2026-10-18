@@ -3023,3 +3023,7 @@ HINDSIGHT_CP_DATAPLANE_API_URL=http://localhost:8888
 ---
 
 For configuration issues not covered here, please [open an issue](https://github.com/vectorize-io/hindsight/issues) on GitHub.
+
+### Entrypoint environment file
+
+`HINDSIGHT_API_ENV_FILE` controls `.env` loading by the API, Worker and admin entrypoints. If unset, the existing current-directory/parent search and file-over-environment precedence are preserved. Set it to an empty string to use injected process settings without discovery, or to an explicit file path to load only that file. A missing explicit file is an error. Library imports do not load files. Managed deployments should use an empty value after loading their protected configuration so a nearby checkout cannot silently replace their database or model settings.

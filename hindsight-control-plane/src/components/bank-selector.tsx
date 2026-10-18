@@ -1,5 +1,8 @@
 "use client";
 
+import { managementRequestId, workspaceMutation } from "@/lib/contextdb-api";
+import { useContextDBMode } from "@/lib/contextdb-mode";
+
 import * as React from "react";
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -99,6 +102,8 @@ function formatTimeAgo(isoDate: string): string {
 }
 
 function BankSelectorInner() {
+  const contextDB = useContextDBMode();
+  const tContextDB = useTranslations("contextDB");
   const router = useRouter();
   const searchParams = useSearchParams();
   const tNav = useTranslations("nav");
@@ -127,6 +132,9 @@ function BankSelectorInner() {
   const [logoSpinning, setLogoSpinning] = React.useState(false);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [newBankId, setNewBankId] = React.useState("");
+  const createController = React.useRef<AbortController | null>(null);
+  React.useEffect(() => () => createController.current?.abort(), []);
+  const createRequest = React.useRef<{ name: string; id: string } | null>(null);
   const [isCreating, setIsCreating] = React.useState(false);
   const [createError, setCreateError] = React.useState<string | null>(null);
   const [useTemplate, setUseTemplate] = React.useState(false);
@@ -216,7 +224,9 @@ function BankSelectorInner() {
   // The banks overview page has its own "create bank" button; the dialog (with its
   // template import) lives here, so that button asks for it rather than duplicating it.
   React.useEffect(() => {
-    const openCreate = () => setCreateDialogOpen(true);
+    const openCreate = () => {
+      setCreateDialogOpen(true);
+    };
     window.addEventListener("hindsight:create-bank", openCreate);
     return () => window.removeEventListener("hindsight:create-bank", openCreate);
   }, []);
@@ -265,18 +275,33 @@ function BankSelectorInner() {
   }, [hasMoreBanks, listEl, sentinelEl, loadMoreBanks, bankInfos.length]);
 
   const handleCreateBank = async () => {
-    if (!newBankId.trim()) return;
+    if (!newBankId.trim() || (contextDB && !/^[A-Za-z][A-Za-z0-9_]{0,53}$/.test(newBankId.trim())))
+      return;
 
     setIsCreating(true);
     setCreateError(null);
     setTemplateError(null);
 
     try {
-      // Create the bank first
-      await client.createBank(newBankId.trim());
+      let createdId = newBankId.trim();
+      if (contextDB) {
+        if (createRequest.current?.name !== newBankId.trim())
+          createRequest.current = { name: newBankId.trim(), id: managementRequestId() };
+        createController.current = new AbortController();
+        await workspaceMutation(
+          "/workspaces",
+          "POST",
+          createRequest.current.id,
+          {
+            name: newBankId.trim(),
+          },
+          createController.current.signal
+        );
+        createdId = newBankId.normalize("NFKC").trim().toLowerCase();
+      } else await client.createBank(createdId);
 
       // If template JSON is provided, import it
-      if (templateJson.trim()) {
+      if (!contextDB && templateJson.trim()) {
         let manifest: Record<string, unknown>;
         try {
           manifest = JSON.parse(templateJson.trim());
@@ -305,8 +330,9 @@ function BankSelectorInner() {
       setTemplateJson("");
       setTemplateError(null);
       // Navigate to the new bank
-      setCurrentBank(newBankId.trim());
-      router.push(bankRoute(newBankId.trim(), "?view=data"));
+      createRequest.current = null;
+      setCurrentBank(createdId);
+      router.push(bankRoute(createdId, "?view=data"));
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : tAddDocument("failedToCreateBank"));
     } finally {
@@ -801,6 +827,12 @@ function BankSelectorInner() {
         {/* Separator */}
         <div className="h-8 w-px bg-border" />
 
+        {contextDB && (
+          <Button variant="outline" onClick={() => router.push("/users")}>
+            {tContextDB("title")}
+          </Button>
+        )}
+
         {/* Add Document Button */}
         {currentBank && (
           <Button
@@ -868,15 +900,30 @@ function BankSelectorInner() {
           </>
         )}
 
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <Dialog
+          open={createDialogOpen}
+          onOpenChange={(open) => {
+            if (!isCreating) setCreateDialogOpen(open);
+          }}
+        >
           <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
-              <DialogTitle>{tAddDocument("createBankTitle")}</DialogTitle>
+              <DialogTitle>
+                {contextDB ? tContextDB("createWorkspace") : tAddDocument("createBankTitle")}
+              </DialogTitle>
             </DialogHeader>
             <div className="py-4 space-y-4">
               <Input
-                placeholder={tAddDocument("createBankIdPlaceholder")}
+                placeholder={
+                  contextDB ? tContextDB("workspaceName") : tAddDocument("createBankIdPlaceholder")
+                }
+                aria-label={
+                  contextDB ? tContextDB("workspaceName") : tAddDocument("createBankIdPlaceholder")
+                }
                 value={newBankId}
+                maxLength={contextDB ? 54 : undefined}
+                pattern={contextDB ? "[A-Za-z][A-Za-z0-9_]{0,53}" : undefined}
+                aria-describedby={contextDB ? "selector-workspace-name-help" : undefined}
                 onChange={(e) => setNewBankId(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !isCreating && !useTemplate) {
@@ -885,34 +932,41 @@ function BankSelectorInner() {
                 }}
                 autoFocus
               />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={useTemplate}
-                    onCheckedChange={(checked) => {
-                      setUseTemplate(checked);
-                      if (!checked) {
-                        setTemplateJson("");
-                        setTemplateError(null);
-                      }
-                    }}
-                  />
-                  <label className="text-sm font-medium">
-                    {tAddDocument("importFromTemplateLabel")}
-                  </label>
+              {contextDB && (
+                <p id="selector-workspace-name-help" className="text-sm text-muted-foreground">
+                  {tContextDB("workspaceNameHelp")}
+                </p>
+              )}
+              {!contextDB && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={useTemplate}
+                      onCheckedChange={(checked) => {
+                        setUseTemplate(checked);
+                        if (!checked) {
+                          setTemplateJson("");
+                          setTemplateError(null);
+                        }
+                      }}
+                    />
+                    <label className="text-sm font-medium">
+                      {tAddDocument("importFromTemplateLabel")}
+                    </label>
+                  </div>
+                  {useTemplate && (
+                    <a
+                      href="https://hindsight.vectorize.io/templates"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {tAddDocument("browseTemplates")}
+                    </a>
+                  )}
                 </div>
-                {useTemplate && (
-                  <a
-                    href="https://hindsight.vectorize.io/templates"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {tAddDocument("browseTemplates")}
-                  </a>
-                )}
-              </div>
-              {useTemplate && (
+              )}
+              {!contextDB && useTemplate && (
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">
                     {tAddDocument("templateManifestHelp")}
@@ -936,6 +990,7 @@ function BankSelectorInner() {
             <DialogFooter>
               <Button
                 variant="secondary"
+                disabled={isCreating}
                 onClick={() => {
                   setCreateDialogOpen(false);
                   setNewBankId("");
@@ -947,7 +1002,14 @@ function BankSelectorInner() {
               >
                 {tCommon("cancel")}
               </Button>
-              <Button onClick={handleCreateBank} disabled={isCreating || !newBankId.trim()}>
+              <Button
+                onClick={handleCreateBank}
+                disabled={
+                  isCreating ||
+                  !newBankId.trim() ||
+                  (contextDB && !/^[A-Za-z][A-Za-z0-9_]{0,53}$/.test(newBankId.trim()))
+                }
+              >
                 {isCreating ? tAddDocument("creating") : tCommon("create")}
               </Button>
             </DialogFooter>

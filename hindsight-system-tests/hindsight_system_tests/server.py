@@ -173,7 +173,12 @@ def stub_environment(stub_url: str) -> dict[str, str]:
 
 
 def start_hindsight_server(
-    *, stub_url: str, log_path: Path, extra_env: dict[str, str] | None = None
+    *,
+    stub_url: str,
+    log_path: Path,
+    extra_env: dict[str, str] | None = None,
+    database_url: str | None = None,
+    python_executable: str | None = None,
 ) -> HindsightServer:
     port = free_port()
 
@@ -194,7 +199,7 @@ def start_hindsight_server(
 
     env.update(
         {
-            "HINDSIGHT_API_DATABASE_URL": f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
+            "HINDSIGHT_API_DATABASE_URL": database_url or f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
             "HINDSIGHT_API_HOST": "127.0.0.1",
             "HINDSIGHT_API_PORT": str(port),
             "HINDSIGHT_API_LOG_LEVEL": "info",
@@ -221,7 +226,13 @@ def start_hindsight_server(
 
     log_file = log_path.open("w")
     process = subprocess.Popen(
-        ["uv", "run", "--project", str(API_DIR), "hindsight-api"],
+        # An isolated extension story supplies its own DB and an existing test
+        # interpreter, avoiding an automatic sync of the developer's runtime env.
+        (
+            [python_executable, "-m", "hindsight_api.main"]
+            if python_executable
+            else ["uv", "run", "--project", str(API_DIR), "hindsight-api"]
+        ),
         cwd=run_dir,
         env=env,
         stdout=log_file,
@@ -230,7 +241,16 @@ def start_hindsight_server(
 
     url = f"http://127.0.0.1:{port}"
     server = HindsightServer(url=url, log_path=log_path, _process=process)
-    _wait_until_healthy(server)
+    try:
+        _wait_until_healthy(server)
+    except BaseException:
+        # Startup never returned ownership to the fixture. Stop this process here
+        # so readiness failure/interruption cannot leave an orphan test server.
+        server.stop()
+        raise
+    finally:
+        # Popen has its own descriptor; the parent does not need to retain one.
+        log_file.close()
     return server
 
 

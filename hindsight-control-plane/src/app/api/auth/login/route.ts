@@ -1,3 +1,4 @@
+import { contextDBEnabled, verifyContextDBAdmin, requireSameOrigin } from "@/lib/contextdb";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 
@@ -9,6 +10,10 @@ import {
 } from "@/lib/auth/session";
 
 export async function POST(request: NextRequest) {
+  if (contextDBEnabled()) {
+    const denied = requireSameOrigin(request);
+    if (denied) return denied;
+  }
   const accessKey = process.env.HINDSIGHT_CP_ACCESS_KEY;
 
   // If no access key is configured, return 503
@@ -38,7 +43,7 @@ export async function POST(request: NextRequest) {
   const providedKey = body.key;
 
   // Constant-time comparison to prevent timing attacks
-  const isValid = providedKey && constantTimeCompare(providedKey, accessKey);
+  const isValid = typeof providedKey === "string" && constantTimeCompare(providedKey, accessKey);
 
   if (!isValid) {
     return NextResponse.json(
@@ -50,7 +55,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const response = NextResponse.json({ success: true });
+  if (contextDBEnabled()) {
+    const denied = await verifyContextDBAdmin();
+    if (denied) return denied;
+  }
+  const response = NextResponse.json(
+    { success: true },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 
   response.cookies.set({
     name: ACCESS_KEY_COOKIE,

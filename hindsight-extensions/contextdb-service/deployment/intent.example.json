@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "instance_id": "example-instance",
+  "cloud_tenant_id": "example-tenant",
+  "topology": "split",
+  "database_url_file": "/srv/contextdb/input/database-url",
+  "maas_api_key_file": "/srv/contextdb/input/maas-key",
+  "ui_password_file": "/srv/contextdb/input/ui-password",
+  "api_port": 8888,
+  "ui_port": 9999,
+  "ui_api_url": "http://api:8888",
+  "language": "multilingual",
+  "text_search": "pgroonga",
+  "worker_id": "example-instance-worker-1",
+  "db_pool_max": 10,
+  "llm_model": "deepseek-v4.1-flash"
+}
