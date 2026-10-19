@@ -1,6 +1,8 @@
 # 整合交付结果
 
-`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / READY_FOR_DRAFT_PR`，2026-10-19。源码检查点`5d350568ae3d7537e452999cb6d0fae86b64563b`；未合并main、未公开发行。
+`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`，2026-10-19。源码检查点`5d350568ae3d7537e452999cb6d0fae86b64563b`；未合并main、未公开发行。
+
+[Draft PR #8](https://github.com/RSIXDB/hindsight/pull/8)已创建，base为main，双方成果位于同一个整合分支；原PR #5保留。
 
 本方独立品牌/UI候选`b799f721`与同事PR #3净10提交已经整合到`integration/agentstratum-brand-ui-clients-20261019`。实际同事输入为`fd69ec9bf..2885dd33b`，采用有原作者与`-x`来源的逐提交重放，排除旧hosted分支另33提交。本方多用户、多Key管理、Workspace schema隔离继续排除。原生auth extensions与migrations相对固定main没有diff。
 
@@ -40,7 +42,7 @@ UI制品SHA-256：`7bb60c91851cc4d621a55293f66a18bc9e9a2c568ffe4717e8dffd4f65e11
 - 内存/pid由内核限制，主进程3GiB/256、PG512MiB/96；CPU affinity为0–1。请求1.5核quota但此WSL未内核落实，准确标为false，实际CPU上界2核。
 - API的71项local-ml测试与Coding Agents的6项system-sqlite3测试未执行；实际provider均为显式本地stub，不是模型质量或真实模型服务验收。
 - 远端CI、多平台发行、真实第三方宿主全新安装会话、OBS/CDN公开渠道与生产部署尚未执行。下载根仍用明确占位符，没有编造地址。
-- Linux release候选与许可证已完成，独立源码终审I1–I4全部关闭、零Must fix；工件独立复审也通过，正在完成Draft PR交付。主干合并仍交用户决定。
+- Linux release候选与许可证已完成，独立源码终审I1–I4全部关闭、零Must fix；工件独立复审也通过，已推送并创建Draft PR #8。主干合并仍交用户决定。
 
 ## 整合预览与本地候选
 

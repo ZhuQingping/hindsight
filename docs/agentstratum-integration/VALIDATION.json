@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED",
+  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
   "date": "2026-10-19",
   "source_commit": "5d350568ae3d7537e452999cb6d0fae86b64563b",
   "baseline": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
@@ -240,9 +240,7 @@
     "system sqlite3-backed Coding Agents tests (6 skipped)",
     "remote GitHub CI (not completed locally)"
   ],
-  "remaining": [
-    "push and draft PR"
-  ],
+  "remaining": [],
   "cli_dependency_lock": {
     "sha256": "4bb538369ccad31e41ecb28454cac40306c24257d33acff6589c4f664aa90a05",
     "archive": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/integration-20261019/checks-04/Cargo.lock",
@@ -412,8 +410,16 @@
     "original_worktree_head": "b799f721f58e44b27a59cbabff6e8e1f32f030a6",
     "original_worktree_dirty": false,
     "branch": "integration/agentstratum-brand-ui-clients-20261019",
-    "draft_pr": null,
-    "main_merged": false
+    "draft_pr": {
+      "number": 8,
+      "url": "https://github.com/RSIXDB/hindsight/pull/8",
+      "base": "main",
+      "is_draft": true,
+      "state": "OPEN"
+    },
+    "main_merged": false,
+    "pushed": true,
+    "head_note": "Source is pinned to 5d350568; subsequent integration-branch commits contain delivery documentation only."
   },
   "resource_notes": "Completed acceptance fixtures stopped with data preserved. Separate preview-01 lease remains READY for at most two hours; not claimed as stopped.",
   "review_report_sha256": "e475fe389bd3ce75a9ae8ba31171d99ef25901f2934892bd7d0724595db87157"

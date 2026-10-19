@@ -27,3 +27,5 @@ Rust SDK真实回归通过（独立tracked SDK lock只增regress依赖）。CLI�
 最终runtime04 PASS（19组）与5个SDK黑盒全部通过，源码5d350568、production artifact7bb60c…，owned PG停止/数据保留。独立源码终审复算3314源码hash849aed…、974来源路径及825制品文件全部零漂移，I1–I4关闭/零Mustfix。release01的cargo-about未启cli feature导致未产binary已记FAIL；release02显式cli feature安装并验证version，独立lock许可fetch/about offline扫描、默认release构建、9项release进程回归、四类候选CRC/checksum全部通过。preview01按唯一锁等release退出后启动，28920/28921/28922新owned数据，READY；相同UI制品、3banks5docs13facts，实际release CLI读native列表smoke成功，旧预览/其他session数据不动。
 
 独立工件复审PASS_LOCAL_CANDIDATE_ARTIFACT_REVIEW：12个manifest摘要、7个checksum目标、ZIP/tgz CRC/许可证/无daemon入口、Linux ELF、release9与CLI API smoke均核对，源码无漂移，无新增Mustfix。远端main只读再次核对仍f51b165a；原brand worktree仍b799f721且clean。进入最终docs本地提交/推送/draft PR；不merge main。预览READY保留限时lease，不标已清理。
+
+交付：e66a73b59提交最终独立审查/来源/结果/验证/操作文档并成功推送新integration分支；创建OPEN Draft PR #8，base main，原PR #5保持。随后只更新交付链接/状态。最终源hash复核0漂移，原worktree clean、main未合并，preview01保持READY。远端CI/人工合并/其他平台和云发布不纳入本地PASS。
