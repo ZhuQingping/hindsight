@@ -1,6 +1,6 @@
 # ContextBase 命名解耦交付结果
 
-状态：`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_PR_PENDING`。2026-10-19。代码实现、本地验收及独立源码/证据终审已完成，draft PR交付待完成；未合并main，未公开发行。
+状态：`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。2026-10-19。代码实现、本地验收及独立源码/证据终审已完成；[Draft PR #9](https://github.com/RSIXDB/hindsight/pull/9)已创建，base为整合分支，保留原PR #8；未合并main，未公开发行。
 
 源码检查点 `c394b303cce8a5a0fe8013293882c340fb4daf5e`，5132文件hash `cff739b077e5037278ed5d94ff18c2f55e5476af339c9fc6207a2d937acbaea4`。从clean交接提交960983bb4建立独立分支，530a63064整合交付与5d350568源码均为祖先；双方成果完整继承，其他工作区未提交内容未修改。
 
@@ -29,7 +29,7 @@ UI编译制品825文件hash：`f7d19de328532e9318b176c6b63b15c7965d5fd0a02b548de
 
 ## N01–N12 与证据
 
-N01–N11本地限定范围通过；N12独立源码/证据终审通过，交付提交/PR状态待补核。逐项结果及原始日志路径见[VALIDATION.json](VALIDATION.json)，来源见[SOURCE-MAP.json](SOURCE-MAP.json)。独立发现、修复与证据审查见[INDEPENDENT-REVIEW.md](INDEPENDENT-REVIEW.md)。
+N01–N12在本地限定范围完成，独立源码/证据终审通过，专用分支已推送并创建Draft PR #9。远端检查列表当前为空，不声称远端CI通过。逐项结果及原始日志路径见[VALIDATION.json](VALIDATION.json)，来源见[SOURCE-MAP.json](SOURCE-MAP.json)。独立发现、修复与证据审查见[INDEPENDENT-REVIEW.md](INDEPENDENT-REVIEW.md)。
 
 源码检查点的547个变更文件中：473生成物、33适配/工作流手改、8初始文字模板、4品牌权威/清单、19测试、9交付文档、1锁文件。业务引擎、原生auth/migrations、会话认证、CLI连接/nullable PATCH、安装器ownership主体无功能diff。下一次改名只改品牌JSON（保留历史名称）并运行明确生成/构建/验收步骤，不逐页或逐插件修改业务代码。
 

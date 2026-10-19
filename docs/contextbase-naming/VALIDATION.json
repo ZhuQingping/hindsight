@@ -1,6 +1,6 @@
 {
-  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED_PR_PENDING",
-  "updated_at_utc": "2026-10-19T04:46:31.003276+00:00",
+  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
+  "updated_at_utc": "2026-10-19T04:49:35.004216+00:00",
   "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
   "source_sha256": "cff739b077e5037278ed5d94ff18c2f55e5476af339c9fc6207a2d937acbaea4",
   "source_files": 5132,
@@ -115,7 +115,7 @@
       ]
     },
     "N12": {
-      "status": "SOURCE_AND_EVIDENCE_PASS_PR_PENDING",
+      "status": "PASS_LOCAL_DELIVERY",
       "evidence": [
         "INDEPENDENT-REVIEW.md",
         "RESULT.md",
@@ -382,7 +382,16 @@
     "runtime-01": "harness ZIP local variable typo",
     "runtime-02": "Chrome Unix socket path exceeded limit; private /tmp mount used"
   },
-  "draft_pr": null,
+  "draft_pr": {
+    "url": "https://github.com/RSIXDB/hindsight/pull/9",
+    "number": 9,
+    "state": "OPEN",
+    "isDraft": true,
+    "base": "integration/agentstratum-brand-ui-clients-20261019",
+    "head": "product/contextbase-naming-20261019",
+    "existing_pr_8": "PRESERVED_OPEN_DRAFT",
+    "remote_ci": "NOT_RUN_NO_CHECKS_REPORTED"
+  },
   "main_merged": false,
   "public_release": false,
   "independent_review": {
@@ -390,6 +399,6 @@
     "status": "PASS_INDEPENDENT_SOURCE_AND_LOCAL_EVIDENCE",
     "unresolved_must_fix": 0,
     "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
-    "scope": "Read-only independent source, log, hash, artifact and cleanup verification; final PR state pending"
+    "scope": "Read-only independent source, log, hash, artifact and cleanup verification; source/evidence closed, delivery PR created"
   }
 }

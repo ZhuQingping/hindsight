@@ -41,3 +41,5 @@
 - runtime-03最终PASS：23组native/browser/client、7个SDK故事，CLI live25、真实release HTTPS安装/重装、同UI制品两名称、旧页签下载409零转发/保存/重试、所有本轮子进程与PG清理，数据保留。
 - 四类候选stage-01 PASS（12文件、许可证、ZIP/gzip/校验和）；独立终审重算5132源码、825UI、12候选hash零漂移，无未关闭源码Must fix。仅交付docs提交与draft PR状态待补核。
 - 独立文字校准已落实：node:sqlite条件跳过；Python生成FILES清单改归generated，统计473生成/33适配工作流。
+
+- b5a01c4e7提交结果/兼容/复核/来源与审查文档，已推送专用分支；创建OPEN Draft PR #9（base整合分支），原#8保留，主干未合并。远端检查列表为空，NOT_RUN。N01–N12本地交付已完成，现做最终文档/远端状态补核。

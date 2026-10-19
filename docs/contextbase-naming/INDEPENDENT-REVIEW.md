@@ -1,6 +1,6 @@
 # 独立审查记录
 
-审查者：`/root/independent_naming_review`（独立只读审查 agent，非实施 agent）。实施仍由单持久 session 完成。本文件由实施者保存收到的独立结论及修复追踪；最终证据审查尚未通过。
+审查者：`/root/independent_naming_review`（独立只读审查 agent，非实施 agent）。实施仍由单持久 session 完成。本文件由实施者保存收到的独立结论及修复追踪；源码与本地证据终审已通过，完整结论见下文；PR交付状态另作补核。
 
 初审/复查均为源码只读检查，未运行重型任务，也未用历史 PASS 代替新验收。
 
@@ -17,7 +17,7 @@
 | R10 | 单独修改manifest身份后重新生成ledger可被接受 | 生成前验证真实四类客户端身份/MCP注册键/marketplace/Cargo bin；反例要求普通生成和check失败且所有输出/ledger不写入；lint-03反例与固定点通过，独立R10已关闭 |
 | R9 | API实际测试发现display改名切分telemetry服务名 | 未修改旧worker断言；固定默认service identity，显式旧slug保持原行为；独立源码复查确认符合N02/N06，追加默认分支双名测试，unit-05执行通过 |
 
-最新独立源码复查结论：未发现新的未关闭 Must fix。该结论不代表 N12 完成；需最终冻结源码、N05实际build/runtime、N06/N09原生证据、打包安装与同源hash绑定后进行独立终审。
+终审前的阶段性源码复查结论：未发现新的未关闭 Must fix。该结论不代表 N12 完成；需最终冻结源码、N05实际build/runtime、N06/N09原生证据、打包安装与同源hash绑定后进行独立终审。
 
 ## 冻结源码及本地证据终审结论
 
@@ -34,3 +34,7 @@
 终审要求的两处文字修正已落实：6项Coding Agents条件跳过来自测试运行时node:sqlite不可用；Python .openapi-generator/FILES归为生成物，冻结源码分类修正为生成473/手改适配工作流33。表中R3/R9/R10状态也已更新为实际验证关闭。
 
 API1 SKIP/1真实LLM标记排除、Coding Agents6 SKIP及12次历史FAIL继续保留。其他平台、真实第三方宿主/Claude冷安装、真实模型质量、完整公共文档站build、远端CI完成、公开云发行和人工产品验收不属于本次PASS；不授权合并main。
+
+## 交付状态
+
+源码/证据独立终审通过后，实施者提交文档b5a01c4e7并推送专用分支，创建[Draft PR #9](https://github.com/RSIXDB/hindsight/pull/9)，base为integration/agentstratum-brand-ui-clients-20261019。原PR #8保留OPEN/DRAFT，未合并main。远端statusCheckRollup当前为空，记NOT_RUN，不从本地PASS推定远端CI通过。最终文档状态补核待独立审查者确认。
