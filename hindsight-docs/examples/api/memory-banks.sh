@@ -4,18 +4,18 @@
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # =============================================================================
 # Doc Examples
 # =============================================================================
 
 # [docs:create-bank]
-agentstratum bank create my-bank
+contextbase bank create my-bank
 # [/docs:create-bank]
 
 # [docs:bank-with-disposition]
-agentstratum bank create architect-bank \
+contextbase bank create architect-bank \
   --mission "You're a senior software architect - keep track of system designs, technology decisions, and architectural patterns. Prefer simplicity over cutting-edge." \
   --skepticism 4 \
   --literalism 4 \
@@ -23,23 +23,23 @@ agentstratum bank create architect-bank \
 # [/docs:bank-with-disposition]
 
 # [docs:bank-background]
-agentstratum bank create my-bank \
+contextbase bank create my-bank \
   --mission "I am a research assistant specializing in machine learning."
 # [/docs:bank-background]
 
 # [docs:bank-mission]
-agentstratum bank create my-bank \
+contextbase bank create my-bank \
   --mission "You're a senior software architect - keep track of system designs, technology decisions, and architectural patterns."
 # [/docs:bank-mission]
 
 # [docs:bank-support-agent]
-agentstratum bank create support-bank
-agentstratum bank set-config support-bank \
+contextbase bank create support-bank
+contextbase bank set-config support-bank \
   --observations-mission "I am a customer support agent. Track customer preferences, recurring issues, and resolution history."
 # [/docs:bank-support-agent]
 
 # [docs:update-bank-config]
-agentstratum bank set-config my-bank \
+contextbase bank set-config my-bank \
   --retain-mission "Always include technical decisions, API design choices, and architectural trade-offs. Ignore meeting logistics and social exchanges." \
   --retain-extraction-mode verbose \
   --observations-mission "Observations are stable facts about people and projects. Always include preferences, skills, and recurring patterns. Ignore one-off events." \
@@ -50,15 +50,15 @@ agentstratum bank set-config my-bank \
 
 # [docs:get-bank-config]
 # Returns resolved config (server defaults merged with bank overrides)
-agentstratum bank config my-bank
+contextbase bank config my-bank
 
 # Show only bank-specific overrides
-agentstratum bank config my-bank --overrides-only
+contextbase bank config my-bank --overrides-only
 # [/docs:get-bank-config]
 
 # [docs:reset-bank-config]
 # Remove all bank-level overrides, reverting to server defaults
-agentstratum bank reset-config my-bank -y
+contextbase bank reset-config my-bank -y
 # [/docs:reset-bank-config]
 
 # [docs:prompts-preview]
@@ -72,18 +72,18 @@ echo
 # Transfer setup (not shown in docs): a source bank with two documents.
 # Chunks mode stores text verbatim, so no LLM call is needed.
 # -----------------------------------------------------------------------------
-API_KEY="${AGENTSTRATUM_API_KEY:-}"
+API_KEY="${CONTEXTBASE_API_KEY:-}"
 TRANSFER_BANKS="transfer-bank transfer-bank-copy transfer-other-bank transfer-bank-clone"
 for bank_id in $TRANSFER_BANKS; do
   curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${bank_id}" > /dev/null
 done
-agentstratum bank create transfer-bank > /dev/null
-agentstratum bank set-config transfer-bank --retain-extraction-mode chunks > /dev/null
+contextbase bank create transfer-bank > /dev/null
+contextbase bank set-config transfer-bank --retain-extraction-mode chunks > /dev/null
 curl -sf -X POST "$HINDSIGHT_URL/v1/default/banks/transfer-bank/memories" \
   -H "Content-Type: application/json" \
   -d '{"items": [{"content": "Alice leads the payments team.", "document_id": "doc-1"},
                  {"content": "Bob moved to the Berlin office.", "document_id": "doc-2"}]}' > /dev/null
-agentstratum bank create transfer-other-bank > /dev/null
+contextbase bank create transfer-other-bank > /dev/null
 
 # Wait for an operation to finish; fail loudly if it does not complete.
 wait_op() {

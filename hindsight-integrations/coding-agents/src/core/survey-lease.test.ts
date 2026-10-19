@@ -14,7 +14,7 @@ import {
 
 let root: string;
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "agentstratum-lease-test-"));
+  root = mkdtempSync(join(tmpdir(), "contextbase-lease-test-"));
 });
 afterEach(() => {
   vi.useRealTimers();

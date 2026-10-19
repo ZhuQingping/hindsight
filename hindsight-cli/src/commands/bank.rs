@@ -696,7 +696,7 @@ pub fn consolidate(
             if !wait {
                 if output_format == OutputFormat::Pretty {
                     println!();
-                    println!("{}", ui::dim("Use --wait to poll for completion, or 'agentstratum operation get' to check status."));
+                    println!("{}", ui::dim("Use --wait to poll for completion, or 'contextbase operation get' to check status."));
                 }
                 return Ok(());
             }

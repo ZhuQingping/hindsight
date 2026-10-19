@@ -28,7 +28,7 @@ class ProductConfig(BaseModel):
     Unchanged v1 wire contract for existing strict clients.
     """ # noqa: E501
     product_config_version: Optional[StrictInt] = 1
-    contextdb_name: Optional[Annotated[str, Field(strict=True, max_length=40)]] = 'agentstratum'
+    contextdb_name: Optional[Annotated[str, Field(strict=True, max_length=40)]] = 'contextbase'
     __properties: ClassVar[List[str]] = ["product_config_version", "contextdb_name"]
 
     @field_validator('product_config_version')
@@ -103,7 +103,7 @@ class ProductConfig(BaseModel):
 
         _obj = cls.model_validate({
             "product_config_version": obj.get("product_config_version") if obj.get("product_config_version") is not None else 1,
-            "contextdb_name": obj.get("contextdb_name") if obj.get("contextdb_name") is not None else 'agentstratum'
+            "contextdb_name": obj.get("contextdb_name") if obj.get("contextdb_name") is not None else 'contextbase'
         })
         return _obj
 

@@ -82,10 +82,10 @@ describe("ensureTraecodeWorkspaceMcp", () => {
     const { repo: r, dist, home } = repo();
     ensureTraecodeWorkspaceMcp(r, { dist, home, stateFile: STATE });
     const doc = readJson(r);
-    expect(doc.mcpServers.agentstratum).toEqual({
+    expect(doc.mcpServers.contextbase).toEqual({
       command: "node",
       args: [join(dist, "mcp-server.js")],
-      env: { AGENTSTRATUM_MCP_HARNESS: "traecode", AGENTSTRATUM_MCP_PROJECT_CWD: r },
+      env: { CONTEXTBASE_MCP_HARNESS: "traecode", CONTEXTBASE_MCP_PROJECT_CWD: r },
     });
   });
 
@@ -104,10 +104,10 @@ describe("ensureTraecodeWorkspaceMcp", () => {
       mcpFile(r),
       JSON.stringify({
         mcpServers: {
-          agentstratum: {
+          contextbase: {
             command: "node",
-            args: ["/old/agentstratum-coding-agents/dist/mcp-server.js"],
-            env: { AGENTSTRATUM_MCP_HARNESS: "traecode", MY_EXTRA: "keep" },
+            args: ["/old/contextbase-coding-agents/dist/mcp-server.js"],
+            env: { CONTEXTBASE_MCP_HARNESS: "traecode", MY_EXTRA: "keep" },
           },
           other: { command: "uvx", args: ["something"] },
         },
@@ -116,24 +116,24 @@ describe("ensureTraecodeWorkspaceMcp", () => {
     ensureTraecodeWorkspaceMcp(r, { dist, home, stateFile: STATE });
     const doc = readJson(r);
     expect(doc.mcpServers.other).toEqual({ command: "uvx", args: ["something"] });
-    expect(doc.mcpServers.agentstratum).toEqual({
+    expect(doc.mcpServers.contextbase).toEqual({
       command: "node",
       args: [join(dist, "mcp-server.js")],
       env: {
-        AGENTSTRATUM_MCP_HARNESS: "traecode",
-        AGENTSTRATUM_MCP_PROJECT_CWD: r,
+        CONTEXTBASE_MCP_HARNESS: "traecode",
+        CONTEXTBASE_MCP_PROJECT_CWD: r,
         MY_EXTRA: "keep",
       },
     });
   });
 
-  it("never touches a foreign agentstratum entry", () => {
+  it("never touches a foreign contextbase entry", () => {
     const { repo: r, dist, home } = repo();
     mkdirSync(join(r, ".trae"), { recursive: true });
     const foreign = { command: "python", args: ["-m", "my_hindsight"] };
-    writeFileSync(mcpFile(r), JSON.stringify({ mcpServers: { agentstratum: foreign } }));
+    writeFileSync(mcpFile(r), JSON.stringify({ mcpServers: { contextbase: foreign } }));
     ensureTraecodeWorkspaceMcp(r, { dist, home, stateFile: STATE });
-    expect(readJson(r).mcpServers.agentstratum).toEqual(foreign);
+    expect(readJson(r).mcpServers.contextbase).toEqual(foreign);
   });
 
   it("leaves an unparseable file alone", () => {

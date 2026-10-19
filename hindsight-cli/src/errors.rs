@@ -75,11 +75,11 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
         return format!(
             "{} {}\n\n{}\n  {}\n\n{}\n  • {}\n  • {}\n  • {}\n\n{}\n  {}",
             "✗".bright_red().bold(),
-            "Cannot connect to Agentstratum API".bright_red().bold(),
+            "Cannot connect to ContextBase API".bright_red().bold(),
             "API URL:".bright_yellow(),
             api_url.bright_white(),
             "Possible causes:".bright_yellow(),
-            "The Agentstratum API server is not running".bright_white(),
+            "The ContextBase API server is not running".bright_white(),
             format!(
                 "The server is running on a different address than {}",
                 api_url
@@ -87,7 +87,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             .bright_white(),
             "A firewall is blocking the connection".bright_white(),
             "Try:".bright_green(),
-            "Start the Agentstratum API server and ensure it's accessible".bright_white()
+            "Start the ContextBase API server and ensure it's accessible".bright_white()
         );
     }
 
@@ -140,7 +140,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             "The hostname in the API URL is incorrect".bright_white(),
             "DNS server is not responding".bright_white(),
             "Try:".bright_green(),
-            "Check the AGENTSTRATUM_API_URL environment variable".bright_white()
+            "Check the CONTEXTBASE_API_URL environment variable".bright_white()
         );
     }
 
@@ -154,7 +154,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
                 "API URL:".bright_yellow(),
                 api_url.bright_white(),
                 "This feature has been disabled on the server.".bright_yellow(),
-                "To enable, set AGENTSTRATUM_API_ENABLE_BANK_CONFIG_API=true on the API server"
+                "To enable, set CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=true on the API server"
                     .bright_white(),
                 "Note:".bright_cyan(),
                 "This allows per-bank LLM configuration overrides via API".bright_white()
@@ -184,7 +184,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             "The API endpoint path has changed".bright_white(),
             "You're using an incompatible API version".bright_white(),
             "Try:".bright_green(),
-            "Check that you're using the correct Agentstratum API version".bright_white()
+            "Check that you're using the correct ContextBase API version".bright_white()
         );
     }
 
@@ -254,7 +254,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             "The API URL format is invalid.".bright_yellow(),
             "Ensure it starts with http:// or https://".bright_white(),
             "Example:".bright_green(),
-            "export AGENTSTRATUM_API_URL=<your-console-api-endpoint>".bright_white()
+            "export CONTEXTBASE_API_URL=<your-console-api-endpoint>".bright_white()
         );
     }
 
@@ -306,7 +306,7 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
             response_hint,
             "Try:".bright_green(),
             "Run with --verbose flag to see the full request/response".bright_white(),
-            "Ensure you're using a compatible Agentstratum API version".bright_white()
+            "Ensure you're using a compatible ContextBase API version".bright_white()
         );
     }
 
@@ -320,8 +320,8 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
         "Error:".bright_yellow(),
         err_str.bright_white(),
         "Suggestions:".bright_green(),
-        "Check that AGENTSTRATUM_API_URL is set correctly".bright_white(),
-        "Ensure the Agentstratum API server is running".bright_white(),
+        "Check that CONTEXTBASE_API_URL is set correctly".bright_white(),
+        "Ensure the ContextBase API server is running".bright_white(),
         "Verify network connectivity to the API server".bright_white()
     )
 }
@@ -329,17 +329,17 @@ fn format_error_message(err: &anyhow::Error, api_url: &str) -> String {
 pub fn print_config_help() {
     println!("\n{}", "Configuration:".bright_cyan().bold());
     println!("  Run the configure command to set the API URL:");
-    println!("  {}", "agentstratum configure".bright_white());
+    println!("  {}", "contextbase configure".bright_white());
     println!();
     println!("  Or set it directly:");
     println!(
         "  {}",
-        "agentstratum configure --api-url http://your-api:8888".bright_white()
+        "contextbase configure --api-url http://your-api:8888".bright_white()
     );
     println!();
     println!("  {}", "Configuration priority:".bright_yellow());
-    println!("    1. Environment variable (AGENTSTRATUM_API_URL) - highest priority");
-    println!("    2. Config file (~/.agentstratum/config)");
+    println!("    1. Environment variable (CONTEXTBASE_API_URL) - highest priority");
+    println!("    2. Config file (~/.contextbase/config)");
     println!("    An API Endpoint is required; there is no default.");
     println!();
 }
@@ -407,7 +407,7 @@ mod tests {
 
         let message = format_error_message(&error, "http://localhost:8888");
 
-        assert!(message.contains("AGENTSTRATUM_API_ENABLE_BANK_CONFIG_API=true"));
+        assert!(message.contains("CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=true"));
     }
 
     #[test]
@@ -515,7 +515,7 @@ mod tests {
             ("request timeout", "Request timed out"),
             (
                 "error sending request",
-                "Cannot connect to Agentstratum API",
+                "Cannot connect to ContextBase API",
             ),
             ("failed to lookup DNS name", "Cannot resolve API hostname"),
             ("invalid URL", "Invalid API URL"),

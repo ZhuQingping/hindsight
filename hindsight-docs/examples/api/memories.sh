@@ -4,15 +4,15 @@
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="memories-demo-bank"
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-agentstratum bank create "$BANK_ID" --name "Memories Demo"
-agentstratum memory retain "$BANK_ID" "The assistant visited Paris in 2023."
-agentstratum memory retain "$BANK_ID" "The deploy server srv-04 runs PostgreSQL 14."
+contextbase bank create "$BANK_ID" --name "Memories Demo"
+contextbase memory retain "$BANK_ID" "The assistant visited Paris in 2023."
+contextbase memory retain "$BANK_ID" "The deploy server srv-04 runs PostgreSQL 14."
 sleep 3
 
 # =============================================================================
@@ -21,14 +21,14 @@ sleep 3
 
 # [docs:list-memories]
 # List memory units in a bank (invalidated rows are included by default)
-agentstratum memory list "$BANK_ID"
+contextbase memory list "$BANK_ID"
 
 # Filter to only the invalidated facts (e.g. to review duplicates)
 curl -s "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/list?state=invalidated"
 # [/docs:list-memories]
 
 # Pick a raw fact (world/experience) to curate below.
-MEMORY_ID=$(agentstratum memory list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(next((u['id'] for u in items if u['fact_type'] in ('world','experience')), ''))")
+MEMORY_ID=$(contextbase memory list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(next((u['id'] for u in items if u['fact_type'] in ('world','experience')), ''))")
 
 if [ -n "$MEMORY_ID" ]; then
   # [docs:get-memory]
@@ -71,7 +71,7 @@ if [ -n "$MEMORY_ID" ]; then
 fi
 
 # An observation (derived) exposes how it evolved as sources arrived.
-OBSERVATION_ID=$(agentstratum memory list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(next((u['id'] for u in items if u['fact_type']=='observation'), ''))")
+OBSERVATION_ID=$(contextbase memory list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(next((u['id'] for u in items if u['fact_type']=='observation'), ''))")
 if [ -n "$OBSERVATION_ID" ]; then
   # [docs:observation-history]
   # Get the refresh history of a derived observation

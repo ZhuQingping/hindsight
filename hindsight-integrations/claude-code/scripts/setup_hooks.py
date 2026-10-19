@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Register agentstratum-memory hooks into ~/.claude/settings.json.
+"""Register contextbase-memory hooks into ~/.claude/settings.json.
 
 Claude Code's plugin installer does not currently merge hooks.json into
 settings.json automatically. Run this script once after installing the plugin:
 
     python3 setup_hooks.py
 
-Or via the /agentstratum:setup skill inside a Claude Code session.
+Or via the /contextbase:setup skill inside a Claude Code session.
 """
 
 import argparse
@@ -16,7 +16,7 @@ import shlex
 import sys
 
 SETTINGS_PATH = os.path.expanduser("~/.claude/settings.json")
-USER_CONFIG_PATH = os.path.expanduser("~/.agentstratum/claude-code.json")
+USER_CONFIG_PATH = os.path.expanduser("~/.contextbase/claude-code.json")
 
 # Default hook timeout for UserPromptSubmit (auto-recall).
 # Raised from 12s to 45s — the hooks.json shipped with the plugin also
@@ -27,7 +27,7 @@ HOOK_RECALL_TIMEOUT_MIN = 30
 
 # Shell assignment survives install-directory changes without relying on an
 # undocumented settings.json field or matching another plugin's script names.
-HOOK_OWNER = "AGENTSTRATUM_HOOK_OWNER=agentstratum-memory"
+HOOK_OWNER = "CONTEXTBASE_HOOK_OWNER=contextbase-memory"
 
 
 def _read_request_timeout() -> int | None:
@@ -171,7 +171,7 @@ def main() -> None:
         f.write("\n")
 
     action = "removed" if args.uninstall else "registered"
-    print(f"agentstratum-memory hooks {action} successfully.")
+    print(f"contextbase-memory hooks {action} successfully.")
     print(f"Plugin root: {plugin_root}")
     print("Restart Claude Code for changes to take effect.")
 

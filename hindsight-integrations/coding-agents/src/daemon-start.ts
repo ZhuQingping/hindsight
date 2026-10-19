@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Start the local `agentstratum-embed` daemon. Spawned DETACHED by core/daemon.ts — never run inline
+ * Start the local `contextbase-embed` daemon. Spawned DETACHED by core/daemon.ts — never run inline
  * by a hook, because a cold start (uvx download + model load) outlives every hook timeout.
  *
  * Blocking here is the point: this process exists purely to own that wait, and exits once the
@@ -26,8 +26,8 @@ async function main(): Promise<void> {
   if (await isServerHealthy(cfg.apiUrl)) return;
   if (!preflightDaemon(cfg, harness)) return;
 
-  const { AgentstratumServer } = await import("agentstratum-local-engine");
-  const server = new AgentstratumServer({
+  const { ContextBaseServer } = await import("contextbase-local-engine");
+  const server = new ContextBaseServer({
     profile: cfg.daemonProfile,
     port: cfg.apiPort,
     env: daemonEnv(cfg),

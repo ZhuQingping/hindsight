@@ -9032,13 +9032,13 @@ class MemoryEngine(MemoryEngineInterface):
 
         tracer = get_tracer()
         # Use start_as_current_span to ensure child spans are linked properly
-        recall_span_context = tracer.start_as_current_span("agentstratum.recall")
+        recall_span_context = tracer.start_as_current_span("contextbase.recall")
         recall_span = recall_span_context.__enter__()
-        recall_span.set_attribute("agentstratum.bank_id", bank_id)
-        recall_span.set_attribute("agentstratum.query", query[:100])
-        recall_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
-        recall_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
-        recall_span.set_attribute("agentstratum.max_tokens", max_tokens)
+        recall_span.set_attribute("contextbase.bank_id", bank_id)
+        recall_span.set_attribute("contextbase.query", query[:100])
+        recall_span.set_attribute("contextbase.fact_types", ",".join(fact_type))
+        recall_span.set_attribute("contextbase.thinking_budget", thinking_budget)
+        recall_span.set_attribute("contextbase.max_tokens", max_tokens)
 
         try:
             # Backpressure: limit concurrent recalls to prevent overwhelming the database
@@ -9343,9 +9343,9 @@ class MemoryEngine(MemoryEngineInterface):
             # Step 1: Generate query embedding (for semantic search)
             step_start = time.time()
 
-            embedding_span = tracer_otel.start_span("agentstratum.recall_embedding")
-            embedding_span.set_attribute("agentstratum.bank_id", bank_id)
-            embedding_span.set_attribute("agentstratum.query", query[:100])
+            embedding_span = tracer_otel.start_span("contextbase.recall_embedding")
+            embedding_span.set_attribute("contextbase.bank_id", bank_id)
+            embedding_span.set_attribute("contextbase.query", query[:100])
 
             try:
                 get_metrics_collector().record_recall_phase("swr_prelude", time.time() - backend_acquire_start)
@@ -9501,10 +9501,10 @@ class MemoryEngine(MemoryEngineInterface):
                 retrieve_all_fact_types_parallel,
             )
 
-            retrieval_span = tracer_otel.start_span("agentstratum.recall_retrieval")
-            retrieval_span.set_attribute("agentstratum.bank_id", bank_id)
-            retrieval_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
-            retrieval_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
+            retrieval_span = tracer_otel.start_span("contextbase.recall_retrieval")
+            retrieval_span.set_attribute("contextbase.bank_id", bank_id)
+            retrieval_span.set_attribute("contextbase.fact_types", ",".join(fact_type))
+            retrieval_span.set_attribute("contextbase.thinking_budget", thinking_budget)
 
             try:
                 # Run optimized retrieval with connection budget
@@ -9810,12 +9810,12 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             from .search.fusion import interleave_fusion, reciprocal_rank_fusion
 
-            fusion_span = tracer_otel.start_span("agentstratum.recall_fusion")
-            fusion_span.set_attribute("agentstratum.bank_id", bank_id)
-            fusion_span.set_attribute("agentstratum.semantic_count", len(semantic_results))
-            fusion_span.set_attribute("agentstratum.bm25_count", len(bm25_results))
-            fusion_span.set_attribute("agentstratum.graph_count", len(graph_results))
-            fusion_span.set_attribute("agentstratum.temporal_count", len(temporal_results) if temporal_results else 0)
+            fusion_span = tracer_otel.start_span("contextbase.recall_fusion")
+            fusion_span.set_attribute("contextbase.bank_id", bank_id)
+            fusion_span.set_attribute("contextbase.semantic_count", len(semantic_results))
+            fusion_span.set_attribute("contextbase.bm25_count", len(bm25_results))
+            fusion_span.set_attribute("contextbase.graph_count", len(graph_results))
+            fusion_span.set_attribute("contextbase.temporal_count", len(temporal_results) if temporal_results else 0)
 
             try:
                 # Merge 3 or 4 result lists depending on temporal constraint
@@ -9831,7 +9831,7 @@ class MemoryEngine(MemoryEngineInterface):
                     f"{len(merged_candidates)} unique candidates in {step_duration:.3f}s"
                 )
             finally:
-                fusion_span.set_attribute("agentstratum.merged_count", len(merged_candidates))
+                fusion_span.set_attribute("contextbase.merged_count", len(merged_candidates))
                 fusion_span.end()
 
             # The payload build is gated on `enable_trace`; the phase metric is not. The
@@ -9851,9 +9851,9 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             reranker_instance = self._cross_encoder_reranker
 
-            rerank_span = tracer_otel.start_span("agentstratum.recall_rerank")
-            rerank_span.set_attribute("agentstratum.bank_id", bank_id)
-            rerank_span.set_attribute("agentstratum.candidates_count", len(merged_candidates))
+            rerank_span = tracer_otel.start_span("contextbase.recall_rerank")
+            rerank_span.set_attribute("contextbase.bank_id", bank_id)
+            rerank_span.set_attribute("contextbase.candidates_count", len(merged_candidates))
 
             scored_results: list = []
             # Provider that produced scored_results for THIS call. None until a
@@ -9965,9 +9965,9 @@ class MemoryEngine(MemoryEngineInterface):
                     f"scored in {step_duration:.3f}s{pre_filter_note}"
                 )
             finally:
-                rerank_span.set_attribute("agentstratum.scored_count", len(scored_results))
+                rerank_span.set_attribute("contextbase.scored_count", len(scored_results))
                 if pre_filtered_count > 0:
-                    rerank_span.set_attribute("agentstratum.pre_filtered_count", pre_filtered_count)
+                    rerank_span.set_attribute("contextbase.pre_filtered_count", pre_filtered_count)
                 rerank_span.end()
 
             # Step 4.5: Combine cross-encoder score with retrieval signals via multiplicative boosts.
@@ -17439,7 +17439,7 @@ class MemoryEngine(MemoryEngineInterface):
         if refresh_cutoff is None:
             return None
         # Run reflect with the source query, excluding the mental model being refreshed
-        # Skip creating a nested "agentstratum.reflect" span since we already have "agentstratum.mental_model_refresh"
+        # Skip creating a nested "contextbase.reflect" span since we already have "contextbase.mental_model_refresh"
         mm_name = mental_model.get("name") or mental_model_id
 
         reflect_kwargs: dict[str, Any] = dict(

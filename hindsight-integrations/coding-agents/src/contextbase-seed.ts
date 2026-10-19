@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agentstratum-seed — MANUAL control command (escape hatch): `seed` forces a background backfill of a
+ * contextbase-seed — MANUAL control command (escape hatch): `seed` forces a background backfill of a
  * repo's bank now; `decline` opts a repo out of auto-seeding. Normal seeding is automatic and
  * deterministic via the Claude SessionStart hook (core/session-start.ts) — this CLI is not part of
  * that automatic path; it's for forcing/opting-out by hand.

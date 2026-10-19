@@ -52,8 +52,8 @@ def load_dotenv_for_entrypoint() -> None:
     # Public standalone configuration maps to the engine's internal keys.
     # Never mutate an embedding application's environment at import time.
     for key, value in list(os.environ.items()):
-        if key.startswith("AGENTSTRATUM_API_"):
-            os.environ["HINDSIGHT_API_" + key.removeprefix("AGENTSTRATUM_API_")] = value
+        if key.startswith("CONTEXTBASE_API_"):
+            os.environ["HINDSIGHT_API_" + key.removeprefix("CONTEXTBASE_API_")] = value
     clear_config_cache()
 
 
@@ -131,8 +131,8 @@ def normalize_config_key(key: str) -> str:
     Returns:
         Normalized Python field name (lowercase snake_case)
     """
-    if key.startswith("AGENTSTRATUM_API_"):
-        return key[len("AGENTSTRATUM_API_") :].lower()
+    if key.startswith("CONTEXTBASE_API_"):
+        return key[len("CONTEXTBASE_API_") :].lower()
     if key.startswith("HINDSIGHT_API_"):
         key = key[len("HINDSIGHT_API_") :]
     return key.lower()
@@ -1978,7 +1978,7 @@ DEFAULT_DISPOSITION_EMPATHY = None
 
 # OpenTelemetry tracing configuration
 DEFAULT_OTEL_TRACES_ENABLED = False  # Disabled by default for backward compatibility
-DEFAULT_OTEL_SERVICE_NAME = "agentstratum-api"
+DEFAULT_OTEL_SERVICE_NAME = "contextbase-api"
 DEFAULT_OTEL_DEPLOYMENT_ENVIRONMENT = "development"
 DEFAULT_METRICS_INCLUDE_BANK_ID = False  # Disabled by default to avoid high-cardinality OTel metric growth
 DEFAULT_METRICS_BACKLOG_ENABLED = False  # Disabled by default: runs periodic per-schema COUNT queries
@@ -4159,8 +4159,8 @@ class HindsightConfig:
                     "is not installed. The API will fail at startup. Either:\n"
                     "  1. Install the local-ml extra from your configured API distribution.\n"
                     "  2. Use a remote provider instead:\n"
-                    "     AGENTSTRATUM_API_EMBEDDINGS_PROVIDER=openai (or gemini, tei)\n"
-                    "     AGENTSTRATUM_API_RERANKER_PROVIDER=none (or tei)",
+                    "     CONTEXTBASE_API_EMBEDDINGS_PROVIDER=openai (or gemini, tei)\n"
+                    "     CONTEXTBASE_API_RERANKER_PROVIDER=none (or tei)",
                     " and ".join(missing),
                 )
 
@@ -4175,7 +4175,7 @@ class HindsightConfig:
                     "ONNX embeddings provider configured, but 'onnxruntime' and/or "
                     "'transformers' is not installed. The API will fail at model init time. Either:\n"
                     "  1. Install the local-onnx extra from your configured API distribution.\n"
-                    "  2. Use a different embeddings provider, e.g. AGENTSTRATUM_API_EMBEDDINGS_PROVIDER=local "
+                    "  2. Use a different embeddings provider, e.g. CONTEXTBASE_API_EMBEDDINGS_PROVIDER=local "
                     "or openai"
                 )
 

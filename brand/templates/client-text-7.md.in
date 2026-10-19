@@ -1,7 +1,7 @@
 ---
 name: create-agent
 description: Create a new @DISPLAY_NAME@-powered subagent with long-term memory. Use when the user wants a specialized agent that learns and remembers across sessions.
-allowed-tools: Bash(ls ~/.self-driving-agents/*) Bash(cat ~/.self-driving-agents/*) Write mcp__agentstratum__*
+allowed-tools: Bash(ls ~/.self-driving-agents/*) Bash(cat ~/.self-driving-agents/*) Write mcp__contextbase__*
 ---
 
 # Create @DISPLAY_NAME@ Agent
@@ -12,7 +12,7 @@ Create a new subagent with long-term memory powered by @DISPLAY_NAME@.
 
 **Mode A — Self-driving agent (from prepared directory):**
 
-If the user runs `/agentstratum-memory:create-agent <name> from <path>` (or similar with a directory path), the directory was prepared by `npx @vectorize-io/self-driving-agents install` and contains:
+If the user runs `/contextbase-memory:create-agent <name> from <path>` (or similar with a directory path), the directory was prepared by `npx @vectorize-io/self-driving-agents install` and contains:
 
 - `*.md`, `*.txt`, `*.html`, `*.json`, `*.csv`, `*.xml` — seed content files (recursively)
 - `bank-template.json` (optional) — defines exact mental models to create
@@ -44,7 +44,7 @@ Write to `~/.claude/agents/<name>.md`:
 name: <agent-name>
 description: <what it does and when to delegate to it>. It has access to knowledge pages and memory search via @DISPLAY_NAME@.
 mcpServers:
-  - agentstratum
+  - contextbase
 ---
 
 You are the **<agent-name>** agent with long-term memory powered by @DISPLAY_NAME@.
@@ -89,7 +89,7 @@ When you learn something durable — a user preference, a working procedure, per
 
 ## Rules
 
-- Always include `mcpServers: [agentstratum]` — this wires up the @DISPLAY_NAME@ memory tools
+- Always include `mcpServers: [contextbase]` — this wires up the @DISPLAY_NAME@ memory tools
 - Keep the startup steps and tool instructions verbatim — they're the @DISPLAY_NAME@ scaffolding
 - Do NOT pass `bank_id` on any tool call — the plugin resolves it automatically from project context
 - Before creating, call `agent_knowledge_get_current_bank` and tell the user: "This agent will be bound to bank `<bank_id>` — your conversations in this directory are retained to it."

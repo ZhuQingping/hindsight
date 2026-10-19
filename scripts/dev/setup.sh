@@ -283,12 +283,12 @@ build_ts_client() {
 build_cli() {
     step "Build Hindsight CLI (cargo release)"
     # Building also vendors every crate into ~/.cargo, priming the offline cache.
-    if [ "$FORCE" = false ] && [ -x "$ROOT_DIR/hindsight-cli/target/release/agentstratum" ]; then
+    if [ "$FORCE" = false ] && [ -x "$ROOT_DIR/hindsight-cli/target/release/contextbase" ]; then
         ok "release binary present — skipping (use --force to rebuild)"
         return
     fi
     ( cd "$ROOT_DIR/hindsight-cli" && cargo build --release )
-    ok "CLI built (hindsight-cli/target/release/agentstratum)"
+    ok "CLI built (hindsight-cli/target/release/contextbase)"
     SUMMARY+=("cli: built")
 }
 

@@ -3,7 +3,7 @@
 A tiny stdlib ``http.server`` (no web framework, no Node) that serves the
 single-file wizard SPA and a small JSON API over ``service.py``. Bound to
 127.0.0.1 only and gated by the control token: every ``/api/*`` route except
-``/api/health`` requires the ``X-Agentstratum-Control-Token`` header to match.
+``/api/health`` requires the ``X-ContextBase-Control-Token`` header to match.
 
 Requiring a custom header (which browsers can't set cross-origin without a CORS
 preflight the server never grants) is the CSRF defense — a malicious page can't
@@ -29,7 +29,7 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
     token: str = ""
     version: str = "unknown"
 
-    server_version = "AgentstratumControlCenter"
+    server_version = "ContextBaseControlCenter"
 
     # Quieter logs — default BaseHTTPRequestHandler spams stderr per request.
     def log_message(self, format: str, *args) -> None:  # noqa: A002
@@ -68,7 +68,7 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
         return parsed if isinstance(parsed, dict) else {}
 
     def _token_ok(self) -> bool:
-        provided = self.headers.get("X-Agentstratum-Control-Token", "")
+        provided = self.headers.get("X-ContextBase-Control-Token", "")
         return bool(self.token) and secrets.compare_digest(provided, self.token)
 
     @staticmethod
@@ -268,7 +268,7 @@ def serve(port: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="agentstratum-embed control-center server")
+    parser = argparse.ArgumentParser(prog="contextbase-embed control-center server")
     parser.add_argument("--port", type=int, default=lifecycle.resolve_control_port())
     args = parser.parse_args()
     serve(args.port)

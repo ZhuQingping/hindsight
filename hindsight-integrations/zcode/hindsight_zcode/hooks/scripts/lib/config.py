@@ -1,16 +1,16 @@
-"""Configuration management for the agentstratum ZCode integration.
+"""Configuration management for the contextbase ZCode integration.
 
-Mirrors `agentstratum-integrations/cursor-cli/agentstratum_cursor_cli/hooks/scripts/lib/config.py`
+Mirrors `contextbase-integrations/cursor-cli/contextbase_cursor_cli/hooks/scripts/lib/config.py`
 with the agent name and a couple of defaults rebranded for the ZCode (Z.ai GLM
 coding agent) audience.
 
 Loading order (later entries win):
   1. Built-in defaults
-  2. Install settings.json          (~/.zcode/hooks/agentstratum/settings.json)
-  3. User config                   (~/.agentstratum/zcode.json)
+  2. Install settings.json          (~/.zcode/hooks/contextbase/settings.json)
+  3. User config                   (~/.contextbase/zcode.json)
   4. Environment variable overrides
 
-`~/.agentstratum/zcode.json` is the recommended place to configure the
+`~/.contextbase/zcode.json` is the recommended place to configure the
 integration — stable across updates.
 """
 
@@ -74,27 +74,27 @@ DEFAULTS = {
 }
 
 ENV_OVERRIDES = {
-    "AGENTSTRATUM_API_URL": ("apiUrl", str),
-    "AGENTSTRATUM_API_TOKEN": ("apiToken", str),
-    "AGENTSTRATUM_BANK_ID": ("bankId", str),
-    "AGENTSTRATUM_AGENT_NAME": ("agentName", str),
-    "AGENTSTRATUM_AUTO_RECALL": ("autoRecall", bool),
-    "AGENTSTRATUM_AUTO_RETAIN": ("autoRetain", bool),
-    "AGENTSTRATUM_RECALL_BUDGET": ("recallBudget", str),
-    "AGENTSTRATUM_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "AGENTSTRATUM_RECALL_TIMEOUT": ("recallTimeout", int),
-    "AGENTSTRATUM_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
-    "AGENTSTRATUM_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "AGENTSTRATUM_API_PORT": ("apiPort", int),
-    "AGENTSTRATUM_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
-    "AGENTSTRATUM_EMBED_VERSION": ("embedVersion", str),
-    "AGENTSTRATUM_EMBED_PACKAGE": ("embedPackage", str),
-    "AGENTSTRATUM_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
-    "AGENTSTRATUM_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "AGENTSTRATUM_BANK_MISSION": ("bankMission", str),
-    "AGENTSTRATUM_LLM_PROVIDER": ("llmProvider", str),
-    "AGENTSTRATUM_LLM_MODEL": ("llmModel", str),
-    "AGENTSTRATUM_DEBUG": ("debug", bool),
+    "CONTEXTBASE_API_URL": ("apiUrl", str),
+    "CONTEXTBASE_API_TOKEN": ("apiToken", str),
+    "CONTEXTBASE_BANK_ID": ("bankId", str),
+    "CONTEXTBASE_AGENT_NAME": ("agentName", str),
+    "CONTEXTBASE_AUTO_RECALL": ("autoRecall", bool),
+    "CONTEXTBASE_AUTO_RETAIN": ("autoRetain", bool),
+    "CONTEXTBASE_RECALL_BUDGET": ("recallBudget", str),
+    "CONTEXTBASE_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
+    "CONTEXTBASE_RECALL_TIMEOUT": ("recallTimeout", int),
+    "CONTEXTBASE_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
+    "CONTEXTBASE_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "CONTEXTBASE_API_PORT": ("apiPort", int),
+    "CONTEXTBASE_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
+    "CONTEXTBASE_EMBED_VERSION": ("embedVersion", str),
+    "CONTEXTBASE_EMBED_PACKAGE": ("embedPackage", str),
+    "CONTEXTBASE_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
+    "CONTEXTBASE_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
+    "CONTEXTBASE_BANK_MISSION": ("bankMission", str),
+    "CONTEXTBASE_LLM_PROVIDER": ("llmProvider", str),
+    "CONTEXTBASE_LLM_MODEL": ("llmModel", str),
+    "CONTEXTBASE_DEBUG": ("debug", bool),
 }
 
 
@@ -132,7 +132,7 @@ def load_config():
     _load_settings_file(os.path.join(install_root, "settings.json"), config)
 
     # 2. User config — stable, version-independent
-    user_config_path = os.path.join(os.path.expanduser("~"), ".agentstratum", "zcode.json")
+    user_config_path = os.path.join(os.path.expanduser("~"), ".contextbase", "zcode.json")
     _load_settings_file(user_config_path, config)
 
     # 3. Environment variable overrides (highest priority)
@@ -149,4 +149,4 @@ def load_config():
 def debug_log(config, *args):
     """Log to stderr if debug mode is enabled."""
     if config.get("debug"):
-        print("[agentstratum]", *args, file=sys.stderr)
+        print("[contextbase]", *args, file=sys.stderr)

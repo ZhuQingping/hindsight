@@ -1,10 +1,10 @@
-"""Command-line interface for the ZCode agentstratum integration.
+"""Command-line interface for the ZCode contextbase integration.
 
-Exposed as the ``agentstratum-zcode`` console script:
+Exposed as the ``contextbase-zcode`` console script:
 
-    agentstratum-zcode install
-    agentstratum-zcode install --api-url https://service.example --api-token hsk_...
-    agentstratum-zcode uninstall
+    contextbase-zcode install
+    contextbase-zcode install --api-url https://service.example --api-token hsk_...
+    contextbase-zcode uninstall
 """
 
 import argparse
@@ -26,21 +26,21 @@ def _run_uninstall(_args: argparse.Namespace) -> int:
 def _add_install_parser(subparsers: argparse._SubParsersAction) -> None:
     install = subparsers.add_parser(
         "install",
-        help="Install the agentstratum hook scripts into ZCode.",
+        help="Install the contextbase hook scripts into ZCode.",
     )
     install.add_argument(
         "--api-url",
-        default=os.environ.get("AGENTSTRATUM_API_URL"),
+        default=os.environ.get("CONTEXTBASE_API_URL"),
         help=(
-            "agentstratum API base URL written to ~/.agentstratum/zcode.json. "
+            "contextbase API base URL written to ~/.contextbase/zcode.json. "
             "For hosted mode, use the URL provided by your service administrator. "
-            "Omit to connect to a local agentstratum-embed daemon."
+            "Omit to connect to a local contextbase-embed daemon."
         ),
     )
     install.add_argument(
         "--api-token",
-        default=os.environ.get("AGENTSTRATUM_API_TOKEN"),
-        help="agentstratum API token (required for agentstratum Cloud).",
+        default=os.environ.get("CONTEXTBASE_API_TOKEN"),
+        help="contextbase API token (required for contextbase Cloud).",
     )
     install.set_defaults(func=_run_install)
 
@@ -48,15 +48,15 @@ def _add_install_parser(subparsers: argparse._SubParsersAction) -> None:
 def _add_uninstall_parser(subparsers: argparse._SubParsersAction) -> None:
     uninstall = subparsers.add_parser(
         "uninstall",
-        help="Remove the agentstratum hook scripts from ZCode.",
+        help="Remove the contextbase hook scripts from ZCode.",
     )
     uninstall.set_defaults(func=_run_uninstall)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="agentstratum-zcode",
-        description="Install agentstratum long-term memory for ZCode.",
+        prog="contextbase-zcode",
+        description="Install contextbase long-term memory for ZCode.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     _add_install_parser(subparsers)

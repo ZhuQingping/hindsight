@@ -102,7 +102,7 @@ class TestSendBankAsUserConfig:
             assert reranker_bank_attribution_headers() == {}
             token = _current_bank_id.set("bank-configured")
             try:
-                assert reranker_bank_attribution_headers() == {"X-Agentstratum-Bank-Id": "bank-configured"}
+                assert reranker_bank_attribution_headers() == {"X-ContextBase-Bank-Id": "bank-configured"}
             finally:
                 _current_bank_id.reset(token)
         finally:

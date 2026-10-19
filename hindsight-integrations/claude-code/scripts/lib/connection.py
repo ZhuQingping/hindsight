@@ -8,6 +8,6 @@ def get_api_url(api_url: str | None) -> str:
     if not api_url or not api_url.strip():
         raise RuntimeError(
             "API Endpoint is required. Copy it from your console and set "
-            "AGENTSTRATUM_API_URL or apiUrl in ~/.agentstratum/claude-code.json."
+            "CONTEXTBASE_API_URL or apiUrl in ~/.contextbase/claude-code.json."
         )
     return _validate_api_url(api_url.strip())

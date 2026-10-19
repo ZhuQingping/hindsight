@@ -1856,7 +1856,7 @@
     "factTypeMemory": "Memória"
   },
   "metadata": {
-    "title": "AgentStratum · 元壤",
+    "title": "ContextBase · 元壤",
     "description": "Motor de dados e memória para agentes."
   },
   "addDocument": {
@@ -1952,7 +1952,7 @@
   "banksOverview": {
     "title": "Todos os bancos de memória",
     "subtitle": "Escolha um banco para consultar documentos, memórias, conhecimento e atividade.",
-    "welcomeTitle": "Bem-vindo ao AgentStratum · 元壤",
+    "welcomeTitle": "Bem-vindo ao ContextBase · 元壤",
     "welcomeBody": "Crie um banco para acumular memórias e conhecimento rastreáveis para agentes.",
     "search": "Pesquisar bancos...",
     "noSearchResults": "Nenhum banco corresponde à sua pesquisa.",
@@ -1980,7 +1980,7 @@
     "bulkDeleteFailures": "Não foi possível excluir estes bancos:"
   },
   "login": {
-    "title": "Entrar no AgentStratum · 元壤",
+    "title": "Entrar no ContextBase · 元壤",
     "description": "Digite a senha de acesso para abrir o espaço de dados e memória.",
     "accessKey": "Senha de acesso",
     "accessKeyPlaceholder": "Digite a senha de acesso",
@@ -2286,7 +2286,7 @@
   },
   "resourcePages": {
     "backToBanks": "← Todos os bancos de memória",
-    "guideTitle": "Usar o AgentStratum",
+    "guideTitle": "Usar o ContextBase",
     "guideIntro": "Acompanhe as fontes até a memória, a busca, o raciocínio e a manutenção. Os links abrem o banco selecionado.",
     "guideSourcesTitle": "Adicionar fontes",
     "guideSourcesBody": "Adicione texto ou envie documentos e confira o processamento antes de usar a memória derivada.",

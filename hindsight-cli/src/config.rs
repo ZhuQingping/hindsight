@@ -5,9 +5,9 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 
 const CONFIG_FILE_NAME: &str = "config";
-const CONFIG_DIR_NAME: &str = ".agentstratum";
+const CONFIG_DIR_NAME: &str = ".contextbase";
 const PROFILE_DIR_NAME: &str = "cli-profiles";
-const PROFILE_ENV_VAR: &str = "AGENTSTRATUM_PROFILE";
+const PROFILE_ENV_VAR: &str = "CONTEXTBASE_PROFILE";
 
 #[derive(Debug)]
 pub struct Config {
@@ -40,14 +40,14 @@ impl Config {
     }
 
     /// Load configuration with the following priority:
-    /// 1. Environment variable (AGENTSTRATUM_API_URL/AGENTSTRATUM_API_KEY) - highest priority
-    /// 2. Named profile (from `profile_name` arg, else `$AGENTSTRATUM_PROFILE`)
-    ///    at `~/.agentstratum/cli-profiles/<name>.toml`
-    /// 3. Local config file (`~/.agentstratum/config`)
+    /// 1. Environment variable (CONTEXTBASE_API_URL/CONTEXTBASE_API_KEY) - highest priority
+    /// 2. Named profile (from `profile_name` arg, else `$CONTEXTBASE_PROFILE`)
+    ///    at `~/.contextbase/cli-profiles/<name>.toml`
+    /// 3. Local config file (`~/.contextbase/config`)
     /// An explicit endpoint is required; there is no implicit local service.
     pub fn load_with_profile(profile_name: Option<&str>) -> Result<Self> {
         let config = Self::read_optional_with_profile(profile_name)?.ok_or_else(|| anyhow::anyhow!(
-            "API Endpoint is required. Copy it from your console and run agentstratum configure --api-url <URL>, use a Profile, or set AGENTSTRATUM_API_URL."
+            "API Endpoint is required. Copy it from your console and run contextbase configure --api-url <URL>, use a Profile, or set CONTEXTBASE_API_URL."
         ))?;
         Self::validate_and_create(config.api_url, config.api_key, config.source)
     }
@@ -56,10 +56,10 @@ impl Config {
     /// merge its flags and saved mount, then validate the effective endpoint.
     /// Profile lookup and file errors still propagate rather than being hidden.
     pub fn read_optional_with_profile(profile_name: Option<&str>) -> Result<Option<Self>> {
-        let env_api_key = env::var("AGENTSTRATUM_API_KEY").ok();
+        let env_api_key = env::var("CONTEXTBASE_API_KEY").ok();
 
         // 1. Environment variable takes highest priority
-        if let Ok(api_url) = env::var("AGENTSTRATUM_API_URL") {
+        if let Ok(api_url) = env::var("CONTEXTBASE_API_URL") {
             return Ok(Some(Self {
                 api_url,
                 api_key: env_api_key,
@@ -103,7 +103,7 @@ impl Config {
         let api_url = api_url.trim().trim_end_matches('/').to_string();
         if api_url.is_empty() {
             anyhow::bail!(
-                "API Endpoint is required. Copy it from your console and set AGENTSTRATUM_API_URL."
+                "API Endpoint is required. Copy it from your console and set CONTEXTBASE_API_URL."
             );
         }
         let parsed = reqwest::Url::parse(&api_url).context(
@@ -213,7 +213,7 @@ impl Config {
         load_profile_from_dir(&dir, name)
     }
 
-    /// Save a named profile to `~/.agentstratum/cli-profiles/<name>.toml`.
+    /// Save a named profile to `~/.contextbase/cli-profiles/<name>.toml`.
     /// Sets file permissions to 0600 on Unix to protect the API key.
     pub fn save_profile(name: &str, api_url: &str, api_key: Option<&str>) -> Result<PathBuf> {
         validate_profile_name(name)?;
@@ -250,7 +250,7 @@ fn load_profile_from_dir(dir: &std::path::Path, name: &str) -> Result<(String, O
     let path = dir.join(format!("{}.toml", name));
     if !path.exists() {
         anyhow::bail!(
-            "profile '{}' not found at {}; create with: agentstratum profile create {} --api-url <url>",
+            "profile '{}' not found at {}; create with: contextbase profile create {} --api-url <url>",
             name,
             path.display(),
             name
@@ -436,7 +436,7 @@ mod tests {
         let counter = std::sync::atomic::AtomicU64::new(0);
         let n = counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         let dir =
-            std::env::temp_dir().join(format!("agentstratum-cli-test-{}-{}-{}", pid, nanos, n));
+            std::env::temp_dir().join(format!("contextbase-cli-test-{}-{}-{}", pid, nanos, n));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -490,7 +490,7 @@ mod tests {
         let dir = tempdir();
         let err = load_profile_from_dir(&dir, "nope").unwrap_err().to_string();
         assert!(err.contains("profile 'nope' not found"));
-        assert!(err.contains("agentstratum profile create nope"));
+        assert!(err.contains("contextbase profile create nope"));
     }
 
     #[test]

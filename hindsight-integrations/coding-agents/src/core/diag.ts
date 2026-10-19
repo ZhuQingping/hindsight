@@ -13,7 +13,7 @@ import { appendLogLine, log, logsDir } from "./log";
 
 /** Where the JSONL trail lands. Exported so a failure notice can name the file to open. */
 export function diagFilePath(): string {
-  return process.env.AGENTSTRATUM_DIAG_FILE || join(logsDir(), "diag.jsonl");
+  return process.env.CONTEXTBASE_DIAG_FILE || join(logsDir(), "diag.jsonl");
 }
 
 export function diag(harness: string, event: string, extra: Record<string, unknown> = {}): void {

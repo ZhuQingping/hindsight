@@ -17,7 +17,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-it.each(["agentstratum", "contextdb"])(
+it.each(["contextbase", "contextdb"])(
   "keeps the MCP Endpoint independent and alias fixed under %s",
   async (name) => {
     vi.stubEnv("contextdb_name", name);
@@ -27,11 +27,11 @@ it.each(["agentstratum", "contextdb"])(
       node.textContent?.includes('"mcpServers"')
     )!;
     const configuration = JSON.parse(snippet.textContent!);
-    expect(Object.keys(configuration.mcpServers)).toEqual(["agentstratum"]);
-    expect(configuration.mcpServers.agentstratum.url).toBe("<MCP_ENDPOINT>");
+    expect(Object.keys(configuration.mcpServers)).toEqual(["contextbase"]);
+    expect(configuration.mcpServers.contextbase.url).toBe("<MCP_ENDPOINT>");
     expect(snippet.textContent).not.toContain("API_BASE_URL");
     expect(snippet.textContent).not.toContain("/mcp/");
-    expect(configuration.mcpServers.agentstratum.headers.Authorization).toBe("Bearer <API_KEY>");
+    expect(configuration.mcpServers.contextbase.headers.Authorization).toBe("Bearer <API_KEY>");
     expect(screen.getByText("mcpEndpointHelp")).toBeTruthy();
     expect(document.body.textContent).toContain(encodeURIComponent(bank));
   }

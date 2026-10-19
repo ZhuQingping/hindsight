@@ -9,10 +9,10 @@ import { createHash } from "node:crypto";
 
 /** Namespace for every id this plugin derives. Arbitrary but FIXED: changing it re-mints every
  *  operation id and silently disables dedup against everything already submitted. */
-export const AGENTSTRATUM_NAMESPACE = "e75686a4-e923-4326-a0d1-358f1c6c3eb4";
+export const CONTEXTBASE_NAMESPACE = "e75686a4-e923-4326-a0d1-358f1c6c3eb4";
 
 /** RFC 4122 v5 (SHA-1) UUID for `name` within `namespace`. */
-export function uuidV5(name: string, namespace: string = AGENTSTRATUM_NAMESPACE): string {
+export function uuidV5(name: string, namespace: string = CONTEXTBASE_NAMESPACE): string {
   const ns = Buffer.from(namespace.replace(/-/g, ""), "hex");
   if (ns.length !== 16) throw new Error(`invalid UUID namespace: ${namespace}`);
   const bytes = Buffer.from(

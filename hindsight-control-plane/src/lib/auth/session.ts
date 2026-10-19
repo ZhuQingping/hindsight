@@ -73,7 +73,7 @@ export function sessionCookieName(): string {
   // Cookies do not isolate ports. Bind the name to this UI origin so opening
   // another local instance cannot overwrite an existing experience's session.
   // Stable session namespace, bound to instance identity rather than presentation branding.
-  return `agentstratum_${createHash("sha256").update(instanceBinding()).digest("hex").slice(0, 16)}`;
+  return `contextbase_${createHash("sha256").update(instanceBinding()).digest("hex").slice(0, 16)}`;
 }
 
 function signature(payload: string, accessKey: string): string {

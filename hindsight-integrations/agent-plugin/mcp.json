@@ -1,12 +1,12 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
-    "agentstratum": {
+    "contextbase": {
       "type": "streamable-http",
-      "url": "${AGENTSTRATUM_MCP_URL}",
+      "url": "${CONTEXTBASE_MCP_URL}",
       "headers": {
-        "Authorization": "Bearer ${AGENTSTRATUM_API_KEY}",
-        "X-Bank-Id": "${AGENTSTRATUM_BANK_ID}"
+        "Authorization": "Bearer ${CONTEXTBASE_API_KEY}",
+        "X-Bank-Id": "${CONTEXTBASE_BANK_ID}"
       }
     }
   }

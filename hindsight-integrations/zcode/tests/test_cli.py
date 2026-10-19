@@ -1,4 +1,4 @@
-"""Tests for the agentstratum-zcode CLI entry point."""
+"""Tests for the contextbase-zcode CLI entry point."""
 
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ from hindsight_zcode.cli import main
 def fake_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
-    for var in ("AGENTSTRATUM_API_URL", "AGENTSTRATUM_API_TOKEN"):
+    for var in ("CONTEXTBASE_API_URL", "CONTEXTBASE_API_TOKEN"):
         monkeypatch.delenv(var, raising=False)
     return tmp_path
 
@@ -20,20 +20,20 @@ def fake_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def test_install_command_deploys(fake_home: Path) -> None:
     rc = main(["install"])
     assert rc == 0
-    assert (fake_home / ".zcode" / "hooks" / "agentstratum" / "scripts" / "recall.py").exists()
+    assert (fake_home / ".zcode" / "hooks" / "contextbase" / "scripts" / "recall.py").exists()
     assert (fake_home / ".zcode" / "cli" / "config.json").exists()
 
 
 def test_install_passes_api_url_to_user_config(fake_home: Path) -> None:
     main(["install", "--api-url", "http://localhost:8888"])
-    cfg = json.loads((fake_home / ".agentstratum" / "zcode.json").read_text())
+    cfg = json.loads((fake_home / ".contextbase" / "zcode.json").read_text())
     assert cfg["apiUrl"] == "http://localhost:8888"
 
 
 def test_install_reads_api_url_from_env(fake_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("AGENTSTRATUM_API_URL", "http://env-url:9999")
+    monkeypatch.setenv("CONTEXTBASE_API_URL", "http://env-url:9999")
     main(["install"])
-    cfg = json.loads((fake_home / ".agentstratum" / "zcode.json").read_text())
+    cfg = json.loads((fake_home / ".contextbase" / "zcode.json").read_text())
     assert cfg["apiUrl"] == "http://env-url:9999"
 
 
@@ -41,7 +41,7 @@ def test_uninstall_command(fake_home: Path) -> None:
     main(["install"])
     rc = main(["uninstall"])
     assert rc == 0
-    assert not (fake_home / ".zcode" / "hooks" / "agentstratum").exists()
+    assert not (fake_home / ".zcode" / "hooks" / "contextbase").exists()
 
 
 def test_no_subcommand_exits_nonzero() -> None:

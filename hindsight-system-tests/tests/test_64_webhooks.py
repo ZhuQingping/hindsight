@@ -89,7 +89,7 @@ async def test_the_delivery_is_signed_with_the_shared_secret(client, stubs, bank
     raw = _json.dumps(received.body, separators=(",", ":")).encode()
     expected = hmac.new(SECRET.encode(), raw, hashlib.sha256).hexdigest()
 
-    signature = received.headers["x-agentstratum-signature"]
+    signature = received.headers["x-contextbase-signature"]
     assert signature.startswith("sha256=")
     assert hmac.compare_digest(signature.removeprefix("sha256="), expected)
 
@@ -98,7 +98,7 @@ async def test_the_event_type_travels_in_a_header_too(client, stubs, bank_id, st
     """So a receiver can route without parsing the body first."""
     await _deliver(client, stubs, bank_id, stub_server.url, settled)
 
-    assert stubs.webhooks[0].headers["x-agentstratum-event"] == "consolidation.completed"
+    assert stubs.webhooks[0].headers["x-contextbase-event"] == "consolidation.completed"
 
 
 async def test_the_server_records_the_delivery_as_completed(client, stubs, bank_id, stub_server, settled):
@@ -153,9 +153,9 @@ async def test_product_headers_are_authoritative_and_signed_customer_values_are_
                 "secret": SECRET,
                 "http_config": {
                     "headers": {
-                        "x-AgEnTsTrAtUm-EvEnT": "forged-event",
-                        "x-AgEnTsTrAtUm-SiGnAtUrE": "sha256=forged",
-                        "x-AgEnTsTrAtUm-SiGnAtUrE-v2": "t=0,v1=forged",
+                        "x-ContextBase-EvEnT": "forged-event",
+                        "x-ContextBase-SiGnAtUrE": "sha256=forged",
+                        "x-ContextBase-SiGnAtUrE-v2": "t=0,v1=forged",
                         "x-HuB-SiGnAtUrE-256": "sha256=forged",
                         "X-Customer-Note": "hindsight is my own value",
                     }
@@ -172,13 +172,13 @@ async def test_product_headers_are_authoritative_and_signed_customer_values_are_
         received = stubs.webhooks[0]
         assert received.body["bank_id"] == customer_bank
         assert received.headers["x-customer-note"] == "hindsight is my own value"
-        assert received.headers["x-agentstratum-event"] == "consolidation.completed"
+        assert received.headers["x-contextbase-event"] == "consolidation.completed"
         assert not any("hindsight" in name.casefold() for name in received.headers)
         raw = json.dumps(received.body, separators=(",", ":")).encode()
         expected = "sha256=" + hmac.new(SECRET.encode(), raw, hashlib.sha256).hexdigest()
-        assert hmac.compare_digest(received.headers["x-agentstratum-signature"], expected)
+        assert hmac.compare_digest(received.headers["x-contextbase-signature"], expected)
         assert hmac.compare_digest(received.headers["x-hub-signature-256"], expected)
-        timestamp, signature = received.headers["x-agentstratum-signature-v2"].split(",")
+        timestamp, signature = received.headers["x-contextbase-signature-v2"].split(",")
         assert timestamp.startswith("t=") and signature.startswith("v1=")
         signed = timestamp.removeprefix("t=").encode() + b"." + raw
         expected_v2 = hmac.new(SECRET.encode(), signed, hashlib.sha256).hexdigest()

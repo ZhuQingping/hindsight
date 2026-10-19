@@ -6839,7 +6839,7 @@
           "Banks"
         ],
         "summary": "Update bank configuration",
-        "description": "Update configuration overrides for a bank. Only hierarchical behavioral settings can be overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).",
+        "description": "Update configuration overrides for a bank. Only hierarchical behavioral settings can be overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format (retain_extraction_mode) or product configuration format (CONTEXTBASE_API_RETAIN_EXTRACTION_MODE).",
         "operationId": "update_bank_config",
         "parameters": [
           {
@@ -8652,7 +8652,7 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Updates",
-            "description": "Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank."
+            "description": "Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or product configuration format (CONTEXTBASE_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank."
           }
         },
         "type": "object",
@@ -13956,7 +13956,7 @@
           "version": {
             "type": "string",
             "title": "Version",
-            "description": "agentstratum engine version this process is running"
+            "description": "contextbase engine version this process is running"
           },
           "uptime_seconds": {
             "type": "number",
@@ -16800,7 +16800,7 @@
             "maxLength": 40,
             "pattern": "^[a-z][a-z0-9-]{0,39}$",
             "title": "Contextdb Name",
-            "default": "agentstratum"
+            "default": "contextbase"
           }
         },
         "additionalProperties": false,
@@ -16822,7 +16822,7 @@
               "builtin"
             ],
             "title": "Source",
-            "description": "`config` \u2014 produced by a setting (`field` names it); `builtin` \u2014 agentstratum's own wording."
+            "description": "`config` \u2014 produced by a setting (`field` names it); `builtin` \u2014 contextbase's own wording."
           },
           "field": {
             "type": "string",

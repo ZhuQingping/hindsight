@@ -1,7 +1,7 @@
 services:
   grafana-lgtm:
     image: grafana/otel-lgtm:latest
-    container_name: agentstratum-monitoring
+    container_name: contextbase-monitoring
     ports:
       # Grafana UI
       - "3000:3000"
@@ -14,22 +14,22 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
     volumes:
-      # Mount Prometheus config for scraping agentstratum API metrics (override LGTM default)
+      # Mount Prometheus config for scraping contextbase API metrics (override LGTM default)
       - ./prometheus.yml:/otel-lgtm/prometheus.yaml:ro
-      # Mount agentstratum dashboards to LGTM directory (where default dashboards are)
-      - ../../../monitoring/grafana/dashboards/agentstratum-operations.json:/otel-lgtm/agentstratum-operations.json:ro
-      - ../../../monitoring/grafana/dashboards/agentstratum-llm.json:/otel-lgtm/agentstratum-llm.json:ro
-      - ../../../monitoring/grafana/dashboards/agentstratum-api-service.json:/otel-lgtm/agentstratum-api-service.json:ro
-      # Mount custom dashboard provisioning config that includes agentstratum dashboards
+      # Mount contextbase dashboards to LGTM directory (where default dashboards are)
+      - ../../../monitoring/grafana/dashboards/contextbase-operations.json:/otel-lgtm/contextbase-operations.json:ro
+      - ../../../monitoring/grafana/dashboards/contextbase-llm.json:/otel-lgtm/contextbase-llm.json:ro
+      - ../../../monitoring/grafana/dashboards/contextbase-api-service.json:/otel-lgtm/contextbase-api-service.json:ro
+      # Mount custom dashboard provisioning config that includes contextbase dashboards
       - ./grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro
     restart: unless-stopped
     networks:
-      - agentstratum
+      - contextbase
     extra_hosts:
-      # Allow container to reach host services (agentstratum API on localhost:8888)
+      # Allow container to reach host services (contextbase API on localhost:8888)
       - "host.docker.internal:host-gateway"
 
 networks:
-  agentstratum:
-    name: agentstratum-network
+  contextbase:
+    name: contextbase-network
     external: true

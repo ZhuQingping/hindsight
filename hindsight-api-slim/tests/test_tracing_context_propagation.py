@@ -138,7 +138,7 @@ def test_instrumentation_failure_does_not_break_app_creation(monkeypatch):
 # A trace is named after its root span, and the ASGI instrumentation's root is
 # an HTTP span named "{method} {http.route}". That titled every Hindsight trace
 # with a URL template instead of the operation it ran, so operation endpoints
-# rename their server span to "agentstratum.<operation>".
+# rename their server span to "contextbase.<operation>".
 
 
 def _recording_app(config) -> tuple[FastAPI, "InMemorySpanExporter"]:
@@ -214,9 +214,9 @@ def test_operation_endpoints_are_named_after_the_hindsight_operation(monkeypatch
         client.post("/v1/default/banks/bank-a/memories")
         client.post("/v1/default/banks/bank-a/reflect")
 
-    assert _span_name_for(exporter, "/v1/default/banks/bank-a/memories/recall") == "agentstratum.recall"
-    assert _span_name_for(exporter, "/v1/default/banks/bank-a/memories") == "agentstratum.retain"
-    assert _span_name_for(exporter, "/v1/default/banks/bank-a/reflect") == "agentstratum.reflect"
+    assert _span_name_for(exporter, "/v1/default/banks/bank-a/memories/recall") == "contextbase.recall"
+    assert _span_name_for(exporter, "/v1/default/banks/bank-a/memories") == "contextbase.retain"
+    assert _span_name_for(exporter, "/v1/default/banks/bank-a/reflect") == "contextbase.reflect"
 
 
 def test_every_mapped_route_is_matched_by_its_pattern(monkeypatch):
@@ -229,9 +229,9 @@ def test_every_mapped_route_is_matched_by_its_pattern(monkeypatch):
         client.post("/v1/default/banks/bank-a/files/retain")
 
     assert (
-        _span_name_for(exporter, "/v1/default/banks/bank-a/memories/dry-run-extract") == "agentstratum.dry_run_extract"
+        _span_name_for(exporter, "/v1/default/banks/bank-a/memories/dry-run-extract") == "contextbase.dry_run_extract"
     )
-    assert _span_name_for(exporter, "/v1/default/banks/bank-a/files/retain") == "agentstratum.file_convert_retain"
+    assert _span_name_for(exporter, "/v1/default/banks/bank-a/files/retain") == "contextbase.file_convert_retain"
 
 
 def test_renamed_span_keeps_its_http_route_and_gains_the_bank_id(monkeypatch):
@@ -245,9 +245,9 @@ def test_renamed_span_keeps_its_http_route_and_gains_the_bank_id(monkeypatch):
     (span,) = exporter.get_finished_spans()
     assert span.attributes["http.route"] == "/v1/default/banks/{bank_id}/memories/recall"
     assert span.attributes["http.method"] == "POST"
-    assert span.attributes["agentstratum.operation"] == "recall"
+    assert span.attributes["contextbase.operation"] == "recall"
     # The route template carries the placeholder; the real id is on the span.
-    assert span.attributes["agentstratum.bank_id"] == "bank-a"
+    assert span.attributes["contextbase.bank_id"] == "bank-a"
 
 
 def test_non_operation_endpoints_keep_their_semconv_name(monkeypatch):

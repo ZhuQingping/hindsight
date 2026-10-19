@@ -11,7 +11,7 @@ Flow:
   4. Ensure bank mission is set (first use only)
   5. Compose multi-turn query if recallContextTurns > 1
   6. Truncate to recallMaxQueryChars
-  7. Call agentstratum recall API
+  7. Call contextbase recall API
   8. Format memories and output hookSpecificOutput.additionalContext
   9. Save last recall to state (for PostCompact re-injection)
 
@@ -117,7 +117,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[agentstratum] Failed to read hook input", file=sys.stderr)
+        print("[contextbase] Failed to read hook input", file=sys.stderr)
         return
 
     debug_log(config, f"Hook input keys: {list(hook_input.keys())}")
@@ -136,7 +136,7 @@ def main():
     try:
         api_url = get_api_url(config.get("apiUrl"))
     except RuntimeError as e:
-        print(f"[agentstratum] {e}", file=sys.stderr)
+        print(f"[contextbase] {e}", file=sys.stderr)
         return
 
     api_token = config.get("apiToken")
@@ -147,7 +147,7 @@ def main():
             request_timeout_override=config.get("requestTimeoutSeconds"),
         )
     except ValueError as e:
-        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[contextbase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID (static or dynamic from project context)
@@ -182,7 +182,7 @@ def main():
     tags_match = config.get("recallTagsMatch") if recall_tags or tag_groups else None
     additional_bank_filters = config.get("recallAdditionalBankFilters") or {}
 
-    # Call agentstratum recall API
+    # Call contextbase recall API
     try:
         response = client.recall(
             bank_id=bank_id,
@@ -196,7 +196,7 @@ def main():
             timeout=10,
         )
     except Exception as e:
-        print(f"[agentstratum] Recall failed: {e}", file=sys.stderr)
+        print(f"[contextbase] Recall failed: {e}", file=sys.stderr)
         return
 
     results = response.get("results", [])
@@ -250,11 +250,11 @@ def main():
     current_time = format_current_time()
 
     context_message = (
-        f"<agentstratum_memories>\n"
+        f"<contextbase_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</agentstratum_memories>"
+        f"</contextbase_memories>"
     )
 
     # Save last recall to state for diagnostics
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[agentstratum] Unexpected error in recall: {e}", file=sys.stderr)
+        print(f"[contextbase] Unexpected error in recall: {e}", file=sys.stderr)
         # Exit 2 in debug mode surfaces errors to Claude; 0 degrades silently
         try:
             from lib.config import load_config

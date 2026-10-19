@@ -14,13 +14,13 @@ from ..profile_manager import ENV_API_PORT, ENV_CP_PORT, ProfileManager
 
 # Env var names the wizard owns. Writing config replaces these; everything else
 # in the profile (idle timeout, bank id, custom keys) is preserved untouched.
-_ENV_PROVIDER = "AGENTSTRATUM_API_LLM_PROVIDER"
-_ENV_API_KEY = "AGENTSTRATUM_API_LLM_API_KEY"
-_ENV_MODEL = "AGENTSTRATUM_API_LLM_MODEL"
-_ENV_BASE_URL = "AGENTSTRATUM_API_LLM_BASE_URL"
+_ENV_PROVIDER = "CONTEXTBASE_API_LLM_PROVIDER"
+_ENV_API_KEY = "CONTEXTBASE_API_LLM_API_KEY"
+_ENV_MODEL = "CONTEXTBASE_API_LLM_MODEL"
+_ENV_BASE_URL = "CONTEXTBASE_API_LLM_BASE_URL"
 # Per-profile component versions (default = the embed's own version when unset).
-_ENV_API_VERSION = "AGENTSTRATUM_EMBED_API_VERSION"
-_ENV_CP_VERSION = "AGENTSTRATUM_EMBED_CP_VERSION"
+_ENV_API_VERSION = "CONTEXTBASE_EMBED_API_VERSION"
+_ENV_CP_VERSION = "CONTEXTBASE_EMBED_CP_VERSION"
 
 # Sentinel the UI sends back when the api-key field is left untouched, so we
 # keep the stored key instead of overwriting it with the masked placeholder.
@@ -55,7 +55,7 @@ class ProfileConfigView:
     api_port: int  # effective API/daemon port
     ui_port: int  # effective control-plane port
     ui_port_is_default: bool  # True when UI port is derived (API + offset), not pinned
-    api_version: str | None  # pinned agentstratum-api version (None = use embed default)
+    api_version: str | None  # pinned contextbase-api version (None = use embed default)
     cp_version: str | None  # pinned control-plane version (None = use embed default)
 
 
@@ -255,7 +255,7 @@ def save_llm_config(
     ``API_KEY_UNCHANGED`` (or None) for ``api_key`` keeps the stored key; passing
     empty string clears it. An empty ``model`` removes the override. ``base_url``
     is no longer in the wizard: None preserves an existing override, "" clears it.
-    ``api_port`` pins AGENTSTRATUM_API_PORT; an empty ``ui_port`` removes the override
+    ``api_port`` pins CONTEXTBASE_API_PORT; an empty ``ui_port`` removes the override
     so the control-plane port follows API + offset. Empty version fields remove
     the per-profile version pin (use the embed default).
     """
@@ -438,7 +438,7 @@ def get_profile_paths(name: str) -> ProfilePathsView:
     paths = ProfileManager().resolve_profile_paths(name)
 
     # Honor the same DB override the daemon uses, else the per-profile pg0.
-    database_url = os.getenv("AGENTSTRATUM_EMBED_API_DATABASE_URL") or get_embed_manager().get_database_url(name)
+    database_url = os.getenv("CONTEXTBASE_EMBED_API_DATABASE_URL") or get_embed_manager().get_database_url(name)
     database_path: str | None = None
     if database_url.startswith("pg0://"):
         instance = database_url.removeprefix("pg0://")

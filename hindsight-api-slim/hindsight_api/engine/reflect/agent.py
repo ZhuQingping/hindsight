@@ -1444,10 +1444,10 @@ async def _run_reflect_agent_inner(
             from hindsight_api.tracing import get_tracer
 
             tracer = get_tracer()
-            span_name = "agentstratum.reflect_tool_call"
+            span_name = "contextbase.reflect_tool_call"
             with tracer.start_as_current_span(span_name) as span:
-                span.set_attribute("agentstratum.scope", "reflect_tool_call")
-                span.set_attribute("agentstratum.operation", "reflect_tool_call")
+                span.set_attribute("contextbase.scope", "reflect_tool_call")
+                span.set_attribute("contextbase.operation", "reflect_tool_call")
                 try:
                     return await _process_done_tool(
                         done_call.model_copy(
@@ -2156,7 +2156,7 @@ async def _execute_tool_with_timing(
     tracer = get_tracer()
     # Normalize tool name for span
     normalized_name = _normalize_tool_name(tc.name)
-    span_name = f"agentstratum.reflect_tool_exec.{normalized_name}"
+    span_name = f"contextbase.reflect_tool_exec.{normalized_name}"
 
     # Calculate timestamps
     start_time_ns = time.time_ns()
@@ -2167,9 +2167,9 @@ async def _execute_tool_with_timing(
         end_on_exit=False,
     ) as span:
         # Set attributes
-        span.set_attribute("agentstratum.tool.name", normalized_name)
-        span.set_attribute("agentstratum.tool.id", tc.id)
-        span.set_attribute("agentstratum.tool.arguments", json.dumps(tc.arguments, ensure_ascii=False))
+        span.set_attribute("contextbase.tool.name", normalized_name)
+        span.set_attribute("contextbase.tool.id", tc.id)
+        span.set_attribute("contextbase.tool.arguments", json.dumps(tc.arguments, ensure_ascii=False))
 
         try:
             result = await _execute_tool(
@@ -2196,7 +2196,7 @@ async def _execute_tool_with_timing(
                 span.set_status(Status(StatusCode.OK))
 
             duration_ms = int((time.time() - start_time) * 1000)
-            span.set_attribute("agentstratum.tool.duration_ms", duration_ms)
+            span.set_attribute("contextbase.tool.duration_ms", duration_ms)
 
             # End span with correct timestamp
             end_time_ns = time.time_ns()
@@ -2209,7 +2209,7 @@ async def _execute_tool_with_timing(
             span.set_status(Status(StatusCode.ERROR, str(e)))
             span.record_exception(e)
             duration_ms = int((time.time() - start_time) * 1000)
-            span.set_attribute("agentstratum.tool.duration_ms", duration_ms)
+            span.set_attribute("contextbase.tool.duration_ms", duration_ms)
             end_time_ns = time.time_ns()
             span.end(end_time=end_time_ns)
             raise

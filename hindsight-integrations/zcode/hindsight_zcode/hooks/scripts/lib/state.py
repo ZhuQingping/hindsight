@@ -1,7 +1,7 @@
 """File-based state persistence.
 
 ZCode hooks are ephemeral processes — state must be persisted to files.
-Uses ~/.agentstratum/zcode/state/ as the storage directory.
+Uses ~/.contextbase/zcode/state/ as the storage directory.
 """
 
 import json
@@ -17,7 +17,7 @@ else:
 
 def _state_dir():
     """Get the state directory, creating it if needed."""
-    state_dir = os.path.join(os.path.expanduser("~"), ".agentstratum", "zcode", "state")
+    state_dir = os.path.join(os.path.expanduser("~"), ".contextbase", "zcode", "state")
     os.makedirs(state_dir, exist_ok=True)
     return state_dir
 

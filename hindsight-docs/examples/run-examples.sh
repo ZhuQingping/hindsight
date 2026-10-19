@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -52,9 +52,9 @@ run_node_examples() {
 run_cli_examples() {
     echo -e "${YELLOW}Running CLI examples...${NC}"
 
-    # Check if agentstratum CLI is available
-    if ! command -v agentstratum &> /dev/null; then
-        echo -e "  ${YELLOW}SKIPPED (agentstratum CLI not installed)${NC}"
+    # Check if contextbase CLI is available
+    if ! command -v contextbase &> /dev/null; then
+        echo -e "  ${YELLOW}SKIPPED (contextbase CLI not installed)${NC}"
         for f in "$SCRIPT_DIR"/api/*.sh; do
             if [ -f "$f" ]; then
                 ((skipped++))

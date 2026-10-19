@@ -43,7 +43,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(agentstratum_operation_operations_total{tenant=~\"$tenant\"})",
+          "expr": "sum(contextbase_operation_operations_total{tenant=~\"$tenant\"})",
           "refId": "A"
         }
       ],
@@ -85,7 +85,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(agentstratum_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(contextbase_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
           "refId": "A"
         }
       ],
@@ -128,7 +128,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(agentstratum_operation_operations_total{operation=\"retain\", tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(contextbase_operation_operations_total{operation=\"retain\", tenant=~\"$tenant\"}[1m]))",
           "refId": "A"
         }
       ],
@@ -171,7 +171,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(agentstratum_operation_operations_total{operation=\"recall\", tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(contextbase_operation_operations_total{operation=\"recall\", tenant=~\"$tenant\"}[1m]))",
           "refId": "A"
         }
       ],
@@ -214,7 +214,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(agentstratum_operation_operations_total{operation=\"reflect\", tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(contextbase_operation_operations_total{operation=\"reflect\", tenant=~\"$tenant\"}[1m]))",
           "refId": "A"
         }
       ],
@@ -301,7 +301,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (operation) (rate(agentstratum_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum by (operation) (rate(contextbase_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
           "legendFormat": "{{operation}}",
           "refId": "A"
         }
@@ -389,17 +389,17 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(agentstratum_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(contextbase_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(agentstratum_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(contextbase_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(agentstratum_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(contextbase_operation_duration_seconds_bucket{operation=\"recall\", tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -474,7 +474,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (operation, le) (rate(agentstratum_operation_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (operation, le) (rate(contextbase_operation_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "{{operation}}",
           "refId": "A"
         }
@@ -549,7 +549,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (bank_id) (rate(agentstratum_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum by (bank_id) (rate(contextbase_operation_operations_total{tenant=~\"$tenant\"}[1m]))",
           "legendFormat": "{{bank_id}}",
           "refId": "A"
         }
@@ -560,7 +560,7 @@
   ],
   "refresh": "5s",
   "schemaVersion": 38,
-  "tags": ["agentstratum"],
+  "tags": ["contextbase"],
   "templating": {
     "list": [
       {
@@ -585,14 +585,14 @@
           "value": "$__all"
         },
         "datasource": "$datasource",
-        "definition": "label_values(agentstratum_operation_operations_total, tenant)",
+        "definition": "label_values(contextbase_operation_operations_total, tenant)",
         "hide": 0,
         "includeAll": true,
         "label": "Tenant",
         "multi": false,
         "name": "tenant",
         "options": [],
-        "query": "label_values(agentstratum_operation_operations_total, tenant)",
+        "query": "label_values(contextbase_operation_operations_total, tenant)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -607,8 +607,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "agentstratum Operations",
-  "uid": "agentstratum-operations",
+  "title": "contextbase Operations",
+  "uid": "contextbase-operations",
   "version": 1,
   "weekStart": ""
 }

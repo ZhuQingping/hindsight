@@ -4,16 +4,16 @@
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="mental-models-demo-bank"
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-agentstratum bank create "$BANK_ID" --name "Mental Models Demo"
-agentstratum memory retain "$BANK_ID" "The team prefers async communication via Slack"
-agentstratum memory retain "$BANK_ID" "For urgent issues, use the #incidents channel"
-agentstratum memory retain "$BANK_ID" "Weekly syncs happen every Monday at 10am"
+contextbase bank create "$BANK_ID" --name "Mental Models Demo"
+contextbase memory retain "$BANK_ID" "The team prefers async communication via Slack"
+contextbase memory retain "$BANK_ID" "For urgent issues, use the #incidents channel"
+contextbase memory retain "$BANK_ID" "Weekly syncs happen every Monday at 10am"
 sleep 2
 
 # =============================================================================
@@ -22,14 +22,14 @@ sleep 2
 
 # [docs:create-mental-model]
 # Create a mental model (runs reflect in background)
-agentstratum mental-model create "$BANK_ID" \
+contextbase mental-model create "$BANK_ID" \
   "Team Communication Preferences" \
   "How does the team prefer to communicate?"
 # [/docs:create-mental-model]
 
 # [docs:create-mental-model-with-id]
 # Create a mental model with a specific custom ID
-agentstratum mental-model create "$BANK_ID" \
+contextbase mental-model create "$BANK_ID" \
   "Communication Policy" \
   "What are the team's communication guidelines?" \
   --id communication-policy
@@ -39,7 +39,7 @@ sleep 5
 
 # [docs:create-mental-model-with-trigger]
 # Create a mental model and get its ID for subsequent operations
-agentstratum mental-model create "$BANK_ID" \
+contextbase mental-model create "$BANK_ID" \
   "Project Status" \
   "What is the current project status?"
 # [/docs:create-mental-model-with-trigger]
@@ -49,7 +49,7 @@ agentstratum mental-model create "$BANK_ID" \
 # A tagged model defaults to all_strict (a memory must carry EVERY tag);
 # pass --tags-match any when your memories are tagged narrowly (one topic
 # each), so the refresh reads any memory carrying at least one of the tags.
-agentstratum mental-model create "$BANK_ID" \
+contextbase mental-model create "$BANK_ID" \
   "Current Projects" \
   "Which projects is the user currently working on?" \
   --tags projects,mental-model \
@@ -60,21 +60,21 @@ sleep 5
 
 # [docs:list-mental-models]
 # List all mental models in a bank
-agentstratum mental-model list "$BANK_ID"
+contextbase mental-model list "$BANK_ID"
 # [/docs:list-mental-models]
 
 # Get the first mental model ID for subsequent examples
-MENTAL_MODEL_ID=$(agentstratum mental-model list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(items[0]['id'] if items else '')" 2>/dev/null || echo "")
+MENTAL_MODEL_ID=$(contextbase mental-model list "$BANK_ID" -o json | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(items[0]['id'] if items else '')" 2>/dev/null || echo "")
 
 if [ -n "$MENTAL_MODEL_ID" ]; then
   # [docs:get-mental-model]
   # Get a specific mental model
-  agentstratum mental-model get "$BANK_ID" "$MENTAL_MODEL_ID"
+  contextbase mental-model get "$BANK_ID" "$MENTAL_MODEL_ID"
   # [/docs:get-mental-model]
 
   # [docs:refresh-mental-model]
   # Refresh a mental model to update with current knowledge
-  agentstratum mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+  contextbase mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
   # [/docs:refresh-mental-model]
 
   # [docs:clear-mental-model]
@@ -82,18 +82,18 @@ if [ -n "$MENTAL_MODEL_ID" ]; then
   curl -s -X POST "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/mental-models/${MENTAL_MODEL_ID}/clear"
 
   # Trigger a fresh full rebuild
-  agentstratum mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+  contextbase mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
   # [/docs:clear-mental-model]
 
   # [docs:update-mental-model]
   # Update a mental model's metadata
-  agentstratum mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
+  contextbase mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
     --name "Updated Team Communication Preferences"
   # [/docs:update-mental-model]
 
   # [docs:get-mental-model-history]
   # Get the change history of a mental model
-  agentstratum mental-model history "$BANK_ID" "$MENTAL_MODEL_ID"
+  contextbase mental-model history "$BANK_ID" "$MENTAL_MODEL_ID"
   # [/docs:get-mental-model-history]
 
   # [docs:mental-model-detail]
@@ -110,19 +110,19 @@ if [ -n "$MENTAL_MODEL_ID" ]; then
 
   # [docs:dry-run-refresh]
   # Preview what a refresh would do, without writing anything
-  agentstratum mental-model dry-run-refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+  contextbase mental-model dry-run-refresh "$BANK_ID" "$MENTAL_MODEL_ID"
   # [/docs:dry-run-refresh]
 
   # [docs:keep-trace]
   # Record how every refresh (scheduled ones too) reached its result
-  agentstratum mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
+  contextbase mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
     --trigger-mode delta \
     --trigger-keep-trace true
   # [/docs:keep-trace]
 
   # [docs:delete-mental-model]
   # Delete a mental model
-  agentstratum mental-model delete "$BANK_ID" "$MENTAL_MODEL_ID" -y
+  contextbase mental-model delete "$BANK_ID" "$MENTAL_MODEL_ID" -y
   # [/docs:delete-mental-model]
 fi
 

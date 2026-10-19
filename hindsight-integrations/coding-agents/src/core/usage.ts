@@ -1,12 +1,12 @@
 /**
- * agentstratum tool usage — is the agent calling our tools, and does it credit what they returned?
+ * contextbase tool usage — is the agent calling our tools, and does it credit what they returned?
  *
- * One JSON line per finished user turn in `~/.agentstratum/coding-agents-logs/usage.jsonl`:
+ * One JSON line per finished user turn in `~/.contextbase/coding-agents-logs/usage.jsonl`:
  *
- *   {"ts","harness","session","bank","turn":7,"calls":["agentstratum_reflect"],"credited":true}
+ *   {"ts","harness","session","bank","turn":7,"calls":["contextbase_reflect"],"credited":true}
  *
- * - `calls`    the agentstratum_* tools the agent called during that turn (other tools are not counted)
- * - `credited` the agent's reply carried the "From agentstratum memory" credit the tool guide asks for
+ * - `calls`    the contextbase_* tools the agent called during that turn (other tools are not counted)
+ * - `credited` the agent's reply carried the "From contextbase memory" credit the tool guide asks for
  *              whenever retrieved memory contributed — the cheap proxy for "the result was useful".
  *              The report rates it over turns that called a retrieval tool (see RETRIEVAL_TOOLS)
  *
@@ -25,13 +25,13 @@ import type { TransportTurn } from "./chat";
 import { appendLogLine, logsDir } from "./log";
 
 export function usageFilePath(): string {
-  return process.env.AGENTSTRATUM_USAGE_FILE || join(logsDir(), "usage.jsonl");
+  return process.env.CONTEXTBASE_USAGE_FILE || join(logsDir(), "usage.jsonl");
 }
 
-/** A agentstratum tool name at the END of a host's tool name: hosts prefix MCP tools differently
- *  (`mcp__agentstratum__agentstratum_reflect`, `agentstratum.agentstratum_reflect`, bare `agentstratum_reflect`).
- *  Each segment needs a letter, so `agentstratum__agentstratum_reflect` cannot match from the first one. */
-const AGENTSTRATUM_TOOL_RE = /agentstratum_(?:[a-z]+_)*[a-z]+$/;
+/** A contextbase tool name at the END of a host's tool name: hosts prefix MCP tools differently
+ *  (`mcp__contextbase__contextbase_reflect`, `contextbase.contextbase_reflect`, bare `contextbase_reflect`).
+ *  Each segment needs a letter, so `contextbase__contextbase_reflect` cannot match from the first one. */
+const CONTEXTBASE_TOOL_RE = /contextbase_(?:[a-z]+_)*[a-z]+$/;
 
 /** The credit line the injected tool guide prescribes (core/knowledge-injection.ts). */
 // Recognize current and historical attribution without rewriting customer transcripts.
@@ -47,10 +47,10 @@ const CREDIT_RE = new RegExp(
  * on real sessions it read ~5% because ingest_document dominated.
  */
 const RETRIEVAL_TOOLS = new Set([
-  "agentstratum_search_knowledge_pages",
-  "agentstratum_list_knowledge_pages",
-  "agentstratum_read_knowledge_page",
-  "agentstratum_reflect",
+  "contextbase_search_knowledge_pages",
+  "contextbase_list_knowledge_pages",
+  "contextbase_read_knowledge_page",
+  "contextbase_reflect",
 ]);
 
 /** Roles a reader uses for the agent's own prose (Gemini-shaped transcripts say "model"). */
@@ -75,7 +75,7 @@ export function summarizeTurns(turns: TransportTurn[]): TurnUsage[] {
     const current = out.at(-1);
     if (!current) continue;
     if (t.role === "action") {
-      const tool = t.content.split(" ", 1)[0].match(AGENTSTRATUM_TOOL_RE)?.[0];
+      const tool = t.content.split(" ", 1)[0].match(CONTEXTBASE_TOOL_RE)?.[0];
       if (tool) current.calls.push(tool);
     } else if (ASSISTANT_ROLES.has(t.role) && CREDIT_RE.test(t.content)) {
       current.credited = true;
@@ -186,12 +186,12 @@ function isUsageLine(v: unknown): v is UsageLine {
 export interface HarnessUsage {
   harness: string;
   turns: number;
-  /** Turns with at least one agentstratum_* call. */
+  /** Turns with at least one contextbase_* call. */
   turnsWithCalls: number;
   calls: number;
   /** Turns that called a RETRIEVAL tool — the credit rate's denominator. */
   turnsWithRetrieval: number;
-  /** Of `turnsWithRetrieval`, how many replies credited agentstratum memory. */
+  /** Of `turnsWithRetrieval`, how many replies credited contextbase memory. */
   creditedTurnsWithRetrieval: number;
   byTool: Record<string, number>;
 }
@@ -247,13 +247,13 @@ export function readUsage(path = usageFilePath()): HarnessUsage[] {
 
 const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)}%` : "-");
 
-/** Human-readable report for `agentstratum-coding-agents stats`. */
+/** Human-readable report for `contextbase-coding-agents stats`. */
 export function formatUsageReport(usage: HarnessUsage[], path = usageFilePath()): string {
-  if (!usage.length) return `no agentstratum usage recorded yet (${path})`;
-  const out = [`agentstratum tool usage (${path})`, ""];
+  if (!usage.length) return `no contextbase usage recorded yet (${path})`;
+  const out = [`contextbase tool usage (${path})`, ""];
   for (const h of usage) {
     out.push(
-      `${h.harness}: ${h.turns} turns · ${h.turnsWithCalls} with a agentstratum call ` +
+      `${h.harness}: ${h.turns} turns · ${h.turnsWithCalls} with a contextbase call ` +
         `(${pct(h.turnsWithCalls, h.turns)}) · ${(h.calls / h.turns).toFixed(2)} calls/turn · ` +
         `credited after retrieval ${h.creditedTurnsWithRetrieval}/${h.turnsWithRetrieval} ` +
         `(${pct(h.creditedTurnsWithRetrieval, h.turnsWithRetrieval)})`

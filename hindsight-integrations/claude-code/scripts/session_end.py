@@ -28,12 +28,12 @@ def main():
 
             run_retain(hook_input, force=True)
         except Exception as e:
-            print(f"[agentstratum] SessionEnd final retain error: {e}", file=sys.stderr)
+            print(f"[contextbase] SessionEnd final retain error: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[agentstratum] SessionEnd error: {e}", file=sys.stderr)
+        print(f"[contextbase] SessionEnd error: {e}", file=sys.stderr)
         sys.exit(0)

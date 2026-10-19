@@ -310,7 +310,7 @@ describe("retainLiveSession — incremental write-back", () => {
 
   it("records the probed write-back mode in the diag trail, so a dead append is visible (#5286)", async () => {
     const dir = mkdtempSync(join(tmpdir(), "hs-chat-diag-"));
-    vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(dir, "diag.jsonl"));
+    vi.stubEnv("CONTEXTBASE_DIAG_FILE", join(dir, "diag.jsonl"));
     try {
       await write(stubClient(false).client, turns(2), memoryCursorStore());
       const events = readFileSync(join(dir, "diag.jsonl"), "utf8")

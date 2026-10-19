@@ -71,8 +71,8 @@ def _run_tail_with_fake_exec(plugin_data: str, plugin_root: str) -> str:
         export CLAUDE_PLUGIN_DATA="$1"
         export CLAUDE_PLUGIN_ROOT="$2"
         PY=python
-        exec() { printf '%s\n%s' "$AGENTSTRATUM_MCP_PROJECT_CWD" "$(pwd)"; }
-        sed -n '/^export AGENTSTRATUM_MCP_PROJECT_CWD=/,$p' "$3" | source /dev/stdin
+        exec() { printf '%s\n%s' "$CONTEXTBASE_MCP_PROJECT_CWD" "$(pwd)"; }
+        sed -n '/^export CONTEXTBASE_MCP_PROJECT_CWD=/,$p' "$3" | source /dev/stdin
         """
     )
     result = subprocess.run(

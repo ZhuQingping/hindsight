@@ -1,5 +1,5 @@
 /**
- * ONE config file: ~/.agentstratum/coding-agent.json.
+ * ONE config file: ~/.contextbase/coding-agent.json.
  *
  * Layering, later wins per field:
  *   1. built-in defaults
@@ -36,11 +36,11 @@ import {
   type RetainExtractionMode,
 } from "./missions";
 
-/** Default config-file path: ~/.agentstratum/coding-agent.json */
-export // AGENTSTRATUM_CONFIG joins the two env exceptions (diag/log files): it points at THE config file,
+/** Default config-file path: ~/.contextbase/coding-agent.json */
+export // CONTEXTBASE_CONFIG joins the two env exceptions (diag/log files): it points at THE config file,
 // for containers and test harnesses where $HOME isn't the right anchor. Still one file.
 const CONFIG_PATH =
-  process.env.AGENTSTRATUM_CONFIG || join(homedir(), ".agentstratum", "coding-agent.json");
+  process.env.CONTEXTBASE_CONFIG || join(homedir(), ".contextbase", "coding-agent.json");
 
 /** Daemon-mode defaults. The port matches the old per-agent Claude Code plugin so a machine that
  *  already ran that daemon keeps using the same one. */
@@ -52,26 +52,26 @@ export const DEFAULT_DAEMON_PROFILE = "coding-agent";
 export interface RawConfig {
   /** Remote service mode. "daemon" is retained for internal source tests but rejected by loadConfig. */
   serverMode?: "cloud" | "self-hosted" | "daemon";
-  apiUrl?: string; // agentstratum API Endpoint from the console; no default
+  apiUrl?: string; // contextbase API Endpoint from the console; no default
   apiToken?: string; // bearer token (optional)
   /** Daemon mode: port the local daemon listens on (default 9077).
    *  NOT 8888 — that is the conventional port for a server you run yourself, and a daemon must
    *  never squat on it. A healthy server already on this port is adopted rather than restarted. */
   apiPort?: number;
   /** Daemon mode: seconds of inactivity before the daemon exits. Unset means it never exits on
-   *  its own — `agentstratum-embed`'s own default, which every other agentstratum integration also
+   *  its own — `contextbase-embed`'s own default, which every other contextbase integration also
    *  ships. This used to default to 300 here, which made the plugin the only thing on the machine
    *  opting a shared daemon into an auto-exit nobody asked for. There is deliberately no
    *  stop-on-session-end either: one daemon is shared by every agent and repo on the machine, so
    *  ending one session must not cut memory out from under another. */
   daemonIdleTimeout?: number;
-  /** Daemon mode: `agentstratum-embed` profile name, i.e. which local database is used (default
+  /** Daemon mode: `contextbase-embed` profile name, i.e. which local database is used (default
    *  "coding-agent"). Separate profiles keep unrelated setups from sharing memory. */
   daemonProfile?: string;
-  /** Daemon mode: which `agentstratum-embed` release to run via uvx (default "latest"). */
+  /** Daemon mode: which `contextbase-embed` release to run via uvx (default "latest"). */
   embedVersion?: string;
   embedPackage?: string;
-  /** Daemon mode: local `agentstratum-embed` checkout to run instead of a published release (dev). */
+  /** Daemon mode: local `contextbase-embed` checkout to run instead of a published release (dev). */
   embedPackagePath?: string;
   bankId?: string; // EXPLICIT memory bank id — set = static bank; unset = per-repo dynamic (core/bank.ts)
   dynamicBankId?: boolean; // force dynamic resolution even when bankId is set (default: dynamic iff no bankId)
@@ -103,11 +103,11 @@ export interface RawConfig {
    *  it, fits the 30s prompt-hook timeout the installer registers on hook harnesses; going higher
    *  there needs that host timeout raised too, or the host kills the hook mid-reflect. */
   reflectTimeoutMs?: number;
-  /** Timeout for the agent-invoked `agentstratum_reflect` tool (default 330000). Deliberately its own
+  /** Timeout for the agent-invoked `contextbase_reflect` tool (default 330000). Deliberately its own
    *  knob and much larger than `reflectTimeoutMs`: that one bounds an automatic hook that must fit
    *  the host's hook window, whereas this one bounds a call the agent made on purpose and waits on,
    *  whose `budget: "high"` synthesis on a populated bank can run for minutes. The default sits
-   *  ABOVE the server's own reflect wall timeout (AGENTSTRATUM_API_REFLECT_WALL_TIMEOUT, 300s) so the
+   *  ABOVE the server's own reflect wall timeout (CONTEXTBASE_API_REFLECT_WALL_TIMEOUT, 300s) so the
    *  server decides when to give up, not an arbitrary client deadline (#3590). Unset, it inherits
    *  an explicitly-raised `reflectTimeoutMs` — a user who raised that meant "let reflect run". */
   reflectToolTimeoutMs?: number;
@@ -115,7 +115,7 @@ export interface RawConfig {
    *  the page-search -> recall fallback after a reflect timeout/5xx. On hook harnesses, the full
    *  reflect + fallback must fit the host's prompt-hook timeout (30s by default). */
   injectTimeoutMs?: number;
-  /** Reflect budget for the `agentstratum_reflect` tool: "low" | "mid" | "high" (default "high").
+  /** Reflect budget for the `contextbase_reflect` tool: "low" | "mid" | "high" (default "high").
    *  Drop to "mid"/"low" on a large bank where high-budget synthesis exceeds the server's wall
    *  timeout. The automatic session-start reflect is NOT affected — it always uses "low" to fit
    *  its hook window. */
@@ -131,7 +131,7 @@ export interface RawConfig {
   autoReflect?: boolean;
   /** Knowledge pages ONE search returns (default 3). Applies wherever the bank is searched: the
    *  `autoInject: "pages"` injection, the reflect fallback, and the agent's
-   *  `agentstratum_search_knowledge_pages` tool — the limit lives on the client so they can't drift. */
+   *  `contextbase_search_knowledge_pages` tool — the limit lives on the client so they can't drift. */
   pageSearchLimit?: number;
   /** Recall-request overrides, merged key-by-key into the body every recall sends (the
    *  `autoInject: "recall"` source and the reflect fallback) — `{"types": ["world",
@@ -146,7 +146,7 @@ export interface RawConfig {
   recallOptions?: Record<string, unknown>;
   /** Your own guidance for how the agent should treat memory, added AFTER the built-in tool guide
    *  (SessionStart and every refresh) and after the crediting note that comes back with
-   *  `agentstratum_search_knowledge_pages` results. It adds to the built-in text, never replaces it,
+   *  `contextbase_search_knowledge_pages` results. It adds to the built-in text, never replaces it,
    *  so the plugin's call triggers and crediting rule keep up with releases (#4791). */
   toolGuideExtra?: string;
   pageRefreshEveryTurns?: number; // knowledge-page refresh cadence in user turns (default 1; 0 also means 1)
@@ -206,14 +206,14 @@ export interface RawConfig {
   surveyModel?: string; // model passed to the headless survey's `claude -p --model` (default "haiku")
   surveyBudgetUsd?: number; // spend cap passed to the headless survey's `claude -p --max-budget-usd` (default 2)
   /** Plugin log verbosity ("debug" | "info" | "warn" | "error", default "info");
-   *  AGENTSTRATUM_LOG_LEVEL overrides for ad-hoc debugging. */
+   *  CONTEXTBASE_LOG_LEVEL overrides for ad-hoc debugging. */
   logLevel?: "debug" | "info" | "warn" | "error";
   /** Keep the installed runtime current by itself (default true). Once a day a session start asks
-   *  npm for the published version and, when it is newer, re-stages ~/.agentstratum/coding-agents in
+   *  npm for the published version and, when it is newer, re-stages ~/.contextbase/coding-agents in
    *  the background — the copy every wired agent's hooks already point at. It rewires no host
    *  config, so a release that adds a NEW hook entry point still needs a manual `install`.
    *  Set false to pin the installed version (air-gapped machines, or a deliberate downgrade);
-   *  updating is then `npx agentstratum-coding-agents install` again, as before. */
+   *  updating is then `npx contextbase-coding-agents install` again, as before. */
   autoUpdate?: boolean;
   surveyRefreshCommits?: number; // re-run the survey at SessionStart once this many commits have accrued since the last one, so structural pages track an evolving architecture (default 20; 0 = cold-seed only)
   /** How git history feeds memory — seeding AND keeping current use the same engine:
@@ -484,7 +484,7 @@ function resolveCustomPages(raw: RawConfig["customPages"]): CustomPagesConfig {
 
 /** Default timeout for the automatic hook reflect — see RawConfig.reflectTimeoutMs. */
 export const DEFAULT_REFLECT_TIMEOUT_MS = 20_000;
-/** Default timeout for the agent-invoked `agentstratum_reflect` tool — see RawConfig.reflectToolTimeoutMs. */
+/** Default timeout for the agent-invoked `contextbase_reflect` tool — see RawConfig.reflectToolTimeoutMs. */
 export const DEFAULT_REFLECT_TOOL_TIMEOUT_MS = 330_000;
 /** Default retrieval budget for automatic injection — see RawConfig.injectTimeoutMs. */
 export const DEFAULT_INJECT_TIMEOUT_MS = 7_000;
@@ -492,7 +492,7 @@ export const DEFAULT_INJECT_TIMEOUT_MS = 7_000;
 const REFLECT_BUDGETS = ["low", "mid", "high"] as const;
 
 /**
- * Which reflect budget the `agentstratum_reflect` tool should ask for.
+ * Which reflect budget the `contextbase_reflect` tool should ask for.
  *
  * An unrecognized value takes the default rather than travelling: the API rejects an unknown budget
  * outright, which would turn a typo here into a hard tool failure on every call.
@@ -695,7 +695,7 @@ function readRaw(path: string): RawConfig {
   } catch (e) {
     if ((e as NodeJS.ErrnoException)?.code !== "ENOENT") {
       console.error(
-        `agentstratum: ignoring invalid config at ${path}: ${(e as Error)?.message || e}`
+        `contextbase: ignoring invalid config at ${path}: ${(e as Error)?.message || e}`
       );
     }
     return {};
@@ -724,7 +724,7 @@ function mergeRaw(a: RawConfig, b: RawConfig): RawConfig {
 export interface LoadOptions {
   /** Which harness is asking ("opencode", "claude-code", ...) — applies its `harnesses.<name>` overrides. */
   harness?: string;
-  /** Explicit global-config path (default ~/.agentstratum/coding-agent.json). */
+  /** Explicit global-config path (default ~/.contextbase/coding-agent.json). */
   path?: string;
 }
 
@@ -742,11 +742,11 @@ function applyLayer(raw: RawConfig, layer: RawConfig, harness?: string): RawConf
 }
 
 /**
- * Env var backing each scalar setting: `AGENTSTRATUM_` + the field in SCREAMING_SNAKE.
+ * Env var backing each scalar setting: `CONTEXTBASE_` + the field in SCREAMING_SNAKE.
  *
  * These are a FALLBACK, not an override — the config file still wins wherever it sets a value, so
  * an existing file behaves exactly as before. They exist for the places a file is awkward:
- * containers, CI, and secret managers that inject `AGENTSTRATUM_API_TOKEN` rather than writing a
+ * containers, CI, and secret managers that inject `CONTEXTBASE_API_TOKEN` rather than writing a
  * credential to disk.
  *
  * The map-valued settings (mapPathToBank, harnesses, banks, retainMetadata, recallOptions, pages,
@@ -755,55 +755,55 @@ function applyLayer(raw: RawConfig, layer: RawConfig, harness?: string): RawConf
  * does not survive flattening into one env var. They stay file-only.
  */
 const ENV_KEYS = {
-  serverMode: "AGENTSTRATUM_SERVER_MODE",
-  apiUrl: "AGENTSTRATUM_API_URL",
-  apiToken: "AGENTSTRATUM_API_TOKEN",
+  serverMode: "CONTEXTBASE_SERVER_MODE",
+  apiUrl: "CONTEXTBASE_API_URL",
+  apiToken: "CONTEXTBASE_API_TOKEN",
   // These four keep the names the old per-agent Claude Code plugin used, so a user migrating from
   // it can carry their existing environment over unchanged.
-  apiPort: "AGENTSTRATUM_API_PORT",
-  daemonIdleTimeout: "AGENTSTRATUM_DAEMON_IDLE_TIMEOUT",
-  embedVersion: "AGENTSTRATUM_EMBED_VERSION",
-  embedPackage: "AGENTSTRATUM_EMBED_PACKAGE",
-  embedPackagePath: "AGENTSTRATUM_EMBED_PACKAGE_PATH",
-  daemonProfile: "AGENTSTRATUM_DAEMON_PROFILE",
-  bankId: "AGENTSTRATUM_BANK_ID",
-  dynamicBankId: "AGENTSTRATUM_DYNAMIC_BANK_ID",
-  bankIdTemplate: "AGENTSTRATUM_BANK_ID_TEMPLATE",
-  resolveWorktrees: "AGENTSTRATUM_RESOLVE_WORKTREES",
-  optInOnly: "AGENTSTRATUM_OPT_IN_ONLY",
-  optInPaths: "AGENTSTRATUM_OPT_IN_PATHS",
-  harness: "AGENTSTRATUM_HARNESS",
-  disabled: "AGENTSTRATUM_DISABLED",
-  retainSessions: "AGENTSTRATUM_RETAIN_SESSIONS",
-  maxParallelRetains: "AGENTSTRATUM_MAX_PARALLEL_RETAINS",
-  reflectTimeoutMs: "AGENTSTRATUM_REFLECT_TIMEOUT_MS",
-  reflectToolTimeoutMs: "AGENTSTRATUM_REFLECT_TOOL_TIMEOUT_MS",
-  injectTimeoutMs: "AGENTSTRATUM_INJECT_TIMEOUT_MS",
-  reflectBudget: "AGENTSTRATUM_REFLECT_BUDGET",
-  autoInject: "AGENTSTRATUM_AUTO_INJECT",
-  pageSearchLimit: "AGENTSTRATUM_PAGE_SEARCH_LIMIT",
-  toolGuideExtra: "AGENTSTRATUM_TOOL_GUIDE_EXTRA",
-  autoReflect: "AGENTSTRATUM_AUTO_REFLECT",
-  pageRefreshEveryTurns: "AGENTSTRATUM_PAGE_REFRESH_EVERY_TURNS",
-  pageTriggerType: "AGENTSTRATUM_PAGE_TRIGGER_TYPE",
-  pageTriggerCron: "AGENTSTRATUM_PAGE_TRIGGER_CRON",
-  autoSeed: "AGENTSTRATUM_AUTO_SEED",
-  seedLimit: "AGENTSTRATUM_SEED_LIMIT",
-  codebaseSurvey: "AGENTSTRATUM_CODEBASE_SURVEY",
-  surveyModel: "AGENTSTRATUM_SURVEY_MODEL",
-  surveyBudgetUsd: "AGENTSTRATUM_SURVEY_BUDGET_USD",
-  surveyRefreshCommits: "AGENTSTRATUM_SURVEY_REFRESH_COMMITS",
-  logLevel: "AGENTSTRATUM_LOG_LEVEL",
-  autoUpdate: "AGENTSTRATUM_AUTO_UPDATE",
-  gitIngest: "AGENTSTRATUM_GIT_INGEST",
+  apiPort: "CONTEXTBASE_API_PORT",
+  daemonIdleTimeout: "CONTEXTBASE_DAEMON_IDLE_TIMEOUT",
+  embedVersion: "CONTEXTBASE_EMBED_VERSION",
+  embedPackage: "CONTEXTBASE_EMBED_PACKAGE",
+  embedPackagePath: "CONTEXTBASE_EMBED_PACKAGE_PATH",
+  daemonProfile: "CONTEXTBASE_DAEMON_PROFILE",
+  bankId: "CONTEXTBASE_BANK_ID",
+  dynamicBankId: "CONTEXTBASE_DYNAMIC_BANK_ID",
+  bankIdTemplate: "CONTEXTBASE_BANK_ID_TEMPLATE",
+  resolveWorktrees: "CONTEXTBASE_RESOLVE_WORKTREES",
+  optInOnly: "CONTEXTBASE_OPT_IN_ONLY",
+  optInPaths: "CONTEXTBASE_OPT_IN_PATHS",
+  harness: "CONTEXTBASE_HARNESS",
+  disabled: "CONTEXTBASE_DISABLED",
+  retainSessions: "CONTEXTBASE_RETAIN_SESSIONS",
+  maxParallelRetains: "CONTEXTBASE_MAX_PARALLEL_RETAINS",
+  reflectTimeoutMs: "CONTEXTBASE_REFLECT_TIMEOUT_MS",
+  reflectToolTimeoutMs: "CONTEXTBASE_REFLECT_TOOL_TIMEOUT_MS",
+  injectTimeoutMs: "CONTEXTBASE_INJECT_TIMEOUT_MS",
+  reflectBudget: "CONTEXTBASE_REFLECT_BUDGET",
+  autoInject: "CONTEXTBASE_AUTO_INJECT",
+  pageSearchLimit: "CONTEXTBASE_PAGE_SEARCH_LIMIT",
+  toolGuideExtra: "CONTEXTBASE_TOOL_GUIDE_EXTRA",
+  autoReflect: "CONTEXTBASE_AUTO_REFLECT",
+  pageRefreshEveryTurns: "CONTEXTBASE_PAGE_REFRESH_EVERY_TURNS",
+  pageTriggerType: "CONTEXTBASE_PAGE_TRIGGER_TYPE",
+  pageTriggerCron: "CONTEXTBASE_PAGE_TRIGGER_CRON",
+  autoSeed: "CONTEXTBASE_AUTO_SEED",
+  seedLimit: "CONTEXTBASE_SEED_LIMIT",
+  codebaseSurvey: "CONTEXTBASE_CODEBASE_SURVEY",
+  surveyModel: "CONTEXTBASE_SURVEY_MODEL",
+  surveyBudgetUsd: "CONTEXTBASE_SURVEY_BUDGET_USD",
+  surveyRefreshCommits: "CONTEXTBASE_SURVEY_REFRESH_COMMITS",
+  logLevel: "CONTEXTBASE_LOG_LEVEL",
+  autoUpdate: "CONTEXTBASE_AUTO_UPDATE",
+  gitIngest: "CONTEXTBASE_GIT_INGEST",
   // Scalar modes only ("shared", "combined", "per_tag", "all_combinations"). An explicit scope
   // list is a list OF lists, which does not survive flattening into one variable — file-only.
-  observationScopes: "AGENTSTRATUM_OBSERVATION_SCOPES",
-  // Comma-separated, e.g. AGENTSTRATUM_RETAIN_TAGS="project:{gitProject},env:work". A LIST rather than
+  observationScopes: "CONTEXTBASE_OBSERVATION_SCOPES",
+  // Comma-separated, e.g. CONTEXTBASE_RETAIN_TAGS="project:{gitProject},env:work". A LIST rather than
   // a map, so it flattens cleanly; its sibling retainMetadata stays file-only for the reason above.
-  retainTags: "AGENTSTRATUM_RETAIN_TAGS",
-  manageBankConfig: "AGENTSTRATUM_MANAGE_BANK_CONFIG",
-  retainExtractionMode: "AGENTSTRATUM_RETAIN_EXTRACTION_MODE",
+  retainTags: "CONTEXTBASE_RETAIN_TAGS",
+  manageBankConfig: "CONTEXTBASE_MANAGE_BANK_CONFIG",
+  retainExtractionMode: "CONTEXTBASE_RETAIN_EXTRACTION_MODE",
 } as const satisfies Partial<Record<keyof RawConfig, string>>;
 
 /** Fields parsed as booleans/numbers/comma-separated lists; everything else is taken as a string. */
@@ -856,7 +856,7 @@ export function readEnvConfig(env: NodeJS.ProcessEnv = process.env): RawConfig {
     } else if (ENV_NUMBERS.has(key)) {
       const n = Number(value);
       if (Number.isFinite(n)) out[key] = n;
-      else console.error(`agentstratum: ignoring ${name}=${value} — not a number`);
+      else console.error(`contextbase: ignoring ${name}=${value} — not a number`);
     } else {
       out[key] = value;
     }

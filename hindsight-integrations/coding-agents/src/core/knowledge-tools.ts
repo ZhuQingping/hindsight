@@ -10,8 +10,8 @@
  *
  * The agent-facing surface is intentionally curated: grounding + capture only. Raw page CRUD
  * (create/update/delete) is deliberately NOT exposed — agents never author page structure; they
- * capture initiatives (`agentstratum_capture_initiative`) and pages are synthesized/maintained by the
- * server. `agentstratum_ingest_document` (raw-content retain) also backs the codebase survey
+ * capture initiatives (`contextbase_capture_initiative`) and pages are synthesized/maintained by the
+ * server. `contextbase_ingest_document` (raw-content retain) also backs the codebase survey
  * (core/survey.ts).
  */
 import { DISPLAY_NAME } from "./brand-defaults.js";
@@ -120,13 +120,13 @@ export function buildKnowledgeTools(
     repoDir?: string;
     harness?: string;
     stampFor?: () => RetainStamp;
-    /** Refresh policy for a page `agentstratum_capture_initiative` creates (core/missions.ts). */
+    /** Refresh policy for a page `contextbase_capture_initiative` creates (core/missions.ts). */
     pageTrigger?: PageTrigger;
-    /** How long `agentstratum_reflect` waits on the server (cfg.reflectToolTimeoutMs). Must be
+    /** How long `contextbase_reflect` waits on the server (cfg.reflectToolTimeoutMs). Must be
      *  threaded in by every caller: left unset, the client falls back to a 120s deadline that
      *  aborts high-budget synthesis on a populated bank mid-flight (#3590). */
     reflectTimeoutMs?: number;
-    /** Reflect budget for `agentstratum_reflect` (cfg.reflectBudget, default "high"). */
+    /** Reflect budget for `contextbase_reflect` (cfg.reflectBudget, default "high"). */
     reflectBudget?: "low" | "mid" | "high";
     /** cfg.toolGuideExtra, added after the crediting note so it lands with the results too. */
     toolGuideExtra?: string;
@@ -136,7 +136,7 @@ export function buildKnowledgeTools(
   const crediting = extra ? `${CREDIT_REMINDER} ${extra}` : CREDIT_REMINDER;
   return [
     {
-      name: "agentstratum_sync_status",
+      name: "contextbase_sync_status",
       description:
         "Report whether this repo's memory bank is in sync: gitlog seed present, how much recent " +
         "history has been deepened with full diffs, conversations ingested, knowledge pages " +
@@ -154,7 +154,7 @@ export function buildKnowledgeTools(
       },
     },
     {
-      name: "agentstratum_diagnose",
+      name: "contextbase_diagnose",
       description:
         "Report safe " +
         DISPLAY_NAME +
@@ -166,7 +166,7 @@ export function buildKnowledgeTools(
       annotations: READ_ONLY_ANNOTATIONS,
       handler: async (_args: Record<string, never>) => {
         const configPath =
-          process.env.AGENTSTRATUM_CONFIG || join(homedir(), ".agentstratum", "coding-agent.json");
+          process.env.CONTEXTBASE_CONFIG || join(homedir(), ".contextbase", "coding-agent.json");
         const harness = opts.harness ?? "unknown";
         // Resolve through the SAME pipeline the host used — including the `banks.<id>` section for
         // the bank this client is bound to, which may carry its own apiToken/apiUrl. A bare
@@ -196,18 +196,18 @@ export function buildKnowledgeTools(
             api_token_matches_config: client.apiToken === cfg.apiToken,
           },
           environment: {
-            config_override: Boolean(process.env.AGENTSTRATUM_CONFIG),
-            hooks_disabled: Boolean(process.env.AGENTSTRATUM_DISABLE_HOOKS),
-            log_level: process.env.AGENTSTRATUM_LOG_LEVEL ?? null,
+            config_override: Boolean(process.env.CONTEXTBASE_CONFIG),
+            hooks_disabled: Boolean(process.env.CONTEXTBASE_DISABLE_HOOKS),
+            log_level: process.env.CONTEXTBASE_LOG_LEVEL ?? null,
             diagnostics_file: diagFilePath(),
-            channel_id_configured: Boolean(process.env.AGENTSTRATUM_CHANNEL_ID),
-            user_id_configured: Boolean(process.env.AGENTSTRATUM_USER_ID),
+            channel_id_configured: Boolean(process.env.CONTEXTBASE_CHANNEL_ID),
+            user_id_configured: Boolean(process.env.CONTEXTBASE_USER_ID),
           },
         });
       },
     },
     {
-      name: "agentstratum_search_knowledge_pages",
+      name: "contextbase_search_knowledge_pages",
       description:
         "Search this repository's " +
         DISPLAY_NAME +
@@ -217,7 +217,7 @@ export function buildKnowledgeTools(
         "initiatives) rather than by reading code. Returns ranked pages with a relevance snippet; " +
         // Same sentence the payload carries, from the same constant: two copies of a rule this
         // fiddly drift apart, and the description is what a host shows when the tool is listed.
-        "read a full page with agentstratum_read_knowledge_page. " +
+        "read a full page with contextbase_read_knowledge_page. " +
         crediting,
       inputSchema: { query: z.string().describe("what to look for") },
       annotations: READ_ONLY_ANNOTATIONS,
@@ -253,7 +253,7 @@ export function buildKnowledgeTools(
       },
     },
     {
-      name: "agentstratum_list_knowledge_pages",
+      name: "contextbase_list_knowledge_pages",
       description:
         "List this repository's " +
         DISPLAY_NAME +
@@ -268,10 +268,10 @@ export function buildKnowledgeTools(
       handler: guarded(async () => client.listPages()),
     },
     {
-      name: "agentstratum_read_knowledge_page",
+      name: "contextbase_read_knowledge_page",
       description:
         "Read the full content of one knowledge page by its id (from " +
-        "agentstratum_list_knowledge_pages). Call this whenever a listed page is relevant to what " +
+        "contextbase_list_knowledge_pages). Call this whenever a listed page is relevant to what " +
         "you're about to do — e.g. read Conventions before writing new code, Component map before " +
         "changing a subsystem, or an initiative's page before continuing that feature. A page may " +
         "contain [[page:<id>]] links to related pages; follow one by calling this tool again with " +
@@ -281,12 +281,12 @@ export function buildKnowledgeTools(
       handler: guarded(async ({ page_id }) => client.getPage(page_id)),
     },
     {
-      name: "agentstratum_reflect",
+      name: "contextbase_reflect",
       description:
         "Deep memory reasoning: an agentic synthesis over this repository's FULL memory (git " +
         "decisions, past sessions, ingested knowledge) that answers WHY questions — the past " +
         "decision and exact rule/values that explain a behavior, bug, or convention. Slower than " +
-        "agentstratum_search_knowledge_pages (several seconds): reach for it when pages are too " +
+        "contextbase_search_knowledge_pages (several seconds): reach for it when pages are too " +
         "shallow and you need the root cause or the decided literals. When the answer informs " +
         ('your reply, credit it visibly with a blockquote header: "> 🧠 **From ' +
           DISPLAY_NAME +
@@ -301,7 +301,7 @@ export function buildKnowledgeTools(
       ),
     },
     {
-      name: "agentstratum_capture_initiative",
+      name: "contextbase_capture_initiative",
       description:
         "Record a new feature or initiative as a tracked knowledge page, so future sessions know it " +
         "exists and can build on it — and keep that page tracking the plan as it moves.\n\n" +
@@ -321,7 +321,7 @@ export function buildKnowledgeTools(
         "- summary: 2-3 sentences on what you're building and why — the CURRENT intent, not the " +
         "originally approved plan (on a recapture, say what changed and why).\n" +
         "- relates_to_page_id: leave empty for a new initiative. Set it to an existing initiative's page " +
-        "id — from agentstratum_list_knowledge_pages, or the id this tool returned earlier — to record a " +
+        "id — from contextbase_list_knowledge_pages, or the id this tool returned earlier — to record a " +
         "plan change or an enhancement to it.\n\n" +
         "Returns the page id. The page is generated for you — you never format one yourself.",
       inputSchema: {
@@ -341,7 +341,7 @@ export function buildKnowledgeTools(
       ),
     },
     {
-      name: "agentstratum_ingest_document",
+      name: "contextbase_ingest_document",
       description:
         "Save an external document or a block of durable notes/findings into this repository's " +
         "memory so it informs future recall and pages. Use for design notes, research, or " +

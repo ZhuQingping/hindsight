@@ -18,19 +18,19 @@ providers:
       path: /otel-lgtm/grafana-dashboard-jvm-metrics.json
       foldersFromFilesStructure: false
 
-  # agentstratum dashboards
-  - name: "agentstratum Operations"
+  # contextbase dashboards
+  - name: "contextbase Operations"
     type: file
     options:
-      path: /otel-lgtm/agentstratum-operations.json
+      path: /otel-lgtm/contextbase-operations.json
       foldersFromFilesStructure: false
-  - name: "agentstratum LLM"
+  - name: "contextbase LLM"
     type: file
     options:
-      path: /otel-lgtm/agentstratum-llm.json
+      path: /otel-lgtm/contextbase-llm.json
       foldersFromFilesStructure: false
-  - name: "agentstratum API Service"
+  - name: "contextbase API Service"
     type: file
     options:
-      path: /otel-lgtm/agentstratum-api-service.json
+      path: /otel-lgtm/contextbase-api-service.json
       foldersFromFilesStructure: false

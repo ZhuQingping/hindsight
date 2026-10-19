@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * agentstratum-droid-hook - the Factory Droid entry point (a `UserPromptSubmit` hook).
+ * contextbase-droid-hook - the Factory Droid entry point (a `UserPromptSubmit` hook).
  *
  * Install (Droid, user scope): ~/.factory/hooks.json
  *   { "UserPromptSubmit": [ { "hooks": [
- *       { "type": "command", "command": "agentstratum-droid-hook", "timeout": 30 } ] } ] }
+ *       { "type": "command", "command": "contextbase-droid-hook", "timeout": 30 } ] } ] }
  *
  * Behavior (shared hook runtime, core/hook.ts): recall every prompt; reflect once per session on
  * the first prompt and cache the outcome so later prompts recall only. Droid's hook protocol

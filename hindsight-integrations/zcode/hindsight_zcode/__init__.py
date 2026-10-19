@@ -1,4 +1,4 @@
-"""agentstratum long-term memory integration for ZCode."""
+"""contextbase long-term memory integration for ZCode."""
 
 from .install import (
     get_config_path,

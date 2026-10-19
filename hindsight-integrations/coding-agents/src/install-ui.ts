@@ -27,7 +27,7 @@ export interface InstallerUiOptions {
   harnessNames: string[];
   /** Extra group names (e.g. "server") that render like a harness but aren't agents. */
   auxNames?: string[];
-  /** Where settings actually live (AGENTSTRATUM_CONFIG override); the outro names this file. */
+  /** Where settings actually live (CONTEXTBASE_CONFIG override); the outro names this file. */
   configPath?: string;
   /** Test overrides: deterministic colors, captured output, fixed clock. */
   colors?: boolean;
@@ -311,12 +311,12 @@ export function createInstallerUi(o: InstallerUiOptions): InstallerUi {
         const secs = ((now() - startedAt) / 1000).toFixed(1);
         const agents = `${groups} agent${groups === 1 ? "" : "s"}`;
         if (o.command === "install") {
-          const settings = o.configPath ? tidy(o.configPath) : "~/.agentstratum/coding-agent.json";
+          const settings = o.configPath ? tidy(o.configPath) : "~/.contextbase/coding-agent.json";
           write(`${dim("└")}  ${green("✓")} Installed ${agents} in ${secs}s`);
           write(`   ${dim(`Start a session — settings live in ${settings}.`)}`);
         } else {
           write(
-            `${dim("└")}  ${green("✓")} Uninstalled ${agents} in ${secs}s — agentstratum entries removed, *.agentstratum-backup files left in place.`
+            `${dim("└")}  ${green("✓")} Uninstalled ${agents} in ${secs}s — contextbase entries removed, *.contextbase-backup files left in place.`
           );
         }
       } else if (o.command === "update") {

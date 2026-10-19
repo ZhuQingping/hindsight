@@ -37,10 +37,10 @@ const PAGE_FALLBACK_LEAD =
   "(" +
   DISPLAY_NAME +
   "'s synthesis was unavailable this turn; these knowledge pages matched the goal by " +
-  "search. Read one with agentstratum_read_knowledge_page(<id>) if it looks relevant.)";
+  "search. Read one with contextbase_read_knowledge_page(<id>) if it looks relevant.)";
 export const PAGE_INJECT_LEAD =
   "(These knowledge pages matched the goal by search. Read one with " +
-  "agentstratum_read_knowledge_page(<id>) if it looks relevant.)";
+  "contextbase_read_knowledge_page(<id>) if it looks relevant.)";
 
 /** The memory body injected from knowledge-page search: after a failed reflect (default lead), or
  *  as the configured `autoInject: "pages"` source. */
@@ -77,7 +77,7 @@ export function formatRecallFallback(observations: string[], lead = RECALL_FALLB
 }
 
 export function buildSystemInjection(memory: string): string {
-  // The <agentstratum_memory> wrapper is LOAD-BEARING: the transcript readers strip this exact tag
+  // The <contextbase_memory> wrapper is LOAD-BEARING: the transcript readers strip this exact tag
   // (transcript-util MEMORY_TAG_RE) so the session write-back never re-ingests the injected
   // synthesis back into the bank (a retain→reflect feedback loop).
   //
@@ -87,7 +87,7 @@ export function buildSystemInjection(memory: string): string {
   // off-target memory reads exactly like a prompt injection, and skeptical models rightly
   // discard the whole channel.
   return (
-    "<agentstratum_memory>\n" +
+    "<contextbase_memory>\n" +
     // Provenance is stated as what the bank MAY hold, not what it does: the block is built with no
     // knowledge of the workspace, and promising "git rationale" in a directory that is not a git
     // repository contradicted the very pages it then quoted (#4607).
@@ -110,10 +110,10 @@ export function buildSystemInjection(memory: string): string {
     ("> 🧠 **From " + DISPLAY_NAME + " memory** — <the specific facts you drew on>\n") +
     "Never attribute memory that did not contribute.\n" +
     "If you VERIFY this memory is wrong or outdated (the code or facts contradict it), CORRECT " +
-    "the record: call agentstratum_ingest_document with a short correction titled " +
+    "the record: call contextbase_ingest_document with a short correction titled " +
     '"Correction: <topic>" stating (1) what memory claimed, (2) what is actually true now, and ' +
     "(3) the evidence you verified — the newer fact supersedes the stale one in future retrieval.\n\n" +
     memory +
-    "\n</agentstratum_memory>"
+    "\n</contextbase_memory>"
   );
 }

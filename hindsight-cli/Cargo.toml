@@ -7,7 +7,7 @@ description = "A CLI for ContextBase - semantic memory system"
 license = "MIT"
 
 [[bin]]
-name = "agentstratum"
+name = "contextbase"
 path = "src/main.rs"
 
 [dependencies]

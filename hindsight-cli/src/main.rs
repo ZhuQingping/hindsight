@@ -31,7 +31,7 @@ impl From<Format> for OutputFormat {
 }
 
 #[derive(Parser)]
-#[command(name = "agentstratum")]
+#[command(name = "contextbase")]
 #[command(about = brand::CLI_ABOUT, long_about = None)]
 #[command(version)]
 #[command(before_help = get_before_help())]
@@ -45,10 +45,10 @@ struct Cli {
     #[arg(short = 'v', long, global = true)]
     verbose: bool,
 
-    /// Named profile to load from ~/.agentstratum/cli-profiles/<name>.toml
-    /// (env var AGENTSTRATUM_PROFILE is used if this flag is omitted).
-    /// Environment variables (AGENTSTRATUM_API_URL / AGENTSTRATUM_API_KEY) still override profile values.
-    #[arg(short = 'p', long, global = true, env = "AGENTSTRATUM_PROFILE")]
+    /// Named profile to load from ~/.contextbase/cli-profiles/<name>.toml
+    /// (env var CONTEXTBASE_PROFILE is used if this flag is omitted).
+    /// Environment variables (CONTEXTBASE_API_URL / CONTEXTBASE_API_KEY) still override profile values.
+    #[arg(short = 'p', long, global = true, env = "CONTEXTBASE_PROFILE")]
     profile: Option<String>,
 
     #[command(subcommand)]
@@ -62,7 +62,7 @@ fn get_after_help() -> String {
         None => ("not configured", "configure an API Endpoint".to_string()),
     };
     format!(
-        "Current API URL: {} (from {})\n\nRun 'agentstratum configure' to change the API URL.",
+        "Current API URL: {} (from {})\n\nRun 'contextbase configure' to change the API URL.",
         api_url, source
     )
 }
@@ -140,7 +140,7 @@ enum Commands {
 
     /// Configure the CLI (API URL, API key, etc.)
     #[command(
-        after_help = "Configuration priority:\n  1. Environment variables (AGENTSTRATUM_API_URL, AGENTSTRATUM_API_KEY) - highest priority\n  2. Named profile (-p / AGENTSTRATUM_PROFILE, see 'agentstratum profile')\n  3. Config file (~/.agentstratum/config)\n  No default endpoint; copy your API Endpoint from the console."
+        after_help = "Configuration priority:\n  1. Environment variables (CONTEXTBASE_API_URL, CONTEXTBASE_API_KEY) - highest priority\n  2. Named profile (-p / CONTEXTBASE_PROFILE, see 'contextbase profile')\n  3. Config file (~/.contextbase/config)\n  No default endpoint; copy your API Endpoint from the console."
     )]
     Configure {
         /// API URL to connect to (interactive prompt if not provided)
@@ -151,7 +151,7 @@ enum Commands {
         api_key: Option<String>,
     },
 
-    /// Manage named connection profiles (~/.agentstratum/cli-profiles/<name>.toml)
+    /// Manage named connection profiles (~/.contextbase/cli-profiles/<name>.toml)
     #[command(subcommand)]
     Profile(ProfileCommands),
 }
@@ -160,7 +160,7 @@ enum Commands {
 enum ProfileCommands {
     /// Create or overwrite a profile
     Create {
-        /// Profile name (used with -p/--profile or $AGENTSTRATUM_PROFILE)
+        /// Profile name (used with -p/--profile or $CONTEXTBASE_PROFILE)
         name: String,
         /// API URL (required)
         #[arg(long)]
@@ -1422,7 +1422,7 @@ fn main() {
     // closed stdout pipe as an `EPIPE` error rather than a signal. But the
     // release profile sets `panic = "abort"`, so that write error becomes a
     // silent SIGABRT — a spurious "fatal error" with no message — whenever
-    // the reader closes early (e.g. `agentstratum ... | head`).
+    // the reader closes early (e.g. `contextbase ... | head`).
     //
     // Restore the default SIGPIPE disposition on Unix so the CLI terminates
     // cleanly on a broken pipe, like other Unix CLI tools. Note this also
@@ -2399,7 +2399,7 @@ fn handle_configure(
             println!("  API Key: {}", masked);
         }
         println!();
-        println!("Note: Environment variables AGENTSTRATUM_API_URL and AGENTSTRATUM_API_KEY will override these settings.");
+        println!("Note: Environment variables CONTEXTBASE_API_URL and CONTEXTBASE_API_KEY will override these settings.");
     } else {
         let result = serde_json::json!({
             "api_url": new_api_url,
@@ -2437,7 +2437,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 }
                 println!();
                 println!(
-                    "Use with: agentstratum -p {} <command>  (or export AGENTSTRATUM_PROFILE={})",
+                    "Use with: contextbase -p {} <command>  (or export CONTEXTBASE_PROFILE={})",
                     name, name
                 );
             } else {
@@ -2457,7 +2457,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 if names.is_empty() {
                     ui::print_info("No profiles found.");
                     println!();
-                    println!("Create one with: agentstratum profile create <name> --api-url <url>");
+                    println!("Create one with: contextbase profile create <name> --api-url <url>");
                 } else {
                     ui::print_info("Profiles:");
                     for name in &names {
@@ -2539,7 +2539,7 @@ mod tests {
     #[test]
     fn parses_operation_delete_with_confirmation_bypass() {
         let cli = Cli::try_parse_from([
-            "agentstratum",
+            "contextbase",
             "operation",
             "delete",
             "bank-1",

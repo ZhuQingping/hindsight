@@ -84,21 +84,21 @@ export const HARNESS_NAMES = [
 ];
 
 const HOOK_BINS: Record<string, string> = {
-  "claude-code": "agentstratum-claude-hook",
-  "cursor-cli": "agentstratum-cursor-hook",
-  codex: "agentstratum-codex-hook",
-  dcode: "agentstratum-dcode-hook",
-  "antigravity-cli": "agentstratum-antigravity-hook",
-  "devin-cli": "agentstratum-devin-hook",
-  "copilot-cli": "agentstratum-copilot-hook",
-  "grok-build": "agentstratum-grok-hook",
-  "qwen-code": "agentstratum-qwen-hook",
-  "factory-droid": "agentstratum-droid-hook",
-  zcode: "agentstratum-zcode-hook",
-  traecode: "agentstratum-traecode-hook",
-  "kimi-code": "agentstratum-kimi-hook",
-  workbuddy: "agentstratum-workbuddy-hook",
-  codebuddy: "agentstratum-codebuddy-hook",
+  "claude-code": "contextbase-claude-hook",
+  "cursor-cli": "contextbase-cursor-hook",
+  codex: "contextbase-codex-hook",
+  dcode: "contextbase-dcode-hook",
+  "antigravity-cli": "contextbase-antigravity-hook",
+  "devin-cli": "contextbase-devin-hook",
+  "copilot-cli": "contextbase-copilot-hook",
+  "grok-build": "contextbase-grok-hook",
+  "qwen-code": "contextbase-qwen-hook",
+  "factory-droid": "contextbase-droid-hook",
+  zcode: "contextbase-zcode-hook",
+  traecode: "contextbase-traecode-hook",
+  "kimi-code": "contextbase-kimi-hook",
+  workbuddy: "contextbase-workbuddy-hook",
+  codebuddy: "contextbase-codebuddy-hook",
   // more hook harnesses: add a HookSpec entry point (see src/cursor-hook.ts) + a registration here.
 };
 

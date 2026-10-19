@@ -17,8 +17,8 @@ dependencies = [
 hindsight-api-slim = { workspace = true }
 
 [project.scripts]
-agentstratum-api = "hindsight_api.main:main"
-agentstratum-worker = "hindsight_api.worker.main:main"
+contextbase-api = "hindsight_api.main:main"
+contextbase-worker = "hindsight_api.worker.main:main"
 hindsight-api = "hindsight_api.main:main"
 hindsight-worker = "hindsight_api.worker.main:main"
 hindsight-local-mcp = "hindsight_api.mcp_local:main"

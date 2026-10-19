@@ -6,11 +6,11 @@ import { describe, expect, it } from "vitest";
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dcodeAvailable = spawnSync("dcode", ["--version"], { stdio: "ignore" }).status === 0;
-const runDcodeSmoke = process.env.AGENTSTRATUM_DCODE_E2E === "1" && dcodeAvailable;
+const runDcodeSmoke = process.env.CONTEXTBASE_DCODE_E2E === "1" && dcodeAvailable;
 
 describe.runIf(runDcodeSmoke)("native Dcode marketplace install", () => {
   it("installs the staged local marketplace in an isolated HOME", () => {
-    const isolatedHome = mkdtempSync(join("/tmp", "agentstratum-dcode-e2e-"));
+    const isolatedHome = mkdtempSync(join("/tmp", "contextbase-dcode-e2e-"));
     const env = {
       ...process.env,
       HOME: isolatedHome,
@@ -25,20 +25,20 @@ describe.runIf(runDcodeSmoke)("native Dcode marketplace install", () => {
       });
       const marketplacePath = join(
         isolatedHome,
-        ".agentstratum",
+        ".contextbase",
         ".agents",
         "plugins",
         "marketplace.json"
       );
       expect(JSON.parse(readFileSync(marketplacePath, "utf8")).plugins).toContainEqual({
-        name: "agentstratum-coding-agents",
+        name: "contextbase-coding-agents",
         source: { source: "local", path: "./coding-agents" },
       });
-      expect(existsSync(join(isolatedHome, ".agentstratum", "coding-agents", "plugin.json"))).toBe(
+      expect(existsSync(join(isolatedHome, ".contextbase", "coding-agents", "plugin.json"))).toBe(
         true
       );
       expect(execFileSync("dcode", ["plugin", "list"], { env, encoding: "utf8" })).toContain(
-        "enabled agentstratum-coding-agents@agentstratum-coding-agents"
+        "enabled contextbase-coding-agents@contextbase-coding-agents"
       );
     } finally {
       execFileSync(
@@ -56,5 +56,5 @@ describe.runIf(runDcodeSmoke)("native Dcode marketplace install", () => {
 });
 
 describe.runIf(!runDcodeSmoke)("native Dcode marketplace install", () => {
-  it.skip("set AGENTSTRATUM_DCODE_E2E=1 with dcode installed to run the isolated CLI smoke test");
+  it.skip("set CONTEXTBASE_DCODE_E2E=1 with dcode installed to run the isolated CLI smoke test");
 });

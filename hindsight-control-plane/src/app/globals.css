@@ -24,7 +24,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* agentstratum console: quiet neutral surfaces with a restrained indigo
+  /* contextbase console: quiet neutral surfaces with a restrained indigo
      accent. Shared semantic tokens keep every native capability coherent. */
   --background: #f5f6f9;
   --foreground: #202532;

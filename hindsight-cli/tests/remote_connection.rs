@@ -12,21 +12,21 @@ impl TestHome {
             .unwrap()
             .as_nanos();
         let path =
-            std::env::temp_dir().join(format!("agentstratum-cli-{}-{}", std::process::id(), nonce));
+            std::env::temp_dir().join(format!("contextbase-cli-{}-{}", std::process::id(), nonce));
         fs::create_dir_all(&path).unwrap();
         Self(path)
     }
 
     fn command(&self, args: &[&str]) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_agentstratum"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_contextbase"));
         command
             .env("HOME", &self.0)
-            .env_remove("AGENTSTRATUM_API_URL")
-            .env_remove("AGENTSTRATUM_API_KEY")
-            .env_remove("AGENTSTRATUM_PROFILE")
-            .env_remove("AGENTSTRATUM_FS_DIR")
-            .env_remove("AGENTSTRATUM_BANK_ID")
-            .env_remove("AGENTSTRATUM_FS_INTERVAL")
+            .env_remove("CONTEXTBASE_API_URL")
+            .env_remove("CONTEXTBASE_API_KEY")
+            .env_remove("CONTEXTBASE_PROFILE")
+            .env_remove("CONTEXTBASE_FS_DIR")
+            .env_remove("CONTEXTBASE_BANK_ID")
+            .env_remove("CONTEXTBASE_FS_INTERVAL")
             .env_remove("HTTP_PROXY")
             .env_remove("HTTPS_PROXY")
             .env_remove("ALL_PROXY")
@@ -77,7 +77,7 @@ fn changing_endpoint_drops_existing_credential() {
         .run(&["configure", "--api-url", "https://second.example"])
         .status
         .success());
-    let config = fs::read_to_string(home.0.join(".agentstratum/config")).unwrap();
+    let config = fs::read_to_string(home.0.join(".contextbase/config")).unwrap();
     assert!(config.contains("https://second.example"));
     assert!(!config.contains("first-key"));
 }
@@ -281,7 +281,7 @@ fn fs_endpoint_override_does_not_send_other_endpoints_credentials() {
             .success());
         let dir = home.0.join("mirror");
         if saved {
-            let control = dir.join(".agentstratum-fs");
+            let control = dir.join(".contextbase-fs");
             fs::create_dir_all(&control).unwrap();
             fs::write(control.join("config.json"), r#"{"api_url":"https://saved.example","api_token":"other-saved-key","bank_id":"review"}"#).unwrap();
         }
@@ -364,9 +364,9 @@ fn fs_environment_endpoint_and_standalone_token_are_supported() {
             args.extend(["--api-url", &server.url]);
         }
         let mut command = home.command(&args);
-        command.env("AGENTSTRATUM_API_KEY", "env-key");
+        command.env("CONTEXTBASE_API_KEY", "env-key");
         if endpoint_in_env {
-            command.env("AGENTSTRATUM_API_URL", &server.url);
+            command.env("CONTEXTBASE_API_URL", &server.url);
         }
         let result = command.output().unwrap();
         assert!(
@@ -384,8 +384,8 @@ fn fs_validates_only_the_effective_url_and_keeps_profile_errors() {
     let server = TestServer::new();
     let result = home
         .command(&["fs", "list", "--bank", "review", "--api-url", &server.url])
-        .env("AGENTSTRATUM_API_URL", "not-a-url")
-        .env("AGENTSTRATUM_API_KEY", "unused-key")
+        .env("CONTEXTBASE_API_URL", "not-a-url")
+        .env("CONTEXTBASE_API_KEY", "unused-key")
         .output()
         .unwrap();
     assert!(
@@ -400,7 +400,7 @@ fn fs_validates_only_the_effective_url_and_keeps_profile_errors() {
     // Other CLI commands still require their configured endpoint to be valid.
     let result = home
         .command(&["health"])
-        .env("AGENTSTRATUM_API_URL", "not-a-url")
+        .env("CONTEXTBASE_API_URL", "not-a-url")
         .output()
         .unwrap();
     assert!(!result.status.success());
@@ -430,7 +430,7 @@ fn fs_saved_endpoint_precedes_profile_and_same_endpoint_credentials_are_reused()
             .status
             .success());
         let dir = home.0.join("mirror");
-        let control = dir.join(".agentstratum-fs");
+        let control = dir.join(".contextbase-fs");
         fs::create_dir_all(&control).unwrap();
         fs::write(
             control.join("config.json"),
@@ -471,7 +471,7 @@ fn service_rejections_preserve_status_and_customer_identifiers() {
         let server = TestServer::with_response("403 Forbidden", &body);
         let output = home
             .command(&["bank", "list"])
-            .env("AGENTSTRATUM_API_URL", &server.url)
+            .env("CONTEXTBASE_API_URL", &server.url)
             .output()
             .unwrap();
         assert!(!output.status.success());

@@ -10,7 +10,7 @@ vi.mock("@/lib/hindsight-client", () => ({ getDataplaneHeaders: () => ({}) }));
 import { GET } from "@/app/api/health/route";
 beforeEach(() => {
   listBanks.mockReset();
-  vi.stubEnv("contextdb_name", "agentstratum");
+  vi.stubEnv("contextdb_name", "contextbase");
   vi.stubEnv("HINDSIGHT_CP_DATAPLANE_API_URL", "http://hindsight-api.internal:8888");
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -18,7 +18,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
-it.each(["agentstratum", "contextdb"])(
+it.each(["contextbase", "contextdb"])(
   "exposes deployment %s identity without internal backend URL",
   async (name) => {
     vi.stubEnv("contextdb_name", name);

@@ -42,7 +42,7 @@ describe("connection modes", () => {
     expect(cfg.apiUrl).toBe("http://localhost:8888");
   });
 
-  // 9077, not agentstratum-all's 8888: 8888 is the conventional port for a server the user runs, and
+  // 9077, not contextbase-all's 8888: 8888 is the conventional port for a server the user runs, and
   // a daemon must never squat on it.
   it("defaults the daemon port to 9077", () => {
     expect(resolveConfig({ serverMode: "daemon" }).apiPort).toBe(9077);
@@ -52,7 +52,7 @@ describe("connection modes", () => {
 describe("detectLlm", () => {
   it("prefers an explicit provider, including one it knows nothing about", () => {
     const llm = detectLlm({
-      AGENTSTRATUM_API_LLM_PROVIDER: "ollama",
+      CONTEXTBASE_API_LLM_PROVIDER: "ollama",
       OPENAI_API_KEY: "sk-ignored",
     } as NodeJS.ProcessEnv);
     expect(llm?.provider).toBe("ollama");
@@ -74,26 +74,26 @@ describe("daemonEnv", () => {
   const cfg = resolveConfig({ serverMode: "daemon", daemonIdleTimeout: 42 });
 
   it("passes the idle timeout through under the daemon's own env name", () => {
-    expect(daemonEnv(cfg, {} as NodeJS.ProcessEnv).AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT).toBe(
+    expect(daemonEnv(cfg, {} as NodeJS.ProcessEnv).CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT).toBe(
       "42"
     );
   });
 
   // It used to send 300 whether or not anyone asked, quietly retiring a SHARED daemon out from
-  // under an idle session — while every other agentstratum integration ships 0 (never exits).
+  // under an idle session — while every other contextbase integration ships 0 (never exits).
   it("says nothing about the idle timeout when it is unset, leaving the daemon its own default", () => {
     const env = daemonEnv(resolveConfig({ serverMode: "daemon" }), {} as NodeJS.ProcessEnv);
-    expect(env).not.toHaveProperty("AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT");
+    expect(env).not.toHaveProperty("CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT");
   });
 
-  // Forwarding the whole AGENTSTRATUM_API_* namespace means a new server-side knob needs no change
+  // Forwarding the whole CONTEXTBASE_API_* namespace means a new server-side knob needs no change
   // here to reach the daemon.
-  it("forwards arbitrary AGENTSTRATUM_API_* settings", () => {
+  it("forwards arbitrary CONTEXTBASE_API_* settings", () => {
     const env = daemonEnv(cfg, {
-      AGENTSTRATUM_API_EMBEDDINGS_PROVIDER: "tei",
+      CONTEXTBASE_API_EMBEDDINGS_PROVIDER: "tei",
       UNRELATED: "no",
     } as NodeJS.ProcessEnv);
-    expect(env.AGENTSTRATUM_API_EMBEDDINGS_PROVIDER).toBe("tei");
+    expect(env.CONTEXTBASE_API_EMBEDDINGS_PROVIDER).toBe("tei");
     expect(env.UNRELATED).toBeUndefined();
   });
 });
@@ -282,7 +282,7 @@ describe("startDaemonDetached", () => {
       readFileSync(new URL("../../package.json", import.meta.url), "utf8")
     );
     expect(manifest.dependencies ?? {}).not.toHaveProperty("@vectorize-io/hindsight-all");
-    expect(manifest.dependencies ?? {}).not.toHaveProperty("agentstratum-local-engine");
+    expect(manifest.dependencies ?? {}).not.toHaveProperty("contextbase-local-engine");
     expect(Object.values(manifest.bin)).not.toContain("dist/daemon-start.js");
   });
 });

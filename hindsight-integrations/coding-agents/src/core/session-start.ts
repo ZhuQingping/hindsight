@@ -71,12 +71,12 @@ interface SeedContextClient {
 }
 
 /**
- * The session banner: one line — the gradient "agentstratum" wordmark (same colors as the API
+ * The session banner: one line — the gradient "contextbase" wordmark (same colors as the API
  * server's banner) plus the repo's bank. Shown on EVERY session start; "learning" on a cold
  * repo (first ingest running), "remembering" once the bank is warm.
  */
 export function buildSeedBanner(bankId: string, cold = true, gitNote?: string): string {
-  // Two lines: what agentstratum DOES for this repo (value, not mechanism), then where the memory
+  // Two lines: what contextbase DOES for this repo (value, not mechanism), then where the memory
   // lives + sync state. The brand word leads line 1 so the host TUI's message prefix lands there.
   const headline = cold
     ? `${brandWord()} is learning this repo — ingesting its decisions, conventions and history`
@@ -212,7 +212,7 @@ export async function buildSessionStartContext(args: {
       // Fire-and-forget; Promise.resolve tolerates a non-Promise return (e.g. a test spy).
       const retained = client.retain(
         content,
-        "agentstratum codebase-survey baseline",
+        "contextbase codebase-survey baseline",
         `${SURVEY_BASELINE_PREFIX}${sha}`,
         tags,
         "survey",
@@ -359,7 +359,7 @@ export async function buildSessionStartContext(args: {
   // reflect (#5209), so only the confirmed-empty probe above defers it.
   const deferInitialReflect = bankEmpty;
 
-  // The banner shows on EVERY session — agentstratum's presence is part of the product, not a
+  // The banner shows on EVERY session — contextbase's presence is part of the product, not a
   // one-time setup note. Wording tracks the bank state: cold = "learning", else "remembering";
   // warm banners also condense the syncStatus contract into a git-sync phrase.
   let gitNote: string | undefined;
@@ -397,7 +397,7 @@ export async function runSessionStartHook(
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless claude session (core/survey.ts) sets this
   // so its hooks are a no-op — it must not re-seed/re-survey its own survey session.
-  if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
+  if (process.env.CONTEXTBASE_DISABLE_HOOKS) return;
 
   // Whole-body try/catch (unlike runHook/runRetainHook, which only guard individual steps): a
   // throw here happens during session bootstrap, before the agent has done anything — more
@@ -462,7 +462,7 @@ export async function runSessionStartHook(
   } catch (error) {
     if (error instanceof RemoteConnectionError) {
       process.stdout.write(
-        JSON.stringify(spec.emit({ systemMessage: `[agentstratum] ${error.message}` }))
+        JSON.stringify(spec.emit({ systemMessage: `[contextbase] ${error.message}` }))
       );
     }
     /* SessionStart must never throw and break the session */

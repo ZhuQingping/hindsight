@@ -1,6 +1,6 @@
 # Product naming
 
-`definition.json` is the authority for display defaults and compatibility identities.
+`definition.json` is the authority for display defaults and public ContextBase identities.
 Change `display_name` / `deployment_slug` and retain prior names in `historical_display_names`
 (for attribution recognition only), then run:
 
@@ -16,8 +16,8 @@ The existing OpenAPI/SDK generators then propagate API display metadata from the
 Run these dependency-heavy steps, lint, tests and builds through the shared resource runner
 when working in this bounded delivery environment; the scripts do not create their own lock.
 `GENERATED.json` records exact outputs. No customer content, ID, license, version, endpoint,
-credential or host configuration is an input. `identity-contract.json` freezes the compatibility
-contract: changing an identity requires a separate explicit migration and review.
+credential or host configuration is an input. `identity-contract.json` pins the reviewed public
+identity contract: changing an identity requires updating both definitions and their consumers.
 
 Python, TypeScript and Rust load generated constants. Runtime API/UI configuration uses
 `product_display_name` separately from the legacy `contextdb_name` slug. Names are case-sensitive,
@@ -28,6 +28,8 @@ Both services must be configured and restarted together; UI artifacts are reusab
 v1 display behavior; new deployments default to the definition. A v2 UI does not silently downgrade
 against an old API. No machine identity is inferred from display text.
 
-The customer CLI command remains `agentstratum`, and packages, plugin IDs, directories, environment
-variables, tool names and protocol headers retain their existing identities. Help and descriptions
-identify the product using the generated display name. See `docs/contextbase-naming/NAMING-MAP.md` before migration.
+The customer CLI command is `contextbase`. Packages, plugin IDs, directories, environment
+variables, tool names, outbound product identifiers and protocol headers use the same brand.
+The public identity switch is explicit: there are no old-name installation aliases or automatic
+configuration migration. SDK package/import names, resource IDs and customer content are unchanged.
+Help and descriptions use the generated display name. See `docs/contextbase-naming/NAMING-MAP.md`.

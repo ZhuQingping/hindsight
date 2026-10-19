@@ -40,7 +40,7 @@ fn unique_tempdir(tag: &str) -> PathBuf {
 }
 
 fn hindsight_binary() -> &'static str {
-    env!("CARGO_BIN_EXE_agentstratum")
+    env!("CARGO_BIN_EXE_contextbase")
 }
 
 fn run_with_home(home: &std::path::Path, args: &[&str]) -> Output {
@@ -48,9 +48,9 @@ fn run_with_home(home: &std::path::Path, args: &[&str]) -> Output {
         .env("HOME", home)
         // Unset anything that would bypass the profile/config-file resolution
         // we're trying to exercise here.
-        .env_remove("AGENTSTRATUM_API_URL")
-        .env_remove("AGENTSTRATUM_API_KEY")
-        .env_remove("AGENTSTRATUM_PROFILE")
+        .env_remove("CONTEXTBASE_API_URL")
+        .env_remove("CONTEXTBASE_API_KEY")
+        .env_remove("CONTEXTBASE_PROFILE")
         .args(args)
         .output()
         .expect("failed to spawn hindsight binary")
@@ -100,7 +100,7 @@ fn profile_create_writes_toml_and_json_output() {
     assert_eq!(payload["api_url"], "https://api.example.com");
     assert_eq!(payload["api_key_set"], true);
 
-    let path = home.join(".agentstratum/cli-profiles/prod.toml");
+    let path = home.join(".contextbase/cli-profiles/prod.toml");
     assert!(
         path.exists(),
         "profile file was not created at {}",
@@ -214,7 +214,7 @@ fn profile_show_missing_profile_errors_with_hint() {
     assert!(!out.status.success());
     let err = stderr(&out) + &stdout(&out);
     assert!(err.contains("profile 'nope' not found"));
-    assert!(err.contains("agentstratum profile create nope"));
+    assert!(err.contains("contextbase profile create nope"));
 }
 
 #[test]
@@ -230,7 +230,7 @@ fn profile_delete_removes_file() {
             "https://api.example.com",
         ],
     ));
-    let path = home.join(".agentstratum/cli-profiles/prod.toml");
+    let path = home.join(".contextbase/cli-profiles/prod.toml");
     assert!(path.exists());
 
     let out = run_with_home(&home, &["profile", "delete", "prod", "-y"]);
@@ -252,7 +252,7 @@ fn p_flag_overrides_config_file_api_url() {
     // should pick the profile URL, not the config-file URL — we verify by
     // looking at the connection-error message (no API server needed).
     let home = unique_tempdir("precedence");
-    let hindsight_dir = home.join(".agentstratum");
+    let hindsight_dir = home.join(".contextbase");
     std::fs::create_dir_all(&hindsight_dir).unwrap();
     std::fs::write(
         hindsight_dir.join("config"),
@@ -302,12 +302,12 @@ fn hindsight_profile_env_var_is_honored() {
         ],
     ));
 
-    // Re-run without `-p` but with AGENTSTRATUM_PROFILE set.
+    // Re-run without `-p` but with CONTEXTBASE_PROFILE set.
     let out = Command::new(hindsight_binary())
         .env("HOME", &home)
-        .env_remove("AGENTSTRATUM_API_URL")
-        .env_remove("AGENTSTRATUM_API_KEY")
-        .env("AGENTSTRATUM_PROFILE", "staging")
+        .env_remove("CONTEXTBASE_API_URL")
+        .env_remove("CONTEXTBASE_API_KEY")
+        .env("CONTEXTBASE_PROFILE", "staging")
         .args(["version"])
         .output()
         .unwrap();

@@ -32,10 +32,10 @@ const record = (fields: Record<string, unknown>) =>
  *  wrapper around our block, with the INNER tags HTML-escaped by the host. */
 const injectedEcho = [
   "<qwen:user-prompt-submit-context>",
-  "&lt;agentstratum_memories&gt;",
+  "&lt;contextbase_memories&gt;",
   "Relevant memories from past conversations (prioritize recent when conflicting).",
   "- the uploader retries with exponential backoff [experience] (2026-08-22T08:56:50Z)",
-  "&lt;/agentstratum_memories&gt;",
+  "&lt;/contextbase_memories&gt;",
   "</qwen:user-prompt-submit-context>",
 ].join("\n");
 
@@ -332,7 +332,7 @@ describe("readQwenTranscript", () => {
         provenance: "real_user",
         message: {
           role: "user",
-          parts: [{ text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?" }],
+          parts: [{ text: "<contextbase_memories>\nleak\n</contextbase_memories>\nWhy retry?" }],
         },
       })
     );

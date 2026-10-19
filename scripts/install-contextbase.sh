@@ -6,17 +6,17 @@ set -euo pipefail
 fail() { printf 'ContextBase installer: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<'USAGE'
-Usage: bash install-agentstratum.sh --base-url <HTTPS download root> --version <version> [--bin-dir <directory>]
+Usage: bash install-contextbase.sh --base-url <HTTPS download root> --version <version> [--bin-dir <directory>]
 
-Environment alternatives: AGENTSTRATUM_DOWNLOAD_BASE_URL, AGENTSTRATUM_VERSION,
-AGENTSTRATUM_BIN_DIR (default: ~/.local/bin).
+Environment alternatives: CONTEXTBASE_DOWNLOAD_BASE_URL, CONTEXTBASE_VERSION,
+CONTEXTBASE_BIN_DIR (default: ~/.local/bin).
 The download root is separate from your API/MCP Endpoint. No service is started.
 USAGE
 }
 
-base_url="${AGENTSTRATUM_DOWNLOAD_BASE_URL:-}"
-version="${AGENTSTRATUM_VERSION:-}"
-bin_dir="${AGENTSTRATUM_BIN_DIR:-${HOME}/.local/bin}"
+base_url="${CONTEXTBASE_DOWNLOAD_BASE_URL:-}"
+version="${CONTEXTBASE_VERSION:-}"
+bin_dir="${CONTEXTBASE_BIN_DIR:-${HOME}/.local/bin}"
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --base-url|--version|--bin-dir)
@@ -57,27 +57,27 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
-asset_url="$base_url/agentstratum-cli/$version/$os-$arch"
+asset_url="$base_url/contextbase-cli/$version/$os-$arch"
 download() {
   curl --proto '=https' --proto-redir '=https' --tlsv1.2 --fail --silent --show-error --location \
     --connect-timeout 15 --max-time 300 --output "$2" "$1"
 }
 download "$asset_url/SHA256SUMS" "$work_dir/SHA256SUMS"
 # Only accept the exact binary entry, not arbitrary paths from a downloaded checksum file.
-expected=$(awk '$2 == "agentstratum" { print $1 }' "$work_dir/SHA256SUMS")
-[[ "$expected" =~ ^[[:xdigit:]]{64}$ ]] || fail 'SHA256SUMS must contain exactly one valid agentstratum entry'
-download "$asset_url/agentstratum" "$work_dir/agentstratum"
-actual=$(checksum "$work_dir/agentstratum" | awk '{print $1}')
+expected=$(awk '$2 == "contextbase" { print $1 }' "$work_dir/SHA256SUMS")
+[[ "$expected" =~ ^[[:xdigit:]]{64}$ ]] || fail 'SHA256SUMS must contain exactly one valid contextbase entry'
+download "$asset_url/contextbase" "$work_dir/contextbase"
+actual=$(checksum "$work_dir/contextbase" | awk '{print $1}')
 expected=$(printf '%s' "$expected" | tr 'A-F' 'a-f')
 [ "$actual" = "$expected" ] || fail 'SHA-256 mismatch; existing CLI was not changed'
 
 mkdir -p -- "$bin_dir"
-[ ! -d "$bin_dir/agentstratum" ] || fail 'the destination is a directory'
+[ ! -d "$bin_dir/contextbase" ] || fail 'the destination is a directory'
 # Stage on the destination filesystem so replacement is atomic, even across mount points.
-staged_binary=$(mktemp "$bin_dir/.agentstratum.XXXXXX")
-cp "$work_dir/agentstratum" "$staged_binary"
+staged_binary=$(mktemp "$bin_dir/.contextbase.XXXXXX")
+cp "$work_dir/contextbase" "$staged_binary"
 chmod 755 "$staged_binary"
-mv -f -- "$staged_binary" "$bin_dir/agentstratum"
+mv -f -- "$staged_binary" "$bin_dir/contextbase"
 staged_binary=''
-printf 'Installed ContextBase (agentstratum) %s to %s/agentstratum\n' "$version" "$bin_dir"
+printf 'Installed ContextBase (contextbase) %s to %s/contextbase\n' "$version" "$bin_dir"
 printf 'Add this directory to PATH, then configure your API Endpoint and credential using a Profile.\n'

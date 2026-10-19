@@ -7,12 +7,12 @@ import { detectLegacyClaudePlugin, readLegacyEndpoint } from "./legacy";
 const homes: string[] = [];
 
 function homeWith(config: unknown, file = "claude-code.json"): string {
-  const home = mkdtempSync(join(tmpdir(), "agentstratum-legacy-"));
+  const home = mkdtempSync(join(tmpdir(), "contextbase-legacy-"));
   homes.push(home);
   if (config !== undefined) {
-    mkdirSync(join(home, ".agentstratum"), { recursive: true });
+    mkdirSync(join(home, ".contextbase"), { recursive: true });
     writeFileSync(
-      join(home, ".agentstratum", file),
+      join(home, ".contextbase", file),
       typeof config === "string" ? config : JSON.stringify(config)
     );
   }
@@ -22,8 +22,8 @@ function homeWith(config: unknown, file = "claude-code.json"): string {
 /** Both old plugins that shipped a user config; same keys, different filename. */
 function homeWithBoth(claude: unknown, codex: unknown): string {
   const home = homeWith(claude);
-  mkdirSync(join(home, ".agentstratum"), { recursive: true });
-  writeFileSync(join(home, ".agentstratum", "codex.json"), JSON.stringify(codex));
+  mkdirSync(join(home, ".contextbase"), { recursive: true });
+  writeFileSync(join(home, ".contextbase", "codex.json"), JSON.stringify(codex));
   return home;
 }
 
@@ -98,7 +98,7 @@ describe("readLegacyEndpoint", () => {
 describe("detectLegacyClaudePlugin", () => {
   /** A fake `~/.claude` with the given plugin registry and user settings. */
   function claudeDir(plugins: unknown, settings?: unknown): string {
-    const dir = mkdtempSync(join(tmpdir(), "agentstratum-claude-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-claude-"));
     homes.push(dir);
     mkdirSync(join(dir, "plugins"), { recursive: true });
     writeFileSync(join(dir, "plugins", "installed_plugins.json"), JSON.stringify(plugins));
@@ -110,28 +110,28 @@ describe("detectLegacyClaudePlugin", () => {
   it("finds a user-scope install, whatever the marketplace is called", () => {
     const dir = claudeDir({
       version: 2,
-      plugins: { "agentstratum-memory@agentstratum": [userInstall] },
+      plugins: { "contextbase-memory@contextbase": [userInstall] },
     });
-    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("agentstratum-memory@agentstratum");
+    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("contextbase-memory@contextbase");
   });
 
   it("reads the v1 registry shape (one install object, not an array)", () => {
-    const dir = claudeDir({ plugins: { "agentstratum-memory@vectorize": userInstall } });
-    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("agentstratum-memory@vectorize");
+    const dir = claudeDir({ plugins: { "contextbase-memory@vectorize": userInstall } });
+    expect(detectLegacyClaudePlugin("/any/repo", dir)).toBe("contextbase-memory@vectorize");
   });
 
   it("ignores other plugins, including similarly named ones", () => {
     const dir = claudeDir({
       version: 2,
-      plugins: { "agentstratum-memory-extra@x": [userInstall], "telegram@official": [userInstall] },
+      plugins: { "contextbase-memory-extra@x": [userInstall], "telegram@official": [userInstall] },
     });
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
   });
 
   it("skips a plugin the user explicitly disabled", () => {
     const dir = claudeDir(
-      { version: 2, plugins: { "agentstratum-memory@agentstratum": [userInstall] } },
-      { enabledPlugins: { "agentstratum-memory@agentstratum": false } }
+      { version: 2, plugins: { "contextbase-memory@contextbase": [userInstall] } },
+      { enabledPlugins: { "contextbase-memory@contextbase": false } }
     );
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
   });
@@ -140,16 +140,16 @@ describe("detectLegacyClaudePlugin", () => {
     const dir = claudeDir({
       version: 2,
       plugins: {
-        "agentstratum-memory@agentstratum": [{ scope: "project", projectPath: "/work/app" }],
+        "contextbase-memory@contextbase": [{ scope: "project", projectPath: "/work/app" }],
       },
     });
-    expect(detectLegacyClaudePlugin("/work/app", dir)).toBe("agentstratum-memory@agentstratum");
-    expect(detectLegacyClaudePlugin("/work/app/src", dir)).toBe("agentstratum-memory@agentstratum");
+    expect(detectLegacyClaudePlugin("/work/app", dir)).toBe("contextbase-memory@contextbase");
+    expect(detectLegacyClaudePlugin("/work/app/src", dir)).toBe("contextbase-memory@contextbase");
     expect(detectLegacyClaudePlugin("/work/app-other", dir)).toBeUndefined();
   });
 
   it("is undefined when Claude has no plugin registry or it is unreadable", () => {
-    const dir = mkdtempSync(join(tmpdir(), "agentstratum-claude-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-claude-"));
     homes.push(dir);
     expect(detectLegacyClaudePlugin("/any/repo", dir)).toBeUndefined();
     mkdirSync(join(dir, "plugins"));

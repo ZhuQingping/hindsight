@@ -563,13 +563,13 @@ class TestHandleWebhookDelivery:
         """Without a secret there is nothing to sign, so no signature header is sent."""
         headers = await self._capture_headers(memory, _make_delivery_task(secret=None))
 
-        assert "X-Agentstratum-Signature" not in headers
+        assert "X-ContextBase-Signature" not in headers
         assert "X-Hub-Signature-256" not in headers
-        assert "X-Agentstratum-Signature-V2" not in headers
+        assert "X-ContextBase-Signature-V2" not in headers
 
     @pytest.mark.asyncio
     async def test_signed_delivery_emits_both_body_only_signature_headers(self, memory: MemoryEngine):
-        """X-Hub-Signature-256 carries the same value as X-Agentstratum-Signature.
+        """X-Hub-Signature-256 carries the same value as X-ContextBase-Signature.
 
         Same secret, same algorithm, same bytes: the second name exists only so stock
         GitHub-style receivers can verify without a Hindsight-specific shim.
@@ -579,18 +579,18 @@ class TestHandleWebhookDelivery:
 
         payload_bytes = task_dict["payload"].encode()
         expected = "sha256=" + hmac.new(b"my-secret", payload_bytes, hashlib.sha256).hexdigest()
-        assert headers["X-Agentstratum-Signature"] == expected
+        assert headers["X-ContextBase-Signature"] == expected
         assert headers["X-Hub-Signature-256"] == expected
 
     @pytest.mark.asyncio
     async def test_signed_delivery_emits_verifiable_timestamped_signature(self, memory: MemoryEngine):
-        """X-Agentstratum-Signature-V2 verifies against '<t>.<body>' with a fresh timestamp."""
+        """X-ContextBase-Signature-V2 verifies against '<t>.<body>' with a fresh timestamp."""
         task_dict = _make_delivery_task(secret="my-secret")
         before = int(datetime.now(timezone.utc).timestamp())
         headers = await self._capture_headers(memory, task_dict)
         after = int(datetime.now(timezone.utc).timestamp())
 
-        t_part, v1_part = headers["X-Agentstratum-Signature-V2"].split(",")
+        t_part, v1_part = headers["X-ContextBase-Signature-V2"].split(",")
         timestamp = int(t_part[len("t=") :])
         assert before <= timestamp <= after, "signature timestamp must be the attempt time"
 
@@ -609,20 +609,20 @@ class TestHandleWebhookDelivery:
             secret="my-secret",
             http_config={
                 "headers": {
-                    "X-Agentstratum-Event": "attacker.controlled",
-                    "X-Agentstratum-Signature": "sha256=forged",
+                    "X-ContextBase-Event": "attacker.controlled",
+                    "X-ContextBase-Signature": "sha256=forged",
                     "X-Hub-Signature-256": "sha256=forged",
-                    "X-Agentstratum-Signature-V2": "t=0,v1=forged",
+                    "X-ContextBase-Signature-V2": "t=0,v1=forged",
                     "X-Custom": "kept",
                 }
             },
         )
         headers = await self._capture_headers(memory, task_dict)
 
-        assert headers["X-Agentstratum-Event"] == "consolidation.completed"
-        assert headers["X-Agentstratum-Signature"] != "sha256=forged"
+        assert headers["X-ContextBase-Event"] == "consolidation.completed"
+        assert headers["X-ContextBase-Signature"] != "sha256=forged"
         assert headers["X-Hub-Signature-256"] != "sha256=forged"
-        assert headers["X-Agentstratum-Signature-V2"] != "t=0,v1=forged"
+        assert headers["X-ContextBase-Signature-V2"] != "t=0,v1=forged"
         assert headers["X-Custom"] == "kept", "unrelated custom headers still pass through"
 
     @pytest.mark.asyncio

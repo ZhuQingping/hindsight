@@ -73,12 +73,12 @@ describe("npmViewVersion", () => {
 
   it("asks npm for the version — the same resolver npx will install through", async () => {
     const spawn = npmSpawn(0, '"0.6.1"\n');
-    expect(await npmViewVersion("agentstratum-coding-agents", asRealSpawn(spawn))).toBe("0.6.1");
+    expect(await npmViewVersion("contextbase-coding-agents", asRealSpawn(spawn))).toBe("0.6.1");
     const [bin, args, opts] = spawn.mock.calls[0];
     expect(bin).toBe("npm");
     // --json, so the version arrives as a quoted string on stdout rather than npm's human
     // output; a timeout bounds it (the NPM_VIEW_TIMEOUT_MS contract).
-    expect(args).toEqual(["view", "agentstratum-coding-agents", "version", "--json"]);
+    expect(args).toEqual(["view", "contextbase-coding-agents", "version", "--json"]);
     expect(opts.timeout).toBe(5000);
   });
 
@@ -179,7 +179,7 @@ describe("npmViewVersion", () => {
 });
 
 describe("maybeAutoUpdate", () => {
-  beforeEach(() => vi.stubEnv("AGENTSTRATUM_CODING_AGENTS_PACKAGE", "agentstratum-coding-agents"));
+  beforeEach(() => vi.stubEnv("CONTEXTBASE_CODING_AGENTS_PACKAGE", "contextbase-coding-agents"));
   afterEach(() => vi.unstubAllEnvs());
   const dirs: string[] = [];
   const tmp = () => {
@@ -189,7 +189,7 @@ describe("maybeAutoUpdate", () => {
   };
   afterEach(() => {
     for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
-    delete process.env.AGENTSTRATUM_DISABLE_HOOKS;
+    delete process.env.CONTEXTBASE_DISABLE_HOOKS;
   });
 
   /** A spawn stub recording (bin, args, options) — the three things this module's contract is
@@ -253,7 +253,7 @@ describe("maybeAutoUpdate", () => {
     const [bin, args, spawnOpts] = spawn.mock.calls[0];
     expect(bin).toBe("npx");
     // Pinned to the version we resolved, and `update` — never `install`, which would rewire hosts.
-    expect(args).toEqual(["-y", "agentstratum-coding-agents@0.4.3", "update"]);
+    expect(args).toEqual(["-y", "contextbase-coding-agents@0.4.3", "update"]);
     expect(args).not.toContain("install");
     expect(spawnOpts.detached).toBe(true);
   });
@@ -261,7 +261,7 @@ describe("maybeAutoUpdate", () => {
   it("rejects a configured shell expression before checking or updating", async () => {
     const { runtime, spawn, npmViewOk } = staged("0.4.2");
     const npmView = npmViewOk("0.4.3");
-    vi.stubEnv("AGENTSTRATUM_CODING_AGENTS_PACKAGE", "pkg & calc");
+    vi.stubEnv("CONTEXTBASE_CODING_AGENTS_PACKAGE", "pkg & calc");
     expect(await maybeAutoUpdate({ autoUpdate: true }, opts(runtime, { spawn, npmView }))).toBe("");
     expect(npmView).not.toHaveBeenCalled();
     expect(spawn).not.toHaveBeenCalled();
@@ -466,7 +466,7 @@ describe("maybeAutoUpdate", () => {
 
   it("stays out of the survey's own headless session", async () => {
     const { runtime, spawn, npmViewOk } = staged("0.4.2");
-    process.env.AGENTSTRATUM_DISABLE_HOOKS = "1";
+    process.env.CONTEXTBASE_DISABLE_HOOKS = "1";
     expect(
       await maybeAutoUpdate(
         { autoUpdate: true },
@@ -569,7 +569,7 @@ describe("selfUpdatable", () => {
 
   it("accepts a runtime staged from an npx cache", () => {
     expect(
-      selfUpdatable(withOrigin("/Users/u/.npm/_npx/a1b2c3/node_modules/agentstratum-coding-agents"))
+      selfUpdatable(withOrigin("/Users/u/.npm/_npx/a1b2c3/node_modules/contextbase-coding-agents"))
     ).toBe(true);
     // Windows separators reach the same verdict — the marker records whatever path staged it.
     expect(
@@ -578,10 +578,10 @@ describe("selfUpdatable", () => {
   });
 
   it("refuses a global install, a project dependency and a checkout", () => {
-    expect(
-      selfUpdatable(withOrigin("/usr/local/lib/node_modules/agentstratum-coding-agents"))
-    ).toBe(false);
-    expect(selfUpdatable(withOrigin("/home/u/proj/node_modules/agentstratum-coding-agents"))).toBe(
+    expect(selfUpdatable(withOrigin("/usr/local/lib/node_modules/contextbase-coding-agents"))).toBe(
+      false
+    );
+    expect(selfUpdatable(withOrigin("/home/u/proj/node_modules/contextbase-coding-agents"))).toBe(
       false
     );
     expect(

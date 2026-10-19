@@ -2,7 +2,7 @@ use std::process::Command;
 
 #[test]
 fn test_cli_help() {
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["--help"])
         .output()
         .expect("Failed to execute command");
@@ -19,7 +19,7 @@ fn test_help_emits_no_ansi_when_piped() {
     // and the logo/gradients would otherwise land there as escape codes. The
     // ui.rs unit tests inject the enabled flag, so only an end-to-end run of
     // the real binary proves the helpers are actually wired to the predicate.
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["--help"])
         .output()
         .expect("Failed to execute command");
@@ -35,14 +35,14 @@ fn test_help_emits_no_ansi_when_piped() {
 
 #[test]
 fn test_cli_version() {
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["--version"])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("agentstratum"));
+    assert!(stdout.contains("contextbase"));
 }
 
 #[test]
@@ -50,10 +50,10 @@ fn test_retired_ui_command_without_config() {
     let temp_dir = std::env::temp_dir().join(format!("hindsight-test-ui-{}", std::process::id()));
     std::fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["ui"])
-        .env_remove("AGENTSTRATUM_API_URL")
-        .env_remove("AGENTSTRATUM_API_KEY")
+        .env_remove("CONTEXTBASE_API_URL")
+        .env_remove("CONTEXTBASE_API_KEY")
         .env("HOME", &temp_dir)
         .output()
         .expect("Failed to execute command");
@@ -78,7 +78,7 @@ fn test_retired_ui_command_with_config() {
     std::fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
 
     // Write a minimal config
-    let config_dir = temp_dir.join(".agentstratum");
+    let config_dir = temp_dir.join(".contextbase");
     std::fs::create_dir_all(&config_dir).expect("Failed to create config dir");
     let config_file = config_dir.join("config");
     std::fs::write(
@@ -87,7 +87,7 @@ fn test_retired_ui_command_with_config() {
     )
     .expect("Failed to write config");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["ui", "--help"])
         .env("HOME", &temp_dir)
         .output()
@@ -138,7 +138,7 @@ fn test_memory_retain_exposes_timestamp_flag() {
     // Regression: `hindsight memory retain` historically had no way to set the
     // memory's event date even though the SDKs do. The flag must appear in
     // --help so users (and docs) can discover it.
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args(["memory", "retain", "--help"])
         .output()
         .expect("Failed to execute command");
@@ -158,7 +158,7 @@ fn test_configure_command() {
     let temp_dir = std::env::temp_dir().join(format!("hindsight-test-{}", std::process::id()));
     std::fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let output = Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .args([
             "configure",
             "--api-url",
@@ -211,7 +211,7 @@ fn test_sigpipe_terminates_with_signal_not_abort() {
     }
 
     let stdout = unsafe { std::process::Stdio::from_raw_fd(fds[1]) };
-    let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_agentstratum"))
+    let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_contextbase"))
         .arg("--help")
         .stdout(stdout)
         .stderr(std::process::Stdio::null())

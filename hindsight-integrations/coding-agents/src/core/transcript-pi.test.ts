@@ -42,7 +42,7 @@ describe("readPiMessages", () => {
         content: [
           {
             type: "text",
-            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+            text: "<contextbase_memories>\nleak\n</contextbase_memories>\nWhy retry?",
           },
         ],
       },
@@ -130,7 +130,7 @@ describe("readPiTranscript", () => {
           content: [
             {
               type: "text",
-              text: "<agentstratum_memories>only 429 and 408 retry</agentstratum_memories>\nship it",
+              text: "<contextbase_memories>only 429 and 408 retry</contextbase_memories>\nship it",
             },
           ],
         },

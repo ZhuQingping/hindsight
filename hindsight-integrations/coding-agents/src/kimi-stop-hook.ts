@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * agentstratum Kimi Code `Stop` hook.
+ * contextbase Kimi Code `Stop` hook.
  *
  * Install (~/.kimi-code/config.toml) — the entry schema is STRICT, exactly these four keys:
  *   [[hooks]]
  *   event = "Stop"
- *   command = "agentstratum-kimi-stop-hook"
+ *   command = "contextbase-kimi-stop-hook"
  *   timeout = 60
  * A fifth key drops EVERY hook in the file at warning severity while the CLI still boots.
  */

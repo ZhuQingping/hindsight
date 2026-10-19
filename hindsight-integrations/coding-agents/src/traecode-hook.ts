@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agentstratum-traecode-hook - the TraeCode entry point (a `UserPromptSubmit` hook).
+ * contextbase-traecode-hook - the TraeCode entry point (a `UserPromptSubmit` hook).
  *
  * Install (TraeCode, user scope): ~/.trae-cn/hooks.json
  *   { "version": 1, "hooks": { "UserPromptSubmit": [ { "hooks": [

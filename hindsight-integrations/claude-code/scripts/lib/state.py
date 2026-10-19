@@ -31,7 +31,7 @@ def _state_dir() -> str:
     plugin_data = os.environ.get("CLAUDE_PLUGIN_DATA", "")
     if not plugin_data:
         # Fallback to a temp location for testing
-        plugin_data = os.path.join(os.path.expanduser("~"), ".claude", "plugins", "data", "agentstratum-memory")
+        plugin_data = os.path.join(os.path.expanduser("~"), ".claude", "plugins", "data", "contextbase-memory")
     state_dir = os.path.join(plugin_data, "state")
     os.makedirs(state_dir, exist_ok=True)
     return state_dir

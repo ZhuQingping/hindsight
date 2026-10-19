@@ -4,7 +4,7 @@ import { dcodeAssistantText, readDcodeTranscript } from "./transcript-dcode";
 
 describe("readDcodeTranscript", () => {
   it("normalizes Dcode records and compacts tool messages", () => {
-    const path = "/tmp/agentstratum-dcode-transcript-test.jsonl";
+    const path = "/tmp/contextbase-dcode-transcript-test.jsonl";
     writeFileSync(
       path,
       [
@@ -29,7 +29,7 @@ describe("readDcodeTranscript", () => {
         JSON.stringify({
           schema_version: 1,
           role: "assistant",
-          content: "before <agentstratum_memories>old context</agentstratum_memories> after",
+          content: "before <contextbase_memories>old context</contextbase_memories> after",
         }),
         JSON.stringify({ schema_version: 2, role: "user", content: "unknown" }),
         "not json",

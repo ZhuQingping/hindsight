@@ -58,10 +58,10 @@ export interface E2eRun {
 // its real hook lifecycle receives Hindsight's semantic context from the seeded bank.
 export const seededDecisionStatuses = ["429", "408"];
 
-const E2E = process.env.AGENTSTRATUM_HARNESS_E2E === "1";
+const E2E = process.env.CONTEXTBASE_HARNESS_E2E === "1";
 const PACKAGE_ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const IMAGE = "hindsight-coding-agents-e2e";
-const RUN_MARKER = "AGENTSTRATUM_E2E_HARNESS_PROMPT";
+const RUN_MARKER = "CONTEXTBASE_E2E_HARNESS_PROMPT";
 
 function required(value: string | undefined, message: string): string {
   if (!value) throw new Error(message);
@@ -115,10 +115,10 @@ function runDocker(
 
 function loadHindsightConfig(): RawConfig {
   const path =
-    process.env.AGENTSTRATUM_E2E_CONFIG || join(homedir(), ".agentstratum", "coding-agent.json");
+    process.env.CONTEXTBASE_E2E_CONFIG || join(homedir(), ".contextbase", "coding-agent.json");
   if (!existsSync(path)) {
     throw new Error(
-      `Hindsight config not found at ${path}; set AGENTSTRATUM_E2E_CONFIG to a local config file`
+      `Hindsight config not found at ${path}; set CONTEXTBASE_E2E_CONFIG to a local config file`
     );
   }
   try {
@@ -149,10 +149,10 @@ function makeTestConfig(bankId: string): {
 } {
   const source = loadHindsightConfig();
   const hostApiUrl = required(
-    process.env.AGENTSTRATUM_E2E_API_URL || source.apiUrl,
+    process.env.CONTEXTBASE_E2E_API_URL || source.apiUrl,
     "Hindsight apiUrl is required"
   );
-  const apiToken = process.env.AGENTSTRATUM_E2E_API_TOKEN || source.apiToken;
+  const apiToken = process.env.CONTEXTBASE_E2E_API_TOKEN || source.apiToken;
   return {
     hostApiUrl,
     apiToken,
@@ -198,7 +198,7 @@ function buildImage(harness: HarnessDockerSetup): void {
 }
 
 function assertPrerequisites(harness: HarnessDockerSetup): void {
-  if (!E2E) throw new Error("AGENTSTRATUM_HARNESS_E2E=1 is required to run Docker harness tests");
+  if (!E2E) throw new Error("CONTEXTBASE_HARNESS_E2E=1 is required to run Docker harness tests");
   const credentials = harness.credentialPath?.();
   if (credentials && !existsSync(credentials)) {
     throw new Error(`Missing ${harness.name} credentials at ${credentials}`);
@@ -317,7 +317,7 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
               "--mount",
               `type=bind,src=${credentials},dst=/hindsight-credentials/source,readonly`,
               "--env",
-              `AGENTSTRATUM_E2E_CREDENTIAL_TARGET=${harness.credentialTarget}`,
+              `CONTEXTBASE_E2E_CREDENTIAL_TARGET=${harness.credentialTarget}`,
             ]
           : []),
         ...Object.entries(stubEnv).flatMap(([key, value]) => ["--env", `${key}=${value}`]),
@@ -328,11 +328,11 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
         "--mount",
         `type=bind,src=${resultDir},dst=/results`,
         "--env",
-        `AGENTSTRATUM_CONFIG=/hindsight/config.json`,
+        `CONTEXTBASE_CONFIG=/hindsight/config.json`,
         "--env",
-        "AGENTSTRATUM_DIAG_FILE=/results/diagnostics.jsonl",
+        "CONTEXTBASE_DIAG_FILE=/results/diagnostics.jsonl",
         "--env",
-        `AGENTSTRATUM_E2E_INSTALL_COMMAND=${harness.installCommand}`,
+        `CONTEXTBASE_E2E_INSTALL_COMMAND=${harness.installCommand}`,
         // Every harness operates on the fixture repo, so start there. Without this the container's
         // cwd is `/`, which makes a CLI resolve the wrong project (Devin refused to run at all).
         "--workdir",

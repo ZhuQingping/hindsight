@@ -26,14 +26,14 @@ class LockfilePolicyTest(unittest.TestCase):
             ]:
                 with self.subTest(private=private, dev=dev, runtime=runtime):
                     manifest = {
-                        "name": "agentstratum-coding-agents",
+                        "name": "contextbase-coding-agents",
                         "private": private,
-                        "devDependencies": {"agentstratum-local-engine": "file:../../hindsight-all-npm"},
-                        "dependencies": {"agentstratum-local-engine": "*"} if runtime else {},
+                        "devDependencies": {"contextbase-local-engine": "file:../../hindsight-all-npm"},
+                        "dependencies": {"contextbase-local-engine": "*"} if runtime else {},
                     }
                     lock = {
                         "packages": {
-                            "node_modules/agentstratum-local-engine": {
+                            "node_modules/contextbase-local-engine": {
                                 "link": True,
                                 "resolved": "../../hindsight-all-npm",
                             },

@@ -67,9 +67,9 @@ def test_distinct_endpoints_and_credentials() -> None:
 def test_session_start_reports_configuration_once_without_deprecation(tmp_path: Path, endpoint: str) -> None:
     script = Path(__file__).resolve().parents[1] / "scripts" / "session_start.py"
     environment = {
-        key: value for key, value in os.environ.items() if not key.startswith(("AGENTSTRATUM_", "CLAUDE_PLUGIN_"))
+        key: value for key, value in os.environ.items() if not key.startswith(("CONTEXTBASE_", "CLAUDE_PLUGIN_"))
     }
-    environment.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), AGENTSTRATUM_API_URL=endpoint)
+    environment.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), CONTEXTBASE_API_URL=endpoint)
     result = subprocess.run(
         [sys.executable, str(script)], input="{}", text=True, capture_output=True, env=environment, check=True
     )

@@ -1,6 +1,6 @@
 # @DISPLAY_NAME@ for Claude Code
 
-Automatic recall before prompts, conversation retention after turns, and a local MCP adapter for knowledge tools. All calls use the single remote connection in `~/.agentstratum/claude-code.json`.
+Automatic recall before prompts, conversation retention after turns, and a local MCP adapter for knowledge tools. All calls use the single remote connection in `~/.contextbase/claude-code.json`.
 
 ## Connect
 
@@ -14,11 +14,11 @@ Copy your API Endpoint and credential from the hosted console. Create:
 }
 ```
 
-The example URL is a placeholder. Alternatively set `AGENTSTRATUM_API_URL` and `AGENTSTRATUM_API_TOKEN` in the environment inherited by Claude Code. Environment settings override this plugin's JSON settings. Use the API Endpoint, not the remote MCP Endpoint: this plugin's local MCP adapter calls the API. All hooks and tools share this connection; per-project connection switching is not supported.
+The example URL is a placeholder. Alternatively set `CONTEXTBASE_API_URL` and `CONTEXTBASE_API_TOKEN` in the environment inherited by Claude Code. Environment settings override this plugin's JSON settings. Use the API Endpoint, not the remote MCP Endpoint: this plugin's local MCP adapter calls the API. All hooks and tools share this connection; per-project connection switching is not supported.
 
 ## Install
 
-The Huawei Cloud archive URL is pending. After downloading and verifying the approved `agentstratum-claude-code-<version>.zip`, extract it and load the resulting directory through Claude Code's local plugin mechanism. For source-checkout testing, use `claude --plugin-dir /absolute/path/to/hindsight-integrations/claude-code`.
+The Huawei Cloud archive URL is pending. After downloading and verifying the approved `contextbase-claude-code-<version>.zip`, extract it and load the resulting directory through Claude Code's local plugin mechanism. For source-checkout testing, use `claude --plugin-dir /absolute/path/to/hindsight-integrations/claude-code`.
 
 Python 3.10+ is required for hooks. The local MCP launcher creates a Python virtual environment and installs the client dependencies from `requirements.txt`; it does not download or start a memory engine. Python package index access remains required for those dependencies.
 

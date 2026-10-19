@@ -1,4 +1,4 @@
-"""Install logic for the ZCode agentstratum integration.
+"""Install logic for the ZCode contextbase integration.
 
 ZCode (Z.ai's GLM desktop coding agent, zcode.z.ai) reads configuration hooks
 from its CLI config file at ``~/.zcode/cli/config.json`` — never the user's real
@@ -6,13 +6,13 @@ Claude Code config at ``~/.claude/settings.json``.
 
 Reproduces the installed layout the hook scripts expect at runtime:
 
-    ~/.zcode/hooks/agentstratum/
+    ~/.zcode/hooks/contextbase/
         scripts/               — the hook scripts + their ``lib/`` package
         settings.json          — default config (version stamped at install time)
         hooks.json             — rendered with absolute script paths (reference copy)
-    ~/.zcode/cli/config.json   — ZCode CLI config; agentstratum's "hooks" block merged
+    ~/.zcode/cli/config.json   — ZCode CLI config; contextbase's "hooks" block merged
                                  in, preserving any other keys/hooks already present
-    ~/.agentstratum/zcode.json    — user config (seeded empty, never overwritten)
+    ~/.contextbase/zcode.json    — user config (seeded empty, never overwritten)
 
 ZCode's native hook schema lives under the top-level ``"hooks"`` key:
 
@@ -40,15 +40,15 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 
 PACKAGE = "hindsight_zcode"
-HOOKS_DIRNAME = "agentstratum"
+HOOKS_DIRNAME = "contextbase"
 SCRIPTS_PLACEHOLDER = "__SCRIPTS_DIR__"
 # ZCode caps hook stdout at maxOutputBytes; anything larger is dropped.
 MAX_OUTPUT_BYTES = 32768
-# Marker used to identify agentstratum's own hook entries when merging/stripping
+# Marker used to identify contextbase's own hook entries when merging/stripping
 # the shared ~/.zcode/cli/config.json. Every script path contains this segment
-# (the deploy dir is ~/.zcode/hooks/agentstratum), so it never matches a foreign
+# (the deploy dir is ~/.zcode/hooks/contextbase), so it never matches a foreign
 # hook.
-HOOK_MARKER = "hooks/agentstratum"
+HOOK_MARKER = "hooks/contextbase"
 
 
 def _payload_root() -> Traversable:
@@ -59,7 +59,7 @@ def _payload_root() -> Traversable:
 def _package_version() -> str:
     """Installed package version, stamped into the deployed settings.json."""
     try:
-        return metadata.version("agentstratum-zcode")
+        return metadata.version("contextbase-zcode")
     except metadata.PackageNotFoundError:
         return "0.0.0"
 
@@ -74,7 +74,7 @@ def get_config_path() -> Path:
 
 
 def get_install_dir() -> Path:
-    """Where the hook payload is deployed (``~/.zcode/hooks/agentstratum``)."""
+    """Where the hook payload is deployed (``~/.zcode/hooks/contextbase``)."""
     return get_zcode_dir() / "hooks" / HOOKS_DIRNAME
 
 
@@ -117,19 +117,19 @@ def render_hooks_events(scripts_dir: Path) -> dict:
     return json.loads(rendered)
 
 
-def _is_agentstratum_entry(definition: dict) -> bool:
+def _is_contextbase_entry(definition: dict) -> bool:
     return HOOK_MARKER in json.dumps(definition)
 
 
 def merge_hooks(config_path: Path, events: dict) -> Path:
-    """Merge agentstratum's hooks into ``~/.zcode/cli/config.json``, preserving others.
+    """Merge contextbase's hooks into ``~/.zcode/cli/config.json``, preserving others.
 
     ZCode reads its native hook schema under the top-level ``"hooks"`` key:
     ``{"enabled": true, "maxOutputBytes": N, "events": {...}}``. Config hooks are
     disabled by default, so ``enabled`` is forced true. Any other keys in
-    config.json — and any non-agentstratum event entries — are preserved untouched.
+    config.json — and any non-contextbase event entries — are preserved untouched.
 
-    Idempotent: any pre-existing agentstratum entries are replaced, not duplicated.
+    Idempotent: any pre-existing contextbase entries are replaced, not duplicated.
     Returns the path to the config file.
     """
     existing: dict = {}
@@ -149,7 +149,7 @@ def merge_hooks(config_path: Path, events: dict) -> Path:
         existing_events = {}
 
     for event, definitions in events.items():
-        bucket = [d for d in existing_events.get(event, []) if not _is_agentstratum_entry(d)]
+        bucket = [d for d in existing_events.get(event, []) if not _is_contextbase_entry(d)]
         bucket.extend(definitions)
         existing_events[event] = bucket
 
@@ -162,8 +162,8 @@ def merge_hooks(config_path: Path, events: dict) -> Path:
 
 
 def seed_user_config(api_url: str | None, api_token: str | None) -> Path:
-    """Seed ``~/.agentstratum/zcode.json`` if absent. Never overwrites."""
-    user_config = Path.home() / ".agentstratum" / "zcode.json"
+    """Seed ``~/.contextbase/zcode.json`` if absent. Never overwrites."""
+    user_config = Path.home() / ".contextbase" / "zcode.json"
     if user_config.exists():
         print(f"User config already exists at {user_config} — leaving it alone")
         return user_config
@@ -183,7 +183,7 @@ def run_install(api_url: str | None = None, api_token: str | None = None) -> Non
     """Install the hook scripts and register them with ZCode."""
     install_dir = get_install_dir()
 
-    print("Installing agentstratum memory for ZCode...")
+    print("Installing contextbase memory for ZCode...")
     print(f"  Install dir : {install_dir}")
     if api_url:
         print(f"  API URL     : {api_url}")
@@ -203,11 +203,11 @@ def run_install(api_url: str | None = None, api_token: str | None = None) -> Non
 
     print()
     print("Done. Restart ZCode to load the new hooks.")
-    print("Logs (with debug=true): tail -F ~/.agentstratum/zcode/state/*.log")
+    print("Logs (with debug=true): tail -F ~/.contextbase/zcode/state/*.log")
 
 
 def run_uninstall() -> None:
-    """Remove the hook scripts and strip agentstratum's entries from ZCode config."""
+    """Remove the hook scripts and strip contextbase's entries from ZCode config."""
     install_dir = get_install_dir()
     config_json = get_config_path()
 
@@ -227,20 +227,20 @@ def run_uninstall() -> None:
             events = hooks.get("events")
             if isinstance(events, dict):
                 for event, definitions in list(events.items()):
-                    kept = [d for d in definitions if not _is_agentstratum_entry(d)]
+                    kept = [d for d in definitions if not _is_contextbase_entry(d)]
                     if kept:
                         events[event] = kept
                     else:
                         del events[event]
                 hooks["events"] = events
             config_json.write_text(json.dumps(data, indent=2) + "\n")
-            print(f"Stripped agentstratum entries from {config_json}")
+            print(f"Stripped contextbase entries from {config_json}")
     else:
         print(f"{config_json} does not exist — nothing to strip")
 
     print()
     print("Done. Restart ZCode to unload the hooks.")
-    print("User config at ~/.agentstratum/zcode.json was preserved.")
+    print("User config at ~/.contextbase/zcode.json was preserved.")
 
 
 if __name__ == "__main__":

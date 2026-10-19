@@ -26,8 +26,8 @@ class TestDefaultBankUsesProjectCwd:
 
     def test_default_bank_prefers_launcher_project_cwd(self):
         src = _read_mcp_server_source()
-        assert "AGENTSTRATUM_MCP_PROJECT_CWD" in src
-        assert 'os.environ.get("AGENTSTRATUM_MCP_PROJECT_CWD", os.getcwd())' in src
+        assert "CONTEXTBASE_MCP_PROJECT_CWD" in src
+        assert 'os.environ.get("CONTEXTBASE_MCP_PROJECT_CWD", os.getcwd())' in src
         assert '_hook_input = {"cwd": _project_cwd, "session_id": ""}' in src
 
 

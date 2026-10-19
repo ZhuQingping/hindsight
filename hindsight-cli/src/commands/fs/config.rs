@@ -1,7 +1,7 @@
 //! Configuration resolution for the `fs` subcommand.
 //!
 //! Priority (highest first): explicit CLI flags > saved mount config
-//! (`<dir>/.agentstratum-fs/config.json`) > the CLI's resolved API endpoint
+//! (`<dir>/.contextbase-fs/config.json`) > the CLI's resolved API endpoint
 //! (profile/env/config file) > `fs`-specific defaults.
 //!
 //! The saved config is written when a folder is first mounted so that later
@@ -18,14 +18,14 @@ use std::path::{Path, PathBuf};
 use super::paths::CONTROL_DIR;
 
 pub const DEFAULT_INTERVAL_SECONDS: u64 = 30;
-pub const DEFAULT_DIR: &str = "./agentstratum-fs";
+pub const DEFAULT_DIR: &str = "./contextbase-fs";
 
 /// Effective configuration for a mount.
 #[derive(Debug, Clone)]
 pub struct MountConfig {
     /// Absolute path to the mount directory.
     pub dir: PathBuf,
-    /// Agentstratum API base URL (no trailing slash).
+    /// ContextBase API base URL (no trailing slash).
     pub api_url: String,
     /// Bearer token, if the API requires auth.
     pub api_token: Option<String>,
@@ -101,7 +101,7 @@ pub fn resolve_config(
     let dir_input = overrides
         .dir
         .clone()
-        .or_else(|| env::var("AGENTSTRATUM_FS_DIR").ok())
+        .or_else(|| env::var("CONTEXTBASE_FS_DIR").ok())
         .unwrap_or_else(|| DEFAULT_DIR.to_string());
     // Absolutize against the current dir without requiring the path to exist.
     let dir = {
@@ -158,12 +158,12 @@ pub fn resolve_config(
         .bank_id
         .clone()
         .or(saved.bank_id)
-        .or_else(|| env::var("AGENTSTRATUM_BANK_ID").ok())
+        .or_else(|| env::var("CONTEXTBASE_BANK_ID").ok())
         .unwrap_or_default();
 
     if require_remote && bank_id.is_empty() {
         bail!(
-            "No bank specified. Pass --bank <id>, set AGENTSTRATUM_BANK_ID, or run inside an already-mounted folder."
+            "No bank specified. Pass --bank <id>, set CONTEXTBASE_BANK_ID, or run inside an already-mounted folder."
         );
     }
 
@@ -171,7 +171,7 @@ pub fn resolve_config(
         .interval_seconds
         .or(saved.interval_seconds)
         .or_else(|| {
-            env::var("AGENTSTRATUM_FS_INTERVAL")
+            env::var("CONTEXTBASE_FS_INTERVAL")
                 .ok()
                 .and_then(|s| s.parse::<u64>().ok())
         })

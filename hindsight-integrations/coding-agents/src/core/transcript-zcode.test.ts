@@ -68,7 +68,7 @@ describe("readZcodeTranscript", () => {
   it("strips memory this integration injected, so a reply never re-ingests it", () => {
     writeFileSync(
       file,
-      line("assistant", "done <agentstratum_memories>recalled fact</agentstratum_memories>")
+      line("assistant", "done <contextbase_memories>recalled fact</contextbase_memories>")
     );
     expect(readZcodeTranscript(file)[0].content).toBe("done");
   });

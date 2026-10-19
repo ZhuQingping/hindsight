@@ -18,7 +18,7 @@ export const TOOL_TEXT_CAP = 2000;
  *  Tag-structural, not content-guessing. The block is removed and any surrounding text KEPT — a
  *  message that is nothing but a wrapper then renders empty and is dropped as a no-content turn. */
 const MEMORY_TAG_RE =
-  /<(hook_prompt|task-notification|system-reminder|agentstratum_memory|agentstratum_memories|agentstratum_bank|relevant_memories|user_feedback|agentstratum_knowledge|agentstratum_knowledge_refresh)\b[\s\S]*?<\/\1>/g;
+  /<(hook_prompt|task-notification|system-reminder|contextbase_memory|contextbase_memories|contextbase_bank|relevant_memories|user_feedback|contextbase_knowledge|contextbase_knowledge_refresh)\b[\s\S]*?<\/\1>/g;
 
 export function stripInjectedMemory(s: string): string {
   return s.replace(MEMORY_TAG_RE, "");

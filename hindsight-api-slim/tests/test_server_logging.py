@@ -38,7 +38,7 @@ def test_default_stdout_preserves_exception_chain(
 ) -> None:
     output = io.StringIO()
     monkeypatch.setattr(sys, "stdout", output)
-    monkeypatch.delenv("AGENTSTRATUM_INTERNAL_LOG_FILE", raising=False)
+    monkeypatch.delenv("CONTEXTBASE_INTERNAL_LOG_FILE", raising=False)
     # The formatter only needs the tenant context; avoid loading models or a database in this unit test.
     engine = ModuleType("hindsight_api.engine.memory_engine")
     monkeypatch.setattr(

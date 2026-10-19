@@ -1,7 +1,7 @@
 {
-  "name": "agentstratum-memory",
+  "name": "contextbase-memory",
   "description": "Automatic long-term memory for Claude Code via ContextBase.",
   "version": "0.7.6",
   "license": "MIT",
-  "keywords": ["memory", "agentstratum", "recall", "retain"]
+  "keywords": ["memory", "contextbase", "recall", "retain"]
 }

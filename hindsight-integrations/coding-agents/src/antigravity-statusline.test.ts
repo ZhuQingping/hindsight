@@ -5,7 +5,7 @@ import { buildAntigravityStatusLine } from "./antigravity-statusline";
 const stripAnsi = (value: string): string => value.replace(/\x1b\[[0-9;]*m/g, "");
 
 describe("Antigravity status line", () => {
-  it("identifies the resolved agentstratum bank for the active workspace", () => {
+  it("identifies the resolved contextbase bank for the active workspace", () => {
     const out = buildAntigravityStatusLine(
       { cwd: "/workspace/acme" },
       resolveConfig({ bankId: "team::acme" })

@@ -1,8 +1,8 @@
 import { DISPLAY_NAME } from "./brand-defaults.js";
 
 /**
- * "agentstratum" in the brand gradient (#0074d9 → #009296) — the same colors the API server's
- * banner uses (agentstratum_api/banner.py gradient_text). ANSI foreground-only, so it renders
+ * "contextbase" in the brand gradient (#0074d9 → #009296) — the same colors the API server's
+ * banner uses (contextbase_api/banner.py gradient_text). ANSI foreground-only, so it renders
  * anywhere the session logo does.
  */
 export function brandWord(): string {

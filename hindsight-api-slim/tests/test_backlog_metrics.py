@@ -213,9 +213,9 @@ def test_gauges_register_and_emit_cached_values_without_bank_id():
         for c in collector.meter.create_observable_gauge.call_args_list
         if "callbacks" in c.kwargs
     }
-    assert "agentstratum.async_operations" in gauges
-    assert "agentstratum.consolidation.backlog" in gauges
-    assert "agentstratum.consolidation.failed" in gauges
+    assert "contextbase.async_operations" in gauges
+    assert "contextbase.consolidation.backlog" in gauges
+    assert "contextbase.consolidation.failed" in gauges
 
     collector._async_ops_counts = {
         _AsyncOpKey("public", "retain", "pending", None): 7,
@@ -223,13 +223,13 @@ def test_gauges_register_and_emit_cached_values_without_bank_id():
     }
     collector._consolidation_backlog = {_BacklogKey("public", None): 9}
 
-    obs = list(gauges["agentstratum.async_operations"](None))
+    obs = list(gauges["contextbase.async_operations"](None))
     by_label = {(o.attributes["operation_type"], o.attributes["status"]): o.value for o in obs}
     assert by_label[("retain", "pending")] == 7
     assert by_label[("consolidation", "processing")] == 1
     assert all("bank_id" not in o.attributes for o in obs)  # cardinality guard
 
-    backlog_obs = list(gauges["agentstratum.consolidation.backlog"](None))
+    backlog_obs = list(gauges["contextbase.consolidation.backlog"](None))
     assert backlog_obs[0].value == 9
     assert backlog_obs[0].attributes["tenant"] == "public"
 
@@ -243,7 +243,7 @@ def test_gauge_emits_bank_id_attribute_when_present():
         if "callbacks" in c.kwargs
     }
     collector._consolidation_backlog = {_BacklogKey("public", "bankA"): 4}
-    obs = list(gauges["agentstratum.consolidation.backlog"](None))
+    obs = list(gauges["contextbase.consolidation.backlog"](None))
     assert obs[0].value == 4
     assert obs[0].attributes["bank_id"] == "bankA"
 
@@ -260,7 +260,7 @@ def test_backlog_gauges_not_registered_when_flag_disabled():
     names = [
         c.kwargs.get("name") for c in collector.meter.create_observable_gauge.call_args_list if "callbacks" in c.kwargs
     ]
-    assert "agentstratum.async_operations" not in names
-    assert "agentstratum.consolidation.backlog" not in names
-    assert "agentstratum.consolidation.failed" not in names
+    assert "contextbase.async_operations" not in names
+    assert "contextbase.consolidation.backlog" not in names
+    assert "contextbase.consolidation.failed" not in names
     assert collector._backlog_task is None

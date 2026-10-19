@@ -1856,7 +1856,7 @@
     "factTypeMemory": "기억"
   },
   "metadata": {
-    "title": "AgentStratum · 元壤",
+    "title": "ContextBase · 元壤",
     "description": "에이전트용 데이터·메모리 엔진."
   },
   "addDocument": {
@@ -1952,7 +1952,7 @@
   "banksOverview": {
     "title": "모든 메모리 뱅크",
     "subtitle": "뱅크를 선택해 문서, 기억, 지식 및 활동을 확인하세요.",
-    "welcomeTitle": "AgentStratum · 元壤에 오신 것을 환영합니다",
+    "welcomeTitle": "ContextBase · 元壤에 오신 것을 환영합니다",
     "welcomeBody": "뱅크를 만들고 추적 가능한 에이전트 기억과 지식을 쌓으세요.",
     "search": "뱅크 검색...",
     "noSearchResults": "검색과 일치하는 뱅크가 없습니다.",
@@ -1980,7 +1980,7 @@
     "bulkDeleteFailures": "다음 뱅크는 삭제하지 못했습니다:"
   },
   "login": {
-    "title": "AgentStratum · 元壤 로그인",
+    "title": "ContextBase · 元壤 로그인",
     "description": "접근 암호를 입력해 데이터와 기억 작업 공간을 여세요.",
     "accessKey": "접근 비밀번호",
     "accessKeyPlaceholder": "접근 비밀번호 입력",
@@ -2286,7 +2286,7 @@
   },
   "resourcePages": {
     "backToBanks": "← 모든 메모리 뱅크",
-    "guideTitle": "AgentStratum 사용하기",
+    "guideTitle": "ContextBase 사용하기",
     "guideIntro": "자료에서 메모리, 검색, 추론, 관리까지의 흐름을 살펴보세요. 링크는 선택한 뱅크를 엽니다.",
     "guideSourcesTitle": "자료 추가",
     "guideSourcesBody": "텍스트나 문서를 추가하고 파생 메모리를 사용하기 전에 처리 상태를 확인하세요.",

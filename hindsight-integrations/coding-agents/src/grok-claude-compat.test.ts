@@ -69,7 +69,7 @@ beforeEach(() => {
   execFileSync("git", ["init", "-q", root]);
   sessionId = `sess-grok-${basename(root)}`;
   rawConfig = { autoSeed: false, autoUpdate: false, apiUrl: "https://service.example" };
-  vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(root, "diag.log"));
+  vi.stubEnv("CONTEXTBASE_DIAG_FILE", join(root, "diag.log"));
 });
 
 afterEach(() => {
@@ -161,8 +161,8 @@ describe("Grok Build context delivery", () => {
     expect(delivered.hookSpecificOutput.hookEventName).toBe("PostToolUse");
     const context: string = delivered.hookSpecificOutput.additionalContext;
     // Both stashed blocks arrive: the session preamble and the prompt's roster refresh.
-    expect(context).toContain("<agentstratum_knowledge>");
-    expect(context).toContain("<agentstratum_knowledge_refresh>");
+    expect(context).toContain("<contextbase_knowledge>");
+    expect(context).toContain("<contextbase_knowledge_refresh>");
 
     // Delivered once: the next tool call has nothing to hand over, and never builds a client.
     stdin = toolUse();

@@ -33,7 +33,7 @@ class TestLoadConfig:
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
         for k in list(os.environ):
-            if k.startswith("AGENTSTRATUM_"):
+            if k.startswith("CONTEXTBASE_"):
                 monkeypatch.delenv(k, raising=False)
 
     def test_defaults_applied_when_no_settings_file(self, tmp_path, monkeypatch):
@@ -55,19 +55,19 @@ class TestLoadConfig:
     def test_env_var_overrides_settings_json(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
         (tmp_path / "settings.json").write_text(json.dumps({"recallBudget": "low"}))
-        monkeypatch.setenv("AGENTSTRATUM_RECALL_BUDGET", "high")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_BUDGET", "high")
         cfg = load_config()
         assert cfg["recallBudget"] == "high"
 
     def test_bool_env_var_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_AUTO_RECALL", "false")
+        monkeypatch.setenv("CONTEXTBASE_AUTO_RECALL", "false")
         cfg = load_config()
         assert cfg["autoRecall"] is False
 
     def test_int_env_var_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_API_PORT", "9999")
+        monkeypatch.setenv("CONTEXTBASE_API_PORT", "9999")
         cfg = load_config()
         assert cfg["apiPort"] == 9999
 
@@ -78,20 +78,20 @@ class TestLoadConfig:
 
     def test_request_timeout_env_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_REQUEST_TIMEOUT_SECONDS", "60")
+        monkeypatch.setenv("CONTEXTBASE_REQUEST_TIMEOUT_SECONDS", "60")
         cfg = load_config()
         assert cfg["requestTimeoutSeconds"] == 60
 
     def test_recall_tags_env_override_accepts_comma_list(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_RECALL_TAGS", "memory_type:rule, tech_stack:supabase")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_TAGS", "memory_type:rule, tech_stack:supabase")
         cfg = load_config()
         assert cfg["recallTags"] == ["memory_type:rule", "tech_stack:supabase"]
 
     def test_recall_tag_groups_env_override_accepts_json(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
         monkeypatch.setenv(
-            "AGENTSTRATUM_RECALL_TAG_GROUPS",
+            "CONTEXTBASE_RECALL_TAG_GROUPS",
             '[{"op":"all","tags":["memory_type:rule","tech_stack:supabase"]}]',
         )
         cfg = load_config()
@@ -100,7 +100,7 @@ class TestLoadConfig:
     def test_recall_additional_bank_filters_env_override_accepts_json(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
         monkeypatch.setenv(
-            "AGENTSTRATUM_RECALL_ADDITIONAL_BANK_FILTERS",
+            "CONTEXTBASE_RECALL_ADDITIONAL_BANK_FILTERS",
             '{"normative":{"recallTags":["memory_type:rule"],"recallTagsMatch":"all"}}',
         )
         cfg = load_config()
@@ -124,7 +124,7 @@ class TestLoadConfig:
 
     def test_api_url_env_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_API_URL", "http://myserver:8080")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://myserver:8080")
         cfg = load_config()
         assert cfg["apiUrl"] == "http://myserver:8080"
 
@@ -134,8 +134,8 @@ class TestLoadConfig:
 
         # Plugin default ships with "low"
         (plugin_root / "settings.json").write_text(json.dumps({"recallBudget": "low"}))
-        # User overrides to "high" via ~/.agentstratum/claude-code.json
-        user_cfg = tmp_path / ".agentstratum" / "claude-code.json"
+        # User overrides to "high" via ~/.contextbase/claude-code.json
+        user_cfg = tmp_path / ".contextbase" / "claude-code.json"
         user_cfg.parent.mkdir()
         user_cfg.write_text(json.dumps({"recallBudget": "high"}))
 
@@ -147,7 +147,7 @@ class TestLoadConfig:
 
     def test_user_config_missing_falls_back_gracefully(self, tmp_path, monkeypatch):
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path))
-        # HOME points to tmp_path where no .agentstratum/claude-code.json exists
+        # HOME points to tmp_path where no .contextbase/claude-code.json exists
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
         cfg = load_config()
@@ -156,13 +156,13 @@ class TestLoadConfig:
     def test_env_var_wins_over_user_config(self, tmp_path, monkeypatch):
         plugin_root = tmp_path / "plugin"
         plugin_root.mkdir()
-        user_cfg_dir = tmp_path / ".agentstratum"
+        user_cfg_dir = tmp_path / ".contextbase"
         user_cfg_dir.mkdir()
         (user_cfg_dir / "claude-code.json").write_text(json.dumps({"recallBudget": "low"}))
 
         monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.setenv("AGENTSTRATUM_RECALL_BUDGET", "high")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_BUDGET", "high")
         cfg = load_config()
         assert cfg["recallBudget"] == "high"

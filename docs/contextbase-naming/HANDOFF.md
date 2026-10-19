@@ -1,3 +1,5 @@
+> 历史记录：本文记录此前仅修改展示名的整合。2026-10-19 的对外身份统一已取代其命名约定；当前契约见 [NAMING-MAP.md](NAMING-MAP.md)。
+
 # 新session接手：ContextBase 命名解耦与改名
 
 先读[目标和验收合同](GOALS-AND-ACCEPTANCE.md)，再按本文接手。[START-PROMPT.md](START-PROMPT.md)可直接复制启动新session。[STATUS.json](STATUS.json)是本次只读核验的输入快照。

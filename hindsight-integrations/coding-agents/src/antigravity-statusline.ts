@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Antigravity CLI custom status-line command. Unlike hook output, its stdout is rendered directly
- * by the TUI, so this is the host-native, non-conversational way to show that agentstratum is active.
- * It deliberately does not call the agentstratum API: Antigravity invokes this command on UI state
+ * by the TUI, so this is the host-native, non-conversational way to show that contextbase is active.
+ * It deliberately does not call the contextbase API: Antigravity invokes this command on UI state
  * changes, and a network request here would make rendering depend on server latency.
  */
 import { applyBankConfig, loadConfig, type Config } from "./core/config";
@@ -14,7 +14,7 @@ export interface AntigravityStatusLineState {
   workspace?: { current_dir?: string };
 }
 
-/** Build the compact, user-visible agentstratum indicator from Antigravity's documented state payload. */
+/** Build the compact, user-visible contextbase indicator from Antigravity's documented state payload. */
 export function buildAntigravityStatusLine(state: AntigravityStatusLineState, cfg: Config): string {
   const cwd = state.cwd || state.workspace?.current_dir;
   if (!cwd) return brandWord();

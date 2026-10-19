@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_USERNAME = "agentstratum"
-DEFAULT_PASSWORD = "agentstratum"
-DEFAULT_DATABASE = "agentstratum"
+DEFAULT_USERNAME = "contextbase"
+DEFAULT_PASSWORD = "contextbase"
+DEFAULT_DATABASE = "contextbase"
 
 
 class EmbeddedPostgres:
@@ -25,7 +25,7 @@ class EmbeddedPostgres:
         username: str = DEFAULT_USERNAME,
         password: str = DEFAULT_PASSWORD,
         database: str = DEFAULT_DATABASE,
-        name: str = "agentstratum",
+        name: str = "contextbase",
         config: dict[str, str] | None = None,
         **kwargs,
     ):
@@ -174,7 +174,7 @@ def parse_pg0_url(db_url: str) -> Pg0Url:
     """
     if db_url == "pg0" or db_url.startswith("pg0?"):
         config = dict(parse_qsl(db_url[4:])) or None
-        return Pg0Url(is_pg0=True, instance_name="agentstratum", config=config)
+        return Pg0Url(is_pg0=True, instance_name="contextbase", config=config)
 
     if not db_url.startswith("pg0://"):
         return Pg0Url(is_pg0=False)
@@ -203,7 +203,7 @@ def parse_pg0_url(db_url: str) -> Pg0Url:
 
     return Pg0Url(
         is_pg0=True,
-        instance_name=instance_name or "agentstratum",
+        instance_name=instance_name or "contextbase",
         port=port,
         username=username,
         password=password,

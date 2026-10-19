@@ -21,8 +21,8 @@ beforeEach(() => {
 
 afterEach(() => {
   rmSync(repo, { recursive: true, force: true });
-  delete process.env.AGENTSTRATUM_USER_ID;
-  delete process.env.AGENTSTRATUM_CHANNEL_ID;
+  delete process.env.CONTEXTBASE_USER_ID;
+  delete process.env.CONTEXTBASE_CHANNEL_ID;
 });
 
 describe("buildRetainStamp", () => {
@@ -63,8 +63,8 @@ describe("buildRetainStamp", () => {
   });
 
   it("resolves the rest of the vocabulary", () => {
-    process.env.AGENTSTRATUM_USER_ID = "nico";
-    process.env.AGENTSTRATUM_CHANNEL_ID = "team";
+    process.env.CONTEXTBASE_USER_ID = "nico";
+    process.env.CONTEXTBASE_CHANNEL_ID = "team";
     const { tags } = buildRetainStamp(
       {
         retainTags: ["h:{harness}", "b:{bankId}", "s:{sessionId}", "u:{user}", "c:{channel}"],

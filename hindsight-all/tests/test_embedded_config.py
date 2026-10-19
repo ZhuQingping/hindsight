@@ -13,11 +13,11 @@ import pytest
 from hindsight import HindsightEmbedded
 from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
 
-LLM_PROVIDER = "AGENTSTRATUM_API_LLM_PROVIDER"
-LLM_API_KEY = "AGENTSTRATUM_API_LLM_API_KEY"
-LLM_MODEL = "AGENTSTRATUM_API_LLM_MODEL"
-LOG_LEVEL = "AGENTSTRATUM_API_LOG_LEVEL"
-IDLE_TIMEOUT = "AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"
+LLM_PROVIDER = "CONTEXTBASE_API_LLM_PROVIDER"
+LLM_API_KEY = "CONTEXTBASE_API_LLM_API_KEY"
+LLM_MODEL = "CONTEXTBASE_API_LLM_MODEL"
+LOG_LEVEL = "CONTEXTBASE_API_LOG_LEVEL"
+IDLE_TIMEOUT = "CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT"
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def temp_home(tmp_path, monkeypatch):
 
 def _write_profile(home, name, port, env_contents=None):
     """Create a registered profile, optionally with a pre-populated .env file."""
-    profile_dir = home / ".agentstratum" / "profiles"
+    profile_dir = home / ".contextbase" / "profiles"
     profile_dir.mkdir(parents=True, exist_ok=True)
     (profile_dir / "metadata.json").write_text(
         json.dumps(
@@ -142,9 +142,9 @@ def test_omitted_settings_inherit_the_profile_env(temp_home, monkeypatch):
         temp_home,
         "prod",
         9872,
-        "AGENTSTRATUM_API_LLM_PROVIDER=anthropic\n"
-        "AGENTSTRATUM_API_LLM_MODEL=claude-sonnet-4-20250514\n"
-        "AGENTSTRATUM_API_LLM_API_KEY=sk-ant-prod\n",
+        "CONTEXTBASE_API_LLM_PROVIDER=anthropic\n"
+        "CONTEXTBASE_API_LLM_MODEL=claude-sonnet-4-20250514\n"
+        "CONTEXTBASE_API_LLM_API_KEY=sk-ant-prod\n",
     )
 
     env = _daemon_env(HindsightEmbedded(profile="prod"))
@@ -156,9 +156,9 @@ def test_omitted_settings_inherit_the_profile_env(temp_home, monkeypatch):
     # A successful start rewrites the profile's .env; it must not come back with
     # client-side placeholders in place of the configured values.
     persisted = env_path.read_text()
-    assert "AGENTSTRATUM_API_LLM_PROVIDER=anthropic" in persisted
-    assert "AGENTSTRATUM_API_LLM_MODEL=claude-sonnet-4-20250514" in persisted
-    assert "AGENTSTRATUM_API_LLM_API_KEY=sk-ant-prod" in persisted
+    assert "CONTEXTBASE_API_LLM_PROVIDER=anthropic" in persisted
+    assert "CONTEXTBASE_API_LLM_MODEL=claude-sonnet-4-20250514" in persisted
+    assert "CONTEXTBASE_API_LLM_API_KEY=sk-ant-prod" in persisted
 
 
 def test_explicit_empty_key_overrides_the_parent_environment(temp_home, monkeypatch):
@@ -172,7 +172,7 @@ def test_explicit_empty_key_overrides_the_parent_environment(temp_home, monkeypa
 
 def test_explicit_settings_still_win_over_the_profile(temp_home, monkeypatch):
     monkeypatch.delenv(LLM_PROVIDER, raising=False)
-    _write_profile(temp_home, "override", 9874, "AGENTSTRATUM_API_LLM_PROVIDER=anthropic\n")
+    _write_profile(temp_home, "override", 9874, "CONTEXTBASE_API_LLM_PROVIDER=anthropic\n")
 
     env = _daemon_env(HindsightEmbedded(profile="override", llm_provider="openai"))
 

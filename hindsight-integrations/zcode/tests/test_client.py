@@ -1,4 +1,4 @@
-"""Tests for lib/client.py — agentstratum REST API client."""
+"""Tests for lib/client.py — contextbase REST API client."""
 
 from unittest.mock import patch
 
@@ -25,7 +25,7 @@ class TestUserAgentHeader:
             c.recall("bank", "query")
 
         assert captured["ua"] == USER_AGENT
-        assert captured["ua"].startswith("agentstratum-zcode/")
+        assert captured["ua"].startswith("contextbase-zcode/")
 
 
 class TestURLValidation:

@@ -1,7 +1,7 @@
 [project]
-name = "agentstratum-zcode"
+name = "contextbase-zcode"
 version = "0.1.0"
-description = "ZCode (Z.ai GLM) integration for agentstratum - persistent long-term memory via ZCode hooks"
+description = "ZCode (Z.ai GLM) integration for contextbase - persistent long-term memory via ZCode hooks"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -16,7 +16,7 @@ keywords = [
     "z.ai",
     "hooks",
     "agents",
-    "agentstratum",
+    "contextbase",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -32,7 +32,7 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-agentstratum-zcode = "hindsight_zcode.cli:main"
+contextbase-zcode = "hindsight_zcode.cli:main"
 
 [build-system]
 requires = ["hatchling"]

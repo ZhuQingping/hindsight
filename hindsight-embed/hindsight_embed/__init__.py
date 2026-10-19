@@ -1,4 +1,4 @@
-"""Agentstratum embedded CLI - local memory operations without a server."""
+"""ContextBase embedded CLI - local memory operations without a server."""
 
 from .daemon_embed_manager import DaemonEmbedManager
 from .embed_manager import EmbedManager

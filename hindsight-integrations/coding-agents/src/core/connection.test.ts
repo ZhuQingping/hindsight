@@ -30,7 +30,7 @@ describe("remote connection contract", () => {
   });
 
   it("keeps one connection across harness, path and bank overrides", () => {
-    const root = mkdtempSync(join(tmpdir(), "agentstratum-connection-"));
+    const root = mkdtempSync(join(tmpdir(), "contextbase-connection-"));
     try {
       const path = join(root, "config.json");
       const other = { apiUrl: "https://other.example", apiToken: "other-key" };
@@ -79,7 +79,7 @@ describe("remote connection contract", () => {
         ["/v1/default/banks/b Bearer key-0", "/v1/default/banks/b Bearer rejected"],
         ["/v1/default/banks/b Bearer key-1"],
       ]);
-      expect(userAgents).toEqual(Array(3).fill(`agentstratum-coding-agents/${version}`));
+      expect(userAgents).toEqual(Array(3).fill(`contextbase-coding-agents/${version}`));
     } finally {
       await Promise.all(
         servers.map((server) => new Promise<void>((resolve) => server.close(() => resolve())))

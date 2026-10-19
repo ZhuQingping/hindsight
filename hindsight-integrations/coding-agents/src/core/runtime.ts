@@ -9,7 +9,7 @@
  *                                     NOT computed here; onPrompt builds it per session)
  *   - onPrompt(sessionId, prompt)   : each user turn -> recall + build this turn's injection
  *   - getInjection(sessionId)       : the system-prompt text to inject this turn (or undefined)
- *   - toolSpecs()                   : the agentstratum_* knowledge/recall tools to register natively
+ *   - toolSpecs()                   : the contextbase_* knowledge/recall tools to register natively
  *   - onTranscript(sessionId, turns, lastTurnComplete): full transcript -> write back (on by default)
  *   - onSessionIdle(sessionId)      : assistant finished -> refetch + write back the completed
  *                                     exchange (the Stop-equivalent these hosts lack)
@@ -86,7 +86,7 @@ export class RuntimeCore {
     this.fetchTranscript = fetch;
   }
 
-  /** The agentstratum_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
+  /** The contextbase_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
   toolSpecs(): ToolSpec[] {
     return buildKnowledgeTools(this.client, this.bankId, {
       repoDir: this.projectDir,
@@ -119,9 +119,9 @@ export class RuntimeCore {
    */
   async seedIfCold(repoPath: string | undefined): Promise<void> {
     // Anti-recursion: a headless survey session runs the agent (which loads this plugin) with
-    // AGENTSTRATUM_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
+    // CONTEXTBASE_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
     // but seeding/recall/write-back must no-op or the survey would re-seed itself (see core/survey.ts).
-    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
+    if (process.env.CONTEXTBASE_DISABLE_HOOKS) return;
     // Companion skill, the same housekeeping `runSessionStartHook` does for hook harnesses — but
     // with `install`, because a persistent-plugin host can be wired by its OWN plugin manager
     // (`dsh plugin add …`, `cline plugin install`), a route our installer never sees, leaving the
@@ -174,7 +174,7 @@ export class RuntimeCore {
    * identical across hosts while this adapter retains only delivery-specific state.
    */
   async onPrompt(sessionId: string | undefined, prompt: string): Promise<void> {
-    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.CONTEXTBASE_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!sessionId || !prompt.trim()) return;
     const turns = (this.turnCount.get(sessionId) ?? 0) + 1;
     this.turnCount.set(sessionId, turns);
@@ -253,7 +253,7 @@ export class RuntimeCore {
      *  a wrong default records every turn one late and never the session's last. */
     lastTurnComplete: boolean
   ): Promise<void> {
-    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.CONTEXTBASE_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!sessionId || !turns.length) return;
     // Usage is a local file, so it is recorded whether or not write-back is on (#5391).
     this.recordUsage(sessionId, turns, lastTurnComplete);
@@ -275,7 +275,7 @@ export class RuntimeCore {
    * turn must not wait for a threshold it will never reach.
    */
   async onSessionIdle(sessionId: string): Promise<void> {
-    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.CONTEXTBASE_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!sessionId || !this.fetchTranscript) return;
     let turns: TransportTurn[];
     try {

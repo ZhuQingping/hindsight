@@ -1,8 +1,8 @@
 /**
  * Local daemon mode — memory with no server and no Cloud account.
  *
- * `serverMode: "daemon"` runs `agentstratum-embed` on this machine and points the plugin at it.
- * Lifecycle is delegated to `agentstratum-local-engine`, which owns the uvx invocation, profile
+ * `serverMode: "daemon"` runs `contextbase-embed` on this machine and points the plugin at it.
+ * Lifecycle is delegated to `contextbase-local-engine`, which owns the uvx invocation, profile
  * creation, readiness polling and the macOS Metal/MPS workaround. This module only decides WHEN to
  * start it, and with what environment.
  *
@@ -22,7 +22,7 @@
  * EVERY HARNESS NEEDS BOTH POINTS, not just the fresh-process hook ones. The persistent-plugin
  * hosts (opencode, Kilo, Cline, Prime Agent, dsh) run no hook binaries, so they reach these through
  * `RuntimeCore`: `seedIfCold` is their SessionStart and the write-back is their Stop. Missing that
- * is what #3524 reported — dsh in daemon mode never started a daemon, so every `agentstratum_*` call
+ * is what #3524 reported — dsh in daemon mode never started a daemon, so every `contextbase_*` call
  * failed with ECONNREFUSED until the user ran `daemon-start.js` by hand. `daemon.test.ts` now fails
  * if a harness entrypoint builds a client without reaching one of the two.
  *
@@ -132,16 +132,16 @@ export interface LlmChoice {
 /**
  * Decide which LLM the daemon extracts facts with.
  *
- * An explicit `AGENTSTRATUM_API_LLM_PROVIDER` always wins — including for providers this code knows
+ * An explicit `CONTEXTBASE_API_LLM_PROVIDER` always wins — including for providers this code knows
  * nothing about, so a local Ollama or a gateway can be pointed at without a code change here.
  */
 export function detectLlm(env: NodeJS.ProcessEnv = process.env): LlmChoice | undefined {
-  const explicit = env.AGENTSTRATUM_API_LLM_PROVIDER?.trim();
+  const explicit = env.CONTEXTBASE_API_LLM_PROVIDER?.trim();
   if (explicit) {
     return {
       provider: explicit,
-      apiKey: env.AGENTSTRATUM_API_LLM_API_KEY?.trim() || undefined,
-      source: "AGENTSTRATUM_API_LLM_PROVIDER",
+      apiKey: env.CONTEXTBASE_API_LLM_API_KEY?.trim() || undefined,
+      source: "CONTEXTBASE_API_LLM_PROVIDER",
     };
   }
   for (const probe of PROVIDER_PROBES) {
@@ -167,7 +167,7 @@ function onPath(bin: string): boolean {
   }
 }
 
-/** Environment handed to the daemon: the LLM choice, the idle timeout, and any AGENTSTRATUM_API_* the
+/** Environment handed to the daemon: the LLM choice, the idle timeout, and any CONTEXTBASE_API_* the
  *  user already exports (so provider-specific knobs pass through without being enumerated here). */
 export function daemonEnv(
   cfg: Config,
@@ -180,15 +180,15 @@ export function daemonEnv(
   // It used to default to 300s here, which made the plugin the one thing on the machine opting a
   // SHARED daemon into an auto-exit; every other integration shipped 0.
   if (cfg.daemonIdleTimeout !== undefined) {
-    out.AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT = String(cfg.daemonIdleTimeout);
+    out.CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT = String(cfg.daemonIdleTimeout);
   }
   for (const [key, value] of Object.entries(env)) {
-    if (key.startsWith("AGENTSTRATUM_API_") && value) out[key] = value;
+    if (key.startsWith("CONTEXTBASE_API_") && value) out[key] = value;
   }
   const llm = detectLlm(env);
   if (llm) {
-    out.AGENTSTRATUM_API_LLM_PROVIDER = llm.provider;
-    if (llm.apiKey) out.AGENTSTRATUM_API_LLM_API_KEY = llm.apiKey;
+    out.CONTEXTBASE_API_LLM_PROVIDER = llm.provider;
+    if (llm.apiKey) out.CONTEXTBASE_API_LLM_API_KEY = llm.apiKey;
   }
   return out;
 }
@@ -352,7 +352,7 @@ export function preflightDaemon(cfg: Config, harness: string): boolean {
     log.warn(
       harness,
       "daemon mode needs an LLM for fact extraction — set OPENAI_API_KEY (or ANTHROPIC_API_KEY / " +
-        "GEMINI_API_KEY / AGENTSTRATUM_API_LLM_PROVIDER), or install the Claude Code CLI"
+        "GEMINI_API_KEY / CONTEXTBASE_API_LLM_PROVIDER), or install the Claude Code CLI"
     );
     return false;
   }

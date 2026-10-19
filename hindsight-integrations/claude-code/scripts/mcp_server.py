@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""agentstratum MCP server for Claude Code plugin.
+"""contextbase MCP server for Claude Code plugin.
 
 Runs as a stdio subprocess managed by the plugin system.
 Exposes knowledge tools (list/get/create/update/delete pages, recall, ingest).
@@ -53,10 +53,10 @@ if not _config.get("enableKnowledgeTools"):
 try:
     _api_url = get_api_url(_config.get("apiUrl"))
 except Exception as e:
-    print(f"[agentstratum MCP] Failed to resolve API URL: {e}", file=sys.stderr)
+    print(f"[contextbase MCP] Failed to resolve API URL: {e}", file=sys.stderr)
     sys.exit(1)
 
-_project_cwd = os.environ.get("AGENTSTRATUM_MCP_PROJECT_CWD", os.getcwd())
+_project_cwd = os.environ.get("CONTEXTBASE_MCP_PROJECT_CWD", os.getcwd())
 _hook_input = {"cwd": _project_cwd, "session_id": ""}
 _default_bank_id = derive_bank_id(_hook_input, _config)
 _client = HindsightClient(

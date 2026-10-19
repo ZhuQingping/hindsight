@@ -14,7 +14,7 @@ _HEALTHY = {"status": "healthy", "database": "connected"}
 # What /proc/<pid>/cmdline reports for a daemon this manager would have started.
 # Ownership is decided on the listener's command line, so tests that expect a
 # kill have to present one that identifies the process as ours (#3520).
-_DAEMON_CMDLINE = "/home/u/.venv/bin/agentstratum-api --port 9555"
+_DAEMON_CMDLINE = "/home/u/.venv/bin/contextbase-api --port 9555"
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def config():
 @pytest.fixture
 def mock_cli_binary(tmp_path):
     """Create a mock CLI binary."""
-    cli_path = tmp_path / "agentstratum"
+    cli_path = tmp_path / "contextbase"
     cli_path.write_text("#!/bin/bash\nexit 0")
     cli_path.chmod(0o755)
     return cli_path
@@ -41,10 +41,10 @@ class TestRunCli:
     """Tests for run_cli function."""
 
     def test_run_cli_with_external_api_url(self, config, mock_cli_binary, monkeypatch):
-        """Test that external AGENTSTRATUM_EMBED_API_URL skips daemon startup."""
+        """Test that external CONTEXTBASE_EMBED_API_URL skips daemon startup."""
         # Set up environment with external API URL
         external_api_url = "http://external-api:8000"
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_API_URL", external_api_url)
+        monkeypatch.setenv("CONTEXTBASE_EMBED_API_URL", external_api_url)
 
         # Mock functions
         mock_ensure_cli = Mock(return_value=True)
@@ -69,15 +69,15 @@ class TestRunCli:
             call_args = mock_subprocess_run.call_args
 
             # Verify environment contains the external API URL
-            assert call_args.kwargs["env"]["AGENTSTRATUM_API_URL"] == external_api_url
+            assert call_args.kwargs["env"]["CONTEXTBASE_API_URL"] == external_api_url
 
             # Verify exit code
             assert exit_code == 0
 
     def test_run_cli_without_external_api_url(self, config, mock_cli_binary, monkeypatch):
         """Test that without external API URL, daemon is started."""
-        # Ensure AGENTSTRATUM_EMBED_API_URL is not set
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_API_URL", raising=False)
+        # Ensure CONTEXTBASE_EMBED_API_URL is not set
+        monkeypatch.delenv("CONTEXTBASE_EMBED_API_URL", raising=False)
 
         # Mock functions
         mock_ensure_cli = Mock(return_value=True)
@@ -103,15 +103,15 @@ class TestRunCli:
             call_args = mock_subprocess_run.call_args
 
             # Verify environment contains the local daemon URL
-            assert call_args.kwargs["env"]["AGENTSTRATUM_API_URL"] == daemon_client.get_daemon_url()
+            assert call_args.kwargs["env"]["CONTEXTBASE_API_URL"] == daemon_client.get_daemon_url()
 
             # Verify exit code
             assert exit_code == 0
 
     def test_run_cli_daemon_startup_failure(self, config, mock_cli_binary, monkeypatch):
         """Test that daemon startup failure is handled properly."""
-        # Ensure AGENTSTRATUM_EMBED_API_URL is not set
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_API_URL", raising=False)
+        # Ensure CONTEXTBASE_EMBED_API_URL is not set
+        monkeypatch.delenv("CONTEXTBASE_EMBED_API_URL", raising=False)
 
         # Mock functions - daemon startup fails
         mock_ensure_cli = Mock(return_value=True)
@@ -134,8 +134,8 @@ class TestRunCli:
 
     def test_run_cli_without_cli_binary(self, config, monkeypatch):
         """Test that missing CLI binary is handled properly."""
-        # Ensure AGENTSTRATUM_EMBED_API_URL is not set
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_API_URL", raising=False)
+        # Ensure CONTEXTBASE_EMBED_API_URL is not set
+        monkeypatch.delenv("CONTEXTBASE_EMBED_API_URL", raising=False)
 
         # Mock functions - CLI not installed
         mock_ensure_cli = Mock(return_value=True)
@@ -152,12 +152,12 @@ class TestRunCli:
             assert exit_code == 1
 
     def test_run_cli_with_api_token(self, config, mock_cli_binary, monkeypatch):
-        """Test that AGENTSTRATUM_EMBED_API_TOKEN is passed through to the CLI."""
+        """Test that CONTEXTBASE_EMBED_API_TOKEN is passed through to the CLI."""
         # Set up environment with external API URL and token
         external_api_url = "http://external-api:8000"
         api_token = "test-bearer-token-12345"
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_API_URL", external_api_url)
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_API_TOKEN", api_token)
+        monkeypatch.setenv("CONTEXTBASE_EMBED_API_URL", external_api_url)
+        monkeypatch.setenv("CONTEXTBASE_EMBED_API_TOKEN", api_token)
 
         # Mock functions
         mock_ensure_cli = Mock(return_value=True)
@@ -182,8 +182,8 @@ class TestRunCli:
             call_args = mock_subprocess_run.call_args
 
             # Verify environment contains both the API URL and the API key
-            assert call_args.kwargs["env"]["AGENTSTRATUM_API_URL"] == external_api_url
-            assert call_args.kwargs["env"]["AGENTSTRATUM_API_KEY"] == api_token
+            assert call_args.kwargs["env"]["CONTEXTBASE_API_URL"] == external_api_url
+            assert call_args.kwargs["env"]["CONTEXTBASE_API_KEY"] == api_token
 
             # Verify exit code
             assert exit_code == 0
@@ -198,10 +198,10 @@ class TestClearPort:
         with patch.object(DaemonEmbedManager, "_is_port_in_use", return_value=False):
             assert manager._clear_port(9555) is True
 
-    def test_port_occupied_by_healthy_agentstratum_is_reused(self):
-        """Port occupied by a healthy agentstratum daemon — reused without killing.
+    def test_port_occupied_by_healthy_contextbase_is_reused(self):
+        """Port occupied by a healthy contextbase daemon — reused without killing.
 
-        Regression: previously _clear_port killed any agentstratum daemon on the
+        Regression: previously _clear_port killed any contextbase daemon on the
         target port, which meant two concurrent `start` calls would kill each
         other's freshly-started daemons.
         """
@@ -216,8 +216,8 @@ class TestClearPort:
             mock_find_pid.assert_not_called()
             mock_kill.assert_not_called()
 
-    def test_port_occupied_by_non_agentstratum_returns_false(self):
-        """Port occupied by non-agentstratum process — returns False."""
+    def test_port_occupied_by_non_contextbase_returns_false(self):
+        """Port occupied by non-contextbase process — returns False."""
         manager = DaemonEmbedManager()
         with (
             patch.object(DaemonEmbedManager, "_is_port_in_use", return_value=True),
@@ -227,7 +227,7 @@ class TestClearPort:
             assert manager._clear_port(closed_port()) is False
 
     def test_port_occupied_health_non_200_returns_false(self):
-        """Port responds but not with 200 — treated as non-agentstratum."""
+        """Port responds but not with 200 — treated as non-contextbase."""
         manager = DaemonEmbedManager()
         with (
             serve(reply(404)) as stub,
@@ -261,7 +261,7 @@ class TestClearPort:
             assert manager._clear_port(closed_port()) is False
 
     def test_unhealthy_daemon_kill_succeeds_returns_true(self):
-        """Unhealthy agentstratum daemon (stale from version upgrade) reclaimed via kill."""
+        """Unhealthy contextbase daemon (stale from version upgrade) reclaimed via kill."""
         manager = DaemonEmbedManager()
         with (
             serve(reply(503)) as stub,
@@ -273,7 +273,7 @@ class TestClearPort:
         ):
             assert manager._clear_port(stub.port) is True
 
-    def test_port_occupied_by_warming_agentstratum_is_reused(self):
+    def test_port_occupied_by_warming_contextbase_is_reused(self):
         """Port bound before /health is ready — wait briefly and reuse when healthy."""
         manager = DaemonEmbedManager()
         with (
@@ -290,7 +290,7 @@ class TestClearPort:
             mock_kill.assert_not_called()
 
     def test_port_occupied_by_foreign_health_200_returns_false(self):
-        """HTTP 200 alone is not enough to identify the listener as Agentstratum."""
+        """HTTP 200 alone is not enough to identify the listener as ContextBase."""
         manager = DaemonEmbedManager()
         with (
             serve(reply(200, {"status": "ok"})) as stub,
@@ -404,7 +404,7 @@ class TestStartDaemonSerialization:
             patch.object(
                 DaemonEmbedManager, "_rotate_daemon_log", side_effect=lambda *_args, **_kwargs: calls.append("rotate")
             ),
-            patch.object(DaemonEmbedManager, "_find_api_command", return_value=["agentstratum-api"]),
+            patch.object(DaemonEmbedManager, "_find_api_command", return_value=["contextbase-api"]),
             patch.object(DaemonEmbedManager, "_component_version", return_value=None),
             patch.object(DaemonEmbedManager, "_register_profile"),
             patch(
@@ -520,7 +520,7 @@ class TestStop:
 
         Responsiveness cannot distinguish "busy" from "foreign", so both paths
         reclaim the profile's port from an unhealthy listener — but only once
-        the listener's command line identifies it as a agentstratum daemon
+        the listener's command line identifies it as a contextbase daemon
         (#3520). Refusing outright would leave a wedged daemon unstoppable,
         which is the #3169 symptom.
         """
@@ -628,7 +628,7 @@ class TestListeningPidDiscovery:
                 raise FileNotFoundError("lsof")
             return Mock(
                 returncode=0,
-                stdout=('LISTEN 0 4096 127.0.0.1:9177 0.0.0.0:* users:(("agentstratum-api",pid=15774,fd=19))\n'),
+                stdout=('LISTEN 0 4096 127.0.0.1:9177 0.0.0.0:* users:(("contextbase-api",pid=15774,fd=19))\n'),
             )
 
         monkeypatch.setattr("hindsight_embed.daemon_embed_manager.platform.system", lambda: "Linux")
@@ -672,7 +672,7 @@ class TestProcessOwnership:
             patch.object(DaemonEmbedManager, "_listening_pids", return_value=[4242]),
             patch.object(DaemonEmbedManager, "_process_command_line", return_value="/usr/bin/postgres -D /data"),
         ):
-            assert DaemonEmbedManager._owned_pid_on_port(9555, ("agentstratum-api",), "agentstratum daemon") is None
+            assert DaemonEmbedManager._owned_pid_on_port(9555, ("contextbase-api",), "contextbase daemon") is None
 
     def test_unknown_command_line_is_refused(self):
         """When the command line cannot be read at all, we refuse rather than guess."""
@@ -680,7 +680,7 @@ class TestProcessOwnership:
             patch.object(DaemonEmbedManager, "_listening_pids", return_value=[4242]),
             patch.object(DaemonEmbedManager, "_process_command_line", return_value=None),
         ):
-            assert DaemonEmbedManager._owned_pid_on_port(9555, ("agentstratum-api",), "agentstratum daemon") is None
+            assert DaemonEmbedManager._owned_pid_on_port(9555, ("contextbase-api",), "contextbase daemon") is None
 
     def test_our_daemon_is_selected_among_several_listeners(self):
         """With more than one socket on the port, pick ours instead of the first PID."""
@@ -692,7 +692,7 @@ class TestProcessOwnership:
                 side_effect=lambda pid: "/usr/bin/nginx" if pid == 111 else _DAEMON_CMDLINE,
             ),
         ):
-            assert DaemonEmbedManager._owned_pid_on_port(9555, ("agentstratum-api",), "agentstratum daemon") == 222
+            assert DaemonEmbedManager._owned_pid_on_port(9555, ("contextbase-api",), "contextbase daemon") == 222
 
     def test_clear_port_leaves_foreign_process_alive(self):
         """The #3520 scenario: an unrelated service on the port must survive."""
@@ -731,9 +731,9 @@ class TestProcessOwnership:
     def test_dev_mode_and_windows_daemon_command_lines_are_recognized(self):
         """The daemon is spawned several ways; each must still be identifiable."""
         for cmdline in (
-            "/home/u/.venv/bin/agentstratum-api",
+            "/home/u/.venv/bin/contextbase-api",
             "C:\\venv\\Scripts\\pythonw.exe -m hindsight_api.main",
-            "/home/u/.cache/uv/archive/bin/agentstratum-api",
+            "/home/u/.cache/uv/archive/bin/contextbase-api",
         ):
             with patch.object(DaemonEmbedManager, "_process_command_line", return_value=cmdline):
                 from hindsight_embed.daemon_embed_manager import DAEMON_PROCESS_MARKERS
@@ -827,10 +827,10 @@ def test_pending_cli_distribution_never_runs_an_installer(monkeypatch, capsys):
 
 def test_approved_cli_installer_uses_product_version_without_network(monkeypatch, tmp_path):
     # A reserved test URL and mocked subprocess exercise only argv/env construction.
-    monkeypatch.setattr(daemon_client, "CLI_INSTALLER_URL", "https://distribution.example/agentstratum/install")
-    monkeypatch.setenv("AGENTSTRATUM_EMBED_CLI_VERSION", "1.2.3")
-    monkeypatch.setattr(daemon_client, "find_cli_binary", lambda: tmp_path / "agentstratum")
+    monkeypatch.setattr(daemon_client, "CLI_INSTALLER_URL", "https://distribution.example/contextbase/install")
+    monkeypatch.setenv("CONTEXTBASE_EMBED_CLI_VERSION", "1.2.3")
+    monkeypatch.setattr(daemon_client, "find_cli_binary", lambda: tmp_path / "contextbase")
     with patch("subprocess.run", return_value=Mock(returncode=0)) as invoke:
         assert daemon_client.install_cli() is True
-    assert invoke.call_args.kwargs["env"]["AGENTSTRATUM_CLI_VERSION"] == "1.2.3"
-    assert "https://distribution.example/agentstratum/install" in invoke.call_args.args[0][-1]
+    assert invoke.call_args.kwargs["env"]["CONTEXTBASE_CLI_VERSION"] == "1.2.3"
+    assert "https://distribution.example/contextbase/install" in invoke.call_args.args[0][-1]

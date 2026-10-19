@@ -93,7 +93,7 @@ class TestLiteLLMSDKCrossEncoder:
 
             with patch(
                 "hindsight_api.engine.cross_encoder.reranker_bank_attribution_headers",
-                return_value={"X-Agentstratum-Bank-Id": "bank-litellm-sdk"},
+                return_value={"X-ContextBase-Bank-Id": "bank-litellm-sdk"},
             ):
                 scores = await encoder.predict(pairs)
 
@@ -107,7 +107,7 @@ class TestLiteLLMSDKCrossEncoder:
             assert call_args.kwargs["query"] == "What is Python?"
             assert len(call_args.kwargs["documents"]) == 3
             assert call_args.kwargs["api_key"] == "test_key"
-            assert call_args.kwargs["headers"] == {"X-Agentstratum-Bank-Id": "bank-litellm-sdk"}
+            assert call_args.kwargs["headers"] == {"X-ContextBase-Bank-Id": "bank-litellm-sdk"}
 
     def test_constructor_without_api_key(self):
         """api_key is optional (e.g. AWS Bedrock reranker with ambient IAM creds)."""

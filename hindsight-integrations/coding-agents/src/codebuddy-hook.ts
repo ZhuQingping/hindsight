@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agentstratum-codebuddy-hook - the CodeBuddy Code entry point (a `UserPromptSubmit` hook).
+ * contextbase-codebuddy-hook - the CodeBuddy Code entry point (a `UserPromptSubmit` hook).
  *
  * Install (CodeBuddy, user scope): ~/.codebuddy/settings.json
  *   { "hooks": { "UserPromptSubmit": [ { "hooks": [

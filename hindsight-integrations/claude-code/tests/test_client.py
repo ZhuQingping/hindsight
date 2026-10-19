@@ -1,4 +1,4 @@
-"""Tests for lib/client.py — agentstratum REST API client."""
+"""Tests for lib/client.py — contextbase REST API client."""
 
 import json
 import urllib.error
@@ -119,7 +119,7 @@ class TestHindsightClientRecall:
             c.recall("bank", "query")
 
         assert captured["ua"] == USER_AGENT
-        assert captured["ua"].startswith("agentstratum-claude-code/")
+        assert captured["ua"].startswith("contextbase-claude-code/")
 
     def test_http_error_raises_runtime_error(self):
         c = HindsightClient("http://localhost:9077")

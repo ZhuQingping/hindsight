@@ -1,19 +1,19 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "agentstratum",
+  "name": "contextbase",
   "version": "0.7.6",
   "description": "ContextBase integrations for coding agents",
   "owner": {
-    "name": "agentstratum"
+    "name": "contextbase"
   },
   "plugins": [
     {
-      "name": "agentstratum-memory",
+      "name": "contextbase-memory",
       "description": "ContextBase long-term memory integration",
       "source": "./hindsight-integrations/claude-code"
     },
     {
-      "name": "agentstratum-zcode",
+      "name": "contextbase-zcode",
       "description": "ContextBase long-term memory integration",
       "source": "./hindsight-integrations/zcode"
     }

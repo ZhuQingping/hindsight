@@ -6,16 +6,16 @@ export default defineConfig({
   test: {
     env: {
       // Unit tests exercise code paths that emit diagnostics; keep them out of the REAL
-      // ~/.agentstratum/coding-agents-logs so a developer's trail isn't polluted with test noise.
-      AGENTSTRATUM_DIAG_FILE: join(tmpdir(), "agentstratum-plugin-test.log"),
-      AGENTSTRATUM_LOG_FILE: join(tmpdir(), "agentstratum-plugin-test-leveled.log"),
-      AGENTSTRATUM_USAGE_FILE: join(tmpdir(), "agentstratum-plugin-test-usage.jsonl"),
+      // ~/.contextbase/coding-agents-logs so a developer's trail isn't polluted with test noise.
+      CONTEXTBASE_DIAG_FILE: join(tmpdir(), "contextbase-plugin-test.log"),
+      CONTEXTBASE_LOG_FILE: join(tmpdir(), "contextbase-plugin-test-leveled.log"),
+      CONTEXTBASE_USAGE_FILE: join(tmpdir(), "contextbase-plugin-test-usage.jsonl"),
       // Same reasoning for the CONFIG file: `loadConfig` otherwise resolves the developer's real
-      // ~/.agentstratum/coding-agent.json, so a machine that has a token (or a bank override, or a
+      // ~/.contextbase/coding-agent.json, so a machine that has a token (or a bank override, or a
       // different apiUrl) fails assertions that a clean machine passes. It must be set HERE rather
       // than with vi.stubEnv in a test: config.ts captures the path in a module-level constant, so
       // by the time a test body runs the value is already fixed. Points at a path with no file.
-      AGENTSTRATUM_CONFIG: join(tmpdir(), "agentstratum-coding-agent-test-absent.json"),
+      CONTEXTBASE_CONFIG: join(tmpdir(), "contextbase-coding-agent-test-absent.json"),
     },
   },
 });

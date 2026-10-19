@@ -23,9 +23,10 @@ if (Object.keys(brand).sort().join(",") !== "deployment_slug,display_name,histor
   throw new Error("Invalid brand schema, display name, history or deployment slug");
 }
 const fixed = brand.identity;
-// Identity changes require a separate migration contract. This generator changes display defaults only.
+// Public identities are pinned separately from display defaults. An explicit rename
+// updates this contract and its consumers together; display changes alone cannot rename them.
 const previous = JSON.parse(readFileSync(resolve(root, "brand/identity-contract.json"), "utf8"));
-if (JSON.stringify(fixed) !== JSON.stringify(previous)) throw new Error("Identity migration requires a reviewed compatibility contract");
+if (JSON.stringify(fixed) !== JSON.stringify(previous)) throw new Error("Identity changes require a matching reviewed public contract");
 // Check actual identity consumers before writing even the first output. The hash ledger
 // must never legitimize a manually renamed package or a different MCP ownership key.
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -83,7 +84,7 @@ outputs.set(marketplacePath, JSON.stringify(marketplace, null, 2) + "\n");
 const cargoPath = "hindsight-cli/Cargo.toml";
 outputs.set(cargoPath, readFileSync(resolve(root, cargoPath), "utf8").replace(/^description = .*$/m,
   `description = ${quote(`A CLI for ${brand.display_name} - semantic memory system`)}`));
-outputs.set("scripts/install-agentstratum.sh", readFileSync(resolve(root, "brand/templates/install-cli.sh.in"), "utf8")
+outputs.set("scripts/install-contextbase.sh", readFileSync(resolve(root, "brand/templates/install-cli.sh.in"), "utf8")
   .replaceAll("@DISPLAY_NAME@", brand.display_name));
 for (const {template, output} of JSON.parse(readFileSync(resolve(root, "brand/text-targets.json"), "utf8"))) {
   outputs.set(output, readFileSync(resolve(root, template), "utf8")

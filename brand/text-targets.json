@@ -13,7 +13,7 @@
   },
   {
     "template": "brand/templates/client-text-4.md.in",
-    "output": "hindsight-integrations/agent-plugin/skills/agentstratum-memory/SKILL.md"
+    "output": "hindsight-integrations/agent-plugin/skills/contextbase-memory/SKILL.md"
   },
   {
     "template": "brand/templates/client-text-5.md.in",

@@ -23,7 +23,7 @@ vi.mock("@/lib/theme-context", () => ({
   useTheme: () => ({ theme: "light", toggleTheme: vi.fn() }),
 }));
 vi.mock("@/lib/features-context", () => ({ useFeatures: () => ({ features: null }) }));
-vi.mock("@/components/brand", () => ({ Brand: () => <span>agentstratum</span> }));
+vi.mock("@/components/brand", () => ({ Brand: () => <span>contextbase</span> }));
 vi.mock("@/components/language-switcher", () => ({ LanguageSwitcher: () => null }));
 vi.mock("@/lib/api", () => ({
   client: { getVersion: async () => ({ features: { file_upload_api: false } }) },

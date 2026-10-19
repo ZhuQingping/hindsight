@@ -48,8 +48,8 @@ class TestDeriveBankIdStatic:
 class TestDeriveBankIdDynamic:
     def test_dynamic_agent_project(self):
         cfg = _cfg(dynamicBankId=True, agentName="mybot", dynamicBankGranularity=["agent", "project"])
-        result = derive_bank_id(_hook(cwd="/home/user/agentstratum"), cfg)
-        assert result == "mybot::agentstratum"
+        result = derive_bank_id(_hook(cwd="/home/user/contextbase"), cfg)
+        assert result == "mybot::contextbase"
 
     def test_dynamic_preserves_raw_special_chars(self):
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["project"])
@@ -74,20 +74,20 @@ class TestDeriveBankIdDynamic:
         assert result.startswith("v2-")
 
     def test_dynamic_channel_from_env(self, monkeypatch):
-        monkeypatch.setenv("AGENTSTRATUM_CHANNEL_ID", "telegram-123")
+        monkeypatch.setenv("CONTEXTBASE_CHANNEL_ID", "telegram-123")
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["channel"])
         result = derive_bank_id(_hook(), cfg)
         assert "telegram-123" in result
 
     def test_dynamic_user_from_env(self, monkeypatch):
-        monkeypatch.setenv("AGENTSTRATUM_USER_ID", "user-456")
+        monkeypatch.setenv("CONTEXTBASE_USER_ID", "user-456")
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["user"])
         result = derive_bank_id(_hook(), cfg)
         assert "user-456" in result
 
     def test_dynamic_missing_env_uses_defaults(self, monkeypatch):
-        monkeypatch.delenv("AGENTSTRATUM_CHANNEL_ID", raising=False)
-        monkeypatch.delenv("AGENTSTRATUM_USER_ID", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_CHANNEL_ID", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_USER_ID", raising=False)
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["channel", "user"])
         result = derive_bank_id(_hook(), cfg)
         assert "default" in result
@@ -134,9 +134,9 @@ class TestResolveProjectName:
 
     @patch("lib.bank.subprocess.run")
     def test_worktree_different_location(self, mock_run):
-        # Worktree at /tmp/worktrees/feature-x, main repo at /home/user/agentstratum
-        mock_run.return_value = self._mock_git("/home/user/agentstratum/.git\n")
-        assert _resolve_project_name("/tmp/worktrees/feature-x", _cfg()) == "agentstratum"
+        # Worktree at /tmp/worktrees/feature-x, main repo at /home/user/contextbase
+        mock_run.return_value = self._mock_git("/home/user/contextbase/.git\n")
+        assert _resolve_project_name("/tmp/worktrees/feature-x", _cfg()) == "contextbase"
 
     @patch("lib.bank.subprocess.run")
     def test_bare_hub_resolves_to_hidden_directory_parent(self, mock_run):

@@ -1856,7 +1856,7 @@
     "factTypeMemory": "記憶"
   },
   "metadata": {
-    "title": "AgentStratum · 元壤",
+    "title": "ContextBase · 元壤",
     "description": "面向 Agent 的資料與記憶引擎。"
   },
   "addDocument": {
@@ -1952,7 +1952,7 @@
   "banksOverview": {
     "title": "所有記憶庫",
     "subtitle": "選擇記憶庫，查看其文件、記憶、知識和執行狀態。",
-    "welcomeTitle": "歡迎使用 AgentStratum · 元壤",
+    "welcomeTitle": "歡迎使用 ContextBase · 元壤",
     "welcomeBody": "建立記憶庫，開始積累可追溯的 Agent 記憶與知識。",
     "search": "搵記憶庫...",
     "noSearchResults": "冇記憶庫符合你嘅搜尋。",
@@ -1980,7 +1980,7 @@
     "bulkDeleteFailures": "以下記憶庫刪唔到："
   },
   "login": {
-    "title": "登入 AgentStratum · 元壤",
+    "title": "登入 ContextBase · 元壤",
     "description": "輸入存取密碼，進入資料與記憶工作台。",
     "accessKey": "存取密碼",
     "accessKeyPlaceholder": "請輸入存取密碼",
@@ -2286,7 +2286,7 @@
   },
   "resourcePages": {
     "backToBanks": "← 所有記憶庫",
-    "guideTitle": "使用 AgentStratum",
+    "guideTitle": "使用 ContextBase",
     "guideIntro": "沿著來源、記憶、檢索、推理到維護的流程了解產品。下方入口會開啟目前記憶庫。",
     "guideSourcesTitle": "新增來源",
     "guideSourcesBody": "新增文字或上傳文件，並在使用衍生記憶前確認處理狀態。",

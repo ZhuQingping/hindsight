@@ -2160,7 +2160,7 @@ class BankConfigUpdate(BaseModel):
 
     updates: dict[str, Any] = Field(
         description="Configuration overrides. Keys can be in Python field format (retain_extraction_mode) "
-        "or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). "
+        "or product configuration format (CONTEXTBASE_API_RETAIN_EXTRACTION_MODE). "
         "Only hierarchical fields can be overridden per-bank."
     )
 
@@ -2474,7 +2474,7 @@ class PromptBlockModel(BaseModel):
 
     text: str = Field(description="The block's text; empty when the block is inactive.")
     source: Literal["config", "builtin"] = Field(
-        description="`config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording."
+        description="`config` — produced by a setting (`field` names it); `builtin` — contextbase's own wording."
     )
     field: str = Field(default="", description="Config field behind this block; empty when no single field owns it.")
     section: str = Field(
@@ -4095,7 +4095,7 @@ class BankTemplateManifest(BaseModel):
         if ver > int(BANK_TEMPLATE_CURRENT_VERSION):
             raise ValueError(
                 f"version '{v}' is not supported by this server "
-                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade agentstratum."
+                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade contextbase."
             )
         return v
 
@@ -5417,9 +5417,9 @@ def _name_server_span_after_operation(span: "Span", scope: dict[str, Any]) -> No
         match = pattern.search(path)
         if match is None:
             continue
-        span.update_name(f"agentstratum.{operation}")
-        span.set_attribute("agentstratum.operation", operation)
-        span.set_attribute("agentstratum.bank_id", match.group("bank_id"))
+        span.update_name(f"contextbase.{operation}")
+        span.set_attribute("contextbase.operation", operation)
+        span.set_attribute("contextbase.bank_id", match.group("bank_id"))
         return
 
 
@@ -9661,7 +9661,7 @@ def _register_routes(app: FastAPI):
         summary="Update bank configuration",
         description="Update configuration overrides for a bank. Only hierarchical behavioral settings can be "
         "overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format "
-        "(retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).",
+        "(retain_extraction_mode) or product configuration format (CONTEXTBASE_API_RETAIN_EXTRACTION_MODE).",
         operation_id="update_bank_config",
         tags=["Banks"],
     )

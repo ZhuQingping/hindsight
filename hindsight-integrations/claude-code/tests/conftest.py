@@ -1,4 +1,4 @@
-"""Shared fixtures for agentstratum Claude Code plugin tests."""
+"""Shared fixtures for contextbase Claude Code plugin tests."""
 
 import io
 import json
@@ -37,9 +37,9 @@ def plugin_root(tmp_path):
 def default_config(plugin_root, monkeypatch):
     """Load config with no overrides, isolated from real settings.json."""
     monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
-    # Strip any real AGENTSTRATUM_* env vars that might bleed in
+    # Strip any real CONTEXTBASE_* env vars that might bleed in
     for key in list(os.environ):
-        if key.startswith("AGENTSTRATUM_"):
+        if key.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(key, raising=False)
     from lib.config import load_config
 

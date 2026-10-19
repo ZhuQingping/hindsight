@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import { getEmbedCommand } from "./command.js";
 import { silentLogger } from "./logger.js";
 import type { Logger } from "./logger.js";
-import type { AgentstratumServerOptions } from "./types.js";
+import type { ContextBaseServerOptions } from "./types.js";
 
 const DEFAULT_PORT = 8888;
 const DEFAULT_HOST = "127.0.0.1";
@@ -11,12 +11,12 @@ const DEFAULT_READY_TIMEOUT_MS = 30_000;
 const DEFAULT_READY_POLL_INTERVAL_MS = 1_000;
 
 /**
- * Manages the lifecycle of a local Agentstratum daemon from a Node.js process.
+ * Manages the lifecycle of a local ContextBase daemon from a Node.js process.
  *
  * On {@link start}, this class:
- *   1. Resolves the `agentstratum-embed` command (via `uvx` or a local `uv run`).
+ *   1. Resolves the `contextbase-embed` command (via `uvx` or a local `uv run`).
  *   2. Runs `profile create <name> --merge --port <port> [--env K=V ...]`
- *      with every entry in {@link AgentstratumServerOptions.env} forwarded as
+ *      with every entry in {@link ContextBaseServerOptions.env} forwarded as
  *      an `--env` flag.
  *   3. Runs `daemon --profile <name> start` and waits for the start command
  *      to exit.
@@ -33,7 +33,7 @@ const DEFAULT_READY_POLL_INTERVAL_MS = 1_000;
  * environment variables never require a code change here — callers can pass
  * them via `env`, `extraProfileCreateArgs`, or `extraDaemonStartArgs`.
  */
-export class AgentstratumServer {
+export class ContextBaseServer {
   private readonly profile: string;
   private readonly port: number;
   private readonly host: string;
@@ -49,13 +49,13 @@ export class AgentstratumServer {
   private readonly readyPollIntervalMs: number;
   private readonly logger: Logger;
 
-  constructor(opts: AgentstratumServerOptions = {}) {
+  constructor(opts: ContextBaseServerOptions = {}) {
     this.profile = opts.profile ?? DEFAULT_PROFILE;
     this.port = opts.port ?? DEFAULT_PORT;
     this.host = opts.host ?? DEFAULT_HOST;
     this.baseUrl = `http://${this.host}:${this.port}`;
     this.embedVersion = opts.embedVersion;
-    this.embedPackage = opts.embedPackage ?? opts.env?.AGENTSTRATUM_EMBED_PACKAGE;
+    this.embedPackage = opts.embedPackage ?? opts.env?.CONTEXTBASE_EMBED_PACKAGE;
     this.embedPackagePath = opts.embedPackagePath;
     this.userEnv = opts.env ?? {};
     this.extraProfileCreateArgs = opts.extraProfileCreateArgs ?? [];
@@ -81,19 +81,19 @@ export class AgentstratumServer {
    * `profile create --merge` and `daemon start` commands tolerate re-runs.
    */
   async start(): Promise<void> {
-    this.logger.info(`[agentstratum] starting daemon for profile "${this.profile}"`);
+    this.logger.info(`[contextbase] starting daemon for profile "${this.profile}"`);
 
     const env = this.buildEnv();
     await this.configureProfile(env);
     await this.startDaemon(env);
     await this.waitForReady();
 
-    this.logger.info(`[agentstratum] daemon ready at ${this.baseUrl}`);
+    this.logger.info(`[contextbase] daemon ready at ${this.baseUrl}`);
   }
 
   /** Stop the daemon. Never throws — logs and resolves even on failure. */
   async stop(): Promise<void> {
-    this.logger.info(`[agentstratum] stopping daemon for profile "${this.profile}"`);
+    this.logger.info(`[contextbase] stopping daemon for profile "${this.profile}"`);
 
     let command: string[];
     try {
@@ -104,7 +104,7 @@ export class AgentstratumServer {
       });
     } catch {
       this.logger.warn(
-        "[agentstratum] configure the local engine distribution before stopping the daemon"
+        "[contextbase] configure the local engine distribution before stopping the daemon"
       );
       return;
     }
@@ -118,17 +118,17 @@ export class AgentstratumServer {
 
     await new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
-        this.logger.warn(`[agentstratum] daemon stop timed out after 5s`);
+        this.logger.warn(`[contextbase] daemon stop timed out after 5s`);
         resolve();
       }, 5_000);
       child.on("exit", () => {
         clearTimeout(timeout);
-        this.logger.info(`[agentstratum] daemon stopped`);
+        this.logger.info(`[contextbase] daemon stopped`);
         resolve();
       });
       child.on("error", (err) => {
         clearTimeout(timeout);
-        this.logger.warn(`[agentstratum] error stopping daemon: ${err.message}`);
+        this.logger.warn(`[contextbase] error stopping daemon: ${err.message}`);
         resolve();
       });
     });
@@ -159,8 +159,8 @@ export class AgentstratumServer {
     const merged: NodeJS.ProcessEnv = { ...process.env };
 
     if (this.platformCpuWorkaround && process.platform === "darwin") {
-      merged["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1";
-      merged["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1";
+      merged["CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1";
+      merged["CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU"] = "1";
     }
 
     for (const [key, value] of Object.entries(this.userEnv)) {
@@ -178,7 +178,7 @@ export class AgentstratumServer {
    * auto-applied by the CPU workaround) is forwarded as `--env`.
    */
   private async configureProfile(env: NodeJS.ProcessEnv): Promise<void> {
-    this.logger.info(`[agentstratum] configuring profile "${this.profile}"`);
+    this.logger.info(`[contextbase] configuring profile "${this.profile}"`);
 
     const [cmd, ...baseArgs] = getEmbedCommand({
       embedVersion: this.embedVersion,
@@ -223,8 +223,8 @@ export class AgentstratumServer {
     // 2. CPU workaround — only if auto-applied and not already overridden.
     if (this.platformCpuWorkaround && process.platform === "darwin") {
       const cpuKeys = [
-        "AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU",
-        "AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU",
+        "CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU",
+        "CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU",
       ];
       for (const key of cpuKeys) {
         if (!(key in out) && env[key] !== undefined) {
@@ -270,14 +270,14 @@ export class AgentstratumServer {
       const text = data.toString();
       output += text;
       for (const line of text.trimEnd().split("\n")) {
-        if (line) this.logger.info(`[agentstratum:${label}] ${line}`);
+        if (line) this.logger.info(`[contextbase:${label}] ${line}`);
       }
     });
     child.stderr?.on("data", (data: Buffer) => {
       const text = data.toString();
       output += text;
       for (const line of text.trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[agentstratum:${label}] ${line}`);
+        if (line) this.logger.warn(`[contextbase:${label}] ${line}`);
       }
     });
 
@@ -299,12 +299,12 @@ export class AgentstratumServer {
   private pipeOutput(child: ReturnType<typeof spawn>, label: string): void {
     child.stdout?.on("data", (data: Buffer) => {
       for (const line of data.toString().trimEnd().split("\n")) {
-        if (line) this.logger.info(`[agentstratum:${label}] ${line}`);
+        if (line) this.logger.info(`[contextbase:${label}] ${line}`);
       }
     });
     child.stderr?.on("data", (data: Buffer) => {
       for (const line of data.toString().trimEnd().split("\n")) {
-        if (line) this.logger.warn(`[agentstratum:${label}] ${line}`);
+        if (line) this.logger.warn(`[contextbase:${label}] ${line}`);
       }
     });
   }
@@ -320,7 +320,7 @@ export class AgentstratumServer {
           signal: AbortSignal.timeout(this.readyPollIntervalMs),
         });
         if (res.ok) {
-          this.logger.debug(`[agentstratum] health check passed (attempt ${attempt})`);
+          this.logger.debug(`[contextbase] health check passed (attempt ${attempt})`);
           return;
         }
       } catch {
@@ -329,7 +329,7 @@ export class AgentstratumServer {
       await new Promise((resolve) => setTimeout(resolve, this.readyPollIntervalMs));
     }
     throw new Error(
-      `Agentstratum daemon did not become ready within ${this.readyTimeoutMs}ms at ${this.baseUrl}`
+      `ContextBase daemon did not become ready within ${this.readyTimeoutMs}ms at ${this.baseUrl}`
     );
   }
 }

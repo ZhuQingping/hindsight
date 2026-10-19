@@ -153,7 +153,7 @@ describe("readClaudeTranscript", () => {
         message: {
           role: "user",
           content:
-            "<agentstratum_memories>\nsecret prior fact\n</agentstratum_memories>\nWhy does upload retry?",
+            "<contextbase_memories>\nsecret prior fact\n</contextbase_memories>\nWhy does upload retry?",
         },
       })
     );
@@ -163,7 +163,7 @@ describe("readClaudeTranscript", () => {
     expect(result).toHaveLength(1);
     expect(result[0].content).toContain("Why does upload retry?");
     expect(result[0].content).not.toContain("secret prior fact");
-    expect(result[0].content).not.toContain("agentstratum_memories");
+    expect(result[0].content).not.toContain("contextbase_memories");
   });
 
   it("drops the compaction summary — Claude Code's recap, not the user's words", () => {
@@ -258,7 +258,7 @@ describe("readClaudeTranscript", () => {
     expect(result[0].content).toBe("ship the fix");
   });
 
-  it("strips the reflect hook's <agentstratum_memory> injection block (buildSystemInjection output)", () => {
+  it("strips the reflect hook's <contextbase_memory> injection block (buildSystemInjection output)", () => {
     // The exact block the UserPromptSubmit hook injects — wrapper tags, preamble, attribution
     // text and the surfaced memory itself must ALL be gone from retained text, or the session
     // write-back would re-ingest the injected synthesis (a retain→reflect feedback loop).
@@ -279,7 +279,7 @@ describe("readClaudeTranscript", () => {
     expect(result[0].content).toContain("Why does upload retry?");
     expect(result[0].content).not.toContain("SECRET");
     expect(result[0].content).not.toContain("Relevant project memory");
-    expect(result[0].content).not.toContain("agentstratum_memory");
+    expect(result[0].content).not.toContain("contextbase_memory");
   });
 
   it("fails open (returns []) when the file cannot be read", () => {

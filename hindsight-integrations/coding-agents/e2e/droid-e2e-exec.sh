@@ -13,7 +13,7 @@
 # fallback hook declarations it copies when creating hooks.json.
 set -eu
 
-: "${AGENTSTRATUM_STUB_BASE_URL:?missing stub model base URL}"
+: "${CONTEXTBASE_STUB_BASE_URL:?missing stub model base URL}"
 
 mkdir -p /root/.factory
 cat > /root/.factory/settings.json <<EOF
@@ -22,7 +22,7 @@ cat > /root/.factory/settings.json <<EOF
     {
       "model": "hindsight-e2e-stub",
       "displayName": "Hindsight E2E stub",
-      "baseUrl": "${AGENTSTRATUM_STUB_BASE_URL}",
+      "baseUrl": "${CONTEXTBASE_STUB_BASE_URL}",
       "apiKey": "hindsight-e2e",
       "provider": "generic-chat-completion-api",
       "maxOutputTokens": 8192

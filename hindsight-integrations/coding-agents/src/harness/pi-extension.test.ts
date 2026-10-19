@@ -7,7 +7,7 @@ describe("pi extension adapter", () => {
   it.each(["before", "after"])("preserves sections added %s memory injection", async (order) => {
     const core = {
       onPrompt: vi.fn(async () => {}),
-      getInjection: vi.fn(() => "<agentstratum_memories>remember this</agentstratum_memories>"),
+      getInjection: vi.fn(() => "<contextbase_memories>remember this</contextbase_memories>"),
       onTranscript: vi.fn(async () => {}),
       flush: vi.fn(async () => {}),
     };
@@ -26,7 +26,7 @@ describe("pi extension adapter", () => {
     const prompt = result?.systemPrompt ?? Object.values(sections).join("\n\n");
     expect(prompt).toContain("You are pi.");
     expect(prompt).toContain("SECTION-MARKER");
-    expect(prompt).toContain("<agentstratum_memories>remember this</agentstratum_memories>");
+    expect(prompt).toContain("<contextbase_memories>remember this</contextbase_memories>");
     expect(result).toBeUndefined();
   });
 
@@ -34,7 +34,7 @@ describe("pi extension adapter", () => {
     const onPrompt = vi.fn(async () => {});
     const core = {
       onPrompt,
-      getInjection: vi.fn(() => "<agentstratum_memories>remember this</agentstratum_memories>"),
+      getInjection: vi.fn(() => "<contextbase_memories>remember this</contextbase_memories>"),
       onTranscript: vi.fn(async () => {}),
     };
     const hooks = createPiHooks(core as never, "pi");
@@ -47,7 +47,7 @@ describe("pi extension adapter", () => {
     expect(onPrompt).toHaveBeenCalledOnce();
     expect(onPrompt).toHaveBeenCalledWith("session-1", "plan the change");
     expect(result?.systemPrompt).toBe(
-      "You are pi.\n\n<agentstratum_memories>remember this</agentstratum_memories>"
+      "You are pi.\n\n<contextbase_memories>remember this</contextbase_memories>"
     );
   });
 
@@ -163,7 +163,7 @@ describe("pi extension adapter", () => {
 
   it("adapts a knowledge ToolSpec into a pi native tool with a JSON-Schema parameters object", async () => {
     const spec: ToolSpec = {
-      name: "agentstratum_search_knowledge_pages",
+      name: "contextbase_search_knowledge_pages",
       description: "Search the knowledge pages",
       inputSchema: { query: z.string(), limit: z.number().optional() },
       annotations: {
@@ -176,8 +176,8 @@ describe("pi extension adapter", () => {
     };
 
     const def = toPiTool(spec);
-    expect(def.name).toBe("agentstratum_search_knowledge_pages");
-    expect(def.label).toBe("agentstratum_search_knowledge_pages");
+    expect(def.name).toBe("contextbase_search_knowledge_pages");
+    expect(def.label).toBe("contextbase_search_knowledge_pages");
     expect(def.parameters.type).toBe("object");
     expect((def.parameters.properties as Record<string, unknown>).query).toBeDefined();
 

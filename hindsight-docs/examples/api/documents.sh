@@ -4,7 +4,7 @@
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="documents-sh-demo-bank"
 
 # =============================================================================
@@ -21,30 +21,30 @@ echo "Alice presented the Q4 roadmap to the whole team." > docs/meeting-notes.tx
 
 # [docs:document-retain]
 # Retain content with document ID
-agentstratum memory retain "$BANK_ID" "Meeting notes content..." --doc-id notes-2024-03-15
+contextbase memory retain "$BANK_ID" "Meeting notes content..." --doc-id notes-2024-03-15
 
 # Batch retain from files
-agentstratum memory retain-files "$BANK_ID" docs/
+contextbase memory retain-files "$BANK_ID" docs/
 # [/docs:document-retain]
 
 # [docs:document-update]
 # Original
-agentstratum memory retain "$BANK_ID" "Project deadline: March 31" --doc-id project-plan
+contextbase memory retain "$BANK_ID" "Project deadline: March 31" --doc-id project-plan
 
 # Update
-agentstratum memory retain "$BANK_ID" "Project deadline: April 15 (extended)" --doc-id project-plan
+contextbase memory retain "$BANK_ID" "Project deadline: April 15 (extended)" --doc-id project-plan
 # [/docs:document-update]
 
 # [docs:document-get]
-agentstratum document get "$BANK_ID" notes-2024-03-15
+contextbase document get "$BANK_ID" notes-2024-03-15
 # [/docs:document-get]
 
 # [docs:document-update-tags]
 # Replace tags with new values (comma-separated)
-agentstratum document update "$BANK_ID" notes-2024-03-15 --tags team-a,team-b
+contextbase document update "$BANK_ID" notes-2024-03-15 --tags team-a,team-b
 
 # Remove all tags (make document visible everywhere)
-agentstratum document update "$BANK_ID" notes-2024-03-15 --tags ""
+contextbase document update "$BANK_ID" notes-2024-03-15 --tags ""
 # [/docs:document-update-tags]
 
 # The empty value must clear the set, not store one "" tag.
@@ -53,14 +53,14 @@ TAGS=$(curl -sf "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/documents/notes-20
 
 # [docs:document-list]
 # List all documents
-agentstratum document list "$BANK_ID"
+contextbase document list "$BANK_ID"
 
 # Filter by ID substring
-agentstratum document list "$BANK_ID" --query notes
+contextbase document list "$BANK_ID" --query notes
 # [/docs:document-list]
 
 # [docs:document-delete]
-agentstratum document delete "$BANK_ID" notes-2024-03-15
+contextbase document delete "$BANK_ID" notes-2024-03-15
 # [/docs:document-delete]
 
 # =============================================================================
