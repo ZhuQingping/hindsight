@@ -70,7 +70,7 @@ const response = await client.recall('my-bank', 'What does Alice do?');
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "What does Alice do?"
+agentstratum memory recall my-bank "What does Alice do?"
 ```
 
 ### Go
@@ -153,7 +153,7 @@ await client.recall('my-bank', 'query', { types: ['observation'] });
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "query" --fact-type world,observation
+agentstratum memory recall my-bank "query" --fact-type world,observation
 ```
 
 ### Go
@@ -220,10 +220,10 @@ const deepResults = await client.recall('my-bank', 'How are Alice and Bob connec
 
 ```bash
 # Quick lookup
-hindsight memory recall my-bank "Alice's email" --budget low
+agentstratum memory recall my-bank "Alice's email" --budget low
 
 # Deep exploration
-hindsight memory recall my-bank "How are Alice and Bob connected?" --budget high
+agentstratum memory recall my-bank "How are Alice and Bob connected?" --budget high
 ```
 
 ### Go
@@ -276,10 +276,10 @@ await client.recall('my-bank', "Alice's email", { maxTokens: 500 });
 
 ```bash
 # Fill up to 4K tokens of context with relevant memories
-hindsight memory recall my-bank "What do I know about Alice?" --max-tokens 4096
+agentstratum memory recall my-bank "What do I know about Alice?" --max-tokens 4096
 
 # Smaller budget for quick lookups
-hindsight memory recall my-bank "Alice's email" --max-tokens 500
+agentstratum memory recall my-bank "Alice's email" --max-tokens 500
 ```
 
 ### Go
@@ -386,7 +386,7 @@ for (const obs of obsResponse.results) {
 
 ```bash
 # Recall observations with source facts
-hindsight memory recall my-bank "What patterns have I learned about Alice?" \
+agentstratum memory recall my-bank "What patterns have I learned about Alice?" \
   --fact-type observation
 ```
 
@@ -493,7 +493,7 @@ await client.recall('my-bank', 'communication preferences', {
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "communication preferences" \
+agentstratum memory recall my-bank "communication preferences" \
   --tags "user:alice" --tags-match any
 ```
 
@@ -544,7 +544,7 @@ await client.recall('my-bank', 'communication preferences', {
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "communication preferences" \
+agentstratum memory recall my-bank "communication preferences" \
   --tags "user:alice" --tags-match any_strict
 ```
 
@@ -595,7 +595,7 @@ await client.recall('my-bank', 'communication tools', {
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "communication tools" \
+agentstratum memory recall my-bank "communication tools" \
   --tags "user:alice,team" --tags-match all
 ```
 
@@ -646,7 +646,7 @@ await client.recall('my-bank', 'communication tools', {
 ### CLI
 
 ```bash
-hindsight memory recall my-bank "communication tools" \
+agentstratum memory recall my-bank "communication tools" \
   --tags "user:alice,team" --tags-match all_strict
 ```
 

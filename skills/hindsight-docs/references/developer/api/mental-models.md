@@ -91,7 +91,7 @@ console.log(`Operation ID: ${result.operation_id}`);
 
 ```bash
 # Create a mental model (runs reflect in background)
-hindsight mental-model create "$BANK_ID" \
+agentstratum mental-model create "$BANK_ID" \
   "Team Communication Preferences" \
   "How does the team prefer to communicate?"
 ```
@@ -160,7 +160,7 @@ console.log(`Created with custom ID: ${resultWithId.operation_id}`);
 
 ```bash
 # Create a mental model with a specific custom ID
-hindsight mental-model create "$BANK_ID" \
+agentstratum mental-model create "$BANK_ID" \
   "Communication Policy" \
   "What are the team's communication guidelines?" \
   --id communication-policy
@@ -395,7 +395,7 @@ console.log(`Operation ID: ${result2.operation_id}`);
 
 ```bash
 # Create a mental model and get its ID for subsequent operations
-hindsight mental-model create "$BANK_ID" \
+agentstratum mental-model create "$BANK_ID" \
   "Project Status" \
   "What is the current project status?"
 ```
@@ -461,7 +461,7 @@ for (const mm of mentalModels.items) {
 
 ```bash
 # List all mental models in a bank
-hindsight mental-model list "$BANK_ID"
+agentstratum mental-model list "$BANK_ID"
 ```
 
 ### Go
@@ -509,7 +509,7 @@ console.log(`Last refreshed: ${mentalModel.last_refreshed_at}`);
 
 ```bash
 # Get a specific mental model
-hindsight mental-model get "$BANK_ID" "$MENTAL_MODEL_ID"
+agentstratum mental-model get "$BANK_ID" "$MENTAL_MODEL_ID"
 ```
 
 ### Go
@@ -650,7 +650,7 @@ console.log(`Refresh operation ID: ${refreshResult.operation_id}`);
 
 ```bash
 # Refresh a mental model to update with current knowledge
-hindsight mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+agentstratum mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
 ```
 
 ### Go
@@ -722,7 +722,7 @@ console.log(preview.diff);
 
 ```bash
 # Preview what a refresh would do, without writing anything
-hindsight mental-model dry-run-refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+agentstratum mental-model dry-run-refresh "$BANK_ID" "$MENTAL_MODEL_ID"
 ```
 
 ### Go
@@ -796,7 +796,7 @@ await client.updateMentalModel(BANK_ID, mentalModelId, {
 
 ```bash
 # Record how every refresh (scheduled ones too) reached its result
-hindsight mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
+agentstratum mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
   --trigger-mode delta \
   --trigger-keep-trace true
 ```
@@ -903,7 +903,7 @@ console.log(`Full refresh operation ID: ${fullRefreshResult.operation_id}`);
 curl -s -X POST "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/mental-models/${MENTAL_MODEL_ID}/clear"
 
 # Trigger a fresh full rebuild
-hindsight mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
+agentstratum mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
 ```
 
 ### Go
@@ -959,7 +959,7 @@ console.log(`Updated name: ${updated.name}`);
 
 ```bash
 # Update a mental model's metadata
-hindsight mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
+agentstratum mental-model update "$BANK_ID" "$MENTAL_MODEL_ID" \
   --name "Updated Team Communication Preferences"
 ```
 
@@ -1005,7 +1005,7 @@ await client.deleteMentalModel(BANK_ID, mentalModelId);
 
 ```bash
 # Delete a mental model
-hindsight mental-model delete "$BANK_ID" "$MENTAL_MODEL_ID" -y
+agentstratum mental-model delete "$BANK_ID" "$MENTAL_MODEL_ID" -y
 ```
 
 ### Go
@@ -1091,7 +1091,7 @@ console.log(`Operation ID: ${result3.operation_id}`);
 # A tagged model defaults to all_strict (a memory must carry EVERY tag);
 # pass --tags-match any when your memories are tagged narrowly (one topic
 # each), so the refresh reads any memory carrying at least one of the tags.
-hindsight mental-model create "$BANK_ID" \
+agentstratum mental-model create "$BANK_ID" \
   "Current Projects" \
   "Which projects is the user currently working on?" \
   --tags projects,mental-model \
@@ -1171,7 +1171,7 @@ for (const entry of history) {
 
 ```bash
 # Get the change history of a mental model
-hindsight mental-model history "$BANK_ID" "$MENTAL_MODEL_ID"
+agentstratum mental-model history "$BANK_ID" "$MENTAL_MODEL_ID"
 ```
 
 ### Go

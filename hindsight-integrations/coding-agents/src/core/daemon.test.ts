@@ -274,4 +274,15 @@ describe("startDaemonDetached", () => {
     expect(child.on).toHaveBeenCalledWith("error", expect.any(Function));
     expect(child.unref).toHaveBeenCalled();
   });
+
+  // The upstream bundled-daemon dependency check does not apply to our remote-only package.
+  // Runtime Windows spawn behavior remains covered in hindsight-all-npm/src/server.test.ts.
+  it("does not distribute a local-engine dependency or daemon launcher", () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8")
+    );
+    expect(manifest.dependencies ?? {}).not.toHaveProperty("@vectorize-io/hindsight-all");
+    expect(manifest.dependencies ?? {}).not.toHaveProperty("agentstratum-local-engine");
+    expect(Object.values(manifest.bin)).not.toContain("dist/daemon-start.js");
+  });
 });

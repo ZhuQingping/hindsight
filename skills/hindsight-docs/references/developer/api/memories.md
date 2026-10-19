@@ -67,7 +67,7 @@ console.log(`${invalidated.items.length} invalidated fact(s)`);
 
 ```bash
 # List memory units in a bank (invalidated rows are included by default)
-hindsight memory list "$BANK_ID"
+agentstratum memory list "$BANK_ID"
 
 # Filter to only the invalidated facts (e.g. to review duplicates)
 curl -s "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/list?state=invalidated"

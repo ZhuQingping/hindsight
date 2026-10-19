@@ -7,6 +7,20 @@ import type { HindsightClient } from "./hindsight";
 import { RuntimeCore } from "./runtime";
 import { log } from "./log";
 
+// Whether a bank is new enough to defer is session-start's call (session-start.test.ts); here only
+// the hand-off of that decision to the first session is under test, so it can be forced.
+const forceDefer = vi.hoisted(() => ({ on: false }));
+vi.mock("./session-start", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./session-start")>();
+  return {
+    ...actual,
+    buildSessionStartContext: async (...a: Parameters<typeof actual.buildSessionStartContext>) => {
+      const out = await actual.buildSessionStartContext(...a);
+      return forceDefer.on ? { ...out, deferInitialReflect: true } : out;
+    },
+  };
+});
+
 describe("RuntimeCore", () => {
   it("uses the shared prompt lifecycle and consumes the new-bank reflect deferral once", async () => {
     const client = {
@@ -20,7 +34,12 @@ describe("RuntimeCore", () => {
       resolveConfig({ apiUrl: "https://service.example" })
     );
 
-    await runtime.seedIfCold("/definitely-not-a-git-repository");
+    forceDefer.on = true;
+    try {
+      await runtime.seedIfCold("/definitely-not-a-git-repository");
+    } finally {
+      forceDefer.on = false;
+    }
     await runtime.onPrompt("runtime-shared-lifecycle", "first prompt");
     expect(client.reflect).not.toHaveBeenCalled();
 
@@ -184,6 +203,29 @@ describe("RuntimeCore session-idle write-back", () => {
     }
   });
 
+  it("records usage with retainSessions off, and still retains nothing (#5391)", async () => {
+    const usageFile = join(mkdtempSync(join(tmpdir(), "hs-rt-usage-")), "usage.jsonl");
+    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
+    try {
+      const { client, retained } = makeClient();
+      const runtime = new RuntimeCore(client, "bank-1", resolveConfig({ retainSessions: false }));
+      const turns = [turn("user", "how do we round?"), turn("assistant", "half up")];
+      await runtime.onTranscript("s7", turns, true);
+      runtime.setTranscriptSource(async () => [
+        ...turns,
+        turn("user", "and ties?"),
+        turn("assistant", "even"),
+      ]);
+      await runtime.onSessionIdle("s7");
+      await new Promise((r) => setTimeout(r, 0));
+      expect(retained).toHaveLength(0);
+      const recorded = readFileSync(usageFile, "utf8").trim().split("\n");
+      expect(recorded.map((l) => JSON.parse(l).turn)).toEqual([1, 2]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("no-ops when the host cannot refetch, rather than retaining a stale transcript", async () => {
     const { client, retained } = makeClient();
     const runtime = new RuntimeCore(
@@ -337,5 +379,33 @@ describe("RuntimeCore tool workspace binding", () => {
       resolveConfig({ apiUrl: "https://service.example" })
     );
     expect(await workspaceOf(core)).toBe(process.cwd());
+  });
+});
+
+/** agent_end write-backs are fire-and-forget; a host that exits right after one dropped it (#5081). */
+describe("RuntimeCore.flush", () => {
+  it("waits for an in-flight write-back, and gives up after its bound", async () => {
+    let release: (() => void) | undefined;
+    const client = {
+      retain: vi.fn(() => new Promise<void>((r) => (release = r))),
+    } as unknown as HindsightClient;
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
+    await runtime.onTranscript("s-flush", [{ role: "user", content: "hi" }], true);
+
+    const t0 = Date.now();
+    await runtime.flush(50); // the server never answers: flush must still return
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(45);
+
+    let flushed = false;
+    const done = runtime.flush(5_000).then(() => (flushed = true));
+    await new Promise((r) => setTimeout(r, 10));
+    expect(flushed).toBe(false);
+    release?.();
+    await done;
+    expect(client.retain).toHaveBeenCalledOnce();
   });
 });

@@ -34,7 +34,9 @@ SDK 解码、跨平台启动和迁移。无文本冲突不免除语义检查。�
 
 ## 生成、资源与证据
 
-先合并源、模板、配置和生成器，再生成品牌/OpenAPI/SDK/文档；lock 由对应包管理器
+先合并源、模板、配置和生成器，再生成品牌/OpenAPI/SDK/文档；对照当前
+`verify-generated-files` 工作流，包含 bank-template-schema 和 docs-skill 的生成，
+最后运行 lint 并检查再生成不产生差异。lock 由对应包管理器
 从合成后的 manifests 生成。避免手工长期维护生成结果。
 
 此机器现有重型 runner：
@@ -42,6 +44,9 @@ SDK 解码、跨平台启动和迁移。无文本冲突不免除语义检查。�
 复用其 `resource-heavy.lock`，不另设锁、不删除锁、不绕开资源拒绝；在其他机器先
 发现当地适用资源策略。参数必须指定本轮 worktree 和主仓本轮日志目录。
 PG、端口、容器、浏览器资料目录属于本轮，不能复用其他会话的固定 fixture。
+若测试假设临时目录不属于 Git 仓库，直接把 TMPDIR 放进主仓 `.local` 会改变
+其语义。此机器可用 bwrap 将本轮临时目录映射为隔离 `/tmp`：数据仍归本轮所有，
+测试看到的父目录不再包含仓库。不要为这种夹具问题修改产品的仓库识别逻辑。
 
 每轮在 `docs/upstream-sync/<release>/` 保留 PLAN、冲突决策、验证结果与最终状态。
 大日志/运行数据放主仓 `.local/upstream-sync/<run>/`。每项结果明确 PASS/FAIL/NOT_RUN、

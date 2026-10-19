@@ -1,0 +1,25 @@
+name: Test upstream sync tools
+
+on:
+  pull_request:
+    paths:
+      - scripts/upstream-sync/**
+      - scripts/check-integration-lockfiles.sh
+      - .agents/skills/hindsight-upstream-sync/**
+      - .github/workflows/upstream-sync-tools.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Verify merge simulation preserves repository state
+        run: python -m unittest discover -s scripts/upstream-sync -v

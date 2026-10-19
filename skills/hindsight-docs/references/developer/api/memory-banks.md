@@ -45,7 +45,7 @@ await client.createBank('my-bank');
 ### CLI
 
 ```bash
-hindsight bank create my-bank
+agentstratum bank create my-bank
 ```
 
 ### Go
@@ -308,7 +308,7 @@ await client.updateBankConfig('architect-bank', {
 ### CLI
 
 ```bash
-hindsight bank create architect-bank \
+agentstratum bank create architect-bank \
   --mission "You're a senior software architect - keep track of system designs, technology decisions, and architectural patterns. Prefer simplicity over cutting-edge." \
   --skepticism 4 \
   --literalism 4 \
@@ -592,7 +592,7 @@ await client.updateBankConfig('my-bank', {
 ### CLI
 
 ```bash
-hindsight bank set-config my-bank \
+agentstratum bank set-config my-bank \
   --retain-mission "Always include technical decisions, API design choices, and architectural trade-offs. Ignore meeting logistics and social exchanges." \
   --retain-extraction-mode verbose \
   --observations-mission "Observations are stable facts about people and projects. Always include preferences, skills, and recurring patterns. Ignore one-off events." \
@@ -645,10 +645,10 @@ const { config, overrides } = await client.getBankConfig('my-bank');
 
 ```bash
 # Returns resolved config (server defaults merged with bank overrides)
-hindsight bank config my-bank
+agentstratum bank config my-bank
 
 # Show only bank-specific overrides
-hindsight bank config my-bank --overrides-only
+agentstratum bank config my-bank --overrides-only
 ```
 
 ### Go
@@ -685,7 +685,7 @@ await client.resetBankConfig('my-bank');
 
 ```bash
 # Remove all bank-level overrides, reverting to server defaults
-hindsight bank reset-config my-bank -y
+agentstratum bank reset-config my-bank -y
 ```
 
 ### Go
@@ -758,7 +758,7 @@ console.log(`Created directive: ${directive.id}`);
 
 ```bash
 # Create a directive (hard rule for reflect)
-hindsight directive create "$BANK_ID" \
+agentstratum directive create "$BANK_ID" \
   "Formal Language" \
   "Always respond in formal English, avoiding slang and colloquialisms."
 ```
@@ -803,7 +803,7 @@ for (const d of directives.items) {
 
 ```bash
 # List all directives in a bank
-hindsight directive list "$BANK_ID"
+agentstratum directive list "$BANK_ID"
 ```
 
 ### Go
@@ -851,7 +851,7 @@ console.log(`Directive active: ${updated.is_active}`);
 
 ```bash
 # Update a directive (e.g., disable without deleting)
-hindsight directive update "$BANK_ID" "$DIRECTIVE_ID" --is-active false
+agentstratum directive update "$BANK_ID" "$DIRECTIVE_ID" --is-active false
 ```
 
 ### Go
@@ -890,7 +890,7 @@ await client.deleteDirective(BANK_ID, directiveId);
 
 ```bash
 # Delete a directive
-hindsight directive delete "$BANK_ID" "$DIRECTIVE_ID" -y
+agentstratum directive delete "$BANK_ID" "$DIRECTIVE_ID" -y
 ```
 
 ### Go

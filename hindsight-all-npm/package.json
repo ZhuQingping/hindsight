@@ -1,6 +1,6 @@
 {
   "name": "agentstratum-local-engine",
-  "version": "0.10.3",
+  "version": "1.0.0",
   "description": "Local agentstratum engine lifecycle manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

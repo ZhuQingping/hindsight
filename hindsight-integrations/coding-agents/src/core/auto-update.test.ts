@@ -82,6 +82,21 @@ describe("npmViewVersion", () => {
     expect(opts.timeout).toBe(5000);
   });
 
+  // #5366: on Windows npm is npm.cmd, which spawn cannot run without a shell (`spawn npm ENOENT`).
+  it("runs npm through a shell on Windows", async () => {
+    const platform = Object.getOwnPropertyDescriptor(process, "platform")!;
+    Object.defineProperty(process, "platform", { value: "win32" });
+    try {
+      const spawn = npmSpawn(0, '"0.6.1"\n');
+      expect(await npmViewVersion("@x/y", asRealSpawn(spawn))).toBe("0.6.1");
+      const [command, opts] = spawn.mock.calls[0] as unknown as [string, Record<string, unknown>];
+      expect(command).toBe("npm view @x/y version --json");
+      expect(opts).toMatchObject({ shell: true, windowsHide: true, timeout: 5000 });
+    } finally {
+      Object.defineProperty(process, "platform", platform);
+    }
+  });
+
   it("reads a failure as no-version, never as an exception", async () => {
     // non-zero exit (E404, offline, auth failure), with npm's stderr-style error event alongside…
     expect(await npmViewVersion("@x/y", asRealSpawn(npmSpawn(1, "", new Error("npm ERR!"))))).toBe(
@@ -107,6 +122,15 @@ describe("npmViewVersion", () => {
       await npmViewVersion("@x/y", asRealSpawn(npmSpawn(0, "", undefined, new Error("EPIPE"))))
     ).toBe("");
   });
+
+  it.each(["pkg & calc", "pkg%COMSPEC%", "--registry=evil", "https://host/pkg.tgz", "pkg\n"])(
+    "never spawns npm for a non-package identity: %j",
+    async (pkg) => {
+      const spawn = npmSpawn(0, '"1.0.0"');
+      expect(await npmViewVersion(pkg, asRealSpawn(spawn))).toBe("");
+      expect(spawn).not.toHaveBeenCalled();
+    }
+  );
 
   it("force-settles when close never arrives — a grandchild holding the pipe would stall it", async () => {
     vi.useFakeTimers();
@@ -232,6 +256,15 @@ describe("maybeAutoUpdate", () => {
     expect(args).toEqual(["-y", "agentstratum-coding-agents@0.4.3", "update"]);
     expect(args).not.toContain("install");
     expect(spawnOpts.detached).toBe(true);
+  });
+
+  it("rejects a configured shell expression before checking or updating", async () => {
+    const { runtime, spawn, npmViewOk } = staged("0.4.2");
+    const npmView = npmViewOk("0.4.3");
+    vi.stubEnv("AGENTSTRATUM_CODING_AGENTS_PACKAGE", "pkg & calc");
+    expect(await maybeAutoUpdate({ autoUpdate: true }, opts(runtime, { spawn, npmView }))).toBe("");
+    expect(npmView).not.toHaveBeenCalled();
+    expect(spawn).not.toHaveBeenCalled();
   });
 
   it("does nothing when the staged version is already current", async () => {

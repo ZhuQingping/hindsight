@@ -35,7 +35,7 @@ await client.retain('my-bank', 'Alice works at Google as a software engineer');
 ### CLI
 
 ```bash
-hindsight memory retain my-bank "Alice works at Google as a software engineer"
+agentstratum memory retain my-bank "Alice works at Google as a software engineer"
 ```
 
 ### Go
@@ -107,7 +107,7 @@ Alice (2024-03-15T09:02:00Z): Oh no! Are you okay?
 Bob (2024-03-15T09:03:00Z): Yeah, nothing serious. Just need to carry an antihistamine.
 Alice (2024-03-15T09:04:00Z): Good to know. We'll avoid peanuts at the team lunch."
 
-hindsight memory retain my-bank "$CONVERSATION" \
+agentstratum memory retain my-bank "$CONVERSATION" \
     --context "team chat" \
     --doc-id "chat-2024-03-15-alice-bob"
 ```
@@ -191,7 +191,7 @@ await client.retain('my-bank', 'Alice got promoted to senior engineer', {
 ### CLI
 
 ```bash
-hindsight memory retain my-bank "Alice got promoted" \
+agentstratum memory retain my-bank "Alice got promoted" \
     --context "career update"
 ```
 
@@ -402,11 +402,11 @@ await client.retainBatch('my-bank', [
 
 ```bash
 # Batch ingestion via individual retain calls (CLI processes items one at a time)
-hindsight memory retain my-bank "Alice works at Google" \
+agentstratum memory retain my-bank "Alice works at Google" \
     --context "career" --doc-id "conversation_001_msg_1"
-hindsight memory retain my-bank "Bob is a data scientist at Meta" \
+agentstratum memory retain my-bank "Bob is a data scientist at Meta" \
     --context "career" --doc-id "conversation_001_msg_2"
-hindsight memory retain my-bank "Alice and Bob are friends" \
+agentstratum memory retain my-bank "Alice and Bob are friends" \
     --context "relationship" --doc-id "conversation_001_msg_3"
 ```
 
@@ -471,13 +471,13 @@ console.log(result.operation_ids);  // Track processing via the operations endpo
 
 ```bash
 # Upload a single file (PDF, DOCX, PPTX, XLSX, images, audio, and more)
-hindsight memory retain-files my-bank "$SAMPLE_FILE"
+agentstratum memory retain-files my-bank "$SAMPLE_FILE"
 
 # Upload a directory of files
-hindsight memory retain-files my-bank "$SCRIPT_DIR/"
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/"
 
 # Queue files for background processing (returns immediately)
-hindsight memory retain-files my-bank "$SCRIPT_DIR/" --async
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/" --async
 ```
 
 ### Go
@@ -541,13 +541,13 @@ console.log(batchResult.operation_ids);  // One operation ID per file
 
 ```bash
 # Upload a single file (PDF, DOCX, PPTX, XLSX, images, audio, and more)
-hindsight memory retain-files my-bank "$SAMPLE_FILE"
+agentstratum memory retain-files my-bank "$SAMPLE_FILE"
 
 # Upload a directory of files
-hindsight memory retain-files my-bank "$SCRIPT_DIR/"
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/"
 
 # Queue files for background processing (returns immediately)
-hindsight memory retain-files my-bank "$SCRIPT_DIR/" --async
+agentstratum memory retain-files my-bank "$SCRIPT_DIR/" --async
 ```
 
 ### Go
@@ -609,7 +609,7 @@ await client.retainBatch('my-bank', [
 ### CLI
 
 ```bash
-hindsight memory retain my-bank "Meeting notes" --async
+agentstratum memory retain my-bank "Meeting notes" --async
 ```
 
 ### Go

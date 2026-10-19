@@ -16,6 +16,11 @@ Record ours, theirs, merge base, status and active worktrees. Release integratio
 the release commit, not moving upstream/main. Inspect outstanding changes without stashing
 or committing someone else's work. Run `scripts/upstream-sync/preflight.py` with explicit
 refs. Its merge simulation writes Git objects only; conflict-free does not mean validated.
+Read `simulation_clean` and `conflict_paths`: exit zero means the assessment completed,
+including when conflicts were found. Select each package's test configuration and explicit
+owned server fixtures; do not run server-dependent SDK suites against their localhost defaults.
+If the pinned release is already an ancestor of the target, report it as already integrated;
+perform only any explicitly requested revalidation instead of opening a duplicate integration.
 
 ## Integrate
 
