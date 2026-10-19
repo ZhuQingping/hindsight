@@ -234,7 +234,7 @@ describe("buildMcpServer", () => {
     await server.connect(serverTransport);
     await client.connect(clientTransport);
     try {
-      expect(client.getServerVersion()?.name).toBe("agentstratum");
+      expect(client.getServerVersion()?.name).toBe("ContextBase");
       const listed = await client.listTools();
       expect(JSON.stringify(listed)).not.toMatch(/hindsight/i);
       expect(Object.fromEntries(listed.tools.map((tool) => [tool.name, tool.annotations]))).toEqual(

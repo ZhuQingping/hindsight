@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+ContextBase HTTP API
 
-HTTP API for Hindsight
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -23,7 +23,7 @@ var _ MappedNullable = &PromptBlockModel{}
 type PromptBlockModel struct {
 	// The block's text; empty when the block is inactive.
 	Text string `json:"text"`
-	// `config` — produced by a setting (`field` names it); `builtin` — Hindsight's own wording.
+	// `config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording.
 	Source string `json:"source"`
 	// Config field behind this block; empty when no single field owns it.
 	Field *string `json:"field,omitempty"`

@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MemoryDetailModal } from "./memory-detail-modal";
-import { convertHindsightGraphData, GraphNode } from "./graph-data";
+import { convertHindsightGraphData, graphLinkCategory, GraphNode } from "./graph-data";
 import { Constellation } from "./constellation";
 import { TagFilterInput } from "./tag-filter-input";
 import { ObservationScopeFilter, ObservationScope } from "./observation-scope-filter";
@@ -93,9 +93,11 @@ export function DataView({
   onExpandToggle,
 }: DataViewProps) {
   const t = useTranslations("dataView");
+  const tg = useTranslations("constellation");
+  const locale = useLocale();
   const tAddDoc = useTranslations("addDocument");
   const { currentBank } = useBank();
-  const [viewMode, setViewMode] = useState<ViewMode>("constellation");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [compactMode, setCompactMode] = useState(compact);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -142,7 +144,7 @@ export function DataView({
 
   // Constellation controls state
   const [visibleLinkTypes, setVisibleLinkTypes] = useState<Set<string>>(
-    new Set(["semantic", "temporal", "entity", "causal"])
+    new Set(["semantic", "temporal", "entity", "causal", "unknown"])
   );
 
   const toggleLinkType = (type: string) => {
@@ -229,14 +231,6 @@ export function DataView({
   // unfiltered" label describes the rows actually on screen.
   const filtersActive = hasActiveMemoryFilters(appliedFilters);
 
-  // Helper to get normalized link type
-  const getLinkTypeCategory = (type: string | undefined): string => {
-    if (!type) return "semantic";
-    if (type === "semantic" || type === "temporal" || type === "entity") return type;
-    if (["causes", "caused_by", "enables", "prevents"].includes(type)) return "causal";
-    return "semantic";
-  };
-
   // Convert data for the constellation (graph data is already filtered server-side)
   const graph2DData = useMemo(() => {
     if (!data) return { nodes: [], links: [] };
@@ -244,7 +238,7 @@ export function DataView({
 
     // Filter links based on visible link types
     const links = fullData.links.filter((link) => {
-      const category = getLinkTypeCategory(link.type);
+      const category = graphLinkCategory(link.type);
       return visibleLinkTypes.has(category);
     });
 
@@ -357,18 +351,15 @@ export function DataView({
     },
     [observationSizeLookup]
   );
-  const linkColorFn = useCallback((link: any) => {
-    if (link.type === "temporal") return "#009296"; // Brand teal
-    if (link.type === "entity") return "#f59e0b"; // Amber
-    if (
-      link.type === "causes" ||
-      link.type === "caused_by" ||
-      link.type === "enables" ||
-      link.type === "prevents"
-    ) {
-      return "#8b5cf6"; // Purple for causal
-    }
-    return "#0074d9"; // Brand primary blue for semantic
+  const linkColorFn = useCallback((link: { type?: string }) => {
+    const category = graphLinkCategory(link.type);
+    return {
+      semantic: "#0074d9",
+      temporal: "#009296",
+      entity: "#f59e0b",
+      causal: "#8b5cf6",
+      unknown: "#64748b",
+    }[category];
   }, []);
 
   // Reset to first page when filters change
@@ -417,7 +408,7 @@ export function DataView({
       skipScopeResetReload.current = false;
       return;
     }
-    const contextKey = `${factType} ${currentBank} ${documentId ?? ""} ${chunkId ?? ""}`;
+    const contextKey = `${factType}\u0000${currentBank}\u0000${documentId ?? ""}\u0000${chunkId ?? ""}`;
     const contextChanged = contextKeyRef.current !== contextKey;
     contextKeyRef.current = contextKey;
 
@@ -582,7 +573,9 @@ export function DataView({
 
           {compactMode ? (
             <div className="flex items-center justify-between mb-2 px-1">
-              <div className="text-xs text-muted-foreground">{data.total_units} memories</div>
+              <div className="text-xs text-muted-foreground">
+                {t("totalMemories", { count: data.total_units })}
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -596,7 +589,7 @@ export function DataView({
                 className="h-6 px-2 text-xs gap-1"
               >
                 <Settings2 className="w-3 h-3" />
-                Expand
+                {t("expandView")}
               </Button>
             </div>
           ) : (
@@ -616,7 +609,7 @@ export function DataView({
                     className="h-7 px-2 text-xs gap-1"
                   >
                     <Eye className="w-3 h-3" />
-                    Compact
+                    {t("compactView")}
                   </Button>
                 )}
                 <div className="text-sm text-muted-foreground">
@@ -776,6 +769,7 @@ export function DataView({
                       temporal: "#009296",
                       entity: "#f59e0b",
                       causal: "#8b5cf6",
+                      unknown: "#64748b",
                     }).map(([type, color]) => (
                       <button
                         key={type}
@@ -793,7 +787,17 @@ export function DataView({
                         <span
                           className={`text-xs capitalize ${visibleLinkTypes.has(type) ? "text-foreground" : "text-muted-foreground line-through"}`}
                         >
-                          {type}
+                          {tg(
+                            type === "unknown"
+                              ? "linkTypeUnknown"
+                              : type === "causal"
+                                ? "linkTypeCausal"
+                                : type === "entity"
+                                  ? "linkTypeEntity"
+                                  : type === "temporal"
+                                    ? "linkTypeTemporal"
+                                    : "linkTypeSemantic"
+                          )}
                         </span>
                       </button>
                     ))}
@@ -893,7 +897,10 @@ export function DataView({
 
                       return (
                         <>
-                          <Table className="table-fixed">
+                          <p className="mb-1 text-xs text-muted-foreground md:hidden">
+                            {t("tableScrollHint")}
+                          </p>
+                          <Table className="table-fixed min-w-[740px] md:min-w-0">
                             <TableHeader>
                               <TableRow>
                                 <TableHead
@@ -923,14 +930,14 @@ export function DataView({
                             <TableBody>
                               {paginatedRows.map((row: any, idx: number) => {
                                 const occurredDisplay = row.occurred_start
-                                  ? new Date(row.occurred_start).toLocaleDateString("en-US", {
+                                  ? new Date(row.occurred_start).toLocaleDateString(locale, {
                                       month: "short",
                                       day: "numeric",
                                       year: "numeric",
                                     })
                                   : null;
                                 const mentionedDisplay = row.mentioned_at
-                                  ? new Date(row.mentioned_at).toLocaleDateString("en-US", {
+                                  ? new Date(row.mentioned_at).toLocaleDateString(locale, {
                                       month: "short",
                                       day: "numeric",
                                       year: "numeric",

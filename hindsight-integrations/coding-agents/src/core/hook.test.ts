@@ -71,7 +71,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(result.context).toContain("Automatically retrieved by agentstratum");
+    expect(result.context).toContain("Automatically retrieved by ContextBase");
     expect(result.context).toContain("REFLECT_ANSWER");
     expect(existsSync(cacheFile)).toBe(true);
     const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
@@ -635,7 +635,7 @@ describe("buildHookOutput", () => {
     expect(result.context).not.toContain("200ms jitter window");
     expect(result.context).not.toContain("Auth tokens");
     expect(result.context).not.toContain("agentstratum_read_knowledge_page p1");
-    expect(result.context).toContain("Automatically retrieved by agentstratum");
+    expect(result.context).toContain("Automatically retrieved by ContextBase");
     expect(result.context).toContain("REFLECT_ANSWER");
     // The roster is cached for the cadence-based refresh.
     const cached = JSON.parse(readFileSync(cacheFile, "utf8"));

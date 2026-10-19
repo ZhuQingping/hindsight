@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+ContextBase HTTP API
 
-HTTP API for Hindsight
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -23,7 +23,7 @@ var _ MappedNullable = &LivenessResponse{}
 type LivenessResponse struct {
 	// Always \"alive\" — reaching this handler is the check
 	Status string `json:"status"`
-	// Hindsight version this process is running
+	// agentstratum engine version this process is running
 	Version string `json:"version"`
 	// Seconds since the process started
 	UptimeSeconds float32 `json:"uptime_seconds"`

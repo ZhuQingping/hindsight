@@ -35,10 +35,11 @@ const page = join(here, '..', 'docs-integrations', 'coding-agents.md');
 
 // Kept in the doc page's frontmatter rather than derived, so title/description stay tuned for
 // search without touching the README's own heading.
+const displayName = JSON.parse(readFileSync(join(here, "..", "..", "brand", "definition.json"), "utf8")).display_name;
 const FRONTMATTER = `---
 sidebar_position: 6
 title: "Coding Agents"
-description: "One Hindsight memory plugin for coding agents — per-repo memory banks built automatically from git history and past sessions, injected into the agent as it works."
+description: "One ${displayName} memory plugin for coding agents — per-repo memory banks built automatically from git history and past sessions, injected into the agent as it works."
 ---
 
 {/* GENERATED from hindsight-integrations/coding-agents/README.md — edit that file, then run

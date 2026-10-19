@@ -1,0 +1,3858 @@
+{
+  "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
+  "input_base": "960983bb45fa2559e69ec88f7ff528676a280193",
+  "integration_delivery": "530a630641c7fe5ab274e510e5551eb24e99378b",
+  "integration_source": "5d350568ae3d7537e452999cb6d0fae86b64563b",
+  "counts": {
+    "generated": 473,
+    "manual-adapter-or-workflow": 33,
+    "delivery-documentation": 9,
+    "brand-authority-and-ledger": 4,
+    "initial-prose-template": 8,
+    "tests": 19,
+    "lockfile": 1
+  },
+  "entries": [
+    {
+      "path": ".claude-plugin/marketplace.json",
+      "category": "generated",
+      "sha256": "04d3a6e7220cded602bd3f6524b924e1e59325af8c4a16f819cc3bdaf230ecf9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": ".env.example",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "95e9362cea304b2c5fa7b5315e5ad1586da77ccfa855733c887954abe190b613",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "701351a10fb719a5ce63eb1641e060431ccd9d5f9c0ec5e224eb0543e6014b41",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": ".github/workflows/test.yml",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "953d4982ed9a5e3eb2dda301f0d969413dbd9d76044c3d2b5dc67a7df8c446f1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "CLAUDE.md",
+      "category": "delivery-documentation",
+      "sha256": "68627e359ba89a3115bd4176ea018b0f6e3a09b751f1222b0878bac0c372a0a1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/GENERATED.json",
+      "category": "brand-authority-and-ledger",
+      "sha256": "374ec0bea8e887a208c18cb1bf5c5e6722a5ceb53c9db7f97314b189a02a10e6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/README.md",
+      "category": "delivery-documentation",
+      "sha256": "bd79665baa2765095df3afe80235080c7b64f7e86010e2eac181f5e5199995a2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/definition.json",
+      "category": "brand-authority-and-ledger",
+      "sha256": "d767c19d46633d1252a4223946ca2ccefdf547c72f489da53a9bc93f88ea8df7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/identity-contract.json",
+      "category": "brand-authority-and-ledger",
+      "sha256": "9b0cd3a2534727fa4092633e6e0e689f0be5cc3d58582bb31d1ce81c183f94ca",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-1.md.in",
+      "category": "initial-prose-template",
+      "sha256": "5a48cb5af6e4f69e2f8da92011898a12a985b3e778749bf41c24c297b422e73d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-2.md.in",
+      "category": "initial-prose-template",
+      "sha256": "a372d6ae79efecc5566e17cba8176610e82b2a4644e100e31306124e95aa4986",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-3.md.in",
+      "category": "initial-prose-template",
+      "sha256": "d10adaf09e942239e4971542868c23bf3c2e4e8e1e93b5af302e4ea17324c465",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-4.md.in",
+      "category": "initial-prose-template",
+      "sha256": "bfb8a4552824b0175ecdabe939d76c26616f0fcf886de1e0018b0ff6b7dd4675",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-5.md.in",
+      "category": "initial-prose-template",
+      "sha256": "71b49f5786f757589c3614293a9257abb0355c61aeded9ad388704ad467e7733",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-6.md.in",
+      "category": "initial-prose-template",
+      "sha256": "6ed7127c2971cf744dd0ce7f556d7a7ddce997ff95ce639df0e000a875fd696f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/client-text-7.md.in",
+      "category": "initial-prose-template",
+      "sha256": "6f5d428d782dda4aa44dbee0516c1ade7d65df12e9cb8c428c712310dd957e2d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/templates/install-cli.sh.in",
+      "category": "initial-prose-template",
+      "sha256": "68606fed309d240640a6f73e2f81ab77e5b3bae51fb86284148a675aad7864c0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "brand/text-targets.json",
+      "category": "brand-authority-and-ledger",
+      "sha256": "838e2804927509b954004fad038074ea25aaf27b038006bb3616fd61269dbf1b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/INDEPENDENT-REVIEW.md",
+      "category": "delivery-documentation",
+      "sha256": "237ba3460620f5a51af0d9172b8454bd2fde5265282d7b505b4fa442b170868b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/INVENTORY.md",
+      "category": "delivery-documentation",
+      "sha256": "713586c3b0879c1046140ac0a495948a7e2a5aba50e1cbe3936d1b8aa071715f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/NAMING-MAP.md",
+      "category": "delivery-documentation",
+      "sha256": "c87aedf4d402bb445ea0af516fd2380b576792d9f1398642375c47f7f0df958c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/PROGRESS.md",
+      "category": "delivery-documentation",
+      "sha256": "ac134eaf727a58cb9cdb85f9265d54ecfe3c8d32ace848ac2412991dc2b7f6ac",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/SESSION-ACK.md",
+      "category": "delivery-documentation",
+      "sha256": "03618a8882ba754adfc7c31cc8958b0a9728e8699ee1d6d60ab80ba8aa70ab77",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/STATUS.json",
+      "category": "delivery-documentation",
+      "sha256": "5d63600a43e76e552b067e91e722447b471ca1c3881e99a2925a63f2b801f183",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "docs/contextbase-naming/VALIDATION.json",
+      "category": "delivery-documentation",
+      "sha256": "3afcd03a54cc391a4febeed3362f57990ea49386e35e13054161ee60501e9686",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/api/http.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "8d96c11f51701e19524ccefc27663b77a7ed7979e8dd548ac6a5ebc1c9d5f710",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/banner.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "96eb01345458381849a35a00be4cd99dcb7db04d3869e2fd081666bcfe7a8fe0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/brand.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "733b0a6cb607ae3166674688e8d29bfc600624b3487d2068e0d2e27db3341780",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/brand_defaults.py",
+      "category": "generated",
+      "sha256": "545d70ba3f4241cb45fe39cc54eebc6aba2713c61597ac07c2a38ca78bc9d98a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/product_config.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "345738bf1c0067d3f7bb131320f45fe1dd3bcae46cb0d0d6a816a4b92768c4b2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/hindsight_api/worker/main.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "fe2b0fbfdfe1ab52871801a71c3184979c89ed879c44d57f3640b40991199f87",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/tests/test_brand_identity_layers.py",
+      "category": "tests",
+      "sha256": "a44d9050cc04ac90584acf69e1760659161375953a757d7d4af0ed27cb2d13d1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-api-slim/tests/test_product_config.py",
+      "category": "tests",
+      "sha256": "9e9087569a9ecbe16cc8822ac59c9cc9ef1c23292ce1a73164ab07f391c9b25c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-cli/Cargo.toml",
+      "category": "generated",
+      "sha256": "640b9f657ed172d523dfdb71752cc3665420b19932eb37d4aad686e55fb5e908",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-cli/src/brand.rs",
+      "category": "generated",
+      "sha256": "8dd862311cbf5c71b948011b2e8452d2a67e537b124c3507aba3937f0abc0c38",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-cli/src/main.rs",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "8d72a3613603ad0dd23304a8081272dffe24190a348718530ac6cb48cef88ebb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-cli/tests/integration_test.rs",
+      "category": "tests",
+      "sha256": "9485819214b3d39451c20ccd85a5a853b876610cb80ad8f4d1465af242e48fb0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api/openapi.yaml",
+      "category": "generated",
+      "sha256": "4ba52a3ba02acc38b74148e4ad827bc397bd6276cc817c580226fb1af2ebb547",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_audit.go",
+      "category": "generated",
+      "sha256": "599424efa662dbc58fcb07c3b41e9361ec7f7c6e5a0f4fa013ec1109f48326fe",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_bank_templates.go",
+      "category": "generated",
+      "sha256": "010dd7ecda32bcd1a7109b3e29376dc5af02e69199f818e9d972ce558f949380",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_bank_transfer.go",
+      "category": "generated",
+      "sha256": "c95f4b0405b49987f1d07c782686a4cfc651a8a3eb78b8eac16343cb358f2474",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_banks.go",
+      "category": "generated",
+      "sha256": "bbdc40b91b274c57e0ddb47176d322dcab57da8e9433b64d1e8e135b1d10b46b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_directives.go",
+      "category": "generated",
+      "sha256": "fea6a44b4daf9c33cae71d3f7cef27302dea29eaa79b0e8c1e835679aa4c331a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_document_transfer.go",
+      "category": "generated",
+      "sha256": "9753168f71e154d7b41d6769b73d02a156156a8f98b6fc27b8b744ea6a2474b3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_documents.go",
+      "category": "generated",
+      "sha256": "8dfb3b8ea83fbd44fc2e75dc0d628b75bdf6962dcfc0b442bacc92bf4eaeb78b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_entities.go",
+      "category": "generated",
+      "sha256": "3ebb83f9fa2a25a2ce2bb9d541e1cda9fd5873ae0c3b09b0185194b38afbec0a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_files.go",
+      "category": "generated",
+      "sha256": "ef10151d08ebb38b6cd6d7fd2fc7953da8927ccc9bf4659c930cfd7d86a2fa29",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_knowledge_base.go",
+      "category": "generated",
+      "sha256": "400181fa181bd03e53aa34d893e3607d5cfa189c0b0c027449020dba4984411f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_llm_traces.go",
+      "category": "generated",
+      "sha256": "2b285f829466492a71df32e04903e7a79c12fc1194f57012ae4f68ed5d083814",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_memory.go",
+      "category": "generated",
+      "sha256": "93d8484b1ae3487923e6a874fa26ccf840964652c81ea10e0216ea4d0f20e8f5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_mental_models.go",
+      "category": "generated",
+      "sha256": "b7a7bbb2d5bf5b6b46361ce0bdaa82558da95c51c61b5dbf4783670702a0b393",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_monitoring.go",
+      "category": "generated",
+      "sha256": "f95784e87233053da31790f1332b9a9ffec8c54d026e58beab310c4ee2aa879c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_operations.go",
+      "category": "generated",
+      "sha256": "04ff4c3c193da1046b7a31fa777293f5dbbfd7d277b87176bafd36f533c0c233",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_product.go",
+      "category": "generated",
+      "sha256": "4f186fbe5084fb4deff5ec3edeaea8208be1b30a0dca602cc2a068fcca37f5ab",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/api_webhooks.go",
+      "category": "generated",
+      "sha256": "ce43a02631a3a096828812e6b04e26029dded6fcc210668771ec3f47e9dd1e40",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/client.go",
+      "category": "generated",
+      "sha256": "434c54f9a10d4b8b235c18f2742970e34eb00d7b9409a2d255b8fde3ac9809c3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/configuration.go",
+      "category": "generated",
+      "sha256": "06b74d7653fd68012705ba69bbbf73aa732c90c67f5c3330255c987a1091b87b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_add_background_request.go",
+      "category": "generated",
+      "sha256": "67b8ddf612b7b2877fe5dfae50d5c483762ac8800935e989a959ad54ce8646df",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_async_operation_submit_response.go",
+      "category": "generated",
+      "sha256": "bef04989f6fe32af1954d7964e375c42139379b39d8f53d093b0c0392d530aa0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_audit_log_entry.go",
+      "category": "generated",
+      "sha256": "47607eb79b5c6262154b2dbec5c41a119667580ed53d8e0d35299c9c14ed6ca8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_audit_log_list_response.go",
+      "category": "generated",
+      "sha256": "3db39df7fa920b0f30f459860835f8d18c064b9b1a402def1f1bcba628f69c70",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_audit_log_stats_bucket.go",
+      "category": "generated",
+      "sha256": "5b30ac0f58333a20d60857fafd3c3fc8397d26c5bc284c786a65a813431c9434",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_audit_log_stats_response.go",
+      "category": "generated",
+      "sha256": "c7aeaf93870e33b26a1e1576703f30d2af6646bbe09d00d2a3548ab93d468156",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_background_response.go",
+      "category": "generated",
+      "sha256": "c9f6800e39314755309eaaa156ade00a977b5c75acdc32600c8ebdccd803f9e5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_alias_entry.go",
+      "category": "generated",
+      "sha256": "a50940e75ddc05712d7a3a70b2e457acf3559731a7dd3d495c338657d0ee1b82",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_aliases_response.go",
+      "category": "generated",
+      "sha256": "036014bc4fa6ff940d72c7caa08a1fd933a2eca3088b600a11a714d4b248fb70",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_config_response.go",
+      "category": "generated",
+      "sha256": "297129acc903374b55d9ba12b020b3453a2d459151d7c5102ae4b04900873fa2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_config_update.go",
+      "category": "generated",
+      "sha256": "5df45e4bd778c2c96cf4f484d6c3bb8740cae800f3cc3c97417adeb1323d26ad",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_list_item.go",
+      "category": "generated",
+      "sha256": "e0149852738b07a4c24382bb2fb6c999f4e7a76dd3618dd637363be20e07be2f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_list_response.go",
+      "category": "generated",
+      "sha256": "584fa69770c80f1025178c0ef113a2d4e80f4e2654aff4eb65d32e8f923608ab",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_llm_health_response.go",
+      "category": "generated",
+      "sha256": "5f679eb8f30abac57d85476deabeaf5225e493847cb76bb78b626dd1275b892f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_profile_response.go",
+      "category": "generated",
+      "sha256": "f576d3b8c71357e16b95af3dc5c01385961b3755ec28efe84b29888e8b74360f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_stats_response.go",
+      "category": "generated",
+      "sha256": "f5f0aef55e03da505b37a505e279449b83198a9fdc864afc5feafc193a1dad03",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_template_config.go",
+      "category": "generated",
+      "sha256": "93cdedca3ace4dd5316b06a0dfcbbbc380c8478afcc38f21bbbb56d095068273",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_template_directive.go",
+      "category": "generated",
+      "sha256": "af9d41586c1680dd6b4a3d105d75a9c40edc9ed5a6ec230397f683f6346a4811",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_template_import_response.go",
+      "category": "generated",
+      "sha256": "e26241a8bca979e7770361f442212925172075d3a9d5b4232fe3477923091685",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_template_manifest.go",
+      "category": "generated",
+      "sha256": "b068723dc7aef1f7ff132b6350226d768993c1bed25641c308debb62c9ad6c3a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_template_mental_model.go",
+      "category": "generated",
+      "sha256": "e803f6ead027c808e59258f61c6895ef75e13606936a405c2ed8c71264e54fdb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_bank_transfer_submit_response.go",
+      "category": "generated",
+      "sha256": "4fda54056407186ae4b2273b8db5ea03e0776da5a7f598444a02e211af4e761e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_base64_attachment_source.go",
+      "category": "generated",
+      "sha256": "0b1fe711733837f11d28a5127dc148272676fcf9bbd5ab31d586b077da2b142a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_budget.go",
+      "category": "generated",
+      "sha256": "6ca4b3954f68ad84ef7de2bdfcc991aaeae04462b6384b56b8a5d3af0353213e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_cancel_operation_response.go",
+      "category": "generated",
+      "sha256": "33dd4b77727c879c47a90ed481fd951a52c930c3c5eb8d00d90c12ac4e660df9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_child_operation_status.go",
+      "category": "generated",
+      "sha256": "b657c765aed27555bb5c8ede6834655cb68aa49d7bd3c77c69d298a2086b7b14",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_chunk_attachment.go",
+      "category": "generated",
+      "sha256": "81cc9a3bb6db29d5ab47d576caa8b446aa5818b50c3070c646205422d09bbfb8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_chunk_data.go",
+      "category": "generated",
+      "sha256": "7407cfe1083403160424468dbe5b16d35a8f6353b7d0ca6e4489a952079bb51b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_chunk_include_options.go",
+      "category": "generated",
+      "sha256": "c8c89654bb74185ad53069bfd63640e5a12f51ee6ed59836734ef7c9d2dd5346",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_chunk_response.go",
+      "category": "generated",
+      "sha256": "d2688d01a4e73215c95de4032f10a006a324a319b1f019db75e2f07616376205",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_clear_memory_observations_response.go",
+      "category": "generated",
+      "sha256": "0eacf6f6c8197c0012deb6f52ed30b04c32438a313ba3cfc22b733e879a488c7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_request.go",
+      "category": "generated",
+      "sha256": "115477708b9e43553a428be77f75fb13fd426fbc9b9580f198cdeb9b41457183",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_response.go",
+      "category": "generated",
+      "sha256": "da8773a73ed49b535afa2de3596a1bd4fe700c95ebab6f05083c1285f9eda3b4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_scope_pattern.go",
+      "category": "generated",
+      "sha256": "64540d4702005c093cc79a34e4689d8404b219ada3cd4c5d46a382c610a0ab31",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_strategies_preview.go",
+      "category": "generated",
+      "sha256": "e1791272819cd3edef403505acf251380a07f0d3925662ef4a12b31040e43440",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_strategies_preview_request.go",
+      "category": "generated",
+      "sha256": "81dbdade00c11a9811dae0fef61574ce5f3bf79195c5eda8e684c7237a2f9899",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_consolidation_strategy_spec.go",
+      "category": "generated",
+      "sha256": "8c793a78f83e4ef6ba8dd428b47e9df02c84bb50864dcb6219bfad1c8d771a33",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_content.go",
+      "category": "generated",
+      "sha256": "d5edcf6502b01d1c576a53149e04086f4d989f2814ef50285c785a528ebf4997",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_content_any_of_inner.go",
+      "category": "generated",
+      "sha256": "c5ea9d646f835d3594dd8651511d87f24dff3a3403246a1a9aa01d36d2126d6b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_bank_alias_request.go",
+      "category": "generated",
+      "sha256": "6c938e47cfc816b585ab16ad7d2875b0f673ab5bfa840a500ba3e37471bf4c43",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_bank_request.go",
+      "category": "generated",
+      "sha256": "97da1702a5157b18f027f0eb1054c94fe8a1a309905eb1e77464d7371fae0cc6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_directive_request.go",
+      "category": "generated",
+      "sha256": "922d9f9decd7d54dd2d80a404e7fb66d9571967ce9c86ffb7e3e6023235ee605",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_folder_request.go",
+      "category": "generated",
+      "sha256": "e40c9a74b34c7297f9d577c143bd7adddff0c229505ffe8fe9897d7a72d42e63",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_knowledge_page_response.go",
+      "category": "generated",
+      "sha256": "24153a9bf21ad21c5bf0bea9c1e2befd77ad2f62a11b71a930bf0a34e8c7a498",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_mental_model_request.go",
+      "category": "generated",
+      "sha256": "1053b488f889e056f24fbd33afc098e7d01330d97e7e4c5e580539c2738bfebb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_mental_model_response.go",
+      "category": "generated",
+      "sha256": "4c7e207d58b88ce6e54b34f3d157f431acb9249094cb42521375b9b6e30588a1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_page_request.go",
+      "category": "generated",
+      "sha256": "0f23aca865dd49a4f51169ddf39925463c0118bdfbbe18b6ea1b4a132a91341b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_create_webhook_request.go",
+      "category": "generated",
+      "sha256": "be3a67f8fcbdfd36e27cd22cddac7edae4453c2a17943c617a51db2757a6ba15",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_default_scopes_preview.go",
+      "category": "generated",
+      "sha256": "f4233663472e94759b39914894aabfcbfbb35d67f7a815f18136633d42c56aee",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_delete_document_response.go",
+      "category": "generated",
+      "sha256": "4eb8d0dbdfe5d1cbcd565499ec55a7c45a0fd4b07c9405874918bb305baf4b3a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_delete_operation_response.go",
+      "category": "generated",
+      "sha256": "794bfce79675e7fc716561727f42e8f6d21a5bc5de78e91b492e5a88603239a4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_delete_response.go",
+      "category": "generated",
+      "sha256": "02e2fb8ac80a20032a7c7513c5c6188a03f5e7ccc29fb91135fdd0ae53618f33",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_directive_list_response.go",
+      "category": "generated",
+      "sha256": "e05183a1a79931b8315f2dfd0f4ade0a3c46f27e374c89c7db7af69364731b06",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_directive_response.go",
+      "category": "generated",
+      "sha256": "d283f2c665284b4679dbf1e1e7f200df7609383aabad7535a648bb75fa4cd2e0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_display_config.go",
+      "category": "generated",
+      "sha256": "6637d15b95374c89d81ec24ffd5fd4f5ecc0fd48be6301e066190aac415dffb0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_disposition_traits.go",
+      "category": "generated",
+      "sha256": "0f7043632df75504f96b46c19a815d055fd02115991ab4735324d07290e42e16",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_document_export_submit_response.go",
+      "category": "generated",
+      "sha256": "6198910a1243228313b20a4ee9b9cedb93f3a4f00827b863da216100ed4cdbde",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_document_import_submit_response.go",
+      "category": "generated",
+      "sha256": "d37b9f2aaf1864d7fe494c24dbaf4583a13f0f83e8474f400b6d6c4f62b0f476",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_document_list_item.go",
+      "category": "generated",
+      "sha256": "784eaf1ef9be905f10887b6cd09bc7cbe46253d5f056815a8a5581277dc825bf",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_document_response.go",
+      "category": "generated",
+      "sha256": "71ca4b0c618d4018dc49825825e06f6ef33f28452058a01053f023f5d88ff509",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_dry_run_extract_request.go",
+      "category": "generated",
+      "sha256": "af6d0cff287e10157402a12d7c498c2bf3d43ee5908af41d012650366f278390",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_dry_run_extraction_result.go",
+      "category": "generated",
+      "sha256": "c67d7cf0e3d8ea7f7aa15c880b7336fa07e3ac70af4936c33dc296c02da61b4b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_detail_response.go",
+      "category": "generated",
+      "sha256": "3ca05d05ffe6c2b35818a74c02830edc8aa7e1b665c31c4f8394c01b785223ee",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_graph_edge.go",
+      "category": "generated",
+      "sha256": "5627b6b856fa06287e89f87825da624b190b6706798c107f2c5772bec71e3899",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_graph_edge_data.go",
+      "category": "generated",
+      "sha256": "1273a75b3ac061df43da6bfdd05d2461313fb3fb963a87b7acd2bdd393c32e91",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_graph_node.go",
+      "category": "generated",
+      "sha256": "be20b16718be509f4ff5531f3b687cd0784963e1d2eb4ca79ef9b83510f68a10",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_graph_node_data.go",
+      "category": "generated",
+      "sha256": "849322a2f237706777da9eedf5c99d73acee90805039b7b909b53ff2cfd536c7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_graph_response.go",
+      "category": "generated",
+      "sha256": "d9af3e2ac0f1e735534b1c316263de9239ed17bdee9cb1dedbc4640a04bdac99",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_include_options.go",
+      "category": "generated",
+      "sha256": "fd532d7129f3f88aeac657df54abb59ebe22d598f2f158b8c2c82bcc114ed52f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_input.go",
+      "category": "generated",
+      "sha256": "b1c5b48fb17d1cefe709af1b29a303266f73139c5f4d81ab8bb1dc7679914b52",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_list_item.go",
+      "category": "generated",
+      "sha256": "0d8d06462a8a6b5c6f1cec1ac14b72e8abdba2187a1040c2976815edf596b360",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_list_response.go",
+      "category": "generated",
+      "sha256": "8ae1f25222a412e97aa58c2aaf06ad106dcd9bbf0d0d1d7c3756297340cb2450",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_observation_response.go",
+      "category": "generated",
+      "sha256": "28e228d3049f2d84f170780ce6a3b841ea1fa7a4c0a2cb04f287f414b8b70f8b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_entity_state_response.go",
+      "category": "generated",
+      "sha256": "934e36c757fcdb796da6f4019107166e10f0c855ff5eb7111c6e9c8479223f84",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_extracted_fact.go",
+      "category": "generated",
+      "sha256": "9c535fccc5a26c4b119c39b28b648c41b4f1acab9bf459a574566cba10854bf8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_extracted_fact_attachment.go",
+      "category": "generated",
+      "sha256": "7577ad2ec7be599b339305c6051d8ee432f3a65ad15b1ef0b74b0da1e7a58d3c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_extraction_chunk.go",
+      "category": "generated",
+      "sha256": "f55050a86cd28e1b3a04e43e7f6fc9c1d8c9273d75859493a0436c02e9731fa0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_features_info.go",
+      "category": "generated",
+      "sha256": "a59c51e24afeaa18b05334827e09b1e4ccca0be37994c4bd4209b3c8e7342515",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_file_content_block.go",
+      "category": "generated",
+      "sha256": "12931dfe7087b05566727c2500be8d9a016293325c88fc863df6c913f7a0ad57",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_file_retain_response.go",
+      "category": "generated",
+      "sha256": "0e2170bc594bd614f12cc0e4d616cfd09fce87412f8e92ba16085bb43a5ea3bb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_graph_data_response.go",
+      "category": "generated",
+      "sha256": "76cc037c7e7148c63758c2b35b21e649265c7cddd33f8af45ac7c94ccd70801b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_http_validation_error.go",
+      "category": "generated",
+      "sha256": "bd6a0413b61c25c311ca3686e963b97d237bb99b793317d5b25378a9aa146fad",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_image_content_block.go",
+      "category": "generated",
+      "sha256": "fad011c7343a7f4ed52ba9043806a58f6c0ddc781e07066d71752a57f25cf23e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_include_options.go",
+      "category": "generated",
+      "sha256": "43d98eae290da975130005874deb24ceef99480168528481cdefceae36eb8ed3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_node.go",
+      "category": "generated",
+      "sha256": "8b3271fa5fb5d85ed625722dc4cbcb01fa6ba37aa94e35e2a6593f84ecd3bf3c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_page_bundle_file.go",
+      "category": "generated",
+      "sha256": "00c988ccf07ac2576499a679d32f67b35130acd6771f6ae7fab26880a0a14f03",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_page_bundle_response.go",
+      "category": "generated",
+      "sha256": "a90bd3ba5eb390f6dd8830c1e07183030c974f6f24477d8bf50a1568a8d51b10",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_page_response.go",
+      "category": "generated",
+      "sha256": "76565bf874c63a9d662294459a3be285853c095fe343827ef788d30a6e264ffb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_page_search_response.go",
+      "category": "generated",
+      "sha256": "c613bb80710c6db5f41e92a2cfe6a0f2c865dfad36f09eefced4742544033477",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_page_search_result.go",
+      "category": "generated",
+      "sha256": "d7342d9b16313b1bdecb6e707a78c45f1d7b08e45c8ad96793caebc499826953",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_knowledge_tree_response.go",
+      "category": "generated",
+      "sha256": "078ff9cd57945184ef176a5b6a0344723526b5c1c38f6d02cb980c5a2e80bc7d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_label_group_input.go",
+      "category": "generated",
+      "sha256": "4684d1d1c2813209165be73964a229a8f5e0a6dd031b77c1a855f6c90ae2f214",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_label_group_output.go",
+      "category": "generated",
+      "sha256": "48f4e6f14d4803360a633208c404c653cd19f540f4b2a2767f0f3567e8768c59",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_label_value.go",
+      "category": "generated",
+      "sha256": "a43e28186d1d74b51c550eb47e99a56d266b2f45bf84f1ff1750f54f4a35f187",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_list_chunks_response.go",
+      "category": "generated",
+      "sha256": "61df741cdf9b1b3b10c50087564069c54d9b09c6ff60d03c5f30aff717fc59fa",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_list_documents_response.go",
+      "category": "generated",
+      "sha256": "814378c82bbdf9f405285b5693499752abde5e07d7564871cee64eec1acbf465",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_list_memory_units_response.go",
+      "category": "generated",
+      "sha256": "99e6c81d3eaee95c954fccd7423363053b53af6f8dcfda8052b580e12113ed9c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_list_tags_response.go",
+      "category": "generated",
+      "sha256": "120b76094a938bebbc52db683c3ae43754f3c0563048c011ad49d79ddda42fd1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_liveness_response.go",
+      "category": "generated",
+      "sha256": "1f0f7242741cb438bc7386b98377363eb5187b9a2d40e95a0bc84bf18fdbfbfa",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_call_trace.go",
+      "category": "generated",
+      "sha256": "87d47db907298353daffad9c80380bf870663495957fdf2c98b6972dfddbe40a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_operation_health.go",
+      "category": "generated",
+      "sha256": "4a84a9226178983939f28b593b82b660e54b250b3f387cbcce46c808864a0666",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_request_entry.go",
+      "category": "generated",
+      "sha256": "19b779ee8b820a879d0c7743089bce5a593c4be4cd25bccdf58ea02b6fa25f52",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_request_list_response.go",
+      "category": "generated",
+      "sha256": "d5d6605a452e7fa458a49549692b941c8148762153abd99e45036b32053664ad",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_request_stats_bucket.go",
+      "category": "generated",
+      "sha256": "b579917876df7fa9b45aeeee696fa0dcfc0ce2184cac7a0165b4eea050bff410",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_request_stats_response.go",
+      "category": "generated",
+      "sha256": "518bab6aca6f312080cde4dda6dc966b52ccde15eedb633e7bd41d2141092936",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_llm_request_token_sums.go",
+      "category": "generated",
+      "sha256": "0f7df685d72a85e9602944309cb5f4605b6905d95bdbc344a855bd149206b79f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_map_field_input.go",
+      "category": "generated",
+      "sha256": "e06bee78c818ac96629a069fa756c104a299dc577752ac47a770dc3a0ba30d36",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_map_field_output.go",
+      "category": "generated",
+      "sha256": "412bd63eb40c0ed6feb35ce9329b0782cd013be8b3f789fcea3fea204e151a85",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memories_timeseries_response.go",
+      "category": "generated",
+      "sha256": "31b72e417d822e20e1c490719039de29edc764a269d27ad1ea275629c5d66da8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_graph_edge.go",
+      "category": "generated",
+      "sha256": "2ef53b34ca2ba6b87a2df8ff7111b8a833e9a1f879fcb38bf0379032d673fb17",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_graph_edge_data.go",
+      "category": "generated",
+      "sha256": "b2fa929399d571b282f513d9f3df5996c6af6183c7b3c6dcf99ec1d4afa87c85",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_graph_node.go",
+      "category": "generated",
+      "sha256": "ac24987e62d048a266fe74cf805932d2ae4476f70a195023c5d4488f45f7d51d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_graph_node_data.go",
+      "category": "generated",
+      "sha256": "b736c19a79342efdf4058b0f928aa07b71200090ce7699b48e9efa35d5a0c49a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_graph_table_row.go",
+      "category": "generated",
+      "sha256": "1f509326e0dccd114adc12dbef4ead26d244a9f68ed459a35c145d2049e7dba6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_item.go",
+      "category": "generated",
+      "sha256": "db72f0c07ac2cd104d44b74e5f50c60271f7cea40672327f2742517a956a7592",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_timeseries_bucket.go",
+      "category": "generated",
+      "sha256": "311aa184848a8fbae0a9dd272710e006b1d552d22f11a638d886f37916c77337",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_memory_unit_list_item.go",
+      "category": "generated",
+      "sha256": "876879af82a9587163a0dd2083a77584e0da46fa4c2904a65bf910a55e8052f0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_delta_operations.go",
+      "category": "generated",
+      "sha256": "4d1e3bc7c01d84804408aa3b48c8beec232c12395b4a71d2a689effb33a87d3b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_dry_run_refresh_result.go",
+      "category": "generated",
+      "sha256": "af00f830af14c714c23c1032635e24474d70296a455ca9ee54576fce033b5267",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_fact_counts.go",
+      "category": "generated",
+      "sha256": "b4715a779e794c824ae429ab400ab2076347404a60f89cbc61945c11bf28c479",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_list_response.go",
+      "category": "generated",
+      "sha256": "a3ffdfb16a3e7f33cfb20fb70d745aeeea30e8bfe1bc6530bf31e9d596e25811",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_refresh_scope.go",
+      "category": "generated",
+      "sha256": "1539df9d0d38f23e8ac518b9e6b57769d57845956c424c02f9d47db3ca644a53",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_refresh_scope_tag_groups_inner.go",
+      "category": "generated",
+      "sha256": "fceecc5fb92ba934174b6d59233e0d6b2b9ceaa1fb06f9b7a7a90c68a1edd8c2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_refresh_trace.go",
+      "category": "generated",
+      "sha256": "43bc75a0f959c71b5fcfc559c0ab41e50b3adf5dedcbe7105324be38e2207456",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_refresh_window.go",
+      "category": "generated",
+      "sha256": "500cb141f515e9d4f5fdd4b75659a08f75be2c6cfe3931f06ccbef52ec5ebdc1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_response.go",
+      "category": "generated",
+      "sha256": "204ece553fd223eb15159d32012dd77110879ad19d20b48c57ad6d96024a6b4b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_retraction.go",
+      "category": "generated",
+      "sha256": "3c5b78096da245e18eca2b5f77ec11f2806c4cefdb177560fb39d42268fa32d4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_trace_tool_call.go",
+      "category": "generated",
+      "sha256": "94ad5ae7941a786cea1ec85dcc55709953c485d3c528df66fc173a8d264ab5a4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_trigger_input.go",
+      "category": "generated",
+      "sha256": "38c2a5855124af08310d7c22d8751bf3f55db856fa9ac41d438b26be5022b584",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_trigger_input_tag_groups_inner.go",
+      "category": "generated",
+      "sha256": "f85373843a80fecd6b5213559dda40dfb5065f272538d6f6f93df29e4af1fe71",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_mental_model_trigger_output.go",
+      "category": "generated",
+      "sha256": "22c9a535b6709cc79ff628a2e29b03292f371753db8ca71b9a6923e8628b29d3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_min_scores.go",
+      "category": "generated",
+      "sha256": "a383b383812c4b1e797ba4b0418b1e75d73cb93a04e55d3757a219440f3f3832",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_not.go",
+      "category": "generated",
+      "sha256": "fb3e2a6a43797b977f3987685bdface1c75b7ecce9178b161620c1fc764be6d7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_not_1.go",
+      "category": "generated",
+      "sha256": "0e1297152b6e0e54a7f50c9367b1a0e7cb4f1ef8c8064f8e41b94428dcf93ee0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_observation_scope.go",
+      "category": "generated",
+      "sha256": "6cad8686c465d7d760f9decdaedf69e1bd3fdc33e51db1d81f59cbb2c04556df",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_observation_scopes.go",
+      "category": "generated",
+      "sha256": "f294e8a0fe844e1bed3e97416259e22ca95224d61956091cb0545b23ec802135",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_observation_scopes_response.go",
+      "category": "generated",
+      "sha256": "fdc045b9cb2a5f376c42ccd47f0cd184e641d2726975c221af39a7193e415969",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_operation_progress.go",
+      "category": "generated",
+      "sha256": "89d827f163094d2ba6710f8f255abc8580bf5fa0fc5523128d2bdd5172618ab7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_operation_response.go",
+      "category": "generated",
+      "sha256": "5ec3ad5d32fa5e3916338ba0fd3aa4484178602a8aa369f9c82c32a7149d73c0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_operation_status_response.go",
+      "category": "generated",
+      "sha256": "16c4a373bcfaf34a1fdfeefc766a96c4b5975ee03c3a3649c7c452578a645a1b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_operations_list_response.go",
+      "category": "generated",
+      "sha256": "c2fd6d2f4c8014f3cd25521ebbf09ffd95f707d10c560758497a0f45d9da6395",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_product_config.go",
+      "category": "generated",
+      "sha256": "1f16a0bd7e91626a4708652269d48fa843af5bb08a453a0df6bf390c5bdc0eeb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_prompt_block_model.go",
+      "category": "generated",
+      "sha256": "063187fc6d3077e301fdc11ce891d7ee171114cc9a962ab1a7d2374e26f897d2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_prompt_message_model.go",
+      "category": "generated",
+      "sha256": "50c7b3693e4e2dcde3f5f2de5fa23eabb7eace84ae0f47164070ffa7a207d32a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_prompt_preview_request.go",
+      "category": "generated",
+      "sha256": "e4835075db73f4c93fe3b7d141f831fa2d5b0e9a7fa9a99e41ee2d1c1df8ea91",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_prompt_preview_response.go",
+      "category": "generated",
+      "sha256": "51e9b3649378e0fcce10691df12813f4231d601dc8941fba0901e283efd2e457",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_recall_request.go",
+      "category": "generated",
+      "sha256": "5581a4e77c9e717876a24ceceeae4e6486f51747b370032bb85c51e30a2c93ba",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_recall_response.go",
+      "category": "generated",
+      "sha256": "3c86012bb6d12a312cef560325de3266038fbd3705ae4e3cf26641ea8d373987",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_recall_result.go",
+      "category": "generated",
+      "sha256": "53eb161d3d0187f9316c5316ce5c9b02979f051cdead19ae5bf4eedd234b3202",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_recall_scores.go",
+      "category": "generated",
+      "sha256": "f2c30e495d2dec72d67d086f08d132eab8b2caab5128b3fbc5ba937210d2571b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_recover_consolidation_response.go",
+      "category": "generated",
+      "sha256": "cfce46c3b0344f5e1da48cf78b69daf40ec7851e57b22472b1d6ce5af6cd5af6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_based_on.go",
+      "category": "generated",
+      "sha256": "2cacf2152b9fcfa00ffeec89e348d0bc40d38d2c07b329e85d37ccd376d4c273",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_directive.go",
+      "category": "generated",
+      "sha256": "9df89168f593298dc57992afdb709fb16b513123af75721f9af0c027e21d5d0c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_fact.go",
+      "category": "generated",
+      "sha256": "bb6407dc1bca980ffe66ad65d05ea80491e814ae3e548048964a7cf6523f2b21",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_include_options.go",
+      "category": "generated",
+      "sha256": "e6e6494993a8667ead27c737a7a98e09e97e1739da5f3a86439cf23b958edff5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_llm_call.go",
+      "category": "generated",
+      "sha256": "ac296cb3790e2d53d4c0b373def8d83b09c0bec0925510b153f7470d910f3628",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_mental_model.go",
+      "category": "generated",
+      "sha256": "dd746eeb716cef355da386f309933c1413ea2d064572b86b8d30d0cac1b27a45",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_request.go",
+      "category": "generated",
+      "sha256": "c7725341bb703111424fc54e11cfb5930eefe8ef3eb6f17739fa9aa21a046c6f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_response.go",
+      "category": "generated",
+      "sha256": "bf0b949da4595f93e4dde0073253a4c7762acae515c94643d040d4dbf886bc20",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_tool_call.go",
+      "category": "generated",
+      "sha256": "8ae748590ad6bc431c50c0c804b2df10d1aea945c142364881795c1919f74458",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reflect_trace.go",
+      "category": "generated",
+      "sha256": "8affae1cf152d400ac6f4901ad7299fed2e79991cda5ee5744dfb551825b5032",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_refresh_mental_model_operation_details.go",
+      "category": "generated",
+      "sha256": "62c2442dcea6cfc3214e4f834a23e129b271cb9f92308b30178feb1ae6e70ab0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_reprocess_document_response.go",
+      "category": "generated",
+      "sha256": "833740e007be6b4d0f4aa628d89ec8107245279583998fd0c34969d6778d5604",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_retain_request.go",
+      "category": "generated",
+      "sha256": "96c3553e5e3676aeba62be6fc1f192d4ca062e890f631fc8bdd0d556cd2e4560",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_retain_response.go",
+      "category": "generated",
+      "sha256": "72b75dc52b85e648ea41af0afbe8cda49b0758dc72727621a1c40cc3aa284c33",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_retry_operation_response.go",
+      "category": "generated",
+      "sha256": "8c0b01148e049917f04e72bcdc88be4ee2d9c9d0356ce349711cb52512f29dd5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_run_setting_model.go",
+      "category": "generated",
+      "sha256": "9eccc6028826df9ee927cf692a6957b8d9efba3b432841841690aa91c31af3cb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_set_bank_alias_primary_request.go",
+      "category": "generated",
+      "sha256": "3f1a5f01034834b0e4225210bf7932484dd00fb3d976669401342ce601492ad4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_source_facts_include_options.go",
+      "category": "generated",
+      "sha256": "63af9edfe0082378847d3a4e87050946cd2797393d8a591010632e5668e0b05f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_strategy_preview.go",
+      "category": "generated",
+      "sha256": "5bb31bb33657cedc22972ac89e715df589536710a8a6aa3676cc0ba01ab88a94",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_strategy_rule_preview.go",
+      "category": "generated",
+      "sha256": "0e529e6e0d9ed405444ad1954bded2f8d76149330c1c628165d1a28fbffbae6e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_strategy_scope_preview.go",
+      "category": "generated",
+      "sha256": "830bdc2be76ef3692520f860a98e9ea0ac324fc58cdea2b8d78960ad8f268069",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_and_input.go",
+      "category": "generated",
+      "sha256": "5853ca932fa2cd44d9c8779324600e0d4da6f1a3438594f95842bb9515277ac2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_and_output.go",
+      "category": "generated",
+      "sha256": "2980133935c70e05f7020202c3900458e68787f687a22a8c3ae65cb258e5edfd",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_leaf.go",
+      "category": "generated",
+      "sha256": "d52eb559401789be44dda16819329f48501cf3e53602efcb7f1067e58749cb67",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_not_input.go",
+      "category": "generated",
+      "sha256": "861642a7d57fe4b9928549502afb0a22393bc971756bd3d624253490bf37f792",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_not_output.go",
+      "category": "generated",
+      "sha256": "782adf645a4419e5eae02d8bc400f5030d081619722841f1db7bd57f50d62329",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_or_input.go",
+      "category": "generated",
+      "sha256": "91ae097e9667735c64085f4582a85578daf22030753b4b0ec49cb444980579e0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_group_or_output.go",
+      "category": "generated",
+      "sha256": "d26a6688c58331aa5c87ef60b589df30e5209af3acc989e0a61dbcef2af28257",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tag_item.go",
+      "category": "generated",
+      "sha256": "7f20f0b05ed701d38e61ae9f93b4abde2b761000c168616435e15929ef138751",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_temporal_window.go",
+      "category": "generated",
+      "sha256": "e16fee5c10d8cf5d903ed414a78a8f7ad89741665e35935ff899ca4cb444a882",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_text_content_block.go",
+      "category": "generated",
+      "sha256": "6157fc4892502b66aac8c364904e8243b3770b7e79eca122320e312ba1ba87b4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_timestamp.go",
+      "category": "generated",
+      "sha256": "c393331ca5159d9058cd582cf34d2e76ae59dd27f9c1a355504f96f07704803e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_token_usage.go",
+      "category": "generated",
+      "sha256": "61abbfc0d3e2867a728ee0a7af6435dae92af186ea497350a6cb73382bbba210",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_tool_calls_include_options.go",
+      "category": "generated",
+      "sha256": "6ce677828cd9c03689454b26c54403835e18bca4c30798a39d036a22b1da4754",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_directive_request.go",
+      "category": "generated",
+      "sha256": "08366317648c6a9033f95af0e43e56d3477e2fb4152d7fba4930f5b09ddb646e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_disposition_request.go",
+      "category": "generated",
+      "sha256": "f138bc26a06019d5637b90ffa2141c264106f02f710b643f0bf46e708f2e8ce3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_document_request.go",
+      "category": "generated",
+      "sha256": "00ac08f86c32601959d5b5a58dacd83a57dce31b3327fe6b47f50b9308d8f35c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_document_response.go",
+      "category": "generated",
+      "sha256": "807842e2e11fd6a9401129d9b26d4dca2576fdca4110f9fb9d715ebc882ee754",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_memory_request.go",
+      "category": "generated",
+      "sha256": "4239986b7b5f91fbbef262799b3bab0b1926ac8da64adffba03eb007bb29ba7a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_mental_model_request.go",
+      "category": "generated",
+      "sha256": "bcf5c97d336803cd66c8b87d11c1c408fed4dc115d2b169e3a8f221dfb0dede5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_node_request.go",
+      "category": "generated",
+      "sha256": "a376584cd5e82cb42cbbaf1a70004243e6697cfb29eea274658684616cd9387a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_update_webhook_request.go",
+      "category": "generated",
+      "sha256": "879f427b73f96ede44449cf451e459b74fdc7547b8a52a6575771ce3728fe034",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_validation_error.go",
+      "category": "generated",
+      "sha256": "ceae7e8bc5e2a550fe03f11eab4d5d456426226f9bf3a476e005e59142beaa8a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_validation_error_loc_inner.go",
+      "category": "generated",
+      "sha256": "76e6ab9543ceb632eb802a32a9b364cd7d881b25718197e66f97833bd89940ea",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_version_response.go",
+      "category": "generated",
+      "sha256": "659f806e903e7e50227494c7936f51aaee3198d1dec4a7f0105cc353980da804",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_webhook_delivery_list_response.go",
+      "category": "generated",
+      "sha256": "8b0d1d5a23da3a8a8576ab56b6281e58819e677cc500cce7c5988410b42a8a5c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_webhook_delivery_response.go",
+      "category": "generated",
+      "sha256": "e95c15bd46c758324a48f778dd7f9a219f8bc93f25050f1a649a5ecf6a7d0cd1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_webhook_http_config.go",
+      "category": "generated",
+      "sha256": "1685d4158df3a716675183bfd680c8c981e9d4d762e44b48bb8042bdf247048f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_webhook_list_response.go",
+      "category": "generated",
+      "sha256": "61452ad4a0b29a67e02646f6e03257f3da9eae545b8fbf0e9a99f65f9dd5da6a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/model_webhook_response.go",
+      "category": "generated",
+      "sha256": "179c5dec37be5e4841cdb117b40df7f1edce5a12a179cf8dd9cb2f2a4050791d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/response.go",
+      "category": "generated",
+      "sha256": "2e8a703276b3479d18100259b1d4085edaa71cdb86c320afbc9c592bd3a4014c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/go/utils.go",
+      "category": "generated",
+      "sha256": "e5f975e665384195b7e8f4085a545511a1a464bfc0a8839e5c8c1b7bf77cd634",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/.openapi-generator/FILES",
+      "category": "generated",
+      "sha256": "d4f7c67b22430d6c4ba6e85678d8640ecd436f601f00b2f243ae386827bb41b1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/__init__.py",
+      "category": "generated",
+      "sha256": "820a859e5958ba2acc23f9c71cd6a6f4270da003f295858693d6a21b3415b0c1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/audit_api.py",
+      "category": "generated",
+      "sha256": "a9b8f45abba864741206ac4adc3923844b856e79522df92a408bf63f419da614",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/bank_templates_api.py",
+      "category": "generated",
+      "sha256": "8d30d6412a7e223fcc3365aa806e71e0939592daa10a27883b43e6ef745b2d79",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/bank_transfer_api.py",
+      "category": "generated",
+      "sha256": "09f7893b1682e0f50527515a144eb93eca7b6a400b407e1b5de651d0a3081731",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/banks_api.py",
+      "category": "generated",
+      "sha256": "a36df544c13ae5f5df9cd1390f96d23be0dea7d4a05212d9f669eb0c24882a89",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/directives_api.py",
+      "category": "generated",
+      "sha256": "9919b6a8d57622f93e488774df7629bb1759755ca65881c4c0eb05ede6a69f00",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/document_transfer_api.py",
+      "category": "generated",
+      "sha256": "0c56b879ae6da77d6a2a79806e2a8eb90115060156e7a20fc89ab4238ef8a2ba",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/documents_api.py",
+      "category": "generated",
+      "sha256": "71f4cf4f46ca068f9e231a1ba4494ddf0ec4d1df861f1e0cd409a568a5f8851c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/entities_api.py",
+      "category": "generated",
+      "sha256": "89dca55693d2d861812251bdad3c950ca2ebfa6ffe1ea1bcf1a00c8b62a6fcc3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/files_api.py",
+      "category": "generated",
+      "sha256": "8e3416b07d34be7fc416240de589a5cc866a1c6924ca6dd36e9c2c4062af0a7b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/knowledge_base_api.py",
+      "category": "generated",
+      "sha256": "49688b6f4ab4cff717315d12afbcfdbfba50c66964ae3a133a39df67df0bc006",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/llm_traces_api.py",
+      "category": "generated",
+      "sha256": "087486cea3c7817daa1e44ef3ed696492d9d4b080e05845cd1c58960af0817a4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/memory_api.py",
+      "category": "generated",
+      "sha256": "83c18900ce02a52d4e405f6085375bbed3a2e1dfc21d361c054dc024eec0205f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/mental_models_api.py",
+      "category": "generated",
+      "sha256": "21d37e0d34b3d27a11c8df84d90069f1b6d94c3deec0cdae5bcbfe4ce11f640e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/monitoring_api.py",
+      "category": "generated",
+      "sha256": "8d80585368872107a76e412a06c786d25a6e4516235bd7d774a0545a0af39655",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/operations_api.py",
+      "category": "generated",
+      "sha256": "bc0f25f22258f2f4ba8cd569a94c2a72fe2ca4bebc232fd97211ad3e5371e4c8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/product_api.py",
+      "category": "generated",
+      "sha256": "f92ee761e2513445fa9559e935926819ba0a7952e0f306932e3c2e9a65974519",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api/webhooks_api.py",
+      "category": "generated",
+      "sha256": "edbad6d01e773aa7cc04144a112dc0ba5dd60db7862a87d37b5456de0e052c42",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/api_client.py",
+      "category": "generated",
+      "sha256": "2e6ee7a7f4b4f184cd6e06e96f35ec478de31ef1ca41a0bd8e16eb862251d731",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/configuration.py",
+      "category": "generated",
+      "sha256": "280d4089d84d3d09324c8167d4b7c75ababa6942b5b8a487c04aa0e5a176a7e0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/exceptions.py",
+      "category": "generated",
+      "sha256": "d90305eab3f330959d15ecb4105c65190249a66af8b5b3567994979011d701a4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/__init__.py",
+      "category": "generated",
+      "sha256": "f260fcd45ca9f94f84252d12e3b9f8603c6538f503aee1ae7d5a0ed8dc76b811",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/add_background_request.py",
+      "category": "generated",
+      "sha256": "9b930833cde7677149b0f2e9f400b5661df337d176002f62c732239a706db7a1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/async_operation_submit_response.py",
+      "category": "generated",
+      "sha256": "54a3e8a31ba9ce2d682105381bcac57c24d4795f87bd32d1cfcad22d81fb6e8a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/audit_log_entry.py",
+      "category": "generated",
+      "sha256": "cd7d67d749600c0fb118b2cf9b1bf3f2876ac60546f39e003fcbc39568ce3308",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/audit_log_list_response.py",
+      "category": "generated",
+      "sha256": "34c9848a56b5b44d693d8842d6e61b91eeec3b9352951e3b3f9089d8602b2ba4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/audit_log_stats_bucket.py",
+      "category": "generated",
+      "sha256": "c85752335808c7edf3957212a13b2f6ac030fa380d7fed62dd177ab1f034aeab",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/audit_log_stats_response.py",
+      "category": "generated",
+      "sha256": "5db8a05210be6f90142b68f515df7142ce7d7d3c86c72d2bcb039881fb9e54ee",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/background_response.py",
+      "category": "generated",
+      "sha256": "9b48831fb3b58da34d594c05cc7862917898f3b6747a47d9272c544db595308e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_alias_entry.py",
+      "category": "generated",
+      "sha256": "024f8b4926a6261d8d167cada86d8255d8afc701ec71b634688edc89ea1ccd39",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_aliases_response.py",
+      "category": "generated",
+      "sha256": "7c73e231fae3b4d15e502af54e3931a9fb7ad552bfe199a04e51e44481b94f52",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_config_response.py",
+      "category": "generated",
+      "sha256": "3b898c8e721485ef91fb8c32a9a136dd230dfe6cb52f22a20a3458c999bdee41",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_config_update.py",
+      "category": "generated",
+      "sha256": "5e9b2dfbe0b5c4dc83c25359ba59a73810ab171ae9b020436aae8dc60a0aa06f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_list_item.py",
+      "category": "generated",
+      "sha256": "f0872fc8b3d32f09fb08f90902007aef7256ae4906e8f39e4ce0f97e720021c6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_list_response.py",
+      "category": "generated",
+      "sha256": "b99051d052c551a78f009656df435662006e2d88213a4773e54147985bc6dbbb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_llm_health_response.py",
+      "category": "generated",
+      "sha256": "eedf0f1b02787367fb8dec54073c6a54cd2e940416b117c5f9817873558fa505",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_profile_response.py",
+      "category": "generated",
+      "sha256": "af78ec50cda895b1b390dd6095e995cee737669d5c279c8ba73fafbb9c17aa34",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_stats_response.py",
+      "category": "generated",
+      "sha256": "bded110e3aeb4bd3829e62bc010a56af28217af816504761c48a4b90c9df0211",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_config.py",
+      "category": "generated",
+      "sha256": "bacf9b9354516cc5a3a07b0e052f9e2196f88cb6cc0ac55b31258fc77c1f5173",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_directive.py",
+      "category": "generated",
+      "sha256": "e0a32cb905d173a73472c5abf7deb809cbed4963a08523d429468ff7c803e19a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_import_response.py",
+      "category": "generated",
+      "sha256": "b627ec06b0c1926c4937f0e4ff3fd73be9807d92cc7de035e5b076b7062fe1c0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_manifest.py",
+      "category": "generated",
+      "sha256": "e048930840087a9f43bde8dfbd7ba80a0c3cab4fbcad3ece224ccf257de70dce",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_template_mental_model.py",
+      "category": "generated",
+      "sha256": "a34ff4addb1e1337f43ac03b0b634cec1a95bc9516c1eba919126e19b8b52db7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/bank_transfer_submit_response.py",
+      "category": "generated",
+      "sha256": "bf128dbef6d9dafb9a635c451db072a61a836bacf80f9befbc35287fa8a42ddf",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/base64_attachment_source.py",
+      "category": "generated",
+      "sha256": "8a3a368d25520185111b1aa52174d21bc768a7a814fbd84dcabef27d213b3af7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/budget.py",
+      "category": "generated",
+      "sha256": "5469ea2ee8582e5f194408868365032295daca7b4cbc75c0a2449be184f323b4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/cancel_operation_response.py",
+      "category": "generated",
+      "sha256": "090238970b1462d73dd2be33000de1ef9b5a92af23b07b3947d1d84d45e4d68c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/child_operation_status.py",
+      "category": "generated",
+      "sha256": "01afce09cc64b21347d45d2e07cb6a617c923a00d7707c58df1516d48b15f215",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/chunk_attachment.py",
+      "category": "generated",
+      "sha256": "980c7621843c4a8934a623ff3462967d1d423b83c19f7b0d3ae8fa90641bd967",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/chunk_data.py",
+      "category": "generated",
+      "sha256": "fa40394068256f68e10e6e2df26909b6f03f77c7bc56b0105485028a5e0820c0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/chunk_include_options.py",
+      "category": "generated",
+      "sha256": "5b7539b697ec1ccbf8b93535fd667828e6c1f5d9d5e1e2be06914b705a87cdf6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/chunk_response.py",
+      "category": "generated",
+      "sha256": "03cbe578d61e16469b12698d7d32bb2066396f1c310e0bcbd88a9026fb9c6072",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/clear_memory_observations_response.py",
+      "category": "generated",
+      "sha256": "c2a3d7fda108735049032574f48f6499dea69c901238edf35b2eefbe0f41ccff",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_request.py",
+      "category": "generated",
+      "sha256": "141d3350ae82675e231b2f102b35ebb5607f23886b505b8f55f447ceb64374f2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_response.py",
+      "category": "generated",
+      "sha256": "83410531d72b7cb0f640164ce19eb75b876554b5b1a9c47cc1dfa6b83bd31338",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_scope_pattern.py",
+      "category": "generated",
+      "sha256": "384a028c7abc9bcdf0a987a9ca6ec69b4c2c073d96bb3e68403e417f583f0791",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_strategies_preview.py",
+      "category": "generated",
+      "sha256": "85a3139a3fb545555d2c957dd326a79d600117f4db168b74b7feae79069afe97",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_strategies_preview_request.py",
+      "category": "generated",
+      "sha256": "44cad9e950bc6bf9181916ed3a0e2b95f20b298a9d0de1316dda2cb450b81435",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/consolidation_strategy_spec.py",
+      "category": "generated",
+      "sha256": "5567ccaabd10adb37a52ad6ad7d243d0b935b9e0c3073f03a9c28a87c183ccb7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/content.py",
+      "category": "generated",
+      "sha256": "7155da9a4e086fdbedc62b5d5f9baf3ee2aac2ee46eaf076a111f7d7572d3a93",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/content_any_of_inner.py",
+      "category": "generated",
+      "sha256": "b6ad4f0cc3a3faae53a9f75661cedf7128edb9aa2fde3c0040568bedc2b66770",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_bank_alias_request.py",
+      "category": "generated",
+      "sha256": "ecfec979106a5d941e29c091f7cfdfa7abba7b546617dbd38f9ce49d4c4b3f2e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_bank_request.py",
+      "category": "generated",
+      "sha256": "d2f3bfb0f85b3c58a10823d04768abd757a86a66b69cd5c375955bd4a10881ea",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_directive_request.py",
+      "category": "generated",
+      "sha256": "7d9dc8792ad5811693ada1bd5fbf449df9ffa1907bc0b889b2b97dd2cfe60de9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_folder_request.py",
+      "category": "generated",
+      "sha256": "6e919bdfb0db7530f481addffa2260b8f6e125703c956c7812dae2d701f479e6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_knowledge_page_response.py",
+      "category": "generated",
+      "sha256": "60dc89dde12919e662d7d6dff05e67b76e51f295ab2cc14c7c53897e5ddae74d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_mental_model_request.py",
+      "category": "generated",
+      "sha256": "6f4753141eb4a28bb1af84edfa358b45ad46e0e142481aecef322a5bf6c87393",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_mental_model_response.py",
+      "category": "generated",
+      "sha256": "3e567741fabd5492e37f3e0e203a70399a03c5b6d98b549e322ad3670ba4bd6f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_page_request.py",
+      "category": "generated",
+      "sha256": "931998cf991e679aa104740533688aafdd605d3c1695e8cfdea7e44452130b40",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/create_webhook_request.py",
+      "category": "generated",
+      "sha256": "3203fe9385215d646215e7a840aa1fcf35495a4e31fa36defc9fc1ec21ee8762",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/default_scopes_preview.py",
+      "category": "generated",
+      "sha256": "ca129d2a260b68e67c8df1fa63409af354c5a777daa050fdb1ddc00956444424",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/delete_document_response.py",
+      "category": "generated",
+      "sha256": "e344f2bd94c8189af0b75f463b542d397931a5b881bbb8a54fda244724c801e0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/delete_operation_response.py",
+      "category": "generated",
+      "sha256": "40435dbed0768c5b310226e5caa41487e9ea6aa5627b8dd402589fd7beab4609",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/delete_response.py",
+      "category": "generated",
+      "sha256": "9d658f58cd9f7078bbdd9b8a96d588e9eff0528096614847d6df20aa2a919f63",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/directive_list_response.py",
+      "category": "generated",
+      "sha256": "7265db63c59cb8cc2ebedce5c13bf7e70002412356d900961fd7302f708fc075",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/directive_response.py",
+      "category": "generated",
+      "sha256": "7895de9aa62dcdd7246b692766019bc769a948029fa00317dfb475795724393c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/display_config.py",
+      "category": "generated",
+      "sha256": "3814bd25d35165bbc1cfefc17171fb0242daf00efc14f92a3b7dfaa52a9c2110",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/disposition_traits.py",
+      "category": "generated",
+      "sha256": "71ae025d3ba97deaa7e54e80a0c86d6ab2a9537b2e9a2fc13fc531ca386dd4ff",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/document_export_submit_response.py",
+      "category": "generated",
+      "sha256": "dfd0d289d460b1541678c1fc219653d5d880dd25026d80eff69333e290a5153c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/document_import_submit_response.py",
+      "category": "generated",
+      "sha256": "ab655bf95eca9520f6e5373a037e29a05f95824ba5f04588a8314b511c110971",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/document_list_item.py",
+      "category": "generated",
+      "sha256": "d97db07d1401f1e6bf0986d9f253b6ff28eedcea6f19b58e216fc336fef3ac52",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/document_response.py",
+      "category": "generated",
+      "sha256": "a07c295748ca1755188be01406c749612fed11d6d20e1ea5ca7062c74e4be7c4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/dry_run_extract_request.py",
+      "category": "generated",
+      "sha256": "92b06d8a133bce84fc82676307c6034d099116aeaa9cb5bc34009c35231bcb9d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/dry_run_extraction_result.py",
+      "category": "generated",
+      "sha256": "a944456073795f3e1d8670289ce9fecf69e4792e9fc5eb372c7a96dda0d32751",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_detail_response.py",
+      "category": "generated",
+      "sha256": "a4501d82bfe334a30013ed7f0d13fd2e7c28c9e3195a066649391b04873e8e18",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_graph_edge.py",
+      "category": "generated",
+      "sha256": "d07cf7600e34e630c1daa053e42f144eccdf78de7810a742c66c3efeb2ed91a5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_graph_edge_data.py",
+      "category": "generated",
+      "sha256": "f870de3dca39168dc269c836da8672c7bc650c3c06bdc8fe4646327704feebbd",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_graph_node.py",
+      "category": "generated",
+      "sha256": "f6e6761a6d4686f90620e5000bf2501d93e4fc5ba1f171a958789b4f1b3ded2a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_graph_node_data.py",
+      "category": "generated",
+      "sha256": "b96d7703d95d9e83a76547fbd60fd23c2f0db30e354586798f0cfbf0fef34ab9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_graph_response.py",
+      "category": "generated",
+      "sha256": "63211671b383933e0b406b16ec3a4f67668e923648758834f39086f3b8c60567",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_include_options.py",
+      "category": "generated",
+      "sha256": "a55eefdfccf3730b6450d5b0eb400960403ffbea9379d1707c11505a5c8baa90",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_input.py",
+      "category": "generated",
+      "sha256": "3cd8bfe2f47be3b0922a30efdd3904666a7e951a8657ffdd35c7b6ca9d88b2f7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_list_item.py",
+      "category": "generated",
+      "sha256": "81caa37891670ce06518e5f1da6aec02a832c0d941f04bb48b7ee133d0552dc3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_list_response.py",
+      "category": "generated",
+      "sha256": "b31c3be49884f7cad6f8d6a40643a1a38e181185d0355d85fb9583f599daa231",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_observation_response.py",
+      "category": "generated",
+      "sha256": "8e37dfb6b66dde4c8d1ca045e01956d2fc5fe75abeeb3133ccfdf1c888b92702",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/entity_state_response.py",
+      "category": "generated",
+      "sha256": "cb35643da1d7bcaec30b057aa8e1c34c74f827c1c97aa96ed5da0b3ef6f90af0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/extracted_fact.py",
+      "category": "generated",
+      "sha256": "4afe364c2069ad9a27aadc955cfd5131c9f2891cb40e5f87e1d027157fda8b01",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/extracted_fact_attachment.py",
+      "category": "generated",
+      "sha256": "b38347a52c6788ac3ec27cf49d60e462863d69326a5537305325cf590cb1e642",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/extraction_chunk.py",
+      "category": "generated",
+      "sha256": "919ce2948395c272530a88072b667c5e435aeef4ac689ebd05757d783a54145e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/features_info.py",
+      "category": "generated",
+      "sha256": "d9060d1df933afaffdf287fc1d1f4d6cbb62d7dde82935901b9a6b0540f58ad5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/file_content_block.py",
+      "category": "generated",
+      "sha256": "cbb1b27fee215efb567c24578f439e1750068fd7683c801510e5674107173884",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/file_retain_response.py",
+      "category": "generated",
+      "sha256": "c85e36867ba2ed49f2ac5d5f05748ca49de25e0aec9a25805d5c1b91d941ec91",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/graph_data_response.py",
+      "category": "generated",
+      "sha256": "e9b00a3097bb2dd0a14fbc66bec651670266c8e17f2eac5f0a6fac8e3d54c0b3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/http_validation_error.py",
+      "category": "generated",
+      "sha256": "55d8b4d3bdd5d8cf02a050bad2d6792e826caebc14f23797444cab457a6a4001",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/image_content_block.py",
+      "category": "generated",
+      "sha256": "1efbc1c84abd35b27c3769ed0863e360255900c7c22584fcbece94b4b57406d6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/include_options.py",
+      "category": "generated",
+      "sha256": "a6ecfe35d2ea1fbe11ad5550131e28a37bdf4c041b122fd09b45431b4125f2c3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_node.py",
+      "category": "generated",
+      "sha256": "6a69035611e07d7ef92841c58db8b15f8cfe9f095d2f7eb408b582b92d594026",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_page_bundle_file.py",
+      "category": "generated",
+      "sha256": "d80622b6f79d4b06ae3e10fd30e056aeeb809e57118903caad8732a076fa6067",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_page_bundle_response.py",
+      "category": "generated",
+      "sha256": "d14500c6a9a95292ff63acc096e5fbf8b646839ca3541f163c06565835096e12",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_page_response.py",
+      "category": "generated",
+      "sha256": "5702a73d17eb0724f70bb9200fe5feece46aea3519ba5ba6881d0609f246b92f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_page_search_response.py",
+      "category": "generated",
+      "sha256": "62a80b5f40bdb4e9cdb78fa9489f3a35c3a2c0a7a8b100219b13efb734ddf4bc",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_page_search_result.py",
+      "category": "generated",
+      "sha256": "54a6bd14beaee5276864f001073e943d4c36a347199a29cf67190e4c617a3157",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/knowledge_tree_response.py",
+      "category": "generated",
+      "sha256": "8ce0647f36ff9ebe6a353cf97ba4aa23d9e2b30fac9757df0dcf0d814fa0efa8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/label_group_input.py",
+      "category": "generated",
+      "sha256": "86422a33131ae9cc9d4d2d9d443aec3d3293987f8b82f638143dfca7ea048861",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/label_group_output.py",
+      "category": "generated",
+      "sha256": "1aecdefbdb482286bc81b9262e17a22f17f3b4a6a2c82a3f5d4cabe6d35f0f34",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/label_value.py",
+      "category": "generated",
+      "sha256": "0264353597885e955b33594c558a639f92a657c85fa0c79228c26b675afe05d7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/list_chunks_response.py",
+      "category": "generated",
+      "sha256": "6dbae3424a7215396ec07891a2bdaf06d2a4af80bf1a16f15066df7b80176773",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/list_documents_response.py",
+      "category": "generated",
+      "sha256": "e0de2664c9c52b1041614eb8457286aef9a8ec7fb41067816b474a0cd5166d3e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/list_memory_units_response.py",
+      "category": "generated",
+      "sha256": "c18cea39a0128ca93a60cd075c34c6d0e5235eef2fbedcfe0de32e853e007872",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/list_tags_response.py",
+      "category": "generated",
+      "sha256": "9db7feec68e771fbe1bd57f00091c5eb99c37f382d289e2d64acceba0ac252b0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/liveness_response.py",
+      "category": "generated",
+      "sha256": "d8d05e92610780e190374b715fd5a2cfde09807febe44bd62a1fae9d2cad7a4e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_call_trace.py",
+      "category": "generated",
+      "sha256": "469dbcab18318babc319a7c1322b108ab4e52c0a69843640038c914f269ac27e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_operation_health.py",
+      "category": "generated",
+      "sha256": "981232d08bf9b1033f33ba820fbf4235fb4beebd2875ccfcca25a51ee244dff6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_request_entry.py",
+      "category": "generated",
+      "sha256": "2ee59418acd0c65bd85f0ec1c99f87a0bacffc50b4aa1a102a79fd9b97431466",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_request_list_response.py",
+      "category": "generated",
+      "sha256": "e9ec29675e992726e09a9b7ae658d8c21de05abe0dd4441339c74a1504321e8d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_request_stats_bucket.py",
+      "category": "generated",
+      "sha256": "bb33d1632523c77cae4970ce7c64e399466594d936ae4932f6e31c53bbd91933",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_request_stats_response.py",
+      "category": "generated",
+      "sha256": "739ba2f46444c822f0094e9cc0d2d562c325aac2a4e7ee06a71f86b558183920",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/llm_request_token_sums.py",
+      "category": "generated",
+      "sha256": "f59a998dc4e0d59917cc2025967145addf1b46e785ab500c7436b2e23cad8096",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/map_field_input.py",
+      "category": "generated",
+      "sha256": "0bc45400960ff1c7ae73438350217079f48304a959a733698508ee582990a292",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/map_field_output.py",
+      "category": "generated",
+      "sha256": "532e6f8f274b02853e1fa3180b1def99e0e7ce293e9d157e2999202466d263ca",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memories_timeseries_response.py",
+      "category": "generated",
+      "sha256": "48941bff64a761cb6bfabbaf434b16c5978cadf65644129d8f40c7c1151f1294",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_graph_edge.py",
+      "category": "generated",
+      "sha256": "774026885f82441894a0595dedc22154755dd3c5d47cbe754a055bbd63ad436c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_graph_edge_data.py",
+      "category": "generated",
+      "sha256": "3e5b769a9f018164c3dada32f8e4716ed160cb582f7ea2f52f86437c8f8af4f5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_graph_node.py",
+      "category": "generated",
+      "sha256": "be19998e1ee28680b38fc6c4e59c478943d54d9c820e1531375f5ed4e05aceaa",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_graph_node_data.py",
+      "category": "generated",
+      "sha256": "c32b7c44d325895a2b9dfe20bbea4c2c23299cbba7e6df604f3c1b94382841c9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_graph_table_row.py",
+      "category": "generated",
+      "sha256": "d935fabbe7c0cb102ea323a505c46bcc86c520fdaa6a2f53d3542a08913d188b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_item.py",
+      "category": "generated",
+      "sha256": "51f0d6f91bcf532dfa8cd82b14eb57f0444738a5135ae5ebc9b44ad63d7a0f38",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_timeseries_bucket.py",
+      "category": "generated",
+      "sha256": "30e7e66ebf1323ec7b691306cfac8a934a95bc84c73f8e3a7e9639fbddf30903",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/memory_unit_list_item.py",
+      "category": "generated",
+      "sha256": "6318fb947ee1a1c6e0c49c3454cae37abae57d855072eee4395f7305a475e9f5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_delta_operations.py",
+      "category": "generated",
+      "sha256": "262f431f887390638f9fef22fda9d032e2491754e79b9dfd98131cdb91d76fef",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_dry_run_refresh_result.py",
+      "category": "generated",
+      "sha256": "71d3127b171d163592dd4d9996bbfc9efc9dc1a637c40e128a42793e9d842430",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_fact_counts.py",
+      "category": "generated",
+      "sha256": "15e36df88a2470c1d3515f97e424f31aec64202388392727664a1034ddead4fb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_list_response.py",
+      "category": "generated",
+      "sha256": "09dc43ac31293ddfb1904f58c048ef2830a3ed6d53401af2c7fd590873180d1f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_refresh_scope.py",
+      "category": "generated",
+      "sha256": "99235f8cc39c31b46f5758f41f32fd2e8cd4fdc06fb4bafc6d275007cce297a8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_refresh_scope_tag_groups_inner.py",
+      "category": "generated",
+      "sha256": "3c2ac314b9860aa8230b6ee61b6e4128868f23317716b5022e9d6edbe35c4df9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_refresh_trace.py",
+      "category": "generated",
+      "sha256": "642d6955383a2dbbf0b57af9a723f8be2a8a25100088330bce9441bfdc3ce143",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_refresh_window.py",
+      "category": "generated",
+      "sha256": "c8399b3087b575dfa65137ac7da53df46113b4ff09ab8ea7fecdf06a603bc7a4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_response.py",
+      "category": "generated",
+      "sha256": "c0a821af6d53da25329690946fe2a00b0e098c16fa4adcfaf575fa0d7277a74a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_retraction.py",
+      "category": "generated",
+      "sha256": "15f4eea3834510cfe553a28edfd463d097c3caa07e9ce79fb15f9c90c312c7d2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_trace_tool_call.py",
+      "category": "generated",
+      "sha256": "dcfdc31c9266621cee37eeb1b56df1cb710e1150ab2c7938a39a33ef40338c63",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_trigger_input.py",
+      "category": "generated",
+      "sha256": "12897e25e8091f0a4bfd3164d02c47668cbc75e854dccf9d0b736b3f23943633",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_trigger_input_tag_groups_inner.py",
+      "category": "generated",
+      "sha256": "34702243bf0c07850b6892cbaa7882fdddb530e9816598ad1e55228a048524ea",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/mental_model_trigger_output.py",
+      "category": "generated",
+      "sha256": "f518b2ca367b95b711e4f9a06cf2318fc283cd4d69bf57d885a8d9d072a3bbc4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/min_scores.py",
+      "category": "generated",
+      "sha256": "10ea955068518a2b67edbe19335535c54a42a53f913e8cbc1fa44c7119de06df",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/model_not.py",
+      "category": "generated",
+      "sha256": "997f34c53df1d343f82ac372398a44903fcfdd1f794106c5a08b1d66f2ff97d2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/not1.py",
+      "category": "generated",
+      "sha256": "5aa6806980aea84f2de87f1e7ae5c0d843e4b6b4bac0f057da2e7733f3f56baa",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/observation_scope.py",
+      "category": "generated",
+      "sha256": "63c117dde0a0029da347ce57e5f93b04cb455642aef8145443bc1d2f60ef8c15",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/observation_scopes.py",
+      "category": "generated",
+      "sha256": "77d12ba81ef6d11340e343e82cd8905ca196f218130ad45434c9afcd490c28e9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/observation_scopes_response.py",
+      "category": "generated",
+      "sha256": "0b9142fa21d64bd944f107d6af57cdd01960616c90012ac0f5db2bf1d55c5ccf",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/operation_progress.py",
+      "category": "generated",
+      "sha256": "db98bbfec3d08d8e1a744248664d9c535ab9d0a1a2cd7d3211e42978fa9426b3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/operation_response.py",
+      "category": "generated",
+      "sha256": "499fc7b5f23fc3ed44b9f32544341ba0af92cfabbcff7b63ac8dbc6c5f7d4b5b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/operation_status_response.py",
+      "category": "generated",
+      "sha256": "0118234afc6feb76c675723ee98a41ca20d2fc56b62cbcfb9da430048cfda3ec",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/operations_list_response.py",
+      "category": "generated",
+      "sha256": "26eea69a6639c39df822f5ce428b15824e9bc9a39bd847b0e06b27bff3265503",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/product_config.py",
+      "category": "generated",
+      "sha256": "b8bebca9e81cac88ded3108bcc8cbd2762d57a3da859168cb97c5a8343e09aba",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/prompt_block_model.py",
+      "category": "generated",
+      "sha256": "63ad20244c19cc93f1b563ba9b09bdc573e2f0b57dace25388063e982cfb7169",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/prompt_message_model.py",
+      "category": "generated",
+      "sha256": "1eb8b2ef93b4e37ccfa6e33cd65a39c9b63a291104c33bf8b9582b2bb35354d5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/prompt_preview_request.py",
+      "category": "generated",
+      "sha256": "a589ac2966111a8bffbc7f6929ff3872db249124a2bf17f394734ec52d463407",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/prompt_preview_response.py",
+      "category": "generated",
+      "sha256": "7c82505b0b614d60931a01a3774aae62203158007e278af80da0da653e2fed2c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/recall_request.py",
+      "category": "generated",
+      "sha256": "a75492c065fdf0328d2a28c0b1f67071a76f9fa6274c3163620675dfbcfa8ca2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/recall_response.py",
+      "category": "generated",
+      "sha256": "8616d9f9b0e4033c3a8937e35421bd7223b2c213d116683511f0182b56c9b053",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/recall_result.py",
+      "category": "generated",
+      "sha256": "90347672d8218354d4d889b10848aecfb403190a91512404a8d4c7204cf88cb1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/recall_scores.py",
+      "category": "generated",
+      "sha256": "b5f7b06a6f447426a6db4a15acdd7c219ba184f066481a6118f1c43813950244",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/recover_consolidation_response.py",
+      "category": "generated",
+      "sha256": "da1010f4600fc58dbc27348e7f103968ddf7ca0479f24e388c61c3c0e7a7c31b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_based_on.py",
+      "category": "generated",
+      "sha256": "50969904942d77b4e77a89be3a184519b6991ba945086d9c3849684854ee012e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_directive.py",
+      "category": "generated",
+      "sha256": "e1d36c52973e8790c0af65967b821a0e6b485edf5deea5450170da533fac3aa0",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_fact.py",
+      "category": "generated",
+      "sha256": "5bae00869ce27e5a84c221228d0c45907478fea522fff5806219e9eaea1ac57a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_include_options.py",
+      "category": "generated",
+      "sha256": "5b15620edb9229bda5587f43e92e0310f5779de4a4e780965587cd37a35d98e1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_llm_call.py",
+      "category": "generated",
+      "sha256": "cfb6d940fa694606d4e93ff9913288f8a19decd0d1e411fa6ef3851309ca308b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_mental_model.py",
+      "category": "generated",
+      "sha256": "c1826da3e8dff401f5cd55161871e2b84510507eddb944eb618cfeea8c494f65",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_request.py",
+      "category": "generated",
+      "sha256": "b4d28fbe8847588858b245fba5fa363b2027ddae9b3f859c22dec80ed416fe1e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_response.py",
+      "category": "generated",
+      "sha256": "d6d69f6e576f44398dfc5a39eb0c4ac7c22cab015adfd88be25f383cf8c4523e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_tool_call.py",
+      "category": "generated",
+      "sha256": "c26847c93c66bbd1f4abbf7d93538a27b400719425446a494cc0ae9c716b34c4",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reflect_trace.py",
+      "category": "generated",
+      "sha256": "4c46a5bc2c4e6c750ac4ba810812d6c27ee4fd72123e1854ea7c8dfb3b746438",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/refresh_mental_model_operation_details.py",
+      "category": "generated",
+      "sha256": "a4be12d0669a30cebdc5f940ed5225e17f94eab80ef303f6130b05070ea51c2a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/reprocess_document_response.py",
+      "category": "generated",
+      "sha256": "0abb7f13d7fcfcc636bb90a4608ca762888f3e6ea1d197a7852efbb7977e67ac",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/retain_request.py",
+      "category": "generated",
+      "sha256": "25dba7f80709d3df5d179fe1e3f57d4604cb11bf8995caae99af992f38b3c8d2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/retain_response.py",
+      "category": "generated",
+      "sha256": "418a260b4d99fa09614fc126347323d5eb508e23b80e92bde332c44b2635c3b9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/retry_operation_response.py",
+      "category": "generated",
+      "sha256": "2ec960f3bf7ddb1f2cd486bcb2ae48567fd40fcbca6ac0b8fec71b8d2256e8a9",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/run_setting_model.py",
+      "category": "generated",
+      "sha256": "9a39b935d562cd9829b1badc47a6946f489f22698caa12ffb64b3e24b8f1c8f1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/set_bank_alias_primary_request.py",
+      "category": "generated",
+      "sha256": "22c4220969aab8230f01078618c3f63c756d66d86143dccfd7cf2fcfcda00749",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/source_facts_include_options.py",
+      "category": "generated",
+      "sha256": "c39a2824e5d283b3c8bdba44c2fcf5b9bfc03c87c28d71ed1644ef1477e3f63f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/strategy_preview.py",
+      "category": "generated",
+      "sha256": "54a01a326bd769a90fec41a0e972f4c9780278173af219ded42444a5b73bde12",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/strategy_rule_preview.py",
+      "category": "generated",
+      "sha256": "30f6d6d2b9316241ff64b4db83f48d320da05a6b38481a26fe3a20fa6486a8a5",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/strategy_scope_preview.py",
+      "category": "generated",
+      "sha256": "5da5e826d36b172b72c647ab044e10ac0caa8869f7db699db63c38bda69cf6a3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_and_input.py",
+      "category": "generated",
+      "sha256": "71d6e1d07b76c586266109b55ce76016ea1048ede09a76a10a9906a09955b547",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_and_output.py",
+      "category": "generated",
+      "sha256": "6dff7a20aa2dc8158949d04901209d08634d4c0d6cbbcf2a32513248b087f6ae",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_leaf.py",
+      "category": "generated",
+      "sha256": "a5fd95ebe6c622838aa6a66a818d00fa675fa6141e4bd9feeff4a91f47532fe6",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_not_input.py",
+      "category": "generated",
+      "sha256": "4c4439f2661d8471d8bb45e778e509247e73ca7ff55fdbb33f8d732ac8f0ae99",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_not_output.py",
+      "category": "generated",
+      "sha256": "14d1631e1aa6f053927685b01d99addbcd8c9b6e8b6d1c72d54123e5c2bc9982",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_or_input.py",
+      "category": "generated",
+      "sha256": "f505bda60e8b458662177229ce0681142fca0d3e9435dba6a3c9ffb027f7a785",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_group_or_output.py",
+      "category": "generated",
+      "sha256": "1f7779a6bd48fff001fe679bacc68e766835a38785cb0c2029e7543c54b4986d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tag_item.py",
+      "category": "generated",
+      "sha256": "ab723c3c0bc76f88d3b441eb0788ca6ea88336ee923df3d3387dff2e2db9aab1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/temporal_window.py",
+      "category": "generated",
+      "sha256": "b85916dd6c2f315c3698a08cc811625790b7e8916580b5ab12c342d86c0f5169",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/text_content_block.py",
+      "category": "generated",
+      "sha256": "4aa7b84aa754bac9c0b7bd443d7fae68f0262d89b21b1db67e5e72c244150754",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/timestamp.py",
+      "category": "generated",
+      "sha256": "d46f2996340c6876a5025b130fe3f8ff4b9698f095a053fe7fd6ae4c73c27c80",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/token_usage.py",
+      "category": "generated",
+      "sha256": "954615f8633b3c8bf129315fc2b2dbd710014df546bb85b4ffa10e7c9bfc0965",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/tool_calls_include_options.py",
+      "category": "generated",
+      "sha256": "fd5824dd0532782196f6edfed24d4923f3df3117be02a09f255156b742755916",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_directive_request.py",
+      "category": "generated",
+      "sha256": "4a055a0816a6411bf8866d9e7514a94cae3ff58486b1b71fce1cd4889a622011",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_disposition_request.py",
+      "category": "generated",
+      "sha256": "687afca4cc6ecd7ff33d3274d89dff61bcccaa74cbf347c0c3e8c444dbc72d2e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_document_request.py",
+      "category": "generated",
+      "sha256": "d3cb3d320a455b5424490dbf17d5191ceefe771558c4508b058c339a37c4d26d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_document_response.py",
+      "category": "generated",
+      "sha256": "ab51ae64228a2d67ad8b75211c342a5bb890757b67f218820c1bcb653ef58814",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_memory_request.py",
+      "category": "generated",
+      "sha256": "8844d53a9b09a3ae4e3b4e02a5116db76c8a8cec4f183ff17ef4510bb26762a3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_mental_model_request.py",
+      "category": "generated",
+      "sha256": "2c715f0c92c5b185351320841a178977b9046ed6a68cc681360b6da0d534f9cf",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_node_request.py",
+      "category": "generated",
+      "sha256": "5cf903272732a0d7a9407fadf3f9d6099cef5f7dd82d99939f747e7f61c8d791",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/update_webhook_request.py",
+      "category": "generated",
+      "sha256": "4ada73ba5e6e8b26a36635fa0c22288babc9ea4caa43cb5fe836a6939b0f302b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/validation_error.py",
+      "category": "generated",
+      "sha256": "4312a69c916c865240b9b5ca75b6b17b99d731ffd8a5b564f8f392036a50ac52",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/validation_error_loc_inner.py",
+      "category": "generated",
+      "sha256": "91d6568dd13c3966a314f11a72885bbfdd31ddc753934a43754bb712146a78e2",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/version_response.py",
+      "category": "generated",
+      "sha256": "2cdb9b97eed126c5f5d6b09c0eb050be38c90e88a80776c83dac2f470be65fab",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/webhook_delivery_list_response.py",
+      "category": "generated",
+      "sha256": "f4db773adc35b41960ad0c24e28cc9a92e5d6ba883a1830d607807f173518a23",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/webhook_delivery_response.py",
+      "category": "generated",
+      "sha256": "805a829a74ee92b9cdfd6603266b02a12ba7f3ec0efc63cbd04dd3479ab0cccc",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/webhook_http_config.py",
+      "category": "generated",
+      "sha256": "a39fc32f1584cb8ffdbc1a938193d3b4e9015af230995e843dbf910b7734506e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/webhook_list_response.py",
+      "category": "generated",
+      "sha256": "a8f35674f11a7bc4f557c64e4a2fe8d76123d1092c9782742a24f8ae51837744",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/models/webhook_response.py",
+      "category": "generated",
+      "sha256": "728f9108b5491d760e42242b04e4eee6fc13fab0dfa8960cf6cef6e79c63df32",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/python/hindsight_client_api/rest.py",
+      "category": "generated",
+      "sha256": "2256d678937e20806bd21ec1e811bc2714cf39f7ddd9879c51d090fb7b8fb056",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/typescript/generated/index.ts",
+      "category": "generated",
+      "sha256": "32967b5af64be4bb34f79b96c5d79884a61eabbaffb76005e183b4e6a3d63a00",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/typescript/generated/sdk.gen.ts",
+      "category": "generated",
+      "sha256": "4c64e50a932a0e889b071707ba2541a64c97a5dc669ad414b1f402372995438b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-clients/typescript/generated/types.gen.ts",
+      "category": "generated",
+      "sha256": "c167ea37cb632a88729c3526a406f57a6744a052d421d11f544ee7d2e1ee6434",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/app/[locale]/layout.tsx",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "7a36ae5606a285ec1138a2c108efb9cb247ebf3e2429632866f6dc3c0ed20430",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/app/api/health/route.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "326f0c6735ff44849e9a9844e7c69b1fc5ce1a8f3b5e740be2f1458f018029fc",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/components/product-runtime.tsx",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "301df242e127dd46d64dc690b881ca32cbb3a833f09683e6aafdcd58dd9b746e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/i18n/request.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "8dcc3dc1cd5390d2b40e3bdf5bd5f24efe60f523c369bcafa8d6dd6d2428b483",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/lib/brand-defaults.ts",
+      "category": "generated",
+      "sha256": "f3acc7e560f4d14f19721d7345b58ec823a4736a934ffb746c7ba02829b4e282",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/lib/product-config-server.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "bd7e0887e33bfc2843afc2f55628679a93613071d169ab9de0d9202969f61b56",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/lib/product-config.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "eb78f52d537156f0152aa45ad3d3611843b80c25d88ca53bd8e4da62b3bb8dd7",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/src/lib/product-guard.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "a6bd7e4ab2257a3c751b009c6b8a4f9c1924bb355b73c90360951fb049395a3f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/tests/lib/auth/proxy.test.ts",
+      "category": "tests",
+      "sha256": "cf13f324d01e028a98ec735d04f661898fc0b61f452d66936f73d7c34e54ac0b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-control-plane/tests/lib/product-config.test.ts",
+      "category": "tests",
+      "sha256": "e46308e1c5c7b1ba7bfbb1ebf1e25f51e1be68ee8f84205ff5bfa27757d09e8b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-docs/docs-integrations/coding-agents.md",
+      "category": "generated",
+      "sha256": "59dbe1515c720885f71ec5f62377629723a2988bca88307a00067ba810265e8e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-docs/scripts/sync-coding-agents-doc.mjs",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "3e00ec7514ff3567b1a95c336300d2414eff66f9de1782c8bfa421876bdad452",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-docs/static/openapi.json",
+      "category": "generated",
+      "sha256": "9065bf1f1f1c830e66edf183b3ee9fffd9f72ef6924ddb1887bdd7e018948a27",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-embed/hindsight_embed/env.example",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "95e9362cea304b2c5fa7b5315e5ad1586da77ccfa855733c887954abe190b613",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/README.md",
+      "category": "generated",
+      "sha256": "2a6655d09968fdbcd9633cb5ffe57bb580f847c973ffaa92229112519d6333f1",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/plugin.json",
+      "category": "generated",
+      "sha256": "8610aefc897e1f8ae29a17ebabdf9bb2751cc1be3b4a6954fb7bfcc53e088afc",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/skills/agentstratum-memory/SKILL.md",
+      "category": "generated",
+      "sha256": "e4297f877beab8c5e604e09df3ff7a1d2765ffc78e45b9f7ab46f2e68e2f5147",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/.claude-plugin/plugin.json",
+      "category": "generated",
+      "sha256": "3bbbc6bc934af85f6edd92c7eb2ac4be1cefa88adbb32cfbcfe72e41f70b123f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/README.md",
+      "category": "generated",
+      "sha256": "c7e9f0d66cf528f5cdd3a71417831a62a44bf72e786a8bfbd33cb51f6c0692f3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/scripts/lib/brand_defaults.py",
+      "category": "generated",
+      "sha256": "bf1c96955a7212b9e795855aa3208d3e9e6faf5834dbfc4af3aae2b91e62845f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/scripts/mcp_server.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "ffb5a2d1e2aa5ea2857d420bfc9339edd58642bd7e1e0c6ecd7f5a37afe42cf8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
+      "category": "generated",
+      "sha256": "dbea47dc89176b99ee0f9740d16a640939958011c4409ceb5fc17c661710c13c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/skills/setup.md",
+      "category": "generated",
+      "sha256": "bc11ef5f6ce0150a915cc40eb186ea214dfe47b181dabdbfb53bb7a4e49ef958",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/README.md",
+      "category": "generated",
+      "sha256": "e2afa6c1b28c2167610044a85c13f90ff142333d96f1ffe74e7f92cf649786fb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/package.json",
+      "category": "generated",
+      "sha256": "978800729829f505fee5b8b6c510677bb746d09e0f09c0120ebd40fecce8ee32",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/plugin.json",
+      "category": "generated",
+      "sha256": "2f1f42a58756982fc3ec8ead3af7e706e46aa77094d693863ea201391ce11ccc",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",
+      "category": "generated",
+      "sha256": "f304ca1e249c4fadda87020d67990201125f2f034184b5dbd32998c0a96aa95c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/skill/SKILL.md",
+      "category": "generated",
+      "sha256": "ee057d5b10074689235b7ea80d89a31191a76a5efff3b4624204c1bd3be01008",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/antigravity-statusline.test.ts",
+      "category": "tests",
+      "sha256": "05a3a99c42a5005575267a504d7fb844d0b21edee35aa8eaad6b90eecb541501",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/attribution.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "ec327e3faeaf85fa543e34fd420a81810a1ccc0be7ae5c6f76315f11dd0082b8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/brand-defaults.ts",
+      "category": "generated",
+      "sha256": "23d04c0ae19bf86d8236e835d7587462a469f2ca948c04961165b67cac8aae74",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/brand.test.ts",
+      "category": "tests",
+      "sha256": "9caeeee9768b88dc2b0bce83a518335679f49241bde5eebb0749f1b888337a35",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/brand.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "ee44a07c5989b06b4342ef6781b76adcbe1172cbab328aa2e3f42ade6bc7517a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/hook.test.ts",
+      "category": "tests",
+      "sha256": "b6302d6988882fc665d1f1c59c928c63bb8d0b57dfca8828618da9f3e32c54fa",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/inject.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "1c884bf158fad4b8469033b33a791a954a1674930177660f3965acf09bc4bd40",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/knowledge-injection.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "0750459f5dcaa9cc5f641c93ef713e12577bd62394254a5319fed0b83b04ec9b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/knowledge-tools.test.ts",
+      "category": "tests",
+      "sha256": "6cb47089685014b71115e7db9f038c8bb8c533c8ad50dc17bf4e3fcb2c173da8",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/knowledge-tools.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "fe197986f1081c08d36484240ccdd94f955c0d7499784643ddf560efb6dc11ad",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/retain-hook.test.ts",
+      "category": "tests",
+      "sha256": "80162c68289224bd1e787f0ab2779fe11858b74fbcec462ec0713a28e55f00a3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/runtime.test.ts",
+      "category": "tests",
+      "sha256": "c4528962fb851ff1525be2c107258509fe60f3085f2e69a9dacb031212304f55",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/runtime.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "a857834ad320646aea21ef0ef172d6b133af5dba894a659dfec280e5e7b9c996",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/session-start.test.ts",
+      "category": "tests",
+      "sha256": "d86c3deb9d81bcf85c862c9b8405658e486befbf4f4c73cea043a4129f58d676",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/session-start.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "90a9afb612677d2e0ae7895330f5308250f0f3ad096e717303b03386d70273eb",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/usage.test.ts",
+      "category": "tests",
+      "sha256": "b23995578c8e196972c9ff3370a535cb7c14e3fc60e8fdf4cc69b8a896b90732",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/usage.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "69e258df126b2d016cab0df83d3c2f2949b3a989627d20ac14f9bbeb69e076ab",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/harness/opencode2.test.ts",
+      "category": "tests",
+      "sha256": "c7343c034ecc6969d27aec210b982b73cc01924a5a0f4bffd3f2851215b1715b",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/install-ui.test.ts",
+      "category": "tests",
+      "sha256": "327c1f1f46e52176964f07310403a00cf4413b59eae4010c042867fb6e09669c",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/install-ui.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "d3855553b3dac273940eb9f58d0ac70342d9650dc8623a7e0f3c883d8612ca1f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/mcp-server.test.ts",
+      "category": "tests",
+      "sha256": "3dcbb88cd7b5c6f28787454f45649d75a3f0193aac31b4bf6fadc16c4c2bd9ba",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/mcp-server.ts",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "836a153830128bc6f605284e738921cb3d33e9a978fbbd6a7e4b39be50e9d9b3",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-system-tests/tests/test_98_contextbase.py",
+      "category": "tests",
+      "sha256": "930353abb47ea93c338f3086fd15b20db468b773ba42a7d25409a193379e3e3a",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "hindsight-system-tests/tests/test_98_public_brand.py",
+      "category": "tests",
+      "sha256": "8cd48425ce4c6dfe7e7aee42fdb9a1e666463553f0791110f81b03f50e1da522",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "package-lock.json",
+      "category": "lockfile",
+      "sha256": "518d86eda8978d260f76b5152735e8ffa9da34c969a9ea620c0a77b570d7dffd",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "package.json",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "219452db39738bdcb6d10f7b4c4184830c0070d9225325979cef63122a1b1912",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "scripts/generate-brand.mjs",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "fe0f93a3d2c88c197fd6c1b8316c1b92db47b25a5608cb623128fa4853eca08d",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "scripts/install-agentstratum.sh",
+      "category": "generated",
+      "sha256": "3878f01c506aeef8ae9672122cb7b43ce62f42bd9c79dd82fbdd19b8061fdace",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "scripts/package-client-plugins.py",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "91398183fb8dc2899dfaf755cb68c6414a64cd5a39f2d94340b3f745dfb0ea9f",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "scripts/sync-product-brand.sh",
+      "category": "manual-adapter-or-workflow",
+      "sha256": "b5ce5c8d876cb0ac8fadd2a49830da58bb6abf68e8d8a249f2b77b17e3e0b181",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    },
+    {
+      "path": "scripts/test-brand-generation.mjs",
+      "category": "tests",
+      "sha256": "977286625d6a5a97d229487d204c0713706fb788d41291c44f859e7fabe2392e",
+      "source": "ContextBase implementation on integrated ancestry",
+      "inherited_base": "960983bb45fa2559e69ec88f7ff528676a280193"
+    }
+  ],
+  "hash_scope": "Entry hashes bind the frozen source_commit, including its then-current documents. Later delivery-document-only updates are separate commits; product files remain bound by source-checkpoint.json.",
+  "delivery_documents": [
+    "docs/contextbase-naming/RESULT.md",
+    "docs/contextbase-naming/VALIDATION.json",
+    "docs/contextbase-naming/COMPATIBILITY.md",
+    "docs/contextbase-naming/OPERATIONS.md",
+    "docs/contextbase-naming/SECOND-RENAME-DRILL.md",
+    "docs/contextbase-naming/INDEPENDENT-REVIEW.md",
+    "docs/contextbase-naming/PROGRESS.md",
+    "docs/contextbase-naming/STATUS.json",
+    "docs/contextbase-naming/SOURCE-MAP.json"
+  ]
+}

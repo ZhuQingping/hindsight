@@ -1,93 +1,153 @@
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import type { NextRequest } from "next/server";
 
-export const ACCESS_KEY_COOKIE = "hindsight_cp_access";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
+const TOKEN_PATTERN = /^(\d+)\.([a-f0-9]{64})\.([a-f0-9]{64})$/;
 
-const CLOCK_SKEW_TOLERANCE_SECONDS = 60;
+// This directory is supplied at runtime and must not enter Next build tracing.
+// A shared private directory makes logout effective across Next's route/proxy
+// processes and restarts. This local single-node adapter is not platform SSO.
+function sessionDirectory(): string {
+  const directory = process.env.HINDSIGHT_CP_SESSION_DIR;
+  if (!directory || !path.isAbsolute(directory)) {
+    throw new Error("Session storage must be an absolute private directory");
+  }
+  return directory;
+}
 
-/**
- * Session token format: `<issuedAtSeconds>.<base64urlHmacSha256>`.
- *
- * The HMAC is computed over `issuedAtSeconds` using the access key as the
- * secret, so the token cannot be forged without knowing the key, and rotating
- * the key invalidates every outstanding session. No server-side state needed.
- */
+export function publicOrigin(): string | null {
+  try {
+    const raw = process.env.HINDSIGHT_CP_PUBLIC_ORIGIN;
+    if (!raw) return null;
+    const url = new URL(raw);
+    if (
+      !["http:", "https:"].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    )
+      return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+export function protectedMode(): boolean {
+  return process.env.HINDSIGHT_CP_AUTH_MODE !== "bootstrap";
+}
+
+export function authConfigured(): boolean {
+  const mode = process.env.HINDSIGHT_CP_AUTH_MODE;
+  return (
+    (!mode || mode === "local") &&
+    Boolean(
+      process.env.HINDSIGHT_CP_ACCESS_KEY &&
+      publicOrigin() &&
+      process.env.HINDSIGHT_CP_SESSION_DIR &&
+      path.isAbsolute(process.env.HINDSIGHT_CP_SESSION_DIR)
+    )
+  );
+}
+
+export function trustedMutation(request: NextRequest): boolean {
+  // Do not derive trust from client-supplied forwarded headers. Browsers must
+  // reach the configured origin, including login and multipart uploads.
+  const origin = publicOrigin();
+  return Boolean(
+    origin &&
+    request.headers.get("origin") === origin &&
+    request.headers.get("host") === new URL(origin).host
+  );
+}
+
+function instanceBinding(): string {
+  return `${publicOrigin() || "unconfigured"}\n${process.env.NEXT_PUBLIC_BASE_PATH || ""}`;
+}
+
+export function sessionCookieName(): string {
+  // Cookies do not isolate ports. Bind the name to this UI origin so opening
+  // another local instance cannot overwrite an existing experience's session.
+  // Stable session namespace, bound to instance identity rather than presentation branding.
+  return `agentstratum_${createHash("sha256").update(instanceBinding()).digest("hex").slice(0, 16)}`;
+}
+
+function signature(payload: string, accessKey: string): string {
+  return createHmac("sha256", accessKey).update(`${instanceBinding()}\n${payload}`).digest("hex");
+}
+
 export async function createSessionToken(accessKey: string): Promise<string> {
-  const issuedAt = Math.floor(Date.now() / 1000).toString();
-  const signature = await hmacSha256Base64Url(accessKey, issuedAt);
-  return `${issuedAt}.${signature}`;
+  const directory = sessionDirectory();
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const now = Math.floor(Date.now() / 1000);
+  const files = await readdir(directory);
+  // Expired records are reclaimed on login; there is no background timer or
+  // process-local registry which could disagree with another Next worker.
+  for (const file of files) {
+    if (
+      /^\d+\.[a-f0-9]{64}$/.test(file) &&
+      now - Number(file.split(".")[0]) >= SESSION_MAX_AGE_SECONDS
+    ) {
+      await unlink(path.join(/* turbopackIgnore: true */ directory, file)).catch(
+        (error: NodeJS.ErrnoException) => {
+          if (error.code !== "ENOENT") throw error;
+        }
+      );
+    }
+  }
+  const payload = `${now}.${randomBytes(32).toString("hex")}`;
+  await writeFile(path.join(/* turbopackIgnore: true */ directory, payload), "", {
+    flag: "wx",
+    mode: 0o600,
+  });
+  return `${payload}.${signature(payload, accessKey)}`;
 }
 
 export async function verifySessionToken(
   token: string | undefined,
   accessKey: string
 ): Promise<boolean> {
-  if (!token) return false;
-  const separator = token.indexOf(".");
-  if (separator <= 0 || separator === token.length - 1) return false;
-
-  const payload = token.slice(0, separator);
-  const providedSignature = token.slice(separator + 1);
-
-  const issuedAt = Number(payload);
-  if (!Number.isInteger(issuedAt) || issuedAt <= 0) return false;
-
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  if (issuedAt > nowSeconds + CLOCK_SKEW_TOLERANCE_SECONDS) return false;
-  if (nowSeconds - issuedAt > SESSION_MAX_AGE_SECONDS) return false;
-
-  const expectedSignature = await hmacSha256Base64Url(accessKey, payload);
-  return constantTimeEqual(expectedSignature, providedSignature);
+  const match = token?.match(TOKEN_PATTERN);
+  if (!match) return false;
+  const issuedAt = Number(match[1]);
+  const age = Math.floor(Date.now() / 1000) - issuedAt;
+  if (!Number.isSafeInteger(issuedAt) || age < -60 || age >= SESSION_MAX_AGE_SECONDS) return false;
+  const payload = `${match[1]}.${match[2]}`;
+  if (
+    !timingSafeEqual(
+      Buffer.from(signature(payload, accessKey), "hex"),
+      Buffer.from(match[3], "hex")
+    )
+  )
+    return false;
+  try {
+    return (
+      await stat(path.join(/* turbopackIgnore: true */ sessionDirectory(), payload))
+    ).isFile();
+  } catch {
+    // Missing, unavailable, or revoked storage must never authorize a request.
+    return false;
+  }
 }
 
-/**
- * True when the original client connection used HTTPS. Honors
- * `X-Forwarded-Proto` from a TLS-terminating proxy first; falls back to the
- * request URL's protocol. We deliberately do NOT key off `NODE_ENV` — a
- * production build served over plain HTTP (common in self-hosted setups) must
- * still set a usable cookie.
- */
-export function isSecureRequest(request: NextRequest): boolean {
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  if (forwardedProto) {
-    return forwardedProto.split(",")[0]?.trim().toLowerCase() === "https";
-  }
-  return request.nextUrl.protocol === "https:";
+export async function revokeSessionToken(token: string | undefined): Promise<void> {
+  const match = token?.match(TOKEN_PATTERN);
+  if (!match) return;
+  await unlink(
+    path.join(/* turbopackIgnore: true */ sessionDirectory(), `${match[1]}.${match[2]}`)
+  ).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+}
+
+export function isSecureRequest(_request: NextRequest): boolean {
+  return publicOrigin()?.startsWith("https://") ?? false;
 }
 
 export function sessionCookieOptions(request: NextRequest) {
-  return {
-    httpOnly: true,
-    secure: isSecureRequest(request),
-    sameSite: "lax" as const,
-    path: "/",
-  };
-}
-
-async function hmacSha256Base64Url(secret: string, message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
-  return base64UrlEncode(new Uint8Array(signature));
-}
-
-function base64UrlEncode(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
+  return { httpOnly: true, secure: isSecureRequest(request), sameSite: "lax" as const, path: "/" };
 }

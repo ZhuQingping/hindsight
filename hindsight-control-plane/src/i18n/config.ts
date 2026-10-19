@@ -13,6 +13,12 @@ export const locales = [
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "en";
 
+// Product copy and API errors share the same explicitly supported language set.
+// Retained locale URLs/cookies must not reintroduce old terminology through errors.
+export function messageLocale(locale: string): "en" | "zh-CN" {
+  return locale === "zh-CN" ? "zh-CN" : "en";
+}
+
 export const localeNames: Record<Locale, string> = {
   en: "English",
   es: "Español",

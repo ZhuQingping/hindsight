@@ -12,6 +12,7 @@
  * interpolate `${workspaceFolder}` in `args`, so the installer passes the open workspace as
  * argv[2] rather than as a agentstratum env setting.
  */
+import { DISPLAY_NAME } from "./core/brand-defaults.js";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -103,7 +104,7 @@ export function resolveProjectCwd(
  * keeps that privacy boundary intact while preventing one optional probe from failing startup.
  */
 export function buildMcpServer(tools: ToolSpec[]): McpServer {
-  const server = new McpServer({ name: "agentstratum", version: "0.1.0" });
+  const server = new McpServer({ name: DISPLAY_NAME, version: "0.1.0" });
   if (tools.length === 0) {
     server.server.registerCapabilities({ tools: { listChanged: false } });
     server.server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [] }));

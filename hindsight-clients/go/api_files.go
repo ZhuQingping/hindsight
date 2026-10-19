@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+ContextBase HTTP API
 
-HTTP API for Hindsight
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -84,7 +84,7 @@ Use the operations endpoint to monitor progress.
 - Set `parser` in the request body to override the server default for all files.
 - Set `parser` inside a `files_metadata` entry for per-file control.
 - Pass a list (e.g. `['iris', 'markitdown']`) to define an ordered fallback chain — each parser is tried in sequence until one succeeds.
-- Falls back to the server default (`HINDSIGHT_API_FILE_PARSER`) if not specified.
+- Falls back to the server default (`file_parser`) if not specified.
 - Only parsers enabled on the server may be requested; others return HTTP 400.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().

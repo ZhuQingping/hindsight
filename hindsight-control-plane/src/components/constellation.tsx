@@ -1,10 +1,13 @@
 "use client";
 
+import { useProductName } from "./product-runtime";
 import { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
+import { ZoomIn, ZoomOut, ScanSearch } from "lucide-react";
 import { prepare, layout, prepareWithSegments, layoutWithLines } from "@chenglou/pretext";
 import type { GraphData, GraphNode, GraphLink } from "./graph-data";
+import { graphLinkCategory } from "./graph-data";
 
 // ============================================================================
 // Types
@@ -96,6 +99,8 @@ export interface ConstellationProps {
   nodeGroupsFn?: (node: GraphNode) => string[];
   groupColorFn?: (key: string) => string;
   groupLabelFn?: (key: string) => string;
+  /** The object counted by the graph HUD. Entity co-occurrence graphs use entity. */
+  nodeUnit?: "memory" | "entity";
 }
 
 // ============================================================================
@@ -172,21 +177,6 @@ function hashStr(s: string): number {
   return h;
 }
 
-/** Fetch a same-origin asset and return it as a base64 data URL (for inlining into the SVG). */
-function loadDataUrl(url: string): Promise<string> {
-  return fetch(url)
-    .then((r) => r.blob())
-    .then(
-      (blob) =>
-        new Promise<string>((resolve, reject) => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(fr.result as string);
-          fr.onerror = reject;
-          fr.readAsDataURL(blob);
-        })
-    );
-}
-
 // Dark mode hook
 function useIsDarkMode() {
   const [isDark, setIsDark] = useState(false);
@@ -218,23 +208,42 @@ const LINK_TYPE_COLORS: Record<string, string> = {
   temporal: "#009296",
   entity: "#f59e0b",
   causal: "#8b5cf6",
+  unknown: "#64748b",
 };
 
 const DEFAULT_NODE_COLOR = "#0074d9";
+
+function safeGraphColor(value: string | undefined, fallback: string): string {
+  if (!value) return fallback;
+  return /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(value) ||
+    /^rgb\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)$/.test(value)
+    ? value
+    : fallback;
+}
+
+export function escapeGraphHtml(value: unknown): string {
+  const escapes: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return String(value).replace(/[&<>"']/g, (char) => escapes[char] || char);
+}
 
 function toolbarBtnStyle(isDark: boolean): CSSProperties {
   return {
     padding: "6px 10px",
     borderRadius: 6,
-    border: `1px solid ${isDark ? "#27272a" : "#e4e4e7"}`,
-    background: isDark ? "#18181b" : "#ffffff",
-    color: isDark ? "#a1a1aa" : "#71717a",
+    border: `1px solid ${isDark ? "#475569" : "#d4d4d8"}`,
+    background: isDark ? "#1e293b" : "#ffffff",
+    color: isDark ? "#e2e8f0" : "#334155",
     fontSize: 12,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     gap: 4,
-    opacity: 0.7,
     transition: "opacity 0.15s",
   };
 }
@@ -261,39 +270,51 @@ export function Constellation({
   nodeGroupsFn,
   groupColorFn,
   groupLabelFn,
+  nodeUnit = "memory",
 }: ConstellationProps) {
+  const productName = useProductName();
   const t = useTranslations("constellation");
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const isDark = useIsDarkMode();
   const animRef = useRef<number>(0);
+  const isIntersectingRef = useRef(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Ambient motion (drift/pulse/shimmer) on-off, remembered globally — not per
   // bank — so the preference follows the user across every constellation.
-  const [motionEnabled, setMotionEnabled] = useState(true);
-  const motionRef = useRef(true);
+  const [motionEnabled, setMotionEnabled] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const motionRef = useRef(false);
   // Elapsed "animation seconds". Accumulated only while motion is on, so
   // pausing freezes the field in place and resuming continues without a jump.
   const clockRef = useRef({ seconds: 0, lastFrameMs: 0 });
 
   useEffect(() => {
-    const saved = localStorage.getItem(MOTION_STORAGE_KEY);
-    if (saved === "off") {
-      setMotionEnabled(false);
-      motionRef.current = false;
-    }
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      setReducedMotion(media.matches);
+      const enabled = localStorage.getItem(MOTION_STORAGE_KEY) === "on" && !media.matches;
+      setMotionEnabled(enabled);
+      motionRef.current = enabled;
+      clockRef.current.lastFrameMs = 0;
+    };
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
   }, []);
 
   const toggleMotion = useCallback(() => {
+    if (reducedMotion) return;
     setMotionEnabled((prev) => {
       const next = !prev;
       motionRef.current = next;
+      clockRef.current.lastFrameMs = 0;
       localStorage.setItem(MOTION_STORAGE_KEY, next ? "on" : "off");
       return next;
     });
-  }, []);
+  }, [reducedMotion]);
 
   // Interaction state stored in ref for perf (avoid re-renders on every frame)
   const stateRef = useRef({
@@ -400,7 +421,7 @@ export function Constellation({
       const text = node.label || node.id.substring(0, 12);
       const ck = clusterKeys ? clusterKeys[i] : null;
       const nodeGroupList = nodeGroups ? nodeGroups[i] : [];
-      const color = vennActive
+      const rawColor = vennActive
         ? nodeGroupList.length > 1
           ? "#94a3b8"
           : groupColorFn?.(nodeGroupList[0]) || DEFAULT_NODE_COLOR
@@ -408,6 +429,7 @@ export function Constellation({
           nodeColorFn?.(node) ||
           node.color ||
           DEFAULT_NODE_COLOR;
+      const color = safeGraphColor(rawColor, DEFAULT_NODE_COLOR);
       const lc = linkCounts.get(node.id) || 0;
       // Use sqrt for a less aggressive curve — avoids everything being red
       const heat = nodeHeatFn
@@ -479,7 +501,7 @@ export function Constellation({
             if (g.includes(key)) acc.push(i);
             return acc;
           }, []),
-          color: groupColorFn?.(key) || DEFAULT_NODE_COLOR,
+          color: safeGraphColor(groupColorFn?.(key), DEFAULT_NODE_COLOR),
           label: groupLabelFn?.(key) ?? key,
           // World centroid of the page's fixed position — the circle centres here
           // (not on the drifting member mean) so pages stay distinct even when
@@ -490,7 +512,7 @@ export function Constellation({
       : clusterOrder.map((key) => ({
           key,
           members: clusterMembers.get(key)!,
-          color: clusterColorFn?.(key) || DEFAULT_NODE_COLOR,
+          color: safeGraphColor(clusterColorFn?.(key), DEFAULT_NODE_COLOR),
           label: clusterLabelFn?.(key) ?? key,
           wcx: undefined as number | undefined,
           wcy: undefined as number | undefined,
@@ -511,14 +533,14 @@ export function Constellation({
       const bi = nodeIndexMap.get(link.target);
       if (ai === undefined || bi === undefined) continue;
 
-      const color =
-        linkColorFn?.(link) ||
-        link.color ||
-        LINK_TYPE_COLORS[link.type || "semantic"] ||
-        DEFAULT_NODE_COLOR;
+      const type = graphLinkCategory(link.type);
+      const color = safeGraphColor(
+        linkColorFn?.(link) || LINK_TYPE_COLORS[type],
+        LINK_TYPE_COLORS[type]
+      );
 
       const idx = linksIdx.length;
-      linksIdx.push({ a: ai, b: bi, color, type: link.type || "semantic" });
+      linksIdx.push({ a: ai, b: bi, color, type });
 
       if (!byNode.has(ai)) byNode.set(ai, []);
       if (!byNode.has(bi)) byNode.set(bi, []);
@@ -545,8 +567,18 @@ export function Constellation({
     groupLabelFn,
   ]);
 
+  const presentLinkTypes = useMemo(() => {
+    const types = new Set(linksWithIndices.map((link) => link.type));
+    return Object.keys(LINK_TYPE_COLORS).filter((type) => types.has(type));
+  }, [linksWithIndices]);
+
   // ----- Animation loop -----
   const animate = useCallback(() => {
+    animRef.current = 0;
+    if (document.hidden || !isIntersectingRef.current) {
+      clockRef.current.lastFrameMs = 0;
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -561,14 +593,16 @@ export function Constellation({
 
     const { W, H, dpr, zoom, panX, panY, mouseX, mouseY, hoverIndex } = s;
     const cx = W / 2 + panX;
-    const cy = H / 2 + panY;
+    // The mobile canvas has a toolbar and heat legend across its top edge.
+    // Give plotted nodes room below them instead of drawing labels underneath controls.
+    const cy = H / 2 + panY + (W < 680 ? 34 : 0);
     const margin = 60;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    const bg = isDark ? "#09090b" : "#ffffff";
+    const bg = isDark ? "#111827" : "#ffffff";
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
@@ -577,13 +611,13 @@ export function Constellation({
     const nowMs = typeof performance !== "undefined" ? performance.now() : 0;
     const clock = clockRef.current;
     if (motionRef.current && clock.lastFrameMs > 0) {
-      clock.seconds += (nowMs - clock.lastFrameMs) / 1000;
+      clock.seconds += Math.min(0.05, (nowMs - clock.lastFrameMs) / 1000);
     }
     clock.lastFrameMs = nowMs;
     const time = clock.seconds;
     // Drift amplitude in world units — nodes slowly wander around their home
     // position so the whole field visibly breathes.
-    const DRIFT_AMP = 16;
+    const DRIFT_AMP = motionRef.current ? 4 : 0;
 
     // Screen positions (with a slow per-node ambient drift baked in, so links —
     // which read straight from screenX/screenY below — follow for free).
@@ -639,7 +673,7 @@ export function Constellation({
         const by = screenY[link.b];
 
         ctx.strokeStyle = link.color;
-        ctx.globalAlpha = 0.5;
+        ctx.globalAlpha = 0.7;
         ctx.lineWidth = 1.5;
 
         const midX = (ax + bx) / 2 + (by - ay) * 0.08;
@@ -651,7 +685,7 @@ export function Constellation({
 
         // A small bead of light travels the curve from the hovered node outward,
         // so connections read as live signal paths rather than static lines.
-        {
+        if (motionRef.current) {
           // Phase-offset per link so beads don't march in lockstep. Travel runs
           // from the hovered node (u=0) toward its neighbor (u=1).
           const fromHovered = link.a === hoverIndex;
@@ -670,7 +704,7 @@ export function Constellation({
           ctx.fill();
           ctx.shadowBlur = 0;
           // Restore the stroke state the loop's next iteration expects.
-          ctx.globalAlpha = 0.5;
+          ctx.globalAlpha = 0.7;
           ctx.lineWidth = 1.5;
         }
         linksDrawn++;
@@ -679,9 +713,9 @@ export function Constellation({
     } else {
       // Faint, slow breathing across the whole web so idle links feel alive
       // without flickering (one global sine, not per-link — stays calm).
-      const shimmer = 1 + 0.18 * Math.sin(time * 0.6);
-      const baseAlpha = (0.06 + Math.min(zoom * 0.04, 0.1)) * shimmer;
-      ctx.lineWidth = 0.4;
+      const shimmer = motionRef.current ? 1 + 0.05 * Math.sin(time * 0.6) : 1;
+      const baseAlpha = (linksWithIndices.length > 500 ? 0.2 : isDark ? 0.45 : 0.48) * shimmer;
+      ctx.lineWidth = 1.1;
 
       for (const link of linksWithIndices) {
         if (linksDrawn >= maxLinks) break;
@@ -854,15 +888,17 @@ export function Constellation({
       const rawR = nodeSizeFn ? nodeSizeFn(n.node) : 2.5 + Math.min(n.linkCount * 0.15, 2.5);
       // Gentle pulse — each dot "breathes" in size, out of phase with its
       // neighbors, so the field twinkles like a living star map.
-      const pulse = 1 + 0.13 * Math.sin(time * 1.05 + n.phase);
+      const pulse = motionRef.current ? 1 + 0.04 * Math.sin(time * 1.05 + n.phase) : 1;
       const baseR = rawR * pulse;
       const r = Math.max(1.5, baseR * Math.min(zoom, 2));
 
       // Opacity varies — fewer links = dimmer, more links = brighter. A brightness
       // twinkle (offset from the size pulse) makes even tiny dots read as alive,
       // where a radius pulse alone would be imperceptible.
-      const twinkleAlpha = 0.82 + 0.18 * Math.sin(time * 1.4 + n.phase * 2.1);
-      const baseAlpha = (0.45 + Math.min(n.linkCount * 0.03, 0.5)) * twinkleAlpha;
+      const twinkleAlpha = motionRef.current
+        ? 0.95 + 0.05 * Math.sin(time * 1.4 + n.phase * 2.1)
+        : 1;
+      const baseAlpha = (0.7 + Math.min(n.linkCount * 0.02, 0.25)) * twinkleAlpha;
 
       // Dot — star-like: heat-gradient color, varied size & opacity
       ctx.beginPath();
@@ -879,7 +915,7 @@ export function Constellation({
       // Soft glow halo for brighter stars (high link count) — the halo twinkles
       // a little (out of phase with the dot's pulse) so hubs feel radiant.
       if (n.linkCount > 3 && !isHovered && hoverIndex < 0) {
-        const twinkle = 1 + 0.25 * Math.sin(time * 0.9 + n.phase * 1.7);
+        const twinkle = motionRef.current ? 1 + 0.1 * Math.sin(time * 0.9 + n.phase * 1.7) : 1;
         ctx.beginPath();
         ctx.arc(sx, sy, r * 2, 0, Math.PI * 2);
         ctx.fillStyle = n.heatColor;
@@ -910,7 +946,7 @@ export function Constellation({
         // Compact mode uses a tiny bounding box so short labels pack densely.
         const lw = compactLabels ? 60 : 155;
         const lh = compactLabels ? 12 : 16;
-        const lx = sx + r + 5;
+        const lx = sx + r + 5 + lw > W - 8 ? sx - r - 5 - lw : sx + r + 5;
         const ly = sy - 8;
         if (canPlace(lx, ly, lw, lh)) {
           claim(lx, ly, lw, lh);
@@ -920,44 +956,23 @@ export function Constellation({
       }
     }
 
-    // HUD
+    // The bank-wide link statistic and this filtered, derived graph have different
+    // contracts. Describe only the nodes and edges actually in this view.
     ctx.font = MONO;
-    ctx.fillStyle = isDark ? "#71717a" : "#71717a";
+    ctx.fillStyle = isDark ? "#cbd5e1" : "#334155";
     ctx.textAlign = "left";
-    ctx.fillText(
-      t("hudStats", {
-        memories: preparedNodes.length,
-        visible: visibleCount,
-        labels: labelsShown,
-        links: linksDrawn,
-        zoom: zoom.toFixed(2),
-      }),
-      12,
-      H - 12
-    );
-
-    // Legend — link types
-    ctx.textAlign = "right";
-    let legendX = W - 12;
-    ctx.font = FONT_BOLD;
-    const linkTypeLabel: Record<string, string> = {
-      semantic: t("linkTypeSemantic"),
-      temporal: t("linkTypeTemporal"),
-      entity: t("linkTypeEntity"),
-      causal: t("linkTypeCausal"),
-    };
-    for (const [type, color] of Object.entries(LINK_TYPE_COLORS).reverse()) {
-      const label = linkTypeLabel[type] ?? type;
-      const tw = ctx.measureText(label).width;
-      ctx.fillStyle = isDark ? "#a1a1aa" : "#52525b";
-      ctx.fillText(label, legendX, H - 12);
-      legendX -= tw + 4;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(legendX, H - 15, 3, 0, Math.PI * 2);
-      ctx.fill();
-      legendX -= 14;
-    }
+    const unit = t(nodeUnit === "entity" ? "unitEntity" : "unitMemory");
+    const hud =
+      W < 680
+        ? t("hudCompact", { nodes: preparedNodes.length, unit, links: linksDrawn })
+        : t("hudStats", {
+            nodes: preparedNodes.length,
+            unit,
+            visible: visibleCount,
+            links: linksDrawn,
+            zoom: zoom.toFixed(2),
+          });
+    ctx.fillText(hud, 12, H - (W < 680 ? 44 : 12));
 
     // Heat gradient legend (top-left, below instructions). Suppressed while
     // clustering, where node color encodes the cluster (scope), not the gradient.
@@ -1013,16 +1028,35 @@ export function Constellation({
       ctx.fillText(sizeMany, dotsStart + 42, 98);
     }
 
-    // Instructions
-    ctx.textAlign = "left";
-    ctx.font = MONO;
-    ctx.fillStyle = isDark ? "#52525b" : "#a1a1aa";
-    ctx.fillText(t("instructions"), 12, 16);
+    // On narrow canvases the instructions live in the HTML legend instead of
+    // colliding with toolbar controls.
+    if (W >= 620) {
+      ctx.textAlign = "left";
+      ctx.font = MONO;
+      ctx.fillStyle = isDark ? "#cbd5e1" : "#475569";
+      ctx.fillText(t("instructions"), 12, 16);
+    }
 
     ctx.restore();
 
-    animRef.current = requestAnimationFrame(animate);
-  }, [isDark, preparedNodes, linksWithIndices, linksByNode, clusters, t]);
+    const moving =
+      Math.abs(s.panX - s.targetPanX) > 0.15 ||
+      Math.abs(s.panY - s.targetPanY) > 0.15 ||
+      Math.abs(s.zoom - s.targetZoom) > 0.002;
+    if (motionRef.current || moving || s.hoverIndex !== hoverIndex) {
+      animRef.current = requestAnimationFrame(animate);
+    }
+  }, [isDark, preparedNodes, linksWithIndices, linksByNode, clusters, nodeUnit, t]);
+
+  const requestDraw = useCallback(() => {
+    if (!animRef.current && !document.hidden && isIntersectingRef.current) {
+      animRef.current = requestAnimationFrame(animate);
+    }
+  }, [animate]);
+
+  useEffect(() => {
+    if (motionEnabled) requestDraw();
+  }, [motionEnabled, requestDraw]);
 
   // ----- Label drawing helper -----
   function drawLabel(
@@ -1047,8 +1081,8 @@ export function Constellation({
         : Math.min(lines.length, Math.floor(zoom));
       const cardH = 8 + maxLines * 15 + 8;
 
-      const cardX = sx - cardW / 2;
-      const cardY = sy + r + 4;
+      const cardX = Math.max(8, Math.min(stateRef.current.W - cardW - 8, sx - cardW / 2));
+      const cardY = Math.max(8, Math.min(stateRef.current.H - cardH - 8, sy + r + 4));
 
       ctx.fillStyle = isHovered
         ? dark
@@ -1077,7 +1111,7 @@ export function Constellation({
       }
 
       ctx.font = FONT_SMALL;
-      ctx.fillStyle = isHovered ? (dark ? "#e4e4e7" : "#18181b") : dark ? "#71717a" : "#71717a";
+      ctx.fillStyle = isHovered ? (dark ? "#f8fafc" : "#0f172a") : dark ? "#cbd5e1" : "#334155";
       ctx.textAlign = "left";
       for (let j = 0; j < maxLines; j++) {
         ctx.fillText(lines[j].text, cardX + 8, cardY + 8 + j * 15 + 11);
@@ -1085,12 +1119,19 @@ export function Constellation({
     } else {
       // Inline label
       ctx.font = FONT_SMALL;
-      ctx.fillStyle = isHovered ? (dark ? "#e4e4e7" : "#18181b") : dark ? "#52525b" : "#a1a1aa";
-      ctx.globalAlpha = isHovered ? 1 : force ? 0.85 : Math.min(1, (zoom - 0.3) * 2.5);
+      ctx.fillStyle = isHovered ? (dark ? "#f8fafc" : "#0f172a") : dark ? "#cbd5e1" : "#334155";
+      ctx.globalAlpha = isHovered ? 1 : force ? 0.95 : 0.9;
       ctx.textAlign = "left";
       const text = n.node.label || n.node.id.substring(0, 12);
-      const label = text.length > 45 ? text.slice(0, 45) + "..." : text;
-      ctx.fillText(label, sx + r + 5, sy + 4);
+      const maxChars = stateRef.current.W < 680 ? 10 : 45;
+      const label = text.length > maxChars ? text.slice(0, maxChars) + "…" : text;
+      const labelWidth = ctx.measureText(label).width;
+      const rightX = sx + r + 5;
+      const labelX =
+        rightX + labelWidth > stateRef.current.W - 8
+          ? Math.max(8, sx - r - 5 - labelWidth)
+          : rightX;
+      ctx.fillText(label, labelX, sy + 4);
       ctx.globalAlpha = 1;
     }
   }
@@ -1110,6 +1151,7 @@ export function Constellation({
       stateRef.current.dpr = dpr;
       stateRef.current.W = W;
       stateRef.current.H = H;
+      requestDraw();
     };
 
     resize();
@@ -1123,25 +1165,27 @@ export function Constellation({
       }
       // Venn circles extend ~2x beyond the node cloud, so zoom out further to keep
       // the whole diagram (and its labels) in frame.
-      const fitSpan = nodeGroupsFn ? 5.5 : 2.5;
+      const fitSpan = nodeGroupsFn ? 5.5 : stateRef.current.W < 680 ? 3.3 : 2.5;
       const fitZoom =
         maxR > 0 ? Math.min(stateRef.current.W, stateRef.current.H) / (maxR * fitSpan) : 0.5;
       stateRef.current.zoom = fitZoom;
       stateRef.current.targetZoom = fitZoom;
     }
 
-    animRef.current = requestAnimationFrame(animate);
+    requestDraw();
 
     // Events
     const handleResize = () => resize();
 
     const handleWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       const factor = e.deltaY > 0 ? 0.9 : 1.1;
       stateRef.current.targetZoom = Math.max(
         0.03,
         Math.min(8, stateRef.current.targetZoom * factor)
       );
+      requestDraw();
     };
 
     const updateTooltip = (mx: number, my: number) => {
@@ -1166,6 +1210,7 @@ export function Constellation({
       if (idx !== s.prevHoverIndex) {
         s.prevHoverIndex = idx;
         const meta = node.metadata as Record<string, any> | undefined;
+        const h = escapeGraphHtml;
         const fullText = meta?.text || node.label || node.id;
         const entities: string[] = meta?.entities
           ? String(meta.entities)
@@ -1175,7 +1220,20 @@ export function Constellation({
           : [];
         const nodeColor = preparedNodes[idx].heatColor;
         const linkCount = preparedNodes[idx].linkCount;
-        const factType = meta?.fact_type || node.group || "memory";
+        const rawFactType =
+          meta?.fact_type || node.group || (nodeUnit === "entity" ? "entity" : "memory");
+        const factType =
+          rawFactType === "world"
+            ? t("factTypeWorld")
+            : rawFactType === "experience"
+              ? t("factTypeExperience")
+              : rawFactType === "observation"
+                ? t("factTypeObservation")
+                : rawFactType === "entity"
+                  ? t("factTypeEntity")
+                  : rawFactType === "memory"
+                    ? t("factTypeMemory")
+                    : String(rawFactType);
         const context = meta?.context && meta.context !== "N/A" ? meta.context : null;
         const tags: string[] = Array.isArray(meta?.tags) ? meta.tags : [];
         const occurredStart = meta?.occurred_start || null;
@@ -1192,41 +1250,41 @@ export function Constellation({
 
         // Type badge + link count
         let html = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">`;
-        html += `<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:${nodeColor};background:${nodeColor}18;padding:2px 8px;border-radius:4px">${factType}</span>`;
-        html += `<span style="font-size:10px;color:${muted}">${linkCount} link${linkCount !== 1 ? "s" : ""}</span>`;
+        html += `<span style="font-size:10px;font-weight:600;letter-spacing:0.05em;color:${nodeColor};background:${isDark ? "#1e293b" : "#eff6ff"};padding:2px 8px;border-radius:4px">${h(factType)}</span>`;
+        html += `<span style="font-size:10px;color:${muted}">${t("tooltipLinks", { count: linkCount })}</span>`;
         html += `</div>`;
 
         // Text
-        html += `<div style="font-size:12px;line-height:1.6;margin-bottom:8px">${fullText}</div>`;
+        html += `<div style="font-size:12px;line-height:1.6;margin-bottom:8px">${h(fullText)}</div>`;
 
         // Metadata grid
         html += `<div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid ${isDark ? "#27272a" : "#e4e4e7"};padding-top:8px">`;
 
         if (context) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Context</span><span style="${valStyle}">${context}</span></div>`;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">${t("tooltipContext")}</span><span style="${valStyle}">${h(context)}</span></div>`;
         }
 
         // Format ISO timestamp as "YYYY-MM-DD HH:MM" — keeps the row compact
         // while still surfacing the time-of-day the user asked for.
-        const fmtTs = (iso: string) => iso.slice(0, 16).replace("T", " ");
+        const fmtTs = (iso: unknown) => String(iso).slice(0, 16).replace("T", " ");
 
         if (occurredStart) {
           const start = fmtTs(occurredStart);
           const end = occurredEnd ? fmtTs(occurredEnd) : null;
           const occurredDisplay = end && end !== start ? `${start} → ${end}` : start;
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Occurred</span><span style="${valStyle}">${occurredDisplay}</span></div>`;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">${t("tooltipOccurred")}</span><span style="${valStyle}">${h(occurredDisplay)}</span></div>`;
         }
 
         if (mentionedAt) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Mentioned</span><span style="${valStyle}">${fmtTs(mentionedAt)}</span></div>`;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">${t("tooltipMentioned")}</span><span style="${valStyle}">${h(fmtTs(mentionedAt))}</span></div>`;
         }
 
         if (proofCount && proofCount > 1) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Evidence</span><span style="${valStyle}">${proofCount} sources</span></div>`;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">${t("tooltipEvidence")}</span><span style="${valStyle}">${h(proofCount)}</span></div>`;
         }
 
         if (documentId) {
-          html += `<div style="${rowStyle}"><span style="${labelStyle}">Document</span><span style="font-size:11px;font-family:monospace;color:${muted}">${String(documentId).slice(0, 12)}...</span></div>`;
+          html += `<div style="${rowStyle}"><span style="${labelStyle}">${t("tooltipDocument")}</span><span style="font-size:11px;font-family:monospace;color:${muted}">${h(String(documentId).slice(0, 12))}...</span></div>`;
         }
 
         html += `</div>`;
@@ -1235,7 +1293,7 @@ export function Constellation({
         if (entities.length > 0 && !(entities.length === 1 && entities[0] === "None")) {
           html += `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">`;
           for (const ent of entities) {
-            html += `<span style="font-size:10px;background:${isDark ? "#27272a" : "#f4f4f5"};color:${isDark ? "#d4d4d8" : "#3f3f46"};padding:2px 7px;border-radius:4px">${ent}</span>`;
+            html += `<span style="font-size:10px;background:${isDark ? "#27272a" : "#f4f4f5"};color:${isDark ? "#d4d4d8" : "#3f3f46"};padding:2px 7px;border-radius:4px">${h(ent)}</span>`;
           }
           html += `</div>`;
         }
@@ -1244,13 +1302,13 @@ export function Constellation({
         if (tags.length > 0) {
           html += `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">`;
           for (const tag of tags) {
-            html += `<span style="font-size:10px;background:${nodeColor}15;color:${nodeColor};padding:2px 7px;border-radius:4px">#${tag}</span>`;
+            html += `<span style="font-size:10px;background:${isDark ? "#1e293b" : "#eff6ff"};color:${nodeColor};padding:2px 7px;border-radius:4px">#${h(tag)}</span>`;
           }
           html += `</div>`;
         }
 
         // ID
-        html += `<div style="margin-top:8px;font-size:9px;font-family:monospace;color:${dimmed}">${node.id}</div>`;
+        html += `<div style="margin-top:8px;font-size:9px;font-family:monospace;color:${dimmed}">${h(node.id)}</div>`;
 
         tip.innerHTML = html;
       }
@@ -1270,6 +1328,8 @@ export function Constellation({
       const my = e.clientY - rect.top;
       stateRef.current.mouseX = mx;
       stateRef.current.mouseY = my;
+      requestDraw();
+      requestAnimationFrame(() => updateTooltip(mx, my));
 
       if (stateRef.current.isDragging) {
         stateRef.current.targetPanX =
@@ -1290,6 +1350,7 @@ export function Constellation({
       stateRef.current.dragStartY = e.clientY;
       stateRef.current.panStartX = stateRef.current.panX;
       stateRef.current.panStartY = stateRef.current.panY;
+      requestDraw();
     };
 
     const handleMouseUp = () => {
@@ -1304,6 +1365,7 @@ export function Constellation({
       }
       stateRef.current.isDragging = false;
       canvas.style.cursor = stateRef.current.hoverIndex >= 0 ? "pointer" : "default";
+      requestDraw();
     };
 
     const handleMouseLeave = () => {
@@ -1312,6 +1374,7 @@ export function Constellation({
       stateRef.current.isDragging = false;
       stateRef.current.hoverIndex = -1;
       if (tooltipRef.current) tooltipRef.current.style.display = "none";
+      requestDraw();
     };
 
     window.addEventListener("resize", handleResize);
@@ -1327,22 +1390,66 @@ export function Constellation({
     // bitmap and the text/dots look squeezed.
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => resize()) : null;
     ro?.observe(canvas);
+    const io =
+      typeof IntersectionObserver !== "undefined"
+        ? new IntersectionObserver(([entry]) => {
+            isIntersectingRef.current = !!entry?.isIntersecting;
+            if (isIntersectingRef.current) requestDraw();
+            else {
+              cancelAnimationFrame(animRef.current);
+              animRef.current = 0;
+              clockRef.current.lastFrameMs = 0;
+            }
+          })
+        : null;
+    if (wrapperRef.current) io?.observe(wrapperRef.current);
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animRef.current);
+        animRef.current = 0;
+        clockRef.current.lastFrameMs = 0;
+      } else requestDraw();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       cancelAnimationFrame(animRef.current);
+      animRef.current = 0;
       window.removeEventListener("resize", handleResize);
       ro?.disconnect();
+      io?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       canvas.removeEventListener("wheel", handleWheel);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [animate, preparedNodes, onNodeClick, isFullscreen]);
+  }, [animate, preparedNodes, onNodeClick, isFullscreen, requestDraw]);
 
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((prev) => !prev);
   }, []);
+
+  const zoomBy = useCallback(
+    (factor: number) => {
+      const s = stateRef.current;
+      s.targetZoom = Math.max(0.03, Math.min(8, s.targetZoom * factor));
+      requestDraw();
+    },
+    [requestDraw]
+  );
+
+  const fitView = useCallback(() => {
+    const s = stateRef.current;
+    let maxR = 0;
+    for (const node of preparedNodes) maxR = Math.max(maxR, Math.hypot(node.wx, node.wy));
+    const fitSpan = nodeGroupsFn ? 5.5 : s.W < 680 ? 3.3 : 2.5;
+    s.targetZoom = maxR > 0 ? Math.min(s.W, s.H) / (maxR * fitSpan) : 0.5;
+    s.targetPanX = 0;
+    s.targetPanY = 0;
+    requestDraw();
+  }, [preparedNodes, nodeGroupsFn, requestDraw]);
 
   // Esc to exit fullscreen
   useEffect(() => {
@@ -1366,203 +1473,221 @@ export function Constellation({
       stateRef.current.dpr = dpr;
       stateRef.current.W = rect.width;
       stateRef.current.H = rect.height;
+      requestDraw();
     }, 50);
     return () => clearTimeout(timer);
-  }, [isFullscreen]);
+  }, [isFullscreen, requestDraw]);
 
-  // Hindsight logo, fetched once and cached as a base64 data URL so the
-  // exported SVG can inline it and stay self-contained when shared.
-  const logoDataUrlRef = useRef<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    loadDataUrl("/logo.png")
-      .then((url) => {
-        if (!cancelled) logoDataUrlRef.current = url;
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Export a self-contained graph with the product wordmark. Plain SVG text
+  // removes the external logo fetch and works behind any configured base path.
+  const buildSvgString = useCallback((): string => {
+    const W = 1600;
+    const H = 1000;
+    const f = (v: number) => Math.round(v * 10) / 10;
+    const a = (v: number) => Math.round(v * 100) / 100;
 
-  // ----- SVG export (shareable, branded poster of the whole graph) -----
-  // Independent of the live camera: fits every node into a fixed high-res
-  // poster on a dark "night sky" — soft bottom glow, plus-grid, glowing node
-  // bubbles and the Hindsight logo top-left. No labels/legends/footer, so the
-  // graph itself is the hero. Hover dimming is omitted; every node shines.
-  const buildSvgString = useCallback(
-    (logoDataUrl: string | null): string => {
-      const W = 1600;
-      const H = 1000;
-      const f = (v: number) => Math.round(v * 10) / 10;
-      const a = (v: number) => Math.round(v * 100) / 100;
+    const n = preparedNodes.length;
 
-      const n = preparedNodes.length;
-
-      // --- Fit the whole graph: bounds of world coords → centered, scaled view ---
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      for (const nd of preparedNodes) {
-        if (nd.wx < minX) minX = nd.wx;
-        if (nd.wx > maxX) maxX = nd.wx;
-        if (nd.wy < minY) minY = nd.wy;
-        if (nd.wy > maxY) maxY = nd.wy;
-      }
-      if (!Number.isFinite(minX)) {
-        minX = minY = -1;
-        maxX = maxY = 1;
-      }
-      const padX = 84;
-      const padTop = 128; // clears the logo
-      const padBottom = 80;
-      const availW = W - 2 * padX;
-      const availH = H - padTop - padBottom;
-      const spanX = Math.max(maxX - minX, 1);
-      const spanY = Math.max(maxY - minY, 1);
-      const zoom = Math.min(availW / spanX, availH / spanY);
-      const cwx = (minX + maxX) / 2;
-      const cwy = (minY + maxY) / 2;
-      const ox = W / 2;
-      const oy = padTop + availH / 2;
-      const sx = new Float32Array(n);
-      const sy = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        sx[i] = ox + (preparedNodes[i].wx - cwx) * zoom;
-        sy[i] = oy + (preparedNodes[i].wy - cwy) * zoom;
-      }
-      // Always a dark "night sky" poster (matches the share aesthetic).
-      const navy = "#070b16";
-      const gridStroke = "#8ea3c8";
-
-      const parts: string[] = [];
-      parts.push(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
-      );
-
-      // --- Defs: bottom glow, plus-grid, edge vignette, node bloom ---
-      parts.push(
-        `<defs>` +
-          `<radialGradient id="hs-glow" cx="50%" cy="100%" r="62%">` +
-          `<stop offset="0" stop-color="#1d4ed8" stop-opacity="0.42"/>` +
-          `<stop offset="0.55" stop-color="#1e3a8a" stop-opacity="0.13"/>` +
-          `<stop offset="1" stop-color="#1e3a8a" stop-opacity="0"/>` +
-          `</radialGradient>` +
-          `<radialGradient id="hs-vignette" cx="50%" cy="46%" r="76%">` +
-          `<stop offset="0" stop-color="#000000" stop-opacity="0"/>` +
-          `<stop offset="0.82" stop-color="#000000" stop-opacity="0"/>` +
-          `<stop offset="1" stop-color="#000000" stop-opacity="0.24"/>` +
-          `</radialGradient>` +
-          `<pattern id="hs-grid" width="30" height="30" patternUnits="userSpaceOnUse">` +
-          `<path d="M15 12 V18 M12 15 H18" stroke="${gridStroke}" stroke-width="0.7" opacity="0.06"/>` +
-          `</pattern>` +
-          `</defs>`
-      );
-
-      // --- Background layers ---
-      parts.push(`<rect width="${W}" height="${H}" fill="${navy}"/>`);
-      parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-grid)"/>`);
-      parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-glow)"/>`);
-
-      // --- Links: exactly as the UI canvas draws them in the no-hover state
-      // (thin 0.4px colored quadratic curves at a faint, zoom-derived alpha) ---
-      const linkParts: string[] = [];
-      const maxLinks = 6000;
-      let drawn = 0;
-      for (const link of linksWithIndices) {
-        if (drawn >= maxLinks) break;
-        const axp = sx[link.a];
-        const ayp = sy[link.a];
-        const bxp = sx[link.b];
-        const byp = sy[link.b];
-        const midX = (axp + bxp) / 2 + (byp - ayp) * 0.08;
-        const midY = (ayp + byp) / 2 - (bxp - axp) * 0.08;
-        linkParts.push(
-          `<path d="M${f(axp)} ${f(ayp)} Q${f(midX)} ${f(midY)} ${f(bxp)} ${f(byp)}" stroke="${link.color}"/>`
-        );
-        drawn++;
-      }
-      const linkAlpha = 0.06 + Math.min(zoom * 0.04, 0.1);
-      parts.push(
-        `<g fill="none" stroke-width="0.4" opacity="${a(linkAlpha)}">${linkParts.join("")}</g>`
-      );
-
-      // --- Nodes: exactly as the UI canvas draws them (solid heat dot, opacity
-      // by link count, plus a translucent halo for hubs) — minus hover effects ---
-      const haloParts: string[] = [];
-      const nodeParts: string[] = [];
-      for (let i = 0; i < n; i++) {
-        const nd = preparedNodes[i];
-        const baseR = nodeSizeFn ? nodeSizeFn(nd.node) : 2.5 + Math.min(nd.linkCount * 0.15, 2.5);
-        const r = Math.max(1.5, baseR * Math.min(zoom, 2));
-        const alpha = 0.45 + Math.min(nd.linkCount * 0.03, 0.5);
-        if (nd.linkCount > 3) {
-          const halo = 0.06 + Math.min(nd.linkCount * 0.005, 0.08);
-          haloParts.push(
-            `<circle cx="${f(sx[i])}" cy="${f(sy[i])}" r="${f(r * 2)}" fill="${nd.heatColor}" opacity="${a(halo)}"/>`
-          );
-        }
-        nodeParts.push(
-          `<circle cx="${f(sx[i])}" cy="${f(sy[i])}" r="${f(r)}" fill="${nd.heatColor}" opacity="${a(alpha)}"/>`
-        );
-      }
-      parts.push(`<g>${haloParts.join("")}</g>`);
-      parts.push(`<g>${nodeParts.join("")}</g>`);
-
-      // --- Edge vignette to sink the corners, then the Hindsight logo ---
-      parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-vignette)"/>`);
-      if (logoDataUrl) {
-        const logoW = 190;
-        const logoH = (logoW * 139) / 529; // preserve logo aspect ratio
-        parts.push(
-          `<image x="48" y="46" width="${logoW}" height="${f(logoH)}" href="${logoDataUrl}" preserveAspectRatio="xMinYMid meet"/>`
-        );
-      }
-
-      parts.push(`</svg>`);
-      return parts.join("");
-    },
-    [preparedNodes, linksWithIndices, nodeSizeFn]
-  );
-
-  const handleExportSvg = useCallback(async () => {
-    let logo = logoDataUrlRef.current;
-    if (!logo) {
-      try {
-        logo = await loadDataUrl("/logo.png");
-        logoDataUrlRef.current = logo;
-      } catch {
-        logo = null;
-      }
+    // --- Fit the whole graph: bounds of world coords → centered, scaled view ---
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const nd of preparedNodes) {
+      if (nd.wx < minX) minX = nd.wx;
+      if (nd.wx > maxX) maxX = nd.wx;
+      if (nd.wy < minY) minY = nd.wy;
+      if (nd.wy > maxY) maxY = nd.wy;
     }
-    const svg = buildSvgString(logo);
+    if (!Number.isFinite(minX)) {
+      minX = minY = -1;
+      maxX = maxY = 1;
+    }
+    const padX = 84;
+    const padTop = 128; // clears the logo
+    const padBottom = 80;
+    const availW = W - 2 * padX;
+    const availH = H - padTop - padBottom;
+    const spanX = Math.max(maxX - minX, 1);
+    const spanY = Math.max(maxY - minY, 1);
+    const zoom = Math.min(availW / spanX, availH / spanY);
+    const cwx = (minX + maxX) / 2;
+    const cwy = (minY + maxY) / 2;
+    const ox = W / 2;
+    const oy = padTop + availH / 2;
+    const sx = new Float32Array(n);
+    const sy = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      sx[i] = ox + (preparedNodes[i].wx - cwx) * zoom;
+      sy[i] = oy + (preparedNodes[i].wy - cwy) * zoom;
+    }
+    // A self-describing illustration, not a substitute for the underlying evidence.
+    const navy = "#111827";
+    const gridStroke = "#8ea3c8";
+
+    const parts: string[] = [];
+    parts.push(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
+    );
+
+    // --- Defs: bottom glow, plus-grid, edge vignette, node bloom ---
+    parts.push(
+      `<defs>` +
+        `<radialGradient id="hs-glow" cx="50%" cy="100%" r="62%">` +
+        `<stop offset="0" stop-color="#1d4ed8" stop-opacity="0.42"/>` +
+        `<stop offset="0.55" stop-color="#1e3a8a" stop-opacity="0.13"/>` +
+        `<stop offset="1" stop-color="#1e3a8a" stop-opacity="0"/>` +
+        `</radialGradient>` +
+        `<radialGradient id="hs-vignette" cx="50%" cy="46%" r="76%">` +
+        `<stop offset="0" stop-color="#000000" stop-opacity="0"/>` +
+        `<stop offset="0.82" stop-color="#000000" stop-opacity="0"/>` +
+        `<stop offset="1" stop-color="#000000" stop-opacity="0.24"/>` +
+        `</radialGradient>` +
+        `<pattern id="hs-grid" width="30" height="30" patternUnits="userSpaceOnUse">` +
+        `<path d="M15 12 V18 M12 15 H18" stroke="${gridStroke}" stroke-width="0.7" opacity="0.06"/>` +
+        `</pattern>` +
+        `</defs>`
+    );
+
+    // --- Background layers ---
+    parts.push(`<rect width="${W}" height="${H}" fill="${navy}"/>`);
+    parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-grid)"/>`);
+    parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-glow)"/>`);
+
+    // --- Links in the currently selected graph ---
+    const linkParts: string[] = [];
+    const maxLinks = 6000;
+    let drawn = 0;
+    for (const link of linksWithIndices) {
+      if (drawn >= maxLinks) break;
+      const axp = sx[link.a];
+      const ayp = sy[link.a];
+      const bxp = sx[link.b];
+      const byp = sy[link.b];
+      const midX = (axp + bxp) / 2 + (byp - ayp) * 0.08;
+      const midY = (ayp + byp) / 2 - (bxp - axp) * 0.08;
+      linkParts.push(
+        `<path d="M${f(axp)} ${f(ayp)} Q${f(midX)} ${f(midY)} ${f(bxp)} ${f(byp)}" stroke="${link.color}"/>`
+      );
+      drawn++;
+    }
+    const linkAlpha = 0.42;
+    parts.push(
+      `<g fill="none" stroke-width="1.2" opacity="${a(linkAlpha)}">${linkParts.join("")}</g>`
+    );
+
+    // --- Nodes: exactly as the UI canvas draws them (solid heat dot, opacity
+    // by link count, plus a translucent halo for hubs) — minus hover effects ---
+    const haloParts: string[] = [];
+    const nodeParts: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const nd = preparedNodes[i];
+      const baseR = nodeSizeFn ? nodeSizeFn(nd.node) : 2.5 + Math.min(nd.linkCount * 0.15, 2.5);
+      const r = Math.max(1.5, baseR * Math.min(zoom, 2));
+      const alpha = 0.45 + Math.min(nd.linkCount * 0.03, 0.5);
+      if (nd.linkCount > 3) {
+        const halo = 0.06 + Math.min(nd.linkCount * 0.005, 0.08);
+        haloParts.push(
+          `<circle cx="${f(sx[i])}" cy="${f(sy[i])}" r="${f(r * 2)}" fill="${nd.heatColor}" opacity="${a(halo)}"/>`
+        );
+      }
+      nodeParts.push(
+        `<circle cx="${f(sx[i])}" cy="${f(sy[i])}" r="${f(r)}" fill="${nd.heatColor}" opacity="${a(alpha)}"/>`
+      );
+    }
+    parts.push(`<g>${haloParts.join("")}</g>`);
+    parts.push(`<g>${nodeParts.join("")}</g>`);
+
+    parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-vignette)"/>`);
+    parts.push(
+      '<text x="48" y="68" fill="#E5E9F2" font-family="sans-serif" font-size="30" font-weight="600">' +
+        productName +
+        "</text>"
+    );
+    parts.push(
+      `<text x="48" y="100" fill="#cbd5e1" font-family="sans-serif" font-size="17">${escapeGraphHtml(t("graphScope"))}</text>`
+    );
+    parts.push(
+      `<text x="48" y="128" fill="#cbd5e1" font-family="sans-serif" font-size="15">${escapeGraphHtml(t("svgNodes", { count: n }))} · ${escapeGraphHtml(t("svgLinks", { count: drawn }))}</text>`
+    );
+
+    // Label a bounded set of nodes. For dense graphs this remains a diagram;
+    // the memory list and detail view retain the full text and provenance.
+    const labelIndices = preparedNodes
+      .map((_, i) => i)
+      .sort((left, right) => preparedNodes[right].linkCount - preparedNodes[left].linkCount)
+      .slice(0, 48);
+    for (const i of labelIndices) {
+      const node = preparedNodes[i].node;
+      const label = (node.label || node.id).slice(0, 28);
+      const nearRightEdge = sx[i] > W - 300;
+      parts.push(
+        `<text x="${f(sx[i] + (nearRightEdge ? -12 : 9))}" y="${f(sy[i] - 7)}" text-anchor="${nearRightEdge ? "end" : "start"}" fill="#f1f5f9" stroke="${navy}" stroke-width="3" paint-order="stroke" font-family="sans-serif" font-size="12">${escapeGraphHtml(label)}</text>`
+      );
+    }
+    let legendX = 48;
+    for (const type of presentLinkTypes) {
+      const label = t(
+        type === "unknown"
+          ? "linkTypeUnknown"
+          : type === "causal"
+            ? "linkTypeCausal"
+            : type === "entity"
+              ? "linkTypeEntity"
+              : type === "temporal"
+                ? "linkTypeTemporal"
+                : "linkTypeSemantic"
+      );
+      parts.push(`<circle cx="${legendX}" cy="${H - 42}" r="5" fill="${LINK_TYPE_COLORS[type]}"/>`);
+      parts.push(
+        `<text x="${legendX + 12}" y="${H - 37}" fill="#cbd5e1" font-family="sans-serif" font-size="14">${escapeGraphHtml(label)}</text>`
+      );
+      legendX += 122;
+    }
+
+    parts.push(`</svg>`);
+    return parts.join("");
+  }, [preparedNodes, linksWithIndices, nodeSizeFn, presentLinkTypes, t, productName]);
+
+  const handleExportSvg = useCallback(() => {
+    const svg = buildSvgString();
     const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "hindsight-constellation.svg";
+    link.download = `${productName}-relationship-graph.svg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, [buildSvgString]);
+  }, [buildSvgString, productName]);
 
   return (
     <div
       ref={wrapperRef}
+      className="constellation-frame"
       style={
         isFullscreen
           ? {
               position: "fixed",
               inset: 0,
               zIndex: 50,
-              background: isDark ? "#09090b" : "#ffffff",
+              height: "100dvh",
+              background: isDark ? "#111827" : "#ffffff",
             }
-          : { position: "relative", width: "100%", height: `${height}px` }
+          : ({
+              position: "relative",
+              width: "100%",
+              "--graph-height": `${height}px`,
+            } as CSSProperties)
       }
     >
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label={t("graphScope")}
+        style={{ width: "100%", height: "100%", display: "block" }}
+      />
 
       {/* Toolbar */}
       <div
@@ -1575,16 +1700,39 @@ export function Constellation({
           gap: 6,
         }}
       >
+        <button
+          type="button"
+          onClick={() => zoomBy(1.25)}
+          style={toolbarBtnStyle(isDark)}
+          aria-label={t("zoomIn")}
+          title={t("zoomIn")}
+        >
+          <ZoomIn className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => zoomBy(0.8)}
+          style={toolbarBtnStyle(isDark)}
+          aria-label={t("zoomOut")}
+          title={t("zoomOut")}
+        >
+          <ZoomOut className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={fitView}
+          style={toolbarBtnStyle(isDark)}
+          aria-label={t("resetView")}
+          title={t("resetView")}
+        >
+          <ScanSearch className="h-4 w-4" />
+        </button>
         {/* Share as SVG */}
         <button
+          type="button"
           onClick={handleExportSvg}
           style={toolbarBtnStyle(isDark)}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "1";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "0.7";
-          }}
+          aria-label={t("exportSvgLabel")}
           title={t("exportSvgTitle")}
         >
           <svg
@@ -1601,20 +1749,33 @@ export function Constellation({
             <polyline points="8 8 12 4 16 8" />
             <line x1="12" y1="4" x2="12" y2="15" />
           </svg>
-          {t("exportSvgLabel")}
+          <span className="hidden sm:inline">{t("exportSvgLabel")}</span>
         </button>
 
         {/* Ambient-motion toggle */}
         <button
+          type="button"
           onClick={toggleMotion}
-          style={toolbarBtnStyle(isDark)}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "1";
+          disabled={reducedMotion}
+          style={{
+            ...toolbarBtnStyle(isDark),
+            opacity: reducedMotion ? 0.55 : 1,
+            cursor: reducedMotion ? "not-allowed" : "pointer",
           }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "0.7";
-          }}
-          title={motionEnabled ? t("pauseMotionTitle") : t("resumeMotionTitle")}
+          aria-label={
+            reducedMotion
+              ? t("reducedMotionTitle")
+              : motionEnabled
+                ? t("pauseMotionLabel")
+                : t("resumeMotionLabel")
+          }
+          title={
+            reducedMotion
+              ? t("reducedMotionTitle")
+              : motionEnabled
+                ? t("pauseMotionTitle")
+                : t("resumeMotionTitle")
+          }
         >
           {motionEnabled ? (
             <svg
@@ -1644,19 +1805,17 @@ export function Constellation({
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
           )}
-          {motionEnabled ? t("pauseMotionLabel") : t("resumeMotionLabel")}
+          <span className="hidden sm:inline">
+            {motionEnabled ? t("pauseMotionLabel") : t("resumeMotionLabel")}
+          </span>
         </button>
 
         {/* Fullscreen toggle */}
         <button
+          type="button"
           onClick={toggleFullscreen}
           style={toolbarBtnStyle(isDark)}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "1";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.opacity = "0.7";
-          }}
+          aria-label={isFullscreen ? t("exitFullscreenLabel") : t("enterFullscreenLabel")}
           title={isFullscreen ? t("exitFullscreenTitle") : t("enterFullscreenTitle")}
         >
           {isFullscreen ? (
@@ -1692,9 +1851,42 @@ export function Constellation({
               <line x1="3" y1="21" x2="10" y2="14" />
             </svg>
           )}
-          {isFullscreen ? t("exitFullscreenLabel") : t("enterFullscreenLabel")}
+          <span className="hidden sm:inline">
+            {isFullscreen ? t("exitFullscreenLabel") : t("enterFullscreenLabel")}
+          </span>
         </button>
       </div>
+
+      <details className="absolute bottom-2 right-2 z-20 max-w-[min(90%,260px)] rounded-md border border-border bg-card/95 text-xs text-foreground shadow-sm">
+        <summary className="cursor-pointer px-3 py-2 font-medium">{t("legendToggle")}</summary>
+        <div className="space-y-2 border-t border-border px-3 py-2">
+          <p className="text-muted-foreground">{t("graphScope")}</p>
+          <p className="text-muted-foreground sm:hidden">{t("instructions")}</p>
+          {presentLinkTypes.length > 0 && (
+            <div aria-label={t("legendTitle")} className="flex flex-wrap gap-x-3 gap-y-1">
+              {presentLinkTypes.map((type) => (
+                <span key={type} className="inline-flex items-center gap-1">
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: LINK_TYPE_COLORS[type] }}
+                  />
+                  {t(
+                    type === "unknown"
+                      ? "linkTypeUnknown"
+                      : type === "causal"
+                        ? "linkTypeCausal"
+                        : type === "entity"
+                          ? "linkTypeEntity"
+                          : type === "temporal"
+                            ? "linkTypeTemporal"
+                            : "linkTypeSemantic"
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </details>
 
       {/* Tooltip */}
       <div

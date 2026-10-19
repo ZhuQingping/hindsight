@@ -1,3 +1,4 @@
+import { DISPLAY_NAME } from "./brand-defaults.js";
 export interface PageRef {
   id: string;
   title: string;
@@ -19,7 +20,9 @@ export function parsePageList(raw: unknown): PageRef[] {
 }
 
 const EMPTY_STATE =
-  "No knowledge pages yet — agentstratum is still learning this repo; they'll appear as it processes.";
+  "No knowledge pages yet — " +
+  DISPLAY_NAME +
+  " is still learning this repo; they'll appear as it processes.";
 
 /**
  * What the agent is told EXISTS, without listing it.
@@ -72,7 +75,9 @@ const TOOL_GUIDE =
   "  CREDITING IS NOT OPTIONAL AND NOT A JUDGEMENT CALL. If you called this tool and anything it " +
   "returned reached your reply — quoted, paraphrased, or merely confirming what you were about to " +
   "say — open that part with a markdown blockquote, exactly: " +
-  '"> 🧠 **From agentstratum memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
+  ('"> 🧠 **From ' +
+    DISPLAY_NAME +
+    ' memory (<page>)** — <the specific facts you drew on>". Rewriting a ') +
   "snippet in your own words does not make it yours. A search that turned up nothing useful needs " +
   "no mention at all — just carry on.\n" +
   "- agentstratum_list_knowledge_pages / agentstratum_read_knowledge_page — BEFORE substantial work, list the pages and " +
@@ -80,7 +85,9 @@ const TOOL_GUIDE =
   "of re-deriving them from the code; follow any [[page:<id>]] links you see.\n" +
   "- agentstratum_reflect(query) — when pages are too shallow and you need the WHY: deep reasoning over the " +
   "repo's full memory for the past decision and exact values that explain a behavior or bug (slower — " +
-  'use deliberately, and credit results with a blockquote header "> 🧠 **From agentstratum memory** — <summary>").\n' +
+  ('use deliberately, and credit results with a blockquote header "> 🧠 **From ' +
+    DISPLAY_NAME +
+    ' memory** — <summary>").\n') +
   "- agentstratum_capture_initiative(title, summary) — right after the user approves a plan or finishes brainstorming a " +
   "new feature/capability and you are about to start implementing (BEFORE you write any code), call this to " +
   "record it as a tracked page; then call it AGAIN with relates_to_page_id set to that page whenever the goal, " +
@@ -120,10 +127,14 @@ export function buildKnowledgePreamble(pages: PageRef[], opts?: ToolGuideOpts): 
   const body = pages.length ? indexLine(pages) : EMPTY_STATE;
   return (
     "<agentstratum_knowledge>\n" +
-    "This repository has a agentstratum memory + knowledge base (curated, continuously-updated pages plus the raw " +
+    ("This repository has a " +
+      DISPLAY_NAME +
+      " memory + knowledge base (curated, continuously-updated pages plus the raw ") +
     "memory behind them). The tools below are registered, but you must actually CALL them at the right moments:\n" +
     `${toolGuide(opts)}\n` +
-    "ALSO your correction tool: when you verify a agentstratum memory is wrong or stale, ingest a " +
+    ("ALSO your correction tool: when you verify a " +
+      DISPLAY_NAME +
+      " memory is wrong or stale, ingest a ") +
     '"Correction: <topic>" doc stating what memory claimed, what is true now, and the evidence — ' +
     "newer facts supersede older ones.\n" +
     `${body}\n` +
@@ -143,7 +154,9 @@ export function buildRosterRefresh(pages: PageRef[], opts?: ToolGuideOpts): stri
   return (
     "<agentstratum_knowledge_refresh>\n" +
     rosterBlock +
-    "Reminder — this repo's agentstratum tools are available; call them at the right moments:\n" +
+    ("Reminder — this repo's " +
+      DISPLAY_NAME +
+      " tools are available; call them at the right moments:\n") +
     `${toolGuide(opts)}\n` +
     "</agentstratum_knowledge_refresh>"
   );

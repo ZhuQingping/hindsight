@@ -280,7 +280,7 @@ def _parse_tag_groups_query(raw: str | None, tags: list[str] | None) -> list[Tag
         raise HTTPException(status_code=400, detail=f"Invalid tag_groups: {e.errors(include_url=False)}")
 
 
-from hindsight_api.brand import API_SERVICE_NAME, API_TITLE
+from hindsight_api.brand import api_title, service_name
 from hindsight_api.engine.structured_output import validate_response_schema
 from hindsight_api.engine.time_filter import DocumentTimeField, MemoryTimeField
 from hindsight_api.extensions import HttpExtension, OperationValidationError, load_extension
@@ -5107,7 +5107,7 @@ def create_app(
         # closed DB pool — installed for the rest of the process (#3780).
         previous_metrics_collector = get_metrics_collector()
         try:
-            prometheus_reader = initialize_metrics(service_name=API_SERVICE_NAME, service_version="1.0.0")
+            prometheus_reader = initialize_metrics(service_name=service_name("api"), service_version="1.0.0")
             create_metrics_collector()
             app.state.prometheus_reader = prometheus_reader
             if config.metrics_worker_label:
@@ -5126,7 +5126,7 @@ def create_app(
         # worker entrypoint so both processes honour the same configuration.
         from hindsight_api.tracing import initialize_tracing_from_config
 
-        initialize_tracing_from_config(config)
+        initialize_tracing_from_config(config, default_service_name=service_name("api"))
 
         # Startup: Initialize database and memory system (migrations run inside initialize if enabled)
         if initialize_memory:
@@ -5234,12 +5234,16 @@ def create_app(
 
     config = get_config()
 
+    from hindsight_api.product_config import DisplayConfig, ProductConfig, display_config, product_config
+
+    product = product_config()
+    display = display_config()
     app = FastAPI(
-        title=API_TITLE,
+        title=api_title(),
         version=__version__,
-        description="HTTP API for agentstratum",
+        description=f"HTTP API for {display.display_name}, a data foundation for agents",
         contact={
-            "name": "Memory System",
+            "name": display.display_name,
         },
         license_info={
             "name": "Apache 2.0",
@@ -5296,6 +5300,18 @@ def create_app(
     # Per-operation admission control, consulted by the `admit_for` dependency on
     # the heavy routes. One controller per app so the limits are a process budget.
     app.state.admission = build_controller_from_config(config)
+
+    @app.get("/product-config", response_model=ProductConfig, tags=["Product"])
+    async def get_product_config(response: Response) -> ProductConfig:
+        response.headers["Cache-Control"] = "no-store"
+        # Additive header lets a new UI using v1 detect an API-only display override.
+        response.headers["X-Product-Display-Name"] = display.display_name
+        return product
+
+    @app.get("/product-config/v2", response_model=DisplayConfig, tags=["Product"])
+    async def get_display_config(response: Response) -> DisplayConfig:
+        response.headers["Cache-Control"] = "no-store"
+        return display
 
     # Register all routes
     _register_routes(app)

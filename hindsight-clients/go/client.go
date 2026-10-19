@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+ContextBase HTTP API
 
-HTTP API for Hindsight
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -41,7 +41,7 @@ var (
 	queryDescape    = strings.NewReplacer( "%5B", "[", "%5D", "]" )
 )
 
-// APIClient manages communication with the Hindsight HTTP API API v0.10.3
+// APIClient manages communication with the ContextBase HTTP API API v0.10.3
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *Configuration
@@ -79,6 +79,8 @@ type APIClient struct {
 
 	OperationsAPI *OperationsAPIService
 
+	ProductAPI *ProductAPIService
+
 	WebhooksAPI *WebhooksAPIService
 }
 
@@ -113,6 +115,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.MentalModelsAPI = (*MentalModelsAPIService)(&c.common)
 	c.MonitoringAPI = (*MonitoringAPIService)(&c.common)
 	c.OperationsAPI = (*OperationsAPIService)(&c.common)
+	c.ProductAPI = (*ProductAPIService)(&c.common)
 	c.WebhooksAPI = (*WebhooksAPIService)(&c.common)
 
 	return c

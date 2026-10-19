@@ -16,6 +16,7 @@ hindsight_client_api/api/memory_api.py
 hindsight_client_api/api/mental_models_api.py
 hindsight_client_api/api/monitoring_api.py
 hindsight_client_api/api/operations_api.py
+hindsight_client_api/api/product_api.py
 hindsight_client_api/api/webhooks_api.py
 hindsight_client_api/api_client.py
 hindsight_client_api/api_response.py
@@ -76,6 +77,7 @@ hindsight_client_api/models/delete_operation_response.py
 hindsight_client_api/models/delete_response.py
 hindsight_client_api/models/directive_list_response.py
 hindsight_client_api/models/directive_response.py
+hindsight_client_api/models/display_config.py
 hindsight_client_api/models/disposition_traits.py
 hindsight_client_api/models/document_export_submit_response.py
 hindsight_client_api/models/document_import_submit_response.py
@@ -162,6 +164,7 @@ hindsight_client_api/models/operation_progress.py
 hindsight_client_api/models/operation_response.py
 hindsight_client_api/models/operation_status_response.py
 hindsight_client_api/models/operations_list_response.py
+hindsight_client_api/models/product_config.py
 hindsight_client_api/models/prompt_block_model.py
 hindsight_client_api/models/prompt_message_model.py
 hindsight_client_api/models/prompt_preview_request.py

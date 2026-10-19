@@ -43,7 +43,12 @@ const homes: string[] = [];
 // to remember this, the same lesson as SKILL_DIRS — the list everyone forgets lives once.
 let savedEnv: Record<string, string | undefined>;
 beforeAll(() => {
-  savedEnv = { APPDATA: process.env.APPDATA, XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME };
+  savedEnv = {
+    APPDATA: process.env.APPDATA,
+    XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
+    CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
+  };
+  delete process.env.CLAUDE_CONFIG_DIR;
   delete process.env.APPDATA;
   delete process.env.XDG_CONFIG_HOME;
 });
@@ -68,10 +73,47 @@ function makeCtx(): InstallCtx & {
     home,
     pkgRoot,
     dist: join(pkgRoot, "dist"),
-    claudeMcp: vi.fn(() => true),
+    claudeMcp: vi.fn((args: string[]) => {
+      // Model the real CLI's user-scope storage and refusal to overwrite names.
+      const path = join(home, ".claude.json");
+      const config = existsSync(path) ? readJson(path) : {};
+      config.mcpServers ??= {};
+      if (args[1] === "add") {
+        if (config.mcpServers.agentstratum) return false;
+        const separator = args.indexOf("--");
+        config.mcpServers.agentstratum = {
+          command: args[separator + 1],
+          args: args.slice(separator + 2),
+          env: { AGENTSTRATUM_MCP_HARNESS: "claude-code" },
+        };
+      } else if (args[1] === "remove") {
+        delete config.mcpServers.agentstratum;
+      }
+      writeJsonAt(path, config);
+      return true;
+    }),
     // qwen-code registers through the `qwen` CLI, exactly as claude-code does through `claude`.
     // Stub it for the same reason: the suite must never execute a real host CLI.
-    qwenMcp: vi.fn(() => true),
+    qwenMcp: vi.fn((args: string[]) => {
+      const path = join(home, ".qwen", "settings.json");
+      const config = existsSync(path) ? readJson(path) : {};
+      config.mcpServers ??= {};
+      if (args[1] === "add") {
+        if (config.mcpServers.agentstratum) return false;
+        const name = args.indexOf("agentstratum");
+        config.mcpServers.agentstratum = {
+          command: args[name + 1],
+          args: args.slice(name + 2),
+          env: { AGENTSTRATUM_MCP_HARNESS: "qwen-code" },
+        };
+      } else if (args[1] === "remove") {
+        if (!args.includes("user"))
+          throw new Error("MCP removal must explicitly select user scope");
+        delete config.mcpServers.agentstratum;
+      }
+      writeJsonAt(path, config);
+      return true;
+    }),
     clinePlugin: vi.fn(() => true),
     dcodePlugin: vi.fn(() => true),
     // Stubbed like the CLI seams above, so the suite never depends on the Node running it.
@@ -165,8 +207,16 @@ describe("claude-code installer", () => {
     }
   });
 
-  it("removes before adding so an existing registration is REPOINTED, not skipped", () => {
+  it("removes before adding so an owned registration is REPOINTED, not skipped", () => {
     const ctx = makeCtx();
+    writeJsonAt(join(ctx.home, ".claude.json"), {
+      mcpServers: {
+        agentstratum: {
+          command: "node",
+          args: ["/old/agentstratum-coding-agents/dist/mcp-server.js"],
+        },
+      },
+    });
     run(["install", "claude-code"], ctx);
     const calls = ctx.claudeMcp.mock.calls.map((c) => c[0]);
     const removeAt = calls.findIndex((a) => a[1] === "remove");
@@ -363,7 +413,7 @@ describe("qwen-code installer", () => {
     const ctx = makeCtx();
     expect(run(["install", "qwen-code"], ctx)).toBe(0);
     const argv = ctx.qwenMcp.mock.calls.map((c) => c[0].join(" "));
-    expect(argv.some((a) => a.startsWith("mcp remove"))).toBe(true);
+    expect(argv.some((a) => a.startsWith("mcp remove"))).toBe(false);
     expect(
       argv.some((a) => a.includes("mcp add") && a.includes("AGENTSTRATUM_MCP_HARNESS=qwen-code"))
     ).toBe(true);
@@ -2812,7 +2862,26 @@ describe("skill install across skills-capable hosts", () => {
       pkgRoot,
       dist: join(pkgRoot, "dist"),
       claudeMcp: vi.fn(() => true),
-      qwenMcp: vi.fn(() => true),
+      qwenMcp: vi.fn((args: string[]) => {
+        const path = join(home, ".qwen", "settings.json");
+        const config = existsSync(path) ? readJson(path) : {};
+        config.mcpServers ??= {};
+        if (args[1] === "add") {
+          if (config.mcpServers.agentstratum) return false;
+          const name = args.indexOf("agentstratum");
+          config.mcpServers.agentstratum = {
+            command: args[name + 1],
+            args: args.slice(name + 2),
+            env: { AGENTSTRATUM_MCP_HARNESS: "qwen-code" },
+          };
+        } else if (args[1] === "remove") {
+          if (!args.includes("user"))
+            throw new Error("MCP removal must explicitly select user scope");
+          delete config.mcpServers.agentstratum;
+        }
+        writeJsonAt(path, config);
+        return true;
+      }),
     };
     const targets: [string, string][] = [
       ["claude-code", join(home, ".claude", "skills")],
@@ -2851,7 +2920,26 @@ describe("skill install across skills-capable hosts", () => {
       pkgRoot,
       dist: join(pkgRoot, "dist"),
       claudeMcp: vi.fn(() => true),
-      qwenMcp: vi.fn(() => true),
+      qwenMcp: vi.fn((args: string[]) => {
+        const path = join(home, ".qwen", "settings.json");
+        const config = existsSync(path) ? readJson(path) : {};
+        config.mcpServers ??= {};
+        if (args[1] === "add") {
+          if (config.mcpServers.agentstratum) return false;
+          const name = args.indexOf("agentstratum");
+          config.mcpServers.agentstratum = {
+            command: args[name + 1],
+            args: args.slice(name + 2),
+            env: { AGENTSTRATUM_MCP_HARNESS: "qwen-code" },
+          };
+        } else if (args[1] === "remove") {
+          if (!args.includes("user"))
+            throw new Error("MCP removal must explicitly select user scope");
+          delete config.mcpServers.agentstratum;
+        }
+        writeJsonAt(path, config);
+        return true;
+      }),
     };
 
     run(["install", "codex", "prime-agent"], ctx);
@@ -3059,20 +3147,156 @@ describe("shared MCP registration ownership", () => {
     ["copilot-cli", [".copilot", "mcp-config.json"]],
     ["kimi-code", [".kimi-code", "mcp.json"]],
     ["cline-cli", [".cline", "data", "settings", "cline_mcp_settings.json"]],
+    ["factory-droid", [".factory", "mcp.json"]],
+    ["workbuddy", [".workbuddy", "mcp.json"]],
+    ["codebuddy", [".codebuddy", ".mcp.json"]],
+    ["qwen-code", [".qwen", "settings.json"]],
+    ["claude-code", [".claude.json"]],
   ] as const)("keeps a user-managed server during %s install and uninstall", (harness, parts) => {
+    for (const foreign of [
+      {
+        type: "http",
+        url: "https://service.example/mcp",
+        headers: { Authorization: "Bearer user-key" },
+      },
+      {
+        command: "node",
+        args: ["/user/independent-server.js"],
+        env: { TOKEN: "fixture-credential" },
+      },
+    ]) {
+      const ctx = makeCtx();
+      const file = join(ctx.home, ...parts);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, JSON.stringify({ mcpServers: { agentstratum: foreign } }));
+      const installer = INSTALLERS.find((i) => i.name === harness)!;
+      installer.install(ctx);
+      installer.install(ctx);
+      expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
+      installer.uninstall(ctx);
+      expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
+    }
+  });
+});
+
+describe("Claude and Codex protect the UI's independent remote MCP registration", () => {
+  const foreign = {
+    type: "http",
+    url: "https://mcp.example/gateway/workspace",
+    headers: { Authorization: "Bearer fixture-credential" },
+  };
+  it("Claude install/uninstall keeps a foreign user-scoped entry and never calls remove/add", () => {
     const ctx = makeCtx();
-    const file = join(ctx.home, ...parts);
-    const foreign = {
-      type: "http",
-      url: "https://service.example/mcp",
-      headers: { Authorization: "Bearer user-key" },
+    const path = join(ctx.home, ".claude.json");
+    const original = {
+      mcpServers: { agentstratum: foreign },
+      projects: { project: { mcpServers: { other: foreign } } },
     };
-    mkdirSync(dirname(file), { recursive: true });
-    writeFileSync(file, JSON.stringify({ mcpServers: { agentstratum: foreign } }));
-    const installer = INSTALLERS.find((i) => i.name === harness)!;
-    installer.install(ctx);
-    expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
-    installer.uninstall(ctx);
-    expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.agentstratum).toEqual(foreign);
+    writeJsonAt(path, original);
+    const bytes = readFileSync(path, "utf8");
+    const logs: string[] = [];
+    ctx.log = (line) => logs.push(line);
+    run(["install", "claude-code"], ctx);
+    run(["uninstall", "claude-code"], ctx);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    expect(readFileSync(path, "utf8")).toBe(bytes);
+    expect(logs.join("\n")).toContain("preserved");
+  });
+  it("Claude unreadable or malformed config is preserved without destructive CLI calls", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".claude.json");
+    writeFileSync(path, "{ broken JSON");
+    run(["install", "claude-code"], ctx);
+    run(["uninstall", "claude-code"], ctx);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    expect(readFileSync(path, "utf8")).toBe("{ broken JSON");
+  });
+  it("Claude uninstall removes only an owned script entry, preserving other scopes and names", () => {
+    const ctx = makeCtx();
+    run(["install", "claude-code"], ctx);
+    const path = join(ctx.home, ".claude.json");
+    const config = readJson(path);
+    config.mcpServers.other = foreign;
+    config.projects = { project: { mcpServers: { agentstratum: foreign } } };
+    writeJsonAt(path, config);
+    run(["uninstall", "claude-code"], ctx);
+    expect(readJson(path)).toEqual({ mcpServers: { other: foreign }, projects: config.projects });
+  });
+  it.each([
+    'url = "https://mcp.example/gateway/workspace"\nhttp_headers = { Authorization = "Bearer fixture-credential" }',
+    'command = "node"\nargs = ["/user/independent-server.js"]\nenv = { TOKEN = "fixture-credential" }',
+  ])("Codex install/uninstall preserves a foreign MCP entry: %s", (entry) => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".codex", "config.toml");
+    mkdirSync(dirname(path), { recursive: true });
+    const original = `[features]\nhooks = true\n\n[mcp_servers.agentstratum]\n${entry}\n`;
+    writeFileSync(path, original);
+    run(["install", "codex"], ctx);
+    run(["uninstall", "codex"], ctx);
+    expect(readFileSync(path, "utf8")).toBe(original);
+  });
+  it.each(["[mcp_servers.agentstratum]", '[mcp_servers."agentstratum"]'])(
+    "updates a moved owned script in %s and can uninstall it",
+    (table) => {
+      const ctx = makeCtx();
+      const path = join(ctx.home, ".codex", "config.toml");
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(
+        path,
+        `${table}\ncommand = "node"\nargs = ["/old/agentstratum-coding-agents/dist/mcp-server.js"]\n\n[unrelated]\nvalue = "preserve"\n`
+      );
+      run(["install", "codex"], ctx);
+      const config = parseToml(readFileSync(path, "utf8"));
+      expect((config.mcp_servers as any).agentstratum.args).toEqual([
+        join(ctx.dist, "mcp-server.js"),
+      ]);
+      run(["uninstall", "codex"], ctx);
+      expect(readFileSync(path, "utf8")).toContain('[unrelated]\nvalue = "preserve"');
+      expect(readFileSync(path, "utf8")).not.toContain("mcp_servers.agentstratum");
+    }
+  );
+  it("Codex malformed TOML is left intact by install and uninstall", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".codex", "config.toml");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "[broken");
+    run(["install", "codex"], ctx);
+    run(["uninstall", "codex"], ctx);
+    expect(readFileSync(path, "utf8")).toBe("[broken");
+  });
+});
+
+describe("Qwen scoped ownership", () => {
+  it("repoints only owned scripts and explicitly removes in user scope", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".qwen", "settings.json");
+    writeJsonAt(path, {
+      mcpServers: {
+        agentstratum: {
+          command: "node",
+          args: ["/old/agentstratum-coding-agents/dist/mcp-server.js"],
+        },
+        other: { url: "https://other.example/mcp" },
+      },
+    });
+    run(["install", "qwen-code"], ctx);
+    run(["install", "qwen-code"], ctx);
+    expect(readJson(path).mcpServers.agentstratum.args).toEqual([join(ctx.dist, "mcp-server.js")]);
+    run(["uninstall", "qwen-code"], ctx);
+    expect(readJson(path).mcpServers).toEqual({ other: { url: "https://other.example/mcp" } });
+    const removals = ctx.qwenMcp.mock.calls.filter(([args]) => args[1] === "remove");
+    expect(removals).toHaveLength(3);
+    for (const [args] of removals)
+      expect(args).toEqual(["mcp", "remove", "-s", "user", "agentstratum"]);
+  });
+  it("preserves malformed user configuration without calling the host CLI", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".qwen", "settings.json");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "{ broken");
+    expect(run(["install", "qwen-code"], ctx)).toBe(1);
+    expect(run(["uninstall", "qwen-code"], ctx)).toBe(1);
+    expect(ctx.qwenMcp).not.toHaveBeenCalled();
+    expect(readFileSync(path, "utf8")).toBe("{ broken");
   });
 });

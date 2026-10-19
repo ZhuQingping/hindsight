@@ -303,16 +303,16 @@ export default function BankPage() {
     // Pinned to the viewport (h-screen, not min-h-screen) so `main` below is
     // the only scroll container: with min-h-screen the page itself grew past
     // the viewport and scrolled the header and sidebar out of view.
-    <div className="h-screen overflow-hidden bg-background flex flex-col">
+    <div className="h-dvh overflow-hidden bg-background flex flex-col">
       <div className="shrink-0">
         <BankSelector />
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
         <Sidebar currentTab={view} onTabChange={handleTabChange} />
 
         <main className="flex-1 min-w-0 overflow-y-auto">
-          <div className="p-6">
+          <div className="p-4 md:p-7">
             {/* Content width staircase. Without a cap the views ran the full
                 width of the window, which on a 16" display left body text and
                 table rows spanning ~1700px. The Kit specifies a flat 1024px;
@@ -372,7 +372,9 @@ export default function BankPage() {
                           <Copy className="w-4 h-4 mr-2" />
                           {t("cloneBank")}
                           {!cloneEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {t("disabledStatus")}
+                            </span>
                           )}
                         </DropdownMenuItem>
                         {llmHealthEnabled && (
@@ -396,7 +398,9 @@ export default function BankPage() {
                           )}
                           {isConsolidating ? t("consolidating") : t("runConsolidation")}
                           {!observationsEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {t("disabledStatus")}
+                            </span>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -413,7 +417,9 @@ export default function BankPage() {
                           )}
                           {isRecoveringConsolidation ? t("recovering") : t("recoverConsolidation")}
                           {!observationsEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {t("disabledStatus")}
+                            </span>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -427,7 +433,9 @@ export default function BankPage() {
                           <Trash2 className="w-4 h-4 mr-2" />
                           {t("clearObservations")}
                           {!observationsEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {t("disabledStatus")}
+                            </span>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -435,12 +443,14 @@ export default function BankPage() {
                           onClick={() => setShowResetConfigDialog(true)}
                           disabled={!bankConfigEnabled}
                           className="text-amber-600 dark:text-amber-400 focus:text-amber-700 dark:focus:text-amber-300"
-                          title={!bankConfigEnabled ? "Bank Config API is disabled" : undefined}
+                          title={!bankConfigEnabled ? t("configurationUnavailable") : undefined}
                         >
                           <RotateCcw className="w-4 h-4 mr-2" />
                           {t("resetConfiguration")}
                           {!bankConfigEnabled && (
-                            <span className="ml-auto text-xs text-muted-foreground">Off</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {t("disabledStatus")}
+                            </span>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -457,10 +467,10 @@ export default function BankPage() {
 
                   {/* Sub-tabs */}
                   <div className="mb-6 border-b border-border">
-                    <div className="flex gap-1">
+                    <div className="flex flex-wrap gap-1 [&>button]:whitespace-nowrap">
                       <button
                         onClick={() => handleBankConfigTabChange("general")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           bankConfigTab === "general"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -474,7 +484,7 @@ export default function BankPage() {
                       {bankConfigEnabled && (
                         <button
                           onClick={() => handleBankConfigTabChange("memory-defense")}
-                          className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                          className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                             bankConfigTab === "memory-defense"
                               ? "text-primary"
                               : "text-muted-foreground hover:text-foreground"
@@ -489,7 +499,7 @@ export default function BankPage() {
                       {bankConfigEnabled && (
                         <button
                           onClick={() => handleBankConfigTabChange("configuration")}
-                          className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                          className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                             bankConfigTab === "configuration"
                               ? "text-primary"
                               : "text-muted-foreground hover:text-foreground"
@@ -503,7 +513,7 @@ export default function BankPage() {
                       )}
                       <button
                         onClick={() => handleBankConfigTabChange("webhooks")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           bankConfigTab === "webhooks"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -516,7 +526,7 @@ export default function BankPage() {
                       </button>
                       <button
                         onClick={() => handleBankConfigTabChange("audit-logs")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           bankConfigTab === "audit-logs"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -525,7 +535,7 @@ export default function BankPage() {
                         {t("auditLogs")}
                         {!auditLogEnabled && (
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            Off
+                            {t("disabledStatus")}
                           </span>
                         )}
                         {bankConfigTab === "audit-logs" && (
@@ -534,7 +544,7 @@ export default function BankPage() {
                       </button>
                       <button
                         onClick={() => handleBankConfigTabChange("llm-requests")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           bankConfigTab === "llm-requests"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -543,7 +553,7 @@ export default function BankPage() {
                         {t("llmRequests")}
                         {!llmTraceEnabled && (
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            Off
+                            {t("disabledStatus")}
                           </span>
                         )}
                         {bankConfigTab === "llm-requests" && (
@@ -657,7 +667,7 @@ export default function BankPage() {
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleDataSubTabChange("world")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           subTab === "world"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -670,7 +680,7 @@ export default function BankPage() {
                       </button>
                       <button
                         onClick={() => handleDataSubTabChange("experience")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           subTab === "experience"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -683,7 +693,7 @@ export default function BankPage() {
                       </button>
                       <button
                         onClick={() => handleDataSubTabChange("observations")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           subTab === "observations"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -692,7 +702,7 @@ export default function BankPage() {
                         {t("observations")}
                         {!observationsEnabled && (
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            Off
+                            {t("disabledStatus")}
                           </span>
                         )}
                         {subTab === "observations" && (
@@ -770,7 +780,7 @@ export default function BankPage() {
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleKnowledgeTabChange("pages")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           knowledgeTab === "pages"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"
@@ -783,7 +793,7 @@ export default function BankPage() {
                       </button>
                       <button
                         onClick={() => handleKnowledgeTabChange("models")}
-                        className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           knowledgeTab === "models"
                             ? "text-primary"
                             : "text-muted-foreground hover:text-foreground"

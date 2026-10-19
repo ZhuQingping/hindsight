@@ -81,7 +81,10 @@ import {
   Lock,
   RotateCcw,
   Search,
+  Plus,
 } from "lucide-react";
+import { OPEN_ADD_DOCUMENT_EVENT } from "@/lib/ui-events";
+import { formatRelativeTime, formatAbsoluteDateTime } from "@/lib/relative-time";
 import { TagFilterInput } from "./tag-filter-input";
 import { FacetLegend, MetadataChip, TagChip } from "@/components/ui/facet-chip";
 import { Spinner } from "@/components/ui/spinner";
@@ -118,28 +121,11 @@ type PendingUpload = {
   createdAt: string;
 };
 
-function formatRelativeTime(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const seconds = Math.floor((now - then) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
 // Live "Refreshed N seconds ago" label next to the documents count. It owns a
 // 1s ticker so only this label re-renders each second (not the whole table), and
 // uses Intl.RelativeTimeFormat with the active locale — no per-unit translation
-// keys needed. The list's own formatRelativeTime floors anything under a minute
-// to "just now", which is useless for an ~8s auto-refresh, so we format seconds
-// here directly.
+// keys needed. The shared list formatter rounds short intervals to "now", which
+// is too coarse for an ~8s auto-refresh, so we format seconds here directly.
 function LastRefreshedLabel({ at }: { at: number }) {
   const t = useTranslations("documentsView");
   const locale = useLocale();
@@ -1359,45 +1345,55 @@ export function DocumentsView() {
     <div>
       {/* Page header: the bank-page title for the Documents tab, with the
           Export/Import Actions menu on the same row (right-aligned). */}
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2 text-foreground">{tBank("documents")}</h1>
           <p className="text-muted-foreground">{tBank("documentsDescription")}</p>
         </div>
-        {(canExport || canImport) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 shrink-0"
-                disabled={!currentBank || exporting || importing}
-              >
-                {exporting ? t("exporting") : importing ? t("importing") : t("actionsButton")}
-                <ChevronDown className="w-4 h-4 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {canExport && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setExportIncludeObservations(false);
-                    setExportDialogOpen(true);
-                  }}
+        <div className="flex flex-wrap justify-start gap-2 sm:shrink-0 sm:justify-end">
+          <Button
+            size="sm"
+            onClick={() => window.dispatchEvent(new Event(OPEN_ADD_DOCUMENT_EVENT))}
+            disabled={!currentBank}
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            {t("addDocumentPage")}
+          </Button>
+          {(canExport || canImport) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 shrink-0"
+                  disabled={!currentBank || exporting || importing}
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  {t("exportButton")}
-                </DropdownMenuItem>
-              )}
-              {canImport && (
-                <DropdownMenuItem onClick={() => setImportDialogOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("importButton")}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                  {exporting ? t("exporting") : importing ? t("importing") : t("actionsButton")}
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canExport && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setExportIncludeObservations(false);
+                      setExportDialogOpen(true);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {t("exportButton")}
+                  </DropdownMenuItem>
+                )}
+                {canImport && (
+                  <DropdownMenuItem onClick={() => setImportDialogOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t("importButton")}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       {/* Export dialog: offers opt-in inclusion of derived/bank-level knowledge. */}
@@ -1683,7 +1679,7 @@ export function DocumentsView() {
                   default auto layout the long unbreakable mono document IDs
                   sized the first column themselves, starving the chip column
                   and stopping `truncate` from ever kicking in. */}
-              <Table className="table-fixed">
+              <Table className="min-w-[680px] table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[38%]">{t("colDocument")}</TableHead>
@@ -1713,7 +1709,7 @@ export function DocumentsView() {
                           </div>
                           <div className="mt-0.5 text-xs text-muted-foreground truncate">
                             {upload.filename ? `${upload.filename} · ` : ""}
-                            <span title={new Date(upload.createdAt).toLocaleString()}>
+                            <span title={formatAbsoluteDateTime(upload.createdAt)}>
                               {formatRelativeTime(upload.createdAt)}
                             </span>
                           </div>
@@ -1786,7 +1782,7 @@ export function DocumentsView() {
                                   already ragged, and nothing moves. */}
                               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                                 {doc.updated_at ? (
-                                  <span title={new Date(doc.updated_at).toLocaleString()}>
+                                  <span title={formatAbsoluteDateTime(doc.updated_at)}>
                                     {t("colUpdated")} {formatRelativeTime(doc.updated_at)}
                                   </span>
                                 ) : (
@@ -1819,7 +1815,7 @@ export function DocumentsView() {
                             />
                           </TableCell>
                           <TableCell className="text-card-foreground text-right tabular-nums whitespace-nowrap font-medium">
-                            {formatBytes(doc.text_length || 0)}
+                            {t("textLengthValue", { count: doc.text_length || 0 })}
                           </TableCell>
                           <TableCell className="text-right tabular-nums font-semibold text-foreground">
                             {doc.memory_unit_count}
@@ -1913,7 +1909,7 @@ export function DocumentsView() {
             <DialogTitle className="flex items-center gap-2">
               <HarnessLogo harness={selectedHarness} size={18} titlePrefix={tCommon("harness")} />
               <span className="truncate font-mono text-sm">
-                {selectedDocument?.id ?? "Document"}
+                {selectedDocument?.id ?? t("detailTitle")}
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -1931,11 +1927,11 @@ export function DocumentsView() {
                 <TabsList className="grid grid-cols-3 w-full max-w-md">
                   <TabsTrigger value="general" className="flex items-center gap-1.5">
                     <Settings className="w-3.5 h-3.5" />
-                    General
+                    {t("tabOverview")}
                   </TabsTrigger>
                   <TabsTrigger value="memories" className="flex items-center gap-1.5">
                     <Network className="w-3.5 h-3.5" />
-                    Memories
+                    {t("tabDerivedMemories")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="chunks"
@@ -1947,7 +1943,8 @@ export function DocumentsView() {
                     }}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    Chunks{chunksLoaded ? ` (${chunksTotal})` : ""}
+                    {t("tabRawChunks")}
+                    {chunksLoaded ? ` (${chunksTotal})` : ""}
                   </TabsTrigger>
                 </TabsList>
                 <DropdownMenu>
@@ -1965,7 +1962,7 @@ export function DocumentsView() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={reprocessDocument} disabled={reprocessing}>
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Reprocess
+                      {t("reprocessButton")}
                     </DropdownMenuItem>
                     {canExport && (
                       <DropdownMenuItem
@@ -1999,9 +1996,9 @@ export function DocumentsView() {
                   <div className="space-y-4">
                     <Tabs defaultValue="world" className="flex flex-col">
                       <TabsList className="w-fit">
-                        <TabsTrigger value="world">World</TabsTrigger>
-                        <TabsTrigger value="experience">Experience</TabsTrigger>
-                        <TabsTrigger value="observation">Observations</TabsTrigger>
+                        <TabsTrigger value="world">{t("factWorld")}</TabsTrigger>
+                        <TabsTrigger value="experience">{t("factExperience")}</TabsTrigger>
+                        <TabsTrigger value="observation">{t("factObservation")}</TabsTrigger>
                       </TabsList>
                       <div className="mt-2">
                         <TabsContent value="world" className="mt-0">
@@ -2037,22 +2034,25 @@ export function DocumentsView() {
                   <div className="space-y-4">
                     {/* Info cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <InfoCard title="Document" icon={<FileText className="w-3.5 h-3.5" />}>
+                      <InfoCard
+                        title={t("cardDocument")}
+                        icon={<FileText className="w-3.5 h-3.5" />}
+                      >
                         {selectedDocument.created_at && (
                           <MetadataRow
                             label={t("labelCreated")}
-                            value={new Date(selectedDocument.created_at).toLocaleString()}
+                            value={formatAbsoluteDateTime(selectedDocument.created_at)}
                           />
                         )}
                         {selectedDocument.updated_at && (
                           <MetadataRow
                             label={t("labelUpdated")}
-                            value={new Date(selectedDocument.updated_at).toLocaleString()}
+                            value={formatAbsoluteDateTime(selectedDocument.updated_at)}
                           />
                         )}
                         {selectedDocument.original_text && (
                           <MetadataRow
-                            label={t("colSize")}
+                            label={t("labelSizeBytes")}
                             value={formatBytes(new Blob([selectedDocument.original_text]).size)}
                           />
                         )}
@@ -2103,7 +2103,9 @@ export function DocumentsView() {
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-sm text-muted-foreground italic">none</span>
+                                  <span className="text-sm text-muted-foreground italic">
+                                    {t("noTags")}
+                                  </span>
                                 )}
                                 <Button
                                   variant="ghost"
@@ -2172,6 +2174,7 @@ export function DocumentsView() {
                         icon={<Network className="w-3.5 h-3.5" />}
                       >
                         <MemoryComposition nodesByFactType={selectedDocument.nodes_by_fact_type} />
+                        <p className="mt-2 text-xs text-muted-foreground">{t("memoryCountHint")}</p>
                       </InfoCard>
 
                       {currentBank && selectedDocument?.id && (
@@ -2244,11 +2247,14 @@ export function DocumentsView() {
                           <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-muted/50 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1.5">
                               <FileText className="w-3.5 h-3.5" />
-                              <span className="font-semibold uppercase tracking-wide">Content</span>
+                              <span className="font-semibold tracking-wide">
+                                {t("contentTitle")}
+                              </span>
                               <span className="text-muted-foreground/70">
                                 &middot;{" "}
-                                {selectedDocument.original_text?.length?.toLocaleString() ?? 0}{" "}
-                                chars
+                                {t("textLengthValue", {
+                                  count: selectedDocument.original_text?.length ?? 0,
+                                })}
                               </span>
                             </div>
                             <Button
@@ -2265,7 +2271,7 @@ export function DocumentsView() {
                             text={selectedDocument.original_text}
                             bankId={currentBank ?? ""}
                             attachments={selectedDocument.attachments}
-                            className="p-4 text-[11px] leading-5 text-foreground/80 whitespace-pre-wrap font-mono"
+                            className="p-4 text-sm leading-6 text-foreground/90 whitespace-pre-wrap"
                           />
                         </div>
                       )

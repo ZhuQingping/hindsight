@@ -1,0 +1,14 @@
+{
+  "legacy_slug": "agentstratum",
+  "cli": "agentstratum",
+  "coding_agents": "agentstratum-coding-agents",
+  "claude_plugin": "agentstratum-memory",
+  "agent_plugin": "agentstratum",
+  "config_directory": ".agentstratum",
+  "env_prefix": "AGENTSTRATUM",
+  "webhook_event_header": "X-Agentstratum-Event",
+  "webhook_signature_header": "X-Agentstratum-Signature",
+  "webhook_signature_v2_header": "X-Agentstratum-Signature-V2",
+  "reranker_bank_header": "X-Agentstratum-Bank-Id",
+  "mcp_registration": "agentstratum"
+}

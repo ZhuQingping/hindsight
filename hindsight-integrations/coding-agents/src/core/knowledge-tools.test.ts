@@ -180,7 +180,7 @@ describe("buildKnowledgeTools", () => {
     ]);
     // The credit reminder rides with the hits: the session guide has scrolled away by the time a
     // search lands mid-session, and a paraphrased snippet otherwise gets absorbed uncredited.
-    expect(payload.crediting).toContain("From agentstratum memory");
+    expect(payload.crediting).toContain("From ContextBase memory");
     expect(payload.crediting).toContain("paraphrased");
   });
 
@@ -193,7 +193,7 @@ describe("buildKnowledgeTools", () => {
     );
     const { crediting } = JSON.parse((await tool.handler({ query: "q" })).content[0].text);
     // Added, not replacing: the crediting rule is still there, and the team's text follows it.
-    expect(crediting).toContain("From agentstratum memory");
+    expect(crediting).toContain("From ContextBase memory");
     expect(crediting.endsWith(extra)).toBe(true);
     expect(tool.description.endsWith(extra)).toBe(true);
   });

@@ -17,8 +17,8 @@ import { useFeatures } from "@/lib/features-context";
 
 const FALLBACK_COLOR = "#0074d9";
 // The dashboard constellation is a glanceable memory map, not the full graph
-// explorer. Edge count grows super-linearly with nodes (≈1k nodes → ~67k edges,
-// ~22MB), so cap nodes here — the Memories view has the uncapped graph.
+// explorer. Edge count grows super-linearly with nodes, so cap this preview;
+// the Memories view offers a larger, filterable graph.
 const GRAPH_NODE_CAP = 200;
 // Cluster the memory constellation by fact type, matching the memories charts.
 const TYPE_COLORS: Record<string, string> = {
@@ -56,12 +56,18 @@ export function HomeView({
   onNavigate: (tab: string) => void;
 }) {
   const t = useTranslations("home");
+  const tb = useTranslations("bank");
   const tk = useTranslations("knowledgeBase");
   const router = useRouter();
   const { features } = useFeatures();
   const observationsEnabled = features?.observations ?? false;
   const [stats, setStats] = useState<BankStats | null>(null);
-  const [graph, setGraph] = useState<{ nodes?: unknown[]; edges?: unknown[] } | null>(null);
+  const [graph, setGraph] = useState<{
+    nodes?: unknown[];
+    edges?: unknown[];
+    table_rows?: Array<{ id: string; fact_type?: string }>;
+    total_units?: number;
+  } | null>(null);
   const [graphLoading, setGraphLoading] = useState(true);
   const [roots, setRoots] = useState<KnowledgeNode[]>([]);
   const [pages, setPages] = useState<KnowledgeNode[]>([]);
@@ -120,7 +126,15 @@ export function HomeView({
     client
       .getGraph({ bank_id: bankId, limit: GRAPH_NODE_CAP })
       .then((g) => {
-        if (!cancelled) setGraph(g as { nodes?: unknown[]; edges?: unknown[] });
+        if (!cancelled)
+          setGraph(
+            g as {
+              nodes?: unknown[];
+              edges?: unknown[];
+              table_rows?: Array<{ id: string; fact_type?: string }>;
+              total_units?: number;
+            }
+          );
       })
       .catch(() => {})
       .finally(() => {
@@ -135,6 +149,7 @@ export function HomeView({
   // it to the Constellation's flat GraphData, clustering by fact type.
   const constellationData = useMemo<GraphData>(() => {
     if (!graph) return { nodes: [], links: [] };
+    const factTypeById = new Map((graph.table_rows || []).map((row) => [row.id, row.fact_type]));
     const nodes: GraphNode[] = (graph.nodes || []).map((raw) => {
       const n =
         (raw as { data?: Record<string, unknown> }).data ?? (raw as Record<string, unknown>);
@@ -142,7 +157,7 @@ export function HomeView({
         id: String(n.id),
         label: (n.label as string) ?? undefined,
         color: (n.color as string) ?? undefined,
-        group: (n.type as string) ?? undefined,
+        group: (n.type as string) ?? factTypeById.get(String(n.id)),
       };
     });
     const links: GraphLink[] = (graph.edges || []).map((raw) => {
@@ -151,6 +166,8 @@ export function HomeView({
       return {
         source: String(e.source),
         target: String(e.target),
+        type: typeof e.linkType === "string" ? e.linkType : undefined,
+        color: typeof e.color === "string" ? e.color : undefined,
         weight: typeof e.weight === "number" ? (e.weight as number) : undefined,
       };
     });
@@ -171,6 +188,19 @@ export function HomeView({
     (node: GraphNode) => 4 + Math.sqrt((nodeWeights.get(node.id) || 0) / maxWeight) * 9,
     [nodeWeights, maxWeight]
   );
+  const clusterKeyFn = useCallback((node: GraphNode) => node.group ?? null, []);
+  const clusterColorFn = useCallback((key: string) => TYPE_COLORS[key] || FALLBACK_COLOR, []);
+  const clusterLabelFn = useCallback(
+    (key: string) =>
+      key === "world"
+        ? tb("worldFacts")
+        : key === "experience"
+          ? tb("experience")
+          : key === "observation"
+            ? tb("observations")
+            : key,
+    [tb]
+  );
 
   if (loading) {
     return (
@@ -187,45 +217,36 @@ export function HomeView({
         {t("subtitle")} <span className="font-mono text-foreground">{bankId}</span>
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[520px]">
-        {/* Memory constellation — fills the row height so it never leaves a gap. */}
-        <div className="lg:col-span-2 bg-card border border-border border-solid rounded-[16px] overflow-hidden flex flex-col lg:h-full">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-            <div className="flex items-center gap-2">
-              <Network className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold text-foreground">{t("constellationTitle")}</h2>
-            </div>
-            <button
-              onClick={() => onNavigate("data")}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-            >
-              {t("viewAll")} <ArrowRight className="w-3 h-3" />
-            </button>
+      {stats && (
+        <div className="mb-4 space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            {stats.pending_operations > 0 && (
+              <span className="rounded-full border border-border px-3 py-1">
+                {t("pendingOps", { count: stats.pending_operations })}
+              </span>
+            )}
+            {stats.failed_operations > 0 && (
+              <span className="rounded-full border border-destructive/30 px-3 py-1 text-destructive">
+                {t("failedOps", { count: stats.failed_operations })}
+              </span>
+            )}
+            {stats.pending_consolidation > 0 && (
+              <span className="rounded-full border border-border px-3 py-1">
+                {t("pendingConsolidation", { count: stats.pending_consolidation })}
+              </span>
+            )}
+            {stats.pending_operations === 0 &&
+              stats.failed_operations === 0 &&
+              stats.pending_consolidation === 0 && <span>{t("allUpToDate")}</span>}
           </div>
-          {constellationData.nodes.length > 0 ? (
-            <Constellation
-              data={constellationData}
-              height={464}
-              onNodeClick={() => onNavigate("data")}
-              nodeSizeFn={nodeSizeFn}
-              clusterKeyFn={(node) => node.group ?? null}
-              clusterColorFn={(key) => TYPE_COLORS[key] || FALLBACK_COLOR}
-              clusterLabelFn={(key) => key}
-            />
-          ) : graphLoading ? (
-            <div className="flex flex-1 items-center justify-center">
-              <Spinner size="lg" variant="jump" />
-            </div>
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-              {t("constellationEmpty")}
-            </div>
-          )}
+          <MemoryStoreCard stats={stats} observationsEnabled={observationsEnabled} />
         </div>
+      )}
 
-        {/* Right column: knowledge pages + recent documents (share the row height). */}
-        <div className="flex flex-col gap-4 lg:h-full min-h-0">
-          <div className="bg-card border border-border border-solid rounded-[16px] flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="grid grid-cols-1 gap-4">
+        {/* Recent work reads as a pair of compact cards, without fixed half-screen blanks. */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="bg-card border border-border border-solid rounded-[16px] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
               <h2 className="text-sm font-semibold text-foreground">{t("pagesTitle")}</h2>
               {pages.length > 0 && (
@@ -240,7 +261,7 @@ export function HomeView({
             {pages.length > 0 ? (
               // Same folder/page tree (TOC) as the Pages tab, read-only: shows the
               // structure + freshness badges; clicking a page opens the Knowledge tab.
-              <ul className="py-2 flex-1 min-h-0 overflow-y-auto">
+              <ul className="max-h-56 overflow-y-auto py-2">
                 {roots.map((node) => (
                   <TreeRow
                     key={node.id}
@@ -271,7 +292,7 @@ export function HomeView({
             )}
           </div>
 
-          <div className="bg-card border border-border border-solid rounded-[16px] flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="bg-card border border-border border-solid rounded-[16px] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
               <h2 className="text-sm font-semibold text-foreground">{t("recentDocsTitle")}</h2>
               {docs.length > 0 && (
@@ -284,7 +305,7 @@ export function HomeView({
               )}
             </div>
             {docs.length > 0 ? (
-              <ul className="p-2 flex-1 min-h-0 overflow-y-auto">
+              <ul className="max-h-56 overflow-y-auto p-2">
                 {docs.map((d, i) => (
                   <li key={`${d.id}-${i}`}>
                     <button
@@ -316,14 +337,48 @@ export function HomeView({
             )}
           </div>
         </div>
-      </div>
-
-      {/* Memory stats demoted below the constellation + knowledge/docs. */}
-      {stats && (
-        <div className="mt-4">
-          <MemoryStoreCard stats={stats} observationsEnabled={observationsEnabled} />
+        {/* Memory graph remains available as a focused preview after work status. */}
+        <div className="bg-card border border-border border-solid rounded-[16px] overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+            <div className="flex items-center gap-2">
+              <Network className="w-4 h-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold text-foreground">{t("constellationTitle")}</h2>
+            </div>
+            <button
+              onClick={() => onNavigate("data")}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+            >
+              {t("viewAll")} <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+          <p className="px-4 pt-2 text-xs text-muted-foreground">
+            {t("graphScope")}
+            {typeof graph?.total_units === "number" &&
+            graph.total_units > constellationData.nodes.length
+              ? ` · ${t("graphSample", { shown: constellationData.nodes.length, total: graph.total_units })}`
+              : null}
+          </p>
+          {constellationData.nodes.length > 0 ? (
+            <Constellation
+              data={constellationData}
+              height={320}
+              onNodeClick={() => onNavigate("data")}
+              nodeSizeFn={nodeSizeFn}
+              clusterKeyFn={clusterKeyFn}
+              clusterColorFn={clusterColorFn}
+              clusterLabelFn={clusterLabelFn}
+            />
+          ) : graphLoading ? (
+            <div className="flex flex-1 items-center justify-center">
+              <Spinner size="lg" variant="jump" />
+            </div>
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+              {t("constellationEmpty")}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Memories by ingested time — reuse the bank-profile activity chart. */}
       <div className="mt-4">

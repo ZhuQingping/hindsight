@@ -2,19 +2,19 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "agentstratum",
   "version": "0.7.6",
-  "description": "agentstratum integrations for coding agents",
+  "description": "ContextBase integrations for coding agents",
   "owner": {
     "name": "agentstratum"
   },
   "plugins": [
     {
       "name": "agentstratum-memory",
-      "description": "Automatic long-term memory for Claude Code via agentstratum",
+      "description": "ContextBase long-term memory integration",
       "source": "./hindsight-integrations/claude-code"
     },
     {
       "name": "agentstratum-zcode",
-      "description": "No-MCP long-term memory for ZCode via agentstratum hooks",
+      "description": "ContextBase long-term memory integration",
       "source": "./hindsight-integrations/zcode"
     }
   ]

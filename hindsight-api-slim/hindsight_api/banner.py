@@ -4,7 +4,7 @@ Banner display for Hindsight API startup.
 Shows the logo and tagline with gradient colors.
 """
 
-from .brand import PRODUCT_NAME
+from .product_config import display_config
 from .utils import mask_network_location
 
 # Gradient colors: #0074d9 -> #009296
@@ -47,7 +47,7 @@ def gradient_text(text: str, start: tuple = GRADIENT_START, end: tuple = GRADIEN
 def print_banner():
     """Print the Hindsight startup banner."""
     print(LOGO)
-    tagline = gradient_text(f"{PRODUCT_NAME}: Agent Memory That Learns")
+    tagline = gradient_text(f"{display_config().display_name}: Agent Memory That Learns")
     print(f"\n  {tagline}\n")
 
 
@@ -86,7 +86,7 @@ def print_startup_info(
     text_search_extension: str | None = None,
 ):
     """Print styled startup information."""
-    print(color_start(f"Starting {PRODUCT_NAME} API..."))
+    print(color_start(f"Starting {display_config().display_name} API..."))
     if version:
         print(f"  {dim('Version:')} {color(f'v{version}', 0.1)}")
     print(f"  {dim('URL:')} {color(f'http://{host}:{port}', 0.2)}")

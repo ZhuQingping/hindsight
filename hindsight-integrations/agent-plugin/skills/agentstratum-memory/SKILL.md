@@ -1,11 +1,11 @@
 ---
 name: agentstratum-memory
-description: Long-term memory for the agent via agentstratum. Use to recall relevant past context before answering, retain durable facts as you learn them, and reflect over accumulated memory for the "why" behind a decision. Load whenever continuity across sessions matters — the user refers to earlier work, states a lasting preference, or asks a question that prior context could answer.
+description: Long-term memory for the agent via ContextBase. Use to recall relevant past context before answering, retain durable facts as you learn them, and reflect over accumulated memory for the "why" behind a decision. Load whenever continuity across sessions matters — the user refers to earlier work, states a lasting preference, or asks a question that prior context could answer.
 ---
 
-# agentstratum long-term memory
+# ContextBase long-term memory
 
-This plugin connects the agent to **agentstratum**, a long-term memory engine. Memory
+This plugin connects the agent to **ContextBase**, a long-term memory engine. Memory
 persists across sessions in a **bank** (scoped by `AGENTSTRATUM_BANK_ID`), so what you
 retain now is available to recall in future conversations.
 
@@ -47,7 +47,7 @@ out of memory. Retain the fact, not the whole transcript.
 ## When to reflect (reason over memory)
 
 Call **`reflect`** when a single recall is too shallow and you need synthesized
-reasoning over everything remembered — the *why* behind a behavior, or a judgment that
+reasoning over everything remembered — the _why_ behind a behavior, or a judgment that
 weighs many facts together:
 
 ```

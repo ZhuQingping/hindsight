@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRouter, usePathname } from "@/i18n/navigation";
+import { useRouter } from "next/navigation";
+import { normalizeBasePath } from "@/lib/base-path";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";
@@ -17,10 +18,14 @@ export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useTranslations("common");
   const router = useRouter();
-  const pathname = usePathname();
 
   function handleLocaleChange(newLocale: Locale) {
-    router.replace(pathname, { locale: newLocale });
+    // With localePrefix "never", next-intl's locale replace still forces a
+    // prefixed URL and a canonical redirect, which drops fragments in Next's
+    // client navigation. Update the locale cookie and refresh the current URL
+    // instead, preserving the workspace, repeated filters and fragment.
+    document.cookie = `NEXT_LOCALE=${newLocale}; path=${normalizeBasePath() || "/"}; SameSite=Lax`;
+    router.refresh();
   }
 
   return (

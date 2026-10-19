@@ -270,7 +270,7 @@ export type BankConfigUpdate = {
   /**
    * Updates
    *
-   * Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank.
+   * Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank.
    */
   updates: {
     [key: string]: unknown;
@@ -1966,6 +1966,26 @@ export type DirectiveResponse = {
 };
 
 /**
+ * DisplayConfig
+ *
+ * Versioned display contract; the slug retains its original validation.
+ */
+export type DisplayConfig = {
+  /**
+   * Product Config Version
+   */
+  product_config_version?: 2;
+  /**
+   * Contextdb Name
+   */
+  contextdb_name: string;
+  /**
+   * Display Name
+   */
+  display_name: string;
+};
+
+/**
  * DispositionTraits
  *
  * Disposition traits that influence how memories are formed and interpreted.
@@ -3537,7 +3557,7 @@ export type LivenessResponse = {
   /**
    * Version
    *
-   * Hindsight version this process is running
+   * agentstratum engine version this process is running
    */
   version: string;
   /**
@@ -5311,6 +5331,22 @@ export type OperationsListResponse = {
 };
 
 /**
+ * ProductConfig
+ *
+ * Unchanged v1 wire contract for existing strict clients.
+ */
+export type ProductConfig = {
+  /**
+   * Product Config Version
+   */
+  product_config_version?: 1;
+  /**
+   * Contextdb Name
+   */
+  contextdb_name?: string;
+};
+
+/**
  * PromptBlockModel
  *
  * One block of a message: its text, and the setting that decides it.
@@ -5334,7 +5370,7 @@ export type PromptBlockModel = {
   /**
    * Source
    *
-   * `config` — produced by a setting (`field` names it); `builtin` — Hindsight's own wording.
+   * `config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording.
    */
   source: "config" | "builtin";
   /**
@@ -7105,6 +7141,40 @@ export type WebhookResponse = {
    */
   updated_at?: string | null;
 };
+
+export type GetProductConfigProductConfigGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/product-config";
+};
+
+export type GetProductConfigProductConfigGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProductConfig;
+};
+
+export type GetProductConfigProductConfigGetResponse =
+  GetProductConfigProductConfigGetResponses[keyof GetProductConfigProductConfigGetResponses];
+
+export type GetDisplayConfigProductConfigV2GetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/product-config/v2";
+};
+
+export type GetDisplayConfigProductConfigV2GetResponses = {
+  /**
+   * Successful Response
+   */
+  200: DisplayConfig;
+};
+
+export type GetDisplayConfigProductConfigV2GetResponse =
+  GetDisplayConfigProductConfigV2GetResponses[keyof GetDisplayConfigProductConfigV2GetResponses];
 
 export type HealthEndpointHealthGetData = {
   body?: never;

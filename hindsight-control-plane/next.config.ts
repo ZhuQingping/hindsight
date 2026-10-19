@@ -25,6 +25,10 @@ const maxUploadBodySize: SizeLimit = maxUploadEnv
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  // Preserve the original loopback host in next-intl rewrites. NextURL's default
+  // 127.0.0.1 -> localhost normalization would otherwise turn an internal
+  // rewrite into a new request rejected by the protected profile's Host guard.
+  skipProxyUrlNormalize: true,
   distDir,
   basePath: basePath,
   assetPrefix: basePath,

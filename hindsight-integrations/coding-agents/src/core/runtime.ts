@@ -15,6 +15,7 @@
  *                                     exchange (the Stop-equivalent these hosts lack)
  * No opencode/claude specifics live here — only the memory logic.
  */
+import { DISPLAY_NAME } from "./brand-defaults.js";
 import type { Config } from "./config";
 import { maybeAutoUpdate } from "./auto-update";
 import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
@@ -141,14 +142,19 @@ export class RuntimeCore {
       if (out.systemMessage) {
         const plain = out.systemMessage.replace(/\x1b\[[0-9;]*m/g, "");
         log.info(this.harness, plain);
-        this.notify?.("agentstratum", plain.replace(/^agentstratum is /, "Is "));
+        this.notify?.(
+          DISPLAY_NAME,
+          plain.startsWith(`${DISPLAY_NAME} is `)
+            ? `Is ${plain.slice(DISPLAY_NAME.length + 4)}`
+            : plain
+        );
       }
       this.deferInitialReflect = out.deferInitialReflect === true;
     } catch (error) {
       if (error instanceof RemoteConnectionError) {
         log.warn(this.harness, error.message);
         try {
-          await this.notify?.("agentstratum configuration", error.message);
+          await this.notify?.("" + DISPLAY_NAME + " configuration", error.message);
         } catch {
           /* the configuration warning is logged even if the host notice channel fails */
         }
@@ -203,7 +209,7 @@ export class RuntimeCore {
     if (output.notice) {
       const preview = output.notice.replace(/\s+/g, " ").trim().slice(0, 140);
       log.info(this.harness, "reflect goal", { preview });
-      this.notify?.("agentstratum · recalled past decisions", preview);
+      this.notify?.("" + DISPLAY_NAME + " · recalled past decisions", preview);
     }
     const block = blocks.filter(Boolean).join("\n\n");
     this.injection.set(sessionId, block);

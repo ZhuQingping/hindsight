@@ -40,7 +40,7 @@ describe("installer UI renderer", () => {
     ui.outro(0);
 
     const out = lines.join("\n");
-    expect(out).toContain("┌  agentstratum coding agents  v1.2.3");
+    expect(out).toContain("┌  ContextBase coding agents  v1.2.3");
     expect(out).toContain("○ detected: claude-code, codex");
     expect(out).toContain("◇  claude-code");
     expect(out).toContain("◇  codex");

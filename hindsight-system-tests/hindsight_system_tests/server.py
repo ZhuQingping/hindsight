@@ -173,15 +173,21 @@ def stub_environment(stub_url: str) -> dict[str, str]:
 
 
 def start_hindsight_server(
-    *, stub_url: str, log_path: Path, extra_env: dict[str, str] | None = None
+    *,
+    stub_url: str,
+    log_path: Path,
+    extra_env: dict[str, str] | None = None,
+    database_url: str | None = None,
 ) -> HindsightServer:
+    # Explicit override keeps hermetic stories off an unrelated fixed pg0 instance.
+    database_url = database_url or os.environ.get("HINDSIGHT_SYSTEM_TEST_DATABASE_URL")
     port = free_port()
 
     env = os.environ.copy()
     # The repo .env is for the developer's own server; a system test must depend
     # only on what it sets here, or it passes on one machine and fails on another.
     for key in list(env):
-        if key.startswith("HINDSIGHT_API_"):
+        if key.startswith(("HINDSIGHT_API_", "AGENTSTRATUM_API_")):
             del env[key]
 
     env.update(stub_environment(stub_url))
@@ -194,7 +200,9 @@ def start_hindsight_server(
 
     env.update(
         {
-            "HINDSIGHT_API_DATABASE_URL": f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
+            # Bounded standalone stories may supply a separately owned database
+            # rather than touching the shared embedded system-test instance.
+            "HINDSIGHT_API_DATABASE_URL": database_url or f"pg0://{PG0_INSTANCE}:{PG0_PORT}",
             "HINDSIGHT_API_HOST": "127.0.0.1",
             "HINDSIGHT_API_PORT": str(port),
             "HINDSIGHT_API_LOG_LEVEL": "info",

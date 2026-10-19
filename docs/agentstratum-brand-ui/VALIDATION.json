@@ -1,0 +1,1982 @@
+{
+  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
+  "captured_at": "2026-10-18T02:36:28.473110+00:00",
+  "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
+  "base": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
+  "source_paths": 558,
+  "candidate_manifest_sha256": "e0680fc955f976278832fc810a0dbf91e7c8f37e5132c478df47e0ba8d1d84e7",
+  "checks": {
+    "frontend_unit": {
+      "status": "PASS",
+      "files": 58,
+      "tests": 354
+    },
+    "python_brand": {
+      "status": "PASS",
+      "tests": 11
+    },
+    "typescript_sdk_build": "PASS",
+    "typescript_noEmit": "PASS",
+    "required_repository_lint": "PASS",
+    "production_build": "PASS",
+    "openapi_python_ts_go_generation": "PASS_GENERATION_ONLY",
+    "native_api_worker_ui_start": "PASS",
+    "three_locale_rendering": "PASS_REAL_MENU_QUERY_HASH_AND_FALLBACK",
+    "dual_brand_mcp_download_stale_tab_logout_full_story": "PASS",
+    "published_sdk_brand_system_story": {
+      "status": "PASS",
+      "tests": 2
+    },
+    "vulture_knip": {
+      "blocking_files_dependencies": "PASS",
+      "advisory": "EXECUTED_REVIEWED_BASELINE_WARNINGS",
+      "new_unused_exports_closed": true
+    },
+    "go_rust_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "hook_host": "NOT_RUN",
+    "real_models_production_user_acceptance": "NOT_RUN",
+    "sdk_native_public_api_compatibility": {
+      "status": "PASS",
+      "baseline_files": 432,
+      "initial_candidate_rejected_files": 6,
+      "python_item_and_signature_tests": 6,
+      "fixture_provenance_mismatches": []
+    },
+    "generation_determinism": {
+      "status": "PASS",
+      "tracked_sdk_paths": 566,
+      "changed": []
+    },
+    "connect_pagination_search_back": "PASS_61_NATIVE_BANKS_AND_REAL_BROWSER",
+    "operation_button_download_old_tab": "PASS_200_ZIP_THEN_409_ZERO_NATIVE_FILE_REQUESTS_ZERO_FILES_ZERO_REPLAYS",
+    "independent_review": "CLOSED_R1_R2_R3_R4_R5"
+  },
+  "static_checks": {
+    "base": "f51b165a5165b1042ba0b6408fcffb5bc1a80fdb",
+    "protected_paths_unchanged": true,
+    "forbidden_dependencies": [],
+    "templates_identical": true,
+    "paths": 573,
+    "openapi": {
+      "existing_paths_identical": true,
+      "existing_schemas_identical": true,
+      "added_path": "/product-config",
+      "added_schema": "ProductConfig"
+    }
+  },
+  "generator": {
+    "generator_source_sha256": "1e9fd3aebd0adfd6ea362ea7d4d2bd14e6b4833f90cb0a5113c63e969c64d049",
+    "adapter_sha256": "e1dfe602b53f47b073d1604c8287fd91a35b4e286d8c852693b5af5baf057bfe",
+    "bounded_script_sha256": "fb06ce692352fde2cd09357d2b0844252dcdb2e7a31f589c9ff2fb0cc18863ed",
+    "generator_jar_sha256": "615e014705af34861e789e0b2a11075d3c80db134f881e937265479a4a83996e",
+    "spec_sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1",
+    "exit_code": 0,
+    "python_typescript_go": "GENERATED",
+    "rust_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "go_compile": "NOT_RUN_NO_TOOLCHAIN",
+    "scope": "Native checkout only; repository patches retained; no hosted source/SDK copied",
+    "private_spec_preparer_sha256": "ab0b01757c1ffc736a26682139680b36b2e804c2cf20e4951143dbd456e2ea1e"
+  },
+  "runtime_attempts": {
+    "runtime-c01": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [],
+        "pg_stopped": false,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "116cc96b05fdb344c013ba353a9792a3006c61f882adf86634780920899e984a"
+    },
+    "runtime-c02": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1372459,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "353becef6a8d158aaa2499c231d86316208a99e213e0b36780ca962a08ef83de"
+    },
+    "runtime-c03": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1373219,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1373319,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1373350,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "aa6ec08ce1ce2862bec42e90b4cd7c5da2320072a3fe596ba9ffec05c0ca26bf"
+    },
+    "runtime-c04": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1375230,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1375340,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1375372,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "4e0dfe7685c06900d81e0401e5a1790a1b0cdabdcbfd2f4ae2e1e6b5e698637b"
+    },
+    "runtime-c05": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1376359,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1376437,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1376488,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "a77f44d108e51c3c47aa8138cb47e85ac44c44d9956c3c9dc9bd4e5eaf6480af"
+    },
+    "runtime-c06": {
+      "status": "FAIL",
+      "checks": {},
+      "artifact_sha256": "676314aafda48903b6f3ce3632ae1c2632521e1e08bdea094079be43f52d63ab",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1613134,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1613402,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1613456,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "b87f0ae273b0420b2e97d7e59d0e191c61a3260c3208b90fbc0362d86b2fab16"
+    },
+    "runtime-c07": {
+      "status": "PASS",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "first_brand": true,
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "artifact_sha256": "a7e5ce3d868b16eb3d944fc4b3d50f07effdb9c40a48e07e3c0f1383091ad5b0",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1618458,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1618667,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1618678,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1619060,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1619202,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1619295,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1619346,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1619492,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "552ccb3161d1d93bbb8188b302173f17d033813adb66d6f98ee07541dc166370"
+    },
+    "runtime-c08": {
+      "status": "PASS",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "first_brand": true,
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "artifact_sha256": "ead4662408389127129a975cd4ae916827710553a83bb65b816a538a4db7bd74",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1625943,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626124,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1626136,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626581,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1626743,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626835,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626870,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1627061,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "de2f1845d4068ae6f2d0a25c0acfb077a99f328a51a4ef72682b4a061223d3ec"
+    },
+    "runtime-c10": {
+      "status": "FAIL",
+      "artifact": "same production standalone; runtime environment names only",
+      "artifact_sha256": "ce68572d2ae61a4bd7eb9bd89781a9e833cb5c7082da2d0e2e8fb93713c84514",
+      "base_path": "/brand-ui",
+      "provider": "local stub only",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "chooser_pagination_search_back": {
+          "workspaces": 61,
+          "page_size": 50,
+          "later_selected": "chooser-match-10",
+          "absent_from_first_page": true,
+          "query_preserved": true
+        },
+        "native_bank_ids_guide_connect_add_document": true
+      },
+      "error": "Traceback (most recent call last):\n  File \"/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-review.py\", line 280, in <module>\n    wait_until(lambda:download_page.js('!!document.querySelector(\"td[title=export_documents]\")'))\n  File \"/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-review.py\", line 26, in wait_until\n    raise TimeoutError('Condition not reached')\nTimeoutError: Condition not reached\n",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1686733,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1686968,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1686979,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "c05f7919eaec365cc0075fd56193ed15cb0c14e91a01e789d024e423c0552c6b"
+    },
+    "runtime-c11": {
+      "status": "FAIL",
+      "artifact": "same production standalone; runtime environment names only",
+      "artifact_sha256": "ce68572d2ae61a4bd7eb9bd89781a9e833cb5c7082da2d0e2e8fb93713c84514",
+      "base_path": "/brand-ui",
+      "provider": "local stub only",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "chooser_pagination_search_back": {
+          "workspaces": 61,
+          "page_size": 50,
+          "later_selected": "chooser-match-10",
+          "absent_from_first_page": true,
+          "query_preserved": true
+        },
+        "native_bank_ids_guide_connect_add_document": true
+      },
+      "error": "Traceback (most recent call last):\n  File \"/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-review.py\", line 280, in <module>\n    wait_until(lambda:download_page.js('!!document.querySelector(\"td[title=export_bank],td[title=export_documents]\")'))\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-review.py\", line 26, in wait_until\n    raise TimeoutError('Condition not reached')\nTimeoutError: Condition not reached\n",
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1690183,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1690404,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1690448,
+            "exit_code": 0
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "33a2f9559e2d93b7295b014069aefcbb1364dd0d1b2c2c06c685abb92aa6df4e"
+    },
+    "runtime-c12": {
+      "status": "PASS",
+      "artifact": "same production standalone; runtime environment names only",
+      "artifact_sha256": "ce68572d2ae61a4bd7eb9bd89781a9e833cb5c7082da2d0e2e8fb93713c84514",
+      "base_path": "/brand-ui",
+      "provider": "local stub only",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "chooser_pagination_search_back": {
+          "workspaces": 61,
+          "page_size": 50,
+          "later_selected": "chooser-match-10",
+          "absent_from_first_page": true,
+          "query_preserved": true
+        },
+        "native_bank_ids_guide_connect_add_document": true,
+        "actual_operation_detail_archive_download": {
+          "status": 200,
+          "zip_crc": true,
+          "product_header": "agentstratum"
+        },
+        "first_brand": true,
+        "actual_operation_old_tab_download_refused": {
+          "status": 409,
+          "native_file_requests_added": 0,
+          "saved_files_added": 0,
+          "replays": 0
+        },
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1694050,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1694390,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1694423,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1695089,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1695248,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1695487,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1695542,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1695708,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_sha256": "ea5f8d4625fa4584ea6d5b1a720a3196871a4f9bf8ffaa27bcb17dfa82c4ad01"
+    },
+    "runtime-c09": {
+      "status": "NOT_RUN_HARNESS_SYNTAX_ERROR",
+      "no_resources_started": true,
+      "log_sha256": "a9eefdf65fc08cef7856249d7d949b10f6223e7ca51cdbb52fa1005492230987"
+    }
+  },
+  "owned_stopped_fixtures": [
+    {
+      "run": "runtime-c06",
+      "container_id": "f1098339c4d33f710dfbe3a7c90b72f0a095ed625c9ef8cd61dcaa491043d36f",
+      "running": false,
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c06/pg-data",
+      "data_preserved": true
+    },
+    {
+      "run": "runtime-c07",
+      "container_id": "4f4e419dd38d34aae3f92f999928fd8afa6a962ff418a9e43f893d0954c98a0c",
+      "running": false,
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c07/pg-data",
+      "data_preserved": true
+    },
+    {
+      "run": "runtime-c08",
+      "container_id": "906092670aeb8c87b3edd6107e3efb1e1e47d8319a4c13980aa684d3bda76016",
+      "running": false,
+      "pg_data": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c08/pg-data",
+      "data_preserved": true
+    }
+  ],
+  "logs_root": "/home/cimon/code/hindsight/.local/product-brand-ui/runs",
+  "logs": {
+    "npm-ci.log": {
+      "sha256": "d3abde8e87b95e6b03239cdc689a87e7b152f7ef3f2a1bba87f221d12a996b8f",
+      "bytes": 771
+    },
+    "python-deps.log": {
+      "sha256": "2d482abd92676552371f48aaf9bf1215f52978c23dd5d16d4079657960dc4e4f",
+      "bytes": 6600
+    },
+    "api-generation.log": {
+      "sha256": "28195bed1746b22a4efe6e5796af79996b1f67d76038df3cbe50521e4f9792d4",
+      "bytes": 223575
+    },
+    "sdk-ts-build.log": {
+      "sha256": "bc205c6ce4f9adae2f5f4880911faa4a9a965801cd1415f95433f995c3d76292",
+      "bytes": 650
+    },
+    "frontend-type.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "python-brand.log": {
+      "sha256": "07e17110fb24f071a0af09207976a1929bfc7a7193e0b7984ca7848eaa403314",
+      "bytes": 5209
+    },
+    "frontend-unit.log": {
+      "sha256": "3d60cf3ae079a3666db7d733fad127b2ad5342e9a5f5daa2cc84279e46cedecd",
+      "bytes": 15271
+    },
+    "frontend-unit-final.log": {
+      "sha256": "314c66e3b6a8db67a6d04ae31a2bc80f73f0152cfaac326b2fbdd481c67308ea",
+      "bytes": 382
+    },
+    "lint.log": {
+      "sha256": "70b483fd37d273cbdedb8e252f443b6cfc19ffdbd00582a7d9c3864c12a2255d",
+      "bytes": 84
+    },
+    "production-build.log": {
+      "sha256": "9d9001433b547a27142da61a7a9cb655efb745b7033aa38eb0c63e2c4f13610a",
+      "bytes": 5009
+    },
+    "unit-runner.log": {
+      "sha256": "1c5d94a0af6c4652a42da398777223494e9472d6b999d7381920485e5400caf2",
+      "bytes": 559
+    },
+    "validation-runner.log": {
+      "sha256": "07224b3ec06fed79aabae30e77d85781b9b28a6691212a161e2b2be3dab8254c",
+      "bytes": 565
+    },
+    "runtime-c02-runner.log": {
+      "sha256": "0d43c909fd1234b9bf8c1c1cb60c80160a924dbfa104917fbdb6adb15b609ac5",
+      "bytes": 7205
+    },
+    "runtime-c03-runner.log": {
+      "sha256": "7ffcffb81d4c9c0e6b8867ccac249b69181bfbd74cea4248b93db6a1214ae241",
+      "bytes": 801
+    },
+    "runtime-c04-runner.log": {
+      "sha256": "26e410e04708ec6e5d74da7f0e6466a83fe7a5ad529732d61a6f00d859003ac5",
+      "bytes": 849
+    },
+    "runtime-c05-runner.log": {
+      "sha256": "43816389a7c1e1930c6b956da5e3578e1ec76842105bf90e95d7f0affe0145f1",
+      "bytes": 1825
+    },
+    "runtime-c06-runner.queue.log": {
+      "sha256": "3d772910db63899eb592155e1d67f3bf9ed64912ed0fe763017373ddf62c757b",
+      "bytes": 2429
+    },
+    "review-20261018.log": {
+      "sha256": "7d7f61a6c5ae5af786dfa64593bebd9988a64602ac01835f79e270aa7b85e0ba",
+      "bytes": 1136
+    },
+    "dead-code-advisory.log": {
+      "sha256": "399d88850c1b2bc93244294706c746c846f39b1dca9e788a48349a2c30ade62e",
+      "bytes": 7329
+    },
+    "knip-blocking.log": {
+      "sha256": "4e1bdea5f565bd4199485031a40d1efeb9e10ca6052b04f61ffb351dabbfd355",
+      "bytes": 219
+    },
+    "unit-final-20261018.log": {
+      "sha256": "a49319673f3fe471bf65293421f23128b8991e21bdc4df331ebe93466025b65b",
+      "bytes": 384
+    },
+    "type-final-20261018.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-final-20261018.log": {
+      "sha256": "70b483fd37d273cbdedb8e252f443b6cfc19ffdbd00582a7d9c3864c12a2255d",
+      "bytes": 84
+    },
+    "build-final-20261018.log": {
+      "sha256": "c7fb264f3962c816ff9b9ecf191f7bc9bd67c0cf80517b3a70aa402466ec006d",
+      "bytes": 5008
+    },
+    "native-c08-20261018.log": {
+      "sha256": "1be658c4343e1ef85c98000b10a82601233b8ebf8d02fa06c79e6e2f3e2477d5",
+      "bytes": 646
+    },
+    "knip-final-20261018.log": {
+      "sha256": "4e1bdea5f565bd4199485031a40d1efeb9e10ca6052b04f61ffb351dabbfd355",
+      "bytes": 219
+    },
+    "verify-final-20261018-runner.log": {
+      "sha256": "7b3e6354365a682cdce9b1f2fffbb7354972ff6b6ab0c1082cf3def12ef6b392",
+      "bytes": 891
+    },
+    "post-review-20261018-runner.log": {
+      "sha256": "e12dd86c82b7ed11226b1a0d1639a597f5fa4aa7481d1fdef3ef04e73c2a8c76",
+      "bytes": 3433
+    },
+    "knip-advisory-final-20261018.log": {
+      "sha256": "d70e0f10121a01813486762fc18d166ad6ee04b9292ce40367073dbfbc798361",
+      "bytes": 4422
+    },
+    "runtime-c08/sdk-story.log": {
+      "sha256": "556987c91d0154665c3f5a2861748229c07417769d42f9a05204f68a2d14d218",
+      "bytes": 2473
+    },
+    "runtime-c08/artifact-manifest.json": {
+      "sha256": "25c58dbf4347e6dd28c1275121b8b4fd6527c84794765f8b0abde3f6ee71e7e2",
+      "bytes": 118017
+    },
+    "runtime-c08/harness.py": {
+      "sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
+      "bytes": 25606
+    },
+    "runtime-c08/pg-cpu-proof.json": {
+      "sha256": "91c173a2ca23b0a0e976fae257f226e22ea56633032fc4a11d5df7b9baae7989",
+      "bytes": 170
+    },
+    "final-audit-20261018/result.json": {
+      "sha256": "f20170d401c80f57b45551b8be60a74bcaeac20adb8bf30c94aed1e17eac173f",
+      "bytes": 816
+    },
+    "old-fixture-cleanup.json": {
+      "sha256": "a517dc2fb2a8d72fb2ea8685aff5dcab93cbb376e355ec0ddf3542e0ab95abc6",
+      "bytes": 871
+    },
+    "experience-stop-authorized-20261018.json": {
+      "sha256": "dedaae6ff05027abb6bdd19b8c21efadf0222e543d6b02f2c1c0823cdd80e9db",
+      "bytes": 694
+    },
+    "static-result.json": {
+      "sha256": "724f3e1242917e2fa6dc85a864952a162b399e0c3d32ecaa9a1b3c05566373a7",
+      "bytes": 75209
+    },
+    "runtime-c08/guide-fr.png": {
+      "sha256": "5931c0e90b216a323c7c4d14e7b28171a35523efd9ba696410b3b11375d74463",
+      "bytes": 109749
+    },
+    "runtime-c08/guide-en.png": {
+      "sha256": "2ee645be61c67fc9822799d392f6ddf909c8879dd6e30cce4344a2e7c034e9f5",
+      "bytes": 101658
+    },
+    "runtime-c08/home-contextdb.png": {
+      "sha256": "b2209a9415a3565436a2be6a155f4a98b340c940f4b5da3d5ae4481c1e0259c1",
+      "bytes": 111144
+    },
+    "runtime-c08/connect-mobile-agentstratum.png": {
+      "sha256": "3dd13f10136c99de86edb36a0d20420d6b9a68fe2f51a00c322645b3c190f3fc",
+      "bytes": 58150
+    },
+    "runtime-c08/home-desktop-agentstratum.png": {
+      "sha256": "c9f64f9a610fd25ab24ce789357a96e5b70eb37ce59712b44d1afc6d844cc84a",
+      "bytes": 114521
+    },
+    "runtime-c08/connect-desktop-agentstratum.png": {
+      "sha256": "0421e743a51aa45089b614ddf838e6ad9ba706530c83155f72e119034b52e5ec",
+      "bytes": 101827
+    },
+    "runtime-c08/guide-zh-CN.png": {
+      "sha256": "5c076e31a297d0702fdd32422a0d4b9300950671626c0cc7be0cab70470346da",
+      "bytes": 95971
+    },
+    "runtime-c08/configuration-mobile.png": {
+      "sha256": "8ea7a04ca102843a73aa8bdc773a1b573333dde42ce184c80bd9797673b5f252",
+      "bytes": 60870
+    },
+    "runtime-c08/documents-mobile-agentstratum.png": {
+      "sha256": "6cde4e431ff24cb068093bdfb13c08bfbaf4932be628a150643ed0c631952ce5",
+      "bytes": 42396
+    },
+    "runtime-c08/home-mobile-agentstratum.png": {
+      "sha256": "4af1d42e3fca616a3ee87c98ea64d6179a752e62ad360217365ce3674c18bfbc",
+      "bytes": 44488
+    },
+    "runtime-c08/stale-tab-preserved.png": {
+      "sha256": "3a561fb93fa4966df3f6888e2f68bc882e7c1525be96a10f548125a3cdca97ef",
+      "bytes": 101454
+    }
+  },
+  "local_resume_scripts_sha256": {
+    "queue-step.py": "6158909a4d80a8cb520fd2e9bd9d3ac117aaf8841688b06f46cf068587796e74",
+    "generate-api-clients.py": "20a76717b71fa0a84c880b00429c19070df8e04e1707a3698e4ed28d93f09a56",
+    "unit.py": "d37988bb1864d379e3240914278277305cadb6a190af38438ac7c8a66fac7c44",
+    "validation.py": "7ab4b4f56f8ce311c9415206fd8c2b29e6de504515f037c084238532cf6208d6",
+    "runtime.py": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
+    "runtime-review.sh": "7b3adc1c22ef329f69a5348c96d3c5fcb641f4b89f3352cac686d668d62c0225",
+    "final-review.sh": "965ad22e7122e3091ad087a99c69d9623b09f693b2ed1ec7b9d7b8323ce29c59",
+    "cleanup-old-fixtures.py": "8cd883fd914f2a0ff3e86747a0fae6b127499980a0a8c548dc9c73d4b9e376b6",
+    "verify-final-20261018.py": "3fc381cd6b0e49d54b03f39ba8c2859413ca4134da5676c7500f3fa36e711a22",
+    "post-review-20261018.py": "afabf24eb7e2ed9721fe141df91d542967ea0552b80ed1e82d97c0f9ec378a61",
+    "final-audit-20261018.py": "126269b944f6e822a2c25599141abd1da5c660295b892acd55fda5cad11c2590",
+    "close-results-20261018.py": "b6d837d8ad1b4b2e54bf2f00177cf5cfe4afe2c7f65a22205ffab6bf1182aaaf"
+  },
+  "bounded_resources": {
+    "npm-ci.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 38.0,
+      "sampled_owned_slice_peak_bytes": 2621898752,
+      "slice_cpu_usage_usec": 13950104424,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-a376e1ef1d",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/npm-ci.log"
+    },
+    "python-deps.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 8.0,
+      "sampled_owned_slice_peak_bytes": 755027968,
+      "slice_cpu_usage_usec": 13952380640,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-01d084733f",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/python-deps.log"
+    },
+    "api-generation.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 24.0,
+      "sampled_owned_slice_peak_bytes": 1462521856,
+      "slice_cpu_usage_usec": 13983662876,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-29467bf577",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/api-generation.log"
+    },
+    "unit-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 77.0,
+      "sampled_owned_slice_peak_bytes": 1280643072,
+      "slice_cpu_usage_usec": 14148202262,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-f24a46cdeb",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/unit-runner.log"
+    },
+    "validation-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 121.1,
+      "sampled_owned_slice_peak_bytes": 2621227008,
+      "slice_cpu_usage_usec": 14320450574,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-62337dec78",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/validation-runner.log"
+    },
+    "resume-20261018-runner.log.resources.json": {
+      "exit_code": 1,
+      "seconds": 113.1,
+      "sampled_owned_slice_peak_bytes": 1735737344,
+      "slice_cpu_usage_usec": 14829109188,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-4a375bc6da",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/resume-20261018-runner.log"
+    },
+    "verify-fix-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 338.3,
+      "sampled_owned_slice_peak_bytes": 2328911872,
+      "slice_cpu_usage_usec": 15219368308,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-a002519e10",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/verify-fix-20261018-runner.log"
+    },
+    "verify-final-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 298.2,
+      "sampled_owned_slice_peak_bytes": 2473701376,
+      "slice_cpu_usage_usec": 15597938693,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-4ef6189216",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/verify-final-20261018-runner.log"
+    },
+    "post-review-20261018-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 9.0,
+      "sampled_owned_slice_peak_bytes": 1853063168,
+      "slice_cpu_usage_usec": 15609585522,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-5b462e7ccf",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/post-review-20261018-runner.log"
+    },
+    "final-audit-20261018-02-runner.log.resources.json": {
+      "exit_code": 0,
+      "seconds": 43.0,
+      "sampled_owned_slice_peak_bytes": 1835712512,
+      "slice_cpu_usage_usec": 15267254252,
+      "CPU_quota_requested_cores": 1.5,
+      "CPU_quota_kernel_enforced": false,
+      "CPU_effective_bound_cores": 2,
+      "CPU_affinity": [
+        0,
+        1
+      ],
+      "memory_hard_limit_bytes": 3221225472,
+      "serial": true,
+      "unit": "m2-access-work-75ba3489f0",
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/final-audit-20261018-02-runner.log"
+    }
+  },
+  "source_snapshot_manifest_sha256": "a9539a73c8ea810305067aefa0afc25198f714c736a6dfc9abb06d6044c1aef5",
+  "draft_handoff_manifest_sha256": "5c0cc0e7c4806a49d7187887e67e0061924c5f32f9f9f7899687a6384aff158e",
+  "delivery": {
+    "pull_request": "https://github.com/RSIXDB/hindsight/pull/5",
+    "number": 5,
+    "isDraft": true,
+    "state": "OPEN",
+    "head": "product/agentstratum-brand-ui-20261016",
+    "base": "main",
+    "implementation_commit": "cbd42fcae66a3c4e50864a0718bbbc97165e47d0",
+    "initial_evidence_commit": "d6edee715",
+    "pushed": true,
+    "main_merged": false,
+    "remote_ci": "NOT_USED_AS_LOCAL_VALIDATION_PROOF",
+    "validated_source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39",
+    "source_fix_commits": [
+      "72218e9f2534b92149cdfda4f856236f252dc9f2",
+      "9ba259fa386f56c97c9b5af64901f5e3fb228815",
+      "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    ],
+    "local_acceptance": "PASS",
+    "independent_review": "ALL_R1_R5_CLOSED",
+    "pushed_source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+  },
+  "previous_blocker_at_handoff": {
+    "status": "NOT_STARTED_SHARED_LOCK",
+    "out_dir_exists": false,
+    "own_wait_queue_stopped": true,
+    "blocking_runner_pid": 1377292,
+    "blocking_service_status": "READY",
+    "blocking_service_verified_at": "2026-10-17T04:48:51.760743+00:00",
+    "other_service_touched": false
+  },
+  "validated_source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39",
+  "runtime_final": {
+    "status": "PASS",
+    "artifact": "same production standalone; runtime environment names only",
+    "artifact_sha256": "ce68572d2ae61a4bd7eb9bd89781a9e833cb5c7082da2d0e2e8fb93713c84514",
+    "base_path": "/brand-ui",
+    "provider": "local stub only",
+    "checks": {
+      "language_switch_and_fallback": true,
+      "native_ui_archive_download": {
+        "status": 200,
+        "bytes": [
+          80,
+          75,
+          3,
+          4
+        ]
+      },
+      "native_ui_multipart_import": true,
+      "graph_export": "agentstratum-relationship-graph.svg",
+      "mobile_navigation_and_connection": true,
+      "chooser_pagination_search_back": {
+        "workspaces": 61,
+        "page_size": 50,
+        "later_selected": "chooser-match-10",
+        "absent_from_first_page": true,
+        "query_preserved": true
+      },
+      "native_bank_ids_guide_connect_add_document": true,
+      "actual_operation_detail_archive_download": {
+        "status": 200,
+        "zip_crc": true,
+        "product_header": "agentstratum"
+      },
+      "first_brand": true,
+      "actual_operation_old_tab_download_refused": {
+        "status": 409,
+        "native_file_requests_added": 0,
+        "saved_files_added": 0,
+        "replays": 0
+      },
+      "stale_tab_preserved_without_replay": true,
+      "second_brand_same_artifact": true,
+      "mismatch_offline_logout_restart_revocation": true,
+      "no_rejected_mutations_forwarded": true,
+      "published_sdk_story": true
+    },
+    "cleanup": {
+      "children": [
+        {
+          "role": "api-agentstratum",
+          "pid": 1694050,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-agentstratum",
+          "pid": 1694390,
+          "exit_code": 143
+        },
+        {
+          "role": "chromium",
+          "pid": 1694423,
+          "exit_code": 0
+        },
+        {
+          "role": "api-contextdb",
+          "pid": 1695089,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-contextdb",
+          "pid": 1695248,
+          "exit_code": 143
+        },
+        {
+          "role": "ui-agentstratum",
+          "pid": 1695487,
+          "exit_code": 143
+        },
+        {
+          "role": "api-contextdb",
+          "pid": 1695542,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-contextdb",
+          "pid": 1695708,
+          "exit_code": 143
+        }
+      ],
+      "pg_stopped": true,
+      "pg_data_preserved": true
+    }
+  },
+  "final_phases": [
+    {
+      "check": "review-unit-all",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-unit-all.log"
+    },
+    {
+      "check": "review-sdk-types",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-sdk-types.log"
+    },
+    {
+      "check": "review-type",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-type.log"
+    },
+    {
+      "check": "review-lint",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-lint.log"
+    },
+    {
+      "check": "review-build",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-build.log"
+    },
+    {
+      "check": "review-native-c12",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-native-c12.log"
+    },
+    {
+      "check": "review-knip",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-knip.log"
+    },
+    {
+      "check": "review-advisory",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-advisory.log"
+    },
+    {
+      "check": "review-extra-style",
+      "exit_code": 0,
+      "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-extra-style.log"
+    }
+  ],
+  "supplementary_native_api_sdk": {
+    "status": "PASS",
+    "titles": {
+      "agentstratum": {
+        "title": "agentstratum HTTP API",
+        "product_config": {
+          "product_config_version": 1,
+          "contextdb_name": "agentstratum"
+        },
+        "cache_control": "no-store"
+      },
+      "contextdb": {
+        "title": "contextdb HTTP API",
+        "product_config": {
+          "product_config_version": 1,
+          "contextdb_name": "contextdb"
+        },
+        "cache_control": "no-store"
+      }
+    },
+    "sdk_special_id": {
+      "status": "PASS_CREATE_LIST_PRESERVE_ACROSS_RENAME_DELETE",
+      "bank_id": "sdk-%42-中文.probe"
+    },
+    "api_source_sha256": "34faca94bf6eefef9934c361d04950f81c5f07a33ca5aba00e5fb69ec1b350e0",
+    "knip_advisory_exit": 1,
+    "cleanup": {
+      "pg_stopped": true,
+      "api_processes_exited": true,
+      "data_preserved": true
+    }
+  },
+  "post_review": {
+    "status": "PASS_NO_NEW_REVIEW_FINDINGS",
+    "knip_blocking": "PASS_see_verify-final_result",
+    "knip_full_advisory_exit": 1,
+    "advisory_scope": "Remaining framework/UI public exports and unchanged baseline findings; no blanket suppressions added",
+    "new_unused_exports_closed": true,
+    "vulture_baseline_findings": [
+      {
+        "path": "hindsight-api-slim/hindsight_api/_pg_extensions.py",
+        "line": 55,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/alembic/env.py",
+        "line": 124,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/api/http.py",
+        "line": 62,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1277,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1278,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1280,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1281,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1413,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1450,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1451,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1563,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1611,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 1643,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+        "line": 2375,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/pg/link_expansion.py",
+        "line": 141,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+        "line": 106,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+        "line": 686,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/memory_engine.py",
+        "line": 615,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/retain/bank_utils.py",
+        "line": 24,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
+        "line": 33,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/engine/search/graph_retrieval.py",
+        "line": 43,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/tracing.py",
+        "line": 27,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-api-slim/hindsight_api/tracing.py",
+        "line": 92,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-dev/benchmarks/perf/recall_perf.py",
+        "line": 54,
+        "baseline_line_identical": true
+      },
+      {
+        "path": "hindsight-embed/hindsight_embed/control_center/server.py",
+        "line": 35,
+        "baseline_line_identical": true
+      }
+    ],
+    "executed_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453",
+    "current_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453"
+  },
+  "authorized_experience_pause": {
+    "authorized_by": "Explicit user reply in this session",
+    "action": "Request normal shutdown through owned STOP file",
+    "service": "serve-experience-c04.py",
+    "supervisor_pid": 1377300,
+    "api": "http://127.0.0.1:28910",
+    "ui": "http://127.0.0.1:28911",
+    "stop_file": "/home/cimon/code/hindsight/.local/hosted-single-tenant/development/runs/follow-up-s5-20261016/experience-c04/STOP",
+    "requested_at": "2026-10-18T00:43:28.860063+00:00",
+    "preserve": "All data/configuration/containers; no deletion",
+    "restoration": "Original session per explicit user instruction",
+    "normal_stop_result": {
+      "status": "STOPPED",
+      "cleanup_errors": [],
+      "data_preserved": true
+    },
+    "container_id": "5a9e46c20eb3c23b61bb7608171bae086a7efe4ca5f1eae4cfe77e18d9adc626",
+    "container_preserved": true,
+    "data_mounts_preserved": true
+  },
+  "old_transient_fixture_cleanup": [
+    {
+      "run": "runtime-c02",
+      "container_id": "4ef96d76b8bb62a352676f73d0bab5366ceb22dd4a11f9ac51b4081dfb7c2976",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c03",
+      "container_id": "8a9b3e1b0ac603bcffb9151bf87efc80e70d29ba10b6856c4b68bcd4f6f70194",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c04",
+      "container_id": "d91977a1ce4cfe9effe5a9a82baf63cddc2273abcf6afc447486721dec9aee74",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    },
+    {
+      "run": "runtime-c05",
+      "container_id": "0698232f0409fdcae0e8b744352c808d22d329a3b7b0b43823abf4411d22731d",
+      "state": "REMOVED_OWN_TRANSIENT_FIXTURE_AND_ANONYMOUS_VOLUME",
+      "logs_preserved": true
+    }
+  ],
+  "previous_self_review_candidate": {
+    "source": "9ba259fa386f56c97c9b5af64901f5e3fb228815",
+    "runtime": {
+      "status": "PASS",
+      "artifact": "same production standalone; runtime environment names only",
+      "artifact_sha256": "ead4662408389127129a975cd4ae916827710553a83bb65b816a538a4db7bd74",
+      "base_path": "/brand-ui",
+      "provider": "local stub only",
+      "checks": {
+        "language_switch_and_fallback": true,
+        "native_ui_archive_download": {
+          "status": 200,
+          "bytes": [
+            80,
+            75,
+            3,
+            4
+          ]
+        },
+        "native_ui_multipart_import": true,
+        "graph_export": "agentstratum-relationship-graph.svg",
+        "mobile_navigation_and_connection": true,
+        "first_brand": true,
+        "stale_tab_preserved_without_replay": true,
+        "second_brand_same_artifact": true,
+        "mismatch_offline_logout_restart_revocation": true,
+        "no_rejected_mutations_forwarded": true,
+        "published_sdk_story": true
+      },
+      "cleanup": {
+        "children": [
+          {
+            "role": "api-agentstratum",
+            "pid": 1625943,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626124,
+            "exit_code": 143
+          },
+          {
+            "role": "chromium",
+            "pid": 1626136,
+            "exit_code": 0
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626581,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1626743,
+            "exit_code": 143
+          },
+          {
+            "role": "ui-agentstratum",
+            "pid": 1626835,
+            "exit_code": 143
+          },
+          {
+            "role": "api-contextdb",
+            "pid": 1626870,
+            "exit_code": 0
+          },
+          {
+            "role": "ui-contextdb",
+            "pid": 1627061,
+            "exit_code": 143
+          }
+        ],
+        "pg_stopped": true,
+        "pg_data_preserved": true
+      },
+      "evidence_dir": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/runtime-c08",
+      "executed_harness_sha256": "1b472e2c3eaa9391b803971ecbfbb3504cd44c63747381bfd7c7d71c878b2453"
+    },
+    "status": "LOCAL_ACCEPTANCE_PASS_CODE_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
+    "generator": {
+      "generator_source_sha256": "9795de25c943ef600bee6cc98821f210b26e75197e81a7493298852fea9f6857",
+      "adapter_sha256": "20a76717b71fa0a84c880b00429c19070df8e04e1707a3698e4ed28d93f09a56",
+      "bounded_script_sha256": "9212985514045abc2f9697062f82a150f7ee66cd8c12b27f2583b6ba0e4df382",
+      "generator_jar_sha256": "615e014705af34861e789e0b2a11075d3c80db134f881e937265479a4a83996e",
+      "spec_sha256": "ab1810c000ec8dc8a5dc0d65696466574650d8e0f6bb35d4d40252a5e9d9dde1",
+      "exit_code": 0,
+      "python_typescript_go": "GENERATED",
+      "rust_compile": "NOT_RUN_NO_TOOLCHAIN",
+      "go_compile": "NOT_RUN_NO_TOOLCHAIN",
+      "scope": "Native checkout only; repository patches retained; no hosted source/SDK copied"
+    }
+  },
+  "independent_review_round": {
+    "initial_head": "9341d473c75bc647b0cda3fadb4ac697390a8152",
+    "initial_verdict": "CHANGES_REQUIRED",
+    "findings": {
+      "P2": 4,
+      "P3": 1
+    },
+    "fix_source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39",
+    "final_verdict": "CLOSED_NO_OPEN_MUST_FIX",
+    "report": "docs/agentstratum-brand-ui/INDEPENDENT-REVIEW.md",
+    "report_sha256": "30a439b22972d569b2ea945289064d86e8681499169ab03994e86b0f98186ff2",
+    "reviewer": "separate no-history reviewer; no implementation edits or heavyweight execution",
+    "source_manifest_sha256": "e0680fc955f976278832fc810a0dbf91e7c8f37e5132c478df47e0ba8d1d84e7",
+    "regression_evidence": {
+      "status": "PASS",
+      "native_baseline_fixture_files": 432,
+      "fixture_provenance_mismatches": [],
+      "original_candidate_rejected": [
+        "hindsight-clients/go/model_bank_template_config.go",
+        "hindsight-clients/go/model_memory_unit_list_item.go",
+        "hindsight-clients/go/model_mental_model_delta_operations.go",
+        "hindsight-clients/python/hindsight_client_api/models/bank_template_config.py",
+        "hindsight-clients/python/hindsight_client_api/models/memory_unit_list_item.py",
+        "hindsight-clients/python/hindsight_client_api/models/mental_model_delta_operations.py"
+      ],
+      "current_candidate_matches_baseline": true,
+      "source_manifest_sha256": "e0680fc955f976278832fc810a0dbf91e7c8f37e5132c478df47e0ba8d1d84e7"
+    },
+    "repeat_generation_summary": {
+      "status": "PASS",
+      "scope": "all tracked SDK paths, generation repeated from native API/spec with pinned jar",
+      "paths": 566,
+      "changed": [],
+      "preparer_sha256": "ab0b01757c1ffc736a26682139680b36b2e804c2cf20e4951143dbd456e2ea1e"
+    },
+    "final_supplemental_log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-final-extra.log",
+    "bounded_records": {
+      "review-api-generation-b.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 44.0,
+        "sampled_owned_slice_peak_bytes": 2485780480,
+        "slice_cpu_usage_usec": 15790763811,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-2b960d0c5d",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-api-generation-b.log"
+      },
+      "review-api-generation-c.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 42.0,
+        "sampled_owned_slice_peak_bytes": 2476748800,
+        "slice_cpu_usage_usec": 15843624229,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-b530d18579",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-api-generation-c.log"
+      },
+      "review-api-generation.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 34.0,
+        "sampled_owned_slice_peak_bytes": 2499076096,
+        "slice_cpu_usage_usec": 15735519194,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-76315f1d02",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-api-generation.log"
+      },
+      "review-final-extra.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 23.0,
+        "sampled_owned_slice_peak_bytes": 1948016640,
+        "slice_cpu_usage_usec": 16199805192,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-57cd6fdda3",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-final-extra.log"
+      },
+      "review-generation-determinism.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 46.0,
+        "sampled_owned_slice_peak_bytes": 2488111104,
+        "slice_cpu_usage_usec": 16126346553,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-a08c76d7f8",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-generation-determinism.log"
+      },
+      "review-generator-explicit.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 5.0,
+        "sampled_owned_slice_peak_bytes": 1803239424,
+        "slice_cpu_usage_usec": 15689173173,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-99a8a1ad0d",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-generator-explicit.log"
+      },
+      "review-generator-identity.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 5.0,
+        "sampled_owned_slice_peak_bytes": 1822703616,
+        "slice_cpu_usage_usec": 15646008938,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-f1a436cbce",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-generator-identity.log"
+      },
+      "review-generator-primitive.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 5.0,
+        "sampled_owned_slice_peak_bytes": 1817505792,
+        "slice_cpu_usage_usec": 15667026213,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-83cf106573",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-generator-primitive.log"
+      },
+      "review-generator-repro.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 16.0,
+        "sampled_owned_slice_peak_bytes": 1842774016,
+        "slice_cpu_usage_usec": 15638559744,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-3492ee7f89",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-generator-repro.log"
+      },
+      "review-unit-first.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 12.0,
+        "sampled_owned_slice_peak_bytes": 1945325568,
+        "slice_cpu_usage_usec": 15659670549,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-ff49590a60",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-unit-first.log"
+      },
+      "review-unit-second.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 11.0,
+        "sampled_owned_slice_peak_bytes": 1972269056,
+        "slice_cpu_usage_usec": 15681703625,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-255a1a56e1",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-unit-second.log"
+      },
+      "review-unit-third.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 11.0,
+        "sampled_owned_slice_peak_bytes": 1966239744,
+        "slice_cpu_usage_usec": 15704355499,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-a7e97e9d35",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-unit-third.log"
+      },
+      "review-verification-rest.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 97.1,
+        "sampled_owned_slice_peak_bytes": 2617438208,
+        "slice_cpu_usage_usec": 16173570092,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-c3bd08f3a4",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-verification-rest.log"
+      },
+      "review-verification-rest2.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 154.1,
+        "sampled_owned_slice_peak_bytes": 2517913600,
+        "slice_cpu_usage_usec": 16258660942,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-78fa4606be",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-verification-rest2.log"
+      },
+      "review-verification-rest3.log.resources.json": {
+        "exit_code": 0,
+        "seconds": 165.1,
+        "sampled_owned_slice_peak_bytes": 2480201728,
+        "slice_cpu_usage_usec": 16407442382,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-05c743b826",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-verification-rest3.log"
+      },
+      "review-verification.log.resources.json": {
+        "exit_code": 1,
+        "seconds": 168.1,
+        "sampled_owned_slice_peak_bytes": 2621464576,
+        "slice_cpu_usage_usec": 16070988640,
+        "CPU_quota_requested_cores": 1.5,
+        "CPU_quota_kernel_enforced": false,
+        "CPU_effective_bound_cores": 2,
+        "CPU_affinity": [
+          0,
+          1
+        ],
+        "memory_hard_limit_bytes": 3221225472,
+        "serial": true,
+        "unit": "m2-access-work-23844d8dcd",
+        "log": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/review-verification.log"
+      }
+    },
+    "read_only_attachment_boundary": "Native anchor/img and cache retained baseline; not claimed as all-asset stale-tab protection",
+    "user_acceptance": "PENDING_USER_REVIEW",
+    "remote_ci": "NOT_CLAIMED",
+    "evidence_hashes": {
+      "repeat-generation-review-result.json": "1fd5a44e3071aeaf829ada5f61029e18236eebe4f2de922ba5bf389dcce64954",
+      "review-20261018.log": "7d7f61a6c5ae5af786dfa64593bebd9988a64602ac01835f79e270aa7b85e0ba",
+      "review-advisory.log": "135101744c3111764828d83e3a33da4aaf63ba109ff76efc0e01c413e5b18a47",
+      "review-api-generation-b.log": "9df7023c59b55b9a46e761942549b2543d1ce9d68aa7c7e0ad010f7bd2ecbc46",
+      "review-api-generation-b.queue.log": "52fec7cec9f288e56436075e304486a3e782a81cd841c0010635c406a86f4f30",
+      "review-api-generation-c.log": "9020a6370b0a9b9cdabfd5e2b6b42c82a0c0be8e3972f305465e1e8ad950c19c",
+      "review-api-generation-c.queue.log": "6fc90e6a4613e40d5689f715754a95f33bd1b9a96e58d7014c5de54e23daf74e",
+      "review-api-generation.log": "fea2ef0de310cab5968bd0e6d1f1163d7fbb2c737b0636223e8f52196f392a02",
+      "review-api-generation.queue.log": "aa6e2756f672b8f2d813ce1e30af63455f9597dd6fad392c8d22ec9dfb4eec25",
+      "review-build.log": "23c874d8afc2a72643162d84d121478f865bf6703ef62b6ffcd08c88b8707722",
+      "review-extra-style.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "review-final-extra-result.json": "3e50d06c4a0d9702ecd843b9fa2d2d843771f1352d4646f00379f75f332d2ac0",
+      "review-final-extra.log": "de28a2166d21ede1dc1854f2652f5fa5c6ebe7e1c4a13440c888b52813ffce72",
+      "review-final-extra.queue.log": "07e03898e2a3c63f6c83dddb1f85f7171712adf2553ae07f12fdb979ebee1f10",
+      "review-generation-determinism.log": "028163033c41bb1302de8a8493de3488df8f346ff29ae0e53feae679b0ef80fa",
+      "review-generation-determinism.queue.log": "94b9a1b901ac3fc22fcdd37fccba0c09686c2dca269029d58270595c8a55ca74",
+      "review-generator-explicit.log": "43c44e285ab5e3005564ebdc3aca405fac75e672ee7b77a2fa54817b3ef6d118",
+      "review-generator-explicit.queue.log": "2dff6d4f6d7292ccc06624e2f035000b44a1b6223ab6e1ba5747ba0527fc2df1",
+      "review-generator-identity.log": "4bde48500154424f879b940a81a5945559580858acaf5a8a59b778c3c80cb83f",
+      "review-generator-identity.queue.log": "63f62c9c5a971a3b25a1a2965a112588cd2d3156d04fc2f5556d9d863741c2dc",
+      "review-generator-primitive.log": "265f7dc276732c22087f85a3f18aac734de527d6afc09d3c750f5825582b0dc4",
+      "review-generator-primitive.queue.log": "3bcbc3dc4f8151f55c3bacd62f1fa351b3b67266dc1eb97d149d3c0ae097557e",
+      "review-generator-repro.log": "14b2ea08e25a2445f7f443deceb5143448f6893b1a67fd91c4e9ecf4a0c63a1c",
+      "review-generator-repro.queue.log": "d7b52af56e39c1fc5849b1490de896882d9597da6dfb21508cb9291b1c5afd69",
+      "review-knip.log": "4e1bdea5f565bd4199485031a40d1efeb9e10ca6052b04f61ffb351dabbfd355",
+      "review-lint.log": "70b483fd37d273cbdedb8e252f443b6cfc19ffdbd00582a7d9c3864c12a2255d",
+      "review-native-c09.log": "a9eefdf65fc08cef7856249d7d949b10f6223e7ca51cdbb52fa1005492230987",
+      "review-native-c10.log": "64d7963fa57f501586d956faa69ee4912f35de8641e6cd0c97db037291c2e582",
+      "review-native-c11.log": "1248c9d4cbff024ab1558f4bd0beebb42bb8ab711126068f06b38454f77bc371",
+      "review-native-c12.log": "78760b99f381ea4793d40c65d42dd9a60ebe6a5abe5bdb384fb4da5cf5c9526c",
+      "review-sdk-types.log": "e100d4d20dcaea33aafe6643a117579311ebaee712591ef3b31307970ea97759",
+      "review-type.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-unit-all.log": "0cf06ef2c1a3d766d4785874aa5fe5e18a15d64f20464e34769e11559532e567",
+      "review-unit-first.log": "820c02acc0d3f47a4ada6acd994abd28560d2e05fd8cb16fd677d111ce7622be",
+      "review-unit-first.queue.log": "ba7a92c4f51d1f1aed513dd15d55a9ea51900872cdd5ec56172d46c55dfc2cf7",
+      "review-unit-second.log": "920a5e314d066b6d7629dab6c86fcac3005d41f76731aed4082a9a21b18b136a",
+      "review-unit-second.queue.log": "3e17c99a9d106490156ba3a26055bbd69e29e56f756e3c1bd16c81279f09ef96",
+      "review-unit-third.log": "a63600b98dd5381ef9febe9beef754c867f1af5549f311d57d1dd5ab8379cdfe",
+      "review-unit-third.queue.log": "093499014ba3e0e7ba040018d527953a0355fb00dec8b3086cd10cbe37f81e1b",
+      "review-verification-rest.log": "55b2dd4978460d404951553a090c7f99056a73718b017a5c0976ffd3ff77ac7c",
+      "review-verification-rest.queue.log": "8ac7ad7e6807ac68cabaca1666428a0106d336fe264632c2c06e8316306f5ca0",
+      "review-verification-rest2.log": "feef7ada89a4f0368730bf945c37efac94b6d1097d9caf8c2f41e352b672d780",
+      "review-verification-rest2.queue.log": "24fcb61136c52e756bc40bd1f01c6230d8da321fa85d32b66a99c30da35fb6d1",
+      "review-verification-rest3.log": "d89e8e9171f7337fd7827b521b18f81a55f7fda77c2dd3598c69b61bd495baf6",
+      "review-verification-rest3.queue.log": "1bf0ff0916d82203813892a59cb133ce8a0dea9e863560f2a7cb81abd9e35cff",
+      "review-verification.log": "b90218164518e5f19da39160c9246da01845cb25bf550da17c3c5b8e666092db",
+      "review-verification.queue.log": "709ab7f024ce46b461b0c756a2578d4f1f790fd08a1decf5b6dd2d107e27006f",
+      "runtime-c12/actual-operation-old-tab-refused.png": "f2156c7732e342e10d5c1fcb814d01bd86fe474dfe216a569b574035e4b20ebc",
+      "runtime-c12/archive-manifest.json": "7637b59328b531725427a6ac60d04a9a242554b3cb0a80201e6e02c52f8b730b",
+      "runtime-c12/artifact-manifest.json": "9018c809ac827eebfc2d694379823c3995b58fc5cafc9c23a5f9950de44c20e8",
+      "runtime-c12/browser-requests.json": "9c8662146c17b29ba7cd58297cdf5238ac30e85957904171faa9041ed712efa5",
+      "runtime-c12/browser-responses.json": "9aca3e06cd0c4ddb24e70d85c71186ad4f35a8cfe916b003e0ae956892b5106f",
+      "runtime-c12/chooser-pagination-search-back.png": "3175eb428b088f23f6854df2f76e8536cb39f2fa236dcd748e1c8e299e04bf86",
+      "runtime-c12/configuration-mobile.png": "8ea7a04ca102843a73aa8bdc773a1b573333dde42ce184c80bd9797673b5f252",
+      "runtime-c12/connect-desktop-agentstratum.png": "0421e743a51aa45089b614ddf838e6ad9ba706530c83155f72e119034b52e5ec",
+      "runtime-c12/connect-dom.json": "1c67710a40f684c0a59caa6a50f1542807f1187c64691af0f0ad8d0ee788d8b0",
+      "runtime-c12/connect-mobile-agentstratum.png": "3dd13f10136c99de86edb36a0d20420d6b9a68fe2f51a00c322645b3c190f3fc",
+      "runtime-c12/documents-mobile-agentstratum.png": "6cde4e431ff24cb068093bdfb13c08bfbaf4932be628a150643ed0c631952ce5",
+      "runtime-c12/forwarded-native-requests.json": "9e9cf68efe74f84ab4cd6c5bc30f887c1c0d16b8d6232c64f78e2c753b4bd433",
+      "runtime-c12/guide-dom-en.json": "6010c5724b510380e060be1631cc674ed8eeb91395cbb5542b77ca6831ada518",
+      "runtime-c12/guide-dom-fr.json": "9422126e22fbfbd1421958ad75b71f02a45efb196e3137384bc8c1df36db31a3",
+      "runtime-c12/guide-dom-zh-CN.json": "f8013ad67833ae4e2093048fb297b1459ab6d0818a2f6363da8ab247a263d602",
+      "runtime-c12/guide-en.png": "2ee645be61c67fc9822799d392f6ddf909c8879dd6e30cce4344a2e7c034e9f5",
+      "runtime-c12/guide-fr.png": "5931c0e90b216a323c7c4d14e7b28171a35523efd9ba696410b3b11375d74463",
+      "runtime-c12/guide-zh-CN.png": "5c076e31a297d0702fdd32422a0d4b9300950671626c0cc7be0cab70470346da",
+      "runtime-c12/harness.py": "efdab2dbe11027d59040c7f9ec51bf7f392772671c7712cbf4849097709a8420",
+      "runtime-c12/home-contextdb.png": "bcaeed8bec4a78f1751d87cdcbac7c700f9a2ca3d0e0f75b6b8ad97cba4ce8cf",
+      "runtime-c12/home-desktop-agentstratum.png": "518f0b0739d882bd3cd648d8dd69f1e559c6167370c8d0cab761119b9a06322d",
+      "runtime-c12/home-mobile-agentstratum.png": "4af1d42e3fca616a3ee87c98ea64d6179a752e62ad360217365ce3674c18bfbc",
+      "runtime-c12/mcp-agentstratum-bank.json": "15038419c6327596a340f80c04603c2987320d45565be85d025b3e6f1c3db063",
+      "runtime-c12/mcp-agentstratum-get-bank.json": "7e791fc5995fb0f00dade0921339c33c65085a1a1a00479f570ff2cf690c7eda",
+      "runtime-c12/mcp-agentstratum.json": "15038419c6327596a340f80c04603c2987320d45565be85d025b3e6f1c3db063",
+      "runtime-c12/mcp-contextdb-bank.json": "19a737bad76ae03340726282cfe63321a017de182d115d2665d1565f201ae0e2",
+      "runtime-c12/mcp-contextdb-get-bank.json": "7e791fc5995fb0f00dade0921339c33c65085a1a1a00479f570ff2cf690c7eda",
+      "runtime-c12/mcp-contextdb.json": "19a737bad76ae03340726282cfe63321a017de182d115d2665d1565f201ae0e2",
+      "runtime-c12/operation-tab-requests.json": "1094ad9486d773faa1ee06c07c8f6daa7dd4d3ee686ce7821bd89969f51f8380",
+      "runtime-c12/operation-tab-responses.json": "ed685421cee0c64bc6acafdb436f37c4627ec809e2c2e99383eb43e141e21758",
+      "runtime-c12/pg-cpu-proof.json": "91c173a2ca23b0a0e976fae257f226e22ea56633032fc4a11d5df7b9baae7989",
+      "runtime-c12/resource.json": "9d62213236a917b68562f1a4f1723d6a575c74abff3adfad8343b095132763c8",
+      "runtime-c12/result.json": "ea5f8d4625fa4584ea6d5b1a720a3196871a4f9bf8ffaa27bcb17dfa82c4ad01",
+      "runtime-c12/stale-tab-preserved.png": "5cb373e83378fdd1f47d8b9a02bfedca8506ea51f92e952cc2db3addc22351f9",
+      "static-review-result.json": "690bc7798696a0970c6091924d3edf00aa0b135bc1b6f6072a19e8bf861b2bc0",
+      "review-advisory-audit.json": "825faef223f19f89d0a68e2631a7147c52043595615155f007cf083f776a172d"
+    },
+    "advisory_review": {
+      "status": "REVIEWED_NO_NEW_MUST_FIX",
+      "vulture_baseline_findings": [
+        {
+          "path": "hindsight-api-slim/hindsight_api/_pg_extensions.py",
+          "line": 55,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/alembic/env.py",
+          "line": 124,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/api/http.py",
+          "line": 62,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1277,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1278,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1280,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1281,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1413,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1450,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1451,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1563,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1611,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 1643,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/base.py",
+          "line": 2375,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/pg/link_expansion.py",
+          "line": 141,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+          "line": 106,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+          "line": 686,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/memory_engine.py",
+          "line": 615,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/retain/bank_utils.py",
+          "line": 24,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py",
+          "line": 33,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/engine/search/graph_retrieval.py",
+          "line": 43,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/tracing.py",
+          "line": 27,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-api-slim/hindsight_api/tracing.py",
+          "line": 92,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-dev/benchmarks/perf/recall_perf.py",
+          "line": 54,
+          "baseline_line_identical": true
+        },
+        {
+          "path": "hindsight-embed/hindsight_embed/control_center/server.py",
+          "line": 35,
+          "baseline_line_identical": true
+        }
+      ],
+      "knip": "files/dependencies exit0; advisory unlisted binaries and framework/UI public exports retained; no new suppressions",
+      "source_commit": "14c2d60eacf9be3e67093f374082eb4fbda3ba39"
+    }
+  }
+}

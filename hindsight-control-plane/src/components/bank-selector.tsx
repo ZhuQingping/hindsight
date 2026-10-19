@@ -1,13 +1,16 @@
 "use client";
 
+import { productFetch } from "@/lib/product-fetch";
+
 import * as React from "react";
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useBank } from "@/lib/bank-context";
 import { bankRoute } from "@/lib/bank-url";
 import { hoistCurrentBank } from "@/lib/bank-order";
-import { withBasePath } from "@/lib/base-path";
+import { stripBasePath, withBasePath } from "@/lib/base-path";
 import { client } from "@/lib/api";
 import type { RetainContentBlock as ContentBlock } from "@/lib/api";
 import {
@@ -44,7 +47,8 @@ import {
   FileText,
   Moon,
   Sun,
-  Github,
+  BookOpen,
+  Plug,
   Upload,
   X,
   Lock,
@@ -57,7 +61,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme-context";
 import { useFeatures } from "@/lib/features-context";
-import Image from "next/image";
+import { Brand } from "@/components/brand";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,6 +75,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { BANKS_PAGE_SIZE, type BankInfo } from "@/lib/bank-context";
+import { OPEN_ADD_DOCUMENT_EVENT } from "@/lib/ui-events";
 
 function formatCompact(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`;
@@ -100,8 +105,12 @@ function formatTimeAgo(isoDate: string): string {
 
 function BankSelectorInner() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const appPathname = stripBasePath(pathname);
+  const resourcePage = appPathname === "/guide" || appPathname === "/connect";
   const tNav = useTranslations("nav");
+  const tBrand = useTranslations("brand");
   const tNavBank = useTranslations("nav.bank");
   const tCommon = useTranslations("common");
   const tAddDocument = useTranslations("addDocument");
@@ -121,10 +130,22 @@ function BankSelectorInner() {
   } = useBank();
   const { theme, toggleTheme } = useTheme();
   const { features } = useFeatures();
+  const [localAuthRequired, setLocalAuthRequired] = React.useState(true);
+  React.useEffect(() => {
+    // Logout belongs to the UI session, so a dataplane outage must not hide it.
+    let cancelled = false;
+    productFetch(withBasePath("/api/auth/session"))
+      .then(async (response) => {
+        if (!response.ok) return;
+        const state: { required?: boolean } = await response.json();
+        if (!cancelled && typeof state.required === "boolean") setLocalAuthRequired(state.required);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [open, setOpen] = React.useState(false);
-  // One-shot spin of the header logo, fired by sidebar navigation (see the
-  // "hindsight:logo-spin" listener below). Reset on animationEnd so it can replay.
-  const [logoSpinning, setLogoSpinning] = React.useState(false);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [newBankId, setNewBankId] = React.useState("");
   const [isCreating, setIsCreating] = React.useState(false);
@@ -135,6 +156,13 @@ function BankSelectorInner() {
 
   // Document creation state
   const [docDialogOpen, setDocDialogOpen] = React.useState(false);
+  React.useEffect(() => {
+    const openComposer = () => {
+      if (currentBank) setDocDialogOpen(true);
+    };
+    window.addEventListener(OPEN_ADD_DOCUMENT_EVENT, openComposer);
+    return () => window.removeEventListener(OPEN_ADD_DOCUMENT_EVENT, openComposer);
+  }, [currentBank]);
   const [docTab, setDocTab] = React.useState<"text" | "upload">("text");
   const [docContent, setDocContent] = React.useState("");
   const [docComposeMode, setDocComposeMode] = React.useState<ComposeMode>("text");
@@ -199,18 +227,6 @@ function BankSelectorInner() {
       .catch(() => {
         setFileUploadEnabled(false);
       });
-  }, []);
-
-  // Spin the header logo whenever a sidebar item is clicked. Decoupled via a
-  // window event (like DOCUMENTS_REFRESH_EVENT) since the sidebar and this header
-  // are siblings, not parent/child. onAnimationEnd clears the flag so the next
-  // click replays it. (A mid-spin re-click is a no-op — the flag is already set —
-  // which is fine; we avoid a requestAnimationFrame restart because rAF is paused
-  // in background tabs, which would drop the spin entirely.)
-  React.useEffect(() => {
-    const spin = () => setLogoSpinning(true);
-    window.addEventListener("hindsight:logo-spin", spin);
-    return () => window.removeEventListener("hindsight:logo-spin", spin);
   }, []);
 
   // The banks overview page has its own "create bank" button; the dialog (with its
@@ -556,40 +572,20 @@ function BankSelectorInner() {
   };
 
   return (
-    <div className="bg-card text-card-foreground px-5 py-3 border-b-4 border-primary-gradient">
-      <div className="flex items-center gap-4 text-sm">
-        {/* Logo, split so only the mark spins on navigation while the wordmark
-            stays put. The mark is the standalone favicon.png (so it can rotate
-            freely); the wordmark is the right slice of the full lockup (logo.png)
-            shown via a cropped background. Their widths sum to the full logo, so
-            the two pieces butt together seamlessly at h-10. */}
-        {/* The logo is the way back to the banks overview, as it is in most apps. */}
+    <div className="relative z-20 border-b border-border bg-card px-4 py-3 text-card-foreground md:px-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-sm lg:flex lg:gap-5">
         <button
           type="button"
-          className="flex items-center h-10 select-none cursor-pointer"
+          className="flex items-center gap-4 justify-self-start rounded focus-visible:outline-2 focus-visible:outline-ring"
           aria-label={tNavBank("allBanks")}
           title={tNavBank("allBanks")}
           onClick={() => router.push("/dashboard")}
         >
-          <img
-            src={withBasePath("/favicon.png")}
-            alt=""
-            className={cn("h-10 w-auto", logoSpinning && "animate-logo-wiggle")}
-            onAnimationEnd={() => setLogoSpinning(false)}
-          />
-          <div
-            className="h-10 w-[99px]"
-            style={{
-              backgroundImage: `url(${withBasePath("/logo.png")})`,
-              backgroundSize: "auto 100%",
-              backgroundPosition: "right center",
-              backgroundRepeat: "no-repeat",
-            }}
-          />
+          <Brand />
+          <span className="hidden border-l border-border pl-4 text-xs font-medium text-muted-foreground xl:block">
+            {tBrand("console")}
+          </span>
         </button>
-
-        {/* Separator */}
-        <div className="h-8 w-px bg-border" />
 
         {/* Memory Bank Selector */}
         <Popover
@@ -609,7 +605,7 @@ function BankSelectorInner() {
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-[250px] justify-between font-bold border-2 border-primary hover:bg-accent"
+              className="order-3 min-w-0 w-full justify-between border-border bg-background/70 font-medium hover:bg-accent lg:order-none lg:w-[250px] lg:shrink-0"
             >
               <span className="truncate">
                 {currentBankName || currentBank || tNavBank("select")}
@@ -617,7 +613,7 @@ function BankSelectorInner() {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[420px] p-0" align="start">
+          <PopoverContent className="w-[min(420px,calc(100vw-2rem))] p-0" align="start">
             {/* shouldFilter={false}: matching is done by the server so search reaches
                 banks that haven't been paged in yet. */}
             <Command shouldFilter={false}>
@@ -798,15 +794,12 @@ function BankSelectorInner() {
           </PopoverContent>
         </Popover>
 
-        {/* Separator */}
-        <div className="h-8 w-px bg-border" />
-
         {/* Add Document Button */}
-        {currentBank && (
+        {currentBank && !resourcePage && searchParams.get("view") !== "documents" && (
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="order-4 h-9 gap-1.5 justify-self-end lg:order-none"
             onClick={() => setDocDialogOpen(true)}
             title={tAddDocument("addDocumentToCurrentBank")}
             data-add-document
@@ -816,57 +809,62 @@ function BankSelectorInner() {
           </Button>
         )}
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* GitHub Link */}
-        <a
-          href="https://github.com/vectorize-io/hindsight"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-          title={tNav("viewOnGitHub")}
-        >
-          <Github className="h-5 w-5" />
-          <span className="text-sm font-medium">GitHub</span>
-        </a>
-
-        {/* Separator */}
-        <div className="h-8 w-px bg-border" />
-
-        {/* Dark Mode Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="h-9 w-9"
-          title={theme === "light" ? tNav("darkMode") : tNav("lightMode")}
-        >
-          {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
-
-        <LanguageSwitcher />
-
-        {features?.access_key_auth && (
-          <>
-            <div className="h-8 w-px bg-border" />
+        <div className="order-2 flex items-center gap-0.5 justify-self-end lg:order-none lg:ml-auto">
+          <Link
+            href={currentBank ? `/connect?bank_id=${encodeURIComponent(currentBank)}` : "/connect"}
+            className="flex items-center gap-1.5 rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label={tBrand("connect")}
+            title={tBrand("connect")}
+          >
+            <Plug className="h-4 w-4" />
+            <span className="hidden text-xs xl:inline">{tBrand("connect")}</span>
+          </Link>
+          <Link
+            href={currentBank ? `/guide?bank_id=${encodeURIComponent(currentBank)}` : "/guide"}
+            className="flex items-center gap-1.5 rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label={tBrand("documentation")}
+            title={tBrand("documentation")}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden text-xs xl:inline">{tBrand("documentation")}</span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9"
+            aria-label={theme === "light" ? tNav("darkMode") : tNav("lightMode")}
+            title={theme === "light" ? tNav("darkMode") : tNav("lightMode")}
+          >
+            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </Button>
+          <LanguageSwitcher />
+          {localAuthRequired && (
             <Button
               variant="ghost"
               size="icon"
               className="h-9 w-9"
-              title="Logout"
+              aria-label={tBrand("signOut")}
+              title={tBrand("signOut")}
               onClick={async () => {
                 try {
-                  await fetch(withBasePath("/api/auth/logout"), { method: "POST" });
-                } finally {
+                  const response = await productFetch(withBasePath("/api/auth/logout"), {
+                    method: "POST",
+                  });
+                  if (!response.ok) {
+                    toast.error(tBrand("signOutFailed"));
+                    return;
+                  }
                   window.location.href = withBasePath("/login");
+                } catch {
+                  toast.error(tBrand("signOutFailed"));
                 }
               }}
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4" />
             </Button>
-          </>
-        )}
+          )}
+        </div>
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogContent className="sm:max-w-[550px]">
@@ -901,16 +899,6 @@ function BankSelectorInner() {
                     {tAddDocument("importFromTemplateLabel")}
                   </label>
                 </div>
-                {useTemplate && (
-                  <a
-                    href="https://hindsight.vectorize.io/templates"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {tAddDocument("browseTemplates")}
-                  </a>
-                )}
               </div>
               {useTemplate && (
                 <div>
@@ -1276,25 +1264,25 @@ function BankSelectorInner() {
                         value="document"
                         className="rounded-none h-full px-4 text-xs font-medium bg-transparent shadow-none text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary -mb-px"
                       >
-                        Document
+                        {tAddDocument("advancedTabDocument")}
                       </TabsTrigger>
                       <TabsTrigger
                         value="tags"
                         className="rounded-none h-full px-4 text-xs font-medium bg-transparent shadow-none text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary -mb-px"
                       >
-                        Tags
+                        {tAddDocument("advancedTabTags")}
                       </TabsTrigger>
                       <TabsTrigger
                         value="source"
                         className="rounded-none h-full px-4 text-xs font-medium bg-transparent shadow-none text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary -mb-px"
                       >
-                        Source
+                        {tAddDocument("advancedTabSource")}
                       </TabsTrigger>
                     </TabsList>
 
                     <div className="pt-3 space-y-3">
                       <TabsContent value="document" className="mt-0 space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <div>
                             <label className="font-bold block mb-1 text-sm text-foreground">
                               {tAddDocument("eventDateLabel")}
@@ -1476,7 +1464,7 @@ function BankSelectorInner() {
                       <TabsContent value="source" className="mt-0 space-y-3">
                         <div>
                           <label className="font-bold block mb-1 text-sm text-foreground">
-                            Metadata
+                            {tAddDocument("metadataLabel")}
                           </label>
                           <Textarea
                             value={docMetadata}
@@ -1494,13 +1482,13 @@ function BankSelectorInner() {
                         </div>
                         <div>
                           <label className="font-bold block mb-1 text-sm text-foreground">
-                            Entities
+                            {tAddDocument("entitiesLabel")}
                           </label>
                           <Input
                             type="text"
                             value={docEntities}
                             onChange={(e) => setDocEntities(e.target.value)}
-                            placeholder="Alice, Google, ML model"
+                            placeholder="Alice, Example Corp, ML model"
                           />
                           <p className="text-xs text-muted-foreground mt-1">
                             {tAddDocument("entitiesHelpText")}
@@ -1578,40 +1566,9 @@ export function BankSelector() {
   return (
     <Suspense
       fallback={
-        <div className="bg-card text-card-foreground px-5 py-3 border-b-4 border-primary-gradient">
-          <div className="flex items-center gap-4 text-sm">
-            <Image
-              src={withBasePath("/logo.png")}
-              alt="Hindsight"
-              width={40}
-              height={40}
-              className="h-10 w-auto"
-              unoptimized
-            />
-            <div className="h-8 w-px bg-border" />
-            <Button
-              variant="outline"
-              className="w-[250px] justify-between font-bold border-2 border-primary"
-              disabled
-            >
-              Loading...
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-            <div className="flex-1" />
-            <a
-              href="https://github.com/vectorize-io/hindsight"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-            >
-              <Github className="h-5 w-5" />
-              <span className="text-sm font-medium">GitHub</span>
-            </a>
-            <div className="h-8 w-px bg-border" />
-            <Button variant="ghost" size="icon" className="h-9 w-9" disabled>
-              <Moon className="h-5 w-5" />
-            </Button>
-          </div>
+        <div className="flex min-h-[65px] items-center gap-6 border-b border-border bg-card px-6 py-3 text-card-foreground">
+          <Brand />
+          <div className="h-9 w-48 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
         </div>
       }
     >

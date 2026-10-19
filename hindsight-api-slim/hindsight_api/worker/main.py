@@ -18,9 +18,10 @@ import sys
 import warnings
 from collections.abc import Callable
 
-from ..brand import WORKER_SERVICE_NAME
+from ..brand import service_name
 from ..config import get_config, load_dotenv_for_entrypoint
 from ..engine.task_backend import WorkerTaskBackend
+from ..product_config import display_config
 from .poller import WorkerPoller
 
 # Filter deprecation warnings from third-party libraries
@@ -63,13 +64,13 @@ def create_worker_app(poller: WorkerPoller, memory):
     from ..metrics import create_metrics_collector, get_metrics_collector, initialize_metrics
 
     app = FastAPI(
-        title="Hindsight Worker",
+        title=f"{display_config().display_name} Worker",
         description="Worker process for distributed task execution",
     )
 
     # Initialize OpenTelemetry metrics
     try:
-        prometheus_reader = initialize_metrics(service_name=WORKER_SERVICE_NAME, service_version="1.0.0")
+        prometheus_reader = initialize_metrics(service_name=service_name("worker"), service_version="1.0.0")
         create_metrics_collector()
         app.state.prometheus_reader = prometheus_reader
         logger.info("Metrics initialized - available at /metrics endpoint")
@@ -228,7 +229,7 @@ def main():
     # so the "Tracing initialized" line is visible.
     from ..tracing import initialize_tracing_from_config
 
-    initialize_tracing_from_config(config, default_service_name="agentstratum-worker")
+    initialize_tracing_from_config(config, default_service_name=service_name("worker"))
 
     from ..utils import warn_if_container_default_worker_id
 
@@ -240,7 +241,7 @@ def main():
     # Import MemoryEngine here to avoid circular imports
     from .. import MemoryEngine
 
-    print(f"Starting agentstratum Worker: {worker_id}")
+    print(f"Starting {display_config().display_name} Worker: {worker_id}")
     print(f"  Poll interval: {args.poll_interval}ms")
     print(f"  Max retries: {config.worker_max_retries}")
     print(f"  Max slots: {config.worker_max_slots}")

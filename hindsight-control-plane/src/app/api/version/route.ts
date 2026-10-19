@@ -1,3 +1,4 @@
+import { protectedMode } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { sdk, lowLevelClient } from "@/lib/hindsight-client";
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
 
     const data = response.data as Record<string, unknown>;
     const features = (data.features ?? {}) as Record<string, boolean>;
-    features.access_key_auth = !!process.env.HINDSIGHT_CP_ACCESS_KEY;
+    features.access_key_auth = protectedMode();
     data.features = features;
 
     return NextResponse.json(data, { status: 200 });

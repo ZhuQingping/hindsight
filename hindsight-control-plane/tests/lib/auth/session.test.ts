@@ -1,152 +1,105 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { NextRequest } from "next/server";
-
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { NextRequest } from "next/server";
 import {
-  SESSION_MAX_AGE_SECONDS,
   createSessionToken,
-  isSecureRequest,
   verifySessionToken,
+  revokeSessionToken,
+  SESSION_MAX_AGE_SECONDS,
+  isSecureRequest,
+  trustedMutation,
+  authConfigured,
+  sessionCookieName,
 } from "@/lib/auth/session";
 
-const ACCESS_KEY = "super-secret-access-key";
+let directory: string;
+const key = "local-login-secret";
+beforeEach(async () => {
+  directory = await mkdtemp(path.join(os.tmpdir(), "m2-session-"));
+  vi.stubEnv("HINDSIGHT_CP_SESSION_DIR", directory);
+  vi.stubEnv("HINDSIGHT_CP_ACCESS_KEY", key);
+  vi.stubEnv("HINDSIGHT_CP_AUTH_MODE", "local");
+  vi.stubEnv("HINDSIGHT_CP_PUBLIC_ORIGIN", "https://memory.example.test");
+});
+afterEach(async () => {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+  await rm(directory, { recursive: true, force: true });
+});
 
-function fakeRequest({
-  protocol = "http:",
-  forwardedProto,
-}: {
-  protocol?: "http:" | "https:";
-  forwardedProto?: string;
-} = {}): NextRequest {
-  const headers = new Headers();
-  if (forwardedProto !== undefined) {
-    headers.set("x-forwarded-proto", forwardedProto);
-  }
-  return {
-    headers,
-    nextUrl: { protocol },
-  } as unknown as NextRequest;
-}
-
-describe("createSessionToken / verifySessionToken", () => {
-  it("round-trips: a freshly issued token verifies", async () => {
-    const token = await createSessionToken(ACCESS_KEY);
-    expect(await verifySessionToken(token, ACCESS_KEY)).toBe(true);
+describe("durable local sessions", () => {
+  it("issues unique sessions and revokes only the session logged out", async () => {
+    const first = await createSessionToken(key);
+    const second = await createSessionToken(key);
+    expect(first).not.toBe(second);
+    expect(await verifySessionToken(first, key)).toBe(true);
+    await revokeSessionToken(first);
+    expect(await verifySessionToken(first, key)).toBe(false);
+    expect(await verifySessionToken(second, key)).toBe(true);
+    await revokeSessionToken(first);
   });
-
-  it("emits the documented `<issuedAt>.<sig>` shape", async () => {
-    const token = await createSessionToken(ACCESS_KEY);
-    const [issuedAt, sig, ...rest] = token.split(".");
-    expect(rest).toHaveLength(0);
-    expect(Number.isInteger(Number(issuedAt))).toBe(true);
-    expect(sig.length).toBeGreaterThan(0);
+  it("survives module reload and retains revocation across reload", async () => {
+    const token = await createSessionToken(key);
+    vi.resetModules();
+    const otherWorker = await import("@/lib/auth/session");
+    expect(await otherWorker.verifySessionToken(token, key)).toBe(true);
+    await otherWorker.revokeSessionToken(token);
+    expect(await verifySessionToken(token, key)).toBe(false);
   });
-
-  it("rejects when the signature is tampered", async () => {
-    const token = await createSessionToken(ACCESS_KEY);
-    const [issuedAt] = token.split(".");
-    const forged = `${issuedAt}.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`;
-    expect(await verifySessionToken(forged, ACCESS_KEY)).toBe(false);
+  it("rejects wrong keys, tampering, legacy tokens, and missing storage", async () => {
+    const token = await createSessionToken(key);
+    expect(await verifySessionToken(token, "rotated-key")).toBe(false);
+    expect(
+      await verifySessionToken(token.slice(0, -1) + (token.endsWith("a") ? "b" : "a"), key)
+    ).toBe(false);
+    for (const malformed of [undefined, "authenticated", "123.sig", "../secret", ""])
+      expect(await verifySessionToken(malformed, key)).toBe(false);
+    await rm(directory, { recursive: true });
+    expect(await verifySessionToken(token, key)).toBe(false);
   });
-
-  it("rejects when the payload is swapped (signature no longer matches)", async () => {
-    const token = await createSessionToken(ACCESS_KEY);
-    const [, sig] = token.split(".");
-    const futureTime = (Math.floor(Date.now() / 1000) - 10).toString();
-    const forged = `${futureTime}.${sig}`;
-    expect(await verifySessionToken(forged, ACCESS_KEY)).toBe(false);
-  });
-
-  it("rejects the bare-string cookie value that the old impl accepted", async () => {
-    expect(await verifySessionToken("authenticated", ACCESS_KEY)).toBe(false);
-  });
-
-  it.each(["", undefined, ".", "abc", "abc.", ".abc", "notanumber.sig"])(
-    "rejects malformed token: %j",
-    async (bad) => {
-      expect(await verifySessionToken(bad, ACCESS_KEY)).toBe(false);
-    }
-  );
-
-  it("rejects when the access key has rotated since the token was issued", async () => {
-    const token = await createSessionToken(ACCESS_KEY);
-    expect(await verifySessionToken(token, "different-access-key")).toBe(false);
-  });
-
-  describe("expiry", () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it("accepts a token issued just inside the max-age window", async () => {
-      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
-      const token = await createSessionToken(ACCESS_KEY);
-      vi.setSystemTime(new Date(Date.now() + (SESSION_MAX_AGE_SECONDS - 5) * 1000));
-      expect(await verifySessionToken(token, ACCESS_KEY)).toBe(true);
-    });
-
-    it("rejects a token issued past the max-age window", async () => {
-      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
-      const token = await createSessionToken(ACCESS_KEY);
-      vi.setSystemTime(new Date(Date.now() + (SESSION_MAX_AGE_SECONDS + 5) * 1000));
-      expect(await verifySessionToken(token, ACCESS_KEY)).toBe(false);
-    });
-
-    it("rejects a token whose issuedAt is implausibly in the future", async () => {
-      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
-      const farFuture = Math.floor(Date.now() / 1000) + 3600;
-      // Forge a properly-signed token with a future iat to isolate the iat
-      // check (a tampered iat alone would also fail the signature check).
-      const { hmacSha256 } = await loadHmacHelper();
-      const futureSig = await hmacSha256(ACCESS_KEY, farFuture.toString());
-      expect(await verifySessionToken(`${farFuture}.${futureSig}`, ACCESS_KEY)).toBe(false);
-    });
+  it("expires at the deadline and rejects future sessions", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const token = await createSessionToken(key);
+    vi.setSystemTime(new Date("2025-12-31T23:00:00Z"));
+    expect(await verifySessionToken(token, key)).toBe(false);
+    vi.setSystemTime(new Date(Date.parse("2026-01-01T00:00:00Z") + SESSION_MAX_AGE_SECONDS * 1000));
+    expect(await verifySessionToken(token, key)).toBe(false);
   });
 });
 
-describe("isSecureRequest", () => {
-  it("returns true when X-Forwarded-Proto is https", () => {
-    expect(isSecureRequest(fakeRequest({ forwardedProto: "https" }))).toBe(true);
-  });
-
-  it("returns false when X-Forwarded-Proto is http (even on a production build)", () => {
-    expect(isSecureRequest(fakeRequest({ forwardedProto: "http" }))).toBe(false);
-  });
-
-  it("uses the first value when X-Forwarded-Proto is a comma list", () => {
-    expect(isSecureRequest(fakeRequest({ forwardedProto: "https, http" }))).toBe(true);
-    expect(isSecureRequest(fakeRequest({ forwardedProto: "http, https" }))).toBe(false);
-  });
-
-  it("falls back to the request URL protocol when no forwarded header is set", () => {
-    expect(isSecureRequest(fakeRequest({ protocol: "https:" }))).toBe(true);
-    expect(isSecureRequest(fakeRequest({ protocol: "http:" }))).toBe(false);
-  });
-
-  it("is case-insensitive on the forwarded value", () => {
-    expect(isSecureRequest(fakeRequest({ forwardedProto: "HTTPS" }))).toBe(true);
-  });
+it("uses configured public origin for cookie security, ignoring forwarded proto", () => {
+  const request = new NextRequest("http://internal/", { headers: { "x-forwarded-proto": "http" } });
+  expect(isSecureRequest(request)).toBe(true);
+  vi.stubEnv("HINDSIGHT_CP_PUBLIC_ORIGIN", "http://127.0.0.1:28901");
+  expect(
+    isSecureRequest(
+      new NextRequest("https://forged/", { headers: { "x-forwarded-proto": "https" } })
+    )
+  ).toBe(false);
+});
+it("requires exact origin and host for browser mutations", () => {
+  const req = (origin: string, host = "memory.example.test") =>
+    new NextRequest("http://internal/api/banks", { headers: { origin, host } });
+  expect(trustedMutation(req("https://memory.example.test"))).toBe(true);
+  expect(trustedMutation(req("https://evil.example.test"))).toBe(false);
+  expect(trustedMutation(req("https://memory.example.test", "evil.example.test"))).toBe(false);
+});
+it("fails closed for incomplete or unknown protected configuration", () => {
+  expect(authConfigured()).toBe(true);
+  vi.stubEnv("HINDSIGHT_CP_SESSION_DIR", "relative");
+  expect(authConfigured()).toBe(false);
+  vi.stubEnv("HINDSIGHT_CP_SESSION_DIR", directory);
+  vi.stubEnv("HINDSIGHT_CP_AUTH_MODE", "typo");
+  expect(authConfigured()).toBe(false);
 });
 
-// Inlined HMAC helper for the future-iat test — re-derives a signature without
-// reaching into private module internals.
-async function loadHmacHelper() {
-  async function hmacSha256(secret: string, message: string): Promise<string> {
-    const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      "raw",
-      enc.encode(secret),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-    const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(message)));
-    let binary = "";
-    for (const byte of sig) binary += String.fromCharCode(byte);
-    return btoa(binary).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
-  }
-  return { hmacSha256 };
-}
+it("binds sessions and cookie names to the configured instance origin", async () => {
+  const originalName = sessionCookieName();
+  const token = await createSessionToken(key);
+  vi.stubEnv("HINDSIGHT_CP_PUBLIC_ORIGIN", "https://another.example.test");
+  expect(sessionCookieName()).not.toBe(originalName);
+  expect(await verifySessionToken(token, key)).toBe(false);
+});

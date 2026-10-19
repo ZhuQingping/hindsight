@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 
 import {
-  ACCESS_KEY_COOKIE,
+  sessionCookieName,
   SESSION_MAX_AGE_SECONDS,
   createSessionToken,
   sessionCookieOptions,
+  authConfigured,
+  trustedMutation,
 } from "@/lib/auth/session";
 
 export async function POST(request: NextRequest) {
   const accessKey = process.env.HINDSIGHT_CP_ACCESS_KEY;
+
+  if (!authConfigured())
+    return NextResponse.json({ error: "Protected UI is not configured" }, { status: 503 });
+  if (!trustedMutation(request))
+    return NextResponse.json({ error: "Untrusted request origin" }, { status: 403 });
 
   // If no access key is configured, return 503
   if (!accessKey) {
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const providedKey = body.key;
+  const providedKey = body && typeof body.key === "string" ? body.key : undefined;
 
   // Constant-time comparison to prevent timing attacks
   const isValid = providedKey && constantTimeCompare(providedKey, accessKey);
@@ -50,11 +57,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let token: string;
+  try {
+    token = await createSessionToken(accessKey);
+  } catch {
+    return NextResponse.json({ error: "Session storage unavailable" }, { status: 503 });
+  }
   const response = NextResponse.json({ success: true });
+  response.headers.set("Cache-Control", "no-store");
 
   response.cookies.set({
-    name: ACCESS_KEY_COOKIE,
-    value: await createSessionToken(accessKey),
+    name: sessionCookieName(),
+    value: token,
     ...sessionCookieOptions(request),
     maxAge: SESSION_MAX_AGE_SECONDS,
   });

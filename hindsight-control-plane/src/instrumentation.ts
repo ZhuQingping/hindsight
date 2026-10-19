@@ -3,6 +3,8 @@
  * https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 export async function register() {
+  const { localProductConfig } = await import("@/lib/product-config-server");
+  localProductConfig();
   const dataplaneUrl = process.env.HINDSIGHT_CP_DATAPLANE_API_URL || "http://localhost:8888";
   const apiKey = process.env.HINDSIGHT_CP_DATAPLANE_API_KEY || "";
 

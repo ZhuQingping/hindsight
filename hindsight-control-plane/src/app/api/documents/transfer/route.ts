@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
+import { nativeFileDownloadPath } from "@/lib/file-download";
 import { DATAPLANE_URL, dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
 
 // The dataplane export is asynchronous (a large whole-bank export can pin the API,
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
     const submitResponse = await fetch(dataplaneBankUrl(bankId, submitSuffix), {
       method: "POST",
       headers: getDataplaneHeaders(),
+      signal: request.signal,
     });
     if (!submitResponse.ok) {
       const error = await submitResponse
@@ -66,6 +68,7 @@ export async function GET(request: NextRequest) {
     for (;;) {
       const statusResponse = await fetch(dataplaneBankUrl(bankId, `/operations/${operationId}`), {
         headers: getDataplaneHeaders(),
+        signal: request.signal,
       });
       if (!statusResponse.ok) {
         const error = await statusResponse
@@ -75,7 +78,7 @@ export async function GET(request: NextRequest) {
       }
       const status = await statusResponse.json();
       if (status.status === "completed") {
-        downloadUrl = status.result_metadata?.download_url;
+        downloadUrl = nativeFileDownloadPath(status.result_metadata) ?? undefined;
         break;
       }
       if (status.status === "failed" || status.status === "cancelled") {
@@ -112,14 +115,14 @@ export async function GET(request: NextRequest) {
     // 3. Download the finished archive and stream it back to the browser.
     const response = await fetch(`${DATAPLANE_URL}${downloadUrl}`, {
       headers: getDataplaneHeaders(),
+      signal: request.signal,
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
       return NextResponse.json(error, { status: response.status });
     }
 
-    const body = await response.arrayBuffer();
-    return new NextResponse(body, {
+    return new NextResponse(response.body, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",

@@ -89,7 +89,7 @@ describe("buildRetain usage stats", () => {
           { type: "tool_use", name: "Grep", input: { pattern: "round" } },
         ]),
         msg("user", [{ type: "tool_result", content: "page kp-1" }]),
-        msg("assistant", [{ type: "text", text: "> 🧠 **From agentstratum memory** — half up" }]),
+        msg("assistant", [{ type: "text", text: "> 🧠 **From ContextBase memory** — half up" }]),
       ].join("\n")
     );
     try {

@@ -14,8 +14,10 @@
  * `--harness` flags rather than from a workspace, and their process ends long before a credential
  * can rotate under them.
  */
-import { applyBankConfig, loadConfig, type Config } from "./config";
+import { applyBankConfig, loadConfig, resolveConfig, type Config } from "./config";
 import { deriveBankIdOrSkip } from "./bank";
+import { RemoteConnectionError } from "./connection";
+import { log } from "./log";
 import { HindsightClient } from "./hindsight";
 
 /** A host's resolved memory: the config for THIS workspace, the bank it resolved to, and a client
@@ -32,7 +34,16 @@ export function resolveHostConfig(
   harness: string,
   directory: string
 ): { cfg: Config; bankId: string } {
-  const cfg0 = loadConfig({ harness });
+  let cfg0: Config;
+  try {
+    cfg0 = loadConfig({ harness });
+  } catch (error) {
+    if (!(error instanceof RemoteConnectionError)) throw error;
+    // Host startup is not the installer: invalid memory settings must not reject
+    // the host plugin. Every persistent adapter honors this shared disabled exit.
+    log.warn(harness, `Memory integration disabled: ${error.message}`);
+    return { cfg: resolveConfig({ disabled: true, harness }), bankId: "" };
+  }
   // A globally disabled plugin stops HERE, before bank derivation: `disabled` exists to be a
   // zero-overhead baseline — the same agent with no memory — not merely a silent one. Callers
   // return early on `cfg.disabled`, so the empty bank id never reaches a request.

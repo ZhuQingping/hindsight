@@ -74,8 +74,9 @@ def test_main_bootstraps_tracing_for_the_worker_process(monkeypatch):
     assert bootstrap_calls == [{"default_service_name": "agentstratum-worker"}]
 
 
+@pytest.mark.parametrize("name", ["agentstratum", "contextdb"])
 def test_main_warns_on_retired_flags_and_keeps_env_config(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], name: str
 ) -> None:
     """--max-retries/--log-level never took effect; they still parse but only warn."""
     import dataclasses
@@ -85,6 +86,7 @@ def test_main_warns_on_retired_flags_and_keeps_env_config(
     from hindsight_api.config import _get_raw_config
     from hindsight_api.worker import main as worker_main
 
+    monkeypatch.setenv("contextdb_name", name)
     config = dataclasses.replace(_get_raw_config(), worker_id="test-worker", worker_max_retries=7)
     monkeypatch.setattr(config, "configure_logging", lambda: None)
     monkeypatch.setattr(worker_main, "get_config", lambda: config)
@@ -98,7 +100,7 @@ def test_main_warns_on_retired_flags_and_keeps_env_config(
     out = capsys.readouterr()
     assert "--max-retries 2 is ignored: set AGENTSTRATUM_API_WORKER_MAX_RETRIES instead." in out.err
     assert "--log-level debug is ignored: set AGENTSTRATUM_API_LOG_LEVEL instead." in out.err
-    assert "Starting agentstratum Worker: test-worker" in out.out
+    assert f"Starting {name} Worker: test-worker" in out.out
     assert "hindsight" not in (out.out + out.err).lower()
     assert "Max retries: 7" in out.out
     assert config.worker_max_retries == 7

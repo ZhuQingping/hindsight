@@ -256,7 +256,7 @@ function preserveMcpEntry(
   harness: HookHarnessName | "cline-cli",
   extraArgs: string[] = []
 ): unknown {
-  if (existing && !isOurMcpEntry(existing)) {
+  if (existing !== undefined && !isOurMcpEntry(existing)) {
     c.log?.(
       harness + ": preserved the existing agentstratum MCP registration managed outside this plugin"
     );
@@ -574,6 +574,40 @@ const kilo: HarnessInstaller = {
   },
 };
 
+/** User-scoped Claude MCP lives at the top level of .claude.json, not project entries. */
+function jsonMcpRegistration(path: string): { readable: boolean; entry: unknown } {
+  try {
+    const config: unknown = JSON.parse(readFileSync(path, "utf8"));
+    if (!config || typeof config !== "object" || Array.isArray(config))
+      return { readable: false, entry: undefined };
+    const servers = (config as Record<string, unknown>).mcpServers;
+    if (servers === undefined) return { readable: true, entry: undefined };
+    if (!servers || typeof servers !== "object" || Array.isArray(servers))
+      return { readable: false, entry: undefined };
+    return { readable: true, entry: (servers as Record<string, unknown>).agentstratum };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      return { readable: true, entry: undefined };
+    return { readable: false, entry: undefined };
+  }
+}
+
+function claudeMcpRegistration(c: InstallCtx): { readable: boolean; entry: unknown } {
+  return jsonMcpRegistration(join(process.env.CLAUDE_CONFIG_DIR || c.home, ".claude.json"));
+}
+
+function codexMcpRegistration(toml: string): { readable: boolean; entry: unknown } {
+  try {
+    const servers = parseToml(toml).mcp_servers;
+    if (servers === undefined) return { readable: true, entry: undefined };
+    if (!servers || typeof servers !== "object" || Array.isArray(servers))
+      return { readable: false, entry: undefined };
+    return { readable: true, entry: (servers as Record<string, unknown>).agentstratum };
+  } catch {
+    return { readable: false, entry: undefined };
+  }
+}
+
 const claudeCode: HarnessInstaller = {
   name: "claude-code",
   detect: (c) => onPath("claude") || existsSync(join(c.home, ".claude")),
@@ -588,13 +622,16 @@ const claudeCode: HarnessInstaller = {
     // codex via the ~/.agents/skills standard).
     installSkill(c, "claude-code");
     const mcp = c.claudeMcp ?? defaultClaudeMcp;
-    // `claude mcp add` REFUSES when the name is taken ("MCP server agentstratum already exists in
-    // user config") — so on a machine that already had agentstratum, a re-install could never
-    // repoint the server. After the package moved, the stale registration survived and Claude
-    // Code reported "Failed to connect — Connection closed" with the agentstratum_* tools dead.
-    // Remove first (a no-op when absent) so the add always lands, matching how every other host
-    // wiring is replaced rather than skipped.
-    mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
+    const existing = claudeMcpRegistration(c);
+    if (!existing.readable || (existing.entry !== undefined && !isOurMcpEntry(existing.entry))) {
+      c.log?.(
+        "claude-code: preserved the existing agentstratum MCP registration managed outside this plugin (or unreadable); register plugin tools under a distinct name if needed"
+      );
+      return;
+    }
+    // Only a script owned by this package may be repointed; a remote URL with
+    // the same product name belongs to its administrator.
+    if (existing.entry !== undefined) mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
     if (
       mcp([
         "mcp",
@@ -628,9 +665,16 @@ const claudeCode: HarnessInstaller = {
       }
     }
     const mcp = c.claudeMcp ?? defaultClaudeMcp;
-    mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
+    const existing = claudeMcpRegistration(c);
+    if (existing.readable && isOurMcpEntry(existing.entry)) {
+      mcp(["mcp", "remove", "--scope", "user", "agentstratum"]);
+    } else if (!existing.readable || existing.entry !== undefined) {
+      c.log?.(
+        "claude-code: preserved the existing agentstratum MCP registration managed outside this plugin (or unreadable)"
+      );
+    }
     uninstallSkill(c, "claude-code");
-    c.log?.("claude-code: hooks + MCP registration + skill removed");
+    c.log?.("claude-code: owned hooks and skill removed; external MCP registrations preserved");
   },
 };
 
@@ -644,11 +688,11 @@ function defaultClaudeMcp(args: string[]): boolean {
 }
 
 /**
- * Our `[mcp_servers.agentstratum]` table (plus any sub-table of it): the header line through to the
+ * Text range for a script-ownership-verified `[mcp_servers.agentstratum]` table: the header through to the
  * next table header or EOF. Shared by install — which REPLACES the block — and uninstall.
  */
 const CODEX_MCP_BLOCK_RE =
-  /^\[mcp_servers\.agentstratum(?:\.[^\]]+)?\][^\n]*\n(?:(?!\[)[^\n]*\n?)*/gm;
+  /^\[mcp_servers\.(?:agentstratum|"agentstratum"|'agentstratum')(?:\.[^\]]+)?\][^\n]*\n(?:(?!\[)[^\n]*\n?)*/gm;
 
 /** Inline `env`, so CODEX_MCP_BLOCK_RE never has to straddle a `[mcp_servers.agentstratum.env]` table. */
 const codexMcpBlock = (dist: string) =>
@@ -672,7 +716,26 @@ const codex: HarnessInstaller = {
     // attributed every Codex write to claude-code could never be repaired by re-running install.
     const tomlPath = join(c.home, ".codex", "config.toml");
     const existing = existsSync(tomlPath) ? readFileSync(tomlPath, "utf8") : "";
-    const toml = existing.replace(CODEX_MCP_BLOCK_RE, "");
+    const registration = codexMcpRegistration(existing);
+    if (!registration.readable) {
+      c.log?.("codex: could not inspect config.toml; MCP configuration preserved");
+      installSkill(c, "codex");
+      return;
+    }
+    const owned = isOurMcpEntry(registration.entry);
+    const foreign = registration.entry !== undefined && !owned;
+    const toml = owned ? existing.replace(CODEX_MCP_BLOCK_RE, "") : existing;
+    if (owned && toml === existing) {
+      c.log?.(
+        "codex: could not isolate the owned MCP table; configuration preserved, update it manually"
+      );
+      installSkill(c, "codex");
+      return;
+    }
+    if (foreign)
+      c.log?.(
+        "codex: preserved the existing agentstratum MCP registration managed outside this plugin"
+      );
     const additions: string[] = [];
     // Codex ≥ 0.145 deprecates `codex_hooks` for `[features].hooks`; accept either as "already
     // enabled", write the modern name for new installs.
@@ -685,8 +748,10 @@ const codex: HarnessInstaller = {
         additions.push("[features]\nhooks = true");
       }
     }
-    additions.push(codexMcpBlock(c.dist));
-    const next = `${toml.replace(/\n*$/, "\n\n")}${additions.join("\n\n")}\n`;
+    if (!foreign) additions.push(codexMcpBlock(c.dist));
+    const next = additions.length
+      ? `${toml.replace(/\n*$/, "\n\n")}${additions.join("\n\n")}\n`
+      : toml;
     if (next !== existing) {
       if (existsSync(tomlPath) && !existsSync(`${tomlPath}.agentstratum-backup`)) {
         copyFileSync(tomlPath, `${tomlPath}.agentstratum-backup`);
@@ -710,8 +775,16 @@ const codex: HarnessInstaller = {
     const tomlPath = join(c.home, ".codex", "config.toml");
     if (existsSync(tomlPath)) {
       const toml = readFileSync(tomlPath, "utf8");
-      const cleaned = toml.replace(CODEX_MCP_BLOCK_RE, "");
-      if (cleaned !== toml) writeFileSync(tomlPath, cleaned);
+      const registration = codexMcpRegistration(toml);
+      if (registration.readable && isOurMcpEntry(registration.entry)) {
+        const cleaned = toml.replace(CODEX_MCP_BLOCK_RE, "");
+        if (cleaned !== toml) writeFileSync(tomlPath, cleaned);
+        else c.log?.("codex: could not isolate the owned MCP table; configuration preserved");
+      } else if (!registration.readable || registration.entry !== undefined) {
+        c.log?.(
+          "codex: preserved the existing agentstratum MCP registration managed outside this plugin (or unreadable)"
+        );
+      }
     }
     c.log?.(
       "codex: hooks + MCP section + skill removed ([features] hooks flag left as-is — other hooks may use it)"
@@ -1694,6 +1767,13 @@ const qwen: HarnessInstaller = {
   detect: (c) => onPath("qwen") || existsSync(join(c.home, ".qwen")),
   install(c) {
     const path = join(c.home, ".qwen", "settings.json");
+    const existing = jsonMcpRegistration(path);
+    if (!existing.readable) {
+      c.log?.(
+        "qwen-code: unreadable MCP configuration preserved; fix settings.json before installing"
+      );
+      return false;
+    }
     const settings = readJson(path);
     settings.hooks = settings.hooks ?? {};
     // Qwen's settings.json hook shape is Claude Code's, so the shared nested writer applies —
@@ -1703,9 +1783,14 @@ const qwen: HarnessInstaller = {
     c.log?.(`qwen-code: hooks merged into ${path}`);
     installSkill(c, "qwen-code");
     const mcp = c.qwenMcp ?? defaultQwenMcp;
-    // Same rationale as claude-code: `qwen mcp add` refuses a name that already exists, so a
-    // re-install could never repoint a stale server. Remove first (a no-op when absent).
-    mcp(["mcp", "remove", "agentstratum"]);
+    if (existing.entry !== undefined && !isOurMcpEntry(existing.entry)) {
+      c.log?.(
+        "qwen-code: preserved the existing agentstratum MCP registration managed outside this plugin"
+      );
+      return;
+    }
+    // Inspect and remove in the same user scope; a project entry belongs to its administrator.
+    if (existing.entry !== undefined) mcp(["mcp", "remove", "-s", "user", "agentstratum"]);
     if (
       mcp([
         "mcp",
@@ -1729,6 +1814,11 @@ const qwen: HarnessInstaller = {
   },
   uninstall(c) {
     const path = join(c.home, ".qwen", "settings.json");
+    const existing = jsonMcpRegistration(path);
+    if (!existing.readable) {
+      c.log?.("qwen-code: unreadable MCP configuration preserved");
+      return false;
+    }
     if (existsSync(path)) {
       const settings = readJson(path);
       if (settings.hooks) {
@@ -1738,7 +1828,7 @@ const qwen: HarnessInstaller = {
       }
     }
     const mcp = c.qwenMcp ?? defaultQwenMcp;
-    mcp(["mcp", "remove", "agentstratum"]);
+    if (isOurMcpEntry(existing.entry)) mcp(["mcp", "remove", "-s", "user", "agentstratum"]);
     uninstallSkill(c, "qwen-code");
     c.log?.("qwen-code: hooks + MCP registration + skill removed");
   },
@@ -1798,7 +1888,7 @@ const factoryDroid: HarnessInstaller = {
     const mcpPath = join(c.home, ".factory", "mcp.json");
     const mcp = readJson(mcpPath);
     mcp.mcpServers = mcp.mcpServers ?? {};
-    mcp.mcpServers.agentstratum = mcpServerEntry(c.dist, "factory-droid");
+    mcp.mcpServers.agentstratum = preserveMcpEntry(c, mcp.mcpServers.agentstratum, "factory-droid");
     writeJson(mcpPath, mcp);
     c.log?.(`factory-droid: MCP server registered in ${mcpPath}`);
   },
@@ -2174,7 +2264,7 @@ const genieInstaller = (
     const mcpPath = paths.find((p) => existsSync(p)) ?? paths[0];
     const mcp = readJson(mcpPath);
     mcp.mcpServers = mcp.mcpServers ?? {};
-    mcp.mcpServers.agentstratum = mcpServerEntry(c.dist, name);
+    mcp.mcpServers.agentstratum = preserveMcpEntry(c, mcp.mcpServers.agentstratum, name);
     writeJson(mcpPath, mcp);
     c.log?.(`${name}: MCP server registered in ${mcpPath}`);
 

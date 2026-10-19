@@ -1,10 +1,10 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "agentstratum API",
-    "description": "HTTP API for agentstratum",
+    "title": "ContextBase HTTP API",
+    "description": "HTTP API for ContextBase, a data foundation for agents",
     "contact": {
-      "name": "Memory System"
+      "name": "ContextBase"
     },
     "license": {
       "name": "Apache 2.0",
@@ -13,6 +13,48 @@
     "version": "0.10.3"
   },
   "paths": {
+    "/product-config": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Product Config",
+        "operationId": "get_product_config_product_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product-config/v2": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Display Config",
+        "operationId": "get_display_config_product_config_v2_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisplayConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -11367,6 +11409,36 @@
         "title": "DirectiveResponse",
         "description": "Response model for a directive."
       },
+      "DisplayConfig": {
+        "properties": {
+          "product_config_version": {
+            "type": "integer",
+            "const": 2,
+            "title": "Product Config Version",
+            "default": 2
+          },
+          "contextdb_name": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[a-z][a-z0-9-]{0,39}$",
+            "title": "Contextdb Name"
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9 ._-]{0,78}[A-Za-z0-9])?$",
+            "title": "Display Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "contextdb_name",
+          "display_name"
+        ],
+        "title": "DisplayConfig",
+        "description": "Versioned display contract; the slug retains its original validation."
+      },
       "DispositionTraits": {
         "properties": {
           "skepticism": {
@@ -16714,6 +16786,27 @@
           ],
           "total": 150
         }
+      },
+      "ProductConfig": {
+        "properties": {
+          "product_config_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Product Config Version",
+            "default": 1
+          },
+          "contextdb_name": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[a-z][a-z0-9-]{0,39}$",
+            "title": "Contextdb Name",
+            "default": "agentstratum"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProductConfig",
+        "description": "Unchanged v1 wire contract for existing strict clients."
       },
       "PromptBlockModel": {
         "properties": {

@@ -1,7 +1,7 @@
 /*
-Hindsight HTTP API
+ContextBase HTTP API
 
-HTTP API for Hindsight
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -951,7 +951,7 @@ func (r ApiGetBankConfigRequest) Execute() (*BankConfigResponse, *http.Response,
 /*
 GetBankConfig Get bank configuration
 
-Get fully resolved configuration for a bank including all hierarchical overrides (global → tenant → bank). The 'config' field contains all resolved config values. The 'overrides' field shows only bank-specific overrides. Always available: HINDSIGHT_API_ENABLE_BANK_CONFIG_API gates only the write operations on this resource.
+Get fully resolved configuration for a bank including all hierarchical overrides (global → tenant → bank). The 'config' field contains all resolved config values. The 'overrides' field shows only bank-specific overrides. Always available: the server bank configuration setting gates only writes on this resource.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param bankId
@@ -2137,7 +2137,7 @@ func (r ApiTestBankLlmRequest) Execute() (*BankLlmHealthResponse, *http.Response
 /*
 TestBankLlm Test the bank's LLM connectivity
 
-Probe the LLMs this bank would use for retain / consolidation / reflect with one minimal call each (configs shared across operations are probed once), so you can discover 'not configured / unreachable' instead of a silent stall. Deliberate action (makes a real provider call); not for polling. Returns status only — never the provider, model, endpoint, API key, or raw error. Disable with HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=false.
+Probe the LLMs this bank would use for retain / consolidation / reflect with one minimal call each (configs shared across operations are probed once), so you can discover 'not configured / unreachable' instead of a silent stall. Deliberate action (makes a real provider call); not for polling. Returns status only — never the provider, model, endpoint, API key, or raw error. Disable with the server bank LLM health setting.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param bankId
@@ -2528,7 +2528,7 @@ func (r ApiUpdateBankConfigRequest) Execute() (*BankConfigResponse, *http.Respon
 /*
 UpdateBankConfig Update bank configuration
 
-Update configuration overrides for a bank. Only hierarchical behavioral settings can be overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format (retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE).
+Update configuration overrides for a bank. Only hierarchical behavioral settings can be overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param bankId

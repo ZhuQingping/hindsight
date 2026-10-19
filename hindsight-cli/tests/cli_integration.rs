@@ -2,47 +2,19 @@
 //!
 //! These tests require a running hindsight API server.
 //! Set AGENTSTRATUM_API_URL environment variable to point to the server.
-//! Tests will be skipped if the server is not available.
+//! Run `cargo test --test cli_integration -- --ignored --test-threads=1` inside that fixture.
+//! Ordinary unit runs report these as ignored; an explicit run fails if its fixture is missing.
 
 use std::env;
 use std::process::Command;
 
-/// Check if the API server is available
-fn server_available() -> bool {
-    let api_url =
-        env::var("AGENTSTRATUM_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
-    let health_url = format!("{}/health", api_url);
-
-    match reqwest::blocking::get(&health_url) {
-        Ok(resp) => resp.status().is_success(),
-        Err(_) => false,
-    }
-}
-
-/// Helper macro to skip tests when server is not available
-macro_rules! skip_if_no_server {
-    () => {
-        if !server_available() {
-            eprintln!("Skipping test: API server not available");
-            return;
-        }
-    };
-}
-
-/// Get the path to the hindsight binary
-fn hindsight_binary() -> String {
-    env::var("CARGO_BIN_EXE_agentstratum").unwrap_or_else(|_| {
-        // Try common locations
-        let target_debug = "./target/debug/agentstratum";
-        let target_release = "./target/release/agentstratum";
-        if std::path::Path::new(target_debug).exists() {
-            target_debug.to_string()
-        } else if std::path::Path::new(target_release).exists() {
-            target_release.to_string()
-        } else {
-            "agentstratum".to_string()
-        }
-    })
+/// Live tests require an explicitly selected fixture; never probe a developer service.
+fn require_server() {
+    let api_url = env::var("AGENTSTRATUM_API_URL")
+        .expect("set AGENTSTRATUM_API_URL to an isolated native API fixture");
+    let response = reqwest::blocking::get(format!("{}/health", api_url))
+        .expect("the explicitly configured API fixture must be reachable");
+    assert!(response.status().is_success(), "API fixture health failed");
 }
 
 /// Test bank ID for integration tests - each test needs a unique bank ID
@@ -53,10 +25,9 @@ fn test_bank_id(test_name: &str) -> String {
 
 /// Run a hindsight CLI command
 fn run_hindsight(args: &[&str]) -> std::process::Output {
-    let api_url =
-        env::var("AGENTSTRATUM_API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+    let api_url = env::var("AGENTSTRATUM_API_URL").expect("isolated API fixture is required");
 
-    Command::new(hindsight_binary())
+    Command::new(env!("CARGO_BIN_EXE_agentstratum"))
         .env("AGENTSTRATUM_API_URL", &api_url)
         .args(args)
         .output()
@@ -64,8 +35,9 @@ fn run_hindsight(args: &[&str]) -> std::process::Output {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_health_check() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["health"]);
 
@@ -86,8 +58,9 @@ fn test_health_check() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_health_check_json_output() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["health", "-o", "json"]);
 
@@ -106,8 +79,9 @@ fn test_health_check_json_output() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_list() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["bank", "list"]);
 
@@ -124,8 +98,9 @@ fn test_bank_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_list_json_output() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["bank", "list", "-o", "json"]);
 
@@ -138,8 +113,9 @@ fn test_bank_list_json_output() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_create_and_delete() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("create-delete");
 
@@ -185,8 +161,9 @@ fn test_bank_create_and_delete() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_memory_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("memory-list");
 
@@ -212,8 +189,9 @@ fn test_memory_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-list");
 
@@ -239,8 +217,9 @@ fn test_mental_model_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_create_and_delete() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-create");
 
@@ -297,8 +276,9 @@ fn test_mental_model_create_and_delete() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_tag_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("tag-list");
 
@@ -324,8 +304,9 @@ fn test_tag_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_entity_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("entity-list");
 
@@ -351,8 +332,9 @@ fn test_entity_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_operation_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("op-list");
 
@@ -378,8 +360,9 @@ fn test_operation_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_stats() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("bank-stats");
 
@@ -405,8 +388,9 @@ fn test_bank_stats() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_graph() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("bank-graph");
 
@@ -432,8 +416,9 @@ fn test_bank_graph() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_update() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("bank-update");
 
@@ -471,8 +456,9 @@ fn test_bank_update() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_json_yaml_output_formats() {
-    skip_if_no_server!();
+    require_server();
 
     // Test JSON output for bank list
     let output = run_hindsight(&["bank", "list", "-o", "json"]);
@@ -496,8 +482,9 @@ fn test_json_yaml_output_formats() {
 // ============================================================================
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_directive_list() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("dir-list");
 
@@ -523,8 +510,9 @@ fn test_directive_list() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_directive_create_get_update_delete() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("dir-crud");
 
@@ -637,8 +625,9 @@ fn test_directive_create_get_update_delete() {
 // ============================================================================
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_get() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-get");
 
@@ -691,8 +680,9 @@ fn test_mental_model_get() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_update() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-update");
 
@@ -763,8 +753,9 @@ fn test_mental_model_update() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_update_trigger_settings() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-trigger-mode");
 
@@ -920,6 +911,13 @@ fn test_mental_model_update_trigger_settings() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(stored_trigger()["refresh_cron"].is_null());
+    let output = update(&["--trigger-tags-match", ""]);
+    assert!(output.status.success(), "clearing tags_match must succeed");
+    let trigger = stored_trigger();
+    assert!(trigger["tags_match"].is_null());
+    assert!(trigger["refresh_cron"].is_null());
+    assert_eq!(trigger["keep_trace"], true);
+    assert_eq!(trigger["mode"], "full");
 
     // Unknown modes must fail loudly.
     let output = update(&["--trigger-mode", "incremental"]);
@@ -943,8 +941,9 @@ fn test_mental_model_update_trigger_settings() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_mental_model_refresh() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("mm-refresh");
 
@@ -1001,8 +1000,9 @@ fn test_mental_model_refresh() {
 // ============================================================================
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_consolidate() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("bank-consolidate");
 
@@ -1028,8 +1028,9 @@ fn test_bank_consolidate() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_bank_clear_observations() {
-    skip_if_no_server!();
+    require_server();
 
     let bank_id = test_bank_id("bank-clear-obs");
 
@@ -1059,8 +1060,9 @@ fn test_bank_clear_observations() {
 // ============================================================================
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_version() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["version"]);
 
@@ -1077,8 +1079,9 @@ fn test_version() {
 }
 
 #[test]
+#[ignore = "requires an explicit isolated API fixture; run with --ignored"]
 fn test_version_json() {
-    skip_if_no_server!();
+    require_server();
 
     let output = run_hindsight(&["version", "-o", "json"]);
 

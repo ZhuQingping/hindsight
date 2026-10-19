@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from hindsight_api import MemoryEngine
 from hindsight_api import __version__ as HINDSIGHT_VERSION
 from hindsight_api.api.passthrough_headers import collect_passthrough_headers
-from hindsight_api.brand import MCP_SERVER_NAME
+from hindsight_api.brand import mcp_server_name
 from hindsight_api.config import (
     DEFAULT_MCP_RECALL_DESCRIPTION,
     DEFAULT_MCP_RETAIN_DESCRIPTION,
@@ -124,7 +124,7 @@ def create_mcp_server(memory: MemoryEngine, multi_bank: bool = True) -> FastMCP:
     Returns:
         Configured FastMCP server instance
     """
-    mcp = FastMCP(MCP_SERVER_NAME, version=HINDSIGHT_VERSION)
+    mcp = FastMCP(mcp_server_name(), version=HINDSIGHT_VERSION)
 
     global_config = _get_raw_config()
 

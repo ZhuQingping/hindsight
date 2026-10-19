@@ -2,17 +2,9 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agentstratum",
   "version": "1.0.0",
-  "description": "Long-term memory for AI agents. Recalls relevant past context before you answer and retains durable facts as you work, backed by agentstratum's retain/recall/reflect memory engine.",
+  "description": "ContextBase long-term memory for AI agents with retain, recall and reflect.",
   "license": "MIT",
-  "keywords": [
-    "memory",
-    "long-term-memory",
-    "recall",
-    "retain",
-    "reflect",
-    "mcp",
-    "agent-memory"
-  ],
+  "keywords": ["memory", "long-term-memory", "recall", "retain", "reflect", "mcp", "agent-memory"],
   "extensions": {
     "agentstratum.memory": {
       "bankSelection": "Set AGENTSTRATUM_BANK_ID; the bank is sent as X-Bank-Id.",

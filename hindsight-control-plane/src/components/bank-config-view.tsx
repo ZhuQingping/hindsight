@@ -843,8 +843,34 @@ export function BankConfigView() {
   return (
     <>
       <div className="space-y-8">
+        <nav
+          aria-label={t("sectionNavigation")}
+          className="flex flex-wrap gap-2 rounded-lg border border-border bg-card p-3"
+        >
+          {(
+            [
+              ["retain", "retainTitle"],
+              ["observations", "observationsTitle"],
+              ["reflect", "reflectTitle"],
+              ["knowledge", "mentalModelsTitle"],
+              ["clients", "clientsTitle"],
+              ["security", "securityPrivacyTitle"],
+              ["recall", "recallTitle"],
+              ["models", "modelsTitle"],
+            ] as const
+          ).map(([id, label]) => (
+            <a
+              key={id}
+              href={`#bank-config-${id}`}
+              className="rounded-md bg-muted px-3 py-1.5 text-xs text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              {t(label)}
+            </a>
+          ))}
+        </nav>
         {/* Retain + Strategies Section */}
         <ConfigSection
+          id="bank-config-retain"
           title={t("retainTitle")}
           description={t("retainSectionDescription")}
           error={retainError}
@@ -900,6 +926,7 @@ export function BankConfigView() {
 
         {/* Observations Section */}
         <ConfigSection
+          id="bank-config-observations"
           title={t("observationsTitle")}
           description={t("observationsDescription")}
           error={observationsError}
@@ -981,6 +1008,7 @@ export function BankConfigView() {
 
         {/* Reflect Section */}
         <ConfigSection
+          id="bank-config-reflect"
           title={t("reflectTitle")}
           description={t("reflectDescription")}
           error={reflectError}
@@ -1150,6 +1178,7 @@ export function BankConfigView() {
 
         {/* Mental Models & Knowledge Pages Section */}
         <ConfigSection
+          id="bank-config-knowledge"
           title={t("mentalModelsTitle")}
           description={t("mentalModelsDescription")}
           error={mentalModelsError}
@@ -1245,6 +1274,7 @@ export function BankConfigView() {
 
         {/* MCP Tools Section */}
         <ConfigSection
+          id="bank-config-clients"
           title={t("clientsTitle")}
           description={t("clientsDescription")}
           error={mcpError}
@@ -1278,6 +1308,7 @@ export function BankConfigView() {
 
         {/* Security & Privacy Section — audit logging + document-text storage */}
         <ConfigSection
+          id="bank-config-security"
           title={t("securityPrivacyTitle")}
           description={t("securityPrivacyDescription")}
           error={securityPrivacyError}
@@ -1351,6 +1382,7 @@ export function BankConfigView() {
 
         {/* Recall Section — per-bank retrieval pipeline stages */}
         <ConfigSection
+          id="bank-config-recall"
           title={t("recallTitle")}
           description={t("recallDescription")}
           error={recallError}
@@ -1392,6 +1424,7 @@ export function BankConfigView() {
 
         {/* Models Section */}
         <ConfigSection
+          id="bank-config-models"
           title={t("modelsTitle")}
           description={t("modelsDescription")}
           error={geminiError}
@@ -1875,6 +1908,7 @@ function ToolSelector({
 // ─── ConfigSection ────────────────────────────────────────────────────────────
 
 function ConfigSection({
+  id,
   title,
   description,
   children,
@@ -1884,6 +1918,7 @@ function ConfigSection({
   onSave,
   action,
 }: {
+  id?: string;
   title: string;
   description: string;
   children: ReactNode;
@@ -1897,7 +1932,7 @@ function ConfigSection({
 }) {
   const t = useTranslations("bankConfig");
   return (
-    <section className="space-y-3">
+    <section id={id} className="scroll-mt-6 space-y-3">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>

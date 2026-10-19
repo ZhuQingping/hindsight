@@ -8,6 +8,8 @@ export default defineConfig({
     },
   },
   test: {
+    // Transform next-intl's extensionless next/server import for real middleware tests.
+    server: { deps: { inline: ["next-intl"] } },
     globals: true,
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],

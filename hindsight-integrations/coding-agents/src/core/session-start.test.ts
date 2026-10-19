@@ -90,7 +90,7 @@ describe("buildSessionStartContext", () => {
     expect(out.additionalContext).toContain("deliberately NOT listed here");
     expect(out.additionalContext).not.toContain("agent_knowledge_list_pages");
     // The banner must NOT be duplicated into model context. (The tool guide legitimately
-    // contains a "🧠 From agentstratum memory" attribution example, so match on banner text.)
+    // contains a "🧠 From ContextBase memory" attribution example, so match on banner text.)
     expect(out.additionalContext).not.toContain("memory bank");
     expect(out.additionalContext).not.toContain("is learning this repo");
     expect(out.deferInitialReflect).toBe(true);

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+# Generated from brand/templates/install-cli.sh.in; run scripts/generate-brand.mjs.
 # Install a pinned standalone CLI from the configured public OBS/CDN download root.
 set -euo pipefail
 
-fail() { printf 'agentstratum installer: %s\n' "$*" >&2; exit 1; }
+fail() { printf 'ContextBase installer: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<'USAGE'
 Usage: bash install-agentstratum.sh --base-url <HTTPS download root> --version <version> [--bin-dir <directory>]
@@ -78,5 +79,5 @@ cp "$work_dir/agentstratum" "$staged_binary"
 chmod 755 "$staged_binary"
 mv -f -- "$staged_binary" "$bin_dir/agentstratum"
 staged_binary=''
-printf 'Installed agentstratum %s to %s/agentstratum\n' "$version" "$bin_dir"
+printf 'Installed ContextBase (agentstratum) %s to %s/agentstratum\n' "$version" "$bin_dir"
 printf 'Add this directory to PATH, then configure your API Endpoint and credential using a Profile.\n'
