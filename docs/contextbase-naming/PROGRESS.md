@@ -29,3 +29,15 @@
 - lint-03：全仓lint/额外lint、blocking knip（files/dependencies）、advisory扫描、lint后立即完整brand-check零漂移、identity破坏反例及19目标round-trip全部PASS。独立R10已关闭；另按审查建议补跑CI一致的unlisted knip待执行。
 - extra-static-01用了错误的统一root Ruff配置，报告既有包的import分组差异；extra-static-02使用各包原生配置检查同一组改动文件PASS，无改动既有import规则。原失败记录保留。
 - 准备冻结源码提交：所有重型lint/test均通过唯一runner运行，提交禁用自动hook仅避免在runner外重复启动重型任务；不跳过必需检查。后续仍需N05/N06/N09及独立证据终审，当前不是完整交付。
+
+- N05完整演练完成：drill-03实际构建/API/SDK/CLI/插件/UI，drill-03-resume-b完成实际Atlas Grove页面、两类stdio客户端、ContextBase恢复与接口再生成；5132文件对冻结source-checkpoint复核，fixture与原workspace均零漂移。手工生产组件/manifest/安装脚本改动清单为空，手工只改brand/definition.json。前序3次fixture构建/探针失败及resume的MCP宿主标识遗漏均保留。
+- final-01：CI一致knip files/dependencies/unlisted PASS；现源码SDK再次生成0漂移；完整brand-check/Rust fmt PASS；新三插件包和实际HTTPS8项/11subtests PASS；冻结源码production standalone再次构建PASS。
+- N05正式记录见SECOND-RENAME-DRILL.md。release-01正在生成当前Linux默认release profile及许可证；随后进行同制品双展示名的API/MCP/浏览器/实际客户端验收。
+
+- release-01：工具链版本/可执行hash和实际API/SDK import来源已记录；cargo-about0.9.1、当前许可证生成、Linux默认release build、9项release进程测试PASS。
+- runtime-01：CLI live25及真实release ELF的HTTPS安装/重装PASS；随后harness解压包CRC检查引用了错误局部变量content_zip而NameError，已修复验证脚本。该轮FAIL/cleanup保留，无产品源码修改；重新执行完整native回归。
+
+- runtime-02：四类客户端已实际连接原生API、CLI live25及release HTTPS安装/重装PASS；Chromium因任务TMPDIR过长超过Unix socket路径限制而退出。已按交接namespace经验，将仅该Chrome进程的/tmp绑定到本次OUT/chrome-tmp，真实文件仍集中runs；不改系统TMPDIR或资源锁。FAIL及PG/子进程cleanup记录保留。
+- runtime-03最终PASS：23组native/browser/client、7个SDK故事，CLI live25、真实release HTTPS安装/重装、同UI制品两名称、旧页签下载409零转发/保存/重试、所有本轮子进程与PG清理，数据保留。
+- 四类候选stage-01 PASS（12文件、许可证、ZIP/gzip/校验和）；独立终审重算5132源码、825UI、12候选hash零漂移，无未关闭源码Must fix。仅交付docs提交与draft PR状态待补核。
+- 独立文字校准已落实：node:sqlite条件跳过；Python生成FILES清单改归generated，统计473生成/33适配工作流。

@@ -10,7 +10,7 @@
 | v2 /product-config/v2 | version=2 + contextdb_name + display_name | 新增独立端点，不把未知字段塞给严格 v1 解析器 |
 | 运行配置 | product_display_name；contextdb_name | 显式 display 优先；只有旧 contextdb_name 时显示旧值；均未设时使用品牌默认值；空/非法值失败，不自动正规化 |
 | 新 UI + 旧 API | 旧 contextdb_name 模式访问 v1 | 显式 v2 展示模式要求 v2；缺失/格式不符失败关闭，无静默降级；新 API 的 v1 额外 X-Product-Display-Name 头使新 UI 的 legacy 模式也能发现 API-only 展示覆盖 |
-| 旧 UI + 新 API | 显式相同旧 contextdb_name 可兼容 | 新默认部署与旧 UI 默认不同则拒绝；同步配置/升级，不静默错连 |
+| 旧 UI + 新 API | 仅legacy-only的相同旧 contextdb_name 可兼容；独立展示需同步升级UI | 新默认部署与旧 UI 默认不同则拒绝；同步配置/升级，不静默错连 |
 | CLI bin / Rust crate | agentstratum / hindsight-cli | 原命令、Profile、旧脚本不破坏；help 显示 ContextBase |
 | Coding Agents package/bin | agentstratum-coding-agents；原 hook bins | tarball 正式身份暂保持；描述/安装标题显示 ContextBase |
 | Claude plugin ID / standard plugin ID | agentstratum-memory / agentstratum | 宿主安装记录、MCP 所有权保持；描述显示 ContextBase |
