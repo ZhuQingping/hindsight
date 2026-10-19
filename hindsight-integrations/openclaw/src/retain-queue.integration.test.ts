@@ -36,9 +36,9 @@ function makeApi(
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": {
+          "contextbase-openclaw": {
             config: {
-              hindsightApiUrl: "https://hindsight.test",
+              contextbaseApiUrl: "https://hindsight.test",
               retainQueuePath: queuePath,
               retainQueueFlushIntervalMs: flushIntervalMs,
               dynamicBankId: false,
@@ -215,7 +215,7 @@ function conversation(text: string, session: string) {
 }
 
 function makeQueuePath(): string {
-  const dir = mkdtempSync(join(tmpdir(), "hindsight-retain-integration-"));
+  const dir = mkdtempSync(join(tmpdir(), "contextbase-retain-integration-"));
   tempDirs.push(dir);
   return join(dir, "retains.jsonl");
 }
@@ -357,7 +357,7 @@ describe("session_end flushes the un-retained tail (#4341)", () => {
   // saw a payload with no `messages`, and the tail was dropped in silence. Only an
   // end-to-end retain proves the forced flush now reaches the server.
   function writeTranscript(sessionId: string, turns: Array<[string, string]>): string {
-    const dir = mkdtempSync(join(tmpdir(), "hindsight-session-end-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-session-end-"));
     tempDirs.push(dir);
     const file = join(dir, `${sessionId}.jsonl`);
     const lines: unknown[] = [
@@ -470,7 +470,7 @@ describe("session_end flushes the un-retained tail (#4341)", () => {
         sessionKey,
         messageCount: 2,
         reason: "shutdown",
-        sessionFile: join(tmpdir(), "hindsight-missing", "sess-2.jsonl"),
+        sessionFile: join(tmpdir(), "contextbase-missing", "sess-2.jsonl"),
         context: { sessionId: "sess-2", sessionKey, agentId: "main" },
       },
       ctx

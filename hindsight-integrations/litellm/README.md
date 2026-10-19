@@ -1,13 +1,15 @@
-# hindsight-litellm
+# contextbase-litellm
+
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
 Universal LLM memory integration via LiteLLM. Add persistent memory to any LLM application with just a few lines of code.
 
 ## Features
 
 - **Universal LLM Support** - Works with 100+ LLM providers via LiteLLM (OpenAI, Anthropic, Groq, Azure, AWS Bedrock, Google Vertex AI, and more)
-- **Simple Integration** - Just configure, set defaults, enable, and use `hindsight_litellm.completion()`
+- **Simple Integration** - Just configure, set defaults, enable, and use `contextbase_litellm.completion()`
 - **Automatic Memory Injection** - Relevant memories are injected into prompts before LLM calls
-- **Automatic Conversation Storage** - Conversations are stored to Hindsight for future recall (async by default for performance)
+- **Automatic Conversation Storage** - Conversations are stored to ContextBase for future recall (async by default for performance)
 - **Two Memory Modes** - Choose between `reflect` (synthesized context) or `recall` (raw memory retrieval)
 - **Direct Memory APIs** - Query, synthesize, and store memories manually
 - **Native Client Wrappers** - Alternative wrappers for OpenAI and Anthropic SDKs
@@ -17,38 +19,38 @@ Universal LLM memory integration via LiteLLM. Add persistent memory to any LLM a
 ## Installation
 
 ```bash
-pip install hindsight-litellm
+pip install contextbase-litellm
 ```
 
 ## Quick Start
 
 ```python
-import hindsight_litellm
+import contextbase_litellm
 
 # Step 1: Configure static settings
-hindsight_litellm.configure(
-    hindsight_api_url="http://localhost:8888",
+contextbase_litellm.configure(
+    contextbase_api_url="http://localhost:8888",
     verbose=True,
 )
 
 # Step 2: Set defaults (bank_id is required)
-hindsight_litellm.set_defaults(
+contextbase_litellm.set_defaults(
     bank_id="my-agent",
     use_reflect=True,  # Use reflect for synthesized context
 )
 
 # Step 3: Enable memory integration
-hindsight_litellm.enable()
+contextbase_litellm.enable()
 
-# Step 4: Use with explicit hindsight_query (required when inject_memories=True)
-response = hindsight_litellm.completion(
+# Step 4: Use with explicit contextbase_query (required when inject_memories=True)
+response = contextbase_litellm.completion(
     model="gpt-4o-mini",
     messages=[{"role": "user", "content": "What did we discuss about AI?"}],
-    hindsight_query="What do I know about AI discussions?",  # Required!
+    contextbase_query="What do I know about AI discussions?",  # Required!
 )
 ```
 
-**Important:** When `inject_memories=True` (default), you must provide `hindsight_query` to specify what to search for in memory. This ensures intentional, focused memory queries.
+**Important:** When `inject_memories=True` (default), you must provide `contextbase_query` to specify what to search for in memory. This ensures intentional, focused memory queries.
 
 ## How It Works
 
@@ -58,7 +60,7 @@ Here's what happens under the hood when you call `completion()`:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  1. YOUR CODE                                                               │
 │  ───────────────────────────────────────────────────────────────────────── │
-│  response = hindsight_litellm.completion(                                   │
+│  response = contextbase_litellm.completion(                                   │
 │      model="gpt-4o-mini",                                                   │
 │      messages=[{"role": "user", "content": "Help me with my Python project"}]│
 │  )                                                                          │
@@ -68,14 +70,14 @@ Here's what happens under the hood when you call `completion()`:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  2. MEMORY RETRIEVAL (before LLM call)                                      │
 │  ───────────────────────────────────────────────────────────────────────── │
-│  # hindsight_litellm queries Hindsight for relevant memories                │
+│  # contextbase_litellm queries ContextBase for relevant memories                │
 │                                                                             │
 │  # If use_reflect=False (default) - raw memories:                           │
-│  memories = hindsight.recall(query="Help me with my Python project")        │
+│  memories = contextbase.recall(query="Help me with my Python project")        │
 │  # Returns: ["User prefers pytest", "User is building a FastAPI app", ...]  │
 │                                                                             │
 │  # If use_reflect=True - synthesized context:                               │
-│  context = hindsight.reflect(query="Help me with my Python project")        │
+│  context = contextbase.reflect(query="Help me with my Python project")        │
 │  # Returns: "The user is an experienced Python developer working on..."     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
@@ -112,12 +114,12 @@ Here's what happens under the hood when you call `completion()`:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  5. CONVERSATION STORAGE (after LLM call)                                   │
 │  ───────────────────────────────────────────────────────────────────────── │
-│  # The conversation is stored to Hindsight for future recall                │
-│  hindsight.retain(                                                          │
+│  # The conversation is stored to ContextBase for future recall                │
+│  contextbase.retain(                                                          │
 │      content="User: Help me with my Python project\n"                       │
 │              "Assistant: Since you're working on FastAPI..."                │
 │  )                                                                          │
-│  # Hindsight extracts facts: "User asked about Python project help"         │
+│  # ContextBase extracts facts: "User asked about Python project help"         │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -140,65 +142,59 @@ The API is split into two functions for clarity:
 Settings that typically don't change during a session:
 
 ```python
-hindsight_litellm.configure(
+contextbase_litellm.configure(
     # Required
-    hindsight_api_url="http://localhost:8888",  # Hindsight API server URL
-
+    contextbase_api_url="http://localhost:8888",  # ContextBase API server URL
     # Optional - Authentication
-    api_key="your-api-key",        # API key for Hindsight authentication
-
+    api_key="your-api-key",  # API key for ContextBase authentication
     # Optional - Memory behavior
-    store_conversations=True,      # Store conversations after LLM calls
-    inject_memories=True,          # Inject relevant memories into prompts
-    sync_storage=False,            # False = async storage (default, better performance)
-                                   # True = sync storage (blocks, raises errors immediately)
-
+    store_conversations=True,  # Store conversations after LLM calls
+    inject_memories=True,  # Inject relevant memories into prompts
+    sync_storage=False,  # False = async storage (default, better performance)
+    # True = sync storage (blocks, raises errors immediately)
     # Optional - Advanced
     injection_mode="system_message",  # How to inject: "system_message" or "prepend_user"
-    excluded_models=["gpt-3.5*"],     # Exclude certain models from interception
-    verbose=True,                     # Enable verbose logging and debug info
+    excluded_models=["gpt-3.5*"],  # Exclude certain models from interception
+    verbose=True,  # Enable verbose logging and debug info
 )
 ```
 
 ### 2. `set_defaults()` - Per-Call Defaults
 
-Default values for per-call settings. These can be overridden on individual calls using `hindsight_*` kwargs:
+Default values for per-call settings. These can be overridden on individual calls using `contextbase_*` kwargs:
 
 ```python
-hindsight_litellm.set_defaults(
+contextbase_litellm.set_defaults(
     # Required
-    bank_id="my-agent",            # Memory bank ID
-
+    bank_id="my-agent",  # Memory bank ID
     # Optional - Memory retrieval
-    budget="mid",                  # Budget level: "low", "mid", "high"
+    budget="mid",  # Budget level: "low", "mid", "high"
     fact_types=["world", "observation"],  # Filter fact types to retrieve
-    max_memories=10,               # Maximum memories to inject (None = unlimited)
-    max_memory_tokens=4096,        # Maximum tokens for memory context
-    include_entities=True,         # Include entity observations in recall
-
+    max_memories=10,  # Maximum memories to inject (None = unlimited)
+    max_memory_tokens=4096,  # Maximum tokens for memory context
+    include_entities=True,  # Include entity observations in recall
     # Optional - Reflect mode
-    use_reflect=True,              # Use reflect API (synthesized) vs recall (raw memories)
-    reflect_include_facts=False,   # Include source facts in debug info
+    use_reflect=True,  # Use reflect API (synthesized) vs recall (raw memories)
+    reflect_include_facts=False,  # Include source facts in debug info
     reflect_context="I am a delivery agent finding recipients.",  # Context for reflect reasoning
-    reflect_response_schema={...}, # JSON Schema for structured reflect output
-
+    reflect_response_schema={...},  # JSON Schema for structured reflect output
     # Optional - Debugging
-    trace=False,                   # Enable trace info for debugging
+    trace=False,  # Enable trace info for debugging
     document_id="conversation-1",  # Document ID for grouping conversations
 )
 ```
 
 ### 3. Per-Call Overrides
 
-Override any default on individual calls using `hindsight_*` kwargs:
+Override any default on individual calls using `contextbase_*` kwargs:
 
 ```python
-response = hindsight_litellm.completion(
+response = contextbase_litellm.completion(
     model="gpt-4o-mini",
     messages=[...],
-    hindsight_query="Where is Alice located?",      # REQUIRED when inject_memories=True
-    hindsight_reflect_context="Currently on floor 3",  # Per-call reflect context override
-    # hindsight_bank_id="other-bank",               # Override bank_id for this call
+    contextbase_query="Where is Alice located?",  # REQUIRED when inject_memories=True
+    contextbase_reflect_context="Currently on floor 3",  # Per-call reflect context override
+    # contextbase_bank_id="other-bank",               # Override bank_id for this call
 )
 ```
 
@@ -207,7 +203,7 @@ response = hindsight_litellm.completion(
 Use `set_bank_mission()` to configure what the memory bank should learn and remember (used for mental models):
 
 ```python
-hindsight_litellm.set_bank_mission(
+contextbase_litellm.set_bank_mission(
     mission="""This agent routes customer support requests to the appropriate team.
     Remember which types of issues should go to which teams (billing, technical, sales).
     Track customer preferences for communication channels and past issue resolutions.""",
@@ -223,15 +219,15 @@ hindsight_litellm.set_bank_mission(
 
 ```python
 # Recall mode - raw memories
-hindsight_litellm.set_defaults(bank_id="my-agent", use_reflect=False)
+contextbase_litellm.set_defaults(bank_id="my-agent", use_reflect=False)
 # Injects: "1. [WORLD] User prefers Python\n2. [OPINION] User dislikes Java..."
 
 # Reflect mode - synthesized context
-hindsight_litellm.set_defaults(bank_id="my-agent", use_reflect=True)
+contextbase_litellm.set_defaults(bank_id="my-agent", use_reflect=True)
 # Injects: "Based on previous conversations, the user is a Python developer who..."
 
 # Reflect with context - shapes LLM reasoning (not retrieval)
-hindsight_litellm.set_defaults(
+contextbase_litellm.set_defaults(
     bank_id="my-agent",
     use_reflect=True,
     reflect_context="I am a delivery agent looking for package recipients.",
@@ -243,31 +239,31 @@ hindsight_litellm.set_defaults(
 Works with any LiteLLM-supported provider:
 
 ```python
-import hindsight_litellm
+import contextbase_litellm
 
-hindsight_litellm.configure(hindsight_api_url="http://localhost:8888")
-hindsight_litellm.set_defaults(bank_id="my-agent")
-hindsight_litellm.enable()
+contextbase_litellm.configure(contextbase_api_url="http://localhost:8888")
+contextbase_litellm.set_defaults(bank_id="my-agent")
+contextbase_litellm.enable()
 
 messages = [{"role": "user", "content": "Hello!"}]
 
 # OpenAI
-hindsight_litellm.completion(model="gpt-4o", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="gpt-4o", messages=messages, contextbase_query="greeting")
 
 # Anthropic
-hindsight_litellm.completion(model="claude-sonnet-4-20250514", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="claude-sonnet-4-20250514", messages=messages, contextbase_query="greeting")
 
 # Groq
-hindsight_litellm.completion(model="groq/llama-3.1-70b-versatile", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="groq/llama-3.1-70b-versatile", messages=messages, contextbase_query="greeting")
 
 # Azure OpenAI
-hindsight_litellm.completion(model="azure/gpt-4", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="azure/gpt-4", messages=messages, contextbase_query="greeting")
 
 # AWS Bedrock
-hindsight_litellm.completion(model="bedrock/anthropic.claude-3", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="bedrock/anthropic.claude-3", messages=messages, contextbase_query="greeting")
 
 # Google Vertex AI
-hindsight_litellm.completion(model="vertex_ai/gemini-pro", messages=messages, hindsight_query="greeting")
+contextbase_litellm.completion(model="vertex_ai/gemini-pro", messages=messages, contextbase_query="greeting")
 ```
 
 ## Direct Memory APIs
@@ -275,9 +271,9 @@ hindsight_litellm.completion(model="vertex_ai/gemini-pro", messages=messages, hi
 ### Recall - Query raw memories
 
 ```python
-from hindsight_litellm import configure, set_defaults, recall
+from contextbase_litellm import configure, set_defaults, recall
 
-configure(hindsight_api_url="http://localhost:8888")
+configure(contextbase_api_url="http://localhost:8888")
 set_defaults(bank_id="my-agent")
 
 # Query memories
@@ -293,9 +289,9 @@ for m in memories:
 ### Reflect - Get synthesized context
 
 ```python
-from hindsight_litellm import configure, set_defaults, reflect
+from contextbase_litellm import configure, set_defaults, reflect
 
-configure(hindsight_api_url="http://localhost:8888")
+configure(contextbase_api_url="http://localhost:8888")
 set_defaults(bank_id="my-agent")
 
 # Get synthesized memory context
@@ -315,9 +311,9 @@ result = reflect(
 ### Retain - Store memories
 
 ```python
-from hindsight_litellm import configure, set_defaults, retain, get_pending_retain_errors
+from contextbase_litellm import configure, set_defaults, retain, get_pending_retain_errors
 
-configure(hindsight_api_url="http://localhost:8888")
+configure(contextbase_api_url="http://localhost:8888")
 set_defaults(bank_id="my-agent")
 
 # Async retain (default) - fast, non-blocking
@@ -345,7 +341,7 @@ if errors:
 ### Async APIs
 
 ```python
-from hindsight_litellm import arecall, areflect, aretain
+from contextbase_litellm import arecall, areflect, aretain
 
 # Async versions of all memory APIs
 memories = await arecall("what do you know about me?")
@@ -361,18 +357,17 @@ Alternative to LiteLLM callbacks for direct SDK integration:
 
 ```python
 from openai import OpenAI
-from hindsight_litellm import wrap_openai
+from contextbase_litellm import wrap_openai
 
 client = OpenAI()
 wrapped = wrap_openai(
     client,
     bank_id="my-agent",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 
 response = wrapped.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "What do you know about me?"}]
+    model="gpt-4", messages=[{"role": "user", "content": "What do you know about me?"}]
 )
 ```
 
@@ -380,19 +375,17 @@ response = wrapped.chat.completions.create(
 
 ```python
 from anthropic import Anthropic
-from hindsight_litellm import wrap_anthropic
+from contextbase_litellm import wrap_anthropic
 
 client = Anthropic()
 wrapped = wrap_anthropic(
     client,
     bank_id="my-agent",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 
 response = wrapped.messages.create(
-    model="claude-sonnet-4-20250514",
-    max_tokens=1024,
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="claude-sonnet-4-20250514", max_tokens=1024, messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
@@ -401,23 +394,23 @@ response = wrapped.messages.create(
 When `verbose=True`, you can inspect exactly what memories are being injected:
 
 ```python
-from hindsight_litellm import configure, set_defaults, enable, completion, get_last_injection_debug
+from contextbase_litellm import configure, set_defaults, enable, completion, get_last_injection_debug
 
-configure(hindsight_api_url="http://localhost:8888", verbose=True)
+configure(contextbase_api_url="http://localhost:8888", verbose=True)
 set_defaults(bank_id="my-agent", use_reflect=True)
 enable()
 
 response = completion(
     model="gpt-4o-mini",
     messages=[{"role": "user", "content": "What's my favorite color?"}],
-    hindsight_query="What is the user's favorite color?",
+    contextbase_query="What is the user's favorite color?",
 )
 
 # Inspect what was injected
 debug = get_last_injection_debug()
 if debug:
-    print(f"Mode: {debug.mode}")           # "reflect" or "recall"
-    print(f"Injected: {debug.injected}")   # True/False
+    print(f"Mode: {debug.mode}")  # "reflect" or "recall"
+    print(f"Injected: {debug.injected}")  # True/False
     print(f"Results: {debug.results_count}")
     print(f"Memory context:\n{debug.memory_context}")
     if debug.error:
@@ -427,14 +420,14 @@ if debug:
 ## Context Manager
 
 ```python
-from hindsight_litellm import hindsight_memory
+from contextbase_litellm import contextbase_memory
 import litellm
 
-with hindsight_memory(bank_id="user-123"):
+with contextbase_memory(bank_id="user-123"):
     response = litellm.completion(
         model="gpt-4",
         messages=[{"role": "user", "content": "Hello!"}],
-        hindsight_query="greeting context",
+        contextbase_query="greeting context",
     )
 # Memory integration automatically disabled after context
 ```
@@ -442,7 +435,7 @@ with hindsight_memory(bank_id="user-123"):
 ## Disabling and Cleanup
 
 ```python
-from hindsight_litellm import disable, cleanup
+from contextbase_litellm import disable, cleanup
 
 # Temporarily disable memory integration
 disable()
@@ -457,7 +450,7 @@ cleanup()
 
 | Function | Description |
 |----------|-------------|
-| `configure(...)` | Configure static Hindsight settings (API URL, auth, storage options) |
+| `configure(...)` | Configure static ContextBase settings (API URL, auth, storage options) |
 | `set_defaults(...)` | Set defaults for per-call settings (bank_id, budget, reflect options) |
 | `enable()` | Enable memory integration with LiteLLM |
 | `disable()` | Disable memory integration |
@@ -470,7 +463,7 @@ cleanup()
 |----------|-------------|
 | `get_config()` | Get current static configuration |
 | `get_defaults()` | Get current per-call defaults |
-| `is_configured()` | Check if Hindsight is configured with a bank_id |
+| `is_configured()` | Check if ContextBase is configured with a bank_id |
 | `reset_config()` | Reset all configuration to defaults |
 | `set_document_id(id)` | Convenience function to update document_id |
 | `set_bank_mission(...)` | Set mission/instructions for a memory bank (for mental models) |
@@ -511,7 +504,7 @@ cleanup()
 
 - Python >= 3.10
 - litellm >= 1.83.0
-- A running Hindsight API server
+- A running ContextBase API server
 
 ## License
 

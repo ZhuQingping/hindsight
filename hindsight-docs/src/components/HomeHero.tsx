@@ -6,8 +6,8 @@ import MemoryConstellation from './MemoryConstellation';
 import {useGitHubStars} from './useGitHubStars';
 import styles from './HomeHero.module.css';
 
-const SIGNUP = 'https://ui.hindsight.vectorize.io/signup';
-const REPO = 'https://github.com/vectorize-io/hindsight';
+const SIGNUP = '/developer/installation';
+const REPO = 'https://github.com/RSIXDB/hindsight';
 
 /**
  * The first screen of hindsight.vectorize.io.
@@ -16,7 +16,7 @@ const REPO = 'https://github.com/vectorize-io/hindsight';
  * traffic page on the site opened on prose: no claim, no number, no call to
  * action.
  *
- * It says three things and nothing else: what Hindsight is, the two things you
+ * It says three things and nothing else: what ContextBase is, the two things you
  * can do now, and what it actually looks like. The benchmarks used to live here
  * too; they are a section of their own below, because a band carrying both
  * charts ran past 900px and stopped reading as a hero at all.
@@ -28,7 +28,7 @@ const REPO = 'https://github.com/vectorize-io/hindsight';
  *
  * The two paths are visually unequal on purpose: Cloud is the commercial
  * conversion and stays the one filled button; GitHub is social proof and sits
- * beside it as a ghost. They are also named apart — "Start free on Cloud" next
+ * beside it as a ghost. They are also named apart — "Get started" next
  * to "Start free with GitHub" made "GitHub" mean two different things.
  *
  * It lives in src/components rather than in the page body because the page is
@@ -84,7 +84,7 @@ export default function HomeHero(): ReactNode {
 
           <div className={styles.ctas}>
             <Link className={styles.primary} to={SIGNUP}>
-              Start free on Cloud
+              Get started
               <LuArrowRight size={16} />
             </Link>
             <Link className={styles.ghost} to={REPO}>
@@ -96,7 +96,7 @@ export default function HomeHero(): ReactNode {
           </div>
 
           <p className={styles.credit}>
-            $5 of free credit when you sign up with GitHub
+            Deploy ContextBase on your infrastructure.
           </p>
 
           <Link className={styles.paper} to="https://arxiv.org/abs/2512.12818">
@@ -105,7 +105,7 @@ export default function HomeHero(): ReactNode {
           </Link>
         </div>
 
-        {/* The band shows the product, not a chart. Hindsight is a server most
+        {/* The band shows the product, not a chart. ContextBase is a server most
             people meet through an API, so the one thing the hero can say that
             prose cannot is that there is a UI, and that a bank is a graph you
             can actually look at — so it is the control plane's own graph view

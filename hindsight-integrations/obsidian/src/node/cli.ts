@@ -1,5 +1,5 @@
 /**
- * Headless CLI frontend for vault → Hindsight ingestion.
+ * Headless CLI frontend for vault → ContextBase ingestion.
  *
  * It is a thin second frontend over the same {@link SyncEngine} the Obsidian
  * plugin uses, so a server-synced vault produces identical document ids, tags,
@@ -46,16 +46,16 @@ export interface CliOptions {
   identity: IndexIdentity;
 }
 
-const USAGE = `hindsight-obsidian-sync — ingest an Obsidian vault into Hindsight (headless).
+const USAGE = `contextbase-obsidian-sync — ingest an Obsidian vault into ContextBase (headless).
 
 Usage:
-  hindsight-obsidian-sync reconcile --vault <path> --bank <id> [options]
+  contextbase-obsidian-sync reconcile --vault <path> --bank <id> [options]
 
 Options:
   --vault <path>        Vault root directory (required)
-  --bank <id>           Target Hindsight bank id (required)
-  --api-url <url>       Hindsight API base URL (or env HINDSIGHT_API_URL)
-  --api-token <token>   API token (or env HINDSIGHT_API_TOKEN)
+  --bank <id>           Target ContextBase bank id (required)
+  --api-url <url>       ContextBase API base URL (or env CONTEXTBASE_API_URL)
+  --api-token <token>   API token (or env CONTEXTBASE_API_TOKEN)
   --include <folder>    Only sync this folder (repeatable; default: whole vault)
   --exclude <folder>    Skip this folder (repeatable)
   --vault-name <name>   Vault name for tags/ids (default: the vault dir name)
@@ -64,7 +64,7 @@ Options:
                         Observation consolidation: combined, shared, per_tag,
                         or all_combinations (default: server behavior)
   --index <file>        Sync-index JSON path (default: a per-target file under
-                        ~/.hindsight/obsidian/, scoped to bank + API + vault)
+                        ~/.contextbase/obsidian/, scoped to bank + API + vault)
   --watch               Keep running and sync changes as they happen
   --help                Show this help
 `;
@@ -114,8 +114,8 @@ export function parseCliArgs(argv: string[]): CliOptions {
 
   const vault = resolve(vaultRaw);
   const vaultName = values["vault-name"] || basename(vault);
-  const apiUrl = values["api-url"] || process.env.HINDSIGHT_API_URL || "";
-  if (!apiUrl) throw new UsageError("--api-url is required (or set HINDSIGHT_API_URL)");
+  const apiUrl = values["api-url"] || process.env.CONTEXTBASE_API_URL || "";
+  if (!apiUrl) throw new UsageError("--api-url is required (or set CONTEXTBASE_API_URL)");
   const observationScopes = parseObservationScopes(values["observation-scopes"]);
 
   const identity: IndexIdentity = {
@@ -130,7 +130,7 @@ export function parseCliArgs(argv: string[]): CliOptions {
     vault,
     bank: values.bank,
     apiUrl,
-    apiToken: values["api-token"] || process.env.HINDSIGHT_API_TOKEN || undefined,
+    apiToken: values["api-token"] || process.env.CONTEXTBASE_API_TOKEN || undefined,
     include: values.include ?? [],
     exclude: values.exclude ?? [],
     vaultName,
@@ -219,7 +219,7 @@ export async function watchVault(
   const toRel = (abs: string) => relative(opts.vault, abs).split(sep).join("/");
   const isMarkdown = (p: string) => p.toLowerCase().endsWith(".md");
   const report = (err: unknown) =>
-    console.error(`[hindsight] ${err instanceof Error ? err.message : String(err)}`);
+    console.error(`[contextbase] ${err instanceof Error ? err.message : String(err)}`);
 
   const watcher = watch(opts.vault, {
     ignoreInitial: true,
@@ -262,7 +262,7 @@ export async function runCli(
       log(err.message);
       return 0;
     }
-    logErr(err instanceof UsageError ? err.message : `hindsight-obsidian-sync: ${describe(err)}`);
+    logErr(err instanceof UsageError ? err.message : `contextbase-obsidian-sync: ${describe(err)}`);
     return 2;
   }
   try {
@@ -274,7 +274,7 @@ export async function runCli(
     log(formatSummary("reconcile", await engine.reconcile()));
     return 0;
   } catch (err) {
-    logErr(`hindsight-obsidian-sync: ${describe(err)}`);
+    logErr(`contextbase-obsidian-sync: ${describe(err)}`);
     return 1;
   }
 }

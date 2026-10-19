@@ -14,7 +14,7 @@ export const FactTypeSchema = z.enum(["world", "experience", "observation"]);
 export type FactType = z.infer<typeof FactTypeSchema>;
 
 /**
- * Recall result item from Hindsight
+ * Recall result item from ContextBase
  */
 export interface RecallResult {
   id: string;
@@ -50,7 +50,7 @@ export interface ChunkData {
 }
 
 /**
- * Recall response from Hindsight
+ * Recall response from ContextBase
  */
 export interface RecallResponse {
   results: RecallResult[];
@@ -72,7 +72,7 @@ export interface ReflectFact {
 }
 
 /**
- * Nested based_on structure from Hindsight reflect
+ * Nested based_on structure from ContextBase reflect
  */
 export interface ReflectBasedOn {
   memories?: ReflectFact[];
@@ -81,7 +81,7 @@ export interface ReflectBasedOn {
 }
 
 /**
- * Reflect response from Hindsight
+ * Reflect response from ContextBase
  */
 export interface ReflectResponse {
   text: string;
@@ -89,7 +89,7 @@ export interface ReflectResponse {
 }
 
 /**
- * Retain response from Hindsight
+ * Retain response from ContextBase
  */
 export interface RetainResponse {
   success: boolean;
@@ -106,7 +106,7 @@ export interface MentalModelTrigger {
 }
 
 /**
- * Mental model response from Hindsight
+ * Mental model response from ContextBase
  */
 export interface MentalModelResponse {
   id: string;
@@ -121,7 +121,7 @@ export interface MentalModelResponse {
 }
 
 /**
- * Document response from Hindsight
+ * Document response from ContextBase
  */
 export interface DocumentResponse {
   id: string;
@@ -135,7 +135,7 @@ export interface DocumentResponse {
 }
 
 /**
- * Hindsight client interface - matches @vectorize-io/hindsight-client
+ * ContextBase client interface - matches @vectorize-io/hindsight-client
  */
 export interface HindsightClient {
   retain(
@@ -182,8 +182,8 @@ export interface HindsightClient {
   getDocument(bankId: string, documentId: string): Promise<DocumentResponse | null>;
 }
 
-export interface HindsightToolsOptions {
-  /** Hindsight client instance */
+export interface ContextBaseToolsOptions {
+  /** ContextBase client instance */
   client: HindsightClient;
   /** Memory bank ID to use for all tool calls (e.g. the user ID) */
   bankId: string;
@@ -240,7 +240,7 @@ export interface HindsightToolsOptions {
 }
 
 /**
- * Creates AI SDK tools for Hindsight memory operations.
+ * Creates AI SDK tools for ContextBase memory operations.
  *
  * The bank ID and all infrastructure concerns (budget, tags, async mode, etc.)
  * are fixed at creation time. The agent only controls semantic inputs:
@@ -248,8 +248,8 @@ export interface HindsightToolsOptions {
  *
  * @example
  * ```ts
- * const tools = createHindsightTools({
- *   client: hindsightClient,
+ * const tools = createContextBaseTools({
+ *   client: contextbaseClient,
  *   bankId: userId,
  *   recall: { budget: 'high', includeEntities: true },
  *   retain: { async: true, tags: ['env:prod'] },
@@ -262,7 +262,7 @@ export interface HindsightToolsOptions {
  * });
  * ```
  */
-export function createHindsightTools({
+export function createContextBaseTools({
   client,
   bankId,
   retain: retainOpts = {},
@@ -270,7 +270,7 @@ export function createHindsightTools({
   reflect: reflectOpts = {},
   getMentalModel: getMentalModelOpts = {},
   getDocument: getDocumentOpts = {},
-}: HindsightToolsOptions) {
+}: ContextBaseToolsOptions) {
   // Agent-controlled params only: content, timestamp, documentId, context
   const retainParams = z.object({
     content: z.string().describe("Content to store in memory"),
@@ -434,4 +434,4 @@ export function createHindsightTools({
   };
 }
 
-export type HindsightTools = ReturnType<typeof createHindsightTools>;
+export type ContextBaseTools = ReturnType<typeof createContextBaseTools>;

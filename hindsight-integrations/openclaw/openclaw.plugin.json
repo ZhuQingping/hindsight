@@ -1,6 +1,6 @@
 {
-  "id": "hindsight-openclaw",
-  "name": "Hindsight Memory",
+  "id": "contextbase-openclaw",
+  "name": "ContextBase Memory",
   "kind": "memory",
   "configContracts": {
     "secretInputs": {
@@ -10,7 +10,7 @@
           "expected": "string"
         },
         {
-          "path": "hindsightApiToken",
+          "path": "contextbaseApiToken",
           "expected": "string"
         }
       ]
@@ -43,7 +43,7 @@
       },
       "retainExtractionMode": {
         "type": "string",
-        "description": "Fact extraction mode stamped onto each bank on first use (dynamic or static). Options: concise, verbose, custom, verbatim, chunks. Leave unset to keep the Hindsight server default for new banks.",
+        "description": "Fact extraction mode stamped onto each bank on first use (dynamic or static). Options: concise, verbose, custom, verbatim, chunks. Leave unset to keep the ContextBase server default for new banks.",
         "enum": ["concise", "verbose", "custom", "verbatim", "chunks"]
       },
       "enableObservations": {
@@ -82,7 +82,7 @@
       },
       "llmProvider": {
         "type": "string",
-        "description": "LLM provider for Hindsight memory (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code').",
+        "description": "LLM provider for ContextBase memory (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code').",
         "enum": ["openai", "anthropic", "gemini", "groq", "ollama", "openai-codex", "claude-code"]
       },
       "llmModel": {
@@ -91,7 +91,7 @@
       },
       "llmApiKey": {
         "type": ["string", "object"],
-        "description": "API key for the LLM provider used by the Hindsight memory daemon. Set via 'openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY' to reference an env var without storing plaintext."
+        "description": "API key for the LLM provider used by the ContextBase memory daemon. Set via 'openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY' to reference an env var without storing plaintext."
       },
       "llmBaseUrl": {
         "type": "string",
@@ -99,20 +99,20 @@
       },
       "embedPackagePath": {
         "type": "string",
-        "description": "Local path to hindsight package for development (e.g. '/path/to/hindsight'). When set, uses 'uv run --directory <path>' instead of 'uvx hindsight-embed@latest'."
+        "description": "Local path to contextbase package for development (e.g. '/path/to/contextbase'). When set, uses 'uv run --directory <path>' instead of 'uvx hindsight-embed@latest'."
       },
       "apiPort": {
         "type": "number",
         "description": "Port for the openclaw profile daemon (default: 9077)",
         "default": 9077
       },
-      "hindsightApiUrl": {
+      "contextbaseApiUrl": {
         "type": "string",
-        "description": "External Hindsight API URL (e.g. 'https://mcp.hindsight.devcraft.team'). When set, skips local daemon and connects directly to this API."
+        "description": "External ContextBase API URL (e.g. 'https://mcp.hindsight.devcraft.team'). When set, skips local daemon and connects directly to this API."
       },
-      "hindsightApiToken": {
+      "contextbaseApiToken": {
         "type": ["string", "object"],
-        "description": "API token for external Hindsight API authentication. Required if the external API has authentication enabled."
+        "description": "API token for external ContextBase API authentication. Required if the external API has authentication enabled."
       },
       "dynamicBankId": {
         "type": "boolean",
@@ -148,7 +148,7 @@
       },
       "retainContext": {
         "type": "string",
-        "description": "Interpretation guidance sent via the Hindsight retain API context field. It tells the extraction LLM that OpenClaw sender/channel/provider values, bank IDs, session keys, source systems, and tags are operational routing metadata, not human names, project names, or organizations.",
+        "description": "Interpretation guidance sent via the ContextBase retain API context field. It tells the extraction LLM that OpenClaw sender/channel/provider values, bank IDs, session keys, source systems, and tags are operational routing metadata, not human names, project names, or organizations.",
         "default": "This content is an AI-assistant conversation transcript from OpenClaw. Retain request metadata may include routing identifiers such as 'sender_id' (an opaque user ID, not a human name), 'channel_id' (a chat identifier), and 'provider' (the messaging platform name). These are operational routing metadata, not semantic actors or people. Messages with role 'assistant' are from the AI assistant; first-person statements in assistant messages refer to the AI, not the human user. Messages with role 'user' are from the human user. Bank IDs, session keys, agent IDs, thread IDs, source systems, and tags in metadata are also operational routing identifiers, not human names, project names, or organizations."
       },
       "autoRecall": {
@@ -195,7 +195,7 @@
       },
       "retainToolCalls": {
         "type": "boolean",
-        "description": "When true (default) and retainFormat is 'json', each message's content is an Anthropic-shaped array of typed blocks including tool_use (agent tool calls) and tool_result (truncated at 2000 chars). Operational MCP tools — Hindsight's own recall/retain/search — are filtered out to avoid feedback loops. Set to false to retain text-only content, one string per message.",
+        "description": "When true (default) and retainFormat is 'json', each message's content is an Anthropic-shaped array of typed blocks including tool_use (agent tool calls) and tool_result (truncated at 2000 chars). Operational MCP tools — ContextBase's own recall/retain/search — are filtered out to avoid feedback loops. Set to false to retain text-only content, one string per message.",
         "default": true
       },
       "retainEveryNTurns": {
@@ -292,7 +292,7 @@
       },
       "debug": {
         "type": "boolean",
-        "description": "Enable debug logging for Hindsight plugin operations. Equivalent to logLevel: 'debug'.",
+        "description": "Enable debug logging for ContextBase plugin operations. Equivalent to logLevel: 'debug'.",
         "default": false
       },
       "logLevel": {
@@ -313,7 +313,7 @@
       },
       "retainQueuePath": {
         "type": "string",
-        "description": "Path to JSONL file for buffering failed retains. Default: ~/.openclaw/data/hindsight-retain-queue.jsonl"
+        "description": "Path to JSONL file for buffering failed retains. Default: ~/.openclaw/data/contextbase-retain-queue.jsonl"
       },
       "retainQueueMaxAgeMs": {
         "type": "number",
@@ -406,7 +406,7 @@
       "placeholder": "e.g. [{\"name\":\"person\",\"description\":\"Human user\"}]"
     },
     "embedVersion": {
-      "label": "Hindsight Embed Version",
+      "label": "ContextBase Embed Version",
       "placeholder": "latest (or pin to specific version like 0.4.2)"
     },
     "llmProvider": {
@@ -428,17 +428,17 @@
     },
     "embedPackagePath": {
       "label": "Local Package Path (Dev)",
-      "placeholder": "/path/to/hindsight (for local development)"
+      "placeholder": "/path/to/contextbase (for local development)"
     },
     "apiPort": {
       "label": "API Port",
       "placeholder": "9077 (default)"
     },
-    "hindsightApiUrl": {
-      "label": "External Hindsight API URL",
+    "contextbaseApiUrl": {
+      "label": "External ContextBase API URL",
       "placeholder": "e.g. https://mcp.hindsight.devcraft.team (leave empty for local daemon)"
     },
-    "hindsightApiToken": {
+    "contextbaseApiToken": {
       "label": "External API Token",
       "placeholder": "API token if external API requires authentication",
       "sensitive": true
@@ -575,7 +575,7 @@
     },
     "retainQueuePath": {
       "label": "Retain Queue File Path",
-      "placeholder": "~/.openclaw/data/hindsight-retain-queue.jsonl"
+      "placeholder": "~/.openclaw/data/contextbase-retain-queue.jsonl"
     },
     "retainQueueMaxAgeMs": {
       "label": "Retain Queue Max Age (ms)",

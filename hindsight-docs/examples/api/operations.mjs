@@ -5,13 +5,13 @@
  */
 import { HindsightClient, sdk, createClient, createConfig } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
-const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_URL }));
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
+const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_URL }));
 
 // Make sure the bank exists: listing operations for a bank nobody created is a 404 (#4442).
 // memory-banks.mjs runs before this file and deletes 'my-bank' in its cleanup, so this file

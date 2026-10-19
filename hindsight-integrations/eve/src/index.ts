@@ -1,27 +1,27 @@
 /**
- * Hindsight long-term memory for Vercel Eve agents.
+ * ContextBase long-term memory for Vercel Eve agents.
  *
  * One authored file gives an Eve agent memory that just works: relevant memory
  * is recalled on the live user message before each turn, the exchange is
- * retained after, and every scope gets its own Hindsight bank.
+ * retained after, and every scope gets its own ContextBase bank.
  *
  * ```ts
- * // agent/memory/hindsight.ts
- * import { hindsightMemory } from "@vectorize-io/hindsight-eve";
+ * // agent/memory/contextbase.ts
+ * import { contextbaseMemory } from "contextbase-eve";
  * import { defineMemory } from "eve/memory";
  * import { byPrincipal } from "eve/memory/scope";
  *
  * export default defineMemory({
  *   description: "Long-term memory about the current user.",
- *   provider: hindsightMemory(),
+ *   provider: contextbaseMemory(),
  *   scope: byPrincipal,
  * });
  * ```
  *
- * Configure via env: `HINDSIGHT_API_KEY`, `HINDSIGHT_API_URL` (defaults to
- * Hindsight Cloud).
+ * Configure via env: `CONTEXTBASE_API_KEY`, `CONTEXTBASE_API_URL` (defaults to
+ * ContextBase Cloud).
  */
-export { hindsightMemory, type MemoryProviderOptions } from "./memory-provider.js";
+export { contextbaseMemory, type MemoryProviderOptions } from "./memory-provider.js";
 
 export {
   bankFromScope,
@@ -38,13 +38,17 @@ export {
 } from "./provider-core.js";
 
 // v0.2 hooks/instructions entrypoints — deprecated, removed in the next release.
-export { hindsightAutoRecall, hindsightRetainHook, type AutoMemoryOptions } from "./auto-memory.js";
+export {
+  contextbaseAutoRecall,
+  contextbaseRetainHook,
+  type AutoMemoryOptions,
+} from "./auto-memory.js";
 
 export {
   resolveAutoMemory,
   resolveConnection,
-  isHindsightCloudUrl,
-  HINDSIGHT_CLOUD_API_URL,
+  isContextBaseCloudUrl,
+  CONTEXTBASE_CLOUD_API_URL,
   DEFAULT_RECALL_QUERY,
   DEFAULT_BANK_ID,
   type ConnectionOptions,
@@ -53,8 +57,8 @@ export {
 } from "./config.js";
 
 export {
-  HindsightRestClient,
-  HindsightHttpError,
+  ContextBaseRestClient,
+  ContextBaseHttpError,
   buildRecallMarkdown,
   stripSentinelBlocks,
   type RecallResult,

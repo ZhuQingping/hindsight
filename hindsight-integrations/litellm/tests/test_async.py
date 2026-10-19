@@ -1,10 +1,10 @@
-"""Unit tests for the sync->async loop bridge (hindsight_litellm._async)."""
+"""Unit tests for the sync->async loop bridge (contextbase_litellm._async)."""
 
 import asyncio
 
 import pytest
 
-from hindsight_litellm import _async
+from contextbase_litellm import _async
 
 
 @pytest.fixture(autouse=True)

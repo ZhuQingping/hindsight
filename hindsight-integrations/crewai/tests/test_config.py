@@ -1,21 +1,21 @@
-"""Unit tests for hindsight_crewai configuration."""
+"""Unit tests for contextbase_crewai configuration."""
 
 import os
 from unittest.mock import patch
 
-from hindsight_crewai import configure, get_config, reset_config
-from hindsight_crewai.config import (
-    DEFAULT_HINDSIGHT_API_URL,
-    HINDSIGHT_API_KEY_ENV,
+from contextbase_crewai import configure, get_config, reset_config
+from contextbase_crewai.config import (
+    DEFAULT_CONTEXTBASE_API_URL,
+    CONTEXTBASE_API_KEY_ENV,
 )
 
 
 class TestDefaults:
     def test_default_api_url(self):
-        assert DEFAULT_HINDSIGHT_API_URL == "https://api.hindsight.vectorize.io"
+        assert DEFAULT_CONTEXTBASE_API_URL == ""
 
     def test_env_var_name(self):
-        assert HINDSIGHT_API_KEY_ENV == "HINDSIGHT_API_KEY"
+        assert CONTEXTBASE_API_KEY_ENV == "CONTEXTBASE_API_KEY"
 
 
 class TestConfigure:
@@ -27,24 +27,24 @@ class TestConfigure:
 
     def test_configure_with_no_arguments(self):
         config = configure()
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.budget == "mid"
         assert config.max_tokens == 4096
         assert config.verbose is False
 
     def test_configure_reads_api_key_from_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-key"}):
             config = configure()
         assert config.api_key == "test-key"
 
     def test_configure_explicit_overrides_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-key"}):
             config = configure(api_key="explicit-key")
         assert config.api_key == "explicit-key"
 
     def test_configure_all_options(self):
         config = configure(
-            hindsight_api_url="http://custom:8888",
+            contextbase_api_url="http://custom:8888",
             api_key="my-key",
             budget="high",
             max_tokens=2048,
@@ -53,7 +53,7 @@ class TestConfigure:
             recall_tags_match="all",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:8888"
+        assert config.contextbase_api_url == "http://custom:8888"
         assert config.api_key == "my-key"
         assert config.budget == "high"
         assert config.max_tokens == 2048

@@ -9,7 +9,7 @@ export type Budget = "low" | "mid" | "high";
 export type FactType = "world" | "experience" | "observation";
 
 /**
- * Recall result item from Hindsight.
+ * Recall result item from ContextBase.
  */
 export interface RecallResult {
   id: string;
@@ -35,7 +35,7 @@ export interface EntityState {
 }
 
 /**
- * Recall response from Hindsight.
+ * Recall response from ContextBase.
  */
 export interface RecallResponse {
   results: RecallResult[];
@@ -56,7 +56,7 @@ export interface ReflectFact {
 }
 
 /**
- * Reflect response from Hindsight.
+ * Reflect response from ContextBase.
  */
 export interface ReflectResponse {
   text: string;
@@ -64,7 +64,7 @@ export interface ReflectResponse {
 }
 
 /**
- * Retain response from Hindsight.
+ * Retain response from ContextBase.
  */
 export interface RetainResponse {
   success: boolean;
@@ -74,7 +74,7 @@ export interface RetainResponse {
 }
 
 /**
- * Hindsight client interface — matches @vectorize-io/hindsight-client.
+ * ContextBase client interface — matches @vectorize-io/hindsight-client.
  */
 export interface HindsightClient {
   retain(
@@ -202,10 +202,10 @@ export interface RetainOptions {
 }
 
 /**
- * Configuration for withHindsightChat.
+ * Configuration for withContextBaseChat.
  */
-export interface HindsightChatOptions {
-  /** Hindsight client instance. */
+export interface ContextBaseChatOptions {
+  /** ContextBase client instance. */
   client: HindsightClient;
   /** Bank ID — static string or function deriving it from the message. */
   bankId: BankIdResolver;
@@ -218,7 +218,7 @@ export interface HindsightChatOptions {
 /**
  * Context object passed to the wrapped handler, providing memory operations.
  */
-export interface HindsightChatContext {
+export interface ContextBaseChatContext {
   /** Resolved bank ID for this message. */
   bankId: string;
   /** Recalled memories (empty array if recall disabled or failed). */
@@ -260,10 +260,10 @@ export interface HindsightChatContext {
 }
 
 /**
- * The handler signature that withHindsightChat wraps.
+ * The handler signature that withContextBaseChat wraps.
  */
-export type HindsightChatHandler<TState = unknown> = (
+export type ContextBaseChatHandler<TState = unknown> = (
   thread: ChatThread<TState>,
   message: ChatMessage,
-  ctx: HindsightChatContext
+  ctx: ContextBaseChatContext
 ) => void | Promise<void>;

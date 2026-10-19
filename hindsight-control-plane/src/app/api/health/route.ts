@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { localProductName } from "@/lib/product-config-server";
 import { NextResponse } from "next/server";
 import { createClient, createConfig, sdk } from "@vectorize-io/hindsight-client";
@@ -19,7 +20,7 @@ export async function GET() {
   };
 
   // Check dataplane connectivity with a short timeout
-  const dataplaneUrl = process.env.HINDSIGHT_CP_DATAPLANE_API_URL || "http://localhost:8888";
+  const dataplaneUrl = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT_MS);

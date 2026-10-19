@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 
 
 def strip_memory_tags(content: str) -> str:
-    """Remove <hindsight_memories> blocks to prevent retain feedback loops."""
-    content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
+    """Remove <contextbase_memories> blocks to prevent retain feedback loops."""
+    content = re.sub(r"<contextbase_memories>[\s\S]*?</contextbase_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
     return content
 

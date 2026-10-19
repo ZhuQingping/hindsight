@@ -7,12 +7,12 @@ sidebar_position: 4
 import CodeSnippet from '@site/src/components/CodeSnippet';
 import cliSh from '!!raw-loader!@site/examples/api/cli-reference.sh';
 
-The Hindsight CLI provides command-line access to memory operations and bank management. All commands follow the [OpenAPI specification](/api-reference), so you can use `--help` on any command to see all available options.
+The ContextBase CLI provides command-line access to memory operations and bank management. All commands follow the [OpenAPI specification](/api-reference), so you can use `--help` on any command to see all available options.
 
 ## Installation
 
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-cli | bash
+curl -fsSL https://github.com/RSIXDB/hindsight/get-cli | bash
 ```
 
 ## Configuration
@@ -21,20 +21,20 @@ Configure the API URL:
 
 <CodeSnippet code={cliSh} section="cli-configure" language="bash" />
 
-You can also run `hindsight configure` with no flags to be prompted interactively, or use environment variables (highest priority):
+You can also run `contextbase configure` with no flags to be prompted interactively, or use environment variables (highest priority):
 
 ```bash
-export HINDSIGHT_API_URL=http://localhost:8888
-export HINDSIGHT_API_KEY=your-api-key
+export CONTEXTBASE_API_URL=http://localhost:8888
+export CONTEXTBASE_API_KEY=your-api-key
 ```
 
 ### Named Profiles
 
-When you need to switch between multiple Hindsight deployments (e.g. local,
-staging, production) without constantly rewriting `~/.hindsight/config`, use
+When you need to switch between multiple ContextBase deployments (e.g. local,
+staging, production) without constantly rewriting `~/.contextbase/config`, use
 named profiles. Each profile is a TOML file at
-`~/.hindsight/cli-profiles/<name>.toml` and is selected per-invocation with
-`-p/--profile` (or by setting `$HINDSIGHT_PROFILE`).
+`~/.contextbase/cli-profiles/<name>.toml` and is selected per-invocation with
+`-p/--profile` (or by setting `$CONTEXTBASE_PROFILE`).
 
 <CodeSnippet code={cliSh} section="cli-profiles" language="bash" />
 
@@ -43,12 +43,12 @@ only readable by the owner.
 
 **Configuration precedence** (highest first):
 
-1. Environment variables (`HINDSIGHT_API_URL`, `HINDSIGHT_API_KEY`)
-2. Named profile — explicit `-p <name>`, otherwise `$HINDSIGHT_PROFILE`
-3. Shared config file (`~/.hindsight/config`, written by `hindsight configure`)
+1. Environment variables (`CONTEXTBASE_API_URL`, `CONTEXTBASE_API_KEY`)
+2. Named profile — explicit `-p <name>`, otherwise `$CONTEXTBASE_PROFILE`
+3. Shared config file (`~/.contextbase/config`, written by `contextbase configure`)
 4. Default (`http://localhost:8888`)
 
-`HINDSIGHT_API_URL` / `HINDSIGHT_API_KEY` always override profile values, which
+`CONTEXTBASE_API_URL` / `CONTEXTBASE_API_KEY` always override profile values, which
 makes it safe to use `-p` in scripts while letting CI inject credentials via
 environment.
 
@@ -163,7 +163,7 @@ Manage a bank's knowledge pages — living documents organized in a folder tree.
 <CodeSnippet code={cliSh} section="cli-kb-manage" language="bash" />
 
 :::tip
-`hindsight fs mount --bank <bank_id>` mirrors the same knowledge base onto disk as
+`contextbase fs mount --bank <bank_id>` mirrors the same knowledge base onto disk as
 real markdown files, kept current by a background refresh loop — handy when you'd
 rather use `grep`, `rg`, or your editor than the commands above.
 :::
@@ -193,7 +193,7 @@ Inspect the audit trail for a bank:
 Launch the web-based Control Plane UI directly from the CLI:
 
 ```bash
-hindsight ui
+contextbase ui
 ```
 
 This runs the Control Plane locally on port 9999 using the API URL from your configuration. The UI provides:
@@ -212,7 +212,7 @@ The UI command requires Node.js to be installed. It automatically downloads and 
 Launch the TUI explorer for visual navigation of your memory banks:
 
 ```bash
-hindsight explore
+contextbase explore
 ```
 
 The explorer provides an interactive terminal interface to:

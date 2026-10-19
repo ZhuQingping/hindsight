@@ -6,26 +6,26 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// [docs:main-retain]
 	// Store a fact or conversation into a memory bank
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
-				{Content: hindsight.TextContent("Alice joined Google in March 2024 as a Senior ML Engineer")},
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
+				{Content: contextbase.TextContent("Alice joined Google in March 2024 as a Senior ML Engineer")},
 			},
 		}).Execute()
 	// [/docs:main-retain]
@@ -33,7 +33,7 @@ func main() {
 	// [docs:main-recall]
 	// Search for memories using a natural language query
 	resp, _, _ := client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "What does Alice do at Google?",
 		}).Execute()
 
@@ -45,7 +45,7 @@ func main() {
 	// [docs:main-reflect]
 	// Generate a reasoned response using memories and bank disposition
 	answer, _, _ := client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query: "Should we adopt TypeScript for our backend?",
 		}).Execute()
 

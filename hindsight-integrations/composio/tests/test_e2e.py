@@ -1,11 +1,11 @@
-"""End-to-end tests for the Hindsight-Composio integration.
+"""End-to-end tests for the ContextBase-Composio integration.
 
-Exercises the retain/recall/reflect custom tools against a live Hindsight
+Exercises the retain/recall/reflect custom tools against a live ContextBase
 server, driving them through the same ``(input, ctx)`` call path Composio uses
-when it invokes a custom tool. The tools talk to Hindsight directly (the
-server's LLM does fact extraction), so only a running Hindsight instance is
+when it invokes a custom tool. The tools talk to ContextBase directly (the
+server's LLM does fact extraction), so only a running ContextBase instance is
 required — no provider key. By default these tests are skipped; point
-``HINDSIGHT_API_URL`` at a reachable server to enable them.
+``CONTEXTBASE_API_URL`` at a reachable server to enable them.
 
 The whole module is the real-LLM bucket (``requires_real_llm``).
 """
@@ -19,31 +19,31 @@ import uuid
 
 import pytest
 from hindsight_client import Hindsight
-from hindsight_composio import (
+from contextbase_composio import (
     RecallInput,
     ReflectInput,
     RetainInput,
-    register_hindsight_tools,
+    register_contextbase_tools,
 )
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 _NO_MEMORIES = "No relevant memories found."
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        with urllib.request.urlopen(f"{HINDSIGHT_API_URL}/health", timeout=3) as r:
+        with urllib.request.urlopen(f"{CONTEXTBASE_API_URL}/health", timeout=3) as r:
             return r.status == 200
     except Exception:
         return False
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 
-pytestmark = [requires_hindsight, pytest.mark.requires_real_llm]
+pytestmark = [requires_contextbase, pytest.mark.requires_real_llm]
 
 
 class _Ctx:
@@ -65,7 +65,7 @@ class _NoopComposio:
 
 
 def _by_name(client):
-    tools = register_hindsight_tools(_NoopComposio(), client=client)
+    tools = register_contextbase_tools(_NoopComposio(), client=client)
     return {t.__name__: t for t in tools}
 
 
@@ -83,7 +83,7 @@ def _recall_until_nonempty(recall, ctx, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=HINDSIGHT_API_URL)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL)
     bank_id = f"composio-e2e-{uuid.uuid4().hex[:8]}"
     try:
         yield client, bank_id
@@ -100,13 +100,13 @@ class TestE2ETools:
         tools = _by_name(client)
         ctx = _Ctx(user_id=bank_id)
 
-        result = tools["hindsight_retain"](
+        result = tools["contextbase_retain"](
             RetainInput(content="The team uses PostgreSQL 16 and deploys to us-east-1."),
             ctx,
         )
         assert result == {"status": "stored", "bank": bank_id}
 
-        memories = _recall_until_nonempty(tools["hindsight_recall"], ctx, "What technologies does the team use?")
+        memories = _recall_until_nonempty(tools["contextbase_recall"], ctx, "What technologies does the team use?")
         joined = " ".join(memories).lower()
         assert "postgresql" in joined or "us-east-1" in joined, (
             f"recall surfaced results but none referenced the stored content: {memories}"
@@ -117,13 +117,13 @@ class TestE2ETools:
         tools = _by_name(client)
         ctx = _Ctx(user_id=bank_id)
 
-        tools["hindsight_retain"](
+        tools["contextbase_retain"](
             RetainInput(content="The team uses PostgreSQL 16 and deploys to us-east-1."),
             ctx,
         )
-        _recall_until_nonempty(tools["hindsight_recall"], ctx, "What technologies does the team use?")
+        _recall_until_nonempty(tools["contextbase_recall"], ctx, "What technologies does the team use?")
 
-        result = tools["hindsight_reflect"](
+        result = tools["contextbase_reflect"](
             ReflectInput(query="What do I know about the team's tech stack?"),
             ctx,
         )
@@ -137,5 +137,5 @@ class TestE2ETools:
     def test_recall_empty_bank(self, live):
         client, bank_id = live
         tools = _by_name(client)
-        result = tools["hindsight_recall"](RecallInput(query="anything at all"), _Ctx(user_id=bank_id))
+        result = tools["contextbase_recall"](RecallInput(query="anything at all"), _Ctx(user_id=bank_id))
         assert result == {"memories": [], "count": 0}

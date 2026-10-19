@@ -1,18 +1,18 @@
 ---
 sidebar_position: 33
-title: "Dify Persistent Memory with Hindsight | Integration"
-description: "Add persistent long-term memory to any Dify workflow with Hindsight. A plugin provides Retain, Recall, and Reflect tools — drop them into any chatflow or workflow alongside your other LLM, search, and tool nodes."
+title: "Dify Persistent Memory with ContextBase | Integration"
+description: "Add persistent long-term memory to any Dify workflow with ContextBase. A plugin provides Retain, Recall, and Reflect tools — drop them into any chatflow or workflow alongside your other LLM, search, and tool nodes."
 ---
 
 # Dify
 
-Persistent memory for [Dify](https://dify.ai) workflows via [Hindsight](https://hindsight.vectorize.io). The Hindsight Dify plugin adds three tools — **Retain**, **Recall**, **Reflect** — that work alongside any other Dify node in workflows, chatflows, and agent apps.
+Persistent memory for [Dify](https://dify.ai) workflows via [ContextBase](https://github.com/RSIXDB/hindsight). The ContextBase Dify plugin adds three tools — **Retain**, **Recall**, **Reflect** — that work alongside any other Dify node in workflows, chatflows, and agent apps.
 
 [View Changelog →](/changelog/integrations/dify)
 
 ## Why this matters
 
-Dify is one of the most popular open-source LLM app platforms — visual workflow builder, prompt management, and a growing tool/plugin ecosystem. Until now, Dify workflows have been **stateless across runs**. With Hindsight tools you can:
+Dify is one of the most popular open-source LLM app platforms — visual workflow builder, prompt management, and a growing tool/plugin ecosystem. Until now, Dify workflows have been **stateless across runs**. With ContextBase tools you can:
 
 - **Retain** every closed support ticket, sales-call transcript, or form submission into a memory bank
 - **Recall** relevant context before an LLM step so the model sees prior history
@@ -23,28 +23,28 @@ Dify is one of the most popular open-source LLM app platforms — visual workflo
 In your Dify dashboard go to **Plugins → Install Plugin**, then choose one of:
 
 - **Marketplace** — search for `Hindsight` (once published)
-- **GitHub** — install from `vectorize-io/hindsight` (path `hindsight-integrations/dify`)
+- **GitHub** — install from `RSIXDB/hindsight` (path `hindsight-integrations/dify`)
 - **Local** — upload the `.difypkg` archive
 
-After install, the **Hindsight** plugin appears under **Tools** in the workflow editor.
+After install, the **ContextBase** plugin appears under **Tools** in the workflow editor.
 
 ## Setup
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
-1. **Sign up** at [Hindsight Cloud](https://ui.hindsight.vectorize.io) (free tier) or [self-host](/developer/installation)
-2. **Get an API key** from the Hindsight dashboard
-3. **In Dify**, open the Hindsight plugin and add credentials:
-   - **API URL** — defaults to `https://api.hindsight.vectorize.io` (Cloud); change for self-hosted
+1. Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
+2. **Get an API key** from the ContextBase dashboard
+3. **In Dify**, open the ContextBase plugin and add credentials:
+   - **API URL** — set this to your service URL (required)
    - **API Key** — your `hsk_...` key (optional for self-hosted unauthenticated instances)
 
 ## Tools
 
 ### Retain
 
-Store content in a bank. Hindsight extracts facts asynchronously after the call returns.
+Store content in a bank. ContextBase extracts facts asynchronously after the call returns.
 
 | Field | Description |
 |---|---|
@@ -78,10 +78,10 @@ Get an LLM-synthesized answer over the bank. Returns `text`.
 
 **Customer-support assistant** — every closed Zendesk ticket retains the resolution. Every new ticket starts with a Recall against the bank to surface similar past issues, then passes that context to OpenAI/Anthropic to draft the first reply.
 
-**Sales-call coach** — Gong webhook → Hindsight Retain (call summary). Before each next prep call, Recall on the prospect's name to pull every prior touchpoint, then format into the daily prep doc.
+**Sales-call coach** — Gong webhook → ContextBase Retain (call summary). Before each next prep call, Recall on the prospect's name to pull every prior touchpoint, then format into the daily prep doc.
 
 **Knowledge-base agent** — every uploaded document is chunked and retained. The Dify chatflow uses Recall instead of vector-DB-only retrieval, getting fact-extracted, deduplicated, time-aware results.
 
 ## Source
 
-- GitHub: [`hindsight-integrations/dify`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/dify)
+- GitHub: [`hindsight-integrations/dify`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/dify)

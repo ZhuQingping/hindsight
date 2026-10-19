@@ -1,12 +1,12 @@
 /**
- * Manage Hindsight's recall/retain rule inside Zed's global instructions file.
+ * Manage ContextBase's recall/retain rule inside Zed's global instructions file.
  *
  * Zed includes a global instructions file (`~/.config/zed/AGENTS.md` on macOS and
  * Linux) in *every* agent conversation. We write a static rule there telling the
- * agent to use the Hindsight MCP tools — recall relevant memory at the start of a
+ * agent to use the ContextBase MCP tools — recall relevant memory at the start of a
  * task, and retain durable facts as it learns them.
  *
- * The rule lives inside a fenced `<!-- HINDSIGHT:BEGIN -->` … `<!-- HINDSIGHT:END -->`
+ * The rule lives inside a fenced `<!-- CONTEXTBASE:BEGIN -->` … `<!-- CONTEXTBASE:END -->`
  * block so we can update or remove it without touching the user's own rules in the
  * same file.
  */
@@ -17,12 +17,12 @@ import { join, dirname } from "node:path";
 
 import { isFile } from "./fsutil.js";
 
-export const BEGIN_MARKER = "<!-- HINDSIGHT:BEGIN -->";
-export const END_MARKER = "<!-- HINDSIGHT:END -->";
+export const BEGIN_MARKER = "<!-- CONTEXTBASE:BEGIN -->";
+export const END_MARKER = "<!-- CONTEXTBASE:END -->";
 
 // The recall/retain instruction injected into Zed's global rules.
 export const RULE_TEXT =
-  "You have persistent long-term memory through the Hindsight MCP server " +
+  "You have persistent long-term memory through the ContextBase MCP server " +
   "(`recall`, `retain`, and `reflect` tools).\n\n" +
   "- At the start of each task, call `recall` with the user's request to load " +
   "relevant decisions, preferences, and project context before you answer. " +
@@ -37,7 +37,7 @@ export function defaultRulesPath() {
   return join(homedir(), ".config", "zed", "AGENTS.md");
 }
 
-/** Remove an existing HINDSIGHT block (and its surrounding blank lines). */
+/** Remove an existing CONTEXTBASE block (and its surrounding blank lines). */
 function stripBlock(text) {
   const start = text.indexOf(BEGIN_MARKER);
   if (start === -1) return text;
@@ -54,13 +54,13 @@ function stripBlock(text) {
   return remainder.replace(/\s+$/, "") + (remainder ? "\n" : "");
 }
 
-/** Render the fenced HINDSIGHT rule block (no trailing newline). */
+/** Render the fenced CONTEXTBASE rule block (no trailing newline). */
 export function renderBlock(ruleText = RULE_TEXT) {
   return `${BEGIN_MARKER}\n${ruleText.trim()}\n${END_MARKER}`;
 }
 
 /**
- * Write/replace Hindsight's rule block in the instructions file at `path`.
+ * Write/replace ContextBase's rule block in the instructions file at `path`.
  *
  * Preserves any user-authored content and only rewrites our fenced block,
  * placing it at the top so the memory rule leads the instructions.
@@ -76,7 +76,7 @@ export function writeRule(path, ruleText = RULE_TEXT) {
 }
 
 /**
- * Remove Hindsight's rule block from the instructions file, if present.
+ * Remove ContextBase's rule block from the instructions file, if present.
  *
  * Leaves the rest of the file intact. If removing the block empties a file that
  * held nothing else, the file is deleted.

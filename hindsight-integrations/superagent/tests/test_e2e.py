@@ -1,7 +1,7 @@
-"""End-to-end tests for Hindsight-Superagent integration.
+"""End-to-end tests for ContextBase-Superagent integration.
 
 Requires:
-- A running Hindsight instance (default: http://localhost:8888)
+- A running ContextBase instance (default: http://localhost:8888)
 - SUPERAGENT_API_KEY env var
 - OPENAI_API_KEY env var (for guard and redact models)
 
@@ -17,15 +17,15 @@ import time
 import pytest
 import requests
 
-from hindsight_superagent import GuardBlockedError, SafeHindsight
+from contextbase_superagent import GuardBlockedError, SafeContextBase
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = f"e2e-superagent-{int(time.time())}"
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        r = requests.get(f"{HINDSIGHT_API_URL}/health", timeout=3)
+        r = requests.get(f"{CONTEXTBASE_API_URL}/health", timeout=3)
         return r.status_code == 200
     except Exception:
         return False
@@ -42,42 +42,42 @@ def _openai_key_available() -> bool:
 requires_superagent = pytest.mark.skipif(not _superagent_key_available(), reason="SUPERAGENT_API_KEY not set")
 requires_openai = pytest.mark.skipif(not _openai_key_available(), reason="OPENAI_API_KEY not set")
 requires_all = pytest.mark.skipif(
-    not (_hindsight_available() and _superagent_key_available() and _openai_key_available()),
-    reason="Requires Hindsight + SUPERAGENT_API_KEY + OPENAI_API_KEY",
+    not (_contextbase_available() and _superagent_key_available() and _openai_key_available()),
+    reason="Requires ContextBase + SUPERAGENT_API_KEY + OPENAI_API_KEY",
 )
 
 # Every test in this file makes real provider calls (Superagent Guard/Redact
-# models, OpenAI) and/or drives a live Hindsight server, so the whole module is
+# models, OpenAI) and/or drives a live ContextBase server, so the whole module is
 # the "real LLM" bucket — excluded from the deterministic PR-CI bucket via
 # `-m "not requires_real_llm"` and run on its own via `-m requires_real_llm`.
 # The skipif guards above still apply at runtime.
 pytestmark = pytest.mark.requires_real_llm
 
 
-# Module-level registry of every SafeHindsight instance created by
+# Module-level registry of every SafeContextBase instance created by
 # `_make_client()` in a test, so the autouse cleanup fixture below can
 # close them on the way out and we don't leak aiohttp client sessions
 # (which the test runner surfaces as "Unclosed client session" warnings).
-_active_safes: list[SafeHindsight] = []
+_active_safes: list[SafeContextBase] = []
 
 
-def _make_client(bank_id: str = BANK_ID, **kwargs) -> SafeHindsight:
+def _make_client(bank_id: str = BANK_ID, **kwargs) -> SafeContextBase:
     defaults = {
-        "hindsight_api_url": HINDSIGHT_API_URL,
+        "contextbase_api_url": CONTEXTBASE_API_URL,
         "guard_model": "openai/gpt-4.1-nano",
         "redact_model": "openai/gpt-4.1-nano",
     }
     defaults.update(kwargs)
-    safe = SafeHindsight(bank_id=bank_id, **defaults)
+    safe = SafeContextBase(bank_id=bank_id, **defaults)
     _active_safes.append(safe)
     return safe
 
 
 @pytest.fixture(autouse=True)
 async def close_active_safes():
-    """Close every SafeHindsight created via `_make_client()` after the test.
+    """Close every SafeContextBase created via `_make_client()` after the test.
 
-    Without this, each `SafeHindsight(...)` constructed in a test leaves an
+    Without this, each `SafeContextBase(...)` constructed in a test leaves an
     open aiohttp ClientSession + TCPConnector behind, and the test runner
     yells about unclosed sessions on shutdown.  Idempotent — aclose() is
     safe to call multiple times and skips already-closed instances.
@@ -100,7 +100,7 @@ def cleanup_banks():
     list in sync with the test classes below is fragile — when a new E2E
     class is added, its suffix must be added here too.  The fallback
     explicit-list approach is preferred over a wildcard delete because
-    Hindsight has no list-banks endpoint mounted on the default tenant in
+    ContextBase has no list-banks endpoint mounted on the default tenant in
     the OSS image.
     """
     yield
@@ -114,7 +114,7 @@ def cleanup_banks():
     ]
     for suffix in suffixes:
         try:
-            requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/{BANK_ID}{suffix}", timeout=10)
+            requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/{BANK_ID}{suffix}", timeout=10)
         except Exception:
             pass
 
@@ -244,10 +244,10 @@ class TestE2EGuard:
 class TestE2ERedact:
     @pytest.mark.asyncio
     async def test_redact_strips_pii_from_stored_memory(self) -> None:
-        """Verify redact removes PII before Hindsight stores it.
+        """Verify redact removes PII before ContextBase stores it.
 
         Seeds with natural-language project context alongside the PII so
-        recall has a real anchor that Hindsight's fact extraction will
+        recall has a real anchor that ContextBase's fact extraction will
         materialise.  Synthetic canary phrases (e.g. "redact-pii-canary
         alpha bravo") don't survive fact extraction reliably — the LLM
         treats them as opaque identifiers and drops them.  PII-only
@@ -275,7 +275,7 @@ class TestE2ERedact:
 @requires_superagent
 @requires_openai
 class TestSuperagentGuardOnly:
-    """Test Superagent Guard API in isolation (no Hindsight needed)."""
+    """Test Superagent Guard API in isolation (no ContextBase needed)."""
 
     @pytest.mark.asyncio
     async def test_guard_passes_benign_input(self) -> None:
@@ -317,7 +317,7 @@ class TestSuperagentGuardOnly:
 @requires_superagent
 @requires_openai
 class TestSuperagentRedactOnly:
-    """Test Superagent Redact API in isolation (no Hindsight needed)."""
+    """Test Superagent Redact API in isolation (no ContextBase needed)."""
 
     @pytest.mark.asyncio
     async def test_redact_strips_email(self) -> None:
@@ -402,7 +402,7 @@ class TestE2ERedactOnReflect:
 
 @requires_all
 class TestE2ERetainBatch:
-    """Verify SafeHindsight.retain_batch runs Guard + Redact per item and stores all."""
+    """Verify SafeContextBase.retain_batch runs Guard + Redact per item and stores all."""
 
     @pytest.mark.asyncio
     async def test_retain_batch_stores_redacted_items(self) -> None:
@@ -429,11 +429,11 @@ class TestE2EConfigPrecedence:
 
     @pytest.mark.asyncio
     async def test_per_instance_overrides_global_config(self) -> None:
-        from hindsight_superagent import configure, reset_config
+        from contextbase_superagent import configure, reset_config
 
         try:
             configure(
-                hindsight_api_url=HINDSIGHT_API_URL,
+                contextbase_api_url=CONTEXTBASE_API_URL,
                 superagent_api_key=os.getenv("SUPERAGENT_API_KEY"),
                 guard_model="openai/gpt-4.1-nano",
                 redact_model="openai/gpt-4.1-nano",
@@ -442,9 +442,9 @@ class TestE2EConfigPrecedence:
             )
             # Per-instance override: redact enabled
             bank_id = f"{BANK_ID}-precedence"
-            safe = SafeHindsight(
+            safe = SafeContextBase(
                 bank_id=bank_id,
-                hindsight_api_url=HINDSIGHT_API_URL,
+                contextbase_api_url=CONTEXTBASE_API_URL,
                 redact_model="openai/gpt-4.1-nano",
                 enable_redact_on_retain=True,  # overrides the global False
                 enable_guard_on_retain=False,

@@ -1,4 +1,4 @@
-/** Hindsight memory integration for the Zed editor. */
+/** ContextBase memory integration for the Zed editor. */
 export { VERSION } from "./version.js";
 export * as config from "./config.js";
 export * as rulesFile from "./rulesFile.js";

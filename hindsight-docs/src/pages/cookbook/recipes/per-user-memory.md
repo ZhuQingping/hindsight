@@ -47,8 +47,8 @@ Each user gets their own memory bank. Complete isolation, simple mental model.
 
 
 ```python
-# Jupyter notebooks already run an asyncio event loop. The hindsight client 
-# uses loop.run_until_complete() internally, but Python doesn't allow nested 
+# Jupyter notebooks already run an asyncio event loop. The contextbase client
+# uses loop.run_until_complete() internally, but Python doesn't allow nested
 # event loops by default. nest_asyncio patches this to allow nesting.
 import nest_asyncio
 nest_asyncio.apply()
@@ -62,12 +62,12 @@ from openai import OpenAI as OpenAIClient
 load_dotenv()
 
 # Configuration (override with env vars if set)
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-HINDSIGHT_UI_URL = os.getenv("HINDSIGHT_UI_URL", "http://localhost:9999")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_API_URL)
+client = Hindsight(base_url=CONTEXTBASE_API_URL)
 llm = OpenAIClient()  # Uses OPENAI_API_KEY from .env
 
 def on_user_signup(user_id: str):
@@ -75,12 +75,12 @@ def on_user_signup(user_id: str):
         bank_id=f"user-{user_id}",
         name=f"Memory for {user_id}"
     )
-    print(f"View bank: {HINDSIGHT_UI_URL}/banks/user-{user_id}?view=documents")
+    print(f"View bank: {CONTEXTBASE_UI_URL}/banks/user-{user_id}?view=documents")
 ```
 
 ## 2. Manage Conversation Sessions
 
-Use `document_id` to group messages belonging to the same conversation. When you retain with the same `document_id`, Hindsight replaces the previous version (upsert behavior), keeping the memory up-to-date as the conversation evolves.
+Use `document_id` to group messages belonging to the same conversation. When you retain with the same `document_id`, ContextBase replaces the previous version (upsert behavior), keeping the memory up-to-date as the conversation evolves.
 
 
 ```python
@@ -96,7 +96,7 @@ class ConversationSession:
     def add_message(self, role: str, content: str):
         self.messages.append({"role": role, "content": content})
 
-    def save(self, client: Hindsight):
+    def save(self, client: ContextBase):
         """Save the entire conversation. Replaces previous version if session_id exists."""
         # Convert messages to string format for retain
         content = "\n".join([f"{m['role']}: {m['content']}" for m in self.messages])
@@ -169,7 +169,7 @@ Respond helpfully and reference relevant memories when appropriate."""
 
     print(f"User: {user_message}")
     print(f"Assistant: {assistant_response}\n")
-    
+
     return assistant_response
 ```
 
@@ -190,7 +190,7 @@ handle_message(session, "Can you help me with async/await?")
 # View the stored conversation in the UI.
 # Each message updates the same document (via document_id), so you'll see
 # the full conversation history in a single document rather than separate entries.
-print(f"\nView documents: {HINDSIGHT_UI_URL}/banks/user-alice?view=documents")
+print(f"\nView documents: {CONTEXTBASE_UI_URL}/banks/user-alice?view=documents")
 ```
 
 ## How Document ID Works
@@ -212,7 +212,7 @@ This upsert behavior means:
 
 ## What Gets Remembered
 
-Hindsight automatically extracts and connects:
+ContextBase automatically extracts and connects:
 
 - **Facts**: "User prefers Python", "User is building a CLI tool"
 - **Entities**: People, projects, technologies mentioned
@@ -242,6 +242,6 @@ Delete the banks created during this notebook:
 import requests
 
 # Delete the user-alice bank
-response = requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/user-alice")
+response = requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/user-alice")
 print(f"Deleted user-alice: {response.json()}")
 ```

@@ -6,13 +6,13 @@ import os
 
 import pytest
 
-from hindsight_google_adk import (
-    HindsightAdkConfig,
+from contextbase_google_adk import (
+    ContextBaseAdkConfig,
     configure,
     get_config,
     reset_config,
 )
-from hindsight_google_adk.config import DEFAULT_HINDSIGHT_API_URL
+from contextbase_google_adk.config import DEFAULT_CONTEXTBASE_API_URL
 
 
 @pytest.fixture(autouse=True)
@@ -25,29 +25,29 @@ def _reset_global_config():
 class TestConfigure:
     def test_defaults(self):
         cfg = configure()
-        assert isinstance(cfg, HindsightAdkConfig)
-        assert cfg.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        assert isinstance(cfg, ContextBaseAdkConfig)
+        assert cfg.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert cfg.budget == "mid"
         assert cfg.max_tokens == 4096
         assert cfg.context == "google-adk"
         assert cfg.bank_id_template == "{app_name}::{user_id}"
 
     def test_explicit_url_wins(self):
-        cfg = configure(hindsight_api_url="https://internal.example.com")
-        assert cfg.hindsight_api_url == "https://internal.example.com"
+        cfg = configure(contextbase_api_url="https://internal.example.com")
+        assert cfg.contextbase_api_url == "https://internal.example.com"
 
     def test_api_key_explicit_wins(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_API_KEY", "from-env")
+        monkeypatch.setenv("CONTEXTBASE_API_KEY", "from-env")
         cfg = configure(api_key="from-arg")
         assert cfg.api_key == "from-arg"
 
     def test_api_key_falls_back_to_env(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_API_KEY", "from-env")
+        monkeypatch.setenv("CONTEXTBASE_API_KEY", "from-env")
         cfg = configure()
         assert cfg.api_key == "from-env"
 
     def test_api_key_unset_is_none(self, monkeypatch):
-        monkeypatch.delenv("HINDSIGHT_API_KEY", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_API_KEY", raising=False)
         cfg = configure()
         assert cfg.api_key is None
 

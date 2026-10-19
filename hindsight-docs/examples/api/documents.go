@@ -7,29 +7,29 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// [docs:document-retain]
 	// Retain with document ID
 	docID := "meeting-2024-03-15"
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
 				{
-					Content:    hindsight.TextContent("Alice presented the Q4 roadmap..."),
-					DocumentId: *hindsight.NewNullableString(&docID),
+					Content:    contextbase.TextContent("Alice presented the Q4 roadmap..."),
+					DocumentId: *contextbase.NewNullableString(&docID),
 				},
 			},
 		}).Execute()
@@ -39,22 +39,22 @@ func main() {
 	// Original
 	planDoc := "project-plan"
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
 				{
-					Content:    hindsight.TextContent("Project deadline: March 31"),
-					DocumentId: *hindsight.NewNullableString(&planDoc),
+					Content:    contextbase.TextContent("Project deadline: March 31"),
+					DocumentId: *contextbase.NewNullableString(&planDoc),
 				},
 			},
 		}).Execute()
 
 	// Update (deletes old facts, creates new ones)
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
 				{
-					Content:    hindsight.TextContent("Project deadline: April 15 (extended)"),
-					DocumentId: *hindsight.NewNullableString(&planDoc),
+					Content:    contextbase.TextContent("Project deadline: April 15 (extended)"),
+					DocumentId: *contextbase.NewNullableString(&planDoc),
 				},
 			},
 		}).Execute()
@@ -72,7 +72,7 @@ func main() {
 	// [docs:document-update-tags]
 	// Replace the document's tags (the full set it should end up with)
 	updateResult, _, err := client.DocumentsAPI.UpdateDocument(ctx, "my-bank", "meeting-2024-03-15").
-		UpdateDocumentRequest(hindsight.UpdateDocumentRequest{Tags: []string{"team-a", "team-b"}}).
+		UpdateDocumentRequest(contextbase.UpdateDocumentRequest{Tags: []string{"team-a", "team-b"}}).
 		Execute()
 	if err != nil {
 		log.Fatalf("Failed to update document: %v", err)
@@ -82,7 +82,7 @@ func main() {
 	// Remove all tags (make document visible everywhere). Pass an empty slice, not nil:
 	// a nil slice is left out of the request, and the server rejects an update with no tags.
 	client.DocumentsAPI.UpdateDocument(ctx, "my-bank", "meeting-2024-03-15").
-		UpdateDocumentRequest(hindsight.UpdateDocumentRequest{Tags: []string{}}).
+		UpdateDocumentRequest(contextbase.UpdateDocumentRequest{Tags: []string{}}).
 		Execute()
 	// [/docs:document-update-tags]
 

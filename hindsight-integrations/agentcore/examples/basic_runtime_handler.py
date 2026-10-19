@@ -1,16 +1,16 @@
-"""Basic AgentCore Runtime handler with Hindsight persistent memory.
+"""Basic AgentCore Runtime handler with ContextBase persistent memory.
 
 This example shows how to wrap an AgentCore Runtime invocation with the
-``HindsightRuntimeAdapter`` so the agent recalls relevant memories before
+``ContextBaseRuntimeAdapter`` so the agent recalls relevant memories before
 each turn and retains its output afterwards. Memory persists across
 Runtime session reprovisioning — your agent stops forgetting users.
 
 Requirements:
-    pip install hindsight-agentcore
+    pip install contextbase-agentcore
 
 Environment variables:
-    HINDSIGHT_API_URL    - Hindsight API URL (default: https://api.hindsight.vectorize.io)
-    HINDSIGHT_API_KEY    - Hindsight API key (required for Hindsight Cloud)
+    CONTEXTBASE_API_URL    - ContextBase API URL (default: http://localhost:8888)
+    CONTEXTBASE_API_KEY    - ContextBase API key (required for ContextBase Cloud)
 
 Run:
     python examples/basic_runtime_handler.py
@@ -22,16 +22,16 @@ import asyncio
 import os
 from typing import Any
 
-from hindsight_agentcore import HindsightRuntimeAdapter, TurnContext, configure
+from contextbase_agentcore import ContextBaseRuntimeAdapter, TurnContext, configure
 
-# 1. Configure Hindsight once at module import (or in your Runtime cold start).
+# 1. Configure ContextBase once at module import (or in your Runtime cold start).
 configure(
-    hindsight_api_url=os.environ.get("HINDSIGHT_API_URL", "https://api.hindsight.vectorize.io"),
-    api_key=os.environ.get("HINDSIGHT_API_KEY"),
+    contextbase_api_url=os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888"),
+    api_key=os.environ.get("CONTEXTBASE_API_KEY"),
 )
 
 # 2. Create the adapter once and reuse it across invocations.
-adapter = HindsightRuntimeAdapter(agent_name="support-agent")
+adapter = ContextBaseRuntimeAdapter(agent_name="support-agent")
 
 
 async def my_agent(payload: dict[str, Any], memory_context: str) -> dict[str, Any]:

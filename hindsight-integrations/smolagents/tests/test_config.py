@@ -1,28 +1,28 @@
-"""Unit tests for hindsight_smolagents configuration."""
+"""Unit tests for contextbase_smolagents configuration."""
 
 import os
 from unittest.mock import patch
 
-from hindsight_smolagents import configure, get_config, reset_config
-from hindsight_smolagents.config import (
-    DEFAULT_HINDSIGHT_API_URL,
-    HINDSIGHT_API_KEY_ENV,
-    HindsightSmolAgentsConfig,
+from contextbase_smolagents import configure, get_config, reset_config
+from contextbase_smolagents.config import (
+    DEFAULT_CONTEXTBASE_API_URL,
+    CONTEXTBASE_API_KEY_ENV,
+    ContextBaseSmolAgentsConfig,
 )
 
 
 class TestDefaults:
     def test_default_api_url(self):
-        assert DEFAULT_HINDSIGHT_API_URL == "https://api.hindsight.vectorize.io"
+        assert DEFAULT_CONTEXTBASE_API_URL == ""
 
     def test_env_var_name(self):
-        assert HINDSIGHT_API_KEY_ENV == "HINDSIGHT_API_KEY"
+        assert CONTEXTBASE_API_KEY_ENV == "CONTEXTBASE_API_KEY"
 
 
-class TestHindsightSmolAgentsConfigDataclass:
+class TestContextBaseSmolAgentsConfigDataclass:
     def test_default_values(self):
-        config = HindsightSmolAgentsConfig()
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        config = ContextBaseSmolAgentsConfig()
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.api_key is None
         assert config.budget == "mid"
         assert config.max_tokens == 4096
@@ -32,8 +32,8 @@ class TestHindsightSmolAgentsConfigDataclass:
         assert config.verbose is False
 
     def test_custom_values(self):
-        config = HindsightSmolAgentsConfig(
-            hindsight_api_url="http://custom:9999",
+        config = ContextBaseSmolAgentsConfig(
+            contextbase_api_url="http://custom:9999",
             api_key="key-123",
             budget="high",
             max_tokens=2048,
@@ -42,7 +42,7 @@ class TestHindsightSmolAgentsConfigDataclass:
             recall_tags_match="all",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:9999"
+        assert config.contextbase_api_url == "http://custom:9999"
         assert config.api_key == "key-123"
         assert config.budget == "high"
         assert config.max_tokens == 2048
@@ -52,7 +52,7 @@ class TestHindsightSmolAgentsConfigDataclass:
         assert config.verbose is True
 
     def test_is_mutable_dataclass(self):
-        config = HindsightSmolAgentsConfig()
+        config = ContextBaseSmolAgentsConfig()
         config.budget = "low"
         assert config.budget == "low"
 
@@ -66,7 +66,7 @@ class TestConfigure:
 
     def test_configure_with_no_arguments(self):
         config = configure()
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.api_key is None
         assert config.budget == "mid"
         assert config.max_tokens == 4096
@@ -76,12 +76,12 @@ class TestConfigure:
         assert config.verbose is False
 
     def test_configure_reads_api_key_from_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-key"}):
             config = configure()
         assert config.api_key == "test-key"
 
     def test_configure_explicit_overrides_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-key"}):
             config = configure(api_key="explicit-key")
         assert config.api_key == "explicit-key"
 
@@ -92,7 +92,7 @@ class TestConfigure:
 
     def test_configure_all_options(self):
         config = configure(
-            hindsight_api_url="http://custom:8888",
+            contextbase_api_url="http://custom:8888",
             api_key="my-key",
             budget="high",
             max_tokens=2048,
@@ -101,7 +101,7 @@ class TestConfigure:
             recall_tags_match="all",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:8888"
+        assert config.contextbase_api_url == "http://custom:8888"
         assert config.api_key == "my-key"
         assert config.budget == "high"
         assert config.max_tokens == 2048
@@ -112,7 +112,7 @@ class TestConfigure:
 
     def test_configure_returns_config_instance(self):
         config = configure()
-        assert isinstance(config, HindsightSmolAgentsConfig)
+        assert isinstance(config, ContextBaseSmolAgentsConfig)
 
     def test_configure_replaces_previous_config(self):
         configure(budget="low")
@@ -125,8 +125,8 @@ class TestConfigure:
         assert config1 is not config2
 
     def test_configure_url_defaults_when_none(self):
-        config = configure(hindsight_api_url=None)
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        config = configure(contextbase_api_url=None)
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
 
 
 class TestGetConfig:
@@ -143,7 +143,7 @@ class TestGetConfig:
         configure()
         config = get_config()
         assert config is not None
-        assert isinstance(config, HindsightSmolAgentsConfig)
+        assert isinstance(config, ContextBaseSmolAgentsConfig)
 
     def test_returns_same_instance(self):
         configure()

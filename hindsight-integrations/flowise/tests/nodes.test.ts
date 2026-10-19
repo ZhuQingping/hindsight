@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// Mock the Hindsight client so init() never makes real HTTP calls. The
+// Mock the ContextBase client so init() never makes real HTTP calls. The
 // instance is shared so individual tests can stub the methods.
 const mockRetain = vi.fn();
 const mockRecall = vi.fn();
@@ -18,39 +18,39 @@ vi.mock("@vectorize-io/hindsight-client", () => ({
   },
 }));
 
-import * as retainModule from "../nodes/tools/HindsightRetain/HindsightRetain";
-import * as recallModule from "../nodes/tools/HindsightRecall/HindsightRecall";
-import * as reflectModule from "../nodes/tools/HindsightReflect/HindsightReflect";
+import * as retainModule from "../nodes/tools/ContextBaseRetain/ContextBaseRetain";
+import * as recallModule from "../nodes/tools/ContextBaseRecall/ContextBaseRecall";
+import * as reflectModule from "../nodes/tools/ContextBaseReflect/ContextBaseReflect";
 
-const HindsightRetain = (retainModule as any).nodeClass;
-const HindsightRecall = (recallModule as any).nodeClass;
-const HindsightReflect = (reflectModule as any).nodeClass;
+const ContextBaseRetain = (retainModule as any).nodeClass;
+const ContextBaseRecall = (recallModule as any).nodeClass;
+const ContextBaseReflect = (reflectModule as any).nodeClass;
 
-describe("HindsightRetain node", () => {
+describe("ContextBaseRetain node", () => {
   beforeEach(() => {
     mockRetain.mockReset();
     mockRecall.mockReset();
     mockReflect.mockReset();
   });
 
-  const node = new HindsightRetain();
+  const node = new ContextBaseRetain();
 
   it("declares the expected metadata", () => {
-    expect(node.label).toBe("Hindsight Retain");
-    expect(node.name).toBe("hindsightRetain");
+    expect(node.label).toBe("ContextBase Retain");
+    expect(node.name).toBe("contextbaseRetain");
     expect(node.category).toBe("Tools");
-    expect(node.icon).toBe("hindsight.png");
+    expect(node.icon).toBe("contextbase.svg");
     expect(node.version).toBe(1.0);
   });
 
-  it("requires the hindsightApi credential", () => {
-    expect(node.credential.credentialNames).toEqual(["hindsightApi"]);
+  it("requires the contextbaseApi credential", () => {
+    expect(node.credential.credentialNames).toEqual(["contextbaseApi"]);
   });
 
   it("init() returns a structured tool exposing the retain schema", async () => {
     const credential = JSON.stringify({ apiUrl: "http://127.0.0.1:8888", apiKey: "" });
     const tool: any = await node.init({ credential, inputs: { bankId: "flowise-test" } }, "", {});
-    expect(tool.name).toBe("hindsight_retain");
+    expect(tool.name).toBe("contextbase_retain");
     expect(typeof tool.func).toBe("function");
     expect(tool.schema).toBeDefined();
   });
@@ -58,7 +58,7 @@ describe("HindsightRetain node", () => {
   it("identifies itself to the API with the integration's User-Agent", async () => {
     const credential = JSON.stringify({ apiUrl: "http://127.0.0.1:8888" });
     await node.init({ credential, inputs: {} }, "", {});
-    expect(clientOpts.at(-1)).toMatchObject({ userAgent: "hindsight-flowise" });
+    expect(clientOpts.at(-1)).toMatchObject({ userAgent: "contextbase-flowise" });
   });
 
   it("forwards retain calls to the client with bankId, content, and tags", async () => {
@@ -78,18 +78,18 @@ describe("HindsightRetain node", () => {
   });
 });
 
-describe("HindsightRecall node", () => {
+describe("ContextBaseRecall node", () => {
   beforeEach(() => {
     mockRetain.mockReset();
     mockRecall.mockReset();
     mockReflect.mockReset();
   });
 
-  const node = new HindsightRecall();
+  const node = new ContextBaseRecall();
 
   it("declares the expected metadata", () => {
-    expect(node.label).toBe("Hindsight Recall");
-    expect(node.name).toBe("hindsightRecall");
+    expect(node.label).toBe("ContextBase Recall");
+    expect(node.name).toBe("contextbaseRecall");
     expect(node.category).toBe("Tools");
   });
 
@@ -129,18 +129,18 @@ describe("HindsightRecall node", () => {
   });
 });
 
-describe("HindsightReflect node", () => {
+describe("ContextBaseReflect node", () => {
   beforeEach(() => {
     mockRetain.mockReset();
     mockRecall.mockReset();
     mockReflect.mockReset();
   });
 
-  const node = new HindsightReflect();
+  const node = new ContextBaseReflect();
 
   it("declares the expected metadata", () => {
-    expect(node.label).toBe("Hindsight Reflect");
-    expect(node.name).toBe("hindsightReflect");
+    expect(node.label).toBe("ContextBase Reflect");
+    expect(node.name).toBe("contextbaseReflect");
     expect(node.category).toBe("Tools");
   });
 
@@ -157,13 +157,13 @@ describe("HindsightReflect node", () => {
   });
 });
 
-describe("All three nodes share the hindsightApi credential", () => {
+describe("All three nodes share the contextbaseApi credential", () => {
   it("uses the same credential name", () => {
-    const r = new HindsightRetain();
-    const c = new HindsightRecall();
-    const f = new HindsightReflect();
-    expect(r.credential.credentialNames).toEqual(["hindsightApi"]);
-    expect(c.credential.credentialNames).toEqual(["hindsightApi"]);
-    expect(f.credential.credentialNames).toEqual(["hindsightApi"]);
+    const r = new ContextBaseRetain();
+    const c = new ContextBaseRecall();
+    const f = new ContextBaseReflect();
+    expect(r.credential.credentialNames).toEqual(["contextbaseApi"]);
+    expect(c.credential.credentialNames).toEqual(["contextbaseApi"]);
+    expect(f.credential.credentialNames).toEqual(["contextbaseApi"]);
   });
 });

@@ -1,8 +1,8 @@
 """
-Live integration test for hindsight-agentcore.
+Live integration test for contextbase-agentcore.
 
-Skipped unless ``HINDSIGHT_API_KEY`` is set. Targets the URL in
-``HINDSIGHT_API_URL`` (default: http://localhost:8888).
+Skipped unless ``CONTEXTBASE_API_KEY`` is set. Targets the URL in
+``CONTEXTBASE_API_URL`` (default: http://localhost:8888).
 
 Verifies the full retain → recall cycle through the adapter:
   1. Turn 1: agent receives a fact-bearing prompt; adapter retains the turn
@@ -20,14 +20,14 @@ from typing import Any
 
 import pytest
 
-from hindsight_agentcore import HindsightRuntimeAdapter, TurnContext, configure, reset_config
+from contextbase_agentcore import ContextBaseRuntimeAdapter, TurnContext, configure, reset_config
 
-_api_key = os.environ.get("HINDSIGHT_API_KEY")
-_api_url = os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888")
+_api_key = os.environ.get("CONTEXTBASE_API_KEY")
+_api_url = os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 pytestmark = pytest.mark.skipif(
     not _api_key,
-    reason="HINDSIGHT_API_KEY not set — skipping live integration test",
+    reason="CONTEXTBASE_API_KEY not set — skipping live integration test",
 )
 
 
@@ -42,10 +42,10 @@ async def _echo_agent(payload: dict[str, Any], memory_context: str) -> dict[str,
 @pytest.mark.asyncio
 async def test_run_turn_retain_then_recall() -> None:
     reset_config()
-    configure(hindsight_api_url=_api_url, api_key=_api_key)
+    configure(contextbase_api_url=_api_url, api_key=_api_key)
 
     user_id = f"agentcore-live-{uuid.uuid4().hex[:8]}"
-    adapter = HindsightRuntimeAdapter(agent_name="agentcore-live-test")
+    adapter = ContextBaseRuntimeAdapter(agent_name="agentcore-live-test")
 
     # Turn 1: plant a memorable fact
     fact = "My favorite programming language is Rust."

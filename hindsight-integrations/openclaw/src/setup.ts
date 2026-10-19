@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Setup wizard for the Hindsight OpenClaw plugin.
+ * Setup wizard for the ContextBase OpenClaw plugin.
  *
  * Two modes of operation:
  *
- *   1. Interactive — no flags, just run `hindsight-openclaw-setup`. Walks the
+ *   1. Interactive — no flags, just run `contextbase-openclaw-setup`. Walks the
  *      user through picking a mode (Cloud / External API / Embedded daemon)
  *      via @clack/prompts and writes openclaw.json.
  *
@@ -21,7 +21,6 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 import {
   DEFAULT_OPENCLAW_CONFIG_PATH,
-  HINDSIGHT_CLOUD_URL,
   NO_KEY_PROVIDERS,
   type ApiSetupInput,
   type CloudSetupInput,
@@ -61,7 +60,7 @@ export interface ParsedCliArgs {
 
 function usage(): string {
   return [
-    "Usage: hindsight-openclaw-setup [options] [config-path]",
+    "Usage: contextbase-openclaw-setup [options] [config-path]",
     "",
     "Interactive mode (no flags): walks through a TUI picker for Cloud /",
     "External API / Embedded daemon and writes the resulting plugin config",
@@ -75,13 +74,13 @@ function usage(): string {
     "  --mode <mode>           cloud | api | embedded (enables non-interactive mode)",
     "",
     "Cloud mode (must pass exactly one of --token or --token-env):",
-    `  --api-url <url>         Override the Hindsight Cloud URL (default: ${HINDSIGHT_CLOUD_URL})`,
+    `  --api-url <url>         ContextBase service URL (required)`,
     "  --token <value>         Store the token inline in openclaw.json (simple)",
     "  --token-env <VAR>       Reference an env var instead — resolved at startup",
     "                          via SecretRef (keeps the secret off disk)",
     "",
     "External API mode (token is optional; pass at most one of --token / --token-env / --no-token):",
-    "  --api-url <url>         Hindsight API URL (required)",
+    "  --api-url <url>         ContextBase API URL (required)",
     "  --token <value>         Inline token value in openclaw.json",
     "  --token-env <VAR>       Env var holding the token (SecretRef)",
     "  --no-token              Explicitly disable token auth",
@@ -95,12 +94,12 @@ function usage(): string {
     "  -h, --help              Show this help",
     "",
     "Examples:",
-    "  hindsight-openclaw-setup",
-    "  hindsight-openclaw-setup --mode cloud --token hsk_...",
-    "  hindsight-openclaw-setup --mode cloud --token-env HINDSIGHT_CLOUD_TOKEN",
-    "  hindsight-openclaw-setup --mode api --api-url https://mcp.hindsight.example.com --no-token",
-    "  hindsight-openclaw-setup --mode embedded --provider openai --api-key-env OPENAI_API_KEY",
-    "  hindsight-openclaw-setup --mode embedded --provider claude-code",
+    "  contextbase-openclaw-setup",
+    "  contextbase-openclaw-setup --mode cloud --token hsk_...",
+    "  contextbase-openclaw-setup --mode cloud --token-env CONTEXTBASE_CLOUD_TOKEN",
+    "  contextbase-openclaw-setup --mode api --api-url https://mcp.hindsight.example.com --no-token",
+    "  contextbase-openclaw-setup --mode embedded --provider openai --api-key-env OPENAI_API_KEY",
+    "  contextbase-openclaw-setup --mode embedded --provider claude-code",
   ].join("\n");
 }
 
@@ -309,49 +308,34 @@ async function promptInlineSecretWithReuse(message: string, existing: unknown): 
 
 async function promptCloud(pluginConfig: Record<string, unknown>): Promise<string> {
   const existingUrl =
-    typeof pluginConfig.hindsightApiUrl === "string"
-      ? (pluginConfig.hindsightApiUrl as string).trim()
+    typeof pluginConfig.contextbaseApiUrl === "string"
+      ? (pluginConfig.contextbaseApiUrl as string).trim()
       : "";
-  const currentUrl = existingUrl || HINDSIGHT_CLOUD_URL;
-  const useCurrentUrl = await p.confirm({
-    message:
-      existingUrl && existingUrl !== HINDSIGHT_CLOUD_URL
-        ? `Reuse the configured Cloud URL (${currentUrl})?`
-        : `Use the default Hindsight Cloud URL (${HINDSIGHT_CLOUD_URL})?`,
-    initialValue: true,
+  const apiUrl = await p.text({
+    message: "ContextBase service URL",
+    initialValue: existingUrl || undefined,
+    placeholder: "https://memory.example.com",
+    validate: validateRequired("URL is required"),
   });
-  assertNotCancelled(useCurrentUrl);
-
-  let apiUrl: string | undefined;
-  if (!useCurrentUrl) {
-    const custom = await p.text({
-      message: "Hindsight Cloud URL",
-      placeholder: HINDSIGHT_CLOUD_URL,
-      validate: validateRequired("URL is required"),
-    });
-    assertNotCancelled(custom);
-    apiUrl = custom;
-  } else if (existingUrl) {
-    apiUrl = existingUrl;
-  }
+  assertNotCancelled(apiUrl);
 
   const token = await promptInlineSecretWithReuse(
-    "Hindsight Cloud API token (paste the value, it will be masked)",
-    pluginConfig.hindsightApiToken
+    "ContextBase Cloud API token (paste the value, it will be masked)",
+    pluginConfig.contextbaseApiToken
   );
 
-  const input = { apiUrl, token };
+  const input = { apiUrl: apiUrl as string, token };
   applyCloudMode(pluginConfig, input);
   return summarizeCloud(input);
 }
 
 async function promptApi(pluginConfig: Record<string, unknown>): Promise<string> {
   const existingUrl =
-    typeof pluginConfig.hindsightApiUrl === "string"
-      ? (pluginConfig.hindsightApiUrl as string).trim()
+    typeof pluginConfig.contextbaseApiUrl === "string"
+      ? (pluginConfig.contextbaseApiUrl as string).trim()
       : "";
   const apiUrl = await p.text({
-    message: "Hindsight API URL",
+    message: "ContextBase API URL",
     placeholder: "https://mcp.hindsight.example.com",
     initialValue: existingUrl || undefined,
     validate: validateRequired("URL is required"),
@@ -359,8 +343,8 @@ async function promptApi(pluginConfig: Record<string, unknown>): Promise<string>
   assertNotCancelled(apiUrl);
 
   const hasExistingToken =
-    typeof pluginConfig.hindsightApiToken === "string" &&
-    (pluginConfig.hindsightApiToken as string).trim().length > 0;
+    typeof pluginConfig.contextbaseApiToken === "string" &&
+    (pluginConfig.contextbaseApiToken as string).trim().length > 0;
   const needsToken = await p.confirm({
     message: "Does this API require an auth token?",
     initialValue: hasExistingToken,
@@ -371,7 +355,7 @@ async function promptApi(pluginConfig: Record<string, unknown>): Promise<string>
   if (needsToken) {
     token = await promptInlineSecretWithReuse(
       "API token (paste the value, it will be masked)",
-      pluginConfig.hindsightApiToken
+      pluginConfig.contextbaseApiToken
     );
   }
 
@@ -382,7 +366,7 @@ async function promptApi(pluginConfig: Record<string, unknown>): Promise<string>
 
 async function promptEmbedded(pluginConfig: Record<string, unknown>): Promise<string> {
   const provider = await p.select({
-    message: "LLM provider used by the Hindsight memory daemon",
+    message: "LLM provider used by the ContextBase memory daemon",
     options: [
       { value: "openai", label: "OpenAI", hint: "API key required" },
       { value: "anthropic", label: "Anthropic", hint: "API key required" },
@@ -437,21 +421,21 @@ async function promptEmbedded(pluginConfig: Record<string, unknown>): Promise<st
 async function runInteractive(
   configPath: string
 ): Promise<{ summary: string; configPath: string }> {
-  p.intro("🦞 Hindsight Memory setup for OpenClaw");
+  p.intro("🦞 ContextBase Memory setup for OpenClaw");
   p.log.info(`Config file: ${configPath}`);
 
   const cfg = await loadConfig(configPath);
   const pluginConfig = ensurePluginConfig(cfg);
 
   const mode = await p.select({
-    message: "How do you want to run Hindsight?",
+    message: "How do you want to run ContextBase?",
     options: [
-      { value: "cloud", label: "Cloud", hint: "managed Hindsight, no local setup" },
-      { value: "api", label: "External API", hint: "your own running Hindsight deployment" },
+      { value: "cloud", label: "Cloud", hint: "managed ContextBase, no local setup" },
+      { value: "api", label: "External API", hint: "your own running ContextBase deployment" },
       {
         value: "embedded",
         label: "Embedded daemon",
-        hint: "spawn a local hindsight daemon on this machine",
+        hint: "spawn a local contextbase daemon on this machine",
       },
     ],
   });
@@ -481,10 +465,10 @@ async function runInteractive(
       "",
       "Secrets were stored inline in openclaw.json. To reference an env var",
       "instead (recommended for CI/production), use:",
-      "  openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken \\",
-      "      --ref-source env --ref-id HINDSIGHT_CLOUD_TOKEN",
+      "  openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken \\",
+      "      --ref-source env --ref-id CONTEXTBASE_CLOUD_TOKEN",
     ].join("\n"),
-    "Hindsight Memory configured"
+    "ContextBase Memory configured"
   );
   p.outro("Done.");
   return { summary, configPath };
@@ -499,7 +483,7 @@ async function main(): Promise<void> {
   try {
     args = parseCliArgs(process.argv.slice(2));
   } catch (err) {
-    console.error(`hindsight-openclaw-setup: ${err instanceof Error ? err.message : err}`);
+    console.error(`contextbase-openclaw-setup: ${err instanceof Error ? err.message : err}`);
     console.error();
     console.error(usage());
     process.exit(2);
@@ -516,10 +500,10 @@ async function main(): Promise<void> {
     // Non-interactive path for scripts and CI.
     try {
       const { summary } = await runNonInteractive(args, configPath);
-      console.log(`Hindsight Memory configured: ${summary}`);
+      console.log(`ContextBase Memory configured: ${summary}`);
       console.log(`Saved to ${configPath}`);
     } catch (err) {
-      console.error(`hindsight-openclaw-setup: ${err instanceof Error ? err.message : err}`);
+      console.error(`contextbase-openclaw-setup: ${err instanceof Error ? err.message : err}`);
       process.exit(1);
     }
     return;
@@ -533,7 +517,7 @@ async function main(): Promise<void> {
  * Only run `main()` when this file is the Node entry point. Importing it from
  * a test (or any other module) should not trigger the interactive wizard.
  *
- * When invoked through `node_modules/.bin/hindsight-openclaw-setup` (npm-created
+ * When invoked through `node_modules/.bin/contextbase-openclaw-setup` (npm-created
  * symlink), `process.argv[1]` points at the symlink while `import.meta.url`
  * resolves to the real file. Canonicalize both via `realpath` so the check
  * still matches — otherwise `main()` never runs on bin invocations and the
@@ -561,7 +545,7 @@ function isDirectRun(): boolean {
 if (isDirectRun()) {
   main().catch((err: unknown) => {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`hindsight-openclaw-setup failed: ${msg}`);
+    console.error(`contextbase-openclaw-setup failed: ${msg}`);
     process.exit(1);
   });
 }

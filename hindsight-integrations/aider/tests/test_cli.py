@@ -1,6 +1,6 @@
 """Tests for the CLI passthrough."""
 
-from hindsight_aider import cli
+from contextbase_aider import cli
 
 
 def test_passes_args_to_runner(monkeypatch):
@@ -22,5 +22,5 @@ def test_returns_runner_exit_code(monkeypatch):
 
 
 def test_version_flag(capsys):
-    assert cli.main(["--hindsight-version"]) == 0
-    assert "hindsight-aider" in capsys.readouterr().out
+    assert cli.main(["--contextbase-version"]) == 0
+    assert "contextbase-aider" in capsys.readouterr().out

@@ -2,9 +2,9 @@
 
 import json
 
-from hindsight_copilot.cli import build_install, main
-from hindsight_copilot.config import CopilotConfig
-from hindsight_copilot.mcp_config import SERVER_NAME, is_installed as server_installed
+from contextbase_copilot.cli import build_install, main
+from contextbase_copilot.config import CopilotConfig
+from contextbase_copilot.mcp_config import SERVER_NAME, is_installed as server_installed
 
 
 class TestBuildInstall:
@@ -12,14 +12,14 @@ class TestBuildInstall:
         mcp = tmp_path / "mcp.json"
         instr = tmp_path / "copilot-instructions.md"
         cfg = CopilotConfig(
-            hindsight_api_url="https://api.hindsight.vectorize.io", hindsight_api_token="k", bank_id="proj"
+            contextbase_api_url="https://api.hindsight.vectorize.io", contextbase_api_token="k", bank_id="proj"
         )
         outcome = build_install(cfg, mcp, instr)
         assert outcome.mcp.action == "created"
         server = json.loads(mcp.read_text())["servers"][SERVER_NAME]
         assert server["url"] == "https://api.hindsight.vectorize.io/mcp/proj/"
         assert server["headers"]["Authorization"] == "Bearer k"
-        assert "HINDSIGHT:BEGIN" in instr.read_text()
+        assert "CONTEXTBASE:BEGIN" in instr.read_text()
 
 
 class TestMain:

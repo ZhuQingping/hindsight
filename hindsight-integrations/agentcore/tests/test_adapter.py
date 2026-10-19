@@ -6,8 +6,8 @@ import pytest
 
 from hindsight_client_api.models.reflect_response import ReflectResponse
 
-from hindsight_agentcore import (
-    HindsightRuntimeAdapter,
+from contextbase_agentcore import (
+    ContextBaseRuntimeAdapter,
     RecallPolicy,
     RetentionPolicy,
     TurnContext,
@@ -42,7 +42,7 @@ def _make_recall_response(*texts):
 
 
 def _make_mock_client() -> MagicMock:
-    """Mock Hindsight client with async-native methods (arecall/aretain/areflect)."""
+    """Mock ContextBase client with async-native methods (arecall/aretain/areflect)."""
     client = MagicMock()
     client.arecall = AsyncMock()
     client.aretain = AsyncMock()
@@ -53,13 +53,13 @@ def _make_mock_client() -> MagicMock:
 class TestBeforeTurn:
     def setup_method(self):
         reset_config()
-        configure(hindsight_api_url="http://fake:9077")
+        configure(contextbase_api_url="http://fake:9077")
 
     def teardown_method(self):
         reset_config()
 
     def _make_adapter(self, **kwargs):
-        adapter = HindsightRuntimeAdapter(**kwargs)
+        adapter = ContextBaseRuntimeAdapter(**kwargs)
         mock_client = _make_mock_client()
         adapter._client = mock_client
         return adapter, mock_client
@@ -136,13 +136,13 @@ class TestBeforeTurn:
 class TestAfterTurn:
     def setup_method(self):
         reset_config()
-        configure(hindsight_api_url="http://fake:9077", retain_async=False)
+        configure(contextbase_api_url="http://fake:9077", retain_async=False)
 
     def teardown_method(self):
         reset_config()
 
     def _make_adapter(self, **kwargs):
-        adapter = HindsightRuntimeAdapter(**kwargs)
+        adapter = ContextBaseRuntimeAdapter(**kwargs)
         mock_client = _make_mock_client()
         adapter._client = mock_client
         return adapter, mock_client
@@ -204,7 +204,7 @@ class TestRetainAsync:
 
     def setup_method(self):
         reset_config()
-        configure(hindsight_api_url="http://fake:9077", retain_async=True)
+        configure(contextbase_api_url="http://fake:9077", retain_async=True)
 
     def teardown_method(self):
         reset_config()
@@ -213,7 +213,7 @@ class TestRetainAsync:
     async def test_pending_task_tracked_and_completes(self):
         import asyncio
 
-        adapter = HindsightRuntimeAdapter()
+        adapter = ContextBaseRuntimeAdapter()
         mock_client = _make_mock_client()
         adapter._client = mock_client
 
@@ -231,13 +231,13 @@ class TestRetainAsync:
 class TestRunTurn:
     def setup_method(self):
         reset_config()
-        configure(hindsight_api_url="http://fake:9077", retain_async=False)
+        configure(contextbase_api_url="http://fake:9077", retain_async=False)
 
     def teardown_method(self):
         reset_config()
 
     def _make_adapter(self):
-        adapter = HindsightRuntimeAdapter()
+        adapter = ContextBaseRuntimeAdapter()
         mock_client = _make_mock_client()
         mock_client.arecall.return_value = _make_recall_response("Prior invoice issue resolved")
         adapter._client = mock_client
@@ -279,7 +279,7 @@ class TestRunTurn:
 
     @pytest.mark.asyncio
     async def test_default_agent_name_from_adapter(self):
-        adapter = HindsightRuntimeAdapter(agent_name="default-agent")
+        adapter = ContextBaseRuntimeAdapter(agent_name="default-agent")
         mock_client = _make_mock_client()
         mock_client.arecall.return_value = _make_recall_response()
         adapter._client = mock_client
@@ -303,5 +303,5 @@ def test_client_sends_integration_user_agent(monkeypatch):
 
     mock_cls = MagicMock()
     monkeypatch.setattr(hindsight_client, "Hindsight", mock_cls)
-    HindsightRuntimeAdapter(hindsight_api_url="http://fake:9077")._get_client()
-    assert mock_cls.call_args.kwargs["user_agent"].startswith("hindsight-agentcore/")
+    ContextBaseRuntimeAdapter(contextbase_api_url="http://fake:9077")._get_client()
+    assert mock_cls.call_args.kwargs["user_agent"].startswith("contextbase-agentcore/")

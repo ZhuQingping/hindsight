@@ -1,4 +1,4 @@
-"""Shared test fixtures for Cursor Hindsight plugin tests."""
+"""Shared test fixtures for Cursor ContextBase plugin tests."""
 
 import os
 import sys

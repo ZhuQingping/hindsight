@@ -1,11 +1,11 @@
 import type { Plugin } from "@elizaos/core";
-import { createHindsightEvaluator } from "./evaluator.js";
-import type { HindsightPluginOptions } from "./options.js";
-import { createHindsightProvider } from "./provider.js";
+import { createContextBaseEvaluator } from "./evaluator.js";
+import type { ContextBasePluginOptions } from "./options.js";
+import { createContextBaseProvider } from "./provider.js";
 
 /**
  * Creates an elizaOS plugin that gives an agent long-term memory backed by
- * Hindsight.
+ * ContextBase.
  *
  * - A **provider** recalls relevant memories and injects them into the prompt
  *   before each model call.
@@ -16,26 +16,27 @@ import { createHindsightProvider } from "./provider.js";
  *
  * @example
  * ```ts
- * import { createHindsightPlugin } from "@vectorize-io/hindsight-eliza";
- * import { Hindsight } from "@vectorize-io/hindsight-client";
+ * import { createContextBasePlugin } from "contextbase-eliza";
+ * import { HindsightClient } from "@vectorize-io/hindsight-client";
  *
- * const plugin = createHindsightPlugin({
- *   client: new Hindsight({ apiKey: process.env.HINDSIGHT_API_KEY }),
+ * const plugin = createContextBasePlugin({
+ *   client: new HindsightClient({ apiKey: process.env.CONTEXTBASE_API_KEY }),
  *   recall: { budget: "high", includeEntities: true },
  *   retain: { tags: ["source:eliza"] },
  * });
  * ```
  */
-export function createHindsightPlugin(options: HindsightPluginOptions): Plugin {
+export function createContextBasePlugin(options: ContextBasePluginOptions): Plugin {
   const { client, bank, recall = {}, retain = {} } = options;
 
-  const providers = recall.enabled === false ? [] : [createHindsightProvider(client, bank, recall)];
+  const providers =
+    recall.enabled === false ? [] : [createContextBaseProvider(client, bank, recall)];
   const evaluators =
-    retain.enabled === false ? [] : [createHindsightEvaluator(client, bank, retain)];
+    retain.enabled === false ? [] : [createContextBaseEvaluator(client, bank, retain)];
 
   return {
-    name: "@vectorize-io/hindsight-eliza",
-    description: "Hindsight long-term memory: recall relevant memories and retain conversations.",
+    name: "contextbase-eliza",
+    description: "ContextBase long-term memory: recall relevant memories and retain conversations.",
     providers,
     evaluators,
   };

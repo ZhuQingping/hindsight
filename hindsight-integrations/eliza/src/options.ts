@@ -2,7 +2,7 @@ import type { Memory } from "@elizaos/core";
 import type { Budget, FactType, HindsightClient } from "./client.js";
 
 /**
- * Resolves which Hindsight memory bank a message belongs to.
+ * Resolves which ContextBase memory bank a message belongs to.
  *
  * A string is used as a fixed bank for every message; a function lets callers
  * derive the bank per message (e.g. one bank per user or per room).
@@ -37,8 +37,8 @@ export interface RetainOptions {
   includeAgentMessages?: boolean;
 }
 
-export interface HindsightPluginOptions {
-  /** A Hindsight client instance (e.g. from `@vectorize-io/hindsight-client`). */
+export interface ContextBasePluginOptions {
+  /** A ContextBase client instance (e.g. from `@vectorize-io/hindsight-client`). */
   client: HindsightClient;
   /**
    * The memory bank to read and write. Defaults to the message's `entityId`,

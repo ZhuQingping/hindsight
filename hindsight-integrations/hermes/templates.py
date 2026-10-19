@@ -1,7 +1,7 @@
-"""Starter bank templates for the Hindsight setup wizard: fetch the Bank Templates
+"""Starter bank templates for the ContextBase setup wizard: fetch the Bank Templates
 catalog, filter to the ``hermes`` integration, apply a manifest via
 ``POST /v1/default/banks/{bank}/import`` (creates the bank if missing).
-Catalog source overridable with ``HINDSIGHT_TEMPLATES_URL`` (pin/mirror).
+Catalog source overridable with ``CONTEXTBASE_TEMPLATES_URL`` (pin/mirror).
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def supported_for_mode(mode: str) -> bool:
 
 
 def catalog_url() -> str:
-    return os.environ.get("HINDSIGHT_TEMPLATES_URL", _DEFAULT_CATALOG_URL)
+    return os.environ.get("CONTEXTBASE_TEMPLATES_URL", _DEFAULT_CATALOG_URL)
 
 
 def _get_json(url: str) -> dict:
@@ -84,7 +84,7 @@ def probe_existing_customization(api_url: str, bank_id: str, api_key: str | None
         with open_credentialed_url(req, timeout=_HTTP_TIMEOUT) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:  # missing bank / network — treat as not customized
-        logger.debug("Hindsight: bank customization probe skipped: %s", e)
+        logger.debug("ContextBase: bank customization probe skipped: %s", e)
         return False
     return bool(data.get("bank") or data.get("mental_models") or data.get("directives"))
 
@@ -96,7 +96,7 @@ def run_template_step(*, api_url: str, bank_id: str, api_key: str | None, select
     try:
         entries = fetch_hermes_templates()
     except Exception as e:  # network/parse — non-fatal
-        logger.debug("Hindsight: could not fetch templates: %s", e)
+        logger.debug("ContextBase: could not fetch templates: %s", e)
         return None
     if not entries:
         return None

@@ -1,6 +1,6 @@
-"""Hindsight REST API client for OMO integration.
+"""ContextBase REST API client for OMO integration.
 
-Communicates with a Hindsight server (cloud or self-hosted) via HTTP.
+Communicates with a ContextBase server (cloud or self-hosted) via HTTP.
 Pure stdlib — no external dependencies.
 """
 
@@ -11,21 +11,21 @@ import urllib.request
 from typing import Optional
 
 DEFAULT_TIMEOUT = 15  # seconds
-USER_AGENT = "hindsight-omo/0.1.0"
+USER_AGENT = "contextbase-omo/0.1.0"
 
 
 def _validate_api_url(url: str) -> str:
     """Validate and normalize the API URL. Reject non-HTTP schemes."""
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme not in ("http", "https"):
-        raise ValueError(f"Hindsight API URL must use http or https, got: {parsed.scheme!r}")
+        raise ValueError(f"ContextBase API URL must use http or https, got: {parsed.scheme!r}")
     if not parsed.hostname:
-        raise ValueError(f"Hindsight API URL has no hostname: {url!r}")
+        raise ValueError(f"ContextBase API URL has no hostname: {url!r}")
     return url.rstrip("/")
 
 
 class HindsightClient:
-    """HTTP client for the Hindsight API."""
+    """HTTP client for the ContextBase API."""
 
     def __init__(
         self,
@@ -67,7 +67,7 @@ class HindsightClient:
             raise RuntimeError(f"HTTP {e.code} from {url}: {body_text}") from e
 
     def health_check(self, timeout: int = 5) -> bool:
-        """Check if the Hindsight server is reachable."""
+        """Check if the ContextBase server is reachable."""
         try:
             url = f"{self.api_url}/health"
             req = urllib.request.Request(url, headers=self._headers(), method="GET")

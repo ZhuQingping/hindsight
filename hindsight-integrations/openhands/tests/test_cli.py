@@ -2,9 +2,9 @@
 
 import tomlkit
 
-from hindsight_openhands.cli import build_install, main
-from hindsight_openhands.config import OpenHandsConfig
-from hindsight_openhands.openhands_config import build_shttp_server, is_installed as server_installed
+from contextbase_openhands.cli import build_install, main
+from contextbase_openhands.config import OpenHandsConfig
+from contextbase_openhands.openhands_config import build_shttp_server, is_installed as server_installed
 
 
 class TestBuildInstall:
@@ -12,7 +12,7 @@ class TestBuildInstall:
         config = tmp_path / "config.toml"
         agents = tmp_path / "AGENTS.md"
         cfg = OpenHandsConfig(
-            hindsight_api_url="https://api.hindsight.vectorize.io", hindsight_api_token="k", bank_id="proj"
+            contextbase_api_url="https://api.hindsight.vectorize.io", contextbase_api_token="k", bank_id="proj"
         )
         outcome = build_install(cfg, config, agents)
         assert outcome.config.action == "created"
@@ -20,7 +20,7 @@ class TestBuildInstall:
         entry = doc["mcp"]["shttp_servers"][0]
         assert entry["url"] == "https://api.hindsight.vectorize.io/mcp/proj/"
         assert entry["api_key"] == "k"
-        assert "HINDSIGHT:BEGIN" in agents.read_text()
+        assert "CONTEXTBASE:BEGIN" in agents.read_text()
 
 
 class TestMain:

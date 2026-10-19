@@ -1,12 +1,12 @@
 ---
 sidebar_position: 9
-title: "Agno Agent Persistent Memory with Hindsight | Integration Guide"
-description: "Add persistent memory to Agno agents using Hindsight's retain, recall, and reflect tools. Plug into Agno's native Toolkit pattern for long-term memory across sessions."
+title: "Agno Agent Persistent Memory with ContextBase | Integration Guide"
+description: "Add persistent memory to Agno agents using ContextBase's retain, recall, and reflect tools. Plug into Agno's native Toolkit pattern for long-term memory across sessions."
 ---
 
 # Agno
 
-Persistent memory tools for [Agno](https://github.com/agno-agi/agno) agents via Hindsight. Give your agents long-term memory with retain, recall, and reflect — using Agno's native Toolkit pattern.
+Persistent memory tools for [Agno](https://github.com/agno-agi/agno) agents via ContextBase. Give your agents long-term memory with retain, recall, and reflect — using Agno's native Toolkit pattern.
 
 [View Changelog →](/changelog/integrations/agno)
 
@@ -21,26 +21,26 @@ Persistent memory tools for [Agno](https://github.com/agno-agi/agno) agents via 
 ## Installation
 
 ```bash
-pip install hindsight-agno
+pip install contextbase-agno
 ```
 
 ## Quick Start
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from hindsight_agno import HindsightTools
+from contextbase_agno import ContextBaseTools
 
 agent = Agent(
     model=OpenAIChat(id="gpt-4o-mini"),
-    tools=[HindsightTools(
+    tools=[ContextBaseTools(
         bank_id="user-123",
-        hindsight_api_url="https://api.hindsight.vectorize.io",
-        api_key="hsk_...",  # or set HINDSIGHT_API_KEY env var
+        contextbase_api_url="http://localhost:8888",
+        api_key="hsk_...",  # or set CONTEXTBASE_API_KEY env var
     )],
 )
 
@@ -50,7 +50,7 @@ agent.print_response("What are my preferences?")
 
 ### Self-hosting (local development)
 
-If you're running Hindsight locally with `./scripts/dev/start-api.sh`, swap the URL to `http://localhost:8888`. See the [installation guide](/developer/installation) for setup.
+If you're running ContextBase locally with `./scripts/dev/start-api.sh`, swap the URL to `http://localhost:8888`. See the [installation guide](/developer/installation) for setup.
 
 The agent now has three tools it can call:
 
@@ -63,17 +63,17 @@ The agent now has three tools it can call:
 Pre-recall relevant memories and inject them into the system prompt:
 
 ```python
-from hindsight_agno import HindsightTools, memory_instructions
+from contextbase_agno import ContextBaseTools, memory_instructions
 
 agent = Agent(
     model=OpenAIChat(id="gpt-4o-mini"),
-    tools=[HindsightTools(
+    tools=[ContextBaseTools(
         bank_id="user-123",
-        hindsight_api_url="https://api.hindsight.vectorize.io",
+        contextbase_api_url="http://localhost:8888",
     )],
     instructions=[memory_instructions(
         bank_id="user-123",
-        hindsight_api_url="https://api.hindsight.vectorize.io",
+        contextbase_api_url="http://localhost:8888",
     )],
 )
 ```
@@ -83,9 +83,9 @@ agent = Agent(
 Include only the tools you need:
 
 ```python
-tools = [HindsightTools(
+tools = [ContextBaseTools(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
     enable_retain=True,
     enable_recall=True,
     enable_reflect=False,  # Omit reflect
@@ -104,7 +104,7 @@ The bank ID is resolved in order:
 # Per-user banks from RunContext
 agent = Agent(
     model=OpenAIChat(id="gpt-4o-mini"),
-    tools=[HindsightTools(hindsight_api_url="https://api.hindsight.vectorize.io")],
+    tools=[ContextBaseTools(contextbase_api_url="http://localhost:8888")],
     user_id="user-123",  # Used as bank_id
 )
 
@@ -114,9 +114,9 @@ def resolve_bank(ctx):
 
 agent = Agent(
     model=OpenAIChat(id="gpt-4o-mini"),
-    tools=[HindsightTools(
+    tools=[ContextBaseTools(
         bank_resolver=resolve_bank,
-        hindsight_api_url="https://api.hindsight.vectorize.io",
+        contextbase_api_url="http://localhost:8888",
     )],
 )
 ```
@@ -126,11 +126,11 @@ agent = Agent(
 Instead of passing connection details to every toolkit, configure once:
 
 ```python
-from hindsight_agno import configure, HindsightTools
+from contextbase_agno import configure, ContextBaseTools
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key="your-api-key",       # Or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-api-key",       # Or set CONTEXTBASE_API_KEY env var
     budget="mid",                  # Recall budget: low/mid/high
     max_tokens=4096,               # Max tokens for recall results
     tags=["env:prod"],             # Tags for stored memories
@@ -139,19 +139,19 @@ configure(
 )
 
 # Now create toolkit without passing connection details
-tools = [HindsightTools(bank_id="user-123")]
+tools = [ContextBaseTools(bank_id="user-123")]
 ```
 
 ## Configuration Reference
 
-### `HindsightTools()`
+### `ContextBaseTools()`
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | `None` | Static Hindsight memory bank ID |
+| `bank_id` | `None` | Static ContextBase memory bank ID |
 | `bank_resolver` | `None` | Callable `(RunContext) -> str` for dynamic bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `budget` | `"mid"` | Recall/reflect budget level (low/mid/high) |
 | `max_tokens` | `4096` | Maximum tokens for recall results |
@@ -166,9 +166,9 @@ tools = [HindsightTools(bank_id="user-123")]
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `query` | `"relevant context about the user"` | Recall query for memory injection |
 | `budget` | `"low"` | Recall budget level |
@@ -182,8 +182,8 @@ tools = [HindsightTools(bank_id="user-123")]
 
 | Parameter | Default | Description |
 |---|---|---|
-| `hindsight_api_url` | Hindsight Cloud (`https://api.hindsight.vectorize.io`) | Hindsight API URL |
-| `api_key` | `HINDSIGHT_API_KEY` env | API key for authentication |
+| `contextbase_api_url` | an explicitly configured service URL | ContextBase API URL |
+| `api_key` | `CONTEXTBASE_API_KEY` env | API key for authentication |
 | `budget` | `"mid"` | Default recall budget level |
 | `max_tokens` | `4096` | Default max tokens for recall |
 | `tags` | `None` | Default tags for retain operations |
@@ -196,4 +196,4 @@ tools = [HindsightTools(bank_id="user-123")]
 - Python >= 3.10
 - agno
 - hindsight-client >= 0.4.0
-- A running Hindsight API server
+- A running ContextBase API server

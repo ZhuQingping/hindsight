@@ -43,7 +43,7 @@
   color: var(--ifm-font-color-base) !important;
   /* Restores the magnifier that the navbar `background: transparent` kills. */
   background: var(--ifm-background-surface-color)
-    var(--hindsight-search-icon) no-repeat 0.75rem center / 0.875rem 0.875rem
+    var(--contextbase-search-icon) no-repeat 0.75rem center / 0.875rem 0.875rem
     !important;
   transition: border-color 0.15s ease;
 }

@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,7 +11,7 @@ const TOKEN_PATTERN = /^(\d+)\.([a-f0-9]{64})\.([a-f0-9]{64})$/;
 // A shared private directory makes logout effective across Next's route/proxy
 // processes and restarts. This local single-node adapter is not platform SSO.
 function sessionDirectory(): string {
-  const directory = process.env.HINDSIGHT_CP_SESSION_DIR;
+  const directory = controlPlaneEnv("SESSION_DIR");
   if (!directory || !path.isAbsolute(directory)) {
     throw new Error("Session storage must be an absolute private directory");
   }
@@ -19,7 +20,7 @@ function sessionDirectory(): string {
 
 export function publicOrigin(): string | null {
   try {
-    const raw = process.env.HINDSIGHT_CP_PUBLIC_ORIGIN;
+    const raw = controlPlaneEnv("PUBLIC_ORIGIN");
     if (!raw) return null;
     const url = new URL(raw);
     if (
@@ -38,18 +39,16 @@ export function publicOrigin(): string | null {
 }
 
 export function protectedMode(): boolean {
-  return process.env.HINDSIGHT_CP_AUTH_MODE !== "bootstrap";
+  return controlPlaneEnv("AUTH_MODE") !== "bootstrap";
 }
 
 export function authConfigured(): boolean {
-  const mode = process.env.HINDSIGHT_CP_AUTH_MODE;
+  const mode = controlPlaneEnv("AUTH_MODE");
+  const directory = controlPlaneEnv("SESSION_DIR");
   return (
     (!mode || mode === "local") &&
     Boolean(
-      process.env.HINDSIGHT_CP_ACCESS_KEY &&
-      publicOrigin() &&
-      process.env.HINDSIGHT_CP_SESSION_DIR &&
-      path.isAbsolute(process.env.HINDSIGHT_CP_SESSION_DIR)
+      controlPlaneEnv("ACCESS_KEY") && publicOrigin() && directory && path.isAbsolute(directory)
     )
   );
 }

@@ -1,22 +1,22 @@
-"""Unit tests for hindsight_litellm configuration and defaults."""
+"""Unit tests for contextbase_litellm configuration and defaults."""
 
 import os
 from dataclasses import fields
 from unittest.mock import MagicMock, patch
 
 
-from hindsight_litellm import configure, wrap_openai, wrap_anthropic
-from hindsight_litellm.config import (
-    DEFAULT_HINDSIGHT_API_URL,
+from contextbase_litellm import configure, wrap_openai, wrap_anthropic
+from contextbase_litellm.config import (
+    DEFAULT_CONTEXTBASE_API_URL,
     DEFAULT_BANK_ID,
-    HINDSIGHT_API_KEY_ENV,
+    CONTEXTBASE_API_KEY_ENV,
     reset_config,
     is_configured,
 )
-from hindsight_litellm.wrappers import (
-    HindsightOpenAI,
-    HindsightAnthropic,
-    HindsightCallSettings,
+from contextbase_litellm.wrappers import (
+    ContextBaseOpenAI,
+    ContextBaseAnthropic,
+    ContextBaseCallSettings,
     _merge_settings,
 )
 
@@ -26,7 +26,7 @@ class TestDefaults:
 
     def test_default_api_url(self):
         """Test default API URL is production."""
-        assert DEFAULT_HINDSIGHT_API_URL == "https://api.hindsight.vectorize.io"
+        assert DEFAULT_CONTEXTBASE_API_URL == ""
 
     def test_default_bank_id(self):
         """Test default bank ID is 'default'."""
@@ -34,7 +34,7 @@ class TestDefaults:
 
     def test_env_var_name(self):
         """Test environment variable name for API key."""
-        assert HINDSIGHT_API_KEY_ENV == "HINDSIGHT_API_KEY"
+        assert CONTEXTBASE_API_KEY_ENV == "CONTEXTBASE_API_KEY"
 
 
 class TestConfigure:
@@ -52,19 +52,19 @@ class TestConfigure:
         """Test configure() with no arguments uses production URL and leaves bank_id unset."""
         config = configure()
 
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.bank_id is None
 
     def test_configure_reads_api_key_from_env(self):
         """Test configure() reads API key from environment variable."""
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-api-key-123"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-api-key-123"}):
             config = configure()
 
         assert config.api_key == "test-api-key-123"
 
     def test_configure_explicit_api_key_overrides_env(self):
         """Test explicit api_key parameter overrides environment variable."""
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-key"}):
             config = configure(api_key="explicit-key")
 
         assert config.api_key == "explicit-key"
@@ -72,12 +72,12 @@ class TestConfigure:
     def test_configure_explicit_values_override_defaults(self):
         """Test explicit values override defaults."""
         config = configure(
-            hindsight_api_url="http://custom-url:8888",
+            contextbase_api_url="http://custom-url:8888",
             bank_id="custom-bank",
             api_key="custom-key",
         )
 
-        assert config.hindsight_api_url == "http://custom-url:8888"
+        assert config.contextbase_api_url == "http://custom-url:8888"
         assert config.bank_id == "custom-bank"
         assert config.api_key == "custom-key"
 
@@ -107,12 +107,12 @@ class TestWrapOpenAI:
         """Test wrap_openai() works with only the client argument."""
         mock_client = MagicMock()
 
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-key"}):
             wrapped = wrap_openai(mock_client)
 
-        assert isinstance(wrapped, HindsightOpenAI)
+        assert isinstance(wrapped, ContextBaseOpenAI)
         assert wrapped._default_settings.bank_id == DEFAULT_BANK_ID
-        assert wrapped._api_url == DEFAULT_HINDSIGHT_API_URL
+        assert wrapped._api_url == DEFAULT_CONTEXTBASE_API_URL
         assert wrapped._api_key == "test-key"
 
     def test_wrap_openai_uses_defaults(self):
@@ -122,13 +122,13 @@ class TestWrapOpenAI:
         wrapped = wrap_openai(mock_client)
 
         assert wrapped._default_settings.bank_id == DEFAULT_BANK_ID
-        assert wrapped._api_url == DEFAULT_HINDSIGHT_API_URL
+        assert wrapped._api_url == DEFAULT_CONTEXTBASE_API_URL
 
     def test_wrap_openai_reads_api_key_from_env(self):
         """Test wrap_openai() reads API key from environment."""
         mock_client = MagicMock()
 
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-api-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-api-key"}):
             wrapped = wrap_openai(mock_client)
 
         assert wrapped._api_key == "env-api-key"
@@ -140,7 +140,7 @@ class TestWrapOpenAI:
         wrapped = wrap_openai(
             mock_client,
             bank_id="my-bank",
-            hindsight_api_url="http://localhost:9999",
+            contextbase_api_url="http://localhost:9999",
             api_key="my-key",
         )
 
@@ -149,7 +149,7 @@ class TestWrapOpenAI:
         assert wrapped._api_key == "my-key"
 
     def test_wrap_openai_all_settings_kwargs(self):
-        """Test wrap_openai() accepts all HindsightCallSettings fields as kwargs."""
+        """Test wrap_openai() accepts all ContextBaseCallSettings fields as kwargs."""
         mock_client = MagicMock()
 
         # Create kwargs with all settings
@@ -199,12 +199,12 @@ class TestWrapAnthropic:
         """Test wrap_anthropic() works with only the client argument."""
         mock_client = MagicMock()
 
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-key"}):
             wrapped = wrap_anthropic(mock_client)
 
-        assert isinstance(wrapped, HindsightAnthropic)
+        assert isinstance(wrapped, ContextBaseAnthropic)
         assert wrapped._default_settings.bank_id == DEFAULT_BANK_ID
-        assert wrapped._api_url == DEFAULT_HINDSIGHT_API_URL
+        assert wrapped._api_url == DEFAULT_CONTEXTBASE_API_URL
         assert wrapped._api_key == "test-key"
 
     def test_wrap_anthropic_uses_defaults(self):
@@ -214,13 +214,13 @@ class TestWrapAnthropic:
         wrapped = wrap_anthropic(mock_client)
 
         assert wrapped._default_settings.bank_id == DEFAULT_BANK_ID
-        assert wrapped._api_url == DEFAULT_HINDSIGHT_API_URL
+        assert wrapped._api_url == DEFAULT_CONTEXTBASE_API_URL
 
     def test_wrap_anthropic_reads_api_key_from_env(self):
         """Test wrap_anthropic() reads API key from environment."""
         mock_client = MagicMock()
 
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-api-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-api-key"}):
             wrapped = wrap_anthropic(mock_client)
 
         assert wrapped._api_key == "env-api-key"
@@ -232,7 +232,7 @@ class TestWrapAnthropic:
         wrapped = wrap_anthropic(
             mock_client,
             bank_id="my-bank",
-            hindsight_api_url="http://localhost:9999",
+            contextbase_api_url="http://localhost:9999",
             api_key="my-key",
         )
 
@@ -241,7 +241,7 @@ class TestWrapAnthropic:
         assert wrapped._api_key == "my-key"
 
     def test_wrap_anthropic_all_settings_kwargs(self):
-        """Test wrap_anthropic() accepts all HindsightCallSettings fields as kwargs."""
+        """Test wrap_anthropic() accepts all ContextBaseCallSettings fields as kwargs."""
         mock_client = MagicMock()
 
         # Create kwargs with all settings
@@ -281,8 +281,8 @@ class TestMergeSettings:
 
     def test_merge_settings_no_overrides(self):
         """Test _merge_settings() returns defaults when no overrides provided."""
-        defaults = HindsightCallSettings(bank_id="default-bank", budget="mid")
-        kwargs = {"model": "gpt-4", "messages": []}  # No hindsight_* kwargs
+        defaults = ContextBaseCallSettings(bank_id="default-bank", budget="mid")
+        kwargs = {"model": "gpt-4", "messages": []}  # No contextbase_* kwargs
 
         merged = _merge_settings(defaults, kwargs)
 
@@ -290,12 +290,12 @@ class TestMergeSettings:
         assert merged.budget == "mid"
 
     def test_merge_settings_with_overrides(self):
-        """Test _merge_settings() applies hindsight_* overrides."""
-        defaults = HindsightCallSettings(bank_id="default-bank", budget="mid")
+        """Test _merge_settings() applies contextbase_* overrides."""
+        defaults = ContextBaseCallSettings(bank_id="default-bank", budget="mid")
         kwargs = {
             "model": "gpt-4",
-            "hindsight_bank_id": "override-bank",
-            "hindsight_budget": "high",
+            "contextbase_bank_id": "override-bank",
+            "contextbase_budget": "high",
         }
 
         merged = _merge_settings(defaults, kwargs)
@@ -305,14 +305,14 @@ class TestMergeSettings:
 
     def test_merge_settings_partial_override(self):
         """Test _merge_settings() only overrides specified fields."""
-        defaults = HindsightCallSettings(
+        defaults = ContextBaseCallSettings(
             bank_id="default-bank",
             budget="mid",
             verbose=True,
             max_memories=5,
         )
         kwargs = {
-            "hindsight_bank_id": "override-bank",
+            "contextbase_bank_id": "override-bank",
             # budget, verbose, max_memories not overridden
         }
 
@@ -324,11 +324,11 @@ class TestMergeSettings:
         assert merged.max_memories == 5  # Default preserved
 
     def test_merge_settings_ignores_invalid_fields(self):
-        """Test _merge_settings() ignores hindsight_* kwargs for non-existent fields."""
-        defaults = HindsightCallSettings(bank_id="default-bank")
+        """Test _merge_settings() ignores contextbase_* kwargs for non-existent fields."""
+        defaults = ContextBaseCallSettings(bank_id="default-bank")
         kwargs = {
-            "hindsight_bank_id": "valid-override",
-            "hindsight_nonexistent_field": "should-be-ignored",
+            "contextbase_bank_id": "valid-override",
+            "contextbase_nonexistent_field": "should-be-ignored",
         }
 
         merged = _merge_settings(defaults, kwargs)
@@ -337,9 +337,9 @@ class TestMergeSettings:
         assert not hasattr(merged, "nonexistent_field")
 
     def test_merge_settings_all_fields(self):
-        """Test _merge_settings() works with all HindsightCallSettings fields."""
+        """Test _merge_settings() works with all ContextBaseCallSettings fields."""
         # Create defaults with non-default values
-        defaults = HindsightCallSettings(
+        defaults = ContextBaseCallSettings(
             bank_id="default-bank",
             document_id="default-doc",
             session_id="default-session",
@@ -364,26 +364,26 @@ class TestMergeSettings:
 
         # Override every field
         override_values = {
-            "hindsight_bank_id": "override-bank",
-            "hindsight_document_id": "override-doc",
-            "hindsight_session_id": "override-session",
-            "hindsight_store_conversations": False,
-            "hindsight_inject_memories": False,
-            "hindsight_budget": "high",
-            "hindsight_fact_types": ["world", "experience"],
-            "hindsight_max_memories": 10,
-            "hindsight_max_memory_tokens": 2048,
-            "hindsight_include_entities": False,
-            "hindsight_trace": True,
-            "hindsight_tags": ["user:bob", "org:acme"],
-            "hindsight_recall_tags": ["user:bob"],
-            "hindsight_recall_tags_match": "all",
-            "hindsight_use_reflect": True,
-            "hindsight_reflect_context": "test context",
-            "hindsight_reflect_response_schema": {"type": "object"},
-            "hindsight_reflect_include_facts": True,
-            "hindsight_query": "test query",
-            "hindsight_verbose": True,
+            "contextbase_bank_id": "override-bank",
+            "contextbase_document_id": "override-doc",
+            "contextbase_session_id": "override-session",
+            "contextbase_store_conversations": False,
+            "contextbase_inject_memories": False,
+            "contextbase_budget": "high",
+            "contextbase_fact_types": ["world", "experience"],
+            "contextbase_max_memories": 10,
+            "contextbase_max_memory_tokens": 2048,
+            "contextbase_include_entities": False,
+            "contextbase_trace": True,
+            "contextbase_tags": ["user:bob", "org:acme"],
+            "contextbase_recall_tags": ["user:bob"],
+            "contextbase_recall_tags_match": "all",
+            "contextbase_use_reflect": True,
+            "contextbase_reflect_context": "test context",
+            "contextbase_reflect_response_schema": {"type": "object"},
+            "contextbase_reflect_include_facts": True,
+            "contextbase_query": "test query",
+            "contextbase_verbose": True,
         }
 
         merged = _merge_settings(defaults, override_values)
@@ -411,11 +411,11 @@ class TestMergeSettings:
         assert merged.verbose is True
 
 
-class TestHindsightCallSettingsConsistency:
-    """Test that HindsightCallSettings works consistently across wrappers."""
+class TestContextBaseCallSettingsConsistency:
+    """Test that ContextBaseCallSettings works consistently across wrappers."""
 
     def test_same_settings_for_openai_and_anthropic(self):
-        """Test that OpenAI and Anthropic wrappers use the same HindsightCallSettings."""
+        """Test that OpenAI and Anthropic wrappers use the same ContextBaseCallSettings."""
         mock_openai_client = MagicMock()
         mock_anthropic_client = MagicMock()
 
@@ -436,12 +436,12 @@ class TestHindsightCallSettingsConsistency:
         assert openai_wrapped._default_settings.verbose == anthropic_wrapped._default_settings.verbose
 
     def test_new_field_works_for_both_wrappers(self):
-        """Test that all HindsightCallSettings fields work for both wrappers."""
+        """Test that all ContextBaseCallSettings fields work for both wrappers."""
         mock_openai_client = MagicMock()
         mock_anthropic_client = MagicMock()
 
         # Get all fields from the dataclass
-        all_field_names = [f.name for f in fields(HindsightCallSettings)]
+        all_field_names = [f.name for f in fields(ContextBaseCallSettings)]
 
         # Verify both wrappers can access all fields
         openai_wrapped = wrap_openai(mock_openai_client)

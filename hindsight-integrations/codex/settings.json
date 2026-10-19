@@ -1,6 +1,6 @@
 {
   "version": "0.3.1",
-  "hindsightApiUrl": "",
+  "contextbaseApiUrl": "",
   "bankId": "codex",
   "bankMission": "You are a Codex AI coding assistant. Focus on technical decisions, code changes, debugging sessions, and project context relevant to the user's work.",
   "retainMission": "Extract technical decisions, code patterns, debugging solutions, user preferences, project context, and architectural choices. Ignore routine greetings and transient operational details.",
@@ -11,40 +11,26 @@
   "recallMaxTokens": 1024,
   "recallMinScores": {},
   "recallTimeout": 10,
-  "recallTypes": [
-    "world",
-    "experience"
-  ],
+  "recallTypes": ["world", "experience"],
   "recallContextTurns": 1,
   "recallMaxQueryChars": 800,
-  "recallRoles": [
-    "user",
-    "assistant"
-  ],
+  "recallRoles": ["user", "assistant"],
   "recallPromptPreamble": "Relevant memories from past conversations (prioritize recent when conflicting). Only use memories that are directly useful to continue this conversation; ignore the rest:",
   "retainToolCalls": true,
-  "retainRoles": [
-    "user",
-    "assistant"
-  ],
+  "retainRoles": ["user", "assistant"],
   "retainEveryNTurns": 10,
   "retainOverlapTurns": 2,
-  "retainTags": [
-    "{session_id}"
-  ],
+  "retainTags": ["{session_id}"],
   "retainMetadata": {},
   "retainContext": "codex",
-  "hindsightApiToken": null,
+  "contextbaseApiToken": null,
   "apiPort": 9077,
   "daemonIdleTimeout": 0,
   "embedVersion": "latest",
   "embedPackagePath": null,
   "bankIdPrefix": "",
   "dynamicBankId": false,
-  "dynamicBankGranularity": [
-    "agent",
-    "project"
-  ],
+  "dynamicBankGranularity": ["agent", "project"],
   "agentName": "codex",
   "llmProvider": null,
   "llmModel": null,

@@ -6,14 +6,14 @@ sidebar_position: 4
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/chat-sdk-multi-platform)
 :::
 
 
-A demo chat bot that runs on Slack and Discord simultaneously, sharing a single Hindsight memory bank. Tell the bot something in Slack, ask about it in Discord, and it remembers.
+A demo chat bot that runs on Slack and Discord simultaneously, sharing a single ContextBase memory bank. Tell the bot something in Slack, ask about it in Discord, and it remembers.
 
-Built with [Vercel Chat SDK](https://github.com/vercel/chat), [Hindsight](https://github.com/vectorize-io/hindsight), and [Vercel AI SDK](https://sdk.vercel.ai).
+Built with [Vercel Chat SDK](https://github.com/vercel/chat), [ContextBase](https://github.com/RSIXDB/hindsight), and [Vercel AI SDK](https://sdk.vercel.ai).
 
 ## Features
 
@@ -21,31 +21,33 @@ Built with [Vercel Chat SDK](https://github.com/vercel/chat), [Hindsight](https:
 - **LLM-powered responses**: Uses OpenAI via Vercel AI SDK
 - **Auto-recall**: Memories are retrieved before every response
 - **Auto-retain**: Conversations are stored automatically
-- **One handler, all platforms**: `withHindsightChat()` wraps any Chat SDK handler
+- **One handler, all platforms**: `withContextBaseChat()` wraps any Chat SDK handler
 
 ## Architecture
 
 ```
 Slack message ─────┐
-                    ├─→ withHindsightChat() ─→ auto-recall ─→ LLM handler ─→ auto-retain
+                    ├─→ withContextBaseChat() ─→ auto-recall ─→ LLM handler ─→ auto-retain
 Discord message ───┘                              │
                                                   ▼
-                                           Hindsight API
+                                           ContextBase API
                                            (shared bank)
 ```
 
 ## Setup
 
-### 1. Start Hindsight API
+### 1. Start ContextBase API
 
 ```bash
 export OPENAI_API_KEY=your-key
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - API: http://localhost:8888
@@ -87,8 +89,8 @@ DISCORD_PUBLIC_KEY=...
 DISCORD_APPLICATION_ID=...
 DISCORD_MENTION_ROLE_IDS=...  # Optional: comma-separated role IDs
 
-# Hindsight
-HINDSIGHT_API_URL=http://localhost:8888
+# ContextBase
+CONTEXTBASE_API_URL=http://localhost:8888
 
 # LLM
 OPENAI_API_KEY=sk-...
@@ -125,19 +127,19 @@ This keeps a Gateway connection alive for 10 minutes. In production, use a cron 
 ## Try It
 
 1. **Slack**: `@memory-bot I'm building a Rust compiler that targets WebAssembly`
-2. Wait a few seconds for Hindsight to index the memory
+2. Wait a few seconds for ContextBase to index the memory
 3. **Discord**: `@memory-bot what am I working on?`
 4. The bot recalls the Rust/WebAssembly memory from Slack
 
 ## How It Works
 
-The key file is `lib/bot.ts`. Both Slack and Discord adapters are registered with the same Chat instance, and both handlers use `withHindsightChat()` with a shared bank ID:
+The key file is `lib/bot.ts`. Both Slack and Discord adapters are registered with the same Chat instance, and both handlers use `withContextBaseChat()` with a shared bank ID:
 
 ```typescript
 bot.onNewMention(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: () => BANK_ID,    // same bank for all platforms
       retain: { enabled: true },
     },
@@ -149,7 +151,7 @@ bot.onNewMention(
 );
 ```
 
-- **`client`**: A `@vectorize-io/hindsight-client` instance pointing at your Hindsight API
+- **`client`**: A `@vectorize-io/hindsight-client` instance pointing at your ContextBase API
 - **`bankId`**: Static string or function -- shared bank = cross-platform memory
 - **`ctx.memoriesAsSystemPrompt()`**: Formats recalled memories for the LLM system prompt
 - **`ctx.retain()`**: Stores conversation content back to the bank

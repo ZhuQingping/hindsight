@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-cursor"
+name = "contextbase-cursor"
 version = "0.2.1"
-description = "Hindsight memory plugin for Cursor - persistent cross-session memory for coding agents"
+description = "ContextBase memory plugin for Cursor - persistent cross-session memory for coding agents"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -13,7 +13,7 @@ keywords = [
     "memory",
     "cursor",
     "agents",
-    "hindsight",
+    "contextbase",
     "coding",
 ]
 classifiers = [
@@ -37,33 +37,33 @@ dev = [
 ]
 
 [project.scripts]
-hindsight-cursor = "hindsight_cursor.cli:main"
+contextbase-cursor = "contextbase_cursor.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
-Documentation = "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/cursor"
-Repository = "https://github.com/vectorize-io/hindsight"
+Homepage = "https://github.com/RSIXDB/hindsight"
+Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/cursor"
+Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_cursor"]
+packages = ["contextbase_cursor"]
 
 [tool.hatch.build.targets.wheel.force-include]
 # Bundle plugin files as package data so the CLI can copy them on init.
-".cursor-plugin" = "hindsight_cursor/plugin_data/.cursor-plugin"
-"hooks" = "hindsight_cursor/plugin_data/hooks"
-"rules" = "hindsight_cursor/plugin_data/rules"
-"scripts" = "hindsight_cursor/plugin_data/scripts"
-"settings.json" = "hindsight_cursor/plugin_data/settings.json"
-"skills" = "hindsight_cursor/plugin_data/skills"
+".cursor-plugin" = "contextbase_cursor/plugin_data/.cursor-plugin"
+"hooks" = "contextbase_cursor/plugin_data/hooks"
+"rules" = "contextbase_cursor/plugin_data/rules"
+"scripts" = "contextbase_cursor/plugin_data/scripts"
+"settings.json" = "contextbase_cursor/plugin_data/settings.json"
+"skills" = "contextbase_cursor/plugin_data/skills"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "requires_real_llm: tests that require a live Hindsight server (excluded from the deterministic PR-CI bucket; run via `pytest -m requires_real_llm`).",
+    "requires_real_llm: tests that require a live ContextBase server (excluded from the deterministic PR-CI bucket; run via `pytest -m requires_real_llm`).",
 ]
 
 [dependency-groups]

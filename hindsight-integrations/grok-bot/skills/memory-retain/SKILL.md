@@ -1,6 +1,6 @@
 ---
 name: memory-retain
-description: Save what was learned to Hindsight long-term memory. Use when a task finishes, when the user states a fact, decision or preference, and when you discover something a later run or another Bot would need.
+description: Save what was learned to ContextBase long-term memory. Use when a task finishes, when the user states a fact, decision or preference, and when you discover something a later run or another Bot would need.
 ---
 
 # Save what was learned

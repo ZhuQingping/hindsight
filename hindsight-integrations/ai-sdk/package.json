@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/hindsight-ai-sdk",
+  "name": "contextbase-ai-sdk",
   "version": "0.5.2",
-  "description": "Hindsight memory integration for Vercel AI SDK - Give your AI agents persistent, human-like memory",
+  "description": "ContextBase memory integration for Vercel AI SDK - Give your AI agents persistent, human-like memory",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -16,7 +16,7 @@
     "ai-sdk",
     "vercel",
     "memory",
-    "hindsight",
+    "contextbase",
     "agents",
     "llm",
     "long-term-memory"
@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/ai-sdk"
   },
   "files": [

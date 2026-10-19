@@ -2,21 +2,21 @@
 sidebar_position: 3
 ---
 
-# Chat Memory App (Hindsight Cloud)
+# Chat Memory App (ContextBase remote service)
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/chat-memory-cloud)
 :::
 
 
-A demo chat application with persistent per-user memory powered by [Hindsight Cloud](https://hindsight.vectorize.io). Supports OpenAI or Groq as the LLM provider. No local Hindsight server required.
+A demo chat application with persistent per-user memory powered by [ContextBase remote service](https://github.com/RSIXDB/hindsight). Supports OpenAI or Groq as the LLM provider. No local ContextBase server required.
 
 ## Features
 
 - 🧠 **Persistent Memory**: Each user gets their own memory bank that remembers conversations
-- ☁️ **Hindsight Cloud**: Memory stored in the cloud — no Docker setup needed
+- ☁️ **ContextBase remote service**: Memory stored in the cloud — no Docker setup needed
 - 🔀 **Selectable LLM**: Choose between OpenAI (GPT-4o) or Groq (Qwen 32B)
 - 🎯 **Per-User Context**: Isolated memory per user with automatic context retrieval
 - 💬 **Real-time Chat**: Instant responses with memory-augmented context
@@ -25,7 +25,7 @@ A demo chat application with persistent per-user memory powered by [Hindsight Cl
 
 ### 1. Get API Keys
 
-- **Hindsight** — Sign up at https://hindsight.vectorize.io
+- **ContextBase** — Sign up at https://github.com/RSIXDB/hindsight
 - **OpenAI** — https://platform.openai.com/api-keys
 - **Groq** (alternative) — Free at https://console.groq.com/home
 
@@ -43,9 +43,9 @@ OPENAI_API_KEY=sk-your-key-here
 # Groq (required if LLM_PROVIDER=groq)
 GROQ_API_KEY=gsk_your-key-here
 
-# Hindsight Cloud
-HINDSIGHT_API_URL=https://api.hindsight.vectorize.io
-HINDSIGHT_API_KEY=hsk_your-key-here
+# ContextBase remote service
+CONTEXTBASE_API_URL=http://localhost:8888
+CONTEXTBASE_API_KEY=hsk_your-key-here
 ```
 
 You can also override the model with `LLM_MODEL` (defaults to `gpt-4o` for OpenAI, `qwen/qwen3-32b` for Groq).
@@ -67,7 +67,7 @@ Open http://localhost:3000 in your browser.
 ## How It Works
 
 1. **User Identity**: Each browser session gets a unique user ID
-2. **Memory Bank Creation**: First message creates a personal memory bank in Hindsight Cloud
+2. **Memory Bank Creation**: First message creates a personal memory bank in ContextBase remote service
 3. **Context Retrieval**: Before responding, relevant memories are recalled
 4. **Memory Augmented Response**: LLM generates responses with memory context
 5. **Conversation Storage**: Each conversation is retained for future context
@@ -79,11 +79,11 @@ User Message
      ↓
 Next.js API Route (/api/chat)
      ↓
-Hindsight Cloud recall() → Get relevant memories
+ContextBase remote service recall() → Get relevant memories
      ↓
 OpenAI or Groq → Generate response with memory context
      ↓
-Hindsight Cloud retain() → Store conversation
+ContextBase remote service retain() → Store conversation
      ↓
 Response to User
 ```
@@ -108,7 +108,7 @@ Each user gets their own isolated memory bank with:
    - "I prefer VS Code over other editors"
    - "I'm working on a React project"
 
-4. **Memory Verification**: Log in to the [Hindsight dashboard](https://hindsight.vectorize.io) to see stored memories
+4. **Memory Verification**: Log in to the [ContextBase dashboard](https://github.com/RSIXDB/hindsight) to see stored memories
 
 ## Configuration
 
@@ -118,5 +118,5 @@ Each user gets their own isolated memory bank with:
 | `LLM_MODEL` | auto | Model override (defaults: `gpt-4o` / `qwen/qwen3-32b`) |
 | `OPENAI_API_KEY` | — | Required when using OpenAI |
 | `GROQ_API_KEY` | — | Required when using Groq |
-| `HINDSIGHT_API_URL` | `https://api.hindsight.vectorize.io` | Hindsight API endpoint |
-| `HINDSIGHT_API_KEY` | — | Your Hindsight API key |
+| `CONTEXTBASE_API_URL` | `http://localhost:8888` | ContextBase API endpoint |
+| `CONTEXTBASE_API_KEY` | — | Your ContextBase API key |

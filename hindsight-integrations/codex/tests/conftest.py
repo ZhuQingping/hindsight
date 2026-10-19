@@ -1,4 +1,4 @@
-"""Shared fixtures for Hindsight Codex plugin tests."""
+"""Shared fixtures for ContextBase Codex plugin tests."""
 
 import io
 import json
@@ -64,13 +64,13 @@ def make_memory(text, mem_type="experience", mentioned_at="2024-01-15"):
 
 
 def make_user_config(tmp_path, overrides=None):
-    """Write a ~/.hindsight/codex.json in tmp_path with test defaults."""
-    hindsight_dir = tmp_path / ".hindsight"
-    hindsight_dir.mkdir(exist_ok=True)
+    """Write a ~/.contextbase/codex.json in tmp_path with test defaults."""
+    contextbase_dir = tmp_path / ".contextbase"
+    contextbase_dir.mkdir(exist_ok=True)
     config = {"retainEveryNTurns": 1}
     if overrides:
         config.update(overrides)
-    (hindsight_dir / "codex.json").write_text(json.dumps(config))
+    (contextbase_dir / "codex.json").write_text(json.dumps(config))
 
 
 class FakeHTTPResponse:

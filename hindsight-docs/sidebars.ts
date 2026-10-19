@@ -69,7 +69,7 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'doc',
-          id: 'developer/rag-vs-hindsight',
+          id: 'developer/rag-vs-contextbase',
           label: 'RAG vs Memory',
           customProps: { icon: 'lu-compare' },
         },
@@ -222,7 +222,7 @@ const sidebars: SidebarsConfig = {
       items: [
         {
           type: 'link',
-          href: 'https://ui.hindsight.vectorize.io',
+          href: 'http://localhost:9999',
           label: 'Cloud',
           customProps: { icon: 'lu-cloud', iconAfter: 'lu-arrow-up-right' },
         },
@@ -375,7 +375,7 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'link',
-          href: 'https://github.com/vectorize-io/hindsight',
+          href: 'https://github.com/RSIXDB/hindsight',
           label: 'GitHub',
           customProps: { icon: 'si-github', iconAfter: 'lu-arrow-up-right' },
         },

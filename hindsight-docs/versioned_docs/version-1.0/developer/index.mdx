@@ -3,7 +3,7 @@ sidebar_position: 1
 slug: /
 title: Overview
 hide_title: true
-description: State of the art long-term memory for your agents. Hindsight gives AI agents memory that learns across sessions.
+description: State of the art long-term memory for your agents. ContextBase gives AI agents memory that learns across sessions.
 hide_table_of_contents: true
 ---
 
@@ -12,7 +12,7 @@ import HomeFlow from '@site/src/components/HomeFlow';
 import HomeBenchmarks from '@site/src/components/HomeBenchmarks';
 import SkillBanner from '@site/src/components/SkillBanner';
 import Figure from '@site/src/components/Figure';
-import whatHindsightDoes from '@site/figures/what-hindsight-does.json';
+import whatContextBaseDoes from '@site/figures/what-contextbase-does.json';
 
 {/* The page's own `# Overview` H1 is suppressed via hide_title: this is the site
     root, and the hero's headline is the H1 a visitor and a crawler should see.
@@ -28,7 +28,7 @@ import whatHindsightDoes from '@site/figures/what-hindsight-does.json';
     card above, where it is evidence for a path the reader has just been shown,
     and is explained in full on /sdks/integrations/coding-agents. */}
 
-## Why Hindsight?
+## Why ContextBase?
 
 AI agents forget everything between sessions. Every conversation starts from zero—no context about who you are, what you've discussed, or what the assistant has learned. This isn't just an implementation detail; it fundamentally limits what AI Agents can do.
 
@@ -39,7 +39,7 @@ AI agents forget everything between sessions. Every conversation starts from zer
 - **AI Agents need to consolidate knowledge** — A coding assistant that remembers "the user prefers functional programming" should consolidate this into an observation and weigh it when making recommendations
 - **Context matters** — The same information means different things to different memory banks with different personalities
 
-Hindsight solves these problems with a memory system designed specifically for AI agents.
+ContextBase solves these problems with a memory system designed specifically for AI agents.
 
 {/* Rendered here rather than by the DocBreadcrumbs wrapper (which serves every
     other page): at the top it sat between the navbar and the hero band as a
@@ -58,7 +58,7 @@ Hindsight solves these problems with a memory system designed specifically for A
 
 ### Memory Types
 
-Hindsight does not store conversations. It extracts what was said into typed
+ContextBase does not store conversations. It extracts what was said into typed
 facts and then builds on them:
 
 - **World fact** — an objective claim it was told. *"Alice works at Google."*
@@ -87,7 +87,7 @@ Then the part that matters more than any single arm:
 
 - **Fused by rank, not score** — a memory several strategies agree on wins, and no arm's scoring scale can dominate the others
 - **Re-ranked by a cross-encoder** that reads the query and the memory together
-- **Cut to a token budget, not a top-k** — you say how much context you can afford and Hindsight fills it, because agents budget in tokens and not in result counts
+- **Cut to a token budget, not a top-k** — you say how much context you can afford and ContextBase fills it, because agents budget in tokens and not in result counts
 
 See [Recall](/developer/retrieval) for the strategies in full.
 
@@ -110,7 +110,7 @@ produces new knowledge in its scope:
 - **A wiki, not a blob** — pages live in a tree of folders, browsable and searchable, each answering one question
 - **Built from observations** — synthesized from consolidated beliefs rather than raw conversation, so a page is not a transcript summary
 - **Never self-citing** — a page never reads another page, so they cannot cite each other into a feedback loop
-- **Real files when you want them** — `hindsight fs mount` projects the tree onto disk as ordinary markdown, so `grep`, an editor or an agent's file tools all work with no SDK
+- **Real files when you want them** — `contextbase fs mount` projects the tree onto disk as ordinary markdown, so `grep`, an editor or an agent's file tools all work with no SDK
 
 See [Knowledge Pages](/developer/knowledge-pages) for the full model.
 
@@ -139,7 +139,7 @@ Everything above, end to end and in motion: what a document turns into on the
 way in, what each of the three operations touches, and what the worker changes
 behind them. Play it, or step through it at your own pace.
 
-<Figure doc={whatHindsightDoes} />
+<Figure doc={whatContextBaseDoes} />
 
 ## Integrations
 
@@ -148,7 +148,7 @@ harnesses (Claude Code, Codex CLI, Cursor CLI, opencode, Copilot CLI and more) t
 a per-repo memory bank.
 
 **Personal agents** — [Hermes](/sdks/integrations/hermes) and
-[OpenClaw](/sdks/integrations/openclaw) install Hindsight as their memory
+[OpenClaw](/sdks/integrations/openclaw) install ContextBase as their memory
 provider: every turn recalls what matters before answering and retains what was
 said afterwards. The Hermes desktop app configures it
 [in Settings](/sdks/integrations/hermes-desktop), no terminal.
@@ -160,7 +160,7 @@ Everything else — frameworks, MCP servers, tools — is in the
 
 ### Getting Started
 - [**Quick Start**](/developer/api/quickstart) — Install and get up and running in 60 seconds
-- [**RAG vs Hindsight**](/developer/rag-vs-hindsight) — See how Hindsight differs from traditional RAG with real examples
+- [**RAG vs ContextBase**](/developer/rag-vs-contextbase) — See how ContextBase differs from traditional RAG with real examples
 
 ### Core Concepts
 - [**Retain**](/developer/retain) — How memories are stored with multi-dimensional facts

@@ -1,5 +1,5 @@
 /**
- * Bank ID derivation — maps Paperclip company/agent identity onto Hindsight bank IDs.
+ * Bank ID derivation — maps Paperclip company/agent identity onto ContextBase bank IDs.
  *
  * Two modes:
  *

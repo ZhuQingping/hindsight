@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
-  "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-  "hindsightApiToken": null,
+  "contextbaseApiUrl": "",
+  "contextbaseApiToken": null,
   "bankId": "omo",
   "bankMission": "You are an OMO (oh-my-openagent) orchestrator. Focus on technical discussions, decisions, architectural context, and coding patterns relevant to the user's projects.",
   "retainMission": "Extract technical decisions, architectural choices, user preferences, project context, debugging insights, and tool/library relationships. Ignore routine greetings and transient operational details.",

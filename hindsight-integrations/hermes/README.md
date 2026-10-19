@@ -1,22 +1,24 @@
-# Hindsight Memory Provider for Hermes Agent
+# ContextBase Memory Provider for Hermes Agent
+
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
 Long-term memory with knowledge graph, entity resolution, and multi-strategy retrieval. Supports cloud, local embedded, and local external modes.
 
 A [Hermes Agent](https://github.com/NousResearch/hermes-agent) memory-provider plugin, installed from
-the Hermes plugin catalog. It used to ship inside Hermes as `plugins/memory/hindsight/`; Nous Research
-moved every memory provider out of the core tree, so it is now maintained by the Hindsight team in
-[vectorize-io/hindsight](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/hermes)
+the Hermes plugin catalog. It used to ship inside Hermes as `plugins/memory/contextbase/`; Nous Research
+moved every memory provider out of the core tree, so it is now maintained by the ContextBase team in
+[RSIXDB/hindsight](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/hermes)
 and the catalog pins it from there.
 
-[View Changelog →](https://hindsight.vectorize.io/changelog/integrations/hermes)
+[View Changelog →](https://github.com/RSIXDB/hindsight/changelog/integrations/hermes)
 
 ## Install
 
-Hindsight is in the Hermes plugin catalog, so the name is all you need:
+ContextBase is in the Hermes plugin catalog, so the name is all you need:
 
 ```bash
-hermes plugins install hindsight
-hermes memory setup           # select "hindsight"
+hermes plugins install contextbase
+hermes memory setup           # select "contextbase"
 ```
 
 `plugins install` asks for confirmation before enabling the plugin. Pass `--enable` (or
@@ -33,7 +35,7 @@ sit at that prompt rather than finish.
 
 ### How `local_embedded` runs
 
-The Hindsight server is **not** a dependency of Hermes' venv. `local_embedded` starts it as a
+The ContextBase server is **not** a dependency of Hermes' venv. `local_embedded` starts it as a
 separate process — an installed `hindsight-api` binary, else a `uvx hindsight-api` fallback that
 gets its own environment — and talks HTTP to it. This venv keeps only `hindsight-client` and
 `hindsight-embed`, both declared in `pyproject.toml`, so every mode installs with the plugin and
@@ -49,8 +51,8 @@ CUDA wheels torch pulls there) that cloud-mode users would pay for nothing.
 `_new_embedded_client` therefore composes what the old `hindsight.HindsightEmbedded` wrapper composed
 internally — `hindsight_embed.get_embed_manager()` plus `hindsight_client.Hindsight` — instead of
 importing it. **Existing embedded users keep everything**: the profile decides the daemon, so the
-database (`~/.pg0/instances/hindsight-embed-<profile>/`) and the profile env
-(`~/.hindsight/profiles/<profile>.env`) are the same files, read the same way. No migration step, no
+database (`~/.pg0/instances/contextbase-embed-<profile>/`) and the profile env
+(`~/.contextbase/profiles/<profile>.env`) are the same files, read the same way. No migration step, no
 re-setup.
 
 The plugin no longer calls `tools.lazy_deps.install_specs` from anywhere. On package-manager Hermes
@@ -61,29 +63,29 @@ import missing (NousResearch/hermes-agent#126494, fixed upstream in af26acab73 t
 
 ## Coming from the built-in provider
 
-Hindsight used to ship inside Hermes as `plugins/memory/hindsight/`. Nous Research removed that copy
+ContextBase used to ship inside Hermes as `plugins/memory/contextbase/`. Nous Research removed that copy
 on 2026-09-23 and the provider now installs from the catalog instead. **You do not need to do
 anything** — and your memories are not affected.
 
 `hermes update`, and agent startup for Desktop users who never run it, calls Hermes'
-`memory_provider_migration`: it sees `memory.provider: hindsight` configured, finds no provider on
+`memory_provider_migration`: it sees `memory.provider: contextbase` configured, finds no provider on
 disk, looks the name up in the plugin catalog and installs it at the reviewed commit pin. You'll see:
 
 ```
-✓ Memory provider 'hindsight' moved out of core — installed its plugin from the catalog
-  (your memory.hindsight settings and data are unchanged).
+✓ Memory provider 'contextbase' moved out of core — installed its plugin from the catalog
+  (your memory.contextbase settings and data are unchanged).
 ```
 
-Your data never lived in the Hermes tree: memories are in your Hindsight bank — Hindsight Cloud, or
-for `local_embedded` the profile directory `~/.hindsight/profiles/<profile>` and its embedded
+Your data never lived in the Hermes tree: memories are in your ContextBase bank — ContextBase remote service, or
+for `local_embedded` the profile directory `~/.contextbase/profiles/<profile>` and its embedded
 PostgreSQL instance. Moving the provider code does not touch any of it, and your
-`~/.hermes/hindsight/config.json` is read exactly as before.
+`~/.hermes/contextbase/config.json` is read exactly as before.
 
 If the migration can't run — offline, or the catalog fetch fails — Hermes prints the manual
 one-liner rather than starting silently without memory:
 
 ```bash
-hermes plugins install hindsight
+hermes plugins install contextbase
 ```
 
 ## Updating
@@ -99,15 +101,15 @@ can take that long to even appear as available.
 
 ### Follow the official pin (default)
 
-What you get from `hermes plugins install hindsight`: the commit Nous reviewed and pinned in their
+What you get from `hermes plugins install contextbase`: the commit Nous reviewed and pinned in their
 catalog.
 
 ```bash
-hermes plugins update hindsight    # move to the catalog's current pin
+hermes plugins update contextbase    # move to the catalog's current pin
 ```
 
 `hermes plugins list` flags the plugin `update_available` once your installed commit differs from
-the catalog's. Re-running `hermes plugins install hindsight` does **not** update it — it refuses
+the catalog's. Re-running `hermes plugins install contextbase` does **not** update it — it refuses
 with "already exists"; `plugins update` is the command that re-pins.
 
 ### Pin a specific release
@@ -115,7 +117,7 @@ with "already exists"; `plugins update` is the command that re-pins.
 For a version you choose and freeze, install with an explicit commit:
 
 ```bash
-hermes plugins install vectorize-io/hindsight/hindsight-integrations/hermes \
+hermes plugins install RSIXDB/hindsight/hindsight-integrations/hermes \
   --force --ref <40-character-commit-sha>
 ```
 
@@ -130,7 +132,7 @@ than typing `v1.1.0`. The copy button beside a commit on
 [the plugin's history](https://github.com/vectorize-io/hindsight/commits/main/hindsight-integrations/hermes)
 gives you the full SHA; the abbreviated one shown on screen is too short.
 
-A `--ref` install is marked pinned, and `hermes plugins update hindsight` deliberately refuses to
+A `--ref` install is marked pinned, and `hermes plugins update contextbase` deliberately refuses to
 move it — install again with a new `--ref` when you want a different version.
 
 ### Track the latest development code
@@ -138,66 +140,66 @@ move it — install again with a new `--ref` when you want a different version.
 For fixes before they reach the catalog. Install from the source path rather than the catalog name:
 
 ```bash
-hermes plugins install vectorize-io/hindsight/hindsight-integrations/hermes
-hermes plugins update hindsight    # now a git pull of our main branch
+hermes plugins install RSIXDB/hindsight/hindsight-integrations/hermes
+hermes plugins update contextbase    # now a git pull of our main branch
 ```
 
 Unreviewed by definition — you get whatever is on `main` at the moment you run it.
 
 The catalog entry lives in Nous' repo at
-[`plugin-catalog/hindsight.yaml`](https://github.com/NousResearch/hermes-agent/blob/main/plugin-catalog/hindsight.yaml),
+[`plugin-catalog/contextbase.yaml`](https://github.com/NousResearch/hermes-agent/blob/main/plugin-catalog/hindsight.yaml),
 which is what records the current pin.
 
 ## Requirements
 
-- **Cloud:** API key from [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io)
+- **Cloud:** API key from your deployment administrator
 - **Local Embedded:** API key for a supported LLM provider (OpenAI, Anthropic, Gemini, Groq, OpenRouter, MiniMax, Ollama, or any OpenAI-compatible endpoint). Embeddings and reranking run locally — no additional API keys needed.
-- **Local External:** A running Hindsight instance (Docker or self-hosted) reachable over HTTP.
+- **Local External:** A running ContextBase instance (Docker or self-hosted) reachable over HTTP.
 
 ## Setup
 
 ```bash
-hermes memory setup    # select "hindsight"
+hermes memory setup    # select "contextbase"
 ```
 
 The setup wizard installs nothing (dependencies come with the plugin), walks you through configuration, and offers to seed the bank with a **starter memory template** (a curated set of dispositions/instructions for common agent roles) — you can skip it, and it warns before overwriting an already-configured bank.
 
-Or manually (cloud mode with defaults):
+Or configure the remote mode manually, including your service URL:
 ```bash
-hermes config set memory.provider hindsight
-echo "HINDSIGHT_API_KEY=your-key" >> ~/.hermes/.env
+hermes config set memory.provider contextbase
+echo "CONTEXTBASE_API_URL=http://localhost:8888 CONTEXTBASE_API_KEY=your-key" >> ~/.hermes/.env
 ```
 
 ### Cloud
 
-Connects to the Hindsight Cloud API. Requires an API key from [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io).
+Connects to the ContextBase remote service API. Requires an API key from your deployment administrator.
 
 ### Local Embedded
 
-Hermes spins up a local Hindsight daemon with built-in PostgreSQL. Requires an LLM API key for memory extraction and synthesis. The daemon starts automatically in the background on first use and stops after 5 minutes of inactivity.
+Hermes spins up a local ContextBase daemon with built-in PostgreSQL. Requires an LLM API key for memory extraction and synthesis. The daemon starts automatically in the background on first use and stops after 5 minutes of inactivity.
 
 Supports any OpenAI-compatible LLM endpoint (llama.cpp, vLLM, LM Studio, etc.) — pick `openai_compatible` as the provider and enter the base URL.
 
 Daemon startup logs: `~/.hermes/logs/hindsight-embed.log`
-Daemon runtime logs: `~/.hindsight/profiles/<profile>.log`
+Daemon runtime logs: `~/.contextbase/profiles/<profile>.log`
 
-To open the Hindsight web UI (local embedded mode only):
+To open the ContextBase web UI (local embedded mode only):
 ```bash
 hindsight-embed -p hermes ui start
 ```
 
 ### Local External
 
-Points the plugin at an existing Hindsight instance you're already running (Docker, self-hosted, etc.). No daemon management — just a URL and an optional API key.
+Points the plugin at an existing ContextBase instance you're already running (Docker, self-hosted, etc.). No daemon management — just a URL and an optional API key.
 
 ## Config
 
-Each Hermes profile has its own config file: `$HERMES_HOME/hindsight/config.json` (`~/.hermes/hindsight/config.json`
+Each Hermes profile has its own config file: `$HERMES_HOME/contextbase/config.json` (`~/.hermes/contextbase/config.json`
 for the default profile). `hermes memory setup` writes it. The plugin reads the first of these that exists and is
 not empty:
 
-1. `$HERMES_HOME/hindsight/config.json` — this profile only
-2. `~/.hindsight/config.json` — shared by every profile
+1. `$HERMES_HOME/contextbase/config.json` — this profile only
+2. `~/.contextbase/config.json` — shared by every profile
 3. Environment variables (see [Environment Variables](#environment-variables))
 
 A profile has exactly one config. To give one profile different banks per repository, workspace, platform or user,
@@ -212,9 +214,9 @@ Some keys also accept an older name: `apiKey` for `api_key`, `budget` for `recal
 | Key | Default | Description |
 |-----|---------|-------------|
 | `mode` | `cloud` | `cloud`, `local_embedded`, or `local_external` |
-| `api_url` | `https://api.hindsight.vectorize.io` (cloud), `http://localhost:8888` (local_external) | API URL. Falls back to `HINDSIGHT_API_URL` when unset. |
-| `api_key` | — | Hindsight API key. Required for cloud, optional for local_external. Falls back to `HINDSIGHT_API_KEY` when unset; the setup wizard stores it there. |
-| `timeout` | `120` | Seconds to wait for each Hindsight API request. Falls back to `HINDSIGHT_TIMEOUT` when unset. |
+| `api_url` | Required (cloud); `http://localhost:8888` (local_external) | API URL. Falls back to `CONTEXTBASE_API_URL` when unset. |
+| `api_key` | — | ContextBase API key. Required for cloud, optional for local_external. Falls back to `CONTEXTBASE_API_KEY` when unset; the setup wizard stores it there. |
+| `timeout` | `120` | Seconds to wait for each ContextBase API request. Falls back to `CONTEXTBASE_TIMEOUT` when unset. |
 
 ### Memory Bank
 
@@ -225,19 +227,19 @@ Some keys also accept an older name: `apiKey` for `api_key`, `budget` for `recal
 | `mirror_to_own_bank` | `false` | Also write to `bank_id` when the template resolves to a different bank, so a profile keeps its own memory while working in project banks. |
 | `additional_banks` | — | Extra banks to write to and recall from, in priority order. |
 | `recall_additional_banks` | — | Extra banks to recall from but never write to, searched after the write banks. Alias `recallAdditionalBanks`, the name the Claude Code integration uses. A bank also listed in `additional_banks` stays writable. |
-| `trusted_project_dirs` | — | Absolute folders whose git repositories may choose their own bank with a `.hindsight/config.toml`. Empty by default, so a cloned repository cannot redirect your memory. |
+| `trusted_project_dirs` | — | Absolute folders whose git repositories may choose their own bank with a `.contextbase/config.toml`. Empty by default, so a cloned repository cannot redirect your memory. |
 | `bank_mission` | — | Read but not applied to the bank. To set a bank's reflect mission, use the bank's config (control plane or `PATCH /v1/default/banks/{bank_id}/config`). |
 | `bank_retain_mission` | — | Read but not applied to the bank. To set a bank's retain mission, use the bank's config, as above. |
 
 #### Multiple banks
 
-The primary bank is chosen in this order: a `.hindsight/config.toml` in a trusted repository, then `bank_id_template`, then `HINDSIGHT_BANK_ID` or `bank_id`. Writes go to the primary, then `bank_id` when `mirror_to_own_bank` is on, then each `additional_banks` entry. Recall searches the same banks and then each `recall_additional_banks` entry, all at once, each with the configured budget and `recall_max_tokens`; results are merged in that order and deduplicated by text. Reflect uses the primary bank only.
+The primary bank is chosen in this order: a `.contextbase/config.toml` in a trusted repository, then `bank_id_template`, then `CONTEXTBASE_BANK_ID` or `bank_id`. Writes go to the primary, then `bank_id` when `mirror_to_own_bank` is on, then each `additional_banks` entry. Recall searches the same banks and then each `recall_additional_banks` entry, all at once, each with the configured budget and `recall_max_tokens`; results are merged in that order and deduplicated by text. Reflect uses the primary bank only.
 
 The three list settings take a JSON list or comma-separated text; use the JSON form for a value that contains a comma.
 
 A failing extra bank is skipped for five minutes, with one warning when it goes down and one info line when it answers again; recall and writes cool down separately, and a bank misses the writes made while its writes are cooling down. An extra bank that has not answered after 80% of `timeout` counts as failing, so it never costs the primary its results. A failing primary bank fails the call exactly as it does with a single bank, and a write stops there, before any extra bank is touched.
 
-A repository that is itself inside one of the `trusted_project_dirs` (a linked worktree is judged by where the worktree is) can name its bank in `.hindsight/config.toml` at its root or in any folder below it:
+A repository that is itself inside one of the `trusted_project_dirs` (a linked worktree is judged by where the worktree is) can name its bank in `.contextbase/config.toml` at its root or in any folder below it:
 
 ```toml
 bank_id = "acme-billing"
@@ -256,26 +258,26 @@ The lookup stops at the repository root. Only `bank_id` is read.
 | `recall_prompt_preamble` | — | Custom preamble for recalled memories in context |
 | `recall_tags` | — | Tags to filter when searching memories: a JSON list (e.g. `["project-x", "team"]`) or comma-separated text (`"project-x, team"`) |
 | `recall_tags_match` | `any` | Tag matching mode: `any` / `all` / `any_strict` / `all_strict` |
-| `reflect_tags` | — | Tags that scope what reflect reasons over (the `hindsight_reflect` tool and `recall_prefetch_method: reflect`), as a JSON list or comma-separated text. Unset, reflect uses the whole bank; `recall_tags` does not apply to reflect. |
+| `reflect_tags` | — | Tags that scope what reflect reasons over (the `contextbase_reflect` tool and `recall_prefetch_method: reflect`), as a JSON list or comma-separated text. Unset, reflect uses the whole bank; `recall_tags` does not apply to reflect. |
 | `reflect_tags_match` | `any` | Tag matching mode for `reflect_tags` |
-| `recall_types` | `observation` | Fact types surfaced by recall (both auto-recall and the `hindsight_recall` tool). Comma-separated string or JSON list. **Default narrowed to `observation` only** (see "Behavior change" below). Set to `observation,world,experience` to also include raw facts. |
-| `recall_min_scores` | — | Minimum relevance per score field, as a JSON object (e.g. `{"reranker": 0.25}` or `{"semantic": 0.5}`). Applies to both auto-recall and the `hindsight_recall` tool. See the tip below. |
+| `recall_types` | `observation` | Fact types surfaced by recall (both auto-recall and the `contextbase_recall` tool). Comma-separated string or JSON list. **Default narrowed to `observation` only** (see "Behavior change" below). Set to `observation,world,experience` to also include raw facts. |
+| `recall_min_scores` | — | Minimum relevance per score field, as a JSON object (e.g. `{"reranker": 0.25}` or `{"semantic": 0.5}`). Applies to both auto-recall and the `contextbase_recall` tool. See the tip below. |
 | `auto_recall` | `true` | Automatically recall memories before each turn |
 | `recall_sync` | `false` | Recall synchronously against the *current* message each turn (higher relevance, adds recall latency). Default off: recall runs in the background and is injected on the next turn. |
-| `recall_indicator` | `true` | Show a `👁️ Hindsight — recalled N memories` status line when auto-recall injects memory. Turn off for customer-facing agents. |
+| `recall_indicator` | `true` | Show a `👁️ ContextBase — recalled N memories` status line when auto-recall injects memory. Turn off for customer-facing agents. |
 
 > **Behavior change — `recall_types` defaults to `observation` only.**
 >
 > Previously recall returned all three fact types. It now returns only observations.
 >
-> Per [Hindsight's docs](https://hindsight.vectorize.io/developer/observations), observations are the **consolidated** knowledge layer Hindsight builds on top of raw facts: deduplicated beliefs grounded in evidence, refined as new facts arrive, with proof counts and freshness signals. Raw `world` / `experience` facts are the individual supporting evidence that feeds them. For per-turn context injection, observations are denser per token and avoid feeding the model multiple raw facts that one observation already summarizes.
+> Per [ContextBase's docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs), observations are the **consolidated** knowledge layer ContextBase builds on top of raw facts: deduplicated beliefs grounded in evidence, refined as new facts arrive, with proof counts and freshness signals. Raw `world` / `experience` facts are the individual supporting evidence that feeds them. For per-turn context injection, observations are denser per token and avoid feeding the model multiple raw facts that one observation already summarizes.
 >
-> Restore the broad recall with `"recall_types": "observation,world,experience"` (string or JSON list) in `~/.hermes/hindsight/config.json`. This applies to **both** auto-recall and the `hindsight_recall` tool — both read the same `recall_types` setting (the tool schema has no per-call `types` argument), so narrowing the default narrows both paths.
+> Restore the broad recall with `"recall_types": "observation,world,experience"` (string or JSON list) in `~/.hermes/contextbase/config.json`. This applies to **both** auto-recall and the `contextbase_recall` tool — both read the same `recall_types` setting (the tool schema has no per-call `types` argument), so narrowing the default narrows both paths.
 
 > **Tip — `recall_min_scores` against off-topic recall.** Recall ranks, it does not judge relevance: a question
 > unrelated to anything stored still comes back with up to `recall_max_tokens` of the least-bad memories. The
 > `reranker` score separates the two cleanly — on a small bank relevant hits scored 0.7-0.97 and unrelated ones
-> 0.0-0.1 — so `"recall_min_scores": {"reranker": 0.25}` in `~/.hermes/hindsight/config.json` turns that noise
+> 0.0-0.1 — so `"recall_min_scores": {"reranker": 0.25}` in `~/.hermes/contextbase/config.json` turns that noise
 > into an empty recall. The server only guarantees `reranker` and `final` floors; a `semantic` or `keyword` floor
 > prunes just its own retrieval arm there, and a result found by another arm still comes back with a `null` score
 > for that stage. The plugin therefore also checks every floor against the scores each result reports, and rejects
@@ -288,15 +290,15 @@ The lookup stops at the repository root. Only `bank_id` is read.
 | Key | Default | Description |
 |-----|---------|-------------|
 | `auto_retain` | `true` | Automatically retain conversation turns |
-| `retain_cron` | `false` | Also auto-retain scheduled (cron) runs. Off by default, so job output stays out of the user's memory; the `hindsight_retain` tool still works in cron runs. |
-| `retain_async` | `true` | Process retain asynchronously on the Hindsight server |
+| `retain_cron` | `false` | Also auto-retain scheduled (cron) runs. Off by default, so job output stays out of the user's memory; the `contextbase_retain` tool still works in cron runs. |
+| `retain_async` | `true` | Process retain asynchronously on the ContextBase server |
 | `retain_every_n_turns` | `1` | Retain every N turns (1 = every turn) |
 | `retain_context` | `conversation between Hermes Agent and the User` | Context label for retained memories |
 | `retain_tags` | — | Default tags applied to retained memories; merged with per-call tool tags. JSON list or comma-separated text. |
 | `observation_scopes` | `combined` | How observations are grouped by tag during consolidation: `combined` (one pass over all tags), `per_tag` (one pass per tag), `all_combinations` (every tag subset, expensive), or a JSON list of tag lists for custom scopes (e.g. `[["user:alice"], ["project-x"]]`). |
 | `retain_source` | — | Opt-in `metadata.source` attached to retained memories (identifies the storing client, e.g. `hermes`). Empty by default — no attribution tag ships unless you set it. |
-| `retain_strategy` | — | Named retain strategy sent with every stored item (`HINDSIGHT_RETAIN_STRATEGY`). The bank must define it under `retain_strategies`; an unknown name is ignored by the server. Empty lets the bank decide. |
-| `retain_indicator` | `true` | Show a `👁️ Hindsight — saving to memory…` status line when a turn is saved. Turn off for customer-facing agents. |
+| `retain_strategy` | — | Named retain strategy sent with every stored item (`CONTEXTBASE_RETAIN_STRATEGY`). The bank must define it under `retain_strategies`; an unknown name is ignored by the server. Empty lets the bank decide. |
+| `retain_indicator` | `true` | Show a `👁️ ContextBase — saving to memory…` status line when a turn is saved. Turn off for customer-facing agents. |
 | `retain_user_prefix` | `User` | Label used before user turns in auto-retained transcripts |
 | `retain_assistant_prefix` | `Assistant` | Label used before assistant turns in auto-retained transcripts |
 | `prefetch_waits_for_retain` | `true` | Before the background recall for the next turn, wait until the turn just saved can be found, so recall includes it. Runs off the reply path and adds no response time. |
@@ -319,21 +321,21 @@ The lookup stops at the repository root. Only `bank_id` is read.
 |-----|---------|-------------|
 | `llm_provider` | — | `openai`, `anthropic`, `gemini`, `groq`, `openrouter`, `minimax`, `ollama`, `lmstudio`, `openai_compatible`. The setup wizard suggests `openai`. |
 | `llm_model` | — | Model name (e.g. `gpt-4o-mini`, `qwen/qwen3.5-9b`). The setup wizard suggests one per provider. |
-| `llm_base_url` | — | Endpoint URL for `openai_compatible` (e.g. `http://192.168.1.10:8080/v1`). Falls back to `HINDSIGHT_API_LLM_BASE_URL`. |
-| `llm_api_key` | — | LLM API key. Usually left out of the file: the setup wizard stores it in `$HERMES_HOME/.env` as `HINDSIGHT_LLM_API_KEY`. |
-| `profile` | `hermes` | Name of the local daemon profile: its data, log and env file under `~/.hindsight/profiles/` are named after it. Give two Hermes profiles different values to keep their local memory apart. |
-| `idle_timeout` | `300` | Seconds of inactivity before the daemon stops; `0` keeps it running. Falls back to `HINDSIGHT_IDLE_TIMEOUT`. |
-| `port_health_grace_timeout` | `30` | Seconds to wait for a slow daemon health check before restarting it. Raise on busy or low-resource machines. `HINDSIGHT_EMBED_PORT_HEALTH_GRACE_TIMEOUT` wins when set. |
+| `llm_base_url` | — | Endpoint URL for `openai_compatible` (e.g. `http://192.168.1.10:8080/v1`). Falls back to `CONTEXTBASE_API_LLM_BASE_URL`. |
+| `llm_api_key` | — | LLM API key. Usually left out of the file: the setup wizard stores it in `$HERMES_HOME/.env` as `CONTEXTBASE_LLM_API_KEY`. |
+| `profile` | `hermes` | Name of the local daemon profile: its data, log and env file under `~/.contextbase/profiles/` are named after it. Give two Hermes profiles different values to keep their local memory apart. |
+| `idle_timeout` | `300` | Seconds of inactivity before the daemon stops; `0` keeps it running. Falls back to `CONTEXTBASE_IDLE_TIMEOUT`. |
+| `port_health_grace_timeout` | `30` | Seconds to wait for a slow daemon health check before restarting it. Raise on busy or low-resource machines. `CONTEXTBASE_EMBED_PORT_HEALTH_GRACE_TIMEOUT` wins when set. |
 
 The embedded daemon is a subprocess that cannot see the per-turn secret
-scope, so it reads the key from `~/.hindsight/profiles/<profile>.env`
+scope, so it reads the key from `~/.contextbase/profiles/<profile>.env`
 (materialized owner-only at setup and on config change). Key resolution
 order is explicit config → secret scope → the on-disk profile env, and the
 rewrite path is fail-closed: a build with no key never clobbers a profile
 file that already holds one.
 
 The plugin owns only the LLM, log-level and idle-timeout keys in that file. Anything else in it
-(the port hindsight-embed records, a tenant extension and its `HINDSIGHT_API_TENANT_API_KEY`) is
+(the port hindsight-embed records, a tenant extension and its `CONTEXTBASE_API_TENANT_API_KEY`) is
 left alone and never counts as a config change, and the plugin's client sends that tenant key to
 the daemon.
 
@@ -343,9 +345,9 @@ Available in `hybrid` and `tools` memory modes:
 
 | Tool | Description |
 |------|-------------|
-| `hindsight_retain` | Store information with auto entity extraction; supports optional per-call `tags` |
-| `hindsight_recall` | Multi-strategy search (semantic + entity graph) |
-| `hindsight_reflect` | Cross-memory synthesis (LLM-powered) |
+| `contextbase_retain` | Store information with auto entity extraction; supports optional per-call `tags` |
+| `contextbase_recall` | Multi-strategy search (semantic + entity graph) |
+| `contextbase_reflect` | Cross-memory synthesis (LLM-powered) |
 
 ## Environment Variables
 
@@ -355,43 +357,43 @@ These are used whenever the matching config key is not set:
 
 | Variable | Description |
 |----------|-------------|
-| `HINDSIGHT_API_KEY` | Hindsight API key (`api_key`) |
-| `HINDSIGHT_API_URL` | API endpoint (`api_url`) |
-| `HINDSIGHT_BANK_ID` | Bank name; when set, wins over `bank_id` in `config.json` (a `bank_id_template` still takes precedence) |
-| `HINDSIGHT_TIMEOUT` | API request timeout in seconds (`timeout`) |
-| `HINDSIGHT_LLM_API_KEY` | LLM API key for local_embedded (`llm_api_key`); `HINDSIGHT_API_LLM_API_KEY` also works |
-| `HINDSIGHT_API_LLM_BASE_URL` | LLM endpoint for local_embedded (`llm_base_url`) |
-| `HINDSIGHT_IDLE_TIMEOUT` | Daemon idle timeout in seconds (`idle_timeout`) |
-| `HINDSIGHT_EMBED_PORT_HEALTH_GRACE_TIMEOUT` | Daemon health-check grace in seconds; wins over `port_health_grace_timeout` |
-| `HINDSIGHT_RETAIN_TAGS` | Default tags on retained memories (`retain_tags`) |
-| `HINDSIGHT_RETAIN_OBSERVATION_SCOPES` | Observation scopes (`observation_scopes`) |
-| `HINDSIGHT_RETAIN_SOURCE` | `metadata.source` on retained memories (`retain_source`) |
-| `HINDSIGHT_RETAIN_STRATEGY` | Named retain strategy (`retain_strategy`) |
-| `HINDSIGHT_RETAIN_USER_PREFIX` | Label before user turns (`retain_user_prefix`) |
-| `HINDSIGHT_RETAIN_ASSISTANT_PREFIX` | Label before assistant turns (`retain_assistant_prefix`) |
+| `CONTEXTBASE_API_KEY` | ContextBase API key (`api_key`) |
+| `CONTEXTBASE_API_URL` | API endpoint (`api_url`) |
+| `CONTEXTBASE_BANK_ID` | Bank name; when set, wins over `bank_id` in `config.json` (a `bank_id_template` still takes precedence) |
+| `CONTEXTBASE_TIMEOUT` | API request timeout in seconds (`timeout`) |
+| `CONTEXTBASE_LLM_API_KEY` | LLM API key for local_embedded (`llm_api_key`); `CONTEXTBASE_API_LLM_API_KEY` also works |
+| `CONTEXTBASE_API_LLM_BASE_URL` | LLM endpoint for local_embedded (`llm_base_url`) |
+| `CONTEXTBASE_IDLE_TIMEOUT` | Daemon idle timeout in seconds (`idle_timeout`) |
+| `CONTEXTBASE_EMBED_PORT_HEALTH_GRACE_TIMEOUT` | Daemon health-check grace in seconds; wins over `port_health_grace_timeout` |
+| `CONTEXTBASE_RETAIN_TAGS` | Default tags on retained memories (`retain_tags`) |
+| `CONTEXTBASE_RETAIN_OBSERVATION_SCOPES` | Observation scopes (`observation_scopes`) |
+| `CONTEXTBASE_RETAIN_SOURCE` | `metadata.source` on retained memories (`retain_source`) |
+| `CONTEXTBASE_RETAIN_STRATEGY` | Named retain strategy (`retain_strategy`) |
+| `CONTEXTBASE_RETAIN_USER_PREFIX` | Label before user turns (`retain_user_prefix`) |
+| `CONTEXTBASE_RETAIN_ASSISTANT_PREFIX` | Label before assistant turns (`retain_assistant_prefix`) |
 
 These are used **only when there is no config file at all**. Once `hermes memory setup` has written
 `config.json`, they are ignored; set the config key instead:
 
 | Variable | Description |
 |----------|-------------|
-| `HINDSIGHT_MODE` | Mode: `cloud`, `local_embedded` or `local_external` (`mode`) |
-| `HINDSIGHT_BUDGET` | Recall budget (`recall_budget`) |
-| `HINDSIGHT_RETAIN_CONTEXT` | Label stored with each retained conversation (`retain_context`) |
-| `HINDSIGHT_RETAIN_INDICATOR` | `false` hides the "saving to memory" status line (`retain_indicator`) |
-| `HINDSIGHT_RECALL_INDICATOR` | `false` hides the "recalled N memories" status line (`recall_indicator`) |
-| `HINDSIGHT_RECALL_SYNC` | `true` recalls against the current message before answering (`recall_sync`) |
+| `CONTEXTBASE_MODE` | Mode: `cloud`, `local_embedded` or `local_external` (`mode`) |
+| `CONTEXTBASE_BUDGET` | Recall budget (`recall_budget`) |
+| `CONTEXTBASE_RETAIN_CONTEXT` | Label stored with each retained conversation (`retain_context`) |
+| `CONTEXTBASE_RETAIN_INDICATOR` | `false` hides the "saving to memory" status line (`retain_indicator`) |
+| `CONTEXTBASE_RECALL_INDICATOR` | `false` hides the "recalled N memories" status line (`recall_indicator`) |
+| `CONTEXTBASE_RECALL_SYNC` | `true` recalls against the current message before answering (`recall_sync`) |
 
 ## Client Version
 
 Requires `hindsight-client >= 0.10.1` and, for `local_embedded`, `hindsight-embed >= 0.10.1`. A version below
-the floor only logs a warning; `hermes plugins update hindsight` moves the environment.
+the floor only logs a warning; `hermes plugins update contextbase` moves the environment.
 
 The floor is 0.10.1 rather than the 0.6.1 this plugin needs at the API level because
 `hindsight-embed` 0.10.0 breaks `local_embedded` outright: its daemon probe cleared the calling
 thread's event loop, so the next client call failed with `Timeout context manager should be used
 inside a task`. If you installed between 2026-09-14 and 2026-09-21, run `hermes update` (or
-`hermes plugins update hindsight`) to move off it.
+`hermes plugins update contextbase`) to move off it.
 
 ## Hermes Gateway (Telegram, Discord, Slack)
 
@@ -399,7 +401,7 @@ The provider works across every gateway platform. Hermes builds a fresh agent pe
 provider is re-initialized with it, so auto-recall runs for each turn regardless of platform.
 
 Two settings are worth turning off for customer-facing bots: `recall_indicator` and
-`retain_indicator`, which otherwise print a `👁️ Hindsight` status line into the user's channel.
+`retain_indicator`, which otherwise print a `👁️ ContextBase` status line into the user's channel.
 
 ## Disabling Hermes' built-in memory
 
@@ -415,28 +417,28 @@ Setting both to `false` removes the built-in `memory` tool from the agent entire
 by setting the same flags back to `true`.
 
 If you keep the built-in stores on, every entry the agent adds or replaces in them is also saved to
-every bank Hindsight writes to, tagged `builtin-memory`, `builtin-target:<memory|user>` and `builtin-action:<add|replace>`,
+every bank ContextBase writes to, tagged `builtin-memory`, `builtin-target:<memory|user>` and `builtin-action:<add|replace>`,
 so a fact pruned from the size-capped file is not lost. Removals are not mirrored.
 
 ## Troubleshooting
 
 **Tools don't appear in `/tools`** — the provider skips tool registration when it isn't configured.
-Check `hermes memory status` reports `hindsight` as the active provider and `Status: available`. In
+Check `hermes memory status` reports `contextbase` as the active provider and `Status: available`. In
 `memory_mode: context` the tools are hidden on purpose.
 
 **`Status: not available` in `local_embedded`** — this plugin's own packages
 (`hindsight-client`, `hindsight-embed`) are missing from the environment, which happens when a venv
-rebuild dropped the plugin member. Run `hermes pm repair` and restart Hermes to rebuild them. The Hindsight server is *not* needed in that venv — it runs as a separate
+rebuild dropped the plugin member. Run `hermes pm repair` and restart Hermes to rebuild them. The ContextBase server is *not* needed in that venv — it runs as a separate
 process, and first use downloads it if no `hindsight-api` binary is present yet.
 
 **`Timeout context manager should be used inside a task`** — `hindsight-embed` 0.10.0. Run
-`hermes plugins update hindsight` to move to the 0.10.1 floor.
+`hermes plugins update contextbase` to move to the 0.10.1 floor.
 
 **Local daemon not starting** — check the logs:
 
 ```bash
 cat ~/.hermes/logs/hindsight-embed.log     # startup
-cat ~/.hindsight/profiles/<profile>.log    # daemon runtime
+cat ~/.contextbase/profiles/<profile>.log    # daemon runtime
 ```
 
 **Recall returns nothing** — memories need at least one retain cycle, and extraction is an LLM call.
@@ -455,7 +457,7 @@ it is the version `hermes plugins list` and the catalog card show), writes the c
 regenerates the docs skill, commits, and pushes the tag `integrations/hermes/vX.Y.Z`.
 
 Then **open a follow-up PR against `NousResearch/hermes-agent`** bumping `sha` and `version`
-together in `plugin-catalog/hindsight.yaml`. Until that lands, installs stay on the old commit —
+together in `plugin-catalog/contextbase.yaml`. Until that lands, installs stay on the old commit —
 the tag alone reaches nobody.
 
 Put the released **commit SHA** in the release notes. Hermes' `--ref` takes a 40-character SHA and
@@ -465,7 +467,7 @@ rejects tag names (`_EXACT_COMMIT_RE`), so a user pinning to a specific release 
 **First release only:** the release creates `changelog/integrations/hermes`, and
 `check-integrations.mjs` then requires the doc page to link it. The page is generated, so add the
 link to this README (as the other integrations do, absolute so it also works on GitHub):
-`[View Changelog →](https://hindsight.vectorize.io/changelog/integrations/hermes)`. It cannot go in
+`[View Changelog →](https://github.com/RSIXDB/hindsight/changelog/integrations/hermes)`. It cannot go in
 earlier — the docs build runs `onBrokenLinks: 'throw'` and the page does not exist until the
 release commit.
 
@@ -485,7 +487,7 @@ uv run pytest tests -v
 Hermes Agent is not on PyPI, so `tests/conftest.py` stubs the Hermes core interfaces the
 plugin imports (`MemoryProvider`, the secret scope, `cfg_get`, ...) and loads this directory
 as a package, the way Hermes' plugin loader does. A recording fake client stands in for the
-Hindsight SDK so the tests assert what the provider actually sends.
+ContextBase SDK so the tests assert what the provider actually sends.
 
 Things to know when changing this plugin:
 

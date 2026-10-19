@@ -103,12 +103,12 @@ def test_logo_is_a_square_512_svg() -> None:
 
 def test_mcp_server_is_remote_and_uses_oauth() -> None:
     # Grok Bot runs the OAuth flow itself against a remote MCP URL (the same flow Mem0
-    # uses), and Hindsight's /mcp supports OAuth discovery and dynamic client
+    # uses), and ContextBase's /mcp supports OAuth discovery and dynamic client
     # registration. So the plugin carries no credential, header or ${VAR} to configure.
     servers = _mcp().mcp_servers
-    assert list(servers) == ["hindsight"]
-    assert servers["hindsight"].url == "https://api.hindsight.vectorize.io/mcp"
-    assert servers["hindsight"].headers is None
+    assert list(servers) == ["contextbase"]
+    assert servers["contextbase"].url == "http://localhost:8888/mcp"
+    assert servers["contextbase"].headers is None
     assert "${" not in MCP_JSON.read_text()
 
 
@@ -137,7 +137,7 @@ def test_readme_documents_configuration() -> None:
 
 def test_homepage_is_the_live_docs_page() -> None:
     # The OSS docs deploy to hindsight.vectorize.io (docusaurus.config `url`).
-    # docs.hindsight.vectorize.io is the separate Hindsight Cloud docs site, where this route
+    # docs.hindsight.vectorize.io is the separate ContextBase remote service docs site, where this route
     # is a 404. The marketplace listing's Website link is this field, pinned to the reviewed
     # commit, so a wrong domain survives until the next review.
     assert _plugin().homepage == f"https://hindsight.vectorize.io/sdks/integrations/{PLUGIN_DIR.name}"

@@ -632,7 +632,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-superagent"
+name = "contextbase-superagent"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

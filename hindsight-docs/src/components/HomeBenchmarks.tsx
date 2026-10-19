@@ -4,7 +4,7 @@ import {LuArrowUpRight} from 'react-icons/lu';
 import styles from './HomeBenchmarks.module.css';
 
 /**
- * Every benchmark we have a published comparison for, Hindsight against the
+ * Every benchmark we have a published comparison for, ContextBase against the
  * next-best system on that same dataset.
  *
  * It is a section of its own rather than part of the hero: a band carrying both
@@ -52,7 +52,7 @@ export default function HomeBenchmarks(): ReactNode {
       </div>
 
       <div className={styles.legend}>
-        <span className={styles.legendOurs}>Hindsight</span>
+        <span className={styles.legendOurs}>ContextBase</span>
         <span className={styles.legendBest}>Next best system</span>
       </div>
 

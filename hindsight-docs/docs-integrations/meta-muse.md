@@ -1,24 +1,26 @@
 ---
 sidebar_position: 41
-title: "Meta Muse Memory with Hindsight | Integration"
-description: "Connect Meta Muse to the Hindsight memory banks your other AI tools write to. Muse signs in with OAuth, keeps its own bank, and calls recall, retain and reflect over MCP."
+title: "Meta Muse Memory with ContextBase | Integration"
+description: "Connect Meta Muse to the ContextBase memory banks your other AI tools write to. Muse signs in with OAuth, keeps its own bank, and calls recall, retain and reflect over MCP."
 ---
 
 # Meta Muse
 
 [View Changelog →](/changelog/integrations/meta-muse)
 
-Bring the memory from your other AI tools into [Meta Muse](https://muse.ai), Meta's personal AI agent. Muse connects to your [Hindsight](https://vectorize.io/hindsight) memory banks over MCP. What you told Claude, ChatGPT, Claude Code, Hermes or OpenClaw is available in Muse, and what you tell Muse is available to them.
+Bring the memory from your other AI tools into [Meta Muse](https://muse.ai), Meta's personal AI agent. Muse connects to your [ContextBase](https://github.com/RSIXDB/hindsight) memory banks over MCP. What you told Claude, ChatGPT, Claude Code, Hermes or OpenClaw is available in Muse, and what you tell Muse is available to them.
 
 Muse gets all of your banks, not one. It keeps its own `muse` bank for what you and it do together, and reads your other banks when a question reaches into them.
 
-:::tip Hindsight Cloud (recommended)
-[Sign up free](https://ui.hindsight.vectorize.io). Hindsight Cloud already supports the OAuth sign-in Muse uses, so there is nothing to run or configure.
+:::tip Configure your deployment
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
+
+Use your publicly reachable HTTPS MCP endpoint in place of `https://memory.example.com` and configure the OAuth proxy before connecting a hosted agent.
 
 ## How It Works
 
-Muse runs in Meta's cloud and has no plugin host, so Hindsight can't hook into its prompts or transcripts. Muse connects to Hindsight's remote MCP server as a custom connector and calls the memory tools itself:
+Muse runs in Meta's cloud and has no plugin host, so ContextBase can't hook into its prompts or transcripts. Muse connects to ContextBase's remote MCP server as a custom connector and calls the memory tools itself:
 
 | Tool | When Muse calls it |
 |---|---|
@@ -32,26 +34,26 @@ Because Muse has no hooks, the connect prompt also asks Muse to create a nightly
 
 ## Setup
 
-1. Sign up at [vectorize.io/hindsight](https://vectorize.io/hindsight/).
-2. Open Muse and paste the [connect prompt](https://github.com/vectorize-io/hindsight/blob/main/hindsight-integrations/meta-muse/connect-prompt.md).
-3. Muse shows a **Connect** button for Hindsight. Click it and approve access on Hindsight's sign-in page.
+1. Deploy [ContextBase](https://github.com/RSIXDB/hindsight/) and obtain credentials from your deployment administrator.
+2. Open Muse and paste the [connect prompt](https://github.com/RSIXDB/hindsight/blob/main/hindsight-integrations/meta-muse/connect-prompt.md).
+3. Muse shows a **Connect** button for ContextBase. Click it and approve access on ContextBase's sign-in page.
 4. Muse lists the banks it can see, creates its own `muse` bank plus the "About me" mental model and the nightly task, and tells you three things it found about you.
 
 :::note Step 4 is four operations, not one
-Listing banks and creating the `muse` bank are free; `recall` and the mental model are billed. On an account with no credits the first two succeed and the last two fail, leaving an empty `muse` bank and a live nightly task pointed at it. Muse will tell you which step failed. Top up, then ask it to retry the blocked steps rather than pasting the connect prompt again.
+These are separate operations and may complete only partly. Resolve any reported deployment limit or credential error, then retry only the blocked steps.
 :::
 
-The prompt uses the root URL, `https://api.hindsight.vectorize.io/mcp` (see the [MCP server reference](/developer/mcp-server) for the endpoint, its tools and its auth options), which reaches every bank in your account. That is the point: Muse writes to its own bank and reads the others when a question calls for it. Because the root URL also exposes bank management, the prompt forbids `delete_bank`, `clear_memories` and `invalidate_memory`. To hand Muse exactly one bank instead, connect it to `/mcp/<bank>/`: that endpoint takes the same OAuth sign-in and drops the `bank_id` argument from every tool.
+The prompt uses the root URL, `https://memory.example.com/mcp` (see the [MCP server reference](/developer/mcp-server) for the endpoint, its tools and its auth options), which reaches every bank in your account. That is the point: Muse writes to its own bank and reads the others when a question calls for it. Because the root URL also exposes bank management, the prompt forbids `delete_bank`, `clear_memories` and `invalidate_memory`. To hand Muse exactly one bank instead, connect it to `/mcp/<bank>/`: that endpoint takes the same OAuth sign-in and drops the `bank_id` argument from every tool.
 
-## Self-Hosted Hindsight
+## Self-Hosted ContextBase
 
-Muse needs a public HTTPS endpoint with OAuth 2.1 discovery and dynamic client registration. Put the [`cloudflare-oauth-proxy`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/cloudflare-oauth-proxy) in front of your instance, then check the endpoint with the preflight tool from the [integration directory](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/meta-muse):
+Muse needs a public HTTPS endpoint with OAuth 2.1 discovery and dynamic client registration. Put the [`cloudflare-oauth-proxy`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/cloudflare-oauth-proxy) in front of your instance, then check the endpoint with the preflight tool from the [integration directory](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/meta-muse):
 
 ```bash
-uvx --from ./hindsight-integrations/meta-muse hindsight-muse-preflight https://memory.example.com/mcp
+uvx --from ./hindsight-integrations/meta-muse contextbase-muse-preflight https://memory.example.com/mcp
 ```
 
-It replays what Muse does: the unauthenticated 401 challenge, the OAuth metadata (registration endpoint, PKCE S256), and, with `HINDSIGHT_API_KEY` set, MCP `initialize` and `tools/list`.
+It replays what Muse does: the unauthenticated 401 challenge, the OAuth metadata (registration endpoint, PKCE S256), and, with `CONTEXTBASE_API_KEY` set, MCP `initialize` and `tools/list`.
 
 ## Verifying Setup
 

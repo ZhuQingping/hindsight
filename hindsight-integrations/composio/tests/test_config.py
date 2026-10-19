@@ -1,28 +1,28 @@
-"""Unit tests for hindsight_composio configuration."""
+"""Unit tests for contextbase_composio configuration."""
 
 import os
 from unittest.mock import patch
 
-from hindsight_composio import configure, get_config, reset_config
-from hindsight_composio.config import (
-    DEFAULT_HINDSIGHT_API_URL,
-    HINDSIGHT_API_KEY_ENV,
-    HindsightComposioConfig,
+from contextbase_composio import configure, get_config, reset_config
+from contextbase_composio.config import (
+    DEFAULT_CONTEXTBASE_API_URL,
+    CONTEXTBASE_API_KEY_ENV,
+    ContextBaseComposioConfig,
 )
 
 
 class TestDefaults:
     def test_default_api_url(self):
-        assert DEFAULT_HINDSIGHT_API_URL == "https://api.hindsight.vectorize.io"
+        assert DEFAULT_CONTEXTBASE_API_URL == ""
 
     def test_env_var_name(self):
-        assert HINDSIGHT_API_KEY_ENV == "HINDSIGHT_API_KEY"
+        assert CONTEXTBASE_API_KEY_ENV == "CONTEXTBASE_API_KEY"
 
 
-class TestHindsightComposioConfigDataclass:
+class TestContextBaseComposioConfigDataclass:
     def test_default_values(self):
-        config = HindsightComposioConfig()
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        config = ContextBaseComposioConfig()
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.api_key is None
         assert config.default_bank is None
         assert config.budget == "mid"
@@ -33,8 +33,8 @@ class TestHindsightComposioConfigDataclass:
         assert config.verbose is False
 
     def test_custom_values(self):
-        config = HindsightComposioConfig(
-            hindsight_api_url="http://custom:9999",
+        config = ContextBaseComposioConfig(
+            contextbase_api_url="http://custom:9999",
             api_key="key-123",
             default_bank="fallback-bank",
             budget="high",
@@ -44,7 +44,7 @@ class TestHindsightComposioConfigDataclass:
             recall_tags_match="all",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:9999"
+        assert config.contextbase_api_url == "http://custom:9999"
         assert config.api_key == "key-123"
         assert config.default_bank == "fallback-bank"
         assert config.budget == "high"
@@ -64,19 +64,19 @@ class TestConfigure:
 
     def test_configure_with_no_arguments(self):
         config = configure()
-        assert config.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+        assert config.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
         assert config.api_key is None
         assert config.default_bank is None
         assert config.budget == "mid"
         assert config.max_tokens == 4096
 
     def test_configure_reads_api_key_from_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "test-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "test-key"}):
             config = configure()
         assert config.api_key == "test-key"
 
     def test_configure_explicit_overrides_env(self):
-        with patch.dict(os.environ, {HINDSIGHT_API_KEY_ENV: "env-key"}):
+        with patch.dict(os.environ, {CONTEXTBASE_API_KEY_ENV: "env-key"}):
             config = configure(api_key="explicit-key")
         assert config.api_key == "explicit-key"
 
@@ -86,7 +86,7 @@ class TestConfigure:
 
     def test_configure_all_options(self):
         config = configure(
-            hindsight_api_url="http://custom:8888",
+            contextbase_api_url="http://custom:8888",
             api_key="my-key",
             default_bank="shared",
             budget="high",
@@ -96,7 +96,7 @@ class TestConfigure:
             recall_tags_match="all",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:8888"
+        assert config.contextbase_api_url == "http://custom:8888"
         assert config.api_key == "my-key"
         assert config.default_bank == "shared"
         assert config.budget == "high"
@@ -107,7 +107,7 @@ class TestConfigure:
         assert config.verbose is True
 
     def test_configure_returns_config_instance(self):
-        assert isinstance(configure(), HindsightComposioConfig)
+        assert isinstance(configure(), ContextBaseComposioConfig)
 
     def test_configure_replaces_previous_config(self):
         configure(budget="low")
@@ -132,7 +132,7 @@ class TestGetConfig:
 
     def test_returns_config_after_configure(self):
         configure()
-        assert isinstance(get_config(), HindsightComposioConfig)
+        assert isinstance(get_config(), ContextBaseComposioConfig)
 
 
 class TestResetConfig:

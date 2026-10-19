@@ -1,10 +1,10 @@
 #!/bin/bash
-# Memories API examples for Hindsight CLI — read, list, and curate memory units.
+# Memories API examples for ContextBase CLI — read, list, and curate memory units.
 # Run: bash examples/api/memories.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="memories-demo-bank"
 
 # =============================================================================
@@ -24,7 +24,7 @@ sleep 3
 contextbase memory list "$BANK_ID"
 
 # Filter to only the invalidated facts (e.g. to review duplicates)
-curl -s "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/list?state=invalidated"
+curl -s "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/list?state=invalidated"
 # [/docs:list-memories]
 
 # Pick a raw fact (world/experience) to curate below.
@@ -33,13 +33,13 @@ MEMORY_ID=$(contextbase memory list "$BANK_ID" -o json | python3 -c "import sys,
 if [ -n "$MEMORY_ID" ]; then
   # [docs:get-memory]
   # Fetch a single memory unit (metadata, entities, dates, state)
-  curl -s "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID"
+  curl -s "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID"
   # [/docs:get-memory]
 
   # [docs:edit-memory]
   # Correct the fact's text. Re-embeds, drops derived observations/links,
   # re-consolidates, and recomputes the graph automatically.
-  curl -s -X PATCH "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
+  curl -s -X PATCH "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
     -H "Content-Type: application/json" \
     -d '{"text": "The user visited Paris in 2023.", "reason": "wrong subject"}'
   # [/docs:edit-memory]
@@ -49,7 +49,7 @@ if [ -n "$MEMORY_ID" ]; then
   # entities replaces the set ([] detaches all); omit to leave unchanged.
   # resolve_entities false keeps the entity names you wrote from being matched
   # onto a similar entity that already exists.
-  curl -s -X PATCH "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
+  curl -s -X PATCH "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
     -H "Content-Type: application/json" \
     -d '{"occurred_start": "2023-06-01", "fact_type": "experience", "entities": ["Alice", "Paris"], "resolve_entities": false}'
   # [/docs:edit-memory-fields]
@@ -57,14 +57,14 @@ if [ -n "$MEMORY_ID" ]; then
   # [docs:invalidate-memory]
   # Soft-retire a fact: removed from recall/consolidation/graph, links pruned,
   # derived observations recomputed without it — but kept for audit.
-  curl -s -X PATCH "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
+  curl -s -X PATCH "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
     -H "Content-Type: application/json" \
     -d '{"state": "invalidated", "reason": "server decommissioned 2026-06-01"}'
   # [/docs:invalidate-memory]
 
   # [docs:restore-memory]
   # Restore a previously invalidated fact.
-  curl -s -X PATCH "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
+  curl -s -X PATCH "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$MEMORY_ID" \
     -H "Content-Type: application/json" \
     -d '{"state": "valid"}'
   # [/docs:restore-memory]
@@ -75,13 +75,13 @@ OBSERVATION_ID=$(contextbase memory list "$BANK_ID" -o json | python3 -c "import
 if [ -n "$OBSERVATION_ID" ]; then
   # [docs:observation-history]
   # Get the refresh history of a derived observation
-  curl -s "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/memories/$OBSERVATION_ID/history"
+  curl -s "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/memories/$OBSERVATION_ID/history"
   # [/docs:observation-history]
 fi
 
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "$HINDSIGHT_URL/v1/default/banks/$BANK_ID" > /dev/null
+curl -s -X DELETE "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID" > /dev/null
 
 echo "memories.sh: All examples passed"

@@ -1,6 +1,6 @@
-"""Unit tests for HindsightMemoryService.
+"""Unit tests for ContextBaseMemoryService.
 
-All Pipecat and Hindsight API calls are mocked — no live servers required.
+All Pipecat and ContextBase API calls are mocked — no live servers required.
 """
 
 from __future__ import annotations
@@ -10,13 +10,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hindsight_pipecat import (
-    HindsightMemoryService,
-    HindsightPipecatError,
+from contextbase_pipecat import (
+    ContextBaseMemoryService,
+    ContextBasePipecatError,
     configure,
     reset_config,
 )
-from hindsight_pipecat.memory import _MEMORY_MARKER, _resolve_client
+from contextbase_pipecat.memory import _MEMORY_MARKER, _resolve_client
 
 
 # ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ from hindsight_pipecat.memory import _MEMORY_MARKER, _resolve_client
 
 
 def _mock_client(recall_texts: list[str] | None = None) -> MagicMock:
-    """Return a mock Hindsight client with async recall/retain methods."""
+    """Return a mock ContextBase client with async recall/retain methods."""
     client = MagicMock()
     response = MagicMock()
     if recall_texts:
@@ -84,20 +84,20 @@ class TestResolveClient:
         assert _resolve_client(client, None, None) is client
 
     def test_creates_client_from_url(self) -> None:
-        with patch("hindsight_pipecat.memory.Hindsight") as MockHindsight:
+        with patch("contextbase_pipecat.memory.Hindsight") as MockContextBase:
             _resolve_client(None, "http://localhost:8888", None)
-            MockHindsight.assert_called_once()
-            assert MockHindsight.call_args.kwargs["user_agent"].startswith("hindsight-pipecat/")
+            MockContextBase.assert_called_once()
+            assert MockContextBase.call_args.kwargs["user_agent"].startswith("contextbase-pipecat/")
 
     def test_raises_when_no_url(self) -> None:
-        with pytest.raises(HindsightPipecatError, match="No Hindsight API URL"):
+        with pytest.raises(ContextBasePipecatError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_uses_global_config_url(self) -> None:
-        configure(hindsight_api_url="http://config-host:8888")
-        with patch("hindsight_pipecat.memory.Hindsight") as MockHindsight:
+        configure(contextbase_api_url="http://config-host:8888")
+        with patch("contextbase_pipecat.memory.Hindsight") as MockContextBase:
             _resolve_client(None, None, None)
-            MockHindsight.assert_called_once()
+            MockContextBase.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -111,7 +111,7 @@ class TestRecall:
         messages = [{"role": "user", "content": "Set up my editor"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -124,7 +124,7 @@ class TestRecall:
         messages = [{"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -137,7 +137,7 @@ class TestRecall:
         messages = [{"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         pushed: list = []
         with patch.object(
             svc,
@@ -154,7 +154,7 @@ class TestRecall:
         messages = [{"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -165,7 +165,7 @@ class TestRecall:
         messages = _make_messages(("first turn", "ok")) + [{"role": "user", "content": "current query"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -184,7 +184,7 @@ class TestRetain:
         messages = _make_messages(("Hello", "Hi there")) + [{"role": "user", "content": "Next question"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
             await asyncio.sleep(0)  # Let fire-and-forget tasks run
@@ -199,7 +199,7 @@ class TestRetain:
         messages = _make_messages(("Turn 1 user", "Turn 1 assistant")) + [{"role": "user", "content": "Turn 2"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
             await asyncio.sleep(0)
@@ -220,7 +220,7 @@ class TestRetain:
         messages = _make_messages(("Hello", "Hi")) + [{"role": "user", "content": "Next"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             # Should not raise
             await svc._handle_context_frame(frame)
@@ -231,7 +231,7 @@ class TestRetain:
         messages = _make_messages(("Hello", "Hi")) + [{"role": "user", "content": "Next"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_retain=False, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_retain=False, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
             await asyncio.sleep(0)
@@ -244,7 +244,7 @@ class TestRetain:
         messages = [{"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client, enable_recall=False)
+        svc = ContextBaseMemoryService(bank_id="test", client=client, enable_recall=False)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
             await asyncio.sleep(0)
@@ -262,12 +262,12 @@ class TestMemoryInjection:
         client = _mock_client(recall_texts=["new memory"])
         existing_memory_msg = {
             "role": "system",
-            "content": f"{_MEMORY_MARKER}\nold memory\n</hindsight_memories>",
+            "content": f"{_MEMORY_MARKER}\nold memory\n</contextbase_memories>",
         }
         messages = [existing_memory_msg, {"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -281,7 +281,7 @@ class TestMemoryInjection:
         messages = [{"role": "user", "content": "Hello"}]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -298,7 +298,7 @@ class TestMemoryInjection:
         ]
         frame = _make_frame(messages)
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 
@@ -330,7 +330,7 @@ class TestRealLLMContext:
         client = _mock_client(recall_texts=["User prefers dark mode"])
         frame = self._real_frame([{"role": "user", "content": "Set up my editor"}])
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc.process_frame(frame, FrameDirection.DOWNSTREAM)
 
@@ -340,7 +340,7 @@ class TestRealLLMContext:
         client = _mock_client(recall_texts=["User prefers dark mode"])
         frame = self._real_frame([{"role": "user", "content": "Set up my editor"}])
 
-        svc = HindsightMemoryService(bank_id="test", client=client)
+        svc = ContextBaseMemoryService(bank_id="test", client=client)
         with patch.object(svc, "push_frame", new_callable=AsyncMock):
             await svc._handle_context_frame(frame)
 

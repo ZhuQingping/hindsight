@@ -2,7 +2,7 @@
 sidebar_position: 7
 ---
 
-# Healthcare Assistant with Hindsight Memory
+# Healthcare Assistant with ContextBase Memory
 
 
 :::tip Run this notebook
@@ -25,20 +25,22 @@ A supportive healthcare chatbot that remembers patient history, symptoms, medica
 
 ## Prerequisites
 - OpenAI API key
-- Hindsight running locally via Docker (see setup below)
+- ContextBase running locally via Docker (see setup below)
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
@@ -50,14 +52,14 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 ## 2. Configure OpenAI API Key
 
-Enter your OpenAI API key when prompted (used by both Hindsight and the demo).
+Enter your OpenAI API key when prompted (used by both ContextBase and the demo).
 
 
 ```python
 import getpass
 import os
 
-# Set OpenAI API key (used by both Hindsight and the demo)
+# Set OpenAI API key (used by both ContextBase and the demo)
 if not os.getenv("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
 
@@ -76,9 +78,9 @@ import random
 from openai import OpenAI
 from hindsight_client import Hindsight
 
-# Initialize Hindsight client (connects to local Docker instance)
-hindsight = Hindsight(
-    base_url=os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+# Initialize ContextBase client (connects to local Docker instance)
+contextbase = Hindsight(
+    base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -100,7 +102,7 @@ def store_patient_info(patient_id: str, info: str, category: str = "general") ->
     bank_id = get_patient_bank_id(patient_id)
     today = datetime.now().strftime("%B %d, %Y")
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=bank_id,
         content=f"{today} - {category.upper()}: {info}",
         metadata={"category": category, "date": today},
@@ -113,7 +115,7 @@ def get_patient_history(patient_id: str, query: str) -> str:
     """Retrieve relevant patient history."""
     bank_id = get_patient_bank_id(patient_id)
 
-    memories = hindsight.recall(
+    memories = contextbase.recall(
         bank_id=bank_id,
         query=query,
         budget="high",
@@ -169,7 +171,7 @@ Guidelines:
 
     answer = response.choices[0].message.content
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=bank_id,
         content=f"Patient concern: {user_message}\nGuidance provided: {answer[:200]}...",
         metadata={"category": "consultation"},
@@ -182,7 +184,7 @@ def get_health_summary(patient_id: str) -> str:
     """Generate a health summary for the patient."""
     bank_id = get_patient_bank_id(patient_id)
 
-    summary = hindsight.reflect(
+    summary = contextbase.reflect(
         bank_id=bank_id,
         query="""Summarize this patient's health profile:
         1. Known conditions and diagnoses
@@ -294,6 +296,6 @@ print(f"Assistant: {healthcare_chat(PATIENT_ID, your_question)}")
 
 
 ```python
-hindsight.close()
+contextbase.close()
 print("Client connection closed.")
 ```

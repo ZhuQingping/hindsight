@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Programmatic API (Node.js)
 
-The `@vectorize-io/hindsight-all` npm package is the Node.js equivalent of the Python [`hindsight-all`](./hindsight-all.md) package. It lets your Node code spawn and supervise a local Hindsight daemon without deploying any server infrastructure — pair it with [`@vectorize-io/hindsight-client`](./nodejs.mdx) for memory operations.
+The `@vectorize-io/hindsight-all` npm package is the Node.js equivalent of the Python [`hindsight-all`](./hindsight-all.md) package. It lets your Node code spawn and supervise a local ContextBase daemon without deploying any server infrastructure — pair it with [`@vectorize-io/hindsight-client`](./nodejs.mdx) for memory operations.
 
 The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Node process). Your code talks to it over HTTP via `HindsightClient`.
 
@@ -23,7 +23,7 @@ The server is intentionally transparent: new daemon env vars or CLI flags never 
 ## Requirements
 
 - **Node.js ≥ 22** — uses global `fetch` and `AbortSignal.timeout`.
-- **`uv` / `uvx`** on `PATH` — used to download and run the Hindsight daemon. Install via [docs.astral.sh/uv](https://docs.astral.sh/uv/).
+- **`uv` / `uvx`** on `PATH` — used to download and run the ContextBase daemon. Install via [docs.astral.sh/uv](https://docs.astral.sh/uv/).
 
 ## Install
 
@@ -41,9 +41,9 @@ const server = new HindsightServer({
   profile: 'my-app',
   port: 9077,
   env: {
-    HINDSIGHT_API_LLM_PROVIDER: 'anthropic',
-    HINDSIGHT_API_LLM_API_KEY: process.env.ANTHROPIC_API_KEY,
-    HINDSIGHT_API_LLM_MODEL: 'claude-sonnet-4-20250514',
+    CONTEXTBASE_API_LLM_PROVIDER: 'anthropic',
+    CONTEXTBASE_API_LLM_API_KEY: process.env.ANTHROPIC_API_KEY,
+    CONTEXTBASE_API_LLM_MODEL: 'claude-sonnet-4-20250514',
   },
   logger: consoleLogger,
 });
@@ -57,9 +57,9 @@ const recall = await client.recall('user-123', 'what are the user preferences?')
 await server.stop();
 ```
 
-For a remote Hindsight API, skip the server entirely and point `HindsightClient` directly at the remote URL.
+For a remote ContextBase API, skip the server entirely and point `HindsightClient` directly at the remote URL.
 
-## `HindsightServerOptions`
+## `ContextBaseServerOptions`
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -68,10 +68,10 @@ For a remote Hindsight API, skip the server entirely and point `HindsightClient`
 | `host` | `string` | `"127.0.0.1"` | Hostname the daemon binds to (used for health checks). |
 | `embedVersion` | `string` | `"latest"` | Version of the underlying `hindsight-embed` package to run via `uvx`. |
 | `embedPackagePath` | `string` | — | Local checkout path — takes precedence over `embedVersion`. Uses `uv run --directory` instead of `uvx`. |
-| `env` | `Record<string, string \| undefined>` | `{}` | Environment variables passed to the daemon process **and** written into the profile config via `--env KEY=VALUE`. The preferred way to surface any `HINDSIGHT_API_*` / `HINDSIGHT_EMBED_*` setting. |
+| `env` | `Record<string, string \| undefined>` | `{}` | Environment variables passed to the daemon process **and** written into the profile config via `--env KEY=VALUE`. The preferred way to surface any `CONTEXTBASE_API_*` / `CONTEXTBASE_EMBED_*` setting. |
 | `extraProfileCreateArgs` | `string[]` | `[]` | Extra args appended verbatim to `profile create`. |
 | `extraDaemonStartArgs` | `string[]` | `[]` | Extra args appended verbatim to `daemon start`. |
-| `platformCpuWorkaround` | `boolean` | `true` on macOS | Auto-set `HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU=1` and `HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU=1` to avoid Metal/MPS crashes. Caller-supplied `env` values win over the auto-applied ones. |
+| `platformCpuWorkaround` | `boolean` | `true` on macOS | Auto-set `CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU=1` and `CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU=1` to avoid Metal/MPS crashes. Caller-supplied `env` values win over the auto-applied ones. |
 | `readyTimeoutMs` | `number` | `30000` | Max time to wait for `/health` to return 200. |
 | `readyPollIntervalMs` | `number` | `1000` | Polling interval while waiting for `/health`. |
 | `logger` | `Logger` | silent | Pluggable logger (`debug`/`info`/`warn`/`error`). `consoleLogger` and `silentLogger` helpers are exported. |

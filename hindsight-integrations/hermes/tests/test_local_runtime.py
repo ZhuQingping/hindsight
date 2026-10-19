@@ -14,11 +14,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from hindsight_hermes import embedded
+from contextbase_hermes import embedded
 
 
 def test_the_probe_requires_only_the_client_and_the_daemon_manager(monkeypatch):
-    """Probing for in-process ``hindsight`` / ``sentence_transformers`` is what dragged the whole
+    """Probing for in-process ``contextbase`` / ``sentence_transformers`` is what dragged the whole
     server into Hermes' venv. Both are gone; neither may come back by accident."""
     asked = []
     monkeypatch.setattr(embedded.importlib, "import_module", lambda name: asked.append(name))
@@ -111,7 +111,7 @@ def test_daemon_status_and_stop_never_raise(monkeypatch):
     assert embedded._stop_daemon("hermes") is False
 
 
-def test_the_plugin_never_depends_on_hindsight_all_again():
+def test_the_plugin_never_depends_on_contextbase_all_again():
     """The package that cannot be installed next to Hermes must not reappear as a dependency, and
     the retired lazy installer must not be imported again. Checked on the parsed AST, so the
     docstrings explaining this history do not count as usage."""
@@ -147,18 +147,18 @@ def test_the_start_worker_reconciles_the_profile_env_before_the_daemon_boots(mon
     be rewritten (and a running daemon stopped) BEFORE the client is built — building it is what
     starts the daemon now. Booting first would pin the stale values for the life of the process.
     """
-    from hindsight_hermes import HindsightMemoryProvider
+    from contextbase_hermes import ContextBaseMemoryProvider
 
     order = []
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     provider._config = {"profile": "orderingtest", "llm_provider": "ollama"}
 
-    monkeypatch.setattr("hindsight_hermes._profile_env_drifted", lambda cfg: True)
-    monkeypatch.setattr("hindsight_hermes._may_rewrite_profile_env", lambda cfg: True)
-    monkeypatch.setattr("hindsight_hermes._embedded_profile_env_path", lambda cfg: tmp_path / "p.env")
-    monkeypatch.setattr("hindsight_hermes._materialize_embedded_profile_env", lambda cfg: order.append("rewrote env"))
-    monkeypatch.setattr("hindsight_hermes._daemon_is_running", lambda profile: True)
-    monkeypatch.setattr("hindsight_hermes._stop_daemon", lambda profile: order.append("stopped daemon"))
+    monkeypatch.setattr("contextbase_hermes._profile_env_drifted", lambda cfg: True)
+    monkeypatch.setattr("contextbase_hermes._may_rewrite_profile_env", lambda cfg: True)
+    monkeypatch.setattr("contextbase_hermes._embedded_profile_env_path", lambda cfg: tmp_path / "p.env")
+    monkeypatch.setattr("contextbase_hermes._materialize_embedded_profile_env", lambda cfg: order.append("rewrote env"))
+    monkeypatch.setattr("contextbase_hermes._daemon_is_running", lambda profile: True)
+    monkeypatch.setattr("contextbase_hermes._stop_daemon", lambda profile: order.append("stopped daemon"))
     monkeypatch.setattr(type(provider), "_get_client", lambda self: order.append("built client"))
 
     provider._daemon_start_worker()

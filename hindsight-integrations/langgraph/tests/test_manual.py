@@ -1,9 +1,9 @@
-"""Manual integration test — requires running Hindsight API on localhost:8888."""
+"""Manual integration test — requires running ContextBase API on localhost:8888."""
 
 import asyncio
 
 from hindsight_client import Hindsight
-from hindsight_langgraph import create_hindsight_tools
+from contextbase_langgraph import create_contextbase_tools
 
 
 async def main():
@@ -12,7 +12,7 @@ async def main():
         # Create a test bank
         await client.acreate_bank("langgraph-test", name="LangGraph Test")
 
-        tools = create_hindsight_tools(client=client, bank_id="langgraph-test")
+        tools = create_contextbase_tools(client=client, bank_id="langgraph-test")
         retain, recall, reflect = tools
 
         # Test retain

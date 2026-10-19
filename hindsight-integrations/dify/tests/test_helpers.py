@@ -54,4 +54,4 @@ class TestBuildClient:
 
 
 def test_user_agent_carries_manifest_version():
-    assert USER_AGENT == "hindsight-dify/0.1.0"
+    assert USER_AGENT == "contextbase-dify/0.1.0"

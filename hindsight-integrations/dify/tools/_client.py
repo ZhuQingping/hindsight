@@ -1,4 +1,4 @@
-"""Shared helper for building a Hindsight client from Dify tool credentials."""
+"""Shared helper for building a ContextBase client from Dify tool credentials."""
 
 from __future__ import annotations
 
@@ -19,17 +19,19 @@ def _plugin_version() -> str:
     return match.group(1) if match else "0.0.0"
 
 
-USER_AGENT = f"hindsight-dify/{_plugin_version()}"
+USER_AGENT = f"contextbase-dify/{_plugin_version()}"
 
 
 def build_client(credentials: dict[str, Any]) -> Hindsight:
-    """Construct a Hindsight client from the provider credentials dict."""
+    """Construct a ContextBase client from the provider credentials dict."""
     api_url = (credentials.get("api_url") or "").rstrip("/")
     api_key = credentials.get("api_key") or None
 
     kwargs: dict[str, Any] = {"base_url": api_url, "timeout": 30.0, "user_agent": USER_AGENT}
     if api_key:
         kwargs["api_key"] = api_key
+    if not kwargs.get("base_url"):
+        raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
     return Hindsight(**kwargs)
 
 

@@ -1,6 +1,6 @@
 # Monitoring
 
-Hindsight provides comprehensive observability through Prometheus metrics, OpenTelemetry distributed tracing, and pre-built Grafana dashboards.
+ContextBase provides comprehensive observability through Prometheus metrics, OpenTelemetry distributed tracing, and pre-built Grafana dashboards.
 
 ## Local Development
 
@@ -15,12 +15,12 @@ This starts a single Docker container providing:
 - **Traces (Tempo)**: OTLP endpoint at http://localhost:4318 (HTTP) and http://localhost:4317 (gRPC)
 - **Metrics (Prometheus/Mimir)**: Scrapes http://localhost:8888/metrics automatically
 - **Logs (Loki)**: Available for log aggregation
-- **Pre-built Dashboards**: Hindsight Operations, LLM Metrics, API Service
+- **Pre-built Dashboards**: ContextBase Operations, LLM Metrics, API Service
 
 **Enable tracing in your API:**
 ```bash
-export HINDSIGHT_API_OTEL_TRACES_ENABLED=true
-export HINDSIGHT_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+export CONTEXTBASE_API_OTEL_TRACES_ENABLED=true
+export CONTEXTBASE_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 ```
 
 :::note Production Deployment
@@ -33,15 +33,15 @@ Pre-built dashboards are available in [`monitoring/grafana/dashboards/`](https:/
 
 | Dashboard | Description |
 |-----------|-------------|
-| **Hindsight Operations** | Operation rates, latency percentiles, per-bank metrics |
-| **Hindsight LLM Metrics** | LLM calls, token usage, latency by scope/provider |
-| **Hindsight API Service** | HTTP requests, error rates, DB pool, process metrics |
+| **ContextBase Operations** | Operation rates, latency percentiles, per-bank metrics |
+| **ContextBase LLM Metrics** | LLM calls, token usage, latency by scope/provider |
+| **ContextBase API Service** | HTTP requests, error rates, DB pool, process metrics |
 
 The dashboards are automatically provisioned when using the monitoring stack script.
 
 ## Metrics Endpoint
 
-Hindsight exposes Prometheus metrics at `/metrics`:
+ContextBase exposes Prometheus metrics at `/metrics`:
 
 ```bash
 curl http://localhost:8888/metrics
@@ -67,7 +67,7 @@ no I/O to get there:
 { "status": "alive", "version": "0.4.0", "uptime_seconds": 812.4 }
 ```
 
-Answering at all is the check. Hindsight runs request handlers and task work on a
+Answering at all is the check. ContextBase runs request handlers and task work on a
 single event loop, so a loop wedged by a blocking call cannot respond inside the
 probe timeout — which is exactly the failure a restart fixes. The worker's payload
 adds `worker_id`, `is_shutdown`, and `seconds_since_last_poll` (the age of its last
@@ -103,7 +103,7 @@ version, move the liveness path over.
 :::note High-cardinality labels are opt-in
 `bank_id` and `tenant` (the tenant schema) are left off every metric by default, because each
 one adds a series set per bank or tenant. Turn them on with
-`HINDSIGHT_API_METRICS_INCLUDE_BANK_ID=true` / `HINDSIGHT_API_METRICS_INCLUDE_TENANT=true`
+`CONTEXTBASE_API_METRICS_INCLUDE_BANK_ID=true` / `CONTEXTBASE_API_METRICS_INCLUDE_TENANT=true`
 only on deployments with few banks or tenants. The backlog gauges always carry `tenant`.
 :::
 
@@ -111,8 +111,8 @@ only on deployments with few banks or tenants. The backlog gauges always carry `
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.operation.duration` | Histogram | operation, bank_id, source, budget, max_tokens, success, memories_backend | Duration of operations in seconds |
-| `hindsight.operation.total` | Counter | operation, bank_id, source, budget, max_tokens, success, memories_backend | Total number of operations executed |
+| `contextbase.operation.duration` | Histogram | operation, bank_id, source, budget, max_tokens, success, memories_backend | Duration of operations in seconds |
+| `contextbase.operation.total` | Counter | operation, bank_id, source, budget, max_tokens, success, memories_backend | Total number of operations executed |
 
 **Labels:**
 - `operation`: Operation type (`retain`, `recall`, `reflect`, plus async worker task types such as `consolidation`)
@@ -136,14 +136,14 @@ For `source="worker"`, the `success` label is a completion-throughput signal:
 `false` means the task raised out to the poller after retries were exhausted or
 an unexpected error occurred. Failures handled inside the executor and returned
 normally still record `success="true"` here; use
-`hindsight_async_operations{status="failed"}` for authoritative async operation
+`contextbase_async_operations{status="failed"}` for authoritative async operation
 failure status.
 
 ### Retain Metrics
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.retain.documents.total` | Counter | outcome, bank_id | Documents processed by retain, by extraction outcome |
+| `contextbase.retain.documents.total` | Counter | outcome, bank_id | Documents processed by retain, by extraction outcome |
 
 **Labels:**
 - `outcome`: `facts` when the document has memory units after the retain, `no_facts` when it has none
@@ -152,18 +152,18 @@ failure status.
 `outcome="no_facts"` is the signal that a document was stored but produced no memories. Those documents are invisible to `recall` and `reflect` until they are [reprocessed](/developer/retain#when-a-mission-excludes-everything-in-a-document) — nothing else reports them, because the retain itself succeeded. A rising share usually means a [retain mission](/developer/retain#steering-extraction-with-a-mission) is excluding more than intended:
 
 ```promql
-sum(rate(hindsight_retain_documents_total{outcome="no_facts"}[15m]))
-  / sum(rate(hindsight_retain_documents_total[15m]))
+sum(rate(contextbase_retain_documents_total{outcome="no_facts"}[15m]))
+  / sum(rate(contextbase_retain_documents_total[15m]))
 ```
 
 ### LLM Metrics
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.llm.duration` | Histogram | provider, model, scope, success | Duration of LLM API calls in seconds |
-| `hindsight.llm.calls.total` | Counter | provider, model, scope, success | Total number of LLM API calls |
-| `hindsight.llm.tokens.input` | Counter | provider, model, scope, success, token_bucket | Input tokens for LLM calls |
-| `hindsight.llm.tokens.output` | Counter | provider, model, scope, success, token_bucket | Output tokens from LLM calls |
+| `contextbase.llm.duration` | Histogram | provider, model, scope, success | Duration of LLM API calls in seconds |
+| `contextbase.llm.calls.total` | Counter | provider, model, scope, success | Total number of LLM API calls |
+| `contextbase.llm.tokens.input` | Counter | provider, model, scope, success, token_bucket | Input tokens for LLM calls |
+| `contextbase.llm.tokens.output` | Counter | provider, model, scope, success, token_bucket | Output tokens from LLM calls |
 
 **Labels:**
 - `provider`: LLM provider (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `lmstudio`, `bedrock`, `litellm`)
@@ -176,7 +176,7 @@ sum(rate(hindsight_retain_documents_total{outcome="no_facts"}[15m]))
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.consolidation.batch_failures` | Counter | failure_class, error_type | Consolidation LLM batch calls that failed, including those whose facts were later recovered |
+| `contextbase.consolidation.batch_failures` | Counter | failure_class, error_type | Consolidation LLM batch calls that failed, including those whose facts were later recovered |
 
 **Labels:**
 - `failure_class`: How the call was treated (`fail_fast` — the model returned something the response schema rejects, so a re-send of the same payload cannot help; `retry` — transport-shaped, an unchanged re-send may succeed; `propagate` — not a batch failure, re-raised to the task handler)
@@ -193,12 +193,12 @@ supersession cleanup does nothing.
 Alert on the schema-rejection rate, which no other metric exposes:
 
 ```promql
-sum(rate(hindsight_consolidation_batch_failures_total{failure_class="fail_fast"}[15m]))
+sum(rate(contextbase_consolidation_batch_failures_total{failure_class="fail_fast"}[15m]))
 ```
 
 A sustained non-zero rate usually means the consolidation model does not reliably
 emit valid JSON for the response schema. Switching to a model with stronger
-structured output, or enabling `HINDSIGHT_API_LLM_STRICT_SCHEMA_CONSOLIDATION` if
+structured output, or enabling `CONTEXTBASE_API_LLM_STRICT_SCHEMA_CONSOLIDATION` if
 the provider supports grammar-enforced schemas, is the usual fix.
 
 The same count is reported per run as `llm_batch_failures` in the consolidation
@@ -210,9 +210,9 @@ contributes three — so they are not bounded by the number of batches in the ru
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.http.duration` | Histogram | method, endpoint, status_code, status_class | Duration of HTTP requests in seconds |
-| `hindsight.http.requests.total` | Counter | method, endpoint, status_code, status_class | Total number of HTTP requests |
-| `hindsight.http.requests.in_progress` | UpDownCounter | method, endpoint | Number of HTTP requests currently being processed |
+| `contextbase.http.duration` | Histogram | method, endpoint, status_code, status_class | Duration of HTTP requests in seconds |
+| `contextbase.http.requests.total` | Counter | method, endpoint, status_code, status_class | Total number of HTTP requests |
+| `contextbase.http.requests.in_progress` | UpDownCounter | method, endpoint | Number of HTTP requests currently being processed |
 
 **Labels:**
 - `method`: HTTP method (`GET`, `POST`, `PUT`, `DELETE`)
@@ -224,19 +224,19 @@ contributes three — so they are not bounded by the number of batches in the ru
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.db.pool.size` | Gauge | - | Current number of connections in the pool |
-| `hindsight.db.pool.idle` | Gauge | - | Number of idle connections in the pool |
-| `hindsight.db.pool.min` | Gauge | - | Minimum pool size |
-| `hindsight.db.pool.max` | Gauge | - | Maximum pool size |
+| `contextbase.db.pool.size` | Gauge | - | Current number of connections in the pool |
+| `contextbase.db.pool.idle` | Gauge | - | Number of idle connections in the pool |
+| `contextbase.db.pool.min` | Gauge | - | Minimum pool size |
+| `contextbase.db.pool.max` | Gauge | - | Maximum pool size |
 
 ### Process Metrics
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `hindsight.process.cpu.seconds` | Gauge | type | Process CPU time in seconds |
-| `hindsight.process.memory.bytes` | Gauge | type | Process memory usage in bytes |
-| `hindsight.process.open_fds` | Gauge | - | Number of open file descriptors |
-| `hindsight.process.threads` | Gauge | - | Number of active threads |
+| `contextbase.process.cpu.seconds` | Gauge | type | Process CPU time in seconds |
+| `contextbase.process.memory.bytes` | Gauge | type | Process memory usage in bytes |
+| `contextbase.process.open_fds` | Gauge | - | Number of open file descriptors |
+| `contextbase.process.threads` | Gauge | - | Number of active threads |
 
 **Labels:**
 - `type` (CPU): `user` or `system`
@@ -265,7 +265,7 @@ Custom bucket boundaries are configured for better percentile accuracy:
 
 ```yaml
 scrape_configs:
-  - job_name: 'hindsight'
+  - job_name: 'contextbase'
     static_configs:
       - targets: ['localhost:8888']
 ```
@@ -274,64 +274,64 @@ scrape_configs:
 
 ### Average operation latency by type
 ```promql
-rate(hindsight_operation_duration_sum[5m]) / rate(hindsight_operation_duration_count[5m])
+rate(contextbase_operation_duration_sum[5m]) / rate(contextbase_operation_duration_count[5m])
 ```
 
 ### LLM calls per minute by provider
 ```promql
-rate(hindsight_llm_calls_total[1m]) * 60
+rate(contextbase_llm_calls_total[1m]) * 60
 ```
 
 ### P95 LLM latency
 ```promql
-histogram_quantile(0.95, rate(hindsight_llm_duration_bucket[5m]))
+histogram_quantile(0.95, rate(contextbase_llm_duration_bucket[5m]))
 ```
 
 ### Total tokens consumed by model
 ```promql
-sum by (model) (hindsight_llm_tokens_input_total + hindsight_llm_tokens_output_total)
+sum by (model) (contextbase_llm_tokens_input_total + contextbase_llm_tokens_output_total)
 ```
 
 ### Internal vs API recall operations
 ```promql
-sum by (source) (rate(hindsight_operation_total{operation="recall"}[5m]))
+sum by (source) (rate(contextbase_operation_total{operation="recall"}[5m]))
 ```
 
 ### HTTP requests per second by endpoint
 ```promql
-sum by (endpoint) (rate(hindsight_http_requests_total[1m]))
+sum by (endpoint) (rate(contextbase_http_requests_total[1m]))
 ```
 
 ### HTTP error rate (5xx)
 ```promql
-sum(rate(hindsight_http_requests_total{status_class="5xx"}[5m])) / sum(rate(hindsight_http_requests_total[5m]))
+sum(rate(contextbase_http_requests_total{status_class="5xx"}[5m])) / sum(rate(contextbase_http_requests_total[5m]))
 ```
 
 ### P95 HTTP latency
 ```promql
-histogram_quantile(0.95, sum by (le) (rate(hindsight_http_duration_seconds_bucket[5m])))
+histogram_quantile(0.95, sum by (le) (rate(contextbase_http_duration_seconds_bucket[5m])))
 ```
 
 ### Database pool utilization
 ```promql
-hindsight_db_pool_size / hindsight_db_pool_max
+contextbase_db_pool_size / contextbase_db_pool_max
 ```
 
 ### Active database connections
 ```promql
-hindsight_db_pool_size - hindsight_db_pool_idle
+contextbase_db_pool_size - contextbase_db_pool_idle
 ```
 
 ### CPU usage rate
 ```promql
-rate(hindsight_process_cpu_seconds{type="user"}[1m])
+rate(contextbase_process_cpu_seconds{type="user"}[1m])
 ```
 
 ---
 
 ## Distributed Tracing
 
-Hindsight supports OpenTelemetry distributed tracing for memory operations and LLM calls, following GenAI semantic conventions v1.37+.
+ContextBase supports OpenTelemetry distributed tracing for memory operations and LLM calls, following GenAI semantic conventions v1.37+.
 
 ### Configuration
 
@@ -340,8 +340,8 @@ See [Configuration - OpenTelemetry Tracing](./configuration#opentelemetry-tracin
 **Quick Start:**
 ```bash
 # Enable tracing
-export HINDSIGHT_API_OTEL_TRACES_ENABLED=true
-export HINDSIGHT_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+export CONTEXTBASE_API_OTEL_TRACES_ENABLED=true
+export CONTEXTBASE_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 # View traces with Grafana LGTM (local dev)
 ./scripts/dev/start-monitoring.sh
@@ -353,31 +353,31 @@ Supports any OTLP-compatible backend (Grafana LGTM, Langfuse, OpenLIT, DataDog, 
 ### Span Hierarchy
 
 **Parent Spans (Operations):**
-- `hindsight.retain` - Memory ingestion
-- `hindsight.recall` - Memory retrieval
-  - `hindsight.recall_embedding` - Query embedding
-  - `hindsight.recall_retrieval` - Parallel search (semantic, BM25, graph, temporal)
-  - `hindsight.recall_fusion` - Reciprocal Rank Fusion
-  - `hindsight.recall_rerank` - Cross-encoder reranking
-- `hindsight.reflect` - Agentic reasoning
-  - `hindsight.reflect_tool_call` - Tool execution (recall, lookup, etc.)
-- `hindsight.consolidation` - Observation synthesis
-- `hindsight.mental_model_refresh` - Mental model updates
+- `contextbase.retain` - Memory ingestion
+- `contextbase.recall` - Memory retrieval
+  - `contextbase.recall_embedding` - Query embedding
+  - `contextbase.recall_retrieval` - Parallel search (semantic, BM25, graph, temporal)
+  - `contextbase.recall_fusion` - Reciprocal Rank Fusion
+  - `contextbase.recall_rerank` - Cross-encoder reranking
+- `contextbase.reflect` - Agentic reasoning
+  - `contextbase.reflect_tool_call` - Tool execution (recall, lookup, etc.)
+- `contextbase.consolidation` - Observation synthesis
+- `contextbase.mental_model_refresh` - Mental model updates
 
 **Child Spans (LLM Calls):**
-- Named by scope (e.g., `hindsight.memory`, `hindsight.reflect`)
+- Named by scope (e.g., `contextbase.memory`, `contextbase.reflect`)
 - Contain full prompts/completions as events
 - Follow GenAI semantic conventions for attributes
 
 ### Span Attributes
 
 **Operation Spans:**
-- `hindsight.operation` - Operation type
-- `hindsight.bank_id` - Memory bank ID
-- `hindsight.query` - Query text (truncated to 100 chars)
-- `hindsight.fact_types` - Fact types for recall
-- `hindsight.thinking_budget` - Budget allocation
-- `hindsight.max_tokens` - Token limit
+- `contextbase.operation` - Operation type
+- `contextbase.bank_id` - Memory bank ID
+- `contextbase.query` - Query text (truncated to 100 chars)
+- `contextbase.fact_types` - Fact types for recall
+- `contextbase.thinking_budget` - Budget allocation
+- `contextbase.max_tokens` - Token limit
 
 **LLM Spans (GenAI Semantic Conventions):**
 - `gen_ai.operation.name` - Always `"chat"`
@@ -385,14 +385,14 @@ Supports any OTLP-compatible backend (Grafana LGTM, Langfuse, OpenLIT, DataDog, 
 - `gen_ai.request.model` - Model name
 - `gen_ai.usage.input_tokens` - Input tokens
 - `gen_ai.usage.output_tokens` - Output tokens
-- `hindsight.scope` - LLM call purpose (`memory`, `reflect`, `consolidation`, etc.)
+- `contextbase.scope` - LLM call purpose (`memory`, `reflect`, `consolidation`, etc.)
 
 **Events:**
 - `gen_ai.client.inference.operation.details` - Full prompts and completions
 
 ### Trace Context Propagation
 
-Hindsight participates in your existing traces rather than starting parallel ones. When a caller sends W3C trace context (the standard `traceparent` header, which most OpenTelemetry HTTP client instrumentations add automatically), Hindsight continues that trace: the API request appears as a server span under the caller, and every memory operation and LLM call it triggers nests beneath it.
+ContextBase participates in your existing traces rather than starting parallel ones. When a caller sends W3C trace context (the standard `traceparent` header, which most OpenTelemetry HTTP client instrumentations add automatically), ContextBase continues that trace: the API request appears as a server span under the caller, and every memory operation and LLM call it triggers nests beneath it.
 
 Requests that arrive without trace context still start their own trace, so nothing changes for un-instrumented callers.
 
@@ -400,8 +400,8 @@ Health and metrics endpoints are excluded from tracing so probe traffic doesn't 
 
 ### Worker Processes
 
-Standalone worker processes honour the same `HINDSIGHT_API_OTEL_*` variables as the API and export their own spans. This matters for deployments that run dedicated workers, since consolidation, background retain and mental model refresh — most of the long-running work and token spend — happen there.
+Standalone worker processes honour the same `CONTEXTBASE_API_OTEL_*` variables as the API and export their own spans. This matters for deployments that run dedicated workers, since consolidation, background retain and mental model refresh — most of the long-running work and token spend — happen there.
 
-Give the worker its own `HINDSIGHT_API_OTEL_SERVICE_NAME` to separate it from the API in your tracing backend. When left unset, workers report themselves as `hindsight-worker`.
+Give the worker its own `CONTEXTBASE_API_OTEL_SERVICE_NAME` to separate it from the API in your tracing backend. When left unset, workers report themselves as `contextbase-worker`.
 
 Worker spans are currently their own traces: a background operation is not linked to the request that queued it, because it runs long after that request has returned.

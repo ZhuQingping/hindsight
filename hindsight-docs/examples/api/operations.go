@@ -7,18 +7,18 @@ import (
 	"os"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	operationID := "550e8400-e29b-41d4-a716-446655440000"
@@ -27,7 +27,7 @@ func main() {
 	// memory-banks.go runs before this file and deletes 'my-bank' in its cleanup, so this file
 	// cannot assume an earlier example left one behind.
 	client.BanksAPI.CreateOrUpdateBank(ctx, "my-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{}).Execute()
+		CreateBankRequest(contextbase.CreateBankRequest{}).Execute()
 
 	// [docs:operations-list]
 	// List recent operations for a bank (default: 20 most recent).
@@ -81,10 +81,10 @@ func main() {
 	// an operation_id you can poll.
 	async := true
 	resp, _, err := client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
-				{Content: hindsight.TextContent("Alice joined Google in 2023")},
-				{Content: hindsight.TextContent("Bob prefers Python over JavaScript")},
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
+				{Content: contextbase.TextContent("Alice joined Google in 2023")},
+				{Content: contextbase.TextContent("Bob prefers Python over JavaScript")},
 			},
 			Async: &async,
 		}).Execute()

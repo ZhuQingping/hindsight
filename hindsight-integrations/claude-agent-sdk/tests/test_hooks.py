@@ -1,19 +1,19 @@
-"""Unit tests for Hindsight Claude Agent SDK hooks."""
+"""Unit tests for ContextBase Claude Agent SDK hooks."""
 
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from hindsight_claude_agent_sdk import (
+from contextbase_claude_agent_sdk import (
     MemoryHookConfig,
     create_memory_hooks,
     reset_config,
 )
-from hindsight_claude_agent_sdk.errors import HindsightError
+from contextbase_claude_agent_sdk.errors import HindsightError
 
 
 def _mock_client():
-    """Create a mock Hindsight client with async methods."""
+    """Create a mock ContextBase client with async methods."""
     client = MagicMock()
     client.aretain = AsyncMock()
     client.arecall = AsyncMock()
@@ -102,24 +102,17 @@ class TestCreateMemoryHooks:
         )
         assert hooks["PostToolUse"][0].matcher == "Bash|Read"
 
-    def test_defaults_to_cloud_without_config(self, monkeypatch):
-        """With no client, config, or explicit URL, hooks default to the cloud URL."""
-        from hindsight_claude_agent_sdk.config import DEFAULT_HINDSIGHT_API_URL
-
-        monkeypatch.delenv("HINDSIGHT_API_KEY", raising=False)
-        with patch("hindsight_claude_agent_sdk._client.Hindsight") as mock_cls:
-            mock_cls.return_value = _mock_client()
-            hooks = create_memory_hooks(bank_id="test")
-            assert "UserPromptSubmit" in hooks
-            assert mock_cls.call_args.kwargs["base_url"] == DEFAULT_HINDSIGHT_API_URL
-            assert "api_key" not in mock_cls.call_args.kwargs
+    def test_requires_explicit_endpoint_without_config(self, monkeypatch):
+        """A missing URL must fail before the SDK can select an endpoint."""
+        with pytest.raises(Exception, match="API URL|URL configured"):
+            create_memory_hooks(bank_id="test")
 
     def test_reads_api_key_from_env_without_config(self, monkeypatch):
-        """create_memory_hooks honours HINDSIGHT_API_KEY even without configure()."""
-        monkeypatch.setenv("HINDSIGHT_API_KEY", "sk-from-env")
-        with patch("hindsight_claude_agent_sdk._client.Hindsight") as mock_cls:
+        """create_memory_hooks honours CONTEXTBASE_API_KEY even without configure()."""
+        monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
+        with patch("contextbase_claude_agent_sdk._client.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            create_memory_hooks(bank_id="test")
+            create_memory_hooks(contextbase_api_url="http://localhost:8888", bank_id="test")
             assert mock_cls.call_args.kwargs["api_key"] == "sk-from-env"
 
 

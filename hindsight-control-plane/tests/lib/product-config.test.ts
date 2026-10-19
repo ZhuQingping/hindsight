@@ -10,6 +10,22 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it("uses the public ContextBase endpoint in the product-config route", async () => {
+  vi.stubEnv("contextdb_name", "contextbase");
+  vi.stubEnv("product_display_name", undefined);
+  vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "https://memory.example.com/native/");
+  vi.stubEnv("HINDSIGHT_CP_DATAPLANE_API_URL", "https://unused.example.com");
+  const fetch = vi.fn(async () =>
+    Response.json({ product_config_version: 1, contextdb_name: "contextbase" })
+  );
+  vi.stubGlobal("fetch", fetch);
+  expect((await productConfigRoute()).status).toBe(200);
+  expect(fetch).toHaveBeenCalledExactlyOnceWith(
+    "https://memory.example.com/native/product-config",
+    expect.objectContaining({ redirect: "error", cache: "no-store" })
+  );
+});
+
 it.each(["", "ContextBase", "x y", "a\n", "a/b", "元壤", "a".repeat(41)])(
   "rejects invalid name %j",
   (name) => {

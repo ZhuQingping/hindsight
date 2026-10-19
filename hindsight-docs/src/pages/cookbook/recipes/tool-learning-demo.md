@@ -11,7 +11,7 @@ This recipe is available as an interactive Jupyter notebook.
 :::
 
 
-This notebook demonstrates how Hindsight helps an LLM learn which tool to use when tool names are ambiguous. Without memory, the LLM might randomly select between similarly-named tools. With Hindsight, it learns from past interactions and consistently makes the correct choice.
+This notebook demonstrates how ContextBase helps an LLM learn which tool to use when tool names are ambiguous. Without memory, the LLM might randomly select between similarly-named tools. With ContextBase, it learns from past interactions and consistently makes the correct choice.
 
 ## The Scenario
 
@@ -28,23 +28,25 @@ The tool names and descriptions are **intentionally vague**. In reality:
 
 ## Prerequisites
 
-Make sure you have Hindsight running:
+Make sure you have ContextBase running:
 
 ```bash
 export OPENAI_API_KEY=your-key
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## Installation
 
 
 ```python
-!pip install hindsight-litellm hindsight-client litellm nest_asyncio python-dotenv -U -q
+!pip install contextbase-litellm hindsight-client litellm nest_asyncio python-dotenv -U -q
 ```
 
 ## Setup
@@ -69,10 +71,10 @@ logging.getLogger("LiteLLM Router").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 import litellm
-import hindsight_litellm
+import contextbase_litellm
 from hindsight_client import Hindsight
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 if not os.getenv("OPENAI_API_KEY"):
     print("Warning: OPENAI_API_KEY not set")
@@ -182,15 +184,15 @@ Analyze the customer's request and route it to the most appropriate channel. You
 Important: Base your routing decision on what you know about each channel's purpose. If you have learned from previous interactions which channel handles specific types of requests, use that knowledge."""
 
 
-def make_routing_request(user_request: str, use_hindsight: bool, bank_id: Optional[str] = None):
+def make_routing_request(user_request: str, use_contextbase: bool, bank_id: Optional[str] = None):
     """Make a routing request and return the tool called."""
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"Customer Request: {user_request}"}
     ]
 
-    if use_hindsight and bank_id:
-        response = hindsight_litellm.completion(
+    if use_contextbase and bank_id:
+        response = contextbase_litellm.completion(
             model="gpt-4o-mini",
             messages=messages,
             tools=TOOLS,
@@ -214,7 +216,7 @@ def make_routing_request(user_request: str, use_hindsight: bool, bank_id: Option
 
 def store_feedback(bank_id: str, request: str, correct_tool: str, request_type: str):
     """Store feedback about which tool was correct for a request type."""
-    client = Hindsight(base_url=HINDSIGHT_API_URL, timeout=60.0)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL, timeout=60.0)
 
     feedback_content = f"""ROUTING FEEDBACK:
 Request type: {request_type}
@@ -239,7 +241,7 @@ The LLM has no prior knowledge about which channel handles what. With ambiguous 
 
 ```python
 print("=" * 60)
-print("PHASE 1: WITHOUT HINDSIGHT (No Memory)")
+print("PHASE 1: WITHOUT CONTEXTBASE (No Memory)")
 print("=" * 60)
 
 phase1_results = []
@@ -247,7 +249,7 @@ for i, scenario in enumerate(TEST_SCENARIOS[:3], 1):
     print(f"\n--- Test {i}: {scenario['type'].upper()} Request ---")
     print(f"Request: \"{scenario['request'][:60]}...\"")
 
-    tool_name = make_routing_request(scenario['request'], use_hindsight=False)
+    tool_name = make_routing_request(scenario['request'], use_contextbase=False)
 
     is_correct = tool_name == scenario['correct_tool']
     phase1_results.append(is_correct)
@@ -269,9 +271,9 @@ Now we provide feedback about correct routing to build memory. This simulates a 
 bank_id = f"tool-learning-{uuid.uuid4().hex[:8]}"
 print(f"Using bank_id: {bank_id}")
 
-# Configure and enable Hindsight
-hindsight_litellm.configure(
-    hindsight_api_url=HINDSIGHT_API_URL,
+# Configure and enable ContextBase
+contextbase_litellm.configure(
+    contextbase_api_url=CONTEXTBASE_API_URL,
     bank_id=bank_id,
     store_conversations=True,
     inject_memories=True,
@@ -279,7 +281,7 @@ hindsight_litellm.configure(
     recall_budget="high",
     verbose=False,
 )
-hindsight_litellm.enable()
+contextbase_litellm.enable()
 
 print("\nStoring routing feedback...")
 
@@ -294,19 +296,19 @@ for request, correct_tool, req_type in feedback_examples:
     print(f"  Storing: {req_type.upper()} → {correct_tool}")
     store_feedback(bank_id, request, correct_tool, req_type)
 
-print("\nWaiting 15 seconds for Hindsight to process memories...")
+print("\nWaiting 15 seconds for ContextBase to process memories...")
 time.sleep(15)
 print("Done!")
 ```
 
 ## Phase 3: With Hindsight (Memory-Augmented)
 
-The LLM now has access to learned routing knowledge via Hindsight. It should route requests correctly based on past feedback.
+The LLM now has access to learned routing knowledge via ContextBase. It should route requests correctly based on past feedback.
 
 
 ```python
 print("=" * 60)
-print("PHASE 3: WITH HINDSIGHT (Memory-Augmented)")
+print("PHASE 3: WITH CONTEXTBASE (Memory-Augmented)")
 print("=" * 60)
 
 phase3_results = []
@@ -316,7 +318,7 @@ for i, scenario in enumerate(TEST_SCENARIOS, 1):
 
     tool_name = make_routing_request(
         scenario['request'],
-        use_hindsight=True,
+        use_contextbase=True,
         bank_id=bank_id
     )
 
@@ -339,11 +341,11 @@ print("=" * 60)
 print("SUMMARY")
 print("=" * 60)
 print(f"\nPhase 1 (No Memory):      {phase1_accuracy:.0f}% accuracy")
-print(f"Phase 3 (With Hindsight): {phase3_accuracy:.0f}% accuracy")
+print(f"Phase 3 (With ContextBase): {phase3_accuracy:.0f}% accuracy")
 
 improvement = phase3_accuracy - phase1_accuracy
 if improvement > 0:
-    print(f"\n🎉 Improvement: +{improvement:.0f}% accuracy with Hindsight!")
+    print(f"\n🎉 Improvement: +{improvement:.0f}% accuracy with ContextBase!")
 elif improvement == 0:
     print(f"\nNote: Results may vary. Run again to see learning effect.")
 else:
@@ -355,7 +357,7 @@ print(f"View in UI: http://localhost:9999/banks/{bank_id}")
 print("\n" + "=" * 60)
 print("KEY INSIGHT")
 print("=" * 60)
-print("Hindsight allows the LLM to learn from experience which tool")
+print("ContextBase allows the LLM to learn from experience which tool")
 print("to use, even when tool names/descriptions are ambiguous.")
 ```
 
@@ -363,10 +365,10 @@ print("to use, even when tool names/descriptions are ambiguous.")
 
 
 ```python
-hindsight_litellm.cleanup()
+contextbase_litellm.cleanup()
 
 # Optional: delete the bank
 import requests
-response = requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/{bank_id}")
+response = requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/{bank_id}")
 print(f"Deleted bank: {response.json()}")
 ```

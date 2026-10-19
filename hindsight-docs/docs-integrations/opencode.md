@@ -1,7 +1,7 @@
 ---
 sidebar_position: 20
-title: "OpenCode Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to OpenCode with Hindsight. Automatically captures conversations and recalls relevant context across coding sessions."
+title: "OpenCode Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to OpenCode with ContextBase. Automatically captures conversations and recalls relevant context across coding sessions."
 ---
 
 # OpenCode
@@ -15,7 +15,7 @@ This page and the published package still work; they are no longer developed. To
 
 ```bash
 cd /path/to/your/repo
-npx @vectorize-io/hindsight-coding-agents install opencode
+npx contextbase-coding-agents install opencode
 ```
 
 Memory does not move automatically — the banks are scoped differently and this agent's history cannot be imported (it is kept in an internal database). See
@@ -23,7 +23,7 @@ Memory does not move automatically — the banks are scoped differently and this
 :::
 
 
-Persistent long-term memory plugin for [OpenCode](https://opencode.ai) using [Hindsight](https://vectorize.io/hindsight). Automatically captures conversations, recalls relevant context on session start, and provides retain/recall/reflect tools the agent can call directly.
+Persistent long-term memory plugin for [OpenCode](https://opencode.ai) using [ContextBase](https://github.com/RSIXDB/hindsight). Automatically captures conversations, recalls relevant context on session start, and provides retain/recall/reflect tools the agent can call directly.
 
 [View Changelog →](/changelog/integrations/opencode)
 
@@ -34,26 +34,26 @@ Add to your `opencode.json` (project) or `~/.config/opencode/opencode.json` (glo
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@vectorize-io/opencode-hindsight"]
+  "plugin": ["@vectorize-io/opencode-contextbase"]
 }
 ```
 
 OpenCode auto-installs plugins in the `"plugin"` array on startup — no `npm install` required.
 
-Point the plugin at your Hindsight server and start OpenCode:
+Point the plugin at your ContextBase server and start OpenCode:
 
 ```bash
-export HINDSIGHT_API_URL="http://localhost:8888"
+export CONTEXTBASE_API_URL="http://localhost:8888"
 opencode
 ```
 
-### Using Hindsight Cloud
+### Using ContextBase remote service
 
-Get an API key at [ui.hindsight.vectorize.io/connect](https://ui.hindsight.vectorize.io/connect):
+Get an API key at [console.example.com/connect](http://localhost:9999):
 
 ```bash
-export HINDSIGHT_API_URL="https://api.hindsight.vectorize.io"
-export HINDSIGHT_API_TOKEN="your-api-key"
+export CONTEXTBASE_API_URL="http://localhost:8888"
+export CONTEXTBASE_API_TOKEN="your-api-key"
 opencode
 ```
 
@@ -63,9 +63,9 @@ Or configure inline via plugin options in `opencode.json`:
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    ["@vectorize-io/opencode-hindsight", {
-      "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-      "hindsightApiToken": "your-api-key"
+    ["@vectorize-io/opencode-contextbase", {
+      "contextbaseApiUrl": "http://localhost:8888",
+      "contextbaseApiToken": "your-api-key"
     }]
   ]
 }
@@ -79,13 +79,13 @@ The plugin registers three tools the agent can call explicitly:
 
 | Tool | Description |
 |---|---|
-| `hindsight_retain` | Store information in long-term memory |
-| `hindsight_recall` | Search long-term memory for relevant information |
-| `hindsight_reflect` | Generate a synthesized answer from long-term memory |
+| `contextbase_retain` | Store information in long-term memory |
+| `contextbase_recall` | Search long-term memory for relevant information |
+| `contextbase_reflect` | Generate a synthesized answer from long-term memory |
 
 ### Auto-Retain
 
-When the session goes idle (`session.idle` event), the plugin automatically retains the conversation transcript to Hindsight. Configurable via `retainEveryNTurns` to control frequency.
+When the session goes idle (`session.idle` event), the plugin automatically retains the conversation transcript to ContextBase. Configurable via `retainEveryNTurns` to control frequency.
 
 ### Session Recall
 
@@ -106,9 +106,9 @@ This ensures memories survive context window trimming.
 ```json
 {
   "plugin": [
-    ["@vectorize-io/opencode-hindsight", {
-      "hindsightApiUrl": "http://localhost:8888",
-      "hindsightApiToken": "your-api-key",
+    ["@vectorize-io/opencode-contextbase", {
+      "contextbaseApiUrl": "http://localhost:8888",
+      "contextbaseApiToken": "your-api-key",
       "bankId": "my-project",
       "autoRecall": true,
       "autoRetain": true,
@@ -125,12 +125,12 @@ This ensures memories survive context window trimming.
 
 ### Config File
 
-Create `~/.hindsight/opencode.json` for persistent configuration that applies across all projects:
+Create `~/.contextbase/opencode.json` for persistent configuration that applies across all projects:
 
 ```json
 {
-  "hindsightApiUrl": "http://localhost:8888",
-  "hindsightApiToken": "your-api-key",
+  "contextbaseApiUrl": "http://localhost:8888",
+  "contextbaseApiToken": "your-api-key",
   "recallBudget": "mid"
 }
 ```
@@ -139,31 +139,31 @@ Create `~/.hindsight/opencode.json` for persistent configuration that applies ac
 
 | Variable | Description | Default |
 |---|---|---|
-| `HINDSIGHT_API_URL` | Hindsight API base URL | *(required)* |
-| `HINDSIGHT_API_TOKEN` | API key for authentication | |
-| `HINDSIGHT_BANK_ID` | Static memory bank ID | `opencode` |
-| `HINDSIGHT_AGENT_NAME` | Agent name for dynamic bank IDs | `opencode` |
-| `HINDSIGHT_AUTO_RECALL` | Auto-recall on session start | `true` |
-| `HINDSIGHT_AUTO_RETAIN` | Auto-retain on session idle | `true` |
-| `HINDSIGHT_RETAIN_MODE` | `full-session` or `last-turn` | `full-session` |
-| `HINDSIGHT_RECALL_BUDGET` | Recall budget: `low`, `mid`, `high` | `mid` |
-| `HINDSIGHT_RECALL_MAX_TOKENS` | Max tokens for recall results | `1024` |
-| `HINDSIGHT_RECALL_TAGS` | Comma-separated tags to filter recall results | |
-| `HINDSIGHT_RECALL_TAGS_MATCH` | Tag match mode: `any`, `all`, `any_strict`, `all_strict` | `any` |
-| `HINDSIGHT_DYNAMIC_BANK_ID` | Enable dynamic bank ID derivation | `false` |
-| `HINDSIGHT_BANK_MISSION` | Bank mission/context for reflect | |
+| `CONTEXTBASE_API_URL` | ContextBase API base URL | *(required)* |
+| `CONTEXTBASE_API_TOKEN` | API key for authentication | |
+| `CONTEXTBASE_BANK_ID` | Static memory bank ID | `opencode` |
+| `CONTEXTBASE_AGENT_NAME` | Agent name for dynamic bank IDs | `opencode` |
+| `CONTEXTBASE_AUTO_RECALL` | Auto-recall on session start | `true` |
+| `CONTEXTBASE_AUTO_RETAIN` | Auto-retain on session idle | `true` |
+| `CONTEXTBASE_RETAIN_MODE` | `full-session` or `last-turn` | `full-session` |
+| `CONTEXTBASE_RECALL_BUDGET` | Recall budget: `low`, `mid`, `high` | `mid` |
+| `CONTEXTBASE_RECALL_MAX_TOKENS` | Max tokens for recall results | `1024` |
+| `CONTEXTBASE_RECALL_TAGS` | Comma-separated tags to filter recall results | |
+| `CONTEXTBASE_RECALL_TAGS_MATCH` | Tag match mode: `any`, `all`, `any_strict`, `all_strict` | `any` |
+| `CONTEXTBASE_DYNAMIC_BANK_ID` | Enable dynamic bank ID derivation | `false` |
+| `CONTEXTBASE_BANK_MISSION` | Bank mission/context for reflect | |
 
-Configuration priority (later wins): defaults < `~/.hindsight/opencode.json` < plugin options < env vars.
+Configuration priority (later wins): defaults < `~/.contextbase/opencode.json` < plugin options < env vars.
 
 ### Logging & debugging
 
-The plugin logs through OpenCode's own log stream (`service=hindsight`), visible with `opencode --print-logs` or in the OpenCode log files. Errors (failed retain/recall, unreachable API, auth problems) and the resolved API URL + bank are logged **by default** — so if memories aren't saving, the reason is visible without any opt-in.
+The plugin logs through OpenCode's own log stream (`service=contextbase`), visible with `opencode --print-logs` or in the OpenCode log files. Errors (failed retain/recall, unreachable API, auth problems) and the resolved API URL + bank are logged **by default** — so if memories aren't saving, the reason is visible without any opt-in.
 
-Verbose tracing is controlled by the `debug` option, which is **config-only** (set `"debug": true` in `opencode.json` plugin options or `~/.hindsight/opencode.json`). There is intentionally no `HINDSIGHT_DEBUG` environment variable: env vars are unreliable to set for OpenCode's plugin runtime (notably on Windows, where a persistent OpenCode server may never see them).
+Verbose tracing is controlled by the `debug` option, which is **config-only** (set `"debug": true` in `opencode.json` plugin options or `~/.contextbase/opencode.json`). There is intentionally no `CONTEXTBASE_DEBUG` environment variable: env vars are unreliable to set for OpenCode's plugin runtime (notably on Windows, where a persistent OpenCode server may never see them).
 
 ```json
 {
-  "plugin": [["@vectorize-io/opencode-hindsight", { "debug": true }]]
+  "plugin": [["@vectorize-io/opencode-contextbase", { "debug": true }]]
 }
 ```
 
@@ -172,7 +172,7 @@ Verbose tracing is controlled by the `debug` option, which is **config-only** (s
 For multi-project isolation, enable dynamic bank ID derivation:
 
 ```bash
-export HINDSIGHT_DYNAMIC_BANK_ID=true
+export CONTEXTBASE_DYNAMIC_BANK_ID=true
 ```
 
 The bank ID is composed from granularity fields (default: `agent::project`). Supported fields: `agent`, `project`, `channel`, `user`.
@@ -180,8 +180,8 @@ The bank ID is composed from granularity fields (default: `agent::project`). Sup
 For multi-user scenarios (e.g., shared agent serving multiple users):
 
 ```bash
-export HINDSIGHT_CHANNEL_ID="slack-general"
-export HINDSIGHT_USER_ID="user123"
+export CONTEXTBASE_CHANNEL_ID="slack-general"
+export CONTEXTBASE_USER_ID="user123"
 ```
 
 ## How It Works
@@ -189,6 +189,6 @@ export HINDSIGHT_USER_ID="user123"
 1. **Plugin loads** when OpenCode starts — creates a `HindsightClient`, derives the bank ID, and registers tools + hooks
 2. **Session starts** — `session.created` event triggers, plugin marks session for recall injection
 3. **System transform** — on the first LLM call, recalled memories are injected into the system prompt
-4. **Agent works** — can call `hindsight_recall` and `hindsight_retain` explicitly during the session
+4. **Agent works** — can call `contextbase_recall` and `contextbase_retain` explicitly during the session
 5. **Session idles** — `session.idle` event triggers auto-retain of the conversation
 6. **Compaction** — if the context window fills up, memories are preserved through the compaction

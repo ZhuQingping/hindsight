@@ -1,10 +1,10 @@
-"""Unit tests for Hindsight Haystack configuration."""
+"""Unit tests for ContextBase Haystack configuration."""
 
 import os
 from unittest.mock import patch
 
-from hindsight_haystack import (
-    HindsightHaystackConfig,
+from contextbase_haystack import (
+    ContextBaseHaystackConfig,
     configure,
     get_config,
     reset_config,
@@ -19,19 +19,19 @@ class TestConfigure:
         reset_config()
 
     def test_configure_returns_config(self):
-        config = configure(hindsight_api_url="http://localhost:8888")
-        assert isinstance(config, HindsightHaystackConfig)
-        assert config.hindsight_api_url == "http://localhost:8888"
+        config = configure(contextbase_api_url="http://localhost:8888")
+        assert isinstance(config, ContextBaseHaystackConfig)
+        assert config.contextbase_api_url == "http://localhost:8888"
 
     def test_configure_sets_global_config(self):
         assert get_config() is None
-        configure(hindsight_api_url="http://localhost:8888")
+        configure(contextbase_api_url="http://localhost:8888")
         assert get_config() is not None
-        assert get_config().hindsight_api_url == "http://localhost:8888"
+        assert get_config().contextbase_api_url == "http://localhost:8888"
 
     def test_configure_defaults(self):
         config = configure()
-        assert config.hindsight_api_url == "https://api.hindsight.vectorize.io"
+        assert config.contextbase_api_url == ""
         assert config.api_key is None
         assert config.budget == "mid"
         assert config.max_tokens == 4096
@@ -44,7 +44,7 @@ class TestConfigure:
 
     def test_configure_with_all_params(self):
         config = configure(
-            hindsight_api_url="http://test:9999",
+            contextbase_api_url="http://test:9999",
             api_key="test-key",
             budget="high",
             max_tokens=2048,
@@ -55,7 +55,7 @@ class TestConfigure:
             mission="test mission",
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://test:9999"
+        assert config.contextbase_api_url == "http://test:9999"
         assert config.api_key == "test-key"
         assert config.budget == "high"
         assert config.max_tokens == 2048
@@ -67,18 +67,18 @@ class TestConfigure:
         assert config.verbose is True
 
     def test_reset_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
+        configure(contextbase_api_url="http://localhost:8888")
         assert get_config() is not None
         reset_config()
         assert get_config() is None
 
     def test_api_key_from_env(self):
-        with patch.dict(os.environ, {"HINDSIGHT_API_KEY": "env-key"}):
+        with patch.dict(os.environ, {"CONTEXTBASE_API_KEY": "env-key"}):
             config = configure()
             assert config.api_key == "env-key"
 
     def test_explicit_api_key_overrides_env(self):
-        with patch.dict(os.environ, {"HINDSIGHT_API_KEY": "env-key"}):
+        with patch.dict(os.environ, {"CONTEXTBASE_API_KEY": "env-key"}):
             config = configure(api_key="explicit-key")
             assert config.api_key == "explicit-key"
 

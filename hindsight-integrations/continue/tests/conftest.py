@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from hindsight_continue import reset_config
+from contextbase_continue import reset_config
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +25,7 @@ def make_recall_response(texts: list[str]):
 
 
 def make_client(texts: list[str] | None = None) -> MagicMock:
-    """A mock Hindsight client whose ``recall`` returns the given memory texts."""
+    """A mock ContextBase client whose ``recall`` returns the given memory texts."""
     client = MagicMock()
     client.recall = MagicMock(return_value=make_recall_response(texts or []))
     return client

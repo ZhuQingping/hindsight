@@ -1,9 +1,9 @@
 """Gated end-to-end: real retain -> recall through the wrapper helpers.
 
 Excluded from PR CI (``-m 'not requires_real_llm'``). Run against a live
-Hindsight server::
+ContextBase server::
 
-    HINDSIGHT_API_URL=http://localhost:8888 uv run pytest tests -v -m requires_real_llm
+    CONTEXTBASE_API_URL=http://localhost:8888 uv run pytest tests -v -m requires_real_llm
 """
 
 from __future__ import annotations
@@ -16,16 +16,16 @@ from pathlib import Path
 import pytest
 from hindsight_client import Hindsight
 
-from hindsight_aider.config import AiderConfig
-from hindsight_aider.runner import do_recall, do_retain
+from contextbase_aider.config import AiderConfig
+from contextbase_aider.runner import do_recall, do_retain
 
 requires_real_llm = pytest.mark.requires_real_llm
 
 
 @requires_real_llm
 def test_retain_then_recall_roundtrip(tmp_path):
-    api_url = os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888")
-    api_token = os.environ.get("HINDSIGHT_API_TOKEN")
+    api_url = os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888")
+    api_token = os.environ.get("CONTEXTBASE_API_TOKEN")
     bank = f"aider-e2e-{uuid.uuid4().hex[:8]}"
 
     kwargs = {"base_url": api_url}
@@ -34,8 +34,8 @@ def test_retain_then_recall_roundtrip(tmp_path):
     client = Hindsight(**kwargs)
     client.create_bank(bank_id=bank)
     cfg = AiderConfig(
-        hindsight_api_url=api_url,
-        hindsight_api_token=api_token,
+        contextbase_api_url=api_url,
+        contextbase_api_token=api_token,
         bank_id=bank,
         memory_filename=str(tmp_path / "mem.md"),
     )

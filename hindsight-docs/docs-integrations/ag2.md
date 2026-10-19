@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
-title: "AG2 (AutoGen) Persistent Memory with Hindsight | Integration Guide"
-description: "Add long-term persistent memory to your AG2 (AutoGen) agents with Hindsight. Automatic fact extraction, entity tracking, and recall tools that persist across conversations."
+title: "AG2 (AutoGen) Persistent Memory with ContextBase | Integration Guide"
+description: "Add long-term persistent memory to your AG2 (AutoGen) agents with ContextBase. Automatic fact extraction, entity tracking, and recall tools that persist across conversations."
 ---
 
 # AG2
@@ -12,7 +12,7 @@ Persistent long-term memory for [AG2](https://ag2.ai) agents (community AutoGen 
 
 ## Features
 
-- **Drop-in Tools** — `register_hindsight_tools()` registers retain, recall, and reflect in one line
+- **Drop-in Tools** — `register_contextbase_tools()` registers retain, recall, and reflect in one line
 - **AG2-native** — Uses `Annotated` type hints compatible with AG2's `@register_for_llm` / `@register_for_execution` pattern
 - **GroupChat Support** — Multiple agents can share a single memory bank
 - **Selective Tools** — Include only the tools you need (`include_retain`, `include_recall`, `include_reflect`)
@@ -21,14 +21,14 @@ Persistent long-term memory for [AG2](https://ag2.ai) agents (community AutoGen 
 ## Installation
 
 ```bash
-pip install hindsight-ag2
+pip install contextbase-ag2
 ```
 
 ## Quick Start
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent, LLMConfig
-from hindsight_ag2 import register_hindsight_tools
+from contextbase_ag2 import register_contextbase_tools
 
 llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini")
 
@@ -42,14 +42,14 @@ with llm_config:
         human_input_mode="NEVER",
     )
 
-# Register Hindsight memory tools on both agents
-register_hindsight_tools(
+# Register ContextBase memory tools on both agents
+register_contextbase_tools(
     assistant, user_proxy,
     bank_id="my-bank",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 
-# The assistant can now use hindsight_retain, hindsight_recall, hindsight_reflect
+# The assistant can now use contextbase_retain, contextbase_recall, contextbase_reflect
 result = user_proxy.initiate_chat(
     assistant,
     message="Remember that I prefer Python over JavaScript.",
@@ -60,13 +60,13 @@ That's it. The assistant can now store and retrieve memories across conversation
 
 ## How It Works
 
-The integration provides three AG2-compatible tool functions backed by Hindsight's API:
+The integration provides three AG2-compatible tool functions backed by ContextBase's API:
 
-| Tool | Hindsight | What happens |
+| Tool | ContextBase | What happens |
 |------|-----------|--------------|
-| `hindsight_retain(content)` | `retain(bank_id, content, ...)` | Content is stored. Hindsight extracts facts, entities, and relationships from the raw text. |
-| `hindsight_recall(query)` | `recall(bank_id, query, ...)` | Hindsight runs semantic search, BM25, graph traversal, and reranking. Returns a numbered list of matching memories. |
-| `hindsight_reflect(query)` | `reflect(bank_id, query, ...)` | Hindsight synthesizes a reasoned answer from all relevant memories, using the bank's disposition traits. |
+| `contextbase_retain(content)` | `retain(bank_id, content, ...)` | Content is stored. ContextBase extracts facts, entities, and relationships from the raw text. |
+| `contextbase_recall(query)` | `recall(bank_id, query, ...)` | ContextBase runs semantic search, BM25, graph traversal, and reranking. Returns a numbered list of matching memories. |
+| `contextbase_reflect(query)` | `reflect(bank_id, query, ...)` | ContextBase synthesizes a reasoned answer from all relevant memories, using the bank's disposition traits. |
 
 Tools are plain Python functions with `Annotated` type hints. AG2 uses these hints to generate the tool schema that the LLM sees.
 
@@ -75,11 +75,11 @@ Tools are plain Python functions with `Annotated` type hints. AG2 uses these hin
 ### Global Configuration
 
 ```python
-from hindsight_ag2 import configure
+from contextbase_ag2 import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="your-key",       # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-key",       # or set CONTEXTBASE_API_KEY env var
     budget="mid",              # low / mid / high
     max_tokens=4096,
     tags=["source:ag2"],       # default tags for retain
@@ -91,11 +91,11 @@ configure(
 Constructor arguments override global configuration:
 
 ```python
-from hindsight_ag2 import create_hindsight_tools
+from contextbase_ag2 import create_contextbase_tools
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="my-bank",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     budget="high",
     max_tokens=8192,
     tags=["team:alpha"],
@@ -108,7 +108,7 @@ Multiple agents can share a single memory bank in a GroupChat:
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager, LLMConfig
-from hindsight_ag2 import register_hindsight_tools
+from contextbase_ag2 import register_contextbase_tools
 
 llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini")
 
@@ -119,7 +119,7 @@ with llm_config:
 
 # All agents share the same memory bank
 for agent in [researcher, writer]:
-    register_hindsight_tools(agent, executor, bank_id="team-memory")
+    register_contextbase_tools(agent, executor, bank_id="team-memory")
 
 group_chat = GroupChat(agents=[researcher, writer, executor], messages=[])
 manager = GroupChatManager(groupchat=group_chat)
@@ -130,11 +130,11 @@ manager = GroupChatManager(groupchat=group_chat)
 For full control over how tools are registered:
 
 ```python
-from hindsight_ag2 import create_hindsight_tools
+from contextbase_ag2 import create_contextbase_tools
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="my-bank",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 for tool_fn in tools:
     assistant.register_for_llm(description=tool_fn.__doc__)(tool_fn)
@@ -151,13 +151,13 @@ for tool_fn in tools:
 | `get_config()` | Get current configuration |
 | `reset_config()` | Reset configuration to None |
 
-### create_hindsight_tools
+### create_contextbase_tools
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `bank_id` | required | Hindsight memory bank ID |
+| `bank_id` | required | ContextBase memory bank ID |
 | `client` | `None` | Pre-configured `Hindsight` client |
-| `hindsight_api_url` | from config | Hindsight API URL |
+| `contextbase_api_url` | from config | ContextBase API URL |
 | `api_key` | from config | API key |
 | `budget` | `"mid"` | Recall/reflect budget (low/mid/high) |
 | `max_tokens` | `4096` | Max tokens for recall results |
@@ -181,4 +181,4 @@ for tool_fn in tools:
 
 - Python >= 3.10
 - ag2 >= 0.9.0
-- A running Hindsight API server
+- A running ContextBase API server

@@ -2,22 +2,22 @@
 
 import json
 
-from hindsight_devin_desktop.config import DEFAULT_GLOBAL_BANK, DEFAULT_HINDSIGHT_API_URL, load_config
+from contextbase_devin_desktop.config import DEFAULT_GLOBAL_BANK, DEFAULT_CONTEXTBASE_API_URL, load_config
 
 
 def test_defaults(tmp_path):
     cfg = load_config(config_file=tmp_path / "missing.json", env={})
-    assert cfg.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
-    assert cfg.hindsight_api_token is None
+    assert cfg.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
+    assert cfg.contextbase_api_token is None
     assert cfg.global_bank == DEFAULT_GLOBAL_BANK
     assert cfg.project_bank is None  # derived per-repo, not from config
 
 
 def test_file_values(tmp_path):
     p = tmp_path / "devin-desktop.json"
-    p.write_text(json.dumps({"hindsightApiToken": "t", "globalBank": "me"}))
+    p.write_text(json.dumps({"contextbaseApiToken": "t", "globalBank": "me"}))
     cfg = load_config(config_file=p, env={})
-    assert cfg.hindsight_api_token == "t"
+    assert cfg.contextbase_api_token == "t"
     assert cfg.global_bank == "me"
 
 
@@ -40,14 +40,14 @@ def test_env_overrides_file(tmp_path):
     p.write_text(json.dumps({"globalBank": "from-file"}))
     cfg = load_config(
         config_file=p,
-        env={"HINDSIGHT_DEVIN_DESKTOP_GLOBAL_BANK": "from-env", "HINDSIGHT_API_TOKEN": "k"},
+        env={"CONTEXTBASE_DEVIN_DESKTOP_GLOBAL_BANK": "from-env", "CONTEXTBASE_API_TOKEN": "k"},
     )
     assert cfg.global_bank == "from-env"
-    assert cfg.hindsight_api_token == "k"
+    assert cfg.contextbase_api_token == "k"
 
 
 def test_env_sets_project_bank_override(tmp_path):
-    cfg = load_config(config_file=tmp_path / "missing.json", env={"HINDSIGHT_DEVIN_DESKTOP_BANK_ID": "proj"})
+    cfg = load_config(config_file=tmp_path / "missing.json", env={"CONTEXTBASE_DEVIN_DESKTOP_BANK_ID": "proj"})
     assert cfg.project_bank == "proj"
 
 

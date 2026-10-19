@@ -1,6 +1,6 @@
 import pytest
-from hindsight_agentcore.bank import TurnContext, default_bank_resolver
-from hindsight_agentcore.errors import BankResolutionError
+from contextbase_agentcore.bank import TurnContext, default_bank_resolver
+from contextbase_agentcore.errors import BankResolutionError
 
 
 class TestTurnContext:

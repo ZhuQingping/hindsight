@@ -5,12 +5,12 @@ description: "Give elizaOS agents persistent long-term memory. The Hindsight plu
 
 # elizaOS
 
-The `@vectorize-io/hindsight-eliza` package gives [elizaOS](https://github.com/elizaOS/eliza) agents long-term memory backed by [Hindsight](https://hindsight.vectorize.io).
+The `contextbase-eliza` package gives [elizaOS](https://github.com/elizaOS/eliza) agents long-term memory backed by [Hindsight](https://github.com/RSIXDB/hindsight).
 
 It registers two components on your agent:
 
-- A **provider** (`HINDSIGHT_MEMORY`) that recalls relevant memories and injects them into the prompt before each model call.
-- An **evaluator** (`HINDSIGHT_RETAIN`) that retains conversation messages to Hindsight after each turn.
+- A **provider** (`CONTEXTBASE_MEMORY`) that recalls relevant memories and injects them into the prompt before each model call.
+- An **evaluator** (`CONTEXTBASE_RETAIN`) that retains conversation messages to Hindsight after each turn.
 
 Both are enabled by default, layer on top of elizaOS's existing memory, and fail safe — a memory-service hiccup never blocks your agent from responding.
 
@@ -19,7 +19,7 @@ Both are enabled by default, layer on top of elizaOS's existing memory, and fail
 ## Installation
 
 ```bash
-npm install @vectorize-io/hindsight-eliza @vectorize-io/hindsight-client
+npm install contextbase-eliza @vectorize-io/hindsight-client
 ```
 
 This package targets `@elizaos/core` `^1.7.2` (declared as a peer dependency).
@@ -29,11 +29,11 @@ This package targets `@elizaos/core` `^1.7.2` (declared as a peer dependency).
 Create the plugin and add it to your character's plugin list:
 
 ```ts
-import { createHindsightPlugin } from "@vectorize-io/hindsight-eliza";
+import { createContextBasePlugin } from "contextbase-eliza";
 import { Hindsight } from "@vectorize-io/hindsight-client";
 
-const hindsightPlugin = createHindsightPlugin({
-  client: new Hindsight({ apiKey: process.env.HINDSIGHT_API_KEY }),
+const contextbasePlugin = createContextBasePlugin({
+  client: new Hindsight({ apiKey: process.env.CONTEXTBASE_API_KEY }),
   recall: { budget: "high", includeEntities: true },
   retain: { tags: ["source:eliza"] },
 });
@@ -42,7 +42,7 @@ export const character = {
   name: "Ada",
   plugins: [
     // ...your other plugins
-    hindsightPlugin,
+    contextbasePlugin,
   ],
 };
 ```
@@ -53,7 +53,7 @@ message's `entityId`, giving every user an isolated memory store.
 ## Configuration
 
 ```ts
-createHindsightPlugin({
+createContextBasePlugin({
   client,
 
   // Which memory bank to read/write. A string uses one fixed bank for all
@@ -83,12 +83,12 @@ createHindsightPlugin({
 ### Using only recall or only retain
 
 Disable either side with `recall.enabled: false` or `retain.enabled: false`. You
-can also build the components directly with `createHindsightProvider` and
-`createHindsightEvaluator` if you want to wire them into a plugin yourself.
+can also build the components directly with `createContextBaseProvider` and
+`createContextBaseEvaluator` if you want to wire them into a plugin yourself.
 
 ## How it works
 
 | Component | elizaOS seam | When it runs | What it does |
 | --- | --- | --- | --- |
-| `HINDSIGHT_MEMORY` | Provider | During prompt composition, before the model call | Calls Hindsight `recall` with the incoming message and injects the results into context |
-| `HINDSIGHT_RETAIN` | Evaluator | After the agent processes the turn | Calls Hindsight `retain` to persist the message (and optionally the agent's replies) |
+| `CONTEXTBASE_MEMORY` | Provider | During prompt composition, before the model call | Calls Hindsight `recall` with the incoming message and injects the results into context |
+| `CONTEXTBASE_RETAIN` | Evaluator | After the agent processes the turn | Calls Hindsight `retain` to persist the message (and optionally the agent's replies) |

@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 describe("Logger", () => {
-  it("routes error/warn/info to OpenCode's app.log with the hindsight service", () => {
+  it("routes error/warn/info to OpenCode's app.log with the contextbase service", () => {
     const { log, calls } = makeClient();
     const logger = new Logger({ client: { app: { log } } });
 
@@ -31,7 +31,7 @@ describe("Logger", () => {
     logger.error("boom", new Error("network down"));
 
     expect(calls).toHaveLength(3);
-    expect(calls.every((c) => c.service === "hindsight")).toBe(true);
+    expect(calls.every((c) => c.service === "contextbase")).toBe(true);
     expect(calls[0]).toMatchObject({ level: "info", message: "init" });
     expect(calls[0].extra).toEqual({ api: "http://localhost:8888" });
     expect(calls[1]).toMatchObject({ level: "warn", message: "watch out" });
@@ -63,7 +63,7 @@ describe("Logger", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     new Logger().error("no client here");
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(String(spy.mock.calls[0][0])).toContain("[Hindsight]");
+    expect(String(spy.mock.calls[0][0])).toContain("[ContextBase]");
     expect(String(spy.mock.calls[0][0])).toContain("no client here");
   });
 
@@ -85,7 +85,7 @@ describe("Logger", () => {
     new Logger({ client: { app } }).info("init", { api: "http://localhost:8888" });
 
     expect(calls).toHaveLength(1);
-    expect(calls[0]).toMatchObject({ service: "hindsight", level: "info", message: "init" });
+    expect(calls[0]).toMatchObject({ service: "contextbase", level: "info", message: "init" });
     // It went through app.log, not the console fallback.
     expect(spy).not.toHaveBeenCalled();
   });

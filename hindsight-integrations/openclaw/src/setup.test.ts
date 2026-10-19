@@ -33,12 +33,12 @@ describe("parseCliArgs", () => {
       "--api-url",
       "https://cloud.example.com",
       "--token-env",
-      "HINDSIGHT_CLOUD_TOKEN",
+      "CONTEXTBASE_CLOUD_TOKEN",
     ]);
     expect(args).toMatchObject({
       mode: "cloud",
       apiUrl: "https://cloud.example.com",
-      tokenEnv: "HINDSIGHT_CLOUD_TOKEN",
+      tokenEnv: "CONTEXTBASE_CLOUD_TOKEN",
     });
   });
 
@@ -115,7 +115,7 @@ describe("runNonInteractive", () => {
   let configPath: string;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), "hindsight-openclaw-setup-cli-"));
+    tmpDir = await mkdtemp(join(tmpdir(), "contextbase-openclaw-setup-cli-"));
     configPath = join(tmpDir, "openclaw.json");
   });
 
@@ -127,17 +127,24 @@ describe("runNonInteractive", () => {
     return JSON.parse(await readFile(configPath, "utf8")) as OpenClawConfigShape;
   }
 
-  it("writes a cloud-mode config with the default URL", async () => {
-    const args = parseCliArgs(["--mode", "cloud", "--token-env", "HINDSIGHT_CLOUD_TOKEN"]);
+  it("writes a cloud-mode config with an explicit URL", async () => {
+    const args = parseCliArgs([
+      "--mode",
+      "cloud",
+      "--api-url",
+      "https://memory.example.com",
+      "--token-env",
+      "CONTEXTBASE_CLOUD_TOKEN",
+    ]);
     const result = await runNonInteractive(args, configPath);
     expect(result.summary).toContain("Cloud");
     const cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
-    expect(pc.hindsightApiUrl).toBe("https://api.hindsight.vectorize.io");
-    expect(pc.hindsightApiToken).toEqual({
+    expect(pc.contextbaseApiUrl).toBe("https://memory.example.com");
+    expect(pc.contextbaseApiToken).toEqual({
       source: "env",
       provider: "default",
-      id: "HINDSIGHT_CLOUD_TOKEN",
+      id: "CONTEXTBASE_CLOUD_TOKEN",
     });
     expect(cfg.plugins?.entries?.[PLUGIN_ID]?.enabled).toBe(true);
   });
@@ -154,17 +161,24 @@ describe("runNonInteractive", () => {
     await runNonInteractive(args, configPath);
     const cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
-    expect(pc.hindsightApiUrl).toBe("https://hindsight.custom.example.com");
-    expect((pc.hindsightApiToken as { id: string }).id).toBe("MY_TOKEN");
+    expect(pc.contextbaseApiUrl).toBe("https://hindsight.custom.example.com");
+    expect((pc.contextbaseApiToken as { id: string }).id).toBe("MY_TOKEN");
   });
 
   it("writes a cloud-mode config with an inline token (--token)", async () => {
-    const args = parseCliArgs(["--mode", "cloud", "--token", "hsk_direct_value"]);
+    const args = parseCliArgs([
+      "--mode",
+      "cloud",
+      "--api-url",
+      "https://memory.example.com",
+      "--token",
+      "hsk_direct_value",
+    ]);
     await runNonInteractive(args, configPath);
     const cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
-    expect(pc.hindsightApiUrl).toBe("https://api.hindsight.vectorize.io");
-    expect(pc.hindsightApiToken).toBe("hsk_direct_value");
+    expect(pc.contextbaseApiUrl).toBe("https://memory.example.com");
+    expect(pc.contextbaseApiToken).toBe("hsk_direct_value");
   });
 
   it("rejects cloud mode without --token or --token-env", async () => {
@@ -179,7 +193,7 @@ describe("runNonInteractive", () => {
       "--token",
       "hsk_x",
       "--token-env",
-      "HINDSIGHT_CLOUD_TOKEN",
+      "CONTEXTBASE_CLOUD_TOKEN",
     ]);
     await expect(runNonInteractive(args, configPath)).rejects.toThrow(/mutually exclusive/);
   });
@@ -200,8 +214,8 @@ describe("runNonInteractive", () => {
     await runNonInteractive(args, configPath);
     const cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
-    expect(pc.hindsightApiUrl).toBe("https://mcp.example.com");
-    expect(pc.hindsightApiToken).toBeUndefined();
+    expect(pc.contextbaseApiUrl).toBe("https://mcp.example.com");
+    expect(pc.contextbaseApiToken).toBeUndefined();
   });
 
   it("writes an api-mode config with token", async () => {
@@ -211,12 +225,12 @@ describe("runNonInteractive", () => {
       "--api-url",
       "https://mcp.example.com",
       "--token-env",
-      "HINDSIGHT_API_TOKEN",
+      "CONTEXTBASE_API_TOKEN",
     ]);
     await runNonInteractive(args, configPath);
     const cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
-    expect((pc.hindsightApiToken as { id: string }).id).toBe("HINDSIGHT_API_TOKEN");
+    expect((pc.contextbaseApiToken as { id: string }).id).toBe("CONTEXTBASE_API_TOKEN");
   });
 
   it("rejects api mode without --api-url", async () => {
@@ -254,7 +268,7 @@ describe("runNonInteractive", () => {
     expect(pc.llmProvider).toBe("openai");
     expect((pc.llmApiKey as { id: string }).id).toBe("OPENAI_API_KEY");
     expect(pc.llmModel).toBe("gpt-4o-mini");
-    expect(pc.hindsightApiUrl).toBeUndefined();
+    expect(pc.contextbaseApiUrl).toBeUndefined();
   });
 
   it("writes an embedded-mode config for a no-key provider", async () => {
@@ -325,13 +339,20 @@ describe("runNonInteractive", () => {
 
     // Now switch to cloud mode — local LLM fields should be gone
     await runNonInteractive(
-      parseCliArgs(["--mode", "cloud", "--token-env", "HINDSIGHT_CLOUD_TOKEN"]),
+      parseCliArgs([
+        "--mode",
+        "cloud",
+        "--api-url",
+        "https://memory.example.com",
+        "--token-env",
+        "CONTEXTBASE_CLOUD_TOKEN",
+      ]),
       configPath
     );
     cfg = await readBack();
     const pc = cfg.plugins?.entries?.[PLUGIN_ID]?.config ?? {};
     expect(pc.llmProvider).toBeUndefined();
     expect(pc.llmApiKey).toBeUndefined();
-    expect(pc.hindsightApiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(pc.contextbaseApiUrl).toBe("https://memory.example.com");
   });
 });

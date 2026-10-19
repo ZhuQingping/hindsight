@@ -22,7 +22,7 @@ Flow:
   4. Resolve API URL (external, existing local, or auto-start daemon)
   5. Derive bank ID and ensure mission
   6. Format transcript (strip memory tags)
-  7. POST to Hindsight retain API (async)
+  7. POST to ContextBase retain API (async)
 
 Exit codes:
   0 -- always (graceful degradation on any error)
@@ -255,7 +255,7 @@ def main():
         _write_retain_status("error", reason=f"api_url: {e}"[:200])
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
@@ -304,7 +304,7 @@ def main():
         config, f"Retaining to bank '{bank_id}', doc '{document_id}', {message_count} messages, {len(transcript)} chars"
     )
 
-    # POST to Hindsight retain API
+    # POST to ContextBase retain API
     try:
         response = client.retain(
             bank_id=bank_id,

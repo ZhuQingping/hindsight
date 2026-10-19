@@ -23,7 +23,7 @@ import refreshModes from '@site/figures/refresh-modes.json';
 
 ## What Are Mental Models?
 
-Mental models are **saved reflect responses** that you curate for your memory bank. When you create a mental model, Hindsight runs a reflect operation with your source query and stores the result. During future reflect calls, these pre-computed summaries are checked first — providing faster, more consistent answers.
+Mental models are **saved reflect responses** that you curate for your memory bank. When you create a mental model, ContextBase runs a reflect operation with your source query and stores the result. During future reflect calls, these pre-computed summaries are checked first — providing faster, more consistent answers.
 
 <Figure doc={mentalModelsApi} />
 
@@ -133,11 +133,11 @@ Mental models can be configured to **automatically refresh** when observations a
 
 When `refresh_after_consolidation` is enabled, the mental model will be re-generated every time the bank's observations are consolidated — ensuring it always reflects the latest synthesized knowledge.
 
-When `refresh_cron` is set, Hindsight checks the schedule on the server's mental-model refresh tick and refreshes the model only if memories in its scope have changed since the last refresh. `refresh_cron` and `refresh_after_consolidation` are mutually exclusive, so a model refreshes either after consolidation or on a fixed UTC schedule, not both.
+When `refresh_cron` is set, ContextBase checks the schedule on the server's mental-model refresh tick and refreshes the model only if memories in its scope have changed since the last refresh. `refresh_cron` and `refresh_after_consolidation` are mutually exclusive, so a model refreshes either after consolidation or on a fixed UTC schedule, not both.
 
 `last_refresh_failed_at` on the model (and on a page in the knowledge tree) carries when that happened, so a list view can show which models have stopped refreshing themselves without reading each one's history.
 
-**A failed refresh pauses the automatic ones.** A failed refresh is retried by the worker (`HINDSIGHT_API_WORKER_MAX_RETRIES`, 3 by default) and then stops. Neither `refresh_after_consolidation` nor `refresh_cron` queues that model again until a refresh succeeds, so a refresh that cannot work (a prompt too large for the model, an empty account, a delta that will not apply) costs a few attempts instead of an LLM bill every tick. The failure shows in the model's [history](#history). Fix the cause and refresh the model yourself: a successful refresh resumes the automatic ones. A refresh cut off by `HINDSIGHT_API_REFLECT_WALL_TIMEOUT`, which bounds a whole refresh the same way it bounds a reflect, counts as a failure too.
+**A failed refresh pauses the automatic ones.** A failed refresh is retried by the worker (`CONTEXTBASE_API_WORKER_MAX_RETRIES`, 3 by default) and then stops. Neither `refresh_after_consolidation` nor `refresh_cron` queues that model again until a refresh succeeds, so a refresh that cannot work (a prompt too large for the model, an empty account, a delta that will not apply) costs a few attempts instead of an LLM bill every tick. The failure shows in the model's [history](#history). Fix the cause and refresh the model yourself: a successful refresh resumes the automatic ones. A refresh cut off by `CONTEXTBASE_API_REFLECT_WALL_TIMEOUT`, which bounds a whole refresh the same way it bounds a reflect, counts as a failure too.
 
 ### Rate-limiting automatic refreshes
 
@@ -169,7 +169,7 @@ tool, and the control plane's refresh button all run immediately, and additional
 parked refresh if one is waiting.
 
 Set it per bank (or server-wide) with `mental_model_min_refresh_interval_seconds` /
-`HINDSIGHT_API_MENTAL_MODEL_MIN_REFRESH_INTERVAL_SECONDS`; the per-model value wins when both
+`CONTEXTBASE_API_MENTAL_MODEL_MIN_REFRESH_INTERVAL_SECONDS`; the per-model value wins when both
 are set, so `min_refresh_interval_seconds: 0` exempts one model that does need to stay current
 from a bank-wide floor. The default everywhere is `0` — no floor.
 
@@ -238,7 +238,7 @@ Two strategies are available for how a refresh produces the new content:
 
 #### How delta mode works
 
-Hindsight keeps an authoritative **structured** representation of the document — an ordered list of sections, each holding a list of blocks, where a block is one markdown fragment (a paragraph, a list, a table, a code fence) stored exactly as written. The markdown you read is a deterministic render of that structure. Because a block is never re-interpreted, formatting a refresh didn't touch cannot be rewritten by one — a table stays a table. A delta refresh never asks the LLM to rewrite the document; it asks for operations against that structure:
+ContextBase keeps an authoritative **structured** representation of the document — an ordered list of sections, each holding a list of blocks, where a block is one markdown fragment (a paragraph, a list, a table, a code fence) stored exactly as written. The markdown you read is a deterministic render of that structure. Because a block is never re-interpreted, formatting a refresh didn't touch cannot be rewritten by one — a table stays a table. A delta refresh never asks the LLM to rewrite the document; it asks for operations against that structure:
 
 | Operation | Effect |
 |---|---|
@@ -720,10 +720,10 @@ Each version entry captures the **content before the change** and when it happen
 
 **Failures are recorded too.** A refresh that refuses to write produces no version, so before this it left no trace on the model at all — a document whose refreshes had been failing for a week was indistinguishable from one nobody had refreshed, and its stored `reflect_response` still described the last run that *succeeded*. Those runs now append a failure record carrying the reason and the exception. Read them by their `kind`: a client that only wants versions filters `kind` out, and one that wants to know whether the model is current checks whether the newest entry is a failure.
 
-Retention is applied per kind, so a run of failures cannot evict the version history — each is capped at `HINDSIGHT_API_MENTAL_MODEL_HISTORY_MAX_ENTRIES` independently. A retried refresh records one entry per attempt.
+Retention is applied per kind, so a run of failures cannot evict the version history — each is capped at `CONTEXTBASE_API_MENTAL_MODEL_HISTORY_MAX_ENTRIES` independently. A retried refresh records one entry per attempt.
 
 :::note
-History tracking is enabled by default. Set `HINDSIGHT_API_ENABLE_MENTAL_MODEL_HISTORY=false` to disable it, and `HINDSIGHT_API_MENTAL_MODEL_HISTORY_MAX_ENTRIES` to change how many versions are kept per model (default `50`).
+History tracking is enabled by default. Set `CONTEXTBASE_API_ENABLE_MENTAL_MODEL_HISTORY=false` to disable it, and `CONTEXTBASE_API_MENTAL_MODEL_HISTORY_MAX_ENTRIES` to change how many versions are kept per model (default `50`).
 :::
 
 ---

@@ -6,8 +6,8 @@
  */
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 
 // [docs:opinion-form]
 // Opinions are automatically formed when the bank encounters
@@ -61,7 +61,7 @@ console.log(reflectResponse.text);
 // =============================================================================
 // Cleanup (not shown in docs)
 // =============================================================================
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/skeptical-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/skeptical-bank`, { method: 'DELETE' });
 
 console.log('opinions.mjs: All examples passed');

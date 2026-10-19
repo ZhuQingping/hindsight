@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from hindsight_meta_muse.preflight import REQUIRED_TOOLS, ROOT_URL_TOOLS
+from contextbase_meta_muse.preflight import REQUIRED_TOOLS, ROOT_URL_TOOLS
 
 INTEGRATION_DIR = Path(__file__).resolve().parent.parent
 PROMPT = (INTEGRATION_DIR / "connect-prompt.md").read_text()
@@ -14,7 +14,7 @@ PROMPT = (INTEGRATION_DIR / "connect-prompt.md").read_text()
 def test_prompt_uses_the_root_cloud_url() -> None:
     # The root URL is multi-bank: Muse keeps its own `muse` bank and reads the others.
     # A bank-scoped URL (/mcp/<bank>/) would hand it exactly one, which is the fallback, not the default.
-    assert "https://api.hindsight.vectorize.io/mcp\n" in PROMPT
+    assert "http://localhost:8888/mcp\n" in PROMPT
     assert "/mcp/" not in PROMPT
 
 
@@ -42,4 +42,4 @@ def test_prompt_contains_no_credentials() -> None:
 def test_readme_embeds_the_prompt_file() -> None:
     readme = (INTEGRATION_DIR / "README.md").read_text()
     assert "connect-prompt.md" in readme
-    assert "Hindsight Cloud" in readme
+    assert "ContextBase remote service" in readme

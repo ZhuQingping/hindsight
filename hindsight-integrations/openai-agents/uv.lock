@@ -681,7 +681,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-openai-agents"
+name = "contextbase-openai-agents"
 version = "0.1.2"
 source = { editable = "." }
 dependencies = [

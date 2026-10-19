@@ -5,18 +5,18 @@
  */
 import { stripSentinelBlocks, type RecallBudget } from "./client.js";
 
-/** Hindsight Cloud REST base, used when no API URL is configured. */
-export const HINDSIGHT_CLOUD_API_URL = "https://api.hindsight.vectorize.io";
+/** ContextBase Cloud REST base, used when no API URL is configured. */
+export const CONTEXTBASE_CLOUD_API_URL = "";
 
 /** Default broad recall query — surfaces the user's ambient profile/context. */
 export const DEFAULT_RECALL_QUERY = "user preferences, identity, and working context";
 
-/** Default bank when none is configured (Hindsight auto-creates it). */
+/** Default bank when none is configured (ContextBase auto-creates it). */
 export const DEFAULT_BANK_ID = "default";
 
 /** @deprecated Options for the v0.2 hooks/instructions entrypoints. See {@link ConnectionOptions}. */
 export interface AutoMemoryOptions extends ConnectionOptions {
-  /** Bank to scope memory to (REST path). Defaults to `HINDSIGHT_BANK_ID`, then `"default"`. */
+  /** Bank to scope memory to (REST path). Defaults to `CONTEXTBASE_BANK_ID`, then `"default"`. */
   bankId?: string;
   /** Broad query used for each turn's recall injection. */
   recallQuery?: string;
@@ -61,11 +61,11 @@ function firstNonEmpty(...values: Array<string | null | undefined>): string | nu
 }
 
 /**
- * Whether a URL points at Hindsight Cloud, matched on host (so a trailing slash
+ * Whether a URL points at ContextBase Cloud, matched on host (so a trailing slash
  * or regional subdomain still triggers the missing-key guard). The dot boundary
  * avoids matching look-alikes like `nothindsight.vectorize.io`.
  */
-export function isHindsightCloudUrl(url: string): boolean {
+export function isContextBaseCloudUrl(url: string): boolean {
   try {
     const host = new URL(url).hostname;
     return host === "hindsight.vectorize.io" || host.endsWith(".hindsight.vectorize.io");
@@ -74,12 +74,12 @@ export function isHindsightCloudUrl(url: string): boolean {
   }
 }
 
-/** How to reach a Hindsight server; shared by every entrypoint in this package. */
+/** How to reach a ContextBase server; shared by every entrypoint in this package. */
 export interface ConnectionOptions {
-  /** Hindsight REST base URL. Defaults to `HINDSIGHT_API_URL`, then Cloud. */
+  /** ContextBase REST base URL. Defaults to `CONTEXTBASE_API_URL`, then Cloud. */
   apiUrl?: string;
   /**
-   * API key sent as `Authorization: Bearer <key>`. Defaults to `HINDSIGHT_API_KEY`.
+   * API key sent as `Authorization: Bearer <key>`. Defaults to `CONTEXTBASE_API_KEY`.
    * Pass `null` for a no-auth self-hosted server.
    */
   apiKey?: string | null;
@@ -95,16 +95,19 @@ export function resolveConnection(
   options: ConnectionOptions,
   env: NodeJS.ProcessEnv = process.env
 ): ResolvedConnection {
-  const apiUrl = options.apiUrl ?? firstNonEmpty(env.HINDSIGHT_API_URL) ?? HINDSIGHT_CLOUD_API_URL;
+  const apiUrl =
+    options.apiUrl ?? firstNonEmpty(env.CONTEXTBASE_API_URL) ?? CONTEXTBASE_CLOUD_API_URL;
+
+  if (!apiUrl.trim()) throw new Error("Set CONTEXTBASE_API_URL or pass apiUrl explicitly.");
 
   // `apiKey: null` is an explicit no-auth opt-out; `undefined` falls back to the env var.
   const apiKey =
-    options.apiKey === undefined ? firstNonEmpty(env.HINDSIGHT_API_KEY) : options.apiKey;
+    options.apiKey === undefined ? firstNonEmpty(env.CONTEXTBASE_API_KEY) : options.apiKey;
 
-  if (isHindsightCloudUrl(apiUrl) && !apiKey) {
+  if (isContextBaseCloudUrl(apiUrl) && !apiKey) {
     throw new Error(
-      "Hindsight Cloud requires an API key. Set HINDSIGHT_API_KEY, pass `apiKey`, or point " +
-        "`apiUrl`/HINDSIGHT_API_URL at a self-hosted server (use `apiKey: null` for a no-auth server)."
+      "ContextBase Cloud requires an API key. Set CONTEXTBASE_API_KEY, pass `apiKey`, or point " +
+        "`apiUrl`/CONTEXTBASE_API_URL at a self-hosted server (use `apiKey: null` for a no-auth server)."
     );
   }
   return { apiUrl, apiKey };
@@ -119,7 +122,7 @@ export function resolveAutoMemory(
   return {
     apiUrl,
     apiKey,
-    bankId: options.bankId ?? firstNonEmpty(env.HINDSIGHT_BANK_ID) ?? DEFAULT_BANK_ID,
+    bankId: options.bankId ?? firstNonEmpty(env.CONTEXTBASE_BANK_ID) ?? DEFAULT_BANK_ID,
     recallQuery: options.recallQuery ?? DEFAULT_RECALL_QUERY,
     budget: options.budget ?? "mid",
     maxTokens: options.maxTokens ?? 1024,
@@ -127,7 +130,7 @@ export function resolveAutoMemory(
     includeAssistantReply: options.includeAssistantReply ?? true,
     timeoutMs: options.timeoutMs ?? 15_000,
     // eslint-disable-next-line no-console
-    onError: options.onError ?? ((error) => console.warn("[hindsight-eve] memory error:", error)),
+    onError: options.onError ?? ((error) => console.warn("[contextbase-eve] memory error:", error)),
   };
 }
 

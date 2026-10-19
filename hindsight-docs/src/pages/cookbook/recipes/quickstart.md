@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Hindsight Quickstart
+# ContextBase Quickstart
 
 
 :::tip Run this notebook
@@ -11,23 +11,25 @@ This recipe is available as an interactive Jupyter notebook.
 :::
 
 
-This notebook covers the basics of using Hindsight:
+This notebook covers the basics of using ContextBase:
 - **Retain**: Store information in memory
 - **Recall**: Retrieve memories matching a query
 - **Reflect**: Generate insights from memories
 
 ## Prerequisites
 
-Make sure you have Hindsight running. The easiest way is via Docker:
+Make sure you have ContextBase running. The easiest way is via Docker:
 
 ```bash
 export OPENAI_API_KEY=your-key
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - API: http://localhost:8888
@@ -35,19 +37,19 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 ## Installation
 
-Install the Hindsight Python client:
+Install the ContextBase Python client:
 
 
 ```python
 !pip install hindsight-client nest_asyncio python-dotenv -U
 ```
 
-## Connect to Hindsight
+## Connect to ContextBase
 
 
 ```python
-# Jupyter notebooks already run an asyncio event loop. The hindsight client 
-# uses loop.run_until_complete() internally, but Python doesn't allow nested 
+# Jupyter notebooks already run an asyncio event loop. The contextbase client
+# uses loop.run_until_complete() internally, but Python doesn't allow nested
 # event loops by default. nest_asyncio patches this to allow nesting.
 import nest_asyncio
 nest_asyncio.apply()
@@ -60,17 +62,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration (override with env vars if set)
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-HINDSIGHT_UI_URL = os.getenv("HINDSIGHT_UI_URL", "http://localhost:9999")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_API_URL)
+client = Hindsight(base_url=CONTEXTBASE_API_URL)
 ```
 
 ## Retain: Store Information
 
-The `retain` operation is used to push new memories into Hindsight. It tells Hindsight to _retain_ the information you pass in.
+The `retain` operation is used to push new memories into ContextBase. It tells ContextBase to _retain_ the information you pass in.
 
 Behind the scenes, the retain operation uses an LLM to extract key facts, temporal data, entities, and relationships.
 
@@ -83,7 +85,7 @@ client.retain(
 )
 
 # View the stored document in the UI:
-print(f"View documents: {HINDSIGHT_UI_URL}/banks/my-bank?view=documents")
+print(f"View documents: {CONTEXTBASE_UI_URL}/banks/my-bank?view=documents")
 ```
 
 
@@ -142,7 +144,7 @@ print(response)
 
 ## Memory Types
 
-Hindsight organizes memory into three networks to mimic human memory:
+ContextBase organizes memory into three networks to mimic human memory:
 
 - **World**: Facts about the world ("The stove gets hot")
 - **Experiences**: Agent's own experiences ("I touched the stove and it really hurt")
@@ -156,6 +158,6 @@ Delete the bank created during this notebook:
 ```python
 import requests
 
-response = requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/my-bank")
+response = requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/my-bank")
 print(f"Deleted my-bank: {response.json()}")
 ```

@@ -262,7 +262,7 @@ describe("pi extension factory", () => {
       (await pi.tools[0].execute("c", { query: "q" }, undefined, undefined, ctx(cwd, "s")))
         .content[0].text;
     expect(await run("/repo-b")).toBe("bank of /repo-b");
-    expect(await run(process.cwd())).toBe("Hindsight memory is disabled for this workspace.");
+    expect(await run(process.cwd())).toBe("ContextBase memory is disabled for this workspace.");
     expect(pi.tools).toHaveLength(1);
 
     // Exit drains every workspace's in-flight write-back, not just the launch one's (#5081).

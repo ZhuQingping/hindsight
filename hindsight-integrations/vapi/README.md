@@ -1,25 +1,28 @@
-# Hindsight Vapi Integration
+# ContextBase Vapi Integration
 
-Persistent long-term memory for [Vapi](https://vapi.ai) voice AI calls via [Hindsight](https://vectorize.io/hindsight). A single webhook handler recalls relevant memories at call start (injected as `assistantOverrides`) and retains the full transcript when the call ends.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent long-term memory for [Vapi](https://vapi.ai) voice AI calls via [ContextBase](https://github.com/RSIXDB/hindsight). A single webhook handler recalls relevant memories at call start (injected as `assistantOverrides`) and retains the full transcript when the call ends.
 
 ## Quick Start
 
-> ✨ **Recommended:** [Hindsight Cloud](https://ui.hindsight.vectorize.io) — sign up free, get an API key, and skip the self-hosting setup entirely.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```bash
-pip install hindsight-vapi
+pip install contextbase-vapi
 ```
 
 ```python
 from fastapi import FastAPI, Request
-from hindsight_vapi import HindsightVapiWebhook
+from contextbase_vapi import ContextBaseVapiWebhook
 
 app = FastAPI()
-memory = HindsightVapiWebhook(
+memory = ContextBaseVapiWebhook(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
     api_key="hsk_your_token_here",
 )
+
 
 @app.post("/webhook")
 async def vapi_webhook(request: Request):
@@ -40,7 +43,7 @@ Unlike Pipecat (per-turn FrameProcessor), Vapi doesn't expose a per-turn hook, s
 Incoming call
   └─ Vapi fires "assistant-request" webhook
        └─ Recall memories (query = caller's phone number)
-            └─ Return as assistantOverrides with <hindsight_memories> system message
+            └─ Return as assistantOverrides with <contextbase_memories> system message
                  └─ Vapi merges into assistant config before the call begins
 
 Call ends
@@ -48,7 +51,7 @@ Call ends
        └─ Retain full transcript (fire-and-forget — webhook responds immediately)
 ```
 
-Memory accumulates across calls. By the second or third call with the same caller, Hindsight surfaces relevant history automatically.
+Memory accumulates across calls. By the second or third call with the same caller, ContextBase surfaces relevant history automatically.
 
 ## Outbound Calls
 
@@ -65,28 +68,28 @@ vapi.calls.create(
 
 ## Prerequisites
 
-A running Hindsight instance:
+A running ContextBase instance:
 
 **Self-hosted:**
 ```bash
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-api-key
+export CONTEXTBASE_API_LLM_API_KEY=your-api-key
 hindsight-api  # starts on http://localhost:8888
 ```
 
-**Hindsight Cloud:** [Sign up](https://ui.hindsight.vectorize.io) — no self-hosting required.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ## Configuration
 
 ```python
-HindsightVapiWebhook(
-    bank_id="user-123",              # Required: memory bank to use
-    hindsight_api_url="...",         # Hindsight API URL
-    api_key="hsk_...",               # API key (Hindsight Cloud)
-    recall_budget="mid",             # "low", "mid", or "high"
-    recall_max_tokens=4096,          # Max tokens for recall results
-    enable_recall=True,              # Inject memories at call start
-    enable_retain=True,              # Store transcript at call end
+ContextBaseVapiWebhook(
+    bank_id="user-123",  # Required: memory bank to use
+    contextbase_api_url="...",  # ContextBase API URL
+    api_key="hsk_...",  # API key (ContextBase remote service)
+    recall_budget="mid",  # "low", "mid", or "high"
+    recall_max_tokens=4096,  # Max tokens for recall results
+    enable_recall=True,  # Inject memories at call start
+    enable_retain=True,  # Store transcript at call end
     memory_prefix="Relevant memories from past conversations:\n",
 )
 ```
@@ -94,16 +97,16 @@ HindsightVapiWebhook(
 ### Global Configuration
 
 ```python
-from hindsight_vapi import configure
+from contextbase_vapi import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     api_key="hsk_...",
     recall_budget="mid",
 )
 
 # Now create webhooks without repeating connection details
-memory = HindsightVapiWebhook(bank_id="user-123")
+memory = ContextBaseVapiWebhook(bank_id="user-123")
 ```
 
 ## Vapi Setup

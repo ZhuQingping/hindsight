@@ -9,13 +9,13 @@ import multilingualFigure from '@site/figures/multilingual.json';
 
 # Multilingual Support
 
-Hindsight automatically detects the language of your input and responds in the same language. This means facts, entities, and reflect responses are preserved in their original language without translation to English.
+ContextBase automatically detects the language of your input and responds in the same language. This means facts, entities, and reflect responses are preserved in their original language without translation to English.
 
 ## How It Works
 
 <Figure doc={multilingualFigure} />
 
-When you retain content or reflect on a query, Hindsight:
+When you retain content or reflect on a query, ContextBase:
 
 1. **Detects the input language** automatically from the content
 2. **Extracts facts in the original language** - preserving nuance and meaning
@@ -26,7 +26,7 @@ When you retain content or reflect on a query, Hindsight:
 
 ## Retain with Non-English Content
 
-When you retain content in any language, Hindsight extracts and stores facts in that same language.
+When you retain content in any language, ContextBase extracts and stores facts in that same language.
 
 ### Example: Chinese Content
 
@@ -50,7 +50,7 @@ The `reflect` operation also respects the input language, generating thoughtful 
 
 ## Mixed Language Content
 
-Hindsight handles mixed-language content gracefully, preserving both languages where appropriate.
+ContextBase handles mixed-language content gracefully, preserving both languages where appropriate.
 
 ### Example: Chinese Text with English Company Names
 
@@ -60,7 +60,7 @@ Hindsight handles mixed-language content gracefully, preserving both languages w
 
 ## Supported Languages
 
-**Hindsight's multilingual support depends entirely on your LLM's language capabilities.** Hindsight instructs the LLM to detect the input language and respond in that same language. If your LLM supports a language, Hindsight will work with it.
+**ContextBase's multilingual support depends entirely on your LLM's language capabilities.** ContextBase instructs the LLM to detect the input language and respond in that same language. If your LLM supports a language, ContextBase will work with it.
 
 Most modern LLMs (GPT-4, Claude, Gemini, Llama 3, etc.) support dozens of languages including:
 
@@ -70,7 +70,7 @@ Most modern LLMs (GPT-4, Claude, Gemini, Llama 3, etc.) support dozens of langua
 - **South Asian**: Hindi, Bengali, Tamil
 - **Southeast Asian**: Thai, Vietnamese, Indonesian
 
-**To verify support for your target language**, test your LLM directly with content in that language. If the LLM can understand and generate text in the language, Hindsight will preserve it correctly.
+**To verify support for your target language**, test your LLM directly with content in that language. If the LLM can understand and generate text in the language, ContextBase will preserve it correctly.
 
 ---
 
@@ -86,7 +86,7 @@ The default embedding model (`BAAI/bge-small-en-v1.5`) is **English-only**. For 
 
 ```bash
 # In your .env file
-HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-m3
+CONTEXTBASE_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-m3
 ```
 
 **Recommended multilingual embedding models:**
@@ -101,7 +101,7 @@ The default reranker (`cross-encoder/ms-marco-MiniLM-L-6-v2`) is **English-only*
 
 ```bash
 # In your .env file
-HINDSIGHT_API_RERANKER_LOCAL_MODEL=BAAI/bge-reranker-v2-m3
+CONTEXTBASE_API_RERANKER_LOCAL_MODEL=BAAI/bge-reranker-v2-m3
 ```
 
 **Recommended multilingual reranker models:**
@@ -112,45 +112,45 @@ HINDSIGHT_API_RERANKER_LOCAL_MODEL=BAAI/bge-reranker-v2-m3
 
 ### 4. BM25 / Full-Text Search Backend
 
-The semantic (embedding) arm covers cross-lingual matches by meaning. Hindsight runs a BM25 keyword arm in parallel, and **BM25 is inherently within-language** — it's character/token matching against a tokenizer's lexemes. The default `native` backend uses PostgreSQL's English dictionary, which produces poor results for non-English content (and no useful tokenization at all for Chinese / Japanese / Korean, which lack whitespace word boundaries).
+The semantic (embedding) arm covers cross-lingual matches by meaning. ContextBase runs a BM25 keyword arm in parallel, and **BM25 is inherently within-language** — it's character/token matching against a tokenizer's lexemes. The default `native` backend uses PostgreSQL's English dictionary, which produces poor results for non-English content (and no useful tokenization at all for Chinese / Japanese / Korean, which lack whitespace word boundaries).
 
 There are two knobs that interact:
 
-- `HINDSIGHT_API_TEXT_SEARCH_EXTENSION` — selects the backend (`native`, `vchord`, `pg_textsearch`, `pgroonga`, or `pg_search`).
-- `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE` — selects the PostgreSQL dictionary used by the `native` backend (default: `english`).
+- `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION` — selects the backend (`native`, `vchord`, `pg_textsearch`, `pgroonga`, or `pg_search`).
+- `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE` — selects the PostgreSQL dictionary used by the `native` backend (default: `english`).
 
 Pick the backend based on the languages your bank stores:
 
 | Backend | Multilingual / CJK | Notes |
 |---------|--------------------|-------|
-| `native` | European languages only (English, French, German, Spanish, Italian, Portuguese, Russian, Dutch, Swedish, Norwegian, Danish, Finnish, Hungarian, Turkish, Arabic, plus `simple`). CJK requires a third-party dictionary like `zhparser`. | Stock PostgreSQL — no extra extensions. Configure the language via `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE`. |
+| `native` | European languages only (English, French, German, Spanish, Italian, Portuguese, Russian, Dutch, Swedish, Norwegian, Danish, Finnish, Hungarian, Turkish, Arabic, plus `simple`). CJK requires a third-party dictionary like `zhparser`. | Stock PostgreSQL — no extra extensions. Configure the language via `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE`. |
 | `vchord` | Multilingual via `llmlingua2` tokenizer. | Best when you're already using vchord for vector search. |
 | `pg_textsearch` | English only (hardcoded). | Industry-standard BM25 ranking + Block-Max WAND. |
 | `pgroonga` | **Yes — out of the box.** Single index handles English, CJK, and mixed-script content via the `TokenBigram` polyglot tokenizer + `NormalizerNFKC150` Unicode normalization. | Recommended for non-English / mixed-language banks. Requires the `pgroonga` extension. See `docker/docker-compose/pgroonga/`. |
-| `pg_search` | Multilingual via configurable tokenizer (e.g. `chinese_compatible`, `jieba`, `chinese_lindera`, `japanese_lindera`, `korean_lindera`, `ngram`). | ParadeDB `pg_search` extension; the only Citus-compatible BM25 backend. Tokenizer set via `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER`. See `docker/docker-compose/pg_search/`. |
+| `pg_search` | Multilingual via configurable tokenizer (e.g. `chinese_compatible`, `jieba`, `chinese_lindera`, `japanese_lindera`, `korean_lindera`, `ngram`). | ParadeDB `pg_search` extension; the only Citus-compatible BM25 backend. Tokenizer set via `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER`. See `docker/docker-compose/pg_search/`. |
 
 **Choosing for a single-language bank** (e.g. all Spanish content):
 ```bash
-HINDSIGHT_API_TEXT_SEARCH_EXTENSION=native
-HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE=spanish
+CONTEXTBASE_API_TEXT_SEARCH_EXTENSION=native
+CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE=spanish
 ```
 
 **Choosing for a CJK or mixed-language bank**:
 ```bash
-HINDSIGHT_API_TEXT_SEARCH_EXTENSION=pgroonga
+CONTEXTBASE_API_TEXT_SEARCH_EXTENSION=pgroonga
 ```
 
 :::note External PostgreSQL required
 
-The `pgroonga` and `pg_search` backends depend on PostgreSQL extensions that are **not** bundled with the embedded `pg0` database Hindsight uses when `HINDSIGHT_API_DATABASE_URL` is unset. On that default single-container setup neither backend can be enabled — point `HINDSIGHT_API_DATABASE_URL` at an external PostgreSQL that has the extension installed, as the `docker/docker-compose/pgroonga/` and `docker/docker-compose/pg_search/` recipes do.
+The `pgroonga` and `pg_search` backends depend on PostgreSQL extensions that are **not** bundled with the embedded `pg0` database ContextBase uses when `CONTEXTBASE_API_DATABASE_URL` is unset. On that default single-container setup neither backend can be enabled — point `CONTEXTBASE_API_DATABASE_URL` at an external PostgreSQL that has the extension installed, as the `docker/docker-compose/pgroonga/` and `docker/docker-compose/pg_search/` recipes do.
 
 :::
 
-The `native` and `pgroonga` knobs do not apply to each other — `pgroonga`'s tokenizer is set at index creation and ignores `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE`.
+The `native` and `pgroonga` knobs do not apply to each other — `pgroonga`'s tokenizer is set at index creation and ignores `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE`.
 
 #### Forcing the LLM Output Language
 
-Independent from the BM25 backend, `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` forces every LLM-generated artifact into a single language regardless of the source content. This applies uniformly to:
+Independent from the BM25 backend, `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE` forces every LLM-generated artifact into a single language regardless of the source content. This applies uniformly to:
 
 - **Retain** — fact text, context, and entity names extracted from source documents.
 - **Consolidation** — observations / mental models synthesized from those facts.
@@ -158,25 +158,25 @@ Independent from the BM25 backend, `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` forces ev
 
 ```bash
 # Every LLM call (retain, consolidation, reflect) emits Spanish regardless of source language.
-HINDSIGHT_API_LLM_OUTPUT_LANGUAGE=Spanish
+CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE=Spanish
 ```
 
 Common patterns:
-- **Aligned, single-language bank**: `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE=spanish` + `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE=Spanish` — store, index, and respond in Spanish even when sources are mixed.
-- **Mixed-language bank with multilingual indexing**: `HINDSIGHT_API_TEXT_SEARCH_EXTENSION=pgroonga` + leave `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` unset — preserve source-language facts; pgroonga handles all of them in one index; reflect responds in the query's language.
-- **Cross-lingual unification**: `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE=English` — every fact, observation, and reflect response in English regardless of source. Useful when the consumer (an English-only LLM, dashboard, or downstream pipeline) needs uniform output.
+- **Aligned, single-language bank**: `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE=spanish` + `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE=Spanish` — store, index, and respond in Spanish even when sources are mixed.
+- **Mixed-language bank with multilingual indexing**: `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION=pgroonga` + leave `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE` unset — preserve source-language facts; pgroonga handles all of them in one index; reflect responds in the query's language.
+- **Cross-lingual unification**: `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE=English` — every fact, observation, and reflect response in English regardless of source. Useful when the consumer (an English-only LLM, dashboard, or downstream pipeline) needs uniform output.
 
-Leave `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` unset to preserve the source/query language across the pipeline (the default).
+Leave `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE` unset to preserve the source/query language across the pipeline (the default).
 
 #### Default behaviour when no output language is set
 
-With `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` unset, retain and consolidation are both instructed to keep their output in the language of the source material. For observations specifically:
+With `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE` unset, retain and consolidation are both instructed to keep their output in the language of the source material. For observations specifically:
 
 - **Language is decided per observation**, from the facts that observation is built on — not from the batch. A batch mixing Chinese and English facts produces Chinese observations for the Chinese facts and English observations for the English ones. When a single observation merges facts written in several languages, the majority language of those facts wins.
 - **Updates follow the new facts.** When an existing observation is written in a different language from the facts updating it, the whole observation is rewritten in the new facts' language. A bank whose observations previously drifted into the wrong language converges back as new facts arrive.
 - **Names and technical terms are never translated** — proper nouns, product and place names, identifiers, code, and units stay as written in the source facts, whatever the surrounding language.
 
-This is prompt-level guidance, not a hard guarantee: a model that ignores instructions can still emit the wrong language. Set `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` explicitly when a bank must be single-language no matter what its sources look like.
+This is prompt-level guidance, not a hard guarantee: a model that ignores instructions can still emit the wrong language. Set `CONTEXTBASE_API_LLM_OUTPUT_LANGUAGE` explicitly when a bank must be single-language no matter what its sources look like.
 
 ---
 

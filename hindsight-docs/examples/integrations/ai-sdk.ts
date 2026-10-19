@@ -1,15 +1,15 @@
 /**
- * Hindsight AI SDK integration examples
+ * ContextBase AI SDK integration examples
  * These snippets are embedded in the documentation via CodeSnippet.
  */
 
 // [docs:setup]
 import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
+import { createContextBaseTools } from 'contextbase-ai-sdk';
 
 const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
 
-const tools = createHindsightTools({
+const tools = createContextBaseTools({
   client,
   bankId: 'user-123',
 });
@@ -48,13 +48,13 @@ for await (const chunk of result.textStream) {
 import { generateText, ToolLoopAgent, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
+import { createContextBaseTools } from 'contextbase-ai-sdk';
 
-const client = new HindsightClient({ baseUrl: process.env.HINDSIGHT_API_URL! });
+const client = new HindsightClient({ baseUrl: process.env.CONTEXTBASE_API_URL! });
 
 const agent = new ToolLoopAgent({
   model: openai('gpt-4o'),
-  tools: createHindsightTools({ client, bankId: 'user-123' }),
+  tools: createContextBaseTools({ client, bankId: 'user-123' }),
   stopWhen: stepCountIs(10),
   system: 'You are a helpful assistant with long-term memory.',
 });
@@ -69,18 +69,18 @@ const result = await agent.generate({
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
+import { createContextBaseTools } from 'contextbase-ai-sdk';
 
-const hindsightClient = new HindsightClient({
-  baseUrl: process.env.HINDSIGHT_API_URL!,
+const contextbaseClient = new HindsightClient({
+  baseUrl: process.env.CONTEXTBASE_API_URL!,
 });
 
 export async function POST(req: Request) {
   const { messages, userId } = await req.json();
 
   // Tools are created per-request, closing over the current user's bankId
-  const tools = createHindsightTools({
-    client: hindsightClient,
+  const tools = createContextBaseTools({
+    client: contextbaseClient,
     bankId: userId,
   });
 
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 // [/docs:next-api-route]
 
 // [docs:constructor-options]
-const tools = createHindsightTools({
+const tools = createContextBaseTools({
   client,
   bankId: userId,
 

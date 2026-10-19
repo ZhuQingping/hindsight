@@ -1,23 +1,25 @@
-# @vectorize-io/hindsight-chat
+# contextbase-chat
+
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
 Give your [Vercel Chat SDK](https://github.com/vercel/chat) bots persistent, per-user memory with a single handler wrapper. Works with Slack, Discord, Teams, Google Chat, GitHub, and Linear.
 
 ## Setup
 
-> ✨ **Recommended:** [Hindsight Cloud](https://ui.hindsight.vectorize.io) — sign up free, get an API key, and you're ready. No infrastructure to run.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 >
-> Self-hosting alternative: [installation guide](https://hindsight.vectorize.io/developer/installation).
+> Self-hosting alternative: [installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs).
 
 ## Quick Start
 
 ```bash
-npm install @vectorize-io/hindsight-chat
+npm install contextbase-chat
 ```
 
 ```typescript
 import { Chat } from "chat";
 import { HindsightClient } from "@vectorize-io/hindsight-client";
-import { withHindsightChat } from "@vectorize-io/hindsight-chat";
+import { withContextBaseChat } from "contextbase-chat";
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
@@ -26,12 +28,12 @@ const chat = new Chat({
     /* your connectors */
   ],
 });
-const hindsight = new HindsightClient({ apiKey: process.env.HINDSIGHT_API_KEY });
+const contextbase = new HindsightClient({ apiKey: process.env.CONTEXTBASE_API_KEY });
 
 chat.onNewMention(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId, // per-user memory
     },
     async (thread, message, ctx) => {
@@ -60,7 +62,7 @@ chat.onNewMention(
 
 ## Configuration
 
-### `withHindsightChat(options, handler)`
+### `withContextBaseChat(options, handler)`
 
 Returns a standard Chat SDK handler `(thread, message) => Promise<void>`.
 
@@ -68,7 +70,7 @@ Returns a standard Chat SDK handler `(thread, message) => Promise<void>`.
 
 | Option                   | Type                        | Default     | Description                           |
 | ------------------------ | --------------------------- | ----------- | ------------------------------------- |
-| `client`                 | `HindsightClient`           | _required_  | Hindsight client instance             |
+| `client`                 | `HindsightClient`           | _required_  | ContextBase client instance             |
 | `bankId`                 | `string \| (msg) => string` | _required_  | Memory bank ID or resolver function   |
 | `recall.enabled`         | `boolean`                   | `true`      | Auto-recall memories before handler   |
 | `recall.budget`          | `'low' \| 'mid' \| 'high'`  | `'mid'`     | Processing budget for recall          |
@@ -101,9 +103,9 @@ The third argument passed to your handler:
 
 ```typescript
 chat.onSubscribedMessage(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId,
       recall: { budget: "high", maxTokens: 1000 },
     },
@@ -123,9 +125,9 @@ chat.onSubscribedMessage(
 
 ```typescript
 chat.onNewMention(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId,
       retain: { enabled: true, tags: ["slack", "inbound"] },
     },
@@ -152,8 +154,8 @@ chat.onNewMention(
 ```typescript
 // All users share the same memory bank
 chat.onNewMention(
-  withHindsightChat(
-    { client: hindsight, bankId: "shared-team-memory" },
+  withContextBaseChat(
+    { client: contextbase, bankId: "shared-team-memory" },
     async (thread, message, ctx) => {
       // ...
     }

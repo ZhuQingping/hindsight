@@ -15,7 +15,7 @@
 | 模型出站 | contextbase 产品标识 | User-Agent、平台应用标识、批任务名称、模型工具命名空间同步更新 |
 | OTel / Prometheus / Grafana | contextbase.*、contextbase_*、contextbase-api / contextbase-worker | 默认 service.name 同步；显式部署 slug 的现有覆盖行为不变 |
 | 安装器及发行产物 | install-contextbase.sh、contextbase-* | 只构建 CLI 和三类插件客户端；不新增服务端发行 |
-| SDK 包名和 import | 原 Hindsight 名称 | SDK 对外产品元数据同步；包名、导入路径、业务方法签名不改 |
+| 底层 SDK 包名和 import | 原 Hindsight 名称 | SDK 对外产品元数据同步；包名、导入路径、业务方法签名不改 |
 | 业务 API 路径、bank ID、客户内容 | 原值 | 不进行字符串过滤或数据改写 |
 | 内部日志、异常堆栈、许可证、历史记录 | 原内容 | 不隐藏诊断或改写归属、历史事实 |
 
@@ -26,3 +26,5 @@
 `brand/definition.json` 和 `brand/identity-contract.json` 共同记录本次公开身份；生成器继续拒绝未经契约同步的标识漂移。运行 `bash scripts/sync-product-brand.sh` 更新枚举的生成目标，使用 `--check` 检查漂移；OpenAPI 元数据与 SDK 配置默认值须同步。
 
 本目录旧 RESULT / VALIDATION / GOALS 文档记录此前展示名整合的历史验收，不代表本次公开身份切换已通过那些测试。当前变更的验证结果见对应 PR。
+
+本轮修复扩展到独立集成：集成自身的包名、模块入口、插件 ID、工具和配置使用 ContextBase 标识；底层 SDK 依赖仍使用真实发布坐标。远程服务地址由部署者配置，不默认连接原厂云服务。独立集成的新包名尚未公开发布，应从本仓库构建安装；本轮没有扩展三类客户端的发行流水线。控制台公开配置使用 `CONTEXTBASE_CP_*`，优先于内部部署键。

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Retain API examples for Hindsight CLI
+# Retain API examples for ContextBase CLI
 # Run: bash examples/api/retain.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SAMPLE_FILE="$SCRIPT_DIR/sample.pdf"
 
@@ -77,7 +77,7 @@ contextbase memory retain-files my-bank "$SCRIPT_DIR/" --async
 
 # [docs:retain-files-curl]
 # Via HTTP API (multipart/form-data)
-curl -X POST "${HINDSIGHT_URL}/v1/default/banks/my-bank/files/retain" \
+curl -X POST "${CONTEXTBASE_URL}/v1/default/banks/my-bank/files/retain" \
     -F "files=@${SAMPLE_FILE};type=application/octet-stream" \
     -F "request={\"files_metadata\": [{\"context\": \"quarterly report\"}]}"
 # [/docs:retain-files-curl]
@@ -86,6 +86,6 @@ curl -X POST "${HINDSIGHT_URL}/v1/default/banks/my-bank/files/retain" \
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/my-bank" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/my-bank" > /dev/null
 
 echo "retain.sh: All examples passed"

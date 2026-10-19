@@ -33,13 +33,13 @@ class TestLoadConfig:
         """Isolate from real user config and env vars."""
         monkeypatch.setenv("HOME", str(tmp_path))
         for k in list(os.environ):
-            if k.startswith("HINDSIGHT_"):
+            if k.startswith("CONTEXTBASE_"):
                 monkeypatch.delenv(k, raising=False)
 
     def test_defaults_include_cloud_url(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
         cfg = load_config()
-        assert cfg["hindsightApiUrl"] == "https://api.hindsight.vectorize.io"
+        assert cfg["contextbaseApiUrl"] == ""
 
     def test_defaults_applied_when_no_settings_file(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
@@ -61,33 +61,33 @@ class TestLoadConfig:
     def test_env_var_overrides_settings_json(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
         (tmp_path / "settings.json").write_text(json.dumps({"recallBudget": "low"}))
-        monkeypatch.setenv("HINDSIGHT_RECALL_BUDGET", "high")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_BUDGET", "high")
         cfg = load_config()
         assert cfg["recallBudget"] == "high"
 
     def test_bool_env_var_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_AUTO_RECALL", "false")
+        monkeypatch.setenv("CONTEXTBASE_AUTO_RECALL", "false")
         cfg = load_config()
         assert cfg["autoRecall"] is False
 
     def test_api_url_env_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://localhost:8888")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://localhost:8888")
         cfg = load_config()
-        assert cfg["hindsightApiUrl"] == "http://localhost:8888"
+        assert cfg["contextbaseApiUrl"] == "http://localhost:8888"
 
     def test_api_token_env_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_TOKEN", "hsk_test123")
+        monkeypatch.setenv("CONTEXTBASE_API_TOKEN", "hsk_test123")
         cfg = load_config()
-        assert cfg["hindsightApiToken"] == "hsk_test123"
+        assert cfg["contextbaseApiToken"] == "hsk_test123"
 
     def test_user_config_overrides_plugin_settings(self, tmp_path, monkeypatch):
         plugin_root = tmp_path / "plugin"
         plugin_root.mkdir()
         (plugin_root / "settings.json").write_text(json.dumps({"recallBudget": "low"}))
-        user_cfg = tmp_path / ".hindsight" / "omo.json"
+        user_cfg = tmp_path / ".contextbase" / "omo.json"
         user_cfg.parent.mkdir()
         user_cfg.write_text(json.dumps({"recallBudget": "high"}))
 
@@ -98,12 +98,12 @@ class TestLoadConfig:
     def test_env_var_wins_over_user_config(self, tmp_path, monkeypatch):
         plugin_root = tmp_path / "plugin"
         plugin_root.mkdir()
-        user_cfg_dir = tmp_path / ".hindsight"
+        user_cfg_dir = tmp_path / ".contextbase"
         user_cfg_dir.mkdir()
         (user_cfg_dir / "omo.json").write_text(json.dumps({"recallBudget": "low"}))
 
         monkeypatch.setenv("PLUGIN_ROOT", str(plugin_root))
-        monkeypatch.setenv("HINDSIGHT_RECALL_BUDGET", "high")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_BUDGET", "high")
         cfg = load_config()
         assert cfg["recallBudget"] == "high"
 

@@ -1,20 +1,20 @@
-"""End-to-end tests for hindsight-litellm integration.
+"""End-to-end tests for contextbase-litellm integration.
 
 Exercises the full retain → recall/reflect roundtrip against a live
-Hindsight instance and a live LLM provider. By default these tests are
-skipped; set ``OPENAI_API_KEY`` and point ``HINDSIGHT_API_URL`` at a
-reachable Hindsight server to enable them.
+ContextBase instance and a live LLM provider. By default these tests are
+skipped; set ``OPENAI_API_KEY`` and point ``CONTEXTBASE_API_URL`` at a
+reachable ContextBase server to enable them.
 
 Run with::
 
     uv run pytest tests/test_e2e.py -v -s
 
 Environment variables:
-    HINDSIGHT_API_URL     URL of a reachable Hindsight server
+    CONTEXTBASE_API_URL     URL of a reachable ContextBase server
                           (default: http://localhost:8888)
-    HINDSIGHT_API_KEY     API key for the Hindsight server (optional)
+    CONTEXTBASE_API_KEY     API key for the ContextBase server (optional)
     OPENAI_API_KEY        OpenAI API key for the LLM provider
-    HINDSIGHT_LITELLM_E2E_MODEL
+    CONTEXTBASE_LITELLM_E2E_MODEL
                           LLM model name to use (default: gpt-4o-mini)
 """
 
@@ -28,16 +28,16 @@ import uuid
 import pytest
 import requests
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-LLM_MODEL = os.getenv("HINDSIGHT_LITELLM_E2E_MODEL", "gpt-4o-mini")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+LLM_MODEL = os.getenv("CONTEXTBASE_LITELLM_E2E_MODEL", "gpt-4o-mini")
 
 # Sleep time between retain and recall to allow fact extraction to complete.
 RETAIN_SLEEP = 5
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        r = requests.get(f"{HINDSIGHT_API_URL}/health", timeout=3)
+        r = requests.get(f"{CONTEXTBASE_API_URL}/health", timeout=3)
         return r.status_code == 200
     except Exception:
         return False
@@ -47,21 +47,21 @@ def _openai_key_available() -> bool:
     return bool(os.getenv("OPENAI_API_KEY"))
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 requires_openai = pytest.mark.skipif(
     not _openai_key_available(),
     reason="OPENAI_API_KEY not set",
 )
 requires_all = pytest.mark.skipif(
-    not (_hindsight_available() and _openai_key_available()),
-    reason=f"Requires reachable Hindsight at {HINDSIGHT_API_URL} and OPENAI_API_KEY",
+    not (_contextbase_available() and _openai_key_available()),
+    reason=f"Requires reachable ContextBase at {CONTEXTBASE_API_URL} and OPENAI_API_KEY",
 )
 
 # Every test in this file is a real-LLM / real-service test: it drives a live
-# Hindsight server (server-side fact extraction) and/or makes real provider
+# ContextBase server (server-side fact extraction) and/or makes real provider
 # calls (OpenAI completions, etc.). Mark the whole module so it forms the
 # "real LLM" bucket — excluded from the deterministic PR-CI bucket via
 # `-m "not requires_real_llm"` and run on its own via `-m requires_real_llm`.
@@ -79,7 +79,7 @@ def bank_id():
 def client():
     from hindsight_client import Hindsight
 
-    c = Hindsight(base_url=HINDSIGHT_API_URL)
+    c = Hindsight(base_url=CONTEXTBASE_API_URL)
     try:
         yield c
     finally:
@@ -95,15 +95,15 @@ def client():
 def setup_and_teardown(request, bank_id, client):
     """Create bank before each test, clean up after.
 
-    Only runs the bank lifecycle when Hindsight is actually reachable; if
-    the test was already skipped via ``requires_hindsight`` we still get
+    Only runs the bank lifecycle when ContextBase is actually reachable; if
+    the test was already skipped via ``requires_contextbase`` we still get
     here for fixture resolution, so guard the network calls.
     """
-    if not _hindsight_available():
+    if not _contextbase_available():
         yield
         return
 
-    from hindsight_litellm import cleanup
+    from contextbase_litellm import cleanup
 
     client.create_bank(bank_id, name=f"LiteLLM E2E {bank_id}")
     yield
@@ -126,7 +126,7 @@ def _recall_until_contains(query, needles, *, attempts=12, delay=1.0):
     Returns the (lowercased) joined result text — empty/no-match on timeout, so
     the caller's assertion still fails with useful context.
     """
-    from hindsight_litellm import recall
+    from contextbase_litellm import recall
 
     joined = ""
     for _ in range(attempts):
@@ -141,14 +141,14 @@ def _recall_until_contains(query, needles, *, attempts=12, delay=1.0):
 # ── Direct Memory APIs ────────────────────────────────────────────
 
 
-@requires_hindsight
+@requires_contextbase
 class TestDirectAPIs:
     """retain(), recall(), reflect() direct APIs without LLM calls."""
 
     def test_retain_and_recall_roundtrip(self, bank_id):
-        from hindsight_litellm import configure, recall, retain, set_defaults
+        from contextbase_litellm import configure, recall, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("The user's favorite programming language is Rust", sync=True)
@@ -161,18 +161,18 @@ class TestDirectAPIs:
         assert "rust" in texts, f"Expected 'rust' in recall, got: {texts}"
 
     def test_recall_empty_bank(self, bank_id):
-        from hindsight_litellm import configure, recall, set_defaults
+        from contextbase_litellm import configure, recall, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         results = recall("anything")
         assert len(results) == 0, "Empty bank should return no results"
 
     def test_retain_and_reflect_roundtrip(self, bank_id):
-        from hindsight_litellm import configure, reflect, retain, set_defaults
+        from contextbase_litellm import configure, reflect, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("The user loves hiking in the mountains every weekend", sync=True)
@@ -184,9 +184,9 @@ class TestDirectAPIs:
         assert len(result.text) > 20, f"Reflect response too short: {result.text}"
 
     def test_recall_with_tags(self, bank_id):
-        from hindsight_litellm import configure, recall, retain, set_defaults
+        from contextbase_litellm import configure, recall, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("User prefers dark mode", tags=["user:alice"], sync=True)
@@ -203,9 +203,9 @@ class TestDirectAPIs:
         assert "dark" in texts, f"Expected 'dark' for alice, got: {texts}"
 
     def test_recall_include_entities(self, bank_id):
-        from hindsight_litellm import configure, recall, retain, set_defaults
+        from contextbase_litellm import configure, recall, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("Alice works with Bob on the Phoenix project at TechCorp", sync=True)
@@ -215,9 +215,9 @@ class TestDirectAPIs:
         assert results, "Expected results with entities enabled"
 
     def test_reflect_with_tags(self, bank_id):
-        from hindsight_litellm import configure, reflect, retain, set_defaults
+        from contextbase_litellm import configure, reflect, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("Session A: User discussed Python best practices", tags=["session:a"], sync=True)
@@ -231,9 +231,9 @@ class TestDirectAPIs:
         assert result.text, "Expected reflect response with tag filter"
 
     def test_async_retain_and_recall(self, bank_id):
-        from hindsight_litellm import arecall, aretain, configure, set_defaults
+        from contextbase_litellm import arecall, aretain, configure, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         async def run():
@@ -255,20 +255,20 @@ class TestEnableMonkeypatch:
     """enable() monkeypatch path: auto inject + auto store."""
 
     def test_completion_stores_and_injects(self, bank_id):
-        import hindsight_litellm
-        from hindsight_litellm import configure, disable, enable, recall, set_defaults
+        import contextbase_litellm
+        from contextbase_litellm import configure, disable, enable, recall, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL, sync_storage=True)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL, sync_storage=True)
         set_defaults(bank_id=bank_id)
         enable()
 
-        hindsight_litellm.completion(
+        contextbase_litellm.completion(
             model=LLM_MODEL,
             messages=[{"role": "user", "content": "My name is Alice and I love Python."}],
         )
         time.sleep(RETAIN_SLEEP)
 
-        response = hindsight_litellm.completion(
+        response = contextbase_litellm.completion(
             model=LLM_MODEL,
             messages=[{"role": "user", "content": "What do you know about me?"}],
         )
@@ -280,17 +280,17 @@ class TestEnableMonkeypatch:
         assert "alice" in texts or "python" in texts, f"Expected stored facts, got: {texts}"
 
     def test_completion_injection_uses_recalled_memories(self, bank_id):
-        import hindsight_litellm
-        from hindsight_litellm import configure, enable, retain, set_defaults
+        import contextbase_litellm
+        from contextbase_litellm import configure, enable, retain, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
 
         retain("The user's favorite color is indigo", sync=True)
         time.sleep(RETAIN_SLEEP)
 
         enable()
-        response = hindsight_litellm.completion(
+        response = contextbase_litellm.completion(
             model=LLM_MODEL,
             messages=[{"role": "user", "content": "What is my favorite color?"}],
         )
@@ -298,16 +298,16 @@ class TestEnableMonkeypatch:
         assert "indigo" in content, f"Expected 'indigo' injected into response, got: {content}"
 
     def test_per_call_bank_id_override(self, bank_id):
-        import hindsight_litellm
+        import contextbase_litellm
         from hindsight_client import Hindsight
-        from hindsight_litellm import configure, enable, retain, set_defaults
+        from contextbase_litellm import configure, enable, retain, set_defaults
 
         other_bank = f"other-{uuid.uuid4().hex[:8]}"
-        client = Hindsight(base_url=HINDSIGHT_API_URL)
+        client = Hindsight(base_url=CONTEXTBASE_API_URL)
         client.create_bank(other_bank, name="Other bank")
 
         try:
-            configure(hindsight_api_url=HINDSIGHT_API_URL)
+            configure(contextbase_api_url=CONTEXTBASE_API_URL)
             set_defaults(bank_id=bank_id)
 
             retain("Main bank fact: user likes cats", bank_id=bank_id, sync=True)
@@ -315,10 +315,10 @@ class TestEnableMonkeypatch:
             time.sleep(RETAIN_SLEEP)
 
             enable()
-            response = hindsight_litellm.completion(
+            response = contextbase_litellm.completion(
                 model=LLM_MODEL,
                 messages=[{"role": "user", "content": "What animal does the user like?"}],
-                hindsight_bank_id=other_bank,
+                contextbase_bank_id=other_bank,
             )
             content = response.choices[0].message.content.lower()
             assert "dog" in content, f"Expected 'dogs' from other bank, got: {content}"
@@ -335,14 +335,14 @@ class TestEnableMonkeypatch:
             loop.close()
 
     def test_streaming_stores_after_consumption(self, bank_id):
-        import hindsight_litellm
-        from hindsight_litellm import configure, disable, enable, recall, set_defaults
+        import contextbase_litellm
+        from contextbase_litellm import configure, disable, enable, recall, set_defaults
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL, sync_storage=True)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL, sync_storage=True)
         set_defaults(bank_id=bank_id)
         enable()
 
-        stream = hindsight_litellm.completion(
+        stream = contextbase_litellm.completion(
             model=LLM_MODEL,
             messages=[{"role": "user", "content": "My hobby is chess and I play every Sunday."}],
             stream=True,
@@ -363,45 +363,45 @@ class TestEnableMonkeypatch:
         assert "chess" in texts, f"Expected 'chess' in retained facts, got: {texts}"
 
 
-# ── hindsight_memory() Context Manager ───────────────────────────
+# ── contextbase_memory() Context Manager ───────────────────────────
 
 
 @requires_all
 class TestContextManager:
-    """hindsight_memory() context manager."""
+    """contextbase_memory() context manager."""
 
     def test_basic_store_and_retrieve(self, bank_id):
-        import hindsight_litellm
-        from hindsight_litellm import (
+        import contextbase_litellm
+        from contextbase_litellm import (
             configure,
-            hindsight_memory,
+            contextbase_memory,
             is_enabled,
             set_defaults,
         )
 
-        with hindsight_memory(
-            hindsight_api_url=HINDSIGHT_API_URL,
+        with contextbase_memory(
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             store_conversations=True,
             inject_memories=False,
         ):
-            hindsight_litellm.completion(
+            contextbase_litellm.completion(
                 model=LLM_MODEL,
                 messages=[{"role": "user", "content": "I prefer TypeScript over JavaScript."}],
             )
 
         assert not is_enabled(), "Should be disabled after context exit"
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(bank_id=bank_id)
         texts = _recall_until_contains("programming language preference", ["typescript", "javascript"])
         assert "typescript" in texts or "javascript" in texts, f"Expected stored fact, got: {texts}"
 
     def test_context_manager_with_session_id(self, bank_id):
-        from hindsight_litellm import get_defaults, hindsight_memory
+        from contextbase_litellm import get_defaults, contextbase_memory
 
-        with hindsight_memory(
-            hindsight_api_url=HINDSIGHT_API_URL,
+        with contextbase_memory(
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             session_id="conv-abc",
             inject_memories=False,
@@ -410,25 +410,25 @@ class TestContextManager:
             assert d.session_id == "conv-abc"
 
     def test_context_manager_with_use_reflect(self, bank_id):
-        import hindsight_litellm
-        from hindsight_litellm import hindsight_memory, retain
+        import contextbase_litellm
+        from contextbase_litellm import contextbase_memory, retain
 
         retain(
             "User is training for a marathon",
             bank_id=bank_id,
-            hindsight_api_url=HINDSIGHT_API_URL,
+            contextbase_api_url=CONTEXTBASE_API_URL,
             sync=True,
         )
         time.sleep(RETAIN_SLEEP)
 
-        with hindsight_memory(
-            hindsight_api_url=HINDSIGHT_API_URL,
+        with contextbase_memory(
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             use_reflect=True,
             inject_memories=True,
             store_conversations=False,
         ):
-            response = hindsight_litellm.completion(
+            response = contextbase_litellm.completion(
                 model=LLM_MODEL,
                 messages=[{"role": "user", "content": "What fitness goals do I have?"}],
             )
@@ -446,12 +446,12 @@ class TestWrapOpenAI:
     """wrap_openai() native client wrapper."""
 
     def test_stores_and_injects(self, bank_id):
-        from hindsight_litellm import configure, recall, set_defaults, wrap_openai
+        from contextbase_litellm import configure, recall, set_defaults, wrap_openai
         from openai import OpenAI
 
         client = wrap_openai(
             OpenAI(),
-            hindsight_api_url=HINDSIGHT_API_URL,
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             store_conversations=True,
             inject_memories=True,
@@ -473,19 +473,19 @@ class TestWrapOpenAI:
                 f"Expected Nebula/Go injected via wrap_openai, got: {content}"
             )
             # Quiet ruff F841 for the imports above used only for type-side-effects.
-            configure(hindsight_api_url=HINDSIGHT_API_URL)
+            configure(contextbase_api_url=CONTEXTBASE_API_URL)
             set_defaults(bank_id=bank_id)
             _ = recall
         finally:
             client.close()
 
     def test_per_call_override(self, bank_id):
-        from hindsight_litellm import wrap_openai
+        from contextbase_litellm import wrap_openai
         from openai import OpenAI
 
         wrapped = wrap_openai(
             OpenAI(),
-            hindsight_api_url=HINDSIGHT_API_URL,
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
         )
 
@@ -493,20 +493,20 @@ class TestWrapOpenAI:
             response = wrapped.chat.completions.create(
                 model=LLM_MODEL,
                 messages=[{"role": "user", "content": "Hello"}],
-                hindsight_inject_memories=False,
-                hindsight_store_conversations=False,
+                contextbase_inject_memories=False,
+                contextbase_store_conversations=False,
             )
             assert response.choices[0].message.content, "Expected response"
         finally:
             wrapped.close()
 
     def test_streaming(self, bank_id):
-        from hindsight_litellm import configure, recall, set_defaults, wrap_openai
+        from contextbase_litellm import configure, recall, set_defaults, wrap_openai
         from openai import OpenAI
 
         wrapped = wrap_openai(
             OpenAI(),
-            hindsight_api_url=HINDSIGHT_API_URL,
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             store_conversations=True,
             inject_memories=False,
@@ -528,7 +528,7 @@ class TestWrapOpenAI:
             assert content, "Expected streamed content"
             time.sleep(RETAIN_SLEEP)
 
-            configure(hindsight_api_url=HINDSIGHT_API_URL)
+            configure(contextbase_api_url=CONTEXTBASE_API_URL)
             set_defaults(bank_id=bank_id)
             results = recall("sport")
             texts = " ".join(r.text.lower() for r in results)
@@ -540,22 +540,22 @@ class TestWrapOpenAI:
 # ── Design Fix Verification ───────────────────────────────────────
 
 
-@requires_hindsight
+@requires_contextbase
 class TestDesignFixes:
     """E2E tests verifying PR #1711 design fixes behave as a user would expect."""
 
     def test_configure_without_bank_id_is_not_configured(self, client):
-        from hindsight_litellm import cleanup, configure, is_configured, is_enabled
+        from contextbase_litellm import cleanup, configure, is_configured, is_enabled
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         assert not is_enabled(), "Should not be enabled after configure() with no bank_id"
         assert is_configured() is False, "is_configured() should be False without explicit bank_id"
         cleanup()
 
     def test_enable_requires_bank_id(self, client):
-        from hindsight_litellm import cleanup, configure, enable
+        from contextbase_litellm import cleanup, configure, enable
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         with pytest.raises(RuntimeError, match="bank_id"):
             enable()
         cleanup()
@@ -563,9 +563,9 @@ class TestDesignFixes:
     @requires_openai
     def test_injection_mode_prepend_user_injects_into_user_message(self, bank_id):
         """PREPEND_USER mode should put memories into the user message, not a system message."""
-        import hindsight_litellm
+        import contextbase_litellm
         import litellm as _litellm
-        from hindsight_litellm import (
+        from contextbase_litellm import (
             cleanup,
             configure,
             disable,
@@ -574,7 +574,7 @@ class TestDesignFixes:
             set_defaults,
         )
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
         set_defaults(
             bank_id=bank_id,
             injection_mode="prepend_user",
@@ -596,7 +596,7 @@ class TestDesignFixes:
         _litellm.completion = spy_completion
         try:
             try:
-                hindsight_litellm.completion(
+                contextbase_litellm.completion(
                     model=LLM_MODEL,
                     messages=[{"role": "user", "content": "What language do I prefer?"}],
                 )
@@ -620,18 +620,18 @@ class TestDesignFixes:
         )
 
     def test_context_manager_full_restore(self, bank_id):
-        """hindsight_memory() must restore ALL settings (tags, recall_tags, sync_storage, etc.)."""
-        from hindsight_litellm import (
+        """contextbase_memory() must restore ALL settings (tags, recall_tags, sync_storage, etc.)."""
+        from contextbase_litellm import (
             cleanup,
             configure,
             get_config,
             get_defaults,
-            hindsight_memory,
+            contextbase_memory,
             set_defaults,
         )
 
         configure(
-            hindsight_api_url=HINDSIGHT_API_URL,
+            contextbase_api_url=CONTEXTBASE_API_URL,
             sync_storage=True,
         )
         set_defaults(
@@ -643,8 +643,8 @@ class TestDesignFixes:
             reflect_context="Be concise.",
         )
 
-        with hindsight_memory(
-            hindsight_api_url=HINDSIGHT_API_URL,
+        with contextbase_memory(
+            contextbase_api_url=CONTEXTBASE_API_URL,
             bank_id=bank_id,
             tags=["env:test"],
             recall_tags=["env:test"],
@@ -676,17 +676,17 @@ class TestDesignFixes:
 
     def test_invalid_budget_raises_before_any_api_call(self, client):
         """configure(budget='extreme') raises ValueError immediately, without calling API."""
-        from hindsight_litellm import cleanup, configure
+        from contextbase_litellm import cleanup, configure
 
         with pytest.raises(ValueError, match="budget"):
-            configure(hindsight_api_url=HINDSIGHT_API_URL, budget="extreme")
+            configure(contextbase_api_url=CONTEXTBASE_API_URL, budget="extreme")
         cleanup()
 
-    def test_hindsight_error_not_value_error_on_missing_bank_id(self, bank_id):
+    def test_contextbase_error_not_value_error_on_missing_bank_id(self, bank_id):
         """Missing bank_id raises HindsightError (not ValueError) from _inject_memories."""
-        from hindsight_litellm import HindsightError, _inject_memories, cleanup, configure
+        from contextbase_litellm import HindsightError, _inject_memories, cleanup, configure
 
-        configure(hindsight_api_url=HINDSIGHT_API_URL)
+        configure(contextbase_api_url=CONTEXTBASE_API_URL)
 
         with pytest.raises(HindsightError):
             _inject_memories([{"role": "user", "content": "Hello"}])

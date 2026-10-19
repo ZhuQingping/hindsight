@@ -118,10 +118,10 @@ describe("json-index", () => {
   });
 
   describe("defaultIndexPath", () => {
-    it("lives under ~/.hindsight/obsidian and encodes vault + bank + fingerprint", () => {
+    it("lives under ~/.contextbase/obsidian and encodes vault + bank + fingerprint", () => {
       const p = defaultIndexPath(withField({ vaultName: "My Vault/2026", bankId: "bank a" }));
       expect(p).toMatch(
-        /[/\\]\.hindsight[/\\]obsidian[/\\]My_Vault_2026-bank_a-[0-9a-f]{12}\.json$/
+        /[/\\]\.contextbase[/\\]obsidian[/\\]My_Vault_2026-bank_a-[0-9a-f]{12}\.json$/
       );
     });
 

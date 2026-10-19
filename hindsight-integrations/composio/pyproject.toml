@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-composio"
+name = "contextbase-composio"
 version = "0.1.1"
-description = "Composio integration for Hindsight - persistent memory custom tools for AI agents"
+description = "Composio integration for ContextBase - persistent memory custom tools for AI agents"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
@@ -12,7 +12,7 @@ keywords = [
     "memory",
     "composio",
     "agents",
-    "hindsight",
+    "contextbase",
     "tools",
 ]
 classifiers = [
@@ -33,21 +33,21 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
-Documentation = "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/composio"
-Repository = "https://github.com/vectorize-io/hindsight"
+Homepage = "https://github.com/RSIXDB/hindsight"
+Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/composio"
+Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_composio"]
+packages = ["contextbase_composio"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "requires_real_llm: end-to-end test that needs live external services (a running Hindsight server and/or real LLM provider keys). Excluded from the deterministic PR-CI bucket via -m 'not requires_real_llm'; run on its own via -m requires_real_llm.",
+    "requires_real_llm: end-to-end test that needs live external services (a running ContextBase server and/or real LLM provider keys). Excluded from the deterministic PR-CI bucket via -m 'not requires_real_llm'; run on its own via -m requires_real_llm.",
 ]
 
 [dependency-groups]

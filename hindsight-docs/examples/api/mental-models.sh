@@ -1,10 +1,10 @@
 #!/bin/bash
-# Mental Models API examples for Hindsight CLI
+# Mental Models API examples for ContextBase CLI
 # Run: bash examples/api/mental-models.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="mental-models-demo-bank"
 
 # =============================================================================
@@ -79,7 +79,7 @@ if [ -n "$MENTAL_MODEL_ID" ]; then
 
   # [docs:clear-mental-model]
   # Clear a mental model's content, then refresh for a full re-synthesis
-  curl -s -X POST "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/mental-models/${MENTAL_MODEL_ID}/clear"
+  curl -s -X POST "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}/mental-models/${MENTAL_MODEL_ID}/clear"
 
   # Trigger a fresh full rebuild
   contextbase mental-model refresh "$BANK_ID" "$MENTAL_MODEL_ID"
@@ -99,13 +99,13 @@ if [ -n "$MENTAL_MODEL_ID" ]; then
   # [docs:mental-model-detail]
   # The CLI has no --detail flag; use the HTTP API
   # List: metadata only, the default (smallest response)
-  curl "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/mental-models"
+  curl "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/mental-models"
 
   # List with content but without provenance chains (opt-in)
-  curl "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/mental-models?detail=content"
+  curl "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/mental-models?detail=content"
 
   # Get one model — full detail is the default here
-  curl "$HINDSIGHT_URL/v1/default/banks/$BANK_ID/mental-models/$MENTAL_MODEL_ID"
+  curl "$CONTEXTBASE_URL/v1/default/banks/$BANK_ID/mental-models/$MENTAL_MODEL_ID"
   # [/docs:mental-model-detail]
 
   # [docs:dry-run-refresh]
@@ -129,6 +129,6 @@ fi
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "mental-models.sh: All examples passed"

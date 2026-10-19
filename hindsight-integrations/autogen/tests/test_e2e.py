@@ -1,9 +1,9 @@
-"""End-to-end tests for the Hindsight-AutoGen integration.
+"""End-to-end tests for the ContextBase-AutoGen integration.
 
-Exercises the retain/recall/reflect tools against a live Hindsight server. The
-tools talk to Hindsight directly (the server's LLM does fact extraction), so
-only a running Hindsight instance is required — no provider key. By default
-these tests are skipped; point ``HINDSIGHT_API_URL`` at a reachable server to
+Exercises the retain/recall/reflect tools against a live ContextBase server. The
+tools talk to ContextBase directly (the server's LLM does fact extraction), so
+only a running ContextBase instance is required — no provider key. By default
+these tests are skipped; point ``CONTEXTBASE_API_URL`` at a reachable server to
 enable them.
 
 The whole module is the real-LLM bucket (``requires_real_llm``).
@@ -21,26 +21,26 @@ import pytest_asyncio
 from autogen_core import CancellationToken
 from hindsight_client import Hindsight
 
-from hindsight_autogen import create_hindsight_tools
+from contextbase_autogen import create_contextbase_tools
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 _NO_MEMORIES = "No relevant memories found."
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        with urllib.request.urlopen(f"{HINDSIGHT_API_URL}/health", timeout=3) as r:
+        with urllib.request.urlopen(f"{CONTEXTBASE_API_URL}/health", timeout=3) as r:
             return r.status == 200
     except Exception:
         return False
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 
-pytestmark = [requires_hindsight, pytest.mark.requires_real_llm]
+pytestmark = [requires_contextbase, pytest.mark.requires_real_llm]
 
 
 def _tool(tools, name):
@@ -65,7 +65,7 @@ async def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest_asyncio.fixture
 async def live():
-    client = Hindsight(base_url=HINDSIGHT_API_URL)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL)
     bank_id = f"autogen-e2e-{uuid.uuid4().hex[:8]}"
     await client.acreate_bank(bank_id, name=f"AutoGen E2E {bank_id}")
     try:
@@ -82,8 +82,8 @@ class TestE2ETools:
     @pytest.mark.asyncio
     async def test_retain_and_recall_roundtrip(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
-        retain, recall = _tool(tools, "hindsight_retain"), _tool(tools, "hindsight_recall")
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
+        retain, recall = _tool(tools, "contextbase_retain"), _tool(tools, "contextbase_recall")
 
         result = await _run(retain, {"content": "The team uses PostgreSQL 16 and deploys to us-east-1."})
         assert result == "Memory stored successfully."
@@ -97,10 +97,10 @@ class TestE2ETools:
     @pytest.mark.asyncio
     async def test_reflect_synthesizes_from_memory(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
-        retain = _tool(tools, "hindsight_retain")
-        recall = _tool(tools, "hindsight_recall")
-        reflect = _tool(tools, "hindsight_reflect")
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
+        retain = _tool(tools, "contextbase_retain")
+        recall = _tool(tools, "contextbase_recall")
+        reflect = _tool(tools, "contextbase_reflect")
 
         await _run(retain, {"content": "The team uses PostgreSQL 16 and deploys to us-east-1."})
         await _recall_until_nonempty(recall, "What technologies does the team use?")
@@ -115,6 +115,6 @@ class TestE2ETools:
     @pytest.mark.asyncio
     async def test_recall_empty_bank(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
-        result = await _run(_tool(tools, "hindsight_recall"), {"query": "anything at all"})
+        tools = create_contextbase_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
+        result = await _run(_tool(tools, "contextbase_recall"), {"query": "anything at all"})
         assert result == _NO_MEMORIES

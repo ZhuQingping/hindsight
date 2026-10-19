@@ -1,12 +1,12 @@
-"""Unit tests for Hindsight-Superagent configuration."""
+"""Unit tests for ContextBase-Superagent configuration."""
 
 from __future__ import annotations
 
 import os
 from unittest.mock import patch
 
-from hindsight_superagent import (
-    HindsightSuperagentConfig,
+from contextbase_superagent import (
+    ContextBaseSuperagentConfig,
     configure,
     get_config,
     reset_config,
@@ -24,28 +24,28 @@ class TestConfigureLifecycle:
         assert get_config() is None
 
     def test_configure_returns_config(self) -> None:
-        config = configure(hindsight_api_url="http://localhost:8888")
-        assert isinstance(config, HindsightSuperagentConfig)
-        assert config.hindsight_api_url == "http://localhost:8888"
+        config = configure(contextbase_api_url="http://localhost:8888")
+        assert isinstance(config, ContextBaseSuperagentConfig)
+        assert config.contextbase_api_url == "http://localhost:8888"
 
     def test_get_config_returns_configured_value(self) -> None:
-        configure(hindsight_api_url="http://localhost:8888")
+        configure(contextbase_api_url="http://localhost:8888")
         config = get_config()
         assert config is not None
-        assert config.hindsight_api_url == "http://localhost:8888"
+        assert config.contextbase_api_url == "http://localhost:8888"
 
     def test_reset_config_clears_state(self) -> None:
-        configure(hindsight_api_url="http://localhost:8888")
+        configure(contextbase_api_url="http://localhost:8888")
         assert get_config() is not None
         reset_config()
         assert get_config() is None
 
     def test_configure_overwrites_previous(self) -> None:
-        configure(hindsight_api_url="http://first:8888")
-        configure(hindsight_api_url="http://second:8888")
+        configure(contextbase_api_url="http://first:8888")
+        configure(contextbase_api_url="http://second:8888")
         config = get_config()
         assert config is not None
-        assert config.hindsight_api_url == "http://second:8888"
+        assert config.contextbase_api_url == "http://second:8888"
 
 
 class TestConfigureDefaults:
@@ -116,7 +116,7 @@ class TestConfigureCustomValues:
 
     def test_all_params_set(self) -> None:
         config = configure(
-            hindsight_api_url="http://custom:9999",
+            contextbase_api_url="http://custom:9999",
             api_key="h-key",
             superagent_api_key="sa-key",
             budget="high",
@@ -136,7 +136,7 @@ class TestConfigureCustomValues:
             fallback_timeout=10.0,
             verbose=True,
         )
-        assert config.hindsight_api_url == "http://custom:9999"
+        assert config.contextbase_api_url == "http://custom:9999"
         assert config.api_key == "h-key"
         assert config.superagent_api_key == "sa-key"
         assert config.budget == "high"
@@ -165,7 +165,7 @@ class TestConfigureEnvVars:
         reset_config()
 
     def test_api_key_from_env(self) -> None:
-        with patch.dict(os.environ, {"HINDSIGHT_API_KEY": "env-h-key"}):
+        with patch.dict(os.environ, {"CONTEXTBASE_API_KEY": "env-h-key"}):
             config = configure()
             assert config.api_key == "env-h-key"
 
@@ -175,7 +175,7 @@ class TestConfigureEnvVars:
             assert config.superagent_api_key == "env-sa-key"
 
     def test_explicit_key_overrides_env(self) -> None:
-        with patch.dict(os.environ, {"HINDSIGHT_API_KEY": "env-key"}):
+        with patch.dict(os.environ, {"CONTEXTBASE_API_KEY": "env-key"}):
             config = configure(api_key="explicit-key")
             assert config.api_key == "explicit-key"
 

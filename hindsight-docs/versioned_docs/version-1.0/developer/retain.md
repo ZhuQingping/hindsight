@@ -5,9 +5,9 @@ sidebar_position: 2
 import Figure from '@site/src/components/Figure';
 import retainFigure from '@site/figures/retain.json';
 
-# Retain: How Hindsight Stores Memories
+# Retain: How ContextBase Stores Memories
 
-When you call `retain()`, Hindsight transforms conversations and documents into structured, searchable memories that preserve meaning and context.
+When you call `retain()`, ContextBase transforms conversations and documents into structured, searchable memories that preserve meaning and context.
 
 ## What Retain Does
 
@@ -17,11 +17,11 @@ When you call `retain()`, Hindsight transforms conversations and documents into 
 
 ## Rich Fact Extraction
 
-Hindsight doesn't just store what was said — it captures **why**, **how**, and **what it means**.
+ContextBase doesn't just store what was said — it captures **why**, **how**, and **what it means**.
 
 ### What Gets Captured
 
-When you retain "Alice joined Google last spring and was thrilled about the research opportunities", Hindsight extracts:
+When you retain "Alice joined Google last spring and was thrilled about the research opportunities", ContextBase extracts:
 
 **The core facts:**
 - Alice joined Google
@@ -43,7 +43,7 @@ Traditional systems fragment information:
 - "Alice wanted something unique"
 - "They chose Beach Beats"
 
-Hindsight preserves the full narrative:
+ContextBase preserves the full narrative:
 - "Alice and Bob discussed naming their summer party playlist. Bob suggested 'Summer Vibes' because it's catchy, but Alice wanted something unique. They ultimately decided on 'Beach Beats' for its playful tone."
 
 This means search results include the full context, not disconnected fragments.
@@ -72,7 +72,7 @@ The split is decided by **who is speaking**, not by grammar. A first-person stat
 
 ## Entity Recognition
 
-Hindsight automatically identifies and tracks **entities** — the people, organizations, and concepts that matter.
+ContextBase automatically identifies and tracks **entities** — the people, organizations, and concepts that matter.
 
 ### What Gets Recognized
 
@@ -94,7 +94,7 @@ Resolution is a judgement call, so it can go the other way too: on a bank with a
 
 ### Context-Aware Disambiguation
 
-If "Alice" appears with "Google" and "Stanford" multiple times, a new "Alice" mentioning those is likely the same person. Hindsight uses co-occurrence patterns to disambiguate common names.
+If "Alice" appears with "Google" and "Stanford" multiple times, a new "Alice" mentioning those is likely the same person. ContextBase uses co-occurrence patterns to disambiguate common names.
 
 ### Entity Labels
 
@@ -108,7 +108,7 @@ See [entity_labels in the bank config](/developer/api/memory-banks#entity-labels
 
 ## Building Connections
 
-Memories aren't isolated — Hindsight creates a **knowledge graph** with four types of connections:
+Memories aren't isolated — ContextBase creates a **knowledge graph** with four types of connections:
 
 ### Entity Connections
 
@@ -139,11 +139,11 @@ Cause-effect relationships are explicitly tracked.
 
 ## Understanding Time
 
-Hindsight tracks **two temporal dimensions**:
+ContextBase tracks **two temporal dimensions**:
 
 ### When It Happened
 
-For events (meetings, trips, milestones), Hindsight records when they occurred.
+For events (meetings, trips, milestones), ContextBase records when they occurred.
 - "Alice got married in June 2024" → occurred in June 2024
 
 For general facts (preferences, characteristics), there's no specific occurrence time.
@@ -151,7 +151,7 @@ For general facts (preferences, characteristics), there's no specific occurrence
 
 ### When You Learned It
 
-Hindsight also tracks when you told it each fact.
+ContextBase also tracks when you told it each fact.
 
 **Why both?**
 
@@ -243,15 +243,15 @@ not all of them.
 ### Requirements
 
 - A model that can read images. By default that is the bank's retain model, but
-  it does not have to be: `HINDSIGHT_API_VLM_MODEL` names a **vision slot** used
+  it does not have to be: `CONTEXTBASE_API_VLM_MODEL` names a **vision slot** used
   only for the chunks that actually carry an attachment, leaving every text-only
   chunk on the retain LLM. So a bank whose documents are mostly prose can keep a
   cheap text model and pay for vision only where there is something to look at.
-- If that model cannot read images — or if Hindsight cannot tell, which is the
+- If that model cannot read images — or if ContextBase cannot tell, which is the
   case for gateway backends serving mixed catalogues — the retain is refused
   with `422` rather than dropping the attachment silently. See
-  [`HINDSIGHT_API_LLM_VISION`](/developer/configuration#llm-provider).
-- Batch retain (`HINDSIGHT_API_RETAIN_BATCH_ENABLED`) cannot carry attachments,
+  [`CONTEXTBASE_API_LLM_VISION`](/developer/configuration#llm-provider).
+- Batch retain (`CONTEXTBASE_API_RETAIN_BATCH_ENABLED`) cannot carry attachments,
   and also refuses with `422`.
 
 This is different from [`POST /files/retain`](/developer/configuration#file-processing),
@@ -299,7 +299,7 @@ For finer control, you can also change the **extraction mode**:
 | `verbatim` | When you need the original chunk text preserved, with LLM-extracted metadata such as entities and dates |
 | `chunks` | When you want to store chunks as-is with no LLM call or extracted metadata |
 
-Set `retain_mission` and `retain_extraction_mode` via the [bank config API](/developer/api/memory-banks#retain-configuration), or with the [`HINDSIGHT_API_RETAIN_MISSION`](/developer/configuration#retain) and [`HINDSIGHT_API_RETAIN_EXTRACTION_MODE`](/developer/configuration#retain) environment variables.
+Set `retain_mission` and `retain_extraction_mode` via the [bank config API](/developer/api/memory-banks#retain-configuration), or with the [`CONTEXTBASE_API_RETAIN_MISSION`](/developer/configuration#retain) and [`CONTEXTBASE_API_RETAIN_EXTRACTION_MODE`](/developer/configuration#retain) environment variables.
 
 ### When a mission excludes everything in a document
 
@@ -310,7 +310,7 @@ This is a normal outcome, not an error: the retain succeeds and the operation is
 | Where | What to look for |
 |-------|------------------|
 | [`retain.completed` webhook](/developer/api/webhooks#retaincompleted) | `data.memory_unit_count: 0` |
-| [Metrics](/developer/monitoring#retain-metrics) | `hindsight.retain.documents.total{outcome="no_facts"}` |
+| [Metrics](/developer/monitoring#retain-metrics) | `contextbase.retain.documents.total{outcome="no_facts"}` |
 
 You can also audit after the fact: `GET /documents` returns `memory_unit_count` per document, so filtering for `0` lists everything currently unreachable.
 
@@ -326,7 +326,7 @@ POST /v1/default/banks/{bank_id}/documents/{document_id}/reprocess
 
 ## Observation Consolidation
 
-After `retain()` completes, Hindsight automatically triggers **observation consolidation** in the background. This process:
+After `retain()` completes, ContextBase automatically triggers **observation consolidation** in the background. This process:
 
 1. Analyzes new facts against existing observations
 2. Creates new observations when patterns emerge

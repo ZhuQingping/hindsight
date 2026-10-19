@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Multilingual examples for Hindsight.
+Multilingual examples for ContextBase.
 Run: python examples/api/multilingual.py
 """
 import os
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Doc Examples
@@ -14,10 +14,12 @@ HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
 # [docs:retain-chinese]
 from hindsight_client import Hindsight
 
-hindsight = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+contextbase = Hindsight(base_url=CONTEXTBASE_URL)
 
 # Retain Chinese content
-hindsight.retain(
+contextbase.retain(
     bank_id="multilingual-user",
     content="""
     张伟是一位资深软件工程师，在腾讯工作了五年。
@@ -27,7 +29,7 @@ hindsight.retain(
 )
 
 # Query in Chinese - get Chinese results
-results = hindsight.recall(
+results = contextbase.recall(
     bank_id="multilingual-user",
     query="告诉我关于张伟的信息"
 )
@@ -39,7 +41,7 @@ results = hindsight.recall(
 
 
 # [docs:retain-japanese]
-hindsight.retain(
+contextbase.retain(
     bank_id="multilingual-user",
     content="""
     田中さんはソフトウェアエンジニアで、東京のスタートアップで働いています。
@@ -49,7 +51,7 @@ hindsight.retain(
 )
 
 # Query in Japanese
-results = hindsight.recall(
+results = contextbase.recall(
     bank_id="multilingual-user",
     query="田中さんについて教えてください"
 )
@@ -58,20 +60,20 @@ results = hindsight.recall(
 
 # [docs:reflect-chinese]
 # Store facts about team members (in Chinese)
-hindsight.retain(
+contextbase.retain(
     bank_id="multilingual-team-eval",
     content="张伟是一位优秀的软件工程师，完成了五个重大项目。他总是按时交付，代码整洁有良好的文档。",
     context="绩效评估"
 )
 
-hindsight.retain(
+contextbase.retain(
     bank_id="multilingual-team-eval",
     content="李明最近加入团队。他错过了第一个截止日期，代码有很多bug。",
     context="绩效评估"
 )
 
 # Reflect in Chinese
-result = hindsight.reflect(
+result = contextbase.reflect(
     bank_id="multilingual-team-eval",
     query="谁是更可靠的工程师？"
 )
@@ -82,7 +84,7 @@ result = hindsight.reflect(
 
 
 # [docs:mixed-language]
-hindsight.retain(
+contextbase.retain(
     bank_id="multilingual-user",
     content="""
     王芳在Google北京办公室工作，她是一名高级产品经理。
@@ -102,8 +104,8 @@ hindsight.retain(
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-hindsight.delete_bank("multilingual-user")
-hindsight.delete_bank("multilingual-team-eval")
-hindsight.close()
+contextbase.delete_bank("multilingual-user")
+contextbase.delete_bank("multilingual-team-eval")
+contextbase.close()
 
 print("multilingual.py: All examples passed")

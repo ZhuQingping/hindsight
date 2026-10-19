@@ -1,4 +1,4 @@
-"""Run the preflight against a fake Hindsight MCP server that behaves like Hindsight Cloud.
+"""Run the preflight against a fake ContextBase MCP server that behaves like ContextBase remote service.
 
 The fake mirrors what production returns (checked 2026-09-19): a 401 with a
 ``resource_metadata`` challenge, RFC 9728 / RFC 8414 metadata with a registration endpoint
@@ -16,14 +16,14 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 
-from hindsight_meta_muse import preflight
-from hindsight_meta_muse.preflight import PreflightReport, run_preflight
+from contextbase_meta_muse import preflight
+from contextbase_meta_muse.preflight import PreflightReport, run_preflight
 
 GOOD_TOKEN = "good-token"
 
 
 @dataclass
-class FakeHindsight:
+class FakeContextBase:
     tools: list[str] = field(
         default_factory=lambda: [
             "recall",
@@ -104,7 +104,7 @@ async def http() -> AsyncIterator[aiohttp.ClientSession]:
 
 
 async def _run(
-    fake: FakeHindsight, http: aiohttp.ClientSession, token: str | None, path: str = "/mcp/my-bank/"
+    fake: FakeContextBase, http: aiohttp.ClientSession, token: str | None, path: str = "/mcp/my-bank/"
 ) -> PreflightReport:
     server = TestServer(fake.app())
     await server.start_server()
@@ -119,7 +119,7 @@ def _failed(report: PreflightReport) -> list[str]:
 
 
 async def test_passes_against_cloud_like_server(http: aiohttp.ClientSession) -> None:
-    fake = FakeHindsight()
+    fake = FakeContextBase()
     report = await _run(fake, http, GOOD_TOKEN)
 
     assert report.ok, _failed(report)
@@ -129,13 +129,13 @@ async def test_passes_against_cloud_like_server(http: aiohttp.ClientSession) -> 
 
 
 async def test_plain_json_replies_are_accepted(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(sse=False), http, GOOD_TOKEN)
+    report = await _run(FakeContextBase(sse=False), http, GOOD_TOKEN)
 
     assert report.ok, _failed(report)
 
 
 async def test_without_token_only_oauth_is_checked(http: aiohttp.ClientSession) -> None:
-    fake = FakeHindsight()
+    fake = FakeContextBase()
     report = await _run(fake, http, None)
 
     assert report.ok, _failed(report)
@@ -145,7 +145,7 @@ async def test_without_token_only_oauth_is_checked(http: aiohttp.ClientSession) 
 
 async def test_missing_memory_tool_fails(http: aiohttp.ClientSession) -> None:
     tools = ["recall", "retain", "create_mental_model", "get_mental_model"]
-    report = await _run(FakeHindsight(tools=tools), http, GOOD_TOKEN)
+    report = await _run(FakeContextBase(tools=tools), http, GOOD_TOKEN)
 
     assert _failed(report) == ["the tools the connect prompt uses are exposed"]
     assert report.checks[-1].detail == "missing: reflect"
@@ -153,13 +153,13 @@ async def test_missing_memory_tool_fails(http: aiohttp.ClientSession) -> None:
 
 async def test_bank_url_does_not_need_bank_management_tools(http: aiohttp.ClientSession) -> None:
     tools = ["recall", "retain", "reflect", "create_mental_model", "get_mental_model"]
-    report = await _run(FakeHindsight(tools=tools), http, GOOD_TOKEN)
+    report = await _run(FakeContextBase(tools=tools), http, GOOD_TOKEN)
 
     assert report.ok, _failed(report)
 
 
 async def test_root_url_passes_with_bank_management_tools(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(), http, GOOD_TOKEN, path="/mcp")
+    report = await _run(FakeContextBase(), http, GOOD_TOKEN, path="/mcp")
 
     assert report.ok, _failed(report)
 
@@ -167,33 +167,33 @@ async def test_root_url_passes_with_bank_management_tools(http: aiohttp.ClientSe
 async def test_root_url_needs_bank_management_tools(http: aiohttp.ClientSession) -> None:
     # The connect prompt points Muse at the root URL and has it call list_banks and create_bank there.
     tools = ["recall", "retain", "reflect", "create_mental_model", "get_mental_model"]
-    report = await _run(FakeHindsight(tools=tools), http, GOOD_TOKEN, path="/mcp")
+    report = await _run(FakeContextBase(tools=tools), http, GOOD_TOKEN, path="/mcp")
 
     assert _failed(report) == ["the tools the connect prompt uses are exposed"]
     assert report.checks[-1].detail == "missing: list_banks, create_bank"
 
 
 async def test_tools_list_error_is_reported(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(tools_list_error=True), http, GOOD_TOKEN)
+    report = await _run(FakeContextBase(tools_list_error=True), http, GOOD_TOKEN)
 
     assert _failed(report) == ["tools/list returns tools"]
     assert report.checks[-1].detail == "method not allowed: tools/list"
 
 
 async def test_missing_oauth_challenge_fails(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(challenge=False), http, None)
+    report = await _run(FakeContextBase(challenge=False), http, None)
 
     assert _failed(report) == ["401 points to OAuth resource metadata"]
 
 
 async def test_missing_dynamic_client_registration_fails(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(registration=False), http, None)
+    report = await _run(FakeContextBase(registration=False), http, None)
 
     assert _failed(report) == ["dynamic client registration is offered"]
 
 
 async def test_rejected_token_fails(http: aiohttp.ClientSession) -> None:
-    report = await _run(FakeHindsight(), http, "wrong-token")
+    report = await _run(FakeContextBase(), http, "wrong-token")
 
     assert _failed(report) == ["MCP initialize succeeds with the token"]
 
@@ -213,4 +213,4 @@ def test_cli_session_sends_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(preflight, "run_preflight", no_checks)
     assert preflight.main(["http://hs.test/mcp"]) == 0
     assert seen["headers"] == {"User-Agent": preflight.USER_AGENT}
-    assert preflight.USER_AGENT.startswith("hindsight-meta-muse/")
+    assert preflight.USER_AGENT.startswith("contextbase-meta-muse/")

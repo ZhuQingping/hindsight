@@ -24,7 +24,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-devin-desktop"
+name = "contextbase-devin-desktop"
 version = "0.2.0"
 source = { editable = "." }
 

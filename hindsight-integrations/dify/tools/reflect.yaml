@@ -5,8 +5,8 @@ identity:
     en_US: Reflect
 description:
   human:
-    en_US: Get an LLM-synthesized answer over a Hindsight bank's memories.
-  llm: Use this tool to ask a synthesizing question over a Hindsight memory bank. Returns a single text answer composed from the relevant memories.
+    en_US: Get an LLM-synthesized answer over a ContextBase bank's memories.
+  llm: Use this tool to ask a synthesizing question over a ContextBase memory bank. Returns a single text answer composed from the relevant memories.
 parameters:
   - name: bank_id
     type: string

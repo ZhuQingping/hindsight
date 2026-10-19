@@ -1,5 +1,5 @@
 /**
- * Minimal Hindsight REST client + memory-formatting helpers. Native `fetch`,
+ * Minimal ContextBase REST client + memory-formatting helpers. Native `fetch`,
  * zero dependencies. Pure (no `eve` import) so it can be unit-tested with a
  * mocked `fetch`.
  *
@@ -20,7 +20,7 @@ function loadPackageVersion(): string {
   }
 }
 
-const USER_AGENT = `hindsight-eve/${loadPackageVersion()}`;
+const USER_AGENT = `contextbase-eve/${loadPackageVersion()}`;
 
 export type RecallBudget = "low" | "mid" | "high";
 
@@ -80,8 +80,8 @@ export interface ReflectResponse {
  * Used by {@link buildRecallMarkdown} (to wrap) and {@link stripSentinelBlocks}
  * (to ensure recalled facts are never re-retained).
  */
-export const SENTINEL_OPEN = "<!-- hindsight:recalled-context -->";
-export const SENTINEL_CLOSE = "<!-- /hindsight:recalled-context -->";
+export const SENTINEL_OPEN = "<!-- contextbase:recalled-context -->";
+export const SENTINEL_CLOSE = "<!-- /contextbase:recalled-context -->";
 
 const SENTINEL_RE = new RegExp(`${SENTINEL_OPEN}[\\s\\S]*?${SENTINEL_CLOSE}`, "g");
 
@@ -108,25 +108,25 @@ export function buildRecallMarkdown(results: readonly RecallResult[]): string {
 }
 
 /** A non-2xx response, with the status so callers can special-case it. */
-export class HindsightHttpError extends Error {
+export class ContextBaseHttpError extends Error {
   readonly status: number;
 
   constructor(status: number, path: string, detail: string) {
-    super(`Hindsight HTTP ${status} from ${path}: ${detail}`);
-    this.name = "HindsightHttpError";
+    super(`ContextBase HTTP ${status} from ${path}: ${detail}`);
+    this.name = "ContextBaseHttpError";
     this.status = status;
   }
 }
 
-/** Thin HTTP client for Hindsight's memory REST API. */
-export class HindsightRestClient {
+/** Thin HTTP client for ContextBase's memory REST API. */
+export class ContextBaseRestClient {
   private readonly baseUrl: string;
   private readonly token: string | null;
   private readonly timeoutMs: number;
 
   constructor(baseUrl: string, token?: string | null, timeoutMs = 15_000) {
     const url = (baseUrl ?? "").trim();
-    if (!url) throw new Error("Hindsight API URL is required");
+    if (!url) throw new Error("ContextBase API URL is required");
     this.baseUrl = url.replace(/\/$/, "");
     this.token = token ?? null;
     this.timeoutMs = timeoutMs;
@@ -157,13 +157,13 @@ export class HindsightRestClient {
       });
       if (!resp.ok) {
         const text = await resp.text().catch(() => "");
-        throw new HindsightHttpError(resp.status, path, text);
+        throw new ContextBaseHttpError(resp.status, path, text);
       }
       return (await resp.json()) as T;
     } catch (error) {
       // Surface the timeout as an ordinary error, not a bare DOMException.
       if (timeout.aborted && !signal?.aborted) {
-        throw new Error(`Hindsight request to ${path} timed out after ${this.timeoutMs}ms`);
+        throw new Error(`ContextBase request to ${path} timed out after ${this.timeoutMs}ms`);
       }
       throw error;
     }
@@ -193,7 +193,7 @@ export class HindsightRestClient {
         opts.signal
       );
     } catch (error) {
-      if (error instanceof HindsightHttpError && error.status === 404) return { results: [] };
+      if (error instanceof ContextBaseHttpError && error.status === 404) return { results: [] };
       throw error;
     }
   }

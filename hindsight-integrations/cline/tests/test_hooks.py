@@ -14,7 +14,7 @@ from lib import content, hooks_impl
 def test_recall_injects_memories_block(http):
     http.results = [make_memory("User prefers TypeScript")]
     out = hooks_impl.handle_user_prompt_submit(make_hook(prompt="how should I write this?"), base_config())
-    assert "<hindsight_memories>" in out
+    assert "<contextbase_memories>" in out
     assert "User prefers TypeScript" in out
 
 

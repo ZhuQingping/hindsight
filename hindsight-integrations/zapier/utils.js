@@ -1,9 +1,9 @@
 "use strict";
 
-const DEFAULT_API_URL = "https://api.hindsight.vectorize.io";
+const DEFAULT_API_URL = "";
 
 /**
- * Base URL for API calls. Defaults to Hindsight Cloud; trailing slash is
+ * Base URL for API calls. Defaults to ContextBase Cloud; trailing slash is
  * stripped so path concatenation never produces a double slash (mirrors the
  * n8n node's URL handling).
  */

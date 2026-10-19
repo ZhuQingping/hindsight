@@ -1,6 +1,8 @@
-# hindsight-crewai
+# contextbase-crewai
 
-Persistent memory for AI agent crews via Hindsight. Give your CrewAI crews long-term memory with fact extraction, entity tracking, and temporal awareness.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent memory for AI agent crews via ContextBase. Give your CrewAI crews long-term memory with fact extraction, entity tracking, and temporal awareness.
 
 ## Features
 
@@ -13,25 +15,25 @@ Persistent memory for AI agent crews via Hindsight. Give your CrewAI crews long-
 ## Installation
 
 ```bash
-pip install hindsight-crewai
+pip install contextbase-crewai
 ```
 
 ## Quick Start
 
-> ✨ **Recommended: [Hindsight Cloud](https://ui.hindsight.vectorize.io)** — free tier, no self-hosting required. Sign up and grab an API key in under a minute.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```python
-from hindsight_crewai import configure, HindsightStorage
+from contextbase_crewai import configure, ContextBaseStorage
 from crewai.memory.external.external_memory import ExternalMemory
 from crewai import Agent, Crew, Task
 
-# Step 1: Point CrewAI at Hindsight Cloud
+# Step 1: Point CrewAI at ContextBase remote service
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key="hsk_...",  # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="hsk_...",  # or set CONTEXTBASE_API_KEY env var
 )
 
-# Step 2: Create crew with Hindsight-backed memory
+# Step 2: Create crew with ContextBase-backed memory
 crew = Crew(
     agents=[
         Agent(role="Researcher", goal="Find information", backstory="..."),
@@ -40,9 +42,7 @@ crew = Crew(
     tasks=[
         Task(description="Research AI trends", expected_output="Report"),
     ],
-    external_memory=ExternalMemory(
-        storage=HindsightStorage(bank_id="my-crew")
-    ),
+    external_memory=ExternalMemory(storage=ContextBaseStorage(bank_id="my-crew")),
 )
 
 crew.kickoff()
@@ -50,26 +50,26 @@ crew.kickoff()
 
 That's it. CrewAI will automatically:
 - **Query memories** at the start of each task
-- **Store task outputs** to Hindsight after each task completes
+- **Store task outputs** to ContextBase after each task completes
 
 Memories persist across crew runs, so your crew learns over time.
 
 ### Self-hosting (local development)
 
-If you're running Hindsight locally with `./scripts/dev/start-api.sh`, point at your local server instead:
+If you're running ContextBase locally with `./scripts/dev/start-api.sh`, point at your local server instead:
 
 ```python
-configure(hindsight_api_url="http://localhost:8888")
+configure(contextbase_api_url="http://localhost:8888")
 ```
 
-See the [Hindsight installation guide](https://hindsight.vectorize.io/developer/installation) for self-hosting setup.
+See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
 
 ## Per-Agent Memory Banks
 
 Give each agent its own isolated memory bank:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     per_agent_banks=True,  # Researcher -> "my-crew-researcher", Writer -> "my-crew-writer"
 )
@@ -78,7 +78,7 @@ storage = HindsightStorage(
 Or use a custom bank resolver for full control:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     bank_resolver=lambda base, agent: f"{base}-{agent.lower()}" if agent else base,
 )
@@ -86,12 +86,12 @@ storage = HindsightStorage(
 
 ## Reflect Tool
 
-CrewAI's storage interface only supports save/search/reset. To give agents access to Hindsight's `reflect` (disposition-aware memory synthesis), add it as a tool:
+CrewAI's storage interface only supports save/search/reset. To give agents access to ContextBase's `reflect` (disposition-aware memory synthesis), add it as a tool:
 
 ```python
-from hindsight_crewai import HindsightReflectTool
+from contextbase_crewai import ContextBaseReflectTool
 
-reflect_tool = HindsightReflectTool(
+reflect_tool = ContextBaseReflectTool(
     bank_id="my-crew",
     budget="mid",
     reflect_context="You are helping a software team track decisions.",
@@ -109,10 +109,10 @@ When the agent calls this tool, it gets a synthesized, contextual answer based o
 
 ## Bank Missions
 
-Set a mission to guide how Hindsight processes and organizes memories:
+Set a mission to guide how ContextBase processes and organizes memories:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     mission="Track software architecture decisions, technical debt, and team preferences.",
 )
@@ -123,17 +123,17 @@ storage = HindsightStorage(
 ### Global Configuration
 
 ```python
-from hindsight_crewai import configure
+from contextbase_crewai import configure
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",  # Hindsight Cloud (default)
-    api_key="your-api-key",                     # Or set HINDSIGHT_API_KEY env var
-    budget="mid",                               # Recall budget: low/mid/high
-    max_tokens=4096,                            # Max tokens for recall results
-    tags=["env:prod"],                          # Tags for stored memories
-    recall_tags=["scope:global"],               # Tags to filter recall
-    recall_tags_match="any",                    # Tag match mode: any/all/any_strict/all_strict
-    verbose=True,                               # Enable logging
+    contextbase_api_url="http://localhost:8888",  # example self-hosted endpoint
+    api_key="your-api-key",  # Or set CONTEXTBASE_API_KEY env var
+    budget="mid",  # Recall budget: low/mid/high
+    max_tokens=4096,  # Max tokens for recall results
+    tags=["env:prod"],  # Tags for stored memories
+    recall_tags=["scope:global"],  # Tags to filter recall
+    recall_tags_match="any",  # Tag match mode: any/all/any_strict/all_strict
+    verbose=True,  # Enable logging
 )
 ```
 
@@ -142,24 +142,24 @@ configure(
 Constructor arguments override global configuration:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
-    budget="high",       # Override global budget
-    max_tokens=8192,     # Override global max_tokens
-    tags=["team:alpha"], # Override global tags
+    budget="high",  # Override global budget
+    max_tokens=8192,  # Override global max_tokens
+    tags=["team:alpha"],  # Override global tags
 )
 ```
 
 ## Examples
 
-See the [CrewAI memory example](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/crewai-memory) in the Hindsight Cookbook for a complete working demo with a Researcher + Writer crew.
+See the [CrewAI memory example](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/crewai-memory) in the ContextBase Cookbook for a complete working demo with a Researcher + Writer crew.
 
 ## Configuration Reference
 
 | Parameter | Default | Description |
 |---|---|---|
-| `hindsight_api_url` | Hindsight Cloud (`https://api.hindsight.vectorize.io`) | Hindsight API URL |
-| `api_key` | `HINDSIGHT_API_KEY` env | API key for authentication |
+| `contextbase_api_url` | an explicitly configured service URL | ContextBase API URL |
+| `api_key` | `CONTEXTBASE_API_KEY` env | API key for authentication |
 | `budget` | `"mid"` | Recall budget level (low/mid/high) |
 | `max_tokens` | `4096` | Maximum tokens for recall results |
 | `tags` | `None` | Tags applied when storing memories |

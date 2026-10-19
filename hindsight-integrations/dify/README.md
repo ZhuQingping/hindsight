@@ -1,28 +1,30 @@
-# Hindsight for Dify
+# ContextBase for Dify
 
-Persistent long-term memory for [Dify](https://dify.ai) workflows via [Hindsight](https://hindsight.vectorize.io).
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent long-term memory for [Dify](https://dify.ai) workflows via [ContextBase](https://github.com/RSIXDB/hindsight).
 
 Three tools — **Retain**, **Recall**, **Reflect** — drop into any Dify workflow alongside your other nodes.
 
 - **Author**: Vectorize, Inc.
-- **Repository**: <https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/dify>
+- **Repository**: <https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/dify>
 - **Contact**: support@vectorize.io · [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
 
 ## Setup
 
-> ✨ **Recommended: [Hindsight Cloud](https://ui.hindsight.vectorize.io)** — free tier, no self-hosting required. Sign up and grab an API key in under a minute.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
-1. **Sign up** at [Hindsight Cloud](https://ui.hindsight.vectorize.io) (free tier) or [self-host](https://hindsight.vectorize.io/developer/installation).
-2. **Get an API key** from the Hindsight dashboard.
+1. Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
+2. **Get an API key** from the ContextBase dashboard.
 3. **In Dify**, install this plugin (Marketplace or upload `.difypkg`), then add credentials:
-   - **API URL**: `https://api.hindsight.vectorize.io` (Cloud) or your self-hosted URL
+   - **API URL**: `http://localhost:8888` (Cloud) or your self-hosted URL
    - **API Key**: your `hsk_...` key (optional for self-hosted unauthenticated instances)
 
 ## Tools
 
 ### Retain
 
-Store content in a bank. Hindsight extracts facts asynchronously after the call returns.
+Store content in a bank. ContextBase extracts facts asynchronously after the call returns.
 
 | Field | Description |
 |---|---|
@@ -58,5 +60,5 @@ Get an LLM-synthesized answer over the bank. Returns a `text` field.
 
 ## Source
 
-- GitHub: [`vectorize-io/hindsight`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/dify)
-- Docs: [hindsight.vectorize.io/sdks/integrations/dify](https://hindsight.vectorize.io/sdks/integrations/dify)
+- GitHub: [`RSIXDB/hindsight`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/dify)
+- Docs: [hindsight.vectorize.io/sdks/integrations/dify](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)

@@ -1,8 +1,10 @@
-# hindsight-devin-desktop
+# contextbase-devin-desktop
 
-Long-term memory for **Devin Desktop** (the editor formerly known as Windsurf / Codeium), powered by [Hindsight](https://github.com/vectorize-io/hindsight).
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
-`hindsight-devin-desktop init` wires the Hindsight **MCP server** into Devin
+Long-term memory for **Devin Desktop** (the editor formerly known as Windsurf / Codeium), powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+
+`contextbase-devin-desktop init` wires the ContextBase **MCP server** into Devin
 Desktop and adds always-on recall/retain rules, so the agent has `recall` /
 `retain` / `reflect` tools and — guided by the rules — recalls relevant memory at
 the start of a task and retains durable facts as it works.
@@ -19,8 +21,8 @@ each:
 | | **Cascade** (legacy Windsurf agent) | **Devin Local** (the successor agent) |
 | --- | --- | --- |
 | MCP server | `~/.codeium/windsurf/mcp_config.json` (`serverUrl`) | `~/.config/devin/config.json` (`url` + `transport` + `headers`) |
-| Tool approval | automatic | pre-seeded allow-rule (`mcp__hindsight__*`) so tools don't prompt |
-| Per-project rule | `.devin/rules/hindsight.md` | repo-root `AGENTS.md` |
+| Tool approval | automatic | pre-seeded allow-rule (`mcp__contextbase__*`) so tools don't prompt |
+| Per-project rule | `.devin/rules/contextbase.md` | repo-root `AGENTS.md` |
 | Global rule | `~/.codeium/windsurf/memories/global_rules.md` | `~/.config/devin/AGENTS.md` |
 | Auto-recall | — (rule-driven) | **`SessionStart` hook** injects memory deterministically |
 | Retain nudge | — | **`Stop` hook** forces a retain pass before the session ends |
@@ -52,12 +54,12 @@ conversation transcript, so a hook can't summarize-and-retain on its own — the
 nudge is the closest deterministic option (guaranteed *trigger*, model authors
 the content). Cascade can't do either hook (its hooks can't inject context), so
 recall/retain there stay model-driven — but `init` adds a `post_mcp_tool_use`
-banner (`show_output`) so Cascade **visibly shows** every `🧠 Hindsight: <tool>
+banner (`show_output`) so Cascade **visibly shows** every `🧠 ContextBase: <tool>
 used`.
 
 ## Two-tier memory: global + per-project
 
-Memory is split across two Hindsight **banks** (isolated memory scopes), so work
+Memory is split across two ContextBase **banks** (isolated memory scopes), so work
 on one repo never bleeds into another:
 
 - **Global bank** (`devin-desktop`) — your cross-project memory: preferences,
@@ -82,22 +84,22 @@ separate, or when a shared profile isn't wanted.
 ## Install
 
 ```bash
-pip install hindsight-devin-desktop
+pip install contextbase-devin-desktop
 cd your-project
-hindsight-devin-desktop init --api-token YOUR_HINDSIGHT_API_KEY
+contextbase-devin-desktop init --api-token YOUR_CONTEXTBASE_API_KEY
 ```
 
 `init` (run inside a repo) derives the project bank from your git remote and
 wires **both agents**: the MCP server entries, the per-project rules (**commit
-`./.devin/rules/hindsight.md` and `./AGENTS.md`** so teammates share the project
+`./.devin/rules/contextbase.md` and `./AGENTS.md`** so teammates share the project
 bank), and the global rules. Then **activate the server** in whichever agent you
 use (config isn't hot-reloaded):
 
 - **Cascade** — open the MCP panel and press **Refresh**.
-- **Devin Local** — open the **Devin MCP Marketplace**, find `hindsight` under
+- **Devin Local** — open the **Devin MCP Marketplace**, find `contextbase` under
   **Installed**, and click **Connect**.
 
-The `hindsight` tools then load and are used automatically. (Not sure which agent
+The `contextbase` tools then load and are used automatically. (Not sure which agent
 you're on? Check the **agent selector** in the bottom-right of Devin Desktop.)
 
 ### Verify it's working
@@ -105,37 +107,37 @@ you're on? Check the **agent selector** in the bottom-right of Devin Desktop.)
 Start a session and you'll *see* memory is on — nothing is silent:
 
 - **Devin Local** — the reply opens with a status line like
-  `🧠 Hindsight preloaded 3 memories for this session` (or `no memory yet`, or
+  `🧠 ContextBase preloaded 3 memories for this session` (or `no memory yet`, or
   `⚠️ memory unavailable this session`). Every hook run is also logged to
-  `~/.hindsight/devin-hook.log`, so you can confirm the recall/retain hooks fired.
+  `~/.contextbase/devin-hook.log`, so you can confirm the recall/retain hooks fired.
 - **Cascade** — each `recall`/`retain` shows as a tool card, and expanding the
-  `post-tool hooks` line reveals the `🧠 Hindsight: <tool> used` banner.
-- `hindsight-devin-desktop status` lists every component as installed for both
+  `post-tool hooks` line reveals the `🧠 ContextBase: <tool> used` banner.
+- `contextbase-devin-desktop status` lists every component as installed for both
   agents, and the banks it resolved.
 
-Use a [Hindsight Cloud](https://hindsight.vectorize.io) key, or a self-hosted
+Use a [ContextBase remote service](https://github.com/RSIXDB/hindsight) key, or a self-hosted
 server with `--api-url http://localhost:8888` (no token needed for an open local
 server). Pass `--bank-id <id>` to set the project bank explicitly, or
 `--global-bank <id>` to change the cross-project bank. Run
-`hindsight-devin-desktop init --print-only` to see everything it would write
+`contextbase-devin-desktop init --print-only` to see everything it would write
 without touching a file.
 
 ## Commands
 
 | Command | Description |
 | --- | --- |
-| `hindsight-devin-desktop init` | Wire both agents' MCP server + memory rules (derives the project bank) |
-| `hindsight-devin-desktop status` | Show resolved banks + whether each agent is configured |
-| `hindsight-devin-desktop uninstall` | Remove the MCP server + memory rules from both agents |
+| `contextbase-devin-desktop init` | Wire both agents' MCP server + memory rules (derives the project bank) |
+| `contextbase-devin-desktop status` | Show resolved banks + whether each agent is configured |
+| `contextbase-devin-desktop uninstall` | Remove the MCP server + memory rules from both agents |
 
 ## Configuration
 
 | Setting | Env var | Default |
 | --- | --- | --- |
-| API URL | `HINDSIGHT_API_URL` | `https://api.hindsight.vectorize.io` |
-| API token | `HINDSIGHT_API_TOKEN` | _(none; required for Cloud)_ |
-| Global bank | `HINDSIGHT_DEVIN_DESKTOP_GLOBAL_BANK` | `devin-desktop` |
-| Project bank | `HINDSIGHT_DEVIN_DESKTOP_BANK_ID` | _(derived from git remote)_ |
+| API URL | `CONTEXTBASE_API_URL` | `http://localhost:8888` |
+| API token | `CONTEXTBASE_API_TOKEN` | _(none; required for Cloud)_ |
+| Global bank | `CONTEXTBASE_DEVIN_DESKTOP_GLOBAL_BANK` | `devin-desktop` |
+| Project bank | `CONTEXTBASE_DEVIN_DESKTOP_BANK_ID` | _(derived from git remote)_ |
 
 ## Development
 

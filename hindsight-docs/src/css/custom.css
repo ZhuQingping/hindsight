@@ -1,23 +1,23 @@
 /**
- * Hindsight custom theme - Modern, clean style
+ * ContextBase custom theme - Modern, clean style
  */
 
 /* Primary colors - Blue to Teal gradient theme */
 :root {
   /* Primary gradient */
-  --hindsight-gradient: linear-gradient(135deg, #0074d9 0%, #009296 100%);
+  --contextbase-gradient: linear-gradient(135deg, #0074d9 0%, #009296 100%);
   /* Same ramp left-to-right, for wide-and-short surfaces (buttons, bars) where
      the 135° version would only show one end of it. */
-  --hindsight-gradient-horizontal: linear-gradient(90deg, #0074d9 0%, #009296 100%);
-  --hindsight-gradient-start: #0074d9;
-  --hindsight-gradient-end: #009296;
+  --contextbase-gradient-horizontal: linear-gradient(90deg, #0074d9 0%, #009296 100%);
+  --contextbase-gradient-start: #0074d9;
+  --contextbase-gradient-end: #009296;
 
   /* The surface every active navbar item wears. Flat rather than a gradient:
      active items keep gradient *text*, which needs `background-clip: text` and
      therefore owns `background` — so the surface is painted with an inset
      box-shadow instead, and box-shadow takes no gradient. At this alpha the
      ramp was imperceptible anyway. */
-  --hindsight-active-surface: rgba(0, 116, 217, 0.09);
+  --contextbase-active-surface: rgba(0, 116, 217, 0.09);
 
   /* Skill banner (src/components/SkillBanner) — a quiet strip that reads as
      tooling attached to the page, not as an alert competing with the title. */
@@ -30,11 +30,11 @@
   --hindsight-docs-body-color: #3f3f46;
 
   /* lucide "chevron-down", masked so it takes the element's own color */
-  --hindsight-chevron-down-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>');
+  --contextbase-chevron-down-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>');
 
   /* lucide "search" for the sidebar field. Infima ships its own, but it is a
      filled glyph in a fixed near-black that disappears on the dark surface. */
-  --hindsight-search-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%2371717a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
+  --contextbase-search-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%2371717a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
 
   /* Fallback solid colors (midpoint of gradient) */
   --ifm-color-primary: #0074d9;
@@ -76,7 +76,7 @@
   --ifm-color-primary-lightest: rgba(51, 150, 232, 0.15);
   --docusaurus-highlighted-code-line-bg: rgba(51, 150, 232, 0.15);
 
-  --hindsight-active-surface: rgba(51, 150, 232, 0.16);
+  --contextbase-active-surface: rgba(51, 150, 232, 0.16);
 
   --skill-banner-surface: rgba(51, 150, 232, 0.06);
   --skill-banner-border: rgba(51, 150, 232, 0.28);
@@ -86,7 +86,7 @@
   --hindsight-docs-body-color: #b4b4be;
 
   /* Same magnifier, a step lighter to hold up against the dark field. */
-  --hindsight-search-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
+  --contextbase-search-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
 
   --ifm-background-color: #09090b;
   --ifm-background-surface-color: #18181b;
@@ -157,7 +157,7 @@
 
 /* Gradient text utility */
 .gradient-text {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -177,7 +177,7 @@
 .navbar__title {
   font-weight: 700;
   font-size: 1.125rem;
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -246,11 +246,11 @@ svg[aria-label="(opens in new tab)"] {
    The spread just has to exceed half the widest item for the inset shadow to
    fill the box. */
 .navbar__link--active {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  box-shadow: inset 0 0 0 100px var(--hindsight-active-surface);
+  box-shadow: inset 0 0 0 100px var(--contextbase-active-surface);
 }
 
 [data-theme='dark'] .navbar__link:hover {
@@ -285,7 +285,7 @@ svg[aria-label="(opens in new tab)"] {
 
 /* Same surface as any other active item, only spanning the pair. */
 .navbar__docs-group:has(.navbar__link--active) {
-  background: var(--hindsight-active-surface);
+  background: var(--contextbase-active-surface);
 }
 
 /* The group carries the surface, so its links must not paint their own —
@@ -342,8 +342,8 @@ svg[aria-label="(opens in new tab)"] {
   border: none;
   opacity: 0.6;
   background-color: currentColor;
-  -webkit-mask: var(--hindsight-chevron-down-icon) center / contain no-repeat;
-  mask: var(--hindsight-chevron-down-icon) center / contain no-repeat;
+  -webkit-mask: var(--contextbase-chevron-down-icon) center / contain no-repeat;
+  mask: var(--contextbase-chevron-down-icon) center / contain no-repeat;
 }
 
 /* Infima nudges its caret with `top: 2px` + `translateY(-50%)`, sized for a
@@ -365,8 +365,8 @@ svg[aria-label="(opens in new tab)"] {
   border: none;
   opacity: 0.6;
   background-color: currentColor;
-  -webkit-mask: var(--hindsight-chevron-down-icon) center / contain no-repeat;
-  mask: var(--hindsight-chevron-down-icon) center / contain no-repeat;
+  -webkit-mask: var(--contextbase-chevron-down-icon) center / contain no-repeat;
+  mask: var(--contextbase-chevron-down-icon) center / contain no-repeat;
 }
 
 /* ── Sign-up call to action ───────────────────────────────────────────── */
@@ -376,14 +376,14 @@ svg[aria-label="(opens in new tab)"] {
   font-size: 0.875rem;
   color: #ffffff;
   border-radius: 0.5rem;
-  background: var(--hindsight-gradient-horizontal);
+  background: var(--contextbase-gradient-horizontal);
   transition: filter 0.15s ease;
 }
 
 .navbar-item-signup.navbar__link:hover,
 [data-theme='dark'] .navbar-item-signup.navbar__link:hover {
   color: #ffffff;
-  background: var(--hindsight-gradient-horizontal);
+  background: var(--contextbase-gradient-horizontal);
   filter: brightness(1.08);
 }
 
@@ -503,7 +503,7 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
   }
 
   .navbar-sidebar .menu__link--active {
-    background: var(--hindsight-gradient);
+    background: var(--contextbase-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -541,7 +541,7 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
   [data-theme='dark'] .navbar-sidebar .menu__link--active,
   [data-theme='dark'] .navbar-sidebar .menu__link--active:hover {
     color: transparent !important;
-    background: var(--hindsight-gradient) !important;
+    background: var(--contextbase-gradient) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -574,7 +574,7 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
 }
 
 .hero--primary {
-  background: linear-gradient(135deg, var(--hindsight-gradient-start) 0%, var(--hindsight-gradient-end) 100%);
+  background: linear-gradient(135deg, var(--contextbase-gradient-start) 0%, var(--contextbase-gradient-end) 100%);
 }
 
 [data-theme='dark'] .hero--primary {
@@ -600,7 +600,7 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
 }
 
 .button--primary {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   border: none;
   color: white;
 }
@@ -612,12 +612,12 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
 
 .button--secondary {
   background: transparent;
-  border: 2px solid var(--hindsight-gradient-start);
+  border: 2px solid var(--contextbase-gradient-start);
   color: var(--ifm-color-primary);
 }
 
 .button--secondary:hover {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   border-color: transparent;
   color: white;
 }
@@ -634,7 +634,7 @@ nav.navbar .navbar__items--right .navbar__search [class*='dropdownMenu'] {
 }
 
 .menu__link--active .menu__link {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -805,7 +805,7 @@ article p {
 
 /* Links with gradient - exclude RecipeCarousel cards and sidebar links */
 article a:not(.button):not([class*="hash-link"]):not([class*="card"]):not([class*="menu__link"]) {
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -826,7 +826,7 @@ article a:hover code {
 
 article a:not(.button):not([class*="hash-link"]):hover {
   text-decoration: underline;
-  text-decoration-color: var(--hindsight-gradient-start);
+  text-decoration-color: var(--contextbase-gradient-start);
 }
 
 /* Admonitions - gradient themed */
@@ -1035,8 +1035,8 @@ th {
 }
 
 .tabs__item--active {
-  border-bottom-color: var(--hindsight-gradient-start);
-  background: var(--hindsight-gradient);
+  border-bottom-color: var(--contextbase-gradient-start);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

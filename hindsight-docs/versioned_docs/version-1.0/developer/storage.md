@@ -1,6 +1,6 @@
 # Storage
 
-Hindsight uses PostgreSQL as its primary storage backend, with Oracle AI Database available as an alternative for enterprise deployments.
+ContextBase uses PostgreSQL as its primary storage backend, with Oracle AI Database available as an alternative for enterprise deployments.
 
 ## Why PostgreSQL?
 
@@ -26,11 +26,11 @@ Building exclusively for PostgreSQL simplifies deployment and operations:
 
 ### No Storage Abstraction
 
-Hindsight does not abstract storage behind a generic interface. This is a deliberate trade-off.
+ContextBase does not abstract storage behind a generic interface. This is a deliberate trade-off.
 
 We believe PostgreSQL is becoming the standard database API. Its popularity, extension ecosystem, and modularity mean that PostgreSQL-compatible interfaces are appearing everywhere—from serverless offerings to distributed databases. Building for PostgreSQL today means compatibility with a growing ecosystem tomorrow.
 
-Supporting multiple databases would increase flexibility but conflict with our core goals: Hindsight is fully open source and designed to be as simple as possible to run and use. Adding database abstractions introduces complexity in code, testing, documentation, and operations—complexity that we pass on to users.
+Supporting multiple databases would increase flexibility but conflict with our core goals: ContextBase is fully open source and designed to be as simple as possible to run and use. Adding database abstractions introduces complexity in code, testing, documentation, and operations—complexity that we pass on to users.
 
 By building on PostgreSQL, we keep the system simple:
 - One set of deployment instructions
@@ -40,13 +40,13 @@ By building on PostgreSQL, we keep the system simple:
 
 ### Oracle AI Database Support
 
-For enterprise deployments, Hindsight also supports Oracle AI Database with full feature parity. All memory operations—retain, recall, and reflect—work identically on Oracle, making it a drop-in option for organizations that standardize on Oracle infrastructure.
+For enterprise deployments, ContextBase also supports Oracle AI Database with full feature parity. All memory operations—retain, recall, and reflect—work identically on Oracle, making it a drop-in option for organizations that standardize on Oracle infrastructure.
 
 See the [Oracle Database guide](./oracle) for setup: prerequisites, provisioning, connection URLs, migrations, and the differences from PostgreSQL.
 
 ## Development with pg0
 
-For local development, Hindsight uses **[pg0](https://github.com/vectorize-io/pg0)**—an embedded PostgreSQL distribution.
+For local development, ContextBase uses **[pg0](https://github.com/vectorize-io/pg0)**—an embedded PostgreSQL distribution.
 
 ### What is pg0?
 
@@ -57,17 +57,17 @@ pg0 is a single binary containing:
 
 ### Behavior
 
-When no `HINDSIGHT_API_DATABASE_URL` is configured, Hindsight:
+When no `CONTEXTBASE_API_DATABASE_URL` is configured, ContextBase:
 1. Starts an embedded PostgreSQL instance on port 5555
 2. Initializes the schema
-3. Stores data in `~/.hindsight/pg0/`
+3. Stores data in `~/.contextbase/pg0/`
 
 ### Environments
 
 | Environment | Database | Configuration |
 |-------------|----------|---------------|
 | Development | pg0 (embedded) | Automatic |
-| Production | PostgreSQL 15+ | `HINDSIGHT_API_DATABASE_URL` environment variable |
+| Production | PostgreSQL 15+ | `CONTEXTBASE_API_DATABASE_URL` environment variable |
 
 ## Requirements
 

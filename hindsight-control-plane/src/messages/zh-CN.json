@@ -343,7 +343,7 @@
   "bankConfig": {
     "noBankSelected": "未选择工作空间",
     "apiDisabledTitle": "工作空间配置 API 未启用",
-    "apiDisabledDescription": "在服务器上设置 <code>HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true</code> 以启用逐库配置。",
+    "apiDisabledDescription": "在服务器上设置 <code>CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=true</code> 以启用逐库配置。",
     "resetToInherited": "重置为继承值",
     "failedToReset": "重置失败",
     "overrideBadge": "库级覆盖",
@@ -1922,7 +1922,7 @@
     "addDocumentToCurrentBank": "向当前工作空间添加文档",
     "templateManifestHelp": "粘贴模板清单 JSON 以使用设置、心智模型和指令预配置工作空间。",
     "fileUploadDisabledMessage": "此服务器未启用文件上传。",
-    "fileUploadEnableHint": "要启用，请设置 <code>HINDSIGHT_API_ENABLE_FILE_UPLOAD_API=true</code>",
+    "fileUploadEnableHint": "要启用，请设置 <code>CONTEXTBASE_API_ENABLE_FILE_UPLOAD_API=true</code>",
     "fileTagsHelp": "逗号分隔 — 用于在 recall/reflect 期间筛选记忆",
     "strategyHelpText": "为此文档覆盖工作空间的默认提取策略。",
     "observationScopePerTag": "按标签",

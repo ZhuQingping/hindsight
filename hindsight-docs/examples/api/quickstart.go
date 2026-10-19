@@ -8,33 +8,33 @@ import (
 	"os"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
 	// [docs:quickstart-full]
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{
 		{URL: "http://localhost:8888"},
 	}
-	client := hindsight.NewAPIClient(cfg)
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// Retain a memory
-	retainReq := hindsight.RetainRequest{
-		Items: []hindsight.MemoryItem{
-			{Content: hindsight.TextContent("Alice works at Google")},
+	retainReq := contextbase.RetainRequest{
+		Items: []contextbase.MemoryItem{
+			{Content: contextbase.TextContent("Alice works at Google")},
 		},
 	}
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").RetainRequest(retainReq).Execute()
 
 	// Recall memories
-	recallReq := hindsight.RecallRequest{
+	recallReq := contextbase.RecallRequest{
 		Query: "What does Alice do?",
 	}
 	resp, _, _ := client.MemoryAPI.RecallMemories(ctx, "my-bank").RecallRequest(recallReq).Execute()
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Reflect - generate response
-	reflectReq := hindsight.ReflectRequest{
+	reflectReq := contextbase.ReflectRequest{
 		Query: "Tell me about Alice",
 	}
 	answer, _, _ := client.MemoryAPI.Reflect(ctx, "my-bank").ReflectRequest(reflectReq).Execute()
@@ -57,12 +57,12 @@ func main() {
 	// [docs:nullable-fields]
 	// Creating nullable values
 	timestamp := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
-	retainReq2 := hindsight.RetainRequest{
-		Items: []hindsight.MemoryItem{
+	retainReq2 := contextbase.RetainRequest{
+		Items: []contextbase.MemoryItem{
 			{
-				Content:   hindsight.TextContent("Alice got promoted"),
-				Context:   *hindsight.NewNullableString(hindsight.PtrString("career update")),
-				Timestamp: *hindsight.NewNullableTimestamp(&hindsight.Timestamp{TimeTime: hindsight.PtrTime(timestamp)}),
+				Content:   contextbase.TextContent("Alice got promoted"),
+				Context:   *contextbase.NewNullableString(contextbase.PtrString("career update")),
+				Timestamp: *contextbase.NewNullableTimestamp(&contextbase.Timestamp{TimeTime: contextbase.PtrTime(timestamp)}),
 				Tags:      []string{"career"},
 			},
 		},

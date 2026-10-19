@@ -2,7 +2,7 @@
 sidebar_position: 11
 ---
 
-# Study Buddy with Hindsight Memory
+# Study Buddy with ContextBase Memory
 
 
 :::tip Run this notebook
@@ -21,20 +21,22 @@ A personalized study assistant that tracks what you've learned, identifies knowl
 
 ## Prerequisites
 - OpenAI API key
-- Hindsight running locally via Docker (see setup below)
+- ContextBase running locally via Docker (see setup below)
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
@@ -46,14 +48,14 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 ## 2. Configure OpenAI API Key
 
-Enter your OpenAI API key when prompted (used by both Hindsight and the demo).
+Enter your OpenAI API key when prompted (used by both ContextBase and the demo).
 
 
 ```python
 import getpass
 import os
 
-# Set OpenAI API key (used by both Hindsight and the demo)
+# Set OpenAI API key (used by both ContextBase and the demo)
 if not os.getenv("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
 
@@ -71,9 +73,9 @@ from datetime import datetime
 from openai import OpenAI
 from hindsight_client import Hindsight
 
-# Initialize Hindsight client (connects to local Docker instance)
-hindsight = Hindsight(
-    base_url=os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+# Initialize ContextBase client (connects to local Docker instance)
+contextbase = Hindsight(
+    base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -96,7 +98,7 @@ Topic: {topic}
 Confidence Level: {confidence}
 Notes: {notes}"""
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=content,
         metadata={
@@ -119,7 +121,7 @@ Topic: {topic}
 Question: {question}
 Understood: {"Yes" if understood else "No - needs review"}"""
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=content,
         metadata={
@@ -134,7 +136,7 @@ Understood: {"Yes" if understood else "No - needs review"}"""
 
 def study_buddy(user_query: str) -> str:
     """Interact with the study buddy."""
-    memories = hindsight.recall(
+    memories = contextbase.recall(
         bank_id=USER_ID,
         query=f"study session topic notes questions {user_query}",
         budget="high",
@@ -174,7 +176,7 @@ Be supportive and pedagogical. Reference their previous learning when relevant."
 
     answer = response.choices[0].message.content
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"Student asked: {user_query}\nExplanation given: {answer[:300]}...",
         metadata={"category": "tutoring"},
@@ -185,7 +187,7 @@ Be supportive and pedagogical. Reference their previous learning when relevant."
 
 def get_review_suggestions() -> str:
     """Get suggestions for topics to review."""
-    suggestions = hindsight.reflect(
+    suggestions = contextbase.reflect(
         bank_id=USER_ID,
         query="""Analyze this student's study history and suggest:
         1. Topics with low confidence that need more review
@@ -204,7 +206,7 @@ def get_knowledge_summary(topic: str = None) -> str:
     query = f"Summarize what this student knows about {topic}" if topic else \
             "Summarize this student's overall knowledge and progress"
 
-    summary = hindsight.reflect(
+    summary = contextbase.reflect(
         bank_id=USER_ID,
         query=query,
         budget="high",
@@ -330,6 +332,6 @@ print(f"Study Buddy: {study_buddy(your_question)}")
 
 
 ```python
-hindsight.close()
+contextbase.close()
 print("Client connection closed.")
 ```

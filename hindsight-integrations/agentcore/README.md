@@ -1,6 +1,8 @@
-# hindsight-agentcore
+# contextbase-agentcore
 
-Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using [Hindsight](https://hindsight.vectorize.io).
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using [ContextBase](https://github.com/RSIXDB/hindsight).
 
 AgentCore Runtime sessions are explicitly ephemeral — they terminate on inactivity and reprovision fresh environments. This package adds durable cross-session memory so agents remember users, decisions, and learned patterns across any number of Runtime sessions.
 
@@ -10,7 +12,7 @@ AgentCore Runtime sessions are explicitly ephemeral — they terminate on inacti
 AgentCore Runtime invocation
         │
         ▼
-   before_turn()         ← Recall relevant memories from Hindsight
+   before_turn()         ← Recall relevant memories from ContextBase
         │
         ▼
   Agent executes          ← Prompt enriched with prior context
@@ -29,30 +31,30 @@ tenant:{tenant_id}:user:{user_id}:agent:{agent_name}
 ## Installation
 
 ```bash
-pip install hindsight-agentcore
+pip install contextbase-agentcore
 ```
 
 ## Quick Start
 
-> ✨ **Recommended: [Hindsight Cloud](https://ui.hindsight.vectorize.io)** — free tier, no self-hosting required. Sign up and grab an API key in under a minute.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```python
 import os
-from hindsight_agentcore import HindsightRuntimeAdapter, TurnContext, configure
+from contextbase_agentcore import ContextBaseRuntimeAdapter, TurnContext, configure
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key=os.environ["HINDSIGHT_API_KEY"],
+    contextbase_api_url="http://localhost:8888",
+    api_key=os.environ["CONTEXTBASE_API_KEY"],
 )
 
-adapter = HindsightRuntimeAdapter(agent_name="support-agent")
+adapter = ContextBaseRuntimeAdapter(agent_name="support-agent")
 
 
 # Your AgentCore Runtime handler
 async def handler(event: dict) -> dict:
     context = TurnContext(
         runtime_session_id=event["sessionId"],
-        user_id=event["userId"],       # from validated auth — never client-supplied
+        user_id=event["userId"],  # from validated auth — never client-supplied
         agent_name="support-agent",
         tenant_id=event.get("tenantId"),
         request_id=event.get("requestId"),
@@ -93,11 +95,9 @@ await adapter.after_turn(context, result=result["output"], query=user_message)
 Fast multi-strategy retrieval (semantic + keyword + graph + temporal):
 
 ```python
-from hindsight_agentcore import RecallPolicy
+from contextbase_agentcore import RecallPolicy
 
-adapter = HindsightRuntimeAdapter(
-    recall_policy=RecallPolicy(mode="recall", budget="mid", max_tokens=1500)
-)
+adapter = ContextBaseRuntimeAdapter(recall_policy=RecallPolicy(mode="recall", budget="mid", max_tokens=1500))
 ```
 
 ### Reflect
@@ -105,9 +105,7 @@ adapter = HindsightRuntimeAdapter(
 LLM-synthesized context for complex reasoning tasks:
 
 ```python
-adapter = HindsightRuntimeAdapter(
-    recall_policy=RecallPolicy(mode="reflect")
-)
+adapter = ContextBaseRuntimeAdapter(recall_policy=RecallPolicy(mode="reflect"))
 ```
 
 Use `reflect` selectively — it's slower. Reserve it for explicit planning steps or routing decisions.
@@ -117,7 +115,7 @@ Use `reflect` selectively — it's slower. Reserve it for explicit planning step
 By default, `after_turn()` fires retention as a background task — the user turn is never delayed:
 
 ```python
-configure(retain_async=True)   # default
+configure(retain_async=True)  # default
 configure(retain_async=False)  # await retention before returning
 ```
 
@@ -155,7 +153,7 @@ Preferred identity sources (in order):
 ```python
 context = TurnContext(
     runtime_session_id=event["sessionId"],
-    user_id=jwt_claims["sub"],         # stable identity from validated token
+    user_id=jwt_claims["sub"],  # stable identity from validated token
     agent_name="support-agent",
     tenant_id=jwt_claims.get("tenant"),
 )
@@ -165,8 +163,8 @@ context = TurnContext(
 
 | Option | Env Variable | Default | Description |
 |---|---|---|---|
-| `hindsight_api_url` | `HINDSIGHT_API_URL` | Hindsight Cloud | Hindsight server URL |
-| `api_key` | `HINDSIGHT_API_KEY` | — | API key for Hindsight Cloud |
+| `contextbase_api_url` | `CONTEXTBASE_API_URL` | ContextBase remote service | ContextBase server URL |
+| `api_key` | `CONTEXTBASE_API_KEY` | — | API key for ContextBase remote service |
 | `recall_budget` | — | `"mid"` | Search depth: `low`, `mid`, `high` |
 | `recall_max_tokens` | — | `1500` | Max tokens recalled |
 | `retain_async` | — | `True` | Non-blocking retention |
@@ -179,12 +177,14 @@ context = TurnContext(
 Override the default `tenant:user:agent` format:
 
 ```python
-from hindsight_agentcore import TurnContext
+from contextbase_agentcore import TurnContext
+
 
 def my_resolver(context: TurnContext) -> str:
     return f"acme:{context.user_id}:{context.agent_name}"
 
-adapter = HindsightRuntimeAdapter(bank_resolver=my_resolver)
+
+adapter = ContextBaseRuntimeAdapter(bank_resolver=my_resolver)
 ```
 
 **Security rule:** The resolver must fail closed (`BankResolutionError`) rather than leak memory across users when identity is missing.
@@ -193,16 +193,16 @@ adapter = HindsightRuntimeAdapter(bank_resolver=my_resolver)
 
 | Failure | Behavior |
 |---|---|
-| Hindsight unavailable | `before_turn()` returns `""`, agent continues |
+| ContextBase unavailable | `before_turn()` returns `""`, agent continues |
 | Recall timeout | Returns `""`, agent continues |
 | Retain failure | Logged as warning, user turn unaffected |
 | Bad bank resolution | Fails closed — no cross-user memory leakage |
 
 ## Deployment
 
-**Hindsight Cloud** — [sign up](https://ui.hindsight.vectorize.io), set `hindsight_api_url` to your Cloud endpoint.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
-**Self-hosted on AWS** — run Hindsight on ECS/EKS with RDS PostgreSQL (pgvector). Network path stays in your AWS account.
+**Self-hosted on AWS** — run ContextBase on ECS/EKS with RDS PostgreSQL (pgvector). Network path stays in your AWS account.
 
 ## Requirements
 

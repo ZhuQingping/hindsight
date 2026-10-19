@@ -7,7 +7,7 @@
  * orchestrates them correctly without requiring a full LLM pipeline.
  *
  * Requirements:
- *   Running Hindsight API at HINDSIGHT_API_URL (default: http://localhost:8888)
+ *   Running ContextBase API at CONTEXTBASE_API_URL (default: http://localhost:8888)
  *
  * Run:
  *   npm run test:integration
@@ -26,7 +26,7 @@ import {
 import type { RecallResponse, RetainResponse } from "@vectorize-io/hindsight-client";
 import type { MoltbotPluginAPI, PluginConfig } from "../src/types.js";
 
-const HINDSIGHT_API_URL = process.env.HINDSIGHT_API_URL || "http://localhost:8888";
+const CONTEXTBASE_API_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,7 +62,7 @@ function createMockApi(pluginConfig: Partial<PluginConfig> = {}): MockApiHandle 
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": { enabled: true, config: pluginConfig as PluginConfig },
+          "contextbase-openclaw": { enabled: true, config: pluginConfig as PluginConfig },
         },
       },
     },
@@ -151,10 +151,10 @@ let recallSpy: MockInstance;
 let retainSpy: MockInstance;
 
 beforeAll(async () => {
-  apiReachable = await waitForApi(HINDSIGHT_API_URL, 8000);
+  apiReachable = await waitForApi(CONTEXTBASE_API_URL, 8000);
   if (!apiReachable) {
     console.warn(
-      `[Hooks Integration] Hindsight API not reachable at ${HINDSIGHT_API_URL} – skipping hook tests.`
+      `[Hooks Integration] ContextBase API not reachable at ${CONTEXTBASE_API_URL} – skipping hook tests.`
     );
     return;
   }
@@ -170,7 +170,7 @@ beforeAll(async () => {
   // Plugin runs in external API mode (talks to the running test API), so no LLM
   // credentials are needed in the plugin config — the daemon handles them.
   const handle = createMockApi({
-    hindsightApiUrl: HINDSIGHT_API_URL,
+    contextbaseApiUrl: CONTEXTBASE_API_URL,
     dynamicBankId: true,
     excludeProviders: ["slack"],
     retainEveryNTurns: 1, // retain every turn so individual tests aren't affected by chunking
@@ -272,9 +272,9 @@ describe("before_prompt_build hook", () => {
     expect(result).toBeDefined();
     expect(result.prependSystemContext).toBeUndefined();
     expect(result.appendSystemContext).toBeUndefined();
-    expect(result.prependContext).toContain("<hindsight_memories>");
+    expect(result.prependContext).toContain("<contextbase_memories>");
     expect(result.prependContext).toContain("User likes Python");
-    expect(result.prependContext).toContain("</hindsight_memories>");
+    expect(result.prependContext).toContain("</contextbase_memories>");
   });
 
   it("injects all memory result fields in the default prependContext", async () => {
@@ -301,8 +301,8 @@ describe("before_prompt_build hook", () => {
     // formatMemories returns a bullet list, not JSON
     expect(result.prependSystemContext).toBeUndefined();
     expect(result.prependContext).toContain("- User prefers dark mode");
-    expect(result.prependContext).toContain("<hindsight_memories>");
-    expect(result.prependContext).toContain("</hindsight_memories>");
+    expect(result.prependContext).toContain("<contextbase_memories>");
+    expect(result.prependContext).toContain("</contextbase_memories>");
     expect(result.prependContext).toContain(
       "[occurred: 2026-01-14T09:00:00Z → 2026-01-14T11:00:00Z]"
     );
@@ -386,7 +386,7 @@ describe("before_prompt_build hook", () => {
 
     expect(result.prependSystemContext).toBeUndefined();
     expect(result.prependContext).toContain("User loves hiking");
-    expect(result.prependContext).toContain("<hindsight_memories>");
+    expect(result.prependContext).toContain("<contextbase_memories>");
   });
 
   it("uses identity cached in message_received when later hooks lack sender metadata", async () => {
@@ -594,12 +594,12 @@ describe("agent_end hook", () => {
     expect(options?.metadata?.sender_id).toBe("U015C");
   });
 
-  it("strips <hindsight_memories> tags from content before retaining", async () => {
+  it("strips <contextbase_memories> tags from content before retaining", async () => {
     if (!apiReachable) return;
     retainSpy.mockResolvedValue(OK_RETAIN);
 
     const contentWithMemories =
-      '<hindsight_memories>\nRelevant memories:\n[{"text":"old fact"}]\n</hindsight_memories>\nI enjoy reading science fiction.';
+      '<contextbase_memories>\nRelevant memories:\n[{"text":"old fact"}]\n</contextbase_memories>\nI enjoy reading science fiction.';
 
     await triggerHook(
       "agent_end",
@@ -612,8 +612,8 @@ describe("agent_end hook", () => {
 
     expect(retainSpy).toHaveBeenCalledOnce();
     const [, content] = retainSpy.mock.calls[0];
-    expect(content).not.toContain("<hindsight_memories>");
-    expect(content).not.toContain("</hindsight_memories>");
+    expect(content).not.toContain("<contextbase_memories>");
+    expect(content).not.toContain("</contextbase_memories>");
     expect(content).not.toContain("old fact");
     expect(content).toContain("I enjoy reading science fiction.");
   });
@@ -714,7 +714,7 @@ describe("session_end hook (#1726)", () => {
 
     const mod = await import("../src/index.js");
     const handle = createMockApi({
-      hindsightApiUrl: HINDSIGHT_API_URL,
+      contextbaseApiUrl: CONTEXTBASE_API_URL,
       dynamicBankId: true,
       retainEveryNTurns: 5,
       retainOverlapTurns: 0,

@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-ag2"
+name = "contextbase-ag2"
 version = "0.1.2"
-description = "AG2 integration for Hindsight - persistent memory tools for AI agents"
+description = "AG2 integration for ContextBase - persistent memory tools for AI agents"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -14,7 +14,7 @@ keywords = [
     "ag2",
     "autogen",
     "agents",
-    "hindsight",
+    "contextbase",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -33,16 +33,16 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
-Documentation = "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/ag2"
-Repository = "https://github.com/vectorize-io/hindsight"
+Homepage = "https://github.com/RSIXDB/hindsight"
+Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/ag2"
+Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_ag2"]
+packages = ["contextbase_ag2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

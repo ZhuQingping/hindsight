@@ -803,7 +803,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-google-adk"
+name = "contextbase-google-adk"
 version = "0.1.1"
 source = { editable = "." }
 dependencies = [

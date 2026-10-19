@@ -1,5 +1,5 @@
 /**
- * Hindsight OpenClaw plugin logger.
+ * ContextBase OpenClaw plugin logger.
  *
  * Routes output through OpenClaw's api.logger for consistent formatting
  * with other plugins (same colors/timestamps as mem0, etc.).
@@ -19,7 +19,7 @@ export interface LoggerConfig {
 }
 
 // Muted blue (38;5;103 = slate/dusty blue from 256-color palette)
-const PREFIX = "\x1b[38;5;103mhindsight:\x1b[0m";
+const PREFIX = "\x1b[38;5;103mcontextbase:\x1b[0m";
 
 const LEVEL_RANK: Record<LogLevel, number> = {
   off: 0,

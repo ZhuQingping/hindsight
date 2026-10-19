@@ -1,5 +1,5 @@
 #!/bin/bash
-# Operations API examples for Hindsight CLI
+# Operations API examples for ContextBase CLI
 # Run: bash examples/api/operations.sh
 
 set -e

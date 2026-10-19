@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { hindsightAutoRecall, hindsightRetainHook } from "./auto-memory";
+import { contextbaseAutoRecall, contextbaseRetainHook } from "./auto-memory";
 import { SENTINEL_OPEN } from "./client";
 
 const OPTS = { apiUrl: "http://test", apiKey: "k", bankId: "b" };
@@ -22,10 +22,10 @@ const handlers = (def: { events: unknown }): any => def.events;
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("hindsightRetainHook", () => {
+describe("contextbaseRetainHook", () => {
   it("retains both the user message and assistant reply on turn.completed (both by default)", async () => {
     const fetchFn = mockFetch();
-    const ev = handlers(hindsightRetainHook(OPTS));
+    const ev = handlers(contextbaseRetainHook(OPTS));
 
     ev["message.received"]({ data: { turnId: "t1", message: "I prefer tabs" } });
     ev["message.completed"]({ data: { turnId: "t1", message: "Got it.", finishReason: "stop" } });
@@ -43,7 +43,7 @@ describe("hindsightRetainHook", () => {
 
   it("stores only the user message when includeAssistantReply is false", async () => {
     const fetchFn = mockFetch();
-    const ev = handlers(hindsightRetainHook({ ...OPTS, includeAssistantReply: false }));
+    const ev = handlers(contextbaseRetainHook({ ...OPTS, includeAssistantReply: false }));
     ev["message.received"]({ data: { turnId: "t1", message: "I prefer tabs" } });
     ev["message.completed"]({ data: { turnId: "t1", message: "Got it.", finishReason: "stop" } });
     await ev["turn.completed"]({ data: { turnId: "t1" } }, CTX);
@@ -52,7 +52,7 @@ describe("hindsightRetainHook", () => {
 
   it("ignores non-terminal assistant steps (finishReason !== 'stop')", async () => {
     const fetchFn = mockFetch();
-    const ev = handlers(hindsightRetainHook(OPTS));
+    const ev = handlers(contextbaseRetainHook(OPTS));
     ev["message.received"]({ data: { turnId: "t1", message: "hi" } });
     ev["message.completed"]({
       data: { turnId: "t1", message: "calling tool", finishReason: "tool-calls" },
@@ -64,7 +64,7 @@ describe("hindsightRetainHook", () => {
 
   it("does not retain a turn with no user message", async () => {
     const fetchFn = mockFetch();
-    const ev = handlers(hindsightRetainHook(OPTS));
+    const ev = handlers(contextbaseRetainHook(OPTS));
     ev["message.completed"]({ data: { turnId: "t1", message: "orphan", finishReason: "stop" } });
     await ev["turn.completed"]({ data: { turnId: "t1" } }, CTX);
     expect(fetchFn).not.toHaveBeenCalled();
@@ -81,17 +81,17 @@ describe("hindsightRetainHook", () => {
       }))
     );
     const onError = vi.fn();
-    const ev = handlers(hindsightRetainHook({ ...OPTS, onError }));
+    const ev = handlers(contextbaseRetainHook({ ...OPTS, onError }));
     ev["message.received"]({ data: { turnId: "t1", message: "x" } });
     await expect(ev["turn.completed"]({ data: { turnId: "t1" } }, CTX)).resolves.toBeUndefined();
     expect(onError).toHaveBeenCalledWith(expect.anything(), "retain");
   });
 });
 
-describe("hindsightAutoRecall", () => {
+describe("contextbaseAutoRecall", () => {
   it("recalls and returns injected instructions containing the memories", async () => {
     const fetchFn = mockFetch([{ id: "1", text: "prefers Python" }]);
-    const ev = handlers(hindsightAutoRecall(OPTS));
+    const ev = handlers(contextbaseAutoRecall(OPTS));
     const result = await ev["turn.started"]({ data: { turnId: "t1" } }, CTX);
 
     const [url, init] = fetchFn.mock.calls[0];
@@ -103,7 +103,7 @@ describe("hindsightAutoRecall", () => {
 
   it("returns null when there is nothing to recall", async () => {
     mockFetch([]);
-    const ev = handlers(hindsightAutoRecall(OPTS));
+    const ev = handlers(contextbaseAutoRecall(OPTS));
     expect(await ev["turn.started"]({ data: { turnId: "t1" } }, CTX)).toBeNull();
   });
 
@@ -118,7 +118,7 @@ describe("hindsightAutoRecall", () => {
       }))
     );
     const onError = vi.fn();
-    const ev = handlers(hindsightAutoRecall({ ...OPTS, onError }));
+    const ev = handlers(contextbaseAutoRecall({ ...OPTS, onError }));
     expect(await ev["turn.started"]({ data: { turnId: "t1" } }, CTX)).toBeNull();
     expect(onError).toHaveBeenCalledWith(expect.anything(), "recall");
   });

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Main Methods overview examples for Hindsight CLI
+# Main Methods overview examples for ContextBase CLI
 # Run: bash examples/api/main-methods.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="main-methods-sh-demo-bank"
 
 # =============================================================================
@@ -57,6 +57,6 @@ contextbase memory reflect "$BANK_ID" "Analyze our tech stack" --budget high
 # Cleanup (not shown in docs)
 # =============================================================================
 rm -rf "$WORKDIR"
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "main-methods.sh: All examples passed"

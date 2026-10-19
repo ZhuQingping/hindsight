@@ -1,4 +1,4 @@
-"""Shared fixtures for Hindsight OMO plugin tests."""
+"""Shared fixtures for ContextBase OMO plugin tests."""
 
 import json
 import os
@@ -34,7 +34,7 @@ def default_config(plugin_root, monkeypatch):
     """Load config with no overrides, isolated from real settings."""
     monkeypatch.setenv("PLUGIN_ROOT", str(plugin_root))
     for key in list(os.environ):
-        if key.startswith("HINDSIGHT_"):
+        if key.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(key, raising=False)
     from lib.config import load_config
 

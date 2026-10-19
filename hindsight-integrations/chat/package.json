@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/hindsight-chat",
+  "name": "contextbase-chat",
   "version": "0.4.21",
-  "description": "Hindsight memory integration for Vercel Chat SDK - Give your chat bots persistent, per-user memory",
+  "description": "ContextBase memory integration for Vercel Chat SDK - Give your chat bots persistent, per-user memory",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -18,7 +18,7 @@
     "discord",
     "teams",
     "memory",
-    "hindsight",
+    "contextbase",
     "agents",
     "llm",
     "long-term-memory"
@@ -27,7 +27,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/chat"
   },
   "files": [

@@ -16,8 +16,8 @@ from lib.content import (
 
 
 class TestStripMemoryTags:
-    def test_strips_hindsight_memories_block(self):
-        text = "real content <hindsight_memories>noise</hindsight_memories> more"
+    def test_strips_contextbase_memories_block(self):
+        text = "real content <contextbase_memories>noise</contextbase_memories> more"
         out = strip_memory_tags(text)
         assert "noise" not in out
         assert "real content" in out
@@ -205,7 +205,7 @@ class TestComposeRecallQuery:
 
     def test_skips_memory_tags(self):
         msgs = [
-            {"role": "user", "content": "<hindsight_memories>noise</hindsight_memories> keep me"},
+            {"role": "user", "content": "<contextbase_memories>noise</contextbase_memories> keep me"},
         ]
         q = compose_recall_query("anything", msgs, 1)
         assert q == "anything"
@@ -292,9 +292,9 @@ class TestPrepareRetentionTranscript:
         assert text is None
         assert count == 0
 
-    def test_strips_hindsight_memories_before_retaining(self):
+    def test_strips_contextbase_memories_before_retaining(self):
         msgs = [
-            {"role": "user", "content": "<hindsight_memories>x</hindsight_memories> actual question"},
+            {"role": "user", "content": "<contextbase_memories>x</contextbase_memories> actual question"},
         ]
         text, _ = prepare_retention_transcript(msgs, retain_full_window=True)
         assert "x" not in text

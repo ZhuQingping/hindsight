@@ -1,10 +1,10 @@
 #!/bin/bash
-# Recall API examples for Hindsight CLI
+# Recall API examples for ContextBase CLI
 # Run: bash examples/api/recall.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # =============================================================================
 # Setup (not shown in docs)
@@ -111,6 +111,6 @@ contextbase memory recall my-bank "communication tools" \
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/my-bank" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/my-bank" > /dev/null
 
 echo "recall.sh: All examples passed"

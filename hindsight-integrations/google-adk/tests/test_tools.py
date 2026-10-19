@@ -1,4 +1,4 @@
-"""Tests for the create_hindsight_tools factory."""
+"""Tests for the create_contextbase_tools factory."""
 
 from __future__ import annotations
 
@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from hindsight_google_adk import (
+from contextbase_google_adk import (
     HindsightError,
     configure,
-    create_hindsight_tools,
+    create_contextbase_tools,
     reset_config,
 )
 
@@ -33,29 +33,29 @@ def _mock_client() -> MagicMock:
 class TestFactory:
     def test_requires_client_or_config(self):
         with pytest.raises(HindsightError):
-            create_hindsight_tools(bank_id="bank-1")
+            create_contextbase_tools(bank_id="bank-1")
 
     def test_returns_three_tools_by_default(self):
-        tools = create_hindsight_tools(bank_id="bank-1", client=_mock_client())
+        tools = create_contextbase_tools(bank_id="bank-1", client=_mock_client())
         assert len(tools) == 3
         names = {t.name for t in tools}
-        assert names == {"hindsight_retain", "hindsight_recall", "hindsight_reflect"}
+        assert names == {"contextbase_retain", "contextbase_recall", "contextbase_reflect"}
 
     def test_include_flags_select_subsets(self):
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="bank-1",
             client=_mock_client(),
             include_retain=True,
             include_recall=False,
             include_reflect=False,
         )
-        assert {t.name for t in tools} == {"hindsight_retain"}
+        assert {t.name for t in tools} == {"contextbase_retain"}
 
     def test_resolves_client_from_url(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_API_KEY", "k")
-        configure(hindsight_api_url="https://api.example.com", api_key="k")
+        monkeypatch.setenv("CONTEXTBASE_API_KEY", "k")
+        configure(contextbase_api_url="https://api.example.com", api_key="k")
         # Resolved client is constructed against the URL; tools should be returned
-        tools = create_hindsight_tools(bank_id="bank-1")
+        tools = create_contextbase_tools(bank_id="bank-1")
         assert len(tools) == 3
 
 
@@ -69,8 +69,8 @@ def _tool_by_name(tools, name):
 class TestRetainTool:
     async def test_executes_retain(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="bank-1", client=client, tags=["env:prod"])
-        retain = _tool_by_name(tools, "hindsight_retain")
+        tools = create_contextbase_tools(bank_id="bank-1", client=client, tags=["env:prod"])
+        retain = _tool_by_name(tools, "contextbase_retain")
         result = await retain.func(content="Remember this")
         assert result == "Memory stored successfully."
         client.aretain.assert_awaited_once()
@@ -79,11 +79,11 @@ class TestRetainTool:
         assert kwargs["content"] == "Remember this"
         assert kwargs["tags"] == ["env:prod"]
 
-    async def test_wraps_error_as_hindsight_error(self):
+    async def test_wraps_error_as_contextbase_error(self):
         client = _mock_client()
         client.aretain.side_effect = RuntimeError("api down")
-        tools = create_hindsight_tools(bank_id="bank-1", client=client)
-        retain = _tool_by_name(tools, "hindsight_retain")
+        tools = create_contextbase_tools(bank_id="bank-1", client=client)
+        retain = _tool_by_name(tools, "contextbase_retain")
         with pytest.raises(HindsightError):
             await retain.func(content="x")
 
@@ -97,26 +97,26 @@ class TestRecallTool:
                 SimpleNamespace(id="m2", text="second"),
             ]
         )
-        tools = create_hindsight_tools(bank_id="bank-1", client=client)
-        recall = _tool_by_name(tools, "hindsight_recall")
+        tools = create_contextbase_tools(bank_id="bank-1", client=client)
+        recall = _tool_by_name(tools, "contextbase_recall")
         result = await recall.func(query="what did I say?")
         assert "1. first" in result
         assert "2. second" in result
 
     async def test_empty_results_friendly_message(self):
-        tools = create_hindsight_tools(bank_id="bank-1", client=_mock_client())
-        recall = _tool_by_name(tools, "hindsight_recall")
+        tools = create_contextbase_tools(bank_id="bank-1", client=_mock_client())
+        recall = _tool_by_name(tools, "contextbase_recall")
         assert "No relevant memories" in await recall.func(query="anything")
 
     async def test_recall_tags_forwarded(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="bank-1",
             client=client,
             recall_tags=["env:prod"],
             recall_tags_match="all",
         )
-        recall = _tool_by_name(tools, "hindsight_recall")
+        recall = _tool_by_name(tools, "contextbase_recall")
         await recall.func(query="q")
         kwargs = client.arecall.await_args.kwargs
         assert kwargs["tags"] == ["env:prod"]
@@ -126,20 +126,20 @@ class TestRecallTool:
 class TestReflectTool:
     async def test_executes_reflect(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="bank-1", client=client)
-        reflect = _tool_by_name(tools, "hindsight_reflect")
+        tools = create_contextbase_tools(bank_id="bank-1", client=client)
+        reflect = _tool_by_name(tools, "contextbase_reflect")
         result = await reflect.func(query="what do I prefer?")
         assert result == "reflection"
 
     async def test_reflect_context_and_schema_forwarded(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="bank-1",
             client=client,
             reflect_context="user is a developer",
             reflect_response_schema={"type": "object"},
         )
-        reflect = _tool_by_name(tools, "hindsight_reflect")
+        reflect = _tool_by_name(tools, "contextbase_reflect")
         await reflect.func(query="q")
         kwargs = client.areflect.await_args.kwargs
         assert kwargs["context"] == "user is a developer"
@@ -148,6 +148,6 @@ class TestReflectTool:
     async def test_empty_reflect_response_friendly(self):
         client = _mock_client()
         client.areflect.return_value = SimpleNamespace(text="")
-        tools = create_hindsight_tools(bank_id="bank-1", client=client)
-        reflect = _tool_by_name(tools, "hindsight_reflect")
+        tools = create_contextbase_tools(bank_id="bank-1", client=client)
+        reflect = _tool_by_name(tools, "contextbase_reflect")
         assert "No relevant memories" in await reflect.func(query="q")

@@ -1,10 +1,10 @@
 """Bank ID derivation and mission management for Codex.
 
 Codex context dimensions:
-  - agent   → configured name or "codex" (HINDSIGHT_AGENT_NAME)
+  - agent   → configured name or "codex" (CONTEXTBASE_AGENT_NAME)
   - project → derived from cwd (working directory basename)
   - session → session_id from hook input
-  - user    → from env var HINDSIGHT_USER_ID
+  - user    → from env var CONTEXTBASE_USER_ID
 
 The channel dimension is omitted — Codex is a CLI tool without multi-channel
 routing like Telegram/Discord agents.
@@ -49,7 +49,7 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     cwd = hook_input.get("cwd", "")
     session_id = hook_input.get("session_id", "")
     agent_name = config.get("agentName", "codex")
-    user_id = os.environ.get("HINDSIGHT_USER_ID", "")
+    user_id = os.environ.get("CONTEXTBASE_USER_ID", "")
 
     field_map = {
         "agent": agent_name,

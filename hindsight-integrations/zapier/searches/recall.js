@@ -37,7 +37,7 @@ module.exports = {
   display: {
     label: "Recall Memories",
     description:
-      "Search a Hindsight memory bank for memories relevant to a natural-language query.",
+      "Search a ContextBase memory bank for memories relevant to a natural-language query.",
   },
   operation: {
     inputFields: [

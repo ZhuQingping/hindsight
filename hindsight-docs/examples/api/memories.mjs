@@ -5,12 +5,12 @@
  */
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 const BANK_ID = 'memories-demo-bank';
 
 // PATCH isn't exposed on the high-level client yet, so curation goes through fetch.
 const patchMemory = (memoryId, body) =>
-    fetch(`${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/memories/${memoryId}`, {
+    fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}/memories/${memoryId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -19,7 +19,7 @@ const patchMemory = (memoryId, body) =>
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 await client.createBank(BANK_ID, { name: 'Memories Demo' });
 await client.retain(BANK_ID, 'The assistant visited Paris in 2023.');
 await client.retain(BANK_ID, 'The deploy server srv-04 runs PostgreSQL 14.');
@@ -53,7 +53,7 @@ const memoryId = fact.id;
 // [docs:get-memory]
 // Fetch a single memory unit (metadata, entities, dates, state).
 const memory = await (
-    await fetch(`${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/memories/${memoryId}`)
+    await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}/memories/${memoryId}`)
 ).json();
 console.log(`Text: ${memory.text}`);
 console.log(`Type: ${memory.type}  Entities: ${memory.entities}`);
@@ -95,7 +95,7 @@ if (observation) {
     // [docs:observation-history]
     // Get the refresh history of a derived observation.
     const history = await (
-        await fetch(`${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/memories/${observation.id}/history`)
+        await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}/memories/${observation.id}/history`)
     ).json();
     console.log(`Observation history entries: ${history.length}`);
     // [/docs:observation-history]

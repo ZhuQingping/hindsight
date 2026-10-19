@@ -1,8 +1,10 @@
-# Hindsight for Zapier
+# ContextBase for Zapier
 
-A [Zapier](https://zapier.com) app that brings [Hindsight](https://hindsight.vectorize.io) long-term memory into your Zaps — store content, search memories, get grounded answers, and start Zaps from memory events.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
-Built with the [Zapier Platform CLI](https://platform.zapier.com/). The source lives in the Hindsight monorepo for versioning and CI; the app itself is published to Zapier's platform with `zapier-platform push` / `zapier-platform promote` (see [Publishing](#publishing)).
+A [Zapier](https://zapier.com) app that brings [ContextBase](https://github.com/RSIXDB/hindsight) long-term memory into your Zaps — store content, search memories, get grounded answers, and start Zaps from memory events.
+
+Built with the [Zapier Platform CLI](https://platform.zapier.com/). The source lives in the ContextBase monorepo for versioning and CI; the app itself is published to Zapier's platform with `zapier-platform push` / `zapier-platform promote` (see [Publishing](#publishing)).
 
 ## What's included
 
@@ -14,7 +16,7 @@ Built with the [Zapier Platform CLI](https://platform.zapier.com/). The source l
 
 ### Triggers (instant, via REST Hooks)
 
-Each subscribes to Hindsight's webhook API (`POST /webhooks`) and is removed on teardown (`DELETE /webhooks/{id}`):
+Each subscribes to ContextBase's webhook API (`POST /webhooks`) and is removed on teardown (`DELETE /webhooks/{id}`):
 
 - **Retain Completed** — `retain.completed`
 - **Consolidation Completed** — `consolidation.completed`
@@ -29,14 +31,14 @@ The **Bank** field on every action/trigger is a dynamic dropdown populated from 
 
 API-key auth. Provide:
 
-- **API Key** — your Hindsight key (starts with `hsk_`), sent as `Authorization: Bearer <key>`. Required for Hindsight Cloud; **optional** — leave it blank — for a self-hosted instance running without authentication.
-- **API URL** — defaults to Hindsight Cloud (`https://api.hindsight.vectorize.io`); set it to your own instance for self-hosted (e.g. `http://localhost:8888`).
+- **API Key** — your ContextBase key (starts with `hsk_`), sent as `Authorization: Bearer <key>`. Required for ContextBase remote service; **optional** — leave it blank — for a self-hosted instance running without authentication.
+- **API URL** — defaults to an explicitly configured service URL; set it to your own instance for self-hosted (e.g. `http://localhost:8888`).
 
 ### Self-hosted
 
 Point **API URL** at your instance. If it runs without auth, leave **API Key** blank — no `Authorization` header is sent. Triggers also work self-hosted: they rely on your instance making an _outbound_ POST to Zapier's webhook URL, which works for any box with outbound internet (only fully air-gapped instances can't).
 
-> Each trigger registers its webhook with a freshly generated HMAC secret and verifies the `X-Hindsight-Signature: sha256=<hmac>` header on every delivery, rejecting any payload whose signature doesn't match.
+> Each trigger registers its webhook with a freshly generated HMAC secret and verifies the `X-ContextBase-Signature: sha256=<hmac>` header on every delivery, rejecting any payload whose signature doesn't match.
 
 ## Development
 
@@ -51,8 +53,8 @@ Live checks against a real instance. `zapier invoke` reads credentials from a lo
 
 ```bash
 # `zapier invoke` reads auth fields from .env with an `authData_` prefix.
-# Hindsight Cloud:
-printf "authData_apiKey=hsk_your_key\nauthData_apiUrl=https://api.hindsight.vectorize.io\n" > .env
+# ContextBase remote service:
+printf "authData_apiKey=hsk_your_key\nauthData_apiUrl=http://localhost:8888\n" > .env
 # …or self-hosted without auth:
 printf "authData_apiKey=\nauthData_apiUrl=http://localhost:8888\n" > .env
 
@@ -70,11 +72,11 @@ npx zapier-platform invoke search recall --inputData '{"bank_id":"zapier-test","
 Requires a Zapier developer account (`npx zapier-platform login`); cannot run in CI without a `ZAPIER_DEPLOY_KEY`.
 
 ```bash
-npx zapier-platform register "Hindsight"   # first time only — writes .zapierapprc (gitignored)
+npx zapier-platform register "ContextBase"   # first time only — writes .zapierapprc (gitignored)
 npx zapier-platform push                   # upload the current version (private/invite testing)
 npx zapier-platform promote 1.0.0          # make a version the default for new users
 ```
 
-Public-directory listing is a separate, manual step through Zapier's app-review (branding, descriptions, and a dedicated Hindsight Cloud test bank + API key for reviewers).
+Public-directory listing is a separate, manual step through Zapier's app-review (branding, descriptions, and a dedicated ContextBase remote service test bank + API key for reviewers).
 
 > **Release note:** this integration is **not** released via the monorepo's `release-integration.sh` / `release-integration.yml` (those handle PyPI/npm). It is published to Zapier manually. `package.json` is marked `"private": true` so it can never be accidentally `npm publish`ed. Do not add `zapier` to `VALID_INTEGRATIONS` in `release-integration.sh`.

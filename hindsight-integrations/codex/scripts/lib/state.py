@@ -1,7 +1,7 @@
 """File-based state persistence.
 
 Codex hooks are ephemeral processes — state must be persisted to files.
-Uses ~/.hindsight/codex/state/ as the storage directory.
+Uses ~/.contextbase/codex/state/ as the storage directory.
 """
 
 import json
@@ -18,7 +18,7 @@ else:
 
 def _state_dir() -> str:
     """Get the state directory, creating it if needed."""
-    state_dir = os.path.join(os.path.expanduser("~"), ".hindsight", "codex", "state")
+    state_dir = os.path.join(os.path.expanduser("~"), ".contextbase", "codex", "state")
     os.makedirs(state_dir, exist_ok=True)
     return state_dir
 

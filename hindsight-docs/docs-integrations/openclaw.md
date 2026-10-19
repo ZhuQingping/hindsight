@@ -1,14 +1,14 @@
 ---
 sidebar_position: 4
-title: "OpenClaw Persistent Memory with Hindsight | Plugin Integration"
-description: "Add persistent, automated memory to your OpenClaw agent with Hindsight. Local-first, open source — one plugin install replaces built-in memory with structured knowledge extraction and auto-recall."
+title: "OpenClaw Persistent Memory with ContextBase | Plugin Integration"
+description: "Add persistent, automated memory to your OpenClaw agent with ContextBase. Local-first, open source — one plugin install replaces built-in memory with structured knowledge extraction and auto-recall."
 ---
 
 # OpenClaw
 
-Local, long term memory for [OpenClaw](https://openclaw.ai) agents using [Hindsight](https://vectorize.io/hindsight).
+Local, long term memory for [OpenClaw](https://openclaw.ai) agents using [ContextBase](https://github.com/RSIXDB/hindsight).
 
-This plugin integrates [hindsight-embed](https://vectorize.io/hindsight/cli), a standalone daemon that bundles Hindsight's memory engine (API + PostgreSQL) into a single command. Everything runs locally on your machine, reuses the LLM you're already paying for, and costs nothing extra.
+This plugin integrates [hindsight-embed](https://github.com/RSIXDB/hindsight/cli), a standalone daemon that bundles ContextBase's memory engine (API + PostgreSQL) into a single command. Everything runs locally on your machine, reuses the LLM you're already paying for, and costs nothing extra.
 
 [View Changelog →](/changelog/integrations/openclaw)
 
@@ -17,7 +17,7 @@ This plugin integrates [hindsight-embed](https://vectorize.io/hindsight/cli), a 
 **Step 1: Install the plugin**
 
 ```bash
-openclaw plugins install @vectorize-io/hindsight-openclaw
+openclaw plugins install contextbase-openclaw
 ```
 
 **Step 2: Run the setup wizard**
@@ -27,13 +27,13 @@ but does not put its bins on `PATH`. Run the wizard through `npx` instead —
 it resolves the bin out of the published package:
 
 ```bash
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup
+npx --package contextbase-openclaw contextbase-openclaw-setup
 ```
 
 The wizard walks you through picking one of three install modes:
 
-- **Cloud** — managed Hindsight at `https://api.hindsight.vectorize.io`. Paste your cloud API token when prompted (masked input). No local setup needed.
-- **External API** — your own running Hindsight deployment. Prompts for the URL and, optionally, the token value (masked).
+- **Cloud** — managed ContextBase at `http://localhost:8888`. Paste your cloud API token when prompted (masked input). No local setup needed.
+- **External API** — your own running ContextBase deployment. Prompts for the URL and, optionally, the token value (masked).
 - **Embedded daemon** — spawns a local `hindsight-embed` daemon on this machine. Prompts for the LLM provider (OpenAI / Anthropic / Gemini / Groq / Claude Code / OpenAI Codex / Ollama) and the API key (masked).
 
 The interactive wizard stores credentials **inline** in `openclaw.json` for simplicity. For CI / production you can store credentials as a [`SecretRef`](#llm-configuration) (resolved from an env var, file, or exec source at startup, never saved on disk) by either passing `--token-env` / `--api-key-env` to the non-interactive wizard or switching an existing field afterwards via `openclaw config set ... --ref-source env|file|exec`.
@@ -42,31 +42,31 @@ For CI and scripted setups the wizard also runs non-interactively — either wit
 
 ```bash
 # Cloud — inline token (simplest)
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
+npx --package contextbase-openclaw contextbase-openclaw-setup \
     --mode cloud --token hsk_your_cloud_token
 
 # Cloud — SecretRef (read from env at gateway startup)
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
-    --mode cloud --token-env HINDSIGHT_CLOUD_TOKEN
+npx --package contextbase-openclaw contextbase-openclaw-setup \
+    --mode cloud --token-env CONTEXTBASE_CLOUD_TOKEN
 
 # External API (no auth)
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
+npx --package contextbase-openclaw contextbase-openclaw-setup \
     --mode api --api-url https://mcp.hindsight.example.com --no-token
 
 # Embedded daemon with OpenAI — inline API key
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
+npx --package contextbase-openclaw contextbase-openclaw-setup \
     --mode embedded --provider openai --api-key sk-...
 
 # Embedded daemon with OpenAI — SecretRef
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
+npx --package contextbase-openclaw contextbase-openclaw-setup \
     --mode embedded --provider openai --api-key-env OPENAI_API_KEY
 
 # Embedded daemon with Claude Code (no API key needed)
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup \
+npx --package contextbase-openclaw contextbase-openclaw-setup \
     --mode embedded --provider claude-code
 ```
 
-Run `npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup --help` for the full flag list.
+Run `npx --package contextbase-openclaw contextbase-openclaw-setup --help` for the full flag list.
 
 **Step 3: Start OpenClaw**
 
@@ -86,7 +86,7 @@ The plugin will automatically capture conversations after each turn and inject r
 
 **Auto-Recall:** Before each agent response, relevant memories are automatically injected into the context (up to 1024 tokens by default). The agent uses past context without needing to call tools.
 
-**Feedback Loop Prevention:** The plugin automatically strips injected memory tags (`<hindsight_memories>`) before storing conversations. This prevents recalled memories from being re-extracted as new facts, which would cause exponential memory growth and duplicate entries.
+**Feedback Loop Prevention:** The plugin automatically strips injected memory tags (`<contextbase_memories>`) before storing conversations. This prevents recalled memories from being re-extracted as new facts, which would cause exponential memory growth and duplicate entries.
 
 Traditional memory systems give agents a `search_memory` tool - but models don't use it consistently. Auto-recall solves this by injecting memories automatically before every turn.
 
@@ -100,7 +100,7 @@ Optional settings in `~/.openclaw/openclaw.json`:
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
           "apiPort": 9077,
@@ -116,7 +116,7 @@ Optional settings in `~/.openclaw/openclaw.json`:
 
 - `apiPort` - Port for the openclaw profile daemon (default: `9077`)
 - `embedVersion` - hindsight-embed version (default: `"latest"`)
-- `llmProvider` - LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `hindsightApiUrl` is set.
+- `llmProvider` - LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `contextbaseApiUrl` is set.
 - `llmModel` - LLM model used with `llmProvider` (provider default if omitted)
 - `llmApiKey` - API key for the LLM provider. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY` to reference an env var.
 - `llmBaseUrl` - Optional base URL override for OpenAI-compatible providers (e.g. `https://openrouter.ai/api/v1`)
@@ -163,7 +163,7 @@ You can customize which fields are used for bank segmentation with `dynamicBankG
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
           "dynamicBankGranularity": ["provider", "user"]
@@ -193,7 +193,7 @@ Those two modes are all-or-nothing. When you run several agents in one gateway a
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
           "dynamicBankId": true,
@@ -216,13 +216,13 @@ Agent ids are matched exactly (case-sensitive), and mapped bank names are used e
 
 ### Per-user bank defaults
 
-With `dynamicBankId` enabled (the default), each derived bank otherwise inherits only the Hindsight **server** defaults (`concise` extraction, no entity labels, etc.). To make every per-user bank match your intended base/shared bank, set the bank-default options below — they are stamped onto each bank **on first use**, before its first retain or recall:
+With `dynamicBankId` enabled (the default), each derived bank otherwise inherits only the ContextBase **server** defaults (`concise` extraction, no entity labels, etc.). To make every per-user bank match your intended base/shared bank, set the bank-default options below — they are stamped onto each bank **on first use**, before its first retain or recall:
 
 ```json
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
           "dynamicBankId": true,
@@ -257,7 +257,7 @@ By default, the plugin retains `user` and `assistant` messages after each turn. 
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
           "autoRetain": true,
@@ -274,7 +274,7 @@ By default, the plugin retains `user` and `assistant` messages after each turn. 
 
 ### LLM Configuration
 
-> If you used `hindsight-openclaw-setup` in Quick Start, this section is
+> If you used `contextbase-openclaw-setup` in Quick Start, this section is
 > already handled for you — read on if you want to edit `openclaw.json`
 > directly or switch to a file/exec secret source.
 
@@ -296,36 +296,36 @@ instead of sitting in plaintext on disk.
 **Set provider + API key:**
 
 ```bash
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
 ```
 
-**Override the model (optional — Hindsight picks a sensible default per provider):**
+**Override the model (optional — ContextBase picks a sensible default per provider):**
 
 ```bash
-openclaw config set plugins.entries.hindsight-openclaw.config.llmModel gpt-4o-mini
+openclaw config set plugins.entries.contextbase-openclaw.config.llmModel gpt-4o-mini
 ```
 
 **OpenAI-compatible providers (OpenRouter, Azure OpenAI, vLLM, ...):**
 
 ```bash
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
-openclaw config set plugins.entries.hindsight-openclaw.config.llmBaseUrl https://openrouter.ai/api/v1
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.contextbase-openclaw.config.llmBaseUrl https://openrouter.ai/api/v1
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source env --ref-provider default --ref-id OPENROUTER_API_KEY
-openclaw config set plugins.entries.hindsight-openclaw.config.llmModel xiaomi/mimo-v2-flash
+openclaw config set plugins.entries.contextbase-openclaw.config.llmModel xiaomi/mimo-v2-flash
 ```
 
 **Use a file or exec source instead of env (for K8s secrets, Vault, etc.):**
 
 ```bash
 # File source (e.g. mounted Docker/K8s secret)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source file --ref-provider mounted-json --ref-id /providers/openai/apiKey
 
 # Exec source (e.g. HashiCorp Vault)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source exec --ref-provider vault --ref-id openai/api-key
 ```
 
@@ -335,10 +335,10 @@ in your OpenClaw config — see `openclaw config set --help` for the
 
 ### External API (Advanced)
 
-> `hindsight-openclaw-setup --mode api --api-url <url>` covers this path
+> `contextbase-openclaw-setup --mode api --api-url <url>` covers this path
 > interactively — this section documents the underlying config fields.
 
-Connect to a remote Hindsight API server instead of running a local daemon. This is useful for:
+Connect to a remote ContextBase API server instead of running a local daemon. This is useful for:
 
 - **Shared memory** across multiple OpenClaw instances
 - **Production deployments** with centralized memory storage
@@ -352,11 +352,11 @@ Configure in `~/.openclaw/openclaw.json`:
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
-          "hindsightApiUrl": "https://your-hindsight-server.com",
-          "hindsightApiToken": "your-api-token"
+          "contextbaseApiUrl": "https://your-hindsight-server.com",
+          "contextbaseApiToken": "your-api-token"
         }
       }
     }
@@ -366,12 +366,12 @@ Configure in `~/.openclaw/openclaw.json`:
 
 **Options:**
 
-- `hindsightApiUrl` - Full URL to external Hindsight API (e.g., `https://mcp.hindsight.example.com`)
-- `hindsightApiToken` - API token for authentication (optional). **Sensitive** — set as a SecretRef:
+- `contextbaseApiUrl` - Full URL to external ContextBase API (e.g., `https://mcp.hindsight.example.com`)
+- `contextbaseApiToken` - API token for authentication (optional). **Sensitive** — set as a SecretRef:
 
   ```bash
-  openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken \
-      --ref-source env --ref-provider default --ref-id HINDSIGHT_API_TOKEN
+  openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken \
+      --ref-source env --ref-provider default --ref-id CONTEXTBASE_API_TOKEN
   ```
 
 #### Behavior
@@ -388,11 +388,11 @@ When external API mode is enabled:
 Check OpenClaw logs for external API mode:
 
 ```bash
-tail -f /tmp/openclaw/openclaw-*.log | grep Hindsight
+tail -f /tmp/openclaw/openclaw-*.log | grep ContextBase
 
 # Should see on startup:
-# [Hindsight] External API mode enabled: https://your-hindsight-server.com
-# [Hindsight] External API health check passed
+# [ContextBase] External API mode enabled: https://your-hindsight-server.com
+# [ContextBase] External API health check passed
 ```
 
 If you see daemon startup messages instead, verify your configuration is correct.
@@ -404,7 +404,7 @@ If you see daemon startup messages instead, verify your configuration is correct
 View the daemon config that was written by the plugin:
 
 ```bash
-cat ~/.hindsight/profiles/openclaw.env
+cat ~/.contextbase/profiles/openclaw.env
 ```
 
 This shows the LLM provider, model, port, and other settings the daemon is using.
@@ -416,7 +416,7 @@ This shows the LLM provider, model, port, and other settings the daemon is using
 uvx hindsight-embed@latest -p openclaw daemon status
 
 # View daemon logs
-tail -f ~/.hindsight/profiles/openclaw.log
+tail -f ~/.contextbase/profiles/openclaw.log
 ```
 
 ### Query Memories
@@ -455,8 +455,8 @@ three problems on affected setups:
 Two things to expect after installing on OpenClaw 2026.8.1 or later:
 
 - Install prints
-  `Exclusive slot "memory" switched from "memory-core" to "hindsight-openclaw"`.
-  This is correct: Hindsight replaces OpenClaw's built-in memory.
+  `Exclusive slot "memory" switched from "memory-core" to "contextbase-openclaw"`.
+  This is correct: ContextBase replaces OpenClaw's built-in memory.
 - `openclaw plugins doctor` then reports that `memory-core` is not selected for
   the memory slot. This is expected and not an error — it is OpenClaw noting that
   its built-in memory stepped aside.
@@ -473,11 +473,11 @@ it is fixed in 0.12.0 — retry the install with the new version.
 ### Plugin not loading
 
 ```bash
-openclaw plugins list | grep hindsight
-# Should show: ✓ enabled │ Hindsight Memory │ ...
+openclaw plugins list | grep contextbase
+# Should show: ✓ enabled │ ContextBase Memory │ ...
 
 # Reinstall if needed
-openclaw plugins install @vectorize-io/hindsight-openclaw
+openclaw plugins install contextbase-openclaw
 ```
 
 ### Daemon not starting
@@ -487,10 +487,10 @@ openclaw plugins install @vectorize-io/hindsight-openclaw
 uvx hindsight-embed@latest -p openclaw daemon status
 
 # View logs for errors
-tail -f ~/.hindsight/profiles/openclaw.log
+tail -f ~/.contextbase/profiles/openclaw.log
 
 # Check configuration
-cat ~/.hindsight/profiles/openclaw.env
+cat ~/.contextbase/profiles/openclaw.env
 
 # List all profiles
 uvx hindsight-embed@latest profile list
@@ -503,26 +503,26 @@ Make sure you've configured the LLM provider through `openclaw config set`
 
 ```bash
 # Option 1 — OpenAI (requires OPENAI_API_KEY in your env)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
 
 # Option 2 — Anthropic
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider anthropic
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider anthropic
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source env --ref-provider default --ref-id ANTHROPIC_API_KEY
 
 # Option 3 — Claude Code (no API key needed)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider claude-code
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider claude-code
 
 # Option 4 — OpenAI Codex (no API key needed)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai-codex
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai-codex
 
 # Verify the config is valid
 openclaw config validate
 
 # Inspect the current value
-openclaw config get plugins.entries.hindsight-openclaw.config.llmProvider
+openclaw config get plugins.entries.contextbase-openclaw.config.llmProvider
 ```
 
 If you used `--ref-source env`, double-check that the referenced env var
@@ -530,10 +530,10 @@ If you used `--ref-source env`, double-check that the referenced env var
 
 ## OpenClaw's memory page, status and search
 
-On OpenClaw 2026.10 or later, the plugin registers as OpenClaw's native memory provider. OpenClaw's own memory surfaces then read from Hindsight instead of reporting "memory plugin unavailable":
+On OpenClaw 2026.10 or later, the plugin registers as OpenClaw's native memory provider. OpenClaw's own memory surfaces then read from ContextBase instead of reporting "memory plugin unavailable":
 
-- `memory.status` and the Memory page report Hindsight's health.
-- Gateway `memory.search` (with `version: 2`) and `memory.get` return Hindsight memories.
+- `memory.status` and the Memory page report ContextBase's health.
+- Gateway `memory.search` (with `version: 2`) and `memory.get` return ContextBase memories.
 
 Search is read-only and answers only callers allowed to see the whole bank: an operator, or the agent owner's private session. It works when an agent's bank depends on the agent alone: `dynamicBankGranularity: ["agent"]`, a static `bankId`, or an `agentBankMap` entry. When banks are keyed by user or channel (the default granularity), OpenClaw can't tell which user's bank to search, so search is refused and status still reports ready. Prompt-side recall stays with `autoRecall`, so turning this on never injects memories twice. Older OpenClaw versions ignore it.
 
@@ -541,13 +541,13 @@ Search is read-only and answers only callers allowed to see the whole bank: an o
 
 ### `memory-wiki` bridge mode is not supported
 
-`hindsight-openclaw` does not export OpenClaw `publicArtifacts`, so OpenClaw's
+`contextbase-openclaw` does not export OpenClaw `publicArtifacts`, so OpenClaw's
 `memory-wiki` **bridge mode** (`vaultMode: "bridge"`) is not supported. With the
-Hindsight plugin active, `openclaw wiki bridge import` imports `0` artifacts and
+ContextBase plugin active, `openclaw wiki bridge import` imports `0` artifacts and
 `openclaw wiki status` warns that the active memory plugin isn't exporting any
 public memory artifacts.
 
-This applies only to the wiki bridge. Hindsight's own memory works normally —
+This applies only to the wiki bridge. ContextBase's own memory works normally —
 retain / recall / reflect, shared banks, and the external-API setup above are all
 unaffected.
 
@@ -556,16 +556,16 @@ unaffected.
 Check gateway logs for memory operations:
 
 ```bash
-tail -f /tmp/openclaw/openclaw-*.log | grep Hindsight
+tail -f /tmp/openclaw/openclaw-*.log | grep ContextBase
 
 # Should see on startup:
-# [Hindsight] ✓ Using provider: openai, model: gpt-4o-mini
+# [ContextBase] ✓ Using provider: openai, model: gpt-4o-mini
 # or
-# [Hindsight] ✓ Using provider: claude-code, model: claude-sonnet-4-20250514
+# [ContextBase] ✓ Using provider: claude-code, model: claude-sonnet-4-20250514
 
 # Should see after conversations:
-# [Hindsight] Retained X messages for session ...
-# [Hindsight] Auto-recall: Injecting X memories
+# [ContextBase] Retained X messages for session ...
+# [ContextBase] Auto-recall: Injecting X memories
 ```
 
 ## Migration from 0.5.x
@@ -578,14 +578,14 @@ from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / etc. — you must set
 
 | Old (0.5.x)                              | New (0.6.0)                                                                                                                                                                                                 |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY=…` (auto-detected)       | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai` <br/> `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
-| `HINDSIGHT_API_LLM_PROVIDER=…`           | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider …`                                                                                                                               |
-| `HINDSIGHT_API_LLM_MODEL=…`              | `openclaw config set plugins.entries.hindsight-openclaw.config.llmModel …`                                                                                                                                  |
-| `HINDSIGHT_API_LLM_API_KEY=…`            | `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id …`                                                                                                       |
-| `HINDSIGHT_API_LLM_BASE_URL=…`           | `openclaw config set plugins.entries.hindsight-openclaw.config.llmBaseUrl …`                                                                                                                                |
-| `HINDSIGHT_EMBED_API_URL=…`              | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiUrl …`                                                                                                                           |
-| `HINDSIGHT_EMBED_API_TOKEN=…`            | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken --ref-source env --ref-id …`                                                                                               |
-| `HINDSIGHT_BANK_ID=…`                    | `openclaw config set plugins.entries.hindsight-openclaw.config.bankId …`                                                                                                                                    |
+| `OPENAI_API_KEY=…` (auto-detected)       | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai` <br/> `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
+| `CONTEXTBASE_API_LLM_PROVIDER=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider …`                                                                                                                               |
+| `CONTEXTBASE_API_LLM_MODEL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.llmModel …`                                                                                                                                  |
+| `CONTEXTBASE_API_LLM_API_KEY=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id …`                                                                                                       |
+| `CONTEXTBASE_API_LLM_BASE_URL=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmBaseUrl …`                                                                                                                                |
+| `CONTEXTBASE_EMBED_API_URL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiUrl …`                                                                                                                           |
+| `CONTEXTBASE_EMBED_API_TOKEN=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken --ref-source env --ref-id …`                                                                                               |
+| `CONTEXTBASE_BANK_ID=…`                    | `openclaw config set plugins.entries.contextbase-openclaw.config.bankId …`                                                                                                                                    |
 | `llmApiKeyEnv: "MY_KEY"` (plugin config) | `llmApiKey` configured as a SecretRef with `--ref-id MY_KEY`                                                                                                                                                |
 
 If your shell already exports `OPENAI_API_KEY`, the SecretRef config above

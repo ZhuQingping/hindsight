@@ -2,27 +2,27 @@
 sidebar_position: 15
 ---
 
-# Hindsight AI SDK - Personal Chef
+# ContextBase AI SDK - Personal Chef
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/taste-ai)
 :::
 
 
-A personal food assistant demonstrating three key Hindsight integrations using the [Vercel AI SDK v6](https://sdk.vercel.ai/docs).
+A personal food assistant demonstrating three key ContextBase integrations using the [Vercel AI SDK v6](https://sdk.vercel.ai/docs).
 
 ## Architecture: Single Bank with User Tags
 
-This demo uses a **single Hindsight bank** (`taste-ai`) for all users, with each user's data tagged using `user:${username}`.
+This demo uses a **single ContextBase bank** (`taste-ai`) for all users, with each user's data tagged using `user:${username}`.
 
 ```typescript
 // All users share the same bank
 const BANK_ID = 'taste-ai';
 
 // Each memory is tagged with the user
-await hindsightTools.retain.execute({
+await contextbaseTools.retain.execute({
   bankId: BANK_ID,
   content: userData,
   tags: [`user:${username}`],
@@ -34,7 +34,7 @@ This architecture enables:
 - **Aggregated insights**: Query across all users to find popular recipes or common dietary patterns
 - **Simplified management**: One bank to maintain instead of per-user banks
 
-## Three Hindsight Integrations
+## Three ContextBase Integrations
 
 ### 1. Meal Suggestions with Memory Recall & Reflection
 
@@ -44,8 +44,8 @@ Uses `recall` and `reflect` tools with AI SDK's agent-based approach to gather p
 const contextResult = await generateText({
   model: llmModel,
   tools: {
-    recall: hindsightTools.recall,
-    reflect: hindsightTools.reflect,
+    recall: contextbaseTools.recall,
+    reflect: contextbaseTools.reflect,
   },
   toolChoice: 'auto',
   prompt: `You are gathering context for personalized ${mealType} recipe suggestions.
@@ -68,7 +68,7 @@ Uses mental models to automatically maintain updated insights about user progres
 
 ```typescript
 // Create a mental model that auto-refreshes after new meals
-await hindsightTools.createMentalModel.execute({
+await contextbaseTools.createMentalModel.execute({
   bankId: BANK_ID,
   mentalModelId: getMentalModelId(username, 'goals'),
   name: `${username}'s Goal Progress`,
@@ -79,7 +79,7 @@ await hindsightTools.createMentalModel.execute({
 });
 
 // Query the mental model for current insights
-const result = await hindsightTools.queryMentalModel.execute({
+const result = await contextbaseTools.queryMentalModel.execute({
   bankId: BANK_ID,
   mentalModelId: mentalModelId,
 });
@@ -95,7 +95,7 @@ Mental models automatically:
 Uses directives to ensure all responses match user's language preference.
 
 ```typescript
-await hindsightClient.createDirective(BANK_ID, {
+await contextbaseClient.createDirective(BANK_ID, {
   name: `${username}'s Language Preference`,
   content: `Always respond in ${language}. All suggestions must be in ${language}.`,
   priority: 100,
@@ -113,10 +113,10 @@ npm run dev
 ```
 
 **Requirements:**
-- Hindsight server running at `http://localhost:8888` (or set `HINDSIGHT_URL`)
+- ContextBase server running at `http://localhost:8888` (or set `CONTEXTBASE_URL`)
 - Node.js 18+
 
 ## Learn More
 
-- [Hindsight AI SDK on npm](https://www.npmjs.com/package/@vectorize-io/hindsight-ai-sdk)
+- [ContextBase AI SDK on npm](https://www.npmjs.com/package/@vectorize-io/hindsight-ai-sdk)
 - [AI SDK Documentation](https://sdk.vercel.ai/docs)

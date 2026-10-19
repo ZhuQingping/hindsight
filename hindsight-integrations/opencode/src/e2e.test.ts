@@ -1,26 +1,26 @@
 /**
- * Gated live end-to-end test for the OpenCode Hindsight plugin.
+ * Gated live end-to-end test for the OpenCode ContextBase plugin.
  *
- * Drives the plugin's exported tools + hooks against a live Hindsight server
+ * Drives the plugin's exported tools + hooks against a live ContextBase server
  * the way the OpenCode runtime would. Skipped by default; runs only when
- * HINDSIGHT_LIVE_E2E=1 (analogous to the `requires_real_llm` pytest marker
+ * CONTEXTBASE_LIVE_E2E=1 (analogous to the `requires_real_llm` pytest marker
  * used by the Python integrations).
  *
  * Run with:
- *   HINDSIGHT_API_URL=http://127.0.0.1:8888 npm run test:e2e
+ *   CONTEXTBASE_API_URL=http://127.0.0.1:8888 npm run test:e2e
  *
  * Requires:
- *   - A reachable Hindsight server (defaults to http://127.0.0.1:8888).
- *   - When pointing at the hosted backend: HINDSIGHT_API_TOKEN with a valid key.
+ *   - A reachable ContextBase server (defaults to http://127.0.0.1:8888).
+ *   - When pointing at the hosted backend: CONTEXTBASE_API_TOKEN with a valid key.
  */
 import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { randomBytes } from "node:crypto";
 
-import { HindsightPlugin } from "./index.js";
+import { ContextBasePlugin } from "./index.js";
 import { HindsightClient } from "@vectorize-io/hindsight-client";
 
-const LIVE = process.env.HINDSIGHT_LIVE_E2E === "1";
-const URL = process.env.HINDSIGHT_API_URL || "http://127.0.0.1:8888";
+const LIVE = process.env.CONTEXTBASE_LIVE_E2E === "1";
+const URL = process.env.CONTEXTBASE_API_URL || "http://127.0.0.1:8888";
 const BANK = `e2e-opencode-${randomBytes(4).toString("hex")}`;
 
 function mockOpencodeSessionMessages(messages: Array<{ role: string; content: string }>) {
@@ -40,11 +40,11 @@ function mockOpencodeSessionMessages(messages: Array<{ role: string; content: st
 
 const describeLive = LIVE ? describe : describe.skip;
 
-describeLive("live: OpenCode plugin against Hindsight", () => {
+describeLive("live: OpenCode plugin against ContextBase", () => {
   // When pointing at the hosted backend, the suite's direct (non-plugin)
   // retain/recall/deleteBank calls need the same token the plugin reads from
-  // HINDSIGHT_API_TOKEN — otherwise they 401 even when the plugin path is fine.
-  const TOKEN = process.env.HINDSIGHT_API_TOKEN;
+  // CONTEXTBASE_API_TOKEN — otherwise they 401 even when the plugin path is fine.
+  const TOKEN = process.env.CONTEXTBASE_API_TOKEN;
   const client = new HindsightClient(TOKEN ? { baseUrl: URL, apiKey: TOKEN } : { baseUrl: URL });
 
   afterAll(async () => {
@@ -56,15 +56,15 @@ describeLive("live: OpenCode plugin against Hindsight", () => {
   });
 
   it("retain → server-side extraction → recall via tools surfaces the stored fact", async () => {
-    const plugin = await HindsightPlugin(
+    const plugin = await ContextBasePlugin(
       {
         client: mockOpencodeSessionMessages([]) as any,
         directory: "/tmp/fake-project",
       } as any,
-      { hindsightApiUrl: URL, bankId: BANK, debug: false }
+      { contextbaseApiUrl: URL, bankId: BANK, debug: false }
     );
 
-    const retainOut = await plugin.tool!.hindsight_retain.execute(
+    const retainOut = await plugin.tool!.contextbase_retain.execute(
       { content: "User's favourite programming language is Haskell." } as any,
       {} as any
     );
@@ -73,7 +73,7 @@ describeLive("live: OpenCode plugin against Hindsight", () => {
     // Server-side fact extraction is asynchronous; give it time before recall.
     await new Promise((r) => setTimeout(r, 6000));
 
-    const recallOut = await plugin.tool!.hindsight_recall.execute(
+    const recallOut = await plugin.tool!.contextbase_recall.execute(
       { query: "favourite programming language" } as any,
       {} as any
     );
@@ -87,13 +87,13 @@ describeLive("live: OpenCode plugin against Hindsight", () => {
       { role: "assistant", content: "Noted, dark mode in VS Code." },
     ];
 
-    const plugin = await HindsightPlugin(
+    const plugin = await ContextBasePlugin(
       {
         client: mockOpencodeSessionMessages(fakeMessages) as any,
         directory: "/tmp/fake-project",
       } as any,
       {
-        hindsightApiUrl: URL,
+        contextbaseApiUrl: URL,
         bankId: BANK,
         retainEveryNTurns: 1,
         debug: false,
@@ -120,17 +120,17 @@ describeLive("live: OpenCode plugin against Hindsight", () => {
     // "project context and recent work" rather than a user-derived query.
     await client.retain(
       BANK,
-      "Project context: TypeScript monorepo; recent work was on the hindsight-opencode plugin's Cloud-default config."
+      "Project context: TypeScript monorepo; recent work was on the contextbase-opencode plugin's Cloud-default config."
     );
     // Give the server-side extraction time to index the new content.
     await new Promise((r) => setTimeout(r, 6000));
 
-    const plugin = await HindsightPlugin(
+    const plugin = await ContextBasePlugin(
       {
         client: mockOpencodeSessionMessages([]) as any,
         directory: "/tmp/fake-project",
       } as any,
-      { hindsightApiUrl: URL, bankId: BANK, debug: false }
+      { contextbaseApiUrl: URL, bankId: BANK, debug: false }
     );
 
     // First, session.created → marks the session as awaiting first-prompt recall
@@ -149,6 +149,6 @@ describeLive("live: OpenCode plugin against Hindsight", () => {
     );
 
     expect(sysOut.system.length).toBeGreaterThan(0);
-    expect(sysOut.system.join("\n")).toMatch(/hindsight_memories/);
+    expect(sysOut.system.join("\n")).toMatch(/contextbase_memories/);
   }, 30_000);
 });

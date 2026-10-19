@@ -7,7 +7,7 @@ import os
 
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Doc Examples
@@ -36,7 +36,7 @@ print(answer.text)
 from hindsight_client import Hindsight
 
 client = Hindsight(
-    base_url="http://localhost:8888",  # Hindsight API URL
+    base_url="http://localhost:8888",  # ContextBase API URL
     timeout=30.0,                       # Request timeout in seconds
     # api_key="your-api-key",          # Optional bearer token
 )
@@ -217,7 +217,7 @@ with Hindsight(base_url="http://localhost:8888") as client:
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/python-sdk-bank")
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/python-sdk-test")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/python-sdk-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/python-sdk-test")
 
 print("python-sdk.py: All examples passed")

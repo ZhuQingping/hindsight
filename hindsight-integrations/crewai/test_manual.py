@@ -1,7 +1,7 @@
-"""Manual integration test for hindsight-crewai.
+"""Manual integration test for contextbase-crewai.
 
 Prerequisites:
-  1. Hindsight API running on localhost:8888 (./scripts/dev/start-api.sh)
+  1. ContextBase API running on localhost:8888 (./scripts/dev/start-api.sh)
   2. OPENAI_API_KEY set (or configure CrewAI for another LLM provider)
   3. uv pip install -e . (from this directory)
 
@@ -9,24 +9,23 @@ Usage:
   uv run python test_manual.py
 """
 
+from contextbase_crewai import ContextBaseReflectTool, ContextBaseStorage, configure
 from crewai import Agent, Crew, Task
 from crewai.memory.external.external_memory import ExternalMemory
 
-from hindsight_crewai import HindsightReflectTool, HindsightStorage, configure
-
 BANK_ID = "crewai-test"
-HINDSIGHT_URL = "http://localhost:8888"
+CONTEXTBASE_URL = "http://localhost:8888"
 
 # --- Configure ---
 
-configure(hindsight_api_url=HINDSIGHT_URL, verbose=True)
+configure(contextbase_api_url=CONTEXTBASE_URL, verbose=True)
 
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id=BANK_ID,
     mission="Track research findings and summaries for a software team.",
 )
 
-reflect_tool = HindsightReflectTool(bank_id=BANK_ID, budget="mid")
+reflect_tool = ContextBaseReflectTool(bank_id=BANK_ID, budget="mid")
 
 # --- Smoke test (no LLM needed) ---
 
@@ -91,7 +90,7 @@ print("=== RUN 2: Recall from memory ===\n")
 recall_task = Task(
     description=(
         "What do you already know about functional programming from previous research? "
-        "Use the hindsight_reflect tool to check your memories."
+        "Use the contextbase_reflect tool to check your memories."
     ),
     expected_output="A summary of what was previously learned.",
     agent=researcher,

@@ -6,18 +6,18 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
@@ -29,8 +29,8 @@ func main() {
 		"Alice recently got promoted to senior engineer",
 	} {
 		client.MemoryAPI.RetainMemories(ctx, "my-bank").
-			RetainRequest(hindsight.RetainRequest{
-				Items: []hindsight.MemoryItem{{Content: hindsight.TextContent(content)}},
+			RetainRequest(contextbase.RetainRequest{
+				Items: []contextbase.MemoryItem{{Content: contextbase.TextContent(content)}},
 			}).Execute()
 	}
 
@@ -40,15 +40,15 @@ func main() {
 
 	// [docs:reflect-basic]
 	client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query: "What should I know about Alice?",
 		}).Execute()
 	// [/docs:reflect-basic]
 
 	// [docs:reflect-with-params]
-	budgetMid := hindsight.MID
+	budgetMid := contextbase.MID
 	client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query:  "We're considering a hybrid work policy. What do you think about remote work?",
 			Budget: &budgetMid,
 		}).Execute()
@@ -58,9 +58,9 @@ func main() {
 	// Context is passed to the LLM to help it understand the situation
 	ctxText := "We're in a budget review meeting discussing Q4 spending"
 	client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query:   "What do you think about the proposal?",
-			Context: *hindsight.NewNullableString(&ctxText),
+			Context: *contextbase.NewNullableString(&ctxText),
 		}).Execute()
 	// [/docs:reflect-with-context]
 
@@ -71,17 +71,17 @@ func main() {
 	empathy := int32(2)
 	mission := "I am a risk-aware financial advisor"
 	client.BanksAPI.CreateOrUpdateBank(ctx, "cautious-advisor").
-		CreateBankRequest(hindsight.CreateBankRequest{
-			Name:                  *hindsight.NewNullableString(hindsight.PtrString("Cautious Advisor")),
-			ReflectMission:        *hindsight.NewNullableString(&mission),
-			DispositionSkepticism: *hindsight.NewNullableInt32(&skepticism),
-			DispositionLiteralism: *hindsight.NewNullableInt32(&literalism),
-			DispositionEmpathy:    *hindsight.NewNullableInt32(&empathy),
+		CreateBankRequest(contextbase.CreateBankRequest{
+			Name:                  *contextbase.NewNullableString(contextbase.PtrString("Cautious Advisor")),
+			ReflectMission:        *contextbase.NewNullableString(&mission),
+			DispositionSkepticism: *contextbase.NewNullableInt32(&skepticism),
+			DispositionLiteralism: *contextbase.NewNullableInt32(&literalism),
+			DispositionEmpathy:    *contextbase.NewNullableInt32(&empathy),
 		}).Execute()
 
 	// Reflect responses will reflect this disposition
 	client.MemoryAPI.Reflect(ctx, "cautious-advisor").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query: "Should I invest in crypto?",
 		}).Execute()
 	// Response will likely emphasize risks and caution
@@ -90,9 +90,9 @@ func main() {
 	// [docs:reflect-sources]
 	// include.facts enables the based_on field in the response
 	sourcesResponse, _, _ := client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query: "Tell me about Alice",
-			Include: &hindsight.ReflectIncludeOptions{
+			Include: &contextbase.ReflectIncludeOptions{
 				Facts: map[string]interface{}{}, // empty map enables fact inclusion
 			},
 		}).Execute()
@@ -110,7 +110,7 @@ func main() {
 	// Filter reflection to only consider memories for a specific user
 	tagsMatch := "any_strict"
 	client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query:     "What does this user think about our product?",
 			Tags:      []string{"user:alice"},
 			TagsMatch: &tagsMatch,
@@ -131,7 +131,7 @@ func main() {
 	}
 
 	structuredResponse, _, _ := client.MemoryAPI.Reflect(ctx, "my-bank").
-		ReflectRequest(hindsight.ReflectRequest{
+		ReflectRequest(contextbase.ReflectRequest{
 			Query:          "Should we hire Alice for the ML team lead position?",
 			ResponseSchema: responseSchema,
 		}).Execute()

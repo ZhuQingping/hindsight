@@ -24,7 +24,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-roo-code"
+name = "contextbase-roo-code"
 version = "0.1.0"
 source = { editable = "." }
 

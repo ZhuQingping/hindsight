@@ -1,11 +1,11 @@
-"""Tests for install.py — Cursor CLI Hindsight integration installer."""
+"""Tests for install.py — Cursor CLI ContextBase integration installer."""
 
 import json
 from pathlib import Path
 
 import pytest
 
-from hindsight_cursor_cli import install
+from contextbase_cursor_cli import install
 
 
 @pytest.fixture()
@@ -69,20 +69,20 @@ def test_install_registers_hooks(fake_home: Path) -> None:
 
 def test_install_seeds_user_config(fake_home: Path) -> None:
     install.run_install(api_url="https://api.example.com", api_token="hsk_x")
-    cfg = json.loads((fake_home / ".hindsight" / "cursor-cli.json").read_text())
-    assert cfg["hindsightApiUrl"] == "https://api.example.com"
-    assert cfg["hindsightApiToken"] == "hsk_x"
+    cfg = json.loads((fake_home / ".contextbase" / "cursor-cli.json").read_text())
+    assert cfg["contextbaseApiUrl"] == "https://api.example.com"
+    assert cfg["contextbaseApiToken"] == "hsk_x"
 
 
 def test_install_preserves_existing_user_config(fake_home: Path) -> None:
-    user_config = fake_home / ".hindsight" / "cursor-cli.json"
+    user_config = fake_home / ".contextbase" / "cursor-cli.json"
     user_config.parent.mkdir(parents=True)
-    user_config.write_text(json.dumps({"hindsightApiToken": "keep-me"}))
+    user_config.write_text(json.dumps({"contextbaseApiToken": "keep-me"}))
 
     install.run_install(api_url="https://override.example.com")
 
     cfg = json.loads(user_config.read_text())
-    assert cfg == {"hindsightApiToken": "keep-me"}  # untouched
+    assert cfg == {"contextbaseApiToken": "keep-me"}  # untouched
 
 
 # ---------------------------------------------------------------------------
@@ -114,8 +114,8 @@ def test_reinstall_does_not_duplicate(fake_home: Path) -> None:
     install.run_install()
     install.run_install()
     registry = json.loads((fake_home / ".cursor" / "hooks.json").read_text())
-    hindsight_stop = [d for d in registry["hooks"]["stop"] if "cursor-cli" in json.dumps(d)]
-    assert len(hindsight_stop) == 1
+    contextbase_stop = [d for d in registry["hooks"]["stop"] if "cursor-cli" in json.dumps(d)]
+    assert len(contextbase_stop) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +135,7 @@ def test_uninstall_removes_scripts_and_strips_hooks(fake_home: Path) -> None:
 def test_uninstall_preserves_user_config(fake_home: Path) -> None:
     install.run_install(api_url="https://api.example.com")
     install.run_uninstall()
-    assert (fake_home / ".hindsight" / "cursor-cli.json").exists()
+    assert (fake_home / ".contextbase" / "cursor-cli.json").exists()
 
 
 def test_uninstall_preserves_foreign_hooks(fake_home: Path) -> None:

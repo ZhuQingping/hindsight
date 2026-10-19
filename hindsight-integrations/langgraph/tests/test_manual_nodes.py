@@ -3,7 +3,7 @@
 import asyncio
 
 from hindsight_client import Hindsight
-from hindsight_langgraph import create_recall_node, create_retain_node
+from contextbase_langgraph import create_recall_node, create_retain_node
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
 

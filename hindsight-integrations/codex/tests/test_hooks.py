@@ -4,7 +4,7 @@ Mocks the Codex hook runtime:
   - stdin  → io.StringIO(json.dumps(hook_input))
   - stdout → io.StringIO() captured for assertions
   - urllib.request.urlopen → fake HTTP responses
-  - HOME → tmp_path (isolates ~/.hindsight/codex.json and state)
+  - HOME → tmp_path (isolates ~/.contextbase/codex.json and state)
 """
 
 import importlib
@@ -26,16 +26,16 @@ from conftest import FakeHTTPResponse, make_hook_input, make_memory, make_transc
 
 def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effect=None, user_config=None):
     """Import and run a hook script's main() with mocked stdin/stdout/HTTP."""
-    # Isolate HOME so ~/.hindsight/codex.json and state land in tmp_path
+    # Isolate HOME so ~/.contextbase/codex.json and state land in tmp_path
     monkeypatch.setenv("HOME", str(tmp_path))
 
-    # Strip real HINDSIGHT_* env vars
+    # Strip real CONTEXTBASE_* env vars
     for k in list(os.environ):
-        if k.startswith("HINDSIGHT_"):
+        if k.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(k, raising=False)
 
     # Set required API URL via env var
-    monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+    monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
 
     # Write user config (enables retain on every turn + any overrides)
     cfg = {"retainEveryNTurns": 1, "autoRecall": True, "autoRetain": True}
@@ -78,13 +78,12 @@ class TestRecallHook:
         response = FakeHTTPResponse({"results": [memory]})
 
         hook_input = make_hook_input(prompt="What is the capital of France?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           urlopen_side_effect=lambda *a, **kw: response)
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, urlopen_side_effect=lambda *a, **kw: response)
 
         data = json.loads(output)
         context = data["hookSpecificOutput"]["additionalContext"]
         assert "Paris is the capital of France" in context
-        assert "<hindsight_memories>" in context
+        assert "<contextbase_memories>" in context
 
     def test_recall_min_scores_filters_low_scoring_memories(self, monkeypatch, tmp_path):
         low_semantic = make_memory("Marginal match")
@@ -153,8 +152,7 @@ class TestRecallHook:
         response = FakeHTTPResponse({"results": [memory]})
 
         hook_input = make_hook_input(prompt="What language should I use?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           urlopen_side_effect=lambda *a, **kw: response)
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, urlopen_side_effect=lambda *a, **kw: response)
 
         data = json.loads(output)
         assert data["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
@@ -176,9 +174,14 @@ class TestRecallHook:
             return FakeHTTPResponse({"results": []})
 
         hook_input = make_hook_input(prompt="What language should I use?", transcript_path=transcript)
-        _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture_and_respond,
-                  user_config={"recallContextTurns": 2})
+        _run_hook(
+            "recall",
+            hook_input,
+            monkeypatch,
+            tmp_path,
+            urlopen_side_effect=capture_and_respond,
+            user_config={"recallContextTurns": 2},
+        )
 
         if "body" in captured_body:
             assert "Python" in captured_body["body"].get("query", "")
@@ -207,8 +210,7 @@ class TestRecallHook:
 
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?")
-        output = _run_hook("recall", hook_input, monkeypatch, tmp_path,
-                           user_config={"autoRecall": False})
+        output = _run_hook("recall", hook_input, monkeypatch, tmp_path, user_config={"autoRecall": False})
         assert output.strip() == ""
 
 
@@ -218,7 +220,7 @@ class TestRecallHook:
 
 
 class TestRetainHook:
-    def test_posts_transcript_to_hindsight(self, monkeypatch, tmp_path):
+    def test_posts_transcript_to_contextbase(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
 
@@ -249,7 +251,7 @@ class TestRetainHook:
 
     def test_strips_memory_tags_before_retaining(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "<hindsight_memories>old memories</hindsight_memories> actual question"},
+            {"role": "user", "content": "<contextbase_memories>old memories</contextbase_memories> actual question"},
             {"role": "assistant", "content": "sure!"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
@@ -312,14 +314,20 @@ class TestRetainHook:
 
         hook_input = make_hook_input(transcript_path=transcript)
         # retainEveryNTurns=3 — first call should be skipped
-        _run_hook("retain", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture,
-                  user_config={"retainEveryNTurns": 3})
+        _run_hook(
+            "retain",
+            hook_input,
+            monkeypatch,
+            tmp_path,
+            urlopen_side_effect=capture,
+            user_config={"retainEveryNTurns": 3},
+        )
         assert "called" not in captured
 
     def test_retain_uses_session_id_as_document_id(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "question"}, {"role": "assistant", "content": "answer"},
+            {"role": "user", "content": "question"},
+            {"role": "assistant", "content": "answer"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-doc-test")
@@ -358,9 +366,9 @@ class TestRetainHook:
             captured["called"] = True
             return FakeHTTPResponse({})
 
-        _run_hook("retain", hook_input, monkeypatch, tmp_path,
-                  urlopen_side_effect=capture,
-                  user_config={"autoRetain": False})
+        _run_hook(
+            "retain", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture, user_config={"autoRetain": False}
+        )
         assert "called" not in captured
 
     def test_reads_codex_response_item_format(self, monkeypatch, tmp_path):

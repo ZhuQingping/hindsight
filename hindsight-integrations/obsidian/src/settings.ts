@@ -1,8 +1,8 @@
 import { type App, Notice, PluginSettingTab, Setting } from "obsidian";
-import type HindsightPlugin from "./main";
+import type ContextBasePlugin from "./main";
 import type { Budget, ObservationScopes } from "./types";
 
-export interface HindsightSettings {
+export interface ContextBaseSettings {
   apiUrl: string;
   apiKey: string;
   /** Blank → the shared default bank `obsidian` (all vaults, separated by vault: tags). */
@@ -11,10 +11,10 @@ export interface HindsightSettings {
   excludeFolders: string[];
   syncOnEdit: boolean;
   defaultBudget: Budget;
-  /** DESIGN.md §0.5: OFF by default — keeps Hindsight from becoming a 2nd source of truth. */
+  /** DESIGN.md §0.5: OFF by default — keeps ContextBase from becoming a 2nd source of truth. */
   rememberConversations: boolean;
   prefixDocId: boolean;
-  /** Omitted to preserve the Hindsight server's default observation scope. */
+  /** Omitted to preserve the ContextBase server's default observation scope. */
   observationScopes?: ObservationScopes;
   /** Log reflect requests/responses to the console (open devtools to view). */
   debugLogging: boolean;
@@ -23,8 +23,8 @@ export interface HindsightSettings {
   reasoningExpanded: boolean;
 }
 
-export const DEFAULT_SETTINGS: HindsightSettings = {
-  apiUrl: "https://api.hindsight.vectorize.io",
+export const DEFAULT_SETTINGS: ContextBaseSettings = {
+  apiUrl: "",
   apiKey: "",
   bankId: "",
   includeFolders: [],
@@ -49,10 +49,10 @@ function parseFolders(value: string): string[] {
     .filter(Boolean);
 }
 
-export class HindsightSettingTab extends PluginSettingTab {
+export class ContextBaseSettingTab extends PluginSettingTab {
   constructor(
     app: App,
-    private readonly plugin: HindsightPlugin
+    private readonly plugin: ContextBasePlugin
   ) {
     super(app, plugin);
   }
@@ -63,10 +63,10 @@ export class HindsightSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("API URL")
-      .setDesc("Hindsight Cloud default; use http://localhost:8888 for self-hosted.")
+      .setDesc("ContextBase Cloud default; use http://localhost:8888 for self-hosted.")
       .addText((t) =>
         t
-          .setPlaceholder("https://api.hindsight.vectorize.io")
+          .setPlaceholder("")
           .setValue(this.plugin.settings.apiUrl)
           .onChange(async (v) => {
             this.plugin.settings.apiUrl = v.trim();
@@ -76,7 +76,7 @@ export class HindsightSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("API key")
-      .setDesc("Hindsight Cloud API key. Stored in this vault's plugin config.")
+      .setDesc("ContextBase Cloud API key. Stored in this vault's plugin config.")
       .addText((t) => {
         t.setValue(this.plugin.settings.apiKey).onChange(async (v) => {
           this.plugin.settings.apiKey = v.trim();
@@ -167,7 +167,7 @@ export class HindsightSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Remember conversations")
       .setDesc(
-        "Off by default. When on, chat turns are stored in Hindsight — this creates memory that does NOT live in your vault."
+        "Off by default. When on, chat turns are stored in ContextBase — this creates memory that does NOT live in your vault."
       )
       .addToggle((t) =>
         t.setValue(this.plugin.settings.rememberConversations).onChange(async (v) => {
@@ -208,7 +208,7 @@ export class HindsightSettingTab extends PluginSettingTab {
           return;
         }
         new Notice(
-          (await client.health()) ? "Hindsight: connected ✓" : "Hindsight: could not connect"
+          (await client.health()) ? "ContextBase: connected ✓" : "ContextBase: could not connect"
         );
       })
     );

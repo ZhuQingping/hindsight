@@ -1,10 +1,12 @@
-# Cloudflare OAuth Proxy for Self-Hosted Hindsight
+# Cloudflare OAuth Proxy for Self-Hosted ContextBase
 
-An [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) proxy that connects cloud-based MCP clients (such as [claude.ai](https://claude.ai), [Claude Code](../claude-code/), and [Codex](../codex/)) to a self-hosted [Hindsight](https://vectorize.io/hindsight) instance. Built on [Cloudflare Workers](https://developers.cloudflare.com/workers/) using the [`@cloudflare/workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider) library.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+An [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) proxy that connects cloud-based MCP clients (such as [claude.ai](https://claude.ai), [Claude Code](../claude-code/), and [Codex](../codex/)) to a self-hosted [ContextBase](https://github.com/RSIXDB/hindsight) instance. Built on [Cloudflare Workers](https://developers.cloudflare.com/workers/) using the [`@cloudflare/workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider) library.
 
 ## Why
 
-Cloud-based MCP clients require an OAuth 2.1 flow to connect to remote MCP servers. Self-hosted Hindsight instances typically sit behind a private network or Cloudflare Tunnel, and don't natively expose an OAuth endpoint. This Worker bridges that gap: it handles the OAuth dance on a public domain, authenticates the user with a simple password gate, and proxies authenticated MCP traffic to your Hindsight origin through a Cloudflare Tunnel.
+Cloud-based MCP clients require an OAuth 2.1 flow to connect to remote MCP servers. Self-hosted ContextBase instances typically sit behind a private network or Cloudflare Tunnel, and don't natively expose an OAuth endpoint. This Worker bridges that gap: it handles the OAuth dance on a public domain, authenticates the user with a simple password gate, and proxies authenticated MCP traffic to your ContextBase origin through a Cloudflare Tunnel.
 
 ## Architecture
 
@@ -27,8 +29,8 @@ Self-hosted Hindsight (Docker)
 ## Prerequisites
 
 - A [Cloudflare](https://www.cloudflare.com/) account with a domain
-- A running self-hosted Hindsight instance (see [self-hosting quickstart](https://vectorize.io/hindsight/quickstart/self-hosting))
-- A [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) exposing your Hindsight instance
+- A running self-hosted ContextBase instance (see [self-hosting quickstart](https://github.com/RSIXDB/hindsight/quickstart/self-hosting))
+- A [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) exposing your ContextBase instance
 - [Node.js](https://nodejs.org/) (v18+)
 
 ## Setup
@@ -44,7 +46,7 @@ npm install
 
 Copy the included `wrangler.toml` and update the placeholder values:
 
-- `HINDSIGHT_ORIGIN`: Your Cloudflare Tunnel origin URL (e.g., `https://hindsight-origin.yourdomain.com`)
+- `CONTEXTBASE_ORIGIN`: Your Cloudflare Tunnel origin URL (e.g., `https://hindsight-origin.yourdomain.com`)
 - `kv_namespaces.id`: Create a KV namespace via `npx wrangler kv namespace create OAUTH_KV` and paste the returned ID
 - `routes.pattern` / `routes.zone_name`: Your public-facing domain for the proxy
 
@@ -53,7 +55,7 @@ Copy the included `wrangler.toml` and update the placeholder values:
 ```bash
 npx wrangler secret put SESSION_SECRET       # Password for the login page
 npx wrangler secret put PROXY_SECRET         # X-Proxy-Secret header value (must match your origin WAF rule)
-npx wrangler secret put HINDSIGHT_API_TOKEN  # Bearer token for the Hindsight API
+npx wrangler secret put CONTEXTBASE_API_TOKEN  # Bearer token for the ContextBase API
 npx wrangler secret put ALLOWED_EMAIL        # Your email (used as the OAuth user identity)
 ```
 
@@ -65,14 +67,14 @@ npm run deploy
 
 ### 5. Secure your origin
 
-Add a WAF rule on your Cloudflare Tunnel origin hostname to block requests that don't carry the correct `X-Proxy-Secret` header. This ensures only the Worker can reach your Hindsight instance.
+Add a WAF rule on your Cloudflare Tunnel origin hostname to block requests that don't carry the correct `X-Proxy-Secret` header. This ensures only the Worker can reach your ContextBase instance.
 
 ## Connecting clients
 
 Once deployed, add the Worker URL as a remote MCP server in your client:
 
 - **claude.ai**: Settings > MCP Servers > Add > enter `https://hindsight.yourdomain.com/mcp`
-- **Claude Code**: `claude mcp add hindsight-remote https://hindsight.yourdomain.com/mcp --transport http`
+- **Claude Code**: `claude mcp add contextbase-remote https://hindsight.yourdomain.com/mcp --transport http`
 - **Codex**: Configure via the MCP settings with the same URL
 
 On first connection, you'll be redirected to a login page. Enter the `SESSION_SECRET` password to authorize. This only needs to happen once per OAuth session.
@@ -83,7 +85,7 @@ On first connection, you'll be redirected to a login page. Enter the `SESSION_SE
 | --------------------- | ------------------------------------------------------------------------ |
 | `SESSION_SECRET`      | Password shown on the login page to authorize a session                  |
 | `PROXY_SECRET`        | Value sent as `X-Proxy-Secret` header to the origin (for WAF validation) |
-| `HINDSIGHT_API_TOKEN` | Bearer token for authenticating with the Hindsight API                   |
+| `CONTEXTBASE_API_TOKEN` | Bearer token for authenticating with the ContextBase API                   |
 | `ALLOWED_EMAIL`       | Your email address, used as the OAuth user identity                      |
 
 ## Security notes

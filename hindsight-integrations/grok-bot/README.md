@@ -1,12 +1,16 @@
-# Hindsight for Grok Bot
+# ContextBase for Grok Bot
+
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
 Long-term memory for [Grok Bot](https://x.ai) and Cursor, shared across your Bots and
 your other AI tools.
 
 Each Grok Bot keeps its own conversation and learned context, so one Bot cannot see what
-another worked out, and a scheduled routine starts every run from zero. Hindsight gives
+another worked out, and a scheduled routine starts every run from zero. ContextBase gives
 each Bot its own memory bank plus one shared bank for the whole team, and lets Bots read
 the banks your other agents (Claude Code, ChatGPT, Hermes, OpenClaw) already write to.
+
+Configure `mcp.json` with your own public HTTPS MCP URL and OAuth proxy before installing; `memory.example.com` is only a placeholder.
 
 ## Install
 
@@ -16,7 +20,7 @@ review. Until it is approved, set it up by hand.
 ### Grok Bot
 
 Paste [`connect-prompt.md`](connect-prompt.md) to any Bot. It tells the Bot to add
-Hindsight as a custom connector, walks it through the OAuth sign-in, and then carries
+ContextBase as a custom connector, walks it through the OAuth sign-in, and then carries
 the same rules the skills carry: which bank to write to, when to recall, how to hand
 work to another Bot, and which tools never to call.
 
@@ -28,9 +32,9 @@ asked for a name before setup continues.
 Copy this directory into Cursor's local plugin folder, then reload:
 
 ```bash
-git clone https://github.com/vectorize-io/hindsight
+git clone https://github.com/RSIXDB/hindsight
 mkdir -p ~/.cursor/plugins/local
-cp -r hindsight/hindsight-integrations/grok-bot ~/.cursor/plugins/local/hindsight
+cp -r contextbase/hindsight-integrations/grok-bot ~/.cursor/plugins/local/contextbase
 ```
 
 Restart Cursor, or run **Developer: Reload Window**. Cursor then loads the plugin's MCP
@@ -38,14 +42,14 @@ server and its skills from the copied folder.
 
 ### After the marketplace listing lands
 
-Installing from the marketplace will replace both paths above: search for **Hindsight**
+Installing from the marketplace will replace both paths above: search for **ContextBase**
 under **Connect apps** in Grok Bot, or find it in the Cursor marketplace. This README
 will be updated when that happens.
 
 ## Configuration
 
-There is nothing to configure in the plugin. It connects to Hindsight Cloud's MCP server
-at `https://api.hindsight.vectorize.io/mcp`, and Grok Bot runs the OAuth flow against it
+There is nothing to configure in the plugin. It connects to ContextBase remote service's MCP server
+at `https://memory.example.com/mcp`, and Grok Bot runs the OAuth flow against it
 (discovery, dynamic client registration and PKCE). The connection reaches every bank in
 the organization you authorize.
 
@@ -75,13 +79,13 @@ description says when the Bot should use it.
 
 The skills never call `delete_bank`, `clear_memories`, `invalidate_memory`,
 `delete_document` or `delete_mental_model`. If something should be deleted, the Bot tells
-you and you do it from the Hindsight dashboard.
+you and you do it from the ContextBase dashboard.
 
-## Self-hosted Hindsight
+## Self-hosted ContextBase
 
 Grok Bot needs a public HTTPS MCP endpoint with OAuth 2.1 discovery and dynamic client
 registration. Put the [`cloudflare-oauth-proxy`](../cloudflare-oauth-proxy/) in front of
-your instance, check it with `hindsight-muse-preflight` from the
+your instance, check it with `contextbase-muse-preflight` from the
 [`meta-muse`](../meta-muse/) integration (Grok Bot connects the same way), then change
 the `url` in `mcp.json`.
 
@@ -92,4 +96,4 @@ python -m pytest tests -v
 ```
 
 The tests apply the Cursor Marketplace submission checklist to the manifests, and pin
-every tool and parameter the skills use to Hindsight's MCP tool registry.
+every tool and parameter the skills use to ContextBase's MCP tool registry.

@@ -1,27 +1,29 @@
-# hindsight-haystack
+# contextbase-haystack
 
-Haystack integration for [Hindsight](https://github.com/vectorize-io/hindsight) — persistent long-term memory for AI agents.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
-Provides Haystack `Tool` instances that give any Haystack `Agent` persistent memory via Hindsight's retain/recall/reflect APIs.
+Haystack integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+
+Provides Haystack `Tool` instances that give any Haystack `Agent` persistent memory via ContextBase's retain/recall/reflect APIs.
 
 ## Installation
 
 ```bash
-pip install hindsight-haystack
+pip install contextbase-haystack
 ```
 
 ## Quick Start
 
 ```python
 from hindsight_client import Hindsight
-from hindsight_haystack import create_hindsight_tools
+from contextbase_haystack import create_contextbase_tools
 from haystack.components.agents import Agent
 from haystack.components.generators.chat import OpenAIChatGenerator
 from haystack.dataclasses import ChatMessage
 
 client = Hindsight(base_url="http://localhost:8888")
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     mission="Track user preferences",
@@ -41,19 +43,19 @@ result = agent.run(messages=[ChatMessage.from_user("Remember that I prefer dark 
 print(result["messages"][-1].text)
 ```
 
-## Automatic Memory with HindsightMemoryWrapper
+## Automatic Memory with ContextBaseMemoryWrapper
 
 For automatic recall and retain without relying on the agent to call tools:
 
 ```python
-from hindsight_haystack import HindsightMemoryWrapper
+from contextbase_haystack import ContextBaseMemoryWrapper
 
-toolset = HindsightMemoryWrapper(
+toolset = ContextBaseMemoryWrapper(
     client=client,
     bank_id="user-123",
     mission="Track user preferences",
-    auto_recall=True,   # Inject memories into system prompt before each turn
-    auto_retain=True,    # Store user + assistant messages after each turn
+    auto_recall=True,  # Inject memories into system prompt before each turn
+    auto_retain=True,  # Store user + assistant messages after each turn
 )
 
 agent = Agent(
@@ -70,7 +72,7 @@ result = toolset.run(agent, messages=[ChatMessage.from_user("I prefer dark mode"
 
 ```python
 # Only retain + recall (no reflect)
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_reflect=False,
@@ -80,10 +82,10 @@ tools = create_hindsight_tools(
 ## Configuration
 
 ```python
-from hindsight_haystack import configure
+from contextbase_haystack import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     api_key="your-api-key",
     budget="mid",
     tags=["source:haystack"],
@@ -92,7 +94,7 @@ configure(
 )
 
 # Now you can skip client= and url= arguments
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
 ## Requirements
@@ -103,6 +105,6 @@ tools = create_hindsight_tools(bank_id="user-123")
 
 ## Documentation
 
-- [Integration docs](https://hindsight.vectorize.io/sdks/integrations/haystack)
-- [Hindsight API docs](https://docs.hindsight.vectorize.io)
+- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
+- [ContextBase API docs](https://docs.hindsight.vectorize.io)
 

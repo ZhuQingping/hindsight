@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Directives API examples for Hindsight.
+Directives API examples for ContextBase.
 Run: python examples/api/directives.py
 """
 import os
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "directives-example-bank"
 
 # =============================================================================
@@ -13,7 +13,9 @@ BANK_ID = "directives-example-bank"
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # Create a test bank
 client.create_bank(bank_id=BANK_ID, name="Test Bank")

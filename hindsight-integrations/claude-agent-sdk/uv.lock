@@ -560,7 +560,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-claude-agent-sdk"
+name = "contextbase-claude-agent-sdk"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

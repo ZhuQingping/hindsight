@@ -2,7 +2,7 @@
 /**
  * Generate docs-integrations/hermes.md from the integration's README.
  *
- * The two pages were maintained by hand and drifted badly: by the time Hindsight left the Hermes
+ * The two pages were maintained by hand and drifted badly: by the time ContextBase left the Hermes
  * tree the doc page documented 15 config keys the plugin never read (`apiPort`, `retainRoles`,
  * camelCase spellings of real ones) and omitted 24 that it did, while still describing the bundled
  * provider as the copy that wins. The README is the single source now; this rewrites the doc page
@@ -29,8 +29,8 @@ const page = join(here, '..', 'docs-integrations', 'hermes.md');
 // README's own heading. sidebar_position preserves the page's existing slot in the sidebar.
 const FRONTMATTER = `---
 sidebar_position: 10
-title: "Hermes Agent Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to Hermes Agent with Hindsight. Install from the Hermes plugin catalog, then recall context automatically before every turn and retain conversations for future sessions."
+title: "Hermes Agent Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to Hermes Agent with ContextBase. Install from the Hermes plugin catalog, then recall context automatically before every turn and retain conversations for future sessions."
 ---
 
 {/* GENERATED from hindsight-integrations/hermes/README.md — edit that file, then run
@@ -46,15 +46,15 @@ const DROP_SECTIONS = ['Development'];
  * migration note pointing at a guide that only exists on the site).
  */
 const SITE_ONLY_INTRO = `:::tip
-Using the **Hermes desktop app**? You can select and configure Hindsight entirely in Settings — no
+Using the **Hermes desktop app**? You can select and configure ContextBase entirely in Settings — no
 terminal required. See [Hermes Desktop](/sdks/integrations/hermes-desktop).
 :::
 
-:::warning Deprecated: the standalone \`hindsight-hermes\` plugin
-The old **\`hindsight-hermes\`** pip plugin (installed into the Hermes virtual environment and
+:::warning Deprecated: the standalone \`contextbase-hermes\` plugin
+The old **\`contextbase-hermes\`** pip plugin (installed into the Hermes virtual environment and
 registered through the \`hermes_agent.plugins\` entry point) is **deprecated** — on current Hermes
 builds its tools fail with \`{"error": "Timeout context manager should be used inside a task"}\`.
-Follow [Migrate hindsight-hermes to Native Hermes Memory](/guides/2026/04/14/guide-migrate-hindsight-hermes-to-native-hermes-memory)
+Follow [Migrate contextbase-hermes to Native Hermes Memory](/guides/2026/04/14/guide-migrate-contextbase-hermes-to-native-hermes-memory)
 to switch over while keeping the same memory bank.
 :::
 `;
@@ -84,7 +84,7 @@ function build() {
     // Repo-relative links 404 on the docs site; keep the label, drop the link.
     .replace(/\[([^\]]+)\]\((?!https?:|\/)[^)]+\)/g, '$1')
     // Our own absolute URLs -> site-relative, so the page stays within this build.
-    .replace(/https:\/\/hindsight\.vectorize\.io\/([^\s"')]+)/g, '/$1')
+    .replace(/https:\/\/contextbase\.vectorize\.io\/([^\s"')]+)/g, '/$1')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
   return `${FRONTMATTER}\n${SITE_ONLY_INTRO}\n${body}\n`;

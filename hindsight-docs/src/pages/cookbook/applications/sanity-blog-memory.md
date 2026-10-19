@@ -6,16 +6,16 @@ sidebar_position: 13
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/sanity-blog-memory)
 :::
 
 
-A Hindsight cookbook recipe demonstrating how to sync blog posts from **Sanity CMS** to Hindsight agent memory, enabling semantic search, temporal queries, and AI-powered content insights.
+A ContextBase cookbook recipe demonstrating how to sync blog posts from **Sanity CMS** to ContextBase agent memory, enabling semantic search, temporal queries, and AI-powered content insights.
 
 ## Features
 
-- **Blog Post Sync**: Automatically sync all blog posts from Sanity to Hindsight
+- **Blog Post Sync**: Automatically sync all blog posts from Sanity to ContextBase
 - **Document-based Upsert**: Idempotent syncing with `document_id` - re-running sync updates existing content
 - **Semantic Search**: Find related content using natural language queries
 - **Temporal Queries**: Ask "What did I write in January 2025?"
@@ -27,7 +27,7 @@ A Hindsight cookbook recipe demonstrating how to sync blog posts from **Sanity C
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
 │                 │         │                 │         │                 │
-│   Sanity CMS    │───────▶│    Sync Script  │───────▶│   Hindsight     │
+│   Sanity CMS    │───────▶│    Sync Script  │───────▶│   ContextBase     │
 │   (Content)     │  GROQ   │   (TypeScript)  │  HTTP   │   (Memory)      │
 │                 │         │                 │         │                 │
 └─────────────────┘         └─────────────────┘         └─────────────────┘
@@ -44,7 +44,7 @@ A Hindsight cookbook recipe demonstrating how to sync blog posts from **Sanity C
 
 ## Quick Start
 
-### 1. Start Hindsight
+### 1. Start ContextBase
 
 Choose your preferred LLM provider:
 
@@ -58,7 +58,7 @@ export GOOGLE_API_KEY=...  # Gemini (free tier available)
 # OR
 export GROQ_API_KEY=...    # Groq (free tier available)
 
-# Start Hindsight
+# Start ContextBase
 docker compose up -d
 ```
 
@@ -67,11 +67,13 @@ docker compose up -d
 ```bash
 export OPENAI_API_KEY=sk-...
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - **API**: http://localhost:8888
@@ -89,9 +91,9 @@ nano .env
 
 Required settings:
 ```bash
-# Hindsight
-HINDSIGHT_API_URL=http://localhost:8888
-HINDSIGHT_BANK_ID=blog-memory
+# ContextBase
+CONTEXTBASE_API_URL=http://localhost:8888
+CONTEXTBASE_BANK_ID=blog-memory
 
 # Sanity CMS
 SANITY_PROJECT_ID=your-project-id
@@ -113,7 +115,7 @@ npm run sync
 Expected output:
 ```
 =======================================
-  Sanity -> Hindsight Blog Sync
+  Sanity -> ContextBase Blog Sync
 =======================================
 
 Setting up memory bank...
@@ -270,8 +272,8 @@ const analysis = await reflectOnMemory(
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_URL` | Hindsight API endpoint | `http://localhost:8888` |
-| `HINDSIGHT_BANK_ID` | Memory bank identifier | `blog-memory` |
+| `CONTEXTBASE_API_URL` | ContextBase API endpoint | `http://localhost:8888` |
+| `CONTEXTBASE_BANK_ID` | Memory bank identifier | `blog-memory` |
 | `SANITY_PROJECT_ID` | Your Sanity project ID | (required) |
 | `SANITY_DATASET` | Sanity dataset name | `production` |
 | `SANITY_API_TOKEN` | Sanity API token (for private datasets) | (none) |
@@ -338,7 +340,7 @@ await retainBlogPost(content, {
 
 ### "Connection refused" error
 
-Make sure Hindsight is running:
+Make sure ContextBase is running:
 ```bash
 docker compose up -d
 curl http://localhost:8888/health
@@ -357,14 +359,14 @@ npx sanity query '*[_type == "post"][0..2]{title}'
 
 ### Slow recall/reflect responses
 
-This is normal for the first query as Hindsight builds embeddings. Subsequent queries are faster. Use `budget: 'low'` for faster responses at the cost of recall quality.
+This is normal for the first query as ContextBase builds embeddings. Subsequent queries are faster. Use `budget: 'low'` for faster responses at the cost of recall quality.
 
 ## Resources
 
-- [Hindsight Documentation](https://hindsight.vectorize.io/)
-- [Hindsight GitHub](https://github.com/vectorize-io/hindsight)
+- [ContextBase Documentation](https://github.com/RSIXDB/hindsight/)
+- [ContextBase GitHub](https://github.com/RSIXDB/hindsight)
 - [Sanity CMS Documentation](https://www.sanity.io/docs)
-- [Hindsight Cookbook](https://github.com/vectorize-io/hindsight-cookbook)
+- [ContextBase Cookbook](https://github.com/vectorize-io/hindsight-cookbook)
 
 ## License
 

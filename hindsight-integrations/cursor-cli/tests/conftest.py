@@ -1,4 +1,4 @@
-"""Shared fixtures for the Hindsight Cursor CLI integration tests."""
+"""Shared fixtures for the ContextBase Cursor CLI integration tests."""
 
 import io
 import json
@@ -10,7 +10,7 @@ import pytest
 # Make the packaged scripts/ importable as the root — the hook scripts do:
 #   sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # so lib.* imports resolve relative to scripts/
-SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "..", "hindsight_cursor_cli", "hooks", "scripts")
+SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "..", "contextbase_cursor_cli", "hooks", "scripts")
 if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, os.path.abspath(SCRIPTS_DIR))
 
@@ -77,13 +77,13 @@ def make_memory(text, mem_type="experience", mentioned_at="2024-01-15"):
 
 
 def make_user_config(tmp_path, overrides=None):
-    """Write a ~/.hindsight/cursor-cli.json in tmp_path with test defaults."""
-    hindsight_dir = tmp_path / ".hindsight"
-    hindsight_dir.mkdir(exist_ok=True)
+    """Write a ~/.contextbase/cursor-cli.json in tmp_path with test defaults."""
+    contextbase_dir = tmp_path / ".contextbase"
+    contextbase_dir.mkdir(exist_ok=True)
     config = {"retainEveryNTurns": 1}
     if overrides:
         config.update(overrides)
-    (hindsight_dir / "cursor-cli.json").write_text(json.dumps(config))
+    (contextbase_dir / "cursor-cli.json").write_text(json.dumps(config))
 
 
 class FakeHTTPResponse:

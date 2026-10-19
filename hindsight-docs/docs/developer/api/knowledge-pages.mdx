@@ -197,7 +197,7 @@ This makes the page a living document built from consolidated observations only,
 4. **Staleness check** — pages whose trigger asks for it are checked against their own scope (tags and `fact_types` both apply).
 5. **Delta refresh** — stale pages are rewritten by editing the existing document with the new observations only.
 
-Observations are what a page is *built from*, but it can still inspect the evidence underneath them: the refresh agent can expand a memory to its original chunk or document (unless `store_document_text` is disabled for the bank), and if `HINDSIGHT_API_REFLECT_SOURCE_FACTS_MAX_TOKENS` is enabled — off by default — observation search also returns each observation's grounding facts.
+Observations are what a page is *built from*, but it can still inspect the evidence underneath them: the refresh agent can expand a memory to its original chunk or document (unless `store_document_text` is disabled for the bank), and if `CONTEXTBASE_API_REFLECT_SOURCE_FACTS_MAX_TOKENS` is enabled — off by default — observation search also returns each observation's grounding facts.
 
 :::info
 A supplied `trigger` is a **patch**: only the fields you actually send are applied, and the rest keep the defaults above. Sending `{"trigger": {"tags_match": "all"}}` widens the tag filter and leaves `mode`, `fact_types`, `exclude_mental_models`, and `refresh_after_consolidation` as they are. The one exception is the two refresh triggers, which stay mutually exclusive: setting `refresh_cron` clears `refresh_after_consolidation`, and vice versa.
@@ -426,7 +426,7 @@ Returns the whole knowledge base as a flat set of portable markdown files: a nes
 ```
 
 :::tip Mirror it to disk
-`hindsight fs mount --bank my-bank` keeps a local folder in sync with this bundle via a background refresh loop, so `ls`, `grep`, `rg`, and your editor work against real files.
+`contextbase fs mount --bank my-bank` keeps a local folder in sync with this bundle via a background refresh loop, so `ls`, `grep`, `rg`, and your editor work against real files.
 :::
 
 ---

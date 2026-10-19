@@ -1,7 +1,7 @@
 {
   "mcpServers": {
-    "hindsight": {
-      "url": "https://api.hindsight.vectorize.io/mcp"
+    "contextbase": {
+      "url": "https://memory.example.com/mcp"
     }
   }
 }

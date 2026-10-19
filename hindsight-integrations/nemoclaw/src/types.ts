@@ -58,6 +58,5 @@ export interface SandboxPolicy {
   network_policies?: Record<string, NetworkPolicy>;
 }
 
-export const HINDSIGHT_POLICY_NAME = "hindsight";
-export const HINDSIGHT_HOST = "api.hindsight.vectorize.io";
+export const CONTEXTBASE_POLICY_NAME = "contextbase";
 export const OPENCLAW_BINARY = "/usr/local/bin/openclaw";

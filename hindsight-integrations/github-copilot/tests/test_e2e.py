@@ -8,15 +8,15 @@ import urllib.request
 
 import pytest
 
-from hindsight_copilot.mcp_config import mcp_endpoint_url
+from contextbase_copilot.mcp_config import mcp_endpoint_url
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-HINDSIGHT_API_TOKEN = os.getenv("HINDSIGHT_API_TOKEN")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_TOKEN = os.getenv("CONTEXTBASE_API_TOKEN")
 
 
 def _reachable() -> bool:
     try:
-        with urllib.request.urlopen(f"{HINDSIGHT_API_URL}/health", timeout=3) as r:
+        with urllib.request.urlopen(f"{CONTEXTBASE_API_URL}/health", timeout=3) as r:
             return r.status == 200
     except Exception:
         return False
@@ -24,7 +24,7 @@ def _reachable() -> bool:
 
 pytestmark = [
     pytest.mark.requires_real_llm,
-    pytest.mark.skipif(not _reachable(), reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}"),
+    pytest.mark.skipif(not _reachable(), reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}"),
 ]
 
 
@@ -34,13 +34,13 @@ def _rpc(url, payload, session=None):
     req.add_header("Accept", "application/json, text/event-stream")
     if session:
         req.add_header("Mcp-Session-Id", session)
-    if HINDSIGHT_API_TOKEN:
-        req.add_header("Authorization", f"Bearer {HINDSIGHT_API_TOKEN}")
+    if CONTEXTBASE_API_TOKEN:
+        req.add_header("Authorization", f"Bearer {CONTEXTBASE_API_TOKEN}")
     return urllib.request.urlopen(req, timeout=15)
 
 
 def test_mcp_endpoint_lists_memory_tools():
-    url = mcp_endpoint_url(HINDSIGHT_API_URL, "copilot-e2e")
+    url = mcp_endpoint_url(CONTEXTBASE_API_URL, "copilot-e2e")
     init = {
         "jsonrpc": "2.0",
         "id": 1,

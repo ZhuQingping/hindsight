@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Memories
 
-A **memory unit** is the atomic fact Hindsight extracts and stores. This page covers the endpoints for working with individual memory units — reading and listing them, inspecting how a derived observation evolved, and **curating** them (correcting, retiring, or restoring). Ingesting and querying memories is covered separately in [Retain](./retain.mdx) and [Recall](./recall.mdx).
+A **memory unit** is the atomic fact ContextBase extracts and stores. This page covers the endpoints for working with individual memory units — reading and listing them, inspecting how a derived observation evolved, and **curating** them (correcting, retiring, or restoring). Ingesting and querying memories is covered separately in [Retain](./retain.mdx) and [Recall](./recall.mdx).
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -114,13 +114,13 @@ Not every "bad memory" needs the same tool. Pick by *why* it's bad:
 | **A duplicate or superseded fact** | **Invalidate** the memory | Removes the noise from recall while keeping the audit trail. |
 | **Superseded by a newer fact you're storing anyway** (e.g. "likes BMW" → "likes Toyota") | Just retain the new fact | Consolidation already reconciles in-stream contradictions into a single observation. |
 
-The rule of thumb: **if Hindsight could have known, let consolidation handle it; if only you know, curate it.**
+The rule of thumb: **if ContextBase could have known, let consolidation handle it; if only you know, curate it.**
 
 Only raw **world** and **experience** facts can be curated. Observations are *derived* — they regenerate from their sources, so you curate the underlying facts, not the observation. A `PATCH` on an observation returns `400`.
 
 ### Edit a memory
 
-Correct what the LLM extracted. You can change the **text**, **context**, **occurred dates**, **fact type**, and **entities** — anything the extractor could have gotten wrong. Hindsight re-embeds the fact, drops the observations and links derived from the old version, and re-consolidates, so downstream knowledge reflects the correction. Edited facts are marked with an `edited_at` timestamp (surfaced as an **Edited** badge in the control plane).
+Correct what the LLM extracted. You can change the **text**, **context**, **occurred dates**, **fact type**, and **entities** — anything the extractor could have gotten wrong. ContextBase re-embeds the fact, drops the observations and links derived from the old version, and re-consolidates, so downstream knowledge reflects the correction. Edited facts are marked with an `edited_at` timestamp (surfaced as an **Edited** badge in the control plane).
 
 Correcting a fact never discards the **cause-and-effect relationships** it takes part in: those come from reading the original source, so an edit (or an invalidate/restore round-trip) keeps them intact rather than dropping links nothing could rebuild.
 

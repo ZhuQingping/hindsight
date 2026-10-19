@@ -1,10 +1,10 @@
 export {
-  createHindsightTools,
+  createContextBaseTools,
   BudgetSchema,
   type Budget,
   type HindsightClient,
-  type HindsightTools,
-  type HindsightToolsOptions,
+  type ContextBaseTools,
+  type ContextBaseToolsOptions,
   type RecallResult,
   type RecallResponse,
   type ReflectFact,

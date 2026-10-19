@@ -17,8 +17,8 @@ import styles from './index.module.css';
 
 /**
  * Pinned above the grid. These three are the ones we want a first-time visitor to see: the umbrella
- * coding-agent plugin, and the two agent harnesses that ship Hindsight as a first-class memory
- * provider — Hermes lists it in its own plugin catalog, so `hermes plugins install hindsight` is
+ * coding-agent plugin, and the two agent harnesses that ship ContextBase as a first-class memory
+ * provider — Hermes lists it in its own plugin catalog, so `hermes plugins install contextbase` is
  * the whole setup.
  */
 const FEATURED_IDS = ['coding-agents', 'hermes', 'openclaw'];
@@ -41,7 +41,7 @@ interface Integration {
 
 /**
  * The gallery is a browse surface, not a reading surface: 60 three-line cards with a repeated
- * "Hindsight Team" byline made the page long enough that scanning it meant scrolling past what you
+ * "ContextBase Team" byline made the page long enough that scanning it meant scrolling past what you
  * were looking for. This is the same row the changelog listing uses — icon, name, two lines of
  * description — grouped by category so the shape of the catalogue is visible at a glance.
  *
@@ -165,13 +165,13 @@ export default function IntegrationsHub(): React.ReactElement {
   const communityCount = integrations.filter((i) => i.type === 'community').length;
 
   return (
-    <Layout title="Integrations Hub" description="Browse official and community integrations for Hindsight agent memory">
+    <Layout title="Integrations Hub" description="Browse official and community integrations for ContextBase agent memory">
 
       {/* Full-width hero with its own background */}
       <div className={clsx('hs-hero-band', styles.heroSection)}>
         <h1 className={styles.heroTitle}>Integrations Hub</h1>
         <p className={styles.heroSubtitle}>
-          Connect Hindsight to your stack. Browse official integrations and community-built connectors.
+          Connect ContextBase to your stack. Browse official integrations and community-built connectors.
         </p>
 
         <div className={styles.hubSearchWrapper}>
@@ -300,7 +300,7 @@ export default function IntegrationsHub(): React.ReactElement {
 
         <div className={styles.submitBanner}>
           <div className={styles.submitBannerContent}>
-            <h2 className={styles.submitBannerTitle}>Built something with Hindsight?</h2>
+            <h2 className={styles.submitBannerTitle}>Built something with ContextBase?</h2>
             <p className={styles.submitBannerText}>
               Share your integration with the community. Open an issue with a link to it and we will add it to the integrations list.
             </p>

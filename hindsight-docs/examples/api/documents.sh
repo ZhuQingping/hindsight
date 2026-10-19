@@ -1,10 +1,10 @@
 #!/bin/bash
-# Documents API examples for Hindsight CLI
+# Documents API examples for ContextBase CLI
 # Run: bash examples/api/documents.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="documents-sh-demo-bank"
 
 # =============================================================================
@@ -48,7 +48,7 @@ contextbase document update "$BANK_ID" notes-2024-03-15 --tags ""
 # [/docs:document-update-tags]
 
 # The empty value must clear the set, not store one "" tag.
-TAGS=$(curl -sf "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}/documents/notes-2024-03-15" | jq -c '.tags')
+TAGS=$(curl -sf "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}/documents/notes-2024-03-15" | jq -c '.tags')
 [ "$TAGS" = "[]" ] || { echo "expected no tags, got $TAGS"; exit 1; }
 
 # [docs:document-list]
@@ -67,6 +67,6 @@ contextbase document delete "$BANK_ID" notes-2024-03-15
 # Cleanup (not shown in docs)
 # =============================================================================
 rm -rf "$WORKDIR"
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "documents.sh: All examples passed"

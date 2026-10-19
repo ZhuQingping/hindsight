@@ -42,7 +42,7 @@ describe("renderSyncStatus", () => {
 
   it("shows the synced note count and relative time when idle", () => {
     const v = renderSyncStatus({ ...base, synced: 412, lastSyncAt: NOW - 120_000 }, NOW);
-    expect(v.text).toBe("Hindsight ✓ 412 notes · 2m ago");
+    expect(v.text).toBe("ContextBase ✓ 412 notes · 2m ago");
     expect(v.tooltip).toContain("412 notes synced");
     expect(v.tooltip).toContain("last synced 2m ago");
   });
@@ -72,6 +72,6 @@ describe("renderSyncStatus", () => {
   it("drops the brand prefix when asked (chat header reuse)", () => {
     const v = renderSyncStatus({ ...base, synced: 8, lastSyncAt: NOW - 120_000 }, NOW, "");
     expect(v.text).toBe("✓ 8 notes · 2m ago");
-    expect(v.text).not.toContain("Hindsight");
+    expect(v.text).not.toContain("ContextBase");
   });
 });

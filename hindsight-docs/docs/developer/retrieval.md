@@ -5,9 +5,9 @@ sidebar_position: 3
 import Figure from '@site/src/components/Figure';
 import tempr from '@site/figures/tempr.json';
 
-# Recall: How Hindsight Retrieves Memories
+# Recall: How ContextBase Retrieves Memories
 
-When you call `recall()`, Hindsight uses multiple search strategies in parallel to find the most relevant memories, regardless of how you phrase your query.
+When you call `recall()`, ContextBase uses multiple search strategies in parallel to find the most relevant memories, regardless of how you phrase your query.
 
 <Figure doc={tempr} />
 
@@ -22,7 +22,7 @@ Different queries need different search approaches:
 - **"What did Alice do last spring?"** → needs temporal reasoning
 - **"Why did Alice leave?"** → needs causal relationship tracing
 
-No single search method handles all these well. Hindsight runs **four complementary strategies in parallel** and fuses their results.
+No single search method handles all these well. ContextBase runs **four complementary strategies in parallel** and fuses their results.
 
 ---
 
@@ -52,8 +52,8 @@ No single search method handles all these well. Hindsight runs **four complement
 
 **Why it matters:** Ensures you never miss results that mention specific names or terms, even if they're semantically distant from your query.
 
-**Backends:** Hindsight ships five pluggable BM25 backends, selected via
-`HINDSIGHT_API_TEXT_SEARCH_EXTENSION`:
+**Backends:** ContextBase ships five pluggable BM25 backends, selected via
+`CONTEXTBASE_API_TEXT_SEARCH_EXTENSION`:
 
 | Backend | What it uses | Citus-compatible? |
 |---|---|---|
@@ -61,7 +61,7 @@ No single search method handles all these well. Hindsight runs **four complement
 | `vchord` | `vchord_bm25` extension | No |
 | `pg_textsearch` | Timescale `pg_textsearch` extension | No |
 | `pgroonga` | PGroonga (Groonga) full-text extension, `TokenBigram` polyglot tokenizer | No |
-| `pg_search` | ParadeDB `pg_search` extension, configurable tokenizer (e.g. `jieba`, `chinese_compatible`, `ngram`) via `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER` | Yes |
+| `pg_search` | ParadeDB `pg_search` extension, configurable tokenizer (e.g. `jieba`, `chinese_compatible`, `ngram`) via `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER` | Yes |
 
 If you need true BM25 ranking on a horizontally scaled Postgres (Citus) cluster,
 `pg_search` is the only option. See the [`pg_search` docker-compose example](https://github.com/vectorize-io/hindsight/tree/main/docker/docker-compose/pg_search).
@@ -93,7 +93,7 @@ If you need true BM25 ranking on a horizontally scaled Postgres (Citus) cluster,
 - Relative time: "What did Bob work on last year?"
 - Before/after: "What happened before Alice joined Google?"
 
-**How it works:** When the query contains a time reference, Hindsight parses it into a date window, then retrieves the memories whose time overlaps that window. Within the window it selects candidates by **semantic relevance to the query** — not by recency — so the most relevant in-window memory is never dropped just because other memories happen to be more recent. It then **spreads the selection across the window's range**: the window is divided into time-buckets and the strongest match from each populated bucket is taken first, so a "what happened in 2023?" query surfaces memories from across the whole year rather than clustering on whichever stretch is densest. Time is also used as a *scoring* signal — memories closer to the center of the window get a small boost (see [Temporal proximity signal](#temporal-proximity-signal)).
+**How it works:** When the query contains a time reference, ContextBase parses it into a date window, then retrieves the memories whose time overlaps that window. Within the window it selects candidates by **semantic relevance to the query** — not by recency — so the most relevant in-window memory is never dropped just because other memories happen to be more recent. It then **spreads the selection across the window's range**: the window is divided into time-buckets and the strongest match from each populated bucket is taken first, so a "what happened in 2023?" query surfaces memories from across the whole year rather than clustering on whichever stretch is densest. Time is also used as a *scoring* signal — memories closer to the center of the window get a small boost (see [Temporal proximity signal](#temporal-proximity-signal)).
 
 **Why it matters:** Enables precise historical queries that stay relevant *and* representative of the whole period. It also stays fast and meaningful on memory banks whose timestamps are densely clustered (for example when a large batch is ingested with one date): because selection is relevance-first, a time window that happens to match most of the bank still returns the best matches rather than an arbitrary slice.
 
@@ -126,12 +126,12 @@ The **fusion** of all four gives you exactly what you're looking for, even thoug
 
 ## Token Budget Management
 
-Hindsight is built for AI agents, not humans. Traditional search systems return "top-k" results, but agents don't think in terms of result counts—they think in tokens. An agent's context window is measured in tokens, and that's exactly how Hindsight measures results.
+ContextBase is built for AI agents, not humans. Traditional search systems return "top-k" results, but agents don't think in terms of result counts—they think in tokens. An agent's context window is measured in tokens, and that's exactly how ContextBase measures results.
 
 **How it works:**
 - Top-ranked memories selected first
 - Stops when token budget is exhausted
-- You specify context budget, Hindsight fills it with the most relevant memories
+- You specify context budget, ContextBase fills it with the most relevant memories
 
 **Parameters you control:**
 - `max_tokens`: How much memory content to return (default: 4096 tokens)
@@ -163,7 +163,7 @@ Different use cases require different trade-offs between **recall quality** and 
 
 ### Budget: Search Depth
 
-Controls how thoroughly Hindsight explores the memory bank—affecting graph traversal depth, candidate pool size, and cross-encoder re-ranking:
+Controls how thoroughly ContextBase explores the memory bank—affecting graph traversal depth, candidate pool size, and cross-encoder re-ranking:
 
 | Budget | Best For | Trade-off |
 |--------|----------|-----------|
@@ -216,7 +216,7 @@ Budget and max_tokens control different aspects of recall:
 
 ## Scoring & Ranking Deep Dive
 
-This section explains exactly how Hindsight turns raw retrieval results into a final ranked list. The pipeline has three stages: **RRF fusion**, **cross-encoder reranking**, and **combined scoring**.
+This section explains exactly how ContextBase turns raw retrieval results into a final ranked list. The pipeline has three stages: **RRF fusion**, **cross-encoder reranking**, and **combined scoring**.
 
 ### Stage 1: Reciprocal Rank Fusion (RRF)
 
@@ -234,7 +234,7 @@ Where:
 - **rank_i(d)** = position of document *d* in strategy *i* (1-indexed)
 - The sum runs over all strategies where *d* appears
 
-**Within RRF, all four strategies are weighted equally** — fusion uses rank position, not the source, so no strategy gets an implicit multiplier. You can, however, deliberately bias a source with [`HINDSIGHT_API_RECALL_STRATEGY_BOOSTS`](./configuration): that boost is applied at a separate stage — before the reranking pre-filter cap, and again after a cross-encoder rerank — not inside the RRF fusion above. The pre-cap step runs only when the merged pool exceeds the cap, and it does not rewrite RRF scores. A passthrough reranker (mode `rrf`, an `rrf` provider, or a failover chain that has degraded to `rrf`) skips the post-rerank nudge: within the cap the setting then does nothing, and above the cap it only changes who is kept.
+**Within RRF, all four strategies are weighted equally** — fusion uses rank position, not the source, so no strategy gets an implicit multiplier. You can, however, deliberately bias a source with [`CONTEXTBASE_API_RECALL_STRATEGY_BOOSTS`](./configuration): that boost is applied at a separate stage — before the reranking pre-filter cap, and again after a cross-encoder rerank — not inside the RRF fusion above. The pre-cap step runs only when the merged pool exceeds the cap, and it does not rewrite RRF scores. A passthrough reranker (mode `rrf`, an `rrf` provider, or a failover chain that has degraded to `rrf`) skips the post-rerank nudge: within the cap the setting then does nothing, and above the cap it only changes who is kept.
 
 **Why RRF over raw score merging?** Each retrieval strategy produces scores on a different scale (cosine similarity, BM25 tf-idf, graph activation). These scores aren't comparable — a BM25 score of 12.5 and a cosine similarity of 0.85 don't mean the same thing. RRF sidesteps this by using only rank positions, making it robust across any scoring system without requiring calibration.
 
@@ -256,7 +256,7 @@ The first memory ranks higher because it has **consensus** across strategies.
 
 RRF gives a good initial ranking, but it's based on positions, not on deep query-document understanding. The cross-encoder evaluates each candidate against the query as a pair, producing a relevance score.
 
-**Pre-filtering:** Before reranking, candidates are trimmed to the top **300** (by RRF score) to limit computational cost. This is configurable via `HINDSIGHT_API_RERANKER_MAX_CANDIDATES`. If [`HINDSIGHT_API_RECALL_STRATEGY_BOOSTS`](./configuration) is set, the boost is applied before this cut, so candidates from a favoured source are more likely to survive it. The boost promotes the favoured arm in *rank* space (its rank is divided by the level's divisor before the RRF contribution is computed) rather than scaling its score, so it reaches deeper into that arm without evicting the top-ranked hits of the others — including on banks whose merged pool is many times the cap. When `trace: true` is requested, the `rerank_prefilter` phase reports how many candidates were kept and dropped, the cap in force, the active boosts, and the per-arm composition of the survivors.
+**Pre-filtering:** Before reranking, candidates are trimmed to the top **300** (by RRF score) to limit computational cost. This is configurable via `CONTEXTBASE_API_RERANKER_MAX_CANDIDATES`. If [`CONTEXTBASE_API_RECALL_STRATEGY_BOOSTS`](./configuration) is set, the boost is applied before this cut, so candidates from a favoured source are more likely to survive it. The boost promotes the favoured arm in *rank* space (its rank is divided by the level's divisor before the RRF contribution is computed) rather than scaling its score, so it reaches deeper into that arm without evicting the top-ranked hits of the others — including on banks whose merged pool is many times the cap. When `trace: true` is requested, the `rerank_prefilter` phase reports how many candidates were kept and dropped, the cap in force, the active boosts, and the per-arm composition of the survivors.
 
 **Why rerank after RRF?** RRF is position-based — it knows a memory ranked well across strategies, but it never actually reads the query and the memory together. The cross-encoder does: it takes the query and each candidate as a pair and produces a relevance score based on their full interaction. This catches nuances that position-based fusion misses, like a memory that ranked #1 in keyword search because it matched a common term but is actually irrelevant to the query's intent.
 
@@ -269,7 +269,7 @@ CE_normalized = 1 / (1 + e^(-raw_logit))
 **Batch processing:** Candidates are scored in batches — **32 pairs** for the local reranker, **128 pairs** for TEI.
 
 :::tip No cross-encoder?
-When running without a cross-encoder (e.g., slim image with no external reranker), the system falls back to RRF-derived scores: candidates are assigned synthetic scores spread across [0.1, 1.0] based on their RRF rank, so the combined scoring boosts below still work meaningfully. `HINDSIGHT_API_RECALL_STRATEGY_BOOSTS` does not add its post-rerank nudge on this path. If the merged pool is within the reranker cap, the setting changes nothing; if the pool is larger, it only changes which candidates are kept, and their order still follows these RRF-derived scores plus recency, temporal and proof.
+When running without a cross-encoder (e.g., slim image with no external reranker), the system falls back to RRF-derived scores: candidates are assigned synthetic scores spread across [0.1, 1.0] based on their RRF rank, so the combined scoring boosts below still work meaningfully. `CONTEXTBASE_API_RECALL_STRATEGY_BOOSTS` does not add its post-rerank nudge on this path. If the merged pool is within the reranker cap, the setting changes nothing; if the pool is larger, it only changes which candidates are kept, and their order still follows these RRF-derived scores plus recency, temporal and proof.
 :::
 
 ---
@@ -355,9 +355,9 @@ The `budget` parameter (low/mid/high) controls **search depth** — how many can
 
 | Budget | Recall budget (fixed mode) | Env var override |
 |--------|---------------------------|-----------------|
-| **low** | 100 | `HINDSIGHT_API_RECALL_BUDGET_FIXED_LOW` |
-| **mid** | 300 (default) | `HINDSIGHT_API_RECALL_BUDGET_FIXED_MID` |
-| **high** | 1000 | `HINDSIGHT_API_RECALL_BUDGET_FIXED_HIGH` |
+| **low** | 100 | `CONTEXTBASE_API_RECALL_BUDGET_FIXED_LOW` |
+| **mid** | 300 (default) | `CONTEXTBASE_API_RECALL_BUDGET_FIXED_MID` |
+| **high** | 1000 | `CONTEXTBASE_API_RECALL_BUDGET_FIXED_HIGH` |
 
 This recall budget flows through the pipeline as follows:
 
@@ -369,7 +369,7 @@ This recall budget flows through the pipeline as follows:
 | **Temporal spreading** | Activates up to recall_budget nodes via links |
 | **Result consideration** | Top recall_budget × 2 results considered for token filtering |
 
-Reranking pre-filter (300 candidates) is **independent** of budget — it's a separate knob (`HINDSIGHT_API_RERANKER_MAX_CANDIDATES`).
+Reranking pre-filter (300 candidates) is **independent** of budget — it's a separate knob (`CONTEXTBASE_API_RERANKER_MAX_CANDIDATES`).
 
 :::info Adaptive budgeting
 An alternative budget mode scales the recall budget with `max_tokens` instead of using fixed values:
@@ -380,13 +380,13 @@ recall_budget = clamp(max_tokens × ratio, min, max)
 
 | Budget | Ratio | Env var override |
 |--------|-------|-----------------|
-| low | 2.5% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_LOW` |
-| mid | 7.5% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_MID` |
-| high | 25% of max_tokens | `HINDSIGHT_API_RECALL_BUDGET_ADAPTIVE_HIGH` |
+| low | 2.5% of max_tokens | `CONTEXTBASE_API_RECALL_BUDGET_ADAPTIVE_LOW` |
+| mid | 7.5% of max_tokens | `CONTEXTBASE_API_RECALL_BUDGET_ADAPTIVE_MID` |
+| high | 25% of max_tokens | `CONTEXTBASE_API_RECALL_BUDGET_ADAPTIVE_HIGH` |
 
-The result is clamped to a floor of **20** (`HINDSIGHT_API_RECALL_BUDGET_MIN`) and a ceiling of **2000** (`HINDSIGHT_API_RECALL_BUDGET_MAX`).
+The result is clamped to a floor of **20** (`CONTEXTBASE_API_RECALL_BUDGET_MIN`) and a ceiling of **2000** (`CONTEXTBASE_API_RECALL_BUDGET_MAX`).
 
-Enable with `HINDSIGHT_API_RECALL_BUDGET_FUNCTION=adaptive`.
+Enable with `CONTEXTBASE_API_RECALL_BUDGET_FUNCTION=adaptive`.
 :::
 
 ---

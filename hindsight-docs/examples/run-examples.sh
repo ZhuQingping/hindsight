@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -79,9 +79,9 @@ run_cli_examples() {
 
 # Wait for server to be ready
 wait_for_server() {
-    echo "Waiting for Hindsight server at $HINDSIGHT_URL..."
+    echo "Waiting for ContextBase server at $CONTEXTBASE_URL..."
     for i in {1..30}; do
-        if curl -s "$HINDSIGHT_URL/health" > /dev/null 2>&1; then
+        if curl -s "$CONTEXTBASE_URL/health" > /dev/null 2>&1; then
             echo "Server is ready!"
             return 0
         fi

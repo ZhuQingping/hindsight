@@ -1,27 +1,27 @@
 ---
 sidebar_position: 20
-title: "Roo Code Persistent Memory with Hindsight | Integration"
-description: "Add persistent long-term memory to Roo Code via Hindsight MCP. Auto-recalls relevant context before each task and retains learnings after — so every session builds on the last."
+title: "Roo Code Persistent Memory with ContextBase | Integration"
+description: "Add persistent long-term memory to Roo Code via ContextBase MCP. Auto-recalls relevant context before each task and retains learnings after — so every session builds on the last."
 ---
 
 # Roo Code
 
-Persistent long-term memory for [Roo Code](https://github.com/RooVetGit/Roo-Code) via [Hindsight](https://vectorize.io/hindsight). A one-command installer registers Hindsight's MCP server and injects custom rules that teach Roo to recall context before tasks and retain learnings after.
+Persistent long-term memory for [Roo Code](https://github.com/RooVetGit/Roo-Code) via [ContextBase](https://github.com/RSIXDB/hindsight). A one-command installer registers ContextBase's MCP server and injects custom rules that teach Roo to recall context before tasks and retain learnings after.
 
 [View Changelog →](/changelog/integrations/roo-code)
 
 ## Quick Start
 
-:::tip Hindsight Cloud (recommended)
-[Sign up free](https://ui.hindsight.vectorize.io) — get an API key instantly, no infrastructure to run.
+:::tip Configure your deployment
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```bash
 # Install the CLI
-pip install hindsight-roo-code
+pip install contextbase-roo-code
 
-# Install the integration into your project (defaults to Hindsight Cloud)
-hindsight-roo-code install
+# Install the integration into your project (defaults to ContextBase remote service)
+contextbase-roo-code install
 
 # Restart Roo Code — memory is active
 ```
@@ -29,13 +29,13 @@ hindsight-roo-code install
 **Self-hosting alternative:**
 
 ```bash
-# Start Hindsight locally first
+# Start ContextBase locally first
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-openai-key
+export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
 hindsight-api
 
 # Then install with the local URL
-hindsight-roo-code install --api-url http://localhost:8888
+contextbase-roo-code install --api-url http://localhost:8888
 ```
 
 ## How It Works
@@ -56,8 +56,8 @@ Task ends
 ```
 
 The installer writes:
-- **`.roo/mcp.json`** — registers Hindsight's `/mcp` endpoint as an MCP server, with `recall` and `retain` auto-approved
-- **`.roo/rules/hindsight-memory.md`** — instructions injected into every Roo system prompt
+- **`.roo/mcp.json`** — registers ContextBase's `/mcp` endpoint as an MCP server, with `recall` and `retain` auto-approved
+- **`.roo/rules/contextbase-memory.md`** — instructions injected into every Roo system prompt
 
 ## Installation Options
 
@@ -66,10 +66,10 @@ The installer writes:
 Writes to `.roo/` in the current directory — memory is scoped to this project:
 
 ```bash
-hindsight-roo-code install
-hindsight-roo-code install --api-url https://api.hindsight.vectorize.io  # default (Hindsight Cloud)
-hindsight-roo-code install --api-url http://localhost:8888                 # self-hosted
-hindsight-roo-code install --project-dir /path/to/project
+contextbase-roo-code install
+contextbase-roo-code install --api-url http://localhost:8888  # example self-hosted endpoint
+contextbase-roo-code install --api-url http://localhost:8888                 # self-hosted
+contextbase-roo-code install --project-dir /path/to/project
 ```
 
 ### Global install
@@ -77,7 +77,7 @@ hindsight-roo-code install --project-dir /path/to/project
 Writes to `~/.roo/` — applies to all projects:
 
 ```bash
-hindsight-roo-code install --global
+contextbase-roo-code install --global
 ```
 
 ## Configuration
@@ -87,7 +87,7 @@ The MCP entry written to `.roo/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "hindsight": {
+    "contextbase": {
       "type": "streamable-http",
       "url": "http://localhost:8888/mcp",
       "timeout": 30,
@@ -101,7 +101,7 @@ To update the API URL after installation, re-run the installer or edit `.roo/mcp
 
 ## MCP Tools
 
-Hindsight exposes two tools via its `/mcp` endpoint:
+ContextBase exposes two tools via its `/mcp` endpoint:
 
 | Tool | Description |
 |------|-------------|
@@ -112,20 +112,20 @@ The rules file instructs Roo to call these automatically at task start and end. 
 
 ## Verifying Setup
 
-1. Start Hindsight and run the installer
+1. Start ContextBase and run the installer
 2. Open Roo Code in your project
-3. Check **Settings → MCP Servers** — `hindsight` should show as connected
+3. Check **Settings → MCP Servers** — `contextbase` should show as connected
 4. Start a task — you should see `recall` invoked in the tool call log
 
 ## Prerequisites
 
-A running Hindsight instance:
+A running ContextBase instance:
 
-**Hindsight Cloud (recommended):** [Sign up](https://ui.hindsight.vectorize.io) — no self-hosting required.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 **Self-hosted:**
 ```bash
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-api-key
+export CONTEXTBASE_API_LLM_API_KEY=your-api-key
 hindsight-api  # starts on http://localhost:8888
 ```

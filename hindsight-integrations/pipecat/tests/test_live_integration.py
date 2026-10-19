@@ -1,18 +1,18 @@
-"""Live integration test for HindsightMemoryService.
+"""Live integration test for ContextBaseMemoryService.
 
-Runs conversation turns through the FrameProcessor against a real Hindsight
+Runs conversation turns through the FrameProcessor against a real ContextBase
 instance (default: http://localhost:8888) and verifies:
 
   1. Retain — turns get stored in Hindsight (verified via REST)
   2. Recall — subsequent turns surface stored memories
-  3. Inject — <hindsight_memories> system message appears in forwarded frame
+  3. Inject — <contextbase_memories> system message appears in forwarded frame
   4. Idempotency — memory block is replaced on re-injection (no duplication)
 
 Run:
-    HINDSIGHT_LIVE_URL=http://localhost:8888 python tests/test_live_integration.py
+    CONTEXTBASE_LIVE_URL=http://localhost:8888 python tests/test_live_integration.py
 
-Or via pytest (also respects HINDSIGHT_LIVE_URL):
-    HINDSIGHT_LIVE_URL=http://localhost:8888 python -m pytest tests/test_live_integration.py -v -s
+Or via pytest (also respects CONTEXTBASE_LIVE_URL):
+    CONTEXTBASE_LIVE_URL=http://localhost:8888 python -m pytest tests/test_live_integration.py -v -s
 """
 
 from __future__ import annotations
@@ -29,11 +29,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from hindsight_pipecat import HindsightMemoryService
-from hindsight_pipecat.memory import _MEMORY_MARKER
+from contextbase_pipecat import ContextBaseMemoryService
+from contextbase_pipecat.memory import _MEMORY_MARKER
 
-LIVE_URL = os.environ.get("HINDSIGHT_LIVE_URL", "http://localhost:8888")
-LIVE_API_KEY = os.environ.get("HINDSIGHT_LIVE_API_KEY")
+LIVE_URL = os.environ.get("CONTEXTBASE_LIVE_URL", "http://localhost:8888")
+LIVE_API_KEY = os.environ.get("CONTEXTBASE_LIVE_API_KEY")
 UNIQUE_BANK = f"pipecat-live-{uuid.uuid4().hex[:8]}"
 
 
@@ -61,7 +61,7 @@ def _make_frame(messages: list[dict[str, Any]]) -> MagicMock:
     return frame
 
 
-async def _run_turn(service: HindsightMemoryService, messages: list[dict[str, Any]]) -> MagicMock:
+async def _run_turn(service: ContextBaseMemoryService, messages: list[dict[str, Any]]) -> MagicMock:
     """Send a single context frame through the service and return the frame post-processing."""
     frame = _make_frame(messages)
     # FrameProcessor.push_frame is what the processor calls to forward downstream.
@@ -82,7 +82,7 @@ def _print(label: str, value: Any = "") -> None:
 
 
 async def run_live_test() -> bool:
-    print(f"\n=== Hindsight Pipecat Live Integration Test ===")
+    print(f"\n=== ContextBase Pipecat Live Integration Test ===")
     print(f"URL:  {LIVE_URL}")
     print(f"Bank: {UNIQUE_BANK}")
     print()
@@ -93,13 +93,13 @@ async def run_live_test() -> bool:
         health = _http_get("/health")
         _print("status", health.get("status"))
     except Exception as e:
-        print(f"  ❌ Hindsight not reachable: {e}")
+        print(f"  ❌ ContextBase not reachable: {e}")
         return False
 
     # 1. Create service
-    service = HindsightMemoryService(
+    service = ContextBaseMemoryService(
         bank_id=UNIQUE_BANK,
-        hindsight_api_url=LIVE_URL,
+        contextbase_api_url=LIVE_URL,
         api_key=LIVE_API_KEY,
     )
 
@@ -141,12 +141,12 @@ async def run_live_test() -> bool:
     ]
     frame2 = await _run_turn(service, messages_t2)
 
-    # 5. Verify Inject — <hindsight_memories> system message added
-    print("\n[4] Verify Inject (hindsight_memories system message)")
+    # 5. Verify Inject — <contextbase_memories> system message added
+    print("\n[4] Verify Inject (contextbase_memories system message)")
     injected_messages = frame2.context.messages
     memory_msgs = [m for m in injected_messages if m.get("role") == "system" and _MEMORY_MARKER in m.get("content", "")]
     if not memory_msgs:
-        print("  ❌ No <hindsight_memories> system message injected")
+        print("  ❌ No <contextbase_memories> system message injected")
         return False
 
     injected_content = memory_msgs[0]["content"]
@@ -171,7 +171,7 @@ async def run_live_test() -> bool:
     injected_msgs_after = [
         m for m in frame3.context.messages if m.get("role") == "system" and _MEMORY_MARKER in m.get("content", "")
     ]
-    _print("hindsight_memories system messages", len(injected_msgs_after))
+    _print("contextbase_memories system messages", len(injected_msgs_after))
     if len(injected_msgs_after) != 1:
         print(f"  ❌ Expected exactly 1 memory block, got {len(injected_msgs_after)}")
         return False
@@ -189,8 +189,8 @@ async def run_live_test() -> bool:
 
 
 @pytest.mark.skipif(
-    not os.environ.get("HINDSIGHT_LIVE_URL"),
-    reason="HINDSIGHT_LIVE_URL not set — skipping live integration test",
+    not os.environ.get("CONTEXTBASE_LIVE_URL"),
+    reason="CONTEXTBASE_LIVE_URL not set — skipping live integration test",
 )
 @pytest.mark.asyncio
 async def test_live_integration() -> None:

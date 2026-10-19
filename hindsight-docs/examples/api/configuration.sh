@@ -4,15 +4,15 @@
 
 set -e
 
-HINDSIGHT_API_URL="${HINDSIGHT_API_URL:-http://localhost:8888}"
+CONTEXTBASE_API_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # =============================================================================
 # Doc Examples
 # =============================================================================
 
 # [docs:plain-retrieval-bank]
-curl -X PUT "$HINDSIGHT_API_URL/v1/default/banks/plain-retrieval-bank" \
-  -H "Authorization: Bearer $HINDSIGHT_API_KEY" \
+curl -X PUT "$CONTEXTBASE_API_URL/v1/default/banks/plain-retrieval-bank" \
+  -H "Authorization: Bearer $CONTEXTBASE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "retain_extraction_mode": "chunks",
@@ -24,7 +24,7 @@ curl -X PUT "$HINDSIGHT_API_URL/v1/default/banks/plain-retrieval-bank" \
 # [/docs:plain-retrieval-bank]
 echo
 
-curl -sf "$HINDSIGHT_API_URL/v1/default/banks/plain-retrieval-bank/config" \
+curl -sf "$CONTEXTBASE_API_URL/v1/default/banks/plain-retrieval-bank/config" \
   | jq -e '.overrides.retain_extraction_mode == "chunks" and .overrides.enable_reranking == false' > /dev/null
 
 # [docs:mcp-tools-per-bank]
@@ -35,7 +35,7 @@ curl -X PATCH http://localhost:8888/v1/default/banks/config-demo-bank/config \
 # [/docs:mcp-tools-per-bank]
 echo
 
-curl -sf "$HINDSIGHT_API_URL/v1/default/banks/config-demo-bank/config" \
+curl -sf "$CONTEXTBASE_API_URL/v1/default/banks/config-demo-bank/config" \
   | jq -e '.overrides.mcp_enabled_tools == ["recall"]' > /dev/null
 
 # [docs:bank-config-examples]
@@ -60,14 +60,14 @@ curl -X DELETE http://localhost:8888/v1/default/banks/config-demo-bank/config
 # [/docs:bank-config-examples]
 echo
 
-curl -sf "$HINDSIGHT_API_URL/v1/default/banks/config-demo-bank/config" \
+curl -sf "$CONTEXTBASE_API_URL/v1/default/banks/config-demo-bank/config" \
   | jq -e '.overrides == {}' > /dev/null
 
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
 for bank_id in plain-retrieval-bank config-demo-bank; do
-  curl -s -X DELETE "${HINDSIGHT_API_URL}/v1/default/banks/${bank_id}" > /dev/null
+  curl -s -X DELETE "${CONTEXTBASE_API_URL}/v1/default/banks/${bank_id}" > /dev/null
 done
 
 echo "configuration.sh: All examples passed"

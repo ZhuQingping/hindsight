@@ -1,10 +1,10 @@
 #!/bin/bash
-# Knowledge Pages API examples for Hindsight CLI
+# Knowledge Pages API examples for ContextBase CLI
 # Run: bash examples/api/knowledge-pages.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="knowledge-pages-demo-bank-cli"
 
 # =============================================================================
@@ -87,6 +87,6 @@ contextbase knowledge-base delete "$BANK_ID" "$FOLDER_ID" -y
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "knowledge-pages.sh: All examples passed"

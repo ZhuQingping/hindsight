@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from hindsight_zcode.cli import main
+from contextbase_zcode.cli import main
 
 
 @pytest.fixture()

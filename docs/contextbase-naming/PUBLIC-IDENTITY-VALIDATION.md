@@ -96,3 +96,57 @@ manifests/installers, package versions and generated-file consistency. No
 new authentication logic, database migration or SDK method changes were added.
 No new must-fix implementation finding remained in this reviewed scope; the
 unexecuted gates above remain explicit.
+
+## Follow-up: review findings 1, 2 and 3
+
+The follow-up extends the original scope to independently installed integrations
+and current integration documentation. It changes integration-owned package/module
+names, plugin IDs, tools, configuration keys and outbound attribution. Published
+core SDK package coordinates, imports and internal engine configuration bridges
+remain unchanged. This does not add these integrations to the three-client
+release workflow or publish their new package names.
+
+- The pi disabled-workspace response now says ContextBase.
+- All ten control-plane locales and visible API configuration hints use
+  `CONTEXTBASE_API_*`. Control-plane settings read `CONTEXTBASE_CP_*` first,
+  including explicit empty values, before internal deployment settings.
+- Standalone integrations, including Hermes, OpenClaw, Cursor, n8n and Flowise,
+  use ContextBase identities. Remote-client construction requires a configured
+  endpoint instead of silently sending data to the original vendor's service.
+- Current docs describe source installation and deployment-specific service URLs;
+  they do not claim that renamed packages, images or a hosted service exist.
+  Historical records, license attribution and historical asset filenames remain.
+
+### Checks run for the follow-up
+
+| Check | Result |
+|---|---|
+| pi adapter | 11 passed |
+| Control-plane affected tests | 81 passed |
+| Hermes | 140 passed |
+| Standalone Cursor | 105 passed, 4 skipped |
+| OpenClaw | 398 passed; build passed |
+| NemoClaw | 37 passed; build passed |
+| Eve | 59 passed; build passed |
+| n8n | 23 passed; build passed |
+| Other selected Python integrations | 19 suites passed; optional/live cases skipped or deselected |
+| Python package builds | 33 wheels built; package/module paths verified |
+| Cross-integration identity and endpoint checks | 4 passed |
+| Integration lockfiles | 15 passed |
+| Brand generation | 19 targets passed round-trip checks |
+| Source validation | 506 Python syntax checks; 194 changed Node source syntax checks; 327 relative imports resolved |
+| Integration Ruff and patch whitespace | Passed |
+| Docs integration gallery | 62 integration pages and 18 changelog links validated |
+
+The 19 additional Python suites were ag2, agentcore, aider, claude-agent-sdk,
+cline, composio, continue, copilot-cli, cursor-cli, devin-desktop, gemini-spark,
+github-copilot, langgraph, litellm, meta-muse, openhands, roo-code, vapi and zcode.
+Optional framework dependencies were unavailable for several other integrations;
+wheel builds and isolated client-factory tests are not full runtime validation.
+Repository-wide lint was attempted again and stopped at dependency sync because
+this sparse checkout lacks the Python SDK project manifest. Full remote CI,
+documentation builds, real-host acceptance and public publication remain pending.
+
+Manual follow-up review checked manifest-to-entrypoint agreement, unchanged core
+SDK dependencies, endpoint requirements, local SDK configuration bridges,
+control-plane environment precedence and documentation deployment claims.

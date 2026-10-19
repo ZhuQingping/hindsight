@@ -1,26 +1,28 @@
-# Hindsight Memory Integration for Vercel AI SDK
+# ContextBase Memory Integration for Vercel AI SDK
 
-Give your AI agents persistent, human-like memory using [Hindsight](https://vectorize.io/hindsight) with the [Vercel AI SDK](https://ai-sdk.dev).
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Give your AI agents persistent, human-like memory using [ContextBase](https://github.com/RSIXDB/hindsight) with the [Vercel AI SDK](https://ai-sdk.dev).
 
 ## Quick Start
 
 ```bash
-npm install @vectorize-io/hindsight-ai-sdk @vectorize-io/hindsight-client ai zod
+npm install contextbase-ai-sdk @vectorize-io/hindsight-client ai zod
 ```
 
 ```typescript
 import { HindsightClient } from "@vectorize-io/hindsight-client";
-import { createHindsightTools } from "@vectorize-io/hindsight-ai-sdk";
+import { createContextBaseTools } from "contextbase-ai-sdk";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
-// 1. Initialize Hindsight client
-const hindsightClient = new HindsightClient({
+// 1. Initialize ContextBase client
+const contextbaseClient = new HindsightClient({
   apiUrl: "http://localhost:8000",
 });
 
 // 2. Create memory tools
-const tools = createHindsightTools({ client: hindsightClient });
+const tools = createContextBaseTools({ client: contextbaseClient });
 
 // 3. Use with AI SDK
 const result = await generateText({
@@ -46,7 +48,7 @@ console.log(result.text);
 
 ## Documentation
 
-📖 **[Full Documentation](https://vectorize.io/hindsight/sdks/integrations/ai-sdk)**
+📖 **[Full Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)**
 
 The complete documentation includes:
 
@@ -56,7 +58,7 @@ The complete documentation includes:
 - TypeScript types and API reference
 - Best practices and system prompt examples
 
-## Running Hindsight Locally
+## Running ContextBase Locally
 
 ```bash
 # Install and run with embedded mode (no setup required)
@@ -71,7 +73,7 @@ Full examples are available in the [GitHub repository](https://github.com/vector
 
 ## Support
 
-- [Documentation](https://vectorize.io/hindsight)
+- [Documentation](https://github.com/RSIXDB/hindsight)
 - [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
 - Email: support@vectorize.io
 

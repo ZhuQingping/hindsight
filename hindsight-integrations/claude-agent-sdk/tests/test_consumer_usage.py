@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import mcp.types as mcp_types
 import pytest
 from claude_agent_sdk import ClaudeAgentOptions, HookMatcher, ResultMessage
-from hindsight_claude_agent_sdk import MemoryHookConfig, create_hindsight_server, create_memory_hooks
+from contextbase_claude_agent_sdk import MemoryHookConfig, create_contextbase_server, create_memory_hooks
 
 
 def _mock_client():
@@ -58,22 +58,22 @@ def _transcript_path(tmp_path: Path, result_text: str) -> str:
 @pytest.mark.asyncio
 async def test_sdk_server_lists_tools_with_expected_annotations():
     client = _mock_client()
-    server_config = create_hindsight_server(bank_id="test-bank", client=client)
+    server_config = create_contextbase_server(bank_id="test-bank", client=client)
 
     options = ClaudeAgentOptions(
-        mcp_servers={"hindsight": server_config},
-        allowed_tools=["mcp__hindsight__*"],
+        mcp_servers={"contextbase": server_config},
+        allowed_tools=["mcp__contextbase__*"],
     )
-    assert options.mcp_servers["hindsight"]["type"] == "sdk"
+    assert options.mcp_servers["contextbase"]["type"] == "sdk"
 
     server = server_config["instance"]
     result = await server.request_handlers[mcp_types.ListToolsRequest](None)
     tools = result.root.tools
 
     assert [tool.name for tool in tools] == [
-        "hindsight_retain",
-        "hindsight_recall",
-        "hindsight_reflect",
+        "contextbase_retain",
+        "contextbase_recall",
+        "contextbase_reflect",
     ]
     assert tools[0].annotations.readOnlyHint is False
     assert tools[1].annotations.readOnlyHint is True
@@ -87,14 +87,14 @@ async def test_sdk_server_call_tool_executes_retain_recall_and_reflect():
     client.arecall.return_value = _mock_recall_response(["User prefers async Python"])
     client.areflect.return_value = _mock_reflect_response("The user prefers async Python with pytest.")
 
-    server = create_hindsight_server(bank_id="test-bank", client=client)["instance"]
+    server = create_contextbase_server(bank_id="test-bank", client=client)["instance"]
     call_handler = server.request_handlers[mcp_types.CallToolRequest]
 
     retain_request = mcp_types.CallToolRequest.model_validate(
         {
             "method": "tools/call",
             "params": {
-                "name": "hindsight_retain",
+                "name": "contextbase_retain",
                 "arguments": {"content": "The user prefers async Python"},
             },
         }
@@ -107,7 +107,7 @@ async def test_sdk_server_call_tool_executes_retain_recall_and_reflect():
         {
             "method": "tools/call",
             "params": {
-                "name": "hindsight_recall",
+                "name": "contextbase_recall",
                 "arguments": {"query": "user preferences"},
             },
         }
@@ -120,7 +120,7 @@ async def test_sdk_server_call_tool_executes_retain_recall_and_reflect():
         {
             "method": "tools/call",
             "params": {
-                "name": "hindsight_reflect",
+                "name": "contextbase_reflect",
                 "arguments": {"query": "Summarize the user's preferences"},
             },
         }
@@ -133,14 +133,14 @@ async def test_sdk_server_call_tool_executes_retain_recall_and_reflect():
 @pytest.mark.asyncio
 async def test_sdk_server_call_tool_validates_input_schema():
     client = _mock_client()
-    server = create_hindsight_server(bank_id="test-bank", client=client)["instance"]
+    server = create_contextbase_server(bank_id="test-bank", client=client)["instance"]
     call_handler = server.request_handlers[mcp_types.CallToolRequest]
 
     invalid_request = mcp_types.CallToolRequest.model_validate(
         {
             "method": "tools/call",
             "params": {
-                "name": "hindsight_recall",
+                "name": "contextbase_recall",
                 "arguments": {},
             },
         }

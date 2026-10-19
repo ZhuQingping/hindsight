@@ -1,4 +1,4 @@
-"""Hindsight Retain tool — store content in a memory bank."""
+"""ContextBase Retain tool — store content in a memory bank."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ class RetainTool(Tool):
         try:
             response = client.retain(bank_id=bank_id, content=content, tags=tags)
         except Exception as e:
-            yield self.create_text_message(f"Hindsight retain failed: {e}")
+            yield self.create_text_message(f"ContextBase retain failed: {e}")
             return
 
         result: dict[str, Any] = {

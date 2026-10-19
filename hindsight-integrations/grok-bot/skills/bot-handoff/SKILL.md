@@ -1,6 +1,6 @@
 ---
 name: bot-handoff
-description: Keep a durable record of work passed between Bots in the shared Hindsight memory bank. Use when handing work to another Bot, when picking up work another Bot started, and when a finding would help other Bots, including Bots that are not part of the current conversation.
+description: Keep a durable record of work passed between Bots in the shared ContextBase memory bank. Use when handing work to another Bot, when picking up work another Bot started, and when a finding would help other Bots, including Bots that are not part of the current conversation.
 ---
 
 # Hand off through shared memory

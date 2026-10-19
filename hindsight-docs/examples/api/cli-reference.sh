@@ -44,7 +44,7 @@ contextbase configure --api-url http://localhost:8888 --api-key your-api-key
 # [docs:cli-profiles]
 # Create (or overwrite) a profile
 contextbase profile create prod \
-  --api-url https://api.hindsight.vectorize.io \
+  --api-url http://localhost:8888 \
   --api-key hsk_...
 
 # List and inspect profiles
@@ -55,13 +55,13 @@ contextbase profile show prod
 contextbase -p prod bank list
 
 # Or make it sticky for the current shell
-export HINDSIGHT_PROFILE=prod
+export CONTEXTBASE_PROFILE=prod
 contextbase bank list
 
 # Remove a profile
 contextbase profile delete prod -y
 # [/docs:cli-profiles]
-unset HINDSIGHT_PROFILE
+unset CONTEXTBASE_PROFILE
 
 # =============================================================================
 # Core Commands

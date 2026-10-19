@@ -1,10 +1,10 @@
 /**
- * Tests for paperclip-plugin-hindsight.
+ * Tests for paperclip-plugin-contextbase.
  *
  * Uses @paperclipai/plugin-sdk's createTestHarness to simulate the Paperclip
  * host environment without requiring a running Paperclip instance.
  *
- * Hindsight API calls are intercepted via global fetch mocking.
+ * ContextBase API calls are intercepted via global fetch mocking.
  */
 
 import { readFileSync } from "node:fs";
@@ -37,7 +37,7 @@ function mockFetch(responses: Array<{ url: string | RegExp; body: unknown; statu
 // ---------------------------------------------------------------------------
 
 const DEFAULT_CONFIG = {
-  hindsightApiUrl: "http://localhost:8888",
+  contextbaseApiUrl: "http://localhost:8888",
   bankGranularity: ["company", "agent"],
   recallBudget: "mid",
   autoRetain: true,
@@ -228,7 +228,9 @@ describe("agent.run.started", () => {
     const recallCall = fetchMock.mock.calls.find(([url]: [string]) => url.includes("recall"));
     expect(recallCall).toBeDefined();
     expect(recallCall?.[0]).toContain("paperclip%3A%3Aco-1%3A%3Aag-1");
-    expect(recallCall?.[1]?.headers["User-Agent"]).toMatch(/^hindsight-paperclip\/\d+\.\d+\.\d+$/);
+    expect(recallCall?.[1]?.headers["User-Agent"]).toMatch(
+      /^contextbase-paperclip\/\d+\.\d+\.\d+$/
+    );
 
     const recallBody = JSON.parse(recallCall?.[1]?.body as string) as { query: string };
     expect(recallBody.query).toContain("Refactor auth module");
@@ -330,7 +332,7 @@ describe("agent.run.started", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("does not throw when Hindsight is unreachable", async () => {
+  it("does not throw when ContextBase is unreachable", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("", { status: 503 }))
@@ -468,10 +470,10 @@ describe("issue.comment.created", () => {
 });
 
 // ---------------------------------------------------------------------------
-// hindsight_recall tool
+// contextbase_recall tool
 // ---------------------------------------------------------------------------
 
-describe("hindsight_recall tool", () => {
+describe("contextbase_recall tool", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -496,7 +498,7 @@ describe("hindsight_recall tool", () => {
 
     const callsBefore = (vi.mocked(fetch) as ReturnType<typeof vi.fn>).mock.calls.length;
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "Update UI" },
       { agentId: "ag-1", runId: "run-1", companyId: "co-1", projectId: "proj-1" }
     );
@@ -531,7 +533,7 @@ describe("hindsight_recall tool", () => {
     vi.stubGlobal("fetch", liveFetch);
 
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "hosting decision" },
       { agentId: "ag-1", runId: "run-1", companyId: "co-1", projectId: "proj-1" }
     );
@@ -552,7 +554,7 @@ describe("hindsight_recall tool", () => {
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "specialization" },
       { agentId: "ag-1", runId: "run-2", companyId: "co-1", projectId: "proj-1" }
     );
@@ -576,7 +578,7 @@ describe("hindsight_recall tool", () => {
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "anything" },
       { agentId: "ag-1", runId: "run-3", companyId: "co-1", projectId: "proj-1" }
     );
@@ -614,22 +616,22 @@ describe("HindsightClient timeout", () => {
 });
 
 // ---------------------------------------------------------------------------
-// hindsight_retain tool
+// contextbase_retain tool
 // ---------------------------------------------------------------------------
 
-describe("hindsight_retain tool", () => {
+describe("contextbase_retain tool", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("stores content via Hindsight retain endpoint", async () => {
+  it("stores content via ContextBase retain endpoint", async () => {
     const fetchMock = mockFetch([{ url: /memories$/, body: { success: true } }]);
     vi.stubGlobal("fetch", fetchMock);
     const harness = buildHarness();
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_retain",
+      "contextbase_retain",
       { content: "Decision: use Postgres not MySQL" },
       { agentId: "ag-1", runId: "run-1", companyId: "co-1", projectId: "proj-1" }
     );
@@ -648,31 +650,31 @@ describe("hindsight_retain tool", () => {
 // ---------------------------------------------------------------------------
 
 describe("onValidateConfig", () => {
-  it("fails when hindsightApiUrl is missing", async () => {
-    const result = await plugin.definition.onValidateConfig!({ hindsightApiUrl: "" });
+  it("fails when contextbaseApiUrl is missing", async () => {
+    const result = await plugin.definition.onValidateConfig!({ contextbaseApiUrl: "" });
     expect(result.ok).toBe(false);
-    expect(result.errors?.some((e) => e.includes("hindsightApiUrl"))).toBe(true);
+    expect(result.errors?.some((e) => e.includes("contextbaseApiUrl"))).toBe(true);
   });
 
-  it("fails when Hindsight is unreachable", async () => {
+  it("fails when ContextBase is unreachable", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("", { status: 503 }))
     );
     const result = await plugin.definition.onValidateConfig!({
-      hindsightApiUrl: "http://localhost:8888",
+      contextbaseApiUrl: "http://localhost:8888",
     });
     expect(result.ok).toBe(false);
     vi.unstubAllGlobals();
   });
 
-  it("passes with a reachable Hindsight instance", async () => {
+  it("passes with a reachable ContextBase instance", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("{}", { status: 200 }))
     );
     const result = await plugin.definition.onValidateConfig!({
-      hindsightApiUrl: "http://localhost:8888",
+      contextbaseApiUrl: "http://localhost:8888",
     });
     expect(result.ok).toBe(true);
     vi.unstubAllGlobals();
@@ -800,7 +802,7 @@ describe("enabledAgentIds", () => {
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "anything" },
       {
         agentId: "ag-2",
@@ -821,7 +823,7 @@ describe("enabledAgentIds", () => {
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_retain",
+      "contextbase_retain",
       { content: "a secret" },
       {
         agentId: "ag-2",
@@ -843,7 +845,7 @@ describe("enabledAgentIds", () => {
     await setupPlugin(harness);
 
     await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "anything" },
       {
         agentId: "ag-1",
@@ -866,7 +868,7 @@ describe("enabledAgentIds", () => {
     await setupPlugin(harness);
 
     await harness.executeTool(
-      "hindsight_retain",
+      "contextbase_retain",
       { content: "a decision" },
       {
         agentId: "ag-1",
@@ -884,7 +886,7 @@ describe("enabledAgentIds", () => {
     await setupPlugin(harness);
 
     const result = await harness.executeTool(
-      "hindsight_recall",
+      "contextbase_recall",
       { query: "anything" },
       {
         agentId: "ag-whoever",
@@ -943,7 +945,7 @@ describe("enabledAgentIds", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Hindsight Cloud API key — secret reference
+// ContextBase Cloud API key — secret reference
 // ---------------------------------------------------------------------------
 
 describe("manifest version", () => {
@@ -953,7 +955,7 @@ describe("manifest version", () => {
   });
 });
 
-describe("hindsightApiKeyRef", () => {
+describe("contextbaseApiKeyRef", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -964,7 +966,7 @@ describe("hindsightApiKeyRef", () => {
       manifest.instanceConfigSchema as {
         properties: Record<string, { format?: string; oneOf?: Array<Record<string, unknown>> }>;
       }
-    ).properties.hindsightApiKeyRef;
+    ).properties.contextbaseApiKeyRef;
 
     // Without `format` the host renders a plain text box, stores whatever is
     // typed, and every resolve() fails closed on a bare string.
@@ -986,7 +988,7 @@ describe("hindsightApiKeyRef", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const secretRef = { type: "secret_ref" as const, secretId: "sec-1" };
-    const harness = buildHarness({ ...DEFAULT_CONFIG, hindsightApiKeyRef: secretRef });
+    const harness = buildHarness({ ...DEFAULT_CONFIG, contextbaseApiKeyRef: secretRef });
     const resolve = vi.spyOn(harness.ctx.secrets, "resolve").mockResolvedValue("hs-cloud-key");
     await setupPlugin(harness);
     const issue = await seedIssue(harness, { companyId: "co-1", title: "Ship it" });
@@ -999,7 +1001,7 @@ describe("hindsightApiKeyRef", () => {
 
     expect(resolve).toHaveBeenCalledWith(secretRef, {
       companyId: "co-1",
-      configPath: "hindsightApiKeyRef",
+      configPath: "contextbaseApiKeyRef",
     });
 
     const recallCall = fetchMock.mock.calls.find(([url]: [string]) => url.includes("recall"));

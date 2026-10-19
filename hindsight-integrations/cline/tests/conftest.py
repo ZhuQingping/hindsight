@@ -1,4 +1,4 @@
-"""Shared fixtures for the Hindsight Cline integration tests."""
+"""Shared fixtures for the ContextBase Cline integration tests."""
 
 import json
 import os
@@ -9,12 +9,12 @@ import pytest
 
 # The hook scripts do `sys.path.insert(0, <hooks dir>)` so `lib.*` resolves.
 # Mirror that here (the hook payload now lives under the package as data).
-HOOKS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hindsight_cline", "hooks"))
+HOOKS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "contextbase_cline", "hooks"))
 if HOOKS_DIR not in sys.path:
     sys.path.insert(0, HOOKS_DIR)
 
 from lib.cline_io import HookInput  # noqa: E402
-from lib.config import HindsightClineConfig, camel_to_snake  # noqa: E402
+from lib.config import ContextBaseClineConfig, camel_to_snake  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -23,18 +23,18 @@ def isolated_home(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     for key in list(os.environ):
-        if key.startswith("HINDSIGHT_"):
+        if key.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(key, raising=False)
     return tmp_path
 
 
-def base_config(**overrides) -> HindsightClineConfig:
+def base_config(**overrides) -> ContextBaseClineConfig:
     """A config with a fixed external API URL and no mission PATCH by default.
 
     Overrides may be passed in camelCase (the settings.json form) for parity
     with how the plugin is configured; they're mapped to the dataclass fields.
     """
-    cfg = HindsightClineConfig(hindsight_api_url="https://api.test", bank_mission="", retain_mission=None)
+    cfg = ContextBaseClineConfig(contextbase_api_url="https://api.test", bank_mission="", retain_mission=None)
     for key, value in overrides.items():
         setattr(cfg, camel_to_snake(key), value)
     return cfg

@@ -1,4 +1,4 @@
-/* Three stages left to right: who talks to Hindsight, Hindsight itself, and the
+/* Three stages left to right: who talks to ContextBase, ContextBase itself, and the
    database underneath. Deliberately light on chrome — the hero above it is
    container-less and this sits directly underneath. */
 .flow {
@@ -101,7 +101,7 @@
 .chat .reply {
   align-self: flex-start;
   color: var(--ifm-font-color-base);
-  background: var(--hindsight-active-surface);
+  background: var(--contextbase-active-surface);
   border: 1px solid rgba(0, 116, 217, 0.25);
   border-bottom-left-radius: 0.2rem;
 }
@@ -227,7 +227,7 @@
   transform: translateY(-50%) rotate(45deg);
 }
 
-/* ── Hindsight ────────────────────────────────────────────────────────────
+/* ── ContextBase ────────────────────────────────────────────────────────────
    The only tinted box, and the one with something nested inside it: the memory
    bank is part of this, not a fourth stage. */
 .core {
@@ -235,7 +235,7 @@
   flex-direction: column;
   gap: 0.7rem;
   padding: 1rem;
-  background: var(--hindsight-active-surface);
+  background: var(--contextbase-active-surface);
   border: 1px solid rgba(0, 116, 217, 0.3);
   border-radius: 0.7rem;
 }
@@ -244,7 +244,7 @@
   font-family: 'Space Grotesk', var(--ifm-font-family-base);
   font-size: 1rem;
   font-weight: 700;
-  background: var(--hindsight-gradient);
+  background: var(--contextbase-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -269,7 +269,7 @@
   border: 1px solid var(--ifm-color-emphasis-200);
 }
 
-/* Nested one level in, on its own surface, so it reads as a thing Hindsight
+/* Nested one level in, on its own surface, so it reads as a thing ContextBase
    contains. */
 .bank {
   display: flex;
@@ -378,10 +378,10 @@
 }
 
 .flow .optionPrimary::before {
-  background: var(--hindsight-gradient-horizontal);
+  background: var(--contextbase-gradient-horizontal);
   /* A soft ring so the managed option reads as the recommended one without
      needing a badge. */
-  box-shadow: 0 0 0 3px var(--hindsight-active-surface);
+  box-shadow: 0 0 0 3px var(--contextbase-active-surface);
 }
 
 .flow .optionPrimary a {

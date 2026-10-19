@@ -5,8 +5,8 @@ identity:
     en_US: Retain
 description:
   human:
-    en_US: Store content in a Hindsight memory bank. Facts are extracted asynchronously after the call returns.
-  llm: Use this tool to store information in Hindsight long-term memory. Pass the content to remember and the bank ID. Hindsight extracts facts in the background.
+    en_US: Store content in a ContextBase memory bank. Facts are extracted asynchronously after the call returns.
+  llm: Use this tool to store information in ContextBase long-term memory. Pass the content to remember and the bank ID. ContextBase extracts facts in the background.
 parameters:
   - name: bank_id
     type: string

@@ -1,5 +1,5 @@
 /**
- * Minimal Hindsight client surface used by this integration.
+ * Minimal ContextBase client surface used by this integration.
  *
  * It is a structural subset of `@vectorize-io/hindsight-client` so that
  * consumers can pass a real client instance without this package taking a hard
@@ -42,7 +42,7 @@ export interface RetainResponse {
 }
 
 /**
- * Hindsight client interface - matches `@vectorize-io/hindsight-client`.
+ * ContextBase client interface - matches `@vectorize-io/hindsight-client`.
  */
 export interface HindsightClient {
   retain(

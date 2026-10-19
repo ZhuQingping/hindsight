@@ -21,7 +21,7 @@ const pluginContext = await esbuild.context({
   minify: production,
 });
 
-// The headless CLI bin (`hindsight-obsidian-sync`). Runs in plain Node — keep
+// The headless CLI bin (`contextbase-obsidian-sync`). Runs in plain Node — keep
 // node builtins and chokidar external so npm resolves them at install time.
 const cliContext = await esbuild.context({
   entryPoints: ["src/node/cli-bin.ts"],

@@ -36,7 +36,7 @@ def test_user_agent_uses_product_identity():
     assert "hindsight" not in USER_AGENT.lower()
 
 
-@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+@pytest.mark.parametrize("bank", ["contextbase-review", "ContextBase-review", "CONTEXTBASE-review"])
 def test_client_preserves_public_service_error(monkeypatch: pytest.MonkeyPatch, bank: str) -> None:
     import io
     import urllib.error

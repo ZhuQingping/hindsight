@@ -61,8 +61,8 @@ if (violations.length > 0) {
   console.error('Example:\n');
   console.error('  ---');
   console.error('  sidebar_position: 1');
-  console.error('  title: "MyFramework Persistent Memory with Hindsight | Integration"');
-  console.error('  description: "Add long-term memory to MyFramework agents with Hindsight. ..."');
+  console.error('  title: "MyFramework Persistent Memory with ContextBase | Integration"');
+  console.error('  description: "Add long-term memory to MyFramework agents with ContextBase. ..."');
   console.error('  ---');
   process.exit(1);
 } else {

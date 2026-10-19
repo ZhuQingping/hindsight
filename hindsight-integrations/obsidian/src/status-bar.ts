@@ -10,7 +10,7 @@ export interface SyncStatus {
   configured: boolean;
   /** Number of sync operations currently in flight (reconcile/flush/ingest). */
   syncing: number;
-  /** Notes edited but not yet flushed to Hindsight. */
+  /** Notes edited but not yet flushed to ContextBase. */
   pending: number;
   /** Total notes currently tracked in the local sync index. */
   synced: number;
@@ -45,14 +45,14 @@ export function relativeTime(thenMs: number, nowMs: number): string {
 /**
  * Compute a sync indicator's label + tooltip from the current state.
  *
- * `brand` prefixes the label (default "Hindsight" for the status bar, where the
+ * `brand` prefixes the label (default "ContextBase" for the status bar, where the
  * item stands alone). Pass "" for the chat header, which already shows the
- * Hindsight wordmark next to it.
+ * ContextBase wordmark next to it.
  */
 export function renderSyncStatus(
   s: SyncStatus,
   nowMs: number,
-  brand = "Hindsight"
+  brand = "ContextBase"
 ): SyncStatusView {
   const p = brand ? `${brand} ` : "";
   const pendingNote = s.pending > 0 ? ` · ${s.pending} pending` : "";
@@ -66,7 +66,7 @@ export function renderSyncStatus(
   if (s.syncing > 0) {
     return {
       text: `${p}⟳ syncing…${s.pending > 0 ? ` (${s.pending})` : ""}`,
-      tooltip: `Syncing your vault to Hindsight… ${notes(s.synced)} tracked${pendingNote}.`,
+      tooltip: `Syncing your vault to ContextBase… ${notes(s.synced)} tracked${pendingNote}.`,
     };
   }
   if (s.error) {

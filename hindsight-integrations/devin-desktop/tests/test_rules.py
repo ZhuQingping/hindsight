@@ -1,6 +1,6 @@
-"""Tests for the .devin/rules/hindsight.md rule writer."""
+"""Tests for the .devin/rules/contextbase.md rule writer."""
 
-from hindsight_devin_desktop.rules import (
+from contextbase_devin_desktop.rules import (
     SENTINEL,
     clear_rule,
     default_rules_path,
@@ -18,11 +18,11 @@ def test_default_path_is_devin_rules():
     p = default_rules_path()
     assert p.parent.name == "rules"
     assert p.parent.parent.name == ".devin"
-    assert p.name == "hindsight.md"
+    assert p.name == "contextbase.md"
 
 
 def test_write_creates_dedicated_file(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     text = path.read_text()
     assert SENTINEL in text and "recall" in text and "retain" in text
@@ -30,7 +30,7 @@ def test_write_creates_dedicated_file(tmp_path):
 
 
 def test_rule_names_both_banks(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     text = path.read_text()
     assert PROJECT in text and GLOBAL in text
@@ -39,7 +39,7 @@ def test_rule_names_both_banks(tmp_path):
 
 
 def test_rule_reverses_dont_mention_to_mention(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     text = path.read_text().lower()
     assert "do not mention" not in text
@@ -61,7 +61,7 @@ def test_local_only_single_bank():
 
 
 def test_always_on_frontmatter(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     text = path.read_text()
     assert text.startswith("---\n")
@@ -69,7 +69,7 @@ def test_always_on_frontmatter(tmp_path):
 
 
 def test_write_is_idempotent(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     first = path.read_text()
     write_rule(path, PROJECT, GLOBAL)
@@ -78,14 +78,14 @@ def test_write_is_idempotent(tmp_path):
 
 
 def test_clear_deletes_our_file(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     write_rule(path, PROJECT, GLOBAL)
     clear_rule(path)
     assert not path.exists()
 
 
 def test_clear_leaves_foreign_file(tmp_path):
-    path = tmp_path / "hindsight.md"
+    path = tmp_path / "contextbase.md"
     path.write_text("---\ntrigger: always_on\n---\n\nSomeone else's rule.\n")
     clear_rule(path)
     assert path.exists()  # no sentinel -> not ours -> untouched

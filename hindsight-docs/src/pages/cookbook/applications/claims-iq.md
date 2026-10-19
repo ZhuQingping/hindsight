@@ -6,21 +6,21 @@ sidebar_position: 5
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/claims-iq)
 :::
 
 
-An AI agent that processes insurance claims through a multi-step workflow. The agent starts as a "confused rookie" and becomes a "seasoned expert" as [Hindsight](https://github.com/anthropics/hindsight) memories accumulate.
+An AI agent that processes insurance claims through a multi-step workflow. The agent starts as a "confused rookie" and becomes a "seasoned expert" as [ContextBase](https://github.com/anthropics/hindsight) memories accumulate.
 
 Watch the agent learn coverage rules, adjuster assignments, and escalation patterns in real-time through a pipeline dashboard.
 
 ## Quick Start
 
-### 1. Start Hindsight API (port 8888)
+### 1. Start ContextBase API (port 8888)
 
 ```bash
-docker run -p 8888:8888 ghcr.io/anthropics/hindsight:latest
+docker run -p 8888:8888 ghcr.io/anthropics/contextbase:latest
 ```
 
 ### 2. Start Backend (port 8000)
@@ -54,7 +54,7 @@ The agent processes insurance claims using 6 tools:
 5. **Assign** the right adjuster
 6. **Submit** a decision for validation
 
-The system validates each decision against ground truth. If the agent makes a mistake (wrong adjuster, incorrect coverage call), the decision is rejected with feedback — creating learning signal for Hindsight.
+The system validates each decision against ground truth. If the agent makes a mistake (wrong adjuster, incorrect coverage call), the decision is rejected with feedback — creating learning signal for ContextBase.
 
 ## Agent Modes
 
@@ -63,7 +63,7 @@ The system validates each decision against ground truth. If the agent makes a mi
 | **No Memory** | Baseline — agent starts fresh every claim |
 | **Recall** | Raw facts from past claims injected before processing |
 | **Reflect** | LLM-synthesized knowledge injected |
-| **Mental Models** | Full Hindsight mental models with auto-refresh |
+| **Mental Models** | Full ContextBase mental models with auto-refresh |
 
 ## Key Learning Challenges
 
@@ -77,5 +77,5 @@ The system validates each decision against ground truth. If the agent makes a mi
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `LLM_MODEL` | `openai/gpt-4o` | LLM model for the agent |
-| `HINDSIGHT_API_URL` | `http://localhost:8888` | Hindsight API URL |
+| `CONTEXTBASE_API_URL` | `http://localhost:8888` | ContextBase API URL |
 | `BACKEND_PORT` | `8000` | Backend server port |

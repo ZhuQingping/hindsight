@@ -609,7 +609,7 @@ export default function BankPage() {
                           description={t.rich("auditLogsDisabledMessage", {
                             envVar: () => (
                               <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                                HINDSIGHT_API_AUDIT_LOG_ENABLED=true
+                                CONTEXTBASE_API_AUDIT_LOG_ENABLED=true
                               </code>
                             ),
                           })}
@@ -629,7 +629,7 @@ export default function BankPage() {
                           description={t.rich("llmRequestsDisabledMessage", {
                             envVar: () => (
                               <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                                HINDSIGHT_API_LLM_TRACE_ENABLED=true
+                                CONTEXTBASE_API_LLM_TRACE_ENABLED=true
                               </code>
                             ),
                           })}
@@ -743,7 +743,7 @@ export default function BankPage() {
                           description={t.rich("observationsDisabledMessage", {
                             envVar: () => (
                               <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                                HINDSIGHT_API_ENABLE_OBSERVATIONS=true
+                                CONTEXTBASE_API_ENABLE_OBSERVATIONS=true
                               </code>
                             ),
                           })}

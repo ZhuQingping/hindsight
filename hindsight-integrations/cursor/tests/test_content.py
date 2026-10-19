@@ -10,8 +10,8 @@ from lib.content import (
 
 
 class TestStripMemoryTags:
-    def test_strips_hindsight_memories(self):
-        content = "Hello <hindsight_memories>secret</hindsight_memories> world"
+    def test_strips_contextbase_memories(self):
+        content = "Hello <contextbase_memories>secret</contextbase_memories> world"
         assert strip_memory_tags(content) == "Hello  world"
 
     def test_strips_relevant_memories(self):
@@ -80,9 +80,9 @@ class TestPrepareRetentionTranscript:
 
     def test_strips_memory_tags(self):
         messages = [
-            {"role": "user", "content": "Hello <hindsight_memories>injected</hindsight_memories>"},
+            {"role": "user", "content": "Hello <contextbase_memories>injected</contextbase_memories>"},
         ]
         transcript, count = prepare_retention_transcript(messages, ["user"], True)
         assert transcript is not None
-        assert "hindsight_memories" not in transcript
+        assert "contextbase_memories" not in transcript
         assert "injected" not in transcript

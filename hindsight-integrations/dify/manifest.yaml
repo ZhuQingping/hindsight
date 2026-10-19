@@ -1,11 +1,11 @@
 version: 0.1.0
 type: plugin
 author: vectorize
-name: hindsight
+name: contextbase
 label:
-  en_US: Hindsight
+  en_US: ContextBase
 description:
-  en_US: "Persistent long-term memory for Dify workflows. Three tools — Retain, Recall, Reflect — give your agents and workflows memory that survives across runs. Works with Hindsight Cloud or any self-hosted Hindsight instance."
+  en_US: "Persistent long-term memory for Dify workflows. Three tools — Retain, Recall, Reflect — give your agents and workflows memory that survives across runs. Works with ContextBase Cloud or any self-hosted ContextBase instance."
 icon: icon.png
 resource:
   memory: 268435456
@@ -14,7 +14,7 @@ resource:
       enabled: true
 plugins:
   tools:
-    - provider/hindsight.yaml
+    - provider/contextbase.yaml
 meta:
   version: 0.0.1
   arch:

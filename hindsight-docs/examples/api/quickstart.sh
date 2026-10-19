@@ -1,10 +1,10 @@
 #!/bin/bash
-# Quickstart examples for Hindsight CLI
+# Quickstart examples for ContextBase CLI
 # Run: bash examples/api/quickstart.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # =============================================================================
 # Doc Examples
@@ -25,6 +25,6 @@ contextbase memory reflect my-bank "Tell me about Alice"
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/my-bank" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/my-bank" > /dev/null
 
 echo "quickstart.sh: All examples passed"

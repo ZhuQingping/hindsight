@@ -540,7 +540,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-composio"
+name = "contextbase-composio"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

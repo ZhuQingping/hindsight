@@ -1,22 +1,22 @@
 /**
- * Custom tool definitions for the Hindsight OpenCode plugin.
+ * Custom tool definitions for the ContextBase OpenCode plugin.
  *
- * Registers hindsight_retain, hindsight_recall, and hindsight_reflect
+ * Registers contextbase_retain, contextbase_recall, and contextbase_reflect
  * as tools the agent can call explicitly.
  */
 
 import { tool } from "@opencode-ai/plugin/tool";
 import type { ToolDefinition } from "@opencode-ai/plugin/tool";
 import type { HindsightClient } from "@vectorize-io/hindsight-client";
-import type { HindsightConfig } from "./config.js";
+import type { ContextBaseConfig } from "./config.js";
 import { formatMemories, formatCurrentTime } from "./content.js";
 import { ensureBankMission } from "./bank.js";
 import { Logger } from "./logger.js";
 
-export interface HindsightTools {
-  hindsight_retain: ToolDefinition;
-  hindsight_recall: ToolDefinition;
-  hindsight_reflect: ToolDefinition;
+export interface ContextBaseTools {
+  contextbase_retain: ToolDefinition;
+  contextbase_recall: ToolDefinition;
+  contextbase_reflect: ToolDefinition;
   // Index signature so the object is assignable to OpenCode's Hooks.tool
   // (Record<string, ToolDefinition>) without losing the specific keys above.
   [key: string]: ToolDefinition;
@@ -25,11 +25,11 @@ export interface HindsightTools {
 export function createTools(
   client: HindsightClient,
   bankId: string,
-  config: HindsightConfig,
+  config: ContextBaseConfig,
   missionsSet?: Set<string>,
   logger: Logger = new Logger({ silent: true })
-): HindsightTools {
-  const hindsight_retain = tool({
+): ContextBaseTools {
+  const contextbase_retain = tool({
     description:
       "Store information in long-term memory. Use this to remember important facts, " +
       "user preferences, project context, decisions, and anything worth recalling in future sessions. " +
@@ -56,7 +56,7 @@ export function createTools(
     },
   });
 
-  const hindsight_recall = tool({
+  const contextbase_recall = tool({
     description:
       "Search long-term memory for relevant information. Use this proactively before " +
       "answering questions about past conversations, user preferences, project history, " +
@@ -83,7 +83,7 @@ export function createTools(
     },
   });
 
-  const hindsight_reflect = tool({
+  const contextbase_reflect = tool({
     description:
       "Generate a thoughtful answer using long-term memory. Unlike recall (which returns " +
       "raw memories), reflect synthesizes memories into a coherent answer. Use for questions " +
@@ -108,5 +108,5 @@ export function createTools(
     },
   });
 
-  return { hindsight_retain, hindsight_recall, hindsight_reflect };
+  return { contextbase_retain, contextbase_recall, contextbase_reflect };
 }

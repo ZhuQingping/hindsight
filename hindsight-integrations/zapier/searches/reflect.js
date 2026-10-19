@@ -29,7 +29,7 @@ module.exports = {
   display: {
     label: "Reflect",
     description:
-      "Get an LLM-synthesized answer to a question, grounded in a Hindsight memory bank's memories.",
+      "Get an LLM-synthesized answer to a question, grounded in a ContextBase memory bank's memories.",
   },
   operation: {
     inputFields: [

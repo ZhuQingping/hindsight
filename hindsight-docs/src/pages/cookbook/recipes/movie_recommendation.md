@@ -2,7 +2,7 @@
 sidebar_position: 8
 ---
 
-# Movie Recommendation Assistant with Hindsight Memory
+# Movie Recommendation Assistant with ContextBase Memory
 
 
 :::tip Run this notebook
@@ -20,20 +20,22 @@ A personalized movie recommender that remembers your preferences, watch history,
 
 ## Prerequisites
 - OpenAI API key
-- Hindsight running locally via Docker (see setup below)
+- ContextBase running locally via Docker (see setup below)
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
@@ -45,14 +47,14 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 ## 2. Configure OpenAI API Key
 
-Enter your OpenAI API key when prompted (used by both Hindsight and the demo).
+Enter your OpenAI API key when prompted (used by both ContextBase and the demo).
 
 
 ```python
 import getpass
 import os
 
-# Set OpenAI API key (used by both Hindsight and the demo)
+# Set OpenAI API key (used by both ContextBase and the demo)
 if not os.getenv("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
 
@@ -69,9 +71,9 @@ nest_asyncio.apply()
 from openai import OpenAI
 from hindsight_client import Hindsight
 
-# Initialize Hindsight client (connects to local Docker instance)
-hindsight = Hindsight(
-    base_url=os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+# Initialize ContextBase client (connects to local Docker instance)
+contextbase = Hindsight(
+    base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 
 # Initialize OpenAI client
@@ -85,7 +87,7 @@ print("Clients initialized!")
 
 ## 4. Define Helper Functions
 
-These functions demonstrate the three core Hindsight operations:
+These functions demonstrate the three core ContextBase operations:
 - **retain()**: Store memories
 - **recall()**: Retrieve relevant memories
 - **reflect()**: Synthesize insights from memories
@@ -97,7 +99,7 @@ def get_recommendation(user_query: str) -> str:
     Get a movie recommendation based on user query and remembered preferences.
     """
     # Recall relevant memories about this user's movie preferences
-    memories = hindsight.recall(
+    memories = contextbase.recall(
         bank_id=USER_ID,
         query=f"movie preferences tastes genres {user_query}",
         budget="mid",
@@ -133,7 +135,7 @@ If they mention new preferences, acknowledge them."""
     recommendation = response.choices[0].message.content
 
     # Store this interaction for future context
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"User asked: {user_query}\nRecommendation given: {recommendation}",
         metadata={"category": "movie_recommendation"},
@@ -144,7 +146,7 @@ If they mention new preferences, acknowledge them."""
 
 def store_preference(preference: str) -> None:
     """Store an explicit user preference."""
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"User preference: {preference}",
         metadata={"category": "preference"},
@@ -154,7 +156,7 @@ def store_preference(preference: str) -> None:
 
 def get_preference_summary() -> str:
     """Get a summary of what we know about the user's movie tastes."""
-    summary = hindsight.reflect(
+    summary = contextbase.reflect(
         bank_id=USER_ID,
         query="Summarize this user's movie preferences, favorite genres, actors they like, and movies they've mentioned enjoying or disliking.",
         budget="high",
@@ -201,7 +203,7 @@ for i, query in enumerate(conversations, 1):
 
 ## 6. View Learned Preferences
 
-Use `reflect()` to synthesize what Hindsight has learned about your movie tastes.
+Use `reflect()` to synthesize what ContextBase has learned about your movie tastes.
 
 
 ```python
@@ -227,11 +229,11 @@ print(f"Assistant: {get_recommendation(your_query)}")
 
 ## 8. Cleanup
 
-Close the Hindsight client connection.
+Close the ContextBase client connection.
 
 
 ```python
-hindsight.close()
+contextbase.close()
 print("Client connection closed.")
 ```
 

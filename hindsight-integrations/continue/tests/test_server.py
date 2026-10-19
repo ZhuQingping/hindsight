@@ -7,7 +7,7 @@ import threading
 from contextlib import contextmanager
 from http.client import HTTPConnection
 
-from hindsight_continue import build_server, configure
+from contextbase_continue import build_server, configure
 
 from .conftest import continue_request, make_client
 
@@ -59,7 +59,7 @@ class TestServerRoundtrip:
         assert isinstance(items, list) and len(items) == 1
         assert set(items[0].keys()) == {"name", "description", "content"}
         assert "User prefers tabs over spaces" in items[0]["content"]
-        # The integration actually called Hindsight with the typed query.
+        # The integration actually called ContextBase with the typed query.
         assert client.recall.call_args.kwargs["query"] == "formatting prefs"
 
     def test_no_results_returns_empty_array(self):
@@ -102,11 +102,11 @@ class TestServerRoundtrip:
         """Regression: with no injected client, resolve one per request.
 
         ThreadingHTTPServer handles each request on its own thread, and the
-        Hindsight client's aiohttp session is thread/loop-bound — so a single
+        ContextBase client's aiohttp session is thread/loop-bound — so a single
         shared client fails on the 2nd request with "Timeout context manager
         should be used inside a task". The adapter must resolve per request.
         """
-        import hindsight_continue.server as server_mod
+        import contextbase_continue.server as server_mod
 
         calls = []
 

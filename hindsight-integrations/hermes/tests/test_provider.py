@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import hindsight_hermes as plugin
+import contextbase_hermes as plugin
 from conftest import FakeClient, FakeRecallResponse
 from hindsight_client_api.exceptions import NotFoundException
 
@@ -86,7 +86,7 @@ def test_recall_tool_queries_the_bank_and_formats_results(provider):
     instance, fake = provider(
         {"bank_id": "team", "recall_budget": "high"}, client=FakeClient(recall_texts=["fact one", "fact two"])
     )
-    result = json.loads(instance.handle_tool_call("hindsight_recall", {"query": "who am I?"}))
+    result = json.loads(instance.handle_tool_call("contextbase_recall", {"query": "who am I?"}))
 
     assert fake.recalls[0]["bank_id"] == "team"
     assert fake.recalls[0]["budget"] == "high"
@@ -97,7 +97,7 @@ def test_recall_tool_queries_the_bank_and_formats_results(provider):
 
 def test_recall_sends_no_score_floor_by_default(provider):
     instance, fake = provider({}, client=FakeClient(recall_texts=["fact one"]))
-    instance.handle_tool_call("hindsight_recall", {"query": "who am I?"})
+    instance.handle_tool_call("contextbase_recall", {"query": "who am I?"})
     assert "min_scores" not in fake.recalls[0]
     instance.shutdown()
 
@@ -106,7 +106,7 @@ def test_recall_min_scores_reaches_the_tool_and_the_prefetch(provider):
     instance, fake = provider(
         {"recall_sync": True, "recall_min_scores": {"reranker": 0.25}}, client=FakeClient(recall_texts=["fact one"])
     )
-    instance.handle_tool_call("hindsight_recall", {"query": "who am I?"})
+    instance.handle_tool_call("contextbase_recall", {"query": "who am I?"})
     instance.prefetch("what do you know?")
     assert [call["min_scores"] for call in fake.recalls] == [{"reranker": 0.25}] * 2
     instance.shutdown()
@@ -114,7 +114,7 @@ def test_recall_min_scores_reaches_the_tool_and_the_prefetch(provider):
 
 def test_recall_min_scores_accepts_the_json_string_the_setup_wizard_writes(provider):
     instance, fake = provider({"recall_min_scores": '{"reranker": 0.25}'}, client=FakeClient(recall_texts=["x"]))
-    instance.handle_tool_call("hindsight_recall", {"query": "q"})
+    instance.handle_tool_call("contextbase_recall", {"query": "q"})
     assert fake.recalls[0]["min_scores"] == {"reranker": 0.25}
     instance.shutdown()
 
@@ -124,7 +124,7 @@ def test_recall_with_an_empty_answer_stays_an_empty_block(provider):
     instance, fake = provider({"recall_sync": True, "recall_min_scores": {"reranker": 0.9}}, client=FakeClient())
     assert instance.prefetch("something off topic") == ""
     assert fake.recalls[0]["min_scores"] == {"reranker": 0.9}
-    assert json.loads(instance.handle_tool_call("hindsight_recall", {"query": "q"}))["result"] == (
+    assert json.loads(instance.handle_tool_call("contextbase_recall", {"query": "q"}))["result"] == (
         "No relevant memories found."
     )
     instance.shutdown()
@@ -136,7 +136,7 @@ def test_recall_min_scores_is_enforced_on_each_result_the_server_returns(provide
     # floor really abstains.
     results = [("kept", {"semantic": 0.7}), ("weak", {"semantic": 0.3}), ("other arm", {"semantic": None})]
     instance, fake = provider({"recall_min_scores": {"semantic": 0.5}}, client=FakeClient(recall_texts=results))
-    result = json.loads(instance.handle_tool_call("hindsight_recall", {"query": "q"}))
+    result = json.loads(instance.handle_tool_call("contextbase_recall", {"query": "q"}))
     assert result["result"] == "1. kept"
     assert fake.recalls[0]["min_scores"] == {"semantic": 0.5}
     instance.shutdown()
@@ -148,7 +148,7 @@ def test_recall_min_scores_drops_the_whole_block_when_nothing_clears_it(provider
         {"recall_sync": True, "recall_min_scores": {"semantic": 0.5}}, client=FakeClient(recall_texts=results)
     )
     assert instance.prefetch("something off topic") == ""
-    assert json.loads(instance.handle_tool_call("hindsight_recall", {"query": "q"}))["result"] == (
+    assert json.loads(instance.handle_tool_call("contextbase_recall", {"query": "q"}))["result"] == (
         "No relevant memories found."
     )
     instance.shutdown()
@@ -156,7 +156,7 @@ def test_recall_min_scores_drops_the_whole_block_when_nothing_clears_it(provider
 
 def test_reflect_tool_uses_reflect(provider):
     instance, fake = provider({}, client=FakeClient(reflect_text="You are Ada."))
-    result = json.loads(instance.handle_tool_call("hindsight_reflect", {"query": "who am I?"}))
+    result = json.loads(instance.handle_tool_call("contextbase_reflect", {"query": "who am I?"}))
     assert fake.reflects[0]["query"] == "who am I?"
     assert result["result"] == "You are Ada."
     instance.shutdown()
@@ -164,7 +164,7 @@ def test_reflect_tool_uses_reflect(provider):
 
 def test_retain_tool_stores_content_with_per_call_tags(provider):
     instance, fake = provider({"retain_tags": "base"})
-    instance.handle_tool_call("hindsight_retain", {"content": "Ada likes tea", "tags": ["drink"]})
+    instance.handle_tool_call("contextbase_retain", {"content": "Ada likes tea", "tags": ["drink"]})
     item = _retain_item(fake)
     assert item["content"] == "Ada likes tea"
     assert item["tags"] == ["base", "drink"]
@@ -188,7 +188,7 @@ def test_builtin_memory_adds_and_replaces_are_retained(provider):
 
 def test_tool_call_errors_are_reported_not_raised(provider):
     instance, _ = provider({})
-    assert instance.handle_tool_call("hindsight_recall", {}).startswith("ERROR:")
+    assert instance.handle_tool_call("contextbase_recall", {}).startswith("ERROR:")
     assert instance.handle_tool_call("nope", {"query": "x"}).startswith("ERROR:")
     instance.shutdown()
 
@@ -203,7 +203,7 @@ class _EmptyServerClient(FakeClient):
 
 def test_searching_a_bank_nothing_was_saved_to_finds_nothing(provider):
     instance, _ = provider({}, client=_EmptyServerClient())
-    for tool in ("hindsight_recall", "hindsight_reflect"):
+    for tool in ("contextbase_recall", "contextbase_reflect"):
         result = json.loads(instance.handle_tool_call(tool, {"query": "who am I?"}))
         assert result == {"result": "No relevant memories found."}
     instance.shutdown()
@@ -214,7 +214,7 @@ def test_prefetch_injects_recalled_memories(provider):
     block = instance.prefetch("what do you know?")
     assert "- fact one" in block
     status = instance.recall_status()
-    assert status.count == 1 and status.provider_label == "Hindsight"
+    assert status.count == 1 and status.provider_label == "ContextBase"
     instance.shutdown()
 
 
@@ -225,9 +225,9 @@ def test_context_mode_hides_tools_tools_mode_skips_recall(provider):
 
     tools_only, fake = provider({"memory_mode": "tools", "recall_sync": True})
     assert [t["name"] for t in tools_only.get_tool_schemas()] == [
-        "hindsight_retain",
-        "hindsight_recall",
-        "hindsight_reflect",
+        "contextbase_retain",
+        "contextbase_recall",
+        "contextbase_reflect",
     ]
     assert tools_only.prefetch("anything") == ""
     assert fake.recalls == []
@@ -274,7 +274,7 @@ def test_a_session_named_as_its_own_parent_gets_no_parent_tag(provider):
 def test_register_exposes_the_provider_to_hermes():
     registered = []
     plugin.register(type("Ctx", (), {"register_memory_provider": lambda _self, p: registered.append(p)})())
-    assert registered and registered[0].name == "hindsight"
+    assert registered and registered[0].name == "contextbase"
 
 
 def test_append_mode_drops_retained_turns_from_the_buffer(provider):
@@ -336,7 +336,7 @@ def test_root_warning_goes_through_the_hosts_warning_callback(provider, monkeypa
 def test_warning_sink_defaults_exist_without_initialize():
     """_start_embedded_daemon reads these directly, and availability probes construct a
     provider without ever calling initialize() — so __init__ must supply both."""
-    bare = plugin.HindsightMemoryProvider()
+    bare = plugin.ContextBaseMemoryProvider()
     assert bare._warning_callback is None
     assert bare._platform == "cli"
 
@@ -351,8 +351,8 @@ def test_system_prompt_guides_tool_choice_only_when_tools_exist(provider):
     assert "session_search" not in blocks["context"]
     assert "automatically injected" in blocks["context"]
     for mode in ("tools", "hybrid"):
-        assert "prefer hindsight_recall over session_search" in blocks[mode]
-        assert "hindsight_reflect" in blocks[mode] and "hindsight_retain" in blocks[mode]
+        assert "prefer contextbase_recall over session_search" in blocks[mode]
+        assert "contextbase_reflect" in blocks[mode] and "contextbase_retain" in blocks[mode]
     assert "automatically injected" in blocks["hybrid"]
     assert "automatically injected" not in blocks["tools"]
 
@@ -429,7 +429,7 @@ def test_building_the_embedded_client_announces_before_it_waits(provider, monkey
     instance, _ = provider({"profile": "hermes"}, warning_callback=seen.append)
     instance._mode = "local_embedded"
     order = []
-    from hindsight_hermes.embedded import LocalRuntimeStatus
+    from contextbase_hermes.embedded import LocalRuntimeStatus
 
     monkeypatch.setattr(plugin, "_check_local_runtime", lambda: LocalRuntimeStatus(available=True))
     monkeypatch.setattr(plugin, "_daemon_is_running", lambda profile: False)
@@ -451,7 +451,7 @@ def test_the_embedded_client_sends_the_daemons_tenant_key(provider, monkeypatch)
     """#5023: a daemon running ApiKeyTenantExtension answers 401 to a keyless client."""
     instance, _ = provider({"profile": "hermes"})
     instance._mode = "local_embedded"
-    from hindsight_hermes.embedded import LocalRuntimeStatus, _embedded_profile_env_path
+    from contextbase_hermes.embedded import LocalRuntimeStatus, _embedded_profile_env_path
 
     profile_env = _embedded_profile_env_path({"profile": "hermes"})
     profile_env.parent.mkdir(parents=True, exist_ok=True)
@@ -469,7 +469,7 @@ def test_the_embedded_client_sends_the_daemons_tenant_key(provider, monkeypatch)
 
     instance._new_embedded_client()
 
-    assert built == {"base_url": "http://127.0.0.1:1", "api_key": "tenant-secret"}
+    assert built == {"base_url": "http://127.0.0.1:1", "api_key": "tenant-secret", "user_agent": plugin._USER_AGENT}
     instance.shutdown()
 
 
@@ -515,9 +515,9 @@ def test_version_probe_sends_plugin_user_agent(monkeypatch):
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
     with pytest.raises(plugin._VersionProbeUnreachable):
-        plugin._fetch_hindsight_api_version("http://hs.test")
+        plugin._fetch_contextbase_api_version("http://hs.test")
     assert sent["User-agent"] == plugin._USER_AGENT
-    assert plugin._USER_AGENT != "hindsight-hermes/0.0.0"
+    assert plugin._USER_AGENT != "contextbase-hermes/0.0.0"
 
 
 class _VersionServer:
@@ -605,12 +605,12 @@ def test_version_falls_back_to_the_bare_path(version_probe):
 def test_retain_tool_honours_retain_async(provider):
     """#4662: the tool blocked on a sync retain whatever retain_async said."""
     instance, fake = provider({})
-    result = json.loads(instance.handle_tool_call("hindsight_retain", {"content": "Ada likes tea"}))
+    result = json.loads(instance.handle_tool_call("contextbase_retain", {"content": "Ada likes tea"}))
     assert fake.retains[0]["retain_async"] is True
     assert result["result"] == "Memory queued for storage."
 
     instance, fake = provider({"retain_async": False})
-    result = json.loads(instance.handle_tool_call("hindsight_retain", {"content": "Ada likes tea"}))
+    result = json.loads(instance.handle_tool_call("contextbase_retain", {"content": "Ada likes tea"}))
     assert fake.retains[0]["retain_async"] is False
     assert result["result"] == "Memory stored successfully."
 
@@ -623,7 +623,7 @@ def test_a_tool_error_with_no_message_still_says_what_failed(provider):
             raise TimeoutError()
 
     instance, _ = provider({}, client=TimingOut())
-    result = instance.handle_tool_call("hindsight_recall", {"query": "q"})
+    result = instance.handle_tool_call("contextbase_recall", {"query": "q"})
     assert result.endswith("Failed to search memory: TimeoutError")
 
 
@@ -654,7 +654,7 @@ def test_a_slow_prefetch_never_overwrites_a_newer_one(provider):
 def test_recall_tags_accept_the_documented_comma_separated_form(provider):
     """#4662: the string went to the client as-is and the API rejected it (422)."""
     instance, fake = provider({"recall_tags": "team, project-x"})
-    instance.handle_tool_call("hindsight_recall", {"query": "q"})
+    instance.handle_tool_call("contextbase_recall", {"query": "q"})
     assert fake.recalls[0]["tags"] == ["team", "project-x"]
 
 
@@ -700,7 +700,7 @@ def test_reconnect_closes_the_client_it_replaces(provider, monkeypatch):
     instance._mode, instance._client = "local_embedded", dead
     monkeypatch.setattr(instance, "_new_embedded_client", lambda: fresh)
 
-    result = json.loads(instance.handle_tool_call("hindsight_recall", {"query": "q"}))
+    result = json.loads(instance.handle_tool_call("contextbase_recall", {"query": "q"}))
     assert result["result"] == "1. back"
     assert Dead.closed
 
@@ -723,16 +723,16 @@ def test_shutdown_drops_its_atexit_hook(provider, monkeypatch):
 
 def test_availability_failure_is_logged(hermes_env, caplog):
     """#4662: is_available swallowed the error, so a broken config showed no reason anywhere."""
-    (hermes_env / "hindsight").mkdir(parents=True, exist_ok=True)
-    (hermes_env / "hindsight" / "config.json").write_text(json.dumps({"mode": ["cloud"]}))
+    (hermes_env / "contextbase").mkdir(parents=True, exist_ok=True)
+    (hermes_env / "contextbase" / "config.json").write_text(json.dumps({"mode": ["cloud"]}))
     with caplog.at_level("DEBUG"):
-        assert plugin.HindsightMemoryProvider().is_available() is False
+        assert plugin.ContextBaseMemoryProvider().is_available() is False
     assert "availability check failed" in caplog.text
 
 
 def test_desktop_panel_offers_every_mode_the_plugin_runs():
     """#4662: without local_embedded the panel could not hold that mode and saving rewrote it."""
-    from hindsight_hermes.config_schema import CONFIG_SCHEMA
+    from contextbase_hermes.config_schema import CONFIG_SCHEMA
 
     mode = next(field for field in CONFIG_SCHEMA["fields"] if field["key"] == "mode")
     assert {option[0] for option in mode["options"]} == {"cloud", "local_embedded", "local_external"}
@@ -742,7 +742,7 @@ def test_cron_runs_are_not_auto_retained(provider):
     """#4945: Hermes passes agent_context="cron" for scheduled jobs; the contract is to skip writes."""
     cron, fake = provider({}, agent_context="cron")
     cron.sync_turn("daily digest", "here is the news")
-    cron.handle_tool_call("hindsight_retain", {"content": "an explicit note"})  # the tool still works
+    cron.handle_tool_call("contextbase_retain", {"content": "an explicit note"})  # the tool still works
     cron.shutdown()
     assert [call["items"][0]["content"] for call in fake.retains] == ["an explicit note"]
 
@@ -762,10 +762,10 @@ def test_primary_runs_are_auto_retained(provider):
 
 
 def test_bank_id_env_wins_over_config_json(provider):
-    """#5171: HINDSIGHT_BANK_ID is documented as an override; config.json used to shadow it."""
+    """#5171: CONTEXTBASE_BANK_ID is documented as an override; config.json used to shadow it."""
     from conftest import SECRETS
 
-    SECRETS["HINDSIGHT_BANK_ID"] = "env-bank"
+    SECRETS["CONTEXTBASE_BANK_ID"] = "env-bank"
     instance, fake = provider({"bank_id": "config-bank"})
     instance.sync_turn("hello", "hi")
     instance.shutdown()
@@ -785,12 +785,20 @@ def test_reflect_tags_scope_reflect(provider):
         {"reflect_tags": "team, project-x", "reflect_tags_match": "all", "recall_tags": "other"},
         client=FakeClient(reflect_text="synthesis"),
     )
-    instance.handle_tool_call("hindsight_reflect", {"query": "q"})
+    instance.handle_tool_call("contextbase_reflect", {"query": "q"})
     assert fake.reflects[0]["tags"] == ["team", "project-x"]
     assert fake.reflects[0]["tags_match"] == "all"
 
 
 def test_reflect_without_reflect_tags_uses_the_whole_bank(provider):
     instance, fake = provider({"recall_tags": "team"}, client=FakeClient(reflect_text="synthesis"))
-    instance.handle_tool_call("hindsight_reflect", {"query": "q"})
+    instance.handle_tool_call("contextbase_reflect", {"query": "q"})
     assert "tags" not in fake.reflects[0]
+
+
+def test_cloud_requires_an_explicit_service_url():
+    instance = plugin.ContextBaseMemoryProvider()
+    instance._api_url = ""
+    with pytest.raises(ValueError, match="API URL explicitly"):
+        instance._new_cloud_client()
+    instance.shutdown()

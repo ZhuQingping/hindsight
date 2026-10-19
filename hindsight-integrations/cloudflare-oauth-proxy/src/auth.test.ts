@@ -37,11 +37,11 @@ function createEnv(overrides: Partial<Env> = {}): Env {
   return {
     OAUTH_KV: createMockKv(),
     OAUTH_PROVIDER: createMockProvider(),
-    HINDSIGHT_ORIGIN: "https://hindsight-origin.example.com",
+    CONTEXTBASE_ORIGIN: "https://hindsight-origin.example.com",
     ALLOWED_EMAIL: "test@example.com",
     SESSION_SECRET: "correct-horse-battery-staple",
     PROXY_SECRET: "proxy-secret",
-    HINDSIGHT_API_TOKEN: "server-token",
+    CONTEXTBASE_API_TOKEN: "server-token",
     ...overrides,
   };
 }
@@ -91,7 +91,7 @@ describe("handleDefaultRequest", () => {
         env
       );
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({ service: "Hindsight MCP OAuth Proxy" });
+      expect(await response.json()).toEqual({ service: "ContextBase MCP OAuth Proxy" });
     });
   });
 
@@ -115,7 +115,7 @@ describe("handleDefaultRequest", () => {
       expect(response.status).toBe(200);
       expect(response.headers.get("Content-Type")).toBe("text/html");
       const html = await response.text();
-      expect(html).toContain("Hindsight MCP");
+      expect(html).toContain("ContextBase MCP");
       expect(html).toContain('name="stateKey"');
 
       // Extract stateKey and verify it was stored in KV

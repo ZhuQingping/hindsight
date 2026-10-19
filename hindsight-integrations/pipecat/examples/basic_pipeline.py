@@ -1,25 +1,26 @@
-"""Basic Pipecat pipeline with Hindsight persistent memory.
+"""Basic Pipecat pipeline with ContextBase persistent memory.
 
 This example shows how to add long-term memory to a voice AI pipeline using
-HindsightMemoryService. The processor slots between the user context aggregator
+ContextBaseMemoryService. The processor slots between the user context aggregator
 and the LLM service — recalling relevant memories before each turn and retaining
 conversation content after.
 
 Requirements:
-    pip install pipecat-hindsight pipecat-ai[deepgram,openai,cartesia,silero,daily]
+    pip install pipecat-contextbase pipecat-ai[deepgram,openai,cartesia,silero,daily]
 
 Environment variables:
     DEEPGRAM_API_KEY     - Deepgram speech-to-text key
     OPENAI_API_KEY       - OpenAI API key
     CARTESIA_API_KEY     - Cartesia text-to-speech key
     DAILY_API_KEY        - Daily.co WebRTC transport key
-    HINDSIGHT_API_URL    - Hindsight API URL (default: http://localhost:8888)
-    HINDSIGHT_API_KEY    - Hindsight API key (required for Hindsight Cloud)
+    CONTEXTBASE_API_URL    - ContextBase API URL (default: http://localhost:8888)
+    CONTEXTBASE_API_KEY    - ContextBase API key (required for ContextBase Cloud)
 """
 
 import asyncio
 import os
 
+from contextbase_pipecat import ContextBaseMemoryService
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import LLMRunFrame
 from pipecat.pipeline.pipeline import Pipeline
@@ -32,8 +33,6 @@ from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 
-from hindsight_pipecat import HindsightMemoryService
-
 SYSTEM_PROMPT = """You are a friendly voice assistant with long-term memory.
 You remember details from past conversations and use them naturally.
 Keep responses concise — this is a voice interface."""
@@ -43,7 +42,7 @@ async def main() -> None:
     transport = DailyTransport(
         room_url=os.environ["DAILY_ROOM_URL"],
         token=os.environ.get("DAILY_TOKEN", ""),
-        bot_name="Hindsight Bot",
+        bot_name="ContextBase Bot",
         params=DailyParams(
             audio_out_enabled=True,
             transcription_enabled=False,
@@ -60,12 +59,12 @@ async def main() -> None:
     )
     llm = OpenAILLMService(api_key=os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
 
-    # HindsightMemoryService — add between user aggregator and LLM.
+    # ContextBaseMemoryService — add between user aggregator and LLM.
     # bank_id should be stable per user so memories persist across sessions.
-    memory = HindsightMemoryService(
+    memory = ContextBaseMemoryService(
         bank_id="demo-user-001",
-        hindsight_api_url=os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888"),
-        api_key=os.environ.get("HINDSIGHT_API_KEY"),
+        contextbase_api_url=os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888"),
+        api_key=os.environ.get("CONTEXTBASE_API_KEY"),
         recall_budget="mid",
     )
 

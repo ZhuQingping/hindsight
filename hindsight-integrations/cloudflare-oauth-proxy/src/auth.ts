@@ -113,7 +113,7 @@ export async function handleDefaultRequest(request: Request, env: Env): Promise<
   }
 
   if (url.pathname === "/") {
-    return jsonResponse({ service: "Hindsight MCP OAuth Proxy" });
+    return jsonResponse({ service: "ContextBase MCP OAuth Proxy" });
   }
 
   return new Response("Not Found", { status: 404 });

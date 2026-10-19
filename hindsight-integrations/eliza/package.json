@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/hindsight-eliza",
+  "name": "contextbase-eliza",
   "version": "0.1.0",
-  "description": "Hindsight long-term memory for elizaOS agents - recall and retain via a plugin provider and evaluator",
+  "description": "ContextBase long-term memory for elizaOS agents - recall and retain via a plugin provider and evaluator",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -15,7 +15,7 @@
     "eliza",
     "elizaos",
     "memory",
-    "hindsight",
+    "contextbase",
     "agents",
     "llm",
     "long-term-memory",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/eliza"
   },
   "files": [

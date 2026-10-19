@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Interactive demo of the OMO Hindsight integration against the local dev server.
+"""Interactive demo of the OMO ContextBase integration against the local dev server.
 
 Usage:
-  1. Start the Hindsight dev server:  ./scripts/dev/start-api.sh
+  1. Start the ContextBase dev server:  ./scripts/dev/start-api.sh
   2. Run this demo:                   python hindsight-integrations/omo/demo.py
 
 This simulates OMO's hook lifecycle:
   SessionStart → UserPromptSubmit (recall) → Stop (retain) → SessionEnd
 
-The demo uses http://localhost:8888 (or HINDSIGHT_API_URL) and creates a bank called "omo-demo".
+The demo uses http://localhost:8888 (or CONTEXTBASE_API_URL) and creates a bank called "omo-demo".
 """
 
 import importlib.util
@@ -24,7 +24,7 @@ SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts"
 sys.path.insert(0, SCRIPTS_DIR)
 
 # Demo config
-API_URL = os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888")
+API_URL = os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "omo-demo"
 SESSION_ID = f"demo-{int(time.time())}"
 
@@ -62,8 +62,8 @@ def success(text):
 def create_settings(tmp_dir):
     """Create a test settings.json pointing at local dev server."""
     settings = {
-        "hindsightApiUrl": API_URL,
-        "hindsightApiToken": None,
+        "contextbaseApiUrl": API_URL,
+        "contextbaseApiToken": None,
         "bankId": BANK_ID,
         "bankMission": "You are a demo OMO agent. Focus on technical discussions and coding patterns.",
         "retainMission": "Extract technical decisions and preferences.",
@@ -133,7 +133,7 @@ def run_hook_script(module_name, hook_input, tmp_dir):
 
 
 def check_server():
-    """Check if Hindsight server is running."""
+    """Check if ContextBase server is running."""
     from lib.client import HindsightClient
 
     client = HindsightClient(API_URL)
@@ -141,7 +141,7 @@ def check_server():
 
 
 def main():
-    banner("OMO Hindsight Integration Demo")
+    banner("OMO ContextBase Integration Demo")
 
     info(f"API URL: {API_URL}")
     info(f"Bank ID: {BANK_ID}")
@@ -149,9 +149,9 @@ def main():
     print()
 
     # Pre-check: is the server running?
-    step(0, "Checking Hindsight server...")
+    step(0, "Checking ContextBase server...")
     if not check_server():
-        error(f"Hindsight server not reachable at {API_URL}")
+        error(f"ContextBase server not reachable at {API_URL}")
         error("Start it with: ./scripts/dev/start-api.sh")
         sys.exit(1)
     success("Server is healthy")

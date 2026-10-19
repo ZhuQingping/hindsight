@@ -1,7 +1,7 @@
 /**
- * CLI for the Hindsight Zed integration.
+ * CLI for the ContextBase Zed integration.
  *
- * `hindsight-zed init` wires Zed's MCP `context_servers` to the Hindsight MCP
+ * `contextbase-zed init` wires Zed's MCP `context_servers` to the ContextBase MCP
  * endpoint and writes a recall/retain rule into Zed's global instructions file.
  * After that, Zed's Agent Panel has `recall`/`retain`/`reflect` tools and is told
  * (via the rule) to use them automatically. There is no background process.
@@ -33,8 +33,8 @@ import {
 /** Apply the MCP server entry and the recall/retain rule (the testable core). */
 export function buildInstall(config, settingsPath, rulesPath) {
   const server = buildContextServer(
-    config.hindsightApiUrl,
-    config.hindsightApiToken,
+    config.contextbaseApiUrl,
+    config.contextbaseApiToken,
     config.bankId
   );
   const settings = applyToSettings(settingsPath, server);
@@ -49,8 +49,8 @@ function configPath(values) {
 /** Config from file/env, overridden by any explicitly-passed CLI flags. */
 function resolveConfig(values) {
   const cfg = loadConfig({ configFile: configPath(values) });
-  if (values["api-url"]) cfg.hindsightApiUrl = values["api-url"];
-  if (values["api-token"]) cfg.hindsightApiToken = values["api-token"];
+  if (values["api-url"]) cfg.contextbaseApiUrl = values["api-url"];
+  if (values["api-token"]) cfg.contextbaseApiToken = values["api-token"];
   if (values["bank-id"]) cfg.bankId = values["bank-id"];
   return cfg;
 }
@@ -58,8 +58,8 @@ function resolveConfig(values) {
 /** Persist the resolved connection settings so re-runs remember them. */
 function scaffoldConfig(cfg, path) {
   if (isFile(path)) return;
-  const data = { hindsightApiUrl: cfg.hindsightApiUrl, bankId: cfg.bankId };
-  if (cfg.hindsightApiToken) data.hindsightApiToken = cfg.hindsightApiToken;
+  const data = { contextbaseApiUrl: cfg.contextbaseApiUrl, bankId: cfg.bankId };
+  if (cfg.contextbaseApiToken) data.contextbaseApiToken = cfg.contextbaseApiToken;
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, JSON.stringify(data, null, 2) + "\n", "utf-8");
 }
@@ -68,7 +68,7 @@ function cmdInit(values) {
   const cfg = resolveConfig(values);
   const settingsPath = values["settings-path"] || defaultSettingsPath();
   const rulesPath = values["rules-path"] || defaultRulesPath();
-  const server = buildContextServer(cfg.hindsightApiUrl, cfg.hindsightApiToken, cfg.bankId);
+  const server = buildContextServer(cfg.contextbaseApiUrl, cfg.contextbaseApiToken, cfg.bankId);
 
   if (values["print-only"]) {
     console.log("Add this to your Zed settings.json:\n");
@@ -78,7 +78,7 @@ function cmdInit(values) {
     return 0;
   }
 
-  console.log("Setting up Hindsight for Zed ...");
+  console.log("Setting up ContextBase for Zed ...");
   scaffoldConfig(cfg, configPath(values));
   const outcome = buildInstall(cfg, settingsPath, rulesPath);
 
@@ -91,12 +91,12 @@ function cmdInit(values) {
       outcome.settings.action
     ];
     console.log(
-      `  ${verb} ${outcome.settings.path} (MCP server: hindsight → bank '${cfg.bankId}')`
+      `  ${verb} ${outcome.settings.path} (MCP server: contextbase → bank '${cfg.bankId}')`
     );
   }
   console.log(`  Wrote recall/retain rule to ${outcome.rulesPath}`);
 
-  console.log("\nDone. Restart Zed, open the Agent Panel, and the `hindsight` MCP server");
+  console.log("\nDone. Restart Zed, open the Agent Panel, and the `contextbase` MCP server");
   console.log("should show a green dot. Memory recall/retain then happen automatically.");
   return 0;
 }
@@ -119,12 +119,12 @@ function cmdUninstall(values) {
   const result = removeFromSettings(settingsPath);
   if (result.action === "manual") {
     console.log(
-      `  ${settingsPath} has comments — remove the \`hindsight\` context_servers entry yourself.`
+      `  ${settingsPath} has comments — remove the \`contextbase\` context_servers entry yourself.`
     );
   } else if (result.action === "removed") {
-    console.log(`  Removed the hindsight MCP server from ${settingsPath}`);
+    console.log(`  Removed the contextbase MCP server from ${settingsPath}`);
   } else {
-    console.log(`  No hindsight MCP server found in ${settingsPath}`);
+    console.log(`  No contextbase MCP server found in ${settingsPath}`);
   }
   clearRule(rulesPath);
   console.log(`  Removed the recall/retain rule from ${rulesPath}`);
@@ -132,9 +132,9 @@ function cmdUninstall(values) {
 }
 
 function printHelp() {
-  console.log(`hindsight-zed — Hindsight memory for Zed (via MCP)
+  console.log(`contextbase-zed — ContextBase memory for Zed (via MCP)
 
-Usage: hindsight-zed <command> [options]
+Usage: contextbase-zed <command> [options]
 
 Commands:
   init         Configure Zed's MCP server + recall/retain rule
@@ -142,8 +142,8 @@ Commands:
   uninstall    Remove the MCP server + rule
 
 init options:
-  --api-url <url>      Hindsight API URL (default: cloud)
-  --api-token <token>  Hindsight API token (for Cloud)
+  --api-url <url>      ContextBase API URL (default: cloud)
+  --api-token <token>  ContextBase API token (for Cloud)
   --bank-id <id>       Memory bank for the MCP server (default: zed)
   --print-only         Print the config to add manually; write nothing
 
@@ -174,7 +174,7 @@ export function main(argv = process.argv.slice(2)) {
 
   const { values, positionals } = parsed;
   if (values.version) {
-    console.log(`hindsight-zed ${VERSION}`);
+    console.log(`contextbase-zed ${VERSION}`);
     return 0;
   }
 

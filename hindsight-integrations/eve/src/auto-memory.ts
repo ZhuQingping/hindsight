@@ -2,7 +2,7 @@
  * The v0.2 entrypoints: automatic memory built on eve's generic hooks and
  * dynamic instructions, from before eve had a memory provider contract.
  *
- * @deprecated Use {@link hindsightMemory} from `./memory-provider` with
+ * @deprecated Use {@link contextbaseMemory} from `./memory-provider` with
  * `defineMemory()` instead — it recalls on the live user message, isolates
  * scopes, and needs one authored file. These stay for one release so existing
  * agents keep working, then go away.
@@ -11,13 +11,13 @@
  * choosing to call a tool:
  *
  * ```ts
- * // agent/instructions/hindsight.ts  — recall: inject memory before each turn
- * import { hindsightAutoRecall } from "@vectorize-io/hindsight-eve";
- * export default hindsightAutoRecall();
+ * // agent/instructions/contextbase.ts  — recall: inject memory before each turn
+ * import { contextbaseAutoRecall } from "contextbase-eve";
+ * export default contextbaseAutoRecall();
  *
- * // agent/hooks/hindsight.ts          — retain: save each exchange after the turn
- * import { hindsightRetainHook } from "@vectorize-io/hindsight-eve";
- * export default hindsightRetainHook();
+ * // agent/hooks/contextbase.ts          — retain: save each exchange after the turn
+ * import { contextbaseRetainHook } from "contextbase-eve";
+ * export default contextbaseRetainHook();
  * ```
  *
  * This module is the only one that imports `eve`. The HTTP client and config
@@ -32,7 +32,7 @@ import {
   type DynamicSentinel,
 } from "eve/instructions";
 
-import { HindsightRestClient, buildRecallMarkdown } from "./client.js";
+import { ContextBaseRestClient, buildRecallMarkdown } from "./client.js";
 import {
   buildRetainContent,
   recordAssistantMessage,
@@ -47,17 +47,17 @@ export type { AutoMemoryOptions } from "./config.js";
 
 /**
  * Inject the user's stored memory as a system message before each turn.
- * Drop the returned value as the default export of `agent/instructions/hindsight.ts`.
+ * Drop the returned value as the default export of `agent/instructions/contextbase.ts`.
  *
- * @deprecated Use `hindsightMemory()` with `defineMemory()` instead.
+ * @deprecated Use `contextbaseMemory()` with `defineMemory()` instead.
  *
  * Recall uses a fixed broad query (not the live message — eve's instruction
  * resolver can't see it), which surfaces the user's ambient profile/context.
  * Tune it with `recallQuery`.
  */
-export function hindsightAutoRecall(options: AutoMemoryOptions = {}): DynamicSentinel {
+export function contextbaseAutoRecall(options: AutoMemoryOptions = {}): DynamicSentinel {
   const cfg = resolveAutoMemory(options);
-  const client = new HindsightRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
+  const client = new ContextBaseRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
 
   return defineDynamic({
     events: {
@@ -79,19 +79,19 @@ export function hindsightAutoRecall(options: AutoMemoryOptions = {}): DynamicSen
 }
 
 /**
- * Retain each completed exchange to Hindsight. Drop the returned value as the
- * default export of `agent/hooks/hindsight.ts`.
+ * Retain each completed exchange to ContextBase. Drop the returned value as the
+ * default export of `agent/hooks/contextbase.ts`.
  *
- * @deprecated Use `hindsightMemory()` with `defineMemory()` instead.
+ * @deprecated Use `contextbaseMemory()` with `defineMemory()` instead.
  *
  * Pairs the user message (`message.received`) with the final assistant answer
  * (`message.completed` where `finishReason === "stop"`) by `turnId`, then
  * retains on `turn.completed`. All side effects are guarded — a failure warns
  * via `onError` and never breaks the turn.
  */
-export function hindsightRetainHook(options: AutoMemoryOptions = {}): HookDefinition {
+export function contextbaseRetainHook(options: AutoMemoryOptions = {}): HookDefinition {
   const cfg = resolveAutoMemory(options);
-  const client = new HindsightRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
+  const client = new ContextBaseRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
   const buffer: TurnBuffer = new Map();
 
   return defineHook({

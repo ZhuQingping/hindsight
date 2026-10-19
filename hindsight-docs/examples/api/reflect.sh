@@ -1,10 +1,10 @@
 #!/bin/bash
-# Reflect API examples for Hindsight CLI
+# Reflect API examples for ContextBase CLI
 # Run: bash examples/api/reflect.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # =============================================================================
 # Setup (not shown in docs)
@@ -78,6 +78,6 @@ rm -f schema.json
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/my-bank" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/my-bank" > /dev/null
 
 echo "reflect.sh: All examples passed"

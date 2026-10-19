@@ -18,8 +18,8 @@ it("registers no hook that blocks OpenClaw Goals", () => {
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": {
-            config: { hindsightApiUrl: "http://localhost:8888", logLevel: "error" },
+          "contextbase-openclaw": {
+            config: { contextbaseApiUrl: "http://localhost:8888", logLevel: "error" },
           },
         },
       },

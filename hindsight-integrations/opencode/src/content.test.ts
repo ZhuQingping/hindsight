@@ -10,8 +10,8 @@ import {
 } from "./content.js";
 
 describe("stripMemoryTags", () => {
-  it("removes <hindsight_memories> blocks", () => {
-    const input = "before <hindsight_memories>secret</hindsight_memories> after";
+  it("removes <contextbase_memories> blocks", () => {
+    const input = "before <contextbase_memories>secret</contextbase_memories> after";
     expect(stripMemoryTags(input)).toBe("before  after");
   });
 
@@ -22,7 +22,7 @@ describe("stripMemoryTags", () => {
 
   it("removes multiple blocks", () => {
     const input =
-      "<hindsight_memories>a</hindsight_memories> middle <relevant_memories>b</relevant_memories>";
+      "<contextbase_memories>a</contextbase_memories> middle <relevant_memories>b</relevant_memories>";
     expect(stripMemoryTags(input)).toBe(" middle ");
   });
 
@@ -175,17 +175,17 @@ describe("prepareRetentionTranscript", () => {
 
   it("strips memory tags from content", () => {
     const msgs = [
-      { role: "user", content: "Query <hindsight_memories>data</hindsight_memories>" },
+      { role: "user", content: "Query <contextbase_memories>data</contextbase_memories>" },
       { role: "assistant", content: "Response" },
     ];
     const { transcript } = prepareRetentionTranscript(msgs);
-    expect(transcript).not.toContain("hindsight_memories");
+    expect(transcript).not.toContain("contextbase_memories");
     expect(transcript).toContain("Query");
   });
 
   it("skips messages with empty content after stripping", () => {
     const msgs = [
-      { role: "user", content: "<hindsight_memories>only tags</hindsight_memories>" },
+      { role: "user", content: "<contextbase_memories>only tags</contextbase_memories>" },
       { role: "assistant", content: "Response" },
     ];
     const { transcript, messageCount } = prepareRetentionTranscript(msgs, true);

@@ -1,6 +1,6 @@
 """Tests for the copilot-instructions.md rule writer."""
 
-from hindsight_copilot.instructions import BEGIN_MARKER, RULE_TEXT, clear_rule, is_installed, write_rule
+from contextbase_copilot.instructions import BEGIN_MARKER, RULE_TEXT, clear_rule, is_installed, write_rule
 
 
 def test_write_creates_with_block(tmp_path):

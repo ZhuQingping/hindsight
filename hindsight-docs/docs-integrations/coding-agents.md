@@ -25,7 +25,7 @@ in front of the agent at the moment it starts working, and keeps a curated set o
 
 <Figure doc={codingAgents} />
 
-[Upstream changelog →](/changelog/integrations/coding-agents)
+[Upstream changelog →](https://hindsight.vectorize.io/changelog/integrations/coding-agents)
 
 ## Does it work?
 

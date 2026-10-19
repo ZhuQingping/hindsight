@@ -5,12 +5,12 @@
  */
 import { HindsightClient, sdk, createClient, createConfig } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 
 // =============================================================================
 // Doc Examples
@@ -140,6 +140,6 @@ console.log(`Deleted ${deleteResult.memory_units_deleted} memories`);
 // =============================================================================
 // Cleanup (not shown in docs)
 // =============================================================================
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
 
 console.log('documents.mjs: All examples passed');

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Memories API examples for Hindsight — read, list, and curate memory units.
+Memories API examples for ContextBase — read, list, and curate memory units.
 Run: python examples/api/memories.py
 """
 import asyncio
@@ -9,7 +9,7 @@ import os
 from hindsight_client import Hindsight
 from hindsight_client_api.models.update_memory_request import UpdateMemoryRequest
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "memories-demo-bank"
 
 
@@ -40,7 +40,9 @@ async def main():
     # =========================================================================
     # Setup (not shown in docs)
     # =========================================================================
-    client = Hindsight(base_url=HINDSIGHT_URL)
+    if not CONTEXTBASE_URL:
+        raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+    client = Hindsight(base_url=CONTEXTBASE_URL)
     await client.acreate_bank(bank_id=BANK_ID, name="Memories Demo")
     await client.aretain(bank_id=BANK_ID, content="The assistant visited Paris in 2023.")
     await client.aretain(bank_id=BANK_ID, content="The deploy server srv-04 runs PostgreSQL 14.")

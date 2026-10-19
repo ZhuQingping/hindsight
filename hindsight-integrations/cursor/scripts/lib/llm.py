@@ -1,4 +1,4 @@
-"""LLM provider detection for Hindsight's fact extraction.
+"""LLM provider detection for ContextBase's fact extraction.
 
 Port of: detectLLMConfig() in index.js
 
@@ -6,7 +6,7 @@ When running hindsight-embed locally (daemon mode), it needs an LLM to
 extract facts from retained conversations. This module detects the LLM
 config using the same priority chain as Openclaw:
 
-  1. HINDSIGHT_API_LLM_* environment variables (highest priority)
+  1. CONTEXTBASE_API_LLM_* environment variables (highest priority)
   2. Plugin config (llmProvider, llmModel, llmApiKeyEnv)
   3. Auto-detect from standard provider env vars
   4. External API mode (server-side LLM, no local config needed)
@@ -46,16 +46,16 @@ def detect_llm_config(config: dict) -> dict:
     Returns None values for external API mode (server handles LLM).
     Raises RuntimeError if no configuration found and not in external API mode.
     """
-    override_provider = os.environ.get("HINDSIGHT_API_LLM_PROVIDER")
-    override_model = os.environ.get("HINDSIGHT_API_LLM_MODEL")
-    override_key = os.environ.get("HINDSIGHT_API_LLM_API_KEY")
-    override_base_url = os.environ.get("HINDSIGHT_API_LLM_BASE_URL")
+    override_provider = os.environ.get("CONTEXTBASE_API_LLM_PROVIDER")
+    override_model = os.environ.get("CONTEXTBASE_API_LLM_MODEL")
+    override_key = os.environ.get("CONTEXTBASE_API_LLM_API_KEY")
+    override_base_url = os.environ.get("CONTEXTBASE_API_LLM_BASE_URL")
 
-    # Priority 1: HINDSIGHT_API_LLM_PROVIDER env var
+    # Priority 1: CONTEXTBASE_API_LLM_PROVIDER env var
     if override_provider:
         if not override_key and override_provider not in NO_KEY_REQUIRED:
             raise RuntimeError(
-                f'HINDSIGHT_API_LLM_PROVIDER is set to "{override_provider}" but HINDSIGHT_API_LLM_API_KEY is not set.'
+                f'CONTEXTBASE_API_LLM_PROVIDER is set to "{override_provider}" but CONTEXTBASE_API_LLM_API_KEY is not set.'
             )
         pinfo = _find_provider(override_provider)
         return {
@@ -63,7 +63,7 @@ def detect_llm_config(config: dict) -> dict:
             "api_key": override_key or "",
             "model": override_model,
             "base_url": override_base_url,
-            "source": "HINDSIGHT_API_LLM_PROVIDER override",
+            "source": "CONTEXTBASE_API_LLM_PROVIDER override",
         }
 
     # Priority 2: Plugin config llmProvider/llmModel
@@ -107,7 +107,7 @@ def detect_llm_config(config: dict) -> dict:
             }
 
     # Priority 4: External API mode — server handles LLM
-    if config.get("hindsightApiUrl"):
+    if config.get("contextbaseApiUrl"):
         return {
             "provider": None,
             "api_key": None,
@@ -121,12 +121,12 @@ def detect_llm_config(config: dict) -> dict:
         "Option 1: Set a standard provider API key (auto-detect):\n"
         "  export OPENAI_API_KEY=sk-your-key\n"
         "  export ANTHROPIC_API_KEY=your-key\n\n"
-        "Option 2: Override with Hindsight-specific env vars:\n"
-        "  export HINDSIGHT_API_LLM_PROVIDER=openai\n"
-        "  export HINDSIGHT_API_LLM_API_KEY=sk-your-key\n\n"
-        "Option 3: Use an external Hindsight API (server-side LLM):\n"
-        "  Set hindsightApiUrl in settings.json or HINDSIGHT_API_URL env var\n\n"
-        "The model will be selected automatically by Hindsight. To override: export HINDSIGHT_API_LLM_MODEL=your-model"
+        "Option 2: Override with ContextBase-specific env vars:\n"
+        "  export CONTEXTBASE_API_LLM_PROVIDER=openai\n"
+        "  export CONTEXTBASE_API_LLM_API_KEY=sk-your-key\n\n"
+        "Option 3: Use an external ContextBase API (server-side LLM):\n"
+        "  Set contextbaseApiUrl in settings.json or CONTEXTBASE_API_URL env var\n\n"
+        "The model will be selected automatically by ContextBase. To override: export CONTEXTBASE_API_LLM_MODEL=your-model"
     )
 
 

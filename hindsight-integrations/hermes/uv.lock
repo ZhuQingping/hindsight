@@ -287,7 +287,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hermes-plugin-hindsight"
+name = "hermes-plugin-contextbase"
 version = "1.2.1"
 source = { virtual = "." }
 dependencies = [

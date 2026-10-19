@@ -1,18 +1,18 @@
-"""HindsightProvider: recall injection, retain, feedback-loop avoidance.
+"""ContextBaseProvider: recall injection, retain, feedback-loop avoidance.
 
 These drive the *real* Agent Framework ContextProvider / SessionContext (only
-the Hindsight client is mocked), so any drift in the framework's hook API or
+the ContextBase client is mocked), so any drift in the framework's hook API or
 the SessionContext contract fails these tests loudly.
 """
 
 import pytest
 from conftest import fake_client, msg, session_context
 
-from hindsight_agent_framework import HindsightProvider
+from contextbase_agent_framework import ContextBaseProvider
 
 
-def _provider(client, **kwargs) -> HindsightProvider:
-    return HindsightProvider(bank_id="test-bank", client=client, **kwargs)
+def _provider(client, **kwargs) -> ContextBaseProvider:
+    return ContextBaseProvider(bank_id="test-bank", client=client, **kwargs)
 
 
 # ── before_run (recall) ──────────────────────────────────────────────────────
@@ -143,4 +143,4 @@ def test_is_a_real_context_provider():
 
     provider = _provider(fake_client())
     assert isinstance(provider, ContextProvider)
-    assert provider.source_id == "hindsight"
+    assert provider.source_id == "contextbase"

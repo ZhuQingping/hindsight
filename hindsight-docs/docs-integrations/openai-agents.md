@@ -1,12 +1,12 @@
 ---
 sidebar_position: 13
-title: "OpenAI Agents SDK Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to OpenAI Agents SDK agents with Hindsight. Provides FunctionTool instances for retain, recall, and reflect that plug directly into the Agents SDK async runtime."
+title: "OpenAI Agents SDK Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to OpenAI Agents SDK agents with ContextBase. Provides FunctionTool instances for retain, recall, and reflect that plug directly into the Agents SDK async runtime."
 ---
 
 # OpenAI Agents SDK
 
-Persistent long-term memory for [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) agents via Hindsight. Provides `FunctionTool` instances that plug directly into the OpenAI Agents SDK `Agent`.
+Persistent long-term memory for [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) agents via ContextBase. Provides `FunctionTool` instances that plug directly into the OpenAI Agents SDK `Agent`.
 
 [View Changelog →](/changelog/integrations/openai-agents)
 
@@ -22,10 +22,10 @@ Persistent long-term memory for [OpenAI Agents SDK](https://github.com/openai/op
 ## Installation
 
 ```bash
-pip install hindsight-openai-agents openai-agents
+pip install contextbase-openai-agents openai-agents
 ```
 
-`hindsight-openai-agents` pulls in `openai-agents` and `hindsight-client`.
+`contextbase-openai-agents` pulls in `openai-agents` and `hindsight-client`.
 
 ## Quick Start
 
@@ -33,17 +33,17 @@ pip install hindsight-openai-agents openai-agents
 import asyncio
 from agents import Agent, Runner
 from hindsight_client import Hindsight
-from hindsight_openai_agents import create_hindsight_tools
+from contextbase_openai_agents import create_contextbase_tools
 
 async def main():
     client = Hindsight(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
-    tools = create_hindsight_tools(client=client, bank_id="user-123")
+    tools = create_contextbase_tools(client=client, bank_id="user-123")
 
     agent = Agent(
         name="assistant",
-        instructions="You are a helpful assistant with long-term memory. Use hindsight_retain to store important facts. Use hindsight_recall to search memory before answering.",
+        instructions="You are a helpful assistant with long-term memory. Use contextbase_retain to store important facts. Use contextbase_recall to search memory before answering.",
         tools=tools,
     )
 
@@ -51,7 +51,7 @@ async def main():
     result = await Runner.run(agent, "Remember that I prefer dark mode")
     print(result.final_output)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall. In production, this delay is only
     # needed when retain and recall happen back-to-back in the same script.
@@ -73,16 +73,16 @@ If you're running in a Jupyter notebook, you don't need `asyncio.run()` — just
 
 The agent gets three tools it can call:
 
-- **`hindsight_retain`** — Store information to long-term memory
-- **`hindsight_recall`** — Search long-term memory for relevant facts
-- **`hindsight_reflect`** — Synthesize a reasoned answer from memories
+- **`contextbase_retain`** — Store information to long-term memory
+- **`contextbase_recall`** — Search long-term memory for relevant facts
+- **`contextbase_reflect`** — Synthesize a reasoned answer from memories
 
 ## Auto-Inject Memories with `memory_instructions()`
 
-Instead of relying on the agent to call `hindsight_recall` explicitly, you can auto-inject relevant memories into the system prompt on every turn:
+Instead of relying on the agent to call `contextbase_recall` explicitly, you can auto-inject relevant memories into the system prompt on every turn:
 
 ```python
-from hindsight_openai_agents import create_hindsight_tools, memory_instructions
+from contextbase_openai_agents import create_contextbase_tools, memory_instructions
 
 agent = Agent(
     name="assistant",
@@ -91,7 +91,7 @@ agent = Agent(
         bank_id="user-123",
         base_instructions="You are a helpful assistant with long-term memory.",
     ),
-    tools=create_hindsight_tools(
+    tools=create_contextbase_tools(
         client=client,
         bank_id="user-123",
         include_recall=False,  # recall handled by memory_instructions
@@ -106,7 +106,7 @@ agent = Agent(
 Include only the tools you need:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_retain=True,
@@ -120,11 +120,11 @@ tools = create_hindsight_tools(
 Instead of passing a client to every call, configure once:
 
 ```python
-from hindsight_openai_agents import configure, create_hindsight_tools
+from contextbase_openai_agents import configure, create_contextbase_tools
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="your-api-key",       # Or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-api-key",       # Or set CONTEXTBASE_API_KEY env var
     budget="mid",                  # Recall budget: low/mid/high
     max_tokens=4096,               # Max tokens for recall results
     tags=["env:prod"],             # Tags for stored memories
@@ -133,7 +133,7 @@ configure(
 )
 
 # Now create tools without passing client — uses global config
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
 ## Memory Scoping with Tags
@@ -142,7 +142,7 @@ Use tags to partition memories by topic, session, or user:
 
 ```python
 # Store memories tagged by source
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     tags=["source:chat", "session:abc"],
@@ -158,7 +158,7 @@ tools = create_hindsight_tools(
 Tools surface errors to the agent as tool error results. The OpenAI Agents SDK catches exceptions from tools automatically and returns them as error strings, allowing the agent to handle failures gracefully:
 
 ```python
-from hindsight_openai_agents.errors import HindsightError
+from contextbase_openai_agents.errors import HindsightError
 
 # The agent will see error messages and can decide how to proceed
 result = await Runner.run(agent, "What do you remember about me?")
@@ -176,7 +176,7 @@ async def main():
     # Create bank (idempotent)
     await client.acreate_bank(bank_id="user-123")
 
-    tools = create_hindsight_tools(client=client, bank_id="user-123")
+    tools = create_contextbase_tools(client=client, bank_id="user-123")
     # ... use tools ...
 
     # Optional: delete bank when no longer needed
@@ -189,11 +189,11 @@ Give each agent its own memory bank, or share a bank across agents:
 
 ```python
 # Per-agent memory
-researcher_tools = create_hindsight_tools(client=client, bank_id="researcher-memory")
-writer_tools = create_hindsight_tools(client=client, bank_id="writer-memory")
+researcher_tools = create_contextbase_tools(client=client, bank_id="researcher-memory")
+writer_tools = create_contextbase_tools(client=client, bank_id="writer-memory")
 
 # Shared memory
-shared_tools = create_hindsight_tools(
+shared_tools = create_contextbase_tools(
     client=client,
     bank_id="team-shared",
     tags=["team:content"],
@@ -202,13 +202,13 @@ shared_tools = create_hindsight_tools(
 
 ## API Reference
 
-### `create_hindsight_tools()`
+### `create_contextbase_tools()`
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `budget` | `"mid"` | Recall/reflect budget level (low/mid/high) |
 | `max_tokens` | `4096` | Maximum tokens for recall results |
@@ -232,10 +232,10 @@ shared_tools = create_hindsight_tools(
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank to recall from |
+| `bank_id` | *required* | ContextBase memory bank to recall from |
 | `base_instructions` | `""` | Static instructions prepended before memories |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `query` | `"relevant context about the user"` | The recall query to find relevant memories |
 | `budget` | `"mid"` | Recall budget level (low/mid/high) |
@@ -249,8 +249,8 @@ shared_tools = create_hindsight_tools(
 
 | Parameter | Default | Description |
 |---|---|---|
-| `hindsight_api_url` | Production API | Hindsight API URL |
-| `api_key` | `HINDSIGHT_API_KEY` env | API key for authentication |
+| `contextbase_api_url` | Required | ContextBase API URL |
+| `api_key` | `CONTEXTBASE_API_KEY` env | API key for authentication |
 | `budget` | `"mid"` | Default recall budget level |
 | `max_tokens` | `4096` | Default max tokens for recall |
 | `tags` | `None` | Default tags for retain operations |

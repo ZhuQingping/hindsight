@@ -1,5 +1,5 @@
 /**
- * Lightweight logger for the Hindsight OpenCode plugin.
+ * Lightweight logger for the ContextBase OpenCode plugin.
  *
  * Routes through OpenCode's server log API (`client.app.log`) when available so
  * messages land in OpenCode's own log stream — visible via `--print-logs` and
@@ -38,7 +38,7 @@ export interface LoggerOptions {
   silent?: boolean;
 }
 
-const SERVICE = "hindsight";
+const SERVICE = "contextbase";
 
 export class Logger {
   private readonly client?: OpencodeLogClient;
@@ -77,8 +77,8 @@ export class Logger {
     // OpenCode captures plugin console output into its logs, so this stays
     // visible and TUI-safe.
     const line = extra
-      ? `[Hindsight] ${message} ${JSON.stringify(extra)}`
-      : `[Hindsight] ${message}`;
+      ? `[ContextBase] ${message} ${JSON.stringify(extra)}`
+      : `[ContextBase] ${message}`;
     console.error(line);
   }
 

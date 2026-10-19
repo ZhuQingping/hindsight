@@ -1,10 +1,10 @@
 #!/bin/bash
-# Directives API examples for Hindsight CLI
+# Directives API examples for ContextBase CLI
 # Run: bash examples/api/directives.sh
 
 set -e
 
-HINDSIGHT_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="directives-example-bank"
 
 # =============================================================================

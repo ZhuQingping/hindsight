@@ -5,7 +5,7 @@ import type { MoltbotPluginAPI } from "./types.js";
 
 function apiWith(config: Record<string, unknown>, lines: string[] = []): MoltbotPluginAPI {
   return {
-    config: { plugins: { entries: { "hindsight-openclaw": { config } } } },
+    config: { plugins: { entries: { "contextbase-openclaw": { config } } } },
     registerService: () => undefined,
     on: () => undefined,
     logger: {
@@ -18,11 +18,11 @@ function apiWith(config: Record<string, unknown>, lines: string[] = []): Moltbot
 
 it('logLevel "debug" turns on debug lines without also setting debug: true', () => {
   const debugLines: string[] = [];
-  plugin(apiWith({ hindsightApiUrl: "http://localhost:8888", logLevel: "debug" }, debugLines));
+  plugin(apiWith({ contextbaseApiUrl: "http://localhost:8888", logLevel: "debug" }, debugLines));
   expect(debugLines.some((l) => l.includes("Registering agent hooks..."))).toBe(true);
 
   const infoLines: string[] = [];
-  plugin(apiWith({ hindsightApiUrl: "http://localhost:8888", logLevel: "info" }, infoLines));
+  plugin(apiWith({ contextbaseApiUrl: "http://localhost:8888", logLevel: "info" }, infoLines));
   expect(infoLines.some((l) => l.includes("Registering agent hooks..."))).toBe(false);
 });
 

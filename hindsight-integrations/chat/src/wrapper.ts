@@ -1,8 +1,8 @@
 import { formatMemoriesAsSystemPrompt } from "./format.js";
 import type {
-  HindsightChatOptions,
-  HindsightChatContext,
-  HindsightChatHandler,
+  ContextBaseChatOptions,
+  ContextBaseChatContext,
+  ContextBaseChatHandler,
   ChatThread,
   ChatMessage,
   RecallResult,
@@ -11,20 +11,20 @@ import type {
 } from "./types.js";
 
 /**
- * Wraps a Chat SDK handler to automatically provide Hindsight memory context.
+ * Wraps a Chat SDK handler to automatically provide ContextBase memory context.
  *
  * Before the handler runs:
  * 1. Resolves the bank ID from the message
  * 2. Optionally auto-retains the inbound message (off by default)
  * 3. Auto-recalls relevant memories (on by default)
- * 4. Builds a HindsightChatContext and passes it to the handler
+ * 4. Builds a ContextBaseChatContext and passes it to the handler
  *
  * Works with `onNewMention`, `onSubscribedMessage`, and `onNewMessage`.
  *
  * @example
  * ```ts
  * chat.onNewMention(
- *   withHindsightChat(
+ *   withContextBaseChat(
  *     { client, bankId: (msg) => msg.author.userId },
  *     async (thread, message, ctx) => {
  *       const result = await streamText({
@@ -38,9 +38,9 @@ import type {
  * );
  * ```
  */
-export function withHindsightChat<TState = unknown>(
-  options: HindsightChatOptions,
-  handler: HindsightChatHandler<TState>
+export function withContextBaseChat<TState = unknown>(
+  options: ContextBaseChatOptions,
+  handler: ContextBaseChatHandler<TState>
 ): (thread: ChatThread<TState>, message: ChatMessage) => Promise<void> {
   const {
     client,
@@ -67,7 +67,7 @@ export function withHindsightChat<TState = unknown>(
           async: retainAsync,
         })
         .catch((err) => {
-          console.warn("[hindsight-chat] Auto-retain failed:", err);
+          console.warn("[contextbase-chat] Auto-retain failed:", err);
         });
 
       // If not async, wait for retain to complete before proceeding
@@ -92,12 +92,12 @@ export function withHindsightChat<TState = unknown>(
         memories = recallResponse.results ?? [];
         entities = recallResponse.entities ?? null;
       } catch (err) {
-        console.warn("[hindsight-chat] Auto-recall failed:", err);
+        console.warn("[contextbase-chat] Auto-recall failed:", err);
       }
     }
 
     // 4. Build context
-    const ctx: HindsightChatContext = {
+    const ctx: ContextBaseChatContext = {
       bankId: resolvedBankId,
       memories,
       entities,

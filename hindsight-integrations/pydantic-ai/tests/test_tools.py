@@ -1,20 +1,20 @@
-"""Unit tests for Hindsight Pydantic AI tools."""
+"""Unit tests for ContextBase Pydantic AI tools."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hindsight_pydantic_ai import (
+from contextbase_pydantic_ai import (
     configure,
-    create_hindsight_tools,
+    create_contextbase_tools,
     memory_instructions,
     reset_config,
 )
-from hindsight_pydantic_ai.errors import HindsightError
+from contextbase_pydantic_ai.errors import HindsightError
 
 
 def _mock_client():
-    """Create a mock Hindsight client with async methods."""
+    """Create a mock ContextBase client with async methods."""
     client = MagicMock()
     client.aretain = AsyncMock()
     client.arecall = AsyncMock()
@@ -50,7 +50,7 @@ def _mock_retain_response():
     return response
 
 
-class TestCreateHindsightTools:
+class TestCreateContextBaseTools:
     def setup_method(self):
         reset_config()
 
@@ -59,12 +59,12 @@ class TestCreateHindsightTools:
 
     def test_returns_three_tools_by_default(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="test", client=client)
+        tools = create_contextbase_tools(bank_id="test", client=client)
         assert len(tools) == 3
 
     def test_include_retain_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=True,
@@ -72,11 +72,11 @@ class TestCreateHindsightTools:
             include_reflect=False,
         )
         assert len(tools) == 1
-        assert tools[0].name == "hindsight_retain"
+        assert tools[0].name == "contextbase_retain"
 
     def test_include_recall_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -84,11 +84,11 @@ class TestCreateHindsightTools:
             include_reflect=False,
         )
         assert len(tools) == 1
-        assert tools[0].name == "hindsight_recall"
+        assert tools[0].name == "contextbase_recall"
 
     def test_include_reflect_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -96,11 +96,11 @@ class TestCreateHindsightTools:
             include_reflect=True,
         )
         assert len(tools) == 1
-        assert tools[0].name == "hindsight_reflect"
+        assert tools[0].name == "contextbase_reflect"
 
     def test_no_tools_when_all_excluded(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -110,24 +110,24 @@ class TestCreateHindsightTools:
         assert len(tools) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
-            create_hindsight_tools(bank_id="test")
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+            create_contextbase_tools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_pydantic_ai.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_pydantic_ai.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            tools = create_hindsight_tools(bank_id="test")
+            tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
             mock_cls.assert_called_once()
             assert mock_cls.call_args.kwargs["base_url"] == "http://localhost:8888"
             assert mock_cls.call_args.kwargs["timeout"] == 30.0
 
     def test_explicit_url_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_pydantic_ai.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_pydantic_ai.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            create_hindsight_tools(bank_id="test", hindsight_api_url="http://explicit:9999")
+            create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once()
             assert mock_cls.call_args.kwargs["base_url"] == "http://explicit:9999"
             assert mock_cls.call_args.kwargs["timeout"] == 30.0
@@ -138,7 +138,7 @@ class TestRetainTool:
     async def test_retain_stores_memory(self):
         client = _mock_client()
         client.aretain.return_value = _mock_retain_response()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test-bank",
             client=client,
             include_recall=False,
@@ -155,7 +155,7 @@ class TestRetainTool:
     async def test_retain_passes_tags(self):
         client = _mock_client()
         client.aretain.return_value = _mock_retain_response()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test-bank",
             client=client,
             tags=["source:chat"],
@@ -170,10 +170,10 @@ class TestRetainTool:
         assert call_kwargs["tags"] == ["source:chat"]
 
     @pytest.mark.asyncio
-    async def test_retain_raises_hindsight_error(self):
+    async def test_retain_raises_contextbase_error(self):
         client = _mock_client()
         client.aretain.side_effect = RuntimeError("connection refused")
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_recall=False,
@@ -190,7 +190,7 @@ class TestRecallTool:
     async def test_recall_returns_numbered_results(self):
         client = _mock_client()
         client.arecall.return_value = _mock_recall_response(["User likes Python", "User is in NYC"])
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test-bank",
             client=client,
             include_retain=False,
@@ -208,7 +208,7 @@ class TestRecallTool:
     async def test_recall_empty_results(self):
         client = _mock_client()
         client.arecall.return_value = _mock_recall_response([])
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -224,7 +224,7 @@ class TestRecallTool:
     async def test_recall_passes_budget_and_max_tokens(self):
         client = _mock_client()
         client.arecall.return_value = _mock_recall_response(["fact"])
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             budget="high",
@@ -244,7 +244,7 @@ class TestRecallTool:
     async def test_recall_passes_tags(self):
         client = _mock_client()
         client.arecall.return_value = _mock_recall_response(["fact"])
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             recall_tags=["scope:user"],
@@ -261,10 +261,10 @@ class TestRecallTool:
         assert call_kwargs["tags_match"] == "all"
 
     @pytest.mark.asyncio
-    async def test_recall_raises_hindsight_error(self):
+    async def test_recall_raises_contextbase_error(self):
         client = _mock_client()
         client.arecall.side_effect = RuntimeError("timeout")
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -283,7 +283,7 @@ class TestReflectTool:
         client.areflect.return_value = _mock_reflect_response(
             "The user is a Python developer who prefers functional patterns."
         )
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test-bank",
             client=client,
             include_retain=False,
@@ -300,7 +300,7 @@ class TestReflectTool:
     async def test_reflect_empty_returns_fallback(self):
         client = _mock_client()
         client.areflect.return_value = _mock_reflect_response("")
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -316,7 +316,7 @@ class TestReflectTool:
     async def test_reflect_passes_budget(self):
         client = _mock_client()
         client.areflect.return_value = _mock_reflect_response("answer")
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             budget="high",
@@ -331,10 +331,10 @@ class TestReflectTool:
         assert call_kwargs["budget"] == "high"
 
     @pytest.mark.asyncio
-    async def test_reflect_raises_hindsight_error(self):
+    async def test_reflect_raises_contextbase_error(self):
         client = _mock_client()
         client.areflect.side_effect = RuntimeError("timeout")
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             include_retain=False,
@@ -446,5 +446,5 @@ class TestMemoryInstructions:
 
     def test_raises_without_client_or_config(self):
         reset_config()
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")

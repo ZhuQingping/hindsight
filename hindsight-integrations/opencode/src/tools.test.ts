@@ -18,9 +18,9 @@ describe("createTools", () => {
     const client = { retain: vi.fn(), recall: vi.fn(), reflect: vi.fn() } as any;
     const tools = createTools(client, "test-bank", makeConfig());
 
-    expect(tools.hindsight_retain).toBeDefined();
-    expect(tools.hindsight_recall).toBeDefined();
-    expect(tools.hindsight_reflect).toBeDefined();
+    expect(tools.contextbase_retain).toBeDefined();
+    expect(tools.contextbase_recall).toBeDefined();
+    expect(tools.contextbase_reflect).toBeDefined();
   });
 
   it("all tools have description and execute", () => {
@@ -33,7 +33,7 @@ describe("createTools", () => {
     }
   });
 
-  describe("hindsight_retain", () => {
+  describe("contextbase_retain", () => {
     it("calls client.retain with correct bank and content", async () => {
       const client = {
         retain: vi.fn().mockResolvedValue({}),
@@ -42,7 +42,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      const result = await tools.hindsight_retain.execute(
+      const result = await tools.contextbase_retain.execute(
         { content: "User likes TypeScript" },
         mockContext
       );
@@ -63,7 +63,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      await tools.hindsight_retain.execute(
+      await tools.contextbase_retain.execute(
         { content: "Fact", context: "from conversation" },
         mockContext
       );
@@ -87,7 +87,7 @@ describe("createTools", () => {
       });
       const tools = createTools(client, "test-bank", config);
 
-      await tools.hindsight_retain.execute({ content: "Fact" }, mockContext);
+      await tools.contextbase_retain.execute({ content: "Fact" }, mockContext);
 
       expect(client.retain).toHaveBeenCalledWith("test-bank", "Fact", {
         context: "opencode",
@@ -97,7 +97,7 @@ describe("createTools", () => {
     });
   });
 
-  describe("hindsight_recall", () => {
+  describe("contextbase_recall", () => {
     it("calls client.recall and formats results", async () => {
       const client = {
         retain: vi.fn(),
@@ -108,7 +108,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      const result = await tools.hindsight_recall.execute(
+      const result = await tools.contextbase_recall.execute(
         { query: "user preferences" },
         mockContext
       );
@@ -130,7 +130,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      const result = await tools.hindsight_recall.execute({ query: "unknown" }, mockContext);
+      const result = await tools.contextbase_recall.execute({ query: "unknown" }, mockContext);
       expect(result).toBe("No relevant memories found.");
     });
 
@@ -143,7 +143,7 @@ describe("createTools", () => {
       const config = makeConfig({ recallBudget: "high", recallMaxTokens: 4096 });
       const tools = createTools(client, "test-bank", config);
 
-      await tools.hindsight_recall.execute({ query: "test" }, mockContext);
+      await tools.contextbase_recall.execute({ query: "test" }, mockContext);
 
       expect(client.recall).toHaveBeenCalledWith("test-bank", "test", {
         budget: "high",
@@ -153,7 +153,7 @@ describe("createTools", () => {
     });
   });
 
-  describe("hindsight_reflect", () => {
+  describe("contextbase_reflect", () => {
     it("calls client.reflect and returns text", async () => {
       const client = {
         retain: vi.fn(),
@@ -162,7 +162,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      const result = await tools.hindsight_reflect.execute(
+      const result = await tools.contextbase_reflect.execute(
         { query: "What do I know about this user?" },
         mockContext
       );
@@ -182,7 +182,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      const result = await tools.hindsight_reflect.execute({ query: "something" }, mockContext);
+      const result = await tools.contextbase_reflect.execute({ query: "something" }, mockContext);
       expect(result).toBe("No relevant information found to reflect on.");
     });
 
@@ -194,7 +194,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      await tools.hindsight_reflect.execute(
+      await tools.contextbase_reflect.execute(
         { query: "Q", context: "We are building an app" },
         mockContext
       );
@@ -216,7 +216,7 @@ describe("createTools", () => {
       const tools = createTools(client, "test-bank", makeConfig());
 
       await expect(
-        tools.hindsight_retain.execute({ content: "test" }, mockContext)
+        tools.contextbase_retain.execute({ content: "test" }, mockContext)
       ).rejects.toThrow("Network error");
     });
 
@@ -228,9 +228,9 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      await expect(tools.hindsight_recall.execute({ query: "test" }, mockContext)).rejects.toThrow(
-        "Timeout"
-      );
+      await expect(
+        tools.contextbase_recall.execute({ query: "test" }, mockContext)
+      ).rejects.toThrow("Timeout");
     });
 
     it("propagates reflect errors", async () => {
@@ -241,9 +241,9 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      await expect(tools.hindsight_reflect.execute({ query: "test" }, mockContext)).rejects.toThrow(
-        "Server error"
-      );
+      await expect(
+        tools.contextbase_reflect.execute({ query: "test" }, mockContext)
+      ).rejects.toThrow("Server error");
     });
   });
 
@@ -259,7 +259,7 @@ describe("createTools", () => {
       const config = makeConfig({ bankMission: "Extract technical decisions" });
       const tools = createTools(client, "test-bank", config, missionsSet);
 
-      await tools.hindsight_retain.execute({ content: "fact" }, mockContext);
+      await tools.contextbase_retain.execute({ content: "fact" }, mockContext);
 
       expect(client.createBank).toHaveBeenCalledWith("test-bank", {
         reflectMission: "Extract technical decisions",
@@ -280,7 +280,7 @@ describe("createTools", () => {
       const config = makeConfig({ bankMission: "Synthesize project context" });
       const tools = createTools(client, "test-bank", config, missionsSet);
 
-      await tools.hindsight_reflect.execute({ query: "summary" }, mockContext);
+      await tools.contextbase_reflect.execute({ query: "summary" }, mockContext);
 
       expect(client.createBank).toHaveBeenCalled();
       expect(client.reflect).toHaveBeenCalled();
@@ -294,7 +294,7 @@ describe("createTools", () => {
       } as any;
       const tools = createTools(client, "test-bank", makeConfig());
 
-      await tools.hindsight_retain.execute({ content: "fact" }, mockContext);
+      await tools.contextbase_retain.execute({ content: "fact" }, mockContext);
 
       expect(client.retain).toHaveBeenCalled();
       // No createBank call since missionsSet wasn't passed
@@ -309,9 +309,9 @@ describe("createTools", () => {
     } as any;
     const tools = createTools(client, "fixed-bank", makeConfig());
 
-    await tools.hindsight_retain.execute({ content: "x" }, mockContext);
-    await tools.hindsight_recall.execute({ query: "x" }, mockContext);
-    await tools.hindsight_reflect.execute({ query: "x" }, mockContext);
+    await tools.contextbase_retain.execute({ content: "x" }, mockContext);
+    await tools.contextbase_recall.execute({ query: "x" }, mockContext);
+    await tools.contextbase_reflect.execute({ query: "x" }, mockContext);
 
     expect(client.retain.mock.calls[0][0]).toBe("fixed-bank");
     expect(client.recall.mock.calls[0][0]).toBe("fixed-bank");

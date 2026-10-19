@@ -1,10 +1,10 @@
 # Admin CLI
 
-The `hindsight-admin` CLI provides administrative commands for managing your Hindsight deployment, including database migrations, backup, and restore operations.
+The `contextbase-admin` CLI provides administrative commands for managing your ContextBase deployment, including database migrations, backup, and restore operations.
 
 ## Installation
 
-The admin CLI is included with the `hindsight-api` package — installing it puts the `hindsight-admin` executable on your `PATH`:
+The admin CLI is included with the `hindsight-api` package — installing it puts the `contextbase-admin` executable on your `PATH`:
 
 ```bash
 pip install hindsight-api
@@ -14,22 +14,22 @@ uv add hindsight-api
 
 ## Running the CLI
 
-`hindsight-admin` connects **directly to PostgreSQL** — it does not call the HTTP API. It reads the **same configuration as the API service** (environment variables, and a `.env` file in the current working directory), so it operates on whatever database `HINDSIGHT_API_DATABASE_URL` points to:
+`contextbase-admin` connects **directly to PostgreSQL** — it does not call the HTTP API. It reads the **same configuration as the API service** (environment variables, and a `.env` file in the current working directory), so it operates on whatever database `CONTEXTBASE_API_DATABASE_URL` points to:
 
 - **Default**: `pg0`, the embedded development database (must be run on the host that owns the pg0 data).
-- **Production**: set `HINDSIGHT_API_DATABASE_URL=postgresql://user:pass@host:5432/hindsight`.
+- **Production**: set `CONTEXTBASE_API_DATABASE_URL=postgresql://user:pass@host:5432/contextbase`.
 
 Because it talks to the database directly (binary `COPY`, `TRUNCATE`, etc.), the admin CLI is **PostgreSQL-only** (not supported on Oracle). Run it on the same host/container as your API deployment so it inherits the right configuration and has network access to the database:
 
 ```bash
 # Bare metal / virtualenv (with the API's env or a .env in the working dir)
-hindsight-admin worker-status
+contextbase-admin worker-status
 
 # Docker — exec into the API container
-docker exec -it hindsight-api hindsight-admin backup /data/backup.zip
+docker exec -it hindsight-api contextbase-admin backup /data/backup.zip
 
 # Kubernetes — exec into an API pod
-kubectl exec deploy/hindsight-api -- hindsight-admin run-db-migration
+kubectl exec deploy/hindsight-api -- contextbase-admin run-db-migration
 ```
 
 Use `--schema` to target a specific tenant schema (commands default to the configured base schema). See [Environment Variables](#environment-variables) below.
@@ -41,7 +41,7 @@ Use `--schema` to target a specific tenant schema (commands default to the confi
 Run database migrations to the latest version. By default this migrates the base schema plus all tenant schemas discovered by the tenant extension. Use `--schema` for targeted migration of one schema. This is useful when you want to run migrations separately from API startup (e.g., in CI/CD pipelines or before deploying a new version).
 
 ```bash
-hindsight-admin run-db-migration [OPTIONS]
+contextbase-admin run-db-migration [OPTIONS]
 ```
 
 **Options:**
@@ -50,20 +50,20 @@ hindsight-admin run-db-migration [OPTIONS]
 |--------|-------------|---------|
 | `--schema`, `-s` | Database schema to run migrations on. If omitted, migrate the base schema plus all discovered tenant schemas. | All schemas |
 | `--embedding-dimension` | Expected embedding dimension to enforce after migrations. Omit to skip the post-migration dimension sync. | Skipped |
-| `--skip-extension-reconcile` | Skip the post-migration vector / text-search index reconcile (it only does work when `HINDSIGHT_API_VECTOR_EXTENSION` / `HINDSIGHT_API_TEXT_SEARCH_EXTENSION` differs from a schema's existing indexes). Makes a no-change re-migration across many tenant schemas much faster; only use when the backend is unchanged. | Reconcile runs |
+| `--skip-extension-reconcile` | Skip the post-migration vector / text-search index reconcile (it only does work when `CONTEXTBASE_API_VECTOR_EXTENSION` / `CONTEXTBASE_API_TEXT_SEARCH_EXTENSION` differs from a schema's existing indexes). Makes a no-change re-migration across many tenant schemas much faster; only use when the backend is unchanged. | Reconcile runs |
 
 **Examples:**
 
 ```bash
 # Run migrations on the base schema plus all discovered tenant schemas
-hindsight-admin run-db-migration
+contextbase-admin run-db-migration
 
 # Run migrations on a specific tenant schema
-hindsight-admin run-db-migration --schema tenant_acme
+contextbase-admin run-db-migration --schema tenant_acme
 ```
 
 :::tip Disabling Auto-Migrations
-To disable automatic migrations on API startup, set `HINDSIGHT_API_RUN_MIGRATIONS_ON_STARTUP=false`. This is useful when you want to run migrations as a separate step in your deployment pipeline.
+To disable automatic migrations on API startup, set `CONTEXTBASE_API_RUN_MIGRATIONS_ON_STARTUP=false`. This is useful when you want to run migrations as a separate step in your deployment pipeline.
 :::
 
 ---
@@ -77,7 +77,7 @@ These partial indexes are normally created when a bank is first created (instant
 Run this after any of those events to restore full coverage. It detects **missing or invalid** coverage (an INVALID leftover from an interrupted build, or an index whose type drifted after a backend switch, both count as missing) and rebuilds it with `CREATE INDEX CONCURRENTLY`, so it never blocks live retain/recall/consolidation. It is idempotent and safe to re-run.
 
 ```bash
-hindsight-admin repair-bank (--bank BANK_ID | --all) [OPTIONS]
+contextbase-admin repair-bank (--bank BANK_ID | --all) [OPTIONS]
 ```
 
 **Options:**
@@ -131,13 +131,13 @@ repeating the same error for every remaining schema, and still reports what it d
 
 ```bash
 # See which banks are missing coverage without changing anything
-hindsight-admin repair-bank --all --dry-run
+contextbase-admin repair-bank --all --dry-run
 
 # Repair every bank across all schemas (run once after a restore/upgrade)
-hindsight-admin repair-bank --all
+contextbase-admin repair-bank --all
 
 # Repair a single bank
-hindsight-admin repair-bank --bank acme-prod
+contextbase-admin repair-bank --bank acme-prod
 ```
 
 ---
@@ -155,7 +155,7 @@ Reach for `rename-bank` when the old id must genuinely stop existing — an alia
 Change a bank's id in place. Every memory, document, entity, mental model and knowledge page is kept exactly as it is. Nothing is re-extracted or re-embedded, and no LLM calls are made.
 
 ```bash
-hindsight-admin rename-bank --from OLD_ID --to NEW_ID [OPTIONS]
+contextbase-admin rename-bank --from OLD_ID --to NEW_ID [OPTIONS]
 ```
 
 **Options:**
@@ -180,19 +180,19 @@ The rename runs in a single transaction and only locks that bank's rows. Other b
 
 ```bash
 # See what would move, change nothing
-hindsight-admin rename-bank --from acme --to acme-prod --dry-run
+contextbase-admin rename-bank --from acme --to acme-prod --dry-run
 
-hindsight-admin rename-bank --from acme --to acme-prod
+contextbase-admin rename-bank --from acme --to acme-prod
 ```
 
 ---
 
 ### backup
 
-Create a backup of all Hindsight data to a zip file.
+Create a backup of all ContextBase data to a zip file.
 
 ```bash
-hindsight-admin backup OUTPUT [OPTIONS]
+contextbase-admin backup OUTPUT [OPTIONS]
 ```
 
 **Arguments:**
@@ -211,10 +211,10 @@ hindsight-admin backup OUTPUT [OPTIONS]
 
 ```bash
 # Backup to a file
-hindsight-admin backup /backups/hindsight-2024-01-15.zip
+contextbase-admin backup /backups/contextbase-2024-01-15.zip
 
 # Backup a specific tenant schema
-hindsight-admin backup /backups/tenant-acme.zip --schema tenant_acme
+contextbase-admin backup /backups/tenant-acme.zip --schema tenant_acme
 ```
 
 The backup includes:
@@ -238,7 +238,7 @@ Backups are created within a database transaction with `REPEATABLE READ` isolati
 Restore data from a backup file. **Warning: This deletes all existing data in the target schema.**
 
 ```bash
-hindsight-admin restore INPUT [OPTIONS]
+contextbase-admin restore INPUT [OPTIONS]
 ```
 
 **Arguments:**
@@ -258,13 +258,13 @@ hindsight-admin restore INPUT [OPTIONS]
 
 ```bash
 # Restore with confirmation prompt
-hindsight-admin restore /backups/hindsight-2024-01-15.zip
+contextbase-admin restore /backups/contextbase-2024-01-15.zip
 
 # Restore without confirmation (for scripts)
-hindsight-admin restore /backups/hindsight-2024-01-15.zip --yes
+contextbase-admin restore /backups/contextbase-2024-01-15.zip --yes
 
 # Restore to a specific tenant schema
-hindsight-admin restore /backups/tenant-acme.zip --schema tenant_acme --yes
+contextbase-admin restore /backups/tenant-acme.zip --schema tenant_acme --yes
 ```
 
 :::warning Data Loss
@@ -278,7 +278,7 @@ Restore will **delete all existing data** in the target schema before importing 
 Release all tasks owned by a worker, resetting them from "processing" back to "pending" status so they can be picked up by other workers.
 
 ```bash
-hindsight-admin decommission-worker WORKER_ID [OPTIONS]
+contextbase-admin decommission-worker WORKER_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -298,14 +298,14 @@ hindsight-admin decommission-worker WORKER_ID [OPTIONS]
 
 ```bash
 # Before scaling down - release tasks from workers being removed
-hindsight-admin decommission-worker hindsight-worker-4
-hindsight-admin decommission-worker hindsight-worker-3
+contextbase-admin decommission-worker contextbase-worker-4
+contextbase-admin decommission-worker contextbase-worker-3
 
 # Release tasks from a crashed worker
-hindsight-admin decommission-worker worker-2
+contextbase-admin decommission-worker worker-2
 
 # For a specific tenant schema
-hindsight-admin decommission-worker worker-1 --schema tenant_acme
+contextbase-admin decommission-worker worker-1 --schema tenant_acme
 ```
 
 **When to Use:**
@@ -316,7 +316,7 @@ hindsight-admin decommission-worker worker-1 --schema tenant_acme
 - **Stuck worker**: When a worker is unresponsive
 
 :::tip Finding Worker IDs
-Worker IDs default to the hostname. In Kubernetes StatefulSets, this is the pod name (e.g., `hindsight-worker-0`). You can also set a custom ID with `HINDSIGHT_API_WORKER_ID` or `--worker-id`.
+Worker IDs default to the hostname. In Kubernetes StatefulSets, this is the pod name (e.g., `contextbase-worker-0`). You can also set a custom ID with `CONTEXTBASE_API_WORKER_ID` or `--worker-id`.
 :::
 
 
@@ -325,7 +325,7 @@ Worker IDs default to the hostname. In Kubernetes StatefulSets, this is the pod 
 Release all currently-processing tasks from every worker, resetting them from "processing" back to "pending" status. Use this when one or more workers have crashed or been removed without graceful shutdown and you don't know which worker IDs to target.
 
 ```bash
-hindsight-admin decommission-workers [OPTIONS]
+contextbase-admin decommission-workers [OPTIONS]
 ```
 
 **Options:**
@@ -339,13 +339,13 @@ hindsight-admin decommission-workers [OPTIONS]
 
 ```bash
 # Release all processing tasks across all workers (with confirmation)
-hindsight-admin decommission-workers
+contextbase-admin decommission-workers
 
 # Skip the confirmation prompt (useful in scripts)
-hindsight-admin decommission-workers --yes
+contextbase-admin decommission-workers --yes
 
 # Release tasks in a specific tenant schema
-hindsight-admin decommission-workers --schema tenant_acme
+contextbase-admin decommission-workers --schema tenant_acme
 ```
 
 **When to Use:**
@@ -365,7 +365,7 @@ This releases **every** processing task regardless of worker, including tasks ow
 Show all currently-processing tasks grouped by worker, including operation type, bank, how long each task has been running, and when it was last updated. Useful for identifying orphaned tasks before decommissioning.
 
 ```bash
-hindsight-admin worker-status [OPTIONS]
+contextbase-admin worker-status [OPTIONS]
 ```
 
 **Options:**
@@ -378,10 +378,10 @@ hindsight-admin worker-status [OPTIONS]
 
 ```bash
 # Show all processing tasks across all workers
-hindsight-admin worker-status
+contextbase-admin worker-status
 
 # Show processing tasks for a specific tenant schema
-hindsight-admin worker-status --schema tenant_acme
+contextbase-admin worker-status --schema tenant_acme
 ```
 
 **When to Use:**
@@ -397,7 +397,7 @@ hindsight-admin worker-status --schema tenant_acme
 Export an entire bank to a portable ZIP archive — documents, facts, observations, bank configuration, mental models, directives, and webhooks. Embeddings are **never** included; they are regenerated on import. This is the source half of a cross-instance migration (e.g. moving to a different embedding model, vector extension, or text-search backend). PostgreSQL only.
 
 ```bash
-hindsight-admin export-bank --bank <BANK_ID> --output <FILE.zip> [OPTIONS]
+contextbase-admin export-bank --bank <BANK_ID> --output <FILE.zip> [OPTIONS]
 ```
 
 **Options:**
@@ -412,10 +412,10 @@ hindsight-admin export-bank --bank <BANK_ID> --output <FILE.zip> [OPTIONS]
 **Examples:**
 
 ```bash
-hindsight-admin export-bank --bank my-bank --output my-bank.zip
+contextbase-admin export-bank --bank my-bank --output my-bank.zip
 
 # include operational history
-hindsight-admin export-bank --bank my-bank --output my-bank.zip --include-history
+contextbase-admin export-bank --bank my-bank --output my-bank.zip --include-history
 ```
 
 Read-only — safe to run against a live instance.
@@ -427,7 +427,7 @@ Read-only — safe to run against a live instance.
 Restore a whole-bank archive (produced by `export-bank`) into **this** instance. Facts are re-embedded with this instance's configured embedding model and links/indexes are rebuilt; bank configuration, mental models, directives, and webhooks are restored exactly. No LLM fact-extraction runs, and because a migration restores state, it does **not** fire webhooks or re-run consolidation. PostgreSQL only.
 
 ```bash
-hindsight-admin import-bank --archive <FILE.zip> [OPTIONS]
+contextbase-admin import-bank --archive <FILE.zip> [OPTIONS]
 ```
 
 **Options:**
@@ -442,7 +442,7 @@ hindsight-admin import-bank --archive <FILE.zip> [OPTIONS]
 **Examples:**
 
 ```bash
-hindsight-admin import-bank --archive my-bank.zip
+contextbase-admin import-bank --archive my-bank.zip
 ```
 
 Run this against an instance configured with the **target** embedding model / vector extension / text-search backend — that's what re-embedding uses.
@@ -462,13 +462,13 @@ Changing a bank's **embedding model** (e.g. a 384-dim encoder → a 1024-dim one
 **Blue-green runbook:**
 
 1. Stand up a **new instance** on a fresh database, configured with the new embedding model / vector extension / text-search backend.
-2. Quiesce writes to the source bank (maintenance window) and run `hindsight-admin backup` for safety.
+2. Quiesce writes to the source bank (maintenance window) and run `contextbase-admin backup` for safety.
 3. Export from the source, then import into the target:
    ```bash
    # on the source instance:
-   hindsight-admin export-bank --bank my-bank --output my-bank.zip
+   contextbase-admin export-bank --bank my-bank --output my-bank.zip
    # on the target instance (configured with the new settings):
-   hindsight-admin import-bank --archive my-bank.zip
+   contextbase-admin import-bank --archive my-bank.zip
    ```
 4. Verify on the target: run representative recall queries and compare results.
 5. Cut traffic over to the new instance. The old instance stays as an instant rollback until you're confident.
@@ -481,13 +481,13 @@ The embedding model is server-level, and a bank's `memory_units.embedding` colum
 
 ## Recovering stuck or zombie operations
 
-A "zombie" operation is one stuck in `processing` indefinitely because the worker that claimed it is gone. The most common cause is an unstable `HINDSIGHT_API_WORKER_ID`: when it defaults to the container hostname, a Docker restart produces a new container ID, the new worker doesn't recognize the old worker's claims as its own, and those tasks are stranded.
+A "zombie" operation is one stuck in `processing` indefinitely because the worker that claimed it is gone. The most common cause is an unstable `CONTEXTBASE_API_WORKER_ID`: when it defaults to the container hostname, a Docker restart produces a new container ID, the new worker doesn't recognize the old worker's claims as its own, and those tasks are stranded.
 
 **How to spot them:**
 
 ```bash
 # List processing tasks grouped by worker — workers with a growing last_update_ago are dead
-hindsight-admin worker-status
+contextbase-admin worker-status
 
 # Bank-level counters; pending_consolidation that never decreases is the usual symptom
 curl -s http://localhost:8888/v1/default/banks/<bank_id>/stats
@@ -497,19 +497,19 @@ curl -s http://localhost:8888/v1/default/banks/<bank_id>/stats
 
 ```bash
 # You know which worker is dead (e.g. from worker-status):
-hindsight-admin decommission-worker <old-worker-id>
+contextbase-admin decommission-worker <old-worker-id>
 
 # You don't know — release every processing task across the fleet:
-hindsight-admin decommission-workers
+contextbase-admin decommission-workers
 ```
 
 Both commands reset `processing` rows back to `pending` so a live worker can claim them on the next poll.
 
 **How to prevent it:**
 
-Set `HINDSIGHT_API_WORKER_ID` to a stable value so worker identity survives restarts:
+Set `CONTEXTBASE_API_WORKER_ID` to a stable value so worker identity survives restarts:
 
-- **Docker**: pass `-e HINDSIGHT_API_WORKER_ID=hindsight-prod` (or per-replica names if running multiple containers)
+- **Docker**: pass `-e CONTEXTBASE_API_WORKER_ID=contextbase-prod` (or per-replica names if running multiple containers)
 - **Kubernetes (Helm)**: the chart's StatefulSet uses the pod name automatically — no extra config needed
 - **Bare metal / pip**: pass `--worker-id <name>` or set the env var per process
 
@@ -523,12 +523,12 @@ The admin CLI uses the same environment variables as the API service. The most i
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_DATABASE_URL` | PostgreSQL connection string | `pg0` (embedded) |
+| `CONTEXTBASE_API_DATABASE_URL` | PostgreSQL connection string | `pg0` (embedded) |
 
 **Example:**
 
 ```bash
 # Use a specific database
-export HINDSIGHT_API_DATABASE_URL=postgresql://user:pass@localhost:5432/hindsight
-hindsight-admin backup /backups/mybackup.zip
+export CONTEXTBASE_API_DATABASE_URL=postgresql://user:pass@localhost:5432/contextbase
+contextbase-admin backup /backups/mybackup.zip
 ```

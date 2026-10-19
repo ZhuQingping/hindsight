@@ -1,16 +1,18 @@
-# Hindsight for Flowise
+# ContextBase for Flowise
 
-Persistent long-term memory for [Flowise](https://flowiseai.com) chatflows and agents via [Hindsight](https://hindsight.vectorize.io).
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
-Three Tool nodes — **Hindsight Retain**, **Hindsight Recall**, **Hindsight Reflect** — drop into any Flowise chatflow or agent flow alongside your other Tools.
+Persistent long-term memory for [Flowise](https://flowiseai.com) chatflows and agents via [ContextBase](https://github.com/RSIXDB/hindsight).
+
+Three Tool nodes — **ContextBase Retain**, **ContextBase Recall**, **ContextBase Reflect** — drop into any Flowise chatflow or agent flow alongside your other Tools.
 
 - **Author**: Vectorize, Inc.
-- **Repository**: <https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/flowise>
+- **Repository**: <https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/flowise>
 - **Contact**: support@vectorize.io · [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
 
 ## Status
 
-This package is the source-of-truth copy of the Hindsight Flowise nodes. Flowise distributes nodes only inside its main monorepo, so the user-facing distribution is an upstream PR to [`FlowiseAI/Flowise`](https://github.com/FlowiseAI/Flowise) under `packages/components/`.
+This package is the source-of-truth copy of the ContextBase Flowise nodes. Flowise distributes nodes only inside its main monorepo, so the user-facing distribution is an upstream PR to [`FlowiseAI/Flowise`](https://github.com/FlowiseAI/Flowise) under `packages/components/`.
 
 ## Installation (local Flowise dev fork)
 
@@ -20,10 +22,10 @@ While the upstream PR is in flight, you can use the nodes by copying them into a
 git clone https://github.com/FlowiseAI/Flowise.git
 cd Flowise
 # Copy the three tool nodes
-cp -r /path/to/hindsight/hindsight-integrations/flowise/nodes/tools/Hindsight* \
+cp -r /path/to/contextbase/hindsight-integrations/flowise/nodes/tools/ContextBase* \
    packages/components/nodes/tools/
 # Copy the credential class
-cp /path/to/hindsight/hindsight-integrations/flowise/credentials/HindsightApi.credential.ts \
+cp /path/to/contextbase/hindsight-integrations/flowise/credentials/ContextBaseApi.credential.ts \
    packages/components/credentials/
 # Add the client dep
 cd packages/components && pnpm add @vectorize-io/hindsight-client
@@ -33,19 +35,19 @@ pnpm start  # opens http://localhost:3000
 
 ## Setup
 
-> ✨ **Recommended:** [Hindsight Cloud](https://ui.hindsight.vectorize.io) — sign up free, get an API key, and skip the self-hosting setup entirely.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
-1. **Sign up** at [Hindsight Cloud](https://ui.hindsight.vectorize.io) (free tier) or [self-host](https://hindsight.vectorize.io/developer/installation).
-2. **Get an API key** from the Hindsight dashboard.
-3. **In Flowise**, create a new credential of type **Hindsight API**:
-   - **API URL**: `https://api.hindsight.vectorize.io` (Cloud) or your self-hosted URL
+1. Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
+2. **Get an API key** from the ContextBase dashboard.
+3. **In Flowise**, create a new credential of type **ContextBase API**:
+   - **API URL**: `http://localhost:8888` (Cloud) or your self-hosted URL
    - **API Key**: your `hsk_...` key (optional for self-hosted unauthenticated instances)
 
 ## Tools
 
-### Hindsight Retain
+### ContextBase Retain
 
-Stores free-text content in a memory bank. Hindsight extracts facts asynchronously after the call returns.
+Stores free-text content in a memory bank. ContextBase extracts facts asynchronously after the call returns.
 
 | Field           | Description                                                |
 | --------------- | ---------------------------------------------------------- |
@@ -53,7 +55,7 @@ Stores free-text content in a memory bank. Hindsight extracts facts asynchronous
 
 Tool input schema (the agent passes these): `bankId`, `content`, optional `tags`.
 
-### Hindsight Recall
+### ContextBase Recall
 
 Searches a bank for memories relevant to a query. Returns ranked results.
 
@@ -64,7 +66,7 @@ Searches a bank for memories relevant to a query. Returns ranked results.
 
 Tool input schema: `bankId`, `query`, optional `budget`, `maxTokens`, `tags`.
 
-### Hindsight Reflect
+### ContextBase Reflect
 
 Returns an LLM-synthesized answer over a bank.
 
@@ -80,11 +82,11 @@ Tool input schema: `bankId`, `query`, optional `budget`.
 A typical conversational agent recipe:
 
 1. **ChatOpenAI** (or any chat LLM)
-2. **Conversational Agent** with three tools attached: Hindsight Retain + Hindsight Recall + Hindsight Reflect
+2. **Conversational Agent** with three tools attached: ContextBase Retain + ContextBase Recall + ContextBase Reflect
 3. Set a default Bank ID like `user-${sessionId}` on each tool
 4. The agent learns to call Recall before answering and Retain after meaningful exchanges
 
 ## Source
 
-- GitHub: [`vectorize-io/hindsight`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/flowise)
-- Docs: [hindsight.vectorize.io/sdks/integrations/flowise](https://hindsight.vectorize.io/sdks/integrations/flowise)
+- GitHub: [`RSIXDB/hindsight`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/flowise)
+- Docs: [hindsight.vectorize.io/sdks/integrations/flowise](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)

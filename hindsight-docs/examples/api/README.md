@@ -35,7 +35,7 @@ for f in *.mjs; do node "$f"; done
 for f in *.sh; do bash "$f"; done
 ```
 
-Requires a running Hindsight server at `http://localhost:8888` (or set `HINDSIGHT_API_URL`).
+Requires a running ContextBase server at `http://localhost:8888` (or set `CONTEXTBASE_API_URL`).
 
 ## Legacy Examples
 
@@ -51,8 +51,8 @@ These pages are generated directly from the OpenAPI specification. The spec itse
 
 | Command | Reason |
 |---------|--------|
-| `hindsight configure` | Requires interactive user input (prompts for API URL, credentials) |
-| `hindsight configure --show` | Displays sensitive configuration, not suitable for automated tests |
+| `contextbase configure` | Requires interactive user input (prompts for API URL, credentials) |
+| `contextbase configure --show` | Displays sensitive configuration, not suitable for automated tests |
 
 ### 3. Installation/Setup Instructions
 

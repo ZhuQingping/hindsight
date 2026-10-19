@@ -16,7 +16,7 @@ function loadPackageVersion(): string {
   }
 }
 
-const USER_AGENT = `hindsight-openclaw/${loadPackageVersion()}`;
+const USER_AGENT = `contextbase-openclaw/${loadPackageVersion()}`;
 import { DEFAULT_RETAIN_CONTEXT, detectExternalApi, detectLLMConfig } from "./index.js";
 import type { BankStats, PluginConfig } from "./types.js";
 import {
@@ -65,7 +65,7 @@ interface BankRuntime {
 
 function usage(): string {
   return [
-    "Usage: hindsight-openclaw-backfill [options]",
+    "Usage: contextbase-openclaw-backfill [options]",
     "",
     "Options:",
     "  --openclaw-root <path>        OpenClaw root directory (default: ~/.openclaw)",
@@ -80,8 +80,8 @@ function usage(): string {
     "  --checkpoint <path>           Path to checkpoint JSON",
     "  --bank-strategy <mode>        mirror-config | agent | fixed",
     "  --fixed-bank <id>             Required when bank strategy is fixed",
-    "  --api-url <url>               Hindsight API base URL override",
-    "  --api-token <token>           Hindsight API bearer token override",
+    "  --api-url <url>               ContextBase API base URL override",
+    "  --api-token <token>           ContextBase API bearer token override",
     "  --max-pending-operations <n>  Wait until target bank queue is <= n before enqueueing",
     "  --wait-until-drained          Wait for touched banks to drain and finalize checkpoint state",
     "  -h, --help                    Show this help",
@@ -191,9 +191,9 @@ function inferApiSettings(
 ): { apiUrl: string; apiToken?: string } {
   const apiUrl =
     explicitApiUrl ||
-    pluginConfig.hindsightApiUrl ||
+    pluginConfig.contextbaseApiUrl ||
     `http://127.0.0.1:${pluginConfig.apiPort || 9077}`;
-  const apiToken = explicitApiToken || pluginConfig.hindsightApiToken;
+  const apiToken = explicitApiToken || pluginConfig.contextbaseApiToken;
   return { apiUrl, apiToken: apiToken || undefined };
 }
 
@@ -305,7 +305,7 @@ export async function createBackfillRuntime(
     explicitApiUrl ||
     explicitApiToken ||
     externalApi.apiUrl ||
-    pluginConfig.hindsightApiUrl
+    pluginConfig.contextbaseApiUrl
   );
 
   if (useExternalApi) {
@@ -482,7 +482,11 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   const runtime = await createBackfillRuntime(pluginConfig, args.apiUrl, args.apiToken);
   // Single shared client — hindsight-client takes bankId as a parameter on
   // every call, so there's no reason to cache per-bank clients anymore.
-  const client = new HindsightClient({ baseUrl: runtime.apiUrl, apiKey: runtime.apiToken });
+  const client = new HindsightClient({
+    baseUrl: runtime.apiUrl,
+    apiKey: runtime.apiToken,
+    userAgent: USER_AGENT,
+  });
   const bankRuntimes = new Map<string, BankRuntime>();
   let imported = 0;
   let failed = 0;

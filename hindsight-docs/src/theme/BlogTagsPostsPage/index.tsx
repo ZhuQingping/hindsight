@@ -39,9 +39,9 @@ function BlogCard({content}: {content: PropBlogPostContent}) {
 }
 
 const TAG_LABELS: Record<string, {title: string; subtitle: string}> = {
-  'hindsight-cloud': {
-    title: 'Hindsight Cloud',
-    subtitle: 'News and updates from Hindsight Cloud',
+  'contextbase-cloud': {
+    title: 'ContextBase Cloud',
+    subtitle: 'News and updates from ContextBase Cloud',
   },
   'deep-dive': {
     title: 'Deep Dives',
@@ -53,7 +53,7 @@ const TAG_LABELS: Record<string, {title: string; subtitle: string}> = {
   },
   'tutorial': {
     title: 'Tutorials & Integrations',
-    subtitle: 'How to use Hindsight with your stack',
+    subtitle: 'How to use ContextBase with your stack',
   },
 };
 

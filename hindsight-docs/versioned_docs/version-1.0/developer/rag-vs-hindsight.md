@@ -4,11 +4,11 @@ sidebar_position: 2
 
 # RAG vs Memory
 
-Traditional RAG (Retrieval-Augmented Generation) retrieves documents similar to a query. Hindsight provides structured memory with temporal reasoning, entity understanding, and belief formation.
+Traditional RAG (Retrieval-Augmented Generation) retrieves documents similar to a query. ContextBase provides structured memory with temporal reasoning, entity understanding, and belief formation.
 
 ## Capability Comparison
 
-| Capability | RAG | Hindsight |
+| Capability | RAG | ContextBase |
 |------------|-----|-----------|
 | **Search strategy** | Semantic similarity only | Semantic + keyword + graph + temporal |
 | **Multi-hop reasoning** | Limited to retrieved chunks | Graph traversal across entity relationships |
@@ -30,7 +30,7 @@ Traditional RAG (Retrieval-Augmented Generation) retrieves documents similar to 
 
 Single retrieval strategy. No state between queries.
 
-### Hindsight
+### ContextBase
 
 | Step | Operation |
 |------|-----------|
@@ -57,7 +57,7 @@ Multiple retrieval strategies. Persistent state across sessions.
 | System | Result |
 |--------|--------|
 | RAG | Retrieves facts about Alice only (no semantic similarity to "issues") |
-| Hindsight | Traverses Alice → Project Atlas → Kubernetes → outage via entity links |
+| ContextBase | Traverses Alice → Project Atlas → Kubernetes → outage via entity links |
 
 ### Temporal Queries
 
@@ -71,7 +71,7 @@ Multiple retrieval strategies. Persistent state across sessions.
 | System | Result |
 |--------|--------|
 | RAG | Returns all Alice facts regardless of date |
-| Hindsight | Parses "last spring" → March-May, filters to that range |
+| ContextBase | Parses "last spring" → March-May, filters to that range |
 
 ### Entity Understanding
 
@@ -86,7 +86,7 @@ Multiple retrieval strategies. Persistent state across sessions.
 | System | Result |
 |--------|--------|
 | RAG | Lists disconnected facts |
-| Hindsight | Returns connected facts via entity graph: subscription status, billing, known issues |
+| ContextBase | Returns connected facts via entity graph: subscription status, billing, known issues |
 
 ### Knowledge Evolution
 
@@ -96,7 +96,7 @@ Multiple retrieval strategies. Persistent state across sessions.
 | System | Behavior |
 |--------|----------|
 | RAG | No memory of progression |
-| Hindsight | Consolidates mental model "user prefers sync" → refines to "user growing comfortable with async" |
+| ContextBase | Consolidates mental model "user prefers sync" → refines to "user growing comfortable with async" |
 
 ## When to Use Each
 
@@ -104,7 +104,7 @@ Multiple retrieval strategies. Persistent state across sessions.
 |----------|-------------|
 | Document Q&A over static corpus | RAG |
 | Search with no temporal requirements | RAG |
-| AI assistants with persistent memory | Hindsight |
-| Applications requiring entity tracking | Hindsight |
-| Systems needing consistent disposition | Hindsight |
-| Temporal queries ("last month", "in 2023") | Hindsight |
+| AI assistants with persistent memory | ContextBase |
+| Applications requiring entity tracking | ContextBase |
+| Systems needing consistent disposition | ContextBase |
+| Temporal queries ("last month", "in 2023") | ContextBase |

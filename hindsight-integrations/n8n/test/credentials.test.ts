@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { HindsightApi } from "../credentials/HindsightApi.credentials";
+import { ContextBaseApi } from "../credentials/ContextBaseApi.credentials";
 
-describe("HindsightApi credentials", () => {
-  const cred = new HindsightApi();
+describe("ContextBaseApi credentials", () => {
+  const cred = new ContextBaseApi();
 
   it("declares the expected name and displayName", () => {
-    expect(cred.name).toBe("hindsightApi");
-    expect(cred.displayName).toBe("Hindsight API");
+    expect(cred.name).toBe("contextbaseApi");
+    expect(cred.displayName).toBe("ContextBase API");
   });
 
   it("exposes apiUrl and apiKey properties", () => {
@@ -16,9 +16,9 @@ describe("HindsightApi credentials", () => {
     expect(propNames).toContain("apiKey");
   });
 
-  it("defaults apiUrl to Hindsight Cloud", () => {
+  it("requires an explicitly configured API URL", () => {
     const apiUrlProp = cred.properties.find((p) => p.name === "apiUrl");
-    expect(apiUrlProp?.default).toBe("https://api.hindsight.vectorize.io");
+    expect(apiUrlProp?.default).toBe("");
   });
 
   it("marks apiKey as a password field", () => {
@@ -34,7 +34,7 @@ describe("HindsightApi credentials", () => {
 
   it("identifies every request as coming from the n8n integration", () => {
     const props = cred.authenticate.properties as { headers?: Record<string, string> };
-    expect(props.headers?.["User-Agent"]).toBe("hindsight-n8n");
+    expect(props.headers?.["User-Agent"]).toBe("contextbase-n8n");
   });
 
   it("tests against /health", () => {

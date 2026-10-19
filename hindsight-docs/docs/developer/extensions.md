@@ -1,6 +1,6 @@
 # Extensions
 
-Extensions allow you to customize and extend Hindsight behavior without modifying core code. They enable multi-tenancy, custom authentication, additional HTTP endpoints, and operation hooks.
+Extensions allow you to customize and extend ContextBase behavior without modifying core code. They enable multi-tenancy, custom authentication, additional HTTP endpoints, and operation hooks.
 
 ---
 
@@ -15,8 +15,8 @@ Handles multi-tenancy and API key authentication. Validates incoming requests an
 A simple implementation that validates API keys against an environment variable and uses the `public` schema for all authenticated requests.
 
 ```bash
-HINDSIGHT_API_TENANT_EXTENSION=hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension
-HINDSIGHT_API_TENANT_API_KEY=your-secret-key
+CONTEXTBASE_API_TENANT_EXTENSION=hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension
+CONTEXTBASE_API_TENANT_API_KEY=your-secret-key
 ```
 
 **No longer built in: SupabaseTenantExtension**
@@ -24,7 +24,7 @@ HINDSIGHT_API_TENANT_API_KEY=your-secret-key
 Validates [Supabase](https://supabase.com) JWTs and gives each authenticated user their own PostgreSQL schema. It now lives in the [extensions registry](https://github.com/vectorize-io/hindsight/tree/main/hindsight-extensions/supabase-tenant), which documents its configuration and ships a Dockerfile that builds an image with it.
 
 :::warning Breaking change in 0.9.3
-Up to 0.9.2 this extension was built in, at `hindsight_api.extensions.builtin.supabase_tenant`. That path no longer exists, so an install still pointing at it fails at startup with `ModuleNotFoundError`. Add the extension to your image and set `HINDSIGHT_API_TENANT_EXTENSION=hindsight_ext_supabase_tenant:SupabaseTenantExtension`. All `HINDSIGHT_API_TENANT_*` settings and the schema naming are unchanged.
+Up to 0.9.2 this extension was built in, at `hindsight_api.extensions.builtin.supabase_tenant`. That path no longer exists, so an install still pointing at it fails at startup with `ModuleNotFoundError`. Add the extension to your image and set `CONTEXTBASE_API_TENANT_EXTENSION=contextbase_ext_supabase_tenant:SupabaseTenantExtension`. All `CONTEXTBASE_API_TENANT_*` settings and the schema naming are unchanged.
 :::
 
 **External: StaticKeysTenantExtension**
@@ -41,7 +41,7 @@ For other multi-tenant setups with separate schemas per tenant (e.g., custom JWT
 
 ### HttpExtension
 
-Adds custom HTTP endpoints under the `/ext/` path prefix. Useful for adding domain-specific APIs that integrate with Hindsight's memory engine.
+Adds custom HTTP endpoints under the `/ext/` path prefix. Useful for adding domain-specific APIs that integrate with ContextBase's memory engine.
 
 Provides two router methods:
 - `get_router(memory)` — returns a FastAPI router mounted at `/ext/`
@@ -50,7 +50,7 @@ Provides two router methods:
 **No built-in implementation** - implement your own to add custom endpoints.
 
 ```bash
-HINDSIGHT_API_HTTP_EXTENSION=mypackage.ext:MyHttpExtension
+CONTEXTBASE_API_HTTP_EXTENSION=mypackage.ext:MyHttpExtension
 ```
 
 ---
@@ -68,19 +68,19 @@ Hooks into retain/recall/reflect operations for validation and monitoring. Use c
 `self.context` is the process-wide extension context — use it for process-global handles such as `get_memory_engine()`. It holds no per-request state: take the tenant and bank from each hook's own argument (`ctx.bank_id` and `ctx.request_context`, the latter holding the identity resolved by the tenant extension).
 
 ```bash
-HINDSIGHT_API_OPERATION_VALIDATOR_EXTENSION=mypackage.validators:MyValidator
+CONTEXTBASE_API_OPERATION_VALIDATOR_EXTENSION=mypackage.validators:MyValidator
 ```
 
 ---
 
 ### MCPExtension
 
-Registers additional MCP (Model Context Protocol) tools on the Hindsight MCP server. Enables external packages to add custom tools without modifying core code.
+Registers additional MCP (Model Context Protocol) tools on the ContextBase MCP server. Enables external packages to add custom tools without modifying core code.
 
 **No built-in implementation** - implement your own to add custom MCP tools.
 
 ```bash
-HINDSIGHT_API_MCP_EXTENSION=mypackage.mcp:MyMCPExtension
+CONTEXTBASE_API_MCP_EXTENSION=mypackage.mcp:MyMCPExtension
 ```
 
 ---
@@ -92,13 +92,13 @@ HINDSIGHT_API_MCP_EXTENSION=mypackage.mcp:MyMCPExtension
 Extensions are Python classes loaded via environment variables:
 
 ```bash
-HINDSIGHT_API_<TYPE>_EXTENSION=mypackage.module:MyExtensionClass
+CONTEXTBASE_API_<TYPE>_EXTENSION=mypackage.module:MyExtensionClass
 ```
 
 Configuration is passed via prefixed environment variables:
 
 ```bash
-HINDSIGHT_API_<TYPE>_SOME_CONFIG=value
+CONTEXTBASE_API_<TYPE>_SOME_CONFIG=value
 # Extension receives: {"some_config": "value"}
 ```
 
@@ -113,7 +113,7 @@ Extensions have access to an `ExtensionContext` that provides:
 ### Shipping your own database migrations
 
 An extension that keeps state of its own returns the directory holding its Alembic
-revision files, and they are applied in the same migration run as Hindsight's own —
+revision files, and they are applied in the same migration run as ContextBase's own —
 same ordering guarantees, same `alembic_version` table:
 
 ```python
@@ -122,17 +122,17 @@ class MyExtension(TenantExtension):
         return [str(Path(__file__).parent / "alembic" / "versions")]
 ```
 
-The directory holds revision files only — there is no `env.py`; Hindsight's own
-configures the schema and the connection. The tree is independent of Hindsight's: give
+The directory holds revision files only — there is no `env.py`; ContextBase's own
+configures the schema and the connection. The tree is independent of ContextBase's: give
 its first revision `down_revision = None` and a `branch_labels` naming your extension,
 so an operator can address it (`alembic upgrade <label>@head`).
 
-Independent branches have no ordering between them. A revision that needs a Hindsight
-table to exist first must say so explicitly, which orders it without making Hindsight's
+Independent branches have no ordering between them. A revision that needs a ContextBase
+table to exist first must say so explicitly, which orders it without making ContextBase's
 revision its parent:
 
 ```python
-depends_on = ("a1b2c3d4e5f6",)   # a Hindsight revision id
+depends_on = ("a1b2c3d4e5f6",)   # a ContextBase revision id
 ```
 
 A directory that does not exist is skipped with a warning rather than failing the
@@ -149,7 +149,7 @@ class JwtTenantExtension(TenantExtension):
         super().__init__(config)
         self.jwt_secret = config.get("jwt_secret")
         if not self.jwt_secret:
-            raise ValueError("HINDSIGHT_API_TENANT_JWT_SECRET is required")
+            raise ValueError("CONTEXTBASE_API_TENANT_JWT_SECRET is required")
 
     async def authenticate(self, context: RequestContext) -> TenantContext:
         token = context.api_key
@@ -181,7 +181,7 @@ raise AuthenticationError(
 `RequestContext` carries the `Authorization` header as `api_key`. To authenticate on a *different* header — for instance when a gateway terminates auth with one shared identity and forwards the per-caller identity separately — name the headers you want forwarded:
 
 ```bash
-HINDSIGHT_API_EXTENSION_PASSTHROUGH_HEADERS=x-user-assertion
+CONTEXTBASE_API_EXTENSION_PASSTHROUGH_HEADERS=x-user-assertion
 ```
 
 They are available as `context.extra_headers`, keyed by lower-cased name:
@@ -456,10 +456,10 @@ class MyMCPExtension(MCPExtension):
 
 ### With Docker
 
-Extensions are not bundled in the image. Build one on top of Hindsight that installs your extension's dependencies and copies it in. Install into the image's virtualenv explicitly — it was created by `uv sync` and ships no `pip` of its own, so a bare `pip install` lands where the server can't see it:
+Extensions are not bundled in the image. Build one on top of ContextBase that installs your extension's dependencies and copies it in. Install into the image's virtualenv explicitly — it was created by `uv sync` and ships no `pip` of its own, so a bare `pip install` lands where the server can't see it:
 
 ```dockerfile
-FROM ghcr.io/vectorize-io/hindsight:latest
+FROM contextbase:local
 
 RUN uv pip install --python /app/api/.venv/bin/python --no-cache \
       'PyJWT[crypto]>=2.12.0' 'httpx>=0.27.0'
@@ -477,10 +477,10 @@ See the [extensions registry README](https://github.com/vectorize-io/hindsight/b
 
 ### Bare Metal
 
-Install your extension package in the same Python environment as Hindsight:
+Install your extension package in the same Python environment as ContextBase:
 
 ```bash
-# Install Hindsight
+# Install ContextBase
 pip install hindsight-api
 
 # Install your extension package
@@ -489,8 +489,8 @@ pip install ./my-extensions
 pip install my-extensions-package
 
 # Configure
-export HINDSIGHT_API_TENANT_EXTENSION=my_extensions.auth:JwtTenantExtension
-export HINDSIGHT_API_TENANT_JWT_SECRET=your-secret
+export CONTEXTBASE_API_TENANT_EXTENSION=my_extensions.auth:JwtTenantExtension
+export CONTEXTBASE_API_TENANT_JWT_SECRET=your-secret
 
 # Run
 hindsight-api
@@ -508,6 +508,6 @@ If you've built an extension that solves a common use case, for example:
 - Metrics exporters (Datadog, New Relic, etc.)
 - Custom HTTP endpoints for specific platforms
 
-[open a feature request](https://github.com/vectorize-io/hindsight/issues/new?template=feature_request.yml) with a link to your repository, and we can list it in the [extensions registry](https://github.com/vectorize-io/hindsight/blob/main/hindsight-extensions/README.md). Hindsight does not accept pull requests from outside the team, so the team adds registry entries. That README covers the extension layout, the development workflow, and Docker packaging.
+[open a feature request](https://github.com/vectorize-io/hindsight/issues/new?template=feature_request.yml) with a link to your repository, and we can list it in the [extensions registry](https://github.com/vectorize-io/hindsight/blob/main/hindsight-extensions/README.md). ContextBase does not accept pull requests from outside the team, so the team adds registry entries. That README covers the extension layout, the development workflow, and Docker packaging.
 
-Extensions live outside the server so that installing Hindsight does not pull in a vendor's client library, and so changing an extension does not require a Hindsight release. Only extensions that add no dependencies and are useful to any deployment (`ApiKeyTenantExtension`, `MemoryDefenseRegexExtension`) stay in `hindsight_api.extensions.builtin`.
+Extensions live outside the server so that installing ContextBase does not pull in a vendor's client library, and so changing an extension does not require a ContextBase release. Only extensions that add no dependencies and are useful to any deployment (`ApiKeyTenantExtension`, `MemoryDefenseRegexExtension`) stay in `hindsight_api.extensions.builtin`.

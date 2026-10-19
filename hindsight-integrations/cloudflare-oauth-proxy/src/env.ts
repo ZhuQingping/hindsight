@@ -27,9 +27,9 @@ export interface OAuthHelpers {
 export interface Env {
   OAUTH_KV: KVNamespace;
   OAUTH_PROVIDER: OAuthHelpers;
-  HINDSIGHT_ORIGIN: string;
+  CONTEXTBASE_ORIGIN: string;
   ALLOWED_EMAIL: string;
   SESSION_SECRET: string;
   PROXY_SECRET: string;
-  HINDSIGHT_API_TOKEN: string;
+  CONTEXTBASE_API_TOKEN: string;
 }

@@ -1,10 +1,10 @@
-"""Configuration management for Hindsight OMO plugin.
+"""Configuration management for ContextBase OMO plugin.
 
 Loads settings from settings.json (plugin defaults) merged with environment
 variable overrides.
 
-Cloud-first: defaults to https://api.hindsight.vectorize.io.
-Set HINDSIGHT_API_URL to use a self-hosted instance instead.
+Cloud-first: defaults to .
+Set CONTEXTBASE_API_URL to use a self-hosted instance instead.
 """
 
 import json
@@ -37,8 +37,8 @@ DEFAULTS = {
     "retainMetadata": {},
     "recallAdditionalBanks": [],
     # Connection — cloud by default
-    "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-    "hindsightApiToken": None,
+    "contextbaseApiUrl": "",
+    "contextbaseApiToken": None,
     "requestTimeoutSeconds": None,
     # Bank
     "bankId": None,
@@ -56,21 +56,21 @@ DEFAULTS = {
 
 # Map env var names to config keys and their types
 ENV_OVERRIDES = {
-    "HINDSIGHT_API_URL": ("hindsightApiUrl", str),
-    "HINDSIGHT_API_TOKEN": ("hindsightApiToken", str),
-    "HINDSIGHT_BANK_ID": ("bankId", str),
-    "HINDSIGHT_AGENT_NAME": ("agentName", str),
-    "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
-    "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
-    "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
-    "HINDSIGHT_RECALL_BUDGET": ("recallBudget", str),
-    "HINDSIGHT_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
-    "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "HINDSIGHT_REQUEST_TIMEOUT_SECONDS": ("requestTimeoutSeconds", int),
-    "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "HINDSIGHT_BANK_MISSION": ("bankMission", str),
-    "HINDSIGHT_DEBUG": ("debug", bool),
+    "CONTEXTBASE_API_URL": ("contextbaseApiUrl", str),
+    "CONTEXTBASE_API_TOKEN": ("contextbaseApiToken", str),
+    "CONTEXTBASE_BANK_ID": ("bankId", str),
+    "CONTEXTBASE_AGENT_NAME": ("agentName", str),
+    "CONTEXTBASE_AUTO_RECALL": ("autoRecall", bool),
+    "CONTEXTBASE_AUTO_RETAIN": ("autoRetain", bool),
+    "CONTEXTBASE_RETAIN_MODE": ("retainMode", str),
+    "CONTEXTBASE_RECALL_BUDGET": ("recallBudget", str),
+    "CONTEXTBASE_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
+    "CONTEXTBASE_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
+    "CONTEXTBASE_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "CONTEXTBASE_REQUEST_TIMEOUT_SECONDS": ("requestTimeoutSeconds", int),
+    "CONTEXTBASE_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
+    "CONTEXTBASE_BANK_MISSION": ("bankMission", str),
+    "CONTEXTBASE_DEBUG": ("debug", bool),
 }
 
 
@@ -104,7 +104,7 @@ def load_config() -> dict:
     Loading order (later entries win):
       1. Built-in defaults (cloud URL pre-set)
       2. Plugin default settings.json  (PLUGIN_ROOT/settings.json)
-      3. User config                   (~/.hindsight/omo.json)
+      3. User config                   (~/.contextbase/omo.json)
       4. Environment variable overrides
     """
     config = dict(DEFAULTS)
@@ -116,7 +116,7 @@ def load_config() -> dict:
     _load_settings_file(os.path.join(plugin_root, "settings.json"), config)
 
     # 2. User config — stable, version-independent
-    user_config_path = os.path.join(os.path.expanduser("~"), ".hindsight", "omo.json")
+    user_config_path = os.path.join(os.path.expanduser("~"), ".contextbase", "omo.json")
     _load_settings_file(user_config_path, config)
 
     # Apply environment variable overrides

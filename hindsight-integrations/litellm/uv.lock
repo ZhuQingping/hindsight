@@ -653,7 +653,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-litellm"
+name = "contextbase-litellm"
 version = "0.5.4"
 source = { editable = "." }
 dependencies = [

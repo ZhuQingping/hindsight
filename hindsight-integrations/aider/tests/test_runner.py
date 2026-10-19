@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hindsight_aider.config import AiderConfig
-from hindsight_aider.runner import (
+from contextbase_aider.config import AiderConfig
+from contextbase_aider.runner import (
     build_aider_command,
     do_recall,
     history_size,
@@ -161,7 +161,7 @@ class TestRun:
     def test_closes_client_it_created(self, tmp_path, monkeypatch):
         """A client run() resolves itself is closed on exit (avoids the aiohttp
         'Unclosed connector' warning)."""
-        import hindsight_aider.runner as runner_mod
+        import contextbase_aider.runner as runner_mod
 
         client = make_client([])
         monkeypatch.setattr(runner_mod, "resolve_client", lambda config: client)

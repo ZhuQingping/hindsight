@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import { proxyRequest } from "./proxy";
 
 const baseEnv = {
-  HINDSIGHT_ORIGIN: "https://hindsight-origin.example.com",
+  CONTEXTBASE_ORIGIN: "https://hindsight-origin.example.com",
   PROXY_SECRET: "proxy-secret-value",
-  HINDSIGHT_API_TOKEN: "server-api-token",
+  CONTEXTBASE_API_TOKEN: "server-api-token",
 };
 
 describe("proxyRequest", () => {
-  it("rewrites the target URL to the Hindsight origin", async () => {
+  it("rewrites the target URL to the ContextBase origin", async () => {
     let calledUrl: string | undefined;
     const fetchImpl = vi.fn<typeof fetch>(async (url) => {
       calledUrl = url.toString();
@@ -144,7 +144,7 @@ describe("proxyRequest", () => {
     });
     const request = new Request("https://hindsight.mydomain.com/mcp", {
       method: "GET",
-      headers: { Host: "hindsight.mydomain.com" },
+      headers: { Host: "contextbase.mydomain.com" },
     });
 
     await proxyRequest(request, baseEnv, { fetchImpl });

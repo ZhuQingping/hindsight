@@ -1,9 +1,9 @@
-"""End-to-end tests for the Hindsight-Haystack integration.
+"""End-to-end tests for the ContextBase-Haystack integration.
 
-Exercises the retain/recall/reflect tools against a live Hindsight server. The
-tools talk to Hindsight directly (the server's LLM does fact extraction), so
-only a running Hindsight instance is required — no provider key. By default
-these tests are skipped; point ``HINDSIGHT_API_URL`` at a reachable server to
+Exercises the retain/recall/reflect tools against a live ContextBase server. The
+tools talk to ContextBase directly (the server's LLM does fact extraction), so
+only a running ContextBase instance is required — no provider key. By default
+these tests are skipped; point ``CONTEXTBASE_API_URL`` at a reachable server to
 enable them.
 
 Run with::
@@ -11,7 +11,7 @@ Run with::
     uv run pytest tests/test_e2e.py -v
 
 The whole module is the real-LLM bucket (``requires_real_llm``): it depends on
-the Hindsight server's LLM-backed fact extraction, so it is excluded from the
+the ContextBase server's LLM-backed fact extraction, so it is excluded from the
 deterministic PR-CI bucket and run on its own / nightly.
 """
 
@@ -26,28 +26,28 @@ import pytest
 import requests
 from hindsight_client import Hindsight
 
-from hindsight_haystack import create_hindsight_tools
-from hindsight_haystack.tools import _run_sync
+from contextbase_haystack import create_contextbase_tools
+from contextbase_haystack.tools import _run_sync
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 _NO_MEMORIES = "No relevant memories found."
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        return requests.get(f"{HINDSIGHT_API_URL}/health", timeout=3).status_code == 200
+        return requests.get(f"{CONTEXTBASE_API_URL}/health", timeout=3).status_code == 200
     except Exception:
         return False
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 
-# Real-LLM / real-service bucket: depends on a live Hindsight server. Excluded
+# Real-LLM / real-service bucket: depends on a live ContextBase server. Excluded
 # from PR CI via `-m "not requires_real_llm"`; the skipif still gates runtime.
-pytestmark = [requires_hindsight, pytest.mark.requires_real_llm]
+pytestmark = [requires_contextbase, pytest.mark.requires_real_llm]
 
 
 def _tool(tools, name):
@@ -70,7 +70,7 @@ def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=HINDSIGHT_API_URL)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL)
     bank_id = f"haystack-e2e-{uuid.uuid4().hex[:8]}"
     # Run all client I/O on the tools' background loop so the aiohttp session is
     # created and closed on the same loop (avoids unclosed-connector warnings).
@@ -91,7 +91,7 @@ def live():
 class TestE2ETools:
     def test_retain_and_recall_roundtrip(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
         retain, recall = _tool(tools, "retain_memory"), _tool(tools, "recall_memory")
 
         assert retain.invoke(content="The team uses PostgreSQL 16 and deploys to us-east-1.") == (
@@ -105,7 +105,7 @@ class TestE2ETools:
 
     def test_reflect_synthesizes_from_memory(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
         retain, recall, reflect = (
             _tool(tools, "retain_memory"),
             _tool(tools, "recall_memory"),
@@ -124,6 +124,6 @@ class TestE2ETools:
 
     def test_recall_empty_bank(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
         result = _tool(tools, "recall_memory").invoke(query="anything at all")
         assert result == _NO_MEMORIES

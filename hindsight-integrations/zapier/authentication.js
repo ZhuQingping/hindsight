@@ -5,8 +5,8 @@ const { baseUrl, DEFAULT_API_URL } = require("./utils");
 /**
  * Custom API-key authentication.
  *
- * Mirrors the n8n `hindsightApi` credential: an API key plus an optional base
- * URL (Hindsight Cloud by default, overridable for self-hosted). The key is
+ * Mirrors the n8n `contextbaseApi` credential: an API key plus an optional base
+ * URL (ContextBase Cloud by default, overridable for self-hosted). The key is
  * sent as a Bearer token by the shared `beforeRequest` middleware; the `test`
  * call below exercises the credential against a real authenticated endpoint.
  */
@@ -21,7 +21,7 @@ const connectionLabel = (z, bundle) => {
     /^https?:\/\//,
     ""
   );
-  return `Hindsight (${host})`;
+  return `ContextBase (${host})`;
 };
 
 module.exports = {
@@ -34,11 +34,11 @@ module.exports = {
       label: "API Key",
       type: "password",
       // Optional so you can connect to a self-hosted instance running without
-      // auth (leave blank). For Hindsight Cloud a key is required — a blank key
+      // auth (leave blank). For ContextBase Cloud a key is required — a blank key
       // there fails the connection test (401), as expected.
       required: false,
       helpText:
-        "Your Hindsight API key (starts with `hsk_`). Required for Hindsight Cloud; leave blank for a self-hosted instance running without authentication. Create one at https://ui.hindsight.vectorize.io.",
+        "Your ContextBase API key (starts with `hsk_`). Required for ContextBase Cloud; leave blank for a self-hosted instance running without authentication. Create one at http://localhost:9999",
     },
     {
       key: "apiUrl",
@@ -47,7 +47,7 @@ module.exports = {
       required: false,
       default: DEFAULT_API_URL,
       helpText:
-        "Hindsight API base URL. Defaults to Hindsight Cloud; change it for a self-hosted instance (e.g. http://localhost:8888).",
+        "ContextBase API base URL. Defaults to ContextBase Cloud; change it for a self-hosted instance (e.g. http://localhost:8888).",
     },
   ],
 };

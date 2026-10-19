@@ -16,7 +16,7 @@ from pathlib import Path
 PKG_ROOT = Path(__file__).resolve().parent.parent
 PLUGIN_JSON = PKG_ROOT / ".claude-plugin" / "plugin.json"
 HOOKS_JSON = PKG_ROOT / "hooks" / "hooks.json"
-SCRIPTS_DIR = PKG_ROOT / "hindsight_zcode" / "hooks" / "scripts"
+SCRIPTS_DIR = PKG_ROOT / "contextbase_zcode" / "hooks" / "scripts"
 
 
 def _package_version() -> str:

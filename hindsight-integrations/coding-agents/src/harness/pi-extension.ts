@@ -122,7 +122,7 @@ export function toPiTool(
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const bound = bind(ctx);
       if (!bound) {
-        const text = "Hindsight memory is disabled for this workspace.";
+        const text = "ContextBase memory is disabled for this workspace.";
         return { content: [{ type: "text", text }], details: null };
       }
       const r = await bound.handler(params);

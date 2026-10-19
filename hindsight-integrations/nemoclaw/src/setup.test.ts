@@ -9,8 +9,8 @@ vi.mock("./policy-reader.js", () => ({
   readSandboxPolicy: vi.fn(),
 }));
 vi.mock("./policy-writer.js", () => ({
-  hasHindsightPolicy: vi.fn(),
-  mergeHindsightPolicy: vi.fn(),
+  hasContextBasePolicy: vi.fn(),
+  mergeContextBasePolicy: vi.fn(),
   serializePolicy: vi.fn(),
 }));
 vi.mock("./openclaw-config.js", () => ({
@@ -55,12 +55,15 @@ describe("runSetup", () => {
       network_policies: { claude_code: { name: "claude_code", endpoints: [] } },
     });
 
-    const { hasHindsightPolicy, mergeHindsightPolicy, serializePolicy } =
+    const { hasContextBasePolicy, mergeContextBasePolicy, serializePolicy } =
       await import("./policy-writer.js");
-    vi.mocked(hasHindsightPolicy).mockReturnValue(false);
-    vi.mocked(mergeHindsightPolicy).mockImplementation((p) => ({
+    vi.mocked(hasContextBasePolicy).mockReturnValue(false);
+    vi.mocked(mergeContextBasePolicy).mockImplementation((p) => ({
       ...p,
-      network_policies: { ...p.network_policies, hindsight: { name: "hindsight", endpoints: [] } },
+      network_policies: {
+        ...p.network_policies,
+        contextbase: { name: "contextbase", endpoints: [] },
+      },
     }));
     vi.mocked(serializePolicy).mockReturnValue("version: 1\n");
 
@@ -88,9 +91,9 @@ describe("runSetup", () => {
 
     expect(calls.some((c) => c.includes("which openshell"))).toBe(true);
     expect(calls.some((c) => c.includes("which openclaw"))).toBe(true);
-    expect(
-      calls.some((c) => c.includes("openclaw plugins install @vectorize-io/hindsight-openclaw"))
-    ).toBe(true);
+    expect(calls.some((c) => c.includes("openclaw plugins install contextbase-openclaw"))).toBe(
+      true
+    );
     expect(calls.some((c) => c.includes("openshell policy set my-assistant"))).toBe(true);
     expect(calls.some((c) => c.includes("openclaw gateway restart"))).toBe(true);
   });
@@ -121,9 +124,9 @@ describe("runSetup", () => {
     expect(vi.mocked(readSandboxPolicy)).not.toHaveBeenCalled();
   });
 
-  it("skips policy set when Hindsight policy already exists", async () => {
-    const { hasHindsightPolicy } = await import("./policy-writer.js");
-    vi.mocked(hasHindsightPolicy).mockReturnValue(true);
+  it("skips policy set when ContextBase policy already exists", async () => {
+    const { hasContextBasePolicy } = await import("./policy-writer.js");
+    vi.mocked(hasContextBasePolicy).mockReturnValue(true);
 
     const { execFile } = await import("child_process");
     const calls: string[] = [];

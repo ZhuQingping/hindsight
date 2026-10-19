@@ -2,8 +2,8 @@
 
 import subprocess
 
-from hindsight_aider.bank import resolve_bank_id
-from hindsight_aider.config import AiderConfig
+from contextbase_aider.bank import resolve_bank_id
+from contextbase_aider.config import AiderConfig
 
 
 def test_explicit_bank_id_wins(tmp_path):

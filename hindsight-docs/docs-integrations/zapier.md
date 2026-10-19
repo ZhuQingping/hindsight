@@ -1,16 +1,16 @@
 ---
 sidebar_position: 36
-title: "Zapier Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to your Zaps with Hindsight. Retain, Recall, and Reflect actions plus instant memory-event triggers connect Hindsight to 7,000+ apps."
+title: "Zapier Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to your Zaps with ContextBase. Retain, Recall, and Reflect actions plus instant memory-event triggers connect ContextBase to 7,000+ apps."
 ---
 
 # Zapier
 
-Long-term agent memory for [Zapier](https://zapier.com) via [Hindsight](https://hindsight.vectorize.io). The Hindsight Zapier app adds three actions — **Retain**, **Recall**, **Reflect** — plus instant **triggers** that start a Zap when a memory event fires, so memory flows between Hindsight and 7,000+ apps.
+Long-term agent memory for [Zapier](https://zapier.com) via [ContextBase](https://github.com/RSIXDB/hindsight). The ContextBase Zapier app adds three actions — **Retain**, **Recall**, **Reflect** — plus instant **triggers** that start a Zap when a memory event fires, so memory flows between ContextBase and 7,000+ apps.
 
 ## Why this matters
 
-Zapier connects everything: Gmail, Slack, Sheets, HubSpot, Notion, forms, and thousands more. On its own, those Zaps are **stateless**. With Hindsight you can:
+Zapier connects everything: Gmail, Slack, Sheets, HubSpot, Notion, forms, and thousands more. On its own, those Zaps are **stateless**. With ContextBase you can:
 
 - **Retain** every closed ticket, form submission, or call summary into a memory bank
 - **Recall** relevant context before an AI step so the model sees prior history
@@ -19,29 +19,29 @@ Zapier connects everything: Gmail, Slack, Sheets, HubSpot, Notion, forms, and th
 
 ## Setup
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
-1. **Sign up** at [Hindsight Cloud](https://ui.hindsight.vectorize.io) (free tier) or [self-host](/developer/installation)
-2. **Get an API key** (`hsk_...`) from the Hindsight dashboard
+1. Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
+2. **Get an API key** (`hsk_...`) from the ContextBase dashboard
 
 :::note Availability
-The native Hindsight Zapier app (the **Retain / Recall / Reflect** steps and triggers) is
+The native ContextBase Zapier app (the **Retain / Recall / Reflect** steps and triggers) is
 currently a **private beta** — it isn't listed in Zapier's public App Directory yet, so
-searching "Hindsight" in Zapier won't find it. Use the **Webhooks by Zapier** path below.
+searching "ContextBase" in Zapier won't find it. Use the **Webhooks by Zapier** path below.
 :::
 
 ### Webhooks by Zapier
 
-Every Hindsight operation is a plain REST call, so you can drive it from Zapier's built-in
+Every ContextBase operation is a plain REST call, so you can drive it from Zapier's built-in
 **Webhooks by Zapier** action (or **API Request**) with nothing to install:
 
 - **Method:** `POST`
-- **URL** (Hindsight Cloud):
-  - Retain — `https://api.hindsight.vectorize.io/v1/default/banks/<bank>/memories`
-  - Recall — `https://api.hindsight.vectorize.io/v1/default/banks/<bank>/memories/recall`
-  - Reflect — `https://api.hindsight.vectorize.io/v1/default/banks/<bank>/reflect`
+- **URL** (ContextBase remote service):
+  - Retain — `http://localhost:8888/v1/default/banks/<bank>/memories`
+  - Recall — `http://localhost:8888/v1/default/banks/<bank>/memories/recall`
+  - Reflect — `http://localhost:8888/v1/default/banks/<bank>/reflect`
 - **Headers:** `Authorization: Bearer hsk_...` and `Content-Type: application/json`
 - **Body:** the JSON payload for the operation — see the [API Reference](/api-reference) for the exact fields.
 
@@ -51,7 +51,7 @@ For self-hosted, swap the host for your own instance URL; drop the `Authorizatio
 
 ### Retain
 
-Store content in a bank. Hindsight extracts facts asynchronously after the call returns.
+Store content in a bank. ContextBase extracts facts asynchronously after the call returns.
 
 | Field     | Description                                                           |
 | --------- | --------------------------------------------------------------------- |
@@ -93,12 +93,12 @@ Instant triggers (REST Hooks) that fire when a memory event completes in a bank:
 
 ## Example Zaps
 
-**Support assistant** — a closed-ticket trigger (Zendesk) → Hindsight **Retain** the resolution. New ticket → Hindsight **Recall** similar past issues → OpenAI drafts the first reply.
+**Support assistant** — a closed-ticket trigger (Zendesk) → ContextBase **Retain** the resolution. New ticket → ContextBase **Recall** similar past issues → OpenAI drafts the first reply.
 
-**Memory digest** — Hindsight **Consolidation Completed** trigger → format the new observations → post to Slack so the team sees what the agent learned.
+**Memory digest** — ContextBase **Consolidation Completed** trigger → format the new observations → post to Slack so the team sees what the agent learned.
 
-**Daily prep** — a calendar trigger → Hindsight **Reflect** ("What do we know about this prospect?") → append the answer to the prep doc.
+**Daily prep** — a calendar trigger → ContextBase **Reflect** ("What do we know about this prospect?") → append the answer to the prep doc.
 
 ## Source
 
-- GitHub: [`hindsight-integrations/zapier`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/zapier)
+- GitHub: [`hindsight-integrations/zapier`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/zapier)

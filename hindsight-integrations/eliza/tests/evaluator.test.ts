@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createHindsightEvaluator } from "../src/index.js";
+import { createContextBaseEvaluator } from "../src/index.js";
 import type { HindsightClient } from "../src/index.js";
 import { AGENT_ID, USER_ID, agentMessage, mockClient, runtime, userMessage } from "./helpers.js";
 
-describe("createHindsightEvaluator", () => {
+describe("createContextBaseEvaluator", () => {
   let client: HindsightClient;
 
   beforeEach(() => {
@@ -11,21 +11,21 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("exposes the elizaOS evaluator contract", () => {
-    const evaluator = createHindsightEvaluator(client, undefined);
-    expect(evaluator.name).toBe("HINDSIGHT_RETAIN");
+    const evaluator = createContextBaseEvaluator(client, undefined);
+    expect(evaluator.name).toBe("CONTEXTBASE_RETAIN");
     expect(evaluator.alwaysRun).toBe(true);
     expect(evaluator.examples).toEqual([]);
   });
 
   it("validates only messages that carry non-empty text", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined);
+    const evaluator = createContextBaseEvaluator(client, undefined);
     expect(await evaluator.validate(runtime, userMessage("hi"))).toBe(true);
     expect(await evaluator.validate(runtime, userMessage("   "))).toBe(false);
     expect(await evaluator.validate(runtime, userMessage(undefined))).toBe(false);
   });
 
   it("retains with async:true by default", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined);
+    const evaluator = createContextBaseEvaluator(client, undefined);
     await evaluator.handler(runtime, userMessage("hi"), undefined, undefined, undefined, undefined);
     expect(client.retain).toHaveBeenCalledWith("00000000-0000-0000-0000-0000000000u5", "hi", {
       async: true,
@@ -37,7 +37,7 @@ describe("createHindsightEvaluator", () => {
   it("does not block the turn on a slow retain in async mode (fire-and-forget)", async () => {
     // A retain that never settles must not hang the handler when async:true.
     (client.retain as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise(() => {}));
-    const evaluator = createHindsightEvaluator(client, undefined, { async: true });
+    const evaluator = createContextBaseEvaluator(client, undefined, { async: true });
     await expect(
       evaluator.handler(runtime, userMessage("hi"), undefined, undefined, undefined, undefined)
     ).resolves.toBeUndefined();
@@ -45,7 +45,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("passes tags and metadata through to retain", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, {
+    const evaluator = createContextBaseEvaluator(client, undefined, {
       async: false,
       tags: ["source:eliza", "env:test"],
       metadata: { channel: "discord" },
@@ -59,7 +59,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("resolves the bank via a resolver function", async () => {
-    const evaluator = createHindsightEvaluator(client, (m) => `room:${m.roomId}`, {
+    const evaluator = createContextBaseEvaluator(client, (m) => `room:${m.roomId}`, {
       async: false,
     });
     const message = userMessage("hi");
@@ -68,7 +68,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("skips the agent's own triggering message by default", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, { async: false });
+    const evaluator = createContextBaseEvaluator(client, undefined, { async: false });
     await evaluator.handler(
       runtime,
       agentMessage("my reply"),
@@ -81,7 +81,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("retains the agent's own triggering message when includeAgentMessages is set", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, {
+    const evaluator = createContextBaseEvaluator(client, undefined, {
       async: false,
       includeAgentMessages: true,
     });
@@ -98,7 +98,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("retains the user message and every agent response when includeAgentMessages is set", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, {
+    const evaluator = createContextBaseEvaluator(client, undefined, {
       async: false,
       includeAgentMessages: true,
     });
@@ -118,7 +118,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("does not retain agent responses unless includeAgentMessages is set", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, { async: false });
+    const evaluator = createContextBaseEvaluator(client, undefined, { async: false });
     const responses = [agentMessage("answer one")];
     await evaluator.handler(
       runtime,
@@ -133,7 +133,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("skips agent responses that have no text", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, {
+    const evaluator = createContextBaseEvaluator(client, undefined, {
       async: false,
       includeAgentMessages: true,
     });
@@ -152,7 +152,7 @@ describe("createHindsightEvaluator", () => {
   });
 
   it("does nothing when the triggering message has no text", async () => {
-    const evaluator = createHindsightEvaluator(client, undefined, { async: false });
+    const evaluator = createContextBaseEvaluator(client, undefined, { async: false });
     await evaluator.handler(
       runtime,
       userMessage(undefined),
@@ -166,7 +166,7 @@ describe("createHindsightEvaluator", () => {
 
   it("swallows retain failures in sync mode without rejecting the turn", async () => {
     (client.retain as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("boom"));
-    const evaluator = createHindsightEvaluator(client, undefined, { async: false });
+    const evaluator = createContextBaseEvaluator(client, undefined, { async: false });
     await expect(
       evaluator.handler(runtime, userMessage("hi"), undefined, undefined, undefined, undefined)
     ).resolves.toBeUndefined();

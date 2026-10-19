@@ -199,7 +199,7 @@ describe("autoRecall is independent of session.created ordering (#1758)", () => 
     await hooks["experimental.chat.system.transform"]({ sessionID: "sess-1", model: {} }, output);
 
     expect(output.system.length).toBeGreaterThan(0);
-    expect(output.system[0]).toContain("hindsight_memories");
+    expect(output.system[0]).toContain("contextbase_memories");
     // Marked as recalled so it won't repeat on the next message.
     expect(state.recalledSessions.has("sess-1")).toBe(true);
   });
@@ -249,7 +249,7 @@ describe("compacting hook", () => {
     expect(client.retain).toHaveBeenCalled();
     expect(client.recall).toHaveBeenCalled();
     expect(output.context.length).toBeGreaterThan(0);
-    expect(output.context[0]).toContain("hindsight_memories");
+    expect(output.context[0]).toContain("contextbase_memories");
     expect(output.context[0]).toContain("Important fact");
   });
 
@@ -368,7 +368,7 @@ describe("system transform hook", () => {
     await hooks["experimental.chat.system.transform"]({ sessionID: "sess-1", model: {} }, output);
 
     expect(output.system.length).toBeGreaterThan(0);
-    expect(output.system[0]).toContain("hindsight_memories");
+    expect(output.system[0]).toContain("contextbase_memories");
     // Marked as recalled so it won't repeat.
     expect(state.recalledSessions.has("sess-1")).toBe(true);
   });
@@ -389,7 +389,7 @@ describe("system transform hook", () => {
     // Still a single system section — appended, not pushed.
     expect(output.system.length).toBe(1);
     expect(output.system[0]).toContain("You are a helpful coding assistant.");
-    expect(output.system[0]).toContain("hindsight_memories");
+    expect(output.system[0]).toContain("contextbase_memories");
     expect(output.system[0]).toContain("User is a developer");
   });
 

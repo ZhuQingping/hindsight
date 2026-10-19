@@ -87,11 +87,11 @@ export function identityFingerprint(identity: IndexIdentity): string {
 
 /**
  * Default out-of-vault index location, target-scoped so a different bank/API/
- * vault lands in its own file: `~/.hindsight/obsidian/<vault>-<bank>-<fp>.json`.
+ * vault lands in its own file: `~/.contextbase/obsidian/<vault>-<bank>-<fp>.json`.
  */
 export function defaultIndexPath(identity: IndexIdentity): string {
   const name = `${sanitize(identity.vaultName)}-${sanitize(identity.bankId)}-${identityFingerprint(identity)}`;
-  return join(homedir(), ".hindsight", "obsidian", `${name}.json`);
+  return join(homedir(), ".contextbase", "obsidian", `${name}.json`);
 }
 
 /** Fields whose divergence between two identities makes them incompatible. */
@@ -128,7 +128,7 @@ export async function loadIndex(path: string, identity: IndexIdentity): Promise<
   } catch {
     // A corrupt index means a full re-ingest (hash-skips unchanged) rather than
     // a crash; warn because orphan pruning can't run until the index is rebuilt.
-    console.warn(`[hindsight] ignoring unreadable sync index at ${path}; starting fresh`);
+    console.warn(`[contextbase] ignoring unreadable sync index at ${path}; starting fresh`);
     return {};
   }
 

@@ -42,9 +42,9 @@ async function loadCopy(): Promise<PluginCopy> {
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": {
+          "contextbase-openclaw": {
             config: {
-              hindsightApiUrl: "http://localhost:8888",
+              contextbaseApiUrl: "http://localhost:8888",
               dynamicBankGranularity: ["agent"],
               autoRecall: false,
               autoRetain: true,
@@ -67,7 +67,7 @@ async function loadCopy(): Promise<PluginCopy> {
 }
 
 beforeEach(() => {
-  directory = mkdtempSync(join(tmpdir(), "hindsight-registry-reload-"));
+  directory = mkdtempSync(join(tmpdir(), "contextbase-registry-reload-"));
   vi.stubGlobal(
     "fetch",
     vi.fn(

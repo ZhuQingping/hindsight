@@ -2,11 +2,11 @@
 sidebar_position: 12
 ---
 
-# Pydantic AI + Hindsight Memory
+# Pydantic AI + ContextBase Memory
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/pydantic-ai-memory)
 :::
 
@@ -15,7 +15,7 @@ Give your Pydantic AI agents persistent long-term memory. Chat with an assistant
 
 ## What This Demonstrates
 
-- **Memory tools** — retain, recall, and reflect via `create_hindsight_tools()`
+- **Memory tools** — retain, recall, and reflect via `create_contextbase_tools()`
 - **Auto-injected context** — relevant memories in every run via `memory_instructions()`
 - **Persistent memory across sessions** — the agent remembers between script runs
 - **Interactive chat loop** with message history reuse
@@ -27,29 +27,31 @@ Session 1:
     You: "I'm a Python developer working on a FastAPI project"
     │
     ├─ memory_instructions() ──► recalls prior context (empty on first run)
-    ├─ Agent decides to call hindsight_retain ──► stores the fact
+    ├─ Agent decides to call contextbase_retain ──► stores the fact
     └─ Agent responds with acknowledgement
 
 Session 2:
     You: "What do you know about me?"
     │
     ├─ memory_instructions() ──► injects "User is a Python developer..."
-    ├─ Agent calls hindsight_recall ──► finds stored facts
+    ├─ Agent calls contextbase_recall ──► finds stored facts
     └─ Agent responds with everything it remembers
 ```
 
 ## Prerequisites
 
-1. **Hindsight running**
+1. **ContextBase running**
 
    ```bash
    export OPENAI_API_KEY=your-key
 
-   docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-     -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-     -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-     -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-     ghcr.io/vectorize-io/hindsight:latest
+   docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+     -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+     -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+     -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+     contextbase:local
    ```
 
 2. **OpenAI API key** (for Pydantic AI's LLM)
@@ -110,7 +112,7 @@ python personal_assistant.py --reset
 
 ## How It Works
 
-### 1. Create a Hindsight Client
+### 1. Create a ContextBase Client
 
 ```python
 from hindsight_client import Hindsight
@@ -120,13 +122,13 @@ client = Hindsight(base_url="http://localhost:8888")
 
 ### 2. Create Memory Tools
 
-`create_hindsight_tools()` returns Pydantic AI `Tool` instances the agent can call:
+`create_contextbase_tools()` returns Pydantic AI `Tool` instances the agent can call:
 
 ```python
-from hindsight_pydantic_ai import create_hindsight_tools
+from contextbase_pydantic_ai import create_contextbase_tools
 
-tools = create_hindsight_tools(client=client, bank_id="personal-assistant")
-# Returns: [hindsight_retain, hindsight_recall, hindsight_reflect]
+tools = create_contextbase_tools(client=client, bank_id="personal-assistant")
+# Returns: [contextbase_retain, contextbase_recall, contextbase_reflect]
 ```
 
 ### 3. Add Memory Instructions
@@ -134,7 +136,7 @@ tools = create_hindsight_tools(client=client, bank_id="personal-assistant")
 `memory_instructions()` returns an async callable that auto-recalls relevant memories and injects them into the system prompt on every run:
 
 ```python
-from hindsight_pydantic_ai import memory_instructions
+from contextbase_pydantic_ai import memory_instructions
 
 instructions_fn = memory_instructions(
     client=client,
@@ -175,7 +177,7 @@ Let the agent decide when to search memory, rather than always injecting context
 ```python
 agent = Agent(
     "openai:gpt-4o-mini",
-    tools=create_hindsight_tools(client=client, bank_id="my-bank"),
+    tools=create_contextbase_tools(client=client, bank_id="my-bank"),
 )
 ```
 
@@ -193,7 +195,7 @@ agent = Agent(
 ### Select Specific Tools
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="my-bank",
     include_retain=True,
@@ -209,21 +211,21 @@ Any [Pydantic AI model](https://ai.pydantic.dev/models/) works:
 ```python
 agent = Agent(
     "anthropic:claude-sonnet-4-20250514",
-    tools=create_hindsight_tools(client=client, bank_id="my-bank"),
+    tools=create_contextbase_tools(client=client, bank_id="my-bank"),
 )
 ```
 
 ## Common Issues
 
 **"Connection refused"**
-- Make sure Hindsight is running on `localhost:8888`
+- Make sure ContextBase is running on `localhost:8888`
 
 **"OPENAI_API_KEY not set"**
 ```bash
 export OPENAI_API_KEY=your-key
 ```
 
-**"No module named 'hindsight_pydantic_ai'"**
+**"No module named 'contextbase_pydantic_ai'"**
 ```bash
 pip install -r requirements.txt
 ```
@@ -232,5 +234,5 @@ pip install -r requirements.txt
 
 **Built with:**
 - [Pydantic AI](https://ai.pydantic.dev) - Type-safe AI agent framework
-- [hindsight-pydantic-ai](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/pydantic-ai) - Hindsight memory tools for Pydantic AI
-- [Hindsight](https://github.com/vectorize-io/hindsight) - Long-term memory for AI agents
+- [contextbase-pydantic-ai](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/pydantic-ai) - ContextBase memory tools for Pydantic AI
+- [ContextBase](https://github.com/RSIXDB/hindsight) - Long-term memory for AI agents

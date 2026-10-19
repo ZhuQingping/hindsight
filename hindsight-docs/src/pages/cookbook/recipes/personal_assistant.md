@@ -2,7 +2,7 @@
 sidebar_position: 9
 ---
 
-# Personal AI Assistant with Hindsight Memory
+# Personal AI Assistant with ContextBase Memory
 
 
 :::tip Run this notebook
@@ -21,20 +21,22 @@ A general-purpose personal assistant that remembers your preferences, schedule, 
 
 ## Prerequisites
 - OpenAI API key
-- Hindsight running locally via Docker (see setup below)
+- ContextBase running locally via Docker (see setup below)
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
@@ -46,14 +48,14 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 ## 2. Configure OpenAI API Key
 
-Enter your OpenAI API key when prompted (used by both Hindsight and the demo).
+Enter your OpenAI API key when prompted (used by both ContextBase and the demo).
 
 
 ```python
 import getpass
 import os
 
-# Set OpenAI API key (used by both Hindsight and the demo)
+# Set OpenAI API key (used by both ContextBase and the demo)
 if not os.getenv("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
 
@@ -71,9 +73,9 @@ from datetime import datetime
 from openai import OpenAI
 from hindsight_client import Hindsight
 
-# Initialize Hindsight client (connects to local Docker instance)
-hindsight = Hindsight(
-    base_url=os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+# Initialize ContextBase client (connects to local Docker instance)
+contextbase = Hindsight(
+    base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -91,7 +93,7 @@ def remember(info: str, category: str = "general") -> str:
     """Store information to remember."""
     today = datetime.now().strftime("%B %d, %Y")
 
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"{today}: {info}",
         metadata={"category": category, "date": today},
@@ -102,7 +104,7 @@ def remember(info: str, category: str = "general") -> str:
 
 def recall_context(query: str) -> str:
     """Recall relevant memories for context."""
-    memories = hindsight.recall(
+    memories = contextbase.recall(
         bank_id=USER_ID,
         query=query,
         budget="high",
@@ -147,14 +149,14 @@ Be helpful, proactive, and reference relevant memories naturally."""
     # Check if user is asking to remember something
     lower_msg = user_message.lower()
     if any(phrase in lower_msg for phrase in ["remember that", "don't forget", "remind me", "note that"]):
-        hindsight.retain(
+        contextbase.retain(
             bank_id=USER_ID,
             content=f"User asked to remember: {user_message}",
             metadata={"category": "reminder"},
         )
 
     # Store the interaction
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"Conversation - User: {user_message[:100]} | Assistant: {answer[:100]}",
         metadata={"category": "conversation"},
@@ -168,7 +170,7 @@ def get_summary(topic: str = None) -> str:
     query = f"Summarize what you know about {topic}" if topic else \
             "Summarize everything you know about this user"
 
-    summary = hindsight.reflect(
+    summary = contextbase.reflect(
         bank_id=USER_ID,
         query=query,
         budget="high",
@@ -261,6 +263,6 @@ print(f"Assistant: {chat(your_message)}")
 
 
 ```python
-hindsight.close()
+contextbase.close()
 print("Client connection closed.")
 ```

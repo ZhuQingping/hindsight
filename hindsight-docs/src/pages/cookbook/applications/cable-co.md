@@ -6,19 +6,19 @@ sidebar_position: 1
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/cable-co)
 :::
 
 
-An AI copilot that assists a customer service representative (CSR) by suggesting responses and actions for simulated customer scenarios. The CSR approves or rejects each suggestion with feedback. The copilot learns from corrections via [Hindsight](https://hindsight.vectorize.io) and stops repeating mistakes.
+An AI copilot that assists a customer service representative (CSR) by suggesting responses and actions for simulated customer scenarios. The CSR approves or rejects each suggestion with feedback. The copilot learns from corrections via [ContextBase](https://github.com/RSIXDB/hindsight) and stops repeating mistakes.
 
 ## Prerequisites
 
 - Python 3.11+
 - Node.js 18+
 - An OpenAI API key (for GPT-4o)
-- A Hindsight API key ([sign up](https://hindsight.vectorize.io))
+- A ContextBase API key ([sign up](https://github.com/RSIXDB/hindsight))
 
 ## Quick Start
 
@@ -37,9 +37,9 @@ pip install -r requirements.txt
 # Create a .env file with your credentials
 cat > .env << 'EOF'
 OPENAI_API_KEY=sk-your-openai-key
-HINDSIGHT_API_KEY=hsk_your-hindsight-key
-HINDSIGHT_API_URL=https://api.hindsight.vectorize.io
-HINDSIGHT_BANK_NAME=cable-connect-demo
+CONTEXTBASE_API_KEY=hsk_your-contextbase-key
+CONTEXTBASE_API_URL=http://localhost:8888
+CONTEXTBASE_BANK_NAME=cable-connect-demo
 EOF
 
 # Start the backend (port 8002)
@@ -101,9 +101,9 @@ All configuration is via environment variables in `backend/.env`:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENAI_API_KEY` | — | Your OpenAI API key (required) |
-| `HINDSIGHT_API_KEY` | — | Your Hindsight API key (required) |
-| `HINDSIGHT_API_URL` | `https://api.hindsight.vectorize.io` | Hindsight API endpoint |
-| `HINDSIGHT_BANK_NAME` | `cable-connect-demo` | Name of the memory bank |
+| `CONTEXTBASE_API_KEY` | — | Your ContextBase API key (required) |
+| `CONTEXTBASE_API_URL` | `http://localhost:8888` | ContextBase API endpoint |
+| `CONTEXTBASE_BANK_NAME` | `cable-connect-demo` | Name of the memory bank |
 | `LLM_MODEL` | `openai/gpt-4o` | LLM model (via LiteLLM format) |
 | `BACKEND_PORT` | `8002` | Backend server port |
 
@@ -121,7 +121,7 @@ cable-co/
 │       ├── config.py
 │       └── services/
 │           ├── agent_service.py    # Copilot loop with CSR approval gate
-│           └── memory_service.py   # Hindsight retain/recall/mental models
+│           └── memory_service.py   # ContextBase retain/recall/mental models
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.ts
@@ -140,4 +140,4 @@ cable-co/
 
 ## How It Works
 
-See article.md for a detailed explanation of the agent learning architecture, including how Hindsight transforms CSR feedback into observations and mental models that improve the copilot's behavior over time.
+See article.md for a detailed explanation of the agent learning architecture, including how ContextBase transforms CSR feedback into observations and mental models that improve the copilot's behavior over time.

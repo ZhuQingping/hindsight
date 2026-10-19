@@ -47,7 +47,7 @@ export async function runChatTurn(deps: ChatTurnDeps, message: string): Promise<
   }
 
   if (deps.debug) {
-    console.log("[hindsight] reflect →", {
+    console.log("[contextbase] reflect →", {
       bank: deps.bankId,
       query: message,
       budget: deps.budget,
@@ -64,7 +64,7 @@ export async function runChatTurn(deps: ChatTurnDeps, message: string): Promise<
   if (deps.debug) {
     // Retrieved notes should all fall within the selected scope — this is how
     // you verify the filter actually applied.
-    console.log("[hindsight] reflect ←", {
+    console.log("[contextbase] reflect ←", {
       notes_retrieved: retrievedNotes(response),
       mental_models: (response.based_on?.mental_models ?? []).length,
     });

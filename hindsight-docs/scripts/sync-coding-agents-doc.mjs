@@ -111,7 +111,7 @@ function build() {
     // site (and so the docs-skill generator can turn them into file-relative paths, which it
     // cannot do with an absolute URL). The README keeps them absolute because it also renders
     // on GitHub, where site-relative would 404.
-    .replace(/https:\/\/hindsight\.vectorize\.io\/([^\s"')]+)/g, '/$1')
+    .replace(/https:\/\/contextbase\.vectorize\.io\/([^\s"')]+)/g, '/$1')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
   const imports = Object.values(FIGURES)

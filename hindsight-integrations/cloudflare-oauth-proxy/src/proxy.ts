@@ -1,12 +1,12 @@
 /**
  * MCP reverse-proxy handler. Takes an authenticated request, rewrites the
  * target URL, swaps the `Authorization` header for the server's bearer token,
- * and forwards to the Hindsight origin.
+ * and forwards to the ContextBase origin.
  */
 
 import type { Env } from "./env";
 
-type ProxyEnv = Pick<Env, "HINDSIGHT_ORIGIN" | "PROXY_SECRET" | "HINDSIGHT_API_TOKEN">;
+type ProxyEnv = Pick<Env, "CONTEXTBASE_ORIGIN" | "PROXY_SECRET" | "CONTEXTBASE_API_TOKEN">;
 
 /**
  * Hop-by-hop headers that must not be forwarded (RFC 7230 §6.1) plus the
@@ -80,14 +80,14 @@ export async function proxyRequest(
   const fetchImpl = options.fetchImpl ?? fetch;
 
   const url = new URL(request.url);
-  const originUrl = new URL(env.HINDSIGHT_ORIGIN);
+  const originUrl = new URL(env.CONTEXTBASE_ORIGIN);
   url.hostname = originUrl.hostname;
   url.port = originUrl.port;
   url.protocol = originUrl.protocol;
 
   const headers = sanitizeRequestHeaders(request.headers);
   headers.set("X-Proxy-Secret", env.PROXY_SECRET);
-  headers.set("Authorization", `Bearer ${env.HINDSIGHT_API_TOKEN}`);
+  headers.set("Authorization", `Bearer ${env.CONTEXTBASE_API_TOKEN}`);
 
   // Buffer the body to avoid needing `duplex: "half"` when forwarding a
   // ReadableStream. MCP JSON-RPC payloads are small, so this is fine.
@@ -102,7 +102,7 @@ export async function proxyRequest(
     });
     return sanitizeUpstreamResponse(upstream);
   } catch (err) {
-    console.error("Failed to proxy to Hindsight:", err);
+    console.error("Failed to proxy to ContextBase:", err);
     return new Response(JSON.stringify({ error: "Backend unavailable" }), {
       status: 502,
       headers: { "Content-Type": "application/json" },

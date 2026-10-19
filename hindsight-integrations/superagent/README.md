@@ -1,6 +1,8 @@
-# hindsight-superagent
+# contextbase-superagent
 
-Safety middleware for [Hindsight](https://github.com/vectorize-io/hindsight) memory operations using [Superagent](https://www.superagent.sh). Guards memory against prompt injection and redacts PII before storage.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Safety middleware for [ContextBase](https://github.com/RSIXDB/hindsight) memory operations using [Superagent](https://www.superagent.sh). Guards memory against prompt injection and redacts PII before storage.
 
 ## Features
 
@@ -12,21 +14,22 @@ Safety middleware for [Hindsight](https://github.com/vectorize-io/hindsight) mem
 ## Installation
 
 ```bash
-pip install hindsight-superagent
+pip install contextbase-superagent
 ```
 
 ## Quick Start
 
 ```python
 import asyncio
-from hindsight_superagent import SafeHindsight
+from contextbase_superagent import SafeContextBase
 
-safe = SafeHindsight(
+safe = SafeContextBase(
     bank_id="user-123",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     guard_model="openai/gpt-4.1-nano",
     redact_model="openai/gpt-4.1-nano",
 )
+
 
 async def main():
     # Content is guarded and PII is redacted before storage
@@ -37,16 +40,17 @@ async def main():
     for r in results.results:
         print(r.text)
 
+
 asyncio.run(main())
 ```
 
 ## How It Works
 
-`SafeHindsight` wraps the Hindsight client and applies Superagent safety checks:
+`SafeContextBase` wraps the ContextBase client and applies Superagent safety checks:
 
 ```
-Content → Guard (block injection) → Redact (strip PII) → Hindsight Retain
-Query   → Guard (block injection) → Hindsight Recall/Reflect
+Content → Guard (block injection) → Redact (strip PII) → ContextBase Retain
+Query   → Guard (block injection) → ContextBase Recall/Reflect
             [optional, off by default: Redact recall results / reflect text]
 ```
 
@@ -56,11 +60,13 @@ Use `retain_batch` for bulk storage. Guard and Redact run per item under
 `safety_concurrency` (default 5):
 
 ```python
-await safe.retain_batch([
-    {"content": "John's email is john@acme.com"},
-    {"content": "Phone: 555-1234", "context": "contacts"},
-    {"content": "Address: 1 Main St", "tags": ["scope:user"]},
-])
+await safe.retain_batch(
+    [
+        {"content": "John's email is john@acme.com"},
+        {"content": "Phone: 555-1234", "context": "contacts"},
+        {"content": "Address: 1 Main St", "tags": ["scope:user"]},
+    ]
+)
 ```
 
 If Guard blocks any item, `GuardBlockedError` propagates and the entire
@@ -69,12 +75,12 @@ semantics.
 
 ## Lifecycle
 
-`SafeHindsight` owns the underlying Hindsight client (and lazy-constructed
+`SafeContextBase` owns the underlying ContextBase client (and lazy-constructed
 `SafetyClient`) when no explicit instance is passed in. Long-lived services
 should release them on shutdown via `aclose()` or the async context manager:
 
 ```python
-async with SafeHindsight(bank_id="user-123", ...) as safe:
+async with SafeContextBase(bank_id="user-123", ...) as safe:
     await safe.retain("...")
 # clients closed automatically on exit
 ```
@@ -85,11 +91,11 @@ on shutdown — the caller retains ownership.
 ## Handling Blocked Inputs
 
 ```python
-from hindsight_superagent import SafeHindsight, GuardBlockedError
+from contextbase_superagent import SafeContextBase, GuardBlockedError
 
-safe = SafeHindsight(
+safe = SafeContextBase(
     bank_id="user-123",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     guard_model="openai/gpt-4.1-nano",
     redact_model="openai/gpt-4.1-nano",
 )
@@ -108,17 +114,17 @@ Disable safety checks per operation:
 
 ```python
 # Guard only (no PII redaction)
-safe = SafeHindsight(
+safe = SafeContextBase(
     bank_id="user-123",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     guard_model="openai/gpt-4.1-nano",
     enable_redact_on_retain=False,
 )
 
 # Redact only (no guard)
-safe = SafeHindsight(
+safe = SafeContextBase(
     bank_id="user-123",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     redact_model="openai/gpt-4.1-nano",
     enable_guard_on_retain=False,
     enable_guard_on_recall=False,
@@ -129,34 +135,34 @@ safe = SafeHindsight(
 ## Global Configuration
 
 ```python
-from hindsight_superagent import configure, SafeHindsight
+from contextbase_superagent import configure, SafeContextBase
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="YOUR_HINDSIGHT_API_KEY",
+    contextbase_api_url="http://localhost:8888",
+    api_key="YOUR_CONTEXTBASE_API_KEY",
     superagent_api_key="YOUR_SUPERAGENT_API_KEY",
     guard_model="openai/gpt-4.1-nano",
     redact_model="openai/gpt-4.1-nano",
-    redact_rewrite=True,       # Contextually rewrite PII instead of placeholders
+    redact_rewrite=True,  # Contextually rewrite PII instead of placeholders
     tags=["env:prod"],
 )
 
 # No need to pass connection details
-safe = SafeHindsight(bank_id="user-123")
+safe = SafeContextBase(bank_id="user-123")
 ```
 
 ## Configuration Reference
 
-### `SafeHindsight()`
+### `SafeContextBase()`
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `hindsight_client` | `None` | Pre-configured Hindsight client |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `hindsight_client` | `None` | Pre-configured ContextBase client |
 | `safety_client` | `None` | Pre-configured Superagent SafetyClient |
-| `hindsight_api_url` | `https://api.hindsight.vectorize.io` | Hindsight API URL |
-| `api_key` | `None` | Hindsight API key (for Hindsight Cloud) |
-| `superagent_api_key` | env / config | Superagent API key (or `SUPERAGENT_API_KEY` env). Required at the first guard/redact call — `SafeHindsight()` itself constructs lazily, so callers who disable every `enable_*` flag don't need it. Get one at [superagent.sh](https://www.superagent.sh) |
+| `contextbase_api_url` | `http://localhost:8888` | ContextBase API URL |
+| `api_key` | `None` | ContextBase API key (for ContextBase remote service) |
+| `superagent_api_key` | env / config | Superagent API key (or `SUPERAGENT_API_KEY` env). Required at the first guard/redact call — `SafeContextBase()` itself constructs lazily, so callers who disable every `enable_*` flag don't need it. Get one at [superagent.sh](https://www.superagent.sh) |
 | `budget` | `"mid"` | Recall/reflect budget (low/mid/high) |
 | `max_tokens` | `4096` | Max tokens for recall results |
 | `tags` | `[]` | Tags applied when storing memories |
@@ -177,7 +183,7 @@ safe = SafeHindsight(bank_id="user-123")
 
 ### `configure()`
 
-Same parameters as `SafeHindsight()` except `bank_id`, `hindsight_client`, and `safety_client`.
+Same parameters as `SafeContextBase()` except `bank_id`, `hindsight_client`, and `safety_client`.
 
 ## Guard Model
 
@@ -186,7 +192,7 @@ Guard requires a model to classify inputs. Superagent publishes open-weight guar
 **We recommend setting `guard_model` explicitly** to use an LLM provider you already have:
 
 ```python
-safe = SafeHindsight(
+safe = SafeContextBase(
     bank_id="user-123",
     guard_model="openai/gpt-4.1-nano",
     redact_model="openai/gpt-4.1-nano",
@@ -202,7 +208,7 @@ If you don't set `guard_model` and the default hosted model is unavailable, guar
 - Python >= 3.10
 - safety-agent >= 0.1.5, < 0.2.0
 - hindsight-client >= 0.4.0, < 1.0
-- A running Hindsight API server or [Hindsight Cloud](https://ui.hindsight.vectorize.io) account
+- A running ContextBase API server or [ContextBase remote service](http://localhost:9999) account
 - A Superagent API key (`SUPERAGENT_API_KEY` env var)
 - An OpenAI API key (`OPENAI_API_KEY` env var) for guard and redact models — or another [supported LLM provider](https://docs.superagent.sh/sdk)
 

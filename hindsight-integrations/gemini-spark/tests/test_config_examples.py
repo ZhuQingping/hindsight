@@ -35,10 +35,10 @@ class TestManifestYAML:
         servers = manifest["tools"]["mcp_servers"]
         assert len(servers) >= 1
 
-        hindsight = servers[0]
-        assert hindsight["name"] == "hindsight"
-        assert "endpoint" in hindsight
-        assert "description" in hindsight
+        contextbase = servers[0]
+        assert contextbase["name"] == "contextbase"
+        assert "endpoint" in contextbase
+        assert "description" in contextbase
 
     def test_endpoint_is_https(self, manifest: dict) -> None:
         endpoint = manifest["tools"]["mcp_servers"][0]["endpoint"]
@@ -61,23 +61,23 @@ class TestMCPConfigJSON:
     def test_has_mcp_servers_section(self, mcp_config: dict) -> None:
         assert "mcpServers" in mcp_config
 
-    def test_hindsight_server_entry(self, mcp_config: dict) -> None:
-        hindsight = mcp_config["mcpServers"]["hindsight"]
-        assert "serverUrl" in hindsight
-        assert "headers" in hindsight
+    def test_contextbase_server_entry(self, mcp_config: dict) -> None:
+        contextbase = mcp_config["mcpServers"]["contextbase"]
+        assert "serverUrl" in contextbase
+        assert "headers" in contextbase
 
     def test_server_url_is_https(self, mcp_config: dict) -> None:
-        url = mcp_config["mcpServers"]["hindsight"]["serverUrl"]
+        url = mcp_config["mcpServers"]["contextbase"]["serverUrl"]
         assert url.startswith("https://")
 
     def test_auth_header_present(self, mcp_config: dict) -> None:
-        headers = mcp_config["mcpServers"]["hindsight"]["headers"]
+        headers = mcp_config["mcpServers"]["contextbase"]["headers"]
         assert "Authorization" in headers
         assert headers["Authorization"].startswith("Bearer ")
 
     def test_no_real_credentials(self, mcp_config: dict) -> None:
-        token = mcp_config["mcpServers"]["hindsight"]["headers"]["Authorization"]
-        assert "YOUR_HINDSIGHT_API_KEY" in token
+        token = mcp_config["mcpServers"]["contextbase"]["headers"]["Authorization"]
+        assert "YOUR_CONTEXTBASE_API_KEY" in token
 
 
 class TestReadme:
@@ -87,8 +87,8 @@ class TestReadme:
 
     def test_readme_mentions_cloud(self) -> None:
         content = (INTEGRATION_DIR / "README.md").read_text()
-        assert "Hindsight Cloud" in content
-        assert "vectorize.io/hindsight" in content
+        assert "ContextBase remote service" in content
+        assert "ContextBase source" in content
 
     def test_readme_mentions_both_config_files(self) -> None:
         content = (INTEGRATION_DIR / "README.md").read_text()

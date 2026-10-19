@@ -1,5 +1,5 @@
 /**
- * Typed request/response shapes for the Hindsight HTTP API surface used by this
+ * Typed request/response shapes for the ContextBase HTTP API surface used by this
  * plugin. Only the fields the plugin actually reads are modeled — the server
  * returns more.
  */

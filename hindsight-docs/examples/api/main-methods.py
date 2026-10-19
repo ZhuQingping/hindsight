@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-Main Methods overview examples for Hindsight.
+Main Methods overview examples for ContextBase.
 Run: python examples/api/main-methods.py
 """
 import os
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples - Retain Section
@@ -160,7 +162,9 @@ import asyncio
 
 async def async_example():
     # Create a fresh client for async operations
-    async_client = Hindsight(base_url=HINDSIGHT_URL)
+    if not CONTEXTBASE_URL:
+        raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+    async_client = Hindsight(base_url=CONTEXTBASE_URL)
 
     # All sync methods have async versions prefixed with 'a'
     await async_client.aretain(bank_id="my-bank", content="Async memory")
@@ -179,6 +183,6 @@ asyncio.run(async_example())
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
 
 print("main-methods.py: All examples passed")
