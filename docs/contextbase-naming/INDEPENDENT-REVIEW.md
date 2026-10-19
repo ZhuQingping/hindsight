@@ -1,6 +1,6 @@
 # 独立审查记录
 
-审查者：`/root/independent_naming_review`（独立只读审查 agent，非实施 agent）。实施仍由单持久 session 完成。本文件由实施者保存收到的独立结论及修复追踪；源码与本地证据终审已通过，完整结论见下文；PR交付状态另作补核。
+审查者：`/root/independent_naming_review`（独立只读审查 agent，非实施 agent）。实施仍由单持久 session 完成。本文件由实施者保存收到的独立结论及修复追踪；源码与本地证据终审已通过，完整结论见下文；PR交付状态补核也已通过，见末节。
 
 初审/复查均为源码只读检查，未运行重型任务，也未用历史 PASS 代替新验收。
 
@@ -37,4 +37,14 @@ API1 SKIP/1真实LLM标记排除、Coding Agents6 SKIP及12次历史FAIL继续�
 
 ## 交付状态
 
-源码/证据独立终审通过后，实施者提交文档b5a01c4e7并推送专用分支，创建[Draft PR #9](https://github.com/RSIXDB/hindsight/pull/9)，base为integration/agentstratum-brand-ui-clients-20261019。原PR #8保留OPEN/DRAFT，未合并main。远端statusCheckRollup当前为空，记NOT_RUN，不从本地PASS推定远端CI通过。最终文档状态补核待独立审查者确认。
+源码/证据独立终审通过后，实施者提交文档b5a01c4e7并推送专用分支，创建[Draft PR #9](https://github.com/RSIXDB/hindsight/pull/9)，base为integration/agentstratum-brand-ui-clients-20261019。原PR #8保留OPEN/DRAFT，未合并main。远端statusCheckRollup当前为空，记NOT_RUN，不从本地PASS推定远端CI通过。最终文档与PR状态已获独立补核确认，见下节。
+
+## N12最终交付补核（独立原结论落盘）
+
+独立审查者再次只读确认：**N12最终补核通过，N01–N12本地限定交付可以关闭，无遗留Must fix。**
+
+补核时HEAD为a7d41c5dbaa57a068c45e1b2d64e988d24007ace，工作区clean；c394之后仅交付文档变更，重新核算5132源文件零漂移。跳过原因、473生成/33适配分类、来源hash时点和独立问题关闭记录均已修正。
+
+审查者实时GitHub查询确认PR #9 OPEN/DRAFT，远端head与本地一致，base为指定整合分支，未合并；原PR #8仍OPEN/DRAFT未合并。GitHub无checks，远端CI为NOT_RUN。
+
+本补核文本在之后的docs-only提交中保存；产品源码及制品仍绑定c394检查点。此前失败、SKIP、NOT_RUN及排除范围继续有效，不包含公开发行、main合并或人工产品验收。
