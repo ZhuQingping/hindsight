@@ -280,7 +280,7 @@ def _parse_tag_groups_query(raw: str | None, tags: list[str] | None) -> list[Tag
         raise HTTPException(status_code=400, detail=f"Invalid tag_groups: {e.errors(include_url=False)}")
 
 
-from hindsight_api.brand import API_SERVICE_NAME, API_TITLE
+from hindsight_api.brand import api_title, service_name
 from hindsight_api.engine.structured_output import validate_response_schema
 from hindsight_api.engine.time_filter import DocumentTimeField, MemoryTimeField
 from hindsight_api.extensions import HttpExtension, OperationValidationError, load_extension
@@ -5107,9 +5107,7 @@ def create_app(
         # closed DB pool — installed for the rest of the process (#3780).
         previous_metrics_collector = get_metrics_collector()
         try:
-            prometheus_reader = initialize_metrics(
-                service_name=f"{product.contextdb_name}-api", service_version="1.0.0"
-            )
+            prometheus_reader = initialize_metrics(service_name=service_name("api"), service_version="1.0.0")
             create_metrics_collector()
             app.state.prometheus_reader = prometheus_reader
             if config.metrics_worker_label:
@@ -5128,7 +5126,7 @@ def create_app(
         # worker entrypoint so both processes honour the same configuration.
         from hindsight_api.tracing import initialize_tracing_from_config
 
-        initialize_tracing_from_config(config, default_service_name=f"{product.contextdb_name}-api")
+        initialize_tracing_from_config(config, default_service_name=service_name("api"))
 
         # Startup: Initialize database and memory system (migrations run inside initialize if enabled)
         if initialize_memory:
@@ -5240,7 +5238,7 @@ def create_app(
 
     product = product_config()
     app = FastAPI(
-        title=f"{product.contextdb_name} HTTP API",
+        title=api_title(),
         version=__version__,
         description=f"HTTP API for {product.contextdb_name}, a data foundation for agents",
         contact={

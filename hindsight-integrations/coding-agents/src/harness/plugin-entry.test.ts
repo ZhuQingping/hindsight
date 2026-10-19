@@ -1,7 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { PluginInput } from "@opencode-ai/plugin";
 import { log } from "../core/log";
 import { createPluginEntry, resolveProjectDirectory } from "./plugin-entry";
+
+// A bad memory configuration must not launch any subprocess, including a local engine.
+const localProcesses = vi.hoisted(() => ({
+  spawn: vi.fn(),
+  spawnSync: vi.fn(),
+  exec: vi.fn(),
+  execSync: vi.fn(),
+  execFile: vi.fn(),
+  execFileSync: vi.fn(),
+}));
+vi.mock("node:child_process", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("node:child_process")>()),
+  ...localProcesses,
+}));
 
 describe("persistent plugin initialization", () => {
   it("keeps the host usable when background seeding has no endpoint", async () => {
@@ -62,5 +79,43 @@ describe("resolveProjectDirectory", () => {
     expect(resolveProjectDirectory({ worktree: "", directory: "/Users/me/workspace" })).toBe(
       "/Users/me/workspace"
     );
+  });
+});
+
+describe("invalid remote settings at the real plugin boundary", () => {
+  it.each([
+    { apiUrl: "file:///tmp/api" },
+    { apiUrl: "definitely-not-a-url" },
+    { apiUrl: "http://configured.example", serverMode: "daemon" },
+  ])("keeps the host inert for %j without requests or engine startup", async (configuration) => {
+    const dir = mkdtempSync(join(tmpdir(), "agentstratum-invalid-plugin-"));
+    const path = join(dir, "config.json");
+    writeFileSync(path, JSON.stringify(configuration));
+    vi.stubEnv("AGENTSTRATUM_CONFIG", path);
+    vi.stubEnv("AGENTSTRATUM_BANK_ID", "invalid-remote-config");
+    for (const process of Object.values(localProcesses)) process.mockClear();
+    vi.stubEnv("AGENTSTRATUM_DISABLED", "false");
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    vi.resetModules();
+    const { log: runtimeLog } = await import("../core/log");
+    const warning = vi.spyOn(runtimeLog, "warn");
+    try {
+      const { createPluginEntry: entry } = await import("./plugin-entry");
+      const hooks = await entry("opencode")({ directory: dir, worktree: dir } as PluginInput);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(hooks).toEqual({});
+      expect(fetch).not.toHaveBeenCalled();
+      for (const process of Object.values(localProcesses)) expect(process).not.toHaveBeenCalled();
+      expect(warning).toHaveBeenCalledWith(
+        "opencode",
+        expect.stringContaining("Memory integration disabled")
+      );
+    } finally {
+      warning.mockRestore();
+      vi.unstubAllEnvs();
+      vi.unstubAllGlobals();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

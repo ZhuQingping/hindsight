@@ -36,7 +36,7 @@ async def test_discovery_and_monitoring_expose_the_product_identity(hindsight_se
     async with httpx.AsyncClient(base_url=hindsight_server.url, timeout=30, follow_redirects=True) as http:
         schema = await http.get("/openapi.json")
         schema.raise_for_status()
-        assert schema.json()["info"]["title"] == "agentstratum API"
+        assert schema.json()["info"]["title"] == "agentstratum HTTP API"
         assert "hindsight" not in schema.text.casefold()
 
         health = await http.get("/health")

@@ -179,13 +179,15 @@ def start_hindsight_server(
     extra_env: dict[str, str] | None = None,
     database_url: str | None = None,
 ) -> HindsightServer:
+    # Explicit override keeps hermetic stories off an unrelated fixed pg0 instance.
+    database_url = database_url or os.environ.get("HINDSIGHT_SYSTEM_TEST_DATABASE_URL")
     port = free_port()
 
     env = os.environ.copy()
     # The repo .env is for the developer's own server; a system test must depend
     # only on what it sets here, or it passes on one machine and fails on another.
     for key in list(env):
-        if key.startswith("HINDSIGHT_API_"):
+        if key.startswith(("HINDSIGHT_API_", "AGENTSTRATUM_API_")):
             del env[key]
 
     env.update(stub_environment(stub_url))

@@ -171,7 +171,7 @@ _meter = None
 LOOP_LAG_BUCKETS = (0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0)
 
 
-def initialize_metrics(service_name: str = "agentstratum-api", service_version: str = "1.0.0"):
+def initialize_metrics(service_name: str | None = None, service_version: str = "1.0.0"):
     """
     Initialize OpenTelemetry metrics with Prometheus exporter.
 
@@ -186,6 +186,9 @@ def initialize_metrics(service_name: str = "agentstratum-api", service_version: 
     """
     global _meter
 
+    from .brand import service_name as deployment_service_name
+
+    service_name = service_name or deployment_service_name("api")
     # Create resource with service information
     resource = Resource.create(
         {

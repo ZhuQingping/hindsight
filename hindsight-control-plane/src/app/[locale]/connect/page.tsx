@@ -3,7 +3,6 @@ import { Link } from "@/i18n/navigation";
 import { ConnectBankChooser } from "@/components/connect-bank-chooser";
 import { ConnectionCode } from "@/components/connection-code";
 import { ResourcePageShell } from "@/components/resource-page-shell";
-import { localProductConfig } from "@/lib/product-config-server";
 
 export default async function ConnectPage({
   searchParams,
@@ -14,16 +13,16 @@ export default async function ConnectPage({
   const rawBankId = (await searchParams).bank_id;
   const bankId = typeof rawBankId === "string" && rawBankId ? rawBankId : null;
   const python = bankId
-    ? `from hindsight_client import Hindsight\nimport os\n\nclient = Hindsight(\n    base_url=os.environ["HINDSIGHT_API_URL"],\n    api_key=os.environ["HINDSIGHT_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
+    ? `from hindsight_client import Hindsight\nimport os\n\nclient = Hindsight(\n    base_url=os.environ["AGENTSTRATUM_API_URL"],\n    api_key=os.environ["AGENTSTRATUM_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
     : "";
   const encodedBankId = bankId ? encodeURIComponent(bankId) : "";
-  const rest = `curl -H "Authorization: Bearer $HINDSIGHT_API_KEY" "$HINDSIGHT_API_URL/v1/default/banks/${encodedBankId}/stats"`;
+  const rest = `curl -H "Authorization: Bearer $AGENTSTRATUM_API_KEY" "$AGENTSTRATUM_API_URL/v1/default/banks/${encodedBankId}/stats"`;
   const mcp = JSON.stringify(
     {
       mcpServers: {
-        [localProductConfig().contextdb_name]: {
+        agentstratum: {
           type: "http",
-          url: `<API_BASE_URL>/mcp/${encodedBankId}/`,
+          url: "<MCP_ENDPOINT>",
           headers: { Authorization: "Bearer <API_KEY>" },
         },
       },
@@ -64,7 +63,7 @@ export default async function ConnectPage({
             <h2 className="text-lg font-semibold">{t("credentialsTitle")}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("credentialsBody")}</p>
             <ConnectionCode
-              code={`export HINDSIGHT_API_URL="<API_BASE_URL>"\nexport HINDSIGHT_API_KEY="<API_KEY>"`}
+              code={`export AGENTSTRATUM_API_URL="<API_BASE_URL>"\nexport AGENTSTRATUM_API_KEY="<API_KEY>"`}
             />
           </section>
 
@@ -83,6 +82,7 @@ export default async function ConnectPage({
               </section>
               <section className="min-w-0 rounded-xl border border-border bg-card p-5 md:p-6">
                 <h2 className="text-lg font-semibold">{t("mcpTitle")}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{t("mcpEndpointHelp")}</p>
                 <p className="mt-2 text-sm text-muted-foreground">{t("mcpBody")}</p>
                 <ConnectionCode code={mcp} />
                 <p className="mt-3 text-xs text-muted-foreground">{t("mcpAuth")}</p>

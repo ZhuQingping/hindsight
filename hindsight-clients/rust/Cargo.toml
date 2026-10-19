@@ -23,6 +23,8 @@ serde_json = "1.0"
 thiserror = "1.0"
 # Progenitor client support
 progenitor-client = "0.11"
+# OpenAPI string-pattern validators emitted by typify use this at runtime.
+regress = "0.10"
 # Additional types
 chrono = { version = "0.4", features = ["serde"] }
 # HTTP types

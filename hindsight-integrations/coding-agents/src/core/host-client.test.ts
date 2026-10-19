@@ -171,3 +171,40 @@ describe("long-lived hosts build their client through the shared factory", () =>
     expect(stale).toEqual([]);
   });
 });
+
+describe("persistent host configuration failures share the disabled boundary", () => {
+  it.each(["opencode", "kilo", "opencode2", "cline-cli", "dsh", "pi", "prime-agent"])(
+    "%s does not derive a bank or send requests with invalid persisted settings",
+    async (harness) => {
+      writeConfig({ apiUrl: "file:///tmp/api", disabled: false });
+      const { resolveHostMemory } = await loadFactory();
+      const fetch = vi.fn();
+      vi.stubGlobal("fetch", fetch);
+      try {
+        const resolved = resolveHostMemory(harness, root);
+        expect(resolved.cfg.disabled).toBe(true);
+        expect(resolved.bankId).toBe("");
+        expect(fetch).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    }
+  );
+});
+
+describe("persistent adapters keep the shared configuration boundary", () => {
+  const src = fileURLToPath(new URL("..", import.meta.url));
+  // Plugin entries also serve Kilo/Prime Agent via the persistent harness registry.
+  it.each([
+    "harness/plugin-entry.ts",
+    "harness/opencode2.ts",
+    "harness/pi-extension.ts",
+    "cline.ts",
+    "dsh.ts",
+    "mcp-server.ts",
+  ])("%s uses the fail-open factory instead of the throwing raw loader", (file) => {
+    const source = readFileSync(join(src, file), "utf8");
+    expect(source).toContain("resolveHostMemory(");
+    expect(source).not.toMatch(/\bloadConfig\s*\(/);
+  });
+});

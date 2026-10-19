@@ -1,3 +1,4 @@
+import { localProductConfig } from "@/lib/product-config-server";
 import { NextResponse } from "next/server";
 import { createClient, createConfig, sdk } from "@vectorize-io/hindsight-client";
 import { getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -14,7 +15,7 @@ export async function GET() {
     };
   } = {
     status: "ok",
-    service: "agentstratum-control-plane",
+    service: `${localProductConfig().contextdb_name}-control-plane`,
   };
 
   // Check dataplane connectivity with a short timeout

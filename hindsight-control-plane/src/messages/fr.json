@@ -2318,10 +2318,11 @@
     "restTitle": "API REST",
     "restBody": "Vérifiez l’URL, la clé et l’identifiant de banque par une requête de statistiques en lecture seule.",
     "mcpTitle": "MCP",
-    "mcpBody": "Utilisez ce chemin propre à la banque sur le serveur API natif dans un client MCP.",
+    "mcpBody": "Configure the complete MCP Endpoint for this Workspace in your MCP client.",
     "mcpAuth": "Envoyez Authorization: Bearer <API_KEY> depuis le client MCP. L’adresse API diffère de celle de la console.",
     "loadMore": "Load more",
-    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces",
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
   },
   "brand": {
     "console": "Moteur de données et de mémoire pour les agents",

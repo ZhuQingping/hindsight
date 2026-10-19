@@ -225,7 +225,7 @@ async def test_wrapper_success_recorded_by_provider(registered_recorder):
 
 
 @pytest.mark.asyncio
-async def test_wrapper_error_forwarded_and_reraised(registered_recorder):
+async def test_wrapper_error_forwarded_and_reraised(registered_recorder, caplog):
     llm = LLMProvider(provider="mock", api_key="", base_url="", model="mock")
     llm._provider_impl.set_mock_exception(RuntimeError("kaboom"))
 
@@ -235,7 +235,11 @@ async def test_wrapper_error_forwarded_and_reraised(registered_recorder):
     assert len(registered_recorder.records) == 1
     r = registered_recorder.records[0]
     assert r.status == "error"
-    assert "kaboom" in r.error
+    from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
+
+    assert r.error == PUBLIC_INTERNAL_ERROR
+    assert "kaboom" not in r.error
+    assert "RuntimeError: kaboom" in caplog.text
 
 
 class _StashThenRaiseProvider:

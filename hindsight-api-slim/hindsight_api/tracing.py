@@ -235,7 +235,7 @@ def initialize_tracing_from_config(
     Returns:
         True when tracing was initialized, False otherwise.
     """
-    from .config import DEFAULT_OTEL_SERVICE_NAME
+    from .brand import service_name as deployment_service_name
 
     if not config.otel_traces_enabled:
         return False
@@ -247,7 +247,7 @@ def initialize_tracing_from_config(
     # config.otel_service_name is None when the operator named nothing, so an explicit
     # name still beats the caller's per-process default without this having to consult
     # the environment a second time.
-    service_name = config.otel_service_name or default_service_name or DEFAULT_OTEL_SERVICE_NAME
+    service_name = config.otel_service_name or default_service_name or deployment_service_name("api")
 
     try:
         initialize_tracing(

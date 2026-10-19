@@ -838,7 +838,7 @@ paths:
         \ probed once), so you can discover 'not configured / unreachable' instead\
         \ of a silent stall. Deliberate action (makes a real provider call); not for\
         \ polling. Returns status only — never the provider, model, endpoint, API\
-        \ key, or raw error. Disable with HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=false."
+        \ key, or raw error. Disable with the server bank LLM health setting."
       operationId: test_bank_llm
       parameters:
       - explode: false
@@ -4772,8 +4772,8 @@ paths:
       description: "Get fully resolved configuration for a bank including all hierarchical\
         \ overrides (global → tenant → bank). The 'config' field contains all resolved\
         \ config values. The 'overrides' field shows only bank-specific overrides.\
-        \ Always available: HINDSIGHT_API_ENABLE_BANK_CONFIG_API gates only the write\
-        \ operations on this resource."
+        \ Always available: the server bank configuration setting gates only writes\
+        \ on this resource."
       operationId: get_bank_config
       parameters:
       - explode: false
@@ -4814,7 +4814,7 @@ paths:
       description: "Update configuration overrides for a bank. Only hierarchical behavioral\
         \ settings can be overridden (retention parameters, recall settings, etc.).\
         \ Keys can be provided in Python field format (retain_extraction_mode) or\
-        \ environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE)."
+        \ product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE)."
       operationId: update_bank_config
       parameters:
       - explode: false
@@ -5313,7 +5313,7 @@ paths:
         - Set `parser` in the request body to override the server default for all files.
         - Set `parser` inside a `files_metadata` entry for per-file control.
         - Pass a list (e.g. `['iris', 'markitdown']`) to define an ordered fallback chain — each parser is tried in sequence until one succeeds.
-        - Falls back to the server default (`HINDSIGHT_API_FILE_PARSER`) if not specified.
+        - Falls back to the server default (`file_parser`) if not specified.
         - Only parsers enabled on the server may be requested; others return HTTP 400.
       operationId: file_retain
       parameters:
@@ -5517,7 +5517,7 @@ paths:
   /v1/default/banks/{bank_id}/llm-requests:
     get:
       description: "List traced LLM requests for a bank, ordered by most recent first.\
-        \ Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED)."
+        \ Requires LLM request tracing to be enabled."
       operationId: list_llm_requests
       parameters:
       - explode: false
@@ -6041,7 +6041,7 @@ components:
         updates:
           additionalProperties: false
           description: Configuration overrides. Keys can be in Python field format
-            (retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE).
+            (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).
             Only hierarchical fields can be overridden per-bank.
           title: Updates
           type: object
@@ -9737,7 +9737,7 @@ components:
           title: Status
           type: string
         version:
-          description: Hindsight version this process is running
+          description: agentstratum engine version this process is running
           title: Version
           type: string
         uptime_seconds:
@@ -11529,7 +11529,7 @@ components:
           type: string
         source:
           description: '`config` — produced by a setting (`field` names it); `builtin`
-            — Hindsight''s own wording.'
+            — agentstratum''s own wording.'
           enum:
           - config
           - builtin

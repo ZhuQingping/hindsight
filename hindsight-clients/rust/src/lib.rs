@@ -38,7 +38,9 @@ pub const DEFAULT_USER_AGENT: &str = concat!("hindsight-client-rust/", env!("CAR
 pub fn reqwest_client_with_user_agent(
     user_agent: impl Into<String>,
 ) -> Result<reqwest::Client, reqwest::Error> {
-    reqwest::Client::builder().user_agent(user_agent.into()).build()
+    reqwest::Client::builder()
+        .user_agent(user_agent.into())
+        .build()
 }
 
 /// Construct a [`Client`] with a custom `User-Agent` header.
@@ -72,6 +74,27 @@ mod tests {
         assert!(true);
     }
 
+    #[test]
+    fn test_product_display_name_deserialization_validates_native_schema() {
+        for name in ["agentstratum", "contextdb"] {
+            let value: types::ContextdbName =
+                serde_json::from_value(serde_json::json!(name)).unwrap();
+            assert_eq!(value.to_string(), name);
+        }
+        for name in [
+            "",
+            "AgentStratum",
+            "bad_name",
+            "../api",
+            "中文",
+            &"a".repeat(41),
+        ] {
+            assert!(
+                serde_json::from_value::<types::ContextdbName>(serde_json::json!(name)).is_err()
+            );
+        }
+    }
+
     #[tokio::test]
     async fn test_memory_lifecycle() {
         let api_url = std::env::var("HINDSIGHT_API_URL")
@@ -103,7 +126,9 @@ mod tests {
             async_: false,
             items: vec![
                 types::MemoryItem {
-                    content: types::Content::Variant0("Alice is a software engineer at Google".to_string()),
+                    content: types::Content::Variant0(
+                        "Alice is a software engineer at Google".to_string(),
+                    ),
                     context: None,
                     document_id: None,
                     metadata: None,
@@ -116,7 +141,9 @@ mod tests {
                     update_mode: None,
                 },
                 types::MemoryItem {
-                    content: types::Content::Variant0("Bob works with Alice on the search team".to_string()),
+                    content: types::Content::Variant0(
+                        "Bob works with Alice on the search team".to_string(),
+                    ),
                     context: None,
                     document_id: None,
                     metadata: None,
@@ -159,7 +186,10 @@ mod tests {
             .await
             .expect("Failed to recall memories");
         let recall_result = recall_response.into_inner();
-        assert!(!recall_result.results.is_empty(), "Should recall at least one memory");
+        assert!(
+            !recall_result.results.is_empty(),
+            "Should recall at least one memory"
+        );
 
         // Cleanup: delete the test bank's memories
         let _ = client.clear_bank_memories(&bank_id, None, None).await;

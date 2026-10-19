@@ -270,7 +270,7 @@ export type BankConfigUpdate = {
   /**
    * Updates
    *
-   * Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank.
+   * Configuration overrides. Keys can be in Python field format (retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). Only hierarchical fields can be overridden per-bank.
    */
   updates: {
     [key: string]: unknown;
@@ -3537,7 +3537,7 @@ export type LivenessResponse = {
   /**
    * Version
    *
-   * Hindsight version this process is running
+   * agentstratum engine version this process is running
    */
   version: string;
   /**
@@ -5348,7 +5348,7 @@ export type PromptBlockModel = {
   /**
    * Source
    *
-   * `config` — produced by a setting (`field` names it); `builtin` — Hindsight's own wording.
+   * `config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording.
    */
   source: "config" | "builtin";
   /**

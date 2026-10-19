@@ -39,18 +39,8 @@ fn unique_tempdir(tag: &str) -> PathBuf {
     dir
 }
 
-fn hindsight_binary() -> String {
-    std::env::var("CARGO_BIN_EXE_agentstratum").unwrap_or_else(|_| {
-        let debug = "./target/debug/agentstratum";
-        let release = "./target/release/agentstratum";
-        if std::path::Path::new(debug).exists() {
-            debug.to_string()
-        } else if std::path::Path::new(release).exists() {
-            release.to_string()
-        } else {
-            "agentstratum".to_string()
-        }
-    })
+fn hindsight_binary() -> &'static str {
+    env!("CARGO_BIN_EXE_agentstratum")
 }
 
 fn run_with_home(home: &std::path::Path, args: &[&str]) -> Output {

@@ -126,7 +126,7 @@ func (r ApiListLlmRequestsRequest) Execute() (*LLMRequestListResponse, *http.Res
 /*
 ListLlmRequests List LLM request traces
 
-List traced LLM requests for a bank, ordered by most recent first. Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED).
+List traced LLM requests for a bank, ordered by most recent first. Requires LLM request tracing to be enabled.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param bankId
