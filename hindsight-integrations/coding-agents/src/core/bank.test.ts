@@ -75,8 +75,8 @@ describe("deriveBankId", () => {
 
   describe("bankIdTemplate", () => {
     it("supports literal text around placeholders", () => {
-      expect(deriveBankId({ bankIdTemplate: "agentstratum-{gitProject}" }, "/home/me/proj")).toBe(
-        "agentstratum-proj"
+      expect(deriveBankId({ bankIdTemplate: "contextbase-{gitProject}" }, "/home/me/proj")).toBe(
+        "contextbase-proj"
       );
     });
 

@@ -1,7 +1,7 @@
 [project]
-name = "hermes-plugin-hindsight"
+name = "hermes-plugin-contextbase"
 version = "1.2.2"
-description = "Hermes Agent memory provider plugin: hindsight"
+description = "Hermes Agent memory provider plugin: contextbase"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 # Installed into the Hermes venv by `hermes plugins install` / `enable` and re-applied after

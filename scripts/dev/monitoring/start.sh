@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Script to start the agentstratum monitoring stack with Grafana LGTM
+# Script to start the contextbase monitoring stack with Grafana LGTM
 # Provides traces (Tempo), metrics (Prometheus/Mimir), logs (Loki), and dashboards (Grafana)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,7 @@ API_PORT="${API_PORT:-8888}"
 cd "$SCRIPT_DIR"
 
 echo ""
-echo "🚀 Starting agentstratum Monitoring Stack (Grafana LGTM)"
+echo "🚀 Starting contextbase Monitoring Stack (Grafana LGTM)"
 echo ""
 echo "This provides:"
 echo "  • OpenTelemetry traces (Tempo)"
@@ -22,7 +22,7 @@ echo ""
 
 # Check if API is running
 if ! curl -s "http://localhost:$API_PORT/metrics" > /dev/null 2>&1; then
-    echo "⚠️  WARNING: agentstratum API not detected at localhost:$API_PORT"
+    echo "⚠️  WARNING: contextbase API not detected at localhost:$API_PORT"
     echo "   Start the API first: ./scripts/dev/start-api.sh"
     echo ""
 fi
@@ -31,13 +31,13 @@ echo "Access Grafana UI: http://localhost:3000"
 echo "  (no login required for dev - anonymous admin enabled)"
 echo ""
 echo "Dashboards available:"
-echo "  • agentstratum Operations"
-echo "  • agentstratum LLM Metrics"
-echo "  • agentstratum API Service"
+echo "  • contextbase Operations"
+echo "  • contextbase LLM Metrics"
+echo "  • contextbase API Service"
 echo ""
-echo "Configure agentstratum API for tracing:"
-echo "  export AGENTSTRATUM_API_OTEL_TRACES_ENABLED=true"
-echo "  export AGENTSTRATUM_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318"
+echo "Configure contextbase API for tracing:"
+echo "  export CONTEXTBASE_API_OTEL_TRACES_ENABLED=true"
+echo "  export CONTEXTBASE_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318"
 echo ""
 echo "OTLP Endpoints:"
 echo "  • HTTP: http://localhost:4318"

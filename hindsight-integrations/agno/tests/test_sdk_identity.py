@@ -4,8 +4,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 
 from agno.run.base import RunContext
-from hindsight_agno import HindsightTools, reset_config
-from hindsight_agno.tools import _USER_AGENT
+from contextbase_agno import ContextBaseTools, reset_config
+from contextbase_agno.tools import _USER_AGENT
 
 
 def test_integration_identity_reaches_sdk_request() -> None:
@@ -31,9 +31,9 @@ def test_integration_identity_reaches_sdk_request() -> None:
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
     reset_config()
-    tools: HindsightTools | None = None
+    tools: ContextBaseTools | None = None
     try:
-        tools = HindsightTools(bank_id="test", hindsight_api_url=f"http://127.0.0.1:{server.server_port}")
+        tools = ContextBaseTools(bank_id="test", contextbase_api_url=f"http://127.0.0.1:{server.server_port}")
         context = RunContext(run_id="run", session_id="session", user_id="user")
         assert tools.recall_memory(context, "preferences") == "No relevant memories found."
         assert user_agents == [_USER_AGENT]

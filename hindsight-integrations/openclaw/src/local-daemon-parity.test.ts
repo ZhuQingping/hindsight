@@ -44,7 +44,7 @@ function makeApi(config: Record<string, unknown>): {
   let service: StartedService | undefined;
   const infoLines: string[] = [];
   const api = {
-    config: { plugins: { entries: { "hindsight-openclaw": { config } } } },
+    config: { plugins: { entries: { "contextbase-openclaw": { config } } } },
     registerService: (svc: StartedService) => {
       service = svc;
     },
@@ -70,7 +70,7 @@ let tempDir: string;
 
 beforeEach(() => {
   originalFetch = globalThis.fetch;
-  tempDir = mkdtempSync(join(tmpdir(), "hindsight-openclaw-"));
+  tempDir = mkdtempSync(join(tmpdir(), "contextbase-openclaw-"));
   daemonStart.mockClear();
   daemonStop.mockClear();
   daemonCheckHealth.mockClear();

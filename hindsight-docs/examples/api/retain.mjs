@@ -5,12 +5,12 @@
  */
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 
 // =============================================================================
 // Doc Examples
@@ -103,6 +103,6 @@ console.log(batchResult.operation_ids);  // One operation ID per file
 // =============================================================================
 // Cleanup (not shown in docs)
 // =============================================================================
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
 
 console.log('retain.mjs: All examples passed');

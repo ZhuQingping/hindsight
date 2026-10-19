@@ -1,36 +1,36 @@
 ---
 sidebar_position: 34
-title: "Haystack Persistent Memory with Hindsight | Integration"
-description: "Add persistent long-term memory to Haystack agents with Hindsight. Provides retain/recall/reflect Tools plus a HindsightMemoryWrapper with optional auto-recall and auto-retain."
+title: "Haystack Persistent Memory with ContextBase | Integration"
+description: "Add persistent long-term memory to Haystack agents with ContextBase. Provides retain/recall/reflect Tools plus a ContextBaseMemoryWrapper with optional auto-recall and auto-retain."
 ---
 
 # Haystack
 
-Persistent long-term memory for [Haystack](https://haystack.deepset.ai/) agents via Hindsight. The `hindsight-haystack` package gives you two complementary patterns:
+Persistent long-term memory for [Haystack](https://haystack.deepset.ai/) agents via ContextBase. The `contextbase-haystack` package gives you two complementary patterns:
 
-- **`create_hindsight_tools(...)`** — Returns a list of Haystack `Tool`s (`retain_memory`, `recall_memory`, `reflect_on_memory`) the model can call directly inside a turn.
-- **`HindsightMemoryWrapper`** — A Haystack `Toolset` that bundles the same tools and adds optional **auto-recall** (inject relevant memories into the system prompt before each turn) and **auto-retain** (store user + assistant messages after each turn).
+- **`create_contextbase_tools(...)`** — Returns a list of Haystack `Tool`s (`retain_memory`, `recall_memory`, `reflect_on_memory`) the model can call directly inside a turn.
+- **`ContextBaseMemoryWrapper`** — A Haystack `Toolset` that bundles the same tools and adds optional **auto-recall** (inject relevant memories into the system prompt before each turn) and **auto-retain** (store user + assistant messages after each turn).
 
 [View Changelog →](/changelog/integrations/haystack)
 
 ## Installation
 
 ```bash
-pip install hindsight-haystack
+pip install contextbase-haystack
 ```
 
 ## Quick Start
 
 ```python
 from hindsight_client import Hindsight
-from hindsight_haystack import create_hindsight_tools
+from contextbase_haystack import create_contextbase_tools
 from haystack.components.agents import Agent
 from haystack.components.generators.chat import OpenAIChatGenerator
 from haystack.dataclasses import ChatMessage
 
 client = Hindsight(base_url="http://localhost:8888")
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     mission="Track user preferences",
@@ -50,14 +50,14 @@ result = agent.run(messages=[ChatMessage.from_user("Remember that I prefer dark 
 print(result["messages"][-1].text)
 ```
 
-## Automatic Memory with HindsightMemoryWrapper
+## Automatic Memory with ContextBaseMemoryWrapper
 
 For automatic recall and retain without relying on the agent to call tools:
 
 ```python
-from hindsight_haystack import HindsightMemoryWrapper
+from contextbase_haystack import ContextBaseMemoryWrapper
 
-toolset = HindsightMemoryWrapper(
+toolset = ContextBaseMemoryWrapper(
     client=client,
     bank_id="user-123",
     mission="Track user preferences",
@@ -79,7 +79,7 @@ result = toolset.run(agent, messages=[ChatMessage.from_user("I prefer dark mode"
 
 ```python
 # Only retain + recall (no reflect)
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_reflect=False,
@@ -88,13 +88,13 @@ tools = create_hindsight_tools(
 
 ## Configuration
 
-Call `configure()` once to set connection defaults so you can omit `client=`/`hindsight_api_url=` on every call:
+Call `configure()` once to set connection defaults so you can omit `client=`/`contextbase_api_url=` on every call:
 
 ```python
-from hindsight_haystack import configure
+from contextbase_haystack import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
     api_key="your-api-key",
     budget="mid",
     tags=["source:haystack"],
@@ -102,10 +102,10 @@ configure(
     mission="Track user preferences",
 )
 
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
-The API URL defaults to Hindsight Cloud (`https://api.hindsight.vectorize.io`), and the API key falls back to the `HINDSIGHT_API_KEY` environment variable.
+The API URL must be configured explicitly, and the API key falls back to the `CONTEXTBASE_API_KEY` environment variable.
 
 ## Requirements
 
@@ -115,14 +115,14 @@ The API URL defaults to Hindsight Cloud (`https://api.hindsight.vectorize.io`), 
 
 ## Prerequisites
 
-A running Hindsight instance:
+A running ContextBase instance:
 
-**Hindsight Cloud (recommended):** [Sign up](https://ui.hindsight.vectorize.io) — no self-hosting required.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 **Self-hosted:**
 
 ```bash
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-api-key
+export CONTEXTBASE_API_LLM_API_KEY=your-api-key
 hindsight-api  # starts on http://localhost:8888
 ```

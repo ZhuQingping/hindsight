@@ -1,12 +1,12 @@
-"""End-to-end tests for the Hindsight-LangGraph integration.
+"""End-to-end tests for the ContextBase-LangGraph integration.
 
 Exercises the three integration patterns — tools, graph nodes, and the
-``memory_instructions`` helper — against a live Hindsight instance. By
-default these tests are skipped; point ``HINDSIGHT_API_URL`` at a reachable
-Hindsight server to enable them.
+``memory_instructions`` helper — against a live ContextBase instance. By
+default these tests are skipped; point ``CONTEXTBASE_API_URL`` at a reachable
+ContextBase server to enable them.
 
-The LangGraph patterns talk to Hindsight directly (retain/recall/reflect);
-they don't call an external LLM themselves, so only a running Hindsight
+The LangGraph patterns talk to ContextBase directly (retain/recall/reflect);
+they don't call an external LLM themselves, so only a running ContextBase
 instance is required. The graph-node tests additionally require ``langgraph``.
 
 Run with::
@@ -14,9 +14,9 @@ Run with::
     uv run pytest tests/test_e2e.py -v -s
 
 Environment variables:
-    HINDSIGHT_API_URL     URL of a reachable Hindsight server
+    CONTEXTBASE_API_URL     URL of a reachable ContextBase server
                           (default: http://localhost:8888)
-    HINDSIGHT_API_KEY     API key for the Hindsight server (optional)
+    CONTEXTBASE_API_KEY     API key for the ContextBase server (optional)
 """
 
 from __future__ import annotations
@@ -30,19 +30,19 @@ import pytest_asyncio
 import requests
 from hindsight_client import Hindsight
 
-from hindsight_langgraph import (
-    create_hindsight_tools,
+from contextbase_langgraph import (
+    create_contextbase_tools,
     memory_instructions,
 )
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 _NO_MEMORIES = "No relevant memories found."
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        r = requests.get(f"{HINDSIGHT_API_URL}/health", timeout=3)
+        r = requests.get(f"{CONTEXTBASE_API_URL}/health", timeout=3)
         return r.status_code == 200
     except Exception:
         return False
@@ -57,16 +57,16 @@ def _langgraph_available() -> bool:
         return False
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 requires_langgraph = pytest.mark.skipif(
     not _langgraph_available(),
     reason="langgraph not installed",
 )
 
-# Every test in this file drives a live Hindsight server (server-side fact
+# Every test in this file drives a live ContextBase server (server-side fact
 # extraction powers the retain->recall roundtrip), so the whole module is the
 # "real LLM" bucket — excluded from the deterministic PR-CI bucket via
 # `-m "not requires_real_llm"` and run on its own via `-m requires_real_llm`.
@@ -81,7 +81,7 @@ async def live_client():
     The bank is deleted and the client closed on teardown so aiohttp doesn't
     warn about unclosed sessions and banks don't leak between runs.
     """
-    client = Hindsight(base_url=HINDSIGHT_API_URL)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL)
     bank_id = f"langgraph-e2e-{uuid.uuid4().hex[:8]}"
     await client.acreate_bank(bank_id, name=f"LangGraph E2E {bank_id}")
     try:
@@ -127,14 +127,14 @@ async def _recall_node_until_nonempty(recall_node, query, attempts=10, delay=1.0
     )
 
 
-@requires_hindsight
+@requires_contextbase
 class TestE2ETools:
-    """create_hindsight_tools() retain/recall/reflect against live Hindsight."""
+    """create_contextbase_tools() retain/recall/reflect against live ContextBase."""
 
     @pytest.mark.asyncio
     async def test_retain_and_recall_roundtrip(self, live_client):
         client, bank_id = live_client
-        retain, recall, _reflect = create_hindsight_tools(client=client, bank_id=bank_id)
+        retain, recall, _reflect = create_contextbase_tools(client=client, bank_id=bank_id)
 
         result = await retain.ainvoke("The team uses PostgreSQL 16 and deploys to us-east-1.")
         assert result == "Memory stored successfully."
@@ -148,7 +148,7 @@ class TestE2ETools:
     @pytest.mark.asyncio
     async def test_reflect_synthesizes_from_memory(self, live_client):
         client, bank_id = live_client
-        retain, recall, reflect = create_hindsight_tools(client=client, bank_id=bank_id)
+        retain, recall, reflect = create_contextbase_tools(client=client, bank_id=bank_id)
 
         await retain.ainvoke("The team uses PostgreSQL 16 and deploys to us-east-1.")
         # Make sure the memory is queryable before reflecting.
@@ -164,7 +164,7 @@ class TestE2ETools:
     @pytest.mark.asyncio
     async def test_recall_empty_bank(self, live_client):
         client, bank_id = live_client
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             client=client,
             bank_id=bank_id,
             include_retain=False,
@@ -174,16 +174,16 @@ class TestE2ETools:
         assert result == _NO_MEMORIES
 
 
-@requires_hindsight
+@requires_contextbase
 @requires_langgraph
 class TestE2ENodes:
-    """create_recall_node() / create_retain_node() against live Hindsight."""
+    """create_recall_node() / create_retain_node() against live ContextBase."""
 
     @pytest.mark.asyncio
     async def test_retain_node_then_recall_node(self, live_client):
         from langchain_core.messages import HumanMessage
 
-        from hindsight_langgraph import create_recall_node, create_retain_node
+        from contextbase_langgraph import create_recall_node, create_retain_node
 
         client, bank_id = live_client
         retain_node = create_retain_node(client=client, bank_id=bank_id, retain_human=True)
@@ -202,7 +202,7 @@ class TestE2ENodes:
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
         from langgraph.graph import END, START, MessagesState, StateGraph
 
-        from hindsight_langgraph import create_recall_node, create_retain_node
+        from contextbase_langgraph import create_recall_node, create_retain_node
 
         client, bank_id = live_client
         recall = create_recall_node(client=client, bank_id=bank_id)
@@ -235,9 +235,9 @@ class TestE2ENodes:
         )
 
 
-@requires_hindsight
+@requires_contextbase
 class TestE2EMemoryInstructions:
-    """memory_instructions() standalone helper against live Hindsight."""
+    """memory_instructions() standalone helper against live ContextBase."""
 
     @pytest.mark.asyncio
     async def test_injects_recalled_memory(self, live_client):

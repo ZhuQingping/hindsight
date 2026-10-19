@@ -43,7 +43,7 @@ The tree is what makes a knowledge base navigable rather than a flat list of syn
 Agents already know how to work with a filesystem. So the CLI can mirror a bank's knowledge base onto disk:
 
 ```bash
-hindsight fs mount --bank my-bank
+contextbase fs mount --bank my-bank
 ```
 
 The folder tree becomes real directories, each page a real markdown file with YAML frontmatter, kept current by a background refresh loop. From there, everything ordinary works — `ls`, `cat`, `grep`, `rg`, `fzf`, your editor, an agent's file tools. No SDK, no API client, no new vocabulary.
@@ -68,7 +68,7 @@ If the answer is documents in a tree, haven't we reinvented files — the thing 
 
 The difference is what sits underneath. A file is where information goes to age. Whoever wrote it last wins, contradictions accumulate quietly, and nothing ever reconciles them. Left alone, a hand-maintained wiki becomes a beautifully formatted lie — not because anyone lied, but because keeping it true is a chore, and chores lose.
 
-A knowledge page is a **projected view** over processed memory, the way a database view is not a table. Before a page is written, Hindsight has already done the work files can't do for themselves: extracted facts from the raw sessions, commits, and documents; deduplicated them; and reconciled their contradictions through consolidation. So when a team decided X and later amended it to Y, the page says Y — and can say why — instead of preserving both a paragraph apart.
+A knowledge page is a **projected view** over processed memory, the way a database view is not a table. Before a page is written, ContextBase has already done the work files can't do for themselves: extracted facts from the raw sessions, commits, and documents; deduplicated them; and reconciled their contradictions through consolidation. So when a team decided X and later amended it to Y, the page says Y — and can say why — instead of preserving both a paragraph apart.
 
 Your raw documents remain the source of truth about *what was said*. The pages are the reconciled truth about *what holds*.
 
@@ -80,5 +80,5 @@ This is also why pages heal themselves rather than rot: they aren't the storage,
 
 - **Control plane** — the Knowledge Base view renders the tree, page contents, and which pages have fallen behind.
 - **HTTP API** — see [Knowledge Pages API](./api/knowledge-pages) for the full endpoint surface.
-- **CLI** — `hindsight fs` mirrors a bank to a local folder of markdown files.
+- **CLI** — `contextbase fs` mirrors a bank to a local folder of markdown files.
 - **Agent tools** — the Claude Code plugin exposes `agent_knowledge_*` MCP tools so an agent can list, read, create, and update its own pages during a session.

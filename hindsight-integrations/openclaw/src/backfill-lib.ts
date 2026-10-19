@@ -68,7 +68,7 @@ export function defaultOpenClawRoot(): string {
 }
 
 export function defaultCheckpointPath(openclawRoot: string): string {
-  return join(openclawRoot, "data", "hindsight-backfill-checkpoint.json");
+  return join(openclawRoot, "data", "contextbase-backfill-checkpoint.json");
 }
 
 export function loadPluginConfigFromOpenClawRoot(openclawRoot: string): PluginConfig {
@@ -78,7 +78,7 @@ export function loadPluginConfigFromOpenClawRoot(openclawRoot: string): PluginCo
   };
   return {
     ...DEFAULT_PLUGIN_CONFIG,
-    ...(raw.plugins?.entries?.["hindsight-openclaw"]?.config || {}),
+    ...(raw.plugins?.entries?.["contextbase-openclaw"]?.config || {}),
   };
 }
 

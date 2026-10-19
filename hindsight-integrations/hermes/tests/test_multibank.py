@@ -8,10 +8,10 @@ from types import SimpleNamespace
 
 import pytest
 
-import hindsight_hermes as plugin
-from hindsight_hermes.settings import _discover_cwd_bank_id, _repository_root
+import contextbase_hermes as plugin
+from contextbase_hermes.settings import _discover_cwd_bank_id, _repository_root
 
-HindsightMemoryProvider = plugin.HindsightMemoryProvider
+ContextBaseMemoryProvider = plugin.ContextBaseMemoryProvider
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +33,7 @@ def _fake_recall(provider, answers: dict, queried: list | None = None) -> None:
                 raise answer
             return SimpleNamespace(results=[SimpleNamespace(text=t) for t in answer])
 
-    provider._run_hindsight_operation = lambda op: asyncio.run(op(_Client()))
+    provider._run_contextbase_operation = lambda op: asyncio.run(op(_Client()))
 
 
 def _discover(start: Path, trusted: list) -> str | None:
@@ -42,8 +42,8 @@ def _discover(start: Path, trusted: list) -> str | None:
 
 def _repo_with_config(root: Path, bank: str) -> Path:
     (root / ".git").mkdir(parents=True)
-    (root / ".hindsight").mkdir()
-    (root / ".hindsight" / "config.toml").write_text(f'bank_id = "{bank}"\n', encoding="utf-8")
+    (root / ".contextbase").mkdir()
+    (root / ".contextbase" / "config.toml").write_text(f'bank_id = "{bank}"\n', encoding="utf-8")
     sub = root / "src" / "deep"
     sub.mkdir(parents=True)
     return sub
@@ -62,8 +62,8 @@ def test_repository_config_is_ignored_unless_its_folder_is_trusted(tmp_path: Pat
 
 def test_repository_config_is_never_read_above_the_repository_root(tmp_path: Path):
     outer = tmp_path / "work"
-    (outer / ".hindsight").mkdir(parents=True)
-    (outer / ".hindsight" / "config.toml").write_text('bank_id = "outer"\n', encoding="utf-8")
+    (outer / ".contextbase").mkdir(parents=True)
+    (outer / ".contextbase" / "config.toml").write_text('bank_id = "outer"\n', encoding="utf-8")
     repo = outer / "repo"
     (repo / ".git").mkdir(parents=True)
 
@@ -72,8 +72,8 @@ def test_repository_config_is_never_read_above_the_repository_root(tmp_path: Pat
 
 def test_repository_config_outside_a_repository_is_ignored(tmp_path: Path):
     folder = tmp_path / "work" / "notes"
-    (folder / ".hindsight").mkdir(parents=True)
-    (folder / ".hindsight" / "config.toml").write_text('bank_id = "notes"\n', encoding="utf-8")
+    (folder / ".contextbase").mkdir(parents=True)
+    (folder / ".contextbase" / "config.toml").write_text('bank_id = "notes"\n', encoding="utf-8")
 
     assert _discover(folder, [str(tmp_path / "work")]) is None
 
@@ -85,14 +85,14 @@ def test_provider_uses_trusted_repository_config_over_the_template(tmp_path: Pat
         "bank_id_template": "hermes-{project}",
         "trusted_project_dirs": str(tmp_path / "work"),
     }
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     with patch.object(plugin, "_load_config", return_value=config):
         provider.initialize(session_id="s1", cwd=str(sub))
     assert provider._bank_id == "project-x-bank"
 
 
 def _bank_for(cwd: str, template: str, **session) -> str:
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     with patch.object(plugin, "_load_config", return_value={"bank_id": "hermes", "bank_id_template": template}):
         provider.initialize(session_id="s", cwd=cwd, **session)
     return provider._bank_id
@@ -138,7 +138,7 @@ def test_workspace_placeholder_keeps_its_upstream_meaning(tmp_path: Path):
 
 
 def test_provider_multibank_write_and_recall_order():
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     provider._config = {"bank_id": "default-bank"}
     provider._apply_connection_settings(
         {
@@ -157,7 +157,7 @@ def test_provider_multibank_write_and_recall_order():
 
 
 def test_provider_recall_dedupes_across_banks():
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     provider._bank_id = "primary"
     provider._write_bank_ids = ["primary", "secondary"]
     _fake_recall(provider, {"primary": ["Fact 1", "Fact 2"], "secondary": ["Fact 2", "Fact 3"]})
@@ -168,7 +168,7 @@ def test_provider_recall_dedupes_across_banks():
 
 
 def test_provider_sync_turn_retains_to_all_write_banks():
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     provider._bank_id = "b1"
     provider._write_bank_ids = ["b1", "b2"]
     retained_banks = []
@@ -192,8 +192,8 @@ def test_provider_sync_turn_retains_to_all_write_banks():
     assert provider._pending_retain_ops == {("b1", "op-b1"), ("b2", "op-b2")}
 
 
-def _provider_with(cfg: dict) -> HindsightMemoryProvider:
-    provider = HindsightMemoryProvider()
+def _provider_with(cfg: dict) -> ContextBaseMemoryProvider:
+    provider = ContextBaseMemoryProvider()
     provider._config = {"bank_id": cfg.get("bank_id", "hermes")}
     provider._apply_connection_settings(cfg)
     return provider
@@ -308,7 +308,7 @@ def test_single_bank_recall_error_reaches_the_tool_as_a_failure():
     provider = _provider_with({"bank_id": "primary"})
     _fake_recall(provider, {"primary": RuntimeError("connection refused")})
 
-    result = provider.handle_tool_call("hindsight_recall", {"query": "q"})
+    result = provider.handle_tool_call("contextbase_recall", {"query": "q"})
     assert "Failed to search memory: connection refused" in result
     assert "No relevant memories found" not in result
 
@@ -355,7 +355,7 @@ def test_retain_tool_reports_success_when_only_an_extra_bank_fails():
     provider = _provider_with({"bank_id": "primary", "additional_banks": ["broken"]})
     written = _fake_retain(provider, failing={"broken"})
 
-    result = provider.handle_tool_call("hindsight_retain", {"content": "a fact"})
+    result = provider.handle_tool_call("contextbase_retain", {"content": "a fact"})
 
     assert written == ["primary", "broken"]
     assert "Memory queued for storage" in result  # retain_async defaults on
@@ -365,7 +365,7 @@ def test_retain_tool_reports_failure_when_the_primary_fails():
     provider = _provider_with({"bank_id": "primary", "additional_banks": ["shared"]})
     written = _fake_retain(provider, failing={"primary"})
 
-    result = provider.handle_tool_call("hindsight_retain", {"content": "a fact"})
+    result = provider.handle_tool_call("contextbase_retain", {"content": "a fact"})
 
     assert written == ["primary"]
     assert "Failed to store memory: primary unavailable" in result
@@ -375,7 +375,7 @@ def test_mirror_uses_the_nested_bank_id_form_like_the_fallback(tmp_path: Path):
     repo = tmp_path / "repo"
     (repo / ".git").mkdir(parents=True)
     config = {"banks": {"hermes": {"bankId": "personal"}}, "bank_id_template": "{project}", "mirror_to_own_bank": True}
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     with patch.object(plugin, "_load_config", return_value=config):
         provider.initialize(session_id="s1", cwd=str(repo))
 
@@ -399,7 +399,7 @@ def test_empty_nested_bank_id_never_puts_an_empty_bank_in_the_write_set(tmp_path
     repo = tmp_path / "repo"
     (repo / ".git").mkdir(parents=True)
     config = {"banks": {"hermes": {"bankId": ""}}, "bank_id_template": "{project}", "mirror_to_own_bank": True}
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     with patch.object(plugin, "_load_config", return_value=config):
         provider.initialize(session_id="s1", cwd=str(repo))
     assert provider._write_bank_ids == ["repo", "hermes"]
@@ -426,9 +426,9 @@ def _worktree(tmp_path: Path, main_parent: str, worktree_parent: str) -> Path:
     worktree_git.mkdir(parents=True)
     (worktree_git / "commondir").write_text("../..\n", encoding="utf-8")
     worktree = tmp_path / worktree_parent / "app-wt"
-    (worktree / ".hindsight").mkdir(parents=True)
+    (worktree / ".contextbase").mkdir(parents=True)
     (worktree / ".git").write_text(f"gitdir: {worktree_git}\n", encoding="utf-8")
-    (worktree / ".hindsight" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
+    (worktree / ".contextbase" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
     return worktree
 
 
@@ -445,8 +445,8 @@ def test_a_forged_commondir_cannot_claim_a_trusted_location(tmp_path: Path):
     fake.mkdir(parents=True)
     (fake / "commondir").write_text(str(tmp_path / "work" / "anything" / ".git") + "\n", encoding="utf-8")
     (folder / ".git").write_text("gitdir: fake\n", encoding="utf-8")
-    (folder / ".hindsight").mkdir()
-    (folder / ".hindsight" / "config.toml").write_text('bank_id = "attacker"\n', encoding="utf-8")
+    (folder / ".contextbase").mkdir()
+    (folder / ".contextbase" / "config.toml").write_text('bank_id = "attacker"\n', encoding="utf-8")
 
     assert _discover(folder, [str(tmp_path / "work")]) is None
 
@@ -477,8 +477,8 @@ def test_writes_skip_an_extra_bank_while_it_cools_down():
     provider = _provider_with({"bank_id": "primary", "additional_banks": ["broken", "shared"]})
     written = _fake_retain(provider, failing={"broken"})
 
-    provider.handle_tool_call("hindsight_retain", {"content": "one"})
-    provider.handle_tool_call("hindsight_retain", {"content": "two"})
+    provider.handle_tool_call("contextbase_retain", {"content": "one"})
+    provider.handle_tool_call("contextbase_retain", {"content": "two"})
 
     assert written == ["primary", "broken", "shared", "primary", "shared"]
 
@@ -529,22 +529,22 @@ def test_a_failed_recall_does_not_stop_writes_to_the_same_bank():
     provider._recall("q")
     written = _fake_retain(provider, failing=set())
 
-    provider.handle_tool_call("hindsight_retain", {"content": "a fact"})
+    provider.handle_tool_call("contextbase_retain", {"content": "a fact"})
 
     assert written == ["primary", "team"]
 
 
 def test_trusted_config_survives_an_unreadable_git_file(tmp_path: Path):
     repo = tmp_path / "work" / "repo"
-    (repo / ".hindsight").mkdir(parents=True)
+    (repo / ".contextbase").mkdir(parents=True)
     (repo / ".git").write_bytes(b"\xff\xfe not utf-8")
-    (repo / ".hindsight" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
+    (repo / ".contextbase" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
     config = {
         "bank_id": "hermes",
         "bank_id_template": "hermes-{project}",
         "trusted_project_dirs": str(tmp_path / "work"),
     }
-    provider = HindsightMemoryProvider()
+    provider = ContextBaseMemoryProvider()
     with patch.object(plugin, "_load_config", return_value=config):
         provider.initialize(session_id="s1", cwd=str(repo))
     assert provider._bank_id == "acme"
@@ -558,7 +558,7 @@ def test_single_bank_recall_returns_the_server_response_unchanged():
         async def arecall(self, bank_id, **kwargs):
             return SimpleNamespace(results=results)
 
-    provider._run_hindsight_operation = lambda op: asyncio.run(op(_Client()))
+    provider._run_contextbase_operation = lambda op: asyncio.run(op(_Client()))
     assert provider._recall("q") == results
 
 
@@ -600,7 +600,7 @@ def test_score_floors_apply_to_every_recall_bank():
                 results=[SimpleNamespace(text=t, scores=SimpleNamespace(semantic=s)) for t, s in scores[bank_id]]
             )
 
-    provider._run_hindsight_operation = lambda op: asyncio.run(op(_Client()))
+    provider._run_contextbase_operation = lambda op: asyncio.run(op(_Client()))
 
     assert [r.text for r in provider._recall("query")] == ["p-strong", "v-strong"]
     assert sent == [{"semantic": 0.5}] * 2

@@ -1,26 +1,26 @@
 """
-Agentstratum Embedded CLI.
+ContextBase Embedded CLI.
 
-A wrapper CLI that manages a local daemon and forwards commands to agentstratum-cli.
+A wrapper CLI that manages a local daemon and forwards commands to contextbase-cli.
 No external server required - runs everything locally with automatic daemon management.
 
 Usage:
-    agentstratum-embed configure              # Interactive setup
-    agentstratum-embed retain "User prefers dark mode"
-    agentstratum-embed recall "What are user preferences?"
-    agentstratum-embed daemon status          # Check daemon status
+    contextbase-embed configure              # Interactive setup
+    contextbase-embed retain "User prefers dark mode"
+    contextbase-embed recall "What are user preferences?"
+    contextbase-embed daemon status          # Check daemon status
 
 Environment variables:
-    AGENTSTRATUM_API_LLM_API_KEY: Required when the selected LLM provider uses an API key.
-    AGENTSTRATUM_API_LLM_PROVIDER: Optional. LLM provider (default: "openai").
-    AGENTSTRATUM_API_LLM_MODEL: Optional. LLM model (default: provider-specific, resolved by agentstratum-api).
-    AGENTSTRATUM_EMBED_API_URL: Optional. Use external API server instead of starting local daemon.
-    AGENTSTRATUM_EMBED_API_TOKEN: Optional. Authentication token for external API (sent as Bearer token).
-    AGENTSTRATUM_EMBED_API_DATABASE_URL: Optional. Database URL for daemon (default: "pg0://agentstratum-embed").
-    AGENTSTRATUM_EMBED_API_VERSION: Optional. agentstratum-api version to use (default: matches embed version).
+    CONTEXTBASE_API_LLM_API_KEY: Required when the selected LLM provider uses an API key.
+    CONTEXTBASE_API_LLM_PROVIDER: Optional. LLM provider (default: "openai").
+    CONTEXTBASE_API_LLM_MODEL: Optional. LLM model (default: provider-specific, resolved by contextbase-api).
+    CONTEXTBASE_EMBED_API_URL: Optional. Use external API server instead of starting local daemon.
+    CONTEXTBASE_EMBED_API_TOKEN: Optional. Authentication token for external API (sent as Bearer token).
+    CONTEXTBASE_EMBED_API_DATABASE_URL: Optional. Database URL for daemon (default: "pg0://contextbase-embed").
+    CONTEXTBASE_EMBED_API_VERSION: Optional. contextbase-api version to use (default: matches embed version).
                                  Note: Only applies when starting daemon. To change version, stop daemon first.
-    AGENTSTRATUM_EMBED_CLI_VERSION: Optional. agentstratum CLI version to install (default: {embed_version}).
-    AGENTSTRATUM_EMBED_CONTROL_PORT: Optional. Port for the control center web app (default: 7878).
+    CONTEXTBASE_EMBED_CLI_VERSION: Optional. contextbase CLI version to install (default: {embed_version}).
+    CONTEXTBASE_EMBED_CONTROL_PORT: Optional. Port for the control center web app (default: 7878).
 """
 
 import argparse
@@ -31,7 +31,7 @@ from pathlib import Path
 
 from . import get_embed_manager
 
-CONFIG_DIR = Path.home() / ".agentstratum"
+CONFIG_DIR = Path.home() / ".contextbase"
 CONFIG_FILE = CONFIG_DIR / "embed"
 CONFIG_FILE_ALT = CONFIG_DIR / "config.env"  # Alternative config file location
 
@@ -60,7 +60,7 @@ def set_cli_profile_override(profile: str | None) -> None:
 
 def setup_logging(verbose: bool = False):
     """Configure logging."""
-    level_str = os.environ.get("AGENTSTRATUM_EMBED_LOG_LEVEL", "info").lower()
+    level_str = os.environ.get("CONTEXTBASE_EMBED_LOG_LEVEL", "info").lower()
     if verbose:
         level_str = "debug"
 
@@ -78,7 +78,7 @@ def setup_logging(verbose: bool = False):
         stream=sys.stderr,
     )
 
-    return logging.getLogger("agentstratum.embed.cli")
+    return logging.getLogger("contextbase.embed.cli")
 
 
 def load_config_file():
@@ -112,29 +112,29 @@ def load_config_file():
                         os.environ[key] = value
 
 
-ENV_LLM_PROVIDER = "AGENTSTRATUM_API_LLM_PROVIDER"
-ENV_LLM_API_KEY = "AGENTSTRATUM_API_LLM_API_KEY"
+ENV_LLM_PROVIDER = "CONTEXTBASE_API_LLM_PROVIDER"
+ENV_LLM_API_KEY = "CONTEXTBASE_API_LLM_API_KEY"
 
 
 def get_config() -> dict[str, str]:
-    """This invocation's daemon overrides, as ``AGENTSTRATUM_*`` environment variables.
+    """This invocation's daemon overrides, as ``CONTEXTBASE_*`` environment variables.
 
-    Every ``AGENTSTRATUM_*`` variable in the process environment is forwarded
+    Every ``CONTEXTBASE_*`` variable in the process environment is forwarded
     verbatim; there is no whitelist of known settings. A whitelist is exactly
-    how ``AGENTSTRATUM_API_LLM_BASE_URL`` came to be dropped while KEY/MODEL
-    applied (issue #4094) — ``agentstratum-api``, not this wrapper, owns the list
+    how ``CONTEXTBASE_API_LLM_BASE_URL`` came to be dropped while KEY/MODEL
+    applied (issue #4094) — ``contextbase-api``, not this wrapper, owns the list
     of settings that exist, and it grows every release.
 
-    No provider or model default is injected: ``agentstratum-api`` resolves both
+    No provider or model default is injected: ``contextbase-api`` resolves both
     (its ``DEFAULT_LLM_PROVIDER`` is this same ``"openai"``, and
     ``PROVIDER_DEFAULT_MODELS`` is provider-keyed). Duplicating those tables
     here would silently desync — and importing them fails in standalone venvs
-    (``uvx agentstratum-embed``) where ``agentstratum-api`` isn't installed anyway.
+    (``uvx contextbase-embed``) where ``contextbase-api`` isn't installed anyway.
     """
     load_config_file()
-    config = {key: value for key, value in os.environ.items() if key.startswith("AGENTSTRATUM_")}
+    config = {key: value for key, value in os.environ.items() if key.startswith("CONTEXTBASE_")}
 
-    # OPENAI_API_KEY is the one non-AGENTSTRATUM_ name honoured here, and only for
+    # OPENAI_API_KEY is the one non-CONTEXTBASE_ name honoured here, and only for
     # providers that authenticate with an LLM API key at all.
     provider = config.get(ENV_LLM_PROVIDER) or "openai"
     openai_key = os.environ.get("OPENAI_API_KEY")
@@ -210,23 +210,23 @@ def _has_non_interactive_env() -> bool:
     doesn't need a key. Prevents the interactive prompt from kicking in when
     the user clearly wants CI/scripted behavior.
     """
-    if os.environ.get("AGENTSTRATUM_API_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY"):
+    if os.environ.get("CONTEXTBASE_API_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY"):
         return True
-    return os.environ.get("AGENTSTRATUM_API_LLM_PROVIDER") in NO_API_KEY_PROVIDERS
+    return os.environ.get("CONTEXTBASE_API_LLM_PROVIDER") in NO_API_KEY_PROVIDERS
 
 
 def _do_configure_from_env():
     """Non-interactive configuration from environment variables (for CI)."""
     # Check for required environment variables
-    provider = os.environ.get("AGENTSTRATUM_API_LLM_PROVIDER", "openai")
+    provider = os.environ.get("CONTEXTBASE_API_LLM_PROVIDER", "openai")
     api_key = (
         None
         if provider in NO_API_KEY_PROVIDERS
-        else os.environ.get("AGENTSTRATUM_API_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        else os.environ.get("CONTEXTBASE_API_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
     )
 
     # Don't gate on PROVIDER_API_KEYS — that's only the small interactive-menu
-    # set. agentstratum-api's PROVIDER_DEFAULT_MODELS supports many more
+    # set. contextbase-api's PROVIDER_DEFAULT_MODELS supports many more
     # providers (anthropic, claude-code, bedrock, openrouter, ...). Let the
     # daemon validate; rejecting here would block valid configurations.
 
@@ -235,18 +235,18 @@ def _do_configure_from_env():
         print("Error: Cannot run interactive configuration without a terminal.", file=sys.stderr)
         print("", file=sys.stderr)
         print("For non-interactive (CI) mode, set environment variables:", file=sys.stderr)
-        print("  AGENTSTRATUM_API_LLM_API_KEY=<your-api-key>", file=sys.stderr)
-        print(f"  AGENTSTRATUM_API_LLM_PROVIDER={provider}  # optional, default: openai", file=sys.stderr)
+        print("  CONTEXTBASE_API_LLM_API_KEY=<your-api-key>", file=sys.stderr)
+        print(f"  CONTEXTBASE_API_LLM_PROVIDER={provider}  # optional, default: openai", file=sys.stderr)
         print(
-            "  AGENTSTRATUM_API_LLM_MODEL=<model>  # optional, defaults to provider's recommended model",
+            "  CONTEXTBASE_API_LLM_MODEL=<model>  # optional, defaults to provider's recommended model",
             file=sys.stderr,
         )
         return 1
 
-    model = os.environ.get("AGENTSTRATUM_API_LLM_MODEL")
+    model = os.environ.get("CONTEXTBASE_API_LLM_MODEL")
 
     print()
-    print("\033[1m\033[36m  Agentstratum Embed - Non-interactive Configuration\033[0m")
+    print("\033[1m\033[36m  ContextBase Embed - Non-interactive Configuration\033[0m")
     print()
     print(f"  \033[2mProvider:\033[0m {provider}")
     print(f"  \033[2mModel:\033[0m {model or '(provider default)'}")
@@ -254,13 +254,13 @@ def _do_configure_from_env():
     # Save configuration
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Persist every AGENTSTRATUM_API_* variable the caller set, not a hand-listed
-    # subset: the subset is why AGENTSTRATUM_API_LLM_BASE_URL never reached the
-    # written profile (issue #4094). AGENTSTRATUM_EMBED_* is deliberately excluded
+    # Persist every CONTEXTBASE_API_* variable the caller set, not a hand-listed
+    # subset: the subset is why CONTEXTBASE_API_LLM_BASE_URL never reached the
+    # written profile (issue #4094). CONTEXTBASE_EMBED_* is deliberately excluded
     # — those configure this wrapper for one invocation (API URL, component
     # versions), and baking them into the profile is not what a user setting
     # them for a single `configure` run asked for.
-    config_values = {key: value for key, value in os.environ.items() if key.startswith("AGENTSTRATUM_API_") and value}
+    config_values = {key: value for key, value in os.environ.items() if key.startswith("CONTEXTBASE_API_") and value}
     config_values[ENV_LLM_PROVIDER] = provider
     if api_key:
         config_values[ENV_LLM_API_KEY] = api_key
@@ -388,7 +388,7 @@ def _do_configure_interactive(profile_name: str | None = None, port: int | None 
         print(f"\033[1m\033[36m  Configuring profile '{profile_name}' (port {port})\033[0m")
     else:
         print("\033[1m\033[36m  ╭─────────────────────────────────────╮\033[0m")
-        print("\033[1m\033[36m  │   Agentstratum Embed Configuration    │\033[0m")
+        print("\033[1m\033[36m  │   ContextBase Embed Configuration    │\033[0m")
         print("\033[1m\033[36m  ╰─────────────────────────────────────╯\033[0m")
     print()
 
@@ -445,12 +445,12 @@ def _do_configure_interactive(profile_name: str | None = None, port: int | None 
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
     config_dict = {
-        "AGENTSTRATUM_API_LLM_PROVIDER": provider,
+        "CONTEXTBASE_API_LLM_PROVIDER": provider,
     }
     if model:
-        config_dict["AGENTSTRATUM_API_LLM_MODEL"] = model
+        config_dict["CONTEXTBASE_API_LLM_MODEL"] = model
     if api_key:
-        config_dict["AGENTSTRATUM_API_LLM_API_KEY"] = api_key
+        config_dict["CONTEXTBASE_API_LLM_API_KEY"] = api_key
 
     if profile_name:
         # Create named profile
@@ -491,8 +491,8 @@ def _do_configure_interactive(profile_name: str | None = None, port: int | None 
     print(f"  \033[2mConfig:\033[0m {CONFIG_FILE}")
     print()
     print("  \033[2mTest with:\033[0m")
-    print('    \033[36magentstratum-embed retain "Alice works at Google as a software engineer"\033[0m')
-    print('    \033[36magentstratum-embed recall "Alice"\033[0m')
+    print('    \033[36mcontextbase-embed retain "Alice works at Google as a software engineer"\033[0m')
+    print('    \033[36mcontextbase-embed recall "Alice"\033[0m')
     print()
 
     return 0
@@ -633,7 +633,7 @@ def do_daemon(args, config: dict, logger):
             status_text.append(f"{daemon_log_path}\n", style="")
 
             # Check if using pg0 and show database location
-            database_url = os.getenv("AGENTSTRATUM_EMBED_API_DATABASE_URL")
+            database_url = os.getenv("CONTEXTBASE_EMBED_API_DATABASE_URL")
             if not database_url:
                 # Default: use profile-specific pg0 (shared utility ensures consistency)
                 database_url = get_embed_manager().get_database_url(profile)
@@ -703,7 +703,7 @@ def do_daemon(args, config: dict, logger):
                 return 1
 
     else:
-        print("Usage: agentstratum-embed daemon {start|stop|status|logs}", file=sys.stderr)
+        print("Usage: contextbase-embed daemon {start|stop|status|logs}", file=sys.stderr)
         return 1
 
 
@@ -865,7 +865,7 @@ def do_ui(args, config: dict, logger):
                 return 1
 
     else:
-        print("Usage: agentstratum-embed ui {start|stop|status|logs}", file=sys.stderr)
+        print("Usage: contextbase-embed ui {start|stop|status|logs}", file=sys.stderr)
         return 1
 
 
@@ -894,9 +894,9 @@ def _do_configure_profile_with_env(profile_name: str, port: int | None, env_vars
         value = value.strip()
 
         # Validate key format
-        if not key.startswith("AGENTSTRATUM_EMBED_") and not key.startswith("AGENTSTRATUM_API_"):
+        if not key.startswith("CONTEXTBASE_EMBED_") and not key.startswith("CONTEXTBASE_API_"):
             print(
-                f"Warning: Key '{key}' doesn't start with AGENTSTRATUM_EMBED_ or AGENTSTRATUM_API_",
+                f"Warning: Key '{key}' doesn't start with CONTEXTBASE_EMBED_ or CONTEXTBASE_API_",
                 file=sys.stderr,
             )
 
@@ -928,8 +928,8 @@ def _do_configure_profile_with_env(profile_name: str, port: int | None, env_vars
     print(f"  \033[2mPort:\033[0m {port}")
     print()
     print("  \033[2mUse with:\033[0m")
-    print(f"    \033[36magentstratum-embed daemon start --profile {profile_name}\033[0m")
-    print(f'    \033[36magentstratum-embed --profile {profile_name} memory recall default "query"\033[0m')
+    print(f"    \033[36mcontextbase-embed daemon start --profile {profile_name}\033[0m")
+    print(f'    \033[36mcontextbase-embed --profile {profile_name} memory recall default "query"\033[0m')
     print()
 
     return 0
@@ -1079,7 +1079,7 @@ def do_control(args) -> int:
                 print(line, end="")
         return 0
 
-    print("Usage: agentstratum-embed control {start|stop|status|logs}", file=sys.stderr)
+    print("Usage: contextbase-embed control {start|stop|status|logs}", file=sys.stderr)
     return 1
 
 
@@ -1094,7 +1094,7 @@ def do_profile_command(args: list[str]) -> int:
     """
     from .profile_manager import ProfileManager, resolve_active_profile, validate_profile_exists
 
-    parser = argparse.ArgumentParser(prog="agentstratum-embed profile")
+    parser = argparse.ArgumentParser(prog="contextbase-embed profile")
     subparsers = parser.add_subparsers(dest="profile_command", required=True)
 
     # List command
@@ -1173,7 +1173,7 @@ def do_profile_command(args: list[str]) -> int:
             print("No profiles configured.")
             print()
             print("Create one with:")
-            print("  agentstratum-embed configure --profile my-app --port 9100 --env AGENTSTRATUM_API_LLM_PROVIDER=...")
+            print("  contextbase-embed configure --profile my-app --port 9100 --env CONTEXTBASE_API_LLM_PROVIDER=...")
             return 0
 
         print()
@@ -1212,7 +1212,7 @@ def do_profile_command(args: list[str]) -> int:
             display_name = profile_name or "default"
             print(f"Error: Profile '{display_name}' already exists.", file=sys.stderr)
             print("  Use --merge to update the profile, or delete it first with:", file=sys.stderr)
-            print(f"  agentstratum-embed profile delete {display_name}", file=sys.stderr)
+            print(f"  contextbase-embed profile delete {display_name}", file=sys.stderr)
             return 1
 
         # Parse new env vars
@@ -1430,8 +1430,8 @@ def do_profile_command(args: list[str]) -> int:
 
         # Determine source
         source = "default"
-        if os.getenv("AGENTSTRATUM_EMBED_PROFILE"):
-            source = "AGENTSTRATUM_EMBED_PROFILE"
+        if os.getenv("CONTEXTBASE_EMBED_PROFILE"):
+            source = "CONTEXTBASE_EMBED_PROFILE"
         elif get_cli_profile_override() is not None:
             source = "cli_flag"
         elif pm.get_active_profile():
@@ -1460,8 +1460,8 @@ def do_profile_command(args: list[str]) -> int:
 
         if source == "default":
             print("  \033[2mSource:\033[0m Default (no profile specified)")
-        elif source == "AGENTSTRATUM_EMBED_PROFILE":
-            print("  \033[2mSource:\033[0m AGENTSTRATUM_EMBED_PROFILE environment variable")
+        elif source == "CONTEXTBASE_EMBED_PROFILE":
+            print("  \033[2mSource:\033[0m CONTEXTBASE_EMBED_PROFILE environment variable")
         elif source == "cli_flag":
             print("  \033[2mSource:\033[0m --profile flag")
         elif source == "active_profile_file":
@@ -1513,7 +1513,7 @@ def main() -> None:
         # Handle configure
         if command == "configure":
             # Parse configure arguments
-            parser = argparse.ArgumentParser(prog="agentstratum-embed configure")
+            parser = argparse.ArgumentParser(prog="contextbase-embed configure")
             parser.add_argument("-p", "--profile", help="Profile name to create/update")
             parser.add_argument(
                 "--port",
@@ -1559,7 +1559,7 @@ def main() -> None:
         # Handle daemon subcommands
         if command == "daemon":
             # Parse daemon subcommand (profile already extracted globally)
-            parser = argparse.ArgumentParser(prog="agentstratum-embed daemon")
+            parser = argparse.ArgumentParser(prog="contextbase-embed daemon")
             subparsers = parser.add_subparsers(dest="daemon_command")
             start_parser = subparsers.add_parser("start", help="Start the daemon")
             start_parser.add_argument("--ui", action="store_true", help="Also start the web UI after daemon is ready")
@@ -1578,7 +1578,7 @@ def main() -> None:
 
         # Handle UI subcommands
         if command == "ui":
-            parser = argparse.ArgumentParser(prog="agentstratum-embed ui")
+            parser = argparse.ArgumentParser(prog="contextbase-embed ui")
             subparsers = parser.add_subparsers(dest="ui_command")
             start_parser = subparsers.add_parser("start", help="Start the UI")
             start_parser.add_argument("--port", type=int, help="Port for the UI (default: daemon_port + 10000)")
@@ -1602,7 +1602,7 @@ def main() -> None:
 
         # Handle control-center subcommands
         if command == "control":
-            parser = argparse.ArgumentParser(prog="agentstratum-embed control")
+            parser = argparse.ArgumentParser(prog="contextbase-embed control")
             subparsers = parser.add_subparsers(dest="control_command")
             start_parser = subparsers.add_parser("start", help="Start the control center web app")
             start_parser.add_argument("--port", type=int, help="Port for the control center (default: 7878)")
@@ -1630,17 +1630,17 @@ def main() -> None:
         # Check for common mistakes - these are daemon subcommands, not top-level commands
         if command in ("start", "stop", "status", "logs"):
             print(f"error: '{command}' is not a direct command", file=sys.stderr)
-            print(f"\nDid you mean: agentstratum-embed daemon {command}", file=sys.stderr)
+            print(f"\nDid you mean: contextbase-embed daemon {command}", file=sys.stderr)
             if global_profile:
                 print(f"              (with --profile {global_profile})", file=sys.stderr)
             sys.exit(1)
 
-        # Forward all other commands to agentstratum-cli
+        # Forward all other commands to contextbase-cli
         config = get_config()
 
         from . import daemon_client
 
-        # Forward to agentstratum-cli (handles daemon startup and CLI installation)
+        # Forward to contextbase-cli (handles daemon startup and CLI installation)
         # Pass the same resolved profile used to load the configuration.
         # remaining_args already has --profile/-p filtered out
         exit_code = daemon_client.run_cli(remaining_args, config, resolved_profile)
@@ -1653,9 +1653,9 @@ def main() -> None:
 
 def print_help():
     """Print help message."""
-    print("""Agentstratum Embedded CLI - local memory operations with automatic daemon management.
+    print("""ContextBase Embedded CLI - local memory operations with automatic daemon management.
 
-Usage: agentstratum-embed [-p PROFILE] <command> [options]
+Usage: contextbase-embed [-p PROFILE] <command> [options]
 
 Profile management:
     profile create NAME --port PORT [--env KEY=VALUE ...]   Create a new profile
@@ -1684,28 +1684,28 @@ Control center (config wizard + daemon supervisor):
     control status [--port PORT]              Check control center status
     control logs [-f] [-n]                    View control center logs
 
-CLI commands (forwarded to agentstratum-cli):
+CLI commands (forwarded to contextbase-cli):
     memory retain <bank> <content>   Store a memory
     memory recall <bank> <query>     Search memories
     memory reflect <bank> <query>    Generate contextual answer
     bank list                        List memory banks
-    ...                              Run 'agentstratum --help' for all commands
+    ...                              Run 'contextbase --help' for all commands
 
 Global options:
     -p, --profile PROFILE  Profile to use for commands
 
 Examples:
     # Create a profile
-    agentstratum-embed profile create my-app --port 9100 --env AGENTSTRATUM_API_LLM_PROVIDER=openai
+    contextbase-embed profile create my-app --port 9100 --env CONTEXTBASE_API_LLM_PROVIDER=openai
 
     # Manage environment variables
-    agentstratum-embed profile set-env my-app AGENTSTRATUM_API_LLM_MODEL gpt-4
-    agentstratum-embed profile remove-env my-app AGENTSTRATUM_API_LLM_MODEL
+    contextbase-embed profile set-env my-app CONTEXTBASE_API_LLM_MODEL gpt-4
+    contextbase-embed profile remove-env my-app CONTEXTBASE_API_LLM_MODEL
 
     # Use profile with commands
-    agentstratum-embed -p my-app daemon start
-    agentstratum-embed -p my-app memory retain default "User prefers dark mode"
-    agentstratum-embed --profile my-app bank list
+    contextbase-embed -p my-app daemon start
+    contextbase-embed -p my-app memory retain default "User prefers dark mode"
+    contextbase-embed --profile my-app bank list
 
 Note: 'configure' command is deprecated, use 'profile create' instead.
 """)

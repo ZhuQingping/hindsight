@@ -6,7 +6,7 @@ export class RemoteConnectionError extends Error {}
 export function validateRemoteEndpoint(value: string): string {
   if (!value.trim()) {
     throw new RemoteConnectionError(
-      "API Endpoint is required. Copy it from your console and set apiUrl or AGENTSTRATUM_API_URL."
+      "API Endpoint is required. Copy it from your console and set apiUrl or CONTEXTBASE_API_URL."
     );
   }
   let url: URL;

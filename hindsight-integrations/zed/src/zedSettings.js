@@ -1,9 +1,9 @@
 /**
- * Wire Hindsight into Zed's MCP `context_servers` block.
+ * Wire ContextBase into Zed's MCP `context_servers` block.
  *
  * Zed connects to remote MCP servers natively (`{ url, headers }`), so we point it
- * straight at Hindsight's HTTP MCP endpoint. The server is registered under
- * `context_servers.hindsight` in Zed's `settings.json`. Re-running `init` replaces
+ * straight at ContextBase's HTTP MCP endpoint. The server is registered under
+ * `context_servers.contextbase` in Zed's `settings.json`. Re-running `init` replaces
  * an older `npx mcp-remote` bridge entry with the native form.
  *
  * Zed's `settings.json` is JSONC (it allows comments and trailing commas), which
@@ -19,22 +19,22 @@ import { isDeepStrictEqual } from "node:util";
 
 import { isFile } from "./fsutil.js";
 
-export const SERVER_NAME = "hindsight";
+export const SERVER_NAME = "contextbase";
 
 /** Zed's user `settings.json` (`~/.config/zed` on macOS and Linux). */
 export function defaultSettingsPath() {
   return join(homedir(), ".config", "zed", "settings.json");
 }
 
-/** The Hindsight MCP endpoint for a bank (bank is the last path segment). */
+/** The ContextBase MCP endpoint for a bank (bank is the last path segment). */
 export function mcpEndpointUrl(apiUrl, bankId) {
   return `${apiUrl.replace(/\/+$/, "")}/mcp/${bankId}/`;
 }
 
 /**
- * Build the `context_servers.hindsight` entry for Zed's settings.
+ * Build the `context_servers.contextbase` entry for Zed's settings.
  *
- * Returns Zed's native remote-server entry for the Hindsight MCP endpoint, with a
+ * Returns Zed's native remote-server entry for the ContextBase MCP endpoint, with a
  * Bearer auth header when a token is set (omitted for an open self-hosted server).
  */
 export function buildContextServer(apiUrl, apiToken, bankId) {
@@ -67,7 +67,7 @@ function isPlainObject(value) {
 }
 
 /**
- * Add/update `context_servers.hindsight` in Zed's settings at `path`.
+ * Add/update `context_servers.contextbase` in Zed's settings at `path`.
  *
  * Returns `{ action, path, snippet? }` where `action` is one of `created`,
  * `merged`, `unchanged`, or `manual` (JSONC we won't rewrite — `snippet` holds
@@ -101,7 +101,7 @@ export function applyToSettings(path, server) {
   return { action: "merged", path };
 }
 
-/** Remove `context_servers.hindsight` from Zed's settings at `path`. */
+/** Remove `context_servers.contextbase` from Zed's settings at `path`. */
 export function removeFromSettings(path) {
   const data = loadStrict(path);
   if (data === null) {

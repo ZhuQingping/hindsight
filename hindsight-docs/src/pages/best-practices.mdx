@@ -1,12 +1,12 @@
 ---
 title: Best Practices
-description: Practical guidance for agents and developers integrating Hindsight memory into production systems.
+description: Practical guidance for agents and developers integrating ContextBase memory into production systems.
 hide_table_of_contents: true
 ---
 
 import PageHero from '@site/src/components/PageHero';
 
-<PageHero title="Best Practices" subtitle="Practical guidance for agents and developers integrating Hindsight memory into production systems." />
+<PageHero title="Best Practices" subtitle="Practical guidance for agents and developers integrating ContextBase memory into production systems." />
 
 **Contents**
 - [Core Concepts](#core-concepts) — Memory banks, taxonomy, memory types
@@ -39,7 +39,7 @@ Banks are auto-created on first use. Configure them before ingesting data to ste
 |-----------|-------------|-----------------|
 | **Retain** | Ingests raw content (conversations, documents, notes). The LLM extracts facts, entities, and relationships — raw content is never stored verbatim. | After each conversation turn or session ends |
 | **Recall** | Retrieves relevant memories using 4 parallel strategies: semantic search, BM25, graph traversal, and temporal ranking. Returns a ranked list of facts. | Before generating a response that benefits from past context |
-| **Reflect** | Autonomous reasoning loop: searches memory, synthesizes an answer, and returns it directly. Uses mental models and observations hierarchically. | When you want Hindsight to answer a question, not just retrieve facts |
+| **Reflect** | Autonomous reasoning loop: searches memory, synthesizes an answer, and returns it directly. Uses mental models and observations hierarchically. | When you want ContextBase to answer a question, not just retrieve facts |
 | **Observations** | Deduplicated, evidence-grounded knowledge consolidated from multiple facts. Each observation tracks its supporting memories with exact quotes and proof counts. Refined — not overwritten — when new evidence supports, contradicts, or extends them. | Triggered automatically after retain — not part of the retain call itself |
 | **Mental Models** | Pre-computed reflect responses stored for common queries. Return instantly and consistently. | Create for repeated high-traffic queries or slowly-changing user profiles |
 
@@ -466,7 +466,7 @@ recall(query="user preferences", query_timestamp=datetime.utcnow().isoformat() +
 
 | Use `recall` when | Use `reflect` when |
 |-------------------|--------------------|
-| Agent will reason over facts itself | You want Hindsight to reason and return an answer |
+| Agent will reason over facts itself | You want ContextBase to reason and return an answer |
 | You need raw citations | You need a synthesized response |
 | You're building a RAG pipeline | You want an autonomous multi-step search loop |
 | Latency is critical | Response quality matters more than latency |
@@ -565,7 +565,7 @@ Create narrow, scoped models — one per knowledge dimension. A mental model tit
 
 | Anti-pattern | Problem | Fix |
 |-------------|---------|-----|
-| Pre-summarizing before retain | Loses entity relationships, temporal markers, structural context | Retain raw content; Hindsight extracts facts |
+| Pre-summarizing before retain | Loses entity relationships, temporal markers, structural context | Retain raw content; ContextBase extracts facts |
 | Using random UUIDs as `document_id` | Creates duplicate documents on every retain | Use stable session/ticket/document IDs |
 | Omitting the `context` field | Reduces extraction quality significantly | Always describe what kind of data this is |
 | Using `metadata` for filtering | Metadata is not filterable | Use `tags` for anything you'll filter on |

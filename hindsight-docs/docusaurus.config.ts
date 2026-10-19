@@ -12,12 +12,12 @@ const umamiWebsiteId = process.env.UMAMI_WEBSITE_ID;
 // points at the thing we want people to do, not off-site. The paper used to live
 // here and now sits in the homepage hero, which is where a visitor who wants
 // evidence is already looking.
-const ANNOUNCEMENT_BAR = 'Sign up with GitHub and get <strong>$5 of free credit</strong> on Hindsight Cloud. <a href="https://ui.hindsight.vectorize.io/signup" target="_blank">Claim it →</a>';
+const ANNOUNCEMENT_BAR = '';
 
 const config: Config = {
-  title: 'Hindsight',
+  title: 'ContextBase',
   tagline: 'Hindsight: Agent Memory That Learns',
-  favicon: 'img/favicon.png',
+  favicon: 'img/contextbase.svg',
 
   future: {
     v4: true,
@@ -42,10 +42,10 @@ const config: Config = {
     mermaid: true,
   },
 
-  url: 'https://hindsight.vectorize.io',
+  url: process.env.CONTEXTBASE_DOCS_URL || 'http://localhost:3000',
   baseUrl: '/',
 
-  organizationName: 'vectorize-io',
+  organizationName: 'RSIXDB',
   projectName: 'hindsight',
   trailingSlash: false,
 
@@ -146,7 +146,7 @@ const config: Config = {
         },
         blog: {
           showReadingTime: true,
-          blogTitle: 'Hindsight Blog',
+          blogTitle: 'ContextBase Blog',
           blogDescription: 'Updates, insights, and deep dives into agent memory',
           postsPerPage: 'ALL',
           blogSidebarCount: 0,
@@ -265,7 +265,7 @@ const config: Config = {
     image: 'img/social-card.png',
     // Fallback for pages with no description of their own; a page's own one wins.
     metadata: [
-      {name: 'description', content: 'State of the art long-term memory for your agents. Hindsight gives AI agents memory that learns across sessions.'},
+      {name: 'description', content: 'State of the art long-term memory for your agents. ContextBase gives AI agents memory that learns across sessions.'},
     ],
     colorMode: {
       defaultMode: 'dark',
@@ -273,8 +273,8 @@ const config: Config = {
     },
     navbar: {
       logo: {
-        alt: 'Hindsight Logo',
-        src: 'img/logo.png',
+        alt: 'ContextBase Logo',
+        src: 'img/contextbase.svg',
         style: { height: '32px' },
       },
       items: [
@@ -369,7 +369,7 @@ const config: Config = {
           ],
         },
         {
-          href: 'https://github.com/vectorize-io/hindsight',
+          href: 'https://github.com/RSIXDB/hindsight',
           position: 'right',
           label: 'GitHub',
           className: 'header-github-link',
@@ -377,10 +377,10 @@ const config: Config = {
         // Rendered last on the right (after the color-mode toggle) by
         // src/theme/Navbar/Content — the only call to action up there.
         {
-          href: 'https://ui.hindsight.vectorize.io',
+          href: '/developer/installation',
           position: 'right',
           // "Sign up" names a cost; "Start free" names what you get. Same link.
-          label: 'Start free',
+          label: 'Get started',
           className: 'navbar-item-signup',
         },
       ],
@@ -433,8 +433,8 @@ const config: Config = {
               href: 'https://learn.hindsight.vectorize.io',
             },
             {
-              label: 'Hindsight Cloud',
-              href: 'https://ui.hindsight.vectorize.io',
+              label: 'ContextBase Cloud',
+              href: '/developer/installation',
             },
           ],
         },
@@ -443,7 +443,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/vectorize-io/hindsight',
+              href: 'https://github.com/RSIXDB/hindsight',
             },
             {
               label: 'Slack',

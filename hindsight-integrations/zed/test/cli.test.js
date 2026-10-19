@@ -53,7 +53,7 @@ test("init writes settings, rule, and scaffolds config", () => {
 
     const cfg = JSON.parse(readFileSync(join(dir, "zed.json"), "utf-8"));
     assert.equal(cfg.bankId, "proj");
-    assert.equal(cfg.hindsightApiToken, "tok");
+    assert.equal(cfg.contextbaseApiToken, "tok");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

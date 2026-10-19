@@ -1,6 +1,6 @@
 /**
  * Lightweight note normalization: split YAML frontmatter from the body and lift
- * a few well-known keys (tags, aliases, created/date) into Hindsight
+ * a few well-known keys (tags, aliases, created/date) into ContextBase
  * tags/metadata. Intentionally dependency-free and conservative — we do not try
  * to fully parse YAML, only the simple key/value and list forms Obsidian writes.
  */

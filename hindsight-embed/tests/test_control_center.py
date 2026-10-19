@@ -1,4 +1,4 @@
-"""Tests for the agentstratum-embed control center.
+"""Tests for the contextbase-embed control center.
 
 Covers the service layer (config read/write, alias stripping, key handling)
 and the HTTP server (token enforcement, routing) with the daemon lifecycle
@@ -16,25 +16,25 @@ from hindsight_embed.control_center.server import ControlCenterHandler
 
 
 @pytest.fixture
-def temp_agentstratum_dir(tmp_path, monkeypatch):
-    """Isolate ~/.agentstratum into a temp HOME (matches test_profile_manager)."""
+def temp_contextbase_dir(tmp_path, monkeypatch):
+    """Isolate ~/.contextbase into a temp HOME (matches test_profile_manager)."""
     from hindsight_embed.cli import set_cli_profile_override
 
     set_cli_profile_override(None)
-    monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+    monkeypatch.delenv("CONTEXTBASE_EMBED_PROFILE", raising=False)
     temp_home = tmp_path / "home"
     temp_home.mkdir()
     monkeypatch.setenv("HOME", str(temp_home))
     monkeypatch.setenv("USERPROFILE", str(temp_home))
-    (temp_home / ".agentstratum").mkdir()
-    return temp_home / ".agentstratum"
+    (temp_home / ".contextbase").mkdir()
+    return temp_home / ".contextbase"
 
 
 # --------------------------------------------------------------------------
 # service layer
 # --------------------------------------------------------------------------
 class TestService:
-    def test_save_and_read_default_profile(self, temp_agentstratum_dir):
+    def test_save_and_read_default_profile(self, temp_contextbase_dir):
         view = service.save_llm_config("", "openai", "sk-abcdef123456", "gpt-4o-mini", "")
         assert view.provider == "openai"
         assert view.model == "gpt-4o-mini"
@@ -43,55 +43,55 @@ class TestService:
         # round-trips through the "default" URL alias
         assert service.get_profile_config("default").provider == "openai"
 
-    def test_env_file_has_no_alias_keys(self, temp_agentstratum_dir):
+    def test_env_file_has_no_alias_keys(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-key1234567890", "m", "")
         raw = service._read_raw_env("")
         assert raw  # not empty
         assert all(not k.islower() for k in raw), f"alias keys leaked: {raw}"
 
-    def test_api_key_unchanged_preserves_key(self, temp_agentstratum_dir):
+    def test_api_key_unchanged_preserves_key(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-original12345", "m", "")
         after = service.save_llm_config("", "openai", service.API_KEY_UNCHANGED, "", "")
         assert after.has_api_key, "key must survive an unchanged save"
         assert after.model is None, "empty model clears the override"
 
-    def test_empty_api_key_clears_it(self, temp_agentstratum_dir):
+    def test_empty_api_key_clears_it(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-original12345", "m", "")
         after = service.save_llm_config("", "openai", "", "m", "")
         assert not after.has_api_key
 
-    def test_base_url_preserved_when_not_sent(self, temp_agentstratum_dir):
+    def test_base_url_preserved_when_not_sent(self, temp_contextbase_dir):
         # base_url is no longer in the wizard; saving without it (None) must keep
         # an existing override, while "" still clears it.
         service.save_llm_config("w", "openai", "sk-key1234567890", "", "https://custom.example/v1")
         service.save_llm_config("w", "openai", service.API_KEY_UNCHANGED, "", None)
-        assert service._read_raw_env("w")["AGENTSTRATUM_API_LLM_BASE_URL"] == "https://custom.example/v1"
+        assert service._read_raw_env("w")["CONTEXTBASE_API_LLM_BASE_URL"] == "https://custom.example/v1"
         service.save_llm_config("w", "openai", service.API_KEY_UNCHANGED, "", "")
-        assert "AGENTSTRATUM_API_LLM_BASE_URL" not in service._read_raw_env("w")
+        assert "CONTEXTBASE_API_LLM_BASE_URL" not in service._read_raw_env("w")
 
-    def test_named_profile_write_creates_file(self, temp_agentstratum_dir):
+    def test_named_profile_write_creates_file(self, temp_contextbase_dir):
         service.save_llm_config("work", "groq", "gsk-key1234567890", "", "")
         cfg = service.get_profile_config("work")
         assert cfg.provider == "groq"
-        assert (temp_agentstratum_dir / "profiles" / "work.env").exists()
+        assert (temp_contextbase_dir / "profiles" / "work.env").exists()
 
-    def test_list_profiles_includes_default(self, temp_agentstratum_dir):
+    def test_list_profiles_includes_default(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-key1234567890", "", "")
         names = {p.display_name for p in service.list_profiles()}
         assert "default" in names
 
-    def test_save_requires_provider(self, temp_agentstratum_dir):
+    def test_save_requires_provider(self, temp_contextbase_dir):
         with pytest.raises(ValueError):
             service.save_llm_config("", "", "k", "", "")
 
-    def test_raw_env_roundtrip(self, temp_agentstratum_dir):
-        service.write_env_file("", "AGENTSTRATUM_API_LLM_PROVIDER=groq\nAGENTSTRATUM_API_LLM_API_KEY=gsk-x\n")
+    def test_raw_env_roundtrip(self, temp_contextbase_dir):
+        service.write_env_file("", "CONTEXTBASE_API_LLM_PROVIDER=groq\nCONTEXTBASE_API_LLM_API_KEY=gsk-x\n")
         view = service.read_env_file("default")
         assert view.exists and "groq" in view.content
         # raw edit is reflected in the structured view
         assert service.get_profile_config("").provider == "groq"
 
-    def test_raw_env_io_is_utf8_regardless_of_locale(self, temp_agentstratum_dir, monkeypatch):
+    def test_raw_env_io_is_utf8_regardless_of_locale(self, temp_contextbase_dir, monkeypatch):
         """The control center touches the same profile .env as the CLI (#3837).
 
         The generated template carries em dashes, so on a legacy Windows
@@ -111,15 +111,15 @@ class TestService:
 
         monkeypatch.setattr(io, "open", narrow_open)
 
-        service.write_env_file("", "# \u4fdd\u5b58 \u2014 keep this comment\nAGENTSTRATUM_API_LLM_PROVIDER=groq\n")
+        service.write_env_file("", "# \u4fdd\u5b58 \u2014 keep this comment\nCONTEXTBASE_API_LLM_PROVIDER=groq\n")
         assert "\u2014" in service.read_env_file("").content
-        assert service._read_raw_env("")["AGENTSTRATUM_API_LLM_PROVIDER"] == "groq"
+        assert service._read_raw_env("")["CONTEXTBASE_API_LLM_PROVIDER"] == "groq"
 
-    def test_write_env_adds_trailing_newline(self, temp_agentstratum_dir):
-        view = service.write_env_file("", "AGENTSTRATUM_API_LLM_PROVIDER=openai")
+    def test_write_env_adds_trailing_newline(self, temp_contextbase_dir):
+        view = service.write_env_file("", "CONTEXTBASE_API_LLM_PROVIDER=openai")
         assert view.content.endswith("\n")
 
-    def test_profile_paths_references(self, temp_agentstratum_dir):
+    def test_profile_paths_references(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-key1234567890", "", "")
         paths = service.get_profile_paths("")
         assert paths.config_path.endswith("embed")
@@ -127,17 +127,17 @@ class TestService:
         assert paths.daemon_url.startswith("http://localhost:")
         assert "127.0.0.1" not in paths.ui_url and "0.0.0.0" not in paths.ui_url
 
-    def test_tail_log_missing_file(self, temp_agentstratum_dir):
+    def test_tail_log_missing_file(self, temp_contextbase_dir):
         view = service.tail_log("", 10)
         assert view.exists is False and view.content == ""
 
-    def test_tail_log_source_picks_daemon_or_ui(self, temp_agentstratum_dir):
+    def test_tail_log_source_picks_daemon_or_ui(self, temp_contextbase_dir):
         daemon = service.tail_log("", 10, "daemon")
         ui = service.tail_log("", 10, "ui")
         assert daemon.path.endswith(".log") and not daemon.path.endswith(".ui.log")
         assert ui.path.endswith(".ui.log")
 
-    def test_tail_log_reads_utf8_regardless_of_locale(self, temp_agentstratum_dir, monkeypatch):
+    def test_tail_log_reads_utf8_regardless_of_locale(self, temp_contextbase_dir, monkeypatch):
         import io
 
         from hindsight_embed.profile_manager import ProfileManager
@@ -155,64 +155,64 @@ class TestService:
 
         assert service.tail_log("", 10).content == "retained — 保存"
 
-    def test_delete_named_profile(self, temp_agentstratum_dir):
+    def test_delete_named_profile(self, temp_contextbase_dir):
         service.save_llm_config("scratch", "openai", "sk-key1234567890", "", "")
-        assert (temp_agentstratum_dir / "profiles" / "scratch.env").exists()
+        assert (temp_contextbase_dir / "profiles" / "scratch.env").exists()
         result = service.delete_profile("scratch")
         assert result.ok
-        assert not (temp_agentstratum_dir / "profiles" / "scratch.env").exists()
+        assert not (temp_contextbase_dir / "profiles" / "scratch.env").exists()
 
-    def test_delete_default_profile_refused(self, temp_agentstratum_dir):
+    def test_delete_default_profile_refused(self, temp_contextbase_dir):
         service.save_llm_config("", "openai", "sk-key1234567890", "", "")
         result = service.delete_profile("default")
         assert result.ok is False and "default" in result.message.lower()
 
-    def test_config_exposes_ports(self, temp_agentstratum_dir):
+    def test_config_exposes_ports(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "")
         cfg = service.get_profile_config("work")
         assert 8889 <= cfg.api_port <= 9888
         assert cfg.ui_port == cfg.api_port + 10000
         assert cfg.ui_port_is_default
 
-    def test_save_pins_ports(self, temp_agentstratum_dir):
+    def test_save_pins_ports(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "")
         cfg = service.save_llm_config(
             "work", "openai", service.API_KEY_UNCHANGED, "", "", api_port="9500", ui_port="25000"
         )
         assert cfg.api_port == 9500 and cfg.ui_port == 25000 and cfg.ui_port_is_default is False
         raw = service._read_raw_env("work")
-        assert raw["AGENTSTRATUM_API_PORT"] == "9500" and raw["AGENTSTRATUM_EMBED_CP_PORT"] == "25000"
+        assert raw["CONTEXTBASE_API_PORT"] == "9500" and raw["CONTEXTBASE_EMBED_CP_PORT"] == "25000"
 
-    def test_blank_ui_port_derives_from_api(self, temp_agentstratum_dir):
+    def test_blank_ui_port_derives_from_api(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "", api_port="9500", ui_port="25000")
         cfg = service.save_llm_config("work", "openai", service.API_KEY_UNCHANGED, "", "", api_port="9500", ui_port="")
         assert cfg.ui_port == 19500 and cfg.ui_port_is_default
-        assert "AGENTSTRATUM_EMBED_CP_PORT" not in service._read_raw_env("work")
+        assert "CONTEXTBASE_EMBED_CP_PORT" not in service._read_raw_env("work")
 
-    def test_versions_default_to_none(self, temp_agentstratum_dir):
+    def test_versions_default_to_none(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "")
         cfg = service.get_profile_config("work")
         assert cfg.api_version is None and cfg.cp_version is None
 
-    def test_save_pins_versions(self, temp_agentstratum_dir):
+    def test_save_pins_versions(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "")
         cfg = service.save_llm_config(
             "work", "openai", service.API_KEY_UNCHANGED, "", "", api_version="0.7.0", cp_version="0.8.1"
         )
         assert cfg.api_version == "0.7.0" and cfg.cp_version == "0.8.1"
         raw = service._read_raw_env("work")
-        assert raw["AGENTSTRATUM_EMBED_API_VERSION"] == "0.7.0" and raw["AGENTSTRATUM_EMBED_CP_VERSION"] == "0.8.1"
+        assert raw["CONTEXTBASE_EMBED_API_VERSION"] == "0.7.0" and raw["CONTEXTBASE_EMBED_CP_VERSION"] == "0.8.1"
 
-    def test_blank_version_removes_override(self, temp_agentstratum_dir):
+    def test_blank_version_removes_override(self, temp_contextbase_dir):
         service.save_llm_config("work", "openai", "sk-key1234567890", "", "", api_version="0.7.0", cp_version="0.8.1")
         cfg = service.save_llm_config(
             "work", "openai", service.API_KEY_UNCHANGED, "", "", api_version="", cp_version=""
         )
         assert cfg.api_version is None and cfg.cp_version is None
         raw = service._read_raw_env("work")
-        assert "AGENTSTRATUM_EMBED_API_VERSION" not in raw and "AGENTSTRATUM_EMBED_CP_VERSION" not in raw
+        assert "CONTEXTBASE_EMBED_API_VERSION" not in raw and "CONTEXTBASE_EMBED_CP_VERSION" not in raw
 
-    def test_health_reports_down_when_no_daemon(self, temp_agentstratum_dir, monkeypatch):
+    def test_health_reports_down_when_no_daemon(self, temp_contextbase_dir, monkeypatch):
         from hindsight_embed import daemon_client
 
         monkeypatch.setattr(service, "_http_get", lambda *a, **k: None)
@@ -221,7 +221,7 @@ class TestService:
         assert h.api_ok is False and h.ui_ok is False
         assert h.api_detail == "unreachable"
 
-    def test_health_reports_healthy(self, temp_agentstratum_dir, monkeypatch):
+    def test_health_reports_healthy(self, temp_contextbase_dir, monkeypatch):
         from hindsight_embed import daemon_client
 
         class _Resp:
@@ -249,13 +249,13 @@ class TestProviders:
 # lifecycle token
 # --------------------------------------------------------------------------
 class TestLifecycle:
-    def test_token_is_generated_and_stable(self, temp_agentstratum_dir):
+    def test_token_is_generated_and_stable(self, temp_contextbase_dir):
         t1 = lifecycle.get_or_create_token()
         assert len(t1) > 20
         assert lifecycle.read_token() == t1
         assert lifecycle.get_or_create_token() == t1  # idempotent
 
-    def test_resolve_port_default_and_override(self, temp_agentstratum_dir, monkeypatch):
+    def test_resolve_port_default_and_override(self, temp_contextbase_dir, monkeypatch):
         monkeypatch.delenv(lifecycle.ENV_CONTROL_PORT, raising=False)
         assert lifecycle.resolve_control_port() == lifecycle.CONTROL_PORT_DEFAULT
         monkeypatch.setenv(lifecycle.ENV_CONTROL_PORT, "9191")
@@ -268,7 +268,7 @@ class TestLifecycle:
 # HTTP server (real socket, mocked daemon lifecycle)
 # --------------------------------------------------------------------------
 @pytest.fixture
-def server(temp_agentstratum_dir):
+def server(temp_contextbase_dir):
     """A running control-center server on an ephemeral port with a known token."""
     ControlCenterHandler.token = "test-token-secret"
     ControlCenterHandler.version = "test"
@@ -284,7 +284,7 @@ def server(temp_agentstratum_dir):
 
 
 def _auth(token="test-token-secret"):
-    return {"X-Agentstratum-Control-Token": token}
+    return {"X-ContextBase-Control-Token": token}
 
 
 class TestServer:
@@ -351,7 +351,7 @@ class TestServer:
         assert httpx.get(f"{server}/index.html.bak").status_code in (404, 401)
 
     def test_raw_env_roundtrip_over_http(self, server):
-        body = "AGENTSTRATUM_API_LLM_PROVIDER=groq\nAGENTSTRATUM_API_LLM_API_KEY=gsk-http\n"
+        body = "CONTEXTBASE_API_LLM_PROVIDER=groq\nCONTEXTBASE_API_LLM_API_KEY=gsk-http\n"
         post = httpx.post(f"{server}/api/profiles/default/env", headers=_auth(), json={"content": body})
         assert post.status_code == 200 and "groq" in post.json()["content"]
         get = httpx.get(f"{server}/api/profiles/default/env", headers=_auth())

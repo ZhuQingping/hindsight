@@ -8,9 +8,9 @@
  *   - Retention transcript formatting
  */
 
-/** Strip <hindsight_memories> and <relevant_memories> blocks to prevent retain feedback loops. */
+/** Strip <contextbase_memories> and <relevant_memories> blocks to prevent retain feedback loops. */
 export function stripMemoryTags(content: string): string {
-  content = content.replace(/<hindsight_memories>[\s\S]*?<\/hindsight_memories>/g, "");
+  content = content.replace(/<contextbase_memories>[\s\S]*?<\/contextbase_memories>/g, "");
   content = content.replace(/<relevant_memories>[\s\S]*?<\/relevant_memories>/g, "");
   return content;
 }

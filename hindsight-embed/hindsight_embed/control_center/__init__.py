@@ -1,13 +1,13 @@
-"""Agentstratum Embed control center.
+"""ContextBase Embed control center.
 
-A persistent, localhost-only web app bundled in agentstratum-embed that writes
+A persistent, localhost-only web app bundled in contextbase-embed that writes
 profile configuration (the LLM setup wizard) and supervises the daemon
 (start/stop/restart/status). It is a thin web front-end over ``ProfileManager``
 and ``daemon_client`` — it owns no lifecycle logic of its own, so it can be
 restarted without affecting a running daemon.
 
 The desktop app (and headless users) simply open the URL printed by
-``agentstratum-embed control start``; no logic is reimplemented downstream.
+``contextbase-embed control start``; no logic is reimplemented downstream.
 """
 
 from .lifecycle import (

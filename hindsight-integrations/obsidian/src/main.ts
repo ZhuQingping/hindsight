@@ -1,20 +1,20 @@
 import { type Debouncer, Notice, Plugin, TFile, addIcon, debounce, setIcon } from "obsidian";
-import { HINDSIGHT_ICON_ID, HINDSIGHT_ICON_SVG, HINDSIGHT_MARK_DATA_URI } from "./branding";
+import { CONTEXTBASE_ICON_ID, CONTEXTBASE_ICON_SVG, CONTEXTBASE_MARK_DATA_URI } from "./branding";
 import { ChatView, VIEW_TYPE_CHAT } from "./chat-view";
 import { HindsightClient } from "./client";
 import { obsidianTransport } from "./obsidian-transport";
-import { DEFAULT_SETTINGS, type HindsightSettings, HindsightSettingTab } from "./settings";
+import { DEFAULT_SETTINGS, type ContextBaseSettings, ContextBaseSettingTab } from "./settings";
 import { SyncEngine, type SyncConfig, type SyncIndex, type SyncVault } from "./sync";
 import { type SyncStatus, renderSyncStatus } from "./status-bar";
 
 interface PluginData {
-  settings: HindsightSettings;
+  settings: ContextBaseSettings;
   syncIndex: SyncIndex;
   lastSyncAt: number | null;
 }
 
-export default class HindsightPlugin extends Plugin {
-  settings: HindsightSettings = { ...DEFAULT_SETTINGS };
+export default class ContextBasePlugin extends Plugin {
+  settings: ContextBaseSettings = { ...DEFAULT_SETTINGS };
   private syncIndex: SyncIndex = {};
   private client: HindsightClient | null = null;
   private engine: SyncEngine | null = null;
@@ -33,18 +33,18 @@ export default class HindsightPlugin extends Plugin {
     this.rebuildClient();
     this.scheduleFlush = debounce(() => void this.flushDirty(), 4000, false);
 
-    addIcon(HINDSIGHT_ICON_ID, HINDSIGHT_ICON_SVG);
+    addIcon(CONTEXTBASE_ICON_ID, CONTEXTBASE_ICON_SVG);
     this.registerView(VIEW_TYPE_CHAT, (leaf) => new ChatView(leaf, this));
-    // Replace the ribbon glyph with the real Hindsight logo (PNG can't go through addIcon).
+    // Replace the ribbon glyph with the real ContextBase logo (PNG can't go through addIcon).
     const ribbon = this.addRibbonIcon(
-      HINDSIGHT_ICON_ID,
-      "Hindsight chat",
+      CONTEXTBASE_ICON_ID,
+      "ContextBase chat",
       () => void this.activateChat()
     );
     ribbon.empty();
     ribbon.createEl("img", {
-      cls: "hindsight-ribbon-icon",
-      attr: { src: HINDSIGHT_MARK_DATA_URI, alt: "Hindsight" },
+      cls: "contextbase-ribbon-icon",
+      attr: { src: CONTEXTBASE_MARK_DATA_URI, alt: "ContextBase" },
     });
 
     this.addCommand({
@@ -77,15 +77,15 @@ export default class HindsightPlugin extends Plugin {
       },
     });
 
-    this.addSettingTab(new HindsightSettingTab(this.app, this));
+    this.addSettingTab(new ContextBaseSettingTab(this.app, this));
     this.registerVaultWatchers();
 
     // Persistent sync indicator: text + a refresh button, click to sync now,
     // refreshed on a timer so "x ago" stays live.
     this.statusBarEl = this.addStatusBarItem();
-    this.statusBarEl.addClass("mod-clickable", "hindsight-statusbar");
+    this.statusBarEl.addClass("mod-clickable", "contextbase-statusbar");
     this.statusTextEl = this.statusBarEl.createSpan();
-    this.statusIconEl = this.statusBarEl.createSpan({ cls: "hindsight-statusbar__icon" });
+    this.statusIconEl = this.statusBarEl.createSpan({ cls: "contextbase-statusbar__icon" });
     setIcon(this.statusIconEl, "refresh-cw");
     this.statusBarEl.addEventListener("click", () => void this.syncVault());
     this.registerInterval(window.setInterval(() => this.updateStatusBar(), 30_000));
@@ -182,16 +182,16 @@ export default class HindsightPlugin extends Plugin {
 
   async syncVault(): Promise<void> {
     if (!this.engine) {
-      new Notice("Hindsight: configure an API URL first.");
+      new Notice("ContextBase: configure an API URL first.");
       return;
     }
-    new Notice("Hindsight: syncing vault…");
+    new Notice("ContextBase: syncing vault…");
     try {
       const engine = this.engine;
       const s = await this.withSync(() => engine.reconcile());
       await this.savePluginData();
       new Notice(
-        `Hindsight: ${s.added} added, ${s.updated} updated, ${s.deleted} deleted, ${s.unchanged} unchanged.`
+        `ContextBase: ${s.added} added, ${s.updated} updated, ${s.deleted} deleted, ${s.unchanged} unchanged.`
       );
     } catch (err) {
       this.reportError(err);
@@ -204,7 +204,7 @@ export default class HindsightPlugin extends Plugin {
       const engine = this.engine;
       const outcome = await this.withSync(() => engine.ingestFile(file, { force: true }));
       await this.savePluginData();
-      new Notice(`Hindsight: note ${outcome}.`);
+      new Notice(`ContextBase: note ${outcome}.`);
     } catch (err) {
       this.reportError(err);
     }
@@ -318,7 +318,7 @@ export default class HindsightPlugin extends Plugin {
 
   private reportError(err: unknown): void {
     const detail = err instanceof Error ? err.message : String(err);
-    console.error("[hindsight]", err);
-    new Notice(`Hindsight: ${detail}`);
+    console.error("[contextbase]", err);
+    new Notice(`ContextBase: ${detail}`);
   }
 }

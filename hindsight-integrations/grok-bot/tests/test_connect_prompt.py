@@ -29,7 +29,7 @@ REQUIRED = (
 
 
 def test_prompt_uses_the_root_cloud_url() -> None:
-    assert "https://api.hindsight.vectorize.io/mcp\n" in PROMPT
+    assert "http://localhost:8888/mcp\n" in PROMPT
     assert "/mcp/" not in PROMPT
 
 

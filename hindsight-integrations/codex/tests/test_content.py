@@ -30,10 +30,10 @@ def _write_jsonl(tmp_path, entries):
 
 
 class TestStripMemoryTags:
-    def test_strips_hindsight_memories_block(self):
-        raw = "before\n<hindsight_memories>secret</hindsight_memories>\nafter"
+    def test_strips_contextbase_memories_block(self):
+        raw = "before\n<contextbase_memories>secret</contextbase_memories>\nafter"
         result = strip_memory_tags(raw)
-        assert "hindsight_memories" not in result
+        assert "contextbase_memories" not in result
         assert "before" in result
         assert "after" in result
 
@@ -48,7 +48,7 @@ class TestStripMemoryTags:
         assert strip_memory_tags(raw) == raw
 
     def test_strips_multiline_block(self):
-        raw = "<hindsight_memories>\n- mem1\n- mem2\n</hindsight_memories>"
+        raw = "<contextbase_memories>\n- mem1\n- mem2\n</contextbase_memories>"
         assert strip_memory_tags(raw).strip() == ""
 
 
@@ -69,10 +69,13 @@ class TestSyntheticCodexUserMessage:
 
 class TestReadTranscriptFlat:
     def test_reads_flat_format(self, tmp_path):
-        path = _write_jsonl(tmp_path, [
-            {"role": "user", "content": "hello"},
-            {"role": "assistant", "content": "hi there"},
-        ])
+        path = _write_jsonl(
+            tmp_path,
+            [
+                {"role": "user", "content": "hello"},
+                {"role": "assistant", "content": "hi there"},
+            ],
+        )
         msgs = read_transcript(path)
         assert len(msgs) == 2
         assert msgs[0] == {"role": "user", "content": "hello"}
@@ -223,8 +226,10 @@ class TestSliceLastTurnsByUserBoundary:
 
     def test_slices_to_last_one_turn(self):
         msgs = _msgs(
-            ("user", "first"), ("assistant", "a1"),
-            ("user", "second"), ("assistant", "a2"),
+            ("user", "first"),
+            ("assistant", "a1"),
+            ("user", "second"),
+            ("assistant", "a2"),
         )
         result = slice_last_turns_by_user_boundary(msgs, 1)
         assert result[0]["content"] == "second"
@@ -232,9 +237,12 @@ class TestSliceLastTurnsByUserBoundary:
 
     def test_slices_to_last_two_turns(self):
         msgs = _msgs(
-            ("user", "u1"), ("assistant", "a1"),
-            ("user", "u2"), ("assistant", "a2"),
-            ("user", "u3"), ("assistant", "a3"),
+            ("user", "u1"),
+            ("assistant", "a1"),
+            ("user", "u2"),
+            ("assistant", "a2"),
+            ("user", "u3"),
+            ("assistant", "a3"),
         )
         result = slice_last_turns_by_user_boundary(msgs, 2)
         assert result[0]["content"] == "u2"
@@ -278,9 +286,9 @@ class TestComposeRecallQuery:
         assert result == "query"
 
     def test_strips_memory_tags_from_context(self):
-        msgs = _msgs(("user", "<hindsight_memories>secret</hindsight_memories> actual question"))
+        msgs = _msgs(("user", "<contextbase_memories>secret</contextbase_memories> actual question"))
         result = compose_recall_query("now", msgs, recall_context_turns=2)
-        assert "hindsight_memories" not in result
+        assert "contextbase_memories" not in result
         assert "secret" not in result
 
     def test_filters_by_recall_roles(self):
@@ -376,7 +384,7 @@ class TestPrepareRetentionTranscript:
         assert count == 4
 
     def test_strips_memory_tags(self):
-        msgs = _msgs(("user", "<hindsight_memories>leaked</hindsight_memories> actual question"))
+        msgs = _msgs(("user", "<contextbase_memories>leaked</contextbase_memories> actual question"))
         transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True)
         assert "leaked" not in transcript
         assert "actual question" in transcript
@@ -674,10 +682,13 @@ class TestReadTranscriptRich:
         assert msgs[0]["content"][0]["text"] == "The answer"
 
     def test_flat_format_works_in_rich_mode(self, tmp_path):
-        path = _write_jsonl(tmp_path, [
-            {"role": "user", "content": "hello"},
-            {"role": "assistant", "content": "hi"},
-        ])
+        path = _write_jsonl(
+            tmp_path,
+            [
+                {"role": "user", "content": "hello"},
+                {"role": "assistant", "content": "hi"},
+            ],
+        )
         msgs = read_transcript(path, include_tool_calls=True)
         assert len(msgs) == 2
         assert msgs[0]["content"] == [{"type": "text", "text": "hello"}]
@@ -730,9 +741,7 @@ class TestPrepareRetentionTranscriptJson:
             {"role": "user", "content": [{"type": "text", "text": "hello"}]},
             {"role": "assistant", "content": [{"type": "text", "text": "hi"}]},
         ]
-        transcript, count = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, count = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         assert count == 2
         parsed = json.loads(transcript)
         assert len(parsed) == 2
@@ -751,9 +760,7 @@ class TestPrepareRetentionTranscriptJson:
                 ],
             },
         ]
-        transcript, count = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
+        transcript, count = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
         parsed = json.loads(transcript)
         assistant = parsed[1]
         assert any(b["type"] == "tool_use" for b in assistant["content"])
@@ -764,14 +771,12 @@ class TestPrepareRetentionTranscriptJson:
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "<hindsight_memories>secret</hindsight_memories> real question"},
+                    {"type": "text", "text": "<contextbase_memories>secret</contextbase_memories> real question"},
                 ],
             },
         ]
-        transcript, _ = prepare_retention_transcript(
-            msgs, retain_full_window=True, include_tool_calls=True
-        )
-        assert "hindsight_memories" not in transcript
+        transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True, include_tool_calls=True)
+        assert "contextbase_memories" not in transcript
         assert "secret" not in transcript
         assert "real question" in transcript
 

@@ -6,7 +6,7 @@ from aiohttp.test_utils import TestServer
 from hindsight_client import Hindsight
 from hindsight_client_api.models.recall_response import RecallResponse
 from hindsight_client_api.models.recall_result import RecallResult
-from hindsight_langgraph import create_recall_node
+from contextbase_langgraph import create_recall_node
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
 
@@ -36,7 +36,7 @@ async def test_empty_recall_removes_previous_context_without_removing_other_mess
                 {"messages": [SystemMessage(content="Be helpful", id="app-system"), HumanMessage(content="Color?")]},
                 config={"configurable": {"user_id": "test"}},
             )
-            assert any(message.id == "hindsight_memory_context" for message in first["messages"])
+            assert any(message.id == "contextbase_memory_context" for message in first["messages"])
             second = await graph.ainvoke(
                 {
                     "messages": [
@@ -53,7 +53,7 @@ async def test_empty_recall_removes_previous_context_without_removing_other_mess
         if exit_case == "empty_results"
         else ["Color?"]
     )
-    assert all(message.id != "hindsight_memory_context" for message in second["messages"])
+    assert all(message.id != "contextbase_memory_context" for message in second["messages"])
     assert any(message.id == "app-system" and message.content == "Be helpful" for message in second["messages"])
     assert [message.content for message in second["messages"] if isinstance(message, HumanMessage)] == [
         "Color?",

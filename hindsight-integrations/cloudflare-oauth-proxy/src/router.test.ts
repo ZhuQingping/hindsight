@@ -9,11 +9,11 @@ function fakeEnv(): Env {
       parseAuthRequest: vi.fn(),
       completeAuthorization: vi.fn(),
     },
-    HINDSIGHT_ORIGIN: "https://origin.example.com",
+    CONTEXTBASE_ORIGIN: "https://origin.example.com",
     ALLOWED_EMAIL: "test@example.com",
     SESSION_SECRET: "secret",
     PROXY_SECRET: "proxy-secret",
-    HINDSIGHT_API_TOKEN: "token",
+    CONTEXTBASE_API_TOKEN: "token",
   };
 }
 

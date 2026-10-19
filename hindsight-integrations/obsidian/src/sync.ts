@@ -1,7 +1,7 @@
 /**
- * SyncEngine — keeps a Hindsight bank in sync with the vault, one way
- * (Obsidian → Hindsight). The vault is always the source of truth; this engine
- * only ever derives Hindsight content from notes (DESIGN.md §0.5).
+ * SyncEngine — keeps a ContextBase bank in sync with the vault, one way
+ * (Obsidian → ContextBase). The vault is always the source of truth; this engine
+ * only ever derives ContextBase content from notes (DESIGN.md §0.5).
  *
  * It is written against minimal `SyncVault`/`SyncFile` interfaces (a subset of
  * Obsidian's `Vault`/`TFile`) so it can be unit-tested without the Obsidian
@@ -39,7 +39,7 @@ export interface SyncConfig {
   vaultName: string;
   /** Prefix document ids with the vault name (for multi-vault shared banks). */
   prefixDocId: boolean;
-  /** Omit to preserve the Hindsight server's default consolidation scope. */
+  /** Omit to preserve the ContextBase server's default consolidation scope. */
   observationScopes?: ObservationScopes;
 }
 

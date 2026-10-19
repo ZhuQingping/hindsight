@@ -22,7 +22,7 @@ def _stdin(hook_input: dict, prefix: bytes = b"") -> io.TextIOWrapper:
 class TestSessionStartHook:
     def test_skips_when_auto_recall_disabled(self, monkeypatch, capsys):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_AUTO_RECALL", "false")
+        monkeypatch.setenv("CONTEXTBASE_AUTO_RECALL", "false")
         monkeypatch.setattr("sys.stdin", _stdin({"workspace_roots": ["/tmp/test"]}))
 
         import session_start
@@ -60,7 +60,7 @@ class TestSessionStartHook:
         result = json.loads(output.out)
         assert "additionalContext" in result
         assert "User prefers TypeScript" in result["additionalContext"]
-        assert "hindsight_memories" in result["additionalContext"]
+        assert "contextbase_memories" in result["additionalContext"]
 
     def test_no_output_on_empty_results(self, monkeypatch, capsys):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
@@ -141,7 +141,7 @@ class TestSessionStartHook:
 class TestRetainHook:
     def test_skips_when_auto_retain_disabled(self, monkeypatch, capsys):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_AUTO_RETAIN", "false")
+        monkeypatch.setenv("CONTEXTBASE_AUTO_RETAIN", "false")
         monkeypatch.setattr("sys.stdin", _stdin({"conversation_id": "c1"}))
 
         import retain
@@ -156,7 +156,7 @@ class TestRetainHook:
         """Cursor on Windows prefixes hook stdin with a UTF-8 BOM."""
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
         monkeypatch.setenv("CURSOR_PLUGIN_DATA", str(tmp_path / "data"))
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "1")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "1")
         transcript_path = tmp_path / "transcript.jsonl"
         transcript_path.write_text(
             json.dumps({"role": "user", "content": "Build a React app"})
@@ -182,7 +182,7 @@ class TestRetainHook:
 
     def test_skips_empty_transcript(self, monkeypatch, capsys):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://localhost:8888")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
         hook_input = {"conversation_id": "c1", "transcript_path": "/nonexistent/transcript.jsonl"}
         monkeypatch.setattr("sys.stdin", _stdin(hook_input))
@@ -249,7 +249,7 @@ class TestRetainHook:
 
     def test_retains_transcript(self, monkeypatch, tmp_path):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "1")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "1")
 
         mock_client = MagicMock()
         mock_client.retain.return_value = {"status": "ok"}
@@ -322,7 +322,7 @@ class TestRetainTriggers:
 
     def test_session_end_flushes_inside_the_turn_window(self, monkeypatch, tmp_path):
         """A 2-turn session ends: `stop` would never retain, `sessionEnd` must."""
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "10")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "10")
         transcript = self._transcript(tmp_path, 4)
 
         stop_client = MagicMock()
@@ -345,7 +345,7 @@ class TestRetainTriggers:
 
     def test_session_end_after_a_retain_is_a_noop(self, monkeypatch, tmp_path):
         """The stop/sessionEnd overlap must not store the transcript twice."""
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "1")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "1")
         transcript = self._transcript(tmp_path, 4)
 
         stop_client = MagicMock()
@@ -367,7 +367,7 @@ class TestRetainTriggers:
         end_client.retain.assert_not_called()
 
     def test_session_end_retains_again_once_the_transcript_grows(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "1")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "1")
         transcript = self._transcript(tmp_path, 2)
 
         first = MagicMock()
@@ -390,7 +390,7 @@ class TestRetainTriggers:
         second.retain.assert_called_once()
 
     def test_watermark_is_per_session(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HINDSIGHT_RETAIN_EVERY_N_TURNS", "1")
+        monkeypatch.setenv("CONTEXTBASE_RETAIN_EVERY_N_TURNS", "1")
         transcript = self._transcript(tmp_path, 4)
 
         first = MagicMock()
@@ -418,7 +418,7 @@ class TestManifest:
         with open(plugin_path) as f:
             manifest = json.load(f)
 
-        assert manifest["name"] == "hindsight-memory"
+        assert manifest["name"] == "contextbase-memory"
         assert "description" in manifest
         assert manifest["version"]
         assert manifest["license"] == "MIT"

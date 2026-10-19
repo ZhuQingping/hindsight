@@ -1,14 +1,14 @@
 {
-  "legacy_slug": "agentstratum",
-  "cli": "agentstratum",
-  "coding_agents": "agentstratum-coding-agents",
-  "claude_plugin": "agentstratum-memory",
-  "agent_plugin": "agentstratum",
-  "config_directory": ".agentstratum",
-  "env_prefix": "AGENTSTRATUM",
-  "webhook_event_header": "X-Agentstratum-Event",
-  "webhook_signature_header": "X-Agentstratum-Signature",
-  "webhook_signature_v2_header": "X-Agentstratum-Signature-V2",
-  "reranker_bank_header": "X-Agentstratum-Bank-Id",
-  "mcp_registration": "agentstratum"
+  "legacy_slug": "contextbase",
+  "cli": "contextbase",
+  "coding_agents": "contextbase-coding-agents",
+  "claude_plugin": "contextbase-memory",
+  "agent_plugin": "contextbase",
+  "config_directory": ".contextbase",
+  "env_prefix": "CONTEXTBASE",
+  "webhook_event_header": "X-ContextBase-Event",
+  "webhook_signature_header": "X-ContextBase-Signature",
+  "webhook_signature_v2_header": "X-ContextBase-Signature-V2",
+  "reranker_bank_header": "X-ContextBase-Bank-Id",
+  "mcp_registration": "contextbase"
 }

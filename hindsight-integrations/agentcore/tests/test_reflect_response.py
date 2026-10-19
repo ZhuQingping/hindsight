@@ -8,7 +8,7 @@ import pytest
 from hindsight_client_api.models.reflect_request import ReflectRequest
 from hindsight_client_api.models.reflect_response import ReflectResponse
 
-from hindsight_agentcore import HindsightRuntimeAdapter, RecallPolicy, TurnContext, reset_config
+from contextbase_agentcore import ContextBaseRuntimeAdapter, RecallPolicy, TurnContext, reset_config
 
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_before_turn_accepts_sdk_reflect_response(text: str) -> None:
         client = MagicMock()
         client.areflect = AsyncMock(return_value=ReflectResponse(text=text))
         client.arecall = AsyncMock()
-        adapter = HindsightRuntimeAdapter(recall_policy=RecallPolicy(mode="reflect", budget="high", max_tokens=1234))
+        adapter = ContextBaseRuntimeAdapter(recall_policy=RecallPolicy(mode="reflect", budget="high", max_tokens=1234))
         adapter._client = client
         context = TurnContext(runtime_session_id="session", user_id="user", agent_name="agent")
         assert await adapter.before_turn(context, query="preferences") == text
@@ -55,8 +55,8 @@ async def test_before_turn_reflects_through_actual_sdk() -> None:
     thread.start()
     reset_config()
     # The adapter builds its own SDK client from the URL, so the real client path is exercised.
-    adapter = HindsightRuntimeAdapter(
-        hindsight_api_url=f"http://127.0.0.1:{server.server_port}",
+    adapter = ContextBaseRuntimeAdapter(
+        contextbase_api_url=f"http://127.0.0.1:{server.server_port}",
         recall_policy=RecallPolicy(mode="reflect", budget="high", max_tokens=1234),
     )
     try:

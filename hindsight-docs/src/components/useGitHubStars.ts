@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {usePluginData} from '@docusaurus/useGlobalData';
 
-const REPO = 'vectorize-io/hindsight';
+const REPO = 'RSIXDB/hindsight';
 const CACHE_KEY = 'github-stars';
 
 /* One request per browser session, shared by every caller on the page. The

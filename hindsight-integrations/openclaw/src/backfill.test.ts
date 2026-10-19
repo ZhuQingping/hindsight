@@ -106,7 +106,7 @@ describe("backfill helpers", () => {
 
   it("normalizes legacy queued checkpoint entries", async () => {
     const { loadCheckpoint } = await import("./backfill-lib.js");
-    const dir = mkdtempSync(join(tmpdir(), "hindsight-backfill-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-backfill-"));
     const checkpointPath = join(dir, "checkpoint.json");
     writeFileSync(
       checkpointPath,
@@ -196,9 +196,9 @@ describe("backfill helpers", () => {
 
   it("treats a symlinked bin path as direct execution", async () => {
     const { isDirectExecution } = await import("./backfill.js");
-    const dir = mkdtempSync(join(tmpdir(), "hindsight-backfill-bin-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-backfill-bin-"));
     const modulePath = join(dir, "backfill.js");
-    const symlinkPath = join(dir, "hindsight-openclaw-backfill");
+    const symlinkPath = join(dir, "contextbase-openclaw-backfill");
     writeFileSync(modulePath, "#!/usr/bin/env node\n", "utf8");
     symlinkSync(modulePath, symlinkPath);
 

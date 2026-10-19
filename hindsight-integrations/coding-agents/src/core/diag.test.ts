@@ -10,7 +10,7 @@ describe("parseHookEvent", () => {
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "hs-diag-"));
     diagFile = join(dir, "diag.jsonl");
-    vi.stubEnv("AGENTSTRATUM_DIAG_FILE", diagFile);
+    vi.stubEnv("CONTEXTBASE_DIAG_FILE", diagFile);
   });
   afterEach(() => {
     vi.unstubAllEnvs();

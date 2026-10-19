@@ -1,5 +1,5 @@
 /**
- * Minimal Hindsight HTTP client for use inside the plugin worker.
+ * Minimal ContextBase HTTP client for use inside the plugin worker.
  *
  * Uses native fetch (Node 20+). No external dependencies.
  */
@@ -15,7 +15,7 @@ function loadPackageVersion(): string {
   }
 }
 
-const USER_AGENT = `hindsight-paperclip/${loadPackageVersion()}`;
+const USER_AGENT = `contextbase-paperclip/${loadPackageVersion()}`;
 
 export interface Memory {
   text: string;
@@ -35,7 +35,7 @@ export class HindsightClient {
 
   constructor(baseUrl: string, token?: string, timeoutMs?: number) {
     const url = baseUrl.trim();
-    if (!url) throw new Error("hindsightApiUrl is required");
+    if (!url) throw new Error("contextbaseApiUrl is required");
     this.baseUrl = url.replace(/\/$/, "");
     this.token = token;
     this.timeoutMs =

@@ -35,12 +35,12 @@ _MAX_TOOL_OUTPUT_CHARS = 2000
 
 
 def strip_memory_tags(content: str) -> str:
-    """Remove <hindsight_memories> and <relevant_memories> blocks.
+    """Remove <contextbase_memories> and <relevant_memories> blocks.
 
     Prevents retain feedback loop — these were injected during recall and
     should not be re-stored.
     """
-    content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
+    content = re.sub(r"<contextbase_memories>[\s\S]*?</contextbase_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
     return content
 
@@ -49,7 +49,7 @@ def is_synthetic_codex_user_message(content: str) -> bool:
     """Return True for setup messages Codex persists as user chat.
 
     Codex records AGENTS.md startup instructions as a normal user message in
-    rollout JSONL. Retaining those messages teaches Hindsight about hook and
+    rollout JSONL. Retaining those messages teaches ContextBase about hook and
     agent rules instead of the user's work, and can create very large retain
     payloads in long-running sessions.
     """
@@ -223,11 +223,13 @@ def _read_transcript_rich(transcript_path: str) -> list:
                     elif ptype == "local_shell_call":
                         action = payload.get("action", {})
                         command = action.get("command", [])
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": "shell",
-                            "input": {"command": command},
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": "shell",
+                                "input": {"command": command},
+                            }
+                        )
 
                     elif ptype == "function_call":
                         name = payload.get("name", "unknown")
@@ -236,20 +238,24 @@ def _read_transcript_rich(transcript_path: str) -> list:
                             inp = json.loads(arguments)
                         except (json.JSONDecodeError, TypeError):
                             inp = {"raw": arguments}
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": name,
-                            "input": inp,
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": name,
+                                "input": inp,
+                            }
+                        )
 
                     elif ptype == "function_call_output":
                         output = payload.get("output", "")
                         output_text = _extract_function_output_text(output)
                         if output_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(output_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(output_text),
+                                }
+                            )
 
                     elif ptype == "custom_tool_call":
                         name = payload.get("name", "unknown")
@@ -258,30 +264,36 @@ def _read_transcript_rich(transcript_path: str) -> list:
                             inp = json.loads(inp_str)
                         except (json.JSONDecodeError, TypeError):
                             inp = {"raw": inp_str}
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": name,
-                            "input": inp,
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": name,
+                                "input": inp,
+                            }
+                        )
 
                     elif ptype == "custom_tool_call_output":
                         output = payload.get("output", "")
                         output_text = _extract_function_output_text(output)
                         if output_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(output_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(output_text),
+                                }
+                            )
 
                     elif ptype == "web_search_call":
                         action = payload.get("action", {})
                         query = action.get("query", "") if isinstance(action, dict) else ""
                         if query:
-                            assistant_blocks.append({
-                                "type": "tool_use",
-                                "name": "web_search",
-                                "input": {"query": query},
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_use",
+                                    "name": "web_search",
+                                    "input": {"query": query},
+                                }
+                            )
 
                 # --- event_msg ---
                 elif item_type == "event_msg":
@@ -294,11 +306,13 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         exit_code = payload.get("exit_code")
                         status = payload.get("status", "")
                         # Add as tool_use + tool_result pair
-                        assistant_blocks.append({
-                            "type": "tool_use",
-                            "name": "shell",
-                            "input": {"command": command},
-                        })
+                        assistant_blocks.append(
+                            {
+                                "type": "tool_use",
+                                "name": "shell",
+                                "input": {"command": command},
+                            }
+                        )
                         result_parts = []
                         if output:
                             result_parts.append(output)
@@ -307,25 +321,31 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         if status and status != "completed":
                             result_parts.append(f"status: {status}")
                         if result_parts:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate("\n".join(result_parts)),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate("\n".join(result_parts)),
+                                }
+                            )
 
                     elif ptype == "patch_apply_end":
                         changes = payload.get("changes", [])
                         status = payload.get("status", "")
                         if changes:
-                            assistant_blocks.append({
-                                "type": "tool_use",
-                                "name": "patch",
-                                "input": {"changes": changes},
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_use",
+                                    "name": "patch",
+                                    "input": {"changes": changes},
+                                }
+                            )
                             if status:
-                                assistant_blocks.append({
-                                    "type": "tool_result",
-                                    "content": f"status: {status}",
-                                })
+                                assistant_blocks.append(
+                                    {
+                                        "type": "tool_result",
+                                        "content": f"status: {status}",
+                                    }
+                                )
 
                     elif ptype == "mcp_tool_call_end":
                         result = payload.get("result", {})
@@ -343,10 +363,12 @@ def _read_transcript_rich(transcript_path: str) -> list:
                         elif isinstance(result, str):
                             result_text = result
                         if result_text:
-                            assistant_blocks.append({
-                                "type": "tool_result",
-                                "content": _truncate(result_text),
-                            })
+                            assistant_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "content": _truncate(result_text),
+                                }
+                            )
 
     except OSError:
         pass

@@ -184,7 +184,7 @@ export async function runRetainHook(
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless claude session (core/survey.ts) sets this
   // so its hooks are a no-op — it must not retain its own survey session's transcript.
-  if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
+  if (process.env.CONTEXTBASE_DISABLE_HOOKS) return;
   // The host started counting when it spawned us, which is near enough to now: everything above
   // is synchronous. A margin keeps the kill from landing between our last wait and its response.
   const hostDeadline = Date.now() + spec.hostTimeoutSec * 1000 - HOST_DEADLINE_MARGIN_MS;

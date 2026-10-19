@@ -74,8 +74,8 @@ export function seedControl(
     startBackgroundSeed(args.repo, { limit: args.limit, spawn: args.spawn });
     return {
       ok: true,
-      message: `🧠 agentstratum is learning this repo → memory bank “${args.bankId}”`,
+      message: `🧠 contextbase is learning this repo → memory bank “${args.bankId}”`,
     };
   }
-  return { ok: false, message: "usage: agentstratum-seed seed --repo <dir>" };
+  return { ok: false, message: "usage: contextbase-seed seed --repo <dir>" };
 }

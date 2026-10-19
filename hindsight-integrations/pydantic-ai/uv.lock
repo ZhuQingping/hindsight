@@ -427,7 +427,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-pydantic-ai"
+name = "contextbase-pydantic-ai"
 version = "0.4.20"
 source = { editable = "." }
 dependencies = [

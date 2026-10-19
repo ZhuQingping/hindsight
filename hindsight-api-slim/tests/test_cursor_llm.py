@@ -166,8 +166,8 @@ async def test_child_is_confined_to_scratch_dirs_and_never_sees_the_key_in_argv(
     # CURSOR_CONFIG_DIR keeps session transcripts out of the operator's ~/.cursor,
     # and keeps the CLI from reading a hooks.json that points back at Hindsight.
     config_dir = kwargs["env"]["CURSOR_CONFIG_DIR"]
-    assert "agentstratum-cursor-cfg-" in config_dir
-    assert "agentstratum-cursor-ws-" in kwargs["cwd"]
+    assert "contextbase-cursor-cfg-" in config_dir
+    assert "contextbase-cursor-ws-" in kwargs["cwd"]
     assert kwargs["cwd"] != config_dir
 
 

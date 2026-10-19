@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "hindsight-embed"
 version = "1.0.0"
-description = "Agentstratum embedded CLI - local memory operations without a server"
+description = "ContextBase embedded CLI - local memory operations without a server"
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agentstratum-embed = "hindsight_embed.cli:main"
+contextbase-embed = "hindsight_embed.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["hindsight_embed"]

@@ -29,9 +29,9 @@ def main():
     # Resolve configuration without probing localhost or spawning an engine.
     try:
         api_url = get_api_url(config.get("apiUrl"))
-        debug_log(config, f"agentstratum API Endpoint configured: {api_url}")
+        debug_log(config, f"contextbase API Endpoint configured: {api_url}")
     except (RuntimeError, ValueError) as e:
-        print(json.dumps({"systemMessage": f"[agentstratum] {e}"}))
+        print(json.dumps({"systemMessage": f"[contextbase] {e}"}))
         return
 
 
@@ -39,5 +39,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[agentstratum] SessionStart error: {e}", file=sys.stderr)
+        print(f"[contextbase] SessionStart error: {e}", file=sys.stderr)
         sys.exit(0)

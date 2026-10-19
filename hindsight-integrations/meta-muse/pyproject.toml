@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-meta-muse"
+name = "contextbase-meta-muse"
 version = "0.1.1"
-description = "Hindsight integration for Meta Muse — connect prompt, docs and an MCP endpoint preflight check"
+description = "ContextBase integration for Meta Muse — connect prompt, docs and an MCP endpoint preflight check"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.14.3",  # GHSA-cq5v-8q36-5273: OOB heap read in the C response parser
@@ -9,14 +9,14 @@ dependencies = [
 ]
 
 [project.scripts]
-hindsight-muse-preflight = "hindsight_meta_muse.preflight:main"
+contextbase-muse-preflight = "contextbase_meta_muse.preflight:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_meta_muse"]
+packages = ["contextbase_meta_muse"]
 
 [dependency-groups]
 dev = [

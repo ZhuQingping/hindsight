@@ -1,14 +1,14 @@
-"""Unit tests for Hindsight LlamaIndex memory."""
+"""Unit tests for ContextBase LlamaIndex memory."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from llama_index.core.llms import ChatMessage, MessageRole
-from hindsight_llamaindex import HindsightMemory
+from contextbase_llamaindex import ContextBaseMemory
 
 
 def _mock_client():
-    """Create a mock Hindsight client."""
+    """Create a mock ContextBase client."""
     client = MagicMock()
     client.retain = MagicMock()
     client.recall = MagicMock()
@@ -30,10 +30,10 @@ def _mock_recall_response(texts: list[str]):
     return response
 
 
-class TestHindsightMemoryCreation:
+class TestContextBaseMemoryCreation:
     def test_from_client(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(
+        memory = ContextBaseMemory.from_client(
             client=client,
             bank_id="test-bank",
         )
@@ -43,7 +43,7 @@ class TestHindsightMemoryCreation:
 
     def test_from_client_with_options(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(
+        memory = ContextBaseMemory.from_client(
             client=client,
             bank_id="test-bank",
             mission="Track preferences",
@@ -57,37 +57,26 @@ class TestHindsightMemoryCreation:
         assert memory.tags == ["source:chat"]
 
     def test_from_url(self):
-        with patch("hindsight_llamaindex.memory.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex.memory.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            memory = HindsightMemory.from_url(
-                hindsight_api_url="http://localhost:8888",
+            memory = ContextBaseMemory.from_url(
+                contextbase_api_url="http://localhost:8888",
                 bank_id="test-bank",
             )
             assert memory.bank_id == "test-bank"
-            mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0)
+            mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent="contextbase-llamaindex")
 
-    def test_from_defaults_uses_cloud_default_when_nothing_supplied(self):
-        """Parity with create_hindsight_tools: no URL/key → DEFAULT_HINDSIGHT_API_URL.
-
-        Pins the cloud-default constructor that the 2026-06-02 audit asked for
-        — HindsightMemory used to require an explicit client or explicit URL,
-        leaving callers to wire the cloud-default themselves while the tools
-        factory did it for them.
-        """
-        from hindsight_llamaindex.config import DEFAULT_HINDSIGHT_API_URL
-
-        with patch("hindsight_llamaindex._client.Hindsight") as mock_cls:
-            mock_cls.return_value = _mock_client()
-            memory = HindsightMemory.from_defaults(bank_id="test-bank")
-            assert memory.bank_id == "test-bank"
-            kwargs = mock_cls.call_args.kwargs
-            assert kwargs.get("base_url") == DEFAULT_HINDSIGHT_API_URL
+    def test_from_defaults_requires_explicit_endpoint_when_nothing_supplied(self):
+        """A missing URL must fail before the SDK can select an endpoint."""
+        with pytest.raises(Exception, match="API URL|URL configured"):
+            ContextBaseMemory.from_defaults(bank_id="test-bank")
 
     def test_from_defaults_threads_api_key_into_constructed_client(self):
         """When api_key is provided, resolve_client must include it."""
-        with patch("hindsight_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            HindsightMemory.from_defaults(
+            ContextBaseMemory.from_defaults(
+                contextbase_api_url="http://localhost:8888",
                 bank_id="test-bank",
                 api_key="hsk_test_key_42",
             )
@@ -95,21 +84,21 @@ class TestHindsightMemoryCreation:
             assert kwargs.get("api_key") == "hsk_test_key_42"
 
     def test_from_defaults_explicit_client_wins(self):
-        """When client is given, no new Hindsight is constructed."""
+        """When client is given, no new ContextBase is constructed."""
         client = _mock_client()
-        with patch("hindsight_llamaindex._client.Hindsight") as mock_cls:
-            memory = HindsightMemory.from_defaults(bank_id="test-bank", client=client)
+        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+            memory = ContextBaseMemory.from_defaults(bank_id="test-bank", client=client)
             assert memory.bank_id == "test-bank"
             mock_cls.assert_not_called()
 
     def test_class_name(self):
-        assert HindsightMemory.class_name() == "HindsightMemory"
+        assert ContextBaseMemory.class_name() == "ContextBaseMemory"
 
 
 class TestPut:
     def test_put_user_message_retains(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.USER, content="I like Python")
         memory.put(msg)
 
@@ -122,7 +111,7 @@ class TestPut:
 
     def test_put_assistant_message_retains(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.ASSISTANT, content="Noted!")
         memory.put(msg)
 
@@ -132,7 +121,7 @@ class TestPut:
 
     def test_put_system_message_skipped(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.SYSTEM, content="You are helpful")
         memory.put(msg)
 
@@ -140,7 +129,7 @@ class TestPut:
 
     def test_put_empty_content_skipped(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.USER, content="   ")
         memory.put(msg)
 
@@ -148,7 +137,7 @@ class TestPut:
 
     def test_put_adds_to_local_history(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.USER, content="hello")
         memory.put(msg)
 
@@ -157,7 +146,7 @@ class TestPut:
 
     def test_put_trims_to_limit(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test", chat_history_limit=3)
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", chat_history_limit=3)
         for i in range(5):
             memory.put(ChatMessage(role=MessageRole.USER, content=f"msg-{i}"))
 
@@ -168,7 +157,7 @@ class TestPut:
 
     def test_put_tags_passed(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test", tags=["source:chat"])
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", tags=["source:chat"])
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         kwargs = client.retain.call_args[1]
@@ -177,7 +166,7 @@ class TestPut:
     def test_put_retain_failure_is_graceful(self):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("connection refused")
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         # Should not raise
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
         # Message still in local history
@@ -185,7 +174,7 @@ class TestPut:
 
     def test_put_generates_document_id(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         kwargs = client.retain.call_args[1]
@@ -205,7 +194,7 @@ class TestGet:
         """
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["User likes Python"])
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="what do I like?"))
         memory.put(ChatMessage(role=MessageRole.ASSISTANT, content="ack"))
 
@@ -219,7 +208,7 @@ class TestGet:
 
     def test_get_without_input_and_empty_history_skips_recall(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         messages = memory.get()
         assert len(messages) == 0
         client.recall.assert_not_called()
@@ -229,7 +218,7 @@ class TestGet:
         should not fire recall — there's no semantically meaningful query
         to look up."""
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.ASSISTANT, content="standalone"))
         messages = memory.get()
         assert len(messages) == 1
@@ -238,7 +227,7 @@ class TestGet:
     def test_get_with_input_recalls_memories(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["User likes Python", "User prefers dark mode"])
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         messages = memory.get(input="What are my preferences?")
@@ -253,7 +242,7 @@ class TestGet:
     def test_get_with_input_no_memories(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response([])
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         messages = memory.get(input="anything")
@@ -264,7 +253,7 @@ class TestGet:
     def test_get_recall_passes_params(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        memory = HindsightMemory.from_client(
+        memory = ContextBaseMemory.from_client(
             client=client,
             bank_id="test",
             budget="high",
@@ -283,7 +272,7 @@ class TestGet:
     def test_get_recall_failure_is_graceful(self):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("timeout")
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         # Should not raise, returns history without memories
@@ -293,7 +282,7 @@ class TestGet:
     def test_get_custom_system_prompt(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact1"])
-        memory = HindsightMemory.from_client(
+        memory = ContextBaseMemory.from_client(
             client=client,
             bank_id="test",
             system_prompt="MEMORIES: {memories}",
@@ -306,7 +295,7 @@ class TestGet:
 class TestSet:
     def test_set_replaces_history(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="old"))
 
         new_messages = [
@@ -321,7 +310,7 @@ class TestSet:
 
     def test_set_retains_only_new_messages(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="existing"))
         client.retain.reset_mock()
 
@@ -340,7 +329,7 @@ class TestSet:
 class TestReset:
     def test_reset_clears_local_history(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
         assert len(memory.get_all()) == 1
 
@@ -353,7 +342,7 @@ class TestReActStripping:
 
     def test_plain_assistant_message_retained(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         msg = ChatMessage(role=MessageRole.ASSISTANT, content="You use VS Code.")
         memory.put(msg)
 
@@ -362,7 +351,7 @@ class TestReActStripping:
 
     def test_react_with_answer_retains_answer_only(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         react_content = (
             "Thought: I need to recall the user's IDE preference.\n"
             "Action: recall_memory\n"
@@ -379,7 +368,7 @@ class TestReActStripping:
 
     def test_react_without_answer_skips_retain(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         react_content = (
             "Thought: I need to use a tool to help me answer.\n"
             "Action: retain_memory\n"
@@ -393,12 +382,12 @@ class TestReActStripping:
     def test_react_stripping_still_adds_to_local_history(self):
         """Even when retain is skipped, the message is in local history."""
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         react_content = "Thought: I need a tool.\nAction: some_tool\nAction Input: {}"
         msg = ChatMessage(role=MessageRole.ASSISTANT, content=react_content)
         memory.put(msg)
 
-        # Not retained to Hindsight
+        # Not retained to ContextBase
         client.retain.assert_not_called()
         # But still in local history
         assert len(memory.get_all()) == 1
@@ -406,7 +395,7 @@ class TestReActStripping:
     def test_user_message_not_stripped(self):
         """User messages with Thought:/Action: are retained as-is."""
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         content = "Thought: can you explain this Action: pattern?"
         msg = ChatMessage(role=MessageRole.USER, content=content)
         memory.put(msg)
@@ -416,7 +405,7 @@ class TestReActStripping:
 
     def test_react_multiple_answers_uses_last(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         react_content = (
             "Thought: Let me check.\n"
             "Answer: Actually, let me reconsider.\n"
@@ -433,7 +422,7 @@ class TestReActStripping:
 class TestBankMission:
     def test_creates_bank_with_mission_on_put(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test", mission="Track preferences")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", mission="Track preferences")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         client.create_bank.assert_called_once_with(
@@ -445,7 +434,7 @@ class TestBankMission:
     def test_creates_bank_with_mission_on_get(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response([])
-        memory = HindsightMemory.from_client(client=client, bank_id="test", mission="Track preferences")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", mission="Track preferences")
         memory.get(input="query")
 
         client.create_bank.assert_called_once()
@@ -453,7 +442,7 @@ class TestBankMission:
     def test_bank_creation_idempotent(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response([])
-        memory = HindsightMemory.from_client(client=client, bank_id="test", mission="mission")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", mission="mission")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
         memory.get(input="query")
 
@@ -461,7 +450,7 @@ class TestBankMission:
 
     def test_no_bank_creation_without_mission(self):
         client = _mock_client()
-        memory = HindsightMemory.from_client(client=client, bank_id="test")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test")
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
 
         client.create_bank.assert_not_called()
@@ -469,7 +458,7 @@ class TestBankMission:
     def test_bank_creation_failure_is_graceful(self):
         client = _mock_client()
         client.create_bank.side_effect = RuntimeError("already exists")
-        memory = HindsightMemory.from_client(client=client, bank_id="test", mission="mission")
+        memory = ContextBaseMemory.from_client(client=client, bank_id="test", mission="mission")
         # Should not raise
         memory.put(ChatMessage(role=MessageRole.USER, content="hello"))
         client.retain.assert_called_once()

@@ -11,7 +11,7 @@ Flow:
   4. Resolve API URL (explicit remote endpoint)
   5. Derive bank ID and ensure mission
   6. Format transcript (strip memory tags, filter roles)
-  7. POST to agentstratum retain API (async)
+  7. POST to contextbase retain API (async)
 
 Exit codes:
   0 — always (graceful degradation on any error)
@@ -169,7 +169,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     try:
         api_url = get_api_url(config.get("apiUrl"))
     except RuntimeError as e:
-        print(f"[agentstratum] {e}", file=sys.stderr)
+        print(f"[contextbase] {e}", file=sys.stderr)
         return
 
     api_token = config.get("apiToken")
@@ -180,7 +180,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
             request_timeout_override=config.get("requestTimeoutSeconds"),
         )
     except ValueError as e:
-        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[contextbase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID and ensure mission
@@ -193,7 +193,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         "session_id": session_id,
         "bank_id": bank_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "user_id": os.environ.get("AGENTSTRATUM_USER_ID", ""),
+        "user_id": os.environ.get("CONTEXTBASE_USER_ID", ""),
     }
 
     def _resolve_template(value: str) -> str:
@@ -203,7 +203,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
 
     # Tags from config with template resolution.
     # Drop tags whose resolved form ends in an empty namespace part (e.g. "user:"
-    # when AGENTSTRATUM_USER_ID is unset). Tags without ':' are preserved as-is.
+    # when CONTEXTBASE_USER_ID is unset). Tags without ':' are preserved as-is.
     raw_tags = config.get("retainTags", [])
     if raw_tags:
         tags = []
@@ -233,7 +233,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     if tags:
         debug_log(config, f"Tags: {tags}")
 
-    # POST to agentstratum retain API
+    # POST to contextbase retain API
     try:
         response = client.retain(
             bank_id=bank_id,
@@ -250,14 +250,14 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
             commit_retention(session_id, len(all_messages), retention_progress.chunk_index)
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
-        print(f"[agentstratum] Retain failed: {e}", file=sys.stderr)
+        print(f"[contextbase] Retain failed: {e}", file=sys.stderr)
 
 
 def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[agentstratum] Failed to read hook input", file=sys.stderr)
+        print("[contextbase] Failed to read hook input", file=sys.stderr)
         return
     run_retain(hook_input, force=False)
 
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[agentstratum] Unexpected error in retain: {e}", file=sys.stderr)
+        print(f"[contextbase] Unexpected error in retain: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

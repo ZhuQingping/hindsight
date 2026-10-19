@@ -63,7 +63,7 @@ export default function MemoryConstellation(): ReactNode {
        build to render. */
     <div
       role="figure"
-      aria-label={`A sample Hindsight memory bank drawn as a constellation: ${BANK.nodes.length} memories and ${BANK.links.length} semantic, temporal, entity and causal links between them, coloured by when each was mentioned.`}>
+      aria-label={`A sample ContextBase memory bank drawn as a constellation: ${BANK.nodes.length} memories and ${BANK.links.length} semantic, temporal, entity and causal links between them, coloured by when each was mentioned.`}>
       <BrowserOnly fallback={<div style={{height: HEIGHT}} />}>
         {() => (
           <Constellation

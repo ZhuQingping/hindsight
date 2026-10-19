@@ -50,7 +50,7 @@ class LivenessResponse(BaseModel):
     )
 
     status: Literal["alive"] = Field(description='Always "alive" — reaching this handler is the check')
-    version: str = Field(description="agentstratum engine version this process is running")
+    version: str = Field(description="contextbase engine version this process is running")
     uptime_seconds: float = Field(description="Seconds since the process started")
 
 
@@ -63,7 +63,7 @@ class WorkerLivenessResponse(LivenessResponse):
                 "status": "alive",
                 "version": "0.4.0",
                 "uptime_seconds": 812.4,
-                "worker_id": "agentstratum-worker-0",
+                "worker_id": "contextbase-worker-0",
                 "is_shutdown": False,
                 "seconds_since_last_poll": 0.4,
             }

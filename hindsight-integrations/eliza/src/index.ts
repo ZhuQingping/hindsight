@@ -1,9 +1,9 @@
-export { createHindsightPlugin } from "./plugin.js";
-export { createHindsightProvider } from "./provider.js";
-export { createHindsightEvaluator } from "./evaluator.js";
+export { createContextBasePlugin } from "./plugin.js";
+export { createContextBaseProvider } from "./provider.js";
+export { createContextBaseEvaluator } from "./evaluator.js";
 export { resolveBank } from "./options.js";
 export type {
-  HindsightPluginOptions,
+  ContextBasePluginOptions,
   RecallOptions,
   RetainOptions,
   BankResolver,

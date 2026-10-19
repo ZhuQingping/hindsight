@@ -4,7 +4,7 @@ Mocks the ZCode hook runtime:
   - stdin  → io.StringIO(json.dumps(hook_input))
   - stdout → io.StringIO() captured for assertions
   - urllib.request.urlopen → fake HTTP responses
-  - HOME → tmp_path (isolates ~/.agentstratum/zcode.json and state)
+  - HOME → tmp_path (isolates ~/.contextbase/zcode.json and state)
 """
 
 import importlib.util
@@ -42,11 +42,11 @@ def _run_hook(
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
 
     for k in list(os.environ):
-        if k.startswith("AGENTSTRATUM_"):
+        if k.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(k, raising=False)
 
     if set_default_api_url:
-        monkeypatch.setenv("AGENTSTRATUM_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
 
     if env_overrides:
         for k, v in env_overrides.items():
@@ -106,7 +106,7 @@ class TestRecallHook:
         data = json.loads(output)
         ctx = _additional_context(data)
         assert "Paris is the capital of France" in ctx
-        assert "<agentstratum_memories>" in ctx
+        assert "<contextbase_memories>" in ctx
 
     def test_no_output_when_no_memories(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="hello there world")
@@ -121,7 +121,7 @@ class TestRecallHook:
     def test_stashes_prompt_for_retain(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?", session_id="sess-stash")
         _run_hook("recall", hook_input, monkeypatch, tmp_path)
-        stash = tmp_path / ".agentstratum" / "zcode" / "state" / "last_prompt_sess-stash.json"
+        stash = tmp_path / ".contextbase" / "zcode" / "state" / "last_prompt_sess-stash.json"
         assert stash.exists()
         assert json.loads(stash.read_text())["prompt"] == "What is the capital of France?"
 
@@ -130,7 +130,7 @@ class TestRecallHook:
         hook_input = make_hook_input(prompt="ls", session_id="sess-short")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path)
         assert output.strip() == ""
-        stash = tmp_path / ".agentstratum" / "zcode" / "state" / "last_prompt_sess-short.json"
+        stash = tmp_path / ".contextbase" / "zcode" / "state" / "last_prompt_sess-short.json"
         assert stash.exists()
         assert json.loads(stash.read_text())["prompt"] == "ls"
 
@@ -139,7 +139,7 @@ class TestRecallHook:
         hook_input.pop("session_id", None)
         hook_input["sessionId"] = "sess-camel-recall"
         _run_hook("recall", hook_input, monkeypatch, tmp_path)
-        stash = tmp_path / ".agentstratum" / "zcode" / "state" / "last_prompt_sess-camel-recall.json"
+        stash = tmp_path / ".contextbase" / "zcode" / "state" / "last_prompt_sess-camel-recall.json"
         assert stash.exists()
 
     def test_graceful_on_api_error(self, monkeypatch, tmp_path):
@@ -266,7 +266,7 @@ class TestRecallHook:
             tmp_path,
             urlopen_side_effect=capture,
         )
-        assert captured.get("ua", "").startswith("agentstratum-zcode/")
+        assert captured.get("ua", "").startswith("contextbase-zcode/")
 
 
 # ---------------------------------------------------------------------------
@@ -351,7 +351,7 @@ class TestRetainHook:
         stash_prompt(
             tmp_path,
             "sess-tags",
-            "<agentstratum_memories>old memories</agentstratum_memories> actual question",
+            "<contextbase_memories>old memories</contextbase_memories> actual question",
         )
         captured = {}
         hook_input = make_stop_input(response_text="sure!", session_id="sess-tags")

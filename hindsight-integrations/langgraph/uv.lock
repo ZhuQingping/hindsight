@@ -515,7 +515,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-langgraph"
+name = "contextbase-langgraph"
 version = "0.3.1"
 source = { editable = "." }
 dependencies = [
@@ -534,7 +534,7 @@ langgraph = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "hindsight-langgraph", extra = ["langgraph"] },
+    { name = "contextbase-langgraph", extra = ["langgraph"] },
     { name = "pytest" },
     { name = "pytest-asyncio" },
 ]
@@ -552,7 +552,7 @@ provides-extras = ["langgraph", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "hindsight-langgraph", extras = ["langgraph"] },
+    { name = "contextbase-langgraph", extras = ["langgraph"] },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=0.23.0" },
 ]

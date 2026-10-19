@@ -12,7 +12,7 @@ Flow:
   3. Derive bank ID (static or dynamic from project context)
   4. Ensure bank mission is set (first use only)
   5. Compose a broad project-level query from workspace context
-  6. Call Hindsight recall API
+  6. Call ContextBase recall API
   7. Format memories and output additionalContext
   8. Save last recall to state
 
@@ -128,7 +128,7 @@ def main():
         _write_recall_status("error", reason=f"api_url: {e}"[:200])
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
@@ -150,7 +150,7 @@ def main():
 
     debug_log(config, f"Session recall from bank '{bank_id}', query length: {len(query)}")
 
-    # Call Hindsight recall API
+    # Call ContextBase recall API
     try:
         response = client.recall(
             bank_id=bank_id,
@@ -179,18 +179,18 @@ def main():
     current_time = format_current_time()
 
     context_message = (
-        f"<hindsight_memories>\n"
+        f"<contextbase_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</hindsight_memories>"
+        f"</contextbase_memories>"
     )
 
     # Save last recall to state
     _write_recall_status("success", bank_id=bank_id, result_count=len(results), query_length=len(query))
 
     # Workaround for Cursor's broken sessionStart additionalContext path: write
-    # the recalled memories to a workspace .cursor/rules/hindsight-session.mdc
+    # the recalled memories to a workspace .cursor/rules/contextbase-session.mdc
     # file so the rules engine injects them reliably. We still emit
     # additionalContext below so the same plugin works on the native path the
     # day Cursor fixes the bug — no protocol change required.

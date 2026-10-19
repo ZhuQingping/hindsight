@@ -1,21 +1,23 @@
-# hindsight-autogen
+# contextbase-autogen
 
-AutoGen integration for [Hindsight](https://github.com/vectorize-io/hindsight) — persistent long-term memory for AI agents.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+AutoGen integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
 
 Provides `FunctionTool` instances that give [AutoGen](https://microsoft.github.io/autogen/) agents the ability to store, search, and synthesize memories across conversations.
 
 ## Prerequisites
 
-- A running Hindsight instance ([self-hosted via Docker](https://github.com/vectorize-io/hindsight#quick-start) or [Hindsight Cloud](https://ui.hindsight.vectorize.io))
+- A running ContextBase instance ([self-hosted via Docker](https://github.com/RSIXDB/hindsight#quick-start) or [ContextBase remote service](http://localhost:9999))
 - Python 3.10+
 
 ## Installation
 
 ```bash
-pip install hindsight-autogen autogen-agentchat "autogen-ext[openai]"
+pip install contextbase-autogen autogen-agentchat "autogen-ext[openai]"
 ```
 
-`hindsight-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
+`contextbase-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
 
 ## Quick Start
 
@@ -24,14 +26,15 @@ import asyncio
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from hindsight_client import Hindsight
-from hindsight_autogen import create_hindsight_tools
+from contextbase_autogen import create_contextbase_tools
+
 
 async def main():
     client = Hindsight(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
-    tools = create_hindsight_tools(client=client, bank_id="user-123")
+    tools = create_contextbase_tools(client=client, bank_id="user-123")
 
     agent = AssistantAgent(
         name="assistant",
@@ -43,7 +46,7 @@ async def main():
     result = await agent.run(task="Remember that I prefer dark mode")
     print(result.messages[-1].content)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall. In production, this delay is only
     # needed when retain and recall happen back-to-back in the same script.
@@ -57,21 +60,22 @@ async def main():
     await client.aclose()
     await model_client.close()
 
+
 asyncio.run(main())
 ```
 
 The agent gets three tools:
 
-- **`hindsight_retain`** — Store information to long-term memory
-- **`hindsight_recall`** — Search long-term memory for relevant facts
-- **`hindsight_reflect`** — Synthesize a reasoned answer from memories
+- **`contextbase_retain`** — Store information to long-term memory
+- **`contextbase_recall`** — Search long-term memory for relevant facts
+- **`contextbase_reflect`** — Synthesize a reasoned answer from memories
 
 ## Selecting Tools
 
 Include only the tools you need:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_retain=True,
@@ -85,20 +89,20 @@ tools = create_hindsight_tools(
 Instead of passing a client to every call, configure once:
 
 ```python
-from hindsight_autogen import configure, create_hindsight_tools
+from contextbase_autogen import configure, create_contextbase_tools
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="your-api-key",       # Or set HINDSIGHT_API_KEY env var
-    budget="mid",                  # Recall budget: low/mid/high
-    max_tokens=4096,               # Max tokens for recall results
-    tags=["env:prod"],             # Tags for stored memories
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-api-key",  # Or set CONTEXTBASE_API_KEY env var
+    budget="mid",  # Recall budget: low/mid/high
+    max_tokens=4096,  # Max tokens for recall results
+    tags=["env:prod"],  # Tags for stored memories
     recall_tags=["scope:global"],  # Tags to filter recall
-    recall_tags_match="any",       # Tag match mode
+    recall_tags_match="any",  # Tag match mode
 )
 
 # Now create tools without passing client
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
 ## Memory Scoping with Tags
@@ -107,7 +111,7 @@ Use tags to partition memories by topic, session, or user:
 
 ```python
 # Store memories tagged by source
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     tags=["source:chat", "session:abc"],
@@ -120,9 +124,9 @@ tools = create_hindsight_tools(
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `budget` | `"mid"` | Recall/reflect budget level (low/mid/high) |
 | `max_tokens` | `4096` | Maximum tokens for recall results |
@@ -150,6 +154,6 @@ tools = create_hindsight_tools(
 
 ## Documentation
 
-- [Integration docs](https://hindsight.vectorize.io/sdks/integrations/autogen)
+- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
 - [Cookbook: AutoGen assistant with memory](https://docs.hindsight.vectorize.io/cookbook/recipes/autogen-assistant-agent)
-- [Hindsight API docs](https://docs.hindsight.vectorize.io)
+- [ContextBase API docs](https://docs.hindsight.vectorize.io)

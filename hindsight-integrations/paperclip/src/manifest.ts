@@ -1,10 +1,10 @@
 import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 
 const manifest: PaperclipPluginManifestV1 = {
-  id: "paperclip-plugin-hindsight",
+  id: "paperclip-plugin-contextbase",
   apiVersion: 1,
   version: "0.4.2",
-  displayName: "Hindsight Memory",
+  displayName: "ContextBase Memory",
   author: "Vectorize <support@vectorize.io>",
   description:
     "Persistent long-term memory for Paperclip agents. Automatically recalls relevant context before each run and retains agent output after — so every agent gets smarter over time.",
@@ -25,24 +25,24 @@ const manifest: PaperclipPluginManifestV1 = {
   },
   instanceConfigSchema: {
     type: "object",
-    required: ["hindsightApiUrl"],
+    required: ["contextbaseApiUrl"],
     properties: {
-      hindsightApiUrl: {
+      contextbaseApiUrl: {
         type: "string",
-        title: "Hindsight API URL",
+        title: "ContextBase API URL",
         description:
-          "Base URL of your Hindsight instance. Defaults to Hindsight Cloud. Use http://localhost:8888 for self-hosted.",
-        default: "https://api.hindsight.vectorize.io",
+          "Base URL of your ContextBase instance. Defaults to ContextBase Cloud. Use http://localhost:8888 for self-hosted.",
+        default: "",
       },
-      hindsightApiKeyRef: {
+      contextbaseApiKeyRef: {
         // `format` drives the host's secret picker; the picker writes a
         // { type: "secret_ref", secretId } object, and the host validates the raw
         // config with Ajv before extracting refs — so the schema has to admit that
         // object as well as a plain string (a pasted value or a legacy UUID).
         format: "secret-ref",
-        title: "Hindsight API Key (secret ref)",
+        title: "ContextBase API Key (secret ref)",
         description:
-          "Paperclip secret holding your Hindsight Cloud API key. Leave empty for self-hosted.",
+          "Paperclip secret holding your ContextBase Cloud API key. Leave empty for self-hosted.",
         oneOf: [
           { type: "string" },
           {
@@ -88,7 +88,7 @@ const manifest: PaperclipPluginManifestV1 = {
         type: "number",
         title: "Request Timeout (ms)",
         description:
-          "Timeout for each request to Hindsight. Raise it for self-hosted instances where recall on long issue descriptions takes longer than the default.",
+          "Timeout for each request to ContextBase. Raise it for self-hosted instances where recall on long issue descriptions takes longer than the default.",
         minimum: 1000,
         default: 15000,
       },
@@ -96,24 +96,24 @@ const manifest: PaperclipPluginManifestV1 = {
         type: "boolean",
         title: "Auto-retain Issue Comments",
         description:
-          "Automatically retain the full body of every issue comment to Hindsight. Agents can still store memories explicitly with the hindsight_retain tool when this is off.",
+          "Automatically retain the full body of every issue comment to ContextBase. Agents can still store memories explicitly with the contextbase_retain tool when this is off.",
         default: true,
       },
       enabledAgentIds: {
         type: "array",
         title: "Enabled Agent IDs",
         description:
-          "Restrict Hindsight recall/retain to these agent IDs only. Leave empty to enable for all agents (default).",
+          "Restrict ContextBase recall/retain to these agent IDs only. Leave empty to enable for all agents (default).",
         items: { type: "string" },
       },
     },
   },
   tools: [
     {
-      name: "hindsight_recall",
+      name: "contextbase_recall",
       displayName: "Recall from Memory",
       description:
-        "Search Hindsight long-term memory for context relevant to a query. Use this before starting a task to surface relevant past decisions, preferences, and knowledge.",
+        "Search ContextBase long-term memory for context relevant to a query. Use this before starting a task to surface relevant past decisions, preferences, and knowledge.",
       parametersSchema: {
         type: "object",
         required: ["query"],
@@ -126,10 +126,10 @@ const manifest: PaperclipPluginManifestV1 = {
       },
     },
     {
-      name: "hindsight_retain",
+      name: "contextbase_retain",
       displayName: "Save to Memory",
       description:
-        "Store important facts, decisions, or outcomes in Hindsight long-term memory for future runs.",
+        "Store important facts, decisions, or outcomes in ContextBase long-term memory for future runs.",
       parametersSchema: {
         type: "object",
         required: ["content"],

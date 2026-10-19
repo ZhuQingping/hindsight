@@ -20,15 +20,15 @@ def _active_keys(text: str) -> dict[str, str]:
 def test_user_values_are_active():
     text = render_config(
         {
-            "AGENTSTRATUM_API_LLM_PROVIDER": "anthropic",
-            "AGENTSTRATUM_API_LLM_API_KEY": "sk-secret",
-            "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
+            "CONTEXTBASE_API_LLM_PROVIDER": "anthropic",
+            "CONTEXTBASE_API_LLM_API_KEY": "sk-secret",
+            "CONTEXTBASE_API_LLM_MODEL": "gpt-4o-mini",
         }
     )
     active = _active_keys(text)
-    assert active["AGENTSTRATUM_API_LLM_PROVIDER"] == "anthropic"
-    assert active["AGENTSTRATUM_API_LLM_API_KEY"] == "sk-secret"
-    assert active["AGENTSTRATUM_API_LLM_MODEL"] == "gpt-4o-mini"
+    assert active["CONTEXTBASE_API_LLM_PROVIDER"] == "anthropic"
+    assert active["CONTEXTBASE_API_LLM_API_KEY"] == "sk-secret"
+    assert active["CONTEXTBASE_API_LLM_MODEL"] == "gpt-4o-mini"
 
 
 def test_only_user_values_are_active():
@@ -38,21 +38,21 @@ def test_only_user_values_are_active():
     daemon sees the identical active config and never inherits the template's
     api-server defaults (port 8888, OpenAI base url, gpt-4o-mini, host)."""
     values = {
-        "AGENTSTRATUM_API_LLM_PROVIDER": "anthropic",
-        "AGENTSTRATUM_API_LLM_API_KEY": "sk-secret",
-        "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
+        "CONTEXTBASE_API_LLM_PROVIDER": "anthropic",
+        "CONTEXTBASE_API_LLM_API_KEY": "sk-secret",
+        "CONTEXTBASE_API_LLM_MODEL": "gpt-4o-mini",
     }
     assert _active_keys(render_config(values)) == values
 
     # Minimal case: provider only — no other key leaks in active.
-    assert _active_keys(render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "gemini"})) == {
-        "AGENTSTRATUM_API_LLM_PROVIDER": "gemini"
+    assert _active_keys(render_config({"CONTEXTBASE_API_LLM_PROVIDER": "gemini"})) == {
+        "CONTEXTBASE_API_LLM_PROVIDER": "gemini"
     }
 
 
 def test_documentation_is_preserved():
     """Commented example blocks survive so the file is self-documenting."""
-    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai"})
+    text = render_config({"CONTEXTBASE_API_LLM_PROVIDER": "openai"})
     assert "# Example: Anthropic Claude configuration" in text
     assert "Supported providers:" in text
 
@@ -61,8 +61,8 @@ def test_template_documents_macos_cpu_workarounds():
     """Installed profile templates should expose both supported MPS/XPC workarounds."""
     text = load_template()
     assert text is not None
-    assert "# AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU=false" in text
-    assert "# AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU=false" in text
+    assert "# CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU=false" in text
+    assert "# CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU=false" in text
 
 
 def test_load_template_reads_bundled_copy_as_utf8(monkeypatch):
@@ -87,13 +87,13 @@ def test_load_template_reads_bundled_copy_as_utf8(monkeypatch):
 
 
 def test_unknown_keys_are_appended():
-    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "KEY": "value"})
+    text = render_config({"CONTEXTBASE_API_LLM_PROVIDER": "openai", "KEY": "value"})
     assert _active_keys(text)["KEY"] == "value"
 
 
 def test_falls_back_to_minimal_without_template():
-    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai"}, template="")
-    assert _active_keys(text) == {"AGENTSTRATUM_API_LLM_PROVIDER": "openai"}
+    text = render_config({"CONTEXTBASE_API_LLM_PROVIDER": "openai"}, template="")
+    assert _active_keys(text) == {"CONTEXTBASE_API_LLM_PROVIDER": "openai"}
 
 
 def test_bundled_template_matches_repo_root():
@@ -114,5 +114,5 @@ def test_public_template_has_product_identity_but_customer_values_are_unchanged(
     assert template is not None
     assert "hindsight" not in template.casefold()
     value = "https://customer.example/hindsight-model"
-    rendered = render_config({"AGENTSTRATUM_API_LLM_BASE_URL": value})
-    assert _active_keys(rendered)["AGENTSTRATUM_API_LLM_BASE_URL"] == value
+    rendered = render_config({"CONTEXTBASE_API_LLM_BASE_URL": value})
+    assert _active_keys(rendered)["CONTEXTBASE_API_LLM_BASE_URL"] == value

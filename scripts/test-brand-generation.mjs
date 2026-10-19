@@ -63,7 +63,7 @@ for (const {path, mutate} of mutations) {
   writeFileSync(target, saved);
 }
 const cargo = resolve(fixture, "hindsight-cli/Cargo.toml"); const savedCargo = readFileSync(cargo, "utf8");
-writeFileSync(cargo, savedCargo.replace('name = "agentstratum"', 'name = "foreign-name"'));
+writeFileSync(cargo, savedCargo.replace('name = "contextbase"', 'name = "foreign-name"'));
 const savedLedger = readFileSync(resolve(fixture, "brand/GENERATED.json"), "utf8");
 for (const check of [false, true]) {
   assert.notEqual(run(check).status, 0);

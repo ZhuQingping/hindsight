@@ -8,7 +8,7 @@ Zero-configuration local memory system with automatic daemon management. Perfect
 
 ## Overview
 
-`hindsight-embed` is a zero-configuration SDK that wraps the Hindsight API and PostgreSQL database into a single auto-managed local daemon. It's designed for development, prototyping, and single-user applications where you want memory capabilities without infrastructure overhead.
+`hindsight-embed` is a zero-configuration SDK that wraps the ContextBase API and PostgreSQL database into a single auto-managed local daemon. It's designed for development, prototyping, and single-user applications where you want memory capabilities without infrastructure overhead.
 
 **How it works:**
 
@@ -26,7 +26,7 @@ Zero-configuration local memory system with automatic daemon management. Perfect
 - **Local-only** — Binds to `127.0.0.1:8888`, not accessible from network
 - **Production-grade engine** — Uses the same memory engine as the full API service
 
-Think of it as SQLite for long-term memory — all the power of Hindsight without managing servers.
+Think of it as SQLite for long-term memory — all the power of ContextBase without managing servers.
 
 ## Installation
 
@@ -49,22 +49,22 @@ pipx install hindsight-embed
 hindsight-embed configure
 
 # Or non-interactive via environment variables
-export HINDSIGHT_API_LLM_PROVIDER=openai
-export HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
-export HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
+export CONTEXTBASE_API_LLM_PROVIDER=openai
+export CONTEXTBASE_API_LLM_API_KEY=sk-xxxxxxxxxxxx
+export CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini
 hindsight-embed configure
 ```
 
-Configuration is saved to `~/.hindsight/embed`:
+Configuration is saved to `~/.contextbase/embed`:
 
 ```bash
-HINDSIGHT_API_LLM_PROVIDER=openai
-HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
-HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
+CONTEXTBASE_API_LLM_PROVIDER=openai
+CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini
+CONTEXTBASE_API_LLM_API_KEY=sk-xxxxxxxxxxxx
 
 # Daemon settings (macOS: force CPU to avoid MPS/XPC issues)
-HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU=1
-HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU=1
+CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU=1
+CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU=1
 ```
 
 ### 2. Use Memory Operations
@@ -94,7 +94,7 @@ hindsight-embed control start
 hindsight-embed configure --ui
 ```
 
-The control center listens on localhost only (`http://localhost:7878` by default) and prints a tokenized URL. It stores the local access token at `~/.hindsight/control.token` and writes logs to `~/.hindsight/control.log`.
+The control center listens on localhost only (`http://localhost:7878` by default) and prints a tokenized URL. It stores the local access token at `~/.contextbase/control.token` and writes logs to `~/.contextbase/control.log`.
 
 ```bash
 # Pick a different control-center port for this launch
@@ -115,12 +115,12 @@ The control center runs as a separate process from the memory daemon. Stopping o
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_LLM_API_KEY` | **Required**. API key for LLM provider | - |
-| `HINDSIGHT_API_LLM_PROVIDER` | LLM provider: `openai`, `anthropic`, `gemini`, `groq`, `minimax`, `ollama` | `openai` |
-| `HINDSIGHT_API_LLM_MODEL` | Model name | `gpt-4o-mini` |
-| `HINDSIGHT_EMBED_DAEMON_LOG_MAX_BYTES` | Rotate the daemon log at startup when it reaches this size; `0` disables rotation | `10485760` (10 MiB) |
-| `HINDSIGHT_EMBED_DAEMON_LOG_BACKUP_COUNT` | Retained backups; `0` truncates a full log at startup | `3` |
-| `HINDSIGHT_EMBED_CONTROL_PORT` | Default port for `hindsight-embed control start` | `7878` |
+| `CONTEXTBASE_API_LLM_API_KEY` | **Required**. API key for LLM provider | - |
+| `CONTEXTBASE_API_LLM_PROVIDER` | LLM provider: `openai`, `anthropic`, `gemini`, `groq`, `minimax`, `ollama` | `openai` |
+| `CONTEXTBASE_API_LLM_MODEL` | Model name | `gpt-4o-mini` |
+| `CONTEXTBASE_EMBED_DAEMON_LOG_MAX_BYTES` | Rotate the daemon log at startup when it reaches this size; `0` disables rotation | `10485760` (10 MiB) |
+| `CONTEXTBASE_EMBED_DAEMON_LOG_BACKUP_COUNT` | Retained backups; `0` truncates a full log at startup | `3` |
+| `CONTEXTBASE_EMBED_CONTROL_PORT` | Default port for `hindsight-embed control start` | `7878` |
 
 The size is checked only when a daemon starts, so a single uninterrupted run is never truncated and can
 grow past `MAX_BYTES` — and at the next start that whole file is kept as the first backup. Retained size
@@ -132,19 +132,19 @@ meaningful.
 
 ```bash
 # OpenAI
-export HINDSIGHT_API_LLM_PROVIDER=openai
-export HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
-export HINDSIGHT_API_LLM_MODEL=gpt-4o
+export CONTEXTBASE_API_LLM_PROVIDER=openai
+export CONTEXTBASE_API_LLM_API_KEY=sk-xxxxxxxxxxxx
+export CONTEXTBASE_API_LLM_MODEL=gpt-4o
 
 # Groq (fast inference)
-export HINDSIGHT_API_LLM_PROVIDER=groq
-export HINDSIGHT_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
-export HINDSIGHT_API_LLM_MODEL=llama-3.3-70b-versatile
+export CONTEXTBASE_API_LLM_PROVIDER=groq
+export CONTEXTBASE_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
+export CONTEXTBASE_API_LLM_MODEL=llama-3.3-70b-versatile
 
 # Anthropic
-export HINDSIGHT_API_LLM_PROVIDER=anthropic
-export HINDSIGHT_API_LLM_API_KEY=sk-ant-xxxxxxxxxxxx
-export HINDSIGHT_API_LLM_MODEL=claude-sonnet-4-20250514
+export CONTEXTBASE_API_LLM_PROVIDER=anthropic
+export CONTEXTBASE_API_LLM_API_KEY=sk-ant-xxxxxxxxxxxx
+export CONTEXTBASE_API_LLM_MODEL=claude-sonnet-4-20250514
 ```
 
 ## Daemon Management
@@ -167,7 +167,7 @@ hindsight-embed daemon stop
 
 ### Reclaiming Disk Space
 
-When the daemon is launched with `uvx` (the default for the npm package and the editor plugins), every Hindsight version it has run keeps its own cached Python environment — around 1.5 GB each — and these are not removed automatically. If disk space gets tight, stop the daemon before clearing the cache: unused entries can only be reclaimed while no daemon is running.
+When the daemon is launched with `uvx` (the default for the npm package and the editor plugins), every ContextBase version it has run keeps its own cached Python environment — around 1.5 GB each — and these are not removed automatically. If disk space gets tight, stop the daemon before clearing the cache: unused entries can only be reclaimed while no daemon is running.
 
 ```bash
 hindsight-embed daemon stop
@@ -257,9 +257,9 @@ hindsight-embed daemon logs -f
 ```
 
 Common issues:
-- **Missing API key**: Set `HINDSIGHT_API_LLM_API_KEY`
+- **Missing API key**: Set `CONTEXTBASE_API_LLM_API_KEY`
 - **Port conflict**: Another service using port 8888
-- **Permissions**: Check `~/.hindsight/` directory permissions
+- **Permissions**: Check `~/.contextbase/` directory permissions
 
 ### Daemon Exits Immediately
 
@@ -267,14 +267,14 @@ The daemon never stops itself, so an exit is a crash or a failed startup. Check 
 
 ```bash
 hindsight-embed daemon status
-tail -n 100 ~/.hindsight/daemon.log
+tail -n 100 ~/.contextbase/daemon.log
 ```
 
 ### Reset Configuration
 
 ```bash
 # Remove config file and reconfigure
-rm ~/.hindsight/embed
+rm ~/.contextbase/embed
 hindsight-embed configure
 ```
 
@@ -284,7 +284,7 @@ hindsight-embed configure
 - Development and prototyping
 - Single-user applications
 - Local-first tools
-- Quick experiments with Hindsight
+- Quick experiments with ContextBase
 
 **Not suitable for:**
 - Production multi-user deployments

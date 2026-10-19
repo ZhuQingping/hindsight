@@ -3,7 +3,7 @@
 const { baseUrl, parseTags, enc } = require("../utils");
 
 /**
- * Retain — store content in a Hindsight memory bank.
+ * Retain — store content in a ContextBase memory bank.
  *
  * POST /v1/default/banks/{bank_id}/memories
  * body: { items: [{ content, context?, tags?, timestamp? }], async: false }
@@ -29,7 +29,7 @@ module.exports = {
   display: {
     label: "Retain Memory",
     description:
-      "Store content in a Hindsight memory bank. Hindsight extracts facts, entities, and relationships from the text.",
+      "Store content in a ContextBase memory bank. ContextBase extracts facts, entities, and relationships from the text.",
   },
   operation: {
     inputFields: [

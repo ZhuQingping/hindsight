@@ -1,6 +1,8 @@
-# hindsight-pydantic-ai
+# contextbase-pydantic-ai
 
-Persistent memory tools for Pydantic AI agents via Hindsight. Give your agents long-term memory with retain, recall, and reflect — all async-native with no thread-pool hacks.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent memory tools for Pydantic AI agents via ContextBase. Give your agents long-term memory with retain, recall, and reflect — all async-native with no thread-pool hacks.
 
 ## Features
 
@@ -13,23 +15,23 @@ Persistent memory tools for Pydantic AI agents via Hindsight. Give your agents l
 ## Installation
 
 ```bash
-pip install hindsight-pydantic-ai
+pip install contextbase-pydantic-ai
 ```
 
 ## Quick Start
 
-> ✨ **Recommended: [Hindsight Cloud](https://ui.hindsight.vectorize.io)** — free tier, no self-hosting required. Sign up and grab an API key in under a minute.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```python
 from hindsight_client import Hindsight
-from hindsight_pydantic_ai import create_hindsight_tools, memory_instructions
+from contextbase_pydantic_ai import create_contextbase_tools, memory_instructions
 from pydantic_ai import Agent
 
-client = Hindsight(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
+client = Hindsight(base_url="http://localhost:8888", api_key="hsk_...")
 
 agent = Agent(
     "openai:gpt-4o",
-    tools=create_hindsight_tools(client=client, bank_id="user-123"),
+    tools=create_contextbase_tools(client=client, bank_id="user-123"),
     instructions=[memory_instructions(client=client, bank_id="user-123")],
 )
 
@@ -39,21 +41,21 @@ print(result.output)
 
 The agent now has three tools it can call:
 
-- **`hindsight_retain`** — Store information to long-term memory
-- **`hindsight_recall`** — Search long-term memory for relevant facts
-- **`hindsight_reflect`** — Synthesize a reasoned answer from memories
+- **`contextbase_retain`** — Store information to long-term memory
+- **`contextbase_recall`** — Search long-term memory for relevant facts
+- **`contextbase_reflect`** — Synthesize a reasoned answer from memories
 
 The `memory_instructions` callable automatically recalls relevant memories and injects them into the system prompt on every run.
 
 ### Self-hosting (local development)
 
-If you're running Hindsight locally with `./scripts/dev/start-api.sh`, point at your local server instead:
+If you're running ContextBase locally with `./scripts/dev/start-api.sh`, point at your local server instead:
 
 ```python
 client = Hindsight(base_url="http://localhost:8888")
 ```
 
-See the [Hindsight installation guide](https://hindsight.vectorize.io/developer/installation) for self-hosting setup.
+See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
 
 ## Tools Only (No Auto-Injection)
 
@@ -62,7 +64,7 @@ If you want the agent to decide when to use memory (rather than always injecting
 ```python
 agent = Agent(
     "openai:gpt-4o",
-    tools=create_hindsight_tools(client=client, bank_id="user-123"),
+    tools=create_contextbase_tools(client=client, bank_id="user-123"),
 )
 ```
 
@@ -82,7 +84,7 @@ agent = Agent(
 Include only the tools you need:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_retain=True,
@@ -96,20 +98,20 @@ tools = create_hindsight_tools(
 Instead of passing a client to every call, configure once:
 
 ```python
-from hindsight_pydantic_ai import configure, create_hindsight_tools
+from contextbase_pydantic_ai import configure, create_contextbase_tools
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",  # Hindsight Cloud (default)
-    api_key="your-api-key",       # Or set HINDSIGHT_API_KEY env var
-    budget="mid",                  # Recall budget: low/mid/high
-    max_tokens=4096,               # Max tokens for recall results
-    tags=["env:prod"],             # Tags for stored memories
+    contextbase_api_url="http://localhost:8888",  # example self-hosted endpoint
+    api_key="your-api-key",  # Or set CONTEXTBASE_API_KEY env var
+    budget="mid",  # Recall budget: low/mid/high
+    max_tokens=4096,  # Max tokens for recall results
+    tags=["env:prod"],  # Tags for stored memories
     recall_tags=["scope:global"],  # Tags to filter recall
-    recall_tags_match="any",       # Tag match mode: any/all/any_strict/all_strict
+    recall_tags_match="any",  # Tag match mode: any/all/any_strict/all_strict
 )
 
 # Now create tools without passing client — uses global config
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
 ## Per-Tool Overrides
@@ -117,11 +119,11 @@ tools = create_hindsight_tools(bank_id="user-123")
 Constructor arguments override global configuration:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
-    budget="high",             # Override global budget
-    max_tokens=8192,           # Override global max_tokens
-    tags=["session:abc"],      # Override global tags
+    budget="high",  # Override global budget
+    max_tokens=8192,  # Override global max_tokens
+    tags=["session:abc"],  # Override global tags
 )
 ```
 
@@ -134,24 +136,24 @@ instructions_fn = memory_instructions(
     client=client,
     bank_id="user-123",
     query="relevant context about the user",  # What to search for
-    budget="low",                              # Keep it fast
-    max_results=5,                             # Limit injected memories
-    max_tokens=4096,                           # Max recall tokens
-    prefix="Relevant memories:\n",             # Text before the memory list
-    tags=["scope:global"],                     # Filter by tags
-    tags_match="any",                          # Tag match mode
+    budget="low",  # Keep it fast
+    max_results=5,  # Limit injected memories
+    max_tokens=4096,  # Max recall tokens
+    prefix="Relevant memories:\n",  # Text before the memory list
+    tags=["scope:global"],  # Filter by tags
+    tags_match="any",  # Tag match mode
 )
 ```
 
 ## Configuration Reference
 
-### `create_hindsight_tools()`
+### `create_contextbase_tools()`
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `budget` | `"mid"` | Recall/reflect budget level (low/mid/high) |
 | `max_tokens` | `4096` | Maximum tokens for recall results |
@@ -166,9 +168,9 @@ instructions_fn = memory_instructions(
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `query` | `"relevant context about the user"` | Recall query for memory injection |
 | `budget` | `"low"` | Recall budget level |
@@ -182,8 +184,8 @@ instructions_fn = memory_instructions(
 
 | Parameter | Default | Description |
 |---|---|---|
-| `hindsight_api_url` | Hindsight Cloud (`https://api.hindsight.vectorize.io`) | Hindsight API URL |
-| `api_key` | `HINDSIGHT_API_KEY` env | API key for authentication |
+| `contextbase_api_url` | an explicitly configured service URL | ContextBase API URL |
+| `api_key` | `CONTEXTBASE_API_KEY` env | API key for authentication |
 | `budget` | `"mid"` | Default recall budget level |
 | `max_tokens` | `4096` | Default max tokens for recall |
 | `tags` | `None` | Default tags for retain operations |
@@ -196,7 +198,7 @@ instructions_fn = memory_instructions(
 - Python >= 3.10
 - pydantic-ai-slim >= 1.0.0
 - hindsight-client >= 0.4.0
-- A running Hindsight API server
+- A running ContextBase API server
 
 ## License
 

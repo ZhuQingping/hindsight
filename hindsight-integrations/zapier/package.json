@@ -1,12 +1,12 @@
 {
-  "name": "@vectorize-io/zapier-hindsight",
+  "name": "@vectorize-io/zapier-contextbase",
   "version": "1.0.0",
-  "description": "Hindsight long-term memory for Zapier — retain, recall, reflect, and memory-event triggers",
+  "description": "ContextBase long-term memory for Zapier — retain, recall, reflect, and memory-event triggers",
   "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/zapier"
   },
   "homepage": "https://hindsight.vectorize.io",

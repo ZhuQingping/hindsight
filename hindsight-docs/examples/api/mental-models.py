@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Mental Models API examples for Hindsight.
+Mental Models API examples for ContextBase.
 Run: python examples/api/mental-models.py
 """
 import os
 import time
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "mental-models-demo-bank"
 
 # =============================================================================
@@ -14,7 +14,9 @@ BANK_ID = "mental-models-demo-bank"
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # Create bank and seed some data
 client.create_bank(bank_id=BANK_ID, name="Mental Models Demo")

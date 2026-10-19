@@ -48,7 +48,7 @@ const FIRST_PROMPT =
   "<user_info>\nOS Version: darwin\nShell: Zsh\nWorkspace Folder: /w/repo\n</user_info>\n\n" +
   "<git_status>\nThis is the git status at the start of the conversation.\n</git_status>\n\n" +
   "<additional_data>\ncurrent_time: Tuesday, September 15, 2026\n</additional_data>\n\n" +
-  '<system_reminder data-role="user-context">\n<agentstratum_memory>old</agentstratum_memory>\n</system_reminder>\n\n' +
+  '<system_reminder data-role="user-context">\n<contextbase_memory>old</contextbase_memory>\n</system_reminder>\n\n' +
   "<user_query>\nfix the flake\n</user_query>";
 
 describe("readCodebuddyIdeTranscript", () => {

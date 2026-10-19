@@ -202,19 +202,19 @@ def initialize_metrics(service_name: str | None = None, service_version: str = "
 
     # Create view with custom bucket boundaries for duration histogram
     duration_view = View(
-        instrument_name="agentstratum.operation.duration",
+        instrument_name="contextbase.operation.duration",
         aggregation=ExplicitBucketHistogramAggregation(boundaries=DURATION_BUCKETS),
     )
 
     # Create view with custom bucket boundaries for LLM duration histogram
     llm_duration_view = View(
-        instrument_name="agentstratum.llm.duration",
+        instrument_name="contextbase.llm.duration",
         aggregation=ExplicitBucketHistogramAggregation(boundaries=LLM_DURATION_BUCKETS),
     )
 
     # Create view with custom bucket boundaries for HTTP request duration histogram
     http_duration_view = View(
-        instrument_name="agentstratum.http.duration",
+        instrument_name="contextbase.http.duration",
         aggregation=ExplicitBucketHistogramAggregation(boundaries=HTTP_DURATION_BUCKETS),
     )
 
@@ -227,7 +227,7 @@ def initialize_metrics(service_name: str | None = None, service_version: str = "
             llm_duration_view,
             http_duration_view,
             View(
-                instrument_name="agentstratum.event_loop.lag",
+                instrument_name="contextbase.event_loop.lag",
                 aggregation=ExplicitBucketHistogramAggregation(boundaries=LOOP_LAG_BUCKETS),
             ),
         ],
@@ -237,7 +237,7 @@ def initialize_metrics(service_name: str | None = None, service_version: str = "
     metrics.set_meter_provider(provider)
 
     # Get meter for this application
-    _meter = metrics.get_meter("agentstratum.metrics")
+    _meter = metrics.get_meter("contextbase.metrics")
 
     return prometheus_reader
 
@@ -461,41 +461,41 @@ class MetricsCollector(MetricsCollectorBase):
         # Operation latency histogram (in seconds)
         # Records duration of retain, recall, reflect operations
         self.operation_duration = self.meter.create_histogram(
-            name="agentstratum.operation.duration",
-            description="Duration of agentstratum operations in seconds",
+            name="contextbase.operation.duration",
+            description="Duration of contextbase operations in seconds",
             unit="s",
         )
 
         # Operation counter (success/failure)
         self.operation_total = self.meter.create_counter(
-            name="agentstratum.operation.total", description="Total number of operations executed", unit="operations"
+            name="contextbase.operation.total", description="Total number of operations executed", unit="operations"
         )
 
         # LLM call latency histogram (in seconds)
         # Records duration of LLM API calls with provider, model, and scope dimensions
         self.llm_duration = self.meter.create_histogram(
-            name="agentstratum.llm.duration", description="Duration of LLM API calls in seconds", unit="s"
+            name="contextbase.llm.duration", description="Duration of LLM API calls in seconds", unit="s"
         )
 
         # LLM token usage counters with bucket labels
         self.llm_tokens_input = self.meter.create_counter(
-            name="agentstratum.llm.tokens.input", description="Number of input tokens for LLM calls", unit="tokens"
+            name="contextbase.llm.tokens.input", description="Number of input tokens for LLM calls", unit="tokens"
         )
 
         self.llm_tokens_output = self.meter.create_counter(
-            name="agentstratum.llm.tokens.output", description="Number of output tokens from LLM calls", unit="tokens"
+            name="contextbase.llm.tokens.output", description="Number of output tokens from LLM calls", unit="tokens"
         )
 
         # LLM call counter (success/failure)
         self.llm_calls_total = self.meter.create_counter(
-            name="agentstratum.llm.calls.total", description="Total number of LLM API calls", unit="calls"
+            name="contextbase.llm.calls.total", description="Total number of LLM API calls", unit="calls"
         )
 
         # Cached input tokens (subset of input_tokens billed at the cached rate).
         # Useful for tracking prompt-cache hit-rate independently of total
         # input volume. provider.scope.model labels matche llm_tokens_input.
         self.llm_tokens_cached_input = self.meter.create_counter(
-            name="agentstratum.llm.tokens.cached_input",
+            name="contextbase.llm.tokens.cached_input",
             description="Number of cached input tokens (billed at cached rate) for LLM calls",
             unit="tokens",
         )
@@ -506,7 +506,7 @@ class MetricsCollector(MetricsCollectorBase):
         # attribution: a workload that "looks cheap" by output volume can be
         # silently expensive if the model is doing long reasoning chains.
         self.llm_tokens_thoughts = self.meter.create_counter(
-            name="agentstratum.llm.tokens.thoughts",
+            name="contextbase.llm.tokens.thoughts",
             description="Number of reasoning/thinking tokens emitted by the model "
             "(billed as output but not surfaced in candidates)",
             unit="tokens",
@@ -519,22 +519,22 @@ class MetricsCollector(MetricsCollectorBase):
         # it — the operation still completes successfully. Alert on it to catch a
         # retain_mission that silently excludes more than intended (issue #3040).
         self.retain_documents_total = self.meter.create_counter(
-            name="agentstratum.retain.documents.total",
+            name="contextbase.retain.documents.total",
             description="Documents processed by retain, labelled by extraction outcome (facts/no_facts)",
             unit="documents",
         )
 
         # HTTP request metrics
         self.http_request_duration = self.meter.create_histogram(
-            name="agentstratum.http.duration", description="Duration of HTTP requests in seconds", unit="s"
+            name="contextbase.http.duration", description="Duration of HTTP requests in seconds", unit="s"
         )
 
         self.http_requests_total = self.meter.create_counter(
-            name="agentstratum.http.requests.total", description="Total number of HTTP requests", unit="requests"
+            name="contextbase.http.requests.total", description="Total number of HTTP requests", unit="requests"
         )
 
         self.http_requests_in_progress = self.meter.create_up_down_counter(
-            name="agentstratum.http.requests.in_progress",
+            name="contextbase.http.requests.in_progress",
             description="Number of HTTP requests in progress",
             unit="requests",
         )
@@ -543,7 +543,7 @@ class MetricsCollector(MetricsCollectorBase):
         # connection (pool-exhaustion signal) and detected event-loop stalls
         # (blocked-loop signal). See loop_watchdog.py and db/pool_instrumentation.py.
         self.db_acquire_wait = self.meter.create_histogram(
-            name="agentstratum.db.pool.acquire_wait",
+            name="contextbase.db.pool.acquire_wait",
             description="Time spent waiting to acquire a pooled database connection",
             unit="s",
         )
@@ -554,12 +554,12 @@ class MetricsCollector(MetricsCollectorBase):
         # sub-batches run concurrently, so the sum exceeds the retain's duration by design; read a
         # phase against `hindsight.retain.duration`, not against the others.
         self.retain_phase_duration = self.meter.create_histogram(
-            name="agentstratum.retain.phase.duration",
+            name="contextbase.retain.phase.duration",
             description="Time attributed to one phase of a retain (phases overlap under concurrency)",
             unit="s",
         )
         self.retain_phase_calls = self.meter.create_counter(
-            name="agentstratum.retain.phase.calls",
+            name="contextbase.retain.phase.calls",
             description="Number of times a retain phase ran -- the round-trip count per phase",
             unit="calls",
         )
@@ -570,7 +570,7 @@ class MetricsCollector(MetricsCollectorBase):
         # pool) is then latency nobody can see. Labelled by hook so the pre-check and the
         # post-charge are separable: they fail differently and are fixed differently.
         self.validator_phase_duration = self.meter.create_histogram(
-            name="agentstratum.validator.phase.duration",
+            name="contextbase.validator.phase.duration",
             description="Time in an operation-validator hook, which runs outside the operation's own timer",
             unit="s",
         )
@@ -585,7 +585,7 @@ class MetricsCollector(MetricsCollectorBase):
         # (a per-arm timing inside parallel_retrieval), and summing them with their parent
         # double-counts. Sum `diagnostic="false"` to get the request; read the rest for detail.
         self.recall_phase_duration = self.meter.create_histogram(
-            name="agentstratum.recall.phase.duration",
+            name="contextbase.recall.phase.duration",
             description="Time attributed to one phase of a recall (diagnostic phases are subsets, not siblings)",
             unit="s",
             # Buckets in SECONDS, sized for phases that take milliseconds. Without them the
@@ -619,7 +619,7 @@ class MetricsCollector(MetricsCollectorBase):
         # the case that silently drains the delete path (#4152). Neither reaches
         # `failed_consolidation`, which only counts facts bisection could not rescue.
         self.consolidation_batch_failures = self.meter.create_counter(
-            name="agentstratum.consolidation.batch_failures",
+            name="contextbase.consolidation.batch_failures",
             description=(
                 "Consolidation LLM batch calls that failed, by failure class -- "
                 "including those whose facts adaptive bisection later rescued"
@@ -627,12 +627,12 @@ class MetricsCollector(MetricsCollectorBase):
             unit="calls",
         )
         self.event_loop_stalls = self.meter.create_counter(
-            name="agentstratum.event_loop.stalls",
+            name="contextbase.event_loop.stalls",
             description="Number of detected event-loop stalls (loop blocked past the watchdog threshold)",
             unit="stalls",
         )
         self.event_loop_stall_duration = self.meter.create_histogram(
-            name="agentstratum.event_loop.stall_duration",
+            name="contextbase.event_loop.stall_duration",
             description="Duration of detected event-loop stalls in seconds",
             unit="s",
         )
@@ -640,7 +640,7 @@ class MetricsCollector(MetricsCollectorBase):
         # stall, which only counts blocks past a threshold, this is the whole distribution, so a
         # loop that is busy but never blocked still shows up.
         self.event_loop_lag = self.meter.create_histogram(
-            name="agentstratum.event_loop.lag",
+            name="contextbase.event_loop.lag",
             description="Event-loop lag: extra time a ready coroutine waited before it ran",
             unit="s",
         )
@@ -1010,28 +1010,28 @@ class MetricsCollector(MetricsCollectorBase):
 
         # Create observable gauges
         self.meter.create_observable_gauge(
-            name="agentstratum.process.cpu.seconds",
+            name="contextbase.process.cpu.seconds",
             callbacks=[get_cpu_times],
             description="Process CPU time in seconds",
             unit="s",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.process.memory.bytes",
+            name="contextbase.process.memory.bytes",
             callbacks=[get_memory_usage],
             description="Process memory usage in bytes",
             unit="By",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.process.open_fds",
+            name="contextbase.process.open_fds",
             callbacks=[get_open_file_descriptors],
             description="Number of open file descriptors",
             unit="{fds}",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.process.threads",
+            name="contextbase.process.threads",
             callbacks=[get_thread_count],
             description="Number of active threads",
             unit="{threads}",
@@ -1102,35 +1102,35 @@ class MetricsCollector(MetricsCollectorBase):
 
         # Create observable gauges for pool metrics
         self.meter.create_observable_gauge(
-            name="agentstratum.db.pool.size",
+            name="contextbase.db.pool.size",
             callbacks=[get_pool_size],
             description="Current number of connections in the pool",
             unit="{connections}",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.db.pool.idle",
+            name="contextbase.db.pool.idle",
             callbacks=[get_pool_free_size],
             description="Number of idle connections in the pool",
             unit="{connections}",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.db.pool.min",
+            name="contextbase.db.pool.min",
             callbacks=[get_pool_min_size],
             description="Minimum pool size",
             unit="{connections}",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.db.pool.max",
+            name="contextbase.db.pool.max",
             callbacks=[get_pool_max_size],
             description="Maximum pool size",
             unit="{connections}",
         )
 
         self.meter.create_observable_gauge(
-            name="agentstratum.db.pool.waiting",
+            name="contextbase.db.pool.waiting",
             callbacks=[get_pool_waiting],
             description="Callers currently blocked waiting to acquire a pooled connection",
             unit="{connections}",
@@ -1180,21 +1180,21 @@ class MetricsCollector(MetricsCollectorBase):
                 yield metrics.Observation(value, attrs)
 
         self.meter.create_observable_gauge(
-            name="agentstratum.async_operations",
+            name="contextbase.async_operations",
             callbacks=[get_async_operations],
             description="Async operations in a non-terminal state, by operation_type and status "
             "(pending=queued backlog, processing=in-flight, failed=stranded)",
             unit="{operations}",
         )
         self.meter.create_observable_gauge(
-            name="agentstratum.consolidation.backlog",
+            name="contextbase.consolidation.backlog",
             callbacks=[get_consolidation_backlog],
             description="Source memories (experience/world) still queued for consolidation into "
-            "observations; excludes permanently failed ones, which are in agentstratum.consolidation.failed",
+            "observations; excludes permanently failed ones, which are in contextbase.consolidation.failed",
             unit="{memories}",
         )
         self.meter.create_observable_gauge(
-            name="agentstratum.consolidation.failed",
+            name="contextbase.consolidation.failed",
             callbacks=[get_consolidation_failed],
             description="Source memories whose consolidation permanently failed "
             "(recoverable via the consolidation recovery endpoint)",

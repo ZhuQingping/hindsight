@@ -2,23 +2,23 @@
 sidebar_position: 11
 ---
 
-# OpenAI Agent + Hindsight Memory Integration
+# OpenAI Agent + ContextBase Memory Integration
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/openai-fitness-coach)
 :::
 
 
-A fitness coach example demonstrating how to use **OpenAI Agents** with **Hindsight as a memory backend**.
+A fitness coach example demonstrating how to use **OpenAI Agents** with **ContextBase as a memory backend**.
 
 ## What This Demonstrates
 
 This example showcases:
 
 - **OpenAI Assistants** handling conversation logic
-- **Hindsight** providing sophisticated memory storage & retrieval
+- **ContextBase** providing sophisticated memory storage & retrieval
 - **Function calling** to bridge them together
 - **Streaming responses** for real-time interaction (enabled by default)
 - **Bidirectional memory** - both user data AND coach observations stored
@@ -36,19 +36,19 @@ OpenAI Assistant
     |
 Function Call: store_memory(workout + preference)
     |
-Hindsight API (stores as world/agent)
+ContextBase API (stores as world/agent)
     |
 OpenAI Assistant: "What should I focus on?"
     |
 Function Call: retrieve_memories("workouts and preferences")
     |
-Hindsight API (returns workouts + preferences)
+ContextBase API (returns workouts + preferences)
     |
 OpenAI Assistant (analyzes, gives advice)
     |
 Function Call: store_memory(advice as opinion)
     |
-Hindsight API (stores coach's observation)
+ContextBase API (stores coach's observation)
     |
 Personalized Answer
 ```
@@ -57,11 +57,11 @@ Personalized Answer
 
 | Component | Standard Demo | OpenAI Integration |
 |-----------|---------------|-------------------|
-| **Conversation** | Hindsight `/think` endpoint | OpenAI Assistant API |
+| **Conversation** | ContextBase `/think` endpoint | OpenAI Assistant API |
 | **Memory** | Hindsight (built-in) | Hindsight (via function calling) |
-| **LLM** | Configured in Hindsight | OpenAI GPT-4 |
+| **LLM** | Configured in ContextBase | OpenAI GPT-4 |
 | **Opinion Formation** | Automatic in `/think` | Explicit via `store_memory(type="opinion")` |
-| **Best For** | Hindsight-native apps | Integrating memory into existing OpenAI agents |
+| **Best For** | ContextBase-native apps | Integrating memory into existing OpenAI agents |
 
 ## Quick Start
 
@@ -72,9 +72,9 @@ Personalized Answer
    export OPENAI_API_KEY=your_openai_api_key
    ```
 
-2. **Hindsight API running**
+2. **ContextBase API running**
    ```bash
-   # Follow Hindsight setup instructions to start the API
+   # Follow ContextBase setup instructions to start the API
    # Default: http://localhost:8888
    ```
 
@@ -129,7 +129,7 @@ get_user_goals()
 get_coach_opinions(about)
 ```
 
-Each function makes API calls to Hindsight to fetch relevant memories.
+Each function makes API calls to ContextBase to fetch relevant memories.
 
 ### 2. OpenAI Agent (`openai_coach.py`)
 
@@ -141,7 +141,7 @@ Creates an OpenAI Assistant with:
 When you ask a question:
 1. User message is sent to OpenAI Assistant
 2. Assistant decides which memory functions to call
-3. Functions fetch data from Hindsight
+3. Functions fetch data from ContextBase
 4. Assistant generates response using retrieved context
 
 ### 3. Function Calling Flow
@@ -155,7 +155,7 @@ search_workouts(
     workout_type="running"
 )
 
-# Function retrieves from Hindsight:
+# Function retrieves from ContextBase:
 {
   "results": [
     {"text": "User completed 45-minute cardio workout: running..."},
@@ -183,12 +183,12 @@ python openai_coach.py "Compare my training this month to last month"
 The agent will automatically:
 1. Identify what memories it needs
 2. Call the appropriate function tools
-3. Retrieve data from Hindsight
+3. Retrieve data from ContextBase
 4. Generate a personalized response
 
 ## Memory Types Retrieved
 
-The OpenAI Agent can retrieve different memory types from Hindsight:
+The OpenAI Agent can retrieve different memory types from ContextBase:
 
 - **World Facts** (`fact_type: "world"`): Workouts, meals, activities
 - **Agent Facts** (`fact_type: "agent"`): Goals, intentions
@@ -245,26 +245,26 @@ This pattern works for any application that needs memory:
 
 ## Integration Pattern
 
-**To add Hindsight memory to your own OpenAI Agent:**
+**To add ContextBase memory to your own OpenAI Agent:**
 
-1. Define function tools that call Hindsight API
+1. Define function tools that call ContextBase API
 2. Register them with your OpenAI Assistant
-3. Implement function handlers to execute Hindsight queries
+3. Implement function handlers to execute ContextBase queries
 4. Let OpenAI Assistant decide when to retrieve memories
 
 The key benefit: **Separation of concerns**
 - OpenAI = Conversation logic
-- Hindsight = Memory storage, retrieval, temporal queries, entity linking
+- ContextBase = Memory storage, retrieval, temporal queries, entity linking
 
-## When to Use This vs. Standard Hindsight
+## When to Use This vs. Standard ContextBase
 
 **Use OpenAI + Hindsight (this example) when:**
 - You want OpenAI's conversation capabilities
 - You're already using OpenAI Agents
 - You want explicit control over when to retrieve memories
-- You want to combine Hindsight with other OpenAI features
+- You want to combine ContextBase with other OpenAI features
 
-**Use Hindsight directly when:**
+**Use ContextBase directly when:**
 - You want a complete memory-first solution
 - You want automatic memory retrieval and opinion formation
 - You want to use different LLM providers (not just OpenAI)
@@ -283,7 +283,7 @@ After running this demo, you'll understand:
 
 - `demo_conversational.py` - Conversational demo showcasing preference learning and goal tracking
 - `openai_coach.py` - OpenAI Assistant wrapper with streaming and memory integration
-- `memory_tools.py` - Function calling tools that bridge to Hindsight API
+- `memory_tools.py` - Function calling tools that bridge to ContextBase API
 - `.openai_assistant_id` - Saved assistant ID (auto-generated, gitignored)
 
 ## Common Issues
@@ -294,10 +294,10 @@ export OPENAI_API_KEY=your_api_key_here
 ```
 
 **"Agent not found"**
-- Make sure the Hindsight fitness-coach agent exists
+- Make sure the ContextBase fitness-coach agent exists
 
 **"Connection refused"**
-- Make sure Hindsight API is running on localhost:8888
+- Make sure ContextBase API is running on localhost:8888
 
 ## Next Steps
 

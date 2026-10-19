@@ -1,5 +1,5 @@
 /**
- * Executable entrypoint for the `hindsight-obsidian-sync` bin. Kept separate from
+ * Executable entrypoint for the `contextbase-obsidian-sync` bin. Kept separate from
  * `cli.ts` (which is side-effect-free and unit-tested) so importing the CLI's
  * functions never runs the process or calls `process.exit`.
  */

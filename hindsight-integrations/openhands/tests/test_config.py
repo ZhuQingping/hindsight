@@ -2,42 +2,44 @@
 
 import json
 
-from hindsight_openhands.config import DEFAULT_BANK_ID, DEFAULT_HINDSIGHT_API_URL, load_config
+from contextbase_openhands.config import DEFAULT_BANK_ID, DEFAULT_CONTEXTBASE_API_URL, load_config
 
 
 def test_defaults(tmp_path):
     cfg = load_config(config_file=tmp_path / "missing.json", env={})
-    assert cfg.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
-    assert cfg.hindsight_api_token is None
+    assert cfg.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
+    assert cfg.contextbase_api_token is None
     assert cfg.bank_id == DEFAULT_BANK_ID
 
 
 def test_file_values(tmp_path):
     p = tmp_path / "openhands.json"
-    p.write_text(json.dumps({"hindsightApiUrl": "http://localhost:8888", "hindsightApiToken": "t", "bankId": "proj"}))
+    p.write_text(
+        json.dumps({"contextbaseApiUrl": "http://localhost:8888", "contextbaseApiToken": "t", "bankId": "proj"})
+    )
     cfg = load_config(config_file=p, env={})
-    assert cfg.hindsight_api_url == "http://localhost:8888"
-    assert cfg.hindsight_api_token == "t"
+    assert cfg.contextbase_api_url == "http://localhost:8888"
+    assert cfg.contextbase_api_token == "t"
     assert cfg.bank_id == "proj"
 
 
 def test_env_overrides_file(tmp_path):
     p = tmp_path / "openhands.json"
-    p.write_text(json.dumps({"hindsightApiUrl": "http://file:8888", "bankId": "from-file"}))
+    p.write_text(json.dumps({"contextbaseApiUrl": "http://file:8888", "bankId": "from-file"}))
     env = {
-        "HINDSIGHT_API_URL": "http://env:9999",
-        "HINDSIGHT_OPENHANDS_BANK_ID": "from-env",
-        "HINDSIGHT_API_TOKEN": "k",
+        "CONTEXTBASE_API_URL": "http://env:9999",
+        "CONTEXTBASE_OPENHANDS_BANK_ID": "from-env",
+        "CONTEXTBASE_API_TOKEN": "k",
     }
     cfg = load_config(config_file=p, env=env)
-    assert cfg.hindsight_api_url == "http://env:9999"
+    assert cfg.contextbase_api_url == "http://env:9999"
     assert cfg.bank_id == "from-env"
-    assert cfg.hindsight_api_token == "k"
+    assert cfg.contextbase_api_token == "k"
 
 
 def test_malformed_file_falls_back(tmp_path):
     p = tmp_path / "openhands.json"
     p.write_text("{ not valid")
     cfg = load_config(config_file=p, env={})
-    assert cfg.hindsight_api_url == DEFAULT_HINDSIGHT_API_URL
+    assert cfg.contextbase_api_url == DEFAULT_CONTEXTBASE_API_URL
     assert cfg.bank_id == DEFAULT_BANK_ID

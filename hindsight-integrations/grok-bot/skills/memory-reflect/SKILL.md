@@ -1,6 +1,6 @@
 ---
 name: memory-reflect
-description: Answer questions about history, habits and past decisions by reasoning over Hindsight memory. Use when asked what was decided about something, how something is usually done, what changed over time, or what is known about a topic.
+description: Answer questions about history, habits and past decisions by reasoning over ContextBase memory. Use when asked what was decided about something, how something is usually done, what changed over time, or what is known about a topic.
 ---
 
 # Reason over memory

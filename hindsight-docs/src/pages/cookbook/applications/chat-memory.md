@@ -6,12 +6,12 @@ sidebar_position: 2
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/chat-memory)
 :::
 
 
-A demo chat application that uses Groq's `qwen/qwen3-32b` model with Hindsight for persistent per-user memory.
+A demo chat application that uses Groq's `qwen/qwen3-32b` model with ContextBase for persistent per-user memory.
 
 ## Features
 
@@ -22,20 +22,22 @@ A demo chat application that uses Groq's `qwen/qwen3-32b` model with Hindsight f
 
 ## Setup
 
-### 1. Start Hindsight API
+### 1. Start ContextBase API
 
-First, start the Hindsight API server using Docker:
+First, start the ContextBase API server using Docker:
 
 ```bash
 export GROQ_API_KEY=your_groq_api_key_here
 
-# Start Hindsight with Groq as the LLM provider
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_PROVIDER=groq \
-  -e HINDSIGHT_API_LLM_API_KEY=$GROQ_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL="openai/gpt-oss-20b" \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+# Start ContextBase with Groq as the LLM provider
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_PROVIDER=groq \
+  -e CONTEXTBASE_API_LLM_API_KEY=$GROQ_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL="openai/gpt-oss-20b" \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - **API**: http://localhost:8888
@@ -48,7 +50,7 @@ Copy your Groq API key to the environment file:
 ```bash
 # Update .env.local with your Groq API key
 echo "GROQ_API_KEY=your_groq_api_key_here" > .env.local
-echo "HINDSIGHT_API_URL=http://localhost:8888" >> .env.local
+echo "CONTEXTBASE_API_URL=http://localhost:8888" >> .env.local
 ```
 
 If you don't have one, you can get a free Groq API key here: https://console.groq.com/home
@@ -70,7 +72,7 @@ Open http://localhost:3000 in your browser.
 ## How It Works
 
 1. **User Identity**: Each browser session gets a unique user ID
-2. **Memory Bank Creation**: First message creates a personal memory bank in Hindsight
+2. **Memory Bank Creation**: First message creates a personal memory bank in ContextBase
 3. **Context Retrieval**: Before responding, relevant memories are retrieved
 4. **Memory Augmented Response**: Groq generates responses with memory context
 5. **Conversation Storage**: Each conversation is stored for future context
@@ -111,7 +113,7 @@ Each user gets their own isolated memory bank with:
    - "I prefer VS Code over other editors"
    - "I'm working on a React project"
 
-4. **Memory Verification**: Visit the Hindsight Control Plane at http://localhost:9999 to see stored memories
+4. **Memory Verification**: Visit the ContextBase Control Plane at http://localhost:9999 to see stored memories
 
 ## Development
 

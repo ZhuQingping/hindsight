@@ -1,6 +1,6 @@
 ---
 name: memory-context
-description: Load relevant long-term memory from Hindsight before starting work. Use at the start of every task or request, before planning or answering, and whenever the user mentions people, projects, decisions, preferences or anything done before.
+description: Load relevant long-term memory from ContextBase before starting work. Use at the start of every task or request, before planning or answering, and whenever the user mentions people, projects, decisions, preferences or anything done before.
 ---
 
 # Load memory before working

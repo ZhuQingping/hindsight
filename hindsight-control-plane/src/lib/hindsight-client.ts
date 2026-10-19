@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import "server-only";
 
 /**
@@ -13,8 +14,8 @@ import {
   sdk,
 } from "@vectorize-io/hindsight-client";
 
-export const DATAPLANE_URL = process.env.HINDSIGHT_CP_DATAPLANE_API_URL || "http://localhost:8888";
-const DATAPLANE_API_KEY = process.env.HINDSIGHT_CP_DATAPLANE_API_KEY || "";
+export const DATAPLANE_URL = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";
+const DATAPLANE_API_KEY = controlPlaneEnv("DATAPLANE_API_KEY") || "";
 
 /**
  * Auth headers for direct fetch calls to the dataplane API.

@@ -3,7 +3,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './SkillBanner.module.css';
 
 const INSTALL_COMMAND =
-  'npx skills add https://github.com/vectorize-io/hindsight --skill hindsight-docs';
+  'npx skills add https://github.com/RSIXDB/hindsight --skill hindsight-docs';
 
 // Brand marks only: one command installs the skill for any of them, so these
 // say "this works with your agent" rather than offering a choice.

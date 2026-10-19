@@ -81,7 +81,7 @@ describe("HindsightClient over fetchTransport (full stack)", () => {
 describe("cross-transport request parity", () => {
   // The same client call must produce an identical request regardless of which
   // transport carries it — this is what guarantees the CLI and the plugin talk
-  // to Hindsight the same way.
+  // to ContextBase the same way.
   function recorder(): { transport: Transport; last: () => TransportRequest } {
     let seen: TransportRequest | undefined;
     return {

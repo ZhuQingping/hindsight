@@ -2,7 +2,7 @@
 CLI utilities for daemon and CLI management.
 
 This module provides CLI-specific functions for managing the daemon
-and the agentstratum Rust CLI binary.
+and the contextbase Rust CLI binary.
 """
 
 import logging
@@ -12,7 +12,7 @@ from pathlib import Path
 from .daemon_embed_manager import DaemonEmbedManager
 from .profile_manager import resolve_active_profile
 
-logger = logging.getLogger("agentstratum.embed.daemon_client")
+logger = logging.getLogger("contextbase.embed.daemon_client")
 
 # Singleton manager instance
 _manager = DaemonEmbedManager()
@@ -20,7 +20,7 @@ _manager = DaemonEmbedManager()
 # CLI paths - check multiple locations
 CLI_INSTALL_DIRS = [
     Path.home() / ".local" / "bin",  # Standard location from get-cli installer
-    Path.home() / ".agentstratum" / "bin",  # Alternative location
+    Path.home() / ".contextbase" / "bin",  # Alternative location
 ]
 # Set only by the distribution build after the publisher confirms a trusted source.
 CLI_INSTALLER_URL: str | None = None
@@ -46,11 +46,11 @@ def ensure_daemon_running(config: dict, profile: str | None = None, extra_args: 
 
     Args:
         config: Overrides for the daemon, keyed by environment variable name
-                ("AGENTSTRATUM_API_LLM_API_KEY", ...). Every AGENTSTRATUM_* key is
+                ("CONTEXTBASE_API_LLM_API_KEY", ...). Every CONTEXTBASE_* key is
                 forwarded to the daemon process; the profile's own .env is
                 merged underneath it.
         profile: Profile name (None = resolve from priority).
-        extra_args: Extra CLI arguments to pass to agentstratum-api (e.g. ["--offline"]).
+        extra_args: Extra CLI arguments to pass to contextbase-api (e.g. ["--offline"]).
 
     Returns:
         True if daemon is running.
@@ -153,14 +153,14 @@ def get_ui_url(profile: str | None = None, ui_port: int | None = None) -> str:
 
 
 def find_cli_binary() -> Path | None:
-    """Find the agentstratum CLI binary in known locations or PATH."""
+    """Find the contextbase CLI binary in known locations or PATH."""
     import shutil
     import sys
 
-    binary_names = ("agentstratum.exe", "agentstratum") if sys.platform == "win32" else ("agentstratum",)
+    binary_names = ("contextbase.exe", "contextbase") if sys.platform == "win32" else ("contextbase",)
 
     # Check standard install locations. On Windows we look for both the
-    # `.exe` (produced by `cargo build`) and the bare `agentstratum` in case a
+    # `.exe` (produced by `cargo build`) and the bare `contextbase` in case a
     # user dropped a WSL/Git-Bash build there.
     for install_dir in CLI_INSTALL_DIRS:
         for name in binary_names:
@@ -169,8 +169,8 @@ def find_cli_binary() -> Path | None:
                 return binary
 
     # Check PATH. shutil.which handles PATHEXT on Windows, so passing
-    # "agentstratum" finds agentstratum.exe automatically.
-    path_binary = shutil.which("agentstratum")
+    # "contextbase" finds contextbase.exe automatically.
+    path_binary = shutil.which("contextbase")
     if path_binary:
         return Path(path_binary)
 
@@ -178,13 +178,13 @@ def find_cli_binary() -> Path | None:
 
 
 def is_cli_installed() -> bool:
-    """Check if the agentstratum CLI is installed."""
+    """Check if the contextbase CLI is installed."""
     return find_cli_binary() is not None
 
 
 def install_cli() -> bool:
     """
-    Install the agentstratum CLI using the official installer.
+    Install the contextbase CLI using the official installer.
 
     Returns True if installation succeeded.
     """
@@ -198,15 +198,15 @@ def install_cli() -> bool:
         return False
 
     # Determine CLI version (use env var or match embed version)
-    cli_version = os.getenv("AGENTSTRATUM_EMBED_CLI_VERSION", __version__)
+    cli_version = os.getenv("CONTEXTBASE_EMBED_CLI_VERSION", __version__)
 
-    print(f"Installing agentstratum CLI (version {cli_version})...")
+    print(f"Installing contextbase CLI (version {cli_version})...")
     print(f"  Installer URL: {CLI_INSTALLER_URL}")
 
     try:
         # Download and run installer with version env var
         env = os.environ.copy()
-        env["AGENTSTRATUM_CLI_VERSION"] = cli_version
+        env["CONTEXTBASE_CLI_VERSION"] = cli_version
 
         result = subprocess.run(
             ["bash", "-c", f"curl -fsSL {CLI_INSTALLER_URL} | bash"],
@@ -233,7 +233,7 @@ def install_cli() -> bool:
             print(f"  stderr: {result.stderr}", file=sys.stderr)
             # Check known locations
             for install_dir in CLI_INSTALL_DIRS:
-                binary = install_dir / "agentstratum"
+                binary = install_dir / "contextbase"
                 print(f"  Checking {binary}: exists={binary.exists()}", file=sys.stderr)
             return False
 
@@ -251,9 +251,9 @@ def ensure_cli_installed() -> bool:
 
 def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
     """
-    Run the agentstratum CLI with the given arguments.
+    Run the contextbase CLI with the given arguments.
 
-    Ensures daemon is running (unless AGENTSTRATUM_API_URL is already set) and passes the API URL.
+    Ensures daemon is running (unless CONTEXTBASE_API_URL is already set) and passes the API URL.
 
     Args:
         args: CLI arguments (e.g., ["memory", "retain", "bank", "content"])
@@ -275,14 +275,14 @@ def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
 
     cli_binary = find_cli_binary()
     if not cli_binary:
-        print("Error: agentstratum CLI not found", file=sys.stderr)
+        print("Error: contextbase CLI not found", file=sys.stderr)
         return 1
 
     # Build environment
     env = os.environ.copy()
 
     # Check if user wants to use external API
-    api_url = env.get("AGENTSTRATUM_EMBED_API_URL")
+    api_url = env.get("CONTEXTBASE_EMBED_API_URL")
 
     if not api_url:
         # No external API specified - ensure our daemon is running
@@ -294,13 +294,13 @@ def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
         # Using external API - skip daemon startup
         logger.debug(f"Using external API at {api_url}")
 
-    # Set the API URL for the CLI (using the standard AGENTSTRATUM_API_URL var that the CLI expects)
-    env["AGENTSTRATUM_API_URL"] = api_url
+    # Set the API URL for the CLI (using the standard CONTEXTBASE_API_URL var that the CLI expects)
+    env["CONTEXTBASE_API_URL"] = api_url
 
-    # Pass through API token if set (using the standard AGENTSTRATUM_API_KEY var that the CLI expects)
-    api_token = env.get("AGENTSTRATUM_EMBED_API_TOKEN")
+    # Pass through API token if set (using the standard CONTEXTBASE_API_KEY var that the CLI expects)
+    api_token = env.get("CONTEXTBASE_EMBED_API_TOKEN")
     if api_token:
-        env["AGENTSTRATUM_API_KEY"] = api_token
+        env["CONTEXTBASE_API_KEY"] = api_token
 
     # Run CLI
     try:

@@ -65,24 +65,24 @@ async def test_recall_span_hierarchy(mock_tracer, memory, request_context):
         # Verify parent span was created with start_as_current_span
         assert mock_tracer.start_as_current_span.called
         parent_call = mock_tracer.start_as_current_span.call_args
-        assert parent_call[0][0] == "agentstratum.recall"
+        assert parent_call[0][0] == "contextbase.recall"
 
         # Verify parent span attributes were set
         recall_attrs = {call[0][0]: call[0][1] for call in mock_recall_span.set_attribute.call_args_list}
-        assert "agentstratum.bank_id" in recall_attrs
-        assert recall_attrs["agentstratum.bank_id"] == bank_id
-        assert "agentstratum.query" in recall_attrs
-        assert "agentstratum.fact_types" in recall_attrs
-        assert "agentstratum.thinking_budget" in recall_attrs
-        assert "agentstratum.max_tokens" in recall_attrs
+        assert "contextbase.bank_id" in recall_attrs
+        assert recall_attrs["contextbase.bank_id"] == bank_id
+        assert "contextbase.query" in recall_attrs
+        assert "contextbase.fact_types" in recall_attrs
+        assert "contextbase.thinking_budget" in recall_attrs
+        assert "contextbase.max_tokens" in recall_attrs
 
         # Verify child spans were created (if tracing is enabled)
         if mock_tracer.start_span.called:
             child_spans = [call[0][0] for call in mock_tracer.start_span.call_args_list]
-            assert "agentstratum.recall_embedding" in child_spans
-            assert "agentstratum.recall_retrieval" in child_spans
-            assert "agentstratum.recall_fusion" in child_spans
-            assert "agentstratum.recall_rerank" in child_spans
+            assert "contextbase.recall_embedding" in child_spans
+            assert "contextbase.recall_retrieval" in child_spans
+            assert "contextbase.recall_fusion" in child_spans
+            assert "contextbase.recall_rerank" in child_spans
 
     finally:
         # Cleanup
@@ -258,16 +258,16 @@ async def test_recall_span_attributes(mock_tracer, memory, request_context):
         attrs = {call[0][0]: call[0][1] for call in mock_span.set_attribute.call_args_list}
 
         # Verify required attributes
-        assert "agentstratum.bank_id" in attrs
-        assert "agentstratum.query" in attrs
-        assert "agentstratum.fact_types" in attrs
-        assert "agentstratum.max_tokens" in attrs
-        assert "agentstratum.thinking_budget" in attrs
+        assert "contextbase.bank_id" in attrs
+        assert "contextbase.query" in attrs
+        assert "contextbase.fact_types" in attrs
+        assert "contextbase.max_tokens" in attrs
+        assert "contextbase.thinking_budget" in attrs
 
         # Verify attribute values
-        assert attrs["agentstratum.bank_id"] == bank_id
-        assert "test query" in attrs["agentstratum.query"]
-        assert attrs["agentstratum.max_tokens"] == 2048
+        assert attrs["contextbase.bank_id"] == bank_id
+        assert "test query" in attrs["contextbase.query"]
+        assert attrs["contextbase.max_tokens"] == 2048
 
     finally:
         # Cleanup

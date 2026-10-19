@@ -1,10 +1,10 @@
-"""Unit tests for Hindsight LangGraph nodes."""
+"""Unit tests for ContextBase LangGraph nodes."""
 
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from hindsight_langgraph import create_recall_node, create_retain_node
-from hindsight_langgraph.errors import HindsightError
+from contextbase_langgraph import create_recall_node, create_retain_node
+from contextbase_langgraph.errors import HindsightError
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 

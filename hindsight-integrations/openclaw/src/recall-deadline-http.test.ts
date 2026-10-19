@@ -31,7 +31,7 @@ function json(response: ServerResponse, body: unknown, status = 200) {
 }
 
 beforeEach(async () => {
-  directory = mkdtempSync(join(tmpdir(), "hindsight-recall-http-"));
+  directory = mkdtempSync(join(tmpdir(), "contextbase-recall-http-"));
   requests = 0;
   respond = (response) => json(response, memory);
   server = createServer(async (request, response) => {
@@ -60,9 +60,9 @@ beforeEach(async () => {
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": {
+          "contextbase-openclaw": {
             config: {
-              hindsightApiUrl: baseUrl,
+              contextbaseApiUrl: baseUrl,
               bankId: "test-bank",
               dynamicBankId: false,
               autoRecall: true,

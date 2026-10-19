@@ -22,7 +22,7 @@ export interface SessionCache {
 }
 
 export function sessionCacheFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.json`);
+  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}.json`);
 }
 
 export function readSessionCache(cacheFile: string): SessionCache {
@@ -107,7 +107,7 @@ export function takePendingContext(harness: string, sessionId: string): string |
 
 /** The session root's own file, deliberately NOT the shared session cache — see sessionRootDir. */
 function sessionRootFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.root`);
+  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}.root`);
 }
 
 /**
@@ -158,7 +158,7 @@ export function sessionRootDir(
  */
 export function fileUsageCursorStore(harness: string): UsageCursorStore {
   const file = (sessionId: string) =>
-    join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.usage.json`);
+    join(tmpdir(), `contextbase-${harness}`, `${sessionId}.usage.json`);
   return {
     read: (sessionId) => {
       try {
@@ -181,7 +181,7 @@ export function fileUsageCursorStore(harness: string): UsageCursorStore {
 
 /** The cursor's own file, deliberately NOT the shared session cache — see fileCursorStore. */
 function cursorFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `agentstratum-${harness}`, `${sessionId}.retain.json`);
+  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}.retain.json`);
 }
 
 /**

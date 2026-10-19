@@ -23,7 +23,7 @@ const groupSession = {
 
 function deps(overrides: Partial<MemoryProviderDeps> = {}): MemoryProviderDeps {
   return {
-    providerId: "hindsight-openclaw",
+    providerId: "contextbase-openclaw",
     agentBank: (agentId) => `bank-${agentId}`,
     recall: vi.fn().mockResolvedValue([
       { id: "m1", text: "Prefers persimmons", score: 0.9 },
@@ -52,7 +52,7 @@ describe("native memory provider (#4916)", () => {
     expect(d.recall).toHaveBeenCalledWith("bank-main", "fruit", undefined);
     expect(page.hits).toEqual([
       {
-        reference: { providerId: "hindsight-openclaw", id: "m1" },
+        reference: { providerId: "contextbase-openclaw", id: "m1" },
         excerpt: "Prefers persimmons",
         score: 0.9,
         source: "memory",
@@ -66,7 +66,7 @@ describe("native memory provider (#4916)", () => {
     const group = await open(deps(), groupSession);
     await expect(group.search({ query: "x" })).rejects.toThrow(/not readable/);
     await expect(
-      group.get({ reference: { providerId: "hindsight-openclaw", id: "m1" } })
+      group.get({ reference: { providerId: "contextbase-openclaw", id: "m1" } })
     ).rejects.toThrow(/not readable/);
   });
 
@@ -88,10 +88,10 @@ describe("native memory provider (#4916)", () => {
     const d = deps();
     const provider = await open(d, operator);
     expect(
-      await provider.get({ reference: { providerId: "hindsight-openclaw", id: "m1" } })
+      await provider.get({ reference: { providerId: "contextbase-openclaw", id: "m1" } })
     ).toEqual({
       status: "ok",
-      reference: { providerId: "hindsight-openclaw", id: "m1" },
+      reference: { providerId: "contextbase-openclaw", id: "m1" },
       text: "Prefers persimmons",
     });
     expect(await provider.get({ reference: { providerId: "memory-core", id: "m1" } })).toEqual({

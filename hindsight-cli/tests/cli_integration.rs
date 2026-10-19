@@ -1,7 +1,7 @@
 //! Integration tests for the hindsight CLI commands.
 //!
 //! These tests require a running hindsight API server.
-//! Set AGENTSTRATUM_API_URL environment variable to point to the server.
+//! Set CONTEXTBASE_API_URL environment variable to point to the server.
 //! Run `cargo test --test cli_integration -- --ignored --test-threads=1` inside that fixture.
 //! Ordinary unit runs report these as ignored; an explicit run fails if its fixture is missing.
 
@@ -10,8 +10,8 @@ use std::process::Command;
 
 /// Live tests require an explicitly selected fixture; never probe a developer service.
 fn require_server() {
-    let api_url = env::var("AGENTSTRATUM_API_URL")
-        .expect("set AGENTSTRATUM_API_URL to an isolated native API fixture");
+    let api_url = env::var("CONTEXTBASE_API_URL")
+        .expect("set CONTEXTBASE_API_URL to an isolated native API fixture");
     let response = reqwest::blocking::get(format!("{}/health", api_url))
         .expect("the explicitly configured API fixture must be reachable");
     assert!(response.status().is_success(), "API fixture health failed");
@@ -25,10 +25,10 @@ fn test_bank_id(test_name: &str) -> String {
 
 /// Run a hindsight CLI command
 fn run_hindsight(args: &[&str]) -> std::process::Output {
-    let api_url = env::var("AGENTSTRATUM_API_URL").expect("isolated API fixture is required");
+    let api_url = env::var("CONTEXTBASE_API_URL").expect("isolated API fixture is required");
 
-    Command::new(env!("CARGO_BIN_EXE_agentstratum"))
-        .env("AGENTSTRATUM_API_URL", &api_url)
+    Command::new(env!("CARGO_BIN_EXE_contextbase"))
+        .env("CONTEXTBASE_API_URL", &api_url)
         .args(args)
         .output()
         .expect("Failed to execute hindsight command")

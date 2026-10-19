@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Auto-recall hook for UserPromptSubmit.
 
-Fires before each user prompt. Retrieves relevant memories from Hindsight
+Fires before each user prompt. Retrieves relevant memories from ContextBase
 and injects them into the Codex context via hookSpecificOutput.additionalContext.
 
 Flow:
@@ -10,7 +10,7 @@ Flow:
   3. Derive bank ID and ensure mission
   4. Compose multi-turn query if recallContextTurns > 1
   5. Truncate to recallMaxQueryChars
-  6. Call Hindsight recall API
+  6. Call ContextBase recall API
   7. Format memories and output hookSpecificOutput.additionalContext
 
 Exit codes:
@@ -74,9 +74,9 @@ def filter_by_min_scores(results: list[dict], min_scores: dict, config: dict) ->
 
 def main():
     if sys.platform == "win32":
-        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8', errors='replace')
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
     config = load_config()
 
@@ -108,7 +108,7 @@ def main():
         print(f"[Hindsight] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
@@ -135,7 +135,7 @@ def main():
     if len(query) > recall_max_query_chars:
         query = query[:recall_max_query_chars]
 
-    query = query.encode('utf-8', errors='ignore').decode('utf-8')
+    query = query.encode("utf-8", errors="ignore").decode("utf-8")
 
     current_time = format_current_time()
     preamble = config.get("recallPromptPreamble", "")
@@ -167,11 +167,11 @@ def main():
     memories_formatted = format_memories(results)
 
     context_message = (
-        f"<hindsight_memories>\n"
+        f"<contextbase_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</hindsight_memories>"
+        f"</contextbase_memories>"
     )
 
     write_state(

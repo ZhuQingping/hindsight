@@ -1,8 +1,8 @@
 {
-  "name": "hindsight-cloudflare-oauth-proxy",
+  "name": "contextbase-cloudflare-oauth-proxy",
   "version": "1.0.1",
   "private": true,
-  "description": "OAuth 2.1 proxy for connecting cloud MCP clients to self-hosted Hindsight via Cloudflare Workers",
+  "description": "OAuth 2.1 proxy for connecting cloud MCP clients to self-hosted ContextBase via Cloudflare Workers",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

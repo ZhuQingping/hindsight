@@ -15,8 +15,8 @@ import type { SyncEngine, SyncFile } from "../../src/sync";
 
 describe("parseCliArgs", () => {
   beforeEach(() => {
-    vi.stubEnv("HINDSIGHT_API_URL", "");
-    vi.stubEnv("HINDSIGHT_API_TOKEN", "");
+    vi.stubEnv("CONTEXTBASE_API_URL", "");
+    vi.stubEnv("CONTEXTBASE_API_TOKEN", "");
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -33,7 +33,7 @@ describe("parseCliArgs", () => {
     expect(o.prefixDocId).toBe(false);
     expect(o.watch).toBe(false);
     // Default index path is target-scoped: <vault>-<bank>-<fingerprint>.json.
-    expect(o.indexPath).toMatch(/\.hindsight[/\\]obsidian[/\\]v-b-[0-9a-f]{12}\.json$/);
+    expect(o.indexPath).toMatch(/\.contextbase[/\\]obsidian[/\\]v-b-[0-9a-f]{12}\.json$/);
   });
 
   it("binds the index identity to the resolved destination (not scope)", () => {
@@ -76,8 +76,8 @@ describe("parseCliArgs", () => {
   });
 
   it("falls back to env for api url/token", () => {
-    vi.stubEnv("HINDSIGHT_API_URL", "https://env");
-    vi.stubEnv("HINDSIGHT_API_TOKEN", "envtok");
+    vi.stubEnv("CONTEXTBASE_API_URL", "https://env");
+    vi.stubEnv("CONTEXTBASE_API_TOKEN", "envtok");
     const o = parseCliArgs(["--vault", "/v", "--bank", "b"]);
     expect(o.apiUrl).toBe("https://env");
     expect(o.apiToken).toBe("envtok");

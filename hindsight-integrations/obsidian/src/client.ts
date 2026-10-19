@@ -1,5 +1,5 @@
 /**
- * Minimal Hindsight HTTP client.
+ * Minimal ContextBase HTTP client.
  *
  * Transport-agnostic: the caller injects a {@link Transport} (Obsidian's
  * `requestUrl` for the plugin renderer, `fetch` for the headless CLI). This file
@@ -12,7 +12,7 @@ import type { ReflectOptions, ReflectResponse, RetainOptions } from "./types";
 // Inlined by esbuild: the installed plugin ships main.js without a package.json.
 import { version } from "../package.json";
 
-const USER_AGENT = `hindsight-obsidian/${version}`;
+const USER_AGENT = `contextbase-obsidian/${version}`;
 
 /**
  * Encode a vault-relative document id for use in a URL `:path` segment:
@@ -30,7 +30,7 @@ export class HindsightClient {
 
   constructor(baseUrl: string, token: string | undefined, transport: Transport) {
     const url = (baseUrl ?? "").trim();
-    if (!url) throw new Error("Hindsight API URL is required");
+    if (!url) throw new Error("ContextBase API URL is required");
     this.baseUrl = url.replace(/\/+$/, "");
     this.token = token?.trim() || undefined;
     this.transport = transport;
@@ -58,7 +58,7 @@ export class HindsightClient {
     });
     if (resp.status < 200 || resp.status >= 300) {
       const detail = (resp.text ?? "").slice(0, 500);
-      throw new Error(`Hindsight ${method} ${url} → HTTP ${resp.status}: ${detail}`);
+      throw new Error(`ContextBase ${method} ${url} → HTTP ${resp.status}: ${detail}`);
     }
     return resp;
   }

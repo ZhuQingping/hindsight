@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "agentstratum": {
+    "contextbase": {
       "command": "bash",
       "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/run_mcp.sh"]
     }

@@ -14,7 +14,7 @@ import { RetainQueue } from "./retain-queue.js";
 const tempDirs: string[] = [];
 
 function makeQueuePath(): string {
-  const dir = mkdtempSync(join(tmpdir(), "hindsight-retain-queue-"));
+  const dir = mkdtempSync(join(tmpdir(), "contextbase-retain-queue-"));
   tempDirs.push(dir);
   return join(dir, "retains.jsonl");
 }

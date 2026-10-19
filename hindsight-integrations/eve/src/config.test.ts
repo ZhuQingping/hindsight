@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  HINDSIGHT_CLOUD_API_URL,
   DEFAULT_RECALL_QUERY,
   buildRetainContent,
   recordAssistantMessage,
@@ -14,9 +13,9 @@ import { buildRecallMarkdown } from "./client";
 const EMPTY_ENV = {} as NodeJS.ProcessEnv;
 
 describe("resolveAutoMemory", () => {
-  it("defaults to Hindsight Cloud + the broad recall query", () => {
-    const r = resolveAutoMemory({ apiKey: "hsk_k" }, EMPTY_ENV);
-    expect(r.apiUrl).toBe(HINDSIGHT_CLOUD_API_URL);
+  it("uses the explicit service and default broad recall query", () => {
+    const r = resolveAutoMemory({ apiUrl: "https://memory.example.com", apiKey: "hsk_k" }, EMPTY_ENV);
+    expect(r.apiUrl).toBe("https://memory.example.com");
     expect(r.bankId).toBe("default");
     expect(r.recallQuery).toBe(DEFAULT_RECALL_QUERY);
     expect(r.budget).toBe("mid");
@@ -24,9 +23,9 @@ describe("resolveAutoMemory", () => {
 
   it("reads url/key/bank from the environment", () => {
     const r = resolveAutoMemory({}, {
-      HINDSIGHT_API_URL: "http://localhost:8000",
-      HINDSIGHT_API_KEY: "env_key",
-      HINDSIGHT_BANK_ID: "project-x",
+      CONTEXTBASE_API_URL: "http://localhost:8000",
+      CONTEXTBASE_API_KEY: "env_key",
+      CONTEXTBASE_BANK_ID: "project-x",
     } as NodeJS.ProcessEnv);
     expect(r.apiUrl).toBe("http://localhost:8000");
     expect(r.apiKey).toBe("env_key");
@@ -35,9 +34,9 @@ describe("resolveAutoMemory", () => {
 
   it("prefers explicit options over the environment", () => {
     const r = resolveAutoMemory({ apiUrl: "http://opt", apiKey: "opt_key", bankId: "opt_bank" }, {
-      HINDSIGHT_API_URL: "http://env",
-      HINDSIGHT_API_KEY: "env_key",
-      HINDSIGHT_BANK_ID: "env_bank",
+      CONTEXTBASE_API_URL: "http://env",
+      CONTEXTBASE_API_KEY: "env_key",
+      CONTEXTBASE_BANK_ID: "env_bank",
     } as NodeJS.ProcessEnv);
     expect(r.apiUrl).toBe("http://opt");
     expect(r.apiKey).toBe("opt_key");
@@ -49,8 +48,8 @@ describe("resolveAutoMemory", () => {
     expect(r.apiKey).toBeNull();
   });
 
-  it("throws when targeting Hindsight Cloud without a key", () => {
-    expect(() => resolveAutoMemory({}, EMPTY_ENV)).toThrow(/API key/);
+  it("requires an explicit service URL", () => {
+    expect(() => resolveAutoMemory({}, EMPTY_ENV)).toThrow(/CONTEXTBASE_API_URL/);
   });
 
   it("allows a self-hosted url with no auth", () => {

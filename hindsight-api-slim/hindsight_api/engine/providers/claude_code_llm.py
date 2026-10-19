@@ -60,7 +60,7 @@ def _get_isolated_claude_env() -> dict[str, str]:
     """Return a process-lifetime env dict that isolates the spawned CLI from user plugins."""
     global _isolated_claude_env
     if _isolated_claude_env is None:
-        path = tempfile.mkdtemp(prefix="agentstratum-claude-code-")
+        path = tempfile.mkdtemp(prefix="contextbase-claude-code-")
         _isolated_claude_env = {
             "CLAUDE_CONFIG_DIR": path,
             "CLAUDE_SECURESTORAGE_CONFIG_DIR": "",
@@ -545,7 +545,7 @@ class ClaudeCodeLLM(LLMInterface):
 
         This implementation uses ClaudeSDKClient (not query()) because custom tools via
         SDK MCP servers are only supported with the client. Tools are converted from OpenAI
-        format to SDK MCP tools, and tool names are formatted as mcp__agentstratum_tools__{name}.
+        format to SDK MCP tools, and tool names are formatted as mcp__contextbase_tools__{name}.
 
         Args:
             messages: List of message dicts. Can include tool results with role='tool'.
@@ -615,7 +615,7 @@ class ClaudeCodeLLM(LLMInterface):
 
         # Create an MCP server with the tools
         mcp_server = create_sdk_mcp_server(
-            name="agentstratum_tools",
+            name="contextbase_tools",
             version="1.0.0",
             tools=sdk_tools if sdk_tools else None,
         )
@@ -646,14 +646,14 @@ class ClaudeCodeLLM(LLMInterface):
 
         # Format tool names for SDK MCP servers: mcp__{server_name}__{tool_name}
         # This is required by the Claude Agent SDK for MCP server tools
-        allowed_tool_names = [f"mcp__agentstratum_tools__{name}" for name in tool_names]
-        mcp_servers_config = {"agentstratum_tools": mcp_server} if sdk_tools else {}
+        allowed_tool_names = [f"mcp__contextbase_tools__{name}" for name in tool_names]
+        mcp_servers_config = {"contextbase_tools": mcp_server} if sdk_tools else {}
 
         # Process tool_choice
         if tool_choice.mode is LLMToolChoiceMode.NAMED:
             # Force a specific tool: filter allowed_tools to only that tool and add instruction
             forced_name = tool_choice.selected_function_name
-            forced_tool_mcp_name = f"mcp__agentstratum_tools__{forced_name}"
+            forced_tool_mcp_name = f"mcp__contextbase_tools__{forced_name}"
             if forced_tool_mcp_name in allowed_tool_names:
                 allowed_tool_names = [forced_tool_mcp_name]
                 force_instruction = (
@@ -730,11 +730,11 @@ class ClaudeCodeLLM(LLMInterface):
                                     if isinstance(block, TextBlock):
                                         full_text += block.text
                                     elif isinstance(block, ToolUseBlock):
-                                        # SDK returns tool names with MCP prefix (mcp__agentstratum_tools__{name})
+                                        # SDK returns tool names with MCP prefix (mcp__contextbase_tools__{name})
                                         # Strip the prefix to return original tool name expected by caller
                                         tool_name = block.name
-                                        if tool_name.startswith("mcp__agentstratum_tools__"):
-                                            tool_name = tool_name.replace("mcp__agentstratum_tools__", "", 1)
+                                        if tool_name.startswith("mcp__contextbase_tools__"):
+                                            tool_name = tool_name.replace("mcp__contextbase_tools__", "", 1)
 
                                         tool_calls.append(
                                             LLMToolCall(

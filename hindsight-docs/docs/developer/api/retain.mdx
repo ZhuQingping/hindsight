@@ -4,9 +4,9 @@ sidebar_position: 2
 
 # Ingest Data
 
-Store documents, conversations, and raw content into Hindsight to automatically extract and create memories.
+Store documents, conversations, and raw content into ContextBase to automatically extract and create memories.
 
-When you **retain** content, Hindsight doesn't just store the raw text—it intelligently analyzes the content to extract meaningful facts, identify entities, and build a connected knowledge graph. This process transforms unstructured information into structured, queryable memories.
+When you **retain** content, ContextBase doesn't just store the raw text—it intelligently analyzes the content to extract meaningful facts, identify entities, and build a connected knowledge graph. This process transforms unstructured information into structured, queryable memories.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -28,7 +28,7 @@ Make sure you've completed the [Quick Start](./quickstart) to install the client
 
 ## Store a Document
 
-A single retain call accepts one or more **items**. Each item is a piece of raw content — a conversation, a document, a note — that Hindsight will analyze and decompose into one or many memories. The content itself is never stored verbatim; what gets stored are the structured facts the LLM extracts from it.
+A single retain call accepts one or more **items**. Each item is a piece of raw content — a conversation, a document, a note — that ContextBase will analyze and decompose into one or many memories. The content itself is never stored verbatim; what gets stored are the structured facts the LLM extracts from it.
 
 <Tabs>
 <TabItem value="python" label="Python">
@@ -64,7 +64,7 @@ A full conversation should be retained as a single item. The LLM can parse any f
 </TabItem>
 </Tabs>
 
-When the conversation grows — a new message arrives — just retain again with the full updated content and the same `document_id`. Hindsight will delete the previous version and reprocess from scratch, so memories always reflect the latest state of the conversation.
+When the conversation grows — a new message arrives — just retain again with the full updated content and the same `document_id`. ContextBase will delete the previous version and reprocess from scratch, so memories always reflect the latest state of the conversation.
 
 ---
 
@@ -72,7 +72,7 @@ When the conversation grows — a new message arrives — just retain again with
 
 ### content
 
-The raw text to store. This is the only required field. Hindsight chunks the content, sends each chunk to the LLM for fact extraction, and stores the resulting structured facts — not the original text. A single `content` value can produce many memories depending on how much information it contains.
+The raw text to store. This is the only required field. ContextBase chunks the content, sends each chunk to the LLM for fact extraction, and stores the resulting structured facts — not the original text. A single `content` value can produce many memories depending on how much information it contains.
 
 ### timestamp
 
@@ -117,13 +117,13 @@ Values are stored and returned as strings. A key whose value is `null` is droppe
 
 A caller-supplied string that groups one or more items under a logical document. This field is the key to making retain **idempotent**.
 
-When you provide a `document_id`, Hindsight upserts the document: if a document with that ID already exists in the bank, it and all its associated memories are deleted before the new content is processed and inserted. This means you can safely re-run retain on updated content — for example, a chat thread that grew since last time — without accumulating duplicate memories.
+When you provide a `document_id`, ContextBase upserts the document: if a document with that ID already exists in the bank, it and all its associated memories are deleted before the new content is processed and inserted. This means you can safely re-run retain on updated content — for example, a chat thread that grew since last time — without accumulating duplicate memories.
 
-If you omit `document_id`, Hindsight assigns a random UUID, so re-ingesting the same content will create duplicate memories. How items without a `document_id` are grouped depends on the rest of the request:
+If you omit `document_id`, ContextBase assigns a random UUID, so re-ingesting the same content will create duplicate memories. How items without a `document_id` are grouped depends on the rest of the request:
 
 | Request | Result |
 |---------|--------|
-| No item has a `document_id` | All items go into **one** new document. A request too large for one pass (over `HINDSIGHT_API_RETAIN_BATCH_TOKENS`) is split into parts, and each part becomes its own document. |
+| No item has a `document_id` | All items go into **one** new document. A request too large for one pass (over `CONTEXTBASE_API_RETAIN_BATCH_TOKENS`) is split into parts, and each part becomes its own document. |
 | Some items have a `document_id`, others don't | Each item without one becomes its **own** new document. It is never folded into another item's document, so replacing or deleting that document leaves it alone. |
 | Items share the same `document_id` | Those items go into that one document, in request order. |
 
@@ -133,7 +133,7 @@ To keep every item separate, give each one its own `document_id`. To put several
 
 ### update_mode
 
-Controls how Hindsight handles an existing document when you retain with a `document_id` that already exists.
+Controls how ContextBase handles an existing document when you retain with a `document_id` that already exists.
 
 | Value | Behaviour |
 |-------|-----------|
@@ -142,7 +142,7 @@ Controls how Hindsight handles an existing document when you retain with a `docu
 
 Append mode requires a `document_id` — without one there is no existing document to append to.
 
-**When to use append**: Use `"append"` for content that grows incrementally — for example, a log file, a journal, or a chat transcript where you receive new messages one at a time. Instead of re-sending the entire history on each update, send only the new content with `update_mode: "append"` and Hindsight will efficiently merge it with what it already has.
+**When to use append**: Use `"append"` for content that grows incrementally — for example, a log file, a journal, or a chat transcript where you receive new messages one at a time. Instead of re-sending the entire history on each update, send only the new content with `update_mode: "append"` and ContextBase will efficiently merge it with what it already has.
 
 ```json
 {
@@ -185,7 +185,7 @@ See [Recall API](./recall#tags) for filtering by tags during retrieval.
 Controls which [observations](../observations) this memory contributes to during consolidation. Each scope runs an independent pass, creating or updating observations tagged with only that scope's tags.
 
 :::info Scope isolation
-During consolidation, Hindsight uses `all_strict` matching to find existing observations to update — only observations whose tags exactly match the current scope are considered. This keeps scopes isolated: a memory consolidated under `["student:alice"]` will never bleed into an observation tagged `["student:alice", "teacher:bob"]`.
+During consolidation, ContextBase uses `all_strict` matching to find existing observations to update — only observations whose tags exactly match the current scope are considered. This keeps scopes isolated: a memory consolidated under `["student:alice"]` will never bleed into an observation tagged `["student:alice", "teacher:bob"]`.
 :::
 
 The examples below use a lesson transcript retained with `tags: ["student:alice", "teacher:bob", "session-id:s1"]`.
@@ -268,7 +268,7 @@ The synchronous retain response includes:
 
 ## Batch Ingestion
 
-Multiple items can be submitted in a single request. Batch ingestion is the recommended approach — it reduces network overhead and lets Hindsight optimize extraction across related content.
+Multiple items can be submitted in a single request. Batch ingestion is the recommended approach — it reduces network overhead and lets ContextBase optimize extraction across related content.
 
 <Tabs>
 <TabItem value="python" label="Python">
@@ -290,7 +290,7 @@ Multiple items can be submitted in a single request. Batch ingestion is the reco
 
 ## Files
 
-Upload files directly — Hindsight converts them to text and extracts memories automatically. File processing always runs asynchronously and returns operation IDs for tracking.
+Upload files directly — ContextBase converts them to text and extracts memories automatically. File processing always runs asynchronously and returns operation IDs for tracking.
 
 **Supported formats:** PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS, images (JPG, PNG, GIF, etc. — OCR support depends on the configured parser), audio (MP3, WAV, FLAC, etc. — transcription), HTML, and plain text formats (TXT, MD, CSV, JSON, YAML, etc.)
 
@@ -329,7 +329,7 @@ Upload up to 10 files per request (max 100 MB total). Each file becomes a separa
 </Tabs>
 
 :::info File Storage
-Uploaded files are stored server-side (PostgreSQL by default, or S3/GCS/Azure for production). Configure storage via `HINDSIGHT_API_FILE_STORAGE_TYPE`. See [Configuration](../configuration#file-processing) for details.
+Uploaded files are stored server-side (PostgreSQL by default, or S3/GCS/Azure for production). Configure storage via `CONTEXTBASE_API_FILE_STORAGE_TYPE`. See [Configuration](../configuration#file-processing) for details.
 :::
 
 ---
@@ -379,10 +379,10 @@ Supply your own `operation_id` (any UUID) to make retries safe:
 When using async retain, enable the provider Batch API to reduce LLM fact-extraction costs by 50%. OpenAI, Groq, and Gemini all offer this discount in exchange for a processing window of up to 24 hours — a trade-off that's typically invisible when retain already runs in the background.
 
 ```bash
-export HINDSIGHT_API_RETAIN_BATCH_ENABLED=true
+export CONTEXTBASE_API_RETAIN_BATCH_ENABLED=true
 ```
 
-Hindsight submits fact extraction calls as a batch job to the provider, polls for completion, and processes results automatically. No changes to your API calls are needed.
+ContextBase submits fact extraction calls as a batch job to the provider, polls for completion, and processes results automatically. No changes to your API calls are needed.
 
 :::note
 Batch API cost savings require `async=true` in your retain request and a compatible provider (OpenAI, Groq, or Gemini).

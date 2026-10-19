@@ -1,20 +1,20 @@
 /**
- * paperclip-plugin-hindsight — worker entrypoint.
+ * paperclip-plugin-contextbase — worker entrypoint.
  *
- * Gives Paperclip agents persistent long-term memory via Hindsight.
+ * Gives Paperclip agents persistent long-term memory via ContextBase.
  *
  * Lifecycle:
  *   agent.run.started      → fetch the run's issue, recall relevant memories,
  *                            cache them in plugin state for the run.
- *   issue.comment.created  → retain the full comment body to Hindsight (this is
+ *   issue.comment.created  → retain the full comment body to ContextBase (this is
  *                            the durable signal — it covers both user comments
  *                            and agent-authored comments).
  *   agent.run.finished     → no-op (Paperclip's lifecycle payload does not
  *                            carry run output; subscription kept for future use).
  *
  * Agent tools (callable mid-run):
- *   hindsight_recall(query)   → search memory, returns relevant context
- *   hindsight_retain(content) → store content in memory immediately
+ *   contextbase_recall(query)   → search memory, returns relevant context
+ *   contextbase_retain(content) → store content in memory immediately
  */
 
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
@@ -23,12 +23,12 @@ import { HindsightClient, formatMemories } from "./client.js";
 import { deriveBankId, extractUserFromIssue } from "./bank.js";
 
 interface PluginConfig {
-  hindsightApiUrl: string;
+  contextbaseApiUrl: string;
   /**
    * Reference stored by the host's secret picker for the `format: "secret-ref"`
    * field. The host fails closed on a bare string, so it travels through as-is.
    */
-  hindsightApiKeyRef?: EnvSecretRefBinding;
+  contextbaseApiKeyRef?: EnvSecretRefBinding;
   bankId?: string;
   dynamicBankId?: boolean;
   bankGranularity?: Array<"company" | "agent" | "user">;
@@ -67,18 +67,18 @@ async function resolveApiKey(
   config: PluginConfig,
   companyId: string
 ): Promise<string | undefined> {
-  if (!config.hindsightApiKeyRef) return undefined;
+  if (!config.contextbaseApiKeyRef) return undefined;
   // configPath identifies which binding to read when a plugin holds several
   // secrets; companyId scopes the lookup to the run's company.
-  const resolved = await ctx.secrets.resolve(config.hindsightApiKeyRef, {
+  const resolved = await ctx.secrets.resolve(config.contextbaseApiKeyRef, {
     companyId,
-    configPath: "hindsightApiKeyRef",
+    configPath: "contextbaseApiKeyRef",
   });
   return resolved ?? undefined;
 }
 
 const DISABLED_FOR_AGENT =
-  "Hindsight memory is not enabled for this agent (see the plugin's enabledAgentIds setting).";
+  "ContextBase memory is not enabled for this agent (see the plugin's enabledAgentIds setting).";
 
 function isAgentEnabled(config: PluginConfig, agentId: string | undefined | null): boolean {
   const allowlist = config.enabledAgentIds;
@@ -88,7 +88,7 @@ function isAgentEnabled(config: PluginConfig, agentId: string | undefined | null
 
 const plugin = definePlugin({
   async setup(ctx) {
-    ctx.logger.info("Hindsight memory plugin starting");
+    ctx.logger.info("ContextBase memory plugin starting");
 
     // ---------------------------------------------------------------------------
     // agent.run.started — recall memories using the issue's title + description
@@ -135,7 +135,11 @@ const plugin = definePlugin({
 
       try {
         const apiKey = await resolveApiKey(ctx, config, companyId);
-        const client = new HindsightClient(config.hindsightApiUrl, apiKey, config.requestTimeoutMs);
+        const client = new HindsightClient(
+          config.contextbaseApiUrl,
+          apiKey,
+          config.requestTimeoutMs
+        );
         const bankId = deriveBankId({ companyId, agentId, userId }, config);
 
         const response = await client.recall(bankId, query, config.recallBudget ?? "mid");
@@ -241,7 +245,11 @@ const plugin = definePlugin({
 
       try {
         const apiKey = await resolveApiKey(ctx, config, companyId);
-        const client = new HindsightClient(config.hindsightApiUrl, apiKey, config.requestTimeoutMs);
+        const client = new HindsightClient(
+          config.contextbaseApiUrl,
+          apiKey,
+          config.requestTimeoutMs
+        );
         const bankId = deriveBankId({ companyId, agentId: bankAgentId, userId }, config);
         await client.retain(bankId, body, commentId, {
           agentId: bankAgentId,
@@ -278,13 +286,13 @@ const plugin = definePlugin({
     });
 
     // ---------------------------------------------------------------------------
-    // Tool: hindsight_recall
+    // Tool: contextbase_recall
     // ---------------------------------------------------------------------------
     ctx.tools.register(
-      "hindsight_recall",
+      "contextbase_recall",
       {
         displayName: "Recall from Memory",
-        description: "Search Hindsight long-term memory for context relevant to a query.",
+        description: "Search ContextBase long-term memory for context relevant to a query.",
         parametersSchema: {
           type: "object",
           required: ["query"],
@@ -321,7 +329,7 @@ const plugin = definePlugin({
         );
 
         // Reuse the run-start recall only when the agent asks the same query;
-        // any other query must hit Hindsight, otherwise mid-run lookups would
+        // any other query must hit ContextBase, otherwise mid-run lookups would
         // always get the issue-level memories back.
         const cached = await ctx.state.get({
           scopeKind: "run",
@@ -346,7 +354,7 @@ const plugin = definePlugin({
         try {
           const apiKey = await resolveApiKey(ctx, config, runCtx.companyId);
           const client = new HindsightClient(
-            config.hindsightApiUrl,
+            config.contextbaseApiUrl,
             apiKey,
             config.requestTimeoutMs
           );
@@ -360,14 +368,14 @@ const plugin = definePlugin({
     );
 
     // ---------------------------------------------------------------------------
-    // Tool: hindsight_retain
+    // Tool: contextbase_retain
     // ---------------------------------------------------------------------------
     ctx.tools.register(
-      "hindsight_retain",
+      "contextbase_retain",
       {
         displayName: "Save to Memory",
         description:
-          "Store important facts, decisions, or outcomes in Hindsight long-term memory for future runs.",
+          "Store important facts, decisions, or outcomes in ContextBase long-term memory for future runs.",
         parametersSchema: {
           type: "object",
           required: ["content"],
@@ -408,7 +416,7 @@ const plugin = definePlugin({
         try {
           const apiKey = await resolveApiKey(ctx, config, runCtx.companyId);
           const client = new HindsightClient(
-            config.hindsightApiUrl,
+            config.contextbaseApiUrl,
             apiKey,
             config.requestTimeoutMs
           );
@@ -424,7 +432,7 @@ const plugin = definePlugin({
       }
     );
 
-    ctx.logger.info("Hindsight memory plugin ready");
+    ctx.logger.info("ContextBase memory plugin ready");
   },
 
   async onHealth() {
@@ -433,17 +441,17 @@ const plugin = definePlugin({
 
   async onValidateConfig(config) {
     const c = config as Partial<PluginConfig>;
-    if (!c.hindsightApiUrl?.trim()) {
-      return { ok: false, errors: ["hindsightApiUrl is required"] };
+    if (!c.contextbaseApiUrl?.trim()) {
+      return { ok: false, errors: ["contextbaseApiUrl is required"] };
     }
 
     try {
-      const client = new HindsightClient(c.hindsightApiUrl, undefined, c.requestTimeoutMs);
+      const client = new HindsightClient(c.contextbaseApiUrl, undefined, c.requestTimeoutMs);
       const healthy = await client.health();
       if (!healthy) {
         return {
           ok: false,
-          errors: [`Cannot reach Hindsight at ${c.hindsightApiUrl}`],
+          errors: [`Cannot reach ContextBase at ${c.contextbaseApiUrl}`],
         };
       }
     } catch (err) {

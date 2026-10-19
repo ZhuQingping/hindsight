@@ -5,13 +5,13 @@
  */
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 const BANK_ID = 'knowledge-pages-demo-bank-node';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 await client.createBank(BANK_ID, { name: 'Knowledge Pages Demo' });
 await client.retain(BANK_ID, 'The API is deployed to Kubernetes with a rolling update');
 await client.retain(BANK_ID, 'Deploys run from the main branch after CI passes');

@@ -4,7 +4,7 @@ sidebar_position: 0
 
 # Quick Start
 
-Get up and running with Hindsight in 60 seconds.
+Get up and running with ContextBase in 60 seconds.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -29,7 +29,7 @@ import quickstartGo from '!!raw-loader!@site/examples/api/quickstart.go';
 ```bash
 pip install hindsight-api
 export OPENAI_API_KEY=sk-xxx
-export HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY
+export CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY
 
 hindsight-api
 ```
@@ -43,26 +43,28 @@ API available at [http://localhost:8888](http://localhost:8888/docs)
 
 export OPENAI_API_KEY=sk-xxx
 
-docker run -it --pull always --name hindsight --restart unless-stopped --shm-size=1g -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run -it --name contextbase --restart unless-stopped --shm-size=1g -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - **API**: http://localhost:8888
 - **Control Plane** (Web UI): http://localhost:9999
 
-:::tip Set a stable `HINDSIGHT_API_WORKER_ID` in production
+:::tip Set a stable `CONTEXTBASE_API_WORKER_ID` in production
 The worker uses the container hostname as its identity, which Docker sets to the container ID by default. That value changes on every restart, so any task that was being processed when the container went down stays parked under the old ID with no way for the new container to recognize it as its own.
 
-Set `HINDSIGHT_API_WORKER_ID` to a stable value (e.g., `-e HINDSIGHT_API_WORKER_ID=hindsight-prod`) so the worker keeps the same identity across restarts. This is recommended even for single-container deployments. For diagnosis and recovery commands, see [Admin CLI - Recovering stuck operations](/developer/admin-cli#recovering-stuck-or-zombie-operations).
+Set `CONTEXTBASE_API_WORKER_ID` to a stable value (e.g., `-e CONTEXTBASE_API_WORKER_ID=contextbase-prod`) so the worker keeps the same identity across restarts. This is recommended even for single-container deployments. For diagnosis and recovery commands, see [Admin CLI - Recovering stuck operations](/developer/admin-cli#recovering-stuck-or-zombie-operations).
 :::
 
 </TabItem>
 </Tabs>
 
 :::tip LLM Provider
-Hindsight requires an LLM with structured output support. Recommended: **Groq** with `gpt-oss-20b` for fast, cost-effective inference.
+ContextBase requires an LLM with structured output support. Recommended: **Groq** with `gpt-oss-20b` for fast, cost-effective inference.
 See [LLM Providers](/developer/models#llm) for more details.
 :::
 
@@ -92,7 +94,7 @@ npm install @vectorize-io/hindsight-client
 <TabItem value="cli" label="CLI">
 
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-cli | bash
+curl -fsSL https://github.com/RSIXDB/hindsight/get-cli | bash
 ```
 
 <CodeSnippet code={quickstartSh} section="quickstart-full" language="bash" />

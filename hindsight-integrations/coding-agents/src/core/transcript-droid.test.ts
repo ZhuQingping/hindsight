@@ -19,7 +19,7 @@ const message = (
 
 describe("readDroidTranscript", () => {
   it("normalizes Droid messages and compacts tool calls into action turns", () => {
-    const path = "/tmp/agentstratum-droid-transcript-test.jsonl";
+    const path = "/tmp/contextbase-droid-transcript-test.jsonl";
     writeFileSync(
       path,
       [
@@ -65,7 +65,7 @@ describe("readDroidTranscript", () => {
   });
 
   it("skips messages visible to only the user or model", () => {
-    const path = "/tmp/agentstratum-droid-transcript-hooklines.jsonl";
+    const path = "/tmp/contextbase-droid-transcript-hooklines.jsonl";
     writeFileSync(
       path,
       [
@@ -106,7 +106,7 @@ describe("readDroidTranscript", () => {
   });
 
   it("strips injected memory blocks so recall output never feeds back into the bank", () => {
-    const path = "/tmp/agentstratum-droid-transcript-injected.jsonl";
+    const path = "/tmp/contextbase-droid-transcript-injected.jsonl";
     writeFileSync(
       path,
       [
@@ -114,7 +114,7 @@ describe("readDroidTranscript", () => {
           message("user", [
             {
               type: "text",
-              text: "before <agentstratum_memories>recalled facts</agentstratum_memories> after",
+              text: "before <contextbase_memories>recalled facts</contextbase_memories> after",
             },
           ])
         ),
@@ -126,7 +126,7 @@ describe("readDroidTranscript", () => {
 
   it("fails open for a missing or malformed transcript", () => {
     expect(readDroidTranscript("/tmp/does-not-exist-droid-transcript.jsonl")).toEqual([]);
-    const path = "/tmp/agentstratum-droid-transcript-garbage.jsonl";
+    const path = "/tmp/contextbase-droid-transcript-garbage.jsonl";
     writeFileSync(path, "{broken\n[1,2]\n");
     expect(readDroidTranscript(path)).toEqual([]);
   });

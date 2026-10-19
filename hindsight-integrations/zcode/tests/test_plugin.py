@@ -1,7 +1,7 @@
 """Validate the Claude Code / ZCode plugin manifest.
 
 The package ships two install paths that share the same hook scripts:
-  1. pip installer (`agentstratum-zcode install`) — writes ~/.zcode/cli/config.json
+  1. pip installer (`contextbase-zcode install`) — writes ~/.zcode/cli/config.json
   2. Claude Code plugin — `.claude-plugin/plugin.json` + `hooks/hooks.json`,
      installed via a marketplace and auto-registered by the host.
 
@@ -16,7 +16,7 @@ from pathlib import Path
 PKG_ROOT = Path(__file__).resolve().parent.parent
 PLUGIN_JSON = PKG_ROOT / ".claude-plugin" / "plugin.json"
 HOOKS_JSON = PKG_ROOT / "hooks" / "hooks.json"
-SCRIPTS_DIR = PKG_ROOT / "hindsight_zcode" / "hooks" / "scripts"
+SCRIPTS_DIR = PKG_ROOT / "contextbase_zcode" / "hooks" / "scripts"
 
 
 def _package_version() -> str:
@@ -28,7 +28,7 @@ def _package_version() -> str:
 
 def test_plugin_manifest_is_valid():
     manifest = json.loads(PLUGIN_JSON.read_text())
-    assert manifest["name"] == "agentstratum-zcode"
+    assert manifest["name"] == "contextbase-zcode"
     assert manifest["description"]
     assert manifest["license"] == "MIT"
 

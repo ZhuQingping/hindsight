@@ -1,15 +1,15 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "agentstratum",
+  "name": "contextbase",
   "version": "1.0.0",
   "description": "ContextBase long-term memory for AI agents with retain, recall and reflect.",
   "license": "MIT",
   "keywords": ["memory", "long-term-memory", "recall", "retain", "reflect", "mcp", "agent-memory"],
   "extensions": {
-    "agentstratum.memory": {
-      "bankSelection": "Set AGENTSTRATUM_BANK_ID; the bank is sent as X-Bank-Id.",
+    "contextbase.memory": {
+      "bankSelection": "Set CONTEXTBASE_BANK_ID; the bank is sent as X-Bank-Id.",
       "endpoint": "Set mcp.json url to the endpoint provided by your service administrator before installation.",
-      "codex": "For Codex, build the coding-agents package and run agentstratum-coding-agents install codex."
+      "codex": "For Codex, build the coding-agents package and run contextbase-coding-agents install codex."
     }
   }
 }

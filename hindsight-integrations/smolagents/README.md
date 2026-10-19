@@ -1,6 +1,8 @@
-# hindsight-smolagents
+# contextbase-smolagents
 
-Persistent memory tools for [SmolAgents](https://github.com/huggingface/smolagents) agents via Hindsight. Give your agents long-term memory with retain, recall, and reflect — using SmolAgents' native Tool pattern.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Persistent memory tools for [SmolAgents](https://github.com/huggingface/smolagents) agents via ContextBase. Give your agents long-term memory with retain, recall, and reflect — using SmolAgents' native Tool pattern.
 
 ## Features
 
@@ -13,21 +15,21 @@ Persistent memory tools for [SmolAgents](https://github.com/huggingface/smolagen
 ## Installation
 
 ```bash
-pip install hindsight-smolagents
+pip install contextbase-smolagents
 ```
 
 ## Quick Start
 
-> ✨ **Recommended: [Hindsight Cloud](https://ui.hindsight.vectorize.io)** — free tier, no self-hosting required. Sign up and grab an API key in under a minute.
+> Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```python
 from smolagents import CodeAgent, HfApiModel
-from hindsight_smolagents import create_hindsight_tools
+from contextbase_smolagents import create_contextbase_tools
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key="hsk_...",  # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="hsk_...",  # or set CONTEXTBASE_API_KEY env var
 )
 
 agent = CodeAgent(
@@ -41,38 +43,38 @@ agent.run("What are my preferences?")
 
 The agent now has three tools it can call:
 
-- **`hindsight_retain`** — Store information to long-term memory
-- **`hindsight_recall`** — Search long-term memory for relevant facts
-- **`hindsight_reflect`** — Synthesize a reasoned answer from memories
+- **`contextbase_retain`** — Store information to long-term memory
+- **`contextbase_recall`** — Search long-term memory for relevant facts
+- **`contextbase_reflect`** — Synthesize a reasoned answer from memories
 
 ### Self-hosting (local development)
 
-If you're running Hindsight locally with `./scripts/dev/start-api.sh`, point at your local server instead:
+If you're running ContextBase locally with `./scripts/dev/start-api.sh`, point at your local server instead:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
 )
 ```
 
-See the [Hindsight installation guide](https://hindsight.vectorize.io/developer/installation) for self-hosting setup.
+See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
 
 ## With Memory Instructions
 
 Pre-recall relevant memories and inject them into the system prompt:
 
 ```python
-from hindsight_smolagents import create_hindsight_tools, memory_instructions
+from contextbase_smolagents import create_contextbase_tools, memory_instructions
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
 )
 
 memories = memory_instructions(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
 )
 
 agent = CodeAgent(
@@ -87,17 +89,17 @@ agent = CodeAgent(
 You can also use the tool classes directly:
 
 ```python
-from hindsight_smolagents import HindsightRetainTool, HindsightRecallTool
+from contextbase_smolagents import ContextBaseRetainTool, ContextBaseRecallTool
 
 agent = CodeAgent(
     tools=[
-        HindsightRetainTool(
+        ContextBaseRetainTool(
             bank_id="user-123",
-            hindsight_api_url="https://api.hindsight.vectorize.io",
+            contextbase_api_url="http://localhost:8888",
         ),
-        HindsightRecallTool(
+        ContextBaseRecallTool(
             bank_id="user-123",
-            hindsight_api_url="https://api.hindsight.vectorize.io",
+            contextbase_api_url="http://localhost:8888",
         ),
     ],
     model=HfApiModel(),
@@ -109,9 +111,9 @@ agent = CodeAgent(
 Include only the tools you need via the factory:
 
 ```python
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
     enable_retain=True,
     enable_recall=True,
     enable_reflect=False,  # Omit reflect
@@ -123,31 +125,31 @@ tools = create_hindsight_tools(
 Instead of passing connection details to every tool, configure once:
 
 ```python
-from hindsight_smolagents import configure, create_hindsight_tools
+from contextbase_smolagents import configure, create_contextbase_tools
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",  # Hindsight Cloud (default)
-    api_key="your-api-key",       # Or set HINDSIGHT_API_KEY env var
-    budget="mid",                  # Recall budget: low/mid/high
-    max_tokens=4096,               # Max tokens for recall results
-    tags=["env:prod"],             # Tags for stored memories
+    contextbase_api_url="http://localhost:8888",  # example self-hosted endpoint
+    api_key="your-api-key",  # Or set CONTEXTBASE_API_KEY env var
+    budget="mid",  # Recall budget: low/mid/high
+    max_tokens=4096,  # Max tokens for recall results
+    tags=["env:prod"],  # Tags for stored memories
     recall_tags=["scope:global"],  # Tags to filter recall
-    recall_tags_match="any",       # Tag match mode: any/all/any_strict/all_strict
+    recall_tags_match="any",  # Tag match mode: any/all/any_strict/all_strict
 )
 
 # Now create tools without passing connection details
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
 ## Configuration Reference
 
-### `create_hindsight_tools()`
+### `create_contextbase_tools()`
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `budget` | `None` | Uses configured budget, or `"mid"` when unconfigured; an explicit value overrides configuration |
 | `max_tokens` | `None` | Uses configured token limit, or `4096` when unconfigured; an explicit value overrides configuration |
@@ -162,9 +164,9 @@ tools = create_hindsight_tools(bank_id="user-123")
 
 | Parameter | Default | Description |
 |---|---|---|
-| `bank_id` | *required* | Hindsight memory bank ID |
-| `client` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `None` | API URL (used if no client provided) |
+| `bank_id` | *required* | ContextBase memory bank ID |
+| `client` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `None` | API URL (used if no client provided) |
 | `api_key` | `None` | API key (used if no client provided) |
 | `query` | `"relevant context about the user"` | Recall query for memory injection |
 | `budget` | `"low"` | Recall budget level |
@@ -178,8 +180,8 @@ tools = create_hindsight_tools(bank_id="user-123")
 
 | Parameter | Default | Description |
 |---|---|---|
-| `hindsight_api_url` | Hindsight Cloud (`https://api.hindsight.vectorize.io`) | Hindsight API URL |
-| `api_key` | `HINDSIGHT_API_KEY` env | API key for authentication |
+| `contextbase_api_url` | an explicitly configured service URL | ContextBase API URL |
+| `api_key` | `CONTEXTBASE_API_KEY` env | API key for authentication |
 | `budget` | `"mid"` | Default recall budget level |
 | `max_tokens` | `4096` | Default max tokens for recall |
 | `tags` | `None` | Default tags for retain operations |
@@ -192,7 +194,7 @@ tools = create_hindsight_tools(bank_id="user-123")
 - Python >= 3.10
 - smolagents
 - hindsight-client >= 0.4.0
-- A running Hindsight API server
+- A running ContextBase API server
 
 ## License
 

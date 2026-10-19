@@ -4,7 +4,7 @@ import type {
   MemoryTurnCompletedContext,
   MemoryTurnStartedContext,
 } from "eve/memory";
-import { hindsightMemory } from "./memory-provider";
+import { contextbaseMemory } from "./memory-provider";
 import { EMPTY_RECALL_CONTENT, RECALL_MESSAGE_ID } from "./provider-core";
 
 const OPTS = { apiUrl: "http://test", apiKey: "k" };
@@ -47,7 +47,7 @@ function turnStarted(userText: string, overrides: Partial<MemoryTurnStartedConte
     abortSignal: new AbortController().signal,
     messages: [],
     operationId: "op-1",
-    memory: { scope: SCOPE, slot: "hindsight" },
+    memory: { scope: SCOPE, slot: "contextbase" },
     session: { id: "s1" },
     turn: { id: "t1", input: [{ role: "user", content: userText }], sequence: 1 },
     ...overrides,
@@ -61,23 +61,23 @@ function turnCompleted(userText: string, assistantText: string | null) {
     abortSignal: new AbortController().signal,
     messages,
     operationId: "op-2",
-    memory: { scope: SCOPE, slot: "hindsight" },
+    memory: { scope: SCOPE, slot: "contextbase" },
     session: { id: "s1" },
     turn: { id: "t1", input: [{ role: "user", content: userText }], sequence: 1 },
   } as unknown as MemoryTurnCompletedContext;
 }
 
 const toolsCtx = {
-  memory: { scope: SCOPE, slot: "hindsight" },
+  memory: { scope: SCOPE, slot: "contextbase" },
   turn: { id: "t1", input: [], sequence: 1 },
 } as unknown as MemoryToolsContext;
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("hindsightMemory recall", () => {
+describe("contextbaseMemory recall", () => {
   it("recalls on the live user message in the scope's bank and returns one keyed message", async () => {
     const fetchFn = mockFetch([{ id: "m1", text: "User prefers tabs" }]);
-    const provider = hindsightMemory(OPTS);
+    const provider = contextbaseMemory(OPTS);
 
     const result = await provider.recall["turn.started"](turnStarted("indent this file"));
 
@@ -97,7 +97,7 @@ describe("hindsightMemory recall", () => {
 
   it("still returns the keyed message when nothing was recalled, so a stale block is superseded", async () => {
     mockFetch([]);
-    const result = await hindsightMemory(OPTS).recall["turn.started"](turnStarted("hello"));
+    const result = await contextbaseMemory(OPTS).recall["turn.started"](turnStarted("hello"));
     expect(result).toEqual({
       messages: [{ id: RECALL_MESSAGE_ID, content: EMPTY_RECALL_CONTENT }],
     });
@@ -106,7 +106,7 @@ describe("hindsightMemory recall", () => {
   it("returns null and reports onError on failure instead of failing the turn", async () => {
     failingFetch();
     const onError = vi.fn();
-    const result = await hindsightMemory({ ...OPTS, onError }).recall["turn.started"](
+    const result = await contextbaseMemory({ ...OPTS, onError }).recall["turn.started"](
       turnStarted("hi")
     );
     expect(result).toBeNull();
@@ -118,7 +118,7 @@ describe("hindsightMemory recall", () => {
     const onError = vi.fn();
     const controller = new AbortController();
     controller.abort();
-    const result = await hindsightMemory({ ...OPTS, onError }).recall["turn.started"](
+    const result = await contextbaseMemory({ ...OPTS, onError }).recall["turn.started"](
       turnStarted("hi", { abortSignal: controller.signal })
     );
     expect(result).toBeNull();
@@ -127,14 +127,14 @@ describe("hindsightMemory recall", () => {
 
   it("recalls after compaction with the fallback query when there is no turn", async () => {
     const fetchFn = mockFetch([]);
-    const provider = hindsightMemory({ ...OPTS, recallQuery: "profile" });
+    const provider = contextbaseMemory({ ...OPTS, recallQuery: "profile" });
     await provider.recall["compaction.completed"]!(turnStarted("", { turn: null }) as never);
     expect(JSON.parse(fetchFn.mock.calls[0][1].body).query).toBe("profile");
   });
 
   it("uses a custom bank resolver", async () => {
     const fetchFn = mockFetch([]);
-    const provider = hindsightMemory({ ...OPTS, bankId: (scope) => `eve-${scope.value}` });
+    const provider = contextbaseMemory({ ...OPTS, bankId: (scope) => `eve-${scope.value}` });
     await provider.recall["turn.started"](turnStarted("hi"));
     expect(fetchFn.mock.calls[0][0]).toBe(
       "http://test/v1/default/banks/eve-user-1/memories/recall"
@@ -142,10 +142,10 @@ describe("hindsightMemory recall", () => {
   });
 });
 
-describe("hindsightMemory capture", () => {
+describe("contextbaseMemory capture", () => {
   it("retains the exchange keyed by operationId into the scope's bank", async () => {
     const fetchFn = mockFetch();
-    const provider = hindsightMemory(OPTS);
+    const provider = contextbaseMemory(OPTS);
 
     await provider.capture!["turn.completed"]!(turnCompleted("I prefer tabs", "Noted."));
 
@@ -158,21 +158,21 @@ describe("hindsightMemory capture", () => {
       content: "User: I prefer tabs\n\nAssistant: Noted.",
       context: "eve",
       document_id: "op-2",
-      metadata: { sessionId: "s1", turnId: "t1", slot: "hindsight" },
+      metadata: { sessionId: "s1", turnId: "t1", slot: "contextbase" },
     });
     expect(typeof body.items[0].timestamp).toBe("string");
   });
 
   it("retains only the user message when includeAssistantReply is false", async () => {
     const fetchFn = mockFetch();
-    const provider = hindsightMemory({ ...OPTS, includeAssistantReply: false });
+    const provider = contextbaseMemory({ ...OPTS, includeAssistantReply: false });
     await provider.capture!["turn.completed"]!(turnCompleted("I prefer tabs", "Noted."));
     expect(JSON.parse(fetchFn.mock.calls[0][1].body).items[0].content).toBe("User: I prefer tabs");
   });
 
   it("skips a turn with no user text", async () => {
     const fetchFn = mockFetch();
-    await hindsightMemory(OPTS).capture!["turn.completed"]!(turnCompleted("", "hi"));
+    await contextbaseMemory(OPTS).capture!["turn.completed"]!(turnCompleted("", "hi"));
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
@@ -180,20 +180,20 @@ describe("hindsightMemory capture", () => {
     failingFetch();
     const onError = vi.fn();
     await expect(
-      hindsightMemory({ ...OPTS, onError }).capture!["turn.completed"]!(turnCompleted("a", "b"))
+      contextbaseMemory({ ...OPTS, onError }).capture!["turn.completed"]!(turnCompleted("a", "b"))
     ).resolves.toBeUndefined();
     expect(onError).toHaveBeenCalledWith(expect.anything(), "capture");
   });
 
   it("has no capture surface when capture is off", () => {
-    expect(hindsightMemory({ ...OPTS, capture: false }).capture).toBeUndefined();
+    expect(contextbaseMemory({ ...OPTS, capture: false }).capture).toBeUndefined();
   });
 });
 
-describe("hindsightMemory tools", () => {
+describe("contextbaseMemory tools", () => {
   it("exposes reflect bound to the scope's bank", async () => {
     const fetchFn = mockFetch([], "You said tabs.");
-    const tools = await hindsightMemory(OPTS).tools!(toolsCtx);
+    const tools = await contextbaseMemory(OPTS).tools!(toolsCtx);
     expect(tools).not.toBeNull();
     const reflect = tools!.reflect;
     expect(reflect.description).toMatch(/long-term memory/);
@@ -212,6 +212,6 @@ describe("hindsightMemory tools", () => {
   });
 
   it("returns no tools when tools are off", async () => {
-    expect(await hindsightMemory({ ...OPTS, tools: false }).tools!(toolsCtx)).toBeNull();
+    expect(await contextbaseMemory({ ...OPTS, tools: false }).tools!(toolsCtx)).toBeNull();
   });
 });

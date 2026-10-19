@@ -9,14 +9,14 @@ from pydantic import ValidationError
 from hindsight_api.product_config import product_config
 
 
-@pytest.mark.parametrize("name", ["", "AgentStratum", "bad name", "foo\n", "a/b", "元壤", "a" * 41])
+@pytest.mark.parametrize("name", ["", "ContextBase", "bad name", "foo\n", "a/b", "元壤", "a" * 41])
 def test_invalid_product_name_rejected(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
     monkeypatch.setenv("contextdb_name", name)
     with pytest.raises(ValidationError):
         product_config()
 
 
-@pytest.mark.parametrize("name", ["agentstratum", "contextdb", "a", "data-42"])
+@pytest.mark.parametrize("name", ["contextbase", "contextdb", "a", "data-42"])
 def test_runtime_api_and_mcp_names(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
     from hindsight_api.api.http import create_app
     from hindsight_api.api.mcp import create_mcp_server
@@ -69,7 +69,7 @@ def test_display_override_does_not_change_identity(monkeypatch: pytest.MonkeyPat
     assert product_config().contextdb_name == "legacy-deployment"
     assert brand.api_title() == f"{display} HTTP API"
     assert brand.mcp_server_name() == f"{display}-mcp-server"
-    assert brand.WEBHOOK_EVENT_HEADER == "X-Agentstratum-Event"
+    assert brand.WEBHOOK_EVENT_HEADER == "X-ContextBase-Event"
     assert brand.service_name("worker") == "legacy-deployment-worker"
 
 

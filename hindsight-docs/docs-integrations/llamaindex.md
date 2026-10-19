@@ -1,41 +1,41 @@
 ---
 sidebar_position: 8
-title: "LlamaIndex Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to LlamaIndex agents with Hindsight. Supports agent-driven tools (HindsightToolSpec) and automatic memory via the BaseMemory interface."
+title: "LlamaIndex Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to LlamaIndex agents with ContextBase. Supports agent-driven tools (ContextBaseToolSpec) and automatic memory via the BaseMemory interface."
 ---
 
 # LlamaIndex
 
-Persistent long-term memory for [LlamaIndex](https://docs.llamaindex.ai/) agents via Hindsight. The `hindsight-llamaindex` package provides two complementary patterns:
+Persistent long-term memory for [LlamaIndex](https://docs.llamaindex.ai/) agents via ContextBase. The `contextbase-llamaindex` package provides two complementary patterns:
 
-- **`HindsightToolSpec`** — Agent-driven memory tools (retain/recall/reflect)
-- **`HindsightMemory`** — Automatic memory via LlamaIndex's `BaseMemory` interface
+- **`ContextBaseToolSpec`** — Agent-driven memory tools (retain/recall/reflect)
+- **`ContextBaseMemory`** — Automatic memory via LlamaIndex's `BaseMemory` interface
 
 [View Changelog →](/changelog/integrations/llamaindex)
 
 ## Installation
 
 ```bash
-pip install hindsight-llamaindex
+pip install contextbase-llamaindex
 ```
 
 ---
 
 ## Automatic Memory (BaseMemory)
 
-The simplest way to add Hindsight memory to a LlamaIndex agent. Messages are automatically stored on each turn, and relevant memories are recalled and injected as context.
+The simplest way to add ContextBase memory to a LlamaIndex agent. Messages are automatically stored on each turn, and relevant memories are recalled and injected as context.
 
 ```python
 import asyncio
 from hindsight_client import Hindsight
-from hindsight_llamaindex import HindsightMemory
+from contextbase_llamaindex import ContextBaseMemory
 from llama_index.core.agent import ReActAgent
 from llama_index.llms.openai import OpenAI
 
 async def main():
     client = Hindsight(base_url="http://localhost:8888")
 
-    memory = HindsightMemory.from_client(
+    memory = ContextBaseMemory.from_client(
         client=client,
         bank_id="user-123",
         mission="Track user preferences and project context",
@@ -52,15 +52,15 @@ asyncio.run(main())
 
 | Event | What Happens |
 |-------|-------------|
-| Agent receives input | `aget(input)` recalls relevant memories from Hindsight, prepends as system message |
-| Agent produces output | `aput(message)` retains the message to Hindsight for future recall |
+| Agent receives input | `aget(input)` recalls relevant memories from ContextBase, prepends as system message |
+| Agent produces output | `aput(message)` retains the message to ContextBase for future recall |
 | New session starts | Previous memories are available via recall; local chat buffer starts empty |
 
-### `HindsightMemory.from_client()`
+### `ContextBaseMemory.from_client()`
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `client` | `Hindsight` | *required* | Hindsight client instance |
+| `client` | `Hindsight` | *required* | ContextBase client instance |
 | `bank_id` | `str` | *required* | Memory bank ID |
 | `mission` | `str` | `None` | Bank mission — auto-creates bank on first use |
 | `context` | `str` | `"llamaindex"` | Source label for retain operations |
@@ -72,7 +72,7 @@ asyncio.run(main())
 | `system_prompt` | `str` | *(built-in)* | Template for memory system message. Must contain `{memories}` |
 | `chat_history_limit` | `int` | `100` | Max messages in local buffer |
 
-Also available: `HindsightMemory.from_url(hindsight_api_url, bank_id, ...)` for creating without a pre-built client.
+Also available: `ContextBaseMemory.from_url(contextbase_api_url, bank_id, ...)` for creating without a pre-built client.
 
 ---
 
@@ -85,14 +85,14 @@ For explicit control, expose retain/recall/reflect as tools the agent can choose
 ```python
 import asyncio
 from hindsight_client import Hindsight
-from hindsight_llamaindex import HindsightToolSpec
+from contextbase_llamaindex import ContextBaseToolSpec
 from llama_index.llms.openai import OpenAI
 from llama_index.core.agent import ReActAgent
 
 async def main():
     client = Hindsight(base_url="http://localhost:8888")
 
-    spec = HindsightToolSpec(
+    spec = ContextBaseToolSpec(
         client=client,
         bank_id="user-123",
         mission="Track user preferences",
@@ -109,9 +109,9 @@ asyncio.run(main())
 ### Quick Start: Factory Function
 
 ```python
-from hindsight_llamaindex import create_hindsight_tools
+from contextbase_llamaindex import create_contextbase_tools
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     mission="Track user preferences",
@@ -125,7 +125,7 @@ tools = create_hindsight_tools(
 tools = spec.to_tool_list(spec_functions=["recall_memory", "reflect_on_memory"])
 
 # Via factory flags
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_retain=True,
@@ -139,11 +139,11 @@ tools = create_hindsight_tools(
 Set defaults via `configure()`, override per-call:
 
 ```python
-from hindsight_llamaindex import configure
+from contextbase_llamaindex import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="your-api-key",  # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-api-key",  # or set CONTEXTBASE_API_KEY env var
     budget="mid",
     tags=["source:llamaindex"],
     context="my-app",
@@ -151,16 +151,16 @@ configure(
 )
 
 # Now create tools without passing client/url
-tools = create_hindsight_tools(bank_id="user-123")
+tools = create_contextbase_tools(bank_id="user-123")
 ```
 
-### `HindsightToolSpec()`
+### `ContextBaseToolSpec()`
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `bank_id` | `str` | *required* | Hindsight memory bank to operate on |
-| `client` | `Hindsight` | `None` | Pre-configured Hindsight client |
-| `hindsight_api_url` | `str` | `None` | API URL (used if no client provided) |
+| `bank_id` | `str` | *required* | ContextBase memory bank to operate on |
+| `client` | `Hindsight` | `None` | Pre-configured ContextBase client |
+| `contextbase_api_url` | `str` | `None` | API URL (used if no client provided) |
 | `api_key` | `str` | `None` | API key (used if no client provided) |
 | `budget` | `str` | `None` → `"mid"` | Recall/reflect budget: `low`, `mid`, `high` |
 | `max_tokens` | `int` | `None` → `4096` | Max tokens for recall results |
@@ -189,14 +189,14 @@ Set a mission to give the memory engine context for fact extraction:
 
 ```python
 # Tools
-spec = HindsightToolSpec(
+spec = ContextBaseToolSpec(
     client=client,
     bank_id="user-123",
     mission="Track user coding preferences, project context, and technical decisions",
 )
 
 # Memory
-memory = HindsightMemory.from_client(
+memory = ContextBaseMemory.from_client(
     client=client,
     bank_id="user-123",
     mission="Track user coding preferences, project context, and technical decisions",
@@ -208,7 +208,7 @@ The bank is created automatically on first use. If it already exists, creation i
 ### Memory Scoping with Tags
 
 ```python
-spec = HindsightToolSpec(
+spec = ContextBaseToolSpec(
     client=client,
     bank_id="user-123",
     tags=["source:chat", "session:abc"],        # applied to all retains
@@ -226,13 +226,13 @@ Both patterns handle errors gracefully — operations are logged and return frie
 Use both patterns together for maximum flexibility:
 
 ```python
-from hindsight_llamaindex import create_hindsight_tools, HindsightMemory
+from contextbase_llamaindex import create_contextbase_tools, ContextBaseMemory
 
 # Automatic memory for context enrichment
-memory = HindsightMemory.from_client(client=client, bank_id="user-123")
+memory = ContextBaseMemory.from_client(client=client, bank_id="user-123")
 
 # Explicit tools for agent-driven reflect
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     client=client,
     bank_id="user-123",
     include_retain=False,   # memory handles retain automatically

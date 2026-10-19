@@ -6,12 +6,12 @@
  * `~/.prime/agent/settings.json`. Both call an extension's default export with their `pi` API, and
  * both expose the identical surface this adapter needs: `before_agent_start` (recall +
  * system-prompt injection), `agent_end` (transcript write-back), and `registerTool` for the native
- * `agentstratum_*` knowledge tools. So neither host needs an adapter of its own — they differ only in
+ * `contextbase_*` knowledge tools. So neither host needs an adapter of its own — they differ only in
  * which harness name they report, which selects the `harnesses.<name>` config section, feeds
  * `{harness}` bank templating, and keeps their sessions attributable in diagnostics separately.
  *
  * The memory behaviour itself stays in RuntimeCore — the same reflect-and-inject core every
- * agentstratum harness uses; this file only adapts the pi extension API at its boundary.
+ * contextbase harness uses; this file only adapts the pi extension API at its boundary.
  */
 import { z } from "zod";
 import { resolveHostMemory } from "../core/host-client";
@@ -122,7 +122,7 @@ export function toPiTool(
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const bound = bind(ctx);
       if (!bound) {
-        const text = "Hindsight memory is disabled for this workspace.";
+        const text = "ContextBase memory is disabled for this workspace.";
         return { content: [{ type: "text", text }], details: null };
       }
       const r = await bound.handler(params);
@@ -135,7 +135,7 @@ export function toPiTool(
 /**
  * Make the host-specific pi hooks testable without importing either host's SDK. RuntimeCore is the
  * shared lifecycle implementation; this adapter only converts pi messages at its boundary and never
- * calls agentstratum directly.
+ * calls contextbase directly.
  */
 export function createPiHooks(
   core: Pick<RuntimeCore, "onPrompt" | "getInjection" | "onTranscript" | "flush">,
@@ -167,7 +167,7 @@ export function createPiHooks(
       // forces the whole prompt, so sections added by later extensions are dropped (#4841). Older
       // hosts without sections still take the appended full prompt below.
       if (event.systemPromptOptions?.sections) {
-        event.systemPromptOptions.sections.agentstratum = injection;
+        event.systemPromptOptions.sections.contextbase = injection;
         return undefined;
       }
       return { systemPrompt: `${event.systemPrompt}\n\n${injection}` };

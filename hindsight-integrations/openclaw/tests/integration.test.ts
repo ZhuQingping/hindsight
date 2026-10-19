@@ -1,14 +1,14 @@
 /**
- * Integration tests for the Hindsight OpenClaw integration.
+ * Integration tests for the ContextBase OpenClaw integration.
  *
  * Exercises both HTTP mode (direct API calls) and Embed mode (local daemon
- * spawned via HindsightServer), talking to Hindsight through
+ * spawned via HindsightServer), talking to ContextBase through
  * `@vectorize-io/hindsight-client`.
  *
  * Requirements:
- *   HTTP mode:  Running Hindsight API at HINDSIGHT_API_URL (default: http://localhost:8888)
- *   Embed mode: hindsight-embed package at HINDSIGHT_EMBED_PACKAGE_PATH
- *               + LLM credentials (HINDSIGHT_API_LLM_PROVIDER / HINDSIGHT_API_LLM_API_KEY)
+ *   HTTP mode:  Running ContextBase API at CONTEXTBASE_API_URL (default: http://localhost:8888)
+ *   Embed mode: hindsight-embed package at CONTEXTBASE_EMBED_PACKAGE_PATH
+ *               + LLM credentials (CONTEXTBASE_API_LLM_PROVIDER / CONTEXTBASE_API_LLM_API_KEY)
  *
  * Run:
  *   npm run test:integration
@@ -27,14 +27,15 @@ const __dirname = dirname(__filename);
 // Test configuration (driven by environment variables)
 // ---------------------------------------------------------------------------
 
-const HINDSIGHT_API_URL = process.env.HINDSIGHT_API_URL || "http://localhost:8888";
-const LLM_PROVIDER = process.env.HINDSIGHT_API_LLM_PROVIDER || "";
-const LLM_API_KEY = process.env.HINDSIGHT_API_LLM_API_KEY || "";
-const LLM_MODEL = process.env.HINDSIGHT_API_LLM_MODEL || "";
+const CONTEXTBASE_API_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
+const LLM_PROVIDER = process.env.CONTEXTBASE_API_LLM_PROVIDER || "";
+const LLM_API_KEY = process.env.CONTEXTBASE_API_LLM_API_KEY || "";
+const LLM_MODEL = process.env.CONTEXTBASE_API_LLM_MODEL || "";
 
 // Embed package path – defaults to the sibling hindsight-embed directory in the repo
 const EMBED_PACKAGE_PATH =
-  process.env.HINDSIGHT_EMBED_PACKAGE_PATH || join(__dirname, "..", "..", "..", "hindsight-embed");
+  process.env.CONTEXTBASE_EMBED_PACKAGE_PATH ||
+  join(__dirname, "..", "..", "..", "hindsight-embed");
 
 // Port for the test embed daemon (different from production default 9077 to avoid conflicts)
 const EMBED_TEST_PORT = 19077;
@@ -69,15 +70,15 @@ describe("openclaw integration — HTTP mode", () => {
   let client: HindsightClient;
 
   beforeAll(async () => {
-    const reachable = await waitForApi(HINDSIGHT_API_URL);
+    const reachable = await waitForApi(CONTEXTBASE_API_URL);
     if (!reachable) {
       throw new Error(
-        `Hindsight API not reachable at ${HINDSIGHT_API_URL}. ` +
+        `ContextBase API not reachable at ${CONTEXTBASE_API_URL}. ` +
           "Start the server before running integration tests."
       );
     }
 
-    client = new HindsightClient({ baseUrl: HINDSIGHT_API_URL });
+    client = new HindsightClient({ baseUrl: CONTEXTBASE_API_URL });
   });
 
   it("should retain a conversation", async () => {
@@ -190,7 +191,7 @@ describe("openclaw integration — embed mode", () => {
     if (!hasEmbedCredentials) {
       console.warn(
         "[Integration] Skipping embed mode tests: " +
-          "HINDSIGHT_API_LLM_PROVIDER and HINDSIGHT_API_LLM_API_KEY must both be set."
+          "CONTEXTBASE_API_LLM_PROVIDER and CONTEXTBASE_API_LLM_API_KEY must both be set."
       );
       return;
     }

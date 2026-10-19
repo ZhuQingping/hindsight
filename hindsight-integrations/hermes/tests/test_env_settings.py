@@ -1,13 +1,13 @@
 """Settings a profile can give through its environment (``.env``) when it has no
-``hindsight/config.json``: the retain label, both status-line indicators and synchronous recall."""
+``contextbase/config.json``: the retain label, both status-line indicators and synchronous recall."""
 
-import hindsight_hermes as plugin
+import contextbase_hermes as plugin
 from conftest import SECRETS, FakeClient
 
 
-def _provider_from_env(monkeypatch, **env) -> plugin.HindsightMemoryProvider:
-    SECRETS.update({"HINDSIGHT_MODE": "cloud", "HINDSIGHT_API_KEY": "test-key", **env})
-    instance = plugin.HindsightMemoryProvider()
+def _provider_from_env(monkeypatch, **env) -> plugin.ContextBaseMemoryProvider:
+    SECRETS.update({"CONTEXTBASE_MODE": "cloud", "CONTEXTBASE_API_KEY": "test-key", **env})
+    instance = plugin.ContextBaseMemoryProvider()
     monkeypatch.setattr(instance, "_new_cloud_client", lambda: FakeClient())
     monkeypatch.setattr(plugin, "_check_api_supports_update_mode_append", lambda *a, **k: True)
     instance.initialize("session-1")
@@ -17,10 +17,10 @@ def _provider_from_env(monkeypatch, **env) -> plugin.HindsightMemoryProvider:
 def test_the_environment_sets_the_retain_label_the_indicators_and_sync_recall(hermes_env, monkeypatch):
     instance = _provider_from_env(
         monkeypatch,
-        HINDSIGHT_RETAIN_CONTEXT="conversation between the support bot and a customer",
-        HINDSIGHT_RETAIN_INDICATOR="false",
-        HINDSIGHT_RECALL_INDICATOR="0",
-        HINDSIGHT_RECALL_SYNC="true",
+        CONTEXTBASE_RETAIN_CONTEXT="conversation between the support bot and a customer",
+        CONTEXTBASE_RETAIN_INDICATOR="false",
+        CONTEXTBASE_RECALL_INDICATOR="0",
+        CONTEXTBASE_RECALL_SYNC="true",
     )
     assert instance._retain_context == "conversation between the support bot and a customer"
     assert instance._retain_indicator is False
@@ -50,14 +50,14 @@ def test_flags_read_the_usual_spellings():
         "no": False,
         "off": False,
     }.items():
-        SECRETS["HINDSIGHT_RECALL_SYNC"] = value
-        assert plugin._scoped_flag("HINDSIGHT_RECALL_SYNC", not expected) is expected
-    SECRETS.pop("HINDSIGHT_RECALL_SYNC")
-    assert plugin._scoped_flag("HINDSIGHT_RECALL_SYNC", True) is True
+        SECRETS["CONTEXTBASE_RECALL_SYNC"] = value
+        assert plugin._scoped_flag("CONTEXTBASE_RECALL_SYNC", not expected) is expected
+    SECRETS.pop("CONTEXTBASE_RECALL_SYNC")
+    assert plugin._scoped_flag("CONTEXTBASE_RECALL_SYNC", True) is True
 
 
 def test_a_config_file_still_takes_precedence(provider):
-    SECRETS.update({"HINDSIGHT_RECALL_SYNC": "true", "HINDSIGHT_RETAIN_INDICATOR": "false"})
+    SECRETS.update({"CONTEXTBASE_RECALL_SYNC": "true", "CONTEXTBASE_RETAIN_INDICATOR": "false"})
     instance, _ = provider({"recall_sync": False})
     assert instance._recall_sync is False
     assert instance._retain_indicator is True

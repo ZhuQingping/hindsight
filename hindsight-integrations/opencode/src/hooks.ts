@@ -1,5 +1,5 @@
 /**
- * Hook implementations for the Hindsight OpenCode plugin.
+ * Hook implementations for the ContextBase OpenCode plugin.
  *
  * Hooks:
  *   - experimental.chat.system.transform → recall memories once per session
@@ -10,7 +10,7 @@
  */
 
 import type { HindsightClient } from "@vectorize-io/hindsight-client";
-import type { HindsightConfig } from "./config.js";
+import type { ContextBaseConfig } from "./config.js";
 import { Logger } from "./logger.js";
 import {
   formatMemories,
@@ -71,7 +71,7 @@ type OpencodeClient = {
   };
 };
 
-export interface HindsightHooks {
+export interface ContextBaseHooks {
   event: (input: EventInput) => Promise<void>;
   "experimental.session.compacting": (
     input: CompactingInput,
@@ -84,13 +84,13 @@ export interface HindsightHooks {
 }
 
 export function createHooks(
-  hindsightClient: HindsightClient,
+  contextbaseClient: HindsightClient,
   bankId: string,
-  config: HindsightConfig,
+  config: ContextBaseConfig,
   state: PluginState,
   opencodeClient: OpencodeClient,
   logger: Logger = new Logger({ silent: true })
-): HindsightHooks {
+): ContextBaseHooks {
   interface RecallOutcome {
     /** formatted context string, or null if no results */
     context: string | null;
@@ -101,7 +101,7 @@ export function createHooks(
   /** Recall memories and format as context string */
   async function recallForContext(query: string): Promise<RecallOutcome> {
     try {
-      const response = await hindsightClient.recall(bankId, query, {
+      const response = await contextbaseClient.recall(bankId, query, {
         budget: config.recallBudget as "low" | "mid" | "high",
         maxTokens: config.recallMaxTokens,
         types: config.recallTypes,
@@ -114,11 +114,11 @@ export function createHooks(
 
       const formatted = formatMemories(results);
       const context =
-        `<hindsight_memories>\n` +
+        `<contextbase_memories>\n` +
         `${config.recallPromptPreamble}\n` +
         `Current time: ${formatCurrentTime()} UTC\n\n` +
         `${formatted}\n` +
-        `</hindsight_memories>`;
+        `</contextbase_memories>`;
       return { context, ok: true };
     } catch (e) {
       logger.error("Recall failed", e);
@@ -180,8 +180,8 @@ export function createHooks(
     const { transcript } = prepareRetentionTranscript(targetMessages, true);
     if (!transcript) return;
 
-    await ensureBankMission(hindsightClient, bankId, config, state.missionsSet, logger);
-    await hindsightClient.retain(bankId, transcript, {
+    await ensureBankMission(contextbaseClient, bankId, config, state.missionsSet, logger);
+    await contextbaseClient.retain(bankId, transcript, {
       documentId,
       context: config.retainContext,
       tags: config.retainTags.length ? config.retainTags : undefined,
@@ -299,7 +299,7 @@ export function createHooks(
       // whether session.created fired first (see #1758).
       if (state.recalledSessions.has(sessionId)) return;
 
-      await ensureBankMission(hindsightClient, bankId, config, state.missionsSet, logger);
+      await ensureBankMission(contextbaseClient, bankId, config, state.missionsSet, logger);
 
       // Build the recall query from the user's own messages so session-start
       // recall adapts to what they actually asked, instead of a fixed string.

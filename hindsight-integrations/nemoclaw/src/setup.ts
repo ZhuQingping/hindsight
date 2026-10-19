@@ -6,7 +6,7 @@ import { join } from "path";
 import { randomBytes } from "crypto";
 import type { CliArgs } from "./types.js";
 import { readSandboxPolicy } from "./policy-reader.js";
-import { hasHindsightPolicy, mergeHindsightPolicy, serializePolicy } from "./policy-writer.js";
+import { hasContextBasePolicy, mergeContextBasePolicy, serializePolicy } from "./policy-writer.js";
 import { applyPluginConfig } from "./openclaw-config.js";
 
 const execFileAsync = promisify(execFile);
@@ -29,7 +29,7 @@ async function which(bin: string): Promise<boolean> {
 }
 
 export async function runSetup(args: CliArgs): Promise<void> {
-  log("\nhindsight-nemoclaw setup");
+  log("\ncontextbase-nemoclaw setup");
   log("─".repeat(40));
 
   // Step 0 — Preflight
@@ -44,16 +44,16 @@ export async function runSetup(args: CliArgs): Promise<void> {
   log("  ✓ openshell found");
   log("  ✓ openclaw found");
 
-  // Step 1 — Install hindsight-openclaw plugin
+  // Step 1 — Install contextbase-openclaw plugin
   if (!args.skipPluginInstall) {
-    step(1, "Installing @vectorize-io/hindsight-openclaw plugin...");
+    step(1, "Installing contextbase-openclaw plugin...");
     if (args.dryRun) {
-      log("  [dry-run] would run: openclaw plugins install @vectorize-io/hindsight-openclaw");
+      log("  [dry-run] would run: openclaw plugins install contextbase-openclaw");
     } else {
       const { stdout } = await execFileAsync("openclaw", [
         "plugins",
         "install",
-        "@vectorize-io/hindsight-openclaw",
+        "contextbase-openclaw",
       ]);
       log(stdout.trim() || "  ✓ Plugin installed");
     }
@@ -64,8 +64,8 @@ export async function runSetup(args: CliArgs): Promise<void> {
   // Step 2 — Configure ~/.openclaw/openclaw.json
   step(2, "Configuring plugin in ~/.openclaw/openclaw.json...");
   const pluginConfig = {
-    hindsightApiUrl: args.apiUrl,
-    hindsightApiToken: args.apiToken,
+    contextbaseApiUrl: args.apiUrl,
+    contextbaseApiToken: args.apiToken,
     llmProvider: "claude-code",
     dynamicBankId: false,
     bankIdPrefix: args.bankPrefix,
@@ -80,14 +80,14 @@ export async function runSetup(args: CliArgs): Promise<void> {
 
   // Step 3 — Apply OpenShell network policy
   if (!args.skipPolicy) {
-    step(3, `Applying Hindsight network policy to sandbox "${args.sandbox}"...`);
+    step(3, `Applying ContextBase network policy to sandbox "${args.sandbox}"...`);
 
     const currentPolicy = await readSandboxPolicy(args.sandbox);
 
-    if (hasHindsightPolicy(currentPolicy)) {
-      log("  ✓ Hindsight policy already present — skipping");
+    if (hasContextBasePolicy(currentPolicy, args.apiUrl)) {
+      log("  ✓ ContextBase policy already present — skipping");
     } else {
-      const updatedPolicy = mergeHindsightPolicy(currentPolicy);
+      const updatedPolicy = mergeContextBasePolicy(currentPolicy, args.apiUrl);
       const policyYaml = serializePolicy(updatedPolicy);
 
       if (args.dryRun) {
@@ -99,7 +99,7 @@ export async function runSetup(args: CliArgs): Promise<void> {
             .join("\n")
         );
       } else {
-        const tmpFile = join(tmpdir(), `hindsight-policy-${randomBytes(6).toString("hex")}.yaml`);
+        const tmpFile = join(tmpdir(), `contextbase-policy-${randomBytes(6).toString("hex")}.yaml`);
         try {
           await writeFile(tmpFile, policyYaml, "utf8");
           const { stdout } = await execFileAsync("openshell", [
@@ -120,11 +120,11 @@ export async function runSetup(args: CliArgs): Promise<void> {
     step(3, "Skipping policy update (--skip-policy)");
     log("  Add the following block to your sandbox network_policies manually:");
     log("");
-    log("    hindsight:");
-    log("      name: hindsight");
+    log("    contextbase:");
+    log("      name: contextbase");
     log("      endpoints:");
-    log("        - host: api.hindsight.vectorize.io");
-    log("          port: 443");
+    log(`        - host: ${new URL(args.apiUrl).hostname}`);
+    log(`          port: ${new URL(args.apiUrl).port || 443}`);
     log("          protocol: rest");
     log("          tls: terminate");
     log("          enforcement: enforce");
@@ -151,8 +151,8 @@ export async function runSetup(args: CliArgs): Promise<void> {
   log(`  API URL: ${args.apiUrl}`);
   log("");
   log("  Watch gateway logs to confirm:");
-  log("    grep Hindsight ~/.openclaw/logs/gateway.log | tail -5");
-  log("  Expected: [Hindsight] ✓ Ready (external API mode)");
+  log("    grep ContextBase ~/.openclaw/logs/gateway.log | tail -5");
+  log("  Expected: [ContextBase] ✓ Ready (external API mode)");
   log("");
   log("  Test memory retention:");
   log(`    openclaw agent --agent main --session-id test-1 -m "My name is Ben."`);

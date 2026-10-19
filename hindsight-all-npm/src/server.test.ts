@@ -1,38 +1,38 @@
 import { describe, it, expect, vi } from "vitest";
 import { EventEmitter } from "node:events";
-import { AgentstratumServer } from "./server.js";
+import { ContextBaseServer } from "./server.js";
 
 const spawnMock = vi.hoisted(() => vi.fn());
 vi.mock("child_process", () => ({ spawn: spawnMock }));
 
-describe("AgentstratumServer construction", () => {
+describe("ContextBaseServer construction", () => {
   it("defaults base URL to http://127.0.0.1:8888", () => {
-    const server = new AgentstratumServer();
+    const server = new ContextBaseServer();
     expect(server.getBaseUrl()).toBe("http://127.0.0.1:8888");
     expect(server.getProfile()).toBe("default");
   });
 
   it("honours custom profile, port, and host", () => {
-    const server = new AgentstratumServer({ profile: "app", port: 9077, host: "0.0.0.0" });
+    const server = new ContextBaseServer({ profile: "app", port: 9077, host: "0.0.0.0" });
     expect(server.getProfile()).toBe("app");
     expect(server.getBaseUrl()).toBe("http://0.0.0.0:9077");
   });
 
   it("accepts open env pass-through without complaining about unknown keys", () => {
-    const server = new AgentstratumServer({
+    const server = new ContextBaseServer({
       env: {
-        AGENTSTRATUM_API_LLM_PROVIDER: "openai",
-        AGENTSTRATUM_API_LLM_MODEL: "gpt-4o-mini",
+        CONTEXTBASE_API_LLM_PROVIDER: "openai",
+        CONTEXTBASE_API_LLM_MODEL: "gpt-4o-mini",
         // A field that does not exist today — should still be accepted
-        AGENTSTRATUM_FUTURE_FLAG: "enabled",
+        CONTEXTBASE_FUTURE_FLAG: "enabled",
       },
     });
-    expect(server).toBeInstanceOf(AgentstratumServer);
+    expect(server).toBeInstanceOf(ContextBaseServer);
   });
 
   it("exposes checkHealth that returns false when no daemon is running", async () => {
     // Random high port that nothing is listening on.
-    const server = new AgentstratumServer({ port: 1, readyTimeoutMs: 100 });
+    const server = new ContextBaseServer({ port: 1, readyTimeoutMs: 100 });
     const healthy = await server.checkHealth();
     expect(healthy).toBe(false);
   });
@@ -48,7 +48,7 @@ describe("AgentstratumServer construction", () => {
     };
     spawnMock.mockReturnValueOnce(child);
 
-    const server = new AgentstratumServer({ embedPackage: "agentstratum-embed==0.5.0" });
+    const server = new ContextBaseServer({ embedPackage: "contextbase-embed==0.5.0" });
     await server.stop();
 
     expect(spawnMock).toHaveBeenCalledWith(
@@ -56,8 +56,8 @@ describe("AgentstratumServer construction", () => {
       [
         "--quiet",
         "--from",
-        "agentstratum-embed==0.5.0",
-        "agentstratum-embed",
+        "contextbase-embed==0.5.0",
+        "contextbase-embed",
         "daemon",
         "--profile",
         "default",
@@ -80,12 +80,12 @@ describe("AgentstratumServer construction", () => {
     spawnMock.mockReturnValue(child);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("ready")));
     try {
-      const server = new AgentstratumServer({
+      const server = new ContextBaseServer({
         env: {
           PATH: "/caller-toolchain/bin",
-          AGENTSTRATUM_EMBED_PACKAGE: "agentstratum-embed==0.5.0",
-          AGENTSTRATUM_TEST_SENTINEL: "same-environment",
-          AGENTSTRATUM_OMITTED: undefined,
+          CONTEXTBASE_EMBED_PACKAGE: "contextbase-embed==0.5.0",
+          CONTEXTBASE_TEST_SENTINEL: "same-environment",
+          CONTEXTBASE_OMITTED: undefined,
         },
         platformCpuWorkaround: false,
       });
@@ -96,10 +96,10 @@ describe("AgentstratumServer construction", () => {
         expect(call[2].env).toEqual(
           expect.objectContaining({
             PATH: "/caller-toolchain/bin",
-            AGENTSTRATUM_TEST_SENTINEL: "same-environment",
+            CONTEXTBASE_TEST_SENTINEL: "same-environment",
           })
         );
-        expect(call[2].env.AGENTSTRATUM_OMITTED).toBeUndefined();
+        expect(call[2].env.CONTEXTBASE_OMITTED).toBeUndefined();
       }
     } finally {
       vi.unstubAllGlobals();
@@ -115,7 +115,7 @@ it("preserves daemon diagnostics and customer output", async () => {
     stderr: new EventEmitter(),
   });
   spawnMock.mockReturnValueOnce(child);
-  const server = new AgentstratumServer({ embedPackage: "agentstratum-embed==0.5.0", logger });
+  const server = new ContextBaseServer({ embedPackage: "contextbase-embed==0.5.0", logger });
   const started = server.start();
   child.stdout.emit("data", Buffer.from("Created profile customer-hindsight-project\n"));
   child.stderr.emit(

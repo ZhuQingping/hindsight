@@ -6,8 +6,8 @@ from lib.daemon import _get_embed_command
 
 
 def test_local_engine_requires_distribution_configuration(monkeypatch):
-    monkeypatch.delenv("AGENTSTRATUM_EMBED_PACKAGE", raising=False)
-    with pytest.raises(RuntimeError, match="AGENTSTRATUM_EMBED_PACKAGE"):
+    monkeypatch.delenv("CONTEXTBASE_EMBED_PACKAGE", raising=False)
+    with pytest.raises(RuntimeError, match="CONTEXTBASE_EMBED_PACKAGE"):
         _get_embed_command({})
 
 
@@ -17,7 +17,7 @@ def test_local_engine_uses_explicit_distribution_and_branded_command():
         "--quiet",
         "--from",
         "approved-engine==1.2.3",
-        "agentstratum-embed",
+        "contextbase-embed",
     ]
 
 
@@ -27,16 +27,16 @@ def test_local_checkout_keeps_local_execution():
         "run",
         "--directory",
         "/source/engine",
-        "agentstratum-embed",
+        "contextbase-embed",
     ]
 
 
 def test_user_agent_uses_product_identity():
-    assert "agentstratum" in USER_AGENT
+    assert "contextbase" in USER_AGENT
     assert "hindsight" not in USER_AGENT.lower()
 
 
-@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+@pytest.mark.parametrize("bank", ["contextbase-review", "ContextBase-review", "CONTEXTBASE-review"])
 def test_client_preserves_public_service_error(monkeypatch: pytest.MonkeyPatch, bank: str) -> None:
     import io
     import urllib.error

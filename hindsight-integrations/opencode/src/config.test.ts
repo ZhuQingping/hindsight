@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { loadConfig, DEFAULT_HINDSIGHT_API_URL, type HindsightConfig } from "./config.js";
+import { loadConfig, DEFAULT_CONTEXTBASE_API_URL, type ContextBaseConfig } from "./config.js";
 
 describe("loadConfig", () => {
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
-    // Clear all HINDSIGHT_ env vars
+    // Clear all CONTEXTBASE_ env vars
     for (const key of Object.keys(process.env)) {
-      if (key.startsWith("HINDSIGHT_")) {
+      if (key.startsWith("CONTEXTBASE_")) {
         delete process.env[key];
       }
     }
@@ -27,22 +27,22 @@ describe("loadConfig", () => {
     expect(config.agentName).toBe("opencode");
     expect(config.dynamicBankId).toBe(false);
     expect(config.debug).toBe(false);
-    expect(config.hindsightApiUrl).toBe(DEFAULT_HINDSIGHT_API_URL);
-    expect(config.hindsightApiToken).toBeNull();
+    expect(config.contextbaseApiUrl).toBe(DEFAULT_CONTEXTBASE_API_URL);
+    expect(config.contextbaseApiToken).toBeNull();
     expect(config.bankId).toBeNull();
   });
 
   it("env vars override defaults", () => {
-    process.env.HINDSIGHT_API_URL = "https://example.com";
-    process.env.HINDSIGHT_API_TOKEN = "secret-token";
-    process.env.HINDSIGHT_BANK_ID = "my-bank";
-    process.env.HINDSIGHT_AUTO_RECALL = "false";
-    process.env.HINDSIGHT_AUTO_RETAIN = "0";
-    process.env.HINDSIGHT_RECALL_MAX_TOKENS = "2048";
+    process.env.CONTEXTBASE_API_URL = "https://example.com";
+    process.env.CONTEXTBASE_API_TOKEN = "secret-token";
+    process.env.CONTEXTBASE_BANK_ID = "my-bank";
+    process.env.CONTEXTBASE_AUTO_RECALL = "false";
+    process.env.CONTEXTBASE_AUTO_RETAIN = "0";
+    process.env.CONTEXTBASE_RECALL_MAX_TOKENS = "2048";
 
     const config = loadConfig();
-    expect(config.hindsightApiUrl).toBe("https://example.com");
-    expect(config.hindsightApiToken).toBe("secret-token");
+    expect(config.contextbaseApiUrl).toBe("https://example.com");
+    expect(config.contextbaseApiToken).toBe("secret-token");
     expect(config.bankId).toBe("my-bank");
     expect(config.autoRecall).toBe(false);
     expect(config.autoRetain).toBe(false);
@@ -52,8 +52,8 @@ describe("loadConfig", () => {
   it("does not read debug from the environment (config-only)", () => {
     // `debug` is intentionally NOT an env override — env vars are unreliable to
     // set for OpenCode's plugin runtime (notably on Windows). It must come from
-    // plugin options or ~/.hindsight/opencode.json.
-    process.env.HINDSIGHT_DEBUG = "true";
+    // plugin options or ~/.contextbase/opencode.json.
+    process.env.CONTEXTBASE_DEBUG = "true";
     expect(loadConfig().debug).toBe(false);
     expect(loadConfig({ debug: true }).debug).toBe(true);
   });
@@ -72,51 +72,51 @@ describe("loadConfig", () => {
   });
 
   it("env vars override plugin options", () => {
-    process.env.HINDSIGHT_BANK_ID = "env-bank";
+    process.env.CONTEXTBASE_BANK_ID = "env-bank";
     const config = loadConfig({ bankId: "plugin-bank" });
     expect(config.bankId).toBe("env-bank");
   });
 
   it("boolean env var parsing", () => {
-    process.env.HINDSIGHT_AUTO_RECALL = "true";
+    process.env.CONTEXTBASE_AUTO_RECALL = "true";
     expect(loadConfig().autoRecall).toBe(true);
 
-    process.env.HINDSIGHT_AUTO_RECALL = "1";
+    process.env.CONTEXTBASE_AUTO_RECALL = "1";
     expect(loadConfig().autoRecall).toBe(true);
 
-    process.env.HINDSIGHT_AUTO_RECALL = "yes";
+    process.env.CONTEXTBASE_AUTO_RECALL = "yes";
     expect(loadConfig().autoRecall).toBe(true);
 
-    process.env.HINDSIGHT_AUTO_RECALL = "false";
+    process.env.CONTEXTBASE_AUTO_RECALL = "false";
     expect(loadConfig().autoRecall).toBe(false);
 
-    process.env.HINDSIGHT_AUTO_RECALL = "no";
+    process.env.CONTEXTBASE_AUTO_RECALL = "no";
     expect(loadConfig().autoRecall).toBe(false);
   });
 
   it("integer env var parsing", () => {
-    process.env.HINDSIGHT_RECALL_MAX_TOKENS = "4096";
+    process.env.CONTEXTBASE_RECALL_MAX_TOKENS = "4096";
     expect(loadConfig().recallMaxTokens).toBe(4096);
 
     // Invalid integer keeps default
-    process.env.HINDSIGHT_RECALL_MAX_TOKENS = "not-a-number";
+    process.env.CONTEXTBASE_RECALL_MAX_TOKENS = "not-a-number";
     expect(loadConfig().recallMaxTokens).toBe(1024);
   });
 
-  it("HINDSIGHT_RETAIN_TAGS parses comma-separated tags", () => {
-    process.env.HINDSIGHT_RETAIN_TAGS = "user:alice, shared , project-x";
+  it("CONTEXTBASE_RETAIN_TAGS parses comma-separated tags", () => {
+    process.env.CONTEXTBASE_RETAIN_TAGS = "user:alice, shared , project-x";
     const config = loadConfig();
     expect(config.retainTags).toEqual(["user:alice", "shared", "project-x"]);
   });
 
-  it("HINDSIGHT_RETAIN_TAGS env var overrides plugin option retainTags", () => {
-    process.env.HINDSIGHT_RETAIN_TAGS = "env-tag";
+  it("CONTEXTBASE_RETAIN_TAGS env var overrides plugin option retainTags", () => {
+    process.env.CONTEXTBASE_RETAIN_TAGS = "env-tag";
     const config = loadConfig({ retainTags: ["plugin-tag"] });
     expect(config.retainTags).toEqual(["env-tag"]);
   });
 
-  it("HINDSIGHT_RETAIN_TAGS empty string yields empty array", () => {
-    process.env.HINDSIGHT_RETAIN_TAGS = "";
+  it("CONTEXTBASE_RETAIN_TAGS empty string yields empty array", () => {
+    process.env.CONTEXTBASE_RETAIN_TAGS = "";
     const config = loadConfig();
     expect(config.retainTags).toEqual([]);
   });

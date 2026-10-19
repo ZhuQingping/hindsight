@@ -1,7 +1,7 @@
 """File-based state persistence for Cursor plugin.
 
 Cursor hooks are ephemeral processes -- state must be persisted to files.
-Uses $CURSOR_PLUGIN_DATA/state/ or ~/.hindsight/cursor-state/ as storage.
+Uses $CURSOR_PLUGIN_DATA/state/ or ~/.contextbase/cursor-state/ as storage.
 """
 
 import json
@@ -20,7 +20,7 @@ def _state_dir() -> str:
     """Get the state directory, creating it if needed."""
     plugin_data = os.environ.get("CURSOR_PLUGIN_DATA", "")
     if not plugin_data:
-        plugin_data = os.path.join(os.path.expanduser("~"), ".hindsight", "cursor-state")
+        plugin_data = os.path.join(os.path.expanduser("~"), ".contextbase", "cursor-state")
     state_dir = os.path.join(plugin_data, "state")
     os.makedirs(state_dir, exist_ok=True)
     return state_dir

@@ -1,7 +1,7 @@
 /**
  * OpenClaw native memory provider (#4916).
  *
- * When Hindsight holds OpenClaw's memory slot, OpenClaw's own memory surfaces
+ * When ContextBase holds OpenClaw's memory slot, OpenClaw's own memory surfaces
  * (Memory page, `doctor.memory.status`, gateway `memory.status` / `memory.search`)
  * read through the slot owner's `providerRuntime`. Without one they all reported
  * "memory plugin unavailable" while recall and retain worked fine.
@@ -103,10 +103,10 @@ export function createMemoryProviderRuntime(deps: MemoryProviderDeps): MemoryPro
 
       // Denial and failure must not become empty success, so both throw.
       const readableBank = (): string => {
-        if (!readable) throw new Error("Hindsight memory is not readable by this caller");
+        if (!readable) throw new Error("ContextBase memory is not readable by this caller");
         if (!bankId) {
           throw new Error(
-            "Hindsight banks here are keyed by user or channel; search them from a conversation"
+            "ContextBase banks here are keyed by user or channel; search them from a conversation"
           );
         }
         return bankId;
@@ -152,7 +152,7 @@ export function createMemoryProviderRuntime(deps: MemoryProviderDeps): MemoryPro
         async health() {
           return (await deps.healthy())
             ? { status: "ready" }
-            : { status: "unavailable", message: "Hindsight API is not reachable" };
+            : { status: "unavailable", message: "ContextBase API is not reachable" };
         },
 
         async close() {},

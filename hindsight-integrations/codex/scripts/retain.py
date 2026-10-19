@@ -2,7 +2,7 @@
 """Auto-retain hook for Stop event.
 
 Fires after each agent turn. Reads the Codex session transcript and stores
-the conversation into Hindsight memory for future recall.
+the conversation into ContextBase memory for future recall.
 
 Flow:
   1. Read hook input from stdin (session_id, transcript_path, cwd)
@@ -11,7 +11,7 @@ Flow:
   4. Resolve API URL (external, existing local, or auto-start daemon)
   5. Derive bank ID and ensure mission
   6. Format transcript (strip memory tags, filter roles)
-  7. POST to Hindsight retain API
+  7. POST to ContextBase retain API
 
 Exit codes:
   0 — always (graceful degradation on any error)
@@ -111,7 +111,7 @@ def main():
         print(f"[Hindsight] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
@@ -158,7 +158,7 @@ def main():
     if tags:
         debug_log(config, f"Tags: {tags}")
 
-    # POST to Hindsight retain API
+    # POST to ContextBase retain API
     try:
         response = client.retain(
             bank_id=bank_id,

@@ -13,14 +13,14 @@ export default async function ConnectPage({
   const rawBankId = (await searchParams).bank_id;
   const bankId = typeof rawBankId === "string" && rawBankId ? rawBankId : null;
   const python = bankId
-    ? `from hindsight_client import Hindsight\nimport os\n\nclient = Hindsight(\n    base_url=os.environ["AGENTSTRATUM_API_URL"],\n    api_key=os.environ["AGENTSTRATUM_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
+    ? `from hindsight_client import Hindsight\nimport os\n\nclient = Hindsight(\n    base_url=os.environ["CONTEXTBASE_API_URL"],\n    api_key=os.environ["CONTEXTBASE_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
     : "";
   const encodedBankId = bankId ? encodeURIComponent(bankId) : "";
-  const rest = `curl -H "Authorization: Bearer $AGENTSTRATUM_API_KEY" "$AGENTSTRATUM_API_URL/v1/default/banks/${encodedBankId}/stats"`;
+  const rest = `curl -H "Authorization: Bearer $CONTEXTBASE_API_KEY" "$CONTEXTBASE_API_URL/v1/default/banks/${encodedBankId}/stats"`;
   const mcp = JSON.stringify(
     {
       mcpServers: {
-        agentstratum: {
+        contextbase: {
           type: "http",
           url: "<MCP_ENDPOINT>",
           headers: { Authorization: "Bearer <API_KEY>" },
@@ -63,7 +63,7 @@ export default async function ConnectPage({
             <h2 className="text-lg font-semibold">{t("credentialsTitle")}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("credentialsBody")}</p>
             <ConnectionCode
-              code={`export AGENTSTRATUM_API_URL="<API_BASE_URL>"\nexport AGENTSTRATUM_API_KEY="<API_KEY>"`}
+              code={`export CONTEXTBASE_API_URL="<API_BASE_URL>"\nexport CONTEXTBASE_API_KEY="<API_KEY>"`}
             />
           </section>
 

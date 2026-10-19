@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from hindsight_continue import (
+from contextbase_continue import (
     HindsightError,
     build_context_items,
     configure,
@@ -29,7 +29,7 @@ class TestBuildContextItems:
         assert kwargs["max_tokens"] == 2048
 
         assert len(items) == 1
-        assert items[0].name == "Hindsight Memory"
+        assert items[0].name == "ContextBase Memory"
         assert "1. User prefers dark mode" in items[0].content
         assert "2. Project uses pnpm" in items[0].content
 

@@ -1,13 +1,13 @@
-"""Smoke tests for the Roo Code Hindsight integration.
+"""Smoke tests for the Roo Code ContextBase integration.
 
-Requires a live Hindsight instance. Set HINDSIGHT_SMOKE_URL to run:
+Requires a live ContextBase instance. Set CONTEXTBASE_SMOKE_URL to run:
 
-    HINDSIGHT_SMOKE_URL=http://localhost:8888 python -m pytest tests/test_smoke.py -v
+    CONTEXTBASE_SMOKE_URL=http://localhost:8888 python -m pytest tests/test_smoke.py -v
 
-Skipped automatically if HINDSIGHT_SMOKE_URL is not set.
+Skipped automatically if CONTEXTBASE_SMOKE_URL is not set.
 
 Covers:
-  1. Health check — Hindsight is reachable
+  1. Health check — ContextBase is reachable
   2. MCP endpoint — /mcp responds to initialize + tools/list, recall/retain present
   3. REST retain — memories can be stored
   4. REST recall — stored memories are returned
@@ -24,13 +24,13 @@ from urllib.parse import urljoin
 
 import pytest
 
-SMOKE_URL = os.environ.get("HINDSIGHT_SMOKE_URL", "")
-SMOKE_API_KEY = os.environ.get("HINDSIGHT_SMOKE_API_KEY", "")
+SMOKE_URL = os.environ.get("CONTEXTBASE_SMOKE_URL", "")
+SMOKE_API_KEY = os.environ.get("CONTEXTBASE_SMOKE_API_KEY", "")
 SMOKE_BANK = "roo-smoke-test"
 
 skip_if_no_server = pytest.mark.skipif(
     not SMOKE_URL,
-    reason="HINDSIGHT_SMOKE_URL not set — skipping live smoke tests",
+    reason="CONTEXTBASE_SMOKE_URL not set — skipping live smoke tests",
 )
 
 

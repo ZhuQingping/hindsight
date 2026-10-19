@@ -360,7 +360,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-cursor"
+name = "contextbase-cursor"
 version = "0.2.0"
 source = { editable = "." }
 

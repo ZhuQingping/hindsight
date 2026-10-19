@@ -1,18 +1,18 @@
-"""Unit tests for Hindsight Strands tools."""
+"""Unit tests for ContextBase Strands tools."""
 
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hindsight_strands import (
+from contextbase_strands import (
     configure,
-    create_hindsight_tools,
+    create_contextbase_tools,
     memory_instructions,
     reset_config,
 )
-from hindsight_strands.errors import HindsightError
-from hindsight_strands.tools import _USER_AGENT, _resolve_client
+from contextbase_strands.errors import HindsightError
+from contextbase_strands.tools import _USER_AGENT, _resolve_client
 
 
 # ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ from hindsight_strands.tools import _USER_AGENT, _resolve_client
 
 
 def _mock_client():
-    """Create a mock Hindsight client."""
+    """Create a mock ContextBase client."""
     client = MagicMock()
     client.retain = MagicMock()
     client.recall = MagicMock()
@@ -83,7 +83,7 @@ class TestResolveClient:
         assert owns_client is False
 
     def test_creates_client_from_url(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://localhost:8888", None)
             assert owns_client is True
@@ -94,7 +94,7 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_creates_client_with_api_key(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://localhost:8888", "my-key")
             assert owns_client is True
@@ -106,8 +106,8 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_falls_back_to_global_config_url(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, None)
             assert owns_client is True
@@ -118,8 +118,8 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_falls_back_to_global_config_api_key(self):
-        configure(hindsight_api_url="http://config:8888", api_key="config-key")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key="config-key")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, None)
             assert owns_client is True
@@ -131,8 +131,8 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_explicit_url_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://explicit:9999", None)
             assert owns_client is True
@@ -143,8 +143,8 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_explicit_api_key_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888", api_key="config-key")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key="config-key")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, "explicit-key")
             assert owns_client is True
@@ -156,24 +156,24 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_raises_with_empty_config_no_url(self):
         # Config exists but has default URL, so this should NOT raise
         configure()
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
-# create_hindsight_tools — factory
+# create_contextbase_tools — factory
 # ---------------------------------------------------------------------------
 
 
-class TestCreateHindsightTools:
+class TestCreateContextBaseTools:
     def setup_method(self):
         reset_config()
 
@@ -182,18 +182,18 @@ class TestCreateHindsightTools:
 
     def test_creates_three_tools_by_default(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="test", client=client)
+        tools = create_contextbase_tools(bank_id="test", client=client)
         assert len(tools) == 3
 
     def test_tool_names(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="test", client=client)
+        tools = create_contextbase_tools(bank_id="test", client=client)
         names = {t.__name__ for t in tools}
-        assert names == {"hindsight_retain", "hindsight_recall", "hindsight_reflect"}
+        assert names == {"contextbase_retain", "contextbase_recall", "contextbase_reflect"}
 
     def test_enable_retain_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             enable_retain=True,
@@ -201,11 +201,11 @@ class TestCreateHindsightTools:
             enable_reflect=False,
         )
         assert len(tools) == 1
-        assert tools[0].__name__ == "hindsight_retain"
+        assert tools[0].__name__ == "contextbase_retain"
 
     def test_enable_recall_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -213,11 +213,11 @@ class TestCreateHindsightTools:
             enable_reflect=False,
         )
         assert len(tools) == 1
-        assert tools[0].__name__ == "hindsight_recall"
+        assert tools[0].__name__ == "contextbase_recall"
 
     def test_enable_reflect_only(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -225,11 +225,11 @@ class TestCreateHindsightTools:
             enable_reflect=True,
         )
         assert len(tools) == 1
-        assert tools[0].__name__ == "hindsight_reflect"
+        assert tools[0].__name__ == "contextbase_reflect"
 
     def test_no_tools_when_all_disabled(self):
         client = _mock_client()
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -239,14 +239,14 @@ class TestCreateHindsightTools:
         assert len(tools) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
-            create_hindsight_tools(bank_id="test")
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+            create_contextbase_tools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            tools = create_hindsight_tools(bank_id="test")
+            tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
             mock_cls.assert_called_once()
             kwargs = mock_cls.call_args.kwargs
@@ -255,11 +255,11 @@ class TestCreateHindsightTools:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_api_key_passed_to_client(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            create_hindsight_tools(
+            create_contextbase_tools(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
                 api_key="secret",
             )
             mock_cls.assert_called_once()
@@ -271,35 +271,35 @@ class TestCreateHindsightTools:
 
     def test_returns_list_compatible_tools_container(self):
         client = _mock_client()
-        tools = create_hindsight_tools(bank_id="test", client=client)
+        tools = create_contextbase_tools(bank_id="test", client=client)
         assert isinstance(tools, list)
         assert hasattr(tools, "close")
         assert hasattr(tools, "aclose")
 
     def test_close_closes_internally_owned_client(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             internal_client = _mock_client()
             mock_cls.return_value = internal_client
-            tools = create_hindsight_tools(
+            tools = create_contextbase_tools(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
             )
             tools.close()
             internal_client.close.assert_called_once()
 
     def test_close_does_not_close_externally_owned_client(self):
         external_client = _mock_client()
-        tools = create_hindsight_tools(bank_id="test", client=external_client)
+        tools = create_contextbase_tools(bank_id="test", client=external_client)
         tools.close()
         external_client.close.assert_not_called()
 
     def test_aclose_closes_internally_owned_client(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             internal_client = _mock_client()
             mock_cls.return_value = internal_client
-            tools = create_hindsight_tools(
+            tools = create_contextbase_tools(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
             )
             import asyncio
 
@@ -320,7 +320,7 @@ class TestRetainTool:
         reset_config()
 
     def _retain_tool(self, client, **kwargs):
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="my-bank",
             client=client,
             enable_recall=False,
@@ -343,19 +343,19 @@ class TestRetainTool:
         client.retain.assert_called_once_with(bank_id="my-bank", content="tagged content", tags=["env:test"])
 
     def test_retain_config_tags(self):
-        configure(hindsight_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            tools = create_hindsight_tools(bank_id="test", enable_recall=False, enable_reflect=False)
+            tools = create_contextbase_tools(bank_id="test", enable_recall=False, enable_reflect=False)
         client = mock_cls.return_value
         _call_tool(tools[0], content="content")
         assert client.retain.call_args[1]["tags"] == ["config-tag"]
 
     def test_retain_explicit_tags_override_config(self):
-        configure(hindsight_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            tools = create_hindsight_tools(
+            tools = create_contextbase_tools(
                 bank_id="test",
                 tags=["explicit-tag"],
                 enable_recall=False,
@@ -385,14 +385,14 @@ class TestRetainTool:
         result = _call_tool(t, content="content")
         assert result == "Memory stored successfully."
 
-    def test_retain_failure_raises_hindsight_error(self):
+    def test_retain_failure_raises_contextbase_error(self):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         t = self._retain_tool(client)
         with pytest.raises(HindsightError, match="Retain failed"):
             _call_tool(t, content="content")
 
-    def test_retain_hindsight_error_not_wrapped(self):
+    def test_retain_contextbase_error_not_wrapped(self):
         client = _mock_client()
         client.retain.side_effect = HindsightError("original error")
         t = self._retain_tool(client)
@@ -421,7 +421,7 @@ class TestRecallTool:
         reset_config()
 
     def _recall_tool(self, client, **kwargs):
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="my-bank",
             client=client,
             enable_retain=False,
@@ -487,14 +487,14 @@ class TestRecallTool:
         assert "tags" not in call_kwargs
         assert "tags_match" not in call_kwargs
 
-    def test_recall_failure_raises_hindsight_error(self):
+    def test_recall_failure_raises_contextbase_error(self):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         t = self._recall_tool(client)
         with pytest.raises(HindsightError, match="Recall failed"):
             _call_tool(t, query="query")
 
-    def test_recall_hindsight_error_not_wrapped(self):
+    def test_recall_contextbase_error_not_wrapped(self):
         client = _mock_client()
         client.recall.side_effect = HindsightError("original error")
         t = self._recall_tool(client)
@@ -523,7 +523,7 @@ class TestReflectTool:
         reset_config()
 
     def _reflect_tool(self, client, **kwargs):
-        tools = create_hindsight_tools(
+        tools = create_contextbase_tools(
             bank_id="my-bank",
             client=client,
             enable_retain=False,
@@ -567,14 +567,14 @@ class TestReflectTool:
         _call_tool(t, query="query")
         assert client.reflect.call_args[1]["budget"] == "mid"
 
-    def test_reflect_failure_raises_hindsight_error(self):
+    def test_reflect_failure_raises_contextbase_error(self):
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         t = self._reflect_tool(client)
         with pytest.raises(HindsightError, match="Reflect failed"):
             _call_tool(t, query="query")
 
-    def test_reflect_hindsight_error_not_wrapped(self):
+    def test_reflect_contextbase_error_not_wrapped(self):
         client = _mock_client()
         client.reflect.side_effect = HindsightError("original error")
         t = self._reflect_tool(client)
@@ -657,12 +657,12 @@ class TestMemoryInstructions:
         assert result == ""
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_falls_back_to_global_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_instance
@@ -670,25 +670,25 @@ class TestMemoryInstructions:
             assert "fact" in result
 
     def test_closes_internally_created_client_on_success(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_instance
             result = memory_instructions(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
             )
             assert "fact" in result
             mock_instance.close.assert_called_once()
 
     def test_closes_internally_created_client_on_exception(self):
-        with patch("hindsight_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.side_effect = RuntimeError("network error")
             mock_cls.return_value = mock_instance
             result = memory_instructions(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
             )
             assert result == ""
             mock_instance.close.assert_called_once()

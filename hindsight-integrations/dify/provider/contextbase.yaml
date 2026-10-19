@@ -1,0 +1,37 @@
+identity:
+  author: vectorize
+  name: contextbase
+  label:
+    en_US: ContextBase
+  description:
+    en_US: Persistent long-term memory for AI agents and workflows.
+  icon: icon.png
+  tags:
+    - utilities
+credentials_for_provider:
+  api_url:
+    type: text-input
+    required: true
+    default: ""
+    label:
+      en_US: API URL
+    placeholder:
+      en_US: "https://memory.example.com"
+    help:
+      en_US: "Your ContextBase API base URL (for example, http://localhost:8888 for a local deployment)."
+  api_key:
+    type: secret-input
+    required: false
+    label:
+      en_US: API Key
+    placeholder:
+      en_US: hsk_...
+    help:
+      en_US: "API key issued by your deployment administrator; optional for unauthenticated instances."
+tools:
+  - tools/retain.yaml
+  - tools/recall.yaml
+  - tools/reflect.yaml
+extra:
+  python:
+    source: provider/contextbase.py

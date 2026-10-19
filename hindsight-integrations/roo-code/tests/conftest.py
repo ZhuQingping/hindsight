@@ -1,4 +1,4 @@
-"""Shared fixtures for Roo Code Hindsight integration tests."""
+"""Shared fixtures for Roo Code ContextBase integration tests."""
 
 import json
 from pathlib import Path
@@ -35,5 +35,5 @@ def project_with_existing_mcp(tmp_path: Path) -> Path:
 
 
 @pytest.fixture()
-def hindsight_url() -> str:
+def contextbase_url() -> str:
     return "http://localhost:8888"

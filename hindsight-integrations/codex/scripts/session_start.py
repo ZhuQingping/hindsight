@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """SessionStart hook: health check and daemon pre-start.
 
-Fires once when a Codex session begins. Verifies the Hindsight server is
+Fires once when a Codex session begins. Verifies the ContextBase server is
 reachable, and kicks off a background daemon pre-start if not — so it's
 ready by the first recall or retain hook.
 """
@@ -45,10 +45,10 @@ def main():
 
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-        HindsightClient(api_url, config.get("hindsightApiToken"))
-        debug_log(config, f"Hindsight server reachable at {api_url}")
+        HindsightClient(api_url, config.get("contextbaseApiToken"))
+        debug_log(config, f"ContextBase server reachable at {api_url}")
     except (RuntimeError, ValueError) as e:
-        debug_log(config, f"Hindsight not running, initiating background pre-start: {e}")
+        debug_log(config, f"ContextBase not running, initiating background pre-start: {e}")
         prestart_daemon_background(config, debug_fn=_dbg)
         return
 

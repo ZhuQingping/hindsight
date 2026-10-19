@@ -1,4 +1,4 @@
-"""Tests for the hindsight-cursor CLI."""
+"""Tests for the contextbase-cursor CLI."""
 
 import json
 import shutil
@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hindsight_cursor.cli import (
+from contextbase_cursor.cli import (
     _PLUGIN_FILES,
     _hook_interpreter,
     _plugin_data_dir,
@@ -50,26 +50,26 @@ class TestInit:
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
 
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         assert dest.exists()
         assert (dest / ".cursor-plugin" / "plugin.json").exists()
         assert (dest / "hooks" / "hooks.json").exists()
         assert (dest / "settings.json").exists()
         assert (dest / "scripts" / "session_start.py").exists()
         assert (dest / "scripts" / "lib" / "rules_file.py").exists()
-        assert (dest / "rules" / "hindsight-memory.mdc").exists()
+        assert (dest / "rules" / "contextbase-memory.mdc").exists()
 
     def test_refuses_overwrite_without_force(self, tmp_path, fake_plugin_data, capsys):
         project = tmp_path / "my-project"
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         dest.mkdir(parents=True)
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
@@ -80,11 +80,11 @@ class TestInit:
 
     def test_force_overwrites(self, tmp_path, fake_plugin_data):
         project = tmp_path / "my-project"
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         dest.mkdir(parents=True)
         (dest / "old-file.txt").write_text("old")
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=True, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
@@ -94,13 +94,13 @@ class TestInit:
     def test_creates_user_config(self, tmp_path, fake_plugin_data):
         project = tmp_path / "my-project"
         project.mkdir()
-        config_dir = tmp_path / "hindsight-config"
+        config_dir = tmp_path / "contextbase-config"
         config_file = config_dir / "cursor.json"
 
         with (
-            patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data),
-            patch("hindsight_cursor.cli._USER_CONFIG_DIR", config_dir),
-            patch("hindsight_cursor.cli._USER_CONFIG_FILE", config_file),
+            patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data),
+            patch("contextbase_cursor.cli._USER_CONFIG_DIR", config_dir),
+            patch("contextbase_cursor.cli._USER_CONFIG_FILE", config_file),
         ):
             cmd_init(
                 _Args(
@@ -115,22 +115,22 @@ class TestInit:
 
         assert config_file.exists()
         cfg = json.loads(config_file.read_text())
-        assert cfg["hindsightApiUrl"] == "https://api.hindsight.vectorize.io"
-        assert cfg["hindsightApiToken"] == "tok_123"
+        assert cfg["contextbaseApiUrl"] == ""
+        assert cfg["contextbaseApiToken"] == "tok_123"
         assert cfg["bankId"] == "my-bank"
 
     def test_skips_config_if_exists(self, tmp_path, fake_plugin_data, capsys):
         project = tmp_path / "my-project"
         project.mkdir()
-        config_dir = tmp_path / "hindsight-config"
+        config_dir = tmp_path / "contextbase-config"
         config_file = config_dir / "cursor.json"
         config_dir.mkdir()
         config_file.write_text('{"bankId": "existing"}')
 
         with (
-            patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data),
-            patch("hindsight_cursor.cli._USER_CONFIG_DIR", config_dir),
-            patch("hindsight_cursor.cli._USER_CONFIG_FILE", config_file),
+            patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data),
+            patch("contextbase_cursor.cli._USER_CONFIG_DIR", config_dir),
+            patch("contextbase_cursor.cli._USER_CONFIG_FILE", config_file),
         ):
             cmd_init(
                 _Args(
@@ -151,16 +151,16 @@ class TestInit:
     def test_defaults_to_cwd(self, tmp_path, fake_plugin_data, monkeypatch):
         monkeypatch.chdir(tmp_path)
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(_Args(project=".", force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False))
 
-        assert (tmp_path / ".cursor-plugin" / "hindsight-memory" / "settings.json").exists()
+        assert (tmp_path / ".cursor-plugin" / "contextbase-memory" / "settings.json").exists()
 
     def test_creates_mcp_config(self, tmp_path, fake_plugin_data):
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(
                     project=str(project),
@@ -175,15 +175,15 @@ class TestInit:
         mcp_file = project / ".cursor" / "mcp.json"
         assert mcp_file.exists()
         mcp = json.loads(mcp_file.read_text())
-        assert "hindsight" in mcp["mcpServers"]
-        assert mcp["mcpServers"]["hindsight"]["url"] == "https://api.hindsight.vectorize.io/mcp/my-bank/"
-        assert mcp["mcpServers"]["hindsight"]["headers"]["Authorization"] == "Bearer tok_123"
+        assert "contextbase" in mcp["mcpServers"]
+        assert mcp["mcpServers"]["contextbase"]["url"] == "https://api.hindsight.vectorize.io/mcp/my-bank/"
+        assert mcp["mcpServers"]["contextbase"]["headers"]["Authorization"] == "Bearer tok_123"
 
     def test_skips_mcp_without_api_url(self, tmp_path, fake_plugin_data):
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
@@ -195,7 +195,7 @@ class TestInit:
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(
                     project=str(project),
@@ -217,7 +217,7 @@ class TestInit:
         mcp_dir.mkdir()
         (mcp_dir / "mcp.json").write_text(json.dumps({"mcpServers": {"other-server": {"url": "http://other"}}}))
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(
                     project=str(project),
@@ -231,19 +231,19 @@ class TestInit:
 
         mcp = json.loads((mcp_dir / "mcp.json").read_text())
         assert "other-server" in mcp["mcpServers"]
-        assert "hindsight" in mcp["mcpServers"]
+        assert "contextbase" in mcp["mcpServers"]
 
     def test_copies_rules_file(self, tmp_path, fake_plugin_data):
         """session_start imports lib.rules_file — init must ship it (#3864)."""
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
 
-        assert (project / ".cursor-plugin" / "hindsight-memory" / "scripts" / "lib" / "rules_file.py").exists()
+        assert (project / ".cursor-plugin" / "contextbase-memory" / "scripts" / "lib" / "rules_file.py").exists()
 
     def test_plugin_files_lists_rules_file(self):
         assert "scripts/lib/rules_file.py" in _PLUGIN_FILES
@@ -252,7 +252,7 @@ class TestInit:
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
@@ -267,7 +267,7 @@ class TestInit:
         stop_cmd = hooks["hooks"]["stop"][0]["command"]
         assert "session_start.py" in session_cmd
         assert "retain.py" in stop_cmd
-        assert ".cursor-plugin/hindsight-memory" in session_cmd
+        assert ".cursor-plugin/contextbase-memory" in session_cmd
         assert "${CURSOR_PLUGIN_ROOT}" not in session_cmd
 
     def test_merges_with_existing_hooks_json(self, tmp_path, fake_plugin_data):
@@ -287,7 +287,7 @@ class TestInit:
             )
         )
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=False)
             )
@@ -296,7 +296,7 @@ class TestInit:
         session = hooks["hooks"]["sessionStart"]
         stop = hooks["hooks"]["stop"]
         assert any("echo other-start" in d.get("command", "") for d in session)
-        assert any("hindsight-memory" in d.get("command", "") for d in session)
+        assert any("contextbase-memory" in d.get("command", "") for d in session)
         assert any("echo other-stop" in d.get("command", "") for d in stop)
         assert any("retain.py" in d.get("command", "") for d in stop)
 
@@ -304,7 +304,7 @@ class TestInit:
         project = tmp_path / "my-project"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=True)
             )
@@ -320,7 +320,7 @@ class TestInit:
 class TestUninstall:
     def test_removes_plugin(self, tmp_path, fake_plugin_data):
         project = tmp_path / "my-project"
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         dest.mkdir(parents=True)
         (dest / "something.txt").write_text("x")
 
@@ -338,7 +338,7 @@ class TestUninstall:
 
     def test_cleans_up_mcp_config(self, tmp_path):
         project = tmp_path / "my-project"
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         dest.mkdir(parents=True)
         (dest / "x.txt").write_text("x")
 
@@ -348,7 +348,7 @@ class TestUninstall:
             json.dumps(
                 {
                     "mcpServers": {
-                        "hindsight": {"url": "http://localhost:8888/mcp/cursor/"},
+                        "contextbase": {"url": "http://localhost:8888/mcp/cursor/"},
                         "other": {"url": "http://other"},
                     }
                 }
@@ -358,12 +358,12 @@ class TestUninstall:
         cmd_uninstall(_Args(project=str(project)))
 
         mcp = json.loads((mcp_dir / "mcp.json").read_text())
-        assert "hindsight" not in mcp["mcpServers"]
+        assert "contextbase" not in mcp["mcpServers"]
         assert "other" in mcp["mcpServers"]
 
     def test_cleans_up_hooks_json(self, tmp_path):
         project = tmp_path / "my-project"
-        dest = project / ".cursor-plugin" / "hindsight-memory"
+        dest = project / ".cursor-plugin" / "contextbase-memory"
         dest.mkdir(parents=True)
         (dest / "x.txt").write_text("x")
 
@@ -376,10 +376,10 @@ class TestUninstall:
                     "hooks": {
                         "sessionStart": [
                             {"command": "echo other"},
-                            {"command": "python3 .cursor-plugin/hindsight-memory/scripts/session_start.py"},
+                            {"command": "python3 .cursor-plugin/contextbase-memory/scripts/session_start.py"},
                         ],
                         "stop": [
-                            {"command": "python3 .cursor-plugin/hindsight-memory/scripts/retain.py"},
+                            {"command": "python3 .cursor-plugin/contextbase-memory/scripts/retain.py"},
                         ],
                     },
                 }
@@ -400,7 +400,7 @@ class TestSessionEndHook:
         project = tmp_path / "proj"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=True)
             )
@@ -415,7 +415,7 @@ class TestSessionEndHook:
         project = tmp_path / "proj"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=True)
             )
@@ -428,15 +428,15 @@ class TestHookInterpreter:
     """Windows has no `python3` on PATH -- a hardcoded one is a silent no-op."""
 
     def test_posix_uses_python3(self):
-        with patch("hindsight_cursor.cli.sys.platform", "darwin"):
+        with patch("contextbase_cursor.cli.sys.platform", "darwin"):
             assert _hook_interpreter() == "python3"
 
     def test_windows_uses_python(self):
-        with patch("hindsight_cursor.cli.sys.platform", "win32"):
+        with patch("contextbase_cursor.cli.sys.platform", "win32"):
             assert _hook_interpreter() == "python"
 
     def test_commands_use_the_platform_interpreter(self):
-        with patch("hindsight_cursor.cli.sys.platform", "win32"):
+        with patch("contextbase_cursor.cli.sys.platform", "win32"):
             hooks = _project_hooks_block()["hooks"]
         for definitions in hooks.values():
             for definition in definitions:
@@ -451,7 +451,7 @@ class TestIncompletePayload:
         project = tmp_path / "proj"
         project.mkdir()
 
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             with pytest.raises(SystemExit) as exc:
                 cmd_init(
                     _Args(
@@ -469,7 +469,7 @@ class TestSessionRulesCleanup:
     """sessionStart writes an alwaysApply rules file -- uninstall must remove it."""
 
     def _install(self, project, fake_plugin_data):
-        with patch("hindsight_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
+        with patch("contextbase_cursor.cli._plugin_data_dir", return_value=fake_plugin_data):
             cmd_init(
                 _Args(project=str(project), force=False, api_url=None, api_token=None, bank_id="cursor", no_mcp=True)
             )
@@ -479,13 +479,13 @@ class TestSessionRulesCleanup:
         project.mkdir()
         self._install(project, fake_plugin_data)
 
-        rules = project / ".cursor" / "rules" / "hindsight-session.mdc"
+        rules = project / ".cursor" / "rules" / "contextbase-session.mdc"
         rules.parent.mkdir(parents=True, exist_ok=True)
         rules.write_text("---\nalwaysApply: true\n---\nold memories\n")
         (project / ".gitignore").write_text(
             "node_modules/\n\n"
-            "# Added by hindsight-cursor plugin — session rules are regenerated each session.\n"
-            "/.cursor/rules/hindsight-session.mdc\n"
+            "# Added by contextbase-cursor plugin — session rules are regenerated each session.\n"
+            "/.cursor/rules/contextbase-session.mdc\n"
         )
 
         cmd_uninstall(_Args(project=str(project)))

@@ -86,7 +86,7 @@ def test_relocation_replaces_owned_hooks_and_preserves_mixed_groups(
     assert second["hooks"]["Stop"][1] == {"matcher": "custom", "hooks": [other_hook]}
     for event in ("UserPromptSubmit", "Stop", "SessionStart", "SessionEnd"):
         commands = [hook["command"] for group in second["hooks"][event] for hook in group["hooks"]]
-        assert sum("AGENTSTRATUM_HOOK_OWNER=agentstratum-memory " in c for c in commands) == 1
+        assert sum("CONTEXTBASE_HOOK_OWNER=contextbase-memory " in c for c in commands) == 1
         assert all(str(first_root) not in c for c in commands)
     subprocess.run(
         [*command, "--plugin-root", str(second_root)],

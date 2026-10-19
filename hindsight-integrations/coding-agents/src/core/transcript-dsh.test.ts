@@ -58,9 +58,9 @@ describe("readDshEvents", () => {
       {
         type: "user/message",
         time: at("2026-08-14T10:00:00Z"),
-        data: userMessage("<agentstratum_memory>recalled</agentstratum_memory>", {
+        data: userMessage("<contextbase_memory>recalled</contextbase_memory>", {
           kind: "plugin",
-          plugin: "agentstratum",
+          plugin: "contextbase",
           form: "recall",
         }),
       },
@@ -76,8 +76,8 @@ describe("readDshEvents", () => {
       {
         type: "user/message",
         time: at("2026-08-14T10:00:01Z"),
-        data: userMessage("<agentstratum_memory>recalled</agentstratum_memory>", {
-          kind: "plugin:agentstratum",
+        data: userMessage("<contextbase_memory>recalled</contextbase_memory>", {
+          kind: "plugin:contextbase",
           form: "recall",
         }),
       },

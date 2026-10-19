@@ -1,9 +1,9 @@
-"""Unit tests for HindsightReflectTool."""
+"""Unit tests for ContextBaseReflectTool."""
 
 from unittest.mock import MagicMock, patch
 
-from hindsight_crewai import HindsightReflectTool, configure, reset_config
-from hindsight_crewai.errors import HindsightError
+from contextbase_crewai import ContextBaseReflectTool, configure, reset_config
+from contextbase_crewai.errors import HindsightError
 
 import pytest
 
@@ -16,14 +16,14 @@ def _passthrough(fn, *args, **kwargs):
 class TestReflectTool:
     def setup_method(self):
         reset_config()
-        configure(hindsight_api_url="http://localhost:8888")
+        configure(contextbase_api_url="http://localhost:8888")
 
     def teardown_method(self):
         reset_config()
 
-    @patch("hindsight_crewai.tools.call_sync", side_effect=_passthrough)
+    @patch("contextbase_crewai.tools.call_sync", side_effect=_passthrough)
     def test_reflect_returns_text(self, _mock_cs):
-        tool = HindsightReflectTool(bank_id="test-bank")
+        tool = ContextBaseReflectTool(bank_id="test-bank")
         mock_client = MagicMock()
         mock_result = MagicMock()
         mock_result.text = "The user is a Python developer who..."
@@ -35,9 +35,9 @@ class TestReflectTool:
         assert result == "The user is a Python developer who..."
         mock_client.reflect.assert_called_once()
 
-    @patch("hindsight_crewai.tools.call_sync", side_effect=_passthrough)
+    @patch("contextbase_crewai.tools.call_sync", side_effect=_passthrough)
     def test_reflect_empty_returns_fallback(self, _mock_cs):
-        tool = HindsightReflectTool(bank_id="test-bank")
+        tool = ContextBaseReflectTool(bank_id="test-bank")
         mock_client = MagicMock()
         mock_result = MagicMock()
         mock_result.text = ""
@@ -47,9 +47,9 @@ class TestReflectTool:
         result = tool._run("anything")
         assert "No relevant memories" in result
 
-    @patch("hindsight_crewai.tools.call_sync", side_effect=_passthrough)
+    @patch("contextbase_crewai.tools.call_sync", side_effect=_passthrough)
     def test_reflect_passes_context(self, _mock_cs):
-        tool = HindsightReflectTool(
+        tool = ContextBaseReflectTool(
             bank_id="test-bank",
             reflect_context="Agent is a delivery robot.",
         )
@@ -66,9 +66,9 @@ class TestReflectTool:
         assert call_kwargs["bank_id"] == "test-bank"
         assert call_kwargs["budget"] == "mid"
 
-    @patch("hindsight_crewai.tools.call_sync", side_effect=_passthrough)
+    @patch("contextbase_crewai.tools.call_sync", side_effect=_passthrough)
     def test_reflect_passes_budget(self, _mock_cs):
-        tool = HindsightReflectTool(bank_id="test-bank", budget="high")
+        tool = ContextBaseReflectTool(bank_id="test-bank", budget="high")
         mock_client = MagicMock()
         mock_result = MagicMock()
         mock_result.text = "answer"
@@ -80,9 +80,9 @@ class TestReflectTool:
         call_kwargs = mock_client.reflect.call_args[1]
         assert call_kwargs["budget"] == "high"
 
-    @patch("hindsight_crewai.tools.call_sync", side_effect=_passthrough)
-    def test_reflect_raises_hindsight_error_on_failure(self, _mock_cs):
-        tool = HindsightReflectTool(bank_id="test-bank")
+    @patch("contextbase_crewai.tools.call_sync", side_effect=_passthrough)
+    def test_reflect_raises_contextbase_error_on_failure(self, _mock_cs):
+        tool = ContextBaseReflectTool(bank_id="test-bank")
         mock_client = MagicMock()
         mock_client.reflect.side_effect = RuntimeError("timeout")
         tool._local.client = mock_client
@@ -91,7 +91,7 @@ class TestReflectTool:
             tool._run("query")
 
     def test_tool_metadata(self):
-        tool = HindsightReflectTool(bank_id="test-bank")
-        assert tool.name == "hindsight_reflect"
+        tool = ContextBaseReflectTool(bank_id="test-bank")
+        assert tool.name == "contextbase_reflect"
         assert "reflect" in tool.description.lower()
         assert "memories" in tool.description.lower()

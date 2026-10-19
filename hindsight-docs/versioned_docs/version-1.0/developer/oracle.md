@@ -1,18 +1,18 @@
 # Oracle Database
 
-Hindsight uses PostgreSQL as its default storage backend, but it also runs on
+ContextBase uses PostgreSQL as its default storage backend, but it also runs on
 **Oracle Database 23ai** for organizations that standardize on Oracle
 infrastructure. All memory operations — retain, recall, and reflect — work the
 same way on Oracle; the backend is selected with a single environment variable.
 
-This guide covers everything needed to run Hindsight against Oracle: the
+This guide covers everything needed to run ContextBase against Oracle: the
 prerequisites, the driver, a local quick start, provisioning a production
 database, running migrations, and the handful of behavioural differences from
 PostgreSQL.
 
 :::info When to use Oracle
 Oracle is the right choice when your organization already runs Oracle and needs
-Hindsight to live inside that footprint. For everything else, the default
+ContextBase to live inside that footprint. For everything else, the default
 PostgreSQL backend is simpler to operate — see [Storage](./storage) for the
 rationale. Oracle and PostgreSQL are configured independently; you pick one per
 deployment.
@@ -29,7 +29,7 @@ deployment.
 
 :::warning The schema must use an ASSM tablespace
 Oracle's `SYSTEM` tablespace uses *manual* segment space management (MSSM),
-which **does not support `VECTOR` columns**. Create the Hindsight user in a
+which **does not support `VECTOR` columns**. Create the ContextBase user in a
 tablespace with **Automatic Segment Space Management (ASSM)** — otherwise
 migrations fail when they create embedding columns. The provisioning SQL below
 does this for you.
@@ -38,7 +38,7 @@ does this for you.
 ## Install the driver
 
 The Oracle driver is an optional extra — it is not bundled with the default
-packages. Install it alongside Hindsight:
+packages. Install it alongside ContextBase:
 
 ```bash
 # With the packaged extra
@@ -48,23 +48,23 @@ pip install "hindsight-api-slim[oracle]"
 pip install hindsight-api oracledb
 ```
 
-If the driver is missing at startup, Hindsight fails with:
+If the driver is missing at startup, ContextBase fails with:
 `python-oracledb is required for Oracle backend. Install it with: pip install oracledb`.
 
 ## Quick start (local Oracle)
 
-The fastest way to try Hindsight on Oracle is the bundled helper script, which
+The fastest way to try ContextBase on Oracle is the bundled helper script, which
 starts a local **Oracle Database Free 23ai** container, provisions the test
 user with the correct tablespace and grants, and prints a ready-to-use
 connection URL:
 
 ```bash
-# Start Oracle Free in Docker and bootstrap the hindsight_test user
+# Start Oracle Free in Docker and bootstrap the contextbase_test user
 ./scripts/dev/start-oracle.sh
 
 # ...prints:
-#   export HINDSIGHT_API_DATABASE_BACKEND=oracle
-#   export HINDSIGHT_API_DATABASE_URL='oracle+oracledb://hindsight_test:hindsight_test@localhost:1521/FREEPDB1'
+#   export CONTEXTBASE_API_DATABASE_BACKEND=oracle
+#   export CONTEXTBASE_API_DATABASE_URL='oracle+oracledb://contextbase_test:contextbase_test@localhost:1521/FREEPDB1'
 
 # Stop and remove the container when done
 ./scripts/dev/stop-oracle.sh
@@ -78,39 +78,39 @@ Once the script prints the connection URL, export the variables it shows, and
 **also set the schema** to the Oracle user it created:
 
 ```bash
-export HINDSIGHT_API_DATABASE_SCHEMA=HINDSIGHT_TEST
+export CONTEXTBASE_API_DATABASE_SCHEMA=CONTEXTBASE_TEST
 ```
 
 Then run migrations and start the API (see the steps below). Setting the schema
-is required on Oracle — see [step 3](#3-configure-hindsight). This is the same
-setup Hindsight's CI uses to test the Oracle backend.
+is required on Oracle — see [step 3](#3-configure-contextbase). This is the same
+setup ContextBase's CI uses to test the Oracle backend.
 
 ## Production setup
 
 ### 1. Provision the schema user
 
 Connect to your pluggable database as a privileged user (for example `SYSTEM`)
-and create a dedicated tablespace and user for Hindsight. The tablespace **must**
+and create a dedicated tablespace and user for ContextBase. The tablespace **must**
 use ASSM so `VECTOR` columns are supported:
 
 ```sql
 -- ASSM tablespace (required for VECTOR columns). Size to your data volume.
-CREATE BIGFILE TABLESPACE hindsight_ts
-    DATAFILE 'hindsight_ts.dbf' SIZE 2G AUTOEXTEND ON NEXT 500M MAXSIZE UNLIMITED
+CREATE BIGFILE TABLESPACE contextbase_ts
+    DATAFILE 'contextbase_ts.dbf' SIZE 2G AUTOEXTEND ON NEXT 500M MAXSIZE UNLIMITED
     EXTENT MANAGEMENT LOCAL
     SEGMENT SPACE MANAGEMENT AUTO;
 
 -- Dedicated schema user
-CREATE USER hindsight IDENTIFIED BY "<strong-password>"
-    DEFAULT TABLESPACE hindsight_ts
+CREATE USER contextbase IDENTIFIED BY "<strong-password>"
+    DEFAULT TABLESPACE contextbase_ts
     TEMPORARY TABLESPACE temp
-    QUOTA UNLIMITED ON hindsight_ts;
+    QUOTA UNLIMITED ON contextbase_ts;
 
--- Object privileges Hindsight's migrations need
-GRANT CONNECT, RESOURCE, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW, CREATE PROCEDURE TO hindsight;
+-- Object privileges ContextBase's migrations need
+GRANT CONNECT, RESOURCE, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW, CREATE PROCEDURE TO contextbase;
 
 -- Oracle Text (full-text search indexes)
-GRANT CTXAPP TO hindsight;
+GRANT CTXAPP TO contextbase;
 ```
 
 :::note Least privilege
@@ -124,7 +124,7 @@ the requirements are unchanged: an **ASSM** default tablespace (needed for
 
 ### 2. Build the connection URL
 
-Hindsight uses SQLAlchemy-style URLs. The Oracle form is:
+ContextBase uses SQLAlchemy-style URLs. The Oracle form is:
 
 ```
 oracle+oracledb://USER:PASSWORD@HOST:PORT/SERVICE_NAME
@@ -132,14 +132,14 @@ oracle+oracledb://USER:PASSWORD@HOST:PORT/SERVICE_NAME
 
 | Part | Example | Notes |
 |------|---------|-------|
-| `USER` / `PASSWORD` | `hindsight` / `s3cret` | The schema user from step 1. URL-encode reserved characters (`@`, `/`, `:`) in the password. |
+| `USER` / `PASSWORD` | `contextbase` / `s3cret` | The schema user from step 1. URL-encode reserved characters (`@`, `/`, `:`) in the password. |
 | `HOST:PORT` | `db.internal:1521` | The listener host and port (Oracle default is `1521`). |
 | `SERVICE_NAME` | `FREEPDB1` | The **service name** of your pluggable database (not the SID). `FREEPDB1` for Oracle Free. |
 
 Example:
 
 ```
-oracle+oracledb://hindsight:s3cret@db.internal:1521/ORCLPDB1
+oracle+oracledb://contextbase:s3cret@db.internal:1521/ORCLPDB1
 ```
 
 #### Full connect descriptors and TNS aliases
@@ -163,35 +163,35 @@ Autonomous Database descriptor
 becomes
 
 ```bash
-export HINDSIGHT_API_DATABASE_URL="oracle+oracledb://hindsight:s3cret@/?dsn=$(python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.stdin.read().strip()))' <<< '(description=(retry_count=20)(address=(protocol=tcps)(port=1522)(host=adb.example.com))(connect_data=(service_name=abc_low))(security=(ssl_server_dn_match=yes)))')"
+export CONTEXTBASE_API_DATABASE_URL="oracle+oracledb://contextbase:s3cret@/?dsn=$(python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.stdin.read().strip()))' <<< '(description=(retry_count=20)(address=(protocol=tcps)(port=1522)(host=adb.example.com))(connect_data=(service_name=abc_low))(security=(ssl_server_dn_match=yes)))')"
 ```
 
 :::warning Wallet-based mTLS is still not supported
-Hindsight passes no wallet directory or wallet password to the driver, so
+ContextBase passes no wallet directory or wallet password to the driver, so
 connections that require a wallet (mTLS) do not work. TCPS with
 `ssl_server_dn_match` does. Otherwise secure the connection at the network layer
 (private networking, VPN, or a TLS-terminating proxy).
 :::
 
-### 3. Configure Hindsight
+### 3. Configure ContextBase
 
-Point Hindsight at Oracle with two environment variables:
+Point ContextBase at Oracle with two environment variables:
 
 ```bash
-export HINDSIGHT_API_DATABASE_BACKEND=oracle
-export HINDSIGHT_API_DATABASE_URL='oracle+oracledb://hindsight:s3cret@db.internal:1521/ORCLPDB1'
-export HINDSIGHT_API_DATABASE_SCHEMA=HINDSIGHT   # the Oracle user from step 1
+export CONTEXTBASE_API_DATABASE_BACKEND=oracle
+export CONTEXTBASE_API_DATABASE_URL='oracle+oracledb://contextbase:s3cret@db.internal:1521/ORCLPDB1'
+export CONTEXTBASE_API_DATABASE_SCHEMA=CONTEXTBASE   # the Oracle user from step 1
 ```
 
-`HINDSIGHT_API_DATABASE_BACKEND` defaults to `postgresql`; set it to `oracle` to
+`CONTEXTBASE_API_DATABASE_BACKEND` defaults to `postgresql`; set it to `oracle` to
 select the Oracle backend.
 
 :::warning Set `DATABASE_SCHEMA` to your Oracle user
-`HINDSIGHT_API_DATABASE_SCHEMA` defaults to `public` — a PostgreSQL concept. On
+`CONTEXTBASE_API_DATABASE_SCHEMA` defaults to `public` — a PostgreSQL concept. On
 Oracle a schema **is a user**, there is no `public` schema, and leaving the
 default makes migrations fail with `ORA-01435: user does not exist`. Set it to
 the schema user you created in step 1, spelled exactly as Oracle stores it —
-**uppercase** (e.g. `HINDSIGHT`) unless you created the user with a quoted
+**uppercase** (e.g. `CONTEXTBASE`) unless you created the user with a quoted
 lower-case name.
 :::
 
@@ -200,13 +200,13 @@ database variables.
 
 ### 4. Run migrations
 
-Hindsight runs the same schema migrations on Oracle as on PostgreSQL. By default
+ContextBase runs the same schema migrations on Oracle as on PostgreSQL. By default
 the API applies them automatically on startup
-(`HINDSIGHT_API_RUN_MIGRATIONS_ON_STARTUP=true`). To run them explicitly — for
+(`CONTEXTBASE_API_RUN_MIGRATIONS_ON_STARTUP=true`). To run them explicitly — for
 example in a controlled deploy step — use:
 
 ```bash
-hindsight-admin run-db-migration
+contextbase-admin run-db-migration
 ```
 
 This routes through the dialect-aware migration runner and creates the Oracle
@@ -230,7 +230,7 @@ resize the columns.
 hindsight-api
 ```
 
-On startup Hindsight logs the resolved database (with credentials masked); it
+On startup ContextBase logs the resolved database (with credentials masked); it
 should show your Oracle host and confirm the Oracle backend is active.
 
 ## Configuration reference
@@ -240,17 +240,17 @@ Oracle-relevant settings, all documented in full on the
 
 | Variable | Purpose |
 |----------|---------|
-| `HINDSIGHT_API_DATABASE_BACKEND` | `postgresql` (default) or `oracle`. |
-| `HINDSIGHT_API_DATABASE_URL` | `oracle+oracledb://…` connection URL. |
-| `HINDSIGHT_API_DATABASE_SCHEMA` | Schema/user for the tables. On Oracle set this to your schema user (uppercase); the `public` default fails. |
-| `HINDSIGHT_API_RUN_MIGRATIONS_ON_STARTUP` | Auto-apply migrations when the API boots (default `true`). |
+| `CONTEXTBASE_API_DATABASE_BACKEND` | `postgresql` (default) or `oracle`. |
+| `CONTEXTBASE_API_DATABASE_URL` | `oracle+oracledb://…` connection URL. |
+| `CONTEXTBASE_API_DATABASE_SCHEMA` | Schema/user for the tables. On Oracle set this to your schema user (uppercase); the `public` default fails. |
+| `CONTEXTBASE_API_RUN_MIGRATIONS_ON_STARTUP` | Auto-apply migrations when the API boots (default `true`). |
 
 ## Limitations vs PostgreSQL
 
 Memory operations behave identically on Oracle, but a few operational and
 internal details differ:
 
-- **Admin CLI data commands are PostgreSQL-only.** `hindsight-admin` backup,
+- **Admin CLI data commands are PostgreSQL-only.** `contextbase-admin` backup,
   restore, bank export/import, and worker-status use asyncpg binary `COPY` and
   `TRUNCATE`, which are PostgreSQL-specific and not available on Oracle.
   Schema migrations (`run-db-migration`) *are* supported on Oracle.
@@ -259,7 +259,7 @@ internal details differ:
   instance (use the [quick-start script](#quick-start-local-oracle) locally).
 - **Consolidation reconciliation is skipped.** The similarity-based
   near-duplicate reconciliation pass in consolidation
-  (`HINDSIGHT_API_CONSOLIDATION_DEDUP_THRESHOLD`) is a PostgreSQL-only path;
+  (`CONTEXTBASE_API_CONSOLIDATION_DEDUP_THRESHOLD`) is a PostgreSQL-only path;
   consolidation still runs on Oracle, without that extra reconciliation step.
 - **Entity resolution uses Oracle fuzzy matching.** Fuzzy entity lookup during
   retain uses Oracle's text matching rather than PostgreSQL's `pg_trgm` trigram
@@ -270,12 +270,12 @@ internal details differ:
 | Symptom | Cause / Fix |
 |---------|-------------|
 | `python-oracledb is required for Oracle backend` | The driver isn't installed. Run `pip install oracledb` (or install the `[oracle]` extra). |
-| `ORA-01435: user does not exist` on migration | `HINDSIGHT_API_DATABASE_SCHEMA` is unset (defaults to `public`) or misspelled. Set it to your Oracle schema user, uppercase (e.g. `HINDSIGHT`). |
+| `ORA-01435: user does not exist` on migration | `CONTEXTBASE_API_DATABASE_SCHEMA` is unset (defaults to `public`) or misspelled. Set it to your Oracle schema user, uppercase (e.g. `CONTEXTBASE`). |
 | `ORA-51803: Vector dimension count must match` on retain | The schema was migrated with a different embedding dimension than the running embeddings model. Migrate with the same embeddings config, or re-run `run-db-migration --embedding-dimension <N>`. |
 | Migration errors when creating embedding/`VECTOR` columns | The schema user's default tablespace is not ASSM (often the `SYSTEM` tablespace). Recreate the user in an ASSM tablespace as shown above. |
 | Full-text search errors / missing Oracle Text index | The schema user is missing the `CTXAPP` role. Run `GRANT CTXAPP TO <user>;`. |
 | `ORA-12514` / service not found | The URL uses a SID or wrong service name. Use the pluggable database **service name** (e.g. `FREEPDB1`), not the SID. |
-| Login works manually but fails from Hindsight | A reserved character in the password isn't URL-encoded. Encode `@ / : ?` in the `DATABASE_URL`. |
+| Login works manually but fails from ContextBase | A reserved character in the password isn't URL-encoded. Encode `@ / : ?` in the `DATABASE_URL`. |
 
 ## See also
 

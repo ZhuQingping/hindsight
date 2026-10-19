@@ -1,11 +1,11 @@
 /**
- * Configuration for the Hindsight Zed integration.
+ * Configuration for the ContextBase Zed integration.
  *
- * Settings layer (later wins): built-in defaults -> ~/.hindsight/zed.json ->
+ * Settings layer (later wins): built-in defaults -> ~/.contextbase/zed.json ->
  * environment variables. Resolved into a plain config object.
  *
  * The integration is configuration-only: it wires Zed's MCP `context_servers` to
- * the Hindsight MCP endpoint and writes a recall/retain rule into Zed's global
+ * the ContextBase MCP endpoint and writes a recall/retain rule into Zed's global
  * instructions file. Memory operations happen through the MCP server at runtime,
  * so there is no daemon or direct API client here.
  */
@@ -17,30 +17,30 @@ import { join } from "node:path";
 import { isFile } from "./fsutil.js";
 
 // Cross-integration cloud-default convention.
-export const DEFAULT_HINDSIGHT_API_URL = "https://api.hindsight.vectorize.io";
+export const DEFAULT_CONTEXTBASE_API_URL = "";
 export const DEFAULT_BANK_ID = "zed";
 
-export const USER_CONFIG_FILE = join(homedir(), ".hindsight", "zed.json");
+export const USER_CONFIG_FILE = join(homedir(), ".contextbase", "zed.json");
 
 // user-config file key -> config attribute
 const FILE_KEYS = {
-  hindsightApiUrl: "hindsightApiUrl",
-  hindsightApiToken: "hindsightApiToken",
+  contextbaseApiUrl: "contextbaseApiUrl",
+  contextbaseApiToken: "contextbaseApiToken",
   bankId: "bankId",
 };
 
 // env var -> config attribute
 const ENV_KEYS = {
-  HINDSIGHT_API_URL: "hindsightApiUrl",
-  HINDSIGHT_API_TOKEN: "hindsightApiToken",
-  HINDSIGHT_ZED_BANK_ID: "bankId",
+  CONTEXTBASE_API_URL: "contextbaseApiUrl",
+  CONTEXTBASE_API_TOKEN: "contextbaseApiToken",
+  CONTEXTBASE_ZED_BANK_ID: "bankId",
 };
 
 /** Load and resolve configuration from file then environment. */
 export function loadConfig({ configFile = USER_CONFIG_FILE, env = process.env } = {}) {
   const cfg = {
-    hindsightApiUrl: DEFAULT_HINDSIGHT_API_URL,
-    hindsightApiToken: null,
+    contextbaseApiUrl: DEFAULT_CONTEXTBASE_API_URL,
+    contextbaseApiToken: null,
     bankId: DEFAULT_BANK_ID,
   };
 
@@ -64,7 +64,7 @@ export function loadConfig({ configFile = USER_CONFIG_FILE, env = process.env } 
     if (value) cfg[attr] = String(value);
   }
 
-  if (!cfg.hindsightApiUrl) cfg.hindsightApiUrl = DEFAULT_HINDSIGHT_API_URL;
+  if (!cfg.contextbaseApiUrl) cfg.contextbaseApiUrl = DEFAULT_CONTEXTBASE_API_URL;
   if (!cfg.bankId) cfg.bankId = DEFAULT_BANK_ID;
 
   return cfg;

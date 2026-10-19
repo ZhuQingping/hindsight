@@ -68,7 +68,7 @@ describe("readCodexTranscript", () => {
       file,
       userEvent(
         { type: "local_image", path: "/tmp/x.png" },
-        text("Explain the image. <agentstratum_memories>leak</agentstratum_memories>")
+        text("Explain the image. <contextbase_memories>leak</contextbase_memories>")
       )
     );
     expect(readCodexTranscript(file)).toEqual([{ role: "user", content: "Explain the image." }]);
@@ -90,7 +90,7 @@ describe("readCodexTranscript", () => {
         content: [
           {
             type: "input_text",
-            text: "<agentstratum_memories>\nsecret recalled fact\n</agentstratum_memories>",
+            text: "<contextbase_memories>\nsecret recalled fact\n</contextbase_memories>",
           },
         ],
       }),
@@ -165,7 +165,7 @@ describe("readCodexTranscript", () => {
         content: [
           {
             type: "input_text",
-            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+            text: "<contextbase_memories>\nleak\n</contextbase_memories>\nWhy retry?",
           },
         ],
       })
@@ -318,7 +318,7 @@ describe("readCodexTranscript", () => {
           "2026-01-02T10:00:01Z",
           execCall(
             "call_1",
-            'text(await tools.mcp__agentstratum__agentstratum_search_knowledge_pages({query:"retry policy"}));\n' +
+            'text(await tools.mcp__contextbase__contextbase_search_knowledge_pages({query:"retry policy"}));\n' +
               'text(await tools.exec_command({cmd:"git status --short"}));\n'
           )
         ),
@@ -326,8 +326,8 @@ describe("readCodexTranscript", () => {
           "2026-01-02T10:00:02Z",
           toolItem({
             type: "McpToolCall",
-            server: "agentstratum",
-            tool: "agentstratum_search_knowledge_pages",
+            server: "contextbase",
+            tool: "contextbase_search_knowledge_pages",
             arguments: { query: "retry policy" },
             result: { content: [{ type: "text", text: "RESULT BODY" }] },
             status: "completed",
@@ -352,7 +352,7 @@ describe("readCodexTranscript", () => {
           item({
             type: "message",
             role: "assistant",
-            content: [text("From agentstratum memory: retries use backoff.")],
+            content: [text("From contextbase memory: retries use backoff.")],
           })
         ),
         at("2026-01-02T10:00:05Z", execCall("call_2", "text(1 + 1);\n")),
@@ -377,7 +377,7 @@ describe("readCodexTranscript", () => {
         },
         {
           role: "action",
-          content: "mcp__agentstratum__agentstratum_search_knowledge_pages retry policy",
+          content: "mcp__contextbase__contextbase_search_knowledge_pages retry policy",
           timestamp: "2026-01-02T10:00:02Z",
         },
         {
@@ -388,22 +388,22 @@ describe("readCodexTranscript", () => {
         { role: "action", content: "sleep timer" },
         {
           role: "assistant",
-          content: "From agentstratum memory: retries use backoff.",
+          content: "From contextbase memory: retries use backoff.",
           timestamp: "2026-01-02T10:00:04Z",
         },
         { role: "action", content: "exec_command npm test", timestamp: "2026-01-02T10:00:06Z" },
       ]);
     });
 
-    it("counts the Codex agentstratum_* MCP call in summarizeTurns and recordUsage", () => {
+    it("counts the Codex contextbase_* MCP call in summarizeTurns and recordUsage", () => {
       writeFileSync(file, rollout());
       const turns = readCodexTranscript(file);
       expect(summarizeTurns(turns)).toEqual([
-        { turn: 1, calls: ["agentstratum_search_knowledge_pages"], credited: true },
+        { turn: 1, calls: ["contextbase_search_knowledge_pages"], credited: true },
       ]);
 
       const usageFile = join(root, "usage.jsonl");
-      vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
+      vi.stubEnv("CONTEXTBASE_USAGE_FILE", usageFile);
       recordUsage({
         harness: "codex",
         sessionId: "s",
@@ -415,7 +415,7 @@ describe("readCodexTranscript", () => {
       expect(JSON.parse(readFileSync(usageFile, "utf8"))).toMatchObject({
         harness: "codex",
         turn: 1,
-        calls: ["agentstratum_search_knowledge_pages"],
+        calls: ["contextbase_search_knowledge_pages"],
         credited: true,
       });
     });
@@ -426,14 +426,14 @@ describe("readCodexTranscript", () => {
         [
           toolItem({
             type: "McpToolCall",
-            tool: "agentstratum_reflect",
+            tool: "contextbase_reflect",
             arguments: '{"query":"why backoff"}',
           }),
           toolItem({ type: "McpToolCall", server: "docs", tool: "fetch", arguments: "not json" }),
         ].join("\n")
       );
       expect(readCodexTranscript(file)).toEqual([
-        { role: "action", content: "agentstratum_reflect why backoff" },
+        { role: "action", content: "contextbase_reflect why backoff" },
         { role: "action", content: "mcp__docs__fetch" },
       ]);
     });

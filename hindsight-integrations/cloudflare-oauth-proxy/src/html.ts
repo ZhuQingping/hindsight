@@ -16,7 +16,7 @@ export function loginPage(stateKey: string, error?: string): string {
   return `<!DOCTYPE html>
 <html>
 <head>
-  <title>Hindsight MCP</title>
+  <title>ContextBase MCP</title>
   <style>
     body{font-family:system-ui;background:#0a0a0a;color:#e0e0e0;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
     .card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:2rem;width:320px}
@@ -30,7 +30,7 @@ export function loginPage(stateKey: string, error?: string): string {
 </head>
 <body>
   <div class="card">
-    <h2>Hindsight MCP</h2>
+    <h2>ContextBase MCP</h2>
     <p>Authorize Claude to access your memory.</p>
     ${errorBlock}
     <form method="POST" action="/authorize">

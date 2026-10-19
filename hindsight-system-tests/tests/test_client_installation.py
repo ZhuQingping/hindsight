@@ -17,7 +17,7 @@ from pathlib import Path
 from threading import Thread
 
 ROOT = Path(__file__).resolve().parents[2]
-INSTALLER = ROOT / "scripts" / "install-agentstratum.sh"
+INSTALLER = ROOT / "scripts" / "install-contextbase.sh"
 VERSION = "1.2.3"
 
 
@@ -29,7 +29,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 class ClientInstallationStory(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.fixture = tempfile.TemporaryDirectory(prefix="agentstratum-download-")
+        cls.fixture = tempfile.TemporaryDirectory(prefix="contextbase-download-")
         cls.origin = Path(cls.fixture.name)
         cls.cert = cls.origin / "cert.pem"
         key = cls.origin / "key.pem"
@@ -71,7 +71,7 @@ class ClientInstallationStory(unittest.TestCase):
         cls.fixture.cleanup()
 
     def setUp(self) -> None:
-        self.temporary = tempfile.TemporaryDirectory(prefix="agentstratum-install-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="contextbase-install-")
         self.addCleanup(self.temporary.cleanup)
         self.home = Path(self.temporary.name)
         self.bin_dir = self.home / "directory with spaces" / "bin"
@@ -80,7 +80,7 @@ class ClientInstallationStory(unittest.TestCase):
         uname = tools / "uname"
         uname.write_text('#!/bin/sh\ncase "$1" in -s) echo "$FIXTURE_OS";; -m) echo "$FIXTURE_ARCH";; esac\n')
         uname.chmod(0o755)
-        self.environment = {k: v for k, v in os.environ.items() if not k.startswith("AGENTSTRATUM_")}
+        self.environment = {k: v for k, v in os.environ.items() if not k.startswith("CONTEXTBASE_")}
         self.environment.update(
             HOME=str(self.home),
             PATH=f"{tools}:{os.environ['PATH']}",
@@ -91,12 +91,12 @@ class ClientInstallationStory(unittest.TestCase):
             FIXTURE_ARCH="x86_64",
         )
         for platform in ["linux-amd64", "linux-arm64", "darwin-amd64", "darwin-arm64"]:
-            directory = self.origin / "downloads" / "agentstratum-cli" / VERSION / platform
+            directory = self.origin / "downloads" / "contextbase-cli" / VERSION / platform
             directory.mkdir(parents=True, exist_ok=True)
-            binary = directory / "agentstratum"
+            binary = directory / "contextbase"
             binary.write_text(f"#!/bin/sh\nprintf 'fixture-{platform}\\n'\n")
             digest = hashlib.sha256(binary.read_bytes()).hexdigest()
-            (directory / "SHA256SUMS").write_text(f"{digest}  agentstratum\n")
+            (directory / "SHA256SUMS").write_text(f"{digest}  contextbase\n")
 
     def install(self, *extra: str, base_url: str | None = None) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
@@ -118,7 +118,7 @@ class ClientInstallationStory(unittest.TestCase):
         )
 
     def checksum_file(self) -> Path:
-        return self.origin / "downloads" / "agentstratum-cli" / VERSION / "linux-amd64" / "SHA256SUMS"
+        return self.origin / "downloads" / "contextbase-cli" / VERSION / "linux-amd64" / "SHA256SUMS"
 
     def test_first_install_selects_all_four_platforms(self) -> None:
         for system, arch, platform in [
@@ -131,34 +131,34 @@ class ClientInstallationStory(unittest.TestCase):
                 self.environment.update(FIXTURE_OS=system, FIXTURE_ARCH=arch)
                 result = self.install()
                 self.assertEqual(result.returncode, 0, result.stderr)
-                installed = subprocess.check_output([str(self.bin_dir / "agentstratum")], text=True)
+                installed = subprocess.check_output([str(self.bin_dir / "contextbase")], text=True)
                 self.assertEqual(installed.strip(), f"fixture-{platform}")
-        self.assertFalse((self.home / ".agentstratum").exists())
+        self.assertFalse((self.home / ".contextbase").exists())
 
     def test_hash_failure_preserves_existing_install(self) -> None:
         self.bin_dir.mkdir(parents=True)
-        target = self.bin_dir / "agentstratum"
+        target = self.bin_dir / "contextbase"
         target.write_text("existing CLI")
-        self.checksum_file().write_text(f"{'0' * 64}  agentstratum\n")
+        self.checksum_file().write_text(f"{'0' * 64}  contextbase\n")
         result = self.install()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SHA-256 mismatch", result.stderr)
         self.assertEqual(target.read_text(), "existing CLI")
-        self.assertEqual(list(self.bin_dir.glob(".agentstratum.*")), [])
+        self.assertEqual(list(self.bin_dir.glob(".contextbase.*")), [])
 
     def test_invalid_or_duplicate_checksum_cannot_install(self) -> None:
         valid = self.checksum_file().read_text()
         for content in [
             "",
-            "not-a-digest  agentstratum\n",
+            "not-a-digest  contextbase\n",
             valid + valid,
-            valid.replace("agentstratum", "../other"),
+            valid.replace("contextbase", "../other"),
         ]:
             with self.subTest(content=content):
                 self.checksum_file().write_text(content)
                 result = self.install()
                 self.assertNotEqual(result.returncode, 0)
-                self.assertFalse((self.bin_dir / "agentstratum").exists())
+                self.assertFalse((self.bin_dir / "contextbase").exists())
 
     def test_plain_http_and_embedded_credentials_are_rejected(self) -> None:
         for url in [
@@ -189,9 +189,9 @@ class ClientInstallationStory(unittest.TestCase):
 
     def test_environment_configuration_and_v_prefix(self) -> None:
         self.environment.update(
-            AGENTSTRATUM_DOWNLOAD_BASE_URL=self.base_url + "/",
-            AGENTSTRATUM_VERSION="v" + VERSION,
-            AGENTSTRATUM_BIN_DIR=str(self.bin_dir),
+            CONTEXTBASE_DOWNLOAD_BASE_URL=self.base_url + "/",
+            CONTEXTBASE_VERSION="v" + VERSION,
+            CONTEXTBASE_BIN_DIR=str(self.bin_dir),
         )
         result = subprocess.run(
             ["bash", str(INSTALLER)],
@@ -200,14 +200,14 @@ class ClientInstallationStory(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue((self.bin_dir / "agentstratum").is_file())
+        self.assertTrue((self.bin_dir / "contextbase").is_file())
 
     @unittest.skipUnless(
-        os.environ.get("AGENTSTRATUM_TEST_NPM_TARBALL"),
+        os.environ.get("CONTEXTBASE_TEST_NPM_TARBALL"),
         "provide the built Coding Agents tarball",
     )
     def test_npm_installs_actual_tarball_by_https_url(self) -> None:
-        artifact = Path(os.environ["AGENTSTRATUM_TEST_NPM_TARBALL"]).resolve()
+        artifact = Path(os.environ["CONTEXTBASE_TEST_NPM_TARBALL"]).resolve()
         destination = self.origin / "downloads" / "coding-agents.tgz"
         shutil.copyfile(artifact, destination)
         prefix = self.home / "npm"
@@ -235,7 +235,7 @@ class ClientInstallationStory(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         # Exercise the installed package exactly as the two OpenCode loaders
         # resolve it: v1 follows main, v2 imports the root index.js directly.
-        package_root = prefix / "lib" / "node_modules" / "agentstratum-coding-agents"
+        package_root = prefix / "lib" / "node_modules" / "contextbase-coding-agents"
         probe = subprocess.run(
             [
                 "node",
@@ -250,8 +250,8 @@ class ClientInstallationStory(unittest.TestCase):
                 const v1 = await import(pathToFileURL(root + '/' + pkg.main));
                 assert.equal(typeof v1.default, 'function');
                 const v2 = await import(pathToFileURL(root + '/index.js'));
-                assert.equal(v2.default, v2.AgentstratumOpencode2Plugin);
-                assert.equal(v2.default.id, 'agentstratum-opencode2');
+                assert.equal(v2.default, v2.ContextBaseOpencode2Plugin);
+                assert.equal(v2.default.id, 'contextbase-opencode2');
                 assert.equal(typeof v2.default.setup, 'function');
                 """,
                 str(package_root),
@@ -262,7 +262,7 @@ class ClientInstallationStory(unittest.TestCase):
             timeout=30,
         )
         self.assertEqual(probe.returncode, 0, probe.stdout + probe.stderr)
-        executable = prefix / "bin" / "agentstratum-coding-agents"
+        executable = prefix / "bin" / "contextbase-coding-agents"
         register = subprocess.run(
             [
                 str(executable),
@@ -278,7 +278,7 @@ class ClientInstallationStory(unittest.TestCase):
         )
         self.assertEqual(register.returncode, 0, register.stdout + register.stderr)
         config = self.home / ".codex" / "config.toml"
-        self.assertIn("[mcp_servers.agentstratum]", config.read_text())
+        self.assertIn("[mcp_servers.contextbase]", config.read_text())
         uninstall = subprocess.run(
             [str(executable), "uninstall", "codex"],
             env=self.environment,
@@ -287,7 +287,7 @@ class ClientInstallationStory(unittest.TestCase):
             timeout=30,
         )
         self.assertEqual(uninstall.returncode, 0, uninstall.stdout + uninstall.stderr)
-        self.assertNotIn("[mcp_servers.agentstratum]", config.read_text())
+        self.assertNotIn("[mcp_servers.contextbase]", config.read_text())
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
-"""Hindsight-embed daemon lifecycle management for Cursor plugin.
+"""ContextBase-embed daemon lifecycle management for Cursor plugin.
 
 Manages three connection modes:
-  1. External API -- user provides hindsightApiUrl (skip daemon entirely)
-  2. Existing local server -- user already has hindsight running
+  1. External API -- user provides contextbaseApiUrl (skip daemon entirely)
+  2. Existing local server -- user already has contextbase running
   3. Auto-managed daemon -- plugin starts/stops hindsight-embed
 """
 
@@ -14,7 +14,6 @@ import urllib.error
 import urllib.request
 
 from .client import USER_AGENT
-from .config import DEFAULT_HINDSIGHT_API_URL
 from .llm import detect_llm_config, get_llm_env_vars
 from .state import write_state
 
@@ -59,7 +58,7 @@ def _is_embed_available(config: dict) -> bool:
 
 
 def _check_health(base_url: str, timeout: int = 2) -> bool:
-    """Quick health check against a Hindsight server."""
+    """Quick health check against a ContextBase server."""
     try:
         url = f"{base_url.rstrip('/')}/health"
         req = urllib.request.Request(url, method="GET", headers={"User-Agent": USER_AGENT})
@@ -73,23 +72,16 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     """Determine the API URL.
 
     Resolution order:
-      1. ``hindsightApiUrl`` configured → use it (explicit override wins).
+      1. ``contextbaseApiUrl`` configured → use it (explicit override wins).
       2. A local server is already healthy on the configured port → use it
          (preserves the "developer already started a daemon" path).
       3. ``useLocalDaemon: True`` (opt-in) AND ``allow_daemon_start=True``
          (recall path does not auto-start daemons) → auto-start the embed
          daemon and use it.
-      4. Otherwise → fall back to ``DEFAULT_HINDSIGHT_API_URL`` (hosted
-         backend). API key is not required at this point — a missing key
-         only fails when an actual request is made.
-
-    The cross-integration convention (PR-level "default-to-Cloud" goal) wants
-    a fresh install with no configuration to reach the hosted backend.
-    Self-hosters opt back into the local-daemon path by setting
-    ``useLocalDaemon: True`` (or by setting an explicit ``hindsightApiUrl``).
+      4. Otherwise require an explicit API URL; never fall back to another service.
     """
     # Mode 1: explicit external API
-    external_url = config.get("hindsightApiUrl")
+    external_url = config.get("contextbaseApiUrl")
     if external_url:
         if debug_fn:
             debug_fn(f"Using configured API URL: {external_url}")
@@ -112,16 +104,11 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
             _ensure_daemon_running(config, port, debug_fn)
             return base_url
         except Exception as e:
-            if debug_fn:
-                debug_fn(f"Daemon start failed ({e}); falling back to {DEFAULT_HINDSIGHT_API_URL}")
-            # Fall through to default-URL fallback rather than raising —
-            # the plugin should keep working even if the local daemon path
-            # is unavailable.
+            raise RuntimeError(
+                "ContextBase local daemon could not start; configure contextbaseApiUrl to use an external service."
+            ) from e
 
-    # Mode 4: cloud-default fallback
-    if debug_fn:
-        debug_fn(f"Falling back to default API URL: {DEFAULT_HINDSIGHT_API_URL}")
-    return DEFAULT_HINDSIGHT_API_URL
+    raise ValueError("Set CONTEXTBASE_API_URL/contextbaseApiUrl or start a local ContextBase server.")
 
 
 def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
@@ -129,7 +116,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     if not _is_embed_available(config):
         raise RuntimeError(
             "hindsight-embed not found (uvx not on PATH). "
-            "Install with: pip install hindsight-embed, or set hindsightApiUrl."
+            "Install with: pip install hindsight-embed, or set contextbaseApiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -176,7 +163,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     except FileNotFoundError:
         raise RuntimeError(
             "hindsight-embed not found. Install with: pip install hindsight-embed "
-            "or set hindsightApiUrl for external API mode."
+            "or set contextbaseApiUrl for external API mode."
         )
 
     # Step 2: Start daemon

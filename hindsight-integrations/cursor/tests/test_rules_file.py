@@ -1,6 +1,6 @@
 """Tests for the Cursor sessionStart rules-file workaround.
 
-The workaround module writes a workspace .cursor/rules/hindsight-session.mdc
+The workaround module writes a workspace .cursor/rules/contextbase-session.mdc
 file because Cursor's native sessionStart additionalContext path is broken.
 These tests pin the on-disk shape (frontmatter, rotation behaviour, gitignore
 handling) so the bug fix is mechanical when Cursor restores the native path.
@@ -39,14 +39,14 @@ class TestFormatRuleContent:
         assert "forum.cursor.com" in out
         assert "158452" in out  # the staff-acknowledged thread
 
-    def test_wraps_memories_in_hindsight_memories_block(self):
+    def test_wraps_memories_in_contextbase_memories_block(self):
         out = format_rule_content("MEMORY_TEXT", "PREAMBLE_TEXT", "T")
-        assert "<hindsight_memories>" in out
-        assert "</hindsight_memories>" in out
+        assert "<contextbase_memories>" in out
+        assert "</contextbase_memories>" in out
         assert "PREAMBLE_TEXT" in out
         assert "MEMORY_TEXT" in out
         # The pre/post-amble appear inside, not duplicated outside
-        before, _, after = out.partition("<hindsight_memories>")
+        before, _, after = out.partition("<contextbase_memories>")
         assert "MEMORY_TEXT" not in before
         assert "MEMORY_TEXT" in after
 
@@ -123,7 +123,7 @@ class TestEnsureGitignored:
         text = (tmp_path / GITIGNORE_RELPATH).read_text()
         assert "/" + RULES_FILE_RELPATH in text
         # Includes a human-readable explanation
-        assert "hindsight-cursor" in text
+        assert "contextbase-cursor" in text
 
     def test_appends_when_existing_gitignore_lacks_entry(self, tmp_path):
         self._init_git_dir(tmp_path)
@@ -148,7 +148,7 @@ class TestEnsureGitignored:
         assert gitignore.read_text() == before
 
     def test_idempotent_when_bare_relative_form_is_present(self, tmp_path):
-        # Some users write `.cursor/rules/hindsight-session.mdc` without the
+        # Some users write `.cursor/rules/contextbase-session.mdc` without the
         # leading slash; that's still a valid gitignore match — don't dupe.
         self._init_git_dir(tmp_path)
         gitignore = tmp_path / GITIGNORE_RELPATH

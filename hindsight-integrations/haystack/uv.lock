@@ -590,7 +590,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-haystack"
+name = "contextbase-haystack"
 version = "0.1.1"
 source = { editable = "." }
 dependencies = [

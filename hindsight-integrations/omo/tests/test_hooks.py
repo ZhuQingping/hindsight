@@ -26,7 +26,9 @@ if _tests_dir not in sys.path:
 from conftest import FakeHTTPResponse, make_hook_input, make_memory, make_transcript_file
 
 
-def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effect=None, extra_env=None, extra_settings=None):
+def _run_hook(
+    module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effect=None, extra_env=None, extra_settings=None
+):
     """Import and run a hook script's main() with mocked stdin/stdout/HTTP."""
     monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path / "plugin_root"))
     monkeypatch.setenv("PLUGIN_DATA", str(tmp_path / "plugin_data"))
@@ -34,7 +36,7 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
     (tmp_path / "plugin_data").mkdir(exist_ok=True)
 
     for k in list(os.environ):
-        if k.startswith("HINDSIGHT_"):
+        if k.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
 
@@ -45,8 +47,8 @@ def _run_hook(module_name, hook_input, monkeypatch, tmp_path, urlopen_side_effec
         "autoRecall": True,
         "autoRetain": True,
         "retainEveryNTurns": 1,
-        "hindsightApiUrl": "http://fake:9077",
-        "hindsightApiToken": "hsk_test",
+        "contextbaseApiUrl": "http://fake:9077",
+        "contextbaseApiToken": "hsk_test",
     }
     if extra_settings:
         settings.update(extra_settings)
@@ -84,7 +86,7 @@ class TestRecallHook:
         data = json.loads(output)
         context = data["hookSpecificOutput"]["additionalContext"]
         assert "Paris is the capital of France" in context
-        assert "<hindsight_memories>" in context
+        assert "<contextbase_memories>" in context
 
     def test_no_output_when_no_memories(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="hello there world")
@@ -125,9 +127,12 @@ class TestRecallHook:
 
         hook_input = make_hook_input(prompt="What is my project about?")
         _run_hook(
-            "recall", hook_input, monkeypatch, tmp_path,
+            "recall",
+            hook_input,
+            monkeypatch,
+            tmp_path,
             urlopen_side_effect=capture_request,
-            extra_settings={"hindsightApiToken": "hsk_mykey"},
+            extra_settings={"contextbaseApiToken": "hsk_mykey"},
         )
 
         assert captured_headers.get("auth") == "Bearer hsk_mykey"
@@ -142,11 +147,14 @@ class TestRecallHook:
 
         hook_input = make_hook_input(prompt="What is my project about?")
         _run_hook(
-            "recall", hook_input, monkeypatch, tmp_path,
+            "recall",
+            hook_input,
+            monkeypatch,
+            tmp_path,
             urlopen_side_effect=should_not_be_called,
             extra_settings={
-                "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-                "hindsightApiToken": None,
+                "contextbaseApiUrl": "https://api.hindsight.vectorize.io",
+                "contextbaseApiToken": None,
             },
         )
 
@@ -154,7 +162,7 @@ class TestRecallHook:
 
 
 class TestRetainHook:
-    def test_posts_transcript_to_hindsight(self, monkeypatch, tmp_path):
+    def test_posts_transcript_to_contextbase(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
 
@@ -201,7 +209,7 @@ class TestRetainHook:
 
     def test_strips_memory_tags_before_retaining(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "<hindsight_memories>old memories</hindsight_memories> actual question"},
+            {"role": "user", "content": "<contextbase_memories>old memories</contextbase_memories> actual question"},
             {"role": "assistant", "content": "sure!"},
         ]
         transcript = make_transcript_file(tmp_path, messages)

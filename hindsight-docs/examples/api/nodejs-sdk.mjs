@@ -8,7 +8,7 @@
  * (one marker line opens/closes both), and each later section sits in its own
  * { } block so repeated `const` names don't clash.
  */
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Doc Examples
@@ -175,6 +175,6 @@ await client.deleteDocument('nodejs-sdk-bank', 'conversation_001');
 // =============================================================================
 // Cleanup (not shown in docs)
 // =============================================================================
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/nodejs-sdk-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/nodejs-sdk-bank`, { method: 'DELETE' });
 
 console.log('nodejs-sdk.mjs: All examples passed');

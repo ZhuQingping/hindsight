@@ -18,7 +18,7 @@ import {
   meetsMinimumVersion,
   sessionEndMessages,
   sessionEndMessagesFromTranscript,
-  parseHindsightApiCapabilities,
+  parseContextBaseApiCapabilities,
   supportsAppendFromCapabilities,
   supportsAsyncRetainOperationIdFromCapabilities,
   createAsyncRetainOperationId,
@@ -61,9 +61,9 @@ const openclawManifest = require("../openclaw.plugin.json") as {
 // ---------------------------------------------------------------------------
 
 describe("stripMemoryTags", () => {
-  it("strips simple hindsight_memories tags", () => {
+  it("strips simple contextbase_memories tags", () => {
     const input =
-      "User: Hello\n<hindsight_memories>\nRelevant memories here...\n</hindsight_memories>\nAssistant: How can I help?";
+      "User: Hello\n<contextbase_memories>\nRelevant memories here...\n</contextbase_memories>\nAssistant: How can I help?";
     expect(stripMemoryTags(input)).toBe("User: Hello\n\nAssistant: How can I help?");
   });
 
@@ -72,15 +72,15 @@ describe("stripMemoryTags", () => {
     expect(stripMemoryTags(input)).toBe("Before\n\nAfter");
   });
 
-  it("strips multiple hindsight_memories blocks", () => {
+  it("strips multiple contextbase_memories blocks", () => {
     const input =
-      "Start\n<hindsight_memories>\nBlock 1\n</hindsight_memories>\nMiddle\n<hindsight_memories>\nBlock 2\n</hindsight_memories>\nEnd";
+      "Start\n<contextbase_memories>\nBlock 1\n</contextbase_memories>\nMiddle\n<contextbase_memories>\nBlock 2\n</contextbase_memories>\nEnd";
     expect(stripMemoryTags(input)).toBe("Start\n\nMiddle\n\nEnd");
   });
 
   it("handles multiline memory blocks with JSON", () => {
     const input =
-      'User: What is the weather?\n<hindsight_memories>\n[\n  {"memory": "User likes sunny weather"}\n]\n</hindsight_memories>\nAssistant: Let me check';
+      'User: What is the weather?\n<contextbase_memories>\n[\n  {"memory": "User likes sunny weather"}\n]\n</contextbase_memories>\nAssistant: Let me check';
     const result = stripMemoryTags(input);
     expect(result).toBe("User: What is the weather?\n\nAssistant: Let me check");
   });
@@ -92,18 +92,18 @@ describe("stripMemoryTags", () => {
 
   it("strips both tag types in same content", () => {
     const input =
-      "A\n<hindsight_memories>\nH mem\n</hindsight_memories>\nB\n<relevant_memories>\nR mem\n</relevant_memories>\nC";
+      "A\n<contextbase_memories>\nH mem\n</contextbase_memories>\nB\n<relevant_memories>\nR mem\n</relevant_memories>\nC";
     expect(stripMemoryTags(input)).toBe("A\n\nB\n\nC");
   });
 
   it("strips tags from a real-world agent conversation with injected memories", () => {
     const input =
-      '[role: system]\n<hindsight_memories>\nRelevant memories:\n[{"text": "User prefers dark mode"}]\nUser message: How do I enable dark mode?\n</hindsight_memories>\n[system:end]\n\n[role: user]\nHow do I enable dark mode?\n[user:end]\n\n[role: assistant]\nLet me help you enable dark mode.\n[assistant:end]';
+      '[role: system]\n<contextbase_memories>\nRelevant memories:\n[{"text": "User prefers dark mode"}]\nUser message: How do I enable dark mode?\n</contextbase_memories>\n[system:end]\n\n[role: user]\nHow do I enable dark mode?\n[user:end]\n\n[role: assistant]\nLet me help you enable dark mode.\n[assistant:end]';
 
     const result = stripMemoryTags(input);
 
-    expect(result).not.toContain("<hindsight_memories>");
-    expect(result).not.toContain("</hindsight_memories>");
+    expect(result).not.toContain("<contextbase_memories>");
+    expect(result).not.toContain("</contextbase_memories>");
     expect(result).not.toContain("User prefers dark mode");
     expect(result).toContain("[role: user]");
     expect(result).toContain("How do I enable dark mode?");
@@ -484,9 +484,9 @@ describe("inline retain tag helpers", () => {
     ).toEqual(["client:acme", "type:decision"]);
   });
 
-  it("supports hindsight_retain_tags alias and strips directives from content", () => {
+  it("supports contextbase_retain_tags alias and strips directives from content", () => {
     const input =
-      "Keep this.\n<hindsight_retain_tags>scope:user</hindsight_retain_tags>\nNot the directive.";
+      "Keep this.\n<contextbase_retain_tags>scope:user</contextbase_retain_tags>\nNot the directive.";
     expect(extractInlineRetainTags(input)).toEqual(["scope:user"]);
     expect(stripInlineRetainTags(input)).toBe("Keep this.\n\nNot the directive.");
   });
@@ -852,12 +852,12 @@ describe("prepareRetentionTranscript", () => {
       {
         role: "assistant",
         content:
-          "<hindsight_memories>\nUser prefers dark mode\n</hindsight_memories>\nHere is how to enable dark mode.",
+          "<contextbase_memories>\nUser prefers dark mode\n</contextbase_memories>\nHere is how to enable dark mode.",
       },
     ];
     const result = prepareRetentionTranscript(messages, baseConfig);
     expect(result).not.toBeNull();
-    expect(result?.transcript).not.toContain("<hindsight_memories>");
+    expect(result?.transcript).not.toContain("<contextbase_memories>");
     expect(result?.transcript).not.toContain("User prefers dark mode");
     expect(result?.transcript).toContain("Here is how to enable dark mode.");
   });
@@ -948,14 +948,14 @@ describe("prepareRetentionTranscript", () => {
 
   it("strips memory tags from user message when prependContext is prepended to it", () => {
     // Simulates the host prepending prependContext to the user message content
-    const userContent = `<hindsight_memories>\nRelevant memories:\n- User prefers dark mode [world]\n\nUser message: What is dark mode?\n</hindsight_memories>\nWhat is dark mode?`;
+    const userContent = `<contextbase_memories>\nRelevant memories:\n- User prefers dark mode [world]\n\nUser message: What is dark mode?\n</contextbase_memories>\nWhat is dark mode?`;
     const messages = [
       { role: "user", content: userContent },
       { role: "assistant", content: "Dark mode is a display setting." },
     ];
     const result = prepareRetentionTranscript(messages, baseConfig);
     expect(result).not.toBeNull();
-    expect(result?.transcript).not.toContain("<hindsight_memories>");
+    expect(result?.transcript).not.toContain("<contextbase_memories>");
     expect(result?.transcript).not.toContain("User prefers dark mode");
     expect(result?.transcript).toContain("What is dark mode?");
     expect(result?.transcript).toContain("Dark mode is a display setting.");
@@ -1034,7 +1034,12 @@ describe("prepareRetentionTranscript", () => {
       {
         role: "assistant",
         content: [
-          { type: "toolCall", id: "c1", name: "mcp__hindsight__recall", arguments: { query: "x" } },
+          {
+            type: "toolCall",
+            id: "c1",
+            name: "mcp__contextbase__recall",
+            arguments: { query: "x" },
+          },
           {
             type: "toolCall",
             id: "c2",
@@ -1049,7 +1054,9 @@ describe("prepareRetentionTranscript", () => {
     const parsed = JSON.parse(result!.transcript);
     const assistantBlocks = parsed[1].content;
     expect(
-      assistantBlocks.some((b: any) => b.type === "tool_use" && b.name === "mcp__hindsight__recall")
+      assistantBlocks.some(
+        (b: any) => b.type === "tool_use" && b.name === "mcp__contextbase__recall"
+      )
     ).toBe(false);
     expect(
       assistantBlocks.some(
@@ -1088,7 +1095,7 @@ describe("prepareRetentionTranscript", () => {
   it("reports accurate messageCount excluding empty messages", () => {
     const messages = [
       { role: "user", content: "Real message" },
-      { role: "assistant", content: "<hindsight_memories>\nonly tags\n</hindsight_memories>" },
+      { role: "assistant", content: "<contextbase_memories>\nonly tags\n</contextbase_memories>" },
       { role: "assistant", content: "Actual response" },
     ];
     const result = prepareRetentionTranscript(messages, baseConfig);
@@ -1699,17 +1706,17 @@ describe("resolveAndCacheIdentity dispatch-surface gate (#1541)", () => {
 
 describe("waitForReady (CLI mode)", () => {
   it("returns without error when initPromise is null (service.start not called)", async () => {
-    // The module sets up global.__hindsightClient on import.
+    // The module sets up global.__contextbaseClient on import.
     // In test context, service.start() is never called so initPromise remains null.
-    const hindsight = (global as any).__hindsightClient;
-    expect(hindsight).toBeDefined();
+    const contextbase = (global as any).__contextbaseClient;
+    expect(contextbase).toBeDefined();
     // Should resolve without throwing
-    await expect(hindsight.waitForReady()).resolves.toBeUndefined();
+    await expect(contextbase.waitForReady()).resolves.toBeUndefined();
   });
 
   it("getClient returns null when service.start not called", () => {
-    const hindsight = (global as any).__hindsightClient;
-    expect(hindsight.getClient()).toBeNull();
+    const contextbase = (global as any).__contextbaseClient;
+    expect(contextbase.getClient()).toBeNull();
   });
 });
 
@@ -1749,14 +1756,14 @@ describe("meetsMinimumVersion", () => {
 
 describe("append capability helpers", () => {
   it("supports append for legacy version payloads without a features block", () => {
-    const capabilities = parseHindsightApiCapabilities({ api_version: "0.8.4" });
+    const capabilities = parseContextBaseApiCapabilities({ api_version: "0.8.4" });
 
     expect(capabilities).toEqual({ version: "0.8.4", storeDocumentText: true });
     expect(supportsAppendFromCapabilities(capabilities)).toBe(true);
   });
 
   it("supports append when the version is new enough and document text storage is enabled", () => {
-    const capabilities = parseHindsightApiCapabilities({
+    const capabilities = parseContextBaseApiCapabilities({
       api_version: "0.8.4",
       features: { store_document_text: true },
     });
@@ -1768,7 +1775,7 @@ describe("append capability helpers", () => {
   it("rejects append when features are present but document text storage is not enabled", () => {
     expect(
       supportsAppendFromCapabilities(
-        parseHindsightApiCapabilities({
+        parseContextBaseApiCapabilities({
           api_version: "0.8.4",
           features: { store_document_text: false },
         })
@@ -1776,7 +1783,7 @@ describe("append capability helpers", () => {
     ).toBe(false);
     expect(
       supportsAppendFromCapabilities(
-        parseHindsightApiCapabilities({
+        parseContextBaseApiCapabilities({
           api_version: "0.8.4",
           features: {},
         })
@@ -1785,7 +1792,7 @@ describe("append capability helpers", () => {
   });
 
   it("rejects append for old API versions even when document text storage is enabled", () => {
-    const capabilities = parseHindsightApiCapabilities({
+    const capabilities = parseContextBaseApiCapabilities({
       api_version: "0.4.99",
       features: { store_document_text: true },
     });
@@ -1794,8 +1801,8 @@ describe("append capability helpers", () => {
   });
 
   it("returns null for malformed version payloads", () => {
-    expect(parseHindsightApiCapabilities({ features: { store_document_text: true } })).toBeNull();
-    expect(parseHindsightApiCapabilities(null)).toBeNull();
+    expect(parseContextBaseApiCapabilities({ features: { store_document_text: true } })).toBeNull();
+    expect(parseContextBaseApiCapabilities(null)).toBeNull();
   });
 });
 
@@ -1803,17 +1810,17 @@ describe("async retain operation id capability", () => {
   it("requires API 0.8.6 or newer", () => {
     expect(
       supportsAsyncRetainOperationIdFromCapabilities(
-        parseHindsightApiCapabilities({ api_version: "0.8.5" })
+        parseContextBaseApiCapabilities({ api_version: "0.8.5" })
       )
     ).toBe(false);
     expect(
       supportsAsyncRetainOperationIdFromCapabilities(
-        parseHindsightApiCapabilities({ api_version: "0.8.6" })
+        parseContextBaseApiCapabilities({ api_version: "0.8.6" })
       )
     ).toBe(true);
     expect(
       supportsAsyncRetainOperationIdFromCapabilities(
-        parseHindsightApiCapabilities({ api_version: "0.9.0" })
+        parseContextBaseApiCapabilities({ api_version: "0.9.0" })
       )
     ).toBe(true);
     expect(supportsAsyncRetainOperationIdFromCapabilities(null)).toBe(false);
@@ -1831,7 +1838,7 @@ describe("async retain operation id capability", () => {
     ]) {
       expect(
         supportsAsyncRetainOperationIdFromCapabilities(
-          parseHindsightApiCapabilities({ api_version: version })
+          parseContextBaseApiCapabilities({ api_version: version })
         )
       ).toBe(false);
     }
@@ -1876,7 +1883,7 @@ describe("async retain operation id capability", () => {
 
 function makeApi(rawConfig: Record<string, unknown>): MoltbotPluginAPI {
   return {
-    config: { plugins: { entries: { "hindsight-openclaw": { config: rawConfig } } } },
+    config: { plugins: { entries: { "contextbase-openclaw": { config: rawConfig } } } },
     registerService: () => undefined,
     on: () => undefined,
     logger: { info: () => undefined, warn: () => undefined, error: () => undefined },
@@ -1943,7 +1950,7 @@ describe("recallMinScores (#4143)", () => {
     expect(getPluginConfig(makeApi({ recallMinScores })).recallMinScores).toEqual(recallMinScores);
   });
 
-  it("passes score floors to the Hindsight client", async () => {
+  it("passes score floors to the ContextBase client", async () => {
     const recall = vi.fn().mockResolvedValue({ results: [] });
     const scoped = scopeClient({ recall } as never, "test-bank");
 

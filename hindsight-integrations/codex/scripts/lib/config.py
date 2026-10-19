@@ -1,4 +1,4 @@
-"""Configuration management for Hindsight Codex plugin.
+"""Configuration management for ContextBase Codex plugin.
 
 Loads settings from settings.json (plugin defaults) merged with environment
 variable overrides. Full config schema matching Openclaw's 30+ options.
@@ -35,8 +35,8 @@ DEFAULTS = {
     "retainMetadata": {},
     # Connection
     "upgradeNotice": True,  # show the superseded-by-coding-agents notice (capped, see lib/upgrade_notice.py)
-    "hindsightApiUrl": None,
-    "hindsightApiToken": None,
+    "contextbaseApiUrl": None,
+    "contextbaseApiToken": None,
     "apiPort": 9077,
     "daemonIdleTimeout": 0,
     "embedVersion": "latest",
@@ -59,27 +59,27 @@ DEFAULTS = {
 
 # Map env var names to config keys and their types
 ENV_OVERRIDES = {
-    "HINDSIGHT_API_URL": ("hindsightApiUrl", str),
-    "HINDSIGHT_API_TOKEN": ("hindsightApiToken", str),
-    "HINDSIGHT_BANK_ID": ("bankId", str),
-    "HINDSIGHT_AGENT_NAME": ("agentName", str),
-    "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
-    "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
-    "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
-    "HINDSIGHT_RECALL_BUDGET": ("recallBudget", str),
-    "HINDSIGHT_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "HINDSIGHT_RECALL_TIMEOUT": ("recallTimeout", int),
-    "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
-    "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "HINDSIGHT_API_PORT": ("apiPort", int),
-    "HINDSIGHT_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
-    "HINDSIGHT_EMBED_VERSION": ("embedVersion", str),
-    "HINDSIGHT_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
-    "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "HINDSIGHT_BANK_MISSION": ("bankMission", str),
-    "HINDSIGHT_LLM_PROVIDER": ("llmProvider", str),
-    "HINDSIGHT_LLM_MODEL": ("llmModel", str),
-    "HINDSIGHT_DEBUG": ("debug", bool),
+    "CONTEXTBASE_API_URL": ("contextbaseApiUrl", str),
+    "CONTEXTBASE_API_TOKEN": ("contextbaseApiToken", str),
+    "CONTEXTBASE_BANK_ID": ("bankId", str),
+    "CONTEXTBASE_AGENT_NAME": ("agentName", str),
+    "CONTEXTBASE_AUTO_RECALL": ("autoRecall", bool),
+    "CONTEXTBASE_AUTO_RETAIN": ("autoRetain", bool),
+    "CONTEXTBASE_RETAIN_MODE": ("retainMode", str),
+    "CONTEXTBASE_RECALL_BUDGET": ("recallBudget", str),
+    "CONTEXTBASE_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
+    "CONTEXTBASE_RECALL_TIMEOUT": ("recallTimeout", int),
+    "CONTEXTBASE_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
+    "CONTEXTBASE_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "CONTEXTBASE_API_PORT": ("apiPort", int),
+    "CONTEXTBASE_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
+    "CONTEXTBASE_EMBED_VERSION": ("embedVersion", str),
+    "CONTEXTBASE_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
+    "CONTEXTBASE_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
+    "CONTEXTBASE_BANK_MISSION": ("bankMission", str),
+    "CONTEXTBASE_LLM_PROVIDER": ("llmProvider", str),
+    "CONTEXTBASE_LLM_MODEL": ("llmModel", str),
+    "CONTEXTBASE_DEBUG": ("debug", bool),
 }
 
 
@@ -112,11 +112,11 @@ def load_config() -> dict:
 
     Loading order (later entries win):
       1. Built-in defaults
-      2. Plugin install settings.json  (~/.hindsight/codex/settings.json)
-      3. User config                   (~/.hindsight/codex.json)
+      2. Plugin install settings.json  (~/.contextbase/codex/settings.json)
+      3. User config                   (~/.contextbase/codex.json)
       4. Environment variable overrides
 
-    ~/.hindsight/codex.json is the recommended place to configure the
+    ~/.contextbase/codex.json is the recommended place to configure the
     plugin — stable across updates.
     """
     config = dict(DEFAULTS)
@@ -126,7 +126,7 @@ def load_config() -> dict:
     _load_settings_file(os.path.join(install_root, "settings.json"), config)
 
     # 2. User config — stable, version-independent
-    user_config_path = os.path.join(os.path.expanduser("~"), ".hindsight", "codex.json")
+    user_config_path = os.path.join(os.path.expanduser("~"), ".contextbase", "codex.json")
     _load_settings_file(user_config_path, config)
 
     # Apply environment variable overrides

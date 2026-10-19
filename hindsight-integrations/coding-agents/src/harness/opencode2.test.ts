@@ -93,7 +93,7 @@ function fakeContext() {
 
 function fakeCore(overrides: Partial<Record<string, unknown>> = {}) {
   const spec: ToolSpec = {
-    name: "agentstratum_recall",
+    name: "contextbase_recall",
     description: "recall",
     inputSchema: {},
     annotations: {
@@ -109,7 +109,7 @@ function fakeCore(overrides: Partial<Record<string, unknown>> = {}) {
     toolSpecs: () => [spec],
     setTranscriptSource: vi.fn(),
     onPrompt: vi.fn(async () => {}),
-    getInjection: vi.fn(() => "<agentstratum_memories>remember</agentstratum_memories>"),
+    getInjection: vi.fn(() => "<contextbase_memories>remember</contextbase_memories>"),
     onSessionIdle: vi.fn(async () => {}),
     ...overrides,
   };
@@ -117,14 +117,14 @@ function fakeCore(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 describe("opencode2 adapter", () => {
-  it("registers every agentstratum tool with codemode disabled", async () => {
+  it("registers every contextbase tool with codemode disabled", async () => {
     // NOT decoration: a v2 tool left on the default is only reachable through the host's `execute`
     // code-execution tool, so a model calling it by name — which is what the skill and the injected
-    // preamble tell it to do — gets "Unknown tool: agentstratum_recall".
+    // preamble tell it to do — gets "Unknown tool: contextbase_recall".
     const fake = fakeContext();
     await wireOpencode2Runtime(fakeCore(), fake.ctx);
     expect(fake.tools).toHaveLength(1);
-    expect(fake.tools[0].name).toBe("agentstratum_recall");
+    expect(fake.tools[0].name).toBe("contextbase_recall");
     expect(fake.tools[0].options).toEqual({ codemode: false });
     // v2 wants a whole schema, not v1's raw Zod shape.
     expect(typeof fake.tools[0].input?.parse).toBe("function");
@@ -136,8 +136,8 @@ describe("opencode2 adapter", () => {
     const fake = fakeContext();
     await wireOpencode2Runtime(fakeCore(), fake.ctx);
     expect(fake.skills).toHaveLength(1);
-    expect(fake.skills[0].id).toBe("agentstratum-coding-agent");
-    expect(fake.skills[0].name).toBe("agentstratum-coding-agent");
+    expect(fake.skills[0].id).toBe("contextbase-coding-agent");
+    expect(fake.skills[0].name).toBe("contextbase-coding-agent");
     expect(fake.skills[0].path).toMatch(/skill[\\/]SKILL\.md$/);
     // opencode v2 requires an absolute `path`; a draft without one disables the plugin (#4732).
     expect(isAbsolute(fake.skills[0].path)).toBe(true);
@@ -184,7 +184,7 @@ describe("opencode2 adapter", () => {
     expect(core.getInjection).toHaveBeenCalledWith("ses_1");
     expect(system).toEqual([
       { type: "text", text: "you are opencode" },
-      { type: "text", text: "<agentstratum_memories>remember</agentstratum_memories>" },
+      { type: "text", text: "<contextbase_memories>remember</contextbase_memories>" },
     ]);
   });
 

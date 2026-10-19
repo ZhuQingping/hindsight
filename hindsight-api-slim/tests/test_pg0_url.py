@@ -33,7 +33,7 @@ class _NoopQueryAnalyzer:
 
 
 def test_bare_pg0():
-    assert parse_pg0_url("pg0") == Pg0Url(is_pg0=True, instance_name="agentstratum")
+    assert parse_pg0_url("pg0") == Pg0Url(is_pg0=True, instance_name="contextbase")
 
 
 def test_named_instance():
@@ -45,8 +45,8 @@ def test_named_instance_with_port():
 
 
 def test_empty_instance_falls_back_to_default():
-    assert parse_pg0_url("pg0://").instance_name == "agentstratum"
-    assert parse_pg0_url("pg0://:5544") == Pg0Url(is_pg0=True, instance_name="agentstratum", port=5544)
+    assert parse_pg0_url("pg0://").instance_name == "contextbase"
+    assert parse_pg0_url("pg0://:5544") == Pg0Url(is_pg0=True, instance_name="contextbase", port=5544)
 
 
 @pytest.mark.parametrize(
@@ -54,7 +54,7 @@ def test_empty_instance_falls_back_to_default():
     [
         (
             "pg0?max_connections=300",
-            Pg0Url(is_pg0=True, instance_name="agentstratum", config={"max_connections": "300"}),
+            Pg0Url(is_pg0=True, instance_name="contextbase", config={"max_connections": "300"}),
         ),
         (
             "pg0://mydb:5544?max_connections=300&shared_buffers=256MB",

@@ -9,8 +9,10 @@ import requests
 
 from hindsight_client import Hindsight
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-client = Hindsight(base_url=HINDSIGHT_URL)
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # [docs:opinion-form]
 # Opinions are automatically formed when the bank encounters
@@ -95,7 +97,7 @@ print(response.text)
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/skeptical-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/skeptical-bank")
 
 print("opinions.py: All examples passed")

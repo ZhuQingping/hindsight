@@ -14,7 +14,7 @@ type Category = {slug: string; label: string; tag: string | null};
 
 const CATEGORIES: Category[] = [
   {slug: 'all', label: 'All', tag: null},
-  {slug: 'cloud', label: 'Hindsight Cloud', tag: 'hindsight-cloud'},
+  {slug: 'cloud', label: 'ContextBase Cloud', tag: 'contextbase-cloud'},
   {slug: 'deep-dives', label: 'Deep Dives', tag: 'deep-dive'},
   {slug: 'releases', label: 'Announcements & Releases', tag: 'release'},
   {slug: 'tutorials', label: 'Tutorials & Integrations', tag: 'tutorial'},

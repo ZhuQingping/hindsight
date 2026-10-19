@@ -101,7 +101,7 @@ Not sure which model to use? The **[Model Leaderboard](https://benchmarks.hindsi
 
 ### Tested Models
 
-The following models have been tested and verified to work correctly with Hindsight:
+The following models have been tested and verified to work correctly with ContextBase:
 
 | Provider | Model |
 |----------|-------|
@@ -587,7 +587,7 @@ an API key from the [Anthropic Console](https://console.anthropic.com/).
 
    **Server-held token (optional, for a personal machine without a browser login):** instead of
    relying on the host's `claude auth login` session, you can generate a long-lived token once and
-   give it to Hindsight. This is still subscription access, so the Terms of Service notice above
+   give it to ContextBase. This is still subscription access, so the Terms of Service notice above
    applies in full: it does not make the provider suitable for servers, Docker deployments or shared
    hosts. For those, use the `anthropic` provider with an API key.
    ```bash
@@ -621,7 +621,7 @@ subscription**, by driving the `cursor-agent` CLI in its headless print mode. No
 and no second per-token billing relationship.
 
 This is the opposite direction from the [Cursor integration](/sdks/integrations/cursor),
-which makes Cursor a *client* of Hindsight. Here Cursor is the model backend Hindsight calls.
+which makes Cursor a *client* of ContextBase. Here Cursor is the model backend Hindsight calls.
 
 **Prerequisites:**
 - An active Cursor subscription (a free plan works, but only with `auto` — see below)
@@ -678,7 +678,7 @@ which makes Cursor a *client* of Hindsight. Here Cursor is the model backend Hin
   its own `CURSOR_CONFIG_DIR` (so it never sees your `~/.cursor` config, hooks or session
   history), and writes a `cli-config.json` there that denies every tool by name. That is
   the equivalent of the `tools=[]` the `claude-code` provider passes its SDK, and it
-  matters because retain prompts are built from whatever text you store in Hindsight.
+  matters because retain prompts are built from whatever text you store in ContextBase.
 - Usage counts against your Cursor subscription.
 - Reasoning effort is not supported — the CLI has no such flag, and Hindsight warns once
   at startup if `HINDSIGHT_API_LLM_REASONING_EFFORT` is set.

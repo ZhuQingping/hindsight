@@ -2,7 +2,7 @@
 sidebar_position: 10
 ---
 
-# Personalized Search Agent with Hindsight Memory
+# Personalized Search Agent with ContextBase Memory
 
 
 :::tip Run this notebook
@@ -21,21 +21,23 @@ A search assistant that learns your preferences, location, dietary needs, and li
 
 ## Prerequisites
 - OpenAI API key
-- Hindsight running locally via Docker (see setup below)
+- ContextBase running locally via Docker (see setup below)
 - Tavily API key (optional, for real web search)
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
@@ -55,7 +57,7 @@ Enter your API keys when prompted. Tavily is optional - press Enter to skip for 
 import getpass
 import os
 
-# Set OpenAI API key (used by both Hindsight and the demo)
+# Set OpenAI API key (used by both ContextBase and the demo)
 if not os.getenv("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
 
@@ -78,9 +80,9 @@ nest_asyncio.apply()
 from openai import OpenAI
 from hindsight_client import Hindsight
 
-# Initialize Hindsight client (connects to local Docker instance)
-hindsight = Hindsight(
-    base_url=os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+# Initialize ContextBase client (connects to local Docker instance)
+contextbase = Hindsight(
+    base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -106,7 +108,7 @@ print("Clients initialized!")
 ```python
 def store_preference(preference: str) -> str:
     """Store a user preference."""
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"User preference: {preference}",
         metadata={"category": "preference"},
@@ -116,7 +118,7 @@ def store_preference(preference: str) -> str:
 
 def store_interaction(query: str, response: str) -> None:
     """Store a search interaction."""
-    hindsight.retain(
+    contextbase.retain(
         bank_id=USER_ID,
         content=f"Search query: {query}\nResult highlights: {response[:200]}",
         metadata={"category": "search_history"},
@@ -125,7 +127,7 @@ def store_interaction(query: str, response: str) -> None:
 
 def get_user_context(query: str) -> str:
     """Retrieve relevant user context."""
-    memories = hindsight.recall(
+    memories = contextbase.recall(
         bank_id=USER_ID,
         query=f"preferences location dietary lifestyle {query}",
         budget="mid",
@@ -205,7 +207,7 @@ Provide a helpful, personalized response that takes into account their preferenc
 
 def get_preference_profile() -> str:
     """Get a summary of the user's preference profile."""
-    profile = hindsight.reflect(
+    profile = contextbase.reflect(
         bank_id=USER_ID,
         query="""Summarize what we know about this user:
         - Location and neighborhood
@@ -294,6 +296,6 @@ print(personalized_search(your_search))
 
 
 ```python
-hindsight.close()
+contextbase.close()
 print("Client connection closed.")
 ```

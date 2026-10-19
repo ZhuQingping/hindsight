@@ -5,15 +5,15 @@ for Claude Code's context model.
 
 Openclaw derives bank IDs from: agent, channel, user, provider.
 Claude Code equivalent dimensions:
-  - agent   → configured name or "claude-code" (AGENTSTRATUM_AGENT_NAME)
+  - agent   → configured name or "claude-code" (CONTEXTBASE_AGENT_NAME)
   - project → derived from cwd (working directory basename)
   - session → session_id from hook input
-  - channel → from env var AGENTSTRATUM_CHANNEL_ID (for Telegram/Discord agents)
-  - user    → from env var AGENTSTRATUM_USER_ID (for multi-user agents)
+  - channel → from env var CONTEXTBASE_CHANNEL_ID (for Telegram/Discord agents)
+  - user    → from env var CONTEXTBASE_USER_ID (for multi-user agents)
 
 The channel/user dimensions enable the same per-user/per-channel isolation
 that Openclaw provides via its messageProvider/channelId/senderId context.
-Telegram/Discord agents set AGENTSTRATUM_CHANNEL_ID and AGENTSTRATUM_USER_ID in
+Telegram/Discord agents set CONTEXTBASE_CHANNEL_ID and CONTEXTBASE_USER_ID in
 their environment to achieve equivalent behavior.
 """
 
@@ -136,7 +136,7 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     for f in fields:
         if f not in VALID_FIELDS:
             print(
-                f'[agentstratum] Unknown dynamicBankGranularity field "{f}" — '
+                f'[contextbase] Unknown dynamicBankGranularity field "{f}" — '
                 f"valid for Claude Code: {', '.join(sorted(VALID_FIELDS))}",
                 file=sys.stderr,
             )
@@ -146,9 +146,9 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     agent_name = config.get("agentName", "claude-code")
 
     # Channel and user come from environment variables, set by the host agent
-    # (e.g. Telegram bot sets AGENTSTRATUM_CHANNEL_ID=telegram-group-12345)
-    channel_id = os.environ.get("AGENTSTRATUM_CHANNEL_ID", "")
-    user_id = os.environ.get("AGENTSTRATUM_USER_ID", "")
+    # (e.g. Telegram bot sets CONTEXTBASE_CHANNEL_ID=telegram-group-12345)
+    channel_id = os.environ.get("CONTEXTBASE_CHANNEL_ID", "")
+    user_id = os.environ.get("CONTEXTBASE_USER_ID", "")
 
     field_map = {
         "agent": agent_name,

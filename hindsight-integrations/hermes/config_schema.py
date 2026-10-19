@@ -1,4 +1,4 @@
-"""Hindsight's declared config surface — rendered by the generic desktop panel."""
+"""ContextBase's declared config surface — rendered by the generic desktop panel."""
 
 from plugins.memory.config_schema import (
     KIND_BOOL,
@@ -11,20 +11,22 @@ from plugins.memory.config_schema import (
 )
 
 CONFIG_SCHEMA = ProviderConfigSchema(
-    name="hindsight",
-    label="Hindsight",
+    name="contextbase",
+    label="ContextBase",
     fields=(
         ProviderField(
             key="mode",
             label="Mode",
             kind=KIND_SELECT,
             default="cloud",
-            description="How Hermes connects to Hindsight.",
+            description="How Hermes connects to ContextBase.",
             options=(
-                ProviderFieldOption("cloud", "Cloud", "Hindsight Cloud API (lightweight, just needs an API key)"),
-                ProviderFieldOption("local_external", "Local External", "Connect to an existing Hindsight instance"),
+                ProviderFieldOption("cloud", "Cloud", "Remote ContextBase API (requires your service URL and credentials)"),
+                ProviderFieldOption("local_external", "Local External", "Connect to an existing ContextBase instance"),
                 # Without it the panel can't show a local_embedded config, and saving it rewrote the mode.
-                ProviderFieldOption("local_embedded", "Local Embedded", "Run a local Hindsight daemon on this machine"),
+                ProviderFieldOption(
+                    "local_embedded", "Local Embedded", "Run a local ContextBase daemon on this machine"
+                ),
             ),
             inline=True,
         ),
@@ -32,18 +34,18 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             key="api_key",
             label="API key",
             kind=KIND_SECRET,
-            env_key="HINDSIGHT_API_KEY",
-            description="Used to authenticate with the Hindsight API.",
-            placeholder="Enter Hindsight API key",
+            env_key="CONTEXTBASE_API_KEY",
+            description="Used to authenticate with the ContextBase API.",
+            placeholder="Enter ContextBase API key",
             inline=True,
         ),
         ProviderField(
             key="api_url",
             label="API URL",
             kind=KIND_TEXT,
-            default="https://api.hindsight.vectorize.io",
+            default="",
             aliases=("apiUrl",),
-            env_fallbacks=("HINDSIGHT_API_URL",),
+            env_fallbacks=("CONTEXTBASE_API_URL",),
             inline=True,
         ),
         ProviderField(
@@ -63,7 +65,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             kind=KIND_TEXT,
             default="",
             inline=True,
-            description="Extra Hindsight banks to write to and recall from, in priority order (comma-separated). Off = single-bank behavior.",
+            description="Extra ContextBase banks to write to and recall from, in priority order (comma-separated). Off = single-bank behavior.",
         ),
         ProviderField(
             key="recall_additional_banks",
@@ -72,7 +74,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             default="",
             aliases=("recallAdditionalBanks",),
             inline=True,
-            description="Extra Hindsight banks to recall from but never write to, searched after the write banks (comma-separated). A bank also in Additional banks stays writable.",
+            description="Extra ContextBase banks to recall from but never write to, searched after the write banks (comma-separated). A bank also in Additional banks stays writable.",
         ),
         ProviderField(
             key="trusted_project_dirs",
@@ -80,7 +82,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             kind=KIND_TEXT,
             default="",
             inline=True,
-            description="Folders whose git repositories may choose their own bank with a .hindsight/config.toml (comma-separated). Empty = repository config files are ignored.",
+            description="Folders whose git repositories may choose their own bank with a .contextbase/config.toml (comma-separated). Empty = repository config files are ignored.",
         ),
         ProviderField(
             key="recall_budget",

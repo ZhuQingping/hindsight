@@ -11,18 +11,18 @@ import (
 	"strings"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
@@ -31,26 +31,26 @@ func main() {
 
 	// [docs:create-bank]
 	client.BanksAPI.CreateOrUpdateBank(ctx, "my-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{}).Execute()
+		CreateBankRequest(contextbase.CreateBankRequest{}).Execute()
 	// [/docs:create-bank]
 
 	// [docs:bank-with-disposition]
 	client.BanksAPI.CreateOrUpdateBank(ctx, "architect-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{
-			ReflectMission: *hindsight.NewNullableString(hindsight.PtrString(
+		CreateBankRequest(contextbase.CreateBankRequest{
+			ReflectMission: *contextbase.NewNullableString(contextbase.PtrString(
 				"You're a senior software architect - keep track of system designs, " +
 					"technology decisions, and architectural patterns. Prefer simplicity over cutting-edge.",
 			)),
-			DispositionSkepticism: *hindsight.NewNullableInt32(hindsight.PtrInt32(4)),
-			DispositionLiteralism: *hindsight.NewNullableInt32(hindsight.PtrInt32(4)),
-			DispositionEmpathy:    *hindsight.NewNullableInt32(hindsight.PtrInt32(2)),
+			DispositionSkepticism: *contextbase.NewNullableInt32(contextbase.PtrInt32(4)),
+			DispositionLiteralism: *contextbase.NewNullableInt32(contextbase.PtrInt32(4)),
+			DispositionEmpathy:    *contextbase.NewNullableInt32(contextbase.PtrInt32(2)),
 		}).Execute()
 	// [/docs:bank-with-disposition]
 
 	// [docs:bank-background]
 	client.BanksAPI.CreateOrUpdateBank(ctx, "my-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{
-			ReflectMission: *hindsight.NewNullableString(hindsight.PtrString(
+		CreateBankRequest(contextbase.CreateBankRequest{
+			ReflectMission: *contextbase.NewNullableString(contextbase.PtrString(
 				"I am a research assistant specializing in machine learning.",
 			)),
 		}).Execute()
@@ -58,8 +58,8 @@ func main() {
 
 	// [docs:bank-mission]
 	client.BanksAPI.CreateOrUpdateBank(ctx, "my-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{
-			ReflectMission: *hindsight.NewNullableString(hindsight.PtrString(
+		CreateBankRequest(contextbase.CreateBankRequest{
+			ReflectMission: *contextbase.NewNullableString(contextbase.PtrString(
 				"You're a senior software architect - keep track of system designs, " +
 					"technology decisions, and architectural patterns.",
 			)),
@@ -68,9 +68,9 @@ func main() {
 
 	// [docs:bank-support-agent]
 	client.BanksAPI.CreateOrUpdateBank(ctx, "support-bank").
-		CreateBankRequest(hindsight.CreateBankRequest{}).Execute()
+		CreateBankRequest(contextbase.CreateBankRequest{}).Execute()
 	client.BanksAPI.UpdateBankConfig(ctx, "support-bank").
-		BankConfigUpdate(hindsight.BankConfigUpdate{
+		BankConfigUpdate(contextbase.BankConfigUpdate{
 			Updates: map[string]interface{}{
 				"observations_mission": "I am a customer support agent. Track customer preferences, " +
 					"recurring issues, and resolution history to provide consistent, personalized support.",
@@ -80,7 +80,7 @@ func main() {
 
 	// [docs:update-bank-config]
 	client.BanksAPI.UpdateBankConfig(ctx, "my-bank").
-		BankConfigUpdate(hindsight.BankConfigUpdate{
+		BankConfigUpdate(contextbase.BankConfigUpdate{
 			Updates: map[string]interface{}{
 				"retain_mission": "Always include technical decisions, API design choices, and architectural trade-offs. " +
 					"Ignore meeting logistics and social exchanges.",
@@ -125,10 +125,10 @@ func main() {
 	deleteBanks(transferBanks)
 	// Chunks mode stores text verbatim, so no LLM call is needed.
 	_, _, err := client.BanksAPI.CreateOrUpdateBank(ctx, "transfer-go").
-		CreateBankRequest(hindsight.CreateBankRequest{}).Execute()
+		CreateBankRequest(contextbase.CreateBankRequest{}).Execute()
 	must(err)
 	_, _, err = client.BanksAPI.UpdateBankConfig(ctx, "transfer-go").
-		BankConfigUpdate(hindsight.BankConfigUpdate{
+		BankConfigUpdate(contextbase.BankConfigUpdate{
 			Updates: map[string]interface{}{"retain_extraction_mode": "chunks"},
 		}).Execute()
 	must(err)
@@ -140,9 +140,9 @@ func main() {
 		panic(fmt.Sprintf("retain failed: %d", resp.StatusCode))
 	}
 	_, _, err = client.BanksAPI.CreateOrUpdateBank(ctx, "transfer-go-other").
-		CreateBankRequest(hindsight.CreateBankRequest{}).Execute()
+		CreateBankRequest(contextbase.CreateBankRequest{}).Execute()
 	must(err)
-	waitFor := func(bankID, operationID string) *hindsight.OperationStatusResponse {
+	waitFor := func(bankID, operationID string) *contextbase.OperationStatusResponse {
 		for i := 0; i < 120; i++ {
 			st, _, err := client.OperationsAPI.GetOperationStatus(ctx, bankID, operationID).Execute()
 			must(err)
@@ -164,7 +164,7 @@ func main() {
 
 	// [docs:prompts-preview]
 	preview, _, err := client.BanksAPI.PreviewPrompt(ctx, "my-bank").
-		PromptPreviewRequest(hindsight.PromptPreviewRequest{Operation: hindsight.PtrString("retain")}).
+		PromptPreviewRequest(contextbase.PromptPreviewRequest{Operation: contextbase.PtrString("retain")}).
 		Execute()
 	for _, message := range preview.Messages {
 		fmt.Println(message.Role, len(message.Blocks))
@@ -234,7 +234,7 @@ func main() {
 	export, _, err := client.DocumentTransferAPI.ExportDocuments(ctx, "transfer-go").Execute()
 
 	// 2. Poll until completed
-	var done *hindsight.OperationStatusResponse
+	var done *contextbase.OperationStatusResponse
 	for {
 		done, _, err = client.OperationsAPI.GetOperationStatus(ctx, "transfer-go", export.OperationId).Execute()
 		if err != nil || done.Status == "completed" || done.Status == "failed" {

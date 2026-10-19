@@ -352,7 +352,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-agentcore"
+name = "contextbase-agentcore"
 version = "0.1.2"
 source = { editable = "." }
 dependencies = [

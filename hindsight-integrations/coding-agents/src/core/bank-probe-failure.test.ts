@@ -23,12 +23,12 @@ describe("a git probe that could not complete", () => {
   beforeEach(() => {
     mockProbe.mockReturnValue({ status: "failed", reason: "EAGAIN" });
     diagDir = mkdtempSync(join(tmpdir(), "hs-diag-"));
-    process.env.AGENTSTRATUM_DIAG_FILE = join(diagDir, "diag.jsonl");
+    process.env.CONTEXTBASE_DIAG_FILE = join(diagDir, "diag.jsonl");
   });
 
   afterEach(() => {
     rmSync(diagDir, { recursive: true, force: true });
-    delete process.env.AGENTSTRATUM_DIAG_FILE;
+    delete process.env.CONTEXTBASE_DIAG_FILE;
     vi.clearAllMocks();
   });
 
@@ -38,7 +38,7 @@ describe("a git probe that could not complete", () => {
 
   it("skips the session instead, and says so in the diagnostics", () => {
     expect(deriveBankIdOrSkip({}, WORKTREE, "claude-code")).toBeNull();
-    const events = readFileSync(process.env.AGENTSTRATUM_DIAG_FILE as string, "utf8")
+    const events = readFileSync(process.env.CONTEXTBASE_DIAG_FILE as string, "utf8")
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line) as Record<string, unknown>);

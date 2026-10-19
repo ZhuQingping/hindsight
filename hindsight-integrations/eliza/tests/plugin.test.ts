@@ -1,7 +1,7 @@
 import type { IAgentRuntime, Memory, Provider, Evaluator } from "@elizaos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  createHindsightPlugin,
+  createContextBasePlugin,
   type HindsightClient,
   type RecallResponse,
   type RetainResponse,
@@ -42,19 +42,19 @@ function userMessage(text: string): Memory {
 
 const runtime = { agentId: AGENT_ID } as IAgentRuntime;
 
-function getProvider(plugin: ReturnType<typeof createHindsightPlugin>): Provider {
+function getProvider(plugin: ReturnType<typeof createContextBasePlugin>): Provider {
   const provider = plugin.providers?.[0];
   if (!provider) throw new Error("provider missing");
   return provider;
 }
 
-function getEvaluator(plugin: ReturnType<typeof createHindsightPlugin>): Evaluator {
+function getEvaluator(plugin: ReturnType<typeof createContextBasePlugin>): Evaluator {
   const evaluator = plugin.evaluators?.[0];
   if (!evaluator) throw new Error("evaluator missing");
   return evaluator;
 }
 
-describe("createHindsightPlugin", () => {
+describe("createContextBasePlugin", () => {
   let client: HindsightClient;
 
   beforeEach(() => {
@@ -62,15 +62,15 @@ describe("createHindsightPlugin", () => {
   });
 
   it("registers a recall provider and a retain evaluator by default", () => {
-    const plugin = createHindsightPlugin({ client });
+    const plugin = createContextBasePlugin({ client });
     expect(plugin.providers).toHaveLength(1);
     expect(plugin.evaluators).toHaveLength(1);
-    expect(getProvider(plugin).name).toBe("HINDSIGHT_MEMORY");
-    expect(getEvaluator(plugin).name).toBe("HINDSIGHT_RETAIN");
+    expect(getProvider(plugin).name).toBe("CONTEXTBASE_MEMORY");
+    expect(getEvaluator(plugin).name).toBe("CONTEXTBASE_RETAIN");
   });
 
   it("can disable both recall and retain", () => {
-    const plugin = createHindsightPlugin({
+    const plugin = createContextBasePlugin({
       client,
       recall: { enabled: false },
       retain: { enabled: false },
@@ -80,28 +80,28 @@ describe("createHindsightPlugin", () => {
   });
 
   it("can disable only recall, keeping the retain evaluator", () => {
-    const plugin = createHindsightPlugin({ client, recall: { enabled: false } });
+    const plugin = createContextBasePlugin({ client, recall: { enabled: false } });
     expect(plugin.providers).toHaveLength(0);
     expect(plugin.evaluators).toHaveLength(1);
-    expect(getEvaluator(plugin).name).toBe("HINDSIGHT_RETAIN");
+    expect(getEvaluator(plugin).name).toBe("CONTEXTBASE_RETAIN");
   });
 
   it("can disable only retain, keeping the recall provider", () => {
-    const plugin = createHindsightPlugin({ client, retain: { enabled: false } });
+    const plugin = createContextBasePlugin({ client, retain: { enabled: false } });
     expect(plugin.providers).toHaveLength(1);
     expect(plugin.evaluators).toHaveLength(0);
-    expect(getProvider(plugin).name).toBe("HINDSIGHT_MEMORY");
+    expect(getProvider(plugin).name).toBe("CONTEXTBASE_MEMORY");
   });
 
   it("carries the package name and description on the plugin", () => {
-    const plugin = createHindsightPlugin({ client });
-    expect(plugin.name).toBe("@vectorize-io/hindsight-eliza");
+    const plugin = createContextBasePlugin({ client });
+    expect(plugin.name).toBe("contextbase-eliza");
     expect(typeof plugin.description).toBe("string");
   });
 
   describe("recall provider", () => {
     it("recalls memories and formats them for the prompt", async () => {
-      const provider = getProvider(createHindsightPlugin({ client }));
+      const provider = getProvider(createContextBasePlugin({ client }));
       const result = await provider.get(runtime, userMessage("What theme do I like?"), {} as never);
 
       expect(client.recall).toHaveBeenCalledWith(
@@ -111,17 +111,17 @@ describe("createHindsightPlugin", () => {
       );
       expect(result.text).toContain("User prefers dark mode");
       expect(result.text).toContain("User lives in Berlin");
-      expect(result.values?.hindsightMemoryCount).toBe(2);
+      expect(result.values?.contextbaseMemoryCount).toBe(2);
     });
 
     it("defaults the bank to the message entityId but honours an override", async () => {
-      const provider = getProvider(createHindsightPlugin({ client, bank: "team-bank" }));
+      const provider = getProvider(createContextBasePlugin({ client, bank: "team-bank" }));
       await provider.get(runtime, userMessage("hi"), {} as never);
       expect(client.recall).toHaveBeenCalledWith("team-bank", "hi", expect.any(Object));
     });
 
     it("returns empty text for an empty message without calling recall", async () => {
-      const provider = getProvider(createHindsightPlugin({ client }));
+      const provider = getProvider(createContextBasePlugin({ client }));
       const result = await provider.get(runtime, userMessage("   "), {} as never);
       expect(client.recall).not.toHaveBeenCalled();
       expect(result.text).toBe("");
@@ -129,15 +129,15 @@ describe("createHindsightPlugin", () => {
 
     it("never throws when recall fails", async () => {
       (client.recall as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("down"));
-      const provider = getProvider(createHindsightPlugin({ client }));
+      const provider = getProvider(createContextBasePlugin({ client }));
       const result = await provider.get(runtime, userMessage("hello"), {} as never);
       expect(result.text).toBe("");
-      expect(result.data?.hindsightError).toBe("down");
+      expect(result.data?.contextbaseError).toBe("down");
     });
 
     it("passes recall options through to the client", async () => {
       const provider = getProvider(
-        createHindsightPlugin({
+        createContextBasePlugin({
           client,
           recall: { budget: "high", types: ["world"], includeEntities: true, maxTokens: 500 },
         })
@@ -154,7 +154,7 @@ describe("createHindsightPlugin", () => {
 
   describe("retain evaluator", () => {
     it("retains the incoming user message", async () => {
-      const evaluator = getEvaluator(createHindsightPlugin({ client, retain: { async: false } }));
+      const evaluator = getEvaluator(createContextBasePlugin({ client, retain: { async: false } }));
       const message = userMessage("Remember I like dark mode");
       await evaluator.handler(runtime, message, undefined, undefined, undefined, undefined);
       expect(client.retain).toHaveBeenCalledWith(USER_ID, "Remember I like dark mode", {
@@ -165,13 +165,13 @@ describe("createHindsightPlugin", () => {
     });
 
     it("validates only messages that have text", async () => {
-      const evaluator = getEvaluator(createHindsightPlugin({ client }));
+      const evaluator = getEvaluator(createContextBasePlugin({ client }));
       expect(await evaluator.validate(runtime, userMessage("hi"))).toBe(true);
       expect(await evaluator.validate(runtime, userMessage("  "))).toBe(false);
     });
 
     it("skips the agent's own message by default", async () => {
-      const evaluator = getEvaluator(createHindsightPlugin({ client, retain: { async: false } }));
+      const evaluator = getEvaluator(createContextBasePlugin({ client, retain: { async: false } }));
       const agentMsg = { ...userMessage("my reply"), entityId: AGENT_ID } as Memory;
       await evaluator.handler(runtime, agentMsg, undefined, undefined, undefined, undefined);
       expect(client.retain).not.toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe("createHindsightPlugin", () => {
 
     it("retains agent replies when includeAgentMessages is set", async () => {
       const evaluator = getEvaluator(
-        createHindsightPlugin({ client, retain: { async: false, includeAgentMessages: true } })
+        createContextBasePlugin({ client, retain: { async: false, includeAgentMessages: true } })
       );
       const message = userMessage("hello");
       const responses = [{ ...userMessage("agent answer"), entityId: AGENT_ID } as Memory];
@@ -190,7 +190,7 @@ describe("createHindsightPlugin", () => {
 
     it("does not reject the turn when retain fails (async mode)", async () => {
       (client.retain as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("boom"));
-      const evaluator = getEvaluator(createHindsightPlugin({ client }));
+      const evaluator = getEvaluator(createContextBasePlugin({ client }));
       await expect(
         evaluator.handler(runtime, userMessage("hi"), undefined, undefined, undefined, undefined)
       ).resolves.toBeUndefined();

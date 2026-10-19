@@ -23,7 +23,7 @@ const resources = {
 
 const localeSet = new Set<string>(locales);
 const localizedErrorFields = ["error", "message", "detail", "details"] as const;
-const localeCookieNames = ["NEXT_LOCALE", "agentstratum_cp_locale"] as const;
+const localeCookieNames = ["NEXT_LOCALE", "contextbase_cp_locale"] as const;
 
 const localeAliases: Partial<Record<string, Locale>> = {
   "zh-Hans": "zh-CN",

@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 
@@ -11,7 +12,7 @@ import {
 } from "@/lib/auth/session";
 
 export async function POST(request: NextRequest) {
-  const accessKey = process.env.HINDSIGHT_CP_ACCESS_KEY;
+  const accessKey = controlPlaneEnv("ACCESS_KEY");
 
   if (!authConfigured())
     return NextResponse.json({ error: "Protected UI is not configured" }, { status: 503 });

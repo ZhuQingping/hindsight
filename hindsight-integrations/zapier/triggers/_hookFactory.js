@@ -4,15 +4,15 @@ const crypto = require("crypto");
 const { baseUrl, enc } = require("../utils");
 
 /**
- * Builds a Zapier REST Hook trigger backed by Hindsight's webhook API.
+ * Builds a Zapier REST Hook trigger backed by ContextBase's webhook API.
  *
- * On subscribe we register a Hindsight webhook scoped to a single bank and
+ * On subscribe we register a ContextBase webhook scoped to a single bank and
  * event type, pointed at Zapier's per-Zap `targetUrl`, with a freshly generated
  * HMAC secret. On unsubscribe we delete it. Each inbound delivery's signature is
  * verified before the event reaches the Zap.
  *
- * Signature: Hindsight signs the raw delivery body and sends
- *   `X-Hindsight-Signature: sha256=<hex>` where `<hex>` is
+ * Signature: ContextBase signs the raw delivery body and sends
+ *   `X-ContextBase-Signature: sha256=<hex>` where `<hex>` is
  *   HMAC-SHA256(secret, rawBody). We recompute it over `bundle.rawRequest.content`
  *   (the body is sent byte-for-byte, so this matches) and reject on mismatch.
  *
@@ -64,7 +64,7 @@ const makeHookTrigger = ({ key, noun, label, description, eventType, sample }) =
       const raw = (bundle.rawRequest && bundle.rawRequest.content) || "";
       const got = getHeader(
         bundle.rawRequest && bundle.rawRequest.headers,
-        "X-Hindsight-Signature"
+        "X-ContextBase-Signature"
       );
       const expected = "sha256=" + crypto.createHmac("sha256", secret).update(raw).digest("hex");
       if (got !== expected) {

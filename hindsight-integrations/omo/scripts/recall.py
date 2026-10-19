@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Auto-recall hook for UserPromptSubmit.
 
-Fires before each user prompt. Queries Hindsight for relevant memories
+Fires before each user prompt. Queries ContextBase for relevant memories
 and injects them as additionalContext.
 
 Exit codes:
@@ -73,12 +73,12 @@ def main():
         debug_log(config, "Prompt too short for recall, skipping")
         return
 
-    api_url = config.get("hindsightApiUrl")
+    api_url = config.get("contextbaseApiUrl")
     if not api_url:
-        debug_log(config, "No hindsightApiUrl configured")
+        debug_log(config, "No contextbaseApiUrl configured")
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     if not api_token and "api.hindsight.vectorize.io" in api_url:
         return  # Cloud mode without token — silently skip
 
@@ -155,11 +155,11 @@ def main():
     current_time = format_current_time()
 
     context_message = (
-        f"<hindsight_memories>\n"
+        f"<contextbase_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</hindsight_memories>"
+        f"</contextbase_memories>"
     )
 
     write_state(

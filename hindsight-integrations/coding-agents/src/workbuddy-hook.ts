@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agentstratum-workbuddy-hook - the WorkBuddy entry point (a `UserPromptSubmit` hook).
+ * contextbase-workbuddy-hook - the WorkBuddy entry point (a `UserPromptSubmit` hook).
  *
  * Install (WorkBuddy, user scope): ~/.workbuddy/settings.json
  *   { "hooks": { "UserPromptSubmit": [ { "hooks": [

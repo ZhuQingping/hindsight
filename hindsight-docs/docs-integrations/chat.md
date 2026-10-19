@@ -1,25 +1,25 @@
 ---
 sidebar_position: 5
-title: "Vercel Chat SDK Persistent Memory with Hindsight | Integration"
+title: "Vercel Chat SDK Persistent Memory with ContextBase | Integration"
 description: "Give your Vercel Chat SDK bot persistent, per-user memory across Slack, Discord, Teams, and more. Single handler wrapper, no custom plumbing required."
 ---
 
 # Vercel Chat SDK
 
-We built `@vectorize-io/hindsight-chat` to give [Vercel Chat SDK](https://github.com/vercel/chat) bots persistent, per-user memory with a single handler wrapper. The integration works across Slack, Discord, Teams, Google Chat, GitHub, and Linear — no custom plumbing required.
+We built `contextbase-chat` to give [Vercel Chat SDK](https://github.com/vercel/chat) bots persistent, per-user memory with a single handler wrapper. The integration works across Slack, Discord, Teams, Google Chat, GitHub, and Linear — no custom plumbing required.
 
 [View Changelog →](/changelog/integrations/chat)
 
 ## Setup
 
-:::tip Hindsight Cloud (recommended)
-[Sign up free](https://ui.hindsight.vectorize.io) — get an API key instantly, no infrastructure to run. Self-hosting? See the [installation guide](/developer/installation).
+:::tip Configure your deployment
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ## Installation
 
 ```bash
-npm install @vectorize-io/hindsight-chat
+npm install contextbase-chat
 ```
 
 ## Quick Start
@@ -27,17 +27,17 @@ npm install @vectorize-io/hindsight-chat
 ```typescript
 import { Chat } from 'chat';
 import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { withHindsightChat } from '@vectorize-io/hindsight-chat';
+import { withContextBaseChat } from 'contextbase-chat';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 const chat = new Chat({ connectors: [/* your connectors */] });
-const hindsight = new HindsightClient({ apiKey: process.env.HINDSIGHT_API_KEY });
+const contextbase = new HindsightClient({ apiKey: process.env.CONTEXTBASE_API_KEY });
 
 chat.onNewMention(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId, // per-user memory
     },
     async (thread, message, ctx) => {
@@ -68,15 +68,15 @@ chat.onNewMention(
 
 ## Configuration
 
-### `withHindsightChat(options, handler)`
+### `withContextBaseChat(options, handler)`
 
-`withHindsightChat` wraps your existing Chat SDK handler and injects memory context automatically. It returns a standard handler `(thread, message) => Promise<void>` so it drops in without changing your handler signature.
+`withContextBaseChat` wraps your existing Chat SDK handler and injects memory context automatically. It returns a standard handler `(thread, message) => Promise<void>` so it drops in without changing your handler signature.
 
 #### Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `client` | `HindsightClient` | *required* | Hindsight client instance |
+| `client` | `HindsightClient` | *required* | ContextBase client instance |
 | `bankId` | `string \| (msg) => string` | *required* | Memory bank ID or resolver function |
 | `recall.enabled` | `boolean` | `true` | Auto-recall memories before handler |
 | `recall.budget` | `'low' \| 'mid' \| 'high'` | `'mid'` | Processing budget for recall |
@@ -90,7 +90,7 @@ chat.onNewMention(
 
 ### Context (`ctx`)
 
-We inject a third `ctx` argument into your handler that exposes the full Hindsight memory API scoped to the current user's bank:
+We inject a third `ctx` argument into your handler that exposes the full ContextBase memory API scoped to the current user's bank:
 
 | Property/Method | Description |
 |----------------|-------------|
@@ -108,9 +108,9 @@ We inject a third `ctx` argument into your handler that exposes the full Hindsig
 
 ```typescript
 chat.onSubscribedMessage(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId,
       recall: { budget: 'high', maxTokens: 1000 },
     },
@@ -130,9 +130,9 @@ chat.onSubscribedMessage(
 
 ```typescript
 chat.onNewMention(
-  withHindsightChat(
+  withContextBaseChat(
     {
-      client: hindsight,
+      client: contextbase,
       bankId: (msg) => msg.author.userId,
       retain: { enabled: true, tags: ['slack', 'inbound'] },
     },
@@ -159,8 +159,8 @@ chat.onNewMention(
 ```typescript
 // All users share the same memory bank
 chat.onNewMention(
-  withHindsightChat(
-    { client: hindsight, bankId: 'shared-team-memory' },
+  withContextBaseChat(
+    { client: contextbase, bankId: 'shared-team-memory' },
     async (thread, message, ctx) => {
       // ...
     }

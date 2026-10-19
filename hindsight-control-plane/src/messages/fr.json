@@ -343,7 +343,7 @@
   "bankConfig": {
     "noBankSelected": "Aucune banque sélectionnée",
     "apiDisabledTitle": "L'API de configuration de banque n'est pas activée",
-    "apiDisabledDescription": "Définissez <code>HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true</code> sur le serveur pour activer la configuration par banque.",
+    "apiDisabledDescription": "Définissez <code>CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=true</code> sur le serveur pour activer la configuration par banque.",
     "resetToInherited": "Réinitialiser à la valeur héritée",
     "failedToReset": "Échec de la réinitialisation",
     "overrideBadge": "Remplacement par la banque",
@@ -1856,7 +1856,7 @@
     "factTypeMemory": "Souvenir"
   },
   "metadata": {
-    "title": "AgentStratum · 元壤",
+    "title": "ContextBase · 元壤",
     "description": "Moteur de données et de mémoire pour les agents."
   },
   "addDocument": {
@@ -1922,7 +1922,7 @@
     "addDocumentToCurrentBank": "Ajouter un document à la banque actuelle",
     "templateManifestHelp": "Collez un manifeste de modèle JSON pour préconfigurer la banque avec des paramètres, des modèles mentaux et des directives.",
     "fileUploadDisabledMessage": "Le téléversement de fichiers n'est pas activé sur ce serveur.",
-    "fileUploadEnableHint": "Pour activer, définissez <code>HINDSIGHT_API_ENABLE_FILE_UPLOAD_API=true</code>",
+    "fileUploadEnableHint": "Pour activer, définissez <code>CONTEXTBASE_API_ENABLE_FILE_UPLOAD_API=true</code>",
     "fileTagsHelp": "Séparés par des virgules — utilisés pour filtrer les mémoires lors de Recall/Reflect",
     "strategyHelpText": "Remplace la stratégie d'extraction par défaut de la banque pour ce document.",
     "observationScopePerTag": "Par tag",
@@ -1952,7 +1952,7 @@
   "banksOverview": {
     "title": "Toutes les banques de mémoire",
     "subtitle": "Choisissez une banque pour consulter ses documents, mémoires, connaissances et activités.",
-    "welcomeTitle": "Bienvenue sur AgentStratum · 元壤",
+    "welcomeTitle": "Bienvenue sur ContextBase · 元壤",
     "welcomeBody": "Créez une banque pour accumuler une mémoire et des connaissances traçables pour les agents.",
     "search": "Rechercher des banques...",
     "noSearchResults": "Aucune banque ne correspond à votre recherche.",
@@ -1980,7 +1980,7 @@
     "bulkDeleteFailures": "Ces banques n'ont pas pu être supprimées :"
   },
   "login": {
-    "title": "Connexion à AgentStratum · 元壤",
+    "title": "Connexion à ContextBase · 元壤",
     "description": "Saisissez le mot de passe pour ouvrir l’espace de données et de mémoire.",
     "accessKey": "Mot de passe d’accès",
     "accessKeyPlaceholder": "Saisissez le mot de passe d’accès",
@@ -2286,7 +2286,7 @@
   },
   "resourcePages": {
     "backToBanks": "← Toutes les banques de mémoire",
-    "guideTitle": "Utiliser AgentStratum",
+    "guideTitle": "Utiliser ContextBase",
     "guideIntro": "Suivez les sources jusqu’à la mémoire, la recherche, le raisonnement et la maintenance. Ces liens ouvrent la banque sélectionnée.",
     "guideSourcesTitle": "Ajouter des sources",
     "guideSourcesBody": "Ajoutez du texte ou importez des documents, puis vérifiez le traitement avant d’utiliser la mémoire dérivée.",

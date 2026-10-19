@@ -6,12 +6,12 @@ sidebar_position: 8
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/go-memory-service)
 :::
 
 
-A Go HTTP microservice demonstrating per-user memory isolation with Hindsight. Remembers each user's tech stack, problems solved, and preferences to provide personalized assistance.
+A Go HTTP microservice demonstrating per-user memory isolation with ContextBase. Remembers each user's tech stack, problems solved, and preferences to provide personalized assistance.
 
 ## Features
 
@@ -22,16 +22,18 @@ A Go HTTP microservice demonstrating per-user memory isolation with Hindsight. R
 
 ## Setup
 
-### 1. Start Hindsight
+### 1. Start ContextBase
 
 ```bash
 export OPENAI_API_KEY=your-key
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ### 2. Run the service
@@ -84,10 +86,10 @@ go func() {
     bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
-    retainReq := hindsight.RetainRequest{
-        Items: []hindsight.MemoryItem{{
+    retainReq := contextbase.RetainRequest{
+        Items: []contextbase.MemoryItem{{
             Content: interaction,
-            Context: *hindsight.NewNullableString(hindsight.PtrString("Q&A interaction")),
+            Context: *contextbase.NewNullableString(contextbase.PtrString("Q&A interaction")),
         }},
     }
     client.MemoryAPI.RetainMemories(bgCtx, bankID).RetainRequest(retainReq).Execute()
@@ -98,5 +100,5 @@ go func() {
 
 ## Learn More
 
-- [Go SDK Documentation](https://hindsight.vectorize.io/sdks/go)
-- [Hindsight Documentation](https://hindsight.vectorize.io)
+- [Go SDK Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
+- [ContextBase Documentation](https://github.com/RSIXDB/hindsight)

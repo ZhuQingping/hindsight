@@ -19,14 +19,14 @@ afterEach(() => {
 describe("journalPath", () => {
   it("keeps each session in its own file, beside the session cache", () => {
     expect(journalPath("zcode", "sess-1")).toBe(
-      join(tmpdir(), "agentstratum-zcode", "sess-1.journal.jsonl")
+      join(tmpdir(), "contextbase-zcode", "sess-1.journal.jsonl")
     );
     expect(journalPath("zcode", "sess-2")).not.toBe(journalPath("zcode", "sess-1"));
   });
 
   it("falls back to a fixed name when the host sent no session id", () => {
     expect(journalPath("zcode", undefined)).toBe(
-      join(tmpdir(), "agentstratum-zcode", "no-session.journal.jsonl")
+      join(tmpdir(), "contextbase-zcode", "no-session.journal.jsonl")
     );
   });
 });
@@ -78,7 +78,7 @@ describe("appendJournalTurn", () => {
   it("strips injected memory before it can be written back", () => {
     appendJournalTurn(file, {
       role: "assistant",
-      content: "done <agentstratum_memories>recalled fact</agentstratum_memories>",
+      content: "done <contextbase_memories>recalled fact</contextbase_memories>",
     });
     expect(readJournalTranscript(file)).toEqual([
       expect.objectContaining({ role: "assistant", content: "done" }),

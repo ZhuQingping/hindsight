@@ -4,7 +4,7 @@
  * Run: node examples/api/bank-templates.mjs
  */
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Doc Examples
@@ -36,7 +36,7 @@ const template = {
 };
 
 const importResponse = await fetch(
-  `${HINDSIGHT_URL}/v1/default/banks/my-bank/import`,
+  `${CONTEXTBASE_URL}/v1/default/banks/my-bank/import`,
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -52,7 +52,7 @@ console.log('Directives created:', result.directives_created);
 
 // [docs:import-dry-run]
 const dryRunResponse = await fetch(
-  `${HINDSIGHT_URL}/v1/default/banks/my-bank/import?dry_run=true`,
+  `${CONTEXTBASE_URL}/v1/default/banks/my-bank/import?dry_run=true`,
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ console.log('Would apply config:', dryRunResult.config_applied);
 
 // [docs:export-template]
 const exportResponse = await fetch(
-  `${HINDSIGHT_URL}/v1/default/banks/my-bank/export`,
+  `${CONTEXTBASE_URL}/v1/default/banks/my-bank/export`,
 );
 const exported = await exportResponse.json();
 console.log(JSON.stringify(exported, null, 2));
@@ -77,12 +77,12 @@ console.log(JSON.stringify(exported, null, 2));
 // [docs:export-reimport]
 // Export from source bank
 const srcResponse = await fetch(
-  `${HINDSIGHT_URL}/v1/default/banks/source-bank/export`,
+  `${CONTEXTBASE_URL}/v1/default/banks/source-bank/export`,
 );
 const srcExported = await srcResponse.json();
 
 // Import into a new bank
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/new-bank/import`, {
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/new-bank/import`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(srcExported),
@@ -92,7 +92,7 @@ await fetch(`${HINDSIGHT_URL}/v1/default/banks/new-bank/import`, {
 
 // [docs:get-schema]
 const schemaResponse = await fetch(
-  `${HINDSIGHT_URL}/v1/bank-template-schema`,
+  `${CONTEXTBASE_URL}/v1/bank-template-schema`,
 );
 const schema = await schemaResponse.json();
 console.log(JSON.stringify(schema, null, 2));

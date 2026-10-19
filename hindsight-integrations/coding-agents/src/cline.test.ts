@@ -13,7 +13,7 @@ describe("Cline native plugin adapter", () => {
     const onPrompt = vi.fn(async () => {});
     const core = {
       onPrompt,
-      getInjection: vi.fn(() => "<agentstratum_memories>remember this</agentstratum_memories>"),
+      getInjection: vi.fn(() => "<contextbase_memories>remember this</contextbase_memories>"),
       onTranscript: vi.fn(async () => {}),
     };
     const hooks = createClineHooks(core as never, "session-1");
@@ -28,9 +28,9 @@ describe("Cline native plugin adapter", () => {
     expect(first?.messages.at(-1)).toMatchObject({
       role: "user",
       content: [
-        { type: "text", text: "<agentstratum_memories>remember this</agentstratum_memories>" },
+        { type: "text", text: "<contextbase_memories>remember this</contextbase_memories>" },
       ],
-      metadata: { agentstratum_coding_agents_injection: true },
+      metadata: { contextbase_coding_agents_injection: true },
     });
     expect(second?.messages).toHaveLength(2);
   });

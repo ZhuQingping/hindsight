@@ -1,25 +1,27 @@
-# hindsight-ag2
+# contextbase-ag2
 
-AG2 integration for [Hindsight](https://github.com/vectorize-io/hindsight) — persistent long-term memory for AI agents.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
-Provides Hindsight-backed tool functions that give [AG2](https://ag2.ai) agents long-term memory across conversations via retain/recall/reflect operations.
+AG2 integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+
+Provides ContextBase-backed tool functions that give [AG2](https://ag2.ai) agents long-term memory across conversations via retain/recall/reflect operations.
 
 ## Prerequisites
 
 - Python 3.10+
-- Running Hindsight instance ([quickstart](https://github.com/vectorize-io/hindsight#quick-start))
+- Running ContextBase instance ([quickstart](https://github.com/RSIXDB/hindsight#quick-start))
 
 ## Installation
 
 ```bash
-pip install hindsight-ag2
+pip install contextbase-ag2
 ```
 
 ## Quick Start
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent, LLMConfig
-from hindsight_ag2 import register_hindsight_tools
+from contextbase_ag2 import register_contextbase_tools
 
 llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini")
 
@@ -33,14 +35,15 @@ with llm_config:
         human_input_mode="NEVER",
     )
 
-# Register Hindsight memory tools on both agents
-register_hindsight_tools(
-    assistant, user_proxy,
+# Register ContextBase memory tools on both agents
+register_contextbase_tools(
+    assistant,
+    user_proxy,
     bank_id="my-bank",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 
-# The assistant can now use hindsight_retain, hindsight_recall, hindsight_reflect
+# The assistant can now use contextbase_retain, contextbase_recall, contextbase_reflect
 result = user_proxy.initiate_chat(
     assistant,
     message="Remember that I prefer Python over JavaScript.",
@@ -51,35 +54,35 @@ result = user_proxy.initiate_chat(
 
 | Tool | Operation | Description |
 |------|-----------|-------------|
-| `hindsight_retain` | Retain | Store facts, preferences, decisions to long-term memory |
-| `hindsight_recall` | Recall | Multi-strategy search across stored memories |
-| `hindsight_reflect` | Reflect | Synthesize reasoned answers from memories |
+| `contextbase_retain` | Retain | Store facts, preferences, decisions to long-term memory |
+| `contextbase_recall` | Recall | Multi-strategy search across stored memories |
+| `contextbase_reflect` | Reflect | Synthesize reasoned answers from memories |
 
 ## Configuration
 
 ### Global config
 
 ```python
-from hindsight_ag2 import configure
+from contextbase_ag2 import configure
 
 configure(
-    hindsight_api_url="http://localhost:8888",
-    api_key="your-key",       # or set HINDSIGHT_API_KEY env var
-    budget="mid",              # low / mid / high
+    contextbase_api_url="http://localhost:8888",
+    api_key="your-key",  # or set CONTEXTBASE_API_KEY env var
+    budget="mid",  # low / mid / high
     max_tokens=4096,
-    tags=["source:ag2"],       # default tags for retain
+    tags=["source:ag2"],  # default tags for retain
 )
 ```
 
 ### Per-call overrides
 
-All global settings can be overridden per `create_hindsight_tools()` call:
+All global settings can be overridden per `create_contextbase_tools()` call:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `bank_id` | Memory bank ID (required) | — |
 | `client` | Pre-configured `Hindsight` client | — |
-| `hindsight_api_url` | API URL | Global config or production |
+| `contextbase_api_url` | API URL | Global config or production |
 | `api_key` | API key | Global config or env var |
 | `budget` | Recall/reflect budget | `"mid"` |
 | `max_tokens` | Max tokens for recall | `4096` |
@@ -99,11 +102,11 @@ All global settings can be overridden per `create_hindsight_tools()` call:
 ## Advanced: Manual Registration
 
 ```python
-from hindsight_ag2 import create_hindsight_tools
+from contextbase_ag2 import create_contextbase_tools
 
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="my-bank",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 for tool_fn in tools:
     assistant.register_for_llm(description=tool_fn.__doc__)(tool_fn)
@@ -114,7 +117,7 @@ for tool_fn in tools:
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager, LLMConfig
-from hindsight_ag2 import register_hindsight_tools
+from contextbase_ag2 import register_contextbase_tools
 
 llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini")
 
@@ -125,7 +128,7 @@ with llm_config:
 
 # All agents share the same memory bank
 for agent in [researcher, writer]:
-    register_hindsight_tools(agent, executor, bank_id="team-memory")
+    register_contextbase_tools(agent, executor, bank_id="team-memory")
 
 group_chat = GroupChat(agents=[researcher, writer, executor], messages=[])
 manager = GroupChatManager(groupchat=group_chat)
@@ -138,6 +141,6 @@ manager = GroupChatManager(groupchat=group_chat)
 
 ## Documentation
 
-- [Hindsight Documentation](https://hindsight.docs.vectorize.io)
+- [ContextBase Documentation](https://hindsight.docs.vectorize.io)
 - [AG2 Documentation](https://docs.ag2.ai)
 - [API Reference](https://hindsight.docs.vectorize.io/api)

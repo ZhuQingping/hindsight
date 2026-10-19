@@ -1,4 +1,4 @@
-"""`hermes memory setup` wizard for the Hindsight provider (``post_setup``)."""
+"""`hermes memory setup` wizard for the ContextBase provider (``post_setup``)."""
 
 from __future__ import annotations
 
@@ -24,11 +24,11 @@ from .settings import (
 
 _MODE_VALUES = ["cloud", "local_embedded", "local_external"]
 _MODE_ITEMS = [
-    ("Cloud", "Hindsight Cloud API (lightweight, just needs an API key)"),
+    ("Cloud", "Remote ContextBase API (requires your service URL and credentials)"),
     # Measured from the resolved wheel set: 482 MB on macOS arm64, 3.2 GB on Linux x86_64
     # (the CUDA wheels torch pulls there). "~200MB" was wrong by 1.5x / 16x.
-    ("Local Embedded", "Run Hindsight locally (downloads 0.5-3 GB, needs LLM key)"),
-    ("Local External", "Connect to an existing Hindsight instance"),
+    ("Local Embedded", "Run ContextBase locally (downloads 0.5-3 GB, needs LLM key)"),
+    ("Local External", "Connect to an existing ContextBase instance"),
 ]
 
 
@@ -81,7 +81,7 @@ def _prompt_embedded_llm(llm_provider: str, provider_config: dict, env_writes: d
     val = input(f"  LLM model [{current_model}]: ").strip()
     provider_config["llm_model"] = val or current_model
     llm_key = _secret_prompt("  LLM API key: ")
-    env_writes["HINDSIGHT_LLM_API_KEY"] = llm_key or _load_simple_env(hermes_env).get("HINDSIGHT_LLM_API_KEY", "")
+    env_writes["CONTEXTBASE_LLM_API_KEY"] = llm_key or _load_simple_env(hermes_env).get("CONTEXTBASE_LLM_API_KEY", "")
 
 
 def _check_mode_dependencies(mode: str) -> None:
@@ -89,7 +89,7 @@ def _check_mode_dependencies(mode: str) -> None:
 
     There is nothing to install here any more. Every mode needs only ``hindsight-client`` plus,
     for local_embedded, ``hindsight-embed`` — both declared in this plugin's ``pyproject.toml``
-    and installed with the plugin. The Hindsight server is no longer a dependency of this venv:
+    and installed with the plugin. The ContextBase server is no longer a dependency of this venv:
     local_embedded starts it as a separate process (an installed ``hindsight-api`` binary, else
     ``uvx hindsight-api``), which is what makes the mode installable on package-manager Hermes at
     all — ``hindsight-all`` cannot resolve against Hermes' pinned extras.
@@ -102,7 +102,7 @@ def _check_mode_dependencies(mode: str) -> None:
     status = _check_local_runtime()
     if status.available:
         print("  ✓ Dependencies up to date")
-        print("  The Hindsight server runs as a separate process; first use downloads it if needed.")
+        print("  The ContextBase server runs as a separate process; first use downloads it if needed.")
         return
     print(f"  ⚠ Missing from this environment: {status.reason}")
     print(f" {_local_runtime_hint(status.reason).strip()}")
@@ -114,7 +114,7 @@ def run_setup(provider, hermes_home: str, config: dict) -> None:
 
     from . import _load_config
 
-    print("\n  Configuring Hindsight memory:\n")
+    print("\n  Configuring ContextBase memory:\n")
 
     existing_config = provider._config if isinstance(provider._config, dict) else _load_config()
     if not isinstance(existing_config, dict):
@@ -141,33 +141,36 @@ def run_setup(provider, hermes_home: str, config: dict) -> None:
     _check_mode_dependencies(mode)
 
     if mode == "cloud":
-        print("\n  Get your API key at https://ui.hindsight.vectorize.io\n")
-        existing_key = get_secret("HINDSIGHT_API_KEY", "") or ""
+        print("\n  Use the API key issued by your ContextBase deployment.")
+        existing_key = get_secret("CONTEXTBASE_API_KEY", "") or ""
         masked = f"...{existing_key[-4:]}" if len(existing_key) > 4 else "set"
         api_key = _secret_prompt(f"  API key (current: {masked}, blank to keep): " if existing_key else "  API key: ")
         if api_key:
-            env_writes["HINDSIGHT_API_KEY"] = api_key
-        if val := input(f"  API URL [{_DEFAULT_API_URL}]: ").strip():
-            provider_config["api_url"] = val
+            env_writes["CONTEXTBASE_API_KEY"] = api_key
+        current_url = provider_config.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
+        val = input(f"  API URL (required) [{current_url}]: ").strip() or current_url
+        if not val:
+            raise ValueError("A ContextBase API URL is required.")
+        provider_config["api_url"] = val
     elif mode == "local_external":
-        val = input(f"  Hindsight API URL [{_DEFAULT_LOCAL_URL}]: ").strip()
+        val = input(f"  ContextBase API URL [{_DEFAULT_LOCAL_URL}]: ").strip()
         provider_config["api_url"] = val or _DEFAULT_LOCAL_URL
         if api_key := _secret_prompt("  API key (optional, blank to skip): "):
-            env_writes["HINDSIGHT_API_KEY"] = api_key
+            env_writes["CONTEXTBASE_API_KEY"] = api_key
     else:
         _prompt_embedded_llm(llm_provider, provider_config, env_writes, hermes_env)
 
     provider_config.setdefault("bank_id", "hermes")
     provider_config.setdefault("recall_budget", "mid")
     # Preserve explicit 0 timeouts instead of treating them as blank.
-    timeouts = [("timeout", "HINDSIGHT_TIMEOUT", _DEFAULT_TIMEOUT)]
+    timeouts = [("timeout", "CONTEXTBASE_TIMEOUT", _DEFAULT_TIMEOUT)]
     if mode == "local_embedded":
-        timeouts.append(("idle_timeout", "HINDSIGHT_IDLE_TIMEOUT", _DEFAULT_IDLE_TIMEOUT))
+        timeouts.append(("idle_timeout", "CONTEXTBASE_IDLE_TIMEOUT", _DEFAULT_IDLE_TIMEOUT))
     for key, env_key, default in timeouts:
         value = provider_config.get(key)
         provider_config[key] = value = default if value is None else value
         env_writes[env_key] = str(value)
-    config["memory"]["provider"] = "hindsight"
+    config["memory"]["provider"] = "contextbase"
     save_config(config)
     provider.save_config(provider_config, hermes_home)
     if env_writes:
@@ -182,7 +185,7 @@ def run_setup(provider, hermes_home: str, config: dict) -> None:
         _hs_templates.run_template_step(
             api_url=provider_config.get("api_url") or default_url,
             bank_id=provider_config.get("bank_id", "hermes"),
-            api_key=env_writes.get("HINDSIGHT_API_KEY") or os.environ.get("HINDSIGHT_API_KEY", "") or None,
+            api_key=env_writes.get("CONTEXTBASE_API_KEY") or os.environ.get("CONTEXTBASE_API_KEY", "") or None,
             select=_curses_select,
             cancelled=_CANCELLED,
         )
@@ -191,16 +194,16 @@ def run_setup(provider, hermes_home: str, config: dict) -> None:
         materialized_config = dict(provider_config)
         with contextlib.suppress(Exception):
             materialized_config = json.loads(
-                (Path(hermes_home) / "hindsight" / "config.json").read_text(encoding="utf-8-sig")
+                (Path(hermes_home) / "contextbase" / "config.json").read_text(encoding="utf-8-sig")
             )
         llm_api_key = (
-            env_writes.get("HINDSIGHT_LLM_API_KEY", "")
-            or _load_simple_env(hermes_env).get("HINDSIGHT_LLM_API_KEY", "")
-            or _load_simple_env(_embedded_profile_env_path(materialized_config)).get("HINDSIGHT_API_LLM_API_KEY", "")
+            env_writes.get("CONTEXTBASE_LLM_API_KEY", "")
+            or _load_simple_env(hermes_env).get("CONTEXTBASE_LLM_API_KEY", "")
+            or _load_simple_env(_embedded_profile_env_path(materialized_config)).get("CONTEXTBASE_API_LLM_API_KEY", "")
         )
         _materialize_embedded_profile_env(materialized_config, llm_api_key=llm_api_key or None)
 
-    print(f"\n  ✓ Hindsight memory configured ({mode} mode)")
+    print(f"\n  ✓ ContextBase memory configured ({mode} mode)")
     if env_writes:
         print("  API keys saved to .env")
     print("\n  Start a new session to activate.\n")

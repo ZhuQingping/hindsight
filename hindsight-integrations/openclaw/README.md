@@ -1,24 +1,26 @@
-# Hindsight Memory Plugin for OpenClaw
+# ContextBase Memory Plugin for OpenClaw
 
-Biomimetic long-term memory for [OpenClaw](https://openclaw.ai) using [Hindsight](https://vectorize.io/hindsight). Automatically captures conversations and intelligently recalls relevant context.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+Biomimetic long-term memory for [OpenClaw](https://openclaw.ai) using [ContextBase](https://github.com/RSIXDB/hindsight). Automatically captures conversations and intelligently recalls relevant context.
 
 ## Quick Start
 
 ```bash
 # 1. Install the plugin
-openclaw plugins install @vectorize-io/hindsight-openclaw
+openclaw plugins install contextbase-openclaw
 
 # 2. Run the interactive setup wizard
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-setup
+npx --package contextbase-openclaw contextbase-openclaw-setup
 
 # 3. Start OpenClaw
 openclaw gateway
 ```
 
-`hindsight-openclaw-setup` walks you through picking one of three modes:
+`contextbase-openclaw-setup` walks you through picking one of three modes:
 
-- **Cloud** — managed Hindsight. Paste your cloud API token, done.
-- **External API** — your own running Hindsight deployment. Prompts for the URL and optional token.
+- **Cloud** — managed ContextBase. Paste your cloud API token, done.
+- **External API** — your own running ContextBase deployment. Prompts for the URL and optional token.
 - **Embedded daemon** — spawns a local `hindsight-embed` daemon on this machine. Prompts for the LLM provider (OpenAI / Anthropic / Gemini / Groq / Claude Code / Codex / Ollama) and its API key.
 
 The interactive wizard stores credentials **inline** in `openclaw.json` for simplicity — the value is masked as you paste it. For CI / production you can store credentials as a `SecretRef` (resolved from an env var, file, or exec source at startup) by using the non-interactive flags with `--token-env` / `--api-key-env`, or by switching an existing field afterwards with `openclaw config set ... --ref-source env --ref-id …`.
@@ -29,17 +31,17 @@ The wizard is a convenience wrapper — all of the same fields can be set direct
 
 ```bash
 # Embedded daemon with OpenAI
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai
-openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey \
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai
+openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
     --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
 
 # Or: Claude Code (no API key needed)
-openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider claude-code
+openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider claude-code
 
-# Or: point at an external Hindsight API
-openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiUrl https://mcp.hindsight.example.com
-openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken \
-    --ref-source env --ref-id HINDSIGHT_API_TOKEN
+# Or: point at an external ContextBase API
+openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiUrl https://mcp.hindsight.example.com
+openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken \
+    --ref-source env --ref-id CONTEXTBASE_API_TOKEN
 ```
 
 ## Migrating from 0.5.x
@@ -50,14 +52,14 @@ previously came from shell env vars must now go through OpenClaw's plugin config
 
 | Old (0.5.x)                              | New (0.6.0)                                                                                                                                                                                                |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY=…` (auto-detected)       | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider openai` <br> `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
-| `HINDSIGHT_API_LLM_PROVIDER=…`           | `openclaw config set plugins.entries.hindsight-openclaw.config.llmProvider …`                                                                                                                              |
-| `HINDSIGHT_API_LLM_MODEL=…`              | `openclaw config set plugins.entries.hindsight-openclaw.config.llmModel …`                                                                                                                                 |
-| `HINDSIGHT_API_LLM_API_KEY=…`            | `openclaw config set plugins.entries.hindsight-openclaw.config.llmApiKey --ref-source env --ref-id …`                                                                                                      |
-| `HINDSIGHT_API_LLM_BASE_URL=…`           | `openclaw config set plugins.entries.hindsight-openclaw.config.llmBaseUrl …`                                                                                                                               |
-| `HINDSIGHT_EMBED_API_URL=…`              | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiUrl …`                                                                                                                          |
-| `HINDSIGHT_EMBED_API_TOKEN=…`            | `openclaw config set plugins.entries.hindsight-openclaw.config.hindsightApiToken --ref-source env --ref-id …`                                                                                              |
-| `HINDSIGHT_BANK_ID=…`                    | `openclaw config set plugins.entries.hindsight-openclaw.config.bankId …`                                                                                                                                   |
+| `OPENAI_API_KEY=…` (auto-detected)       | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai` <br> `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
+| `CONTEXTBASE_API_LLM_PROVIDER=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider …`                                                                                                                              |
+| `CONTEXTBASE_API_LLM_MODEL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.llmModel …`                                                                                                                                 |
+| `CONTEXTBASE_API_LLM_API_KEY=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id …`                                                                                                      |
+| `CONTEXTBASE_API_LLM_BASE_URL=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmBaseUrl …`                                                                                                                               |
+| `CONTEXTBASE_EMBED_API_URL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiUrl …`                                                                                                                          |
+| `CONTEXTBASE_EMBED_API_TOKEN=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken --ref-source env --ref-id …`                                                                                              |
+| `CONTEXTBASE_BANK_ID=…`                    | `openclaw config set plugins.entries.contextbase-openclaw.config.bankId …`                                                                                                                                   |
 | `llmApiKeyEnv: "MY_KEY"` (plugin config) | `llmApiKey` configured as a SecretRef with `--ref-id MY_KEY`                                                                                                                                               |
 
 If your shell already exports `OPENAI_API_KEY`, the SecretRef config above resolves
@@ -69,16 +71,16 @@ to confirm the new shape parses cleanly.
 
 - **Auto-capture** and **auto-recall** of memories each turn, injected into system prompt space so recalled memories stay out of the visible chat transcript
 - **Memory isolation** — configurable per agent, channel, user, or provider via `dynamicBankGranularity`
-- **Historical backfill CLI** — import prior OpenClaw session history into Hindsight using the active plugin bank-routing config by default
+- **Historical backfill CLI** — import prior OpenClaw session history into ContextBase using the active plugin bank-routing config by default
 - **Retention controls** — choose which message roles to retain, toggle auto-retain on/off, and stamp retained documents with consistent tags/source metadata
 
 ## Configuration
 
-Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.hindsight-openclaw.config`:
+Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.contextbase-openclaw.config`:
 
 | Option                     | Default                        | Description                                                                                                                                                                                                                                                                                                      |
 | -------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apiPort`                  | `9077`                         | Port for the local Hindsight daemon                                                                                                                                                                                                                                                                              |
+| `apiPort`                  | `9077`                         | Port for the local ContextBase daemon                                                                                                                                                                                                                                                                              |
 | `embedPort`                | `0`                            | Port for `hindsight-embed` server (`0` = auto-assign)                                                                                                                                                                                                                                                            |
 | `embedVersion`             | `"latest"`                     | hindsight-embed version                                                                                                                                                                                                                                                                                          |
 | `embedPackagePath`         | —                              | Local path to `hindsight-embed` package for development                                                                                                                                                                                                                                                          |
@@ -92,7 +94,7 @@ Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.hindsigh
 | `dispositionLiteralism`    | —                              | Reflect literalism trait (`1`–`5`) stamped on first bank use.                                                                                                                                                                                                                                                    |
 | `dispositionEmpathy`       | —                              | Reflect empathy trait (`1`–`5`) stamped on first bank use.                                                                                                                                                                                                                                                       |
 | `entityLabels`             | —                              | Controlled vocabulary for entity labels. Either a list of attribute defs (see example below) or a `{ "attributes": [...] }` object — other shapes are ignored. Passed through to `PATCH /banks/{id}/config` as `entity_labels` on first bank use.                                                                |
-| `llmProvider`              | —                              | LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `hindsightApiUrl` is set.                                                                                                                                                 |
+| `llmProvider`              | —                              | LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `contextbaseApiUrl` is set.                                                                                                                                                 |
 | `llmModel`                 | provider default               | LLM model used with `llmProvider`                                                                                                                                                                                                                                                                                |
 | `llmApiKey`                | —                              | API key for the LLM provider. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY` to reference an env var (or `--ref-source file`/`exec` for mounted-secret/Vault sources).                                                                                               |
 | `llmBaseUrl`               | —                              | Optional base URL override for OpenAI-compatible providers (e.g. `https://openrouter.ai/api/v1`)                                                                                                                                                                                                                 |
@@ -100,9 +102,9 @@ Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.hindsigh
 | `bankId`                   | —                              | Static bank ID used when `dynamicBankId` is `false`.                                                                                                                                                                                                                                                             |
 | `bankIdPrefix`             | —                              | Prefix for bank IDs (e.g. `"prod"`)                                                                                                                                                                                                                                                                              |
 | `agentBankMap`             | —                              | Explicit `agentId` → `bankId` routing, checked before static/dynamic derivation. Lets a group of agents share one named bank while others keep derived banks (e.g. `{"inbound": "ps-technology", "limpieza": "ps-limpieza"}`). Mapped names are used exactly as given — `bankIdPrefix` is not applied.           |
-| `retainTags`               | `[]`                           | Tags applied to every retained document, useful for cross-agent/source labeling (e.g. `source_system:openclaw`, `agent:agentname`). Auto-retain also merges inline per-message tags from `<retain_tags>...</retain_tags>` or `<hindsight_retain_tags>...</hindsight_retain_tags>` blocks in user messages.       |
+| `retainTags`               | `[]`                           | Tags applied to every retained document, useful for cross-agent/source labeling (e.g. `source_system:openclaw`, `agent:agentname`). Auto-retain also merges inline per-message tags from `<retain_tags>...</retain_tags>` or `<contextbase_retain_tags>...</contextbase_retain_tags>` blocks in user messages.       |
 | `retainSource`             | `"openclaw"`                   | `source` value written into retained document metadata                                                                                                                                                                                                                                                           |
-| `retainContext`            | built-in OpenClaw guidance     | Interpretation guidance sent through the Hindsight retain API `context` field. The default tells the extraction LLM that sender/channel/provider metadata, bank IDs, session keys, source systems, and tags are operational routing metadata, not human names, project names, or organizations.                  |
+| `retainContext`            | built-in OpenClaw guidance     | Interpretation guidance sent through the ContextBase retain API `context` field. The default tells the extraction LLM that sender/channel/provider metadata, bank IDs, session keys, source systems, and tags are operational routing metadata, not human names, project names, or organizations.                  |
 | `senderPrefixPattern`      | —                              | Regex matching a human display-name prefix some channels prepend to user text (e.g. `Alice: today weather?`). Give the name part only (`Alice\|Bob`, `[A-Za-z ]{1,20}`) — the `:` and anchoring are added. Strips it from recall queries and retained transcripts. Unset strips nothing; invalid regex ignored.  |
 | `dynamicBankGranularity`   | `["agent", "channel", "user"]` | Fields used to derive bank ID. Options: `agent`, `channel`, `user`, `provider`                                                                                                                                                                                                                                   |
 | `excludeProviders`         | `["heartbeat"]`                | Message providers to skip for recall/retain (e.g. `heartbeat`, `slack`, `telegram`, `discord`)                                                                                                                                                                                                                   |
@@ -110,7 +112,7 @@ Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.hindsigh
 | `autoRetain`               | `true`                         | Auto-retain conversations after each turn                                                                                                                                                                                                                                                                        |
 | `retainRoles`              | `["user", "assistant"]`        | Which message roles to retain. Options: `user`, `assistant`, `system`, `tool`                                                                                                                                                                                                                                    |
 | `retainFormat`             | `"json"`                       | Serialization format for retained conversation content. `"json"` emits a structured array of `{role, content}` messages (matches Claude Code). `"text"` emits legacy `[role: x] … [x:end]` markers.                                                                                                              |
-| `retainToolCalls`          | `true`                         | With `retainFormat: "json"`, each message's content is an Anthropic-shaped block array (`text` / `tool_use` / `tool_result`). Tool results are truncated at 2000 chars. Hindsight's own MCP tools (recall/retain/search/…) are filtered to prevent feedback loops. Set `false` to retain text-only content.      |
+| `retainToolCalls`          | `true`                         | With `retainFormat: "json"`, each message's content is an Anthropic-shaped block array (`text` / `tool_use` / `tool_result`). Tool results are truncated at 2000 chars. ContextBase's own MCP tools (recall/retain/search/…) are filtered to prevent feedback loops. Set `false` to retain text-only content.      |
 | `retainEveryNTurns`        | `1`                            | Retain every Nth turn. `1` = every turn (default). Values > 1 enable chunked retention with a sliding window. When a session ends (`/new`, `/reset`, gateway stop) the turns since the last retain are flushed; on SQLite-backed OpenClaw this needs 2026.10.1 or newer.                                         |
 | `retainOverlapTurns`       | `0`                            | Extra prior turns included when chunked retention fires. Window = `retainEveryNTurns + retainOverlapTurns`. Only applies when `retainEveryNTurns > 1`.                                                                                                                                                           |
 | `recallBudget`             | `"mid"`                        | Recall effort: `low`, `mid`, or `high`. Higher budgets use more retrieval strategies.                                                                                                                                                                                                                            |
@@ -123,10 +125,10 @@ Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.hindsigh
 | `recallTopK`               | —                              | Max number of memories to inject per turn. Applied after API response as a hard cap.                                                                                                                                                                                                                             |
 | `recallContextTurns`       | `1`                            | Number of user turns to include when composing recall query context. `1` keeps latest-message-only behavior.                                                                                                                                                                                                     |
 | `recallMaxQueryChars`      | `800`                          | Maximum character length for the composed recall query before calling recall.                                                                                                                                                                                                                                    |
-| `recallPromptPreamble`     | built-in string                | Prompt text placed above recalled memories in the injected `<hindsight_memories>` context block.                                                                                                                                                                                                                 |
+| `recallPromptPreamble`     | built-in string                | Prompt text placed above recalled memories in the injected `<contextbase_memories>` context block.                                                                                                                                                                                                                 |
 | `recallInjectionPosition`  | `"user"`                       | Where to inject recalled memories: `user` places them before the user message and preserves the system prompt cache; `prepend` and `append` place them at the start or end of the system prompt.                                                                                                                 |
-| `hindsightApiUrl`          | —                              | External Hindsight API URL (skips local daemon)                                                                                                                                                                                                                                                                  |
-| `hindsightApiToken`        | —                              | Auth token for external API. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id HINDSIGHT_API_TOKEN`.                                                                                                                                                                                    |
+| `contextbaseApiUrl`          | —                              | External ContextBase API URL (skips local daemon)                                                                                                                                                                                                                                                                  |
+| `contextbaseApiToken`        | —                              | Auth token for external API. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id CONTEXTBASE_API_TOKEN`.                                                                                                                                                                                    |
 | `ignoreSessionPatterns`    | `[]`                           | Session key glob patterns to skip entirely — no recall, no retain (e.g. `["agent:*:cron:**"]`)                                                                                                                                                                                                                   |
 | `statelessSessionPatterns` | `[]`                           | Session key glob patterns for read-only sessions — retain is always skipped; recall is skipped when `skipStatelessSessions` is `true` (e.g. `["agent:*:subagent:**", "agent:*:heartbeat:**"]`)                                                                                                                   |
 | `skipStatelessSessions`    | `true`                         | When `true`, sessions matching `statelessSessionPatterns` also skip recall. Set to `false` to allow recall but still skip retain.                                                                                                                                                                                |
@@ -161,7 +163,7 @@ Details worth knowing:
 
 ### Per-user dynamic bank defaults
 
-When `dynamicBankId` is enabled (default), OpenClaw derives a separate Hindsight bank per context (e.g. per Slack user). New banks otherwise inherit only Hindsight server defaults (`concise` extraction, no entity labels, etc.). Set the options below in plugin config to stamp **full bank defaults on first use** — before the first retain or recall touches that bank:
+When `dynamicBankId` is enabled (default), OpenClaw derives a separate ContextBase bank per context (e.g. per Slack user). New banks otherwise inherit only ContextBase server defaults (`concise` extraction, no entity labels, etc.). Set the options below in plugin config to stamp **full bank defaults on first use** — before the first retain or recall touches that bank:
 
 ```json
 {
@@ -219,9 +221,9 @@ Glob syntax:
 
 ## Retention details
 
-Retained documents use stable session-scoped IDs derived from the OpenClaw `sessionKey`. Every retain in a session shares one document id like `openclaw:agent:agentname:discord:channel:123`, so all turns of the conversation accumulate under a single Hindsight document (on legacy APIs without `update_mode: 'append'` support, the integration falls back to per-retain ids — `...:turn:<boot>:000001`, `...:window:<boot>:000002` for chunked retention — so prior turns aren't overwritten; `<boot>` is a token minted per host process, which keeps a restart from replaying ids the previous run already used). Retained documents include richer metadata such as `session_key`, `agent_id`, `provider`, `channel_id`, `thread_id`, `sender_id`, `turn_index`, and `retention_scope`. Each message in the retained JSON also carries a structured `timestamp` field (ISO 8601) lifted from OpenClaw's per-message time, so facts are not polluted by inline weekday/date prefixes.
+Retained documents use stable session-scoped IDs derived from the OpenClaw `sessionKey`. Every retain in a session shares one document id like `openclaw:agent:agentname:discord:channel:123`, so all turns of the conversation accumulate under a single ContextBase document (on legacy APIs without `update_mode: 'append'` support, the integration falls back to per-retain ids — `...:turn:<boot>:000001`, `...:window:<boot>:000002` for chunked retention — so prior turns aren't overwritten; `<boot>` is a token minted per host process, which keeps a restart from replaying ids the previous run already used). Retained documents include richer metadata such as `session_key`, `agent_id`, `provider`, `channel_id`, `thread_id`, `sender_id`, `turn_index`, and `retention_scope`. Each message in the retained JSON also carries a structured `timestamp` field (ISO 8601) lifted from OpenClaw's per-message time, so facts are not polluted by inline weekday/date prefixes.
 
-`retainContext` is sent separately from the transcript content and gives Hindsight's extraction LLM interpretation guidance for the retained document. The default is designed for OpenClaw transcripts: it explains that sender/channel/provider metadata is operational routing data, that assistant-role first-person statements belong to the AI assistant, and that bank IDs or tags should not be treated as the discussed project. Sender/channel/provider stay in retain request metadata/context and are not prepended into retained transcript content.
+`retainContext` is sent separately from the transcript content and gives ContextBase's extraction LLM interpretation guidance for the retained document. The default is designed for OpenClaw transcripts: it explains that sender/channel/provider metadata is operational routing data, that assistant-role first-person statements belong to the AI assistant, and that bank IDs or tags should not be treated as the discussed project. Sender/channel/provider stay in retain request metadata/context and are not prepended into retained transcript content.
 
 ## OpenClaw compatibility
 
@@ -231,17 +233,17 @@ Version 0.12.0 and later work with **OpenClaw 2026.7.x through 2026.10.x**. The 
 
 Two expected (non-error) messages on 2026.8.1+:
 
-- Install prints `Exclusive slot "memory" switched from "memory-core" to "hindsight-openclaw"` — correct; Hindsight replaces OpenClaw's built-in memory.
+- Install prints `Exclusive slot "memory" switched from "memory-core" to "contextbase-openclaw"` — correct; ContextBase replaces OpenClaw's built-in memory.
 - `openclaw plugins doctor` then reports `memory-core` is not selected for the memory slot — that is OpenClaw noting its built-in memory stepped aside.
 
 Upgrading from 0.11.1 or earlier: installs could fail with `npm error Cannot read properties of null (reading 'edgesOut')`. That was a packaging problem in the plugin, fixed in 0.12.0 — retry with the new version.
 
 ## OpenClaw's memory page, status and search
 
-On OpenClaw 2026.10 or later, the plugin registers as OpenClaw's native memory provider. OpenClaw's own memory surfaces then read from Hindsight instead of reporting "memory plugin unavailable":
+On OpenClaw 2026.10 or later, the plugin registers as OpenClaw's native memory provider. OpenClaw's own memory surfaces then read from ContextBase instead of reporting "memory plugin unavailable":
 
-- `memory.status` and the Memory page report Hindsight's health.
-- Gateway `memory.search` (with `version: 2`) and `memory.get` return Hindsight memories.
+- `memory.status` and the Memory page report ContextBase's health.
+- Gateway `memory.search` (with `version: 2`) and `memory.get` return ContextBase memories.
 
 Search is read-only and answers only callers allowed to see the whole bank: an operator, or the agent owner's private session. It works when an agent's bank depends on the agent alone: `dynamicBankGranularity: ["agent"]`, a static `bankId`, or an `agentBankMap` entry. When banks are keyed by user or channel (the default granularity), OpenClaw can't tell which user's bank to search, so search is refused and status still reports ready. Prompt-side recall stays with `autoRecall`, so turning this on never injects memories twice. Older OpenClaw versions ignore it.
 
@@ -249,11 +251,11 @@ Search is read-only and answers only callers allowed to see the whole bank: an o
 
 For full documentation, configuration options, troubleshooting, and development guide, see:
 
-**[OpenClaw Integration Documentation](https://vectorize.io/hindsight/sdks/integrations/openclaw)**
+**[OpenClaw Integration Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)**
 
 ## Development
 
-To test local changes to the Hindsight package before publishing:
+To test local changes to the ContextBase package before publishing:
 
 1. Add `embedPackagePath` to your plugin config in `~/.openclaw/openclaw.json`:
 
@@ -261,10 +263,10 @@ To test local changes to the Hindsight package before publishing:
 {
   "plugins": {
     "entries": {
-      "hindsight-openclaw": {
+      "contextbase-openclaw": {
         "enabled": true,
         "config": {
-          "embedPackagePath": "/path/to/hindsight-wt3/hindsight-embed"
+          "embedPackagePath": "/path/to/contextbase-wt3/hindsight-embed"
         }
       }
     }
@@ -281,7 +283,7 @@ To test local changes to the Hindsight package before publishing:
 uvx hindsight-embed@latest -p openclaw daemon status
 
 # View logs
-tail -f ~/.hindsight/profiles/openclaw.log
+tail -f ~/.contextbase/profiles/openclaw.log
 
 # List profiles
 uvx hindsight-embed@latest profile list
@@ -289,19 +291,19 @@ uvx hindsight-embed@latest profile list
 
 ## Backfilling Existing OpenClaw History
 
-The package includes a config-aware backfill CLI for importing historical OpenClaw sessions into Hindsight.
+The package includes a config-aware backfill CLI for importing historical OpenClaw sessions into ContextBase.
 
 By default it mirrors the active plugin settings for:
 
 - `dynamicBankId`
 - `dynamicBankGranularity`
 - `bankIdPrefix`
-- local daemon vs external `hindsightApiUrl`
+- local daemon vs external `contextbaseApiUrl`
 
 Dry-run example:
 
 ```bash
-npx --package @vectorize-io/hindsight-openclaw hindsight-openclaw-backfill \
+npx --package contextbase-openclaw contextbase-openclaw-backfill \
   --openclaw-root ~/.openclaw \
   --dry-run
 ```
@@ -334,9 +336,9 @@ Useful options:
 
 ## Links
 
-- [Hindsight Documentation](https://vectorize.io/hindsight)
+- [ContextBase Documentation](https://github.com/RSIXDB/hindsight)
 - [OpenClaw Documentation](https://openclaw.ai)
-- [GitHub Repository](https://github.com/vectorize-io/hindsight)
+- [GitHub Repository](https://github.com/RSIXDB/hindsight)
 
 ## License
 

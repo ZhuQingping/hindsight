@@ -10,7 +10,7 @@
  *   agent/session-start  -> RuntimeCore.seedIfCold      (cold-check + background git/codebase seed)
  *   agent/pre-step       -> RuntimeCore.onPrompt        (recall) + the injection as a sourced message
  *   agent/turn-stopping  -> RuntimeCore.onSessionIdle   (write-back of the completed exchange)
- *   ctx.tools            -> the agentstratum_* knowledge suite, registered natively
+ *   ctx.tools            -> the contextbase_* knowledge suite, registered natively
  *
  * ONE dsh PROCESS SERVES MANY WORKSPACES. Unlike opencode/Kilo/Cline — one process, one project —
  * dsh's Web UI creates sessions in whatever directory the user picks, each with its own
@@ -28,12 +28,12 @@ import { diag } from "./core/diag";
 import type { ToolSpec } from "./core/knowledge-tools";
 import { log } from "./core/log";
 import { RuntimeCore } from "./core/runtime";
-import { AGENTSTRATUM_PLUGIN, readDshEvents, type DshSessionEvent } from "./core/transcript-dsh";
+import { CONTEXTBASE_PLUGIN, readDshEvents, type DshSessionEvent } from "./core/transcript-dsh";
 
 const HARNESS = "dsh";
 
 /** Cordis plugin name (loader diagnostics, and the `source.plugin` on everything we inject). */
-export const name = AGENTSTRATUM_PLUGIN;
+export const name = CONTEXTBASE_PLUGIN;
 
 /** The agent registry owns the lifecycle events below; without it there is nothing to bind. */
 export const inject = ["agents"];
@@ -225,7 +225,7 @@ function promptOf(messages: readonly DshUserMessage[]): string {
  *
  * `form: 'recall'` is dsh's own vocabulary for retrieved context, so its UI renders the block as
  * recalled material rather than as something the user typed. Session format V4 requires injected
- * messages to use a producer-owned source kind; `plugin:agentstratum` is the canonical fallback name
+ * messages to use a producer-owned source kind; `plugin:contextbase` is the canonical fallback name
  * for an unregistered plugin. The non-user source also keeps the block out of a write-back.
  */
 function injectionMessage(text: string): DshUserMessage {
@@ -233,7 +233,7 @@ function injectionMessage(text: string): DshUserMessage {
     id: randomUUID(),
     role: "user",
     content: [{ type: "text", text }],
-    source: { kind: `plugin:${AGENTSTRATUM_PLUGIN}`, form: "recall" },
+    source: { kind: `plugin:${CONTEXTBASE_PLUGIN}`, form: "recall" },
   };
 }
 
@@ -333,7 +333,7 @@ export function toDshParameters(spec: ToolSpec): Record<string, unknown> {
     const inner = zod.def?.type === "optional" ? zod.def.innerType?.def?.type : zod.def?.type;
     if (inner !== undefined && inner !== "string") {
       throw new Error(
-        `agentstratum tool ${spec.name}: dsh projection supports string parameters only`
+        `contextbase tool ${spec.name}: dsh projection supports string parameters only`
       );
     }
     properties[key] = {
@@ -351,12 +351,12 @@ async function runSpec(spec: ToolSpec, args: Record<string, unknown>): Promise<s
   const text = (result.content || []).map((block) => block.text).join("\n");
   // dsh normalizes a thrown tool body into an isError result with this message, which is exactly
   // what our isError:true means — mapping it any other way would report a failure as a success.
-  if (result.isError) throw new Error(text || "agentstratum tool failed");
+  if (result.isError) throw new Error(text || "contextbase tool failed");
   return text;
 }
 
 /**
- * Register the agentstratum_* suite on `ctx.tools`.
+ * Register the contextbase_* suite on `ctx.tools`.
  *
  * The dsh tools registry is host+per-scope layered, so a host-plane registration is visible to
  * every agent — including the Web surface's per-session agent presets. Each call resolves the bank
@@ -381,9 +381,9 @@ function registerTools(toolCtx: DshToolContext, fallbackRoot: string): void {
       async execute(args: Record<string, unknown>, exec: DshToolRunContext): Promise<string> {
         // Bind to the caller's repository, not to whichever workspace happened to load first.
         const workspace = exec?.agent ? workspaceForAgent(exec.agent) : template;
-        if (!workspace) return "agentstratum memory is disabled for this workspace.";
+        if (!workspace) return "contextbase memory is disabled for this workspace.";
         const bound = specsOf(workspace).find((candidate) => candidate.name === spec.name);
-        if (!bound) return `agentstratum tool ${spec.name} is unavailable.`;
+        if (!bound) return `contextbase tool ${spec.name} is unavailable.`;
         return runSpec(bound, args);
       },
     });
@@ -394,7 +394,7 @@ function registerTools(toolCtx: DshToolContext, fallbackRoot: string): void {
   log.debug(HARNESS, "tools registered", {
     count: specsOf(template).length,
     hostCatalog: exposed.length,
-    agentstratum: exposed.filter((schema) => schema.name?.startsWith("agentstratum_")).length,
+    contextbase: exposed.filter((schema) => schema.name?.startsWith("contextbase_")).length,
   });
 }
 

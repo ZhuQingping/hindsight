@@ -67,7 +67,7 @@ export function parseSandboxPolicy(rawOutput: string): SandboxPolicy {
     throw new Error(
       `Failed to parse sandbox policy YAML.\n` +
         `This may mean the openshell output format has changed.\n` +
-        `Apply the Hindsight policy manually using the instructions in NEMOCLAW.md.\n` +
+        `Apply the ContextBase policy manually using the instructions in NEMOCLAW.md.\n` +
         `Parse error: ${err}`
     );
   }

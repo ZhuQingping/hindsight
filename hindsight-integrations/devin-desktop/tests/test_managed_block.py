@@ -1,6 +1,6 @@
 """Tests for the shared managed-block writer."""
 
-from hindsight_devin_desktop.managed_block import BEGIN_MARKER, END_MARKER, clear, has, upsert
+from contextbase_devin_desktop.managed_block import BEGIN_MARKER, END_MARKER, clear, has, upsert
 
 
 def test_creates_with_block(tmp_path):
@@ -16,7 +16,7 @@ def test_creates_with_block(tmp_path):
 def test_preserves_user_content_on_top(tmp_path):
     p = tmp_path / "AGENTS.md"
     p.write_text("# My rules\n\nBe terse.\n")
-    upsert(p, "hindsight body")
+    upsert(p, "contextbase body")
     text = p.read_text()
     assert text.startswith(BEGIN_MARKER)
     assert "# My rules" in text and "Be terse." in text

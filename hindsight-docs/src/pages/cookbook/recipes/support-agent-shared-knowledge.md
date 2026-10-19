@@ -56,8 +56,8 @@ Create three types of banks:
 
 
 ```python
-# Jupyter notebooks already run an asyncio event loop. The hindsight client 
-# uses loop.run_until_complete() internally, but Python doesn't allow nested 
+# Jupyter notebooks already run an asyncio event loop. The contextbase client
+# uses loop.run_until_complete() internally, but Python doesn't allow nested
 # event loops by default. nest_asyncio patches this to allow nesting.
 import nest_asyncio
 nest_asyncio.apply()
@@ -71,12 +71,12 @@ from openai import OpenAI as OpenAIClient
 load_dotenv()
 
 # Configuration (override with env vars if set)
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-HINDSIGHT_UI_URL = os.getenv("HINDSIGHT_UI_URL", "http://localhost:9999")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_API_URL)
+client = Hindsight(base_url=CONTEXTBASE_API_URL)
 llm = OpenAIClient()  # Uses OPENAI_API_KEY from .env
 
 # Shared knowledge bank (created once)
@@ -111,7 +111,7 @@ client.retain(
 )
 
 # View the stored documents in the UI:
-print(f"View documents: {HINDSIGHT_UI_URL}/banks/product-docs?view=documents")
+print(f"View documents: {CONTEXTBASE_UI_URL}/banks/product-docs?view=documents")
 ```
 
 ## 3. Store User Conversations
@@ -286,7 +286,7 @@ create_user_bank("bob")
 print("User: How do I get started?")
 result = handle_support_request("bob", "How do I get started?")
 print(f"Assistant: {result}")
-print(f"\nView user memory: {HINDSIGHT_UI_URL}/banks/user-bob?view=documents")
+print(f"\nView user memory: {CONTEXTBASE_UI_URL}/banks/user-bob?view=documents")
 ```
 
 ## When to Use This Pattern
@@ -310,6 +310,6 @@ import requests
 
 # Delete all banks created in this notebook
 for bank_id in ["product-docs", "support-learnings", "user-bob"]:
-    response = requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/{bank_id}")
+    response = requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/{bank_id}")
     print(f"Deleted {bank_id}: {response.json()}")
 ```

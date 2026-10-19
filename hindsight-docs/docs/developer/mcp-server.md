@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # MCP Server
 
-Hindsight includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that allows AI assistants to store and retrieve memories directly.
+ContextBase includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that allows AI assistants to store and retrieve memories directly.
 
 ## Access
 
@@ -22,7 +22,7 @@ http://localhost:8888/mcp/alice/
 To disable the MCP server, set the environment variable:
 
 ```bash
-export HINDSIGHT_API_MCP_ENABLED=false
+export CONTEXTBASE_API_MCP_ENABLED=false
 ```
 
 ## Authentication
@@ -32,8 +32,8 @@ By default, the MCP endpoint is **open** (no authentication required).
 To enable authentication, configure the API key tenant extension:
 
 ```bash
-export HINDSIGHT_API_TENANT_EXTENSION=hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension
-export HINDSIGHT_API_TENANT_API_KEY=your-secret-key
+export CONTEXTBASE_API_TENANT_EXTENSION=hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension
+export CONTEXTBASE_API_TENANT_API_KEY=your-secret-key
 ```
 
 When authentication is enabled, include your API key in the `Authorization` header:
@@ -41,7 +41,7 @@ When authentication is enabled, include your API key in the `Authorization` head
 ### Claude Code
 
 ```bash
-claude mcp add --transport http hindsight http://localhost:8888/mcp \
+claude mcp add --transport http contextbase http://localhost:8888/mcp \
   --header "Authorization: Bearer your-secret-key" \
   --header "X-Bank-Id: my-bank"
 ```
@@ -53,7 +53,7 @@ Add to `~/.claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "hindsight": {
+    "contextbase": {
       "url": "http://localhost:8888/mcp",
       "headers": {
         "Authorization": "Bearer your-secret-key",
@@ -83,11 +83,11 @@ The memory bank is resolved in this priority order:
 
 1. **URL path** (highest priority): `http://localhost:8888/mcp/my-bank/`
 2. **X-Bank-Id header**: `--header "X-Bank-Id: my-bank"`
-3. **Default**: Uses `HINDSIGHT_MCP_BANK_ID` env var (default: "default")
+3. **Default**: Uses `CONTEXTBASE_MCP_BANK_ID` env var (default: "default")
 
 ## Per-Bank Endpoints
 
-Unlike traditional MCP servers where tools require explicit identifiers, Hindsight uses **per-bank endpoints**. The `bank_id` is part of the URL path, so tools don't need to specify which bank to use—it's implicit from the connection.
+Unlike traditional MCP servers where tools require explicit identifiers, ContextBase uses **per-bank endpoints**. The `bank_id` is part of the URL path, so tools don't need to specify which bank to use—it's implicit from the connection.
 
 This design:
 - **Simplifies tool usage** — no need to pass `bank_id` with every call
@@ -109,17 +109,17 @@ The MCP server operates in two modes depending on the URL:
 
 ## Tool Metadata and Instructions
 
-Hindsight can append deployment-specific guidance to the `retain` and `recall` MCP tool descriptions. Set `HINDSIGHT_API_MCP_INSTRUCTIONS` on the API server when clients should see local rules, such as which tags to use or which memories should be retained.
+ContextBase can append deployment-specific guidance to the `retain` and `recall` MCP tool descriptions. Set `CONTEXTBASE_API_MCP_INSTRUCTIONS` on the API server when clients should see local rules, such as which tags to use or which memories should be retained.
 
 ```bash
-export HINDSIGHT_API_MCP_INSTRUCTIONS="Use project:<name> tags for project-specific memories."
+export CONTEXTBASE_API_MCP_INSTRUCTIONS="Use project:<name> tags for project-specific memories."
 ```
 
 MCP clients that read tool annotations also receive safety hints from the built-in tools:
 
 - Read-only operations such as `recall`, `reflect`, `list_*`, and `get_*` are marked with `readOnlyHint: true`.
 - Delete, clear, and invalidate operations are marked with `destructiveHint: true`.
-- `openWorldHint` is `false` for the built-in tools because Hindsight operates on its configured memory store rather than the open internet.
+- `openWorldHint` is `false` for the built-in tools because ContextBase operates on its configured memory store rather than the open internet.
 - Write operations such as `retain`, `create_*`, `update_*`, `refresh_mental_model`, and `cancel_operation` are not marked destructive.
 
 ---

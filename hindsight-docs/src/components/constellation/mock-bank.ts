@@ -124,8 +124,8 @@ const TOPICS: Topic[] = [
   },
   {
     world: [
-      "Hindsight extracts typed facts instead of storing transcripts", // 0
-      "Hindsight recall runs four searches in parallel", // 1
+      "ContextBase extracts typed facts instead of storing transcripts", // 0
+      "ContextBase recall runs four searches in parallel", // 1
       "Recall results are fused by rank, not by score", // 2
       "A cross-encoder reranks the fused recall results", // 3
       "Recall fills a token budget instead of a top-k", // 4
@@ -135,7 +135,7 @@ const TOPICS: Topic[] = [
     ],
     experience: [
       "I ran consolidation on the support bank overnight", // 8
-      "I mounted the knowledge pages with hindsight fs mount", // 9
+      "I mounted the knowledge pages with contextbase fs mount", // 9
       "I answered an on-call question with reflect", // 10
     ],
     observation: [
@@ -221,7 +221,7 @@ const TOPICS: Topic[] = [
       "Each retained document records which coding agent wrote it", // 1
       "The coding agent reads the knowledge pages before writing code", // 2
       "Sessions are captured automatically, not by hand", // 3
-      "The Hindsight plugin ships as a skill the coding agent loads", // 4
+      "The ContextBase plugin ships as a skill the coding agent loads", // 4
     ],
     experience: [
       "I read the component map before changing the engine", // 5
@@ -282,7 +282,7 @@ const ENTITIES: Array<[string, RegExp]> = [
   ["Grafana", /\bGrafana\b/],
   ["Cohere", /\bCohere\b/],
   ["ONNX", /\bONNX\b/],
-  ["Hindsight", /\bHindsight\b/],
+  ["ContextBase", /\bContextBase\b/],
   ["recall", /\brecall\b/i],
   ["reranker", /\brerank|cross-encoder/i],
   ["rank fusion", /\bfus(ed|ion)\b/i],

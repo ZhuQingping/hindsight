@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/n8n-nodes-hindsight",
+  "name": "n8n-nodes-contextbase",
   "version": "0.1.4",
-  "description": "n8n community nodes for Hindsight - persistent memory for any n8n workflow",
+  "description": "n8n community nodes for ContextBase - persistent memory for any n8n workflow",
   "license": "MIT",
   "homepage": "https://hindsight.vectorize.io",
   "author": {
@@ -10,13 +10,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/n8n"
   },
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run copy-icons",
-    "copy-icons": "mkdir -p dist/nodes/Hindsight && cp nodes/Hindsight/hindsight.* dist/nodes/Hindsight/",
+    "copy-icons": "mkdir -p dist/nodes/ContextBase && cp nodes/ContextBase/contextbase.* dist/nodes/ContextBase/",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest run",
@@ -30,16 +30,16 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/HindsightApi.credentials.js"
+      "dist/credentials/ContextBaseApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/Hindsight/Hindsight.node.js"
+      "dist/nodes/ContextBase/ContextBase.node.js"
     ]
   },
   "keywords": [
     "n8n-community-node-package",
     "n8n",
-    "hindsight",
+    "contextbase",
     "memory",
     "ai",
     "agents",

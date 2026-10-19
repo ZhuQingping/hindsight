@@ -1,8 +1,8 @@
 {
-  "_comment": "Reference configuration for the Roo Code Hindsight integration. These values are written by `hindsight-roo-code install` into .roo/mcp.json.",
-  "hindsightApiUrl": "http://localhost:8888",
+  "_comment": "Reference configuration for the Roo Code ContextBase integration. These values are written by `contextbase-roo-code install` into .roo/mcp.json.",
+  "contextbaseApiUrl": "http://localhost:8888",
   "mcpType": "streamable-http",
   "mcpTimeoutSeconds": 30,
   "alwaysAllow": ["recall", "retain"],
-  "rulesFile": "hindsight-memory.md"
+  "rulesFile": "contextbase-memory.md"
 }

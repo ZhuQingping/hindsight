@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
-title: "CrewAI Persistent Memory with Hindsight | Integration Guide"
-description: "Add long-term memory to your CrewAI agent crews. Hindsight provides fact extraction, entity tracking, and temporal awareness — persisted automatically across all crew runs."
+title: "CrewAI Persistent Memory with ContextBase | Integration Guide"
+description: "Add long-term memory to your CrewAI agent crews. ContextBase provides fact extraction, entity tracking, and temporal awareness — persisted automatically across all crew runs."
 ---
 
 # CrewAI
@@ -21,30 +21,30 @@ Persistent memory for AI agent crews via [CrewAI](https://github.com/crewAIInc/c
 ## Installation
 
 ```bash
-pip install hindsight-crewai
+pip install contextbase-crewai
 ```
 
 ## Quick Start
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```python
-from hindsight_crewai import configure, HindsightStorage
+from contextbase_crewai import configure, ContextBaseStorage
 from crewai.memory.external.external_memory import ExternalMemory
 from crewai import Agent, Crew, Task
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key="hsk_...",  # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="hsk_...",  # or set CONTEXTBASE_API_KEY env var
 )
 
 crew = Crew(
     agents=[Agent(role="Researcher", goal="Find information", backstory="...")],
     tasks=[Task(description="Research AI trends", expected_output="Report")],
     external_memory=ExternalMemory(
-        storage=HindsightStorage(bank_id="my-crew")
+        storage=ContextBaseStorage(bank_id="my-crew")
     ),
 )
 
@@ -53,28 +53,28 @@ crew.kickoff()
 
 That's it. CrewAI will automatically:
 - **Query memories** at the start of each task
-- **Store task outputs** to Hindsight after each task completes
+- **Store task outputs** to ContextBase after each task completes
 
 Memories persist across crew runs, so your crew learns over time.
 
 ### Self-hosting (local development)
 
-If you're running Hindsight locally with `./scripts/dev/start-api.sh`, swap the URL:
+If you're running ContextBase locally with `./scripts/dev/start-api.sh`, swap the URL:
 
 ```python
-configure(hindsight_api_url="http://localhost:8888")
+configure(contextbase_api_url="http://localhost:8888")
 ```
 
 See the [installation guide](/developer/installation) for self-hosting setup.
 
 ## How It Works
 
-The integration maps CrewAI's 3-method `Storage` interface to Hindsight's API:
+The integration maps CrewAI's 3-method `Storage` interface to ContextBase's API:
 
-| CrewAI | Hindsight | What happens |
+| CrewAI | ContextBase | What happens |
 |--------|-----------|--------------|
-| `save(value, metadata, agent)` | `retain(bank_id, content, ...)` | Task output is stored. Hindsight extracts facts, entities, and relationships from the raw text. |
-| `search(query, limit)` | `recall(bank_id, query, ...)` | CrewAI constructs a query from the task description. Hindsight runs semantic search, BM25, graph traversal, and reranking. |
+| `save(value, metadata, agent)` | `retain(bank_id, content, ...)` | Task output is stored. ContextBase extracts facts, entities, and relationships from the raw text. |
+| `search(query, limit)` | `recall(bank_id, query, ...)` | CrewAI constructs a query from the task description. ContextBase runs semantic search, BM25, graph traversal, and reranking. |
 | `reset()` | `delete_bank(bank_id)` | Wipes the bank and optionally recreates it with its original mission. |
 
 CrewAI calls `search()` automatically at the start of each task and `save()` after each task completes.
@@ -82,11 +82,11 @@ CrewAI calls `search()` automatically at the start of each task and `save()` aft
 ## Configuration Options
 
 ```python
-from hindsight_crewai import configure
+from contextbase_crewai import configure
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",  # Hindsight Cloud (default)
-    api_key="your-api-key",                     # Or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",  # example self-hosted endpoint
+    api_key="your-api-key",                     # Or set CONTEXTBASE_API_KEY env var
     budget="mid",                               # Recall budget: "low", "mid", "high"
     max_tokens=4096,                            # Max tokens for recall results
     tags=["env:prod"],                          # Tags for stored memories
@@ -101,7 +101,7 @@ configure(
 Constructor arguments override global configuration:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     budget="high",
     max_tokens=8192,
@@ -111,10 +111,10 @@ storage = HindsightStorage(
 
 ## Bank Missions
 
-Set a mission to guide how Hindsight processes and organizes memories:
+Set a mission to guide how ContextBase processes and organizes memories:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     mission="Track software architecture decisions, technical debt, and team preferences.",
 )
@@ -125,7 +125,7 @@ storage = HindsightStorage(
 Give each agent its own isolated memory bank:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     per_agent_banks=True,
     # Researcher -> "my-crew-researcher"
@@ -136,24 +136,24 @@ storage = HindsightStorage(
 Or use a custom bank resolver for full control:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     bank_resolver=lambda base, agent: f"{base}-{agent.lower()}" if agent else base,
 )
 ```
 
 :::info
-When `per_agent_banks=True`, the automatic `search()` at task start queries the base bank (shared context), since CrewAI's `search()` method does not receive the agent parameter. For per-agent search isolation, create separate `HindsightStorage` instances per agent.
+When `per_agent_banks=True`, the automatic `search()` at task start queries the base bank (shared context), since CrewAI's `search()` method does not receive the agent parameter. For per-agent search isolation, create separate `ContextBaseStorage` instances per agent.
 :::
 
 ## Reflect Tool
 
-CrewAI's storage interface only supports save/search/reset. To give agents access to Hindsight's `reflect` (disposition-aware memory synthesis), add it as a tool:
+CrewAI's storage interface only supports save/search/reset. To give agents access to ContextBase's `reflect` (disposition-aware memory synthesis), add it as a tool:
 
 ```python
-from hindsight_crewai import HindsightReflectTool
+from contextbase_crewai import ContextBaseReflectTool
 
-reflect_tool = HindsightReflectTool(
+reflect_tool = ContextBaseReflectTool(
     bank_id="my-crew",
     budget="mid",
     reflect_context="You are helping a software team track decisions.",
@@ -174,33 +174,33 @@ When the agent calls this tool, it gets a synthesized, contextual answer based o
 A research crew that remembers findings across runs:
 
 ```python
-from hindsight_crewai import configure, HindsightStorage, HindsightReflectTool
+from contextbase_crewai import configure, ContextBaseStorage, ContextBaseReflectTool
 from crewai.memory.external.external_memory import ExternalMemory
 from crewai import Agent, Crew, Task
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
+    contextbase_api_url="http://localhost:8888",
     api_key="hsk_...",
 )
 
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="research-crew",
     mission="Track technology research findings and comparisons.",
 )
 
-reflect_tool = HindsightReflectTool(bank_id="research-crew", budget="mid")
+reflect_tool = ContextBaseReflectTool(bank_id="research-crew", budget="mid")
 
 researcher = Agent(
     role="Researcher",
     goal="Research topics, building on prior knowledge.",
-    backstory="Before starting, use hindsight_reflect to check what you already know.",
+    backstory="Before starting, use contextbase_reflect to check what you already know.",
     tools=[reflect_tool],
 )
 
 writer = Agent(
     role="Writer",
     goal="Write summaries incorporating prior findings.",
-    backstory="Use hindsight_reflect to recall prior research.",
+    backstory="Use contextbase_reflect to recall prior research.",
     tools=[reflect_tool],
 )
 
@@ -235,8 +235,8 @@ crew.kickoff()
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `bank_id` | required | Hindsight memory bank ID |
-| `hindsight_api_url` | from config | Override API URL |
+| `bank_id` | required | ContextBase memory bank ID |
+| `contextbase_api_url` | from config | Override API URL |
 | `api_key` | from config | Override API key |
 | `budget` | `"mid"` | Recall budget (low/mid/high) |
 | `max_tokens` | `4096` | Max tokens for recall results |
@@ -252,14 +252,14 @@ crew.kickoff()
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `bank_id` | required | Hindsight memory bank ID |
+| `bank_id` | required | ContextBase memory bank ID |
 | `budget` | `"mid"` | Reflect budget (low/mid/high) |
 | `reflect_context` | `None` | Additional context for reasoning |
-| `hindsight_api_url` | from config | Override API URL |
+| `contextbase_api_url` | from config | Override API URL |
 | `api_key` | from config | Override API key |
 
 ## Requirements
 
 - Python >= 3.10
 - crewai >= 0.86.0
-- A running Hindsight API server
+- A running ContextBase API server

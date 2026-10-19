@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createHindsightTools, type HindsightClient } from "./index.js";
+import { createContextBaseTools, type HindsightClient } from "./index.js";
 
-describe("createHindsightTools", () => {
+describe("createContextBaseTools", () => {
   let mockClient: HindsightClient;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe("createHindsightTools", () => {
 
   describe("tool creation", () => {
     it("should create all tools", () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
 
       expect(tools).toHaveProperty("retain");
       expect(tools).toHaveProperty("recall");
@@ -29,7 +29,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should use default descriptions when not provided", () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
 
       expect(tools.retain.description).toContain("Store information in long-term memory");
       expect(tools.recall.description).toContain("Search memory for relevant information");
@@ -37,7 +37,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should use custom descriptions from nested options", () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         retain: { description: "Custom retain description" },
@@ -53,7 +53,7 @@ describe("createHindsightTools", () => {
 
   describe("retain tool", () => {
     it("should call client.retain with agent inputs and constructor defaults", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.retain).mockResolvedValue({
         success: true,
         bank_id: "test-bank",
@@ -75,7 +75,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should pass agent-provided optional inputs", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.retain).mockResolvedValue({
         success: true,
         bank_id: "test-bank",
@@ -101,7 +101,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should apply constructor-level retain options", async () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         retain: {
@@ -132,7 +132,7 @@ describe("createHindsightTools", () => {
 
   describe("recall tool", () => {
     it("should call client.recall with agent inputs and constructor defaults", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.recall).mockResolvedValue({
         results: [{ id: "fact-1", text: "Test fact", type: "preference" }],
       });
@@ -152,7 +152,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should pass agent-provided queryTimestamp", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.recall).mockResolvedValue({ results: [] });
 
       await tools.recall.execute({
@@ -171,7 +171,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should apply constructor-level recall options", async () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         recall: {
@@ -197,7 +197,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should handle empty results", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.recall).mockResolvedValue({ results: undefined as any });
 
       const result = await tools.recall.execute({ query: "Test query" });
@@ -206,7 +206,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should preserve requested chunks and their truncation flags", async () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         recall: { includeChunks: true },
@@ -220,7 +220,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should include entities when present", async () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         recall: { includeEntities: true },
@@ -242,7 +242,7 @@ describe("createHindsightTools", () => {
 
   describe("reflect tool", () => {
     it("should call client.reflect with agent inputs and constructor defaults", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({
         text: "Reflection result",
         based_on: { memories: [{ id: "fact-1", text: "Supporting fact" }] },
@@ -259,7 +259,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should pass agent-provided context", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({ text: "Reflection result" });
 
       await tools.reflect.execute({
@@ -274,7 +274,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should apply constructor-level reflect budget", async () => {
-      const tools = createHindsightTools({
+      const tools = createContextBaseTools({
         client: mockClient,
         bankId: "test-bank",
         reflect: { budget: "low" },
@@ -290,7 +290,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should handle empty text response with fallback", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({ text: undefined as any });
 
       const result = await tools.reflect.execute({ query: "Test query" });
@@ -299,7 +299,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should include basedOn facts when present", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       const basedOn = {
         memories: [
           { id: "fact-1", text: "User prefers spicy food", type: "preference" },
@@ -317,7 +317,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should pass through based_on with mental_models and directives", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       const basedOn = {
         memories: [{ id: "fact-1", text: "User likes coffee" }],
         mental_models: [{ id: "mm-1", name: "Preferences", content: "Likes coffee" }],
@@ -336,7 +336,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should handle null based_on", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({
         text: "No memories found",
         based_on: null,
@@ -351,7 +351,7 @@ describe("createHindsightTools", () => {
 
   describe("getMentalModel tool", () => {
     it("should call client.getMentalModel with bankId and mentalModelId", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getMentalModel).mockResolvedValue({
         id: "mm-123",
         bank_id: "test-bank",
@@ -372,7 +372,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should handle null content with fallback", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getMentalModel).mockResolvedValue({
         id: "mm-123",
         bank_id: "test-bank",
@@ -390,7 +390,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should propagate errors from client.getMentalModel", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getMentalModel).mockRejectedValue(new Error("Not found"));
 
       await expect(tools.getMentalModel.execute({ mentalModelId: "mm-bad" })).rejects.toThrow(
@@ -401,7 +401,7 @@ describe("createHindsightTools", () => {
 
   describe("getDocument tool", () => {
     it("should call client.getDocument with bankId and documentId", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getDocument).mockResolvedValue({
         id: "doc-123",
         bank_id: "test-bank",
@@ -425,7 +425,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should return null when document not found", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getDocument).mockResolvedValue(null);
 
       const result = await tools.getDocument.execute({ documentId: "doc-missing" });
@@ -434,7 +434,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should propagate errors from client.getDocument", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.getDocument).mockRejectedValue(new Error("Server error"));
 
       await expect(tools.getDocument.execute({ documentId: "doc-bad" })).rejects.toThrow(
@@ -445,7 +445,7 @@ describe("createHindsightTools", () => {
 
   describe("error handling", () => {
     it("should propagate errors from client.retain", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.retain).mockRejectedValue(new Error("Retain failed"));
 
       await expect(tools.retain.execute({ content: "Test content" })).rejects.toThrow(
@@ -454,14 +454,14 @@ describe("createHindsightTools", () => {
     });
 
     it("should propagate errors from client.recall", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.recall).mockRejectedValue(new Error("Recall failed"));
 
       await expect(tools.recall.execute({ query: "Test query" })).rejects.toThrow("Recall failed");
     });
 
     it("should propagate errors from client.reflect", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockRejectedValue(new Error("Reflect failed"));
 
       await expect(tools.reflect.execute({ query: "Test query" })).rejects.toThrow(
@@ -472,7 +472,7 @@ describe("createHindsightTools", () => {
 
   describe("budget defaults", () => {
     it("should default recall budget to mid", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.recall).mockResolvedValue({ results: [] });
 
       await tools.recall.execute({ query: "Test" });
@@ -485,7 +485,7 @@ describe("createHindsightTools", () => {
     });
 
     it("should default reflect budget to mid", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "test-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "test-bank" });
       vi.mocked(mockClient.reflect).mockResolvedValue({ text: "ok" });
 
       await tools.reflect.execute({ query: "Test" });
@@ -501,7 +501,7 @@ describe("createHindsightTools", () => {
       vi.mocked(mockClient.recall).mockResolvedValue({ results: [] });
 
       for (const budget of ["low", "mid", "high"] as const) {
-        const tools = createHindsightTools({
+        const tools = createContextBaseTools({
           client: mockClient,
           bankId: "test-bank",
           recall: { budget },
@@ -518,7 +518,7 @@ describe("createHindsightTools", () => {
 
   describe("bankId enforcement", () => {
     it("should always use the bankId from constructor options", async () => {
-      const tools = createHindsightTools({ client: mockClient, bankId: "forced-bank" });
+      const tools = createContextBaseTools({ client: mockClient, bankId: "forced-bank" });
       vi.mocked(mockClient.retain).mockResolvedValue({
         success: true,
         bank_id: "forced-bank",

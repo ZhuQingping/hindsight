@@ -32,7 +32,7 @@ const ICON_REGISTRY: Record<string, IconType> = {
 };
 
 export interface LLMProvider {
-  /** HINDSIGHT_API_LLM_PROVIDER value, e.g. "deepseek". Empty string for the
+  /** CONTEXTBASE_API_LLM_PROVIDER value, e.g. "deepseek". Empty string for the
    *  "OpenAI Compatible" pseudo-entry which is not a real provider id. */
   id: string;
   /** Display name shown in the grid tile and table. */

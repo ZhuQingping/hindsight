@@ -102,8 +102,8 @@ class TestDeriveBankId:
         assert workspace_root({}) == ""
 
     def test_dynamic_mode_channel_user(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_CHANNEL_ID", "slack-general")
-        monkeypatch.setenv("HINDSIGHT_USER_ID", "user123")
+        monkeypatch.setenv("CONTEXTBASE_CHANNEL_ID", "slack-general")
+        monkeypatch.setenv("CONTEXTBASE_USER_ID", "user123")
         config = {
             "dynamicBankId": True,
             "dynamicBankGranularity": ["channel", "user"],

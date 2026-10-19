@@ -31,7 +31,7 @@ func NewProductConfig() *ProductConfig {
 	this := ProductConfig{}
 	var productConfigVersion int32 = 1
 	this.ProductConfigVersion = &productConfigVersion
-	var contextdbName string = "agentstratum"
+	var contextdbName string = "contextbase"
 	this.ContextdbName = &contextdbName
 	return &this
 }
@@ -43,7 +43,7 @@ func NewProductConfigWithDefaults() *ProductConfig {
 	this := ProductConfig{}
 	var productConfigVersion int32 = 1
 	this.ProductConfigVersion = &productConfigVersion
-	var contextdbName string = "agentstratum"
+	var contextdbName string = "contextbase"
 	this.ContextdbName = &contextdbName
 	return &this
 }

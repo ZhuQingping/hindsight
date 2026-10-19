@@ -5,8 +5,8 @@ identity:
     en_US: Recall
 description:
   human:
-    en_US: Search a Hindsight memory bank for memories relevant to a query.
-  llm: Use this tool to search Hindsight long-term memory for memories relevant to a query. Returns the top matching memories.
+    en_US: Search a ContextBase memory bank for memories relevant to a query.
+  llm: Use this tool to search ContextBase long-term memory for memories relevant to a query. Returns the top matching memories.
 parameters:
   - name: bank_id
     type: string

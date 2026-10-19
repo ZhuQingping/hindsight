@@ -1,14 +1,14 @@
 # Installation
 
-Hindsight can be deployed in several ways depending on your infrastructure and requirements.
+ContextBase can be deployed in several ways depending on your infrastructure and requirements.
 
-:::tip Don't want to manage infrastructure?
-**[Hindsight Cloud](https://ui.hindsight.vectorize.io)** is a fully managed service that handles all infrastructure, scaling, and maintenance — [sign up here](https://ui.hindsight.vectorize.io).
+:::tip Deployment prerequisites
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ## Supported Platforms
 
-Hindsight runs on **Linux**, **macOS**, and **Windows**:
+ContextBase runs on **Linux**, **macOS**, and **Windows**:
 
 | Platform | Docker | Bare Metal (pip) | Embedded DB (pg0) | Notes |
 |----------|--------|------------------|--------------------|-------|
@@ -25,16 +25,16 @@ All platforms support the embedded database (pg0) for development. On Windows, y
 
 ### PostgreSQL
 
-Hindsight requires PostgreSQL 14+ with a vector extension for similarity search. The supported extensions are:
+ContextBase requires PostgreSQL 14+ with a vector extension for similarity search. The supported extensions are:
 
 - **pgvector** (default)
 - **pgvectorscale**
 - **vchord**
 - **scann** (AlloyDB)
 
-Configure which one to use with `HINDSIGHT_API_VECTOR_EXTENSION`. See [Configuration](./configuration) for details.
+Configure which one to use with `CONTEXTBASE_API_VECTOR_EXTENSION`. See [Configuration](./configuration) for details.
 
-**By default**, Hindsight uses **pg0** — an embedded PostgreSQL that runs locally on your machine. This is convenient for development but **not recommended for production**.
+**By default**, ContextBase uses **pg0** — an embedded PostgreSQL that runs locally on your machine. This is convenient for development but **not recommended for production**.
 
 **For production**, use an external PostgreSQL with one of the supported vector extensions:
 - **Supabase** — Managed PostgreSQL with pgvector built-in
@@ -50,7 +50,7 @@ You need an LLM API key for fact extraction, entity resolution, and answer gener
 
 ### Hardware
 
-Hindsight is designed to run on commodity hardware. The footprint depends mainly on whether the **full** image (which bundles local embedding and reranker models) or the **slim** image (which delegates those to external providers) is used.
+ContextBase is designed to run on commodity hardware. The footprint depends mainly on whether the **full** image (which bundles local embedding and reranker models) or the **slim** image (which delegates those to external providers) is used.
 
 | Component | Minimum RAM | Recommended RAM | Notes |
 |-----------|-------------|-----------------|-------|
@@ -77,25 +77,25 @@ Run everything in one container with embedded PostgreSQL:
 ```bash
 export OPENAI_API_KEY=sk-xxx
 
-docker run -it --pull always --name hindsight --restart unless-stopped --shm-size=1g -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -v hindsight-data:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker run -it --name contextbase --restart unless-stopped --shm-size=1g -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -v contextbase-data:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - **API Server**: http://localhost:8888
 - **Control Plane** (Web UI): http://localhost:9999
 
 :::note Persisting data: named volume vs. host bind mount
-The container runs as a non-root user (UID 1000). The `hindsight-data` **named volume** above is recommended — Docker creates it owned by the container user, so it works with no extra setup.
+The container runs as a non-root user (UID 1000). The `contextbase-data` **named volume** above is recommended — Docker creates it owned by the container user, so it works with no extra setup.
 
-If you instead bind-mount a **host directory** (`-v $HOME/.hindsight-docker:/home/hindsight/.pg0`), that directory must be owned by UID 1000, or the embedded database fails to start with `Permission denied`:
+If you instead bind-mount a **host directory** (`-v $HOME/.contextbase-docker:/home/hindsight/.pg0`), that directory must be owned by UID 1000, or the embedded database fails to start with `Permission denied`:
 
 ```bash
-sudo chown -R 1000:1000 $HOME/.hindsight-docker
+sudo chown -R 1000:1000 $HOME/.contextbase-docker
 ```
 
-Do **not** run the image under a different UID with `--user` to work around this. The image only defines the `hindsight` user (UID 1000), so any other UID has no `/etc/passwd` entry, and startup crashes in a library that looks the running user up by ID:
+Do **not** run the image under a different UID with `--user` to work around this. The image only defines the internal `hindsight` user (UID 1000), so any other UID has no `/etc/passwd` entry, and startup crashes in a library that looks the running user up by ID:
 
 ```
 KeyError: 'getpwuid(): uid not found: 1042'
@@ -104,12 +104,12 @@ KeyError: 'getpwuid(): uid not found: 1042'
 Running as UID 1000 (the default) with the directory chowned to match is the supported way to use a host bind mount. If you cannot chown the directory — for example on a NAS share mounted with a fixed `uid=` — use a named volume instead.
 :::
 
-All published images are [signed with Cosign](#verifying-image-signatures) — verification is optional.
+Build the local image using [ContextBase image builds](#contextbase-image-builds) before running these examples.
 
-:::tip Set a stable `HINDSIGHT_API_WORKER_ID` in production
+:::tip Set a stable `CONTEXTBASE_API_WORKER_ID` in production
 The worker uses the container hostname as its identity, which Docker sets to the container ID by default. That value changes on every restart, so any task that was being processed when the container went down stays parked under the old ID with no way for the new container to recognize it as its own.
 
-Set `HINDSIGHT_API_WORKER_ID` to a stable value (e.g., `-e HINDSIGHT_API_WORKER_ID=hindsight-prod`) so the worker keeps the same identity across restarts. This is recommended even for single-container deployments. For diagnosis and recovery commands, see [Admin CLI - Recovering stuck operations](./admin-cli#recovering-stuck-or-zombie-operations).
+Set `CONTEXTBASE_API_WORKER_ID` to a stable value (e.g., `-e CONTEXTBASE_API_WORKER_ID=contextbase-prod`) so the worker keeps the same identity across restarts. This is recommended even for single-container deployments. For diagnosis and recovery commands, see [Admin CLI - Recovering stuck operations](./admin-cli#recovering-stuck-or-zombie-operations).
 :::
 
 ### Docker Image Variants
@@ -121,7 +121,7 @@ Set `HINDSIGHT_API_WORKER_ID` to a stable value (e.g., `-e HINDSIGHT_API_WORKER_
 
 The slim image corresponds to the [`hindsight-api-slim`](#bare-metal-pip) pip package. See [Configuration](./configuration#embeddings) for external provider options.
 
-Neither image bundles llama.cpp, so the built-in `llamacpp` provider is not available in Docker. To run inference locally, start llama.cpp (or Ollama, LM Studio, vLLM) alongside Hindsight and point `HINDSIGHT_API_LLM_BASE_URL` at it — see [`docker/docker-compose/local-llm/`](https://github.com/vectorize-io/hindsight/tree/main/docker/docker-compose/local-llm) for a working compose file.
+Neither image bundles llama.cpp, so the built-in `llamacpp` provider is not available in Docker. To run inference locally, start llama.cpp (or Ollama, LM Studio, vLLM) alongside ContextBase and point `CONTEXTBASE_API_LLM_BASE_URL` at it — see [`docker/docker-compose/local-llm/`](https://github.com/vectorize-io/hindsight/tree/main/docker/docker-compose/local-llm) for a working compose file.
 
 ### NVIDIA GPU Acceleration (CUDA)
 
@@ -143,32 +143,15 @@ See [`docker/docker-compose/cuda/README.md`](https://github.com/vectorize-io/hin
 If you use a non-default local embedder or reranker, bake the models into a custom image at build time rather than enabling the Helm `modelCache` PVC. See [`docker/docker-compose/custom-models/`](https://github.com/vectorize-io/hindsight/tree/main/docker/docker-compose/custom-models) for a runnable example.
 :::
 
-### Available Tags
+### ContextBase image builds
+
+Build this fork from the repository root before using the `contextbase:local` examples:
 
 ```bash
-# Standalone (API + Control Plane)
-ghcr.io/vectorize-io/hindsight:latest        # Full, latest release
-ghcr.io/vectorize-io/hindsight:latest-slim          # Slim, latest release
-ghcr.io/vectorize-io/hindsight:0.4.9         # Full, specific version
-ghcr.io/vectorize-io/hindsight:0.4.9-slim    # Slim, specific version
-
-# API only
-ghcr.io/vectorize-io/hindsight-api:latest
-ghcr.io/vectorize-io/hindsight-api:latest-slim
-
-# Control Plane only
-ghcr.io/vectorize-io/hindsight-control-plane:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
 ```
 
-### Verifying image signatures
-
-Images are signed with [Cosign](https://docs.sigstore.dev/cosign/signing/overview/) keyless OIDC. To verify any tag:
-
-```bash
-cosign verify ghcr.io/vectorize-io/hindsight:<tag> \
-  --certificate-identity-regexp '^https://github\.com/vectorize-io/hindsight/\.github/workflows/(sign-images|release)\.yml@.*' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
-```
+ContextBase registry coordinates and signing policy are deployment configuration; this source change does not publish images or claim an upstream signature for a ContextBase build.
 
 ---
 
@@ -176,25 +159,24 @@ cosign verify ghcr.io/vectorize-io/hindsight:<tag> \
 
 **Best for**: Production deployments, auto-scaling, cloud environments
 
+The chart retains upstream image defaults. Before installing, build and push this fork’s API and control-plane images to your own registry and set `api.image`, `worker.image` and `controlPlane.image` in your values file. Pass that file with `-f` to each command below; this PR does not publish ContextBase server images.
+
 ```bash
 # Install with built-in PostgreSQL
-helm install hindsight oci://ghcr.io/vectorize-io/charts/hindsight \
+helm install contextbase ./helm/hindsight \
   --set api.llm.provider=groq \
   --set api.llm.apiKey=gsk_xxxxxxxxxxxx \
   --set postgresql.enabled=true
 
 # Or use external PostgreSQL
-helm install hindsight oci://ghcr.io/vectorize-io/charts/hindsight \
+helm install contextbase ./helm/hindsight \
   --set api.llm.provider=groq \
   --set api.llm.apiKey=gsk_xxxxxxxxxxxx \
   --set postgresql.enabled=false \
-  --set api.database.url=postgresql://user:pass@postgres.example.com:5432/hindsight
+  --set api.database.url=postgresql://user:pass@postgres.example.com:5432/contextbase
 
-# Install a specific version
-helm install hindsight oci://ghcr.io/vectorize-io/charts/hindsight --version 0.1.3
-
-# Upgrade to latest
-helm upgrade hindsight oci://ghcr.io/vectorize-io/charts/hindsight
+# Upgrade from the checked-out chart
+helm upgrade contextbase ./helm/hindsight
 ```
 
 **Requirements**:
@@ -206,12 +188,12 @@ helm upgrade hindsight oci://ghcr.io/vectorize-io/charts/hindsight
 For high-throughput deployments, enable dedicated worker pods to scale task processing independently:
 
 ```bash
-helm install hindsight oci://ghcr.io/vectorize-io/charts/hindsight \
+helm install contextbase ./helm/hindsight \
   --set worker.enabled=true \
   --set worker.replicaCount=3
 ```
 
-The chart deploys workers as a StatefulSet, so each pod gets a stable name (e.g. `hindsight-worker-0`) that the worker uses as its `HINDSIGHT_API_WORKER_ID`. Tasks claimed by a pod are recognized as its own across restarts. If you swap the chart for a plain Deployment, set `HINDSIGHT_API_WORKER_ID` explicitly per replica — otherwise hostnames are randomized and previously-claimed tasks become orphaned. See [Admin CLI - Recovering stuck operations](./admin-cli#recovering-stuck-or-zombie-operations) for diagnosis.
+The chart deploys workers as a StatefulSet, so each pod gets a stable name (e.g. `contextbase-worker-0`) that the worker uses as its `CONTEXTBASE_API_WORKER_ID`. Tasks claimed by a pod are recognized as its own across restarts. If you swap the chart for a plain Deployment, set `CONTEXTBASE_API_WORKER_ID` explicitly per replica — otherwise hostnames are randomized and previously-claimed tasks become orphaned. See [Admin CLI - Recovering stuck operations](./admin-cli#recovering-stuck-or-zombie-operations) for diagnosis.
 
 See [Services - Worker Service](./services#worker-service) for configuration details and architecture.
 
@@ -221,7 +203,7 @@ See the [Helm chart values.yaml](https://github.com/vectorize-io/hindsight/tree/
 
 ## Bare Metal (pip)
 
-**Best for**: Running Hindsight as a standalone service on a host machine.
+**Best for**: Running ContextBase as a standalone service on a host machine.
 
 ### Install
 
@@ -234,25 +216,25 @@ When using `hindsight-api-slim`, you must configure external providers for all m
 
 ### Run with Embedded Database
 
-For development and testing, Hindsight can run with an embedded PostgreSQL (pg0):
+For development and testing, ContextBase can run with an embedded PostgreSQL (pg0):
 
 ```bash
-export HINDSIGHT_API_LLM_PROVIDER=groq
-export HINDSIGHT_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
+export CONTEXTBASE_API_LLM_PROVIDER=groq
+export CONTEXTBASE_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
 
 hindsight-api
 ```
 
-This creates a database in `~/.hindsight/data/` and starts the API on http://localhost:8888.
+This creates a database in `~/.contextbase/data/` and starts the API on http://localhost:8888.
 
 ### Run with External PostgreSQL
 
 For production, connect to your own PostgreSQL instance:
 
 ```bash
-export HINDSIGHT_API_DATABASE_URL=postgresql://user:pass@localhost:5432/hindsight
-export HINDSIGHT_API_LLM_PROVIDER=groq
-export HINDSIGHT_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
+export CONTEXTBASE_API_DATABASE_URL=postgresql://user:pass@localhost:5432/contextbase
+export CONTEXTBASE_API_LLM_PROVIDER=groq
+export CONTEXTBASE_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
 
 hindsight-api
 ```
@@ -284,8 +266,8 @@ This connects to your running API server and provides a visual interface for man
 |--------|---------------------|---------|-------------|
 | `-p, --port` | `PORT` | 9999 | Port to listen on |
 | `-H, --hostname` | `HOSTNAME` | 0.0.0.0 | Hostname to bind to |
-| `-a, --api-url` | `HINDSIGHT_CP_DATAPLANE_API_URL` | http://localhost:8888 | Hindsight API URL |
-| | `HINDSIGHT_CP_ACCESS_KEY` | *(none)* | Access key to protect the Control Plane UI. When set, users must enter this key to log in. |
+| `-a, --api-url` | `CONTEXTBASE_CP_DATAPLANE_API_URL` | http://localhost:8888 | ContextBase API URL |
+| | `CONTEXTBASE_CP_ACCESS_KEY` | *(none)* | Access key to protect the Control Plane UI. When set, users must enter this key to log in. |
 
 #### Examples
 
@@ -294,27 +276,27 @@ This connects to your running API server and provides a visual interface for man
 npx @vectorize-io/hindsight-control-plane --port 9999 --api-url http://localhost:8888
 
 # Using environment variables
-export HINDSIGHT_CP_DATAPLANE_API_URL=http://api.example.com
+export CONTEXTBASE_CP_DATAPLANE_API_URL=http://api.example.com
 npx @vectorize-io/hindsight-control-plane
 
 # Production deployment
-PORT=80 HINDSIGHT_CP_DATAPLANE_API_URL=https://api.hindsight.io npx @vectorize-io/hindsight-control-plane
+PORT=80 CONTEXTBASE_CP_DATAPLANE_API_URL=https://api.hindsight.io npx @vectorize-io/hindsight-control-plane
 ```
 
 ---
 
 ## Windows
 
-**Best for**: Running Hindsight natively on Windows without Docker
+**Best for**: Running ContextBase natively on Windows without Docker
 
-Hindsight works on Windows with the embedded database (pg0) out of the box — just install and run:
+ContextBase works on Windows with the embedded database (pg0) out of the box — just install and run:
 
 ```powershell
 pip install hindsight-api
 
-set HINDSIGHT_API_LLM_PROVIDER=openai
-set HINDSIGHT_API_LLM_API_KEY=sk-xxx
-set HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
+set CONTEXTBASE_API_LLM_PROVIDER=openai
+set CONTEXTBASE_API_LLM_API_KEY=sk-xxx
+set CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini
 
 hindsight-api
 ```
@@ -337,19 +319,19 @@ nmake /F Makefile.win
 nmake /F Makefile.win install
 
 # Create the database and enable the vector extension
-psql -U postgres -c "CREATE DATABASE hindsight;"
-psql -U postgres -d hindsight -c "CREATE EXTENSION vector;"
+psql -U postgres -c "CREATE DATABASE contextbase;"
+psql -U postgres -d contextbase -c "CREATE EXTENSION vector;"
 ```
 
-Then run Hindsight pointing to your database:
+Then run ContextBase pointing to your database:
 
 ```powershell
 pip install hindsight-api
 
-set HINDSIGHT_API_DATABASE_URL=postgresql://postgres@localhost:5432/hindsight
-set HINDSIGHT_API_LLM_PROVIDER=openai
-set HINDSIGHT_API_LLM_API_KEY=sk-xxx
-set HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
+set CONTEXTBASE_API_DATABASE_URL=postgresql://postgres@localhost:5432/contextbase
+set CONTEXTBASE_API_LLM_PROVIDER=openai
+set CONTEXTBASE_API_LLM_API_KEY=sk-xxx
+set CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini
 
 hindsight-api
 ```
@@ -364,33 +346,33 @@ You can also use the slim package (`pip install hindsight-api-slim`) if you conf
 
 If you are running on Windows behind China network restrictions:
 
-1. DeepSeek works well for `HINDSIGHT_API_LLM_PROVIDER`, but DeepSeek does not provide an embeddings endpoint.
+1. DeepSeek works well for `CONTEXTBASE_API_LLM_PROVIDER`, but DeepSeek does not provide an embeddings endpoint.
 2. Use local embeddings (recommended for privacy and reliability in restricted networks).
-3. Set `HF_ENDPOINT=https://hf-mirror.com` before starting Hindsight so Hugging Face model downloads use a China-accessible mirror.
+3. Set `HF_ENDPOINT=https://hf-mirror.com` before starting ContextBase so Hugging Face model downloads use a China-accessible mirror.
 
 ```powershell
 set HF_ENDPOINT=https://hf-mirror.com
 
-set HINDSIGHT_API_LLM_PROVIDER=deepseek
-set HINDSIGHT_API_LLM_API_KEY=sk-your-deepseek-key
-set HINDSIGHT_API_LLM_MODEL=deepseek-v4-flash
-set HINDSIGHT_API_LLM_BASE_URL=https://api.deepseek.com
+set CONTEXTBASE_API_LLM_PROVIDER=deepseek
+set CONTEXTBASE_API_LLM_API_KEY=sk-your-deepseek-key
+set CONTEXTBASE_API_LLM_MODEL=deepseek-v4-flash
+set CONTEXTBASE_API_LLM_BASE_URL=https://api.deepseek.com
 
-set HINDSIGHT_API_EMBEDDINGS_PROVIDER=local
-set HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-small-en-v1.5
+set CONTEXTBASE_API_EMBEDDINGS_PROVIDER=local
+set CONTEXTBASE_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-small-en-v1.5
 
-set HINDSIGHT_API_RERANKER_PROVIDER=flashrank
+set CONTEXTBASE_API_RERANKER_PROVIDER=flashrank
 
 hindsight-api
 ```
 
-The `HF_ENDPOINT` variable is used by Hugging Face tooling (`huggingface_hub`), not by Hindsight itself.
+The `HF_ENDPOINT` variable is used by Hugging Face tooling (`huggingface_hub`), not by ContextBase itself.
 
 ---
 
 ## Embedded in a Python Application
 
-**Best for**: Using Hindsight programmatically from Python without running a separate server process.
+**Best for**: Using ContextBase programmatically from Python without running a separate server process.
 
 ```bash
 pip install hindsight-all        # Full — works out of the box (Linux, Windows, Apple Silicon Macs)

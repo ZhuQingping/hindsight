@@ -1,5 +1,5 @@
 #!/bin/bash
-# Operations API examples for Hindsight CLI
+# Operations API examples for ContextBase CLI
 # Run: bash examples/api/operations.sh
 
 set -e
@@ -12,7 +12,7 @@ BANK_ID="my-bank"
 # Submit an async retain so we have a real pending operation_id to exercise
 # get / cancel below.
 OPERATION_ID=$(
-  agentstratum memory retain "$BANK_ID" "setup-1 for ops examples" --async -o json \
+  contextbase memory retain "$BANK_ID" "setup-1 for ops examples" --async -o json \
     | jq -r '.operation_id'
 )
 
@@ -22,43 +22,43 @@ OPERATION_ID=$(
 # =============================================================================
 
 # [docs:operations-list]
-agentstratum operation list my-bank
+contextbase operation list my-bank
 # [/docs:operations-list]
 
 
 # [docs:operations-get]
-agentstratum operation get my-bank "$OPERATION_ID"
+contextbase operation get my-bank "$OPERATION_ID"
 # [/docs:operations-get]
 
 
 # [docs:operations-cancel]
-agentstratum operation cancel my-bank "$OPERATION_ID"
+contextbase operation cancel my-bank "$OPERATION_ID"
 # [/docs:operations-cancel]
 
 
 # Setup for retry: create another op and cancel it so it's in a retryable state.
 OPERATION_ID=$(
-  agentstratum memory retain "$BANK_ID" "setup-2 for retry example" --async -o json \
+  contextbase memory retain "$BANK_ID" "setup-2 for retry example" --async -o json \
     | jq -r '.operation_id'
 )
-agentstratum operation cancel "$BANK_ID" "$OPERATION_ID" >/dev/null
+contextbase operation cancel "$BANK_ID" "$OPERATION_ID" >/dev/null
 
 
 # [docs:operations-retry]
-agentstratum operation retry my-bank "$OPERATION_ID"
+contextbase operation retry my-bank "$OPERATION_ID"
 # [/docs:operations-retry]
 
 
 # [docs:operations-async-retain]
 # Submit an async retain and capture the operation_id from the JSON response.
 OPERATION_ID=$(
-  agentstratum memory retain my-bank "Alice joined Google in 2023" --async -o json \
+  contextbase memory retain my-bank "Alice joined Google in 2023" --async -o json \
     | jq -r '.operation_id'
 )
 
 # Poll until the worker finishes — completed/failed/cancelled are all terminal.
 while true; do
-  STATUS=$(agentstratum operation get my-bank "$OPERATION_ID" -o json | jq -r '.status')
+  STATUS=$(contextbase operation get my-bank "$OPERATION_ID" -o json | jq -r '.status')
   if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ]; then
     echo "finished: $STATUS"
     break

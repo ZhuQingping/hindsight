@@ -3,7 +3,7 @@ import services from '@site/figures/services.json';
 
 # Services
 
-Hindsight consists of three services that can run together or separately depending on your deployment needs.
+ContextBase consists of three services that can run together or separately depending on your deployment needs.
 
 <Figure doc={services} />
 
@@ -28,7 +28,7 @@ By default, the API also processes background tasks (mental model consolidation)
 Dedicated task processor for background operations. Uses the **same package and Docker image** as the API service, just with a different entry point.
 
 ```bash
-hindsight-worker     # Default metrics port: 8889
+contextbase-worker     # Default metrics port: 8889
 ```
 
 Workers use PostgreSQL as a task broker, polling for pending tasks. Multiple workers can run simultaneously without conflicts.
@@ -44,18 +44,18 @@ To use dedicated workers, disable the internal worker in the API and start worke
 
 ```bash
 # Disable internal worker in API
-HINDSIGHT_API_WORKER_ENABLED=false hindsight-api
+CONTEXTBASE_API_WORKER_ENABLED=false hindsight-api
 
 # Start dedicated workers (run multiple instances)
-hindsight-worker --worker-id worker-1
-hindsight-worker --worker-id worker-2
+contextbase-worker --worker-id worker-1
+contextbase-worker --worker-id worker-2
 ```
 
 Each worker exposes `/health/live` (liveness, no database access), `/health` and
 `/health/ready` (readiness, checks the database), and `/metrics` for monitoring.
 See [Monitoring - Health Endpoints](./monitoring#health-endpoints).
 
-Before scaling down or removing workers, release their tasks with `hindsight-admin decommission-worker <worker-id>`.
+Before scaling down or removing workers, release their tasks with `contextbase-admin decommission-worker <worker-id>`.
 
 See [Configuration - Distributed Workers](./configuration#distributed-workers) for all worker settings and [Installation - Helm](./installation#distributed-workers) for Kubernetes deployment.
 

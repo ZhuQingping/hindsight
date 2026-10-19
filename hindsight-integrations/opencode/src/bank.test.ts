@@ -74,8 +74,8 @@ describe("deriveBankId", () => {
   });
 
   it("uses channel/user from env vars", () => {
-    process.env.HINDSIGHT_CHANNEL_ID = "slack-general";
-    process.env.HINDSIGHT_USER_ID = "user123";
+    process.env.CONTEXTBASE_CHANNEL_ID = "slack-general";
+    process.env.CONTEXTBASE_USER_ID = "user123";
     const config = makeConfig({
       dynamicBankId: true,
       dynamicBankGranularity: ["agent", "channel", "user"],
@@ -84,8 +84,8 @@ describe("deriveBankId", () => {
   });
 
   it("uses defaults for missing env vars", () => {
-    delete process.env.HINDSIGHT_CHANNEL_ID;
-    delete process.env.HINDSIGHT_USER_ID;
+    delete process.env.CONTEXTBASE_CHANNEL_ID;
+    delete process.env.CONTEXTBASE_USER_ID;
     const config = makeConfig({
       dynamicBankId: true,
       dynamicBankGranularity: ["channel", "user"],

@@ -79,16 +79,16 @@ for name, info in data.get("packages", {}).items():
     # exception exact so other private/dev links still fail the release check.
     if (
         manifest.get("private") is True
-        and manifest.get("name") == "agentstratum-coding-agents"
+        and manifest.get("name") == "contextbase-coding-agents"
         and Path(path).parent.name == "coding-agents"
-        and name == "node_modules/agentstratum-local-engine"
+        and name == "node_modules/contextbase-local-engine"
         and data.get("packages", {}).get(resolved, {}).get("dev") is True
         and info.get("dev") is not False
         and link is True
         and resolved == "../../hindsight-all-npm"
-        and manifest.get("devDependencies", {}).get("agentstratum-local-engine") == "file:../../hindsight-all-npm"
-        and "agentstratum-local-engine" not in manifest.get("dependencies", {})
-        and "agentstratum-local-engine" not in manifest.get("optionalDependencies", {})
+        and manifest.get("devDependencies", {}).get("contextbase-local-engine") == "file:../../hindsight-all-npm"
+        and "contextbase-local-engine" not in manifest.get("dependencies", {})
+        and "contextbase-local-engine" not in manifest.get("optionalDependencies", {})
     ):
         continue
 

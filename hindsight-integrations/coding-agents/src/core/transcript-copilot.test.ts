@@ -22,7 +22,7 @@ describe("readCopilotTranscript", () => {
         }),
         JSON.stringify({
           type: "assistant.message",
-          data: { content: "done\n<agentstratum_memory>old</agentstratum_memory>" },
+          data: { content: "done\n<contextbase_memory>old</contextbase_memory>" },
         }),
       ].join("\n")
     );

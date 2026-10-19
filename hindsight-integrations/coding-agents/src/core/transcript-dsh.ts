@@ -25,12 +25,12 @@ import type { TransportTurn } from "./chat";
 import { actionLine, stripInjectedMemory } from "./transcript-util";
 
 /**
- * The Cordis plugin name. Messages this integration injects carry `source.kind: 'plugin:agentstratum'`
- * (the V4 producer-owned kind; V3 logs recorded `kind: 'plugin', plugin: 'agentstratum'`), so an
+ * The Cordis plugin name. Messages this integration injects carry `source.kind: 'plugin:contextbase'`
+ * (the V4 producer-owned kind; V3 logs recorded `kind: 'plugin', plugin: 'contextbase'`), so an
  * injected block is identifiable in a session log even though the `kind: 'user'` filter below
  * already keeps it (and every other plugin's context) out of a retain.
  */
-export const AGENTSTRATUM_PLUGIN = "agentstratum";
+export const CONTEXTBASE_PLUGIN = "contextbase";
 
 /** Structural subset of a dsh ContentBlock (text is the only kind that carries prose). */
 interface DshContentBlock {

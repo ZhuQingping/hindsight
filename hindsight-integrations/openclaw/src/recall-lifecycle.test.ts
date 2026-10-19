@@ -30,7 +30,7 @@ describe("automatic recall service lifecycle", () => {
   };
   const event = { rawMessage: "What was the project decision?", messages: [] };
   beforeEach(async () => {
-    directory = mkdtempSync(join(tmpdir(), "hindsight-recall-cancellation-"));
+    directory = mkdtempSync(join(tmpdir(), "contextbase-recall-cancellation-"));
     hooks = new Map();
     vi.stubGlobal(
       "fetch",
@@ -49,9 +49,9 @@ describe("automatic recall service lifecycle", () => {
       config: {
         plugins: {
           entries: {
-            "hindsight-openclaw": {
+            "contextbase-openclaw": {
               config: {
-                hindsightApiUrl: "http://localhost:8888",
+                contextbaseApiUrl: "http://localhost:8888",
                 bankId: "test-bank",
                 dynamicBankId: false,
                 autoRecall: true,
@@ -152,8 +152,8 @@ describe("automatic recall service lifecycle", () => {
   it("does not send if stopped while waiting for initialization", async () => {
     const ready = deferred<void>();
     const globalClient = (
-      globalThis as unknown as { __hindsightClient: { waitForReady(): Promise<void> } }
-    ).__hindsightClient;
+      globalThis as unknown as { __contextbaseClient: { waitForReady(): Promise<void> } }
+    ).__contextbaseClient;
     vi.spyOn(globalClient, "waitForReady").mockReturnValue(ready.promise);
     const recall = vi.spyOn(HindsightClient.prototype, "recall").mockResolvedValue(memory as never);
     const pending = run();

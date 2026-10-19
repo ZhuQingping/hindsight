@@ -2,7 +2,7 @@
 
 import tomlkit
 
-from hindsight_openhands.openhands_config import (
+from contextbase_openhands.openhands_config import (
     apply_to_config,
     build_shttp_server,
     is_installed,

@@ -50,7 +50,7 @@ skills 目录或历史 `.local` 日志。下文绝对路径属于原执行机器
 
 | 差异/目的 | 权威位置 | 必须保留的行为与检查 | 可撤销条件 |
 |---|---|---|---|
-| 展示名与机器身份分离 | brand/；api product_config；CP product config | ContextBase 展示；命令、包、目录、headers、工具身份保持合同；brand generation/check 与命名黑盒故事 | 明确的身份迁移方案或等价上游扩展点 |
+| 对外品牌与机器身份 | brand/；api product_config；CP product config；docs/contextbase-naming/NAMING-MAP.md | ContextBase 展示；命令、插件包、目录、headers、工具和监控统一为 contextbase；SDK 包名/import 保留；brand generation/check 与命名黑盒故事 | 用户批准新的公开身份契约或等价上游扩展点 |
 | 旧接口兼容 | product-config v1/v2；SDK wrappers | v1 签名/语义、additive v2、旧客户端；SDK compatibility 检查 | 有版本化退役方案 |
 | 远程客户端模式 | coding-agents/core/connection、host-client；CLI config | 不因坏配置启动本地引擎；插件失败不拖垮宿主；connection/host-client/installer 测试 | 上游提供等价模式并实测 |
 | 插件配置所有权 | coding-agents installer/MCP 配置 | 不覆盖外部 HTTP/stdio 配置或凭证；ownership 测试 | 上游等价所有权模型 |

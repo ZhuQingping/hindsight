@@ -160,7 +160,7 @@ def create_worker_app(poller: WorkerPoller, memory):
     async def root():
         """Return basic worker info."""
         return {
-            "service": "agentstratum-worker",
+            "service": "contextbase-worker",
             "worker_id": poller.worker_id,
             "is_shutdown": poller.is_shutdown,
         }
@@ -176,21 +176,21 @@ def main():
     config = get_config()
 
     parser = argparse.ArgumentParser(
-        prog="agentstratum-worker",
-        description="agentstratum Worker - distributed task processor",
+        prog="contextbase-worker",
+        description="contextbase Worker - distributed task processor",
     )
 
     # Worker options
     parser.add_argument(
         "--worker-id",
         default=config.worker_id,
-        help="Worker identifier (default: hostname, env: AGENTSTRATUM_API_WORKER_ID)",
+        help="Worker identifier (default: hostname, env: CONTEXTBASE_API_WORKER_ID)",
     )
     parser.add_argument(
         "--poll-interval",
         type=int,
         default=config.worker_poll_interval_ms,
-        help=f"Poll interval in milliseconds (default: {config.worker_poll_interval_ms}, env: AGENTSTRATUM_API_WORKER_POLL_INTERVAL_MS)",
+        help=f"Poll interval in milliseconds (default: {config.worker_poll_interval_ms}, env: CONTEXTBASE_API_WORKER_POLL_INTERVAL_MS)",
     )
 
     # HTTP server options
@@ -198,7 +198,7 @@ def main():
         "--http-port",
         type=int,
         default=config.worker_http_port,
-        help=f"HTTP port for metrics/health endpoints (default: {config.worker_http_port}, env: AGENTSTRATUM_API_WORKER_HTTP_PORT)",
+        help=f"HTTP port for metrics/health endpoints (default: {config.worker_http_port}, env: CONTEXTBASE_API_WORKER_HTTP_PORT)",
     )
     parser.add_argument(
         "--http-host",
@@ -214,8 +214,8 @@ def main():
     args = parser.parse_args()
 
     for flag, env_var, value in (
-        ("--max-retries", "AGENTSTRATUM_API_WORKER_MAX_RETRIES", args.max_retries),
-        ("--log-level", "AGENTSTRATUM_API_LOG_LEVEL", args.log_level),
+        ("--max-retries", "CONTEXTBASE_API_WORKER_MAX_RETRIES", args.max_retries),
+        ("--log-level", "CONTEXTBASE_API_LOG_LEVEL", args.log_level),
     ):
         if value is not None:
             print(f"{flag} {value} is ignored: set {env_var} instead.", file=sys.stderr)
@@ -235,7 +235,7 @@ def main():
 
     warn_if_container_default_worker_id(args.worker_id)
     worker_id = args.worker_id or socket.gethostname()
-    worker_id_source = "AGENTSTRATUM_API_WORKER_ID/--worker-id" if args.worker_id else "hostname (default)"
+    worker_id_source = "CONTEXTBASE_API_WORKER_ID/--worker-id" if args.worker_id else "hostname (default)"
     logger.info(f"Worker id: {worker_id} (source: {worker_id_source})")
 
     # Import MemoryEngine here to avoid circular imports

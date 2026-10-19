@@ -48,8 +48,8 @@ class TestDeriveBankIdDynamic:
     def test_dynamic_agent_project(self, monkeypatch):
         monkeypatch.delenv("CURSOR_PROJECT_DIR", raising=False)
         cfg = _cfg(dynamicBankId=True, agentName="mybot", dynamicBankGranularity=["agent", "project"])
-        result = derive_bank_id(_hook(cwd="/home/user/hindsight"), cfg)
-        assert result == "mybot::hindsight"
+        result = derive_bank_id(_hook(cwd="/home/user/contextbase"), cfg)
+        assert result == "mybot::contextbase"
 
     def test_dynamic_uses_cursor_project_dir_env(self, monkeypatch):
         monkeypatch.setenv("CURSOR_PROJECT_DIR", "/work/myapp")
@@ -100,14 +100,14 @@ class TestDeriveBankIdDynamic:
         assert result.startswith("v2-")
 
     def test_dynamic_user_from_env(self, monkeypatch):
-        monkeypatch.setenv("HINDSIGHT_USER_ID", "user-456")
+        monkeypatch.setenv("CONTEXTBASE_USER_ID", "user-456")
         monkeypatch.delenv("CURSOR_PROJECT_DIR", raising=False)
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["user"])
         result = derive_bank_id(_hook(), cfg)
         assert "user-456" in result
 
     def test_dynamic_missing_env_uses_default(self, monkeypatch):
-        monkeypatch.delenv("HINDSIGHT_USER_ID", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_USER_ID", raising=False)
         monkeypatch.delenv("CURSOR_PROJECT_DIR", raising=False)
         cfg = _cfg(dynamicBankId=True, dynamicBankGranularity=["user"])
         result = derive_bank_id(_hook(), cfg)

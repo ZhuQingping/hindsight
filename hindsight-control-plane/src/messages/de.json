@@ -343,7 +343,7 @@
   "bankConfig": {
     "noBankSelected": "Keine Bank ausgewählt",
     "apiDisabledTitle": "Die Bankkonfigurations-API ist nicht aktiviert",
-    "apiDisabledDescription": "Setzen Sie <code>HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true</code> auf dem Server, um die bankspezifische Konfiguration zu aktivieren.",
+    "apiDisabledDescription": "Setzen Sie <code>CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=true</code> auf dem Server, um die bankspezifische Konfiguration zu aktivieren.",
     "resetToInherited": "Auf geerbten Wert zurücksetzen",
     "failedToReset": "Zurücksetzen fehlgeschlagen",
     "overrideBadge": "Bank-Überschreibung",
@@ -1856,7 +1856,7 @@
     "factTypeMemory": "Erinnerung"
   },
   "metadata": {
-    "title": "AgentStratum · 元壤",
+    "title": "ContextBase · 元壤",
     "description": "Daten- und Gedächtnis-Engine für Agenten."
   },
   "addDocument": {
@@ -1922,7 +1922,7 @@
     "addDocumentToCurrentBank": "Dokument zur aktuellen Bank hinzufügen",
     "templateManifestHelp": "Fügen Sie ein Vorlagen-Manifest-JSON ein, um die Bank mit Einstellungen, Mental Models und Direktiven vorzukonfigurieren.",
     "fileUploadDisabledMessage": "Datei-Upload ist auf diesem Server nicht aktiviert.",
-    "fileUploadEnableHint": "Zum Aktivieren setzen Sie <code>HINDSIGHT_API_ENABLE_FILE_UPLOAD_API=true</code>",
+    "fileUploadEnableHint": "Zum Aktivieren setzen Sie <code>CONTEXTBASE_API_ENABLE_FILE_UPLOAD_API=true</code>",
     "fileTagsHelp": "Kommagetrennt — zum Filtern von Erinnerungen während Recall/Reflect",
     "strategyHelpText": "Überschreibt die Standard-Extraktionsstrategie der Bank für dieses Dokument.",
     "observationScopePerTag": "Pro Tag",
@@ -1952,7 +1952,7 @@
   "banksOverview": {
     "title": "Alle Gedächtnisbanken",
     "subtitle": "Wählen Sie eine Bank, um Dokumente, Erinnerungen, Wissen und Aktivität zu prüfen.",
-    "welcomeTitle": "Willkommen bei AgentStratum · 元壤",
+    "welcomeTitle": "Willkommen bei ContextBase · 元壤",
     "welcomeBody": "Erstellen Sie eine Bank für nachvollziehbare Agenten-Erinnerungen und Wissen.",
     "search": "Bänke suchen...",
     "noSearchResults": "Keine Bänke entsprechen Ihrer Suche.",
@@ -1980,7 +1980,7 @@
     "bulkDeleteFailures": "Diese Bänke konnten nicht gelöscht werden:"
   },
   "login": {
-    "title": "Bei AgentStratum · 元壤 anmelden",
+    "title": "Bei ContextBase · 元壤 anmelden",
     "description": "Geben Sie das Zugangspasswort ein, um den Daten- und Erinnerungsbereich zu öffnen.",
     "accessKey": "Zugangspasswort",
     "accessKeyPlaceholder": "Zugangspasswort eingeben",
@@ -2286,7 +2286,7 @@
   },
   "resourcePages": {
     "backToBanks": "← Alle Speicherbanken",
-    "guideTitle": "AgentStratum verwenden",
+    "guideTitle": "ContextBase verwenden",
     "guideIntro": "Folgen Sie Quellen über Erinnerungen, Suche und Schlussfolgerung bis zur Verwaltung. Die Links öffnen die gewählte Bank.",
     "guideSourcesTitle": "Quellen hinzufügen",
     "guideSourcesBody": "Text hinzufügen oder Dokumente hochladen. Prüfen Sie den Verarbeitungsstatus, bevor Sie abgeleitete Erinnerungen verwenden.",

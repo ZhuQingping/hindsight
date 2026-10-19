@@ -1,18 +1,18 @@
-"""Unit tests for Hindsight Agno tools."""
+"""Unit tests for ContextBase Agno tools."""
 
 import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hindsight_agno import (
-    HindsightTools,
+from contextbase_agno import (
+    ContextBaseTools,
     configure,
     memory_instructions,
     reset_config,
 )
-from hindsight_agno.errors import HindsightError
-from hindsight_agno.tools import _TOOL_INSTRUCTIONS, _USER_AGENT, _resolve_client
+from contextbase_agno.errors import HindsightError
+from contextbase_agno.tools import _TOOL_INSTRUCTIONS, _USER_AGENT, _resolve_client
 
 
 # ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ from hindsight_agno.tools import _TOOL_INSTRUCTIONS, _USER_AGENT, _resolve_clien
 
 
 def _mock_client():
-    """Create a mock Hindsight client."""
+    """Create a mock ContextBase client."""
     client = MagicMock()
     client.retain = MagicMock()
     client.recall = MagicMock()
@@ -79,13 +79,13 @@ class TestResolveClient:
         assert result is client
 
     def test_creates_client_from_url(self):
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://localhost:8888", timeout=30.0)
 
     def test_creates_client_with_api_key(self):
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "my-key")
             mock_cls.assert_called_once_with(
@@ -93,15 +93,15 @@ class TestResolveClient:
             )
 
     def test_falls_back_to_global_config_url(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://config:8888", timeout=30.0)
 
     def test_falls_back_to_global_config_api_key(self):
-        configure(hindsight_api_url="http://config:8888", api_key="config-key")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key="config-key")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(
@@ -109,15 +109,15 @@ class TestResolveClient:
             )
 
     def test_explicit_url_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://explicit:9999", None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://explicit:9999", timeout=30.0)
 
     def test_explicit_api_key_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888", api_key="config-key")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key="config-key")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, "explicit-key")
             mock_cls.assert_called_once_with(
@@ -125,25 +125,25 @@ class TestResolveClient:
             )
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_raises_with_empty_config_no_url(self):
         # Config exists but has no url override and default is set,
         # so this should NOT raise since default URL exists in config
         configure()
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
-# HindsightTools initialization
+# ContextBaseTools initialization
 # ---------------------------------------------------------------------------
 
 
-class TestHindsightToolsInit:
+class TestContextBaseToolsInit:
     def setup_method(self):
         reset_config()
 
@@ -152,7 +152,7 @@ class TestHindsightToolsInit:
 
     def test_creates_three_tools_by_default(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert "retain_memory" in toolkit.functions
         assert "recall_memory" in toolkit.functions
         assert "reflect_on_memory" in toolkit.functions
@@ -160,7 +160,7 @@ class TestHindsightToolsInit:
 
     def test_enable_retain_only(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=True,
@@ -173,7 +173,7 @@ class TestHindsightToolsInit:
 
     def test_enable_recall_only(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -186,7 +186,7 @@ class TestHindsightToolsInit:
 
     def test_enable_reflect_only(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -199,7 +199,7 @@ class TestHindsightToolsInit:
 
     def test_enable_two_tools(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=True,
@@ -212,7 +212,7 @@ class TestHindsightToolsInit:
 
     def test_no_tools_when_all_disabled(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -222,32 +222,32 @@ class TestHindsightToolsInit:
         assert len(toolkit.functions) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
-            HindsightTools(bank_id="test")
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+            ContextBaseTools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            toolkit = HindsightTools(bank_id="test")
+            toolkit = ContextBaseTools(bank_id="test")
             assert "retain_memory" in toolkit.functions
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://localhost:8888", timeout=30.0)
 
     def test_explicit_url_overrides_config(self):
-        configure(hindsight_api_url="http://config:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            HindsightTools(bank_id="test", hindsight_api_url="http://explicit:9999")
+            ContextBaseTools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://explicit:9999", timeout=30.0)
 
     def test_toolkit_name(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
-        assert toolkit.name == "hindsight_tools"
+        toolkit = ContextBaseTools(bank_id="test", client=client)
+        assert toolkit.name == "contextbase_tools"
 
     def test_toolkit_has_instructions(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert toolkit.instructions == _TOOL_INSTRUCTIONS
         assert "retain_memory" in toolkit.instructions
         assert "recall_memory" in toolkit.instructions
@@ -256,10 +256,10 @@ class TestHindsightToolsInit:
     def test_constructor_defaults_override_config_for_budget(self):
         """Constructor default budget='mid' is truthy, so config budget is not used.
         This matches pydantic-ai integration behavior — pass budget explicitly to override."""
-        configure(hindsight_api_url="http://localhost:8888", budget="low")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888", budget="low")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            toolkit = HindsightTools(bank_id="test")
+            toolkit = ContextBaseTools(bank_id="test")
         client = mock_cls.return_value
         client.recall.return_value = _mock_recall_response(["fact"])
         ctx = _mock_run_context()
@@ -268,10 +268,10 @@ class TestHindsightToolsInit:
         assert client.recall.call_args[1]["budget"] == "mid"
 
     def test_explicit_budget_overrides_default(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            toolkit = HindsightTools(bank_id="test", budget="low")
+            toolkit = ContextBaseTools(bank_id="test", budget="low")
         client = mock_cls.return_value
         client.recall.return_value = _mock_recall_response(["fact"])
         ctx = _mock_run_context()
@@ -281,13 +281,13 @@ class TestHindsightToolsInit:
     def test_config_defaults_for_tags(self):
         """Tags use 'is not None' check, so config tags ARE picked up when not explicitly set."""
         configure(
-            hindsight_api_url="http://localhost:8888",
+            contextbase_api_url="http://localhost:8888",
             tags=["config-tag"],
             recall_tags=["config-recall"],
         )
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            toolkit = HindsightTools(bank_id="test")
+            toolkit = ContextBaseTools(bank_id="test")
         client = mock_cls.return_value
         client.retain.return_value = None
         client.recall.return_value = _mock_recall_response(["fact"])
@@ -301,13 +301,13 @@ class TestHindsightToolsInit:
 
     def test_explicit_tags_override_config(self):
         configure(
-            hindsight_api_url="http://localhost:8888",
+            contextbase_api_url="http://localhost:8888",
             tags=["config-tag"],
             recall_tags=["config-recall"],
         )
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            toolkit = HindsightTools(
+            toolkit = ContextBaseTools(
                 bank_id="test",
                 tags=["explicit-tag"],
                 recall_tags=["explicit-recall"],
@@ -324,11 +324,11 @@ class TestHindsightToolsInit:
         assert client.recall.call_args[1]["tags"] == ["explicit-recall"]
 
     def test_api_key_passed_to_client(self):
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
-            HindsightTools(
+            ContextBaseTools(
                 bank_id="test",
-                hindsight_api_url="http://localhost:8888",
+                contextbase_api_url="http://localhost:8888",
                 api_key="secret",
             )
             mock_cls.assert_called_once_with(
@@ -348,7 +348,7 @@ class TestBankIdResolution:
     def test_static_bank_id(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="my-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="my-bank", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -358,7 +358,7 @@ class TestBankIdResolution:
     def test_bank_id_from_run_context_user_id(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context(user_id="user-456")
 
         toolkit.recall_memory(ctx, "query")
@@ -369,7 +369,7 @@ class TestBankIdResolution:
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
         resolver = MagicMock(return_value="resolved-bank")
-        toolkit = HindsightTools(bank_resolver=resolver, client=client)
+        toolkit = ContextBaseTools(bank_resolver=resolver, client=client)
         ctx = _mock_run_context(user_id="user-789")
 
         toolkit.recall_memory(ctx, "query")
@@ -381,7 +381,7 @@ class TestBankIdResolution:
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
         resolver = MagicMock(return_value="resolver-wins")
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="static-bank",
             bank_resolver=resolver,
             client=client,
@@ -395,7 +395,7 @@ class TestBankIdResolution:
     def test_static_bank_id_takes_priority_over_user_id(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="static-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="static-bank", client=client)
         ctx = _mock_run_context(user_id="user-id-ignored")
 
         toolkit.recall_memory(ctx, "query")
@@ -404,7 +404,7 @@ class TestBankIdResolution:
 
     def test_missing_bank_id_raises_error(self):
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -412,7 +412,7 @@ class TestBankIdResolution:
 
     def test_missing_bank_id_no_user_id_attr(self):
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = MagicMock(spec=[])  # No attributes at all
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -424,7 +424,7 @@ class TestBankIdResolution:
         def bad_resolver(ctx):
             raise ValueError("resolver broke")
 
-        toolkit = HindsightTools(bank_resolver=bad_resolver, client=client)
+        toolkit = ContextBaseTools(bank_resolver=bad_resolver, client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="resolver broke"):
@@ -435,7 +435,7 @@ class TestBankIdResolution:
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context(user_id="shared-user")
 
         toolkit.retain_memory(ctx, "content")
@@ -455,7 +455,7 @@ class TestBankIdResolution:
 class TestEnsureBank:
     def test_creates_bank_on_first_tool_use(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="new-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="new-bank", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -464,7 +464,7 @@ class TestEnsureBank:
 
     def test_does_not_recreate_bank(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "first")
@@ -475,7 +475,7 @@ class TestEnsureBank:
     def test_bank_creation_failure_is_swallowed(self):
         client = _mock_client()
         client.create_bank.side_effect = RuntimeError("bank exists")
-        toolkit = HindsightTools(bank_id="existing-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="existing-bank", client=client)
         ctx = _mock_run_context()
 
         # Should not raise — bank creation failure is tolerated
@@ -486,7 +486,7 @@ class TestEnsureBank:
         """After a bank creation failure, it shouldn't retry."""
         client = _mock_client()
         client.create_bank.side_effect = RuntimeError("conflict")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "first")
@@ -501,7 +501,7 @@ class TestEnsureBank:
         def resolver(ctx):
             return f"bank-{ctx.user_id}"
 
-        toolkit = HindsightTools(bank_resolver=resolver, client=client)
+        toolkit = ContextBaseTools(bank_resolver=resolver, client=client)
 
         toolkit.retain_memory(_mock_run_context(user_id="alice"), "content")
         toolkit.retain_memory(_mock_run_context(user_id="bob"), "content")
@@ -516,7 +516,7 @@ class TestEnsureBank:
         """Recall doesn't call _ensure_bank (only retain does)."""
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -527,7 +527,7 @@ class TestEnsureBank:
         """Reflect doesn't call _ensure_bank (only retain does)."""
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "query")
@@ -543,7 +543,7 @@ class TestEnsureBank:
 class TestRetainTool:
     def test_retain_stores_memory(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="test-bank", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.retain_memory(ctx, "The user likes Python")
@@ -553,7 +553,7 @@ class TestRetainTool:
 
     def test_retain_passes_tags(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test-bank", client=client, tags=["source:chat"])
+        toolkit = ContextBaseTools(bank_id="test-bank", client=client, tags=["source:chat"])
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "some content")
@@ -563,7 +563,7 @@ class TestRetainTool:
 
     def test_retain_no_tags_key_when_none(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -573,7 +573,7 @@ class TestRetainTool:
 
     def test_retain_with_empty_content(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.retain_memory(ctx, "")
@@ -581,19 +581,19 @@ class TestRetainTool:
         assert result == "Memory stored successfully."
         client.retain.assert_called_once_with(bank_id="test", content="")
 
-    def test_retain_raises_hindsight_error(self):
+    def test_retain_raises_contextbase_error(self):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("connection refused")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Retain failed"):
             toolkit.retain_memory(ctx, "content")
 
-    def test_retain_preserves_hindsight_error(self):
+    def test_retain_preserves_contextbase_error(self):
         """HindsightError from bank resolution is not double-wrapped."""
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()  # No user_id, no bank_id
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -603,7 +603,7 @@ class TestRetainTool:
         client = _mock_client()
         original = RuntimeError("original error")
         client.retain.side_effect = original
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError) as exc_info:
@@ -614,7 +614,7 @@ class TestRetainTool:
     def test_retain_with_bank_resolver(self):
         client = _mock_client()
         resolver = MagicMock(return_value="resolved")
-        toolkit = HindsightTools(bank_resolver=resolver, client=client)
+        toolkit = ContextBaseTools(bank_resolver=resolver, client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -631,7 +631,7 @@ class TestRecallTool:
     def test_recall_returns_numbered_results(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["User likes Python", "User is in NYC"])
-        toolkit = HindsightTools(bank_id="test-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="test-bank", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "user preferences")
@@ -642,7 +642,7 @@ class TestRecallTool:
     def test_recall_single_result(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["only fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "query")
@@ -653,7 +653,7 @@ class TestRecallTool:
         client = _mock_client()
         facts = [f"fact {i}" for i in range(1, 11)]
         client.recall.return_value = _mock_recall_response(facts)
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "query")
@@ -664,7 +664,7 @@ class TestRecallTool:
     def test_recall_empty_results(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response([])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "anything")
@@ -676,7 +676,7 @@ class TestRecallTool:
         response = MagicMock()
         response.results = None
         client.recall.return_value = response
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "anything")
@@ -686,7 +686,7 @@ class TestRecallTool:
     def test_recall_passes_budget_and_max_tokens(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client, budget="high", max_tokens=2048)
+        toolkit = ContextBaseTools(bank_id="test", client=client, budget="high", max_tokens=2048)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -698,7 +698,7 @@ class TestRecallTool:
     def test_recall_default_budget_and_max_tokens(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -710,7 +710,7 @@ class TestRecallTool:
     def test_recall_passes_tags(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             recall_tags=["scope:user"],
@@ -727,7 +727,7 @@ class TestRecallTool:
     def test_recall_no_tags_key_when_none(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -736,18 +736,18 @@ class TestRecallTool:
         assert "tags" not in call_kwargs
         assert "tags_match" not in call_kwargs
 
-    def test_recall_raises_hindsight_error(self):
+    def test_recall_raises_contextbase_error(self):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("timeout")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Recall failed"):
             toolkit.recall_memory(ctx, "query")
 
-    def test_recall_preserves_hindsight_error(self):
+    def test_recall_preserves_contextbase_error(self):
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -757,7 +757,7 @@ class TestRecallTool:
         client = _mock_client()
         original = ConnectionError("network down")
         client.recall.side_effect = original
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError) as exc_info:
@@ -768,7 +768,7 @@ class TestRecallTool:
     def test_recall_passes_query(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "specific query text")
@@ -787,7 +787,7 @@ class TestReflectTool:
         client.reflect.return_value = _mock_reflect_response(
             "The user is a Python developer who prefers functional patterns."
         )
-        toolkit = HindsightTools(bank_id="test-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="test-bank", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.reflect_on_memory(ctx, "What do you know about the user?")
@@ -797,7 +797,7 @@ class TestReflectTool:
     def test_reflect_empty_returns_fallback(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.reflect_on_memory(ctx, "anything")
@@ -809,7 +809,7 @@ class TestReflectTool:
         response = MagicMock()
         response.text = None
         client.reflect.return_value = response
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.reflect_on_memory(ctx, "anything")
@@ -819,7 +819,7 @@ class TestReflectTool:
     def test_reflect_passes_budget(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="test", client=client, budget="high")
+        toolkit = ContextBaseTools(bank_id="test", client=client, budget="high")
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "query")
@@ -830,7 +830,7 @@ class TestReflectTool:
     def test_reflect_default_budget(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "query")
@@ -840,7 +840,7 @@ class TestReflectTool:
     def test_reflect_passes_query(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "What is the user's favorite color?")
@@ -850,25 +850,25 @@ class TestReflectTool:
     def test_reflect_passes_bank_id(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="my-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="my-bank", client=client)
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "query")
 
         assert client.reflect.call_args[1]["bank_id"] == "my-bank"
 
-    def test_reflect_raises_hindsight_error(self):
+    def test_reflect_raises_contextbase_error(self):
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("timeout")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Reflect failed"):
             toolkit.reflect_on_memory(ctx, "query")
 
-    def test_reflect_preserves_hindsight_error(self):
+    def test_reflect_preserves_contextbase_error(self):
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -878,7 +878,7 @@ class TestReflectTool:
         client = _mock_client()
         original = TimeoutError("timed out")
         client.reflect.side_effect = original
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError) as exc_info:
@@ -1041,12 +1041,12 @@ class TestMemoryInstructions:
         assert "tags_match" not in call_kwargs
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_uses_global_config(self):
-        configure(hindsight_api_url="http://localhost:8888")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://localhost:8888")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_client = _mock_client()
             mock_client.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_client
@@ -1075,25 +1075,25 @@ class TestMemoryInstructions:
 
 class TestExports:
     def test_all_exports_importable(self):
-        import hindsight_agno
+        import contextbase_agno
 
-        for name in hindsight_agno.__all__:
-            assert hasattr(hindsight_agno, name), f"{name} in __all__ but not importable"
+        for name in contextbase_agno.__all__:
+            assert hasattr(contextbase_agno, name), f"{name} in __all__ but not importable"
 
     def test_version(self):
-        import hindsight_agno
+        import contextbase_agno
 
-        assert hindsight_agno.__version__ == "0.1.0"
+        assert contextbase_agno.__version__ == "0.1.0"
 
-    def test_hindsight_error_importable_from_top_level(self):
-        from hindsight_agno import HindsightError
+    def test_contextbase_error_importable_from_top_level(self):
+        from contextbase_agno import HindsightError
 
         assert issubclass(HindsightError, Exception)
 
     def test_config_class_importable(self):
-        from hindsight_agno import HindsightAgnoConfig
+        from contextbase_agno import ContextBaseAgnoConfig
 
-        config = HindsightAgnoConfig()
+        config = ContextBaseAgnoConfig()
         assert config.budget == "mid"
 
 
@@ -1102,7 +1102,7 @@ class TestExports:
 # ---------------------------------------------------------------------------
 
 
-class TestHindsightError:
+class TestContextBaseError:
     def test_is_exception(self):
         assert issubclass(HindsightError, Exception)
 
@@ -1124,8 +1124,8 @@ class TestMultipleToolkits:
     def test_separate_created_banks_sets(self):
         """Each toolkit instance tracks its own created banks."""
         client = _mock_client()
-        toolkit1 = HindsightTools(bank_id="bank-1", client=client)
-        toolkit2 = HindsightTools(bank_id="bank-2", client=client)
+        toolkit1 = ContextBaseTools(bank_id="bank-1", client=client)
+        toolkit2 = ContextBaseTools(bank_id="bank-2", client=client)
         ctx = _mock_run_context()
 
         toolkit1.retain_memory(ctx, "content")
@@ -1138,8 +1138,8 @@ class TestMultipleToolkits:
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
 
-        toolkit_low = HindsightTools(bank_id="test", client=client, budget="low")
-        toolkit_high = HindsightTools(bank_id="test", client=client, budget="high")
+        toolkit_low = ContextBaseTools(bank_id="test", client=client, budget="low")
+        toolkit_high = ContextBaseTools(bank_id="test", client=client, budget="high")
         ctx = _mock_run_context()
 
         toolkit_low.recall_memory(ctx, "query")
@@ -1161,10 +1161,10 @@ class TestLogging:
     def test_retain_logs_error(self, caplog):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("boom")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with caplog.at_level(logging.ERROR, logger="hindsight_agno.tools"):
+        with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
             with pytest.raises(HindsightError):
                 toolkit.retain_memory(ctx, "content")
 
@@ -1173,10 +1173,10 @@ class TestLogging:
     def test_recall_logs_error(self, caplog):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("timeout")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with caplog.at_level(logging.ERROR, logger="hindsight_agno.tools"):
+        with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
             with pytest.raises(HindsightError):
                 toolkit.recall_memory(ctx, "query")
 
@@ -1185,22 +1185,22 @@ class TestLogging:
     def test_reflect_logs_error(self, caplog):
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("service down")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with caplog.at_level(logging.ERROR, logger="hindsight_agno.tools"):
+        with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
             with pytest.raises(HindsightError):
                 toolkit.reflect_on_memory(ctx, "query")
 
         assert "Reflect failed: service down" in caplog.text
 
-    def test_hindsight_error_not_logged(self, caplog):
+    def test_contextbase_error_not_logged(self, caplog):
         """HindsightError (e.g. missing bank_id) should not log — it's re-raised directly."""
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()  # No user_id
 
-        with caplog.at_level(logging.ERROR, logger="hindsight_agno.tools"):
+        with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
             with pytest.raises(HindsightError, match="No bank_id"):
                 toolkit.retain_memory(ctx, "content")
 
@@ -1217,7 +1217,7 @@ class TestEdgeCases:
         """bank_id='' is falsy, so resolution falls through to user_id."""
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="", client=client)
+        toolkit = ContextBaseTools(bank_id="", client=client)
         ctx = _mock_run_context(user_id="user-from-ctx")
 
         # "" is not None, so _bank_id check passes, but "" is also the bank_id
@@ -1228,7 +1228,7 @@ class TestEdgeCases:
     def test_empty_string_user_id_is_falsy(self):
         """user_id='' is falsy, so resolution raises error."""
         client = _mock_client()
-        toolkit = HindsightTools(client=client)
+        toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context(user_id="")
 
         with pytest.raises(HindsightError, match="No bank_id available"):
@@ -1236,7 +1236,7 @@ class TestEdgeCases:
 
     def test_unicode_content_in_retain(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.retain_memory(ctx, "The user likes coffee and books")
@@ -1247,7 +1247,7 @@ class TestEdgeCases:
     def test_unicode_in_recall_results(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["Cafe du Monde"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "query")
@@ -1256,7 +1256,7 @@ class TestEdgeCases:
 
     def test_multiline_content_in_retain(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
         content = "Line 1\nLine 2\nLine 3"
 
@@ -1268,7 +1268,7 @@ class TestEdgeCases:
     def test_newlines_in_recall_results(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact with\nnewline", "normal fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "query")
@@ -1279,7 +1279,7 @@ class TestEdgeCases:
     def test_special_chars_in_bank_id(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="org/user-123_v2", client=client)
+        toolkit = ContextBaseTools(bank_id="org/user-123_v2", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -1289,7 +1289,7 @@ class TestEdgeCases:
     def test_empty_tags_list_not_sent(self):
         """tags=[] is falsy, so tags should not be sent to retain."""
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client, tags=[])
+        toolkit = ContextBaseTools(bank_id="test", client=client, tags=[])
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -1300,7 +1300,7 @@ class TestEdgeCases:
         """recall_tags=[] is falsy, so tags should not be sent to recall."""
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client, recall_tags=[])
+        toolkit = ContextBaseTools(bank_id="test", client=client, recall_tags=[])
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "query")
@@ -1309,7 +1309,7 @@ class TestEdgeCases:
 
     def test_very_long_content(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
         content = "x" * 100_000
 
@@ -1321,7 +1321,7 @@ class TestEdgeCases:
     def test_recall_with_empty_query(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.recall_memory(ctx, "")
@@ -1331,7 +1331,7 @@ class TestEdgeCases:
     def test_reflect_with_empty_query(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         toolkit.reflect_on_memory(ctx, "")
@@ -1350,7 +1350,7 @@ class TestErrorTypes:
     def test_retain_wraps_type_error(self):
         client = _mock_client()
         client.retain.side_effect = TypeError("bad type")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Retain failed.*bad type"):
@@ -1359,7 +1359,7 @@ class TestErrorTypes:
     def test_recall_wraps_key_error(self):
         client = _mock_client()
         client.recall.side_effect = KeyError("missing key")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Recall failed"):
@@ -1368,7 +1368,7 @@ class TestErrorTypes:
     def test_reflect_wraps_os_error(self):
         client = _mock_client()
         client.reflect.side_effect = OSError("disk full")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Reflect failed.*disk full"):
@@ -1377,7 +1377,7 @@ class TestErrorTypes:
     def test_retain_wraps_value_error(self):
         client = _mock_client()
         client.retain.side_effect = ValueError("invalid input")
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         with pytest.raises(HindsightError, match="Retain failed.*invalid input"):
@@ -1394,21 +1394,21 @@ class TestToolDocstrings:
 
     def test_retain_has_docstring(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert toolkit.retain_memory.__doc__ is not None
         assert "Store" in toolkit.retain_memory.__doc__
         assert "memory" in toolkit.retain_memory.__doc__.lower()
 
     def test_recall_has_docstring(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert toolkit.recall_memory.__doc__ is not None
         assert "Search" in toolkit.recall_memory.__doc__
         assert "memory" in toolkit.recall_memory.__doc__.lower()
 
     def test_reflect_has_docstring(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert toolkit.reflect_on_memory.__doc__ is not None
         assert "Synthesize" in toolkit.reflect_on_memory.__doc__
 
@@ -1422,7 +1422,7 @@ class TestToolkitIntegration:
     def test_get_functions_returns_registered_tools(self):
         """Verify tools are accessible via Toolkit.get_functions()."""
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         functions = toolkit.get_functions()
         assert "retain_memory" in functions
         assert "recall_memory" in functions
@@ -1430,7 +1430,7 @@ class TestToolkitIntegration:
 
     def test_get_functions_respects_enable_flags(self):
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             enable_retain=False,
@@ -1443,13 +1443,13 @@ class TestToolkitIntegration:
 
     def test_instructions_are_set(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert toolkit.instructions is not None
         assert len(toolkit.instructions) > 0
 
     def test_instructions_mention_all_tools(self):
         client = _mock_client()
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         assert "retain_memory" in toolkit.instructions
         assert "recall_memory" in toolkit.instructions
         assert "reflect_on_memory" in toolkit.instructions
@@ -1465,7 +1465,7 @@ class TestBankCreationCrossTool:
         """Bank created by retain is reused by recall (no re-creation)."""
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="shared-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="shared-bank", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -1477,7 +1477,7 @@ class TestBankCreationCrossTool:
     def test_retain_then_reflect_creates_bank_once(self):
         client = _mock_client()
         client.reflect.return_value = _mock_reflect_response("answer")
-        toolkit = HindsightTools(bank_id="shared-bank", client=client)
+        toolkit = ContextBaseTools(bank_id="shared-bank", client=client)
         ctx = _mock_run_context()
 
         toolkit.retain_memory(ctx, "content")
@@ -1563,7 +1563,7 @@ class TestMemoryInstructionsEdgeCases:
 
     def test_client_resolution_error_propagates(self):
         """_resolve_client error during memory_instructions IS raised (not swallowed)."""
-        with pytest.raises(HindsightError, match="No Hindsight API URL"):
+        with pytest.raises(HindsightError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_recall_error_swallowed_not_raised(self):
@@ -1589,15 +1589,15 @@ class TestResolveClientEdgeCases:
         reset_config()
 
     def test_empty_string_api_key_not_passed(self):
-        """api_key='' is falsy, so it should not be passed to Hindsight."""
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        """api_key='' is falsy, so it should not be passed to ContextBase."""
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "")
             call_kwargs = mock_cls.call_args[1]
             assert "api_key" not in call_kwargs
 
     def test_none_api_key_not_passed(self):
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             call_kwargs = mock_cls.call_args[1]
@@ -1605,22 +1605,22 @@ class TestResolveClientEdgeCases:
 
     def test_whitespace_api_key_is_passed(self):
         """Non-empty whitespace string IS truthy, so it gets passed."""
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "  ")
             call_kwargs = mock_cls.call_args[1]
             assert call_kwargs["api_key"] == "  "
 
     def test_config_api_key_used_when_no_explicit(self):
-        configure(hindsight_api_url="http://config:8888", api_key="config-key")
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key="config-key")
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             assert mock_cls.call_args[1]["api_key"] == "config-key"
 
     def test_config_none_api_key_not_passed(self):
-        configure(hindsight_api_url="http://config:8888", api_key=None)
-        with patch("hindsight_agno.tools.Hindsight") as mock_cls:
+        configure(contextbase_api_url="http://config:8888", api_key=None)
+        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             assert "api_key" not in mock_cls.call_args[1]
@@ -1642,11 +1642,11 @@ class TestConfigToolkitInteraction:
         """Config is captured at construction time, not at tool call time."""
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(bank_id="test", client=client, tags=["original"])
+        toolkit = ContextBaseTools(bank_id="test", client=client, tags=["original"])
         ctx = _mock_run_context()
 
         # Change config after construction
-        configure(hindsight_api_url="http://new:8888", tags=["updated"])
+        configure(contextbase_api_url="http://new:8888", tags=["updated"])
 
         toolkit.retain_memory(ctx, "content")
 
@@ -1659,10 +1659,10 @@ class TestConfigToolkitInteraction:
         client.recall.return_value = _mock_recall_response(["fact"])
 
         # No config set
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
 
         # Config set after — doesn't affect existing toolkit
-        configure(hindsight_api_url="http://new:8888", budget="high")
+        configure(contextbase_api_url="http://new:8888", budget="high")
 
         toolkit.recall_memory(_mock_run_context(), "query")
         assert client.recall.call_args[1]["budget"] == "mid"  # Not "high"
@@ -1670,7 +1670,7 @@ class TestConfigToolkitInteraction:
     def test_multiple_tags(self):
         """Multiple tags are passed as a list."""
         client = _mock_client()
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             tags=["source:chat", "env:prod", "version:2"],
@@ -1685,7 +1685,7 @@ class TestConfigToolkitInteraction:
     def test_multiple_recall_tags(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["fact"])
-        toolkit = HindsightTools(
+        toolkit = ContextBaseTools(
             bank_id="test",
             client=client,
             recall_tags=["scope:user", "type:preference"],
@@ -1709,7 +1709,7 @@ class TestRecallFormatting:
     def test_result_numbering_starts_at_one(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["alpha"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "q")
@@ -1720,7 +1720,7 @@ class TestRecallFormatting:
     def test_results_separated_by_newlines(self):
         client = _mock_client()
         client.recall.return_value = _mock_recall_response(["a", "b", "c"])
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "q")
@@ -1735,7 +1735,7 @@ class TestRecallFormatting:
         client = _mock_client()
         facts = [f"fact-{i}" for i in range(1, 13)]
         client.recall.return_value = _mock_recall_response(facts)
-        toolkit = HindsightTools(bank_id="test", client=client)
+        toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
         result = toolkit.recall_memory(ctx, "q")
@@ -1786,11 +1786,11 @@ class TestMemoryInstructionsFormatting:
 
 
 class TestConstructorAPI:
-    def test_hindsight_tools_requires_keyword_args(self):
-        """All HindsightTools args are keyword-only (due to *)."""
+    def test_contextbase_tools_requires_keyword_args(self):
+        """All ContextBaseTools args are keyword-only (due to *)."""
         client = _mock_client()
         with pytest.raises(TypeError):
-            HindsightTools("test", client)  # type: ignore[misc]
+            ContextBaseTools("test", client)  # type: ignore[misc]
 
     def test_memory_instructions_requires_keyword_args(self):
         """All memory_instructions args are keyword-only (due to *)."""

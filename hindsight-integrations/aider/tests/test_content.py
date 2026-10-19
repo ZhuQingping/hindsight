@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from hindsight_aider.content import compose_recall_query, format_memory, format_transcript
+from contextbase_aider.content import compose_recall_query, format_memory, format_transcript
 
 
 class TestComposeQuery:

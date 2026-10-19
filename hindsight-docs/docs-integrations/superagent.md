@@ -1,22 +1,22 @@
 ---
-title: "Superagent Safety Middleware for Hindsight | Integration"
-description: "Guard Hindsight memory operations with Superagent. Blocks prompt injection and redacts PII before content is stored, and screens malicious queries before they reach recall or reflect."
+title: "Superagent Safety Middleware for ContextBase | Integration"
+description: "Guard ContextBase memory operations with Superagent. Blocks prompt injection and redacts PII before content is stored, and screens malicious queries before they reach recall or reflect."
 ---
 
 # Superagent
 
-Safety middleware for [Hindsight](https://vectorize.io/hindsight) memory operations, powered by [Superagent](https://www.superagent.sh). Wrap your memory client with `SafeHindsight` to guard against prompt injection and strip PII before anything is written to memory — and to screen queries before they reach recall or reflect.
+Safety middleware for [ContextBase](https://github.com/RSIXDB/hindsight) memory operations, powered by [Superagent](https://www.superagent.sh). Wrap your memory client with `SafeContextBase` to guard against prompt injection and strip PII before anything is written to memory — and to screen queries before they reach recall or reflect.
 
 [View Changelog →](/changelog/integrations/superagent)
 
 ## Quick Start
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```bash
-pip install hindsight-superagent
+pip install contextbase-superagent
 ```
 
 ### Prerequisites
@@ -25,24 +25,24 @@ Guard and Redact run on every `retain` by default, so the example below calls Su
 
 | Variable             | Purpose                                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `HINDSIGHT_API_KEY`  | Authenticates your Hindsight Cloud workspace. [Sign up free](https://ui.hindsight.vectorize.io) to grab one.                        |
+| `CONTEXTBASE_API_KEY` | API key issued by your ContextBase deployment administrator. |
 | `SUPERAGENT_API_KEY` | Authenticates Superagent's guard/redact calls. [Get one at superagent.sh](https://www.superagent.sh).                                      |
 | `OPENAI_API_KEY`     | Backs the `guard_model` / `redact_model` (e.g. `openai/gpt-4.1-nano`). Any [supported LLM provider](https://docs.superagent.sh/sdk) works. |
 
 ```bash
-export HINDSIGHT_API_KEY=hs-...
+export CONTEXTBASE_API_KEY=hs-...
 export SUPERAGENT_API_KEY=sa-...
 export OPENAI_API_KEY=sk-...
 ```
 
-`SafeHindsight` connects to [Hindsight Cloud](https://ui.hindsight.vectorize.io) (`https://api.hindsight.vectorize.io`) by default, using `HINDSIGHT_API_KEY`. To target a [self-hosted server](https://hindsight.vectorize.io/developer/installation) instead, pass `hindsight_api_url="http://localhost:8888"`.
+`SafeContextBase` connects to [ContextBase remote service](http://localhost:9999) (`http://localhost:8888`) by default, using `CONTEXTBASE_API_KEY`. To target a [self-hosted server](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) instead, pass `contextbase_api_url="http://localhost:8888"`.
 
 ```python
 import asyncio
-from hindsight_superagent import SafeHindsight
+from contextbase_superagent import SafeContextBase
 
-safe = SafeHindsight(
-    bank_id="user-123",  # connects to Hindsight Cloud by default
+safe = SafeContextBase(
+    bank_id="user-123",  # connects to ContextBase remote service by default
     guard_model="openai/gpt-4.1-nano",
     redact_model="openai/gpt-4.1-nano",
 )
@@ -68,4 +68,4 @@ Superagent's hosted endpoints for its guard models are currently unreliable. The
 
 ## Learn More
 
-- [Source on GitHub](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/superagent)
+- [Source on GitHub](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/superagent)

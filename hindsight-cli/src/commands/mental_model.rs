@@ -510,7 +510,7 @@ pub fn refresh(
                 println!();
                 println!(
                     "{}",
-                    ui::dim("Use 'agentstratum operations get' to check the operation status.")
+                    ui::dim("Use 'contextbase operations get' to check the operation status.")
                 );
             } else {
                 output::print_output(&operation, output_format)?;

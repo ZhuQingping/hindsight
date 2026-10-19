@@ -7,36 +7,36 @@ import (
 	"os"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 const memBankID = "memories-demo-bank"
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
 	// Setup (not shown in docs)
 	// =============================================================================
 	client.BanksAPI.CreateOrUpdateBank(ctx, memBankID).
-		CreateBankRequest(hindsight.CreateBankRequest{
-			Name: *hindsight.NewNullableString(hindsight.PtrString("Memories Demo")),
+		CreateBankRequest(contextbase.CreateBankRequest{
+			Name: *contextbase.NewNullableString(contextbase.PtrString("Memories Demo")),
 		}).Execute()
 	for _, content := range []string{
 		"The assistant visited Paris in 2023.",
 		"The deploy server srv-04 runs PostgreSQL 14.",
 	} {
 		client.MemoryAPI.RetainMemories(ctx, memBankID).
-			RetainRequest(hindsight.RetainRequest{
-				Items: []hindsight.MemoryItem{{Content: hindsight.TextContent(content)}},
+			RetainRequest(contextbase.RetainRequest{
+				Items: []contextbase.MemoryItem{{Content: contextbase.TextContent(content)}},
 			}).Execute()
 	}
 	time.Sleep(3 * time.Second)
@@ -77,9 +77,9 @@ func main() {
 		// Correct the fact's text. Re-embeds, drops derived observations/links,
 		// re-consolidates, and recomputes the graph automatically.
 		client.MemoryAPI.UpdateMemory(ctx, memBankID, memoryID).
-			UpdateMemoryRequest(hindsight.UpdateMemoryRequest{
-				Text:   *hindsight.NewNullableString(hindsight.PtrString("The user visited Paris in 2023.")),
-				Reason: *hindsight.NewNullableString(hindsight.PtrString("wrong subject")),
+			UpdateMemoryRequest(contextbase.UpdateMemoryRequest{
+				Text:   *contextbase.NewNullableString(contextbase.PtrString("The user visited Paris in 2023.")),
+				Reason: *contextbase.NewNullableString(contextbase.PtrString("wrong subject")),
 			}).Execute()
 		// [/docs:edit-memory]
 
@@ -89,11 +89,11 @@ func main() {
 		// ResolveEntities false keeps the entity names you wrote from being matched
 		// onto a similar entity that already exists.
 		client.MemoryAPI.UpdateMemory(ctx, memBankID, memoryID).
-			UpdateMemoryRequest(hindsight.UpdateMemoryRequest{
-				OccurredStart:   *hindsight.NewNullableString(hindsight.PtrString("2023-06-01")),
-				FactType:        *hindsight.NewNullableString(hindsight.PtrString("experience")),
+			UpdateMemoryRequest(contextbase.UpdateMemoryRequest{
+				OccurredStart:   *contextbase.NewNullableString(contextbase.PtrString("2023-06-01")),
+				FactType:        *contextbase.NewNullableString(contextbase.PtrString("experience")),
 				Entities:        []string{"Alice", "Paris"},
-				ResolveEntities: hindsight.PtrBool(false),
+				ResolveEntities: contextbase.PtrBool(false),
 			}).Execute()
 		// [/docs:edit-memory-fields]
 
@@ -101,17 +101,17 @@ func main() {
 		// Soft-retire a fact: removed from recall/consolidation/graph, links pruned,
 		// derived observations recomputed without it — but kept for audit.
 		client.MemoryAPI.UpdateMemory(ctx, memBankID, memoryID).
-			UpdateMemoryRequest(hindsight.UpdateMemoryRequest{
-				State:  *hindsight.NewNullableString(hindsight.PtrString("invalidated")),
-				Reason: *hindsight.NewNullableString(hindsight.PtrString("server decommissioned 2026-06-01")),
+			UpdateMemoryRequest(contextbase.UpdateMemoryRequest{
+				State:  *contextbase.NewNullableString(contextbase.PtrString("invalidated")),
+				Reason: *contextbase.NewNullableString(contextbase.PtrString("server decommissioned 2026-06-01")),
 			}).Execute()
 		// [/docs:invalidate-memory]
 
 		// [docs:restore-memory]
 		// Restore a previously invalidated fact.
 		client.MemoryAPI.UpdateMemory(ctx, memBankID, memoryID).
-			UpdateMemoryRequest(hindsight.UpdateMemoryRequest{
-				State: *hindsight.NewNullableString(hindsight.PtrString("valid")),
+			UpdateMemoryRequest(contextbase.UpdateMemoryRequest{
+				State: *contextbase.NewNullableString(contextbase.PtrString("valid")),
 			}).Execute()
 		// [/docs:restore-memory]
 	}

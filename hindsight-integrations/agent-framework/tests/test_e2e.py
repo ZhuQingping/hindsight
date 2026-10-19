@@ -1,7 +1,7 @@
-"""End-to-end: drive the provider against a live Hindsight server.
+"""End-to-end: drive the provider against a live ContextBase server.
 
-Exercises the real Agent Framework hooks + the real Hindsight client (no LLM
-agent needed). Gated behind HINDSIGHT_API_URL and marked requires_real_llm, so
+Exercises the real Agent Framework hooks + the real ContextBase client (no LLM
+agent needed). Gated behind CONTEXTBASE_API_URL and marked requires_real_llm, so
 it is excluded from the deterministic PR-CI bucket.
 """
 
@@ -12,23 +12,23 @@ import uuid
 import pytest
 from conftest import session_context
 
-from hindsight_agent_framework import HindsightProvider
+from contextbase_agent_framework import ContextBaseProvider
 
 pytestmark = pytest.mark.requires_real_llm
 
-API_URL = os.environ.get("HINDSIGHT_API_URL")
+API_URL = os.environ.get("CONTEXTBASE_API_URL")
 
 
 @pytest.mark.asyncio
 async def test_retain_then_recall_roundtrip():
     if not API_URL:
-        pytest.skip("HINDSIGHT_API_URL not set")
+        pytest.skip("CONTEXTBASE_API_URL not set")
 
     bank_id = f"af-e2e-{uuid.uuid4().hex[:8]}"
-    provider = HindsightProvider(
+    provider = ContextBaseProvider(
         bank_id=bank_id,
-        hindsight_api_url=API_URL,
-        api_key=os.environ.get("HINDSIGHT_API_KEY"),
+        contextbase_api_url=API_URL,
+        api_key=os.environ.get("CONTEXTBASE_API_KEY"),
     )
 
     # Turn 1 — retain a clear, recallable fact.

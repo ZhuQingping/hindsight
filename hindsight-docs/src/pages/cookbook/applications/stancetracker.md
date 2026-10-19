@@ -6,12 +6,12 @@ sidebar_position: 14
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/stancetracker)
 :::
 
 
-An AI-powered application that tracks political candidates' stances on issues over time using Hindsight memory system and web scraping.
+An AI-powered application that tracks political candidates' stances on issues over time using ContextBase memory system and web scraping.
 
 ## Features
 
@@ -25,9 +25,9 @@ An AI-powered application that tracks political candidates' stances on issues ov
 
 ## Architecture
 
-### Memory System (Hindsight Integration)
+### Memory System (ContextBase Integration)
 
-This app uses the Hindsight memory system from `github.com/vectorize-io/hindsight`:
+This app uses the ContextBase memory system from `github.com/RSIXDB/hindsight`:
 
 1. **Banks**: Each scraper agent has its own memory bank
 2. **Retain**: Stores candidate statements and web scraping results
@@ -40,7 +40,7 @@ This app uses the Hindsight memory system from `github.com/vectorize-io/hindsigh
 - **Frontend**: Next.js 16, React, TypeScript, TailwindCSS
 - **Visualization**: Recharts for timeline graphs
 - **Backend**: Next.js API routes
-- **Memory**: Hindsight (from github.com/vectorize-io/hindsight)
+- **Memory**: Hindsight (from github.com/RSIXDB/hindsight)
 - **Database**: JSON file storage (no database required)
 - **Web Search**: Tavily API
 - **LLM**: OpenAI/Anthropic/Groq (configurable)
@@ -48,7 +48,7 @@ This app uses the Hindsight memory system from `github.com/vectorize-io/hindsigh
 
 ## Prerequisites
 
-1. **Hindsight API** running (from github.com/vectorize-io/hindsight)
+1. **ContextBase API** running (from github.com/RSIXDB/hindsight)
 2. **API Keys**:
    - Tavily API key (for web search)
    - LLM provider API key (OpenAI, Anthropic, or Groq)
@@ -72,8 +72,8 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-# Hindsight API (from github.com/vectorize-io/hindsight)
-HINDSIGHT_API_URL=http://localhost:8888
+# ContextBase API (from github.com/RSIXDB/hindsight)
+CONTEXTBASE_API_URL=http://localhost:8888
 
 # Tavily API (for web search)
 TAVILY_API_KEY=your_tavily_api_key_here
@@ -84,17 +84,17 @@ LLM_API_KEY=your_llm_api_key_here
 LLM_MODEL=gpt-4-turbo-preview
 ```
 
-### 3. Start Hindsight
+### 3. Start ContextBase
 
-Clone and run Hindsight from github.com/vectorize-io/hindsight:
+Clone and run ContextBase from github.com/RSIXDB/hindsight:
 
 ```bash
-# Clone and run github.com/vectorize-io/hindsight
-cd /path/to/hindsight
-cargo run --bin hindsight-server
+# Clone and run github.com/RSIXDB/hindsight
+cd /path/to/contextbase
+cargo run --bin contextbase-server
 ```
 
-Verify Hindsight is running at `http://localhost:8888`
+Verify ContextBase is running at `http://localhost:8888`
 
 ### 4. Run the Application
 
@@ -147,13 +147,13 @@ Visit `http://localhost:3000`
 - `POST /api/scheduler` - Control session scheduling
   - Actions: `start`, `stop`, `run`
 
-## Hindsight Integration Examples
+## ContextBase Integration Examples
 
 ### 1. Storing Memories
 
 ```typescript
 // Store web scraping results
-await hindsightClient.retain(bankId, articleContent, {
+await contextbaseClient.retain(bankId, articleContent, {
   context: 'web_search_result',
   timestamp: articleDate,
   metadata: { url: articleUrl }
@@ -164,7 +164,7 @@ await hindsightClient.retain(bankId, articleContent, {
 
 ```typescript
 // Search for relevant memories
-const results = await hindsightClient.recall(bankId, query, {
+const results = await contextbaseClient.recall(bankId, query, {
   budget: 'high',
   maxTokens: 8192
 });
@@ -174,7 +174,7 @@ const results = await hindsightClient.recall(bankId, query, {
 
 ```typescript
 // Query memories up to a specific point in time
-const results = await hindsightClient.recall(bankId, query, {
+const results = await contextbaseClient.recall(bankId, query, {
   queryTimestamp: '2024-12-01T00:00:00Z'
 });
 ```
@@ -183,7 +183,7 @@ const results = await hindsightClient.recall(bankId, query, {
 
 ```typescript
 // Generate analysis using stored memories
-const response = await hindsightClient.reflect(bankId,
+const response = await contextbaseClient.reflect(bankId,
   'What is the candidate\'s stance on this issue?',
   { budget: 'high' }
 );
@@ -201,7 +201,7 @@ npm i -g vercel
 vercel
 
 # Set environment variables in Vercel dashboard:
-# - HINDSIGHT_API_URL
+# - CONTEXTBASE_API_URL
 # - TAVILY_API_KEY
 # - LLM_PROVIDER
 # - LLM_API_KEY
@@ -224,7 +224,7 @@ stancetracker/
 ├── components/       # React components
 ├── lib/
 │   ├── db/          # JSON database utilities
-│   ├── hindsight-client.ts    # Hindsight API client
+│   ├── hindsight-client.ts    # ContextBase API client
 │   ├── llm-client.ts       # LLM provider client
 │   ├── web-scraper.ts      # Tavily web scraper
 │   ├── scraper-agent.ts    # Content scraper
@@ -251,7 +251,7 @@ private async newProviderComplete(messages, options) {
 - **Source Verification**: Manual verification recommended for critical applications
 - **Stance Extraction**: LLM-based, subject to model limitations
 - **Storage**: JSON file storage is not suitable for high-scale production use
-- **Rate Limits**: Respect API rate limits for Tavily, Hindsight, and LLM providers
+- **Rate Limits**: Respect API rate limits for Tavily, ContextBase, and LLM providers
 
 ## Future Enhancements
 
@@ -271,6 +271,6 @@ MIT
 ## Support
 
 For issues or questions, please check:
-- Hindsight documentation: `github.com/vectorize-io/hindsight/README.md`
+- ContextBase documentation: `github.com/RSIXDB/hindsight/README.md`
 - Tavily API docs: https://tavily.com/
 - Project issues: Create an issue in the repository

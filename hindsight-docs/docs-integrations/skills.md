@@ -1,12 +1,12 @@
 ---
 sidebar_position: 3
-title: "Hindsight Agent Memory Skill | AI Coding Assistant Integration"
-description: "Give AI coding assistants like Claude Code and Codex persistent memory across sessions with Hindsight's Agent Skill — a reusable prompt template for long-term context retention."
+title: "ContextBase Agent Memory Skill | AI Coding Assistant Integration"
+description: "Give AI coding assistants like Claude Code and Codex persistent memory across sessions with ContextBase's Agent Skill — a reusable prompt template for long-term context retention."
 ---
 
 # Skills
 
-Hindsight provides an Agent Skill that gives AI coding assistants persistent memory across sessions. Skills are reusable prompt templates that agents can load when needed to gain specialized capabilities.
+ContextBase provides an Agent Skill that gives AI coding assistants persistent memory across sessions. Skills are reusable prompt templates that agents can load when needed to gain specialized capabilities.
 
 ## Supported Platforms
 
@@ -23,14 +23,14 @@ The skill supports two deployment modes:
 | Mode | Best For | Data Location |
 |------|----------|---------------|
 | **Local** | Individual developers | Your machine (`~/.pg0/`) |
-| **Cloud** | Teams sharing knowledge | Hindsight Cloud |
+| **Cloud** | Teams sharing knowledge | ContextBase remote service |
 
 ## Quick Install
 
 ### Option 1: Interactive Installer (Recommended)
 
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash
 ```
 
 The installer will:
@@ -43,20 +43,20 @@ The installer will:
 
 ```bash
 # Claude Code (interactive mode selection)
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --app claude
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --app claude
 
 # OpenCode
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --app opencode
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --app opencode
 
 # Codex CLI
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --app codex
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --app codex
 ```
 
 ### Install with Cloud Mode
 
 ```bash
 # Direct cloud setup (skips interactive prompts for mode)
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --app claude --mode cloud
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --app claude --mode cloud
 ```
 
 ### Option 2: Using add-skill
@@ -65,13 +65,13 @@ If you use [add-skill](https://add-skill.org/) to manage your agent skills:
 
 ```bash
 # For local mode (individual developers)
-npx add-skill vectorize-io/hindsight --skill hindsight-local
+npx add-skill RSIXDB/hindsight --skill contextbase-local
 
-# For Hindsight Cloud (teams)
-npx add-skill vectorize-io/hindsight --skill hindsight-cloud
+# For ContextBase remote service (teams)
+npx add-skill RSIXDB/hindsight --skill contextbase-cloud
 
-# For self-hosted Hindsight servers
-npx add-skill vectorize-io/hindsight --skill hindsight-self-hosted
+# For self-hosted ContextBase servers
+npx add-skill RSIXDB/hindsight --skill contextbase-self-hosted
 ```
 
 On first use, the AI will guide you through the remaining setup:
@@ -115,7 +115,7 @@ The skill is optimized to store:
 AI Coding Assistant
     │
     ▼
-Hindsight Skill (SKILL.md)
+ContextBase Skill (SKILL.md)
     │
     ▼
 hindsight-embed CLI
@@ -135,25 +135,25 @@ All data stays on your machine. The daemon auto-starts when needed and shuts dow
 AI Coding Assistant
     │
     ▼
-Hindsight Skill (SKILL.md)
+ContextBase Skill (SKILL.md)
     │
     ▼
 hindsight-cli
     │
     ▼
-Hindsight Cloud API (https://api.hindsight.vectorize.io)
+ContextBase remote service API (http://localhost:8888)
     │
     ▼
 Shared Memory Bank (team-accessible)
 ```
 
-Data is stored in Hindsight Cloud and shared across your team. All team members with the same bank ID can access shared memories.
+Data is stored in ContextBase remote service and shared across your team. All team members with the same bank ID can access shared memories.
 
 ---
 
 ## Local Mode Setup
 
-The skill uses configuration stored in `~/.hindsight/config.env`. Reconfigure anytime:
+The skill uses configuration stored in `~/.contextbase/config.env`. Reconfigure anytime:
 
 ```bash
 uvx hindsight-embed configure
@@ -163,11 +163,11 @@ uvx hindsight-embed configure
 
 ## Cloud Mode Setup
 
-Cloud mode connects to [Hindsight Cloud](https://ui.hindsight.vectorize.io), allowing teams to share memories about a codebase. When one team member learns something, everyone benefits.
+Cloud mode connects to [ContextBase remote service](http://localhost:9999), allowing teams to share memories about a codebase. When one team member learns something, everyone benefits.
 
 ### Prerequisites
 
-1. A Hindsight Cloud account ([sign up](https://ui.hindsight.vectorize.io))
+1. Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 2. An API key from your team admin
 3. A bank ID for your project (e.g., `team-acme-frontend`)
 
@@ -176,14 +176,14 @@ Cloud mode connects to [Hindsight Cloud](https://ui.hindsight.vectorize.io), all
 Run the installer with cloud mode:
 
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --mode cloud
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --mode cloud
 ```
 
 You'll be prompted for:
 
 | Setting | Description | Example |
 |---------|-------------|---------|
-| **Cloud API URL** | Hindsight Cloud endpoint | `https://api.hindsight.vectorize.io` |
+| **Cloud API URL** | ContextBase remote service endpoint | `http://localhost:8888` |
 | **API Key** | Your authentication key | `hs_xxx...` |
 | **Bank ID** | Shared memory bank for your team | `team-acme-frontend` |
 
@@ -191,19 +191,19 @@ You'll be prompted for:
 
 Cloud mode creates two files:
 
-**`~/.hindsight/config`** — API connection settings (TOML format):
+**`~/.contextbase/config`** — API connection settings (TOML format):
 ```toml
-api_url = "https://api.hindsight.vectorize.io"
+api_url = "http://localhost:8888"
 api_key = "hs_xxx..."
 ```
 
-**`~/.claude/skills/hindsight/SKILL.md`** — Skill definition with your bank ID baked in.
+**`~/.claude/skills/contextbase/SKILL.md`** — Skill definition with your bank ID baked in.
 
 ### Team Setup
 
 To set up cloud mode for your team:
 
-1. **Team admin** creates a bank in Hindsight Cloud (e.g., `team-acme-frontend`)
+1. **Team admin** creates a bank in ContextBase remote service (e.g., `team-acme-frontend`)
 2. **Team admin** generates API keys for each team member
 3. **Each developer** runs the installer with their API key and the shared bank ID
 4. All team members now share the same memory bank
@@ -244,10 +244,10 @@ After installation, verify the connection:
 
 ```bash
 # Store a test memory
-hindsight memory retain team-acme-frontend "Alice works at Google as a software engineer"
+contextbase memory retain team-acme-frontend "Alice works at Google as a software engineer"
 
 # Recall it
-hindsight memory recall team-acme-frontend "Alice"
+contextbase memory recall team-acme-frontend "Alice"
 ```
 
 ### Switching Between Banks
@@ -256,9 +256,9 @@ If you work on multiple projects, you can have different skills installed for ea
 
 ```bash
 # Environment variable override (temporary)
-HINDSIGHT_API_URL=https://api.hindsight.vectorize.io \
-HINDSIGHT_API_KEY=hs_xxx \
-hindsight memory recall different-bank "query"
+CONTEXTBASE_API_URL=http://localhost:8888 \
+CONTEXTBASE_API_KEY=hs_xxx \
+contextbase memory recall different-bank "query"
 ```
 
 For permanent multi-bank setups, reinstall the skill with a different bank ID.
@@ -289,28 +289,28 @@ uvx hindsight-embed configure
 **Authentication errors:**
 ```bash
 # Verify your config
-cat ~/.hindsight/config
+cat ~/.contextbase/config
 
 # Test connection manually
-hindsight bank list
+contextbase bank list
 ```
 
 **Wrong bank ID:**
 
 Check your SKILL.md file to see which bank ID is configured:
 ```bash
-cat ~/.claude/skills/hindsight/SKILL.md | grep "memory retain"
+cat ~/.claude/skills/contextbase/SKILL.md | grep "memory retain"
 ```
 
 To change the bank ID, reinstall the skill:
 ```bash
-curl -fsSL https://hindsight.vectorize.io/get-skill | bash -s -- --mode cloud
+curl -fsSL https://github.com/RSIXDB/hindsight/get-skill | bash -s -- --mode cloud
 ```
 
 **Network/firewall issues:**
 ```bash
 # Test connectivity to cloud API
-curl -I https://api.hindsight.vectorize.io/health
+curl -I http://localhost:8888/health
 ```
 
 ## Requirements
@@ -321,5 +321,5 @@ curl -I https://api.hindsight.vectorize.io/health
 
 ### Cloud Mode
 - Python 3.10+ (for `uvx`)
-- Hindsight Cloud API key
-- Network access to `https://api.hindsight.vectorize.io`
+- ContextBase remote service API key
+- Network access to `http://localhost:8888`

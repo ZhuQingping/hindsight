@@ -1,11 +1,11 @@
 {
-  "name": "@vectorize-io/hindsight-nemoclaw",
+  "name": "contextbase-nemoclaw",
   "version": "0.1.2",
-  "description": "Setup CLI for hindsight-openclaw on NemoClaw sandboxes — installs the plugin, configures external API mode, and applies the OpenShell network policy",
+  "description": "Setup CLI for contextbase-openclaw on NemoClaw sandboxes — installs the plugin, configures external API mode, and applies the OpenShell network policy",
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "hindsight-nemoclaw": "dist/cli.js"
+    "contextbase-nemoclaw": "dist/cli.js"
   },
   "keywords": [
     "nemoclaw",
@@ -13,7 +13,7 @@
     "memory",
     "ai",
     "agent",
-    "hindsight",
+    "contextbase",
     "openshell",
     "nvidia"
   ],
@@ -21,7 +21,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/nemoclaw"
   },
   "files": [

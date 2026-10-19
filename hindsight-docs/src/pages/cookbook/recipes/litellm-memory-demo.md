@@ -11,29 +11,31 @@ This recipe is available as an interactive Jupyter notebook.
 :::
 
 
-This notebook demonstrates how to add persistent memory to any LLM app using the `hindsight-litellm` package. Memory storage and injection happen automatically via LiteLLM callbacks - no manual memory management needed!
+This notebook demonstrates how to add persistent memory to any LLM app using the `contextbase-litellm` package. Memory storage and injection happen automatically via LiteLLM callbacks - no manual memory management needed!
 
 **Key features demonstrated:**
 1. `configure()` + `enable()` - Set up automatic memory integration
 2. Automatic storage - Conversations are stored after each LLM call
 3. Automatic injection - Relevant memories are injected into prompts
 
-The `hindsight-litellm` package hooks into LiteLLM's callback system to:
+The `contextbase-litellm` package hooks into LiteLLM's callback system to:
 - Store each conversation after successful LLM responses
 - Inject relevant memories into the system prompt before LLM calls
 
 ## Prerequisites
 
-Make sure you have Hindsight running:
+Make sure you have ContextBase running:
 
 ```bash
 export OPENAI_API_KEY=your-key
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 - API: http://localhost:8888
@@ -43,7 +45,7 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 
 
 ```python
-!pip install hindsight-litellm litellm nest_asyncio python-dotenv -U -q
+!pip install contextbase-litellm litellm nest_asyncio python-dotenv -U -q
 ```
 
 ## Setup
@@ -69,11 +71,11 @@ logging.getLogger("LiteLLM").setLevel(logging.WARNING)
 logging.getLogger("LiteLLM Router").setLevel(logging.WARNING)
 logging.getLogger("LiteLLM Proxy").setLevel(logging.WARNING)
 
-# Import hindsight_litellm
-import hindsight_litellm
+# Import contextbase_litellm
+import contextbase_litellm
 
 # Configuration
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # Check for API key
 if not os.getenv("OPENAI_API_KEY"):
@@ -84,7 +86,7 @@ if not os.getenv("OPENAI_API_KEY"):
 
 This is all you need! After this, all LiteLLM calls will automatically:
 - Have relevant memories injected into the prompt
-- Store conversations to Hindsight after the response
+- Store conversations to ContextBase after the response
 
 
 ```python
@@ -92,30 +94,30 @@ This is all you need! After this, all LiteLLM calls will automatically:
 bank_id = f"demo-{uuid.uuid4().hex[:8]}"
 print(f"Using bank_id: {bank_id}")
 
-# Configure and enable hindsight
-hindsight_litellm.configure(
-    hindsight_api_url=HINDSIGHT_API_URL,
+# Configure and enable contextbase
+contextbase_litellm.configure(
+    contextbase_api_url=CONTEXTBASE_API_URL,
     bank_id=bank_id,
     store_conversations=True,  # Automatically store conversations
     inject_memories=True,       # Automatically inject relevant memories
     verbose=True,               # Enable logging to debug memory operations
 )
-hindsight_litellm.enable()
+contextbase_litellm.enable()
 
-print("Hindsight memory integration enabled!")
+print("ContextBase memory integration enabled!")
 ```
 
 ## Conversation 1: User Introduces Themselves
 
-In this first conversation, the user shares some information about themselves. This will be automatically stored to Hindsight memory.
+In this first conversation, the user shares some information about themselves. This will be automatically stored to ContextBase memory.
 
 
 ```python
 user_message_1 = "Hi! I'm Alex and I work at Google as a software engineer. I love Python and machine learning."
 print(f"User: {user_message_1}\n")
 
-# Use hindsight_litellm.completion() directly
-response_1 = hindsight_litellm.completion(
+# Use contextbase_litellm.completion() directly
+response_1 = contextbase_litellm.completion(
     model="gpt-4o-mini",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
@@ -125,12 +127,12 @@ response_1 = hindsight_litellm.completion(
 
 assistant_response_1 = response_1.choices[0].message.content
 print(f"Assistant: {assistant_response_1}")
-print("\n(Conversation automatically stored to Hindsight)")
+print("\n(Conversation automatically stored to ContextBase)")
 ```
 
 ## Wait for Memory Processing
 
-Hindsight needs a few seconds to process and extract facts from the conversation.
+ContextBase needs a few seconds to process and extract facts from the conversation.
 
 
 ```python
@@ -149,7 +151,7 @@ user_message_2 = "What do you know about me? What programming language should I 
 print(f"User: {user_message_2}\n")
 
 # Memories are automatically injected before this call!
-response_2 = hindsight_litellm.completion(
+response_2 = contextbase_litellm.completion(
     model="gpt-4o-mini",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
@@ -178,10 +180,10 @@ print(f"View in UI: http://localhost:9999/banks/{bank_id}")
 
 
 ```python
-hindsight_litellm.cleanup()
+contextbase_litellm.cleanup()
 
 # Optional: delete the bank
 import requests
-response = requests.delete(f"{HINDSIGHT_API_URL}/v1/default/banks/{bank_id}")
+response = requests.delete(f"{CONTEXTBASE_API_URL}/v1/default/banks/{bank_id}")
 print(f"Deleted bank: {response.json()}")
 ```

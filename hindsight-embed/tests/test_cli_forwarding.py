@@ -1,4 +1,4 @@
-"""Tests for forwarding commands from agentstratum-embed to agentstratum-cli."""
+"""Tests for forwarding commands from contextbase-embed to contextbase-cli."""
 
 import json
 import os
@@ -19,7 +19,7 @@ def profiles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProfileManager:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     for key in list(os.environ):
-        if key.startswith("AGENTSTRATUM_"):
+        if key.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(key)
     monkeypatch.setattr(cli, "_cli_profile_override", None)
 
@@ -27,7 +27,7 @@ def profiles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProfileManager:
     for name, port in (("", 18888), ("work", 19100), ("other", 19200)):
         paths = manager.resolve_profile_paths(name)
         paths.config.write_text(
-            f"AGENTSTRATUM_API_PORT={port}\nAGENTSTRATUM_API_LLM_MODEL={name or 'default'}-model\n",
+            f"CONTEXTBASE_API_PORT={port}\nCONTEXTBASE_API_LLM_MODEL={name or 'default'}-model\n",
             encoding="utf-8",
         )
         paths.log.write_text(f"{name or 'default'} daemon log\n", encoding="utf-8")
@@ -36,7 +36,7 @@ def profiles(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProfileManager:
 
 
 def invoke_cli(monkeypatch: pytest.MonkeyPatch, args: list[str]) -> None:
-    monkeypatch.setattr(sys, "argv", ["agentstratum-embed", *args])
+    monkeypatch.setattr(sys, "argv", ["contextbase-embed", *args])
     with pytest.raises(SystemExit) as exit_info:
         cli.main()
     assert exit_info.value.code == 0
@@ -62,11 +62,11 @@ def test_forwarded_cli_uses_selected_config_and_endpoint(
     """The parsed selection must govern both daemon configuration and the Rust CLI endpoint."""
     profiles.set_active_profile("work")
     if env_profile is not None:
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_PROFILE", env_profile)
+        monkeypatch.setenv("CONTEXTBASE_EMBED_PROFILE", env_profile)
     ensure_running = Mock(return_value=True)
     child_process = Mock(return_value=Mock(returncode=0))
     monkeypatch.setattr(daemon_client, "ensure_cli_installed", lambda: True)
-    monkeypatch.setattr(daemon_client, "find_cli_binary", lambda: Path("agentstratum"))
+    monkeypatch.setattr(daemon_client, "find_cli_binary", lambda: Path("contextbase"))
     monkeypatch.setattr(daemon_client, "ensure_daemon_running", ensure_running)
     monkeypatch.setattr("subprocess.run", child_process)
 
@@ -75,10 +75,10 @@ def test_forwarded_cli_uses_selected_config_and_endpoint(
     ensure_running.assert_called_once()
     config, actual_profile = ensure_running.call_args.args
     assert actual_profile == expected
-    assert config["AGENTSTRATUM_API_LLM_MODEL"] == f"{expected or 'default'}-model"
+    assert config["CONTEXTBASE_API_LLM_MODEL"] == f"{expected or 'default'}-model"
     child_process.assert_called_once()
-    assert child_process.call_args.args[0] == ["agentstratum", "bank", "list"]
-    assert child_process.call_args.kwargs["env"]["AGENTSTRATUM_API_URL"] == (
+    assert child_process.call_args.args[0] == ["contextbase", "bank", "list"]
+    assert child_process.call_args.kwargs["env"]["CONTEXTBASE_API_URL"] == (
         f"http://127.0.0.1:{profiles.resolve_profile_paths(expected).port}"
     )
 
@@ -104,7 +104,7 @@ def test_logs_read_the_selected_profile(
 ) -> None:
     profiles.set_active_profile("work")
     if env_profile is not None:
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_PROFILE", env_profile)
+        monkeypatch.setenv("CONTEXTBASE_EMBED_PROFILE", env_profile)
 
     invoke_cli(monkeypatch, [*flag, command, "logs"])
 
@@ -124,7 +124,7 @@ def test_daemon_status_displays_the_instance_it_probes(
     is_running.assert_called_once_with("work")
     output = capsys.readouterr().out
     assert "http://127.0.0.1:19100" in output
-    assert "agentstratum-embed-work" in output
+    assert "contextbase-embed-work" in output
     assert "http://127.0.0.1:18888" not in output
 
 
@@ -171,22 +171,22 @@ def test_ui_status_uses_the_selected_profiles_port(
 def test_configure_uses_the_creation_target_even_with_an_env_profile(
     profiles: ProfileManager, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("AGENTSTRATUM_EMBED_PROFILE", "work")
+    monkeypatch.setenv("CONTEXTBASE_EMBED_PROFILE", "work")
 
     invoke_cli(
         monkeypatch,
-        ["configure", "--profile", "new", "--port", "19300", "--env", "AGENTSTRATUM_API_LLM_MODEL=new-model"],
+        ["configure", "--profile", "new", "--port", "19300", "--env", "CONTEXTBASE_API_LLM_MODEL=new-model"],
     )
 
-    assert profiles.load_profile_config("new")["AGENTSTRATUM_API_LLM_MODEL"] == "new-model"
-    assert profiles.load_profile_config("work")["AGENTSTRATUM_API_LLM_MODEL"] == "work-model"
+    assert profiles.load_profile_config("new")["CONTEXTBASE_API_LLM_MODEL"] == "new-model"
+    assert profiles.load_profile_config("work")["CONTEXTBASE_API_LLM_MODEL"] == "work-model"
 
 
 def test_no_key_provider_is_forwarded_to_daemon(profiles: ProfileManager, monkeypatch: pytest.MonkeyPatch) -> None:
     """Provider implementations, not the wrapper CLI, own credential validation."""
     config = {"llm_provider": "mock", "llm_api_key": None}
     run_cli = Mock(return_value=0)
-    monkeypatch.setattr(sys, "argv", ["agentstratum-embed", "bank", "list"])
+    monkeypatch.setattr(sys, "argv", ["contextbase-embed", "bank", "list"])
     monkeypatch.setattr(cli, "get_config", lambda: config)
     monkeypatch.setattr(daemon_client, "run_cli", run_cli)
 

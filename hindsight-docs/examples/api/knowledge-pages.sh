@@ -1,19 +1,19 @@
 #!/bin/bash
-# Knowledge Pages API examples for Hindsight CLI
+# Knowledge Pages API examples for ContextBase CLI
 # Run: bash examples/api/knowledge-pages.sh
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="knowledge-pages-demo-bank-cli"
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-agentstratum bank create "$BANK_ID" --name "Knowledge Pages Demo"
-agentstratum memory retain "$BANK_ID" "The API is deployed to Kubernetes with a rolling update"
-agentstratum memory retain "$BANK_ID" "Deploys run from the main branch after CI passes"
-agentstratum memory retain "$BANK_ID" "A failed deploy is rolled back by redeploying the previous tag"
+contextbase bank create "$BANK_ID" --name "Knowledge Pages Demo"
+contextbase memory retain "$BANK_ID" "The API is deployed to Kubernetes with a rolling update"
+contextbase memory retain "$BANK_ID" "Deploys run from the main branch after CI passes"
+contextbase memory retain "$BANK_ID" "A failed deploy is rolled back by redeploying the previous tag"
 sleep 2
 
 # =============================================================================
@@ -22,14 +22,14 @@ sleep 2
 
 # [docs:create-folder]
 # Create a folder (omit --parent-id to create it at the root)
-agentstratum knowledge-base create-folder "$BANK_ID" "Operations"
+contextbase knowledge-base create-folder "$BANK_ID" "Operations"
 # [/docs:create-folder]
 
-FOLDER_ID=$(agentstratum knowledge-base tree "$BANK_ID" -o json | jq -r '.roots[0].id')
+FOLDER_ID=$(contextbase knowledge-base tree "$BANK_ID" -o json | jq -r '.roots[0].id')
 
 # [docs:create-page]
 # Create a page — content is generated in the background
-agentstratum knowledge-base create-page "$BANK_ID" \
+contextbase knowledge-base create-page "$BANK_ID" \
   "Deploying the API" \
   "How is the API deployed?" \
   --parent-id "$FOLDER_ID" \
@@ -41,52 +41,52 @@ sleep 20
 
 # [docs:get-tree]
 # Show the folder/page tree (no page bodies)
-agentstratum knowledge-base tree "$BANK_ID"
+contextbase knowledge-base tree "$BANK_ID"
 # [/docs:get-tree]
 
-PAGE_ID=$(agentstratum knowledge-base tree "$BANK_ID" -o json | jq -r '.roots[0].children[0].id')
+PAGE_ID=$(contextbase knowledge-base tree "$BANK_ID" -o json | jq -r '.roots[0].children[0].id')
 
 # [docs:get-page]
 # Read a page as a markdown document
-agentstratum knowledge-base get-page "$BANK_ID" "$PAGE_ID"
+contextbase knowledge-base get-page "$BANK_ID" "$PAGE_ID"
 # [/docs:get-page]
 
 # [docs:search-pages]
 # Hybrid search (full-text + vector) over whole pages
-agentstratum knowledge-base search "$BANK_ID" "how do we deploy" --limit 5
+contextbase knowledge-base search "$BANK_ID" "how do we deploy" --limit 5
 # [/docs:search-pages]
 
 # [docs:filter-by-tags]
 # Narrow the tree and search to pages carrying a tag (recall's tags / tags_match / tag_groups)
-agentstratum knowledge-base tree "$BANK_ID" --tags type:runbook --tags-match any_strict
-agentstratum knowledge-base search "$BANK_ID" "how do we deploy" --tags ops --tags-match all_strict
+contextbase knowledge-base tree "$BANK_ID" --tags type:runbook --tags-match any_strict
+contextbase knowledge-base search "$BANK_ID" "how do we deploy" --tags ops --tags-match all_strict
 
 # Compound filters use --tag-groups: here, runbooks that are not drafts
-agentstratum knowledge-base search "$BANK_ID" "how do we deploy" \
+contextbase knowledge-base search "$BANK_ID" "how do we deploy" \
     --tag-groups '[{"and":[{"tags":["type:runbook"]},{"not":{"tags":["draft"]}}]}]'
 # [/docs:filter-by-tags]
 
 # [docs:update-node]
 # Rename a node, move it, and/or update a page's options.
 # Changing --source-query rebuilds the page against the new question.
-agentstratum knowledge-base update "$BANK_ID" "$PAGE_ID" \
+contextbase knowledge-base update "$BANK_ID" "$PAGE_ID" \
   --name "Deploying the API (v2)" \
   --tags ops,type:runbook,reviewed
 # [/docs:update-node]
 
 # [docs:export]
 # Export the knowledge base as a portable markdown bundle
-agentstratum knowledge-base export "$BANK_ID"
+contextbase knowledge-base export "$BANK_ID"
 # [/docs:export]
 
 # [docs:delete-node]
 # Delete a folder or page — deleting a folder removes its whole subtree
-agentstratum knowledge-base delete "$BANK_ID" "$FOLDER_ID" -y
+contextbase knowledge-base delete "$BANK_ID" "$FOLDER_ID" -y
 # [/docs:delete-node]
 
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "knowledge-pages.sh: All examples passed"

@@ -7,28 +7,28 @@ import (
 	"os"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 const kpBankID = "knowledge-pages-demo-bank-go"
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
 	// Setup (not shown in docs)
 	// =============================================================================
 	client.BanksAPI.CreateOrUpdateBank(ctx, kpBankID).
-		CreateBankRequest(hindsight.CreateBankRequest{
-			Name: *hindsight.NewNullableString(hindsight.PtrString("Knowledge Pages Demo")),
+		CreateBankRequest(contextbase.CreateBankRequest{
+			Name: *contextbase.NewNullableString(contextbase.PtrString("Knowledge Pages Demo")),
 		}).Execute()
 	for _, content := range []string{
 		"The API is deployed to Kubernetes with a rolling update",
@@ -36,8 +36,8 @@ func main() {
 		"A failed deploy is rolled back by redeploying the previous tag",
 	} {
 		client.MemoryAPI.RetainMemories(ctx, kpBankID).
-			RetainRequest(hindsight.RetainRequest{
-				Items: []hindsight.MemoryItem{{Content: hindsight.TextContent(content)}},
+			RetainRequest(contextbase.RetainRequest{
+				Items: []contextbase.MemoryItem{{Content: contextbase.TextContent(content)}},
 			}).Execute()
 	}
 	time.Sleep(2 * time.Second)
@@ -45,7 +45,7 @@ func main() {
 	// [docs:create-folder]
 	// Create a folder (leave ParentId unset to create it at the root)
 	folder, _, _ := client.KnowledgeBaseAPI.CreateKnowledgeFolder(ctx, kpBankID).
-		CreateFolderRequest(hindsight.CreateFolderRequest{Name: "Operations"}).
+		CreateFolderRequest(contextbase.CreateFolderRequest{Name: "Operations"}).
 		Execute()
 
 	fmt.Printf("Folder ID: %s\n", folder.Id)
@@ -54,10 +54,10 @@ func main() {
 	// [docs:create-page]
 	// Create a page — content is generated in the background
 	page, _, _ := client.KnowledgeBaseAPI.CreateKnowledgePage(ctx, kpBankID).
-		CreatePageRequest(hindsight.CreatePageRequest{
+		CreatePageRequest(contextbase.CreatePageRequest{
 			Name:        "Deploying the API",
 			SourceQuery: "How is the API deployed?",
-			ParentId:    *hindsight.NewNullableString(&folder.Id),
+			ParentId:    *contextbase.NewNullableString(&folder.Id),
 			Tags:        []string{"ops", "type:runbook"},
 		}).Execute()
 
@@ -116,8 +116,8 @@ func main() {
 	// Rename a node, move it, and/or update a page's options.
 	// Changing SourceQuery rebuilds the page against the new question.
 	client.KnowledgeBaseAPI.UpdateKnowledgeNode(ctx, kpBankID, page.PageId).
-		UpdateNodeRequest(hindsight.UpdateNodeRequest{
-			Name: *hindsight.NewNullableString(hindsight.PtrString("Deploying the API (v2)")),
+		UpdateNodeRequest(contextbase.UpdateNodeRequest{
+			Name: *contextbase.NewNullableString(contextbase.PtrString("Deploying the API (v2)")),
 			Tags: []string{"ops", "type:runbook", "reviewed"},
 		}).Execute()
 	// [/docs:update-node]

@@ -1,4 +1,4 @@
-"""Interactive Vapi webhook simulator — test HindsightVapiWebhook by hand.
+"""Interactive Vapi webhook simulator — test ContextBaseVapiWebhook by hand.
 
 Simulates Vapi's webhook events (assistant-request + end-of-call-report) so you
 can watch memory retain/recall happen in real time without a real Vapi account
@@ -6,7 +6,7 @@ or phone number.
 
 Usage:
     python examples/interactive_webhook.py --bank vapi-demo
-    python examples/interactive_webhook.py --bank vapi-demo --hindsight-url http://localhost:8888
+    python examples/interactive_webhook.py --bank vapi-demo --contextbase-url http://localhost:8888
 
 Commands:
   :call <caller-number>     Simulate assistant-request (incoming call)
@@ -33,7 +33,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from hindsight_vapi import HindsightVapiWebhook
+from contextbase_vapi import ContextBaseVapiWebhook
 
 BLUE = "\033[94m"
 GREEN = "\033[92m"
@@ -87,7 +87,7 @@ def make_end_of_call(transcript: str) -> dict:
     }
 
 
-async def cmd_end_call(webhook: HindsightVapiWebhook, transcript: str, wait_seconds: int = 8) -> None:
+async def cmd_end_call(webhook: ContextBaseVapiWebhook, transcript: str, wait_seconds: int = 8) -> None:
     banner("WEBHOOK: end-of-call-report", CYAN)
     print(f"transcript length: {len(transcript)} chars")
     event = make_end_of_call(transcript)
@@ -97,7 +97,7 @@ async def cmd_end_call(webhook: HindsightVapiWebhook, transcript: str, wait_seco
     banner("RETAIN", GREEN)
     print(f"{DIM}fire-and-forget task scheduled{RESET}")
 
-    # Give the async retain task a chance to actually fire and let Hindsight
+    # Give the async retain task a chance to actually fire and let ContextBase
     # extract facts. Without this wait the input() prompt blocks the event
     # loop before the task can make progress.
     print(f"{DIM}waiting {wait_seconds}s for retain + fact extraction...{RESET}")
@@ -106,7 +106,7 @@ async def cmd_end_call(webhook: HindsightVapiWebhook, transcript: str, wait_seco
     print(f"{DIM}done — try :memories to see what was extracted{RESET}")
 
 
-async def cmd_assistant_request(webhook: HindsightVapiWebhook, caller: str | None) -> None:
+async def cmd_assistant_request(webhook: ContextBaseVapiWebhook, caller: str | None) -> None:
     banner("WEBHOOK: assistant-request", CYAN)
     print(f"caller: {caller or '(none)'}")
     event = make_assistant_request(caller)
@@ -126,7 +126,7 @@ async def cmd_assistant_request(webhook: HindsightVapiWebhook, caller: str | Non
         print(content[:500] + ("..." if len(content) > 500 else ""))
 
 
-async def cmd_script(webhook: HindsightVapiWebhook, url: str, bank: str, api_key: str | None) -> None:
+async def cmd_script(webhook: ContextBaseVapiWebhook, url: str, bank: str, api_key: str | None) -> None:
     """Run a scripted demo that proves the full retain → recall cycle."""
     print(f"\n{GREEN}=== Scripted demo: Alex's first + second call ==={RESET}\n")
 
@@ -156,19 +156,19 @@ async def cmd_script(webhook: HindsightVapiWebhook, url: str, bank: str, api_key
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bank", default=f"vapi-demo-{os.environ.get('USER', 'anon')}")
-    parser.add_argument("--hindsight-url", default=os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888"))
-    parser.add_argument("--hindsight-api-key", default=os.environ.get("HINDSIGHT_API_KEY"))
+    parser.add_argument("--contextbase-url", default=os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888"))
+    parser.add_argument("--contextbase-api-key", default=os.environ.get("CONTEXTBASE_API_KEY"))
     args = parser.parse_args()
 
-    webhook = HindsightVapiWebhook(
+    webhook = ContextBaseVapiWebhook(
         bank_id=args.bank,
-        hindsight_api_url=args.hindsight_url,
-        api_key=args.hindsight_api_key,
+        contextbase_api_url=args.contextbase_url,
+        api_key=args.contextbase_api_key,
     )
 
-    print(f"\n{GREEN}=== Vapi + Hindsight Interactive Webhook Simulator ==={RESET}")
+    print(f"\n{GREEN}=== Vapi + ContextBase Interactive Webhook Simulator ==={RESET}")
     print(f"Bank:      {args.bank}")
-    print(f"Hindsight: {args.hindsight_url}")
+    print(f"ContextBase: {args.contextbase_url}")
     cmds = ":call <number>  :end <transcript>  :script  :memories  :bank  :quit"
     print(f"\nCommands: {DIM}{cmds}{RESET}\n")
 
@@ -184,13 +184,13 @@ async def main() -> None:
         if line in (":quit", ":q", ":exit"):
             break
         if line == ":memories":
-            dump_memories(args.hindsight_url, args.bank, args.hindsight_api_key)
+            dump_memories(args.contextbase_url, args.bank, args.contextbase_api_key)
             continue
         if line == ":bank":
             print(f"{YELLOW}bank: {args.bank}{RESET}")
             continue
         if line == ":script":
-            await cmd_script(webhook, args.hindsight_url, args.bank, args.hindsight_api_key)
+            await cmd_script(webhook, args.contextbase_url, args.bank, args.contextbase_api_key)
             continue
         if line.startswith(":call"):
             parts = line.split(maxsplit=1)

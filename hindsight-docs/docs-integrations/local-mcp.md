@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
-title: "Hindsight Local MCP Server | Persistent Memory for Claude"
-description: "Run Hindsight as a local MCP server with embedded PostgreSQL — no external setup required. Ideal for Claude Code and Claude Desktop for long-term memory across conversations."
+title: "ContextBase Local MCP Server | Persistent Memory for Claude"
+description: "Run ContextBase as a local MCP server with embedded PostgreSQL — no external setup required. Ideal for Claude Code and Claude Desktop for long-term memory across conversations."
 ---
 
 # Local MCP Server
 
-Hindsight provides a local MCP server that runs entirely on your machine with an embedded PostgreSQL database. No external server or database setup required.
+ContextBase provides a local MCP server that runs entirely on your machine with an embedded PostgreSQL database. No external server or database setup required.
 
 This is ideal for:
 - **Personal use with Claude Code / Claude Desktop** — Give Claude long-term memory across conversations
@@ -15,25 +15,25 @@ This is ideal for:
 
 ## How It Works
 
-Running `hindsight-local-mcp` starts the full Hindsight API on `localhost:8888` with an embedded PostgreSQL database (pg0). You then connect your MCP client to it over HTTP.
+Running `contextbase-local-mcp` starts the full ContextBase API on `localhost:8888` with an embedded PostgreSQL database (pg0). You then connect your MCP client to it over HTTP.
 
 - Starts an embedded PostgreSQL (pg0) automatically
 - Runs database migrations on startup
 - Exposes the full MCP endpoint at `http://localhost:8888/mcp/`
-- Data persists in `~/.pg0/hindsight-mcp/` across restarts
+- Data persists in `~/.pg0/contextbase-mcp/` across restarts
 
 ## Setup
 
 ### 1. Start the server
 
 ```bash
-HINDSIGHT_API_LLM_API_KEY=sk-... uvx --from hindsight-api hindsight-local-mcp
+CONTEXTBASE_API_LLM_API_KEY=sk-... uvx --from hindsight-api contextbase-local-mcp
 ```
 
 Or with Ollama (no API key needed):
 
 ```bash
-HINDSIGHT_API_LLM_PROVIDER=ollama HINDSIGHT_API_LLM_MODEL=llama3.2 uvx --from hindsight-api hindsight-local-mcp
+CONTEXTBASE_API_LLM_PROVIDER=ollama CONTEXTBASE_API_LLM_MODEL=llama3.2 uvx --from hindsight-api contextbase-local-mcp
 ```
 
 ### 2. Configure your MCP client
@@ -41,7 +41,7 @@ HINDSIGHT_API_LLM_PROVIDER=ollama HINDSIGHT_API_LLM_MODEL=llama3.2 uvx --from hi
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http hindsight http://localhost:8888/mcp/
+claude mcp add --transport http contextbase http://localhost:8888/mcp/
 ```
 
 **Other MCP clients** — add an HTTP transport entry pointing to `http://localhost:8888/mcp/`.
@@ -55,15 +55,15 @@ The local server supports the same two modes as the hosted API:
 Use `http://localhost:8888/mcp/` — exposes all tools including bank management. Bank is selected per-request via the `bank_id` tool parameter or the `X-Bank-Id` header.
 
 ```bash
-claude mcp add --transport http hindsight http://localhost:8888/mcp/
+claude mcp add --transport http contextbase http://localhost:8888/mcp/
 ```
 
 ### Single-bank mode
 
-Use `http://localhost:8888/mcp/<bank-id>/` — pins all tools to one bank, no `bank_id` parameter needed. This replaces the old `HINDSIGHT_API_MCP_LOCAL_BANK_ID` env var.
+Use `http://localhost:8888/mcp/<bank-id>/` — pins all tools to one bank, no `bank_id` parameter needed. This replaces the old `CONTEXTBASE_API_MCP_LOCAL_BANK_ID` env var.
 
 ```bash
-claude mcp add --transport http hindsight http://localhost:8888/mcp/my-bank/
+claude mcp add --transport http contextbase http://localhost:8888/mcp/my-bank/
 ```
 
 ## Available Tools
@@ -149,16 +149,16 @@ For detailed parameter documentation, see the [MCP Server reference](/developer/
 
 ## Environment Variables
 
-All standard [Hindsight configuration variables](/developer/configuration) are supported. Key ones for local use:
+All standard [ContextBase configuration variables](/developer/configuration) are supported. Key ones for local use:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `HINDSIGHT_API_LLM_API_KEY` | Yes* | — | API key for your LLM provider |
-| `HINDSIGHT_API_LLM_PROVIDER` | No | `openai` | LLM provider (`openai`, `anthropic`, `ollama`, etc.) |
-| `HINDSIGHT_API_LLM_MODEL` | No | `gpt-4o-mini` | Model name |
-| `HINDSIGHT_API_DATABASE_URL` | No | `pg0://hindsight-mcp` | Override the database URL |
-| `HINDSIGHT_API_PORT` | No | `8888` | Port to listen on |
-| `HINDSIGHT_API_LOG_LEVEL` | No | `info` | Log level |
+| `CONTEXTBASE_API_LLM_API_KEY` | Yes* | — | API key for your LLM provider |
+| `CONTEXTBASE_API_LLM_PROVIDER` | No | `openai` | LLM provider (`openai`, `anthropic`, `ollama`, etc.) |
+| `CONTEXTBASE_API_LLM_MODEL` | No | `gpt-4o-mini` | Model name |
+| `CONTEXTBASE_API_DATABASE_URL` | No | `pg0://contextbase-mcp` | Override the database URL |
+| `CONTEXTBASE_API_PORT` | No | `8888` | Port to listen on |
+| `CONTEXTBASE_API_LOG_LEVEL` | No | `info` | Log level |
 
 *Not required when using a local provider like Ollama.
 
@@ -173,15 +173,15 @@ The first startup downloads the local embedding model (~100MB) and initializes t
 Set a different port:
 
 ```bash
-HINDSIGHT_API_LLM_API_KEY=sk-... HINDSIGHT_API_PORT=9000 uvx --from hindsight-api hindsight-local-mcp
+CONTEXTBASE_API_LLM_API_KEY=sk-... CONTEXTBASE_API_PORT=9000 uvx --from hindsight-api contextbase-local-mcp
 ```
 
 Then update your MCP client URL to `http://localhost:9000/mcp/`.
 
 ### Checking logs
 
-Set `HINDSIGHT_API_LOG_LEVEL=debug` for verbose output:
+Set `CONTEXTBASE_API_LOG_LEVEL=debug` for verbose output:
 
 ```bash
-HINDSIGHT_API_LLM_API_KEY=sk-... HINDSIGHT_API_LOG_LEVEL=debug uvx --from hindsight-api hindsight-local-mcp
+CONTEXTBASE_API_LLM_API_KEY=sk-... CONTEXTBASE_API_LOG_LEVEL=debug uvx --from hindsight-api contextbase-local-mcp
 ```

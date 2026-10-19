@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch the agentstratum MCP server inside the plugin's persistent venv.
+# Launch the contextbase MCP server inside the plugin's persistent venv.
 # Bootstraps the venv if missing; otherwise just execs.
 set -e
 
@@ -35,7 +35,7 @@ if [ -z "${PY}" ]; then
   fi
   resolve_py
   if [ -z "${PY}" ]; then
-    echo "[agentstratum MCP] venv create failed: no python interpreter at ${VENV}/bin/ or ${VENV}/Scripts/" >&2
+    echo "[contextbase MCP] venv create failed: no python interpreter at ${VENV}/bin/ or ${VENV}/Scripts/" >&2
     exit 1
   fi
 fi
@@ -55,7 +55,7 @@ fi
 # directory contains an unreadable .env, FastMCP's default settings loader can
 # fail before our config loads. Run from plugin-owned data instead, while
 # preserving the session project cwd for bank derivation.
-export AGENTSTRATUM_MCP_PROJECT_CWD="${PWD}"
+export CONTEXTBASE_MCP_PROJECT_CWD="${PWD}"
 mkdir -p "${CLAUDE_PLUGIN_DATA}"
 cd "${CLAUDE_PLUGIN_DATA}"
 

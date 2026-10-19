@@ -1,6 +1,6 @@
 """The skills are the integration: in Grok Bot a plugin's hooks never run, only its skills.
 
-These tests pin every Hindsight tool and parameter the skills tell a Bot to use
+These tests pin every ContextBase tool and parameter the skills tell a Bot to use
 against the real MCP tool registry in hindsight-api-slim, so renaming a tool or a
 parameter fails here instead of silently breaking every installed Bot.
 """
@@ -97,10 +97,10 @@ def test_skills_only_reference_known_tools() -> None:
     assert referenced - FORBIDDEN <= set(EXPECTED_CALLS), referenced - FORBIDDEN - set(EXPECTED_CALLS)
 
 
-def test_expected_tools_and_parameters_exist_in_hindsight() -> None:
+def test_expected_tools_and_parameters_exist_in_contextbase() -> None:
     registry = _registry()
     for tool, params in EXPECTED_CALLS.items():
-        assert tool in registry, f"Hindsight has no MCP tool named {tool}"
+        assert tool in registry, f"ContextBase has no MCP tool named {tool}"
         assert params <= registry[tool], f"{tool} lacks {params - registry[tool]}"
     for tool in FORBIDDEN:
         assert tool in registry, f"forbidden list names a tool that does not exist: {tool}"

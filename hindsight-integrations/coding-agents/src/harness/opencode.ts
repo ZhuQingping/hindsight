@@ -4,7 +4,7 @@
  * Maps opencode's persistent-plugin hooks onto the shared RuntimeCore, and reads opencode sessions
  * for backfill. opencode is the cleanest platform of the lot: a real per-turn event, a working
  * system-prompt injection channel, transcript access, and NATIVE tool registration — so the whole
- * v2 surface (per-turn recall + attribution/user-feedback injection, the agentstratum_* knowledge
+ * v2 surface (per-turn recall + attribution/user-feedback injection, the contextbase_* knowledge
  * tools, cold-check auto-seed, rich write-back) rides these five hooks with no MCP server needed.
  * This is the only opencode-specific file; everything it uses is in ../core.
  */
@@ -27,7 +27,7 @@ type Part = { type?: string; text?: string };
 
 /**
  * Teach the host about the survey agent (core/survey.ts spawns `opencode run --agent
- * agentstratum-survey`), so the recipe needs nothing in the user's opencode.json.
+ * contextbase-survey`), so the recipe needs nothing in the user's opencode.json.
  *
  * Declared as `Pick<Hooks, "config">` rather than inlined into the returned object, and that IS the
  * point: plugin-entry.ts casts the whole runtime object to the host's Hooks type (the other hooks
@@ -39,14 +39,14 @@ type Part = { type?: string; text?: string };
 const surveyAgentHook: Pick<Hooks, "config"> = {
   config: async (cfg: Config) => {
     cfg.agent ??= {};
-    // Never overwrite an existing entry: a user who defined `agentstratum-survey` themselves outranks
+    // Never overwrite an existing entry: a user who defined `contextbase-survey` themselves outranks
     // us.
     //
     // The cast covers one field the published type under-describes: `permission` is declared with a
     // fixed key set (edit/bash/webfetch/…), while the runtime takes arbitrary action names —
     // opencode's own built-in `explore` agent is defined with `"*": "deny"` plus per-tool allows,
     // and a live 1.18.9 session under this agent was offered exactly glob/grep/read/
-    // agentstratum_ingest_document. Casting the entry beats widening it to `unknown`, which would drop
+    // contextbase_ingest_document. Casting the entry beats widening it to `unknown`, which would drop
     // the checking on `description`/`mode` too.
     cfg.agent[SURVEY_AGENT] ??= SURVEY_AGENT_CONFIG as NonNullable<Config["agent"]>[string];
   },
@@ -88,7 +88,7 @@ function toOpencodeTool(spec: ToolSpec) {
 
 // ── runtime: opencode plugin hooks wired to the RuntimeCore ──────────────────────
 function createRuntime(core: RuntimeCore) {
-  // Register the full agentstratum_* knowledge + recall suite natively (no MCP server needed).
+  // Register the full contextbase_* knowledge + recall suite natively (no MCP server needed).
   const tools: Record<string, ReturnType<typeof tool>> = {};
   for (const spec of core.toolSpecs()) tools[spec.name] = toOpencodeTool(spec);
 

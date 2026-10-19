@@ -1,4 +1,4 @@
-"""Customers see agentstratum over real protocols; their words remain their words.
+"""Customers see contextbase over real protocols; their words remain their words.
 
 Use the unchanged SDK for a retain/read round trip and raw HTTP for discovery
 surfaces the SDK does not own (OpenAPI, MCP initialization, and Prometheus).
@@ -45,7 +45,7 @@ async def test_discovery_and_monitoring_expose_the_product_identity(hindsight_se
 
         metrics = await http.get("/metrics")
         metrics.raise_for_status()
-        assert "agentstratum_" in metrics.text
+        assert "contextbase_" in metrics.text
         assert "hindsight" not in metrics.text.casefold()
 
 
@@ -102,7 +102,7 @@ async def test_mcp_initialization_and_tool_schemas_are_customer_branded(hindsigh
 
 
 async def test_unchanged_sdk_preserves_customer_content_and_accepts_product_config(client, bank_id, llm, settled):
-    content = "Alice uses hindsight as a word, HINDSIGHT as a label, and Hindsight as a title; agentstratum and contextbase are customer text."
+    content = "Alice uses hindsight as a word, HINDSIGHT as a label, and Hindsight as a title; contextbase and contextbase are customer text."
     document_id = "customer-hindsight.txt"
     llm.on_step("extract_facts").returns(extracted(fact(content, who="Alice", entities=["Alice"])))
     llm.on_step("consolidate").returns(consolidation())
@@ -110,7 +110,7 @@ async def test_unchanged_sdk_preserves_customer_content_and_accepts_product_conf
     await client.banks.update_bank_config(
         bank_id,
         {
-            "updates": {"AGENTSTRATUM_API_ENABLE_RERANKING": False},
+            "updates": {"CONTEXTBASE_API_ENABLE_RERANKING": False},
         },
     )
     assert (await client.banks.get_bank_config(bank_id)).config["enable_reranking"] is False

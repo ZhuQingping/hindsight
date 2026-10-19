@@ -1,4 +1,4 @@
-# agentstratum Monitoring Stack
+# contextbase Monitoring Stack
 
 Docker-based monitoring stack using **Grafana LGTM** (Loki, Grafana, Tempo, Mimir) for complete observability.
 
@@ -20,29 +20,29 @@ cd scripts/dev/monitoring && docker-compose up -d
 ## Features
 
 - **Traces**: OpenTelemetry traces with GenAI semantic conventions (Tempo)
-- **Metrics**: Prometheus scraping of agentstratum API `/metrics` endpoint
+- **Metrics**: Prometheus scraping of contextbase API `/metrics` endpoint
 - **Logs**: Loki log aggregation (future)
 - **Dashboards**: Pre-configured dashboards from `monitoring/grafana/dashboards/`:
-  - agentstratum Operations
-  - agentstratum LLM Metrics
-  - agentstratum API Service
+  - contextbase Operations
+  - contextbase LLM Metrics
+  - contextbase API Service
 
-## Configure agentstratum API
+## Configure contextbase API
 
 Set these environment variables in your `.env`:
 
 ```bash
 # Enable tracing
-AGENTSTRATUM_API_OTEL_TRACES_ENABLED=true
+CONTEXTBASE_API_OTEL_TRACES_ENABLED=true
 
 # Grafana Tempo OTLP endpoint (HTTP)
-AGENTSTRATUM_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+CONTEXTBASE_API_OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 # Optional: Custom service name
-AGENTSTRATUM_API_OTEL_SERVICE_NAME=agentstratum-api
+CONTEXTBASE_API_OTEL_SERVICE_NAME=contextbase-api
 
 # Optional: Deployment environment
-AGENTSTRATUM_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
+CONTEXTBASE_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
 ```
 
 ## View Data
@@ -56,7 +56,7 @@ AGENTSTRATUM_API_OTEL_DEPLOYMENT_ENVIRONMENT=development
 ### Metrics & Dashboards
 1. Open http://localhost:3000
 2. Go to **Dashboards** (dashboard icon)
-3. Browse the agentstratum folder
+3. Browse the contextbase folder
 
 ### Raw Metrics
 - Prometheus metrics: http://localhost:8888/metrics
@@ -80,5 +80,5 @@ cd scripts/dev/monitoring && docker-compose down
 
 - **Single Container**: Grafana LGTM (~515MB) provides all observability components
 - **Auto-provisioned Dashboards**: Dashboards from `monitoring/grafana/dashboards/` are automatically loaded
-- **Prometheus Scraping**: Configured to scrape agentstratum API at `host.docker.internal:8888/metrics` every 5 seconds
-- **Network**: Uses `agentstratum-network` (shared with API for future service-to-service tracing)
+- **Prometheus Scraping**: Configured to scrape contextbase API at `host.docker.internal:8888/metrics` every 5 seconds
+- **Network**: Uses `contextbase-network` (shared with API for future service-to-service tracing)

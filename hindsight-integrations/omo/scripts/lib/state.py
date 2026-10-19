@@ -1,7 +1,7 @@
 """File-based state persistence for OMO hooks.
 
 OMO hooks are ephemeral processes — state must be persisted to files.
-Uses ~/.hindsight/omo/state/ as the storage directory.
+Uses ~/.contextbase/omo/state/ as the storage directory.
 """
 
 import json
@@ -17,12 +17,12 @@ else:
 
 def _state_dir() -> str:
     """Get the state directory, creating it if needed."""
-    # Prefer OMO's plugin data dir if available, else use ~/.hindsight/omo/state/
+    # Prefer OMO's plugin data dir if available, else use ~/.contextbase/omo/state/
     plugin_data = os.environ.get("PLUGIN_DATA", "")
     if plugin_data:
         state_dir = os.path.join(plugin_data, "state")
     else:
-        state_dir = os.path.join(os.path.expanduser("~"), ".hindsight", "omo", "state")
+        state_dir = os.path.join(os.path.expanduser("~"), ".contextbase", "omo", "state")
     os.makedirs(state_dir, exist_ok=True)
     return state_dir
 

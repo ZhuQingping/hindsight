@@ -1,4 +1,4 @@
-//! Minimal Agentstratum API client — only the knowledge-base read endpoints needed
+//! Minimal ContextBase API client — only the knowledge-base read endpoints needed
 //! to mirror a bank's knowledge base into a folder. Uses a blocking `reqwest`
 //! client so the sync engine stays plain synchronous code.
 //!
@@ -72,7 +72,7 @@ pub struct FsClient {
 impl FsClient {
     pub fn new(api_url: &str, api_token: Option<&str>) -> Result<Self> {
         let http = reqwest::blocking::Client::builder()
-            .user_agent(concat!("agentstratum-cli-fs/", env!("CARGO_PKG_VERSION")))
+            .user_agent(concat!("contextbase-cli-fs/", env!("CARGO_PKG_VERSION")))
             .timeout(Duration::from_secs(60))
             .build()?;
         Ok(Self {

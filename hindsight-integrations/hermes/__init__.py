@@ -1,11 +1,11 @@
-"""Hindsight memory plugin — MemoryProvider with knowledge graph, entity resolution
+"""ContextBase memory plugin — MemoryProvider with knowledge graph, entity resolution
 and multi-strategy retrieval; cloud (API key), local_external, or local_embedded.
 
-Config: $HERMES_HOME/hindsight/config.json (profile-scoped), else ~/.hindsight/
-config.json (legacy, shared), else env: HINDSIGHT_API_KEY / BANK_ID / BUDGET /
+Config: $HERMES_HOME/contextbase/config.json (profile-scoped), else ~/.contextbase/
+config.json (legacy, shared), else env: CONTEXTBASE_API_KEY / BANK_ID / BUDGET /
 API_URL / MODE / TIMEOUT / IDLE_TIMEOUT / RETAIN_TAGS / RETAIN_OBSERVATION_SCOPES /
 RETAIN_SOURCE / RETAIN_STRATEGY / RETAIN_USER_PREFIX / RETAIN_ASSISTANT_PREFIX, and
-HINDSIGHT_EMBED_PORT_HEALTH_GRACE_TIMEOUT (config.json port_health_grace_timeout).
+CONTEXTBASE_EMBED_PORT_HEALTH_GRACE_TIMEOUT (config.json port_health_grace_timeout).
 """
 
 from __future__ import annotations
@@ -50,13 +50,13 @@ from .embedded import (
     _stop_daemon,
 )
 from .settings import (
+    _CONTEXTBASE_GLYPH,
     _DEFAULT_API_URL,
     _DEFAULT_IDLE_TIMEOUT,
     _DEFAULT_LOCAL_URL,
     _DEFAULT_RETAIN_SOURCE,
     _DEFAULT_RETAIN_STRATEGY,
     _DEFAULT_TIMEOUT,
-    _HINDSIGHT_GLYPH,
     _MIN_CLIENT_VERSION,
     _MIN_VERSION_FOR_UPDATE_MODE_APPEND,
     _PROVIDER_DEFAULT_MODELS,
@@ -99,7 +99,7 @@ def _plugin_version() -> str:
     return "0.0.0"
 
 
-_USER_AGENT = f"hindsight-hermes/{_plugin_version()}"
+_USER_AGENT = f"contextbase-hermes/{_plugin_version()}"
 
 
 def _scoped_setting(name: str, default: str = "") -> str:
@@ -114,7 +114,7 @@ def _scoped_setting(name: str, default: str = "") -> str:
     (retain source label, speaker prefixes, tags). The isolation-critical values — ``mode``,
     ``apiKey`` and the ``bankId`` data partition — read through bare ``get_secret`` above and so
     still fail loud on a scopeless multiplexed read, matching the other scoped credential readers.
-    In ``_load_config`` that read happens FIRST, so a missing scope raises on ``HINDSIGHT_MODE``
+    In ``_load_config`` that read happens FIRST, so a missing scope raises on ``CONTEXTBASE_MODE``
     before this helper is ever reached; swallowing here therefore cannot mask an isolation failure.
     What it does avoid is losing the whole memory provider (``initialize`` failing, and the manager
     logging + dropping it) because a speaker prefix could not be resolved.
@@ -134,7 +134,7 @@ def _scoped_flag(name: str, default: bool) -> bool:
 
 
 def _cloud_api_key(config: dict) -> str:
-    return config.get("apiKey") or config.get("api_key") or get_secret("HINDSIGHT_API_KEY", "")
+    return config.get("apiKey") or config.get("api_key") or get_secret("CONTEXTBASE_API_KEY", "")
 
 
 def _warn_if_client_outdated() -> None:
@@ -156,7 +156,7 @@ def _warn_if_client_outdated() -> None:
         if Version(installed) < Version(_MIN_CLIENT_VERSION):
             logger.warning(
                 "hindsight-client %s is older than this plugin needs (>=%s). "
-                "Run 'hermes plugins update hindsight' to prepare its declared dependencies.",
+                "Run 'hermes plugins update contextbase' to prepare its declared dependencies.",
                 installed,
                 _MIN_CLIENT_VERSION,
             )
@@ -164,7 +164,7 @@ def _warn_if_client_outdated() -> None:
         pass  # packaging or metadata unavailable — proceed anyway
 
 
-# update_mode='append' capability (Hindsight >= 0.5.0), cached per (API URL, key fingerprint)
+# update_mode='append' capability (ContextBase >= 0.5.0), cached per (API URL, key fingerprint)
 # per process so every provider on the same API+key shares one /version round trip. Only an answer
 # the server actually gave is cached; an unreachable server is asked again (the coding-agents client
 # does the same by probing per write). Caching that failure too disabled append
@@ -182,7 +182,7 @@ class _VersionProbeUnreachable(Exception):
     """No version path answered: the server is down or slow, so its version is still unknown."""
 
 
-def _fetch_hindsight_api_version(api_url: str, api_key: str | None = None, timeout: float = 5.0) -> str | None:
+def _fetch_contextbase_api_version(api_url: str, api_key: str | None = None, timeout: float = 5.0) -> str | None:
     """The server's version, or None when it answered without one (an API older than /version).
 
     ``/v1/version`` first: an ingress that routes only ``/v1`` to the API hands a bare ``/version``
@@ -207,14 +207,14 @@ def _fetch_hindsight_api_version(api_url: str, api_key: str | None = None, timeo
                 data = json.loads(resp.read().decode("utf-8", errors="replace"))
         except urllib.error.HTTPError as exc:
             unanswered = unanswered or exc.code >= 500  # a 4xx is an answer: this path is not served
-            logger.debug("Hindsight version probe %s answered %s", url, exc.code)
+            logger.debug("ContextBase version probe %s answered %s", url, exc.code)
             continue
         except ValueError as exc:  # not our JSON (an HTML page behind a proxy): an answer, not an outage
-            logger.debug("Hindsight version probe %s returned no JSON: %s", url, exc)
+            logger.debug("ContextBase version probe %s returned no JSON: %s", url, exc)
             continue
         except Exception as exc:
             unanswered = True
-            logger.debug("Hindsight version probe failed for %s: %s", url, exc)
+            logger.debug("ContextBase version probe failed for %s: %s", url, exc)
             continue
         version = (data.get("version") or data.get("api_version")) if isinstance(data, dict) else None
         if version:
@@ -241,12 +241,12 @@ def _check_api_supports_update_mode_append(api_url: str, api_key: str | None = N
         if failed_at is not None and time.monotonic() - failed_at < _APPEND_PROBE_RETRY_S:
             return False
     try:
-        version = _fetch_hindsight_api_version(api_url, api_key)
+        version = _fetch_contextbase_api_version(api_url, api_key)
     except _VersionProbeUnreachable:
         with _append_capability_lock:
             _append_probe_unreachable_at[cache_key] = time.monotonic()
         logger.debug(
-            "Hindsight API %s unreachable for the version probe; retrying in %ss", api_url, _APPEND_PROBE_RETRY_S
+            "ContextBase API %s unreachable for the version probe; retrying in %ss", api_url, _APPEND_PROBE_RETRY_S
         )
         return False
     try:  # missing/invalid version -> unsupported
@@ -259,13 +259,13 @@ def _check_api_supports_update_mode_append(api_url: str, api_key: str | None = N
         # A concurrent probe may have filled the cache meanwhile; its answer wins.
         supported = _append_capability_cache.setdefault(cache_key, supported)
     if supported:
-        logger.debug("Hindsight API %s version %s supports update_mode='append'", api_url, version)
+        logger.debug("ContextBase API %s version %s supports update_mode='append'", api_url, version)
     else:
         logger.warning(
-            "Hindsight API at %s reports version %r, older than %s. "
+            "ContextBase API at %s reports version %r, older than %s. "
             "Falling back to per-process document_id — retains across "
             "processes/sessions create separate documents instead of "
-            "appending to a session-scoped one. Upgrade Hindsight to "
+            "appending to a session-scoped one. Upgrade ContextBase to "
             "%s+ to enable update_mode='append' deduplication.",
             api_url,
             version,
@@ -275,7 +275,7 @@ def _check_api_supports_update_mode_append(api_url: str, api_key: str | None = N
     return supported
 
 
-# One long-lived event loop per process for Hindsight async calls; ephemeral
+# One long-lived event loop per process for ContextBase async calls; ephemeral
 # loops would leak aiohttp sessions.
 _loop: asyncio.AbstractEventLoop | None = None
 _loop_thread: threading.Thread | None = None
@@ -295,7 +295,7 @@ def _get_loop() -> asyncio.AbstractEventLoop:
         _loop_thread = threading.Thread(
             target=lambda: (asyncio.set_event_loop(loop), loop.run_forever()),
             daemon=True,
-            name="hindsight-loop",
+            name="contextbase-loop",
         )
         _loop_thread.start()
         return _loop
@@ -307,14 +307,14 @@ def _run_sync(coro, timeout: float = _DEFAULT_TIMEOUT):
 
     future = safe_schedule_threadsafe(coro, _get_loop())
     if future is None:
-        raise RuntimeError("Hindsight loop unavailable")
+        raise RuntimeError("ContextBase loop unavailable")
     return future.result(timeout=timeout)
 
 
 RETAIN_SCHEMA = {
-    "name": "hindsight_retain",
+    "name": "contextbase_retain",
     "description": (
-        "Store information to long-term memory. Hindsight automatically "
+        "Store information to long-term memory. ContextBase automatically "
         "extracts structured facts, resolves entities, and indexes for retrieval."
     ),
     "parameters": {
@@ -333,7 +333,7 @@ RETAIN_SCHEMA = {
                     "When the remembered event actually happened, as an ISO-8601 date "
                     "or datetime (e.g. '2026-08-20' or '2026-08-20T14:30:00+02:00'). "
                     "Pass this whenever the memory references a specific event time "
-                    "('yesterday', 'last Tuesday', 'on March 3rd') so Hindsight can "
+                    "('yesterday', 'last Tuesday', 'on March 3rd') so ContextBase can "
                     "anchor it on the timeline. Omit for timeless facts/preferences."
                 ),
             },
@@ -343,7 +343,7 @@ RETAIN_SCHEMA = {
 }
 
 RECALL_SCHEMA = {
-    "name": "hindsight_recall",
+    "name": "contextbase_recall",
     "description": (
         "Search long-term memory. Returns memories ranked by relevance using "
         "semantic search, keyword matching, entity graph traversal, and reranking."
@@ -356,7 +356,7 @@ RECALL_SCHEMA = {
 }
 
 REFLECT_SCHEMA = {
-    "name": "hindsight_reflect",
+    "name": "contextbase_reflect",
     "description": (
         "Synthesize a reasoned answer from long-term memories. Unlike recall, "
         "this reasons across all stored memories to produce a coherent response."
@@ -370,16 +370,16 @@ REFLECT_SCHEMA = {
 
 
 def _bank_not_written_yet(exc: Exception) -> bool:
-    """Hindsight answers 404 for a bank nothing has been retained to yet. Read off the status rather
+    """ContextBase answers 404 for a bank nothing has been retained to yet. Read off the status rather
     than importing the client's exception class here: that import, run from the prefetch thread while
     the writer thread first imports the client, deadlocks on the package's import lock."""
     return getattr(exc, "status", None) == 404
 
 
 def _load_config() -> dict:
-    """$HERMES_HOME/hindsight/config.json (profile-scoped), else ~/.hindsight/config.json
+    """$HERMES_HOME/contextbase/config.json (profile-scoped), else ~/.contextbase/config.json
     (legacy, shared), else environment variables."""
-    for path in (get_hermes_home() / "hindsight" / "config.json", Path.home() / ".hindsight" / "config.json"):
+    for path in (get_hermes_home() / "contextbase" / "config.json", Path.home() / ".contextbase" / "config.json"):
         # A corrupt (or empty) file falls through to the next source, as before the dedup.
         if path.exists() and (data := read_json_or_empty(path)):
             return data
@@ -387,24 +387,24 @@ def _load_config() -> dict:
     # the key beside them: read through the secret scope so a multiplexed secondary never inherits
     # the default profile's bank/mode. Tuning knobs (timeouts, budget) stay process-global.
     return {
-        "mode": get_secret("HINDSIGHT_MODE", "") or "cloud",
-        "apiKey": get_secret("HINDSIGHT_API_KEY", ""),
-        "timeout": _parse_int_setting(os.environ.get("HINDSIGHT_TIMEOUT"), _DEFAULT_TIMEOUT),
-        "idle_timeout": _parse_int_setting(os.environ.get("HINDSIGHT_IDLE_TIMEOUT"), _DEFAULT_IDLE_TIMEOUT),
-        "retain_tags": get_secret("HINDSIGHT_RETAIN_TAGS", "") or "",
-        "observation_scopes": get_secret("HINDSIGHT_RETAIN_OBSERVATION_SCOPES", "") or "",
-        "retain_source": _scoped_setting("HINDSIGHT_RETAIN_SOURCE", _DEFAULT_RETAIN_SOURCE),
-        "retain_strategy": _scoped_setting("HINDSIGHT_RETAIN_STRATEGY", _DEFAULT_RETAIN_STRATEGY),
-        "retain_user_prefix": _scoped_setting("HINDSIGHT_RETAIN_USER_PREFIX", "User"),
-        "retain_assistant_prefix": _scoped_setting("HINDSIGHT_RETAIN_ASSISTANT_PREFIX", "Assistant"),
-        "retain_context": _scoped_setting("HINDSIGHT_RETAIN_CONTEXT", _RETAIN_CONTEXT_DEFAULT),
-        "retain_indicator": _scoped_flag("HINDSIGHT_RETAIN_INDICATOR", True),
-        "recall_indicator": _scoped_flag("HINDSIGHT_RECALL_INDICATOR", True),
-        "recall_sync": _scoped_flag("HINDSIGHT_RECALL_SYNC", False),
+        "mode": get_secret("CONTEXTBASE_MODE", "") or "cloud",
+        "apiKey": get_secret("CONTEXTBASE_API_KEY", ""),
+        "timeout": _parse_int_setting(os.environ.get("CONTEXTBASE_TIMEOUT"), _DEFAULT_TIMEOUT),
+        "idle_timeout": _parse_int_setting(os.environ.get("CONTEXTBASE_IDLE_TIMEOUT"), _DEFAULT_IDLE_TIMEOUT),
+        "retain_tags": get_secret("CONTEXTBASE_RETAIN_TAGS", "") or "",
+        "observation_scopes": get_secret("CONTEXTBASE_RETAIN_OBSERVATION_SCOPES", "") or "",
+        "retain_source": _scoped_setting("CONTEXTBASE_RETAIN_SOURCE", _DEFAULT_RETAIN_SOURCE),
+        "retain_strategy": _scoped_setting("CONTEXTBASE_RETAIN_STRATEGY", _DEFAULT_RETAIN_STRATEGY),
+        "retain_user_prefix": _scoped_setting("CONTEXTBASE_RETAIN_USER_PREFIX", "User"),
+        "retain_assistant_prefix": _scoped_setting("CONTEXTBASE_RETAIN_ASSISTANT_PREFIX", "Assistant"),
+        "retain_context": _scoped_setting("CONTEXTBASE_RETAIN_CONTEXT", _RETAIN_CONTEXT_DEFAULT),
+        "retain_indicator": _scoped_flag("CONTEXTBASE_RETAIN_INDICATOR", True),
+        "recall_indicator": _scoped_flag("CONTEXTBASE_RECALL_INDICATOR", True),
+        "recall_sync": _scoped_flag("CONTEXTBASE_RECALL_SYNC", False),
         "banks": {
             "hermes": {
-                "bankId": get_secret("HINDSIGHT_BANK_ID", "") or "hermes",
-                "budget": os.environ.get("HINDSIGHT_BUDGET", "mid"),
+                "bankId": get_secret("CONTEXTBASE_BANK_ID", "") or "hermes",
+                "budget": os.environ.get("CONTEXTBASE_BUDGET", "mid"),
                 "enabled": True,
             }
         },
@@ -453,15 +453,15 @@ _METADATA_ATTRS = (
 )
 # Naming Hermes' built-in session_search tells the model when to pick each tool. With only
 # the tool names listed, models defaulted to session_search (raw transcripts) for every
-# history question and skipped Hindsight's deduplicated memories.
+# history question and skipped ContextBase's deduplicated memories.
 _TOOL_GUIDANCE = (
     "For cross-session facts, user preferences, and past decisions, "
-    "prefer hindsight_recall over session_search — it returns "
+    "prefer contextbase_recall over session_search — it returns "
     "deduplicated, high-density observations across sessions. "
-    "Use hindsight_reflect for cross-session pattern synthesis. "
+    "Use contextbase_reflect for cross-session pattern synthesis. "
     "Use session_search only when you need verbatim transcripts or "
     "exact wording from a specific conversation. "
-    "Use hindsight_retain to store facts."
+    "Use contextbase_retain to store facts."
 )
 _CONTEXT_NOTE = "Relevant memories are automatically injected into context."
 _SYSTEM_PROMPT_TAILS = {
@@ -471,16 +471,16 @@ _SYSTEM_PROMPT_TAILS = {
 }
 
 
-class HindsightMemoryProvider(MemoryProvider):
-    """Hindsight long-term memory with knowledge graph and multi-strategy retrieval."""
+class ContextBaseMemoryProvider(MemoryProvider):
+    """ContextBase long-term memory with knowledge graph and multi-strategy retrieval."""
 
     # Each server-side op status poll is a round trip — coarser than the 0.05s queue poll.
     _RETAIN_OP_POLL_INTERVAL_S = 0.5
 
     def backup_paths(self) -> List[str]:
-        """Legacy shared config + embedded-mode profile env files live under ~/.hindsight."""
+        """Legacy shared config + embedded-mode profile env files live under ~/.contextbase."""
         with contextlib.suppress(Exception):
-            return [str(Path.home() / ".hindsight")]
+            return [str(Path.home() / ".contextbase")]
         return []
 
     def __init__(self):
@@ -546,7 +546,7 @@ class HindsightMemoryProvider(MemoryProvider):
 
     @property
     def name(self) -> str:
-        return "hindsight"
+        return "contextbase"
 
     def is_available(self) -> bool:
         try:
@@ -558,10 +558,10 @@ class HindsightMemoryProvider(MemoryProvider):
                 # runs after it has already passed.
                 return _check_local_runtime().available
             return mode == "local_external" or bool(
-                _cloud_api_key(cfg) or cfg.get("api_url") or get_secret("HINDSIGHT_API_URL", "")
+                _cloud_api_key(cfg) or cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
             )
         except Exception:
-            logger.debug("Hindsight availability check failed", exc_info=True)
+            logger.debug("ContextBase availability check failed", exc_info=True)
             return False
 
     def unavailable_reason(self) -> str:
@@ -581,10 +581,10 @@ class HindsightMemoryProvider(MemoryProvider):
         return "" if status.available else _local_runtime_hint(status.reason).strip()
 
     def save_config(self, values, hermes_home):
-        """Merge *values* into $HERMES_HOME/hindsight/config.json."""
+        """Merge *values* into $HERMES_HOME/contextbase/config.json."""
         from utils import atomic_json_write
 
-        config_path = Path(hermes_home) / "hindsight" / "config.json"
+        config_path = Path(hermes_home) / "contextbase" / "config.json"
         atomic_json_write(config_path, {**read_json_or_empty(config_path), **values}, mode=0o600)
 
     def post_setup(self, hermes_home: str, config: dict) -> None:
@@ -604,22 +604,22 @@ class HindsightMemoryProvider(MemoryProvider):
             # Cloud mode
             {
                 "key": "api_url",
-                "description": "Hindsight Cloud API URL",
+                "description": "ContextBase Cloud API URL",
                 "default": _DEFAULT_API_URL,
                 "when": {"mode": "cloud"},
             },
             {
                 "key": "api_key",
-                "description": "Hindsight Cloud API key",
+                "description": "ContextBase Cloud API key",
                 "secret": True,
-                "env_var": "HINDSIGHT_API_KEY",
-                "url": "https://ui.hindsight.vectorize.io",
+                "env_var": "CONTEXTBASE_API_KEY",
+                "url": "http://localhost:9999",
                 "when": {"mode": "cloud"},
             },
             # Local external mode
             {
                 "key": "api_url",
-                "description": "Hindsight API URL",
+                "description": "ContextBase API URL",
                 "default": _DEFAULT_LOCAL_URL,
                 "when": {"mode": "local_external"},
             },
@@ -627,7 +627,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 "key": "api_key",
                 "description": "API key (optional)",
                 "secret": True,
-                "env_var": "HINDSIGHT_API_KEY",
+                "env_var": "CONTEXTBASE_API_KEY",
                 "when": {"mode": "local_external"},
             },
             # Local embedded mode
@@ -658,7 +658,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 "key": "llm_api_key",
                 "description": "LLM API key (optional for openai_compatible)",
                 "secret": True,
-                "env_var": "HINDSIGHT_LLM_API_KEY",
+                "env_var": "CONTEXTBASE_LLM_API_KEY",
                 "when": {"mode": "local_embedded"},
             },
             {
@@ -705,7 +705,7 @@ class HindsightMemoryProvider(MemoryProvider):
             },
             {
                 "key": "observation_scopes",
-                "description": "How observations are scoped during consolidation: 'combined' (default — one pass over all tags), 'per_tag' (one isolated observation per tag), 'all_combinations' (every tag subset — expensive), 'shared' (one untagged scope, so observations merge across sessions), or a JSON list of tag-lists for explicit custom scopes. Empty uses Hindsight's 'combined' default.",
+                "description": "How observations are scoped during consolidation: 'combined' (default — one pass over all tags), 'per_tag' (one isolated observation per tag), 'all_combinations' (every tag subset — expensive), 'shared' (one untagged scope, so observations merge across sessions), or a JSON list of tag-lists for explicit custom scopes. Empty uses ContextBase's 'combined' default.",
                 "default": "",
             },
             {
@@ -757,12 +757,12 @@ class HindsightMemoryProvider(MemoryProvider):
             },
             {
                 "key": "recall_types",
-                "description": "Fact types to surface on recall — applies to both auto-recall and the hindsight_recall tool (comma-separated or list). Defaults to observation-only — observations are Hindsight's consolidated, deduplicated, evidence-grounded knowledge layer; raw world/experience facts are the supporting evidence observations already summarize. Set to e.g. 'observation,world,experience' to also include raw facts.",
+                "description": "Fact types to surface on recall — applies to both auto-recall and the contextbase_recall tool (comma-separated or list). Defaults to observation-only — observations are ContextBase's consolidated, deduplicated, evidence-grounded knowledge layer; raw world/experience facts are the supporting evidence observations already summarize. Set to e.g. 'observation,world,experience' to also include raw facts.",
                 "default": "observation",
             },
             {
                 "key": "recall_min_scores",
-                "description": 'Minimum relevance per score field, as a JSON object (e.g. {"reranker": 0.25}). Recall always returns up to recall_max_tokens of the best-ranked memories even when none is relevant; memories under a floor are dropped from auto-recall and the hindsight_recall tool, so an off-topic turn injects nothing. Default: no floor',
+                "description": 'Minimum relevance per score field, as a JSON object (e.g. {"reranker": 0.25}). Recall always returns up to recall_max_tokens of the best-ranked memories even when none is relevant; memories under a floor are dropped from auto-recall and the contextbase_recall tool, so an off-topic turn injects nothing. Default: no floor',
                 "default": "",
             },
             {"key": "auto_recall", "description": "Automatically recall memories before each turn", "default": True},
@@ -773,12 +773,12 @@ class HindsightMemoryProvider(MemoryProvider):
             },
             {
                 "key": "recall_indicator",
-                "description": "Show a '👁️ Hindsight — recalled N memories' status line when auto-recall injects memory (turn off for customer-facing agents)",
+                "description": "Show a '👁️ ContextBase — recalled N memories' status line when auto-recall injects memory (turn off for customer-facing agents)",
                 "default": True,
             },
             {
                 "key": "retain_indicator",
-                "description": "Show a '👁️ Hindsight — saving to memory…' status line when a turn is saved to memory (turn off for customer-facing agents)",
+                "description": "Show a '👁️ ContextBase — saving to memory…' status line when a turn is saved to memory (turn off for customer-facing agents)",
                 "default": True,
             },
             {"key": "auto_retain", "description": "Automatically retain conversation turns", "default": True},
@@ -790,7 +790,7 @@ class HindsightMemoryProvider(MemoryProvider):
             {"key": "retain_every_n_turns", "description": "Retain every N turns (1 = every turn)", "default": 1},
             {
                 "key": "retain_async",
-                "description": "Process retain asynchronously on the Hindsight server",
+                "description": "Process retain asynchronously on the ContextBase server",
                 "default": True,
             },
             {
@@ -850,7 +850,7 @@ class HindsightMemoryProvider(MemoryProvider):
         status = _check_local_runtime()
         if not status.available:
             raise RuntimeError(
-                "Hindsight local runtime is unavailable" + (f": {status.reason}" if status.reason else "")
+                "ContextBase local runtime is unavailable" + (f": {status.reason}" if status.reason else "")
             )
         from hindsight_client import Hindsight
 
@@ -858,7 +858,7 @@ class HindsightMemoryProvider(MemoryProvider):
         profile = str(cfg.get("profile", "hermes") or "hermes")
         self._idle_timeout = self._int_setting(
             "idle_timeout",
-            "HINDSIGHT_IDLE_TIMEOUT",
+            "CONTEXTBASE_IDLE_TIMEOUT",
             _DEFAULT_IDLE_TIMEOUT,
             env_default=self._idle_timeout,
         )
@@ -868,17 +868,19 @@ class HindsightMemoryProvider(MemoryProvider):
         daemon_config = _build_embedded_profile_env(cfg)
         daemon_config["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(self._idle_timeout)
         logger.debug(
-            "Starting embedded Hindsight daemon (profile=%s, provider=%s)",
+            "Starting embedded ContextBase daemon (profile=%s, provider=%s)",
             profile,
             daemon_config.get("HINDSIGHT_API_LLM_PROVIDER", ""),
         )
         self._announce_slow_first_start(profile)
         self._embedded_url = _start_daemon(daemon_config, profile)
-        logger.info("Connected to embedded Hindsight daemon at %s", self._embedded_url)
+        logger.info("Connected to embedded ContextBase daemon at %s", self._embedded_url)
         # A daemon running ApiKeyTenantExtension rejects every keyless call with 401 (#5023). Its key
         # lives in the profile env the daemon boots from; a configured apiKey is the fallback.
         api_key = _load_simple_env(_embedded_profile_env_path(cfg)).get("HINDSIGHT_API_TENANT_API_KEY") or self._api_key
-        return Hindsight(base_url=self._embedded_url, api_key=api_key or None)
+        if not self._embedded_url:
+            raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+        return Hindsight(base_url=self._embedded_url, api_key=api_key or None, user_agent=_USER_AGENT)
 
     def _new_cloud_client(self):
         from hindsight_client import Hindsight
@@ -891,11 +893,13 @@ class HindsightMemoryProvider(MemoryProvider):
         if self._api_key:
             kwargs["api_key"] = self._api_key
         logger.debug(
-            "Creating Hindsight cloud client (url=%s, has_key=%s, timeout=%s)",
+            "Creating ContextBase cloud client (url=%s, has_key=%s, timeout=%s)",
             self._api_url,
             bool(self._api_key),
             kwargs["timeout"],
         )
+        if not kwargs.get("base_url"):
+            raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
         return Hindsight(**kwargs)
 
     def _announce_slow_first_start(self, profile: str) -> None:
@@ -911,7 +915,7 @@ class HindsightMemoryProvider(MemoryProvider):
         if _daemon_is_running(profile) or _installed_api_binary_exists():
             return
         msg = (
-            "Hindsight is downloading its local memory server (0.5-3 GB on first use, depending "
+            "ContextBase is downloading its local memory server (0.5-3 GB on first use, depending "
             "on platform). "
             "Memory will start working once it finishes; progress is in "
             f"{get_hermes_home() / 'logs' / 'hindsight-embed.log'}."
@@ -929,7 +933,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 )
 
     def _get_client(self):
-        """Return the cached Hindsight client, creating it at most once.
+        """Return the cached ContextBase client, creating it at most once.
 
         Locked because in local_embedded the creation *starts the daemon*: the background start
         worker and the first memory operation both land here, and an unguarded check-then-set let
@@ -948,7 +952,7 @@ class HindsightMemoryProvider(MemoryProvider):
         """Schedule *coro* on the shared loop using the configured timeout."""
         return _run_sync(coro, timeout=self._timeout)
 
-    def _run_hindsight_operation(self, operation):
+    def _run_contextbase_operation(self, operation):
         """Run an async client operation; for local_embedded, a stale-daemon
         connection failure recreates the client and retries once."""
         try:
@@ -957,7 +961,7 @@ class HindsightMemoryProvider(MemoryProvider):
             text = f"{type(exc).__name__}: {exc}".lower()
             if self._mode != "local_embedded" or not any(m in text for m in _RETRIABLE_CONNECTION_MARKERS):
                 raise
-            logger.info("Hindsight embedded daemon appears unreachable; recreating client and retrying once: %s", exc)
+            logger.info("ContextBase embedded daemon appears unreachable; recreating client and retrying once: %s", exc)
             with self._client_lock:
                 stale, self._client = self._client, None
             if stale is not None:
@@ -975,7 +979,7 @@ class HindsightMemoryProvider(MemoryProvider):
             return
         # A previous writer may have exited after shutdown(); allow the fresh one to drain.
         self._shutting_down.clear()
-        thread = spawn_context_thread(self._writer_loop, name="hindsight-writer")
+        thread = spawn_context_thread(self._writer_loop, name="contextbase-writer")
         self._writer_thread = self._sync_thread = thread
         thread.start()
 
@@ -1001,7 +1005,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     return
                 job()
             except Exception as exc:
-                logger.warning("Hindsight retain failed: %s", exc, exc_info=True)
+                logger.warning("ContextBase retain failed: %s", exc, exc_info=True)
             finally:
                 self._retain_queue.task_done()
 
@@ -1010,7 +1014,7 @@ class HindsightMemoryProvider(MemoryProvider):
             if not self._shutting_down.is_set():
                 self.shutdown()
         except Exception as exc:
-            logger.debug("Hindsight atexit shutdown failed: %s", exc)
+            logger.debug("ContextBase atexit shutdown failed: %s", exc)
 
     def _track_retain_ops(self, retain_response, bank_id: str) -> None:
         """Record the async ``operation_id``/``operation_ids`` of an aretain_batch reply
@@ -1031,7 +1035,7 @@ class HindsightMemoryProvider(MemoryProvider):
         from hindsight_client_api.exceptions import NotFoundException
 
         try:
-            resp = self._run_hindsight_operation(
+            resp = self._run_contextbase_operation(
                 lambda client: client.operations.get_operation_status(bank_id=bank_id, operation_id=op_id)
             )
         except NotFoundException:
@@ -1111,7 +1115,7 @@ class HindsightMemoryProvider(MemoryProvider):
         way the resume-overwrite fix works there. The /version probe targets the
         embedded client's dynamic per-profile port when running, else api_url.
 
-        On Hindsight ≥ 0.5.0 the API supports ``update_mode='append'``, which lets us reuse a stable
+        On ContextBase ≥ 0.5.0 the API supports ``update_mode='append'``, which lets us reuse a stable
         session-scoped ``document_id`` across process lifecycles without overwriting prior turns. On older
         APIs we fall back to *fallback_document_id* (the per-process unique ``f"{session_id}-{start_ts}"``
         minted at initialize / switch time) and don't pass ``update_mode`` at all — that's the only way the
@@ -1146,8 +1150,8 @@ class HindsightMemoryProvider(MemoryProvider):
         self._turn_index = self._last_retained_turn_count = 0
         self._session_turns = []
         self._mode = cfg.get("mode", "cloud")
-        self._timeout = self._int_setting("timeout", "HINDSIGHT_TIMEOUT", _DEFAULT_TIMEOUT)
-        self._idle_timeout = self._int_setting("idle_timeout", "HINDSIGHT_IDLE_TIMEOUT", _DEFAULT_IDLE_TIMEOUT)
+        self._timeout = self._int_setting("timeout", "CONTEXTBASE_TIMEOUT", _DEFAULT_TIMEOUT)
+        self._idle_timeout = self._int_setting("idle_timeout", "CONTEXTBASE_IDLE_TIMEOUT", _DEFAULT_IDLE_TIMEOUT)
         if self._mode == "local":  # legacy alias
             self._mode = "local_embedded"
         if self._mode == "local_embedded":
@@ -1156,7 +1160,7 @@ class HindsightMemoryProvider(MemoryProvider):
             status = _check_local_runtime()
             if not status.available:
                 logger.warning(
-                    "Hindsight local mode disabled because its runtime could not be imported: %s.%s",
+                    "ContextBase local mode disabled because its runtime could not be imported: %s.%s",
                     status.reason,
                     _local_runtime_hint(status.reason),
                 )
@@ -1172,7 +1176,7 @@ class HindsightMemoryProvider(MemoryProvider):
 
             client_version = pkg_version("hindsight-client")
         logger.info(
-            "Hindsight initialized: mode=%s, api_url=%s, bank=%s, budget=%s, memory_mode=%s, prefetch_method=%s, client=%s",
+            "ContextBase initialized: mode=%s, api_url=%s, bank=%s, budget=%s, memory_mode=%s, prefetch_method=%s, client=%s",
             self._mode,
             self._api_url,
             self._bank_id,
@@ -1183,7 +1187,7 @@ class HindsightMemoryProvider(MemoryProvider):
         )
         if self._bank_id_template or self._bank_source == "repository config":
             logger.debug(
-                "Hindsight bank %s from %s (template %r: profile=%s workspace=%s project=%s platform=%s user=%s, cwd=%s)",
+                "ContextBase bank %s from %s (template %r: profile=%s workspace=%s project=%s platform=%s user=%s, cwd=%s)",
                 self._bank_id,
                 self._bank_source,
                 self._bank_id_template,
@@ -1195,7 +1199,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 self._cwd,
             )
         logger.debug(
-            "Hindsight config: auto_retain=%s, auto_recall=%s, retain_every_n=%d, "
+            "ContextBase config: auto_retain=%s, auto_recall=%s, retain_every_n=%d, "
             "retain_async=%s, retain_context=%s, recall_max_tokens=%d, recall_max_input_chars=%d, tags=%s, recall_tags=%s",
             self._auto_retain,
             self._auto_recall,
@@ -1256,16 +1260,16 @@ class HindsightMemoryProvider(MemoryProvider):
         key = (operation, bank_id)
         if key not in self._extra_bank_down_until:
             logger.warning(
-                "Hindsight %s: skipping bank %s for %.0fs: %r", operation, bank_id, _EXTRA_BANK_COOLDOWN, exc
+                "ContextBase %s: skipping bank %s for %.0fs: %r", operation, bank_id, _EXTRA_BANK_COOLDOWN, exc
             )
         else:
-            logger.debug("Hindsight %s: bank %s still failing: %r", operation, bank_id, exc)
+            logger.debug("ContextBase %s: bank %s still failing: %r", operation, bank_id, exc)
         self._extra_bank_down_until[key] = time.monotonic() + _EXTRA_BANK_COOLDOWN
 
     def _mark_bank_ok(self, operation: str, bank_id: str) -> None:
         """End an extra bank's outage for *operation* on its first success."""
         if self._extra_bank_down_until.pop((operation, bank_id), None) is not None:
-            logger.info("Hindsight %s: bank %s is answering again", operation, bank_id)
+            logger.info("ContextBase %s: bank %s is answering again", operation, bank_id)
 
     def _build_recall_bank_ids(self) -> list[str]:
         """The banks recall searches: the write set (primary first), then each
@@ -1298,17 +1302,17 @@ class HindsightMemoryProvider(MemoryProvider):
         """Endpoint, bank and mode selectors from *cfg* (env fallbacks where documented)."""
         self._api_key = _cloud_api_key(cfg)
         default_url = _DEFAULT_LOCAL_URL if self._mode in {"local_embedded", "local_external"} else _DEFAULT_API_URL
-        self._api_url = cfg.get("api_url") or get_secret("HINDSIGHT_API_URL", "") or default_url
+        self._api_url = cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "") or default_url
 
         banks = cfg_get(cfg, "banks", "hermes", default={})
         self._bank_id_template = cfg.get("bank_id_template", "") or ""
         # The static bank: the template's fallback and the mirror target, from one place.
-        # A non-empty HINDSIGHT_BANK_ID wins over config.json's bank, as documented (#5171); without
+        # A non-empty CONTEXTBASE_BANK_ID wins over config.json's bank, as documented (#5171); without
         # config.json, _load_config already builds the bank from it.
         self._static_bank_id = (
-            get_secret("HINDSIGHT_BANK_ID", "") or cfg.get("bank_id") or banks.get("bankId") or "hermes"
+            get_secret("CONTEXTBASE_BANK_ID", "") or cfg.get("bank_id") or banks.get("bankId") or "hermes"
         )
-        # Precedence: closest .hindsight/config.toml in a trusted repository → template → static bank_id.
+        # Precedence: closest .contextbase/config.toml in a trusted repository → template → static bank_id.
         # The repository is only looked up when something needs it, and only once.
         trusted_dirs = _normalize_string_list(cfg.get("trusted_project_dirs"))
         uses_project = "project" in _template_fields(self._bank_id_template)
@@ -1317,14 +1321,14 @@ class HindsightMemoryProvider(MemoryProvider):
             try:
                 root = _repository_root(self._cwd)
             except Exception as exc:
-                logger.warning("hindsight: repository lookup for %s failed: %r", self._cwd, exc)
+                logger.warning("contextbase: repository lookup for %s failed: %r", self._cwd, exc)
         if root is not None and trusted_dirs:
             cwd_bank = _discover_cwd_bank_id(self._cwd, root, trusted_dirs)
         if root is not None and uses_project:
             try:
                 self._project = _project_name(root)
             except Exception as exc:
-                logger.warning("hindsight: cannot name the project at %s: %r — {project} is empty", root, exc)
+                logger.warning("contextbase: cannot name the project at %s: %r — {project} is empty", root, exc)
         if cwd_bank:
             self._bank_id, self._bank_source = cwd_bank, "repository config"
         else:
@@ -1356,22 +1360,22 @@ class HindsightMemoryProvider(MemoryProvider):
             # a raw read here handed a multiplexed secondary the DEFAULT profile's retain shaping back.
             return cfg.get(key) or _scoped_setting(env_var, default)
 
-        self._retain_tags = _normalize_string_list(_cfg_or_env("retain_tags", "HINDSIGHT_RETAIN_TAGS"))
+        self._retain_tags = _normalize_string_list(_cfg_or_env("retain_tags", "CONTEXTBASE_RETAIN_TAGS"))
         self._tags = self._retain_tags or None
         self._observation_scopes = _normalize_observation_scopes(
-            _cfg_or_env("observation_scopes", "HINDSIGHT_RETAIN_OBSERVATION_SCOPES")
+            _cfg_or_env("observation_scopes", "CONTEXTBASE_RETAIN_OBSERVATION_SCOPES")
         )
         self._retain_source = str(
-            _cfg_or_env("retain_source", "HINDSIGHT_RETAIN_SOURCE", _DEFAULT_RETAIN_SOURCE)
+            _cfg_or_env("retain_source", "CONTEXTBASE_RETAIN_SOURCE", _DEFAULT_RETAIN_SOURCE)
         ).strip()
         self._retain_strategy = str(
-            _cfg_or_env("retain_strategy", "HINDSIGHT_RETAIN_STRATEGY", _DEFAULT_RETAIN_STRATEGY)
+            _cfg_or_env("retain_strategy", "CONTEXTBASE_RETAIN_STRATEGY", _DEFAULT_RETAIN_STRATEGY)
         ).strip()
         self._retain_user_prefix = (
-            str(_cfg_or_env("retain_user_prefix", "HINDSIGHT_RETAIN_USER_PREFIX", "User")).strip() or "User"
+            str(_cfg_or_env("retain_user_prefix", "CONTEXTBASE_RETAIN_USER_PREFIX", "User")).strip() or "User"
         )
         self._retain_assistant_prefix = (
-            str(_cfg_or_env("retain_assistant_prefix", "HINDSIGHT_RETAIN_ASSISTANT_PREFIX", "Assistant")).strip()
+            str(_cfg_or_env("retain_assistant_prefix", "CONTEXTBASE_RETAIN_ASSISTANT_PREFIX", "Assistant")).strip()
             or "Assistant"
         )
         self._apply_retain_policy(cfg)
@@ -1406,7 +1410,7 @@ class HindsightMemoryProvider(MemoryProvider):
         self._recall_sync = bool(cfg.get("recall_sync", False))
         self._recall_max_tokens = _parse_int_setting(cfg.get("recall_max_tokens"), 4096)
         self._recall_max_input_chars = _parse_int_setting(cfg.get("recall_max_input_chars"), 800)
-        # None -> observation-only (Hindsight's consolidated, deduplicated layer; raw
+        # None -> observation-only (ContextBase's consolidated, deduplicated layer; raw
         # world/experience facts re-ship the evidence they summarize and burn the
         # recall_max_tokens budget); a comma-separated string is accepted for parity
         # with recall_tags; an explicit list broadens or disables the filter.
@@ -1426,7 +1430,7 @@ class HindsightMemoryProvider(MemoryProvider):
         # with no user-visible error.
         if hasattr(os, "geteuid") and os.geteuid() == 0:
             msg = (
-                "Hindsight local_embedded mode cannot run as root "
+                "ContextBase local_embedded mode cannot run as root "
                 "(PostgreSQL initdb refuses root). Skipping the embedded "
                 "memory daemon. Run Hermes as a non-root user, or switch "
                 "to cloud / local_external mode via 'hermes memory setup'."
@@ -1448,7 +1452,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     )
             self._mode = "disabled"
             return
-        spawn_context_thread(self._daemon_start_worker, name="hindsight-daemon-start").start()
+        spawn_context_thread(self._daemon_start_worker, name="contextbase-daemon-start").start()
 
     def _daemon_start_worker(self) -> None:
         import traceback
@@ -1483,7 +1487,7 @@ class HindsightMemoryProvider(MemoryProvider):
                         _stop_daemon(profile)
                 else:
                     logger.warning(
-                        "Hindsight profile env for %r holds an LLM API key this process cannot see "
+                        "ContextBase profile env for %r holds an LLM API key this process cannot see "
                         "(no secret scope); leaving the file untouched so the daemon keeps its key.",
                         profile,
                     )
@@ -1501,7 +1505,7 @@ class HindsightMemoryProvider(MemoryProvider):
         label = "" if mode == "hybrid" else f" ({mode} mode)"
         # With auto_recall off nothing is injected, so hybrid must not promise injected context.
         tail = _TOOL_GUIDANCE if mode == "hybrid" and not self._auto_recall else _SYSTEM_PROMPT_TAILS[mode]
-        return f"# Hindsight Memory\nActive{label}. Bank: {self._bank_id}, budget: {self._budget}.\n{tail}"
+        return f"# ContextBase Memory\nActive{label}. Bank: {self._bank_id}, budget: {self._budget}.\n{tail}"
 
     # -- recall ------------------------------------------------------------------
 
@@ -1552,7 +1556,7 @@ class HindsightMemoryProvider(MemoryProvider):
             ]
             try:
                 # Raising keeps the primary's single-bank contract and lets
-                # _run_hindsight_operation retry a stale embedded daemon.
+                # _run_contextbase_operation retry a stale embedded daemon.
                 first = await primary
             except BaseException as exc:
                 if not _bank_not_written_yet(exc):
@@ -1563,7 +1567,7 @@ class HindsightMemoryProvider(MemoryProvider):
             return [first, *await asyncio.gather(*extras, return_exceptions=True)]
 
         results, seen = [], set()
-        for bank_id, resp in zip(bank_ids, self._run_hindsight_operation(_recall_all)):
+        for bank_id, resp in zip(bank_ids, self._run_contextbase_operation(_recall_all)):
             is_extra = bank_id != bank_ids[0]
             if isinstance(resp, BaseException):
                 # A bank nothing was retained to answers 404: it has nothing to find, it is not down.
@@ -1589,7 +1593,7 @@ class HindsightMemoryProvider(MemoryProvider):
         if self._reflect_tags:
             kwargs.update(tags=self._reflect_tags, tags_match=self._reflect_tags_match)
         try:
-            resp = self._run_hindsight_operation(lambda client: client.areflect(**kwargs))
+            resp = self._run_contextbase_operation(lambda client: client.areflect(**kwargs))
         except Exception as exc:
             if _bank_not_written_yet(exc):
                 return None
@@ -1612,7 +1616,7 @@ class HindsightMemoryProvider(MemoryProvider):
             logger.debug("Recall: returned %d results", len(results))
             return "\n".join(f"- {r.text}" for r in results if r.text), len(results)
         except Exception as e:
-            logger.warning("Hindsight recall failed: %s", e, exc_info=True)
+            logger.warning("ContextBase recall failed: %s", e, exc_info=True)
             return "", 0
 
     def _finish_prefetch(self, result: str, count: int) -> str:
@@ -1623,7 +1627,7 @@ class HindsightMemoryProvider(MemoryProvider):
             return ""
         logger.debug("Prefetch: returning %d chars of context", len(result))
         header = self._recall_prompt_preamble or (
-            "# Hindsight Memory (persistent cross-session context)\n"
+            "# ContextBase Memory (persistent cross-session context)\n"
             "Use this to answer questions about the user and prior sessions. "
             "Do not call tools to look up information that is already present here."
         )
@@ -1653,7 +1657,7 @@ class HindsightMemoryProvider(MemoryProvider):
         """Count injected by the last prefetch; None if nothing injected or ``recall_indicator=false``."""
         if not self._recall_indicator or not self._last_recall_returned:
             return None
-        return RecallStatus(provider_label="Hindsight", count=self._last_recall_count, glyph=_HINDSIGHT_GLYPH)
+        return RecallStatus(provider_label="ContextBase", count=self._last_recall_count, glyph=_CONTEXTBASE_GLYPH)
 
     def queue_prefetch(self, query: str, *, session_id: str = "") -> None:
         # Sync mode recalls live each turn — nothing to prime in the background.
@@ -1675,7 +1679,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     if generation == self._prefetch_generation:
                         self._prefetch_result, self._prefetch_count = text, count
 
-        self._prefetch_thread = spawn_context_thread(_run, name="hindsight-prefetch")
+        self._prefetch_thread = spawn_context_thread(_run, name="contextbase-prefetch")
         self._prefetch_thread.start()
 
     # -- retain ------------------------------------------------------------------
@@ -1742,7 +1746,7 @@ class HindsightMemoryProvider(MemoryProvider):
             "retain_async": retain_async,
         }
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        return self._run_hindsight_operation(lambda client: client.aretain_batch(**kwargs))
+        return self._run_contextbase_operation(lambda client: client.aretain_batch(**kwargs))
 
     def _make_turn_retain_job(
         self, turns: list[str], *, document_id: str, update_mode: str | None, label: str, track_ops: bool = True
@@ -1774,7 +1778,7 @@ class HindsightMemoryProvider(MemoryProvider):
 
             def _write(bank_id: str) -> None:
                 logger.debug(
-                    "Hindsight %s: bank=%s, doc=%s, mode=%s, async=%s, content_len=%d, num_turns=%d",
+                    "ContextBase %s: bank=%s, doc=%s, mode=%s, async=%s, content_len=%d, num_turns=%d",
                     label,
                     bank_id,
                     document_id,
@@ -1790,7 +1794,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     self._track_retain_ops(resp, bank_id)
 
             self._write_to_banks(bank_ids, _write)
-            logger.debug("Hindsight %s succeeded", label)
+            logger.debug("ContextBase %s succeeded", label)
 
         return _job
 
@@ -1844,7 +1848,7 @@ class HindsightMemoryProvider(MemoryProvider):
         # Model-independent status line; no-op without retain_indicator/status channel.
         if self._retain_indicator and self._status_callback is not None:
             try:
-                self._status_callback(f"{_HINDSIGHT_GLYPH} Hindsight — saving to memory…")
+                self._status_callback(f"{_CONTEXTBASE_GLYPH} ContextBase — saving to memory…")
             except Exception:
                 logger.debug("Retain indicator emit failed (non-fatal)", exc_info=True)
         self._enqueue_retain(job)
@@ -1898,7 +1902,7 @@ class HindsightMemoryProvider(MemoryProvider):
 
         def _write(bank_id: str) -> None:
             logger.debug(
-                "Tool hindsight_retain: bank=%s, content_len=%d, context=%s",
+                "Tool contextbase_retain: bank=%s, content_len=%d, context=%s",
                 bank_id,
                 len(content),
                 context,
@@ -1908,31 +1912,33 @@ class HindsightMemoryProvider(MemoryProvider):
                 self._track_retain_ops(resp, bank_id)
 
         self._write_to_banks(list(self._write_bank_ids), _write)
-        logger.debug("Tool hindsight_retain: success")
+        logger.debug("Tool contextbase_retain: success")
         # An async retain is only accepted here; the memory is searchable once the server processes it.
         return "Memory queued for storage." if self._retain_async else "Memory stored successfully."
 
     def _tool_recall(self, args: dict) -> str:
         query = args["query"]
-        logger.debug("Tool hindsight_recall: bank=%s, query_len=%d, budget=%s", self._bank_id, len(query), self._budget)
+        logger.debug(
+            "Tool contextbase_recall: bank=%s, query_len=%d, budget=%s", self._bank_id, len(query), self._budget
+        )
         results = self._recall(query)
-        logger.debug("Tool hindsight_recall: %d results", len(results))
+        logger.debug("Tool contextbase_recall: %d results", len(results))
         return "\n".join(f"{i}. {r.text}" for i, r in enumerate(results, 1)) or "No relevant memories found."
 
     def _tool_reflect(self, args: dict) -> str:
         query = args["query"]
         logger.debug(
-            "Tool hindsight_reflect: bank=%s, query_len=%d, budget=%s", self._bank_id, len(query), self._budget
+            "Tool contextbase_reflect: bank=%s, query_len=%d, budget=%s", self._bank_id, len(query), self._budget
         )
         text = self._reflect(query) or ""
-        logger.debug("Tool hindsight_reflect: response_len=%d", len(text))
+        logger.debug("Tool contextbase_reflect: response_len=%d", len(text))
         return text or "No relevant memories found."
 
     # tool name -> (required arg, handler, user-facing failure prefix)
     _TOOL_HANDLERS = {
-        "hindsight_retain": ("content", _tool_retain, "Failed to store memory"),
-        "hindsight_recall": ("query", _tool_recall, "Failed to search memory"),
-        "hindsight_reflect": ("query", _tool_reflect, "Failed to reflect"),
+        "contextbase_retain": ("content", _tool_retain, "Failed to store memory"),
+        "contextbase_recall": ("query", _tool_recall, "Failed to search memory"),
+        "contextbase_reflect": ("query", _tool_reflect, "Failed to reflect"),
     }
 
     def handle_tool_call(self, tool_name: str, args: dict, **kwargs) -> str:
@@ -1962,7 +1968,7 @@ class HindsightMemoryProvider(MemoryProvider):
             try:
                 job()
             except Exception as e:
-                logger.warning("Hindsight %s failed: %s", label, e, exc_info=True)
+                logger.warning("ContextBase %s failed: %s", label, e, exc_info=True)
 
         # Same writer queue as sync_turn: FIFO behind queued retains, no two threads
         # racing aretain_batch on one document, shutdown drain intact.
@@ -2012,7 +2018,7 @@ class HindsightMemoryProvider(MemoryProvider):
         self._session_turns = []
         self._turn_counter = self._turn_index = self._last_retained_turn_count = 0
         logger.debug(
-            "Hindsight on_session_switch: new_session=%s parent=%s reset=%s doc=%s",
+            "ContextBase on_session_switch: new_session=%s parent=%s reset=%s doc=%s",
             self._session_id,
             self._parent_session_id,
             reset,
@@ -2030,7 +2036,7 @@ class HindsightMemoryProvider(MemoryProvider):
         self._run_sync(self._client.aclose())
 
     def shutdown(self) -> None:
-        logger.debug("Hindsight shutdown: stopping writer + waiting for background threads")
+        logger.debug("ContextBase shutdown: stopping writer + waiting for background threads")
         # Ship turns still waiting for the retain_every_n_turns cadence. Skipped on a
         # cadence boundary: overwrite mode keeps every turn buffered, all already sent.
         if self._turn_counter % self._retain_every_n_turns:
@@ -2044,7 +2050,7 @@ class HindsightMemoryProvider(MemoryProvider):
             writer.join(timeout=10.0)
             if writer.is_alive():
                 logger.warning(
-                    "Hindsight writer did not stop within 10s; abandoning %d pending retain(s)",
+                    "ContextBase writer did not stop within 10s; abandoning %d pending retain(s)",
                     self._retain_queue.qsize(),
                 )
         self._join_prefetch(5.0)
@@ -2065,12 +2071,12 @@ class HindsightMemoryProvider(MemoryProvider):
 
 
 # The module-global background event loop (_loop / _loop_thread) is intentionally NOT stopped here. It is
-# shared across every HindsightMemoryProvider instance in the process — the plugin loader creates a new
+# shared across every ContextBaseMemoryProvider instance in the process — the plugin loader creates a new
 # provider per AIAgent, and the gateway creates one AIAgent per concurrent chat session. Stopping the loop
 # from one provider's shutdown() strands the aiohttp ClientSession + TCPConnector owned by every sibling
 # provider on a dead loop, which surfaces as the "Unclosed client session" / "Unclosed connector" warnings
 # reported in #11923. The loop runs on a daemon thread and is reclaimed on process exit; per-session cleanup
 # happens via self._client.aclose() above.
 def register(ctx) -> None:
-    """Register Hindsight as a memory provider plugin."""
-    ctx.register_memory_provider(HindsightMemoryProvider())
+    """Register ContextBase as a memory provider plugin."""
+    ctx.register_memory_provider(ContextBaseMemoryProvider())

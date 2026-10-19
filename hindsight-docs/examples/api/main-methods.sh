@@ -1,10 +1,10 @@
 #!/bin/bash
-# Main Methods overview examples for Hindsight CLI
+# Main Methods overview examples for ContextBase CLI
 # Run: bash examples/api/main-methods.sh
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 BANK_ID="main-methods-sh-demo-bank"
 
 # =============================================================================
@@ -22,41 +22,41 @@ echo "The team uses GitHub for code reviews." > docs/process.txt
 
 # [docs:main-retain]
 # Store a single fact
-agentstratum memory retain "$BANK_ID" "Alice joined Google in March 2024 as a Senior ML Engineer"
+contextbase memory retain "$BANK_ID" "Alice joined Google in March 2024 as a Senior ML Engineer"
 
 # Store from a file
-agentstratum memory retain-files "$BANK_ID" conversation.txt --context "Daily standup"
+contextbase memory retain-files "$BANK_ID" conversation.txt --context "Daily standup"
 
 # Store multiple files
-agentstratum memory retain-files "$BANK_ID" docs/
+contextbase memory retain-files "$BANK_ID" docs/
 # [/docs:main-retain]
 
 # [docs:main-recall]
 # Basic search
-agentstratum memory recall "$BANK_ID" "What does Alice do at Google?"
+contextbase memory recall "$BANK_ID" "What does Alice do at Google?"
 
 # Search with options
-agentstratum memory recall "$BANK_ID" "What happened last spring?" \
+contextbase memory recall "$BANK_ID" "What happened last spring?" \
     --budget high \
     --max-tokens 8192 \
     --fact-type world,experience
 
 # Verbose output
-agentstratum memory recall "$BANK_ID" "Tell me about Alice" -v
+contextbase memory recall "$BANK_ID" "Tell me about Alice" -v
 # [/docs:main-recall]
 
 # [docs:main-reflect]
 # Basic reflect
-agentstratum memory reflect "$BANK_ID" "Should we adopt TypeScript for our backend?"
+contextbase memory reflect "$BANK_ID" "Should we adopt TypeScript for our backend?"
 
 # With higher reasoning budget
-agentstratum memory reflect "$BANK_ID" "Analyze our tech stack" --budget high
+contextbase memory reflect "$BANK_ID" "Analyze our tech stack" --budget high
 # [/docs:main-reflect]
 
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
 rm -rf "$WORKDIR"
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}" > /dev/null
 
 echo "main-methods.sh: All examples passed"

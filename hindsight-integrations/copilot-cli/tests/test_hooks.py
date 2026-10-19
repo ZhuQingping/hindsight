@@ -4,7 +4,7 @@ Mocks the Copilot CLI hook runtime:
   - stdin  → io.StringIO(json.dumps(hook_input))
   - stdout → io.StringIO() captured for assertions
   - urllib.request.urlopen → fake HTTP responses
-  - HOME → tmp_path (isolates ~/.hindsight/copilot-cli.json and state)
+  - HOME → tmp_path (isolates ~/.contextbase/copilot-cli.json and state)
 """
 
 import importlib.util
@@ -39,11 +39,11 @@ def _run_hook(
     monkeypatch.setenv("HOME", str(tmp_path))
 
     for k in list(os.environ):
-        if k.startswith("HINDSIGHT_"):
+        if k.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(k, raising=False)
 
     if set_default_api_url:
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
 
     if env_overrides:
         for k, v in env_overrides.items():
@@ -98,7 +98,7 @@ class TestSessionStartHook:
         data = json.loads(output)
         assert "additionalContext" in data
         assert "Paris is the capital of France" in data["additionalContext"]
-        assert "<hindsight_memories>" in data["additionalContext"]
+        assert "<contextbase_memories>" in data["additionalContext"]
 
     def test_no_output_when_no_memories(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(initial_prompt="hello there world")
@@ -185,7 +185,7 @@ class TestSessionStartHook:
 
         hook_input = make_hook_input(initial_prompt="anything goes here")
         _run_hook("session_start", hook_input, monkeypatch, tmp_path, urlopen_side_effect=capture)
-        assert captured.get("ua", "").startswith("hindsight-copilot-cli/")
+        assert captured.get("ua", "").startswith("contextbase-copilot-cli/")
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +286,7 @@ class TestSubagentStartHook:
 
 
 class TestAgentStopHook:
-    def test_posts_transcript_to_hindsight(self, monkeypatch, tmp_path):
+    def test_posts_transcript_to_contextbase(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
 
@@ -317,7 +317,7 @@ class TestAgentStopHook:
 
     def test_strips_memory_tags_before_retaining(self, monkeypatch, tmp_path):
         messages = [
-            {"role": "user", "content": "<hindsight_memories>old memories</hindsight_memories> actual question"},
+            {"role": "user", "content": "<contextbase_memories>old memories</contextbase_memories> actual question"},
             {"role": "assistant", "content": "sure!"},
         ]
         transcript = make_transcript_file(tmp_path, messages)
@@ -480,7 +480,7 @@ class TestAgentStopHook:
         hook_input = make_hook_input(transcript_path=transcript, session_id="sess-cache-test")
 
         monkeypatch.setenv("HOME", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
         make_user_config(tmp_path, {"retainEveryNTurns": 1})
 
         stdin_data = io.StringIO(json.dumps(hook_input))
@@ -515,7 +515,7 @@ class TestSessionEndHook:
         transcript = make_transcript_file(tmp_path, messages)
 
         monkeypatch.setenv("HOME", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
         make_user_config(tmp_path, {"retainEveryNTurns": 10})
 
         sys.path.insert(0, SCRIPTS_DIR)
@@ -571,7 +571,7 @@ class TestSessionEndHook:
         transcript = make_transcript_file(tmp_path, messages)
 
         monkeypatch.setenv("HOME", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
         make_user_config(tmp_path, {"retainEveryNTurns": 10})
 
         sys.path.insert(0, SCRIPTS_DIR)
@@ -596,7 +596,7 @@ class TestSessionEndHook:
         transcript = make_transcript_file(tmp_path, messages)
 
         monkeypatch.setenv("HOME", str(tmp_path))
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://fake:9077")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://fake:9077")
         make_user_config(tmp_path, {"retainEveryNTurns": 10})
 
         sys.path.insert(0, SCRIPTS_DIR)

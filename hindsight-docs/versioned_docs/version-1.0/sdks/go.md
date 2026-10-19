@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Go Client
 
-Official Go client for the Hindsight API, generated from the OpenAPI 3.1 spec using [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator).
+Official Go client for the ContextBase API, generated from the OpenAPI 3.1 spec using [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator).
 
 import CodeSnippet from '@site/src/components/CodeSnippet';
 import quickstartGo from '!!raw-loader!@site/examples/api/quickstart.go';
@@ -23,7 +23,7 @@ Requires Go 1.23+.
 
 ## API Structure
 
-The Go client provides access to all Hindsight API operations through structured namespaces:
+The Go client provides access to all ContextBase API operations through structured namespaces:
 
 - **`client.MemoryAPI`** - Retain, recall, reflect operations
 - **`client.BanksAPI`** - Bank management

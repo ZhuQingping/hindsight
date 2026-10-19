@@ -1,8 +1,8 @@
-"""Deterministic compiled-graph flow test (mocked Hindsight client).
+"""Deterministic compiled-graph flow test (mocked ContextBase client).
 
 This is the in-CI / no-keys analog of the live graph test in test_e2e.py: it
 wires a real compiled ``StateGraph`` (recall -> agent -> retain) but backs it
-with a mocked Hindsight client, so it exercises the full node orchestration
+with a mocked ContextBase client, so it exercises the full node orchestration
 deterministically without a live server or LLM. It belongs to the deterministic
 bucket (no ``requires_real_llm`` marker).
 """
@@ -16,7 +16,7 @@ pytest.importorskip("langgraph")
 
 from langgraph.graph import END, START, MessagesState, StateGraph  # noqa: E402
 
-from hindsight_langgraph import create_recall_node, create_retain_node  # noqa: E402
+from contextbase_langgraph import create_recall_node, create_retain_node  # noqa: E402
 
 
 def _mock_client(recall_texts: list[str]) -> MagicMock:

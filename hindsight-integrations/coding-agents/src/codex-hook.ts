@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * agentstratum-codex-hook — the OpenAI Codex CLI entry point (a `UserPromptSubmit` hook).
+ * contextbase-codex-hook — the OpenAI Codex CLI entry point (a `UserPromptSubmit` hook).
  *
  * Codex CLI (v0.116+, `codex_hooks = true`) speaks a Claude-Code-compatible hook protocol
- * (see the agentstratum-codex integration): event on stdin with session_id and prompt (or
+ * (see the contextbase-codex integration): event on stdin with session_id and prompt (or
  * user_prompt), output via hookSpecificOutput.additionalContext.
  *
  * Install (~/.codex/hooks.json):
  *   { "hooks": { "UserPromptSubmit": [ { "hooks": [
- *       { "type": "command", "command": "agentstratum-codex-hook" } ] } ] } }
+ *       { "type": "command", "command": "contextbase-codex-hook" } ] } ] } }
  *
  * Behavior (shared hook runtime, core/hook.ts): recall every prompt; reflect once per session on
  * the first prompt and cache the outcome so later prompts recall only. Reflect outcomes recorded

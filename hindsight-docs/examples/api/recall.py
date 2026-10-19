@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-Recall API examples for Hindsight.
+Recall API examples for ContextBase.
 Run: python examples/api/recall.py
 """
 import os
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # Seed some data for recall examples
 client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
@@ -249,6 +251,6 @@ response = client.recall(
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
 
 print("recall.py: All examples passed")

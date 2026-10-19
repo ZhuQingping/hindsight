@@ -7,12 +7,14 @@ import os
 
 from hindsight_client import Hindsight
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 bank_id = "strategy-demo-bank"
 client.create_bank(bank_id=bank_id)
 client.update_bank_config(

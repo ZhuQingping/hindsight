@@ -1,4 +1,4 @@
-export { withHindsightChat } from "./wrapper.js";
+export { withContextBaseChat } from "./wrapper.js";
 export { formatMemoriesAsSystemPrompt } from "./format.js";
 export type {
   Budget,
@@ -16,7 +16,7 @@ export type {
   MemoryPromptOptions,
   RecallOptions,
   RetainOptions,
-  HindsightChatOptions,
-  HindsightChatContext,
-  HindsightChatHandler,
+  ContextBaseChatOptions,
+  ContextBaseChatContext,
+  ContextBaseChatHandler,
 } from "./types.js";

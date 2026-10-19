@@ -6,12 +6,12 @@
 import { HindsightClient, sdk, createClient, createConfig } from '@vectorize-io/hindsight-client';
 import { readFile, writeFile, rm } from 'node:fs/promises';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 
 // =============================================================================
 // Doc Examples
@@ -78,13 +78,13 @@ await client.resetBankConfig('my-bank');
 // =============================================================================
 // Prompt preview and bank transfer
 // =============================================================================
-const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_URL }));
+const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_URL }));
 const TRANSFER_BANKS = ['transfer-js', 'transfer-js-copy', 'transfer-js-other', 'transfer-js-clone'];
-for (const b of TRANSFER_BANKS) await fetch(`${HINDSIGHT_URL}/v1/default/banks/${b}`, { method: 'DELETE' });
+for (const b of TRANSFER_BANKS) await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${b}`, { method: 'DELETE' });
 // Chunks mode stores text verbatim, so no LLM call is needed.
 await client.createBank('transfer-js', {});
 await client.updateBankConfig('transfer-js', { retainExtractionMode: 'chunks' });
-const retainRes = await fetch(`${HINDSIGHT_URL}/v1/default/banks/transfer-js/memories`, {
+const retainRes = await fetch(`${CONTEXTBASE_URL}/v1/default/banks/transfer-js/memories`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items: [
@@ -261,13 +261,13 @@ const { data: importedDoc } = await sdk.getDocument({
     path: { bank_id: 'transfer-js-other', document_id: 'session-2026-09-22' },
 });
 if (importedDoc.memory_unit_count !== 1) throw new Error(`external import stored ${importedDoc.memory_unit_count} facts`);
-for (const b of TRANSFER_BANKS) await fetch(`${HINDSIGHT_URL}/v1/default/banks/${b}`, { method: 'DELETE' });
+for (const b of TRANSFER_BANKS) await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${b}`, { method: 'DELETE' });
 
 
 // =============================================================================
 // Cleanup (not shown in docs)
 // =============================================================================
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
-await fetch(`${HINDSIGHT_URL}/v1/default/banks/architect-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/my-bank`, { method: 'DELETE' });
+await fetch(`${CONTEXTBASE_URL}/v1/default/banks/architect-bank`, { method: 'DELETE' });
 
 console.log('memory-banks.mjs: All examples passed');

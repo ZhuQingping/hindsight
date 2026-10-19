@@ -1,24 +1,24 @@
-"""End-to-end smoke test: ADK Runner + Hindsight against dev cloud.
+"""End-to-end smoke test: ADK Runner + ContextBase against dev cloud.
 
 Two phases, both using a real Gemini-backed Runner:
 
-PHASE 1 — HindsightMemoryService (automatic memory):
-1. Session A: tell the agent some facts. Runner saves them to Hindsight on
+PHASE 1 — ContextBaseMemoryService (automatic memory):
+1. Session A: tell the agent some facts. Runner saves them to ContextBase on
    session end via `add_session_to_memory`.
 2. Session B: ask the agent to recall a fact from session A. The Runner
-   calls `search_memory`, which the integration serves from Hindsight.
+   calls `search_memory`, which the integration serves from ContextBase.
 
-PHASE 2 — create_hindsight_tools (explicit tools):
-1. Session C: agent calls `hindsight_retain` directly to store facts.
-2. Session D: agent calls `hindsight_recall` directly to retrieve them.
+PHASE 2 — create_contextbase_tools (explicit tools):
+1. Session C: agent calls `contextbase_retain` directly to store facts.
+2. Session D: agent calls `contextbase_recall` directly to retrieve them.
 
 If both phases find their facts after the session boundary, the integration
 is fully verified end-to-end.
 
 Required env:
     GOOGLE_API_KEY        — Gemini API key (aistudio.google.com/apikey)
-    HINDSIGHT_API_URL     — defaults to https://api.dev.hindsight.vectorize.io
-    HINDSIGHT_API_KEY     — Hindsight Cloud bearer token
+    CONTEXTBASE_API_URL     — defaults to https://api.dev.hindsight.vectorize.io
+    CONTEXTBASE_API_KEY     — ContextBase Cloud bearer token
 """
 
 from __future__ import annotations
@@ -27,18 +27,17 @@ import asyncio
 import os
 import uuid
 
+from contextbase_google_adk import ContextBaseMemoryService, create_contextbase_tools
 from google.adk.agents import LlmAgent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools.load_memory_tool import load_memory_tool
 from google.genai import types
 
-from hindsight_google_adk import HindsightMemoryService, create_hindsight_tools
+CONTEXTBASE_API_URL = os.environ.get("CONTEXTBASE_API_URL", "https://api.dev.hindsight.vectorize.io")
+CONTEXTBASE_API_KEY = os.environ.get("CONTEXTBASE_API_KEY")
 
-HINDSIGHT_API_URL = os.environ.get("HINDSIGHT_API_URL", "https://api.dev.hindsight.vectorize.io")
-HINDSIGHT_API_KEY = os.environ.get("HINDSIGHT_API_KEY")
-
-APP_NAME = "hindsight-adk-smoke"
+APP_NAME = "contextbase-adk-smoke"
 USER_ID = f"smoke-{uuid.uuid4().hex[:8]}"  # fresh user every run, isolates banks
 TOOLS_BANK_ID = f"smoke-tools-{uuid.uuid4().hex[:8]}"
 
@@ -60,14 +59,14 @@ async def run_turn(runner: Runner, session_id: str, prompt: str) -> str:
 
 
 async def phase_memory_service() -> bool:
-    """Phase 1: HindsightMemoryService end-to-end."""
-    memory = HindsightMemoryService.from_url(
-        hindsight_api_url=HINDSIGHT_API_URL,
-        api_key=HINDSIGHT_API_KEY,
+    """Phase 1: ContextBaseMemoryService end-to-end."""
+    memory = ContextBaseMemoryService.from_url(
+        contextbase_api_url=CONTEXTBASE_API_URL,
+        api_key=CONTEXTBASE_API_KEY,
     )
     session_service = InMemorySessionService()
     agent = LlmAgent(
-        name="hindsight_smoke_mem",
+        name="contextbase_smoke_mem",
         model="gemini-2.0-flash",
         instruction=(
             "You are a helpful assistant with persistent memory. "
@@ -84,7 +83,7 @@ async def phase_memory_service() -> bool:
         memory_service=memory,
     )
 
-    print("\n=== PHASE 1: HindsightMemoryService (automatic memory) ===")
+    print("\n=== PHASE 1: ContextBaseMemoryService (automatic memory) ===")
     print(f"User:          {USER_ID}")
     print(f"Expected bank: {APP_NAME}::{USER_ID}\n")
 
@@ -124,24 +123,24 @@ async def phase_memory_service() -> bool:
 
 
 async def phase_tools() -> bool:
-    """Phase 2: create_hindsight_tools end-to-end."""
-    tools = create_hindsight_tools(
+    """Phase 2: create_contextbase_tools end-to-end."""
+    tools = create_contextbase_tools(
         bank_id=TOOLS_BANK_ID,
-        hindsight_api_url=HINDSIGHT_API_URL,
-        api_key=HINDSIGHT_API_KEY,
+        contextbase_api_url=CONTEXTBASE_API_URL,
+        api_key=CONTEXTBASE_API_KEY,
     )
     session_service = InMemorySessionService()
     agent = LlmAgent(
-        name="hindsight_smoke_tools",
+        name="contextbase_smoke_tools",
         model="gemini-2.0-flash",
         instruction=(
             "You are an assistant with three memory tools: "
-            "hindsight_retain(content) stores facts; "
-            "hindsight_recall(query) looks them up; "
-            "hindsight_reflect(query) synthesizes answers. "
+            "contextbase_retain(content) stores facts; "
+            "contextbase_recall(query) looks them up; "
+            "contextbase_reflect(query) synthesizes answers. "
             "When the user shares a fact about themselves, ALWAYS call "
-            "hindsight_retain to store it. When the user asks about "
-            "themselves, ALWAYS call hindsight_recall first."
+            "contextbase_retain to store it. When the user asks about "
+            "themselves, ALWAYS call contextbase_recall first."
         ),
         tools=tools,
     )
@@ -151,7 +150,7 @@ async def phase_tools() -> bool:
         session_service=session_service,
     )
 
-    print("\n=== PHASE 2: create_hindsight_tools (explicit) ===")
+    print("\n=== PHASE 2: create_contextbase_tools (explicit) ===")
     print(f"Bank: {TOOLS_BANK_ID}\n")
 
     session_c_id = f"sess-c-{uuid.uuid4().hex[:6]}"
@@ -165,7 +164,7 @@ async def phase_tools() -> bool:
     )
     print(f"Agent: {reply[:300]}\n")
 
-    # Give Hindsight a beat to commit before we recall.
+    # Give ContextBase a beat to commit before we recall.
     await asyncio.sleep(2)
 
     session_d_id = f"sess-d-{uuid.uuid4().hex[:6]}"
@@ -188,19 +187,19 @@ async def phase_tools() -> bool:
 
 
 async def main() -> None:
-    if not HINDSIGHT_API_KEY:
-        raise SystemExit("HINDSIGHT_API_KEY env var is required.")
+    if not CONTEXTBASE_API_KEY:
+        raise SystemExit("CONTEXTBASE_API_KEY env var is required.")
     if not os.environ.get("GOOGLE_API_KEY"):
         raise SystemExit("GOOGLE_API_KEY env var is required.")
 
-    print(f"\nHindsight URL: {HINDSIGHT_API_URL}")
+    print(f"\nContextBase URL: {CONTEXTBASE_API_URL}")
 
     p1 = await phase_memory_service()
     p2 = await phase_tools()
 
     print("\n=== Summary ===")
-    print(f"  Phase 1 (HindsightMemoryService): {'PASS' if p1 else 'FAIL'}")
-    print(f"  Phase 2 (create_hindsight_tools): {'PASS' if p2 else 'FAIL'}")
+    print(f"  Phase 1 (ContextBaseMemoryService): {'PASS' if p1 else 'FAIL'}")
+    print(f"  Phase 2 (create_contextbase_tools): {'PASS' if p2 else 'FAIL'}")
     print("\nBanks to inspect:")
     print(f"  Phase 1: {APP_NAME}::{USER_ID}")
     print(f"  Phase 2: {TOOLS_BANK_ID}")

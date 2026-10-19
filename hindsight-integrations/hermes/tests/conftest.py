@@ -117,7 +117,7 @@ def _install_hermes_stubs(hermes_home: Path) -> None:
     module("utils", read_json_or_empty=_read_json_or_empty, atomic_json_write=_atomic_json_write)
     # plugins.memory.config_schema stays Hermes-owned (the desktop panel needs core's type).
     module("plugins")
-    module("plugins.memory", _get_active_memory_provider=lambda: "hindsight")
+    module("plugins.memory", _get_active_memory_provider=lambda: "contextbase")
     module(
         "plugins.memory.config_schema",
         KIND_BOOL="bool",
@@ -135,10 +135,10 @@ def hermes_env(tmp_path, monkeypatch):
     """Fresh Hermes home, empty secret store, plugin module loaded against them."""
     SECRETS.clear()
     # The plugin binds `get_hermes_home` at import time, so patch it where it is used.
-    monkeypatch.setattr(sys.modules["hindsight_hermes"], "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(sys.modules["contextbase_hermes"], "get_hermes_home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
     for var in list(__import__("os").environ):
-        if var.startswith("HINDSIGHT_"):
+        if var.startswith("CONTEXTBASE_"):
             monkeypatch.delenv(var, raising=False)
     yield tmp_path
     SECRETS.clear()
@@ -147,12 +147,12 @@ def hermes_env(tmp_path, monkeypatch):
 _install_hermes_stubs(Path.home())
 
 _spec = importlib.util.spec_from_file_location(
-    "hindsight_hermes",
+    "contextbase_hermes",
     PLUGIN_ROOT / "__init__.py",
     submodule_search_locations=[str(PLUGIN_ROOT)],
 )
 plugin = importlib.util.module_from_spec(_spec)
-sys.modules["hindsight_hermes"] = plugin
+sys.modules["contextbase_hermes"] = plugin
 _spec.loader.exec_module(plugin)
 
 
@@ -175,7 +175,7 @@ class FakeReflectResponse:
 
 
 class FakeClient:
-    """Records the calls the plugin makes against the Hindsight client."""
+    """Records the calls the plugin makes against the ContextBase client."""
 
     def __init__(self, recall_texts=(), reflect_text=""):
         self.retains: list[dict] = []
@@ -207,11 +207,13 @@ def provider(hermes_env, monkeypatch):
     def _make(config: dict | None = None, client: FakeClient | None = None, **init_kwargs):
         import json
 
-        config_path = hermes_env / "hindsight" / "config.json"
+        config_path = hermes_env / "contextbase" / "config.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        config_path.write_text(json.dumps({"mode": "cloud", "apiKey": "test-key", **(config or {})}))
+        config_path.write_text(
+            json.dumps({"mode": "cloud", "api_url": "http://localhost:8888", "apiKey": "test-key", **(config or {})})
+        )
         fake = client or FakeClient()
-        instance = plugin.HindsightMemoryProvider()
+        instance = plugin.ContextBaseMemoryProvider()
         monkeypatch.setattr(instance, "_new_cloud_client", lambda: fake)
         # The /version probe is a live HTTP call; pin the capability instead.
         monkeypatch.setattr(plugin, "_check_api_supports_update_mode_append", lambda *a, **k: True)

@@ -107,7 +107,7 @@ describe("triggers.retainCompleted (REST hook)", () => {
       authData,
       subscribeData: { id: "wh-1", bank_id: "bank-1", secret },
       cleanedRequest: { event: "retain.completed", bank_id: "bank-1" },
-      rawRequest: { content: raw, headers: { "X-Hindsight-Signature": sig } },
+      rawRequest: { content: raw, headers: { "X-ContextBase-Signature": sig } },
     });
     result[0].event.should.eql("retain.completed");
   });
@@ -119,7 +119,7 @@ describe("triggers.retainCompleted (REST hook)", () => {
       cleanedRequest: { event: "retain.completed", bank_id: "bank-1" },
       rawRequest: {
         content: '{"event":"retain.completed","bank_id":"bank-1"}',
-        headers: { "X-Hindsight-Signature": "sha256=deadbeef" },
+        headers: { "X-ContextBase-Signature": "sha256=deadbeef" },
       },
     }).should.be.rejectedWith(/signature verification failed/i);
   });

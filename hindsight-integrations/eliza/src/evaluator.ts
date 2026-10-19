@@ -9,7 +9,7 @@ import { type BankResolver, type RetainOptions, resolveBank } from "./options.js
  * agent's replies. Retain is fire-and-forget by default so it never adds
  * latency to the conversation.
  */
-export function createHindsightEvaluator(
+export function createContextBaseEvaluator(
   client: HindsightClient,
   bank: BankResolver | undefined,
   options: RetainOptions = {}
@@ -28,8 +28,8 @@ export function createHindsightEvaluator(
   };
 
   return {
-    name: "HINDSIGHT_RETAIN",
-    description: "Persists conversation messages to Hindsight long-term memory.",
+    name: "CONTEXTBASE_RETAIN",
+    description: "Persists conversation messages to ContextBase long-term memory.",
     alwaysRun: true,
     examples: [],
     validate: async (_runtime: IAgentRuntime, message: Memory) => {

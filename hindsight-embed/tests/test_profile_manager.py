@@ -16,8 +16,8 @@ from hindsight_embed.profile_manager import (
 
 
 @pytest.fixture
-def temp_agentstratum_dir(tmp_path, monkeypatch):
-    """Create a temporary agentstratum directory for tests.
+def temp_contextbase_dir(tmp_path, monkeypatch):
+    """Create a temporary contextbase directory for tests.
 
     Uses HOME environment variable to make Path.home() return the temp directory.
     This works with the dynamic path resolution in ProfileManager.
@@ -27,8 +27,8 @@ def temp_agentstratum_dir(tmp_path, monkeypatch):
 
     set_cli_profile_override(None)
 
-    # Clear AGENTSTRATUM_EMBED_PROFILE env var
-    monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+    # Clear CONTEXTBASE_EMBED_PROFILE env var
+    monkeypatch.delenv("CONTEXTBASE_EMBED_PROFILE", raising=False)
 
     temp_home = tmp_path / "home"
     temp_home.mkdir()
@@ -37,13 +37,13 @@ def temp_agentstratum_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(temp_home))
     monkeypatch.setenv("USERPROFILE", str(temp_home))
 
-    temp_config = temp_home / ".agentstratum"
+    temp_config = temp_home / ".contextbase"
     temp_config.mkdir()
     return temp_config
 
 
 @pytest.fixture
-def profile_manager(temp_agentstratum_dir):
+def profile_manager(temp_contextbase_dir):
     """Create a ProfileManager with temp directory."""
     return ProfileManager()
 
@@ -51,39 +51,39 @@ def profile_manager(temp_agentstratum_dir):
 class TestProfileManager:
     """Tests for ProfileManager class."""
 
-    def test_create_profile_success(self, profile_manager, temp_agentstratum_dir):
+    def test_create_profile_success(self, profile_manager, temp_contextbase_dir):
         """Test creating a new profile."""
         config = {
-            "AGENTSTRATUM_API_LLM_PROVIDER": "openai",
-            "AGENTSTRATUM_API_LLM_API_KEY": "sk-test",
-            "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
+            "CONTEXTBASE_API_LLM_PROVIDER": "openai",
+            "CONTEXTBASE_API_LLM_API_KEY": "sk-test",
+            "CONTEXTBASE_API_LLM_MODEL": "gpt-4o-mini",
         }
 
         profile_manager.create_profile("test-profile", config)
 
         # Verify config file was created
-        config_path = temp_agentstratum_dir / "profiles" / "test-profile.env"
+        config_path = temp_contextbase_dir / "profiles" / "test-profile.env"
         assert config_path.exists()
 
         # Verify config contents
         config_content = config_path.read_text()
-        assert "AGENTSTRATUM_API_LLM_PROVIDER=openai" in config_content
-        assert "AGENTSTRATUM_API_LLM_API_KEY=sk-test" in config_content
-        assert "AGENTSTRATUM_API_LLM_MODEL=gpt-4o-mini" in config_content
+        assert "CONTEXTBASE_API_LLM_PROVIDER=openai" in config_content
+        assert "CONTEXTBASE_API_LLM_API_KEY=sk-test" in config_content
+        assert "CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini" in config_content
 
         # Verify metadata was created
-        metadata_path = temp_agentstratum_dir / "profiles" / "metadata.json"
+        metadata_path = temp_contextbase_dir / "profiles" / "metadata.json"
         assert metadata_path.exists()
 
         metadata = json.loads(metadata_path.read_text())
         assert "test-profile" in metadata["profiles"]
         # The port now lives in the profile's .env, not metadata.
-        assert "AGENTSTRATUM_API_PORT=" in config_content
+        assert "CONTEXTBASE_API_PORT=" in config_content
         assert "port" not in metadata["profiles"]["test-profile"]
         assert "created_at" in metadata["profiles"]["test-profile"]
 
     def test_profile_config_uses_utf8_when_locale_is_not_utf8(
-        self, profile_manager, temp_agentstratum_dir, monkeypatch
+        self, profile_manager, temp_contextbase_dir, monkeypatch
     ):
         """Profile templates remain readable with a legacy default code page."""
         original_open = pathlib.Path.open
@@ -107,7 +107,7 @@ class TestProfileManager:
 
         profile_manager.create_profile("legacy-locale", {"CUSTOM_DESCRIPTION": "memory — retained"})
 
-        config_path = temp_agentstratum_dir / "profiles" / "legacy-locale.env"
+        config_path = temp_contextbase_dir / "profiles" / "legacy-locale.env"
         assert "memory — retained" in config_path.read_text(encoding="utf-8")
         assert profile_manager.load_profile_config("legacy-locale")["CUSTOM_DESCRIPTION"] == "memory — retained"
 
@@ -126,13 +126,13 @@ class TestProfileManager:
         with pytest.raises(ValueError, match="Invalid profile name"):
             profile_manager.create_profile("test@profile", config)
 
-    def test_profile_exists(self, profile_manager, temp_agentstratum_dir):
+    def test_profile_exists(self, profile_manager, temp_contextbase_dir):
         """Test checking if a profile exists."""
         # Default profile doesn't exist initially
         assert not profile_manager.profile_exists("")
 
         # Create default config
-        (temp_agentstratum_dir / "embed").write_text("KEY=value")
+        (temp_contextbase_dir / "embed").write_text("KEY=value")
         assert profile_manager.profile_exists("")
 
         # Named profile doesn't exist
@@ -142,12 +142,12 @@ class TestProfileManager:
         profile_manager.create_profile("test", {"KEY": "value"})
         assert profile_manager.profile_exists("test")
 
-    def test_delete_profile(self, profile_manager, temp_agentstratum_dir):
+    def test_delete_profile(self, profile_manager, temp_contextbase_dir):
         """Test deleting a profile."""
         # Create profile
         profile_manager.create_profile("test-profile", {"KEY": "value"})
         assert profile_manager.profile_exists("test-profile")
-        profiles_dir = temp_agentstratum_dir / "profiles"
+        profiles_dir = temp_contextbase_dir / "profiles"
         (profiles_dir / "test-profile.log").write_text("current")
         (profiles_dir / "test-profile.log.1").write_text("retained")
 
@@ -167,10 +167,10 @@ class TestProfileManager:
             metadata = json.loads(metadata_path.read_text())
             assert "test-profile" not in metadata.get("profiles", {})
 
-    def test_delete_profile_survives_undeletable_log(self, profile_manager, temp_agentstratum_dir):
+    def test_delete_profile_survives_undeletable_log(self, profile_manager, temp_contextbase_dir):
         """An unremovable log (e.g. still open on Windows) must not strand the profile."""
         profile_manager.create_profile("test-profile", {"KEY": "value"})
-        profiles_dir = temp_agentstratum_dir / "profiles"
+        profiles_dir = temp_contextbase_dir / "profiles"
         (profiles_dir / "test-profile.log").write_text("current")
         (profiles_dir / "test-profile.log.1").write_text("retained")
 
@@ -202,7 +202,7 @@ class TestProfileManager:
         with pytest.raises(ValueError, match="Cannot delete default profile"):
             profile_manager.delete_profile("")
 
-    def test_set_active_profile(self, profile_manager, temp_agentstratum_dir):
+    def test_set_active_profile(self, profile_manager, temp_contextbase_dir):
         """Test setting active profile."""
         # Create a profile
         profile_manager.create_profile("test-profile", {"KEY": "value"})
@@ -211,14 +211,14 @@ class TestProfileManager:
         profile_manager.set_active_profile("test-profile")
 
         # Verify active profile file was created
-        active_file = temp_agentstratum_dir / "active_profile"
+        active_file = temp_contextbase_dir / "active_profile"
         assert active_file.exists()
         assert active_file.read_text() == "test-profile"
 
         # Get active profile
         assert profile_manager.get_active_profile() == "test-profile"
 
-    def test_clear_active_profile(self, profile_manager, temp_agentstratum_dir):
+    def test_clear_active_profile(self, profile_manager, temp_contextbase_dir):
         """Test clearing active profile."""
         # Create and set active profile
         profile_manager.create_profile("test-profile", {"KEY": "value"})
@@ -230,7 +230,7 @@ class TestProfileManager:
         assert profile_manager.get_active_profile() == ""
 
         # Verify file was removed
-        active_file = temp_agentstratum_dir / "active_profile"
+        active_file = temp_contextbase_dir / "active_profile"
         assert not active_file.exists()
 
     def test_set_active_nonexistent_profile_fails(self, profile_manager):
@@ -238,14 +238,14 @@ class TestProfileManager:
         with pytest.raises(ValueError, match="does not exist"):
             profile_manager.set_active_profile("nonexistent")
 
-    def test_list_profiles(self, profile_manager, temp_agentstratum_dir):
+    def test_list_profiles(self, profile_manager, temp_contextbase_dir):
         """Test listing profiles."""
         # Initially no profiles
         profiles = profile_manager.list_profiles()
         assert len(profiles) == 0
 
         # Create default config
-        (temp_agentstratum_dir / "embed").write_text("KEY=value")
+        (temp_contextbase_dir / "embed").write_text("KEY=value")
 
         # List profiles - should show default
         profiles = profile_manager.list_profiles()
@@ -266,7 +266,7 @@ class TestProfileManager:
         assert profiles[1].name == "profile1"
         assert profiles[2].name == "profile2"
 
-    def test_list_profiles_with_active(self, profile_manager, temp_agentstratum_dir):
+    def test_list_profiles_with_active(self, profile_manager, temp_contextbase_dir):
         """Test listing profiles shows active status."""
         profile_manager.create_profile("profile1", {"KEY": "value"})
         profile_manager.create_profile("profile2", {"KEY": "value"})
@@ -284,25 +284,25 @@ class TestProfileManager:
         assert profile1.is_active is True
         assert profile2.is_active is False
 
-    def test_resolve_profile_paths_default(self, profile_manager, temp_agentstratum_dir):
+    def test_resolve_profile_paths_default(self, profile_manager, temp_contextbase_dir):
         """Test resolving paths for default profile."""
         paths = profile_manager.resolve_profile_paths("")
 
-        assert paths.config == temp_agentstratum_dir / "embed"
-        assert paths.lock == temp_agentstratum_dir / "daemon.lock"
-        assert paths.log == temp_agentstratum_dir / "daemon.log"
+        assert paths.config == temp_contextbase_dir / "embed"
+        assert paths.lock == temp_contextbase_dir / "daemon.lock"
+        assert paths.log == temp_contextbase_dir / "daemon.log"
         assert paths.port == 8888
 
-    def test_resolve_profile_paths_named(self, profile_manager, temp_agentstratum_dir):
+    def test_resolve_profile_paths_named(self, profile_manager, temp_contextbase_dir):
         """Test resolving paths for named profile."""
         # Create profile first
         profile_manager.create_profile("test-profile", {"KEY": "value"})
 
         paths = profile_manager.resolve_profile_paths("test-profile")
 
-        assert paths.config == temp_agentstratum_dir / "profiles" / "test-profile.env"
-        assert paths.lock == temp_agentstratum_dir / "profiles" / "test-profile.lock"
-        assert paths.log == temp_agentstratum_dir / "profiles" / "test-profile.log"
+        assert paths.config == temp_contextbase_dir / "profiles" / "test-profile.env"
+        assert paths.lock == temp_contextbase_dir / "profiles" / "test-profile.lock"
+        assert paths.log == temp_contextbase_dir / "profiles" / "test-profile.log"
         assert 8889 <= paths.port <= 9888  # Port in valid range
 
     def test_port_allocation_deterministic(self, profile_manager):
@@ -329,36 +329,36 @@ class TestProfileManager:
         # Ports should be different
         assert paths1.port != paths2.port
 
-    def test_api_port_persisted_to_env(self, profile_manager, temp_agentstratum_dir):
+    def test_api_port_persisted_to_env(self, profile_manager, temp_contextbase_dir):
         """The allocated API port is written into the profile's .env, not metadata."""
         profile_manager.create_profile("p", {"KEY": "v"})
-        env = (temp_agentstratum_dir / "profiles" / "p.env").read_text()
-        assert "AGENTSTRATUM_API_PORT=" in env
+        env = (temp_contextbase_dir / "profiles" / "p.env").read_text()
+        assert "CONTEXTBASE_API_PORT=" in env
 
-    def test_env_api_port_override_wins(self, profile_manager, temp_agentstratum_dir):
-        """A AGENTSTRATUM_API_PORT in the .env is the source of truth for the port."""
-        env_path = temp_agentstratum_dir / "profiles" / "p.env"
+    def test_env_api_port_override_wins(self, profile_manager, temp_contextbase_dir):
+        """A CONTEXTBASE_API_PORT in the .env is the source of truth for the port."""
+        env_path = temp_contextbase_dir / "profiles" / "p.env"
         env_path.parent.mkdir(parents=True, exist_ok=True)
-        env_path.write_text("AGENTSTRATUM_API_PORT=9999\n")
+        env_path.write_text("CONTEXTBASE_API_PORT=9999\n")
         assert profile_manager.resolve_profile_paths("p").port == 9999
 
-    def test_ui_port_defaults_to_offset(self, profile_manager, temp_agentstratum_dir):
-        env_path = temp_agentstratum_dir / "profiles" / "p.env"
+    def test_ui_port_defaults_to_offset(self, profile_manager, temp_contextbase_dir):
+        env_path = temp_contextbase_dir / "profiles" / "p.env"
         env_path.parent.mkdir(parents=True, exist_ok=True)
-        env_path.write_text("AGENTSTRATUM_API_PORT=9000\n")
+        env_path.write_text("CONTEXTBASE_API_PORT=9000\n")
         assert profile_manager.resolve_profile_paths("p").ui_port == 19000
 
-    def test_ui_port_override(self, profile_manager, temp_agentstratum_dir):
-        env_path = temp_agentstratum_dir / "profiles" / "p.env"
+    def test_ui_port_override(self, profile_manager, temp_contextbase_dir):
+        env_path = temp_contextbase_dir / "profiles" / "p.env"
         env_path.parent.mkdir(parents=True, exist_ok=True)
-        env_path.write_text("AGENTSTRATUM_API_PORT=9000\nAGENTSTRATUM_EMBED_CP_PORT=22000\n")
+        env_path.write_text("CONTEXTBASE_API_PORT=9000\nCONTEXTBASE_EMBED_CP_PORT=22000\n")
         assert profile_manager.resolve_profile_paths("p").ui_port == 22000
 
-    def test_legacy_metadata_port_fallback(self, profile_manager, temp_agentstratum_dir):
+    def test_legacy_metadata_port_fallback(self, profile_manager, temp_contextbase_dir):
         """Profiles whose port still lives in metadata (no .env port) keep working."""
-        profiles_dir = temp_agentstratum_dir / "profiles"
+        profiles_dir = temp_contextbase_dir / "profiles"
         profiles_dir.mkdir(parents=True, exist_ok=True)
-        (profiles_dir / "legacy.env").write_text("AGENTSTRATUM_API_LLM_PROVIDER=openai\n")
+        (profiles_dir / "legacy.env").write_text("CONTEXTBASE_API_LLM_PROVIDER=openai\n")
         (profiles_dir / "metadata.json").write_text(
             json.dumps({"version": 1, "profiles": {"legacy": {"port": 9321, "created_at": "x"}}})
         )
@@ -379,7 +379,7 @@ class TestProfileManager:
             test_profile = next(p for p in profiles if p.name == "test")
             assert test_profile.daemon_running is True
 
-    def test_update_existing_profile(self, profile_manager, temp_agentstratum_dir):
+    def test_update_existing_profile(self, profile_manager, temp_contextbase_dir):
         """Test updating an existing profile."""
         # Create profile
         profile_manager.create_profile("test", {"KEY": "old_value"})
@@ -388,12 +388,12 @@ class TestProfileManager:
         profile_manager.create_profile("test", {"KEY": "new_value"})
 
         # Verify config was updated
-        config_path = temp_agentstratum_dir / "profiles" / "test.env"
+        config_path = temp_contextbase_dir / "profiles" / "test.env"
         config_content = config_path.read_text()
         assert "KEY=new_value" in config_content
         assert "KEY=old_value" not in config_content
 
-    def test_metadata_persistence(self, profile_manager, temp_agentstratum_dir):
+    def test_metadata_persistence(self, profile_manager, temp_contextbase_dir):
         """Test that metadata persists across ProfileManager instances."""
         # Create profile with first manager
         profile_manager.create_profile("test", {"KEY": "value"})
@@ -406,7 +406,7 @@ class TestProfileManager:
         test_profile = next(p for p in profiles if p.name == "test")
         assert test_profile.port > 0
 
-    def test_delete_active_profile_clears_active_file(self, profile_manager, temp_agentstratum_dir):
+    def test_delete_active_profile_clears_active_file(self, profile_manager, temp_contextbase_dir):
         """Test that deleting active profile clears the active_profile file."""
         profile_manager.create_profile("test", {"KEY": "value"})
         profile_manager.set_active_profile("test")
@@ -425,9 +425,9 @@ class TestResolveActiveProfile:
     """Tests for resolve_active_profile function."""
 
     def test_priority_env_var(self, monkeypatch, profile_manager):
-        """Test that AGENTSTRATUM_EMBED_PROFILE env var has highest priority."""
+        """Test that CONTEXTBASE_EMBED_PROFILE env var has highest priority."""
         # Set up all possible sources
-        monkeypatch.setenv("AGENTSTRATUM_EMBED_PROFILE", "from-env")
+        monkeypatch.setenv("CONTEXTBASE_EMBED_PROFILE", "from-env")
 
         profile_manager.create_profile("from-file", {"KEY": "value"})
         profile_manager.set_active_profile("from-file")
@@ -443,7 +443,7 @@ class TestResolveActiveProfile:
     def test_priority_cli_flag(self, monkeypatch, profile_manager):
         """Test that CLI flag has second highest priority."""
         # No env var
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_EMBED_PROFILE", raising=False)
 
         profile_manager.create_profile("from-file", {"KEY": "value"})
         profile_manager.set_active_profile("from-file")
@@ -459,7 +459,7 @@ class TestResolveActiveProfile:
     def test_priority_active_file(self, monkeypatch, profile_manager):
         """Test that active file has third priority."""
         # No env var or CLI flag
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_EMBED_PROFILE", raising=False)
 
         from hindsight_embed import cli
 
@@ -474,7 +474,7 @@ class TestResolveActiveProfile:
     def test_priority_default(self, monkeypatch, profile_manager):
         """Test that default is used when no sources are set."""
         # No env var, CLI flag, or active file
-        monkeypatch.delenv("AGENTSTRATUM_EMBED_PROFILE", raising=False)
+        monkeypatch.delenv("CONTEXTBASE_EMBED_PROFILE", raising=False)
 
         from hindsight_embed import cli
 
@@ -507,4 +507,4 @@ class TestValidateProfileExists:
         # Check error message
         captured = capsys.readouterr()
         assert "Profile 'nonexistent' not found" in captured.err
-        assert "agentstratum-embed configure --profile nonexistent" in captured.err
+        assert "contextbase-embed configure --profile nonexistent" in captured.err

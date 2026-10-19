@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { productGuard } from "@/lib/product-guard";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -33,7 +34,7 @@ function staticAsset(pathname: string): boolean {
 const intlMiddleware = createIntlMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
-  const accessKey = process.env.HINDSIGHT_CP_ACCESS_KEY;
+  const accessKey = controlPlaneEnv("ACCESS_KEY");
   const { pathname } = request.nextUrl;
   const appPathname = stripBasePath(pathname);
 

@@ -1,7 +1,7 @@
 """Deprecation notice for this plugin, shown at every session start.
 
 This plugin still works and is not going to stop working, but it is deprecated: development has
-moved to `agentstratum-coding-agents`. Someone who installed this a year ago has no way to learn
+moved to `contextbase-coding-agents`. Someone who installed this a year ago has no way to learn
 that — a changelog entry reaches nobody — so the session itself says it.
 
 Shown every session rather than a few times: a notice that appears once is missed, and this one has
@@ -16,19 +16,19 @@ packages with no common module path.
 """
 
 NOTICE = (
-    "The current agentstratum Claude Code plugin is DEPRECATED, replaced by the Coding Agents "
+    "The current contextbase Claude Code plugin is DEPRECATED, replaced by the Coding Agents "
     "plugin.\n"
     "\n"
     "One install now covers Claude Code, Codex, Cursor, Copilot, opencode, Kilo, Grok, "
     "Antigravity,\n"
-    "Devin and Cline, and they all share a single memory per repository, leveraging the agentstratum "
+    "Devin and Cline, and they all share a single memory per repository, leveraging the contextbase "
     "Knowledge Page (v0.9.x and onwards).\n"
     "\n"
     "Ask your service administrator for the Coding Agents installation guide.\n"
-    "Your agentstratum server and token carry over automatically; past conversations are re-imported "
+    "Your contextbase server and token carry over automatically; past conversations are re-imported "
     "from\n"
     'local transcripts. Silence this with "upgradeNotice": false in '
-    "~/.agentstratum/claude-code.json"
+    "~/.contextbase/claude-code.json"
 )
 
 

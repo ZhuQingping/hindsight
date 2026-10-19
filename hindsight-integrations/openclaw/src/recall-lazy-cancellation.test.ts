@@ -25,7 +25,7 @@ beforeEach(async () => {
   vi.resetModules();
   Client = (await import("@vectorize-io/hindsight-client")).HindsightClient;
   const plugin = (await import("./index.js")).default;
-  directory = mkdtempSync(join(tmpdir(), "hindsight-recall-lazy-"));
+  directory = mkdtempSync(join(tmpdir(), "contextbase-recall-lazy-"));
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -43,9 +43,9 @@ beforeEach(async () => {
     config: {
       plugins: {
         entries: {
-          "hindsight-openclaw": {
+          "contextbase-openclaw": {
             config: {
-              hindsightApiUrl: "http://localhost:8888",
+              contextbaseApiUrl: "http://localhost:8888",
               bankId: "test-bank",
               dynamicBankId: false,
               autoRecall: true,

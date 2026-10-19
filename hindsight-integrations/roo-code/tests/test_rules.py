@@ -1,6 +1,6 @@
-"""Tests for the hindsight-memory.md rules file content."""
+"""Tests for the contextbase-memory.md rules file content."""
 
-from hindsight_roo_code import rules_text
+from contextbase_roo_code import rules_text
 
 
 def test_rules_text_not_empty() -> None:

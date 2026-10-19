@@ -1,6 +1,6 @@
-"""Hindsight REST API client.
+"""ContextBase REST API client.
 
-Communicates with a Hindsight server via HTTP. Mirrors the HTTP mode of the
+Communicates with a ContextBase server via HTTP. Mirrors the HTTP mode of the
 Openclaw HindsightClient (client.js), adapted for Python stdlib.
 """
 
@@ -25,21 +25,21 @@ def _plugin_version() -> str:
 
 # Sent on every request so reverse proxies with UA-based bot filtering (e.g.
 # Cloudflare error 1010) don't block the stdlib default "Python-urllib/X.Y".
-USER_AGENT = f"hindsight-cursor/{_plugin_version()}"
+USER_AGENT = f"contextbase-cursor/{_plugin_version()}"
 
 
 def _validate_api_url(url: str) -> str:
     """Validate and normalize the API URL. Reject non-HTTP schemes."""
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme not in ("http", "https"):
-        raise ValueError(f"Hindsight API URL must use http or https, got: {parsed.scheme!r}")
+        raise ValueError(f"ContextBase API URL must use http or https, got: {parsed.scheme!r}")
     if not parsed.hostname:
-        raise ValueError(f"Hindsight API URL has no hostname: {url!r}")
+        raise ValueError(f"ContextBase API URL has no hostname: {url!r}")
     return url.rstrip("/")
 
 
 class HindsightClient:
-    """HTTP client for the Hindsight API."""
+    """HTTP client for the ContextBase API."""
 
     def __init__(self, api_url: str, api_token: Optional[str] = None):
         self.api_url = _validate_api_url(api_url)
@@ -103,7 +103,7 @@ class HindsightClient:
         """Retain content into a bank's memory.
 
         Posts with async=true so the server processes in the background.
-        The context field helps Hindsight cluster memories by provenance
+        The context field helps ContextBase cluster memories by provenance
         (e.g. "claude-code" vs manual retains).
         """
         path = f"/v1/default/banks/{urllib.parse.quote(bank_id, safe='')}/memories"

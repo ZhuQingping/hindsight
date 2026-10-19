@@ -11,7 +11,7 @@ from hindsight_client import Hindsight
 from hindsight_client_api.models.memory_item import MemoryItem
 from hindsight_client_api.models.retain_request import RetainRequest
 from hindsight_client_api.models.retain_response import RetainResponse
-from hindsight_google_adk import HindsightMemoryService
+from contextbase_google_adk import ContextBaseMemoryService
 
 
 @pytest.mark.parametrize(
@@ -39,7 +39,7 @@ async def test_explicit_memory_preserves_timestamp(timestamp: str | None, expect
     app.router.add_post("/v1/default/banks/app::user/memories", retain)
     async with TestServer(app) as server:
         client = Hindsight(base_url=str(server.make_url("")))
-        service = HindsightMemoryService(client=client)
+        service = ContextBaseMemoryService(client=client)
         try:
             entry = MemoryEntry(
                 id="historical-memory",

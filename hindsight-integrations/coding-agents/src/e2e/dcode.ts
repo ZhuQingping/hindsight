@@ -16,7 +16,7 @@ import type { HarnessDockerSetup } from "./harness";
 export const dcodeDockerSetup: HarnessDockerSetup = {
   name: "dcode",
   hindsightHarness: "dcode",
-  installCommand: "agentstratum-coding-agents install dcode",
+  installCommand: "contextbase-coding-agents install dcode",
   stubModelEnv: (baseUrl) => ({
     OPENAI_BASE_URL: `${baseUrl}/v1`,
     OPENAI_API_KEY: "hindsight-e2e",

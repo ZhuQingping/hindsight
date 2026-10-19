@@ -1,23 +1,23 @@
 /**
- * Hindsight as a first-class eve memory provider. One authored file gives an
+ * ContextBase as a first-class eve memory provider. One authored file gives an
  * agent long-term memory with no model tool-calling on the critical path:
  *
  * ```ts
- * // agent/memory/hindsight.ts
- * import { hindsightMemory } from "@vectorize-io/hindsight-eve";
+ * // agent/memory/contextbase.ts
+ * import { contextbaseMemory } from "contextbase-eve";
  * import { defineMemory } from "eve/memory";
  * import { byPrincipal } from "eve/memory/scope";
  *
  * export default defineMemory({
  *   description: "Long-term memory about the current user.",
- *   provider: hindsightMemory(),
+ *   provider: contextbaseMemory(),
  *   scope: byPrincipal,
  * });
  * ```
  *
  * eve calls `recall` before the model runs (with the live user message as the
  * query), `capture` after the turn settles, and exposes `reflect` as a tool.
- * Every read and write is partitioned by the locked scope: one Hindsight bank
+ * Every read and write is partitioned by the locked scope: one ContextBase bank
  * per scope. This is the only module that imports `eve`; the mechanics live in
  * `./provider-core` and `./client`, which unit-test without the framework.
  */
@@ -33,7 +33,7 @@ import {
 } from "eve/memory";
 import { defineTool } from "eve/tools";
 
-import { HindsightRestClient } from "./client.js";
+import { ContextBaseRestClient } from "./client.js";
 import { buildRetainContent } from "./config.js";
 import {
   RECALL_MESSAGE_ID,
@@ -59,12 +59,12 @@ const REFLECT_INPUT_SCHEMA = {
 } as const;
 
 /**
- * Build the Hindsight memory provider for `defineMemory({ provider })`.
- * Configure via env (`HINDSIGHT_API_KEY`, `HINDSIGHT_API_URL`) or options.
+ * Build the ContextBase memory provider for `defineMemory({ provider })`.
+ * Configure via env (`CONTEXTBASE_API_KEY`, `CONTEXTBASE_API_URL`) or options.
  */
-export function hindsightMemory(options: MemoryProviderOptions = {}): MemoryProvider {
+export function contextbaseMemory(options: MemoryProviderOptions = {}): MemoryProvider {
   const cfg = resolveMemoryProvider(options);
-  const client = new HindsightRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
+  const client = new ContextBaseRestClient(cfg.apiUrl, cfg.apiKey, cfg.timeoutMs);
 
   // A failed recall must never fail the turn (eve fails the turn on a throwing
   // recall), so errors are reported and the turn proceeds without memory.

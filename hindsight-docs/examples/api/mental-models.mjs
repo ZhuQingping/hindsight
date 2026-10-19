@@ -5,13 +5,13 @@
  */
 import { HindsightClient } from '@vectorize-io/hindsight-client';
 
-const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'http://localhost:8888';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
 const BANK_ID = 'mental-models-demo-bank';
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: HINDSIGHT_URL });
+const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
 await client.createBank(BANK_ID, { name: 'Mental Models Demo' });
 await client.retain(BANK_ID, 'The team prefers async communication via Slack');
 await client.retain(BANK_ID, 'For urgent issues, use the #incidents channel');
@@ -95,7 +95,7 @@ for (const mm of mentalModels.items) {
 const mentalModelId = mentalModels.items[0]?.id;
 if (!mentalModelId) {
     console.log('mental-models.mjs: All examples passed (no mental models created yet)');
-    await fetch(`${HINDSIGHT_URL}/v1/default/banks/${BANK_ID}`, { method: 'DELETE' });
+    await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}`, { method: 'DELETE' });
     process.exit(0);
 }
 

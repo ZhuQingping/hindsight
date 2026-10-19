@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """SessionStart hook: health check.
 
-Fires once when an OMO session begins. Verifies the Hindsight server
+Fires once when an OMO session begins. Verifies the ContextBase server
 is reachable (cloud or self-hosted).
 """
 
@@ -30,16 +30,16 @@ def main():
 
     debug_log(config, f"SessionStart hook, source: {hook_input.get('source', 'unknown')}")
 
-    api_url = config.get("hindsightApiUrl")
+    api_url = config.get("contextbaseApiUrl")
     if not api_url:
-        debug_log(config, "No hindsightApiUrl configured")
+        debug_log(config, "No contextbaseApiUrl configured")
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     if not api_token and "api.hindsight.vectorize.io" in api_url:
         print(
-            "[Hindsight] Warning: Using Hindsight Cloud but no API key set. "
-            "Set HINDSIGHT_API_TOKEN or hindsightApiToken in ~/.hindsight/omo.json",
+            "[Hindsight] Warning: Using ContextBase Cloud but no API key set. "
+            "Set CONTEXTBASE_API_TOKEN or contextbaseApiToken in ~/.contextbase/omo.json",
             file=sys.stderr,
         )
         return
@@ -47,7 +47,7 @@ def main():
     try:
         client = HindsightClient(api_url, api_token)
         if client.health_check(timeout=3):
-            debug_log(config, f"Hindsight server reachable at {api_url}")
+            debug_log(config, f"ContextBase server reachable at {api_url}")
         else:
             print(f"[Hindsight] Server not reachable at {api_url}", file=sys.stderr)
     except (RuntimeError, ValueError) as e:

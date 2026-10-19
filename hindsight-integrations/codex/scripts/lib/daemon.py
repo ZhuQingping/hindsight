@@ -1,11 +1,11 @@
-"""Hindsight-embed daemon lifecycle management for Codex.
+"""ContextBase-embed daemon lifecycle management for Codex.
 
 Manages three connection modes:
-  1. External API — user provides hindsightApiUrl (skip daemon entirely)
-  2. Existing local server — user already has hindsight running
+  1. External API — user provides contextbaseApiUrl (skip daemon entirely)
+  2. Existing local server — user already has contextbase running
   3. Auto-managed daemon — plugin starts/stops hindsight-embed
 
-Daemon state is tracked via files in ~/.hindsight/codex/state/.
+Daemon state is tracked via files in ~/.contextbase/codex/state/.
 """
 
 import os
@@ -60,7 +60,7 @@ def _is_embed_available(config: dict) -> bool:
 
 
 def _check_health(base_url: str, timeout: int = 10) -> bool:
-    """Quick health check against a Hindsight server.
+    """Quick health check against a ContextBase server.
 
     Default timeout is 10s (matching the recall hook budget): under load an
     alive-but-busy daemon mid fact-extraction may not answer /health within a
@@ -83,12 +83,12 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     """Determine the API URL, optionally starting daemon if needed.
 
     Connection mode priority:
-      1. External API (hindsightApiUrl configured)
+      1. External API (contextbaseApiUrl configured)
       2. Existing local server (check port health)
       3. Auto-managed daemon (only if allow_daemon_start=True)
     """
     # Mode 1: External API
-    external_url = config.get("hindsightApiUrl")
+    external_url = config.get("contextbaseApiUrl")
     if external_url:
         if debug_fn:
             debug_fn(f"Using external API: {external_url}")
@@ -106,7 +106,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     # Mode 3: Auto-start daemon (only when allowed)
     if not allow_daemon_start:
         raise RuntimeError(
-            f"No Hindsight server on port {port}. Set hindsightApiUrl for external "
+            f"No ContextBase server on port {port}. Set contextbaseApiUrl for external "
             f"API, start hindsight-embed manually, or wait for the retain hook to "
             f"auto-start the daemon."
         )
@@ -120,7 +120,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
         if debug_fn:
             debug_fn(f"Daemon start failed: {e}")
         raise RuntimeError(
-            "No Hindsight server available. Set hindsightApiUrl for external API, "
+            "No ContextBase server available. Set contextbaseApiUrl for external API, "
             "or ensure hindsight-embed is installed for local daemon mode."
         ) from e
 
@@ -132,7 +132,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     if not _is_embed_available(config):
         raise RuntimeError(
             "hindsight-embed not found (uvx not on PATH). "
-            "Install with: pip install hindsight-embed, or set hindsightApiUrl."
+            "Install with: pip install hindsight-embed, or set contextbaseApiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -181,7 +181,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     except FileNotFoundError:
         raise RuntimeError(
             "hindsight-embed not found. Install with: pip install hindsight-embed "
-            "or set hindsightApiUrl for external API mode."
+            "or set contextbaseApiUrl for external API mode."
         )
 
     # Step 2: Start daemon
@@ -231,7 +231,7 @@ def prestart_daemon_background(config: dict, debug_fn=None):
     Called from SessionStart hook to warm up the daemon before the first
     recall or retain hook fires.
     """
-    if config.get("hindsightApiUrl"):
+    if config.get("contextbaseApiUrl"):
         return  # External API mode — no local daemon needed
 
     port = config.get("apiPort", 9077)

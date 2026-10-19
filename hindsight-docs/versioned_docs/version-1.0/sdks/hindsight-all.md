@@ -4,11 +4,11 @@ sidebar_position: 2
 
 # Programmatic API (Python)
 
-The `hindsight-all` Python package lets your code spawn and manage a local Hindsight daemon without deploying any server infrastructure. It bundles the Hindsight API server, embedded PostgreSQL, and the Python client into one install — `pip install hindsight-all` and you can start a fully-functional Hindsight instance from a few lines of Python.
+The `hindsight-all` Python package lets your code spawn and manage a local ContextBase daemon without deploying any server infrastructure. It bundles the ContextBase API server, embedded PostgreSQL, and the Python client into one install — `pip install hindsight-all` and you can start a fully-functional ContextBase instance from a few lines of Python.
 
 The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Python process memory). Your code talks to it over HTTP via the bundled `HindsightClient`.
 
-If you already have a Hindsight server running and just need a client, use [Python Client (hindsight-client)](./python.mdx) instead.
+If you already have a ContextBase server running and just need a client, use [Python Client (hindsight-client)](./python.mdx) instead.
 
 ## How it works
 
@@ -56,7 +56,7 @@ with HindsightServer(
 
 ## `HindsightEmbedded` — auto-managed
 
-`HindsightEmbedded` is the simplest way to use Hindsight in Python. It automatically manages a background daemon for you — starts on first use and stays alive across calls.
+`HindsightEmbedded` is the simplest way to use ContextBase in Python. It automatically manages a background daemon for you — starts on first use and stays alive across calls.
 
 ```python
 from hindsight import HindsightEmbedded
@@ -81,7 +81,7 @@ client.close(stop_daemon=True)
 
 ### What's a Profile?
 
-A profile is an isolated Hindsight environment. Each profile gets its own embedded PostgreSQL database (stored in `~/.pg0/instances/hindsight-embed-{profile}/`) and its own API server. Use different profiles to separate environments (dev/prod), applications, or users.
+A profile is an isolated ContextBase environment. Each profile gets its own embedded PostgreSQL database (stored in `~/.pg0/instances/contextbase-embed-{profile}/`) and its own API server. Use different profiles to separate environments (dev/prod), applications, or users.
 
 ### When to use which
 
@@ -89,7 +89,7 @@ A profile is an isolated Hindsight environment. Each profile gets its own embedd
 |---|---|
 | Tests, short-lived scripts, deterministic startup/shutdown | `HindsightServer` (context manager) |
 | Long-running application, auto-start on first use, don't want to manage lifecycle | `HindsightEmbedded` |
-| Existing Hindsight server running elsewhere | [`hindsight-client`](./python.mdx) directly |
+| Existing ContextBase server running elsewhere | [`hindsight-client`](./python.mdx) directly |
 
 ## API namespaces
 

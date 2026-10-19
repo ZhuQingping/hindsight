@@ -87,7 +87,7 @@
   fill: var(--hca-accent);
 }
 
-/* Where Hindsight is. The chip is not decoration: several of these logos are
+/* Where ContextBase is. The chip is not decoration: several of these logos are
    near-black line art drawn for light backgrounds, and it keeps all three
    reading the same way against either theme. */
 .chip {

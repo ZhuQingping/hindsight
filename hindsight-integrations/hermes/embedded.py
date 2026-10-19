@@ -1,4 +1,4 @@
-"""Local-embedded Hindsight runtime: import probe, install hint, the per-profile env
+"""Local-embedded ContextBase runtime: import probe, install hint, the per-profile env
 file the standalone ``hindsight-embed`` daemon consumes, and the health-grace export."""
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__.rpartition(".")[0])
 # window it waits for a slow /health before declaring a daemon stale and killing it. We surface it as plugin
 # config so users can raise it without hand-setting an env var, consistent with "config.json, not raw env
 # vars". See #13125.
+# This key and the profile file format belong to the unchanged hindsight-embed SDK.
 _PORT_HEALTH_GRACE_ENV = "HINDSIGHT_EMBED_PORT_HEALTH_GRACE_TIMEOUT"
 
 # Stale embedded-daemon connection markers (client recreated, operation retried once).
@@ -60,9 +61,9 @@ def _export_port_health_grace_timeout(config: dict[str, Any]) -> None:
     try:
         seconds = float(raw)
     except (TypeError, ValueError):
-        return logger.warning("Invalid Hindsight port_health_grace_timeout %r; ignoring.", raw)
+        return logger.warning("Invalid ContextBase port_health_grace_timeout %r; ignoring.", raw)
     if seconds < 0:
-        return logger.warning("Negative Hindsight port_health_grace_timeout %r; ignoring.", raw)
+        return logger.warning("Negative ContextBase port_health_grace_timeout %r; ignoring.", raw)
     os.environ.setdefault(_PORT_HEALTH_GRACE_ENV, repr(seconds))
 
 
@@ -81,7 +82,7 @@ def _check_local_runtime() -> LocalRuntimeStatus:
     The server itself (``hindsight-api``, its embedding/reranking stack, pg0) runs as a separate
     process that ``hindsight_embed`` starts — from an installed ``hindsight-api`` binary, else a
     ``uvx hindsight-api`` fallback in its own environment. So we no longer probe for the
-    top-level ``hindsight`` module or ``sentence_transformers``: requiring those in-process is
+    top-level ``contextbase`` module or ``sentence_transformers``: requiring those in-process is
     what forced ``hindsight-all`` (the whole hindsight-api-slim tree) into Hermes' single pinned
     venv, where it cannot resolve — api-slim needs protobuf>=7.35.1 against mem0ai's and modal's
     protobuf<7.0, and otel-semconv>=0.65b0 against mistralai's <0.61. Both packages probed here
@@ -107,7 +108,7 @@ def _local_runtime_hint(reason: str | None) -> str:
     if "no module named" in text and any(m in text for m in ("hindsight_client", "hindsight_embed")):
         return (
             " The plugin's own packages (hindsight-client, hindsight-embed) are missing from "
-            "this environment: run 'hermes pm repair' and restart Hermes to rebuild them. The Hindsight server itself is NOT needed here — it runs as a "
+            "this environment: run 'hermes pm repair' and restart Hermes to rebuild them. The ContextBase server itself is NOT needed here — it runs as a "
             "separate process."
         )
     return ""
@@ -194,11 +195,11 @@ def _start_daemon_in_clean_child(config: dict[str, str], profile: str) -> bool:
             timeout=_DAEMON_START_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError) as exc:
-        logger.warning("Could not start the Hindsight daemon helper for profile %r: %s", profile, exc)
+        logger.warning("Could not start the ContextBase daemon helper for profile %r: %s", profile, exc)
         return False
     if result.returncode != 0:
         logger.warning(
-            "Hindsight daemon helper failed for profile %r: %s",
+            "ContextBase daemon helper failed for profile %r: %s",
             profile,
             (result.stderr or result.stdout or "").strip()[-500:],
         )
@@ -230,7 +231,7 @@ def _start_daemon(config: dict[str, str], profile: str) -> str:
     dependency that cannot be installed alongside Hermes.
 
     *config* is an environment mapping, not a structured record — it is handed straight to the
-    daemon manager as the subprocess's env, so a dict of ``HINDSIGHT_*`` names is the interface.
+    daemon manager as the subprocess's env, so a dict of ``CONTEXTBASE_*`` names is the interface.
     It carries only explicitly-set keys: an omitted key is resolved by the
     daemon from the profile's ``.env``, then the parent environment, then its own default, and
     sending a placeholder instead would overwrite the profile's real value (#3253).
@@ -243,7 +244,7 @@ def _start_daemon(config: dict[str, str], profile: str) -> str:
     else:
         started = manager.is_running(profile) or _start_daemon_in_clean_child(config, profile)
     if not started:
-        raise RuntimeError(f"Failed to start the Hindsight daemon for profile {profile!r}")
+        raise RuntimeError(f"Failed to start the ContextBase daemon for profile {profile!r}")
     return manager.get_url(profile)
 
 
@@ -255,13 +256,13 @@ def _stop_daemon(profile: str) -> bool:
 
         return bool(get_embed_manager().stop(profile))
     except Exception as exc:
-        logger.warning("Could not stop the Hindsight daemon for profile %r: %s", profile, exc)
+        logger.warning("Could not stop the ContextBase daemon for profile %r: %s", profile, exc)
         return False
 
 
 def _daemon_is_running(profile: str) -> bool:
     """Whether the daemon for *profile* is up (used for status reporting, never to gate a call:
-    the retry path in ``_run_hindsight_operation`` recreates the client, which restarts it)."""
+    the retry path in ``_run_contextbase_operation`` recreates the client, which restarts it)."""
     try:
         from hindsight_embed import get_embed_manager
 
@@ -310,11 +311,11 @@ def _embedded_llm_api_key(config: dict[str, Any]) -> str:
     if config.get("llmApiKey") or config.get("llm_api_key"):
         return config.get("llmApiKey") or config.get("llm_api_key")
     # NOTE: the vault item is named HINDSIGHT_API_LLM_API_KEY (matching the
-    # daemon's env var), not HINDSIGHT_LLM_API_KEY (the setup-wizard name).
+    # daemon's env var), not CONTEXTBASE_LLM_API_KEY (the setup-wizard name).
     # Accept both so vault-fed scopes resolve regardless of which name the
     # secret source carries.
     try:
-        scoped = get_secret("HINDSIGHT_API_LLM_API_KEY", "") or get_secret("HINDSIGHT_LLM_API_KEY", "")
+        scoped = get_secret("CONTEXTBASE_API_LLM_API_KEY", "") or get_secret("CONTEXTBASE_LLM_API_KEY", "")
     except UnscopedSecretError:
         # Multiplexed gateway with no profile scope on this thread: never let
         # a missing scope read os.environ (another profile's key may live
@@ -379,13 +380,13 @@ def _build_embedded_profile_env(config: dict[str, Any], *, llm_api_key: str | No
     base_url = config.get("llm_base_url")
     if not base_url:
         try:
-            base_url = get_secret("HINDSIGHT_API_LLM_BASE_URL", "") or ""
+            base_url = get_secret("CONTEXTBASE_API_LLM_BASE_URL", "") or ""
         except UnscopedSecretError:
             base_url = ""
     if base_url:
         env_values["HINDSIGHT_API_LLM_BASE_URL"] = str(base_url)
     if (idle_timeout := config.get("idle_timeout")) is None:
-        idle_timeout = os.environ.get("HINDSIGHT_IDLE_TIMEOUT")
+        idle_timeout = os.environ.get("CONTEXTBASE_IDLE_TIMEOUT")
     if idle_timeout is not None and idle_timeout != "":
         env_values["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(_parse_int_setting(idle_timeout, _DEFAULT_IDLE_TIMEOUT))
     return env_values
@@ -412,7 +413,7 @@ def _validate_profile_env_permissions(profile_env: Path) -> None:
         with contextlib.suppress(OSError):
             os.chmod(profile_env, 0o600)
         if stat.S_IMODE(profile_env.stat().st_mode) != 0o600:
-            raise PermissionError(f"Embedded Hindsight profile environment is not owner-only: {profile_env}")
+            raise PermissionError(f"Embedded ContextBase profile environment is not owner-only: {profile_env}")
 
 
 def _materialize_embedded_profile_env(config: dict[str, Any], *, llm_api_key: str | None = None) -> Path:

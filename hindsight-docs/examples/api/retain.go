@@ -7,18 +7,18 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
@@ -27,9 +27,9 @@ func main() {
 
 	// [docs:retain-basic]
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
-				{Content: hindsight.TextContent("Alice works at Google as a software engineer")},
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
+				{Content: contextbase.TextContent("Alice works at Google as a software engineer")},
 			},
 		}).Execute()
 	// [/docs:retain-basic]
@@ -46,13 +46,13 @@ func main() {
 	context_ := "team chat"
 	ts := "2024-03-15T09:04:00Z"
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
 				{
-					Content:    hindsight.TextContent(conversation),
-					Context:    *hindsight.NewNullableString(&context_),
-					DocumentId: *hindsight.NewNullableString(&docID),
-					Timestamp: *hindsight.NewNullableTimestamp(&hindsight.Timestamp{
+					Content:    contextbase.TextContent(conversation),
+					Context:    *contextbase.NewNullableString(&context_),
+					DocumentId: *contextbase.NewNullableString(&docID),
+					Timestamp: *contextbase.NewNullableTimestamp(&contextbase.Timestamp{
 						String: &ts,
 					}),
 				},
@@ -64,12 +64,12 @@ func main() {
 	ctxLabel := "career update"
 	ts2 := "2024-03-15T10:00:00Z"
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
 				{
-					Content: hindsight.TextContent("Alice got promoted to senior engineer"),
-					Context: *hindsight.NewNullableString(&ctxLabel),
-					Timestamp: *hindsight.NewNullableTimestamp(&hindsight.Timestamp{
+					Content: contextbase.TextContent("Alice got promoted to senior engineer"),
+					Context: *contextbase.NewNullableString(&ctxLabel),
+					Timestamp: *contextbase.NewNullableTimestamp(&contextbase.Timestamp{
 						String: &ts2,
 					}),
 				},
@@ -84,11 +84,11 @@ func main() {
 	ctx1 := "career"
 	ctx2 := "relationship"
 	client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
-				{Content: hindsight.TextContent("Alice works at Google"), Context: *hindsight.NewNullableString(&ctx1), DocumentId: *hindsight.NewNullableString(&doc1)},
-				{Content: hindsight.TextContent("Bob is a data scientist at Meta"), Context: *hindsight.NewNullableString(&ctx1), DocumentId: *hindsight.NewNullableString(&doc2)},
-				{Content: hindsight.TextContent("Alice and Bob are friends"), Context: *hindsight.NewNullableString(&ctx2), DocumentId: *hindsight.NewNullableString(&doc3)},
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
+				{Content: contextbase.TextContent("Alice works at Google"), Context: *contextbase.NewNullableString(&ctx1), DocumentId: *contextbase.NewNullableString(&doc1)},
+				{Content: contextbase.TextContent("Bob is a data scientist at Meta"), Context: *contextbase.NewNullableString(&ctx1), DocumentId: *contextbase.NewNullableString(&doc2)},
+				{Content: contextbase.TextContent("Alice and Bob are friends"), Context: *contextbase.NewNullableString(&ctx2), DocumentId: *contextbase.NewNullableString(&doc3)},
 			},
 		}).Execute()
 	// [/docs:retain-batch]
@@ -99,10 +99,10 @@ func main() {
 	largeDoc1 := "large-doc-1"
 	largeDoc2 := "large-doc-2"
 	retainResp, _, _ := client.MemoryAPI.RetainMemories(ctx, "my-bank").
-		RetainRequest(hindsight.RetainRequest{
-			Items: []hindsight.MemoryItem{
-				{Content: hindsight.TextContent("Large batch item 1"), DocumentId: *hindsight.NewNullableString(&largeDoc1)},
-				{Content: hindsight.TextContent("Large batch item 2"), DocumentId: *hindsight.NewNullableString(&largeDoc2)},
+		RetainRequest(contextbase.RetainRequest{
+			Items: []contextbase.MemoryItem{
+				{Content: contextbase.TextContent("Large batch item 1"), DocumentId: *contextbase.NewNullableString(&largeDoc1)},
+				{Content: contextbase.TextContent("Large batch item 2"), DocumentId: *contextbase.NewNullableString(&largeDoc2)},
 			},
 			Async: &asyncTrue,
 		}).Execute()
@@ -112,7 +112,7 @@ func main() {
 	// [/docs:retain-async]
 
 	// [docs:retain-files]
-	// Open a file and upload it — Hindsight converts it to text and extracts memories.
+	// Open a file and upload it — ContextBase converts it to text and extracts memories.
 	// Supports: PDF, DOCX, PPTX, XLSX, images (OCR), audio (transcription), and text formats.
 	f, err := os.Open("../../hindsight-docs/examples/api/sample.pdf")
 	if err != nil {

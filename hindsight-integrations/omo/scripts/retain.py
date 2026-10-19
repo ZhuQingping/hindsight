@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Auto-retain hook for Stop and SubagentStop events.
 
-Reads the conversation transcript and sends it to Hindsight for
+Reads the conversation transcript and sends it to ContextBase for
 fact extraction and memory storage.
 
 Exit codes:
@@ -100,12 +100,12 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         debug_log(config, "Empty transcript after formatting, skipping retain")
         return
 
-    api_url = config.get("hindsightApiUrl")
+    api_url = config.get("contextbaseApiUrl")
     if not api_url:
-        debug_log(config, "No hindsightApiUrl configured")
+        debug_log(config, "No contextbaseApiUrl configured")
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("contextbaseApiToken")
     if not api_token and "api.hindsight.vectorize.io" in api_url:
         return  # Cloud mode without token — silently skip
 
@@ -138,7 +138,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         "session_id": session_id,
         "bank_id": bank_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "user_id": os.environ.get("HINDSIGHT_USER_ID", ""),
+        "user_id": os.environ.get("CONTEXTBASE_USER_ID", ""),
     }
 
     def _resolve_template(value: str) -> str:

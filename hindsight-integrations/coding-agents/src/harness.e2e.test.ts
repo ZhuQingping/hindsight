@@ -10,7 +10,7 @@ import {
 } from "./e2e/harness";
 
 /**
- * One real run per harness: install the CLI and the published agentstratum package in a container,
+ * One real run per harness: install the CLI and the published contextbase package in a container,
  * point it at a bank seeded with a decision the prompt deliberately does not contain, and require
  * that the agent's answer carries that decision back out. Passing means the harness's actual hook
  * lifecycle both INJECTED memory and RETAINED the session — neither can be faked by a stub.
@@ -23,7 +23,7 @@ describe.runIf(e2eEnabled)("Docker harness E2E", () => {
     const { available, reason } = harnessCredentialStatus(harness);
     const injects = harness.injectsIntoModel !== false;
     it.runIf(available)(
-      `${harness.name}: installs the CLI and agentstratum, ${injects ? "injects a seeded decision, and retains" : "and retains"} the real session`,
+      `${harness.name}: installs the CLI and contextbase, ${injects ? "injects a seeded decision, and retains" : "and retains"} the real session`,
       async () => {
         const run = await runHarnessE2e(harness);
         // The seeded commit says only 429 and 408 are retryable; the prompt never mentions either.
@@ -44,5 +44,5 @@ describe.runIf(e2eEnabled)("Docker harness E2E", () => {
 });
 
 describe.runIf(!e2eEnabled)("Docker harness E2E", () => {
-  it.skip("set AGENTSTRATUM_HARNESS_E2E=1 to run locally with host credentials", () => {});
+  it.skip("set CONTEXTBASE_HARNESS_E2E=1 to run locally with host credentials", () => {});
 });

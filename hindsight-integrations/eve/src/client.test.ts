@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  HindsightRestClient,
+  ContextBaseRestClient,
   SENTINEL_OPEN,
   SENTINEL_CLOSE,
   buildRecallMarkdown,
@@ -22,12 +22,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("HindsightRestClient.recall", () => {
+describe("ContextBaseRestClient.recall", () => {
   it("POSTs to the recall path with query/budget/max_tokens and bearer auth", async () => {
     const fetchFn = mockFetchOnce(200, {
       results: [{ id: "1", text: "likes tabs", type: "world" }],
     });
-    const client = new HindsightRestClient("https://api.hindsight.vectorize.io", "hsk_k");
+    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io", "hsk_k");
 
     const res = await client.recall("bank-1", "preferences", { budget: "low", maxTokens: 512 });
 
@@ -36,13 +36,13 @@ describe("HindsightRestClient.recall", () => {
     expect(url).toBe("https://api.hindsight.vectorize.io/v1/default/banks/bank-1/memories/recall");
     expect(init.method).toBe("POST");
     expect(init.headers["Authorization"]).toBe("Bearer hsk_k");
-    expect(init.headers["User-Agent"]).toMatch(/^hindsight-eve\/\d+\.\d+\.\d+$/);
+    expect(init.headers["User-Agent"]).toMatch(/^contextbase-eve\/\d+\.\d+\.\d+$/);
     expect(JSON.parse(init.body)).toEqual({ query: "preferences", budget: "low", max_tokens: 512 });
   });
 
   it("defaults budget=mid and max_tokens=1024, omits auth header when no token", async () => {
     const fetchFn = mockFetchOnce(200, { results: [] });
-    const client = new HindsightRestClient("http://localhost:8000", null);
+    const client = new ContextBaseRestClient("http://localhost:8000", null);
     await client.recall("b", "q");
     const init = fetchFn.mock.calls[0][1];
     expect(init.headers["Authorization"]).toBeUndefined();
@@ -50,10 +50,10 @@ describe("HindsightRestClient.recall", () => {
   });
 });
 
-describe("HindsightRestClient.retain", () => {
+describe("ContextBaseRestClient.retain", () => {
   it("POSTs items with async=true to the memories path", async () => {
     const fetchFn = mockFetchOnce(200, { success: true });
-    const client = new HindsightRestClient("https://api.hindsight.vectorize.io/", "hsk_k");
+    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io/", "hsk_k");
     await client.retain("my bank", [{ content: "fact", context: "eve" }]);
     const [url, init] = fetchFn.mock.calls[0];
     // trailing slash on baseUrl is normalized; bank is URL-encoded
@@ -65,27 +65,27 @@ describe("HindsightRestClient.retain", () => {
   });
 });
 
-describe("HindsightRestClient.recall on a missing bank", () => {
+describe("ContextBaseRestClient.recall on a missing bank", () => {
   it("treats a 404 as no memories, since retain creates the bank on first write", async () => {
     mockFetchOnce(404, { detail: "Bank 'b' not found" });
-    const client = new HindsightRestClient("http://localhost:8000", null);
+    const client = new ContextBaseRestClient("http://localhost:8000", null);
     await expect(client.recall("b", "q")).resolves.toEqual({ results: [] });
   });
 
   it("still surfaces other statuses with their code", async () => {
     mockFetchOnce(503, { detail: "down" });
-    const client = new HindsightRestClient("http://localhost:8000", null);
+    const client = new ContextBaseRestClient("http://localhost:8000", null);
     await expect(client.recall("b", "q")).rejects.toMatchObject({
-      name: "HindsightHttpError",
+      name: "ContextBaseHttpError",
       status: 503,
     });
   });
 });
 
-describe("HindsightRestClient.reflect", () => {
+describe("ContextBaseRestClient.reflect", () => {
   it("POSTs the question to the reflect path with a low budget by default", async () => {
     const fetchFn = mockFetchOnce(200, { text: "You prefer tabs." });
-    const client = new HindsightRestClient("http://localhost:8000", null);
+    const client = new ContextBaseRestClient("http://localhost:8000", null);
     const res = await client.reflect("b", "what indentation do I use?");
     expect(res.text).toBe("You prefer tabs.");
     const [url, init] = fetchFn.mock.calls[0];
@@ -94,15 +94,15 @@ describe("HindsightRestClient.reflect", () => {
   });
 });
 
-describe("HindsightRestClient error handling", () => {
+describe("ContextBaseRestClient error handling", () => {
   it("throws on a non-2xx response", async () => {
     mockFetchOnce(401, { detail: "unauthorized" });
-    const client = new HindsightRestClient("https://api.hindsight.vectorize.io", "bad");
+    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io", "bad");
     await expect(client.recall("b", "q")).rejects.toThrow(/HTTP 401/);
   });
 
   it("requires a non-empty base URL", () => {
-    expect(() => new HindsightRestClient("   ")).toThrow(/API URL is required/);
+    expect(() => new ContextBaseRestClient("   ")).toThrow(/API URL is required/);
   });
 
   it("passes the caller's abort signal to fetch and lets its abort through", async () => {
@@ -113,7 +113,7 @@ describe("HindsightRestClient error handling", () => {
     vi.stubGlobal("fetch", fetchFn);
     const controller = new AbortController();
     controller.abort();
-    const client = new HindsightRestClient("http://localhost:8000", null);
+    const client = new ContextBaseRestClient("http://localhost:8000", null);
     await expect(client.recall("b", "q", { signal: controller.signal })).rejects.toThrow(/aborted/);
   });
 
@@ -127,7 +127,7 @@ describe("HindsightRestClient error handling", () => {
           })
       )
     );
-    const client = new HindsightRestClient("http://localhost:8000", null, 5);
+    const client = new ContextBaseRestClient("http://localhost:8000", null, 5);
     await expect(client.recall("b", "q")).rejects.toThrow(/timed out after 5ms/);
   });
 });

@@ -32,7 +32,7 @@ A memory bank is a complete, isolated storage unit containing:
 
 Banks are completely isolated from each other — memories stored in one bank are not visible to another.
 
-You don't need to pre-create a bank. Hindsight will automatically create it with default settings when you first use it.
+You don't need to pre-create a bank. ContextBase will automatically create it with default settings when you first use it.
 
 Only *writes* create a bank — retaining, updating its profile, changing its config. **Reads of a
 bank that does not exist return `404`**, so a typo'd, renamed or deleted `bank_id` is reported
@@ -92,7 +92,7 @@ This is **display only**. `bank_id` remains the bank's identity: authorisation, 
 - **Deleting an alias only closes that door.** The bank and its memories are untouched, and callers still using the removed id get exactly what they got before it existed.
 - **Deleting a bank removes its aliases**, freeing those names for reuse.
 - **Aliases are not carried by export, import or clone.** They describe which ids reach a bank on *this* deployment, so a copy does not inherit them — add them to the target deliberately.
-- **A change takes a few seconds to reach every API replica.** See [`HINDSIGHT_API_BANK_ALIAS_CACHE_TTL_SECONDS`](/developer/configuration#bank-alias-cache).
+- **A change takes a few seconds to reach every API replica.** See [`CONTEXTBASE_API_BANK_ALIAS_CACHE_TTL_SECONDS`](/developer/configuration#bank-alias-cache).
 
 ## Bank Configuration
 
@@ -351,7 +351,7 @@ Controls content filtering thresholds for Gemini and VertexAI providers. Accepts
 ]
 ```
 
-Only applies when `HINDSIGHT_API_LLM_PROVIDER` is `gemini` or `vertexai`.
+Only applies when `CONTEXTBASE_API_LLM_PROVIDER` is `gemini` or `vertexai`.
 
 ### recall_budget_function {#recall-budget-configuration}
 
@@ -478,7 +478,7 @@ The response carries the messages in send order, each broken into the blocks it 
 ```
 
 - **`messages`** — the request, system first, exactly as the model receives it.
-- **`blocks`** — the **active** blocks of a message concatenate back to its text exactly: nothing dropped, duplicated or reordered. `source` says what produced each: `config` for a setting you can change, `builtin` for Hindsight's own wording. The runtime data an operation is given is not a block — it is a hole in the text, marked inline with `«…»`.
+- **`blocks`** — the **active** blocks of a message concatenate back to its text exactly: nothing dropped, duplicated or reordered. `source` says what produced each: `config` for a setting you can change, `builtin` for ContextBase's own wording. The runtime data an operation is given is not a block — it is a hole in the text, marked inline with `«…»`.
 - **Inactive blocks** (`active: false`) have no text. They mark a setting that is switched off, at the point where it *would* land — so a mission you have not written yet is still visible where it would go.
 - **Identifying a block** — whichever of these applies, in order: `field` is the config field behind it; `section` is a slug for a part no single field owns (`bank_identity`, `disposition`, `directives`); `heading` is the section heading the prompt text itself carries there. All three are machine values. The response carries **no display copy** — what a block is called, and what turning a switched-off one on would do, is for the client to say in the language it is running in.
 - **`editable`** — false for server-level fields such as `llm_output_language`, which shape the prompt but cannot be overridden per bank.
@@ -742,9 +742,9 @@ In `restore` mode the operation is recorded against `{bank_id}` — the bank in 
 
 A restore carries the operations log as history, not as work: anything still in flight when the bank was exported is left behind, so a copied bank never re-runs the original's queued retains or re-fires its webhooks. In-flight work belongs to the bank that was exported — and a clone runs *inside* one such operation, so carrying them would put the clone's own unfinished record in the copy.
 
-### Import facts extracted outside Hindsight
+### Import facts extracted outside ContextBase
 
-An archive doesn't have to come from an export. If you run your own extraction pipeline, build the archive yourself and import it with `mode=merge`: your chunks and facts are stored as given — no LLM call, no re-chunking — while Hindsight still re-embeds the facts, resolves their entities against the bank, builds the semantic, temporal, entity and causal links, and — like a retain — fires `retain.completed` webhooks and auto-consolidation when the bank has them enabled.
+An archive doesn't have to come from an export. If you run your own extraction pipeline, build the archive yourself and import it with `mode=merge`: your chunks and facts are stored as given — no LLM call, no re-chunking — while ContextBase still re-embeds the facts, resolves their entities against the bank, builds the semantic, temporal, entity and causal links, and — like a retain — fires `retain.completed` webhooks and auto-consolidation when the bank has them enabled.
 
 The archive is a ZIP with a `manifest.json` and one JSON file per document under `documents/`:
 
@@ -877,7 +877,7 @@ Move documents — and the facts already extracted from them — between banks *
 It loaded the entire bank into memory and held a database connection for the full request, which could take down the shared API on large banks. It now returns `410` pointing here. Use the async flow above. The download route (`GET /v1/default/files/download/{key}`) authorizes the caller against the bank the archive belongs to.
 :::
 
-The archive lives as long as its export **operation record** — indefinitely by default, or until the operation is pruned when `HINDSIGHT_API_OPERATION_RETENTION_DAYS` is set (the archive is deleted in step with the row). Deleting the operation removes the archive immediately.
+The archive lives as long as its export **operation record** — indefinitely by default, or until the operation is pruned when `CONTEXTBASE_API_OPERATION_RETENTION_DAYS` is set (the archive is deleted in step with the row). Deleting the operation removes the archive immediately.
 
 ### Import documents
 
@@ -922,11 +922,11 @@ Both endpoints are gated by server-level flags (default `true`). A disabled endp
 
 | Variable | Gates |
 |----------|-------|
-| `HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API` | `POST …/document-transfer/export` and `GET …/files/download/{key}` |
-| `HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API` | `POST …/document-transfer` |
+| `CONTEXTBASE_API_ENABLE_DOCUMENT_EXPORT_API` | `POST …/document-transfer/export` and `GET …/files/download/{key}` |
+| `CONTEXTBASE_API_ENABLE_DOCUMENT_IMPORT_API` | `POST …/document-transfer` |
 
 ## Migrating a bank to a new instance
 
 To move a bank to an instance configured with a different **embedding model**, **vector extension**, or **text-search backend** — which can't be changed in place on a populated bank — export the whole bank and import it into the new instance, where every embedding and index is re-derived from the stored text with **no LLM re-extraction**. This carries documents, facts, observations, bank config, mental models, directives, and webhooks (never embeddings).
 
-Use the `hindsight-admin export-bank` / `import-bank` commands and follow the blue-green runbook in **[Admin CLI → Migrating a bank to a new instance](../admin-cli.md#migrating-a-bank-to-a-new-instance)**.
+Use the `contextbase-admin export-bank` / `import-bank` commands and follow the blue-green runbook in **[Admin CLI → Migrating a bank to a new instance](../admin-cli.md#migrating-a-bank-to-a-new-instance)**.

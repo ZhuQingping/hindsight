@@ -1,10 +1,10 @@
 #!/bin/bash
-# Retain API examples for Hindsight CLI
+# Retain API examples for ContextBase CLI
 # Run: bash examples/api/retain.sh
 
 set -e
 
-HINDSIGHT_URL="${AGENTSTRATUM_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SAMPLE_FILE="$SCRIPT_DIR/sample.pdf"
 
@@ -23,7 +23,7 @@ cp report.pdf documents/report.pdf
 # =============================================================================
 
 # [docs:retain-basic]
-agentstratum memory retain my-bank "Alice works at Google as a software engineer"
+contextbase memory retain my-bank "Alice works at Google as a software engineer"
 # [/docs:retain-basic]
 
 
@@ -35,49 +35,49 @@ Alice (2024-03-15T09:02:00Z): Oh no! Are you okay?
 Bob (2024-03-15T09:03:00Z): Yeah, nothing serious. Just need to carry an antihistamine.
 Alice (2024-03-15T09:04:00Z): Good to know. We'll avoid peanuts at the team lunch."
 
-agentstratum memory retain my-bank "$CONVERSATION" \
+contextbase memory retain my-bank "$CONVERSATION" \
     --context "team chat" \
     --doc-id "chat-2024-03-15-alice-bob"
 # [/docs:retain-conversation]
 
 
 # [docs:retain-with-context]
-agentstratum memory retain my-bank "Alice got promoted" \
+contextbase memory retain my-bank "Alice got promoted" \
     --context "career update"
 # [/docs:retain-with-context]
 
 
 # [docs:retain-batch]
 # Batch ingestion via individual retain calls (CLI processes items one at a time)
-agentstratum memory retain my-bank "Alice works at Google" \
+contextbase memory retain my-bank "Alice works at Google" \
     --context "career" --doc-id "conversation_001_msg_1"
-agentstratum memory retain my-bank "Bob is a data scientist at Meta" \
+contextbase memory retain my-bank "Bob is a data scientist at Meta" \
     --context "career" --doc-id "conversation_001_msg_2"
-agentstratum memory retain my-bank "Alice and Bob are friends" \
+contextbase memory retain my-bank "Alice and Bob are friends" \
     --context "relationship" --doc-id "conversation_001_msg_3"
 # [/docs:retain-batch]
 
 
 # [docs:retain-async]
-agentstratum memory retain my-bank "Meeting notes" --async
+contextbase memory retain my-bank "Meeting notes" --async
 # [/docs:retain-async]
 
 
 # [docs:retain-files]
 # Upload a single file (PDF, DOCX, PPTX, XLSX, images, audio, and more)
-agentstratum memory retain-files my-bank "$SAMPLE_FILE"
+contextbase memory retain-files my-bank "$SAMPLE_FILE"
 
 # Upload a directory of files
-agentstratum memory retain-files my-bank "$SCRIPT_DIR/"
+contextbase memory retain-files my-bank "$SCRIPT_DIR/"
 
 # Queue files for background processing (returns immediately)
-agentstratum memory retain-files my-bank "$SCRIPT_DIR/" --async
+contextbase memory retain-files my-bank "$SCRIPT_DIR/" --async
 # [/docs:retain-files]
 
 
 # [docs:retain-files-curl]
 # Via HTTP API (multipart/form-data)
-curl -X POST "${HINDSIGHT_URL}/v1/default/banks/my-bank/files/retain" \
+curl -X POST "${CONTEXTBASE_URL}/v1/default/banks/my-bank/files/retain" \
     -F "files=@${SAMPLE_FILE};type=application/octet-stream" \
     -F "request={\"files_metadata\": [{\"context\": \"quarterly report\"}]}"
 # [/docs:retain-files-curl]
@@ -86,6 +86,6 @@ curl -X POST "${HINDSIGHT_URL}/v1/default/banks/my-bank/files/retain" \
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-curl -s -X DELETE "${HINDSIGHT_URL}/v1/default/banks/my-bank" > /dev/null
+curl -s -X DELETE "${CONTEXTBASE_URL}/v1/default/banks/my-bank" > /dev/null
 
 echo "retain.sh: All examples passed"

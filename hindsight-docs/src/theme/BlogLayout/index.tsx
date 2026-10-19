@@ -27,10 +27,10 @@ export default function BlogLayout({sidebar: _sidebar, toc, children, ...layoutP
               <div className={styles.railTitle}>On this page</div>
               {toc}
               <div className={styles.cta}>
-                <div className={styles.ctaTitle}>Try Hindsight Cloud</div>
-                <p>Long-term memory for your agents, fully managed. Sign up with GitHub and get $5 of free credit.</p>
-                <a className="button button--primary button--sm" href="https://ui.hindsight.vectorize.io/signup" target="_blank" rel="noopener noreferrer">
-                  Start free →
+                <div className={styles.ctaTitle}>Deploy ContextBase</div>
+                <p>Long-term memory for your agents on your own infrastructure.</p>
+                <a className="button button--primary button--sm" href="/developer/installation" target="_blank" rel="noopener noreferrer">
+                  Get started →
                 </a>
               </div>
             </div>

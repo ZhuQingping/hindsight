@@ -107,7 +107,7 @@ pub fn run_sync(config: &MountConfig) -> Result<SyncResult> {
     let plan = plan_mirror(&snapshot);
 
     // Create folder directories first (parents before children — plan.dirs is
-    // in tree order). The control dir is excluded by the .agentstratum-fs prefix.
+    // in tree order). The control dir is excluded by the .contextbase-fs prefix.
     for dir in &plan.dirs {
         fs::create_dir_all(config.dir.join(dir))?;
     }

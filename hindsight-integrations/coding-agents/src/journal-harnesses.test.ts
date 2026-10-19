@@ -80,7 +80,7 @@ beforeEach(() => {
   // the life of the session, so a reused id would pin later tests to the first one's temp dir.
   sessionId = `sess-zcode-${basename(root)}`;
   rawConfig = {};
-  vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(root, "diag.log"));
+  vi.stubEnv("CONTEXTBASE_DIAG_FILE", join(root, "diag.log"));
 });
 
 afterEach(() => {

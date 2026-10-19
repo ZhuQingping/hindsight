@@ -30,7 +30,7 @@ def test_transcripts_are_isolated_per_task():
 
 def test_format_retention_renders_roles_and_strips_memories():
     msgs = [
-        {"role": "user", "content": "do the thing <hindsight_memories>secret</hindsight_memories>"},
+        {"role": "user", "content": "do the thing <contextbase_memories>secret</contextbase_memories>"},
         {"role": "assistant", "content": "done"},
     ]
     out = content.format_retention(msgs)
@@ -39,7 +39,7 @@ def test_format_retention_renders_roles_and_strips_memories():
 
 
 def test_strip_memory_tags():
-    assert content.strip_memory_tags("a<hindsight_memories>x</hindsight_memories>b") == "ab"
+    assert content.strip_memory_tags("a<contextbase_memories>x</contextbase_memories>b") == "ab"
 
 
 def test_format_memories():

@@ -23,7 +23,7 @@ fn interpolate_color(start: (u8, u8, u8), end: (u8, u8, u8), t: f32) -> (u8, u8,
 /// Whether ANSI color and animation should be emitted on stdout.
 ///
 /// Follows the standard CLI convention: styling is for a human at an
-/// interactive terminal. Agentstratum's primary consumers are coding agents that
+/// interactive terminal. ContextBase's primary consumers are coding agents that
 /// read piped output, so escape codes there are noise at best and corrupt
 /// captured output at worst.
 ///
@@ -31,7 +31,7 @@ fn interpolate_color(start: (u8, u8, u8), end: (u8, u8, u8), t: f32) -> (u8, u8,
 /// `print_error` and everything in `errors.rs`: `CLICOLOR_FORCE` wins, then
 /// `NO_COLOR` (https://no-color.org), then `CLICOLOR` combined with a stdout
 /// tty check. Deferring to it keeps one policy across the whole binary — so
-/// `CLICOLOR_FORCE=1 agentstratum ... | less -R` keeps *all* the color, not half
+/// `CLICOLOR_FORCE=1 contextbase ... | less -R` keeps *all* the color, not half
 /// of it — and resolves the environment once (it is a `lazy_static`) rather
 /// than on every styled string. `TERM=dumb` is the one addition: a dumb
 /// terminal is a tty, but it cannot render any of this.
@@ -122,7 +122,7 @@ fn dim_impl(text: &str, enabled: bool) -> String {
 /// Logo for clap's `before_help`. The art is raw ANSI — its shapes are drawn
 /// with colored half-blocks, so stripped of color it is a blank rectangle
 /// rather than plain-text art. It is therefore dropped entirely when stdout is
-/// not a styled terminal (e.g. `agentstratum --help | cat`).
+/// not a styled terminal (e.g. `contextbase --help | cat`).
 pub fn before_help_logo() -> &'static str {
     if ansi_enabled() {
         LOGO

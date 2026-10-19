@@ -1,6 +1,6 @@
 """Tests for the AGENTS.md rule writer."""
 
-from hindsight_openhands.agents_md import BEGIN_MARKER, RULE_TEXT, clear_rule, is_installed, write_rule
+from contextbase_openhands.agents_md import BEGIN_MARKER, RULE_TEXT, clear_rule, is_installed, write_rule
 
 
 def test_write_creates_with_block(tmp_path):

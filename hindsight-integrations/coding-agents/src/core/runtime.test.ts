@@ -162,9 +162,9 @@ describe("RuntimeCore session-idle write-back", () => {
     expect(retained).toHaveLength(1);
   });
 
-  it("records agentstratum usage for a turn only once its reply is in", async () => {
+  it("records contextbase usage for a turn only once its reply is in", async () => {
     const usageFile = join(mkdtempSync(join(tmpdir(), "hs-rt-usage-")), "usage.jsonl");
-    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
+    vi.stubEnv("CONTEXTBASE_USAGE_FILE", usageFile);
     try {
       const { client } = makeClient();
       const runtime = new RuntimeCore(
@@ -180,7 +180,7 @@ describe("RuntimeCore session-idle write-back", () => {
 
       runtime.setTranscriptSource(async () => [
         turn("user", "how do we round?"),
-        turn("action", "agentstratum_search_knowledge_pages rounding"),
+        turn("action", "contextbase_search_knowledge_pages rounding"),
         turn("assistant", "🧠 From ContextBase memory — half up"),
       ]);
       await runtime.onSessionIdle("s6");
@@ -194,7 +194,7 @@ describe("RuntimeCore session-idle write-back", () => {
           session: "s6",
           bank: "bank-1",
           turn: 1,
-          calls: ["agentstratum_search_knowledge_pages"],
+          calls: ["contextbase_search_knowledge_pages"],
           credited: true,
         },
       ]);
@@ -205,7 +205,7 @@ describe("RuntimeCore session-idle write-back", () => {
 
   it("records usage with retainSessions off, and still retains nothing (#5391)", async () => {
     const usageFile = join(mkdtempSync(join(tmpdir(), "hs-rt-usage-")), "usage.jsonl");
-    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
+    vi.stubEnv("CONTEXTBASE_USAGE_FILE", usageFile);
     try {
       const { client, retained } = makeClient();
       const runtime = new RuntimeCore(client, "bank-1", resolveConfig({ retainSessions: false }));
@@ -305,7 +305,7 @@ describe("RuntimeCore remote connection", () => {
         await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
         expect(warning).toHaveBeenCalledWith(
           "opencode",
-          expect.stringContaining("AGENTSTRATUM_API_URL")
+          expect.stringContaining("CONTEXTBASE_API_URL")
         );
         expect(client.listDocumentIds).not.toHaveBeenCalled();
       } finally {
@@ -318,10 +318,10 @@ describe("RuntimeCore remote connection", () => {
 /**
  * The plugin harnesses (opencode, kilo, cline, dsh, ...) register the tools through toolSpecs()
  * rather than the MCP server, so they hit the same #3590 bug: without these forwarded, every
- * agentstratum_reflect on those hosts aborts at the client's hardcoded 120s.
+ * contextbase_reflect on those hosts aborts at the client's hardcoded 120s.
  */
 describe("RuntimeCore reflect tool settings", () => {
-  it("forwards the resolved reflect timeout and budget into agentstratum_reflect", async () => {
+  it("forwards the resolved reflect timeout and budget into contextbase_reflect", async () => {
     const reflect = vi.fn(async () => "answer");
     const client = { reflect } as unknown as HindsightClient;
     const core = new RuntimeCore(
@@ -334,7 +334,7 @@ describe("RuntimeCore reflect tool settings", () => {
       })
     );
 
-    const tool = core.toolSpecs().find((spec) => spec.name === "agentstratum_reflect")!;
+    const tool = core.toolSpecs().find((spec) => spec.name === "contextbase_reflect")!;
     await tool.handler({ query: "why?" });
     expect(reflect).toHaveBeenCalledWith("why?", { budget: "mid", timeoutMs: 660_000 });
   });
@@ -344,7 +344,7 @@ describe("RuntimeCore reflect tool settings", () => {
  * dsh serves several repositories from ONE process, launched in a directory that is routinely not
  * the session's — so it constructs a core per workspace and passes that root. Every tool that
  * answers "what does this repo's memory look like" has to be bound to it: otherwise
- * `agentstratum_sync_status` runs its git checks in the launch directory and looks for THAT repo's
+ * `contextbase_sync_status` runs its git checks in the launch directory and looks for THAT repo's
  * `gitlog:<name>` document in the SESSION's bank, reporting a seeded repo as unsynced.
  */
 describe("RuntimeCore tool workspace binding", () => {
@@ -355,7 +355,7 @@ describe("RuntimeCore tool workspace binding", () => {
   } as unknown as HindsightClient;
 
   const workspaceOf = async (core: RuntimeCore): Promise<string> => {
-    const diagnose = core.toolSpecs().find((spec) => spec.name === "agentstratum_diagnose")!;
+    const diagnose = core.toolSpecs().find((spec) => spec.name === "contextbase_diagnose")!;
     return (JSON.parse((await diagnose.handler({})).content[0].text) as { workspace: string })
       .workspace;
   };

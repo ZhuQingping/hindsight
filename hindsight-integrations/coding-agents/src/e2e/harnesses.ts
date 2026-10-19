@@ -41,7 +41,7 @@ export const opencodeDockerSetup: HarnessDockerSetup = {
   credentialPath: () =>
     authPath("OPENCODE_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/opencode/auth.json",
-  installCommand: "agentstratum-coding-agents install opencode",
+  installCommand: "contextbase-coding-agents install opencode",
   command: (prompt) => ["opencode", "run", prompt],
 };
 
@@ -58,7 +58,7 @@ export const opencode2DockerSetup: HarnessDockerSetup = {
   credentialPath: () =>
     authPath("OPENCODE_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/opencode/auth.json",
-  installCommand: "agentstratum-coding-agents install opencode2",
+  installCommand: "contextbase-coding-agents install opencode2",
   command: (prompt) => ["opencode2", "run", prompt],
 };
 
@@ -75,7 +75,7 @@ export const kiloDockerSetup: HarnessDockerSetup = {
   hindsightHarness: "kilo",
   credentialPath: () => authPath("KILO_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/kilo/auth.json",
-  installCommand: "agentstratum-coding-agents install kilo",
+  installCommand: "contextbase-coding-agents install kilo",
   command: (prompt) => ["kilo", "run", prompt],
 };
 
@@ -99,7 +99,7 @@ export const claudeCodeDockerSetup: HarnessDockerSetup = {
     "onboarding that a fresh container has never completed. (An earlier attempt also showed " +
     "--dangerously-skip-permissions is rejected under root, which is why that flag is absent.) " +
     "The macOS subscription lives in the Keychain, so there is no credential file to mount either.",
-  installCommand: "agentstratum-coding-agents install claude-code",
+  installCommand: "contextbase-coding-agents install claude-code",
   stubModelEnv: (baseUrl) => ({
     ANTHROPIC_BASE_URL: baseUrl,
     ANTHROPIC_API_KEY: "hindsight-e2e",
@@ -118,7 +118,7 @@ export const claudeCodeDockerSetup: HarnessDockerSetup = {
 export const cursorDockerSetup: HarnessDockerSetup = {
   name: "cursor-cli",
   hindsightHarness: "cursor-cli",
-  installCommand: "agentstratum-coding-agents install cursor-cli",
+  installCommand: "contextbase-coding-agents install cursor-cli",
   unsupported:
     "cursor-agent never contacts a custom endpoint — the stub served 0 requests via both " +
     "CURSOR_API_ENDPOINT and the --endpoint/--api-key flags, and the run hangs to the timeout " +
@@ -152,7 +152,7 @@ export const copilotDockerSetup: HarnessDockerSetup = {
     "supposed to make GitHub auth unnecessary. It stalls before the first request, so the block is " +
     "upstream of the provider override, not a response-shape mismatch. Its real token lives in the " +
     "system keyring, so there is no file to mount either.",
-  installCommand: "agentstratum-coding-agents install copilot-cli",
+  installCommand: "contextbase-coding-agents install copilot-cli",
   stubModelEnv: (baseUrl) => ({
     COPILOT_PROVIDER_BASE_URL: `${baseUrl}/v1`,
     COPILOT_PROVIDER_TYPE: "openai",
@@ -174,7 +174,7 @@ export const grokDockerSetup: HarnessDockerSetup = {
   hindsightHarness: "grok-build",
   credentialPath: () => authPath("GROK_E2E_AUTH_PATH", ".grok", "auth.json"),
   credentialTarget: "/root/.grok/auth.json",
-  installCommand: "agentstratum-coding-agents install grok-build",
+  installCommand: "contextbase-coding-agents install grok-build",
   injectsIntoModel: false,
   command: (prompt) => ["grok", "-p", prompt],
 };
@@ -204,7 +204,7 @@ export const grokDockerSetup: HarnessDockerSetup = {
 export const qwenDockerSetup: HarnessDockerSetup = {
   name: "qwen-code",
   hindsightHarness: "qwen-code",
-  installCommand: "agentstratum-coding-agents install qwen-code",
+  installCommand: "contextbase-coding-agents install qwen-code",
   stubModelEnv: (baseUrl) => ({
     OPENAI_BASE_URL: `${baseUrl}/v1`,
     OPENAI_API_KEY: "hindsight-e2e",
@@ -229,7 +229,7 @@ export const qwenDockerSetup: HarnessDockerSetup = {
 export const kimiDockerSetup: HarnessDockerSetup = {
   name: "kimi-code",
   hindsightHarness: "kimi-code",
-  installCommand: "agentstratum-coding-agents install kimi-code",
+  installCommand: "contextbase-coding-agents install kimi-code",
   stubModelEnv: (baseUrl) => ({
     KIMI_MODEL_NAME: "hindsight-e2e-stub",
     KIMI_MODEL_API_KEY: "hindsight-e2e",
@@ -256,7 +256,7 @@ export const devinDockerSetup: HarnessDockerSetup = {
   credentialPath: () =>
     authPath("DEVIN_E2E_AUTH_PATH", ".local", "share", "devin", "credentials.toml"),
   credentialTarget: "/root/.local/share/devin/credentials.toml",
-  installCommand: "agentstratum-coding-agents install devin-cli",
+  installCommand: "contextbase-coding-agents install devin-cli",
   // A fresh container has never trusted the workspace, and Devin's own help is explicit that
   // non-interactive mode "cannot show the trust prompt and fails in an untrusted directory".
   command: (prompt) => ["devin", "-p", prompt, "--respect-workspace-trust", "false"],
@@ -271,7 +271,7 @@ export const clineDockerSetup: HarnessDockerSetup = {
   hindsightHarness: "cline-cli",
   credentialPath: () => authPath("CLINE_E2E_AUTH_PATH", ".cline"),
   credentialTarget: "/root/.cline",
-  installCommand: "agentstratum-coding-agents install cline-cli",
+  installCommand: "contextbase-coding-agents install cline-cli",
   command: (prompt) => ["cline", "--auto-approve", "true", "--cwd", "/workspace", prompt],
 };
 
@@ -285,7 +285,7 @@ export const piDockerSetup: HarnessDockerSetup = {
   hindsightHarness: "pi",
   credentialPath: () => authPath("PI_E2E_AUTH_PATH", ".pi", "agent", "auth.json"),
   credentialTarget: "/root/.pi/agent/auth.json",
-  installCommand: "agentstratum-coding-agents install pi",
+  installCommand: "contextbase-coding-agents install pi",
   command: (prompt) => ["pi", "-p", prompt],
 };
 
@@ -299,7 +299,7 @@ export const primeAgentDockerSetup: HarnessDockerSetup = {
   hindsightHarness: "prime-agent",
   credentialPath: () => authPath("PRIME_AGENT_E2E_AUTH_PATH", ".prime", "agent", "auth.json"),
   credentialTarget: "/root/.prime/agent/auth.json",
-  installCommand: "agentstratum-coding-agents install prime-agent",
+  installCommand: "contextbase-coding-agents install prime-agent",
   command: (prompt) => ["prime-agent", "-p", prompt],
 };
 
@@ -316,10 +316,10 @@ export const primeAgentDockerSetup: HarnessDockerSetup = {
 export const dshDockerSetup: HarnessDockerSetup = {
   name: "dsh",
   hindsightHarness: "dsh",
-  installCommand: "agentstratum-coding-agents install dsh",
+  installCommand: "contextbase-coding-agents install dsh",
   stubModelEnv: (baseUrl) => ({
-    AGENTSTRATUM_STUB_BASE_URL: `${baseUrl}/v1`,
-    AGENTSTRATUM_STUB_KEY: "hindsight-e2e",
+    CONTEXTBASE_STUB_BASE_URL: `${baseUrl}/v1`,
+    CONTEXTBASE_STUB_KEY: "hindsight-e2e",
   }),
   command: (prompt) => [
     "dsh",

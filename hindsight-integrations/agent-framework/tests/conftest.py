@@ -1,4 +1,4 @@
-"""Shared fixtures for the Hindsight Agent Framework tests."""
+"""Shared fixtures for the ContextBase Agent Framework tests."""
 
 import types
 from unittest.mock import AsyncMock
@@ -18,7 +18,7 @@ def recall_response(*texts: str):
 
 
 def fake_client(*recall_texts: str):
-    """An async-mocked Hindsight client returning the given recall texts."""
+    """An async-mocked ContextBase client returning the given recall texts."""
     client = AsyncMock()
     client.arecall = AsyncMock(return_value=recall_response(*recall_texts))
     client.aretain = AsyncMock(return_value=types.SimpleNamespace(success=True))

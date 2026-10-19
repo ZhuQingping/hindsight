@@ -155,7 +155,7 @@ class TestRemoteTEICrossEncoderPredict:
             encoder = ready_encoder(base_url)
             with patch(
                 "hindsight_api.engine.cross_encoder.reranker_bank_attribution_headers",
-                return_value={"X-Agentstratum-Bank-Id": "bank-tei"},
+                return_value={"X-ContextBase-Bank-Id": "bank-tei"},
             ):
                 scores = await encoder.predict(pairs)
 
@@ -164,7 +164,7 @@ class TestRemoteTEICrossEncoderPredict:
         assert calls[0]["body"]["query"] == "What is Python?"
         assert len(calls[0]["body"]["texts"]) == 3
         assert calls[0]["body"]["return_text"] is False
-        assert calls[0]["headers"]["X-Agentstratum-Bank-Id"] == "bank-tei"
+        assert calls[0]["headers"]["X-ContextBase-Bank-Id"] == "bank-tei"
         # Scores should be mapped back correctly
         assert scores[0] == 1.0
         assert scores[1] == 0.9

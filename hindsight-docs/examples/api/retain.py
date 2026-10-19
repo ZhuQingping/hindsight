@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Retain API examples for Hindsight.
+Retain API examples for ContextBase.
 Run: python examples/api/retain.py
 """
 import os
 import requests
 from pathlib import Path
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 EXAMPLES_DIR = Path(__file__).parent
 
 # =============================================================================
@@ -15,7 +15,9 @@ EXAMPLES_DIR = Path(__file__).parent
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples
@@ -155,15 +157,15 @@ print(result.operation_ids)  # One operation ID per file
 
 # [docs:retain-list-tags]
 # List all tags in a bank
-response = requests.get(f"{HINDSIGHT_URL}/v1/default/banks/my-bank/tags")
+response = requests.get(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/tags")
 tags = response.json()
 for tag in tags["items"]:
     print(f"{tag['tag']}: {tag['count']} memories")
 
 # Search with wildcards (* matches any characters)
-response = requests.get(f"{HINDSIGHT_URL}/v1/default/banks/my-bank/tags", params={"q": "user:*"})
+response = requests.get(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/tags", params={"q": "user:*"})
 user_tags = response.json()
-response = requests.get(f"{HINDSIGHT_URL}/v1/default/banks/my-bank/tags", params={"q": "*-admin"})
+response = requests.get(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/tags", params={"q": "*-admin"})
 admin_tags = response.json()
 # [/docs:retain-list-tags]
 
@@ -171,6 +173,6 @@ admin_tags = response.json()
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
 
 print("retain.py: All examples passed")

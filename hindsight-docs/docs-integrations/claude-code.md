@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
-title: "Claude Code Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to Claude Code with Hindsight. Automatically captures conversations and recalls relevant context across sessions using Claude Code's hook-based architecture."
+title: "Claude Code Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to Claude Code with ContextBase. Automatically captures conversations and recalls relevant context across sessions using Claude Code's hook-based architecture."
 ---
 
 # Claude Code
@@ -15,14 +15,14 @@ This page and the published package still work; they are no longer developed. To
 
 ```bash
 cd /path/to/your/repo
-npx @vectorize-io/hindsight-coding-agents install claude-code --import-conversations
+npx contextbase-coding-agents install claude-code --import-conversations
 ```
 
 Two things move, and nothing else does.
 
-**Your server moves automatically.** `install` reads `~/.hindsight/claude-code.json` and keeps the same
+**Your server moves automatically.** `install` reads `~/.contextbase/claude-code.json` and keeps the same
 `apiUrl` and token — an empty URL still means the local daemon — so you are not silently switched
-to Hindsight Cloud. Pass `--server` to change it.
+to ContextBase remote service. Pass `--server` to change it.
 
 **Your conversations are re-imported from local transcripts** by `--import-conversations`, as new
 documents. They are not copied from the old bank: that bank's default was a single static bank
@@ -36,7 +36,7 @@ shared by every agent. See
 :::
 
 
-Biomimetic long-term memory for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) using [Hindsight](https://vectorize.io/hindsight). Automatically captures conversations, recalls relevant context, and exposes knowledge tools and a subagent-creation skill so Claude can read and write its own memory.
+Biomimetic long-term memory for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) using [ContextBase](https://github.com/RSIXDB/hindsight). Automatically captures conversations, recalls relevant context, and exposes knowledge tools and a subagent-creation skill so Claude can read and write its own memory.
 
 [View Changelog →](/changelog/integrations/claude-code)
 
@@ -47,9 +47,9 @@ Grok Build is installed by the [Coding Agents plugin](/sdks/integrations/coding-
 ## Quick Start
 
 ```bash
-# 1. Add the Hindsight marketplace and install the plugin
-claude plugin marketplace add vectorize-io/hindsight
-claude plugin install hindsight-memory
+# 1. Add the ContextBase marketplace and install the plugin
+claude plugin marketplace add RSIXDB/hindsight
+claude plugin install contextbase-memory
 
 # 2. Configure your LLM provider for memory extraction
 # Option A: OpenAI (auto-detected)
@@ -59,11 +59,11 @@ export OPENAI_API_KEY="sk-your-key"
 export ANTHROPIC_API_KEY="your-key"
 
 # Option C: No API key needed (uses Claude Code's own model — personal/local use only)
-export HINDSIGHT_LLM_PROVIDER=claude-code
+export CONTEXTBASE_LLM_PROVIDER=claude-code
 
-# Option D: Connect to an external Hindsight server instead of running locally
-mkdir -p ~/.hindsight
-echo '{"hindsightApiUrl": "https://your-hindsight-server.com"}' > ~/.hindsight/claude-code.json
+# Option D: Connect to an external ContextBase server instead of running locally
+mkdir -p ~/.contextbase
+echo '{"contextbaseApiUrl": "https://your-hindsight-server.com"}' > ~/.contextbase/claude-code.json
 
 # 3. Start Claude Code — the plugin activates automatically
 claude
@@ -73,12 +73,12 @@ That's it! The plugin will automatically start capturing and recalling memories.
 
 ## Features
 
-- **Auto-recall** — on every user prompt, queries Hindsight for relevant memories and injects them as context (invisible to the chat transcript, visible to Claude)
-- **Auto-retain** — after every response (or every N turns), extracts and retains conversation content to Hindsight for long-term storage
+- **Auto-recall** — on every user prompt, queries ContextBase for relevant memories and injects them as context (invisible to the chat transcript, visible to Claude)
+- **Auto-retain** — after every response (or every N turns), extracts and retains conversation content to ContextBase for long-term storage
 - **Knowledge tools** — Claude can read, write, and search its own memory via MCP tools (knowledge pages, recall, ingest)
-- **Subagent skill** — `/hindsight-memory:create-agent` scaffolds a subagent backed by an isolated memory bank
+- **Subagent skill** — `/contextbase-memory:create-agent` scaffolds a subagent backed by an isolated memory bank
 - **Dynamic bank IDs** — per-agent, per-project, or per-session memory isolation (so each subagent gets its own brain)
-- **Daemon management** — can auto-start/stop `hindsight-embed` locally or connect to an external Hindsight server
+- **Daemon management** — can auto-start/stop `hindsight-embed` locally or connect to an external ContextBase server
 - **Channel-agnostic** — works with Claude Code Channels (Telegram, Discord, Slack) or interactive sessions
 
 ## Architecture
@@ -87,7 +87,7 @@ The plugin combines hooks (for automatic recall/retain) with an MCP server (for 
 
 | Component | Trigger | Purpose |
 |-----------|---------|---------|
-| `session_start.py` | `SessionStart` hook | Health check — verify Hindsight is reachable |
+| `session_start.py` | `SessionStart` hook | Health check — verify ContextBase is reachable |
 | `recall.py` | `UserPromptSubmit` hook | **Auto-recall** — query memories, inject as `additionalContext` |
 | `retain.py` | `Stop` hook | **Auto-retain** — extract transcript, POST to Hindsight (async) |
 | `session_end.py` | `SessionEnd` hook | Cleanup — stop auto-managed daemon if started |
@@ -100,12 +100,12 @@ Python dependencies (`mcp`) are bootstrapped on first run into a private venv un
 
 ### 1. External API (recommended for production)
 
-Connect to a running Hindsight server (cloud or self-hosted). No local LLM needed — the server handles fact extraction.
+Connect to a running ContextBase server (cloud or self-hosted). No local LLM needed — the server handles fact extraction.
 
 ```json
 {
-  "hindsightApiUrl": "https://your-hindsight-server.com",
-  "hindsightApiToken": "your-token"
+  "contextbaseApiUrl": "https://your-hindsight-server.com",
+  "contextbaseApiToken": "your-token"
 }
 ```
 
@@ -119,39 +119,39 @@ export OPENAI_API_KEY="sk-your-key"
 # or
 export ANTHROPIC_API_KEY="your-key"
 # or
-export HINDSIGHT_LLM_PROVIDER=claude-code # No API key needed
+export CONTEXTBASE_LLM_PROVIDER=claude-code # No API key needed
 ```
 
-The model is selected automatically by the Hindsight API. To override, set `HINDSIGHT_LLM_MODEL`.
+The model is selected automatically by the ContextBase API. To override, set `CONTEXTBASE_LLM_MODEL`.
 
 ### 3. Existing Local Server
 
-If you already have `hindsight-embed` running, leave `hindsightApiUrl` empty and set `apiPort` to match your server's port. The plugin will detect it automatically.
+If you already have `hindsight-embed` running, leave `contextbaseApiUrl` empty and set `apiPort` to match your server's port. The plugin will detect it automatically.
 
 ## Configuration
 
-All settings live in `~/.hindsight/claude-code.json`. Every setting can also be overridden via environment variables. The plugin ships with sensible defaults — you only need to configure what you want to change.
+All settings live in `~/.contextbase/claude-code.json`. Every setting can also be overridden via environment variables. The plugin ships with sensible defaults — you only need to configure what you want to change.
 
 **Loading order** (later entries win):
 1. Built-in defaults (hardcoded in the plugin)
 2. Plugin `settings.json` (ships with the plugin, at `CLAUDE_PLUGIN_ROOT/settings.json`)
-3. User config (`~/.hindsight/claude-code.json` — recommended for your overrides)
+3. User config (`~/.contextbase/claude-code.json` — recommended for your overrides)
 4. Environment variables
 
 ---
 
 ### Connection & Daemon
 
-These settings control how the plugin connects to the Hindsight API.
+These settings control how the plugin connects to the ContextBase API.
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `hindsightApiUrl` | `HINDSIGHT_API_URL` | `""` (empty) | URL of an external Hindsight API server. When empty, the plugin uses a local daemon instead. |
-| `hindsightApiToken` | `HINDSIGHT_API_TOKEN` | `null` | Authentication token for the external API. Only needed when `hindsightApiUrl` is set. |
-| `apiPort` | `HINDSIGHT_API_PORT` | `9077` | Port used by the local `hindsight-embed` daemon. Change this if you run multiple instances or have a port conflict. |
-| `embedVersion` | `HINDSIGHT_EMBED_VERSION` | `"latest"` | Which version of `hindsight-embed` to install via `uvx`. Pin to a specific version (e.g. `"0.5.2"`) for reproducibility. |
-| `embedPackagePath` | `HINDSIGHT_EMBED_PACKAGE_PATH` | `null` | Local filesystem path to a `hindsight-embed` checkout. When set, the plugin runs from this path instead of installing via `uvx`. Useful for development. |
-| `requestTimeoutSeconds` | `HINDSIGHT_REQUEST_TIMEOUT_SECONDS` | `null` | Overrides the per-call request timeout for recall (default `10s`), retain (default `15s`) and knowledge tool calls (`10–15s`). When unset, the per-call defaults are preserved. Bump this when self-hosted Hindsight legitimately takes longer than 10s under contention (e.g. parallel recalls), to avoid client-side `read operation timed out` errors on requests the server completes successfully. Does not affect the health check, which intentionally stays fast (5s). |
+| `contextbaseApiUrl` | `CONTEXTBASE_API_URL` | `""` (empty) | URL of an external ContextBase API server. When empty, the plugin uses a local daemon instead. |
+| `contextbaseApiToken` | `CONTEXTBASE_API_TOKEN` | `null` | Authentication token for the external API. Only needed when `contextbaseApiUrl` is set. |
+| `apiPort` | `CONTEXTBASE_API_PORT` | `9077` | Port used by the local `hindsight-embed` daemon. Change this if you run multiple instances or have a port conflict. |
+| `embedVersion` | `CONTEXTBASE_EMBED_VERSION` | `"latest"` | Which version of `hindsight-embed` to install via `uvx`. Pin to a specific version (e.g. `"0.5.2"`) for reproducibility. |
+| `embedPackagePath` | `CONTEXTBASE_EMBED_PACKAGE_PATH` | `null` | Local filesystem path to a `hindsight-embed` checkout. When set, the plugin runs from this path instead of installing via `uvx`. Useful for development. |
+| `requestTimeoutSeconds` | `CONTEXTBASE_REQUEST_TIMEOUT_SECONDS` | `null` | Overrides the per-call request timeout for recall (default `10s`), retain (default `15s`) and knowledge tool calls (`10–15s`). When unset, the per-call defaults are preserved. Bump this when self-hosted ContextBase legitimately takes longer than 10s under contention (e.g. parallel recalls), to avoid client-side `read operation timed out` errors on requests the server completes successfully. Does not affect the health check, which intentionally stays fast (5s). |
 
 ---
 
@@ -161,8 +161,8 @@ These settings configure which LLM the local daemon uses for fact extraction. Th
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `llmProvider` | `HINDSIGHT_LLM_PROVIDER` | auto-detect | Which LLM provider to use. Supported values: `openai`, `anthropic`, `gemini`, `groq`, `ollama`, `ollama-cloud`, `openai-codex`, `claude-code`. When omitted, the plugin auto-detects by checking for API key env vars in order: `OPENAI_API_KEY` → `ANTHROPIC_API_KEY` → `GEMINI_API_KEY` → `GROQ_API_KEY`. |
-| `llmModel` | `HINDSIGHT_LLM_MODEL` | provider default | Override the default model for the chosen provider (e.g. `"gpt-4o"`, `"claude-sonnet-4-20250514"`). When omitted, the Hindsight API picks a sensible default for each provider. |
+| `llmProvider` | `CONTEXTBASE_LLM_PROVIDER` | auto-detect | Which LLM provider to use. Supported values: `openai`, `anthropic`, `gemini`, `groq`, `ollama`, `ollama-cloud`, `openai-codex`, `claude-code`. When omitted, the plugin auto-detects by checking for API key env vars in order: `OPENAI_API_KEY` → `ANTHROPIC_API_KEY` → `GEMINI_API_KEY` → `GROQ_API_KEY`. |
+| `llmModel` | `CONTEXTBASE_LLM_MODEL` | provider default | Override the default model for the chosen provider (e.g. `"gpt-4o"`, `"claude-sonnet-4-20250514"`). When omitted, the ContextBase API picks a sensible default for each provider. |
 | `llmApiKeyEnv` | — | provider standard | Name of the environment variable that holds the API key. Normally auto-detected (e.g. `OPENAI_API_KEY` for the `openai` provider). Set this only if your key is in a non-standard env var. |
 
 ---
@@ -173,13 +173,13 @@ A **bank** is an isolated memory store — like a separate "brain." These settin
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `bankId` | `HINDSIGHT_BANK_ID` | `"claude_code"` | The bank ID to use when `dynamicBankId` is `false`. All sessions share this single bank. |
-| `bankMission` | `HINDSIGHT_BANK_MISSION` | generic assistant prompt | A short description of the agent's identity and purpose. Sent to Hindsight when creating or updating the bank, and used during recall to contextualize results. |
+| `bankId` | `CONTEXTBASE_BANK_ID` | `"claude_code"` | The bank ID to use when `dynamicBankId` is `false`. All sessions share this single bank. |
+| `bankMission` | `CONTEXTBASE_BANK_MISSION` | generic assistant prompt | A short description of the agent's identity and purpose. Sent to ContextBase when creating or updating the bank, and used during recall to contextualize results. |
 | `retainMission` | — | extraction prompt | Instructions for the fact extraction LLM — tells it *what* to extract from conversations (e.g. "Extract technical decisions and user preferences"). |
-| `dynamicBankId` | `HINDSIGHT_DYNAMIC_BANK_ID` | `false` | When `true`, the plugin derives a unique bank ID from context fields (see `dynamicBankGranularity`), giving each combination its own isolated memory. |
+| `dynamicBankId` | `CONTEXTBASE_DYNAMIC_BANK_ID` | `false` | When `true`, the plugin derives a unique bank ID from context fields (see `dynamicBankGranularity`), giving each combination its own isolated memory. |
 | `dynamicBankGranularity` | — | `["agent", "project"]` | Which context fields to combine when building a dynamic bank ID. Available fields: `agent` (agent name), `project` (working directory), `session` (session ID), `channel` (channel ID), `user` (user ID). |
 | `bankIdPrefix` | — | `""` | A string prepended to all bank IDs — both static and dynamic. Useful for namespacing (e.g. `"prod"` or `"staging"`). |
-| `agentName` | `HINDSIGHT_AGENT_NAME` | `"claude-code"` | Name used for the `agent` field in dynamic bank ID derivation. |
+| `agentName` | `CONTEXTBASE_AGENT_NAME` | `"claude-code"` | Name used for the `agent` field in dynamic bank ID derivation. |
 | `resolveWorktrees` | — | `true` | When deriving the `project` field, resolve git worktrees to the **main repository's basename** so that all worktrees of the same repo share one bank. Set to `false` to use the literal working directory basename instead (each worktree gets its own bank). |
 | `directoryBankMap` | — | `{}` | Explicit `{ "/path/to/dir": "bank-id" }` mapping. When the current working directory matches an entry, that bank is used directly — overrides both static and dynamic resolution. `bankIdPrefix` still applies on top. |
 
@@ -206,16 +206,16 @@ When `cwd` matches one of the keys, that bank is used immediately — no static 
 
 ### Auto-Recall
 
-Auto-recall runs on every user prompt. It queries Hindsight for relevant memories and injects them into Claude's context as invisible `additionalContext` (the user doesn't see them in the chat transcript).
+Auto-recall runs on every user prompt. It queries ContextBase for relevant memories and injects them into Claude's context as invisible `additionalContext` (the user doesn't see them in the chat transcript).
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `autoRecall` | `HINDSIGHT_AUTO_RECALL` | `true` | Master switch for auto-recall. Set to `false` to disable memory retrieval entirely. |
-| `recallBudget` | `HINDSIGHT_RECALL_BUDGET` | `"mid"` | Controls how hard Hindsight searches for memories. `"low"` = fast, fewer strategies; `"mid"` = balanced; `"high"` = thorough, slower. Affects latency directly. |
-| `recallMaxTokens` | `HINDSIGHT_RECALL_MAX_TOKENS` | `1024` | Maximum number of tokens in the recalled memory block. Lower values reduce context usage but may truncate relevant memories. |
+| `autoRecall` | `CONTEXTBASE_AUTO_RECALL` | `true` | Master switch for auto-recall. Set to `false` to disable memory retrieval entirely. |
+| `recallBudget` | `CONTEXTBASE_RECALL_BUDGET` | `"mid"` | Controls how hard ContextBase searches for memories. `"low"` = fast, fewer strategies; `"mid"` = balanced; `"high"` = thorough, slower. Affects latency directly. |
+| `recallMaxTokens` | `CONTEXTBASE_RECALL_MAX_TOKENS` | `1024` | Maximum number of tokens in the recalled memory block. Lower values reduce context usage but may truncate relevant memories. |
 | `recallTypes` | — | `["observation"]` | Which memory types to retrieve. `"world"` = general facts; `"experience"` = personal experiences; `"observation"` = consolidated, deduplicated beliefs built from multiple facts. Defaults to observations so the same answer doesn't surface multiple times when many raw memories say the same thing. |
-| `recallContextTurns` | `HINDSIGHT_RECALL_CONTEXT_TURNS` | `1` | How many prior conversation turns to include when composing the recall query. `1` = only the latest user message; higher values give more context but may dilute the query. |
-| `recallMaxQueryChars` | `HINDSIGHT_RECALL_MAX_QUERY_CHARS` | `800` | Maximum character length of the query sent to Hindsight. Longer queries are truncated. |
+| `recallContextTurns` | `CONTEXTBASE_RECALL_CONTEXT_TURNS` | `1` | How many prior conversation turns to include when composing the recall query. `1` = only the latest user message; higher values give more context but may dilute the query. |
+| `recallMaxQueryChars` | `CONTEXTBASE_RECALL_MAX_QUERY_CHARS` | `800` | Maximum character length of the query sent to ContextBase. Longer queries are truncated. |
 | `recallRoles` | — | `["user", "assistant"]` | Which message roles to include when building the recall query from prior turns. |
 | `recallPromptPreamble` | — | built-in string | Text placed above the recalled memories in the injected context block. Customize this to change how Claude interprets the memories. |
 
@@ -223,12 +223,12 @@ Auto-recall runs on every user prompt. It queries Hindsight for relevant memorie
 
 ### Auto-Retain
 
-Auto-retain runs after Claude responds. It extracts the conversation transcript and sends it to Hindsight for long-term storage and fact extraction.
+Auto-retain runs after Claude responds. It extracts the conversation transcript and sends it to ContextBase for long-term storage and fact extraction.
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `autoRetain` | `HINDSIGHT_AUTO_RETAIN` | `true` | Master switch for auto-retain. Set to `false` to disable memory storage entirely. |
-| `retainMode` | `HINDSIGHT_RETAIN_MODE` | `"full-session"` | Retention strategy. `"full-session"` sends the full conversation transcript (with chunking). |
+| `autoRetain` | `CONTEXTBASE_AUTO_RETAIN` | `true` | Master switch for auto-retain. Set to `false` to disable memory storage entirely. |
+| `retainMode` | `CONTEXTBASE_RETAIN_MODE` | `"full-session"` | Retention strategy. `"full-session"` sends the full conversation transcript (with chunking). |
 | `retainEveryNTurns` | — | `10` | How often to retain. `1` = every turn; `10` = every 10th turn. Higher values reduce API calls but delay memory capture. Values > 1 enable **chunked retention** with a sliding window. |
 | `retainOverlapTurns` | — | `2` | When chunked retention fires, this many extra turns from the previous chunk are included for continuity. Total window size = `retainEveryNTurns + retainOverlapTurns`. |
 | `retainRoles` | — | `["user", "assistant"]` | Which message roles to include in the retained transcript. |
@@ -257,18 +257,18 @@ The plugin runs an MCP server that exposes `agent_knowledge_*` tools, letting Cl
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `enableKnowledgeTools` | `HINDSIGHT_ENABLE_KNOWLEDGE_TOOLS` | `true` | Master switch for the MCP knowledge tools. When `false`, the MCP server stays alive as an empty server exposing no `agent_knowledge_*` tools (it does not exit — exiting would trigger a `-32000` reconnect error in Claude Code). |
+| `enableKnowledgeTools` | `CONTEXTBASE_ENABLE_KNOWLEDGE_TOOLS` | `true` | Master switch for the MCP knowledge tools. When `false`, the MCP server stays alive as an empty server exposing no `agent_knowledge_*` tools (it does not exit — exiting would trigger a `-32000` reconnect error in Claude Code). |
 
 ---
 
 ### Subagents with Memory
 
-The `/hindsight-memory:create-agent` skill creates a Claude Code subagent backed by its own Hindsight bank. Each subagent's prompt instructs it to use the knowledge tools above for recall and ingestion, so Claude treats persistent memory as a first-class capability of that agent.
+The `/contextbase-memory:create-agent` skill creates a Claude Code subagent backed by its own ContextBase bank. Each subagent's prompt instructs it to use the knowledge tools above for recall and ingestion, so Claude treats persistent memory as a first-class capability of that agent.
 
 Two modes:
 
-- **From a directory** — `/hindsight-memory:create-agent <name> from <path>` ingests every text file under `<path>` (`.md`, `.txt`, `.html`, `.json`, `.csv`, `.xml`), creates a starter set of knowledge pages, and writes the subagent file to `~/.claude/agents/<name>.md`. If the directory contains a `bank-template.json` listing exact `mental_models`, those are used verbatim instead of auto-generated.
-- **Interactive** — `/hindsight-memory:create-agent` (no arguments) prompts for the agent name and purpose, then writes the subagent file with no ingestion.
+- **From a directory** — `/contextbase-memory:create-agent <name> from <path>` ingests every text file under `<path>` (`.md`, `.txt`, `.html`, `.json`, `.csv`, `.xml`), creates a starter set of knowledge pages, and writes the subagent file to `~/.claude/agents/<name>.md`. If the directory contains a `bank-template.json` listing exact `mental_models`, those are used verbatim instead of auto-generated.
+- **Interactive** — `/contextbase-memory:create-agent` (no arguments) prompts for the agent name and purpose, then writes the subagent file with no ingestion.
 
 For per-subagent memory isolation, enable dynamic bank IDs:
 
@@ -288,11 +288,11 @@ With `["agent", "project"]`, each subagent gets a unique bank per repository —
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `debug` | `HINDSIGHT_DEBUG` | `false` | Enable verbose logging to stderr. All log lines are prefixed with `[Hindsight]`. Useful for diagnosing connection issues, recall/retain behavior, and bank ID derivation. |
+| `debug` | `CONTEXTBASE_DEBUG` | `false` | Enable verbose logging to stderr. All log lines are prefixed with `[ContextBase]`. Useful for diagnosing connection issues, recall/retain behavior, and bank ID derivation. |
 
 ## Claude Code Channels
 
-With [Claude Code Channels](https://docs.anthropic.com/en/docs/claude-code), Claude Code can operate as a persistent background agent connected to Telegram, Discord, Slack, and other messaging platforms. This plugin gives Channel-based agents the same long-term memory that `hindsight-openclaw` provides for Openclaw agents.
+With [Claude Code Channels](https://docs.anthropic.com/en/docs/claude-code), Claude Code can operate as a persistent background agent connected to Telegram, Discord, Slack, and other messaging platforms. This plugin gives Channel-based agents the same long-term memory that `contextbase-openclaw` provides for Openclaw agents.
 
 For Channel agents, enable dynamic bank IDs for per-channel/per-user memory isolation:
 
@@ -306,18 +306,18 @@ For Channel agents, enable dynamic bank IDs for per-channel/per-user memory isol
 And set channel context via environment variables:
 
 ```bash
-export HINDSIGHT_CHANNEL_ID="telegram-group-12345"
-export HINDSIGHT_USER_ID="user-67890"
+export CONTEXTBASE_CHANNEL_ID="telegram-group-12345"
+export CONTEXTBASE_USER_ID="user-67890"
 ```
 
 ## Troubleshooting
 
-**Plugin not activating**: Check Claude Code logs for `[Hindsight]` messages. Enable `"debug": true` in `~/.hindsight/claude-code.json`.
+**Plugin not activating**: Check Claude Code logs for `[ContextBase]` messages. Enable `"debug": true` in `~/.contextbase/claude-code.json`.
 
-**Recall returning no memories**: Verify the Hindsight server is reachable (`curl http://localhost:9077/health`). Memories need at least one retain cycle before they're available.
+**Recall returning no memories**: Verify the ContextBase server is reachable (`curl http://localhost:9077/health`). Memories need at least one retain cycle before they're available.
 
-**Daemon not starting**: Ensure an LLM API key is set (or use `HINDSIGHT_LLM_PROVIDER=claude-code`). Review daemon logs at `~/.hindsight/profiles/claude-code.log`.
+**Daemon not starting**: Ensure an LLM API key is set (or use `CONTEXTBASE_LLM_PROVIDER=claude-code`). Review daemon logs at `~/.contextbase/profiles/claude-code.log`.
 
 **High latency on recall**: The recall hook has a 12-second timeout. Use `recallBudget: "low"` or reduce `recallMaxTokens` for faster responses.
 
-**Knowledge tools missing from Claude**: Make sure `enableKnowledgeTools` is `true` in `~/.hindsight/claude-code.json` and restart Claude Code. The first launch after enabling them takes ~20–30 seconds to bootstrap the Python venv at `${CLAUDE_PLUGIN_DATA}/venv`; subsequent launches are instant.
+**Knowledge tools missing from Claude**: Make sure `enableKnowledgeTools` is `true` in `~/.contextbase/claude-code.json` and restart Claude Code. The first launch after enabling them takes ~20–30 seconds to bootstrap the Python venv at `${CLAUDE_PLUGIN_DATA}/venv`; subsequent launches are instant.

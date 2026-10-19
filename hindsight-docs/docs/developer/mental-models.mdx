@@ -7,7 +7,7 @@ import mentalModelsFigure from '@site/figures/mental-models.json';
 
 # Mental Models
 
-A **mental model** is a standing answer to a question about a bank. You define the question once; Hindsight writes the answer, keeps it stored, and rewrites it in the background as the bank learns more.
+A **mental model** is a standing answer to a question about a bank. You define the question once; ContextBase writes the answer, keeps it stored, and rewrites it in the background as the bank learns more.
 
 Where [observations](./observations) are produced automatically and are atomic — one belief at a time — a mental model is deliberately curated: you decide which questions deserve a permanent, always-current answer.
 
@@ -37,7 +37,7 @@ Each layer is a cheaper, more settled version of the one below it. If the first 
 
 ## Always Current, Without Asking
 
-A mental model is not a cached answer that goes stale silently. Hindsight tracks whether new memories have arrived that the model is supposed to cover, and rebuilds it when they have — either as soon as new knowledge is consolidated, or on a schedule you set.
+A mental model is not a cached answer that goes stale silently. ContextBase tracks whether new memories have arrived that the model is supposed to cover, and rebuilds it when they have — either as soon as new knowledge is consolidated, or on a schedule you set.
 
 The check comes first, and it is scoped: a rebuild only happens when something *within this model's own scope* actually changed. A busy bank does not cause unrelated models to churn, and a scheduled rebuild over an unchanged bank costs nothing.
 
@@ -49,7 +49,7 @@ When a model is handed to the reflect agent, it comes with a freshness signal �
 
 A document that is rewritten hundreds of times has a problem an LLM cannot solve by being asked nicely: told to "preserve the unchanged parts", it will still drift. Bullets become numbers, casing shifts, sentences get quietly paraphrased. Generating text is what the model does; copying it verbatim is not.
 
-Hindsight can instead refresh a model **incrementally** — applying only the changes the new knowledge implies, and leaving everything else physically untouched rather than regenerating and hoping. A long-lived playbook stays the document you wrote, with the new parts added, instead of slowly becoming a different document that says roughly the same thing.
+ContextBase can instead refresh a model **incrementally** — applying only the changes the new knowledge implies, and leaving everything else physically untouched rather than regenerating and hoping. A long-lived playbook stays the document you wrote, with the new parts added, instead of slowly becoming a different document that says roughly the same thing.
 
 ---
 

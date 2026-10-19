@@ -6,7 +6,7 @@ import CodingAgentsChart from './CodingAgentsChart';
 import styles from './HomeFlow.module.css';
 
 /**
- * The one-glance version of how Hindsight is used, and the homepage's router.
+ * The one-glance version of how ContextBase is used, and the homepage's router.
  *
  * It exists because three kinds of visitor arrive on this page wanting
  * different answers to the same question: someone running a coding agent wants
@@ -28,7 +28,7 @@ import styles from './HomeFlow.module.css';
  * is simply open, because a reveal nobody can trigger is content nobody can
  * read.
  *
- * The memory bank is drawn INSIDE the Hindsight boundary, not as a third stage
+ * The memory bank is drawn INSIDE the ContextBase boundary, not as a third stage
  * beside it: an earlier version put it in its own box on the right, which read
  * as a separate product you had to bring yourself. What actually sits outside
  * is the database, so Postgres is the thing on the right-hand end.
@@ -150,7 +150,7 @@ await hs.reflect(bank, "should I suggest Vue?")`}
       <div className={styles.connector} aria-hidden="true" />
 
       <div className={styles.core}>
-        <span className={styles.coreName}>Hindsight</span>
+        <span className={styles.coreName}>ContextBase</span>
 
         <div className={styles.ops}>
           <span><code>retain</code> store what happened</span>
@@ -158,7 +158,7 @@ await hs.reflect(bank, "should I suggest Vue?")`}
           <span><code>reflect</code> reason over it</span>
         </div>
 
-        {/* Inside the boundary: the bank is what Hindsight builds, not a
+        {/* Inside the boundary: the bank is what ContextBase builds, not a
             component you supply. */}
         <div className={styles.bank}>
           <span className={styles.bankName}>Memory bank</span>
@@ -181,8 +181,8 @@ await hs.reflect(bank, "should I suggest Vue?")`}
         {/* Managed first: it is the one option that takes no decision. */}
         <ul className={styles.options}>
           <li className={styles.optionPrimary}>
-            <Link to="https://ui.hindsight.vectorize.io/signup">
-              Hindsight Cloud
+            <Link to="http://localhost:9999">
+              ContextBase Cloud
               <LuArrowRight size={12} />
             </Link>
             <span>fully managed</span>

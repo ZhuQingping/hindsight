@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-cursor-cli"
+name = "contextbase-cursor-cli"
 version = "0.3.0"
-description = "Cursor CLI integration for Hindsight - persistent long-term memory via Cursor CLI hooks"
+description = "Cursor CLI integration for ContextBase - persistent long-term memory via Cursor CLI hooks"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -15,7 +15,7 @@ keywords = [
     "cursor-cli",
     "hooks",
     "agents",
-    "hindsight",
+    "contextbase",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -30,28 +30,28 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-hindsight-cursor-cli = "hindsight_cursor_cli.cli:main"
+contextbase-cursor-cli = "contextbase_cursor_cli.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
-Documentation = "https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/cursor-cli"
-Repository = "https://github.com/vectorize-io/hindsight"
+Homepage = "https://github.com/RSIXDB/hindsight"
+Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/cursor-cli"
+Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_cursor_cli"]
-# The hook payload under hindsight_cursor_cli/hooks/ (scripts + JSON) ships as
+packages = ["contextbase_cursor_cli"]
+# The hook payload under contextbase_cursor_cli/hooks/ (scripts + JSON) ships as
 # package data; the installer extracts it via importlib.resources.
 artifacts = [
-    "hindsight_cursor_cli/hooks/**/*",
+    "contextbase_cursor_cli/hooks/**/*",
 ]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "hindsight_cursor_cli/**/*",
+    "contextbase_cursor_cli/**/*",
     "tests/**/*",
     "README.md",
     "LICENSE",

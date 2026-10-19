@@ -1,4 +1,4 @@
-"""Hindsight plugin constants and pure config normalizers (no I/O, no origin imports)."""
+"""ContextBase plugin constants and pure config normalizers (no I/O, no origin imports)."""
 
 from __future__ import annotations
 
@@ -16,26 +16,26 @@ from typing import Any, List
 # Log under the plugin package's own logger name (loader-path independent).
 logger = logging.getLogger(__name__.rpartition(".")[0])
 
-_DEFAULT_API_URL = "https://api.hindsight.vectorize.io"
+_DEFAULT_API_URL = ""
 _DEFAULT_LOCAL_URL = "http://localhost:8888"
 # Keep in sync with plugin.yaml and pyproject.toml. Raised to 0.10.1 with the embed
 # floor (see pyproject.toml): _maybe_upgrade_client() then pulls the 0.10.0 cohort's
 # client forward on session start instead of waiting for a `hermes update`.
 _MIN_CLIENT_VERSION = "0.10.1"
 _DEFAULT_TIMEOUT = 120  # seconds — cloud API can take 30-40s per request
-_DEFAULT_IDLE_TIMEOUT = 300  # seconds — Hindsight embedded daemon default
+_DEFAULT_IDLE_TIMEOUT = 300  # seconds — ContextBase embedded daemon default
 # ``metadata.source`` on retained memories is OPT-IN (AGENTS.md forbids
-# on-by-default attribution tags): ``retain_source`` / HINDSIGHT_RETAIN_SOURCE.
+# on-by-default attribution tags): ``retain_source`` / CONTEXTBASE_RETAIN_SOURCE.
 _DEFAULT_RETAIN_SOURCE = ""
 # Named retain strategy applied to every item this plugin stores. Empty means the bank
 # decides (its ``retain_default_strategy``, else unmissioned ``concise`` extraction).
 # The bank must already define the name under ``retain_strategies``.
 _DEFAULT_RETAIN_STRATEGY = ""
-# Hindsight brand mark (eye ringed by graph nodes) for the recall/retain indicators.
-_HINDSIGHT_GLYPH = "👁️"
-# Hindsight 0.5.0 added ``update_mode='append'``; older APIs would silently
+# ContextBase brand mark (eye ringed by graph nodes) for the recall/retain indicators.
+_CONTEXTBASE_GLYPH = "👁️"
+# ContextBase 0.5.0 added ``update_mode='append'``; older APIs would silently
 # overwrite prior turns under a stable document_id, so they keep the per-process id.
-# Mirrors hindsight-integrations/openclaw — Hindsight 0.5.0 added `update_mode='append'` semantics on retain
+# Mirrors hindsight-integrations/openclaw — ContextBase 0.5.0 added `update_mode='append'` semantics on retain
 # (vectorize-io/hindsight#932).
 _MIN_VERSION_FOR_UPDATE_MODE_APPEND = "0.5.0"
 _VALID_BUDGETS = {"low", "mid", "high"}
@@ -62,7 +62,7 @@ def _parse_int_setting(value: Any, default: int) -> int:
     try:
         return int(value)
     except (TypeError, ValueError):
-        logger.warning("Invalid integer Hindsight setting %r; using default %s", value, default)
+        logger.warning("Invalid integer ContextBase setting %r; using default %s", value, default)
         return default
 
 
@@ -73,7 +73,7 @@ def _parse_float_setting(value: Any, default: float) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
-        logger.warning("Invalid number for Hindsight setting %r; using default %s", value, default)
+        logger.warning("Invalid number for ContextBase setting %r; using default %s", value, default)
         return default
 
 
@@ -107,7 +107,7 @@ def _normalize_string_list(value: Any) -> List[str]:
 def _normalize_min_scores(value: Any) -> dict[str, float] | None:
     """Normalize ``recall_min_scores`` to ``{score_name: floor}``, or ``None`` for no floor.
 
-    Accepts a mapping or a JSON object string. The score names are Hindsight's own
+    Accepts a mapping or a JSON object string. The score names are ContextBase's own
     (``reranker``, ``semantic``, ...), so they are not validated here: the server decides
     which exist. A floor that is not a finite number is dropped with a warning instead of
     being sent, so a typo can never turn into an invalid recall request."""
@@ -148,7 +148,7 @@ def _clears_min_scores(result: Any, floors: dict[str, float]) -> bool:
 
 def _normalize_observation_scopes(value: Any) -> Any:
     """Normalize observation_scopes to a keyword string, ``list[list[str]]`` (one inner
-    list per consolidation pass), or ``None`` (Hindsight's ``combined`` default).
+    list per consolidation pass), or ``None`` (ContextBase's ``combined`` default).
     Accepts a keyword, a JSON-encoded list, a flat tag list (one scope) or a list of
     tag-lists; anything unrecognized -> ``None`` so we never send an invalid payload."""
     if isinstance(value, str):
@@ -251,7 +251,7 @@ def _project_name(root: Path | None) -> str:
 
 
 def _discover_cwd_bank_id(start_dir: str, root: Path | None, trusted_dirs: List[str]) -> str | None:
-    """``bank_id`` from the nearest ``.hindsight/config.toml`` inside a trusted repository.
+    """``bank_id`` from the nearest ``.contextbase/config.toml`` inside a trusted repository.
 
     A repository can carry this file to name its bank, but a cloned repository is not
     trusted by default: the file is read only when *root* itself lies inside one of
@@ -271,28 +271,28 @@ def _discover_cwd_bank_id(start_dir: str, root: Path | None, trusted_dirs: List[
             if path.is_absolute():
                 trusted.append(path.resolve())
             else:
-                logger.warning("hindsight: ignoring relative trusted_project_dirs entry %r", entry)
+                logger.warning("contextbase: ignoring relative trusted_project_dirs entry %r", entry)
         # Trust follows where the repository physically is. A worktree's .git file and
         # commondir are plain files the folder itself controls, so they cannot vouch for it.
         if not any(root == t or t in root.parents for t in trusted):
-            logger.debug("hindsight: %s is not under trusted_project_dirs — ignoring its config", root)
+            logger.debug("contextbase: %s is not under trusted_project_dirs — ignoring its config", root)
             return None
         start = Path(start_dir).resolve()
         for folder in (start, *start.parents):
-            candidate = folder / ".hindsight" / "config.toml"
+            candidate = folder / ".contextbase" / "config.toml"
             if candidate.is_file():
                 try:
                     data = tomllib.loads(candidate.read_text(encoding="utf-8", errors="replace"))
                     bank = data.get("bank_id")
                     if isinstance(bank, str) and bank.strip():
                         return bank.strip()
-                    logger.warning("hindsight: %s has no usable bank_id — walking up", candidate)
+                    logger.warning("contextbase: %s has no usable bank_id — walking up", candidate)
                 except Exception as exc:
-                    logger.warning("hindsight: cannot read %s (%s) — walking up", candidate, exc)
+                    logger.warning("contextbase: cannot read %s (%s) — walking up", candidate, exc)
             if folder == root:
                 break
     except Exception as exc:
-        logger.debug("hindsight: cwd walk failed: %s", exc)
+        logger.debug("contextbase: cwd walk failed: %s", exc)
     return None
 
 

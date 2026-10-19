@@ -26,7 +26,7 @@ def strip_channel_envelope(content: str) -> str:
 
     This is the Claude Code equivalent of Openclaw's stripMetadataEnvelopes().
     Extracts the inner text, preserving the actual user message while removing
-    transport metadata that Hindsight doesn't need.
+    transport metadata that ContextBase doesn't need.
     """
     # Match <channel ...>content</channel> — extract inner text
     match = re.search(r"<channel\b[^>]*>([\s\S]*?)</channel>", content)
@@ -36,14 +36,14 @@ def strip_channel_envelope(content: str) -> str:
 
 
 def strip_memory_tags(content: str) -> str:
-    """Remove <hindsight_memories> and <relevant_memories> blocks.
+    """Remove <contextbase_memories> and <relevant_memories> blocks.
 
     Prevents retain feedback loop — these were injected during recall and
     should not be re-stored.
 
     Port of: stripMemoryTags() in index.js
     """
-    content = re.sub(r"<hindsight_memories>[\s\S]*?</hindsight_memories>", "", content)
+    content = re.sub(r"<contextbase_memories>[\s\S]*?</contextbase_memories>", "", content)
     content = re.sub(r"<relevant_memories>[\s\S]*?</relevant_memories>", "", content)
     return content
 
@@ -156,7 +156,7 @@ def _extract_message_blocks(content, role: str = "") -> list:
             else:
                 name = block.get("name", "unknown")
                 inp = block.get("input", {})
-                # Skip Hindsight MCP tools to avoid feedback loops
+                # Skip ContextBase MCP tools to avoid feedback loops
                 if name.startswith("mcp__") and _OPERATIONAL_TOOL_PATTERN.search(name.split("__")[-1]):
                     continue
                 blocks.append({"type": "tool_use", "name": name, "input": inp})
@@ -302,7 +302,7 @@ def _is_channel_message_tool(block: dict) -> bool:
     This catches any channel plugin (Telegram, Slack, Discord, Matrix,
     future channels) without hardcoding tool names. Built-in tools (Bash,
     Read, Write) don't start with mcp__. MCP tools for non-messaging
-    purposes (hindsight recall, search) are excluded by pattern and by
+    purposes (contextbase recall, search) are excluded by pattern and by
     lacking text/body fields.
     """
     name = block.get("name", "")

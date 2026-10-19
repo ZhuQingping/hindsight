@@ -1,11 +1,11 @@
 {
-  "name": "agentstratum-zcode",
-  "description": "No-MCP long-term memory for ZCode (and Claude Code) via agentstratum hooks. Recalls relevant context before each prompt and retains conversations after each turn.",
+  "name": "contextbase-zcode",
+  "description": "No-MCP long-term memory for ZCode (and Claude Code) via contextbase hooks. Recalls relevant context before each prompt and retains conversations after each turn.",
   "version": "0.1.0",
   "license": "MIT",
   "keywords": [
     "memory",
-    "agentstratum",
+    "contextbase",
     "recall",
     "retain",
     "zcode",

@@ -1,4 +1,4 @@
-"""Hindsight Recall tool — search a memory bank by query."""
+"""ContextBase Recall tool — search a memory bank by query."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class RecallTool(Tool):
                 tags=tags,
             )
         except Exception as e:
-            yield self.create_text_message(f"Hindsight recall failed: {e}")
+            yield self.create_text_message(f"ContextBase recall failed: {e}")
             return
 
         results = [_memory_to_dict(m) for m in (response.results or [])]

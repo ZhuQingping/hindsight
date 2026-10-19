@@ -2,7 +2,7 @@
 
 import json
 
-from hindsight_devin_desktop.cascade_hooks import (
+from contextbase_devin_desktop.cascade_hooks import (
     EVENT,
     apply_banner,
     banner_command,
@@ -20,7 +20,7 @@ def test_default_path():
 
 
 def test_banner_command_targets_module():
-    assert "hindsight_devin_desktop.hook banner" in banner_command()
+    assert "contextbase_devin_desktop.hook banner" in banner_command()
 
 
 def test_creates_with_show_output(tmp_path):
@@ -29,7 +29,7 @@ def test_creates_with_show_output(tmp_path):
     assert result.action == "created"
     entry = json.loads(p.read_text())["hooks"][EVENT][0]
     assert entry["show_output"] is True
-    assert "hindsight_devin_desktop.hook banner" in entry["command"]
+    assert "contextbase_devin_desktop.hook banner" in entry["command"]
     assert "command" in entry and "powershell" in entry  # cross-platform
     assert is_installed(p)
 
@@ -48,7 +48,7 @@ def test_preserves_user_hooks(tmp_path):
     data = json.loads(p.read_text())
     cmds = [e["command"] for e in data["hooks"][EVENT]]
     assert "echo hi" in cmds  # user's kept
-    assert any("hindsight_devin_desktop.hook banner" in c for c in cmds)  # ours added
+    assert any("contextbase_devin_desktop.hook banner" in c for c in cmds)  # ours added
     assert "pre_write_code" in data["hooks"]  # untouched
 
 
@@ -66,5 +66,5 @@ def test_remove_keeps_user_hooks(tmp_path):
     remove_banner(p)
     cmds = [e["command"] for e in json.loads(p.read_text())["hooks"][EVENT]]
     assert "echo hi" in cmds
-    assert not any("hindsight_devin_desktop.hook banner" in c for c in cmds)
+    assert not any("contextbase_devin_desktop.hook banner" in c for c in cmds)
     assert not is_installed(p)

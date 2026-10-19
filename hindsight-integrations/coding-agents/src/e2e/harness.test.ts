@@ -18,10 +18,10 @@ it("creates host-owned, owner-only diagnostics before Docker starts and collects
   const configPath = join(root, "config.json");
   const diagnostics = '{"event":"retain"}\n';
   writeFileSync(configPath, JSON.stringify({ apiUrl: "http://localhost:8888" }));
-  vi.stubEnv("AGENTSTRATUM_HARNESS_E2E", "1");
-  vi.stubEnv("AGENTSTRATUM_E2E_CONFIG", configPath);
-  vi.stubEnv("AGENTSTRATUM_E2E_API_URL", "http://localhost:8888");
-  vi.stubEnv("AGENTSTRATUM_E2E_API_TOKEN", "");
+  vi.stubEnv("CONTEXTBASE_HARNESS_E2E", "1");
+  vi.stubEnv("CONTEXTBASE_E2E_CONFIG", configPath);
+  vi.stubEnv("CONTEXTBASE_E2E_API_URL", "http://localhost:8888");
+  vi.stubEnv("CONTEXTBASE_E2E_API_TOKEN", "");
 
   vi.mocked(spawnSync).mockImplementation((command, args) => {
     if (command === "mkdir") {
@@ -36,7 +36,7 @@ it("creates host-owned, owner-only diagnostics before Docker starts and collects
   vi.mocked(spawn).mockImplementation((command, args) => {
     expect(command).toBe("docker");
     expect(args![0]).toBe("run");
-    expect(args).toContain("AGENTSTRATUM_DIAG_FILE=/results/diagnostics.jsonl");
+    expect(args).toContain("CONTEXTBASE_DIAG_FILE=/results/diagnostics.jsonl");
     const mount = args!.find((argument) => argument.endsWith(",dst=/results"));
     expect(mount).toBeDefined();
     const resultDir = mount!.slice("type=bind,src=".length, -",dst=/results".length);
@@ -64,7 +64,7 @@ it("creates host-owned, owner-only diagnostics before Docker starts and collects
     const result = await runHarnessE2e({
       name: "test",
       hindsightHarness: "test",
-      installCommand: "agentstratum-coding-agents install test",
+      installCommand: "contextbase-coding-agents install test",
       command: () => ["test"],
     });
     expect(spawn).toHaveBeenCalledOnce();

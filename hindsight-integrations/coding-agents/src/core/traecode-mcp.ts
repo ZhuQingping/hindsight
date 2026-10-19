@@ -4,20 +4,20 @@
  * TraeCode launches USER-level MCP servers (Trae CN's `<userData>/User/mcp.json`) with the
  * ELECTRON PROCESS's cwd — the user's home directory, not the workspace the agent is chatting in.
  * With `optInOnly: true`, a home-cwd mcp-server resolves no opted-in bank and self-disables, so
- * the agent sees ZERO agentstratum tools even in a fully opted-in repo (the hooks, which DO receive
+ * the agent sees ZERO contextbase tools even in a fully opted-in repo (the hooks, which DO receive
  * the workspace cwd in their payload, keep working — the memory works, only the tools vanish).
  *
- * The fix needs no core change: mcp-server.ts honors `AGENTSTRATUM_MCP_PROJECT_CWD`, and Trae ALSO
+ * The fix needs no core change: mcp-server.ts honors `CONTEXTBASE_MCP_PROJECT_CWD`, and Trae ALSO
  * reads a per-workspace `<repo>/.trae/mcp.json` (verified in the Trae CN bundle: workspace-folder
  * managers join each folder's `.trae/mcp.json` under the `mcp.config.ws<n>.` scope key, parse the
  * SAME `mcpServers` top-level object as the user file, keep `{command, args, cwd, env}` for stdio
  * servers, and hot-reload the file with a 200ms debounce). So the SessionStart hook — which knows
  * the repo AND runs only where memory is actually live (the caller derives the bank and applies
  * opt-in first) — makes sure that file registers our server pinned to THIS repo:
- *   {"mcpServers":{"agentstratum":{"command":"node","args":["<dist>/mcp-server.js"],
- *     "env":{"AGENTSTRATUM_MCP_HARNESS":"traecode","AGENTSTRATUM_MCP_PROJECT_CWD":"<repo>"}}}}
+ *   {"mcpServers":{"contextbase":{"command":"node","args":["<dist>/mcp-server.js"],
+ *     "env":{"CONTEXTBASE_MCP_HARNESS":"traecode","CONTEXTBASE_MCP_PROJECT_CWD":"<repo>"}}}}
  *
- * Fidelity rules, in order: never throw; never touch a foreign "agentstratum" entry (same ownership
+ * Fidelity rules, in order: never throw; never touch a foreign "contextbase" entry (same ownership
  * check the installer applies to user-level files); never clobber the rest of the document; and
  * rewrite only on a real diff so the hook is idempotent. The registration carries an absolute,
  * machine-specific path, so a repo .gitignore that does not already ignore the file gets the one
@@ -39,7 +39,7 @@ import { fileURLToPath } from "node:url";
 import { diag } from "./diag";
 import { isOurMcpEntry } from "./util";
 
-const MCP_SERVER_NAME = "agentstratum";
+const MCP_SERVER_NAME = "contextbase";
 const MCP_FILE_REL = join(".trae", "mcp.json");
 
 /** Where the packaged `dist/mcp-server.js` sits: a sibling of this module in the flat `dist/`
@@ -185,9 +185,9 @@ export function workspaceMcpHint(
       JSON.stringify({ ...state, lastHint: now }, null, 2) + "\n"
     );
     return (
-      "agentstratum MCP tools are hidden: TraeCode does not read per-repo MCP configs until " +
+      "contextbase MCP tools are hidden: TraeCode does not read per-repo MCP configs until " +
       'workspace MCP is enabled. Turn it on once in Trae settings (search "enableWorkspaceMcp") ' +
-      "or re-run `agentstratum-coding-agents install traecode` — then reload this window."
+      "or re-run `contextbase-coding-agents install traecode` — then reload this window."
     );
   } catch {
     return undefined; // a hint must never break the session it rides
@@ -212,11 +212,11 @@ function ensureGitignored(repo: string): void {
   if (gitignoreCovers(current.split("\n"))) return;
   const addition =
     (current.endsWith("\n") || current === "" ? "" : "\n") +
-    "# agentstratum MCP registration (machine-specific)\n.trae/mcp.json\n";
+    "# contextbase MCP registration (machine-specific)\n.trae/mcp.json\n";
   writeFileSync(gitignore, current + addition);
 }
 
-/** Ensure `<repo>/.trae/mcp.json` registers the agentstratum MCP server for THIS repo, seed the
+/** Ensure `<repo>/.trae/mcp.json` registers the contextbase MCP server for THIS repo, seed the
  *  workspace's per-server enable switch (below), then report whichever blocker still hides the
  *  tools: the global workspace-MCP gate first, else a seed failure. undefined = nothing to say.
  *  Never throws. */
@@ -263,7 +263,7 @@ export function registerTraecodeWorkspaceMcp(
     const entry = {
       command: "node",
       args: [script],
-      env: { AGENTSTRATUM_MCP_HARNESS: "traecode", AGENTSTRATUM_MCP_PROJECT_CWD: cwd },
+      env: { CONTEXTBASE_MCP_HARNESS: "traecode", CONTEXTBASE_MCP_PROJECT_CWD: cwd },
     };
     const existing = servers[MCP_SERVER_NAME];
     let merged: Record<string, unknown>;
@@ -280,7 +280,7 @@ export function registerTraecodeWorkspaceMcp(
       };
     } else {
       diag("traecode", "workspace_mcp_foreign_entry", { cwd, file });
-      return "skipped"; // a foreign "agentstratum" server is the user's decision, not ours to overwrite
+      return "skipped"; // a foreign "contextbase" server is the user's decision, not ours to overwrite
     }
     if (existing !== undefined && canon(merged) === canon(existing)) return "current"; // already correct — idempotent no-op
 
@@ -302,7 +302,7 @@ export function registerTraecodeWorkspaceMcp(
 /** Uninstall counterpart of the registration: drop OUR entry from `<cwd>/.trae/mcp.json`,
  *  dropping the now-empty `mcpServers` husk with it and unlinking the file only when nothing at
  *  all remains of the document — top-level keys the user hung beside `mcpServers` are never a
- *  reason to unlink. A foreign "agentstratum" entry and the rest of the document are untouched —
+ *  reason to unlink. A foreign "contextbase" entry and the rest of the document are untouched —
  *  same ownership check the registration applies. Never throws. True when the file changed. */
 export function removeTraecodeWorkspaceMcpEntry(
   cwd: string,
@@ -480,8 +480,8 @@ export function workspaceEnableHint(
       JSON.stringify({ ...state, lastEnableHint: now }, null, 2) + "\n"
     );
     return (
-      "agentstratum's MCP server stays disabled in this window: auto-enabling it failed here. " +
-      "Switch agentstratum on for this workspace in Trae's MCP panel, then reload the window."
+      "contextbase's MCP server stays disabled in this window: auto-enabling it failed here. " +
+      "Switch contextbase on for this workspace in Trae's MCP panel, then reload the window."
     );
   } catch {
     return undefined; // a hint must never break the session it rides

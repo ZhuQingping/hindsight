@@ -1,8 +1,8 @@
 //! Knowledge base commands for managing a bank's folder/page tree.
 //!
 //! A page is a mental model with document-shaped defaults plus a place in the
-//! tree, so these commands mirror `agentstratum mental-model` where the operations
-//! overlap. `agentstratum fs` mirrors the same knowledge base read-only onto disk;
+//! tree, so these commands mirror `contextbase mental-model` where the operations
+//! overlap. `contextbase fs` mirrors the same knowledge base read-only onto disk;
 //! these commands are the read/write side.
 
 use anyhow::Result;
@@ -226,7 +226,7 @@ pub fn create_page(
                     println!();
                     println!(
                         "{}",
-                        ui::dim("Content is generated in the background. Use 'agentstratum operation get' to track it.")
+                        ui::dim("Content is generated in the background. Use 'contextbase operation get' to track it.")
                     );
                 }
             } else {
@@ -491,7 +491,7 @@ pub fn export(
                 println!();
                 println!(
                     "{}",
-                    ui::dim("Use --output json to get the file contents, or 'agentstratum fs mount' to mirror them to disk.")
+                    ui::dim("Use --output json to get the file contents, or 'contextbase fs mount' to mirror them to disk.")
                 );
             } else {
                 output::print_output(&bundle, output_format)?;

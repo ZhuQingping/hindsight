@@ -1,11 +1,11 @@
-"""Tests for install.py — Roo Code Hindsight integration installer."""
+"""Tests for install.py — Roo Code ContextBase integration installer."""
 
 import json
 from pathlib import Path
 
 import pytest
 
-from hindsight_roo_code.install import (
+from contextbase_roo_code.install import (
     build_mcp_entry,
     get_roo_dir,
     install_mcp,
@@ -65,22 +65,22 @@ def test_get_roo_dir_global(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_fresh_install_creates_mcp_json(tmp_project: Path, hindsight_url: str) -> None:
+def test_fresh_install_creates_mcp_json(tmp_project: Path, contextbase_url: str) -> None:
     roo_dir = tmp_project / ".roo"
-    install_mcp(roo_dir, hindsight_url)
+    install_mcp(roo_dir, contextbase_url)
 
     mcp_path = roo_dir / "mcp.json"
     assert mcp_path.exists()
 
     data = json.loads(mcp_path.read_text())
-    assert "hindsight" in data["mcpServers"]
-    assert data["mcpServers"]["hindsight"]["url"] == f"{hindsight_url}/mcp"
+    assert "contextbase" in data["mcpServers"]
+    assert data["mcpServers"]["contextbase"]["url"] == f"{contextbase_url}/mcp"
 
 
-def test_fresh_install_creates_roo_dir(tmp_project: Path, hindsight_url: str) -> None:
+def test_fresh_install_creates_roo_dir(tmp_project: Path, contextbase_url: str) -> None:
     roo_dir = tmp_project / ".roo"
     assert not roo_dir.exists()
-    install_mcp(roo_dir, hindsight_url)
+    install_mcp(roo_dir, contextbase_url)
     assert roo_dir.is_dir()
 
 
@@ -89,23 +89,23 @@ def test_fresh_install_creates_roo_dir(tmp_project: Path, hindsight_url: str) ->
 # ---------------------------------------------------------------------------
 
 
-def test_merge_preserves_existing_servers(project_with_existing_mcp: Path, hindsight_url: str) -> None:
+def test_merge_preserves_existing_servers(project_with_existing_mcp: Path, contextbase_url: str) -> None:
     roo_dir = project_with_existing_mcp / ".roo"
-    install_mcp(roo_dir, hindsight_url)
+    install_mcp(roo_dir, contextbase_url)
 
     data = json.loads((roo_dir / "mcp.json").read_text())
     # Both servers present
     assert "other-server" in data["mcpServers"]
-    assert "hindsight" in data["mcpServers"]
+    assert "contextbase" in data["mcpServers"]
 
 
-def test_merge_does_not_duplicate(project_with_existing_mcp: Path, hindsight_url: str) -> None:
+def test_merge_does_not_duplicate(project_with_existing_mcp: Path, contextbase_url: str) -> None:
     roo_dir = project_with_existing_mcp / ".roo"
-    install_mcp(roo_dir, hindsight_url)
-    install_mcp(roo_dir, hindsight_url)  # second call
+    install_mcp(roo_dir, contextbase_url)
+    install_mcp(roo_dir, contextbase_url)  # second call
 
     data = json.loads((roo_dir / "mcp.json").read_text())
-    assert list(data["mcpServers"].keys()).count("hindsight") == 1
+    assert list(data["mcpServers"].keys()).count("contextbase") == 1
 
 
 # ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ def test_custom_api_url_written_to_mcp(tmp_project: Path) -> None:
     install_mcp(roo_dir, "https://my-hindsight.example.com")
 
     data = json.loads((roo_dir / "mcp.json").read_text())
-    assert data["mcpServers"]["hindsight"]["url"] == "https://my-hindsight.example.com/mcp"
+    assert data["mcpServers"]["contextbase"]["url"] == "https://my-hindsight.example.com/mcp"
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ def test_install_rules_creates_file(tmp_project: Path) -> None:
     roo_dir = tmp_project / ".roo"
     install_rules(roo_dir)
 
-    rules_path = roo_dir / "rules" / "hindsight-memory.md"
+    rules_path = roo_dir / "rules" / "contextbase-memory.md"
     assert rules_path.exists()
     assert rules_path.stat().st_size > 0
 
@@ -145,4 +145,4 @@ def test_install_rules_idempotent(tmp_project: Path) -> None:
     roo_dir = tmp_project / ".roo"
     install_rules(roo_dir)
     install_rules(roo_dir)  # should not raise
-    assert (roo_dir / "rules" / "hindsight-memory.md").exists()
+    assert (roo_dir / "rules" / "contextbase-memory.md").exists()

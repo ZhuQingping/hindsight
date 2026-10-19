@@ -15,12 +15,12 @@ function formatMemories(results: RecallResult[], heading: string): string {
 }
 
 /**
- * Builds the recall provider. On every turn it queries Hindsight with the
+ * Builds the recall provider. On every turn it queries ContextBase with the
  * incoming message text and injects the relevant memories into the agent's
  * prompt context. Recall failures are swallowed so a memory-service outage
  * never blocks the agent from responding.
  */
-export function createHindsightProvider(
+export function createContextBaseProvider(
   client: HindsightClient,
   bank: BankResolver | undefined,
   options: RecallOptions = {}
@@ -28,9 +28,9 @@ export function createHindsightProvider(
   const heading = options.heading ?? DEFAULT_HEADING;
 
   return {
-    name: "HINDSIGHT_MEMORY",
+    name: "CONTEXTBASE_MEMORY",
     description:
-      "Long-term memories recalled from Hindsight that are relevant to the current message.",
+      "Long-term memories recalled from ContextBase that are relevant to the current message.",
     dynamic: false,
     get: async (_runtime, message) => {
       const query = message.content?.text?.trim();
@@ -49,14 +49,14 @@ export function createHindsightProvider(
         const text = formatMemories(results, heading);
         return {
           text,
-          values: { hindsightMemoryCount: results.length },
-          data: { hindsight: response },
+          values: { contextbaseMemoryCount: results.length },
+          data: { contextbase: response },
         };
       } catch (error) {
         return {
           text: "",
-          values: { hindsightMemoryCount: 0 },
-          data: { hindsightError: error instanceof Error ? error.message : String(error) },
+          values: { contextbaseMemoryCount: 0 },
+          data: { contextbaseError: error instanceof Error ? error.message : String(error) },
         };
       }
     },

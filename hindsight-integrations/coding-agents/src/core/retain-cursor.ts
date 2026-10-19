@@ -55,7 +55,7 @@ export interface PendingAppend {
 }
 
 /** A buffered append is only replayable while the server still holds the operation it would collapse
- *  into. Operations are kept forever by default (`AGENTSTRATUM_API_OPERATION_RETENTION_DAYS=0`), but an
+ *  into. Operations are kept forever by default (`CONTEXTBASE_API_OPERATION_RETENTION_DAYS=0`), but an
  *  operator can prune them, and a replay after that prune would append the same turns a second time
  *  — so buffered bytes expire well inside any retention an operator would plausibly configure. */
 export const PENDING_MAX_AGE_MS = 12 * 60 * 60 * 1000;

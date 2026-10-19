@@ -1,4 +1,4 @@
-"""Tests for lib/client.py — Hindsight REST API client."""
+"""Tests for lib/client.py — ContextBase REST API client."""
 
 from unittest.mock import patch
 
@@ -26,4 +26,4 @@ class TestUserAgentHeader:
             c.recall("bank", "query")
 
         assert captured["ua"] == USER_AGENT
-        assert captured["ua"].startswith("hindsight-codex/")
+        assert captured["ua"].startswith("contextbase-codex/")

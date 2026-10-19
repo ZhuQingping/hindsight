@@ -22,21 +22,21 @@ class TestLoadConfig:
 
     def test_env_overrides_bool(self, monkeypatch):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_AUTO_RECALL", "false")
+        monkeypatch.setenv("CONTEXTBASE_AUTO_RECALL", "false")
         config = load_config()
         assert config["autoRecall"] is False
 
     def test_env_overrides_int(self, monkeypatch):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_RECALL_MAX_TOKENS", "2048")
+        monkeypatch.setenv("CONTEXTBASE_RECALL_MAX_TOKENS", "2048")
         config = load_config()
         assert config["recallMaxTokens"] == 2048
 
     def test_env_overrides_string(self, monkeypatch):
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_API_URL", "http://example.com")
+        monkeypatch.setenv("CONTEXTBASE_API_URL", "http://example.com")
         config = load_config()
-        assert config["hindsightApiUrl"] == "http://example.com"
+        assert config["contextbaseApiUrl"] == "http://example.com"
 
     def test_settings_file_loaded(self, monkeypatch, tmp_path):
         settings = {"bankId": "test-bank", "debug": True}
@@ -58,7 +58,7 @@ class TestLoadConfig:
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", str(plugin_dir))
 
         # User config
-        user_dir = tmp_path / "home" / ".hindsight"
+        user_dir = tmp_path / "home" / ".contextbase"
         user_dir.mkdir(parents=True)
         user_config = {"bankId": "user-bank"}
         (user_dir / "cursor.json").write_text(json.dumps(user_config))
@@ -68,12 +68,12 @@ class TestLoadConfig:
         assert config["bankId"] == "user-bank"
 
     def test_env_overrides_user_config(self, monkeypatch, tmp_path):
-        user_dir = tmp_path / "home" / ".hindsight"
+        user_dir = tmp_path / "home" / ".contextbase"
         user_dir.mkdir(parents=True)
         (user_dir / "cursor.json").write_text(json.dumps({"bankId": "user-bank"}))
         monkeypatch.setenv("HOME", str(tmp_path / "home"))
         monkeypatch.setenv("CURSOR_PLUGIN_ROOT", "/nonexistent")
-        monkeypatch.setenv("HINDSIGHT_BANK_ID", "env-bank")
+        monkeypatch.setenv("CONTEXTBASE_BANK_ID", "env-bank")
 
         config = load_config()
         assert config["bankId"] == "env-bank"

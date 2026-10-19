@@ -1,9 +1,9 @@
-"""End-to-end tests for the Hindsight-LlamaIndex integration.
+"""End-to-end tests for the ContextBase-LlamaIndex integration.
 
-Exercises the retain/recall/reflect tools and the ``HindsightMemory`` adapter
-against a live Hindsight server. The integration talks to Hindsight directly
-(the server's LLM does fact extraction), so only a running Hindsight instance
-is required — no provider key. Set ``HINDSIGHT_API_URL`` to enable.
+Exercises the retain/recall/reflect tools and the ``ContextBaseMemory`` adapter
+against a live ContextBase server. The integration talks to ContextBase directly
+(the server's LLM does fact extraction), so only a running ContextBase instance
+is required — no provider key. Set ``CONTEXTBASE_API_URL`` to enable.
 
 The whole module is the real-LLM bucket (``requires_real_llm``).
 """
@@ -20,26 +20,26 @@ import uuid
 import pytest
 from hindsight_client import Hindsight
 
-from hindsight_llamaindex import HindsightMemory, create_hindsight_tools
+from contextbase_llamaindex import ContextBaseMemory, create_contextbase_tools
 
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 _NO_MEMORIES = "No relevant memories found."
 
 
-def _hindsight_available() -> bool:
+def _contextbase_available() -> bool:
     try:
-        with urllib.request.urlopen(f"{HINDSIGHT_API_URL}/health", timeout=3) as r:
+        with urllib.request.urlopen(f"{CONTEXTBASE_API_URL}/health", timeout=3) as r:
             return r.status == 200
     except Exception:
         return False
 
 
-requires_hindsight = pytest.mark.skipif(
-    not _hindsight_available(),
-    reason=f"Hindsight not reachable at {HINDSIGHT_API_URL}",
+requires_contextbase = pytest.mark.skipif(
+    not _contextbase_available(),
+    reason=f"ContextBase not reachable at {CONTEXTBASE_API_URL}",
 )
 
-pytestmark = [requires_hindsight, pytest.mark.requires_real_llm]
+pytestmark = [requires_contextbase, pytest.mark.requires_real_llm]
 
 
 def _tool(tools, name):
@@ -60,7 +60,7 @@ def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=HINDSIGHT_API_URL)
+    client = Hindsight(base_url=CONTEXTBASE_API_URL)
     bank_id = f"llamaindex-e2e-{uuid.uuid4().hex[:8]}"
     client.create_bank(bank_id, name=f"LlamaIndex E2E {bank_id}")
     try:
@@ -78,7 +78,7 @@ def live():
 class TestE2ETools:
     def test_retain_and_recall_roundtrip(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
         retain, recall = _tool(tools, "retain_memory"), _tool(tools, "recall_memory")
 
         result = str(retain.call(content="The team uses PostgreSQL 16 and deploys to us-east-1."))
@@ -92,7 +92,7 @@ class TestE2ETools:
 
     def test_reflect_synthesizes_from_memory(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client)
         retain = _tool(tools, "retain_memory")
         recall = _tool(tools, "recall_memory")
         reflect = _tool(tools, "reflect_on_memory")
@@ -109,17 +109,17 @@ class TestE2ETools:
 
     def test_recall_empty_bank(self, live):
         client, bank_id = live
-        tools = create_hindsight_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
+        tools = create_contextbase_tools(bank_id=bank_id, client=client, include_retain=False, include_reflect=False)
         result = str(_tool(tools, "recall_memory").call(query="anything at all"))
         assert result == _NO_MEMORIES
 
 
-class TestE2EHindsightMemory:
+class TestE2EContextBaseMemory:
     def test_put_and_get_roundtrip(self, live):
         from llama_index.core.llms import ChatMessage, MessageRole
 
         client, bank_id = live
-        memory = HindsightMemory(bank_id=bank_id, client=client, chat_history_limit=10)
+        memory = ContextBaseMemory(bank_id=bank_id, client=client, chat_history_limit=10)
 
         memory.put(
             ChatMessage(
@@ -127,7 +127,7 @@ class TestE2EHindsightMemory:
                 content="My favourite database is PostgreSQL 16 for the new platform.",
             )
         )
-        # Allow fact extraction to surface; aget queries Hindsight via recall.
+        # Allow fact extraction to surface; aget queries ContextBase via recall.
         last = None
         for _ in range(12):
             last = memory.aget(input="favourite database")
@@ -137,4 +137,4 @@ class TestE2EHindsightMemory:
             if "postgresql" in joined:
                 return
             time.sleep(1.0)
-        pytest.fail("HindsightMemory.aget never surfaced the retained PostgreSQL fact after ~12s")
+        pytest.fail("ContextBaseMemory.aget never surfaced the retained PostgreSQL fact after ~12s")

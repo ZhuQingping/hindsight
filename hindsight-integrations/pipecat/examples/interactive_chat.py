@@ -1,4 +1,4 @@
-"""Interactive text chat — test HindsightMemoryService by hand.
+"""Interactive text chat — test ContextBaseMemoryService by hand.
 
 Simulates the Pipecat pipeline at text level so you can have a real conversation
 and watch memory recall/retain happen in real time.
@@ -6,18 +6,18 @@ and watch memory recall/retain happen in real time.
 Usage:
     export OPENAI_API_KEY=sk-...           # optional; falls back to fake assistant
     python examples/interactive_chat.py --bank demo-$USER
-    python examples/interactive_chat.py --bank demo-$USER --hindsight-url http://localhost:8888
+    python examples/interactive_chat.py --bank demo-$USER --contextbase-url http://localhost:8888
 
 Each turn shows:
-  [RECALL]  — what Hindsight returned for the current user query
-  [INJECT]  — the <hindsight_memories> system message added to the LLM context
+  [RECALL]  — what ContextBase returned for the current user query
+  [INJECT]  — the <contextbase_memories> system message added to the LLM context
   [LLM]     — the assistant's response (OpenAI or manual)
-  [RETAIN]  — complete user+assistant turn sent to Hindsight
+  [RETAIN]  — complete user+assistant turn sent to ContextBase
 
 Commands:
   :quit / :q    — exit
   :memories     — dump all memories in the bank
-  :reset        — clear context (keeps the Hindsight bank)
+  :reset        — clear context (keeps the ContextBase bank)
   :bank         — show current bank id
 """
 
@@ -34,8 +34,8 @@ from unittest.mock import MagicMock
 # Ensure package is importable when run directly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from hindsight_pipecat import HindsightMemoryService
-from hindsight_pipecat.memory import _MEMORY_MARKER
+from contextbase_pipecat import ContextBaseMemoryService
+from contextbase_pipecat.memory import _MEMORY_MARKER
 
 BLUE = "\033[94m"
 GREEN = "\033[92m"
@@ -60,7 +60,7 @@ def _make_frame(messages: list[dict]) -> MagicMock:
     return frame
 
 
-async def _run_turn(service: HindsightMemoryService, messages: list[dict]) -> list[dict]:
+async def _run_turn(service: ContextBaseMemoryService, messages: list[dict]) -> list[dict]:
     """Send messages through the memory service; return possibly-mutated list."""
     frame = _make_frame(messages)
     service.push_frame = MagicMock(return_value=asyncio.sleep(0))
@@ -109,18 +109,18 @@ def dump_memories(url: str, bank: str, api_key: str | None) -> None:
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bank", default=f"demo-{os.environ.get('USER', 'anon')}")
-    parser.add_argument("--hindsight-url", default=os.environ.get("HINDSIGHT_API_URL", "http://localhost:8888"))
-    parser.add_argument("--hindsight-api-key", default=os.environ.get("HINDSIGHT_API_KEY"))
+    parser.add_argument("--contextbase-url", default=os.environ.get("CONTEXTBASE_API_URL", "http://localhost:8888"))
+    parser.add_argument("--contextbase-api-key", default=os.environ.get("CONTEXTBASE_API_KEY"))
     parser.add_argument(
         "--system-prompt",
         default="You are a friendly voice assistant with long-term memory. Use memories naturally; don't dump them verbatim. Keep responses concise.",
     )
     args = parser.parse_args()
 
-    service = HindsightMemoryService(
+    service = ContextBaseMemoryService(
         bank_id=args.bank,
-        hindsight_api_url=args.hindsight_url,
-        api_key=args.hindsight_api_key,
+        contextbase_api_url=args.contextbase_url,
+        api_key=args.contextbase_api_key,
     )
 
     messages: list[dict] = [{"role": "system", "content": args.system_prompt}]
@@ -128,9 +128,9 @@ async def main() -> None:
     use_openai = get_openai_response([{"role": "user", "content": "ping"}]) is not None
     llm_mode = "OpenAI" if use_openai else "manual (no OPENAI_API_KEY)"
 
-    print(f"\n{GREEN}=== Pipecat + Hindsight Interactive Chat ==={RESET}")
+    print(f"\n{GREEN}=== Pipecat + ContextBase Interactive Chat ==={RESET}")
     print(f"Bank:        {args.bank}")
-    print(f"Hindsight:   {args.hindsight_url}")
+    print(f"ContextBase:   {args.contextbase_url}")
     print(f"LLM mode:    {llm_mode}")
     print(f"System:      {args.system_prompt[:80]}...")
     print(f"\nType a message. Commands: {DIM}:quit  :memories  :reset  :bank{RESET}\n")
@@ -148,12 +148,12 @@ async def main() -> None:
         if user_input in (":quit", ":q", ":exit"):
             break
         if user_input == ":memories":
-            dump_memories(args.hindsight_url, args.bank, args.hindsight_api_key)
+            dump_memories(args.contextbase_url, args.bank, args.contextbase_api_key)
             continue
         if user_input == ":reset":
             messages = [{"role": "system", "content": args.system_prompt}]
             service._last_retained_count = 0
-            print(f"{YELLOW}Context reset (Hindsight bank untouched){RESET}")
+            print(f"{YELLOW}Context reset (ContextBase bank untouched){RESET}")
             continue
         if user_input == ":bank":
             print(f"{YELLOW}bank: {args.bank}{RESET}")
@@ -177,7 +177,7 @@ async def main() -> None:
             banner("RECALL+INJECT", CYAN)
             content = memory_msg["content"]
             # Show just the memories, not the XML wrapper
-            inner = content.replace(_MEMORY_MARKER, "").replace("</hindsight_memories>", "").strip()
+            inner = content.replace(_MEMORY_MARKER, "").replace("</contextbase_memories>", "").strip()
             print(inner[:500] + ("..." if len(inner) > 500 else ""))
         else:
             banner("RECALL", DIM)
@@ -208,7 +208,7 @@ async def main() -> None:
         await _run_turn(service, messages)
         print(f"{DIM}Waiting 5s for async retain + fact extraction...{RESET}")
         await asyncio.sleep(5)
-        dump_memories(args.hindsight_url, args.bank, args.hindsight_api_key)
+        dump_memories(args.contextbase_url, args.bank, args.contextbase_api_key)
 
 
 if __name__ == "__main__":

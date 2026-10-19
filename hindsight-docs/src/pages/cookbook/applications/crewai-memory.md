@@ -2,11 +2,11 @@
 sidebar_position: 6
 ---
 
-# CrewAI + Hindsight Memory
+# CrewAI + ContextBase Memory
 
 
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/crewai-memory)
 :::
 
@@ -15,25 +15,25 @@ Give your CrewAI crews persistent long-term memory. Run a crew multiple times an
 
 ## What This Demonstrates
 
-- **Drop-in memory backend** for CrewAI via `hindsight-crewai`
+- **Drop-in memory backend** for CrewAI via `contextbase-crewai`
 - **Persistent memory across runs** - crews remember previous research
 - **Reflect tool** - agents explicitly reason over past memories
-- **Bank missions** - guide how Hindsight organizes memories
+- **Bank missions** - guide how ContextBase organizes memories
 
 ## Architecture
 
 ```
 Run 1: "Research Rust benefits"
     │
-    ├─ Researcher agent ──► Hindsight reflect (no prior memories)
+    ├─ Researcher agent ──► ContextBase reflect (no prior memories)
     │                        ──► produces research findings
     ├─ Writer agent ────────► summarizes findings
     │
-    └─ CrewAI auto-stores task outputs to Hindsight
+    └─ CrewAI auto-stores task outputs to ContextBase
                     │
 Run 2: "Compare Rust with Go"
     │
-    ├─ Researcher agent ──► Hindsight reflect (recalls Rust research!)
+    ├─ Researcher agent ──► ContextBase reflect (recalls Rust research!)
     │                        ──► builds on prior knowledge
     ├─ Writer agent ────────► writes comparative summary
     │
@@ -42,16 +42,18 @@ Run 2: "Compare Rust with Go"
 
 ## Prerequisites
 
-1. **Hindsight running**
+1. **ContextBase running**
 
    ```bash
    export OPENAI_API_KEY=your-key
 
-   docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-     -e HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY \
-     -e HINDSIGHT_API_LLM_MODEL=o3-mini \
-     -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-     ghcr.io/vectorize-io/hindsight:latest
+   docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+     -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
+     -e CONTEXTBASE_API_LLM_MODEL=o3-mini \
+     -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+     contextbase:local
    ```
 
 2. **OpenAI API key** (for CrewAI's LLM)
@@ -67,8 +69,8 @@ Run 2: "Compare Rust with Go"
    pip install -r requirements.txt
    ```
 
-   > **Note:** `hindsight-crewai` is not on PyPI — it is installed directly from the
-   > [Hindsight repo](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/crewai) via git.
+   > **Note:** `contextbase-crewai` is not on PyPI — it is installed directly from the
+   > [ContextBase repo](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/crewai) via git.
 
 ## Quick Start
 
@@ -88,14 +90,14 @@ python research_crew.py --reset
 
 ## How It Works
 
-### 1. Configure Hindsight
+### 1. Configure ContextBase
 
 ```python
-from hindsight_crewai import configure, HindsightStorage
+from contextbase_crewai import configure, ContextBaseStorage
 
-configure(hindsight_api_url="http://localhost:8888", verbose=True)
+configure(contextbase_api_url="http://localhost:8888", verbose=True)
 
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="research-crew",
     mission="Track technology research findings, comparisons, and recommendations.",
 )
@@ -103,17 +105,17 @@ storage = HindsightStorage(
 
 ### 2. Add the Reflect Tool
 
-The `HindsightReflectTool` lets agents explicitly query their memories with disposition-aware synthesis:
+The `ContextBaseReflectTool` lets agents explicitly query their memories with disposition-aware synthesis:
 
 ```python
-from hindsight_crewai import HindsightReflectTool
+from contextbase_crewai import ContextBaseReflectTool
 
-reflect_tool = HindsightReflectTool(bank_id="research-crew", budget="mid")
+reflect_tool = ContextBaseReflectTool(bank_id="research-crew", budget="mid")
 
 researcher = Agent(
     role="Researcher",
     goal="Research topics thoroughly",
-    backstory="Always use hindsight_reflect to check what you already know.",
+    backstory="Always use contextbase_reflect to check what you already know.",
     tools=[reflect_tool],
 )
 ```
@@ -150,7 +152,7 @@ CrewAI automatically:
 Give each agent isolated memory:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     per_agent_banks=True,  # "my-crew-researcher", "my-crew-writer"
 )
@@ -161,7 +163,7 @@ storage = HindsightStorage(
 Full control over bank naming:
 
 ```python
-storage = HindsightStorage(
+storage = ContextBaseStorage(
     bank_id="my-crew",
     bank_resolver=lambda base, agent: f"{base}-{agent.lower()}" if agent else base,
 )
@@ -172,26 +174,26 @@ storage = HindsightStorage(
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `bank_id` | (required) | Memory bank identifier |
-| `mission` | `None` | Guide how Hindsight organizes memories |
+| `mission` | `None` | Guide how ContextBase organizes memories |
 | `budget` | `"mid"` | Recall budget: low/mid/high |
 | `max_tokens` | `4096` | Max tokens for recall results |
 | `per_agent_banks` | `False` | Isolate memory per agent |
 | `tags` | `None` | Tags applied when storing |
 | `verbose` | `False` | Enable logging |
 
-See the [hindsight-crewai documentation](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/crewai) for the full API reference.
+See the [contextbase-crewai documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/crewai) for the full API reference.
 
 ## Common Issues
 
 **"Connection refused"**
-- Make sure Hindsight is running on `localhost:8888`
+- Make sure ContextBase is running on `localhost:8888`
 
 **"OPENAI_API_KEY not set"**
 ```bash
 export OPENAI_API_KEY=your-key
 ```
 
-**"No module named 'hindsight_crewai'"**
+**"No module named 'contextbase_crewai'"**
 ```bash
 pip install -r requirements.txt
 ```
@@ -200,5 +202,5 @@ pip install -r requirements.txt
 
 **Built with:**
 - [CrewAI](https://crewai.com) - Multi-agent orchestration
-- [hindsight-crewai](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/crewai) - Hindsight storage backend for CrewAI
-- [Hindsight](https://github.com/vectorize-io/hindsight) - Long-term memory for AI agents
+- [contextbase-crewai](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/crewai) - ContextBase storage backend for CrewAI
+- [ContextBase](https://github.com/RSIXDB/hindsight) - Long-term memory for AI agents

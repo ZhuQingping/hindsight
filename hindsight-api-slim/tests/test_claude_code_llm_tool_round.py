@@ -144,7 +144,7 @@ async def test_tool_call_returned_despite_error_max_turns(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_1",
-                        name="mcp__agentstratum_tools__recall",
+                        name="mcp__contextbase_tools__recall",
                         input={"query": "domain family repositories"},
                     )
                 ]
@@ -203,7 +203,7 @@ async def test_stops_after_first_tool_round(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_1",
-                        name="mcp__agentstratum_tools__recall",
+                        name="mcp__contextbase_tools__recall",
                         input={"query": "first"},
                     )
                 ]
@@ -215,7 +215,7 @@ async def test_stops_after_first_tool_round(monkeypatch):
                 content=[
                     _FakeToolUseBlock(
                         id="tu_2",
-                        name="mcp__agentstratum_tools__recall",
+                        name="mcp__contextbase_tools__recall",
                         input={"query": "reworded"},
                     )
                 ]
@@ -373,7 +373,7 @@ async def test_successful_tool_round_records_a_trace_span(monkeypatch):
 
         async def receive_response(self):
             yield _FakeAssistantMessage(
-                content=[_FakeToolUseBlock(id="tu_1", name="mcp__agentstratum_tools__recall", input={"query": "q"})]
+                content=[_FakeToolUseBlock(id="tu_1", name="mcp__contextbase_tools__recall", input={"query": "q"})]
             )
             yield _FakeResultMessage(subtype="error_max_turns", is_error=True, result=None)
 

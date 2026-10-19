@@ -1,21 +1,21 @@
 ---
 sidebar_position: 21
-title: "ContextForge MCP Gateway with Hindsight | Integration"
-description: "Register Hindsight as an MCP backend in IBM ContextForge gateway. Gives every connected AI tool — Dust, Claude Desktop, custom agents — access to long-term memory through a unified MCP hub."
+title: "ContextForge MCP Gateway with ContextBase | Integration"
+description: "Register ContextBase as an MCP backend in IBM ContextForge gateway. Gives every connected AI tool — Dust, Claude Desktop, custom agents — access to long-term memory through a unified MCP hub."
 ---
 
 # ContextForge
 
-Register [Hindsight](https://vectorize.io/hindsight) as an MCP backend in [IBM ContextForge](https://github.com/IBM/mcp-context-forge), an open-source MCP gateway. Once registered, every AI tool connected to ContextForge — Dust, Claude Desktop, custom agents — gets access to Hindsight's retain, recall, and reflect tools through a single unified endpoint.
+Register [ContextBase](https://github.com/RSIXDB/hindsight) as an MCP backend in [IBM ContextForge](https://github.com/IBM/mcp-context-forge), an open-source MCP gateway. Once registered, every AI tool connected to ContextForge — Dust, Claude Desktop, custom agents — gets access to ContextBase's retain, recall, and reflect tools through a single unified endpoint.
 
-## Why ContextForge + Hindsight?
+## Why ContextForge + ContextBase?
 
-ContextForge acts as a central MCP hub that aggregates multiple MCP servers behind one authenticated endpoint. Adding Hindsight as a backend means:
+ContextForge acts as a central MCP hub that aggregates multiple MCP servers behind one authenticated endpoint. Adding ContextBase as a backend means:
 
-- **One endpoint, many tools** — AI platforms connect to ContextForge once and get access to Hindsight memory alongside your other MCP servers (databases, workflows, metadata catalogs)
-- **Centralized auth** — ContextForge handles SSO, RBAC, and JWT-based authentication; no need to expose Hindsight directly
+- **One endpoint, many tools** — AI platforms connect to ContextForge once and get access to ContextBase memory alongside your other MCP servers (databases, workflows, metadata catalogs)
+- **Centralized auth** — ContextForge handles SSO, RBAC, and JWT-based authentication; no need to expose ContextBase directly
 - **Team-scoped memory** — Use ContextForge's team/visibility model to control which teams can access which memory banks
-- **No code changes** — Hindsight's built-in MCP endpoint (`/mcp`) speaks standard Streamable HTTP; ContextForge connects to it natively
+- **No code changes** — ContextBase's built-in MCP endpoint (`/mcp`) speaks standard Streamable HTTP; ContextForge connects to it natively
 
 ## Architecture
 
@@ -30,13 +30,13 @@ AI Tools (Dust, Claude Desktop, custom agents)
            │  Streamable HTTP
      ┌─────┴──────┬──────────────┐
      ▼            ▼              ▼
- Hindsight    PostgreSQL     OpenMetadata
+ ContextBase    PostgreSQL     OpenMetadata
  (memory)     MCP (SQL)      (metadata)
 ```
 
 ## Prerequisites
 
-- A running Hindsight instance (Docker, Helm, or Cloud)
+- A running ContextBase instance (Docker, Helm, or Cloud)
 - A running ContextForge instance
 - Network connectivity between ContextForge and Hindsight (same Kubernetes cluster, VPC, or public URL)
 
@@ -47,8 +47,8 @@ AI Tools (Dust, Claude Desktop, custom agents)
 1. Log in to ContextForge as an admin
 2. Navigate to **Servers** → **Add Server**
 3. Fill in:
-   - **Name**: `hindsight`
-   - **URL**: `http://<hindsight-host>:8888/mcp` (or your Hindsight API URL + `/mcp`)
+   - **Name**: `contextbase`
+   - **URL**: `http://<contextbase-host>:8888/mcp` (or your ContextBase API URL + `/mcp`)
    - **Transport**: Streamable HTTP
 4. Click **Save**
 
@@ -61,21 +61,21 @@ TOKEN=$(curl -s -X POST https://your-contextforge.com/auth/login \
   -d '{"email": "admin@example.com", "password": "your-password"}' \
   | jq -r '.access_token')
 
-# Register Hindsight as an MCP server
+# Register ContextBase as an MCP server
 curl -X POST https://your-contextforge.com/admin/servers \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "hindsight",
+    "name": "contextbase",
     "url": "http://hindsight-api:8888/mcp",
     "transport": "streamable_http",
-    "description": "Hindsight agent memory — retain, recall, and reflect"
+    "description": "ContextBase agent memory — retain, recall, and reflect"
   }'
 ```
 
 ### Option 3: Kubernetes (Helm)
 
-If both services run in the same EKS/Kubernetes cluster, Hindsight is reachable at its in-cluster service DNS:
+If both services run in the same EKS/Kubernetes cluster, ContextBase is reachable at its in-cluster service DNS:
 
 ```
 http://hindsight-api.hindsight.svc.cluster.local:8888/mcp
@@ -87,7 +87,7 @@ For automated registration on every Helm deploy, add a post-install Job to your 
 
 ## Verifying the Integration
 
-Once registered, verify Hindsight tools are available through ContextForge:
+Once registered, verify ContextBase tools are available through ContextForge:
 
 ```bash
 # List tools via ContextForge's MCP endpoint
@@ -95,14 +95,14 @@ curl -s -X POST https://your-contextforge.com/mcp \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' \
-  | jq '.result[] | select(.name | startswith("hindsight"))'
+  | jq '.result[] | select(.name | startswith("contextbase"))'
 ```
 
-You should see Hindsight's tools: `retain`, `recall`, `reflect`, `list_banks`, etc.
+You should see ContextBase's tools: `retain`, `recall`, `reflect`, `list_banks`, etc.
 
 ## Bank Modes
 
-Hindsight's MCP endpoint supports two modes. Choose based on your use case:
+ContextBase's MCP endpoint supports two modes. Choose based on your use case:
 
 ### Multi-bank mode (default)
 
@@ -126,7 +126,7 @@ Tools are scoped to that bank — no `bank_id` parameter needed. Useful when you
 
 ## Available Tools
 
-Once registered, these Hindsight tools become available through ContextForge:
+Once registered, these ContextBase tools become available through ContextForge:
 
 | Tool | Description |
 |------|-------------|
@@ -139,17 +139,17 @@ Once registered, these Hindsight tools become available through ContextForge:
 | `create_mental_model` | Create a new mental model |
 | `list_documents` | List ingested documents |
 
-See the full tool list in the [MCP Server reference](https://hindsight.vectorize.io/developer/mcp-server#available-tools).
+See the full tool list in the [MCP Server reference](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs).
 
 ## Helm Auto-Registration
 
-To automatically register Hindsight in ContextForge on every Helm deploy, add a post-install/post-upgrade Job to your ContextForge chart:
+To automatically register ContextBase in ContextForge on every Helm deploy, add a post-install/post-upgrade Job to your ContextForge chart:
 
 ```yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: register-hindsight-{{ .Release.Revision }}
+  name: register-contextbase-{{ .Release.Revision }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "5"
@@ -181,10 +181,10 @@ spec:
                 -H "Authorization: Bearer $TOKEN" \
                 -H "Content-Type: application/json" \
                 -d '{
-                  "name": "hindsight",
+                  "name": "contextbase",
                   "url": "http://hindsight-api.hindsight.svc.cluster.local:8888/mcp",
                   "transport": "streamable_http",
-                  "description": "Hindsight agent memory"
+                  "description": "ContextBase agent memory"
                 }'
           env:
             - name: ADMIN_USER
@@ -201,14 +201,14 @@ spec:
 
 ## Connecting AI Tools via ContextForge
 
-Once Hindsight is registered in ContextForge, AI tools connect to ContextForge's unified endpoint — not directly to Hindsight.
+Once ContextBase is registered in ContextForge, AI tools connect to ContextForge's unified endpoint — not directly to ContextBase.
 
 ### Dust
 
 1. In Dust → **Spaces → Tools → Add MCP Server**
 2. URL: `https://your-contextforge.com/mcp`
 3. Auth: Bearer token (ContextForge JWT or MCP client token)
-4. Hindsight tools appear alongside all other registered MCP servers
+4. ContextBase tools appear alongside all other registered MCP servers
 
 ### Claude Desktop
 
@@ -229,29 +229,29 @@ Add to your MCP config:
 
 ## Troubleshooting
 
-### Hindsight tools not appearing
+### ContextBase tools not appearing
 
 Verify the server is registered and healthy:
 
 ```bash
 # Check registered servers
 curl -s https://your-contextforge.com/admin/servers \
-  -H "Authorization: Bearer $TOKEN" | jq '.[] | select(.name == "hindsight")'
+  -H "Authorization: Bearer $TOKEN" | jq '.[] | select(.name == "contextbase")'
 
-# Test Hindsight directly
+# Test ContextBase directly
 curl -s http://hindsight-api:8888/health
 ```
 
 ### Connection refused from ContextForge
 
-If ContextForge can't reach Hindsight:
+If ContextForge can't reach ContextBase:
 - Verify network connectivity (same namespace/VPC, NetworkPolicy allows traffic)
-- Check the registered URL matches the actual Hindsight service endpoint
+- Check the registered URL matches the actual ContextBase service endpoint
 - Ensure `SSRF_ALLOW_PRIVATE_NETWORKS=true` is set in ContextForge (required for in-cluster backends)
 
 ### Auth errors
 
-ContextForge authenticates users at the gateway level. Hindsight's MCP endpoint doesn't require separate auth when accessed from within the cluster. If you've enabled `MCP_AUTH_TOKEN` on Hindsight, pass it via ContextForge's header passthrough:
+ContextForge authenticates users at the gateway level. ContextBase's MCP endpoint doesn't require separate auth when accessed from within the cluster. If you've enabled `MCP_AUTH_TOKEN` on ContextBase, pass it via ContextForge's header passthrough:
 
 ```bash
 # Ensure ContextForge forwards Authorization headers

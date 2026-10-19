@@ -1422,7 +1422,7 @@ export function Constellation({
     return () => clearTimeout(timer);
   }, [isFullscreen]);
 
-  // Hindsight logo, fetched once and cached as a base64 data URL so the
+  // ContextBase logo, fetched once and cached as a base64 data URL so the
   // exported SVG can inline it and stay self-contained when shared.
   const logoDataUrlRef = useRef<string | null>(null);
   useEffect(() => {
@@ -1440,7 +1440,7 @@ export function Constellation({
   // ----- SVG export (shareable, branded poster of the whole graph) -----
   // Independent of the live camera: fits every node into a fixed high-res
   // poster on a dark "night sky" — soft bottom glow, plus-grid, glowing node
-  // bubbles and the Hindsight logo top-left. No labels/legends/footer, so the
+  // bubbles and the ContextBase logo top-left. No labels/legends/footer, so the
   // graph itself is the hero. Hover dimming is omitted; every node shines.
   const buildSvgString = useCallback(
     (logoDataUrl: string | null): string => {
@@ -1562,7 +1562,7 @@ export function Constellation({
       parts.push(`<g>${haloParts.join("")}</g>`);
       parts.push(`<g>${nodeParts.join("")}</g>`);
 
-      // --- Edge vignette to sink the corners, then the Hindsight logo ---
+      // --- Edge vignette to sink the corners, then the ContextBase logo ---
       parts.push(`<rect width="${W}" height="${H}" fill="url(#hs-vignette)"/>`);
       if (logoDataUrl) {
         const logoW = 190;
@@ -1593,7 +1593,7 @@ export function Constellation({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "hindsight-constellation.svg";
+    link.download = "contextbase-constellation.svg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

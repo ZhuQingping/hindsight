@@ -1,4 +1,4 @@
-"""Hindsight Reflect tool — synthesized answer over a memory bank."""
+"""ContextBase Reflect tool — synthesized answer over a memory bank."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ class ReflectTool(Tool):
         try:
             response = client.reflect(bank_id=bank_id, query=query, budget=budget)
         except Exception as e:
-            yield self.create_text_message(f"Hindsight reflect failed: {e}")
+            yield self.create_text_message(f"ContextBase reflect failed: {e}")
             return
 
         text = getattr(response, "text", "") or ""

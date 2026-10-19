@@ -1,7 +1,7 @@
 {
-  "name": "agentstratum-local-engine",
+  "name": "contextbase-local-engine",
   "version": "1.0.0",
-  "description": "Local agentstratum engine lifecycle manager",
+  "description": "Local contextbase engine lifecycle manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -12,7 +12,7 @@
     }
   },
   "keywords": [
-    "agentstratum",
+    "contextbase",
     "local-engine",
     "memory"
   ],

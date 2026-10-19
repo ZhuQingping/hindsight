@@ -1,16 +1,16 @@
 """
-Hindsight LangGraph integration examples.
+ContextBase LangGraph integration examples.
 These snippets are embedded in the documentation via CodeSnippet.
 """
 
 # [docs:setup]
-from hindsight_langgraph import create_hindsight_tools
+from contextbase_langgraph import create_contextbase_tools
 
-# Uses the default API URL. Set HINDSIGHT_API_KEY env var to authenticate.
-tools = create_hindsight_tools(bank_id="user-123")
+# Uses the default API URL. Set CONTEXTBASE_API_KEY env var to authenticate.
+tools = create_contextbase_tools(bank_id="user-123")
 
 # To connect to a self-hosted instance, pass the URL explicitly:
-# tools = create_hindsight_tools(bank_id="user-123", hindsight_api_url="http://localhost:8888")
+# tools = create_contextbase_tools(bank_id="user-123", contextbase_api_url="http://localhost:8888")
 # [/docs:setup]
 
 # [docs:react-agent]
@@ -22,9 +22,9 @@ agent = create_react_agent(
     tools=tools,
     prompt=(
         "You are a helpful assistant with long-term memory. "
-        "Use hindsight_retain to store important facts about the user. "
-        "Use hindsight_recall to search your memory before answering. "
-        "Use hindsight_reflect for thoughtful summaries of what you know."
+        "Use contextbase_retain to store important facts about the user. "
+        "Use contextbase_recall to search your memory before answering. "
+        "Use contextbase_reflect for thoughtful summaries of what you know."
     ),
 )
 
@@ -34,7 +34,7 @@ result = await agent.ainvoke(
 # [/docs:react-agent]
 
 # [docs:memory-nodes]
-from hindsight_langgraph import create_recall_node, create_retain_node
+from contextbase_langgraph import create_recall_node, create_retain_node
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, MessagesState, START, END
@@ -75,7 +75,7 @@ result = await graph.ainvoke(
 # [/docs:memory-nodes]
 
 # [docs:memory-instructions]
-from hindsight_langgraph import memory_instructions
+from contextbase_langgraph import memory_instructions
 
 get_instructions = memory_instructions(
     bank_id="user-123",
@@ -92,7 +92,7 @@ response = await ChatOpenAI(model="gpt-4o").ainvoke(
 # [/docs:memory-instructions]
 
 # [docs:constructor-options]
-tools = create_hindsight_tools(
+tools = create_contextbase_tools(
     bank_id="user-123",
     budget="high",
     max_tokens=2048,

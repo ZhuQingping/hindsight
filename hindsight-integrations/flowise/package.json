@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/flowise-nodes-hindsight",
+  "name": "@vectorize-io/flowise-nodes-contextbase",
   "version": "0.1.1",
-  "description": "Flowise tool nodes for Hindsight - persistent memory for any Flowise chatflow or agent",
+  "description": "Flowise tool nodes for ContextBase - persistent memory for any Flowise chatflow or agent",
   "license": "MIT",
   "homepage": "https://hindsight.vectorize.io",
   "author": {
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/flowise"
   },
   "scripts": {
@@ -22,7 +22,7 @@
   "keywords": [
     "flowise",
     "flowise-component",
-    "hindsight",
+    "contextbase",
     "memory",
     "ai",
     "agents",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bank Templates API examples for Hindsight.
+Bank Templates API examples for ContextBase.
 Run: python examples/api/bank-templates.py
 """
 import json
@@ -8,7 +8,7 @@ import os
 
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Doc Examples
@@ -40,7 +40,7 @@ template = {
 }
 
 response = requests.post(
-    f"{HINDSIGHT_URL}/v1/default/banks/my-bank/import",
+    f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/import",
     json=template,
 )
 result = response.json()
@@ -52,7 +52,7 @@ print(f"Directives created: {result['directives_created']}")
 
 # [docs:import-dry-run]
 response = requests.post(
-    f"{HINDSIGHT_URL}/v1/default/banks/my-bank/import",
+    f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/import",
     params={"dry_run": "true"},
     json=template,
 )
@@ -64,7 +64,7 @@ print(f"Would apply config: {result['config_applied']}")
 
 # [docs:export-template]
 response = requests.get(
-    f"{HINDSIGHT_URL}/v1/default/banks/my-bank/export"
+    f"{CONTEXTBASE_URL}/v1/default/banks/my-bank/export"
 )
 exported = response.json()
 print(json.dumps(exported, indent=2))
@@ -74,13 +74,13 @@ print(json.dumps(exported, indent=2))
 # [docs:export-reimport]
 # Export from source bank
 response = requests.get(
-    f"{HINDSIGHT_URL}/v1/default/banks/source-bank/export"
+    f"{CONTEXTBASE_URL}/v1/default/banks/source-bank/export"
 )
 exported = response.json()
 
 # Import into a new bank
 response = requests.post(
-    f"{HINDSIGHT_URL}/v1/default/banks/new-bank/import",
+    f"{CONTEXTBASE_URL}/v1/default/banks/new-bank/import",
     json=exported,
 )
 # [/docs:export-reimport]
@@ -88,7 +88,7 @@ response = requests.post(
 
 # [docs:get-schema]
 response = requests.get(
-    f"{HINDSIGHT_URL}/v1/bank-template-schema"
+    f"{CONTEXTBASE_URL}/v1/bank-template-schema"
 )
 schema = response.json()
 print(json.dumps(schema, indent=2))

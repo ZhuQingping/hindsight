@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { IExecuteFunctions, INodeExecutionData } from "n8n-workflow";
 
-import { Hindsight } from "../nodes/Hindsight/Hindsight.node";
+import { ContextBase } from "../nodes/ContextBase/ContextBase.node";
 
 const API_URL = "https://api.example.com";
 
@@ -25,7 +25,7 @@ function createMockExecuteFunctions(
       .mockImplementation((name: string, _index: number, fallback?: unknown) => {
         return params[name] ?? fallback;
       }),
-    getNode: vi.fn().mockReturnValue({ name: "Hindsight" }),
+    getNode: vi.fn().mockReturnValue({ name: "ContextBase" }),
     continueOnFail: vi.fn().mockReturnValue(false),
     helpers: {
       httpRequestWithAuthentication,
@@ -40,8 +40,8 @@ function getRequestMock(fns: IExecuteFunctions): ReturnType<typeof vi.fn> {
   ).helpers.httpRequestWithAuthentication;
 }
 
-describe("Hindsight node execute()", () => {
-  const node = new Hindsight();
+describe("ContextBase node execute()", () => {
+  const node = new ContextBase();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,7 +64,7 @@ describe("Hindsight node execute()", () => {
 
     const req = getRequestMock(mockFns);
     expect(req).toHaveBeenCalledTimes(1);
-    expect(req).toHaveBeenCalledWith("hindsightApi", {
+    expect(req).toHaveBeenCalledWith("contextbaseApi", {
       method: "POST",
       url: `${API_URL}/v1/default/banks/bank-1/memories`,
       body: { items: [{ content: "User prefers dark mode", tags: ["pref", "ui"] }] },
@@ -89,7 +89,7 @@ describe("Hindsight node execute()", () => {
     await node.execute.call(mockFns);
 
     const req = getRequestMock(mockFns);
-    expect(req).toHaveBeenCalledWith("hindsightApi", {
+    expect(req).toHaveBeenCalledWith("contextbaseApi", {
       method: "POST",
       url: `${API_URL}/v1/default/banks/bank-1/memories`,
       body: { items: [{ content: "Hello world" }] },
@@ -117,7 +117,7 @@ describe("Hindsight node execute()", () => {
     const result = await node.execute.call(mockFns);
 
     const req = getRequestMock(mockFns);
-    expect(req).toHaveBeenCalledWith("hindsightApi", {
+    expect(req).toHaveBeenCalledWith("contextbaseApi", {
       method: "POST",
       url: `${API_URL}/v1/default/banks/bank-1/memories/recall`,
       body: {
@@ -151,7 +151,7 @@ describe("Hindsight node execute()", () => {
     await node.execute.call(mockFns);
 
     const req = getRequestMock(mockFns);
-    expect(req).toHaveBeenCalledWith("hindsightApi", {
+    expect(req).toHaveBeenCalledWith("contextbaseApi", {
       method: "POST",
       url: `${API_URL}/v1/default/banks/bank-1/memories/recall`,
       body: {
@@ -182,7 +182,7 @@ describe("Hindsight node execute()", () => {
     const result = await node.execute.call(mockFns);
 
     const req = getRequestMock(mockFns);
-    expect(req).toHaveBeenCalledWith("hindsightApi", {
+    expect(req).toHaveBeenCalledWith("contextbaseApi", {
       method: "POST",
       url: `${API_URL}/v1/default/banks/bank-1/reflect`,
       body: {
@@ -248,7 +248,7 @@ describe("Hindsight node execute()", () => {
 
     const req = getRequestMock(mockFns);
     expect(req).toHaveBeenCalledWith(
-      "hindsightApi",
+      "contextbaseApi",
       expect.objectContaining({
         url: "http://localhost:8888/v1/default/banks/bank-1/memories",
       })

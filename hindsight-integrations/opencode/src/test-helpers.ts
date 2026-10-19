@@ -1,6 +1,6 @@
-import type { HindsightConfig } from "./config.js";
+import type { ContextBaseConfig } from "./config.js";
 
-export function makeConfig(overrides: Partial<HindsightConfig> = {}): HindsightConfig {
+export function makeConfig(overrides: Partial<ContextBaseConfig> = {}): ContextBaseConfig {
   return {
     autoRecall: true,
     recallBudget: "mid",
@@ -18,8 +18,8 @@ export function makeConfig(overrides: Partial<HindsightConfig> = {}): HindsightC
     retainContext: "opencode",
     retainTags: [],
     retainMetadata: {},
-    hindsightApiUrl: "https://api.hindsight.vectorize.io",
-    hindsightApiToken: null,
+    contextbaseApiUrl: "",
+    contextbaseApiToken: null,
     bankId: null,
     bankIdPrefix: "",
     dynamicBankId: false,

@@ -7,28 +7,28 @@ import (
 	"os"
 	"time"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 const mmBankID = "mental-models-demo-bank"
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
 	// Setup (not shown in docs)
 	// =============================================================================
 	client.BanksAPI.CreateOrUpdateBank(ctx, mmBankID).
-		CreateBankRequest(hindsight.CreateBankRequest{
-			Name: *hindsight.NewNullableString(hindsight.PtrString("Mental Models Demo")),
+		CreateBankRequest(contextbase.CreateBankRequest{
+			Name: *contextbase.NewNullableString(contextbase.PtrString("Mental Models Demo")),
 		}).Execute()
 	for _, content := range []string{
 		"The team prefers async communication via Slack",
@@ -36,8 +36,8 @@ func main() {
 		"Weekly syncs happen every Monday at 10am",
 	} {
 		client.MemoryAPI.RetainMemories(ctx, mmBankID).
-			RetainRequest(hindsight.RetainRequest{
-				Items: []hindsight.MemoryItem{{Content: hindsight.TextContent(content)}},
+			RetainRequest(contextbase.RetainRequest{
+				Items: []contextbase.MemoryItem{{Content: contextbase.TextContent(content)}},
 			}).Execute()
 	}
 	time.Sleep(2 * time.Second)
@@ -49,7 +49,7 @@ func main() {
 	// [docs:create-mental-model]
 	// Create a mental model (runs reflect in background)
 	result, _, _ := client.MentalModelsAPI.CreateMentalModel(ctx, mmBankID).
-		CreateMentalModelRequest(hindsight.CreateMentalModelRequest{
+		CreateMentalModelRequest(contextbase.CreateMentalModelRequest{
 			Name:        "Team Communication Preferences",
 			SourceQuery: "How does the team prefer to communicate?",
 			Tags:        []string{"team", "communication"},
@@ -63,8 +63,8 @@ func main() {
 	// Create a mental model with a specific custom ID
 	mmID := "communication-policy"
 	resultWithID, _, _ := client.MentalModelsAPI.CreateMentalModel(ctx, mmBankID).
-		CreateMentalModelRequest(hindsight.CreateMentalModelRequest{
-			Id:          *hindsight.NewNullableString(&mmID),
+		CreateMentalModelRequest(contextbase.CreateMentalModelRequest{
+			Id:          *contextbase.NewNullableString(&mmID),
 			Name:        "Communication Policy",
 			SourceQuery: "What are the team's communication guidelines?",
 		}).Execute()
@@ -78,10 +78,10 @@ func main() {
 	// Create a mental model with automatic refresh enabled
 	refreshTrue := true
 	result2, _, _ := client.MentalModelsAPI.CreateMentalModel(ctx, mmBankID).
-		CreateMentalModelRequest(hindsight.CreateMentalModelRequest{
+		CreateMentalModelRequest(contextbase.CreateMentalModelRequest{
 			Name:        "Project Status",
 			SourceQuery: "What is the current project status?",
-			Trigger: &hindsight.MentalModelTriggerInput{
+			Trigger: &contextbase.MentalModelTriggerInput{
 				RefreshAfterConsolidation: &refreshTrue,
 			},
 		}).Execute()
@@ -96,12 +96,12 @@ func main() {
 	// use "any" when your memories are tagged narrowly (one topic each), so the
 	// refresh reads any memory carrying at least one of the model's tags.
 	result3, _, _ := client.MentalModelsAPI.CreateMentalModel(ctx, mmBankID).
-		CreateMentalModelRequest(hindsight.CreateMentalModelRequest{
+		CreateMentalModelRequest(contextbase.CreateMentalModelRequest{
 			Name:        "Current Projects",
 			SourceQuery: "Which projects is the user currently working on?",
 			Tags:        []string{"projects", "mental-model"},
-			Trigger: &hindsight.MentalModelTriggerInput{
-				TagsMatch: *hindsight.NewNullableString(hindsight.PtrString("any")),
+			Trigger: &contextbase.MentalModelTriggerInput{
+				TagsMatch: *contextbase.NewNullableString(contextbase.PtrString("any")),
 			},
 		}).Execute()
 
@@ -159,9 +159,9 @@ func main() {
 	newName := "Updated Team Communication Preferences"
 	refreshAfter := true
 	updated, _, _ := client.MentalModelsAPI.UpdateMentalModel(ctx, mmBankID, mentalModelID).
-		UpdateMentalModelRequest(hindsight.UpdateMentalModelRequest{
-			Name: *hindsight.NewNullableString(&newName),
-			Trigger: *hindsight.NewNullableMentalModelTriggerInput(&hindsight.MentalModelTriggerInput{
+		UpdateMentalModelRequest(contextbase.UpdateMentalModelRequest{
+			Name: *contextbase.NewNullableString(&newName),
+			Trigger: *contextbase.NewNullableMentalModelTriggerInput(&contextbase.MentalModelTriggerInput{
 				RefreshAfterConsolidation: &refreshAfter,
 			}),
 		}).Execute()
@@ -210,8 +210,8 @@ func main() {
 	mode := "delta"
 	keepTrace := true
 	_, _, err = client.MentalModelsAPI.UpdateMentalModel(ctx, mmBankID, mentalModelID).
-		UpdateMentalModelRequest(hindsight.UpdateMentalModelRequest{
-			Trigger: *hindsight.NewNullableMentalModelTriggerInput(&hindsight.MentalModelTriggerInput{
+		UpdateMentalModelRequest(contextbase.UpdateMentalModelRequest{
+			Trigger: *contextbase.NewNullableMentalModelTriggerInput(&contextbase.MentalModelTriggerInput{
 				Mode:      &mode,
 				KeepTrace: &keepTrace,
 			}),
@@ -234,7 +234,7 @@ func main() {
 	fmt.Println("mental-models.go: All examples passed")
 }
 
-func cleanupMentalModels(client *hindsight.APIClient, ctx context.Context, apiURL string) {
+func cleanupMentalModels(client *contextbase.APIClient, ctx context.Context, apiURL string) {
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/default/banks/%s", apiURL, mmBankID), nil)
 	http.DefaultClient.Do(req)
 }

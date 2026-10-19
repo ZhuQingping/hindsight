@@ -2,7 +2,7 @@
 
 import types
 
-from hindsight_hermes.settings import (
+from contextbase_hermes.settings import (
     _clears_min_scores,
     _normalize_min_scores,
     _normalize_observation_scopes,

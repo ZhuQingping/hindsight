@@ -51,14 +51,14 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     package_archive(
         "agent-plugin",
-        "agentstratum-agent-plugin",
+        "contextbase-agent-plugin",
         "plugin.json",
         ["plugin.json", "mcp.json", "skills", "README.md"],
         output,
     )
     package_archive(
         "claude-code",
-        "agentstratum-claude-code",
+        "contextbase-claude-code",
         ".claude-plugin/plugin.json",
         [".claude-plugin", ".mcp.json", "hooks", "scripts", "skills", "settings.json", "requirements.txt", "README.md"],
         output,
@@ -66,7 +66,7 @@ def main() -> None:
 
     source = ROOT / "hindsight-integrations" / "coding-agents"
     package = read_manifest(source / "package.json")
-    if package["name"] != "agentstratum-coding-agents":
+    if package["name"] != "contextbase-coding-agents":
         raise ValueError("Unexpected Coding Agents distribution identity")
     if not (source / "dist" / "installer.js").is_file():
         raise RuntimeError("Build Coding Agents before packaging")

@@ -4,8 +4,8 @@ import json
 import os
 
 import pytest
-from hindsight_cline import install_hooks, write_user_config
-from hindsight_cline.cli import main
+from contextbase_cline import install_hooks, write_user_config
+from contextbase_cline.cli import main
 
 HOOK_FILES = ["TaskStart", "UserPromptSubmit", "TaskComplete", "TaskCancel"]
 
@@ -32,15 +32,15 @@ def test_install_copies_lib_and_settings(tmp_path):
 def test_write_user_config_records_connection(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     write_user_config("https://api.example.com/", "secret-key")
-    cfg = json.loads((tmp_path / ".hindsight" / "cline.json").read_text())
-    assert cfg["hindsightApiUrl"] == "https://api.example.com"  # trailing slash stripped
-    assert cfg["hindsightApiToken"] == "secret-key"
+    cfg = json.loads((tmp_path / ".contextbase" / "cline.json").read_text())
+    assert cfg["contextbaseApiUrl"] == "https://api.example.com"  # trailing slash stripped
+    assert cfg["contextbaseApiToken"] == "secret-key"
 
 
 def test_write_user_config_noop_without_values(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     write_user_config("", "")
-    assert not (tmp_path / ".hindsight" / "cline.json").exists()
+    assert not (tmp_path / ".contextbase" / "cline.json").exists()
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
@@ -53,8 +53,8 @@ def test_cli_install_into_project(tmp_path, monkeypatch):
     hooks_dir = tmp_path / ".clinerules" / "hooks"
     assert all((hooks_dir / name).exists() for name in HOOK_FILES)
     assert (hooks_dir / "settings.json").exists()
-    cfg = json.loads((tmp_path / ".hindsight" / "cline.json").read_text())
-    assert cfg["hindsightApiToken"] == "k"
+    cfg = json.loads((tmp_path / ".contextbase" / "cline.json").read_text())
+    assert cfg["contextbaseApiToken"] == "k"
 
 
 def test_cli_uninstall_removes_hooks(tmp_path, monkeypatch):

@@ -1,9 +1,9 @@
 /**
- * Configuration management for the Hindsight OpenCode plugin.
+ * Configuration management for the ContextBase OpenCode plugin.
  *
  * Loading order (later entries win):
  *   1. Built-in defaults
- *   2. User config file (~/.hindsight/opencode.json)
+ *   2. User config file (~/.contextbase/opencode.json)
  *   3. Plugin options (from opencode.json plugin tuple)
  *   4. Environment variable overrides
  */
@@ -13,9 +13,9 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 
 /** Default API URL used when no override is supplied via env, file, or plugin options. */
-export const DEFAULT_HINDSIGHT_API_URL = "https://api.hindsight.vectorize.io";
+export const DEFAULT_CONTEXTBASE_API_URL = "";
 
-export interface HindsightConfig {
+export interface ContextBaseConfig {
   // Recall
   autoRecall: boolean;
   recallBudget: string;
@@ -37,8 +37,8 @@ export interface HindsightConfig {
   retainMetadata: Record<string, string>;
 
   // Connection
-  hindsightApiUrl: string | null;
-  hindsightApiToken: string | null;
+  contextbaseApiUrl: string | null;
+  contextbaseApiToken: string | null;
 
   // Bank
   bankId: string | null;
@@ -53,7 +53,7 @@ export interface HindsightConfig {
   debug: boolean;
 }
 
-const DEFAULTS: HindsightConfig = {
+const DEFAULTS: ContextBaseConfig = {
   // Recall
   autoRecall: true,
   recallBudget: "mid",
@@ -78,8 +78,8 @@ const DEFAULTS: HindsightConfig = {
   retainMetadata: {},
 
   // Connection
-  hindsightApiUrl: DEFAULT_HINDSIGHT_API_URL,
-  hindsightApiToken: null,
+  contextbaseApiUrl: DEFAULT_CONTEXTBASE_API_URL,
+  contextbaseApiToken: null,
 
   // Bank
   bankId: null,
@@ -95,30 +95,30 @@ const DEFAULTS: HindsightConfig = {
 };
 
 /** Env var → config key + type mapping */
-const ENV_OVERRIDES: Record<string, [keyof HindsightConfig, "string" | "bool" | "int"]> = {
-  HINDSIGHT_API_URL: ["hindsightApiUrl", "string"],
-  HINDSIGHT_API_TOKEN: ["hindsightApiToken", "string"],
-  HINDSIGHT_BANK_ID: ["bankId", "string"],
-  HINDSIGHT_AGENT_NAME: ["agentName", "string"],
-  HINDSIGHT_AUTO_RECALL: ["autoRecall", "bool"],
-  HINDSIGHT_AUTO_RETAIN: ["autoRetain", "bool"],
-  HINDSIGHT_RETAIN_MODE: ["retainMode", "string"],
-  HINDSIGHT_RECALL_BUDGET: ["recallBudget", "string"],
-  HINDSIGHT_RECALL_MAX_TOKENS: ["recallMaxTokens", "int"],
-  HINDSIGHT_RECALL_MAX_QUERY_CHARS: ["recallMaxQueryChars", "int"],
-  HINDSIGHT_RECALL_CONTEXT_TURNS: ["recallContextTurns", "int"],
-  HINDSIGHT_DYNAMIC_BANK_ID: ["dynamicBankId", "bool"],
-  HINDSIGHT_BANK_MISSION: ["bankMission", "string"],
-  HINDSIGHT_BANK_ID_PREFIX: ["bankIdPrefix", "string"],
-  HINDSIGHT_RETAIN_EVERY_N_TURNS: ["retainEveryNTurns", "int"],
-  HINDSIGHT_RETAIN_OVERLAP_TURNS: ["retainOverlapTurns", "int"],
-  HINDSIGHT_RECALL_TAGS: ["recallTags", "string"],
-  HINDSIGHT_RETAIN_TAGS: ["retainTags", "string"],
-  HINDSIGHT_RECALL_TAGS_MATCH: ["recallTagsMatch", "string"],
-  HINDSIGHT_RECALL_PROMPT_PREAMBLE: ["recallPromptPreamble", "string"],
-  HINDSIGHT_RETAIN_CONTEXT: ["retainContext", "string"],
+const ENV_OVERRIDES: Record<string, [keyof ContextBaseConfig, "string" | "bool" | "int"]> = {
+  CONTEXTBASE_API_URL: ["contextbaseApiUrl", "string"],
+  CONTEXTBASE_API_TOKEN: ["contextbaseApiToken", "string"],
+  CONTEXTBASE_BANK_ID: ["bankId", "string"],
+  CONTEXTBASE_AGENT_NAME: ["agentName", "string"],
+  CONTEXTBASE_AUTO_RECALL: ["autoRecall", "bool"],
+  CONTEXTBASE_AUTO_RETAIN: ["autoRetain", "bool"],
+  CONTEXTBASE_RETAIN_MODE: ["retainMode", "string"],
+  CONTEXTBASE_RECALL_BUDGET: ["recallBudget", "string"],
+  CONTEXTBASE_RECALL_MAX_TOKENS: ["recallMaxTokens", "int"],
+  CONTEXTBASE_RECALL_MAX_QUERY_CHARS: ["recallMaxQueryChars", "int"],
+  CONTEXTBASE_RECALL_CONTEXT_TURNS: ["recallContextTurns", "int"],
+  CONTEXTBASE_DYNAMIC_BANK_ID: ["dynamicBankId", "bool"],
+  CONTEXTBASE_BANK_MISSION: ["bankMission", "string"],
+  CONTEXTBASE_BANK_ID_PREFIX: ["bankIdPrefix", "string"],
+  CONTEXTBASE_RETAIN_EVERY_N_TURNS: ["retainEveryNTurns", "int"],
+  CONTEXTBASE_RETAIN_OVERLAP_TURNS: ["retainOverlapTurns", "int"],
+  CONTEXTBASE_RECALL_TAGS: ["recallTags", "string"],
+  CONTEXTBASE_RETAIN_TAGS: ["retainTags", "string"],
+  CONTEXTBASE_RECALL_TAGS_MATCH: ["recallTagsMatch", "string"],
+  CONTEXTBASE_RECALL_PROMPT_PREAMBLE: ["recallPromptPreamble", "string"],
+  CONTEXTBASE_RETAIN_CONTEXT: ["retainContext", "string"],
   // NOTE: `debug` is intentionally NOT an env override. It is a proper config
-  // option set via opencode.json plugin options or ~/.hindsight/opencode.json,
+  // option set via opencode.json plugin options or ~/.contextbase/opencode.json,
   // because env vars are unreliable to set for OpenCode's plugin runtime
   // (notably on Windows).
 };
@@ -141,12 +141,12 @@ function loadSettingsFile(path: string): Record<string, unknown> {
   }
 }
 
-export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightConfig {
+export function loadConfig(pluginOptions?: Record<string, unknown>): ContextBaseConfig {
   // 1. Start with defaults
   const config: Record<string, unknown> = { ...DEFAULTS };
 
-  // 2. User config file (~/.hindsight/opencode.json)
-  const userConfigPath = join(homedir(), ".hindsight", "opencode.json");
+  // 2. User config file (~/.contextbase/opencode.json)
+  const userConfigPath = join(homedir(), ".contextbase", "opencode.json");
   const fileConfig = loadSettingsFile(userConfigPath);
   for (const [key, value] of Object.entries(fileConfig)) {
     if (value !== null && value !== undefined) {
@@ -154,7 +154,7 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
     }
   }
 
-  // 3. Plugin options (from opencode.json: ["@vectorize-io/opencode-hindsight", { ... }])
+  // 3. Plugin options (from opencode.json: ["@vectorize-io/opencode-contextbase", { ... }])
   if (pluginOptions) {
     for (const [key, value] of Object.entries(pluginOptions)) {
       if (value !== null && value !== undefined) {
@@ -175,19 +175,19 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
   }
 
   // Array env vars (comma-separated)
-  const recallTagsEnv = process.env["HINDSIGHT_RECALL_TAGS"];
+  const recallTagsEnv = process.env["CONTEXTBASE_RECALL_TAGS"];
   if (recallTagsEnv !== undefined) {
     config["recallTags"] = recallTagsEnv
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
   }
-  const recallTagsMatchEnv = process.env["HINDSIGHT_RECALL_TAGS_MATCH"];
+  const recallTagsMatchEnv = process.env["CONTEXTBASE_RECALL_TAGS_MATCH"];
   if (recallTagsMatchEnv !== undefined) {
     config["recallTagsMatch"] = recallTagsMatchEnv;
   }
 
-  const retainTagsEnv = process.env["HINDSIGHT_RETAIN_TAGS"];
+  const retainTagsEnv = process.env["CONTEXTBASE_RETAIN_TAGS"];
   if (retainTagsEnv !== undefined) {
     config["retainTags"] = retainTagsEnv
       .split(",")
@@ -195,13 +195,13 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
       .filter(Boolean);
   }
 
-  const result = config as unknown as HindsightConfig;
+  const result = config as unknown as ContextBaseConfig;
 
   // Validate enum-like fields to catch typos early
   const VALID_RETAIN_MODES = ["full-session", "last-turn"];
   if (!VALID_RETAIN_MODES.includes(result.retainMode)) {
     console.error(
-      `[Hindsight] Unknown retainMode "${result.retainMode}" — ` +
+      `[ContextBase] Unknown retainMode "${result.retainMode}" — ` +
         `valid: ${VALID_RETAIN_MODES.join(", ")}. Falling back to "full-session".`
     );
     result.retainMode = "full-session";
@@ -210,7 +210,7 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
   const VALID_TAGS_MATCH = ["any", "all", "any_strict", "all_strict"];
   if (!VALID_TAGS_MATCH.includes(result.recallTagsMatch)) {
     console.error(
-      `[Hindsight] Unknown recallTagsMatch "${result.recallTagsMatch}" — ` +
+      `[ContextBase] Unknown recallTagsMatch "${result.recallTagsMatch}" — ` +
         `valid: ${VALID_TAGS_MATCH.join(", ")}. Falling back to "any".`
     );
     result.recallTagsMatch = "any";
@@ -219,7 +219,7 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): HindsightCo
   const VALID_BUDGETS = ["low", "mid", "high"];
   if (!VALID_BUDGETS.includes(result.recallBudget)) {
     console.error(
-      `[Hindsight] Unknown recallBudget "${result.recallBudget}" — ` +
+      `[ContextBase] Unknown recallBudget "${result.recallBudget}" — ` +
         `valid: ${VALID_BUDGETS.join(", ")}. Falling back to "mid".`
     );
     result.recallBudget = "mid";

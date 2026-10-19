@@ -1,16 +1,16 @@
-"""agentstratum-embed daemon lifecycle management.
+"""contextbase-embed daemon lifecycle management.
 
-Port of: HindsightServer in agentstratum-local-engine, adapted for Python
+Port of: HindsightServer in contextbase-local-engine, adapted for Python
 subprocess calls from ephemeral hook processes.
 
 Manages three connection modes (same as Openclaw):
   1. External API — user provides apiUrl (skip daemon entirely)
-  2. Existing local server — user already has agentstratum running
-  3. Auto-managed daemon — plugin starts/stops agentstratum-embed
+  2. Existing local server — user already has contextbase running
+  3. Auto-managed daemon — plugin starts/stops contextbase-embed
 
 In Claude Code's ephemeral model, daemon state is tracked via files in
 $CLAUDE_PLUGIN_DATA/state/. The daemon itself is a background OS process
-managed by agentstratum-embed's built-in daemon command.
+managed by contextbase-embed's built-in daemon command.
 """
 
 import os
@@ -29,22 +29,22 @@ PROFILE_NAME = "claude-code"
 
 
 def _get_embed_command(config: dict) -> list:
-    """Get the command to run agentstratum-embed.
+    """Get the command to run contextbase-embed.
 
-    Port of: getEmbedCommand() in agentstratum-local-engine
+    Port of: getEmbedCommand() in contextbase-local-engine
     """
     embed_path = config.get("embedPackagePath")
     if embed_path:
-        return ["uv", "run", "--directory", embed_path, "agentstratum-embed"]
+        return ["uv", "run", "--directory", embed_path, "contextbase-embed"]
 
-    package = config.get("embedPackage") or os.environ.get("AGENTSTRATUM_EMBED_PACKAGE")
+    package = config.get("embedPackage") or os.environ.get("CONTEXTBASE_EMBED_PACKAGE")
     if not package:
-        raise RuntimeError("Set AGENTSTRATUM_EMBED_PACKAGE or embedPackagePath for local engine mode.")
-    return ["uvx", "--quiet", "--from", package, "agentstratum-embed"]
+        raise RuntimeError("Set CONTEXTBASE_EMBED_PACKAGE or embedPackagePath for local engine mode.")
+    return ["uvx", "--quiet", "--from", package, "contextbase-embed"]
 
 
 def _run_embed(config: dict, args: list, env: dict = None, timeout: int = 10) -> subprocess.CompletedProcess:
-    """Run a agentstratum-embed command and return the result."""
+    """Run a contextbase-embed command and return the result."""
     cmd = _get_embed_command(config) + args
     run_env = dict(os.environ)
     if env:
@@ -59,7 +59,7 @@ def _run_embed(config: dict, args: list, env: dict = None, timeout: int = 10) ->
 
 
 def _is_embed_available(config: dict) -> bool:
-    """Quick check if agentstratum-embed is available on PATH.
+    """Quick check if contextbase-embed is available on PATH.
 
     Avoids the slow uvx download path when the tool isn't installed.
     """
@@ -68,18 +68,18 @@ def _is_embed_available(config: dict) -> bool:
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return os.path.isdir(embed_path)
-    # Check for uvx or agentstratum-embed on PATH
-    return shutil.which("uvx") is not None or shutil.which("agentstratum-embed") is not None
+    # Check for uvx or contextbase-embed on PATH
+    return shutil.which("uvx") is not None or shutil.which("contextbase-embed") is not None
 
 
 def _check_health(base_url: str, timeout: int = 10) -> bool:
-    """Quick health check against a agentstratum server.
+    """Quick health check against a contextbase server.
 
     Default timeout is 10s (matching the recall hook budget): under load an
     alive-but-busy daemon mid fact-extraction may not answer /health within a
     couple of seconds. A too-short timeout yields a false negative, so
     get_api_url() falls through to _ensure_daemon_running() ->
-    `agentstratum-embed daemon start`, whose _clear_port() then SIGTERMs the
+    `contextbase-embed daemon start`, whose _clear_port() then SIGTERMs the
     live daemon -- a restart/kill loop. A 10s budget lets a busy daemon
     respond before it is declared dead.
     """
@@ -126,8 +126,8 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     # Mode 3: Auto-start daemon (only when allowed)
     if not allow_daemon_start:
         raise RuntimeError(
-            f"No agentstratum server on port {port}. Set apiUrl for external "
-            f"API, start agentstratum-embed manually, or wait for the retain hook to "
+            f"No contextbase server on port {port}. Set apiUrl for external "
+            f"API, start contextbase-embed manually, or wait for the retain hook to "
             f"auto-start the daemon."
         )
 
@@ -140,22 +140,22 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
         if debug_fn:
             debug_fn(f"Daemon start failed: {e}")
         raise RuntimeError(
-            "No agentstratum server available. Set apiUrl for external API, "
-            "or ensure agentstratum-embed is installed for local daemon mode."
+            "No contextbase server available. Set apiUrl for external API, "
+            "or ensure contextbase-embed is installed for local daemon mode."
         ) from e
 
     return base_url
 
 
 def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
-    """Start the agentstratum-embed daemon if not already running.
+    """Start the contextbase-embed daemon if not already running.
 
-    Port of: HindsightServer.start() in agentstratum-local-engine
+    Port of: HindsightServer.start() in contextbase-local-engine
     """
-    # Fast-fail if agentstratum-embed toolchain is not available
+    # Fast-fail if contextbase-embed toolchain is not available
     if not _is_embed_available(config):
         raise RuntimeError(
-            "agentstratum-embed not found (uvx not on PATH). Configure AGENTSTRATUM_EMBED_PACKAGE, or set apiUrl."
+            "contextbase-embed not found (uvx not on PATH). Configure CONTEXTBASE_EMBED_PACKAGE, or set apiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -171,12 +171,12 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     # Build daemon environment
     daemon_env = dict(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 300)
-    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
 
     # On macOS, force CPU for embeddings/reranker (mirrors Openclaw)
     if platform.system() == "Darwin":
-        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     # Step 1: Configure profile
     if debug_fn:
@@ -206,7 +206,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
         raise RuntimeError("Profile create timed out")
     except FileNotFoundError:
         raise RuntimeError(
-            "agentstratum-embed not found. Configure AGENTSTRATUM_EMBED_PACKAGE or set apiUrl for external API mode."
+            "contextbase-embed not found. Configure CONTEXTBASE_EMBED_PACKAGE or set apiUrl for external API mode."
         )
 
     # Step 2: Start daemon
@@ -269,7 +269,7 @@ def prestart_daemon_background(config: dict, debug_fn=None):
 
     if not _is_embed_available(config):
         if debug_fn:
-            debug_fn("agentstratum-embed not available, skipping pre-start")
+            debug_fn("contextbase-embed not available, skipping pre-start")
         return
 
     try:
@@ -284,10 +284,10 @@ def prestart_daemon_background(config: dict, debug_fn=None):
     daemon_env = dict(os.environ)
     daemon_env.update(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 300)
-    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["CONTEXTBASE_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
     if platform.system() == "Darwin":
-        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["CONTEXTBASE_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["CONTEXTBASE_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     profile_args = ["profile", "create", PROFILE_NAME, "--merge", "--port", str(port)]
     for env_name, env_val in llm_env.items():

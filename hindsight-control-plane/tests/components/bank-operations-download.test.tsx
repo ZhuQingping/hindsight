@@ -27,7 +27,7 @@ const createURL = vi.fn(() => "blob:archive");
 const revokeURL = vi.fn();
 let anchorClick: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
-  document.documentElement.dataset.contextdbName = "agentstratum";
+  document.documentElement.dataset.contextdbName = "contextbase";
   vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/brand-ui");
   vi.stubGlobal("fetch", fetchMock);
   vi.stubGlobal(
@@ -56,7 +56,7 @@ async function download() {
   expect(url).toBe(
     "/brand-ui/api/files/download?path=%2Fv1%2Fdefault%2Ffiles%2Fdownload%2Fexports%2Fexample%2Ffixture.zip"
   );
-  expect(new Headers(init.headers).get("X-Product-Name")).toBe("agentstratum");
+  expect(new Headers(init.headers).get("X-Product-Name")).toBe("contextbase");
 }
 it("saves the real archive bytes after the operation-detail Download button succeeds", async () => {
   const bytes = new Blob(["PK archive"]);

@@ -1,36 +1,36 @@
 ---
 sidebar_position: 39
-title: "Hermes Desktop App: Configure Hindsight Memory | Integration"
-description: "Set up Hindsight as the memory provider for the Hermes desktop app — entirely in Settings. Pick a mode, paste an API key, and your agent has persistent long-term memory. No config files, no environment variables."
+title: "Hermes Desktop App: Configure ContextBase Memory | Integration"
+description: "Set up ContextBase as the memory provider for the Hermes desktop app — entirely in Settings. Pick a mode, paste an API key, and your agent has persistent long-term memory. No config files, no environment variables."
 ---
 
 # Hermes Desktop
 
-Configure [Hindsight](https://vectorize.io/hindsight) as the memory provider for the **[Hermes](https://github.com/NousResearch/hermes-agent) desktop app** — entirely from Settings. No `config.json`, no `.env`, no terminal. Pick a mode, paste an API key, and Hermes remembers across every session.
+Configure [ContextBase](https://github.com/RSIXDB/hindsight) as the memory provider for the **[Hermes](https://github.com/NousResearch/hermes-agent) desktop app** — entirely from Settings. No `config.json`, no `.env`, no terminal. Pick a mode, paste an API key, and Hermes remembers across every session.
 
 :::tip
 Prefer the command line, or running Hermes as a CLI/gateway? See the [Hermes Agent integration](/sdks/integrations/hermes) for the `hermes memory setup` wizard, plugin architecture, and the full configuration reference.
 :::
 
-:::note Hindsight now installs from the Hermes plugin catalog
-Nous Research moved every memory provider out of the Hermes core tree. The desktop app handles this for you: it installs the catalog plugin the first time an agent starts, and your settings, bank and API key are unchanged. Nothing in this guide changes. See [What Changes Now That Hindsight Is a Hermes Plugin](/blog/2026/10/01/hindsight-hermes-plugin-what-changed) if you also use the CLI.
+:::note ContextBase now installs from the Hermes plugin catalog
+Nous Research moved every memory provider out of the Hermes core tree. The desktop app handles this for you: it installs the catalog plugin the first time an agent starts, and your settings, bank and API key are unchanged. Nothing in this guide changes. See [What Changes Now That ContextBase Is a Hermes Plugin](/blog/2026/10/01/contextbase-hermes-plugin-what-changed) if you also use the CLI.
 :::
 
 ## Setup
 
-**1. Open Settings → Memory & Context.** In the **Memory Provider** dropdown, choose **Hindsight**.
+**1. Open Settings → Memory & Context.** In the **Memory Provider** dropdown, choose **ContextBase**.
 
-![Selecting Hindsight as the memory provider in the Hermes desktop app's Settings → Memory & Context](/img/integrations/hermes-desktop-dropdown.png)
+![Selecting ContextBase as the memory provider in the Hermes desktop app's Settings → Memory & Context](/img/integrations/hermes-desktop-dropdown.png)
 
-**2. Fill in the Hindsight settings panel.** Selecting Hindsight reveals its configuration fields:
+**2. Fill in the ContextBase settings panel.** Selecting ContextBase reveals its configuration fields:
 
-![The Hindsight memory provider configuration panel in the Hermes desktop app](/img/integrations/hermes-desktop-config-panel.png)
+![The ContextBase memory provider configuration panel in the Hermes desktop app](/img/integrations/hermes-desktop-config-panel.png)
 
 | Field             | What it does                                                                                    | Default                              |
 | ----------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------ |
-| **Mode**          | `Cloud` (just needs an API key) or `Local External` (connect to an existing Hindsight instance) | `Cloud`                              |
-| **API key**       | Authenticates with the Hindsight API — stored as a write-only secret                            | —                                    |
-| **API URL**       | The Hindsight endpoint                                                                          | `https://api.hindsight.vectorize.io` |
+| **Mode**          | `Cloud` (requires a service URL and API key) or `Local External` (connect to an existing ContextBase instance) | `Cloud`                              |
+| **API key**       | Authenticates with the ContextBase API — stored as a write-only secret                            | —                                    |
+| **API URL**       | The ContextBase endpoint                                                                          | `http://localhost:8888` |
 | **Bank ID**       | Which memory bank this Hermes profile reads and writes                                          | `hermes`                             |
 | **Recall budget** | How hard recall works each turn: `low` / `mid` / `high`                                         | `mid`                                |
 
@@ -40,11 +40,11 @@ Nous Research moved every memory provider out of the Hermes core tree. The deskt
 
 ### Cloud (recommended)
 
-The fast path. Choose **Cloud**, then paste an API key from [ui.hindsight.vectorize.io/connect](https://ui.hindsight.vectorize.io/connect). Nothing to host — Hindsight Cloud handles storage, extraction, and retrieval.
+The fast path. Choose **Cloud**, then paste an API key from [console.example.com/connect](http://localhost:9999). Nothing to host — ContextBase remote service handles storage, extraction, and retrieval.
 
 ### Local External
 
-Already running your own Hindsight instance (Docker or self-hosted)? Choose **Local External** and set the **API URL** to your instance (for example `http://localhost:8888`). Your memory never leaves your infrastructure.
+Already running your own ContextBase instance (Docker or self-hosted)? Choose **Local External** and set the **API URL** to your instance (for example `http://localhost:8888`). Your memory never leaves your infrastructure.
 
 ## How Memory Is Stored
 
@@ -57,6 +57,6 @@ Each profile points at one **Bank ID**, so memory is isolated per profile and fo
 
 ## Next Steps
 
-- **Hindsight Cloud (free):** [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io)
+- **ContextBase remote service (free):** your deployment administrator
 - **Hermes CLI / plugin setup:** [Hermes Agent integration](/sdks/integrations/hermes)
 - **Hermes Agent:** [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)

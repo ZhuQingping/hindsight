@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import "server-only";
 import { parseProductConfig, productDisplayName } from "./product-config";
 import { DEPLOYMENT_SLUG, DISPLAY_NAME } from "./brand-defaults";
@@ -23,10 +24,7 @@ export function localProductName(): string {
 /** No cache or downgrade: a restarted API must match both display and deployment slug. */
 export async function verifiedProductConfig() {
   const local = localProductConfig();
-  const base = (process.env.HINDSIGHT_CP_DATAPLANE_API_URL || "http://localhost:8888").replace(
-    /\/$/,
-    ""
-  );
+  const base = (controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888").replace(/\/$/, "");
   const path = local.product_config_version === 1 ? "/product-config" : "/product-config/v2";
   const response = await fetch(base + path, {
     cache: "no-store",

@@ -16,9 +16,9 @@
  *                      basename of the directory the SESSION started in, not the agent's live cwd)
  *        {project}     working-directory basename (no git involved)
  *        {harness}     the entry point asking ("opencode", "claude-code", "codex", "antigravity-cli", ...)
- *        {channel}     $AGENTSTRATUM_CHANNEL_ID or "default"
- *        {user}        $AGENTSTRATUM_USER_ID or "anonymous"
- *      e.g. "agentstratum-{gitProject}" or "{harness}-{gitProject}" to split per agent. The default
+ *        {channel}     $CONTEXTBASE_CHANNEL_ID or "default"
+ *        {user}        $CONTEXTBASE_USER_ID or "anonymous"
+ *      e.g. "contextbase-{gitProject}" or "{harness}-{gitProject}" to split per agent. The default
  *      is harness-neutral "coding-agent::{gitProject}" so every coding agent shares ONE memory per repo.
  *
  * The repository probe (core/git-layout.ts) reads the repository layout off disk and answers one
@@ -48,7 +48,7 @@ export interface BankConfig {
 const DEFAULT_BANK_NAME = "coding";
 // Harness-NEUTRAL default so every coding agent (Claude, Codex, Cursor, opencode) shares ONE bank
 // per repo — switch agents, keep your memory. Namespaced with `coding-agent::` to identify these
-// banks and avoid collisions with other agentstratum banks. Deliberately NOT `{harness}::…` (that would
+// banks and avoid collisions with other contextbase banks. Deliberately NOT `{harness}::…` (that would
 // split memory per agent, defeating cross-agent sharing).
 const DEFAULT_TEMPLATE = "coding-agent::{gitProject}";
 
@@ -95,7 +95,7 @@ export function resolveProjectRoot(directory: string): ProjectRoot {
 
 /** Worktree-aware repo name for DOCUMENT IDS (gitlog:<name>, commit context): all worktrees of a
  *  repo must produce the SAME name, or each worktree writes its own gitlog document into the
- *  shared bank (seen in the wild: gitlog:agentstratum-wt7 next to gitlog:memory-poc). */
+ *  shared bank (seen in the wild: gitlog:contextbase-wt7 next to gitlog:memory-poc). */
 export function projectNameOf(directory: string, sessionRoot?: string): string {
   return gitProjectName(directory, true, sessionRoot);
 }
@@ -318,8 +318,8 @@ export function deriveBankId(
     harness: () => harness,
     project: () => dirName(directory),
     gitProject: () => gitProjectName(directory, config.resolveWorktrees ?? true, sessionRoot),
-    channel: () => process.env.AGENTSTRATUM_CHANNEL_ID || "default",
-    user: () => process.env.AGENTSTRATUM_USER_ID || "anonymous",
+    channel: () => process.env.CONTEXTBASE_CHANNEL_ID || "default",
+    user: () => process.env.CONTEXTBASE_USER_ID || "anonymous",
   };
   return applyTemplate(config.bankIdTemplate || DEFAULT_TEMPLATE, resolvers, "bankIdTemplate");
 }

@@ -524,7 +524,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-smolagents"
+name = "contextbase-smolagents"
 version = "0.1.1"
 source = { editable = "." }
 dependencies = [

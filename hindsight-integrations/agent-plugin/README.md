@@ -20,28 +20,28 @@ as a single standards-based bundle instead of N hand-rolled configs.
 ```
 agent-plugin/
 ├── plugin.json                       # manifest ($schema + name + metadata)
-├── mcp.json                          # agentstratum MCP server (Streamable HTTP)
+├── mcp.json                          # contextbase MCP server (Streamable HTTP)
 └── skills/
-    └── agentstratum-memory/
+    └── contextbase-memory/
         └── SKILL.md                  # teaches the agent when to recall/retain/reflect
 ```
 
 - **`mcp.json`** points the client at ContextBase's built-in MCP server (retain, recall,
   reflect, knowledge pages, and more — see MCP Server docs).
   The plugin is transport-only; all memory logic stays server-side.
-- **`skills/agentstratum-memory/SKILL.md`** is loaded into the agent's context so it knows
+- **`skills/contextbase-memory/SKILL.md`** is loaded into the agent's context so it knows
   _when_ to reach for memory, not just that the tools exist.
 
 ## Configuration
 
 The plugin reads two environment variables (values are interpolated into `mcp.json`):
 
-| Variable               | Required    | Purpose                                                                              |
-| ---------------------- | ----------- | ------------------------------------------------------------------------------------ |
-| `AGENTSTRATUM_API_KEY` | yes (Cloud) | Your `hsk_...` key from your service administrator. Sent as `Authorization: Bearer`. |
-| `AGENTSTRATUM_BANK_ID` | no          | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team.   |
+| Variable              | Required    | Purpose                                                                              |
+| --------------------- | ----------- | ------------------------------------------------------------------------------------ |
+| `CONTEXTBASE_API_KEY` | yes (Cloud) | Your `hsk_...` key from your service administrator. Sent as `Authorization: Bearer`. |
+| `CONTEXTBASE_BANK_ID` | no          | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team.   |
 
-**Endpoint configuration (required):** replace `${AGENTSTRATUM_MCP_URL}` in `mcp.json`
+**Endpoint configuration (required):** replace `${CONTEXTBASE_MCP_URL}` in `mcp.json`
 with the full MCP endpoint provided by your service administrator for your deployment's URL. Use the credential instructions supplied by the console for this endpoint.
 
 > Env-var interpolation syntax varies by client. Most use `${VAR}`; some (VS Code,
@@ -49,9 +49,9 @@ with the full MCP endpoint provided by your service administrator for your deplo
 > and bank id into `mcp.json` instead. This does not work in Codex, which removes the
 > `Authorization` header regardless of its value (see [Codex](#codex)).
 
-**Bank selection when `AGENTSTRATUM_BANK_ID` is unset.** A client that substitutes variables
+**Bank selection when `CONTEXTBASE_BANK_ID` is unset.** A client that substitutes variables
 sends an empty `X-Bank-Id`, and the server uses the `default` bank. A client that does
-_not_ substitute sends the literal text `${AGENTSTRATUM_BANK_ID}`, which ContextBase treats
+_not_ substitute sends the literal text `${CONTEXTBASE_BANK_ID}`, which ContextBase treats
 as a bank name: reads fail with bank-not-found, and the first `retain` creates a bank
 with that name. Set the variable, or paste the bank id literally, to avoid this.
 
@@ -82,7 +82,7 @@ For Codex, use the [Coding Agents](../coding-agents) integration instead. It wri
 MCP configuration and adds the automatic recall/retain hooks:
 
 ```bash
-agentstratum-coding-agents install codex
+contextbase-coding-agents install codex
 ```
 
 ## Want automatic capture (hooks)?
@@ -105,4 +105,4 @@ required-field contract.
 
 ## Distribution and connection scope
 
-The Huawei Cloud download URL is pending. This archive is one of the four client distributions; it contains Skills and remote MCP configuration, with no local engine or lifecycle hooks. Use one default `AGENTSTRATUM_MCP_URL` copied in full from the console, together with the matching credential. Do not infer the MCP URL from the API URL. Host-specific compatibility limitations above still apply.
+The Huawei Cloud download URL is pending. This archive is one of the four client distributions; it contains Skills and remote MCP configuration, with no local engine or lifecycle hooks. Use one default `CONTEXTBASE_MCP_URL` copied in full from the console, together with the matching credential. Do not infer the MCP URL from the API URL. Host-specific compatibility limitations above still apply.

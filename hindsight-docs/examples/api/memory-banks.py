@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-Memory Banks API examples for Hindsight.
+Memory Banks API examples for ContextBase.
 Run: python examples/api/memory-banks.py
 """
 import os
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
 from hindsight_client import Hindsight
 
-client = Hindsight(base_url=HINDSIGHT_URL)
+if not CONTEXTBASE_URL:
+    raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples
@@ -114,9 +116,11 @@ async def wait_for(client, bank_id: str, operation_id: str) -> None:
 
 async def transfer_examples() -> None:
     # A fresh client: the sync calls above ran on another event loop.
-    client = Hindsight(base_url=HINDSIGHT_URL)
+    if not CONTEXTBASE_URL:
+        raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
+    client = Hindsight(base_url=CONTEXTBASE_URL)
     for bank_id in TRANSFER_BANKS:
-        requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/{bank_id}")
+        requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/{bank_id}")
     # Chunks mode stores text verbatim, so no LLM call is needed.
     await client.acreate_bank(bank_id="transfer-py")
     await client.aupdate_bank_config("transfer-py", retain_extraction_mode="chunks")
@@ -240,7 +244,7 @@ async def transfer_examples() -> None:
     assert imported.memory_unit_count == 1, imported
 
     for bank_id in TRANSFER_BANKS:
-        requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/{bank_id}")
+        requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/{bank_id}")
     await client.aclose()
 
 
@@ -250,7 +254,7 @@ asyncio.run(transfer_examples())
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/architect-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/architect-bank")
 
 print("memory-banks.py: All examples passed")

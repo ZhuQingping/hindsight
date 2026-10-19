@@ -3098,10 +3098,10 @@ async def _find_related_observations(
     # Create span for recall operation within consolidation
     tracer = get_tracer()
     if is_tracing_enabled():
-        recall_span = tracer.start_span("agentstratum.consolidation_recall")
-        recall_span.set_attribute("agentstratum.bank_id", bank_id)
-        recall_span.set_attribute("agentstratum.query", query[:100])  # Truncate for brevity
-        recall_span.set_attribute("agentstratum.fact_type", "observation")
+        recall_span = tracer.start_span("contextbase.consolidation_recall")
+        recall_span.set_attribute("contextbase.bank_id", bank_id)
+        recall_span.set_attribute("contextbase.query", query[:100])  # Truncate for brevity
+        recall_span.set_attribute("contextbase.fact_type", "observation")
     else:
         recall_span = None
 

@@ -3,7 +3,7 @@
 The control center runs as its own detached, long-lived process (separate from
 the daemon, which it supervises via lock-files). Stopping/restarting it never
 affects a running daemon. Access is gated by a local token persisted to
-``~/.agentstratum/control.token`` so a stray browser tab can't drive the daemon.
+``~/.contextbase/control.token`` so a stray browser tab can't drive the daemon.
 """
 
 import os
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from .._http_probe import probe_get
 
-ENV_CONTROL_PORT = "AGENTSTRATUM_EMBED_CONTROL_PORT"
+ENV_CONTROL_PORT = "CONTEXTBASE_EMBED_CONTROL_PORT"
 CONTROL_PORT_DEFAULT = 7878
 
 # How long the launcher waits for the spawned server to answer /api/health.
@@ -24,8 +24,8 @@ _HEALTH_INTERVAL_SECONDS = 0.25
 
 
 def _control_dir() -> Path:
-    """Resolve ~/.agentstratum dynamically (supports tests with a temp HOME)."""
-    return Path.home() / ".agentstratum"
+    """Resolve ~/.contextbase dynamically (supports tests with a temp HOME)."""
+    return Path.home() / ".contextbase"
 
 
 def token_file() -> Path:

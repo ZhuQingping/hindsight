@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { Hindsight } from "../nodes/Hindsight/Hindsight.node";
+import { ContextBase } from "../nodes/ContextBase/ContextBase.node";
 
-describe("Hindsight node", () => {
-  const node = new Hindsight();
+describe("ContextBase node", () => {
+  const node = new ContextBase();
 
   it("declares the expected node metadata", () => {
-    expect(node.description.name).toBe("hindsight");
-    expect(node.description.displayName).toBe("Hindsight");
+    expect(node.description.name).toBe("contextbase");
+    expect(node.description.displayName).toBe("ContextBase");
     expect(node.description.version).toBe(1);
   });
 
-  it("requires the hindsightApi credential", () => {
+  it("requires the contextbaseApi credential", () => {
     const cred = node.description.credentials?.[0];
-    expect(cred?.name).toBe("hindsightApi");
+    expect(cred?.name).toBe("contextbaseApi");
     expect(cred?.required).toBe(true);
   });
 

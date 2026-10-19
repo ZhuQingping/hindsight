@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from hindsight_devin_desktop.project import derive_project_slug, project_bank_id, slug_from_remote
+from contextbase_devin_desktop.project import derive_project_slug, project_bank_id, slug_from_remote
 
 
 class TestSlugFromRemote:

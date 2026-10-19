@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Native TS MCP (stdio) server exposing the `agentstratum_*` knowledge-page + recall + capture tools.
+ * Native TS MCP (stdio) server exposing the `contextbase_*` knowledge-page + recall + capture tools.
  *
  * Bank resolution MUST mirror the hooks exactly (`resolveHostMemory`, i.e. loadConfig +
- * deriveBankId + the banks section, harness from the REQUIRED AGENTSTRATUM_MCP_HARNESS) so knowledge
+ * deriveBankId + the banks section, harness from the REQUIRED CONTEXTBASE_MCP_HARNESS) so knowledge
  * pages, recall, and retain all land in ONE per-repo bank — this is
  * why this is a native TS server and not a reuse of the Python MCP (whose bank derivation
- * differs). MCP servers usually launch with the project dir as cwd; `AGENTSTRATUM_MCP_PROJECT_CWD`
+ * differs). MCP servers usually launch with the project dir as cwd; `CONTEXTBASE_MCP_PROJECT_CWD`
  * is the survey's escape hatch when they do not. Cursor's Agents Window is the other case: it
  * spawns user-level `~/.cursor/mcp.json` from `~` and ignores stdio `cwd`. Cursor *does*
  * interpolate `${workspaceFolder}` in `args`, so the installer passes the open workspace as
- * argv[2] rather than as a agentstratum env setting.
+ * argv[2] rather than as a contextbase env setting.
  */
 import { DISPLAY_NAME } from "./core/brand-defaults.js";
 import { fileURLToPath } from "node:url";
@@ -28,7 +28,7 @@ import { buildRetainStamp } from "./core/retain-stamp";
 /**
  * Which tools this server should expose for a given config. Pure + SDK-free so the
  * disabled-flag behavior is unit-testable without spinning up a real MCP host: a disabled
- * agentstratum (mirrors the hooks' `cfg.disabled` check) exposes NO tools — the server still
+ * contextbase (mirrors the hooks' `cfg.disabled` check) exposes NO tools — the server still
  * connects, it just has nothing registered.
  */
 export function selectTools(
@@ -62,13 +62,13 @@ export function selectTools(
  * (#3603). A wrong answer here corrupts stored data; refusing to start is recoverable.
  */
 export function resolveHarness(env: NodeJS.ProcessEnv = process.env): string {
-  const harness = env.AGENTSTRATUM_MCP_HARNESS;
+  const harness = env.CONTEXTBASE_MCP_HARNESS;
   if (!harness) {
     throw new Error(
-      "AGENTSTRATUM_MCP_HARNESS is not set. Every coding agent launches this same mcp-server.js, so " +
+      "CONTEXTBASE_MCP_HARNESS is not set. Every coding agent launches this same mcp-server.js, so " +
         "only that variable identifies the caller — it decides the harness:<id> stamp on everything " +
         "ingested and which bank this session resolves. Re-run `npx " +
-        "agentstratum-coding-agents install <harness>` to repair a registration written " +
+        "contextbase-coding-agents install <harness>` to repair a registration written " +
         "before the installer set it."
     );
   }
@@ -78,7 +78,7 @@ export function resolveHarness(env: NodeJS.ProcessEnv = process.env): string {
 /**
  * Directory this process should treat as the project.
  *
- * Survey sets `AGENTSTRATUM_MCP_PROJECT_CWD`. Cursor cannot: user-level mcp.json is spawned from
+ * Survey sets `CONTEXTBASE_MCP_PROJECT_CWD`. Cursor cannot: user-level mcp.json is spawned from
  * `~` and Cursor does not interpolate `cwd`. The installer therefore passes
  * `${workspaceFolder}` as argv[2], which Cursor does interpolate.
  */
@@ -87,9 +87,9 @@ export function resolveProjectCwd(
   argv: readonly string[] = process.argv,
   fallbackCwd = process.cwd()
 ): string {
-  const override = env.AGENTSTRATUM_MCP_PROJECT_CWD?.trim();
+  const override = env.CONTEXTBASE_MCP_PROJECT_CWD?.trim();
   if (override && !override.includes("${")) return override;
-  if (env.AGENTSTRATUM_MCP_HARNESS === "cursor-cli") {
+  if (env.CONTEXTBASE_MCP_HARNESS === "cursor-cli") {
     const folder = argv[2]?.trim();
     if (folder && !folder.includes("${")) return folder;
   }
@@ -99,7 +99,7 @@ export function resolveProjectCwd(
 /**
  * Build the MCP surface for the resolved project.
  *
- * An opted-out project intentionally has no agentstratum tools, but some clients probe `tools/list`
+ * An opted-out project intentionally has no contextbase tools, but some clients probe `tools/list`
  * without first checking the initialize capabilities. Advertising an empty, queryable tool list
  * keeps that privacy boundary intact while preventing one optional probe from failing startup.
  */
@@ -144,7 +144,7 @@ async function main() {
 // it (as src/mcp-server.test.ts does) must not start a real server.
 if (process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((e) => {
-    console.error("agentstratum mcp-server failed:", describeError(e));
+    console.error("contextbase mcp-server failed:", describeError(e));
     process.exit(1);
   });
 }

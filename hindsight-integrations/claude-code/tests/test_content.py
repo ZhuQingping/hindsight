@@ -46,9 +46,9 @@ class TestStripChannelEnvelope:
 
 
 class TestStripMemoryTags:
-    def test_strips_agentstratum_memories_block(self):
-        raw = "before\n<agentstratum_memories>secret</agentstratum_memories>\nafter"
-        assert "agentstratum_memories" not in strip_memory_tags(raw)
+    def test_strips_contextbase_memories_block(self):
+        raw = "before\n<contextbase_memories>secret</contextbase_memories>\nafter"
+        assert "contextbase_memories" not in strip_memory_tags(raw)
         assert "before" in strip_memory_tags(raw)
         assert "after" in strip_memory_tags(raw)
 
@@ -63,7 +63,7 @@ class TestStripMemoryTags:
         assert strip_memory_tags(raw) == raw
 
     def test_strips_multiline_block(self):
-        raw = "<agentstratum_memories>\n- mem1\n- mem2\n</agentstratum_memories>"
+        raw = "<contextbase_memories>\n- mem1\n- mem2\n</contextbase_memories>"
         assert strip_memory_tags(raw).strip() == ""
 
 
@@ -147,10 +147,10 @@ class TestComposeRecallQuery:
 
     def test_strips_memory_tags_from_context(self):
         msgs = _msgs(
-            ("user", "<agentstratum_memories>secret</agentstratum_memories> actual question"),
+            ("user", "<contextbase_memories>secret</contextbase_memories> actual question"),
         )
         result = compose_recall_query("now", msgs, recall_context_turns=2)
-        assert "agentstratum_memories" not in result
+        assert "contextbase_memories" not in result
         assert "secret" not in result
 
     def test_filters_by_recall_roles(self):
@@ -240,7 +240,7 @@ class TestIsChannelMessageTool:
         assert _is_channel_message_tool(block) is True
 
     def test_operational_recall_tool_excluded(self):
-        block = {"type": "tool_use", "name": "mcp__agentstratum__recall", "input": {"query": "test"}}
+        block = {"type": "tool_use", "name": "mcp__contextbase__recall", "input": {"query": "test"}}
         assert _is_channel_message_tool(block) is False
 
     def test_builtin_bash_tool_excluded(self):
@@ -318,7 +318,7 @@ class TestPrepareRetentionTranscript:
         assert count == 4
 
     def test_strips_memory_tags(self):
-        msgs = _msgs(("user", "<agentstratum_memories>leaked</agentstratum_memories> actual question"))
+        msgs = _msgs(("user", "<contextbase_memories>leaked</contextbase_memories> actual question"))
         transcript, _ = prepare_retention_transcript(msgs, retain_full_window=True)
         assert "leaked" not in transcript
         assert "actual question" in transcript
@@ -378,8 +378,8 @@ class TestPrepareRetentionTranscript:
         assert tool_block["name"] == "Edit"
         assert tool_block["input"]["file_path"] == "/tmp/foo.py"
 
-    def test_json_format_excludes_agentstratum_mcp_tools(self):
-        """agentstratum MCP tools should be excluded even in JSON mode."""
+    def test_json_format_excludes_contextbase_mcp_tools(self):
+        """contextbase MCP tools should be excluded even in JSON mode."""
         import json
 
         msgs = [
@@ -388,7 +388,7 @@ class TestPrepareRetentionTranscript:
                 "role": "assistant",
                 "content": [
                     {"type": "text", "text": "Let me check."},
-                    {"type": "tool_use", "name": "mcp__agentstratum__recall", "input": {"query": "test"}},
+                    {"type": "tool_use", "name": "mcp__contextbase__recall", "input": {"query": "test"}},
                 ],
             },
         ]

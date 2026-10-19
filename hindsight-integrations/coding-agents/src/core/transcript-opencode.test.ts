@@ -56,7 +56,7 @@ describe("readOpencodeMessages", () => {
         parts: [
           {
             type: "text",
-            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+            text: "<contextbase_memories>\nleak\n</contextbase_memories>\nWhy retry?",
           },
         ],
       },

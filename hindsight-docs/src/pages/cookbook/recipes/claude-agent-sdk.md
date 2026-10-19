@@ -11,7 +11,7 @@ This recipe is available as an interactive Jupyter notebook.
 :::
 
 
-Build a Claude agent that remembers across sessions using Hindsight memory tools and automatic hooks.
+Build a Claude agent that remembers across sessions using ContextBase memory tools and automatic hooks.
 
 ## Features
 - In-process MCP server with retain, recall, and reflect tools
@@ -22,32 +22,34 @@ Build a Claude agent that remembers across sessions using Hindsight memory tools
 ## Prerequisites
 - **Claude Code CLI** installed and authenticated (`npm install -g @anthropic-ai/claude-code && claude auth login`, or set `ANTHROPIC_API_KEY`)
 - An LLM API key for Hindsight (OpenAI, Gemini, etc.)
-- Hindsight running locally via Docker (see setup below)
-- Alternatively, a [Hindsight Cloud](https://ui.hindsight.vectorize.io) account (no Docker needed)
+- ContextBase running locally via Docker (see setup below)
+- Alternatively, a [ContextBase remote service](http://localhost:9999) account (no Docker needed)
 
 :::note
 The Claude Agent SDK runs the Claude Code CLI as a subprocess. You need the CLI installed **and** authenticated — either via `claude auth login` or by setting `ANTHROPIC_API_KEY` in your environment.
 :::
 
-## Start Hindsight Locally
+## Start ContextBase Locally
 
-Before running this notebook, start Hindsight in a terminal:
+Before running this notebook, start ContextBase in a terminal:
 
 ```bash
 export LLM_API_KEY="your-llm-api-key"
 
-docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
-  -e HINDSIGHT_API_LLM_API_KEY=$LLM_API_KEY \
-  -e HINDSIGHT_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.hindsight-docker:/home/hindsight/.pg0 \
-  ghcr.io/vectorize-io/hindsight:latest
+docker build -f docker/standalone/Dockerfile -t contextbase:local .
+
+docker run --rm -it -p 8888:8888 -p 9999:9999 \
+  -e CONTEXTBASE_API_LLM_API_KEY=$LLM_API_KEY \
+  -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
+  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  contextbase:local
 ```
 
 ## 1. Install Dependencies
 
 
 ```python
-!pip install -q hindsight-claude-agent-sdk nest-asyncio
+!pip install -q contextbase-claude-agent-sdk nest-asyncio
 ```
 
 ## 2. Configure Environment
@@ -64,14 +66,14 @@ import getpass
 if not os.getenv("ANTHROPIC_API_KEY"):
     os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Enter your Anthropic API key: ")
 
-# Hindsight connection (defaults to local self-hosted instance)
-# For Hindsight Cloud, set HINDSIGHT_API_URL and HINDSIGHT_API_KEY env vars
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
-HINDSIGHT_API_KEY = os.getenv("HINDSIGHT_API_KEY", None)  # optional, for Hindsight Cloud
+# ContextBase connection (defaults to local self-hosted instance)
+# For ContextBase remote service, set CONTEXTBASE_API_URL and CONTEXTBASE_API_KEY env vars
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_KEY = os.getenv("CONTEXTBASE_API_KEY", None)  # optional, for ContextBase remote service
 BANK_ID = "claude-agent-demo"
 
-print(f"Hindsight API: {HINDSIGHT_API_URL}")
-print(f"Using API key: {'yes' if HINDSIGHT_API_KEY else 'no (self-hosted)'}")
+print(f"ContextBase API: {CONTEXTBASE_API_URL}")
+print(f"Using API key: {'yes' if CONTEXTBASE_API_KEY else 'no (self-hosted)'}")
 print(f"Bank ID: {BANK_ID}")
 ```
 
@@ -81,11 +83,11 @@ print(f"Bank ID: {BANK_ID}")
 ```python
 from hindsight_client import Hindsight
 
-hindsight = Hindsight(base_url=HINDSIGHT_API_URL, api_key=HINDSIGHT_API_KEY)
+contextbase = Hindsight(base_url=CONTEXTBASE_API_URL, api_key=CONTEXTBASE_API_KEY)
 
 # Create a dedicated bank for this demo (safe to re-run)
 try:
-    hindsight.create_bank(
+    contextbase.create_bank(
         bank_id=BANK_ID,
         name="Claude Agent Demo",
         mission="Remember user preferences, decisions, and project context for a software development assistant.",
@@ -101,16 +103,16 @@ Create an in-process MCP server with retain, recall, and reflect tools:
 
 
 ```python
-from hindsight_claude_agent_sdk import create_hindsight_server
+from contextbase_claude_agent_sdk import create_contextbase_server
 
-server = create_hindsight_server(
+server = create_contextbase_server(
     bank_id=BANK_ID,
-    hindsight_api_url=HINDSIGHT_API_URL,
-    api_key=HINDSIGHT_API_KEY,
+    contextbase_api_url=CONTEXTBASE_API_URL,
+    api_key=CONTEXTBASE_API_KEY,
     tags=["source:claude-agent-sdk-demo"],
 )
 
-print("Hindsight MCP server created with tools: hindsight_retain, hindsight_recall, hindsight_reflect")
+print("ContextBase MCP server created with tools: contextbase_retain, contextbase_recall, contextbase_reflect")
 ```
 
 ## 5. Run Agent with Explicit Memory Tools
@@ -123,10 +125,10 @@ import asyncio
 from claude_agent_sdk import query, ClaudeAgentOptions
 
 async def run_agent(prompt: str, system: str = None):
-    """Run a Claude agent with Hindsight memory tools."""
+    """Run a Claude agent with ContextBase memory tools."""
     options = ClaudeAgentOptions(
-        mcp_servers={"hindsight": server},
-        allowed_tools=["mcp__hindsight__*"],
+        mcp_servers={"contextbase": server},
+        allowed_tools=["mcp__contextbase__*"],
         model="claude-sonnet-4-6",
         permission_mode="bypassPermissions",
     )
@@ -190,12 +192,12 @@ Hooks inject memory automatically — no explicit tool calls needed:
 
 
 ```python
-from hindsight_claude_agent_sdk import create_memory_hooks, MemoryHookConfig
+from contextbase_claude_agent_sdk import create_memory_hooks, MemoryHookConfig
 
 hooks = create_memory_hooks(
     bank_id=BANK_ID,
-    hindsight_api_url=HINDSIGHT_API_URL,
-    api_key=HINDSIGHT_API_KEY,
+    contextbase_api_url=CONTEXTBASE_API_URL,
+    api_key=CONTEXTBASE_API_KEY,
     hook_config=MemoryHookConfig(
         auto_recall=True,       # inject relevant memories before each prompt
         auto_retain=True,       # save agent results after each session
@@ -218,8 +220,8 @@ async def run_with_hooks(prompt: str):
     async for msg in query(
         prompt=prompt,
         options=ClaudeAgentOptions(
-            mcp_servers={"hindsight": server},
-            allowed_tools=["mcp__hindsight__*"],
+            mcp_servers={"contextbase": server},
+            allowed_tools=["mcp__contextbase__*"],
             hooks=hooks,
             model="claude-sonnet-4-6",
             permission_mode="bypassPermissions",
@@ -262,8 +264,8 @@ You can also auto-retain outputs from specific tools like Bash:
 ```python
 hooks_with_bash = create_memory_hooks(
     bank_id=BANK_ID,
-    hindsight_api_url=HINDSIGHT_API_URL,
-    api_key=HINDSIGHT_API_KEY,
+    contextbase_api_url=CONTEXTBASE_API_URL,
+    api_key=CONTEXTBASE_API_KEY,
     hook_config=MemoryHookConfig(
         auto_recall=True,
         auto_retain=True,
@@ -281,6 +283,6 @@ Delete the bank created during this notebook:
 
 
 ```python
-hindsight.delete_bank(bank_id=BANK_ID)
+contextbase.delete_bank(bank_id=BANK_ID)
 print(f"Deleted bank '{BANK_ID}'.")
 ```

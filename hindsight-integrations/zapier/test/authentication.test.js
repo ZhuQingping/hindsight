@@ -17,7 +17,7 @@ describe("authentication", () => {
     const scope = nock("https://api.example.com", {
       reqheaders: {
         authorization: "Bearer hsk_test",
-        "user-agent": /^hindsight-zapier\/\d+\.\d+\.\d+ Zapier$/,
+        "user-agent": /^contextbase-zapier\/\d+\.\d+\.\d+ Zapier$/,
       },
     })
       .get("/v1/default/banks")
@@ -54,6 +54,6 @@ describe("authentication", () => {
 
   it("builds a connection label from the host", () => {
     const label = App.authentication.connectionLabel({}, { authData });
-    label.should.eql("Hindsight (api.example.com)");
+    label.should.eql("ContextBase (api.example.com)");
   });
 });

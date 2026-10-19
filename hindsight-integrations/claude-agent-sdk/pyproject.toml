@@ -1,7 +1,7 @@
 [project]
-name = "hindsight-claude-agent-sdk"
+name = "contextbase-claude-agent-sdk"
 version = "0.1.0"
-description = "Claude Agent SDK integration for Hindsight - persistent memory tools and hooks for Claude agents"
+description = "Claude Agent SDK integration for ContextBase - persistent memory tools and hooks for Claude agents"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -13,7 +13,7 @@ keywords = [
     "memory",
     "claude",
     "agents",
-    "hindsight",
+    "contextbase",
     "anthropic",
 ]
 classifiers = [
@@ -34,16 +34,16 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vectorize-io/hindsight"
+Homepage = "https://github.com/RSIXDB/hindsight"
 Documentation = "https://hindsight.vectorize.io/sdks/integrations/claude-agent-sdk"
-Repository = "https://github.com/vectorize-io/hindsight"
+Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_claude_agent_sdk"]
+packages = ["contextbase_claude_agent_sdk"]
 
 [tool.ruff]
 line-length = 120
@@ -52,7 +52,7 @@ line-length = 120
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
-    "requires_real_llm: end-to-end test that needs live external services (a running Hindsight server and/or real LLM provider keys). Excluded from the deterministic PR-CI bucket via -m 'not requires_real_llm'; run on its own via -m requires_real_llm.",
+    "requires_real_llm: end-to-end test that needs live external services (a running ContextBase server and/or real LLM provider keys). Excluded from the deterministic PR-CI bucket via -m 'not requires_real_llm'; run on its own via -m requires_real_llm.",
 ]
 
 [dependency-groups]

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Quickstart examples for Hindsight API.
+Quickstart examples for ContextBase API.
 Run: python examples/api/quickstart.py
 """
 import os
 import requests
 
-HINDSIGHT_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 # =============================================================================
 # Doc Examples
@@ -31,6 +31,6 @@ client.reflect(bank_id="my-bank", query="Tell me about Alice")
 # =============================================================================
 # Cleanup (not shown in docs)
 # =============================================================================
-requests.delete(f"{HINDSIGHT_URL}/v1/default/banks/my-bank")
+requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/my-bank")
 
 print("quickstart.py: All examples passed")

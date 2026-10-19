@@ -1,33 +1,33 @@
 ---
 sidebar_position: 22
-title: "Pipecat Persistent Memory with Hindsight | Integration"
-description: "Add persistent long-term memory to Pipecat voice AI pipelines via Hindsight. A single FrameProcessor slots between the user aggregator and LLM to recall context before each turn and retain conversation content after."
+title: "Pipecat Persistent Memory with ContextBase | Integration"
+description: "Add persistent long-term memory to Pipecat voice AI pipelines via ContextBase. A single FrameProcessor slots between the user aggregator and LLM to recall context before each turn and retain conversation content after."
 ---
 
 # Pipecat
 
-Persistent long-term memory for [Pipecat](https://github.com/pipecat-ai/pipecat) voice AI pipelines via [Hindsight](https://vectorize.io/hindsight). A single `FrameProcessor` slots between your user context aggregator and LLM service — recalling relevant memories before each turn and retaining conversation content after.
+Persistent long-term memory for [Pipecat](https://github.com/pipecat-ai/pipecat) voice AI pipelines via [ContextBase](https://github.com/RSIXDB/hindsight). A single `FrameProcessor` slots between your user context aggregator and LLM service — recalling relevant memories before each turn and retaining conversation content after.
 
 [View Changelog →](/changelog/integrations/pipecat)
 
 ## Quick Start
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```bash
-pip install hindsight-pipecat
+pip install contextbase-pipecat
 ```
 
 ```python
 from pipecat.pipeline.pipeline import Pipeline
-from hindsight_pipecat import HindsightMemoryService
+from contextbase_pipecat import ContextBaseMemoryService
 
-memory = HindsightMemoryService(
+memory = ContextBaseMemoryService(
     bank_id="user-123",
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key="hsk_...",  # or set HINDSIGHT_API_KEY env var
+    contextbase_api_url="http://localhost:8888",
+    api_key="hsk_...",  # or set CONTEXTBASE_API_KEY env var
 )
 
 pipeline = Pipeline([
@@ -47,17 +47,17 @@ pipeline = Pipeline([
 If you'd rather self-host:
 
 ```bash
-# 1. Start Hindsight
+# 1. Start ContextBase
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-openai-key
+export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
 hindsight-api
 ```
 
 ```python
 # 2. Point pipecat at the local server
-memory = HindsightMemoryService(
+memory = ContextBaseMemoryService(
     bank_id="user-123",
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 ```
 
@@ -68,13 +68,13 @@ New turn starts
   └─ OpenAILLMContextFrame arrives
        ├─ Retain previous complete turn (user+assistant) — fire-and-forget
        └─ Recall relevant memories for current user query
-            └─ Inject as <hindsight_memories> system message
+            └─ Inject as <contextbase_memories> system message
                  └─ Forward enriched context to LLM
 ```
 
 On each `OpenAILLMContextFrame`:
 
-1. **Retain** — any new complete user+assistant turn pairs are sent to Hindsight asynchronously (non-blocking)
+1. **Retain** — any new complete user+assistant turn pairs are sent to ContextBase asynchronously (non-blocking)
 2. **Recall** — the latest user message is used as the search query; results are injected as a system message before the LLM sees the context
 3. **Forward** — the enriched context frame is pushed downstream
 
@@ -83,10 +83,10 @@ Memory accumulates across calls. By the third or fourth turn, recall starts surf
 ## Configuration
 
 ```python
-HindsightMemoryService(
+ContextBaseMemoryService(
     bank_id="user-123",              # Required: memory bank to use
-    hindsight_api_url="...",         # Hindsight API URL
-    api_key="hsk_...",               # API key (Hindsight Cloud)
+    contextbase_api_url="...",         # ContextBase API URL
+    api_key="hsk_...",               # API key (ContextBase remote service)
     recall_budget="mid",             # "low", "mid", or "high"
     recall_max_tokens=4096,          # Max tokens for recall results
     enable_recall=True,              # Inject memories before LLM
@@ -98,16 +98,16 @@ HindsightMemoryService(
 ### Global Configuration
 
 ```python
-from hindsight_pipecat import configure
+from contextbase_pipecat import configure
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",  # Hindsight Cloud (default)
+    contextbase_api_url="http://localhost:8888",  # example self-hosted endpoint
     api_key="hsk_...",
     recall_budget="mid",
 )
 
 # Now create services without repeating connection details
-memory = HindsightMemoryService(bank_id="user-123")
+memory = ContextBaseMemoryService(bank_id="user-123")
 ```
 
 ## Compatibility
@@ -126,13 +126,13 @@ The `examples/basic_pipeline.py` shows the full voice pipeline with Daily + Deep
 
 ## Prerequisites
 
-A running Hindsight instance:
+A running ContextBase instance:
 
 **Self-hosted:**
 ```bash
 pip install hindsight-all
-export HINDSIGHT_API_LLM_API_KEY=your-api-key
+export CONTEXTBASE_API_LLM_API_KEY=your-api-key
 hindsight-api  # starts on http://localhost:8888
 ```
 
-**Hindsight Cloud:** [Sign up](https://ui.hindsight.vectorize.io) — no self-hosting required.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.

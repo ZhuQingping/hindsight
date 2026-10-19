@@ -22,12 +22,12 @@ vi.mock("node:child_process", async (importOriginal) => ({
 
 describe("persistent plugin initialization", () => {
   it("keeps the host usable when background seeding has no endpoint", async () => {
-    vi.stubEnv("AGENTSTRATUM_API_URL", "");
-    vi.stubEnv("AGENTSTRATUM_SERVER_MODE", "cloud");
-    vi.stubEnv("AGENTSTRATUM_BANK_ID", "configuration-regression");
-    vi.stubEnv("AGENTSTRATUM_DISABLED", "false");
-    vi.stubEnv("AGENTSTRATUM_OPT_IN_ONLY", "false");
-    vi.stubEnv("AGENTSTRATUM_DISABLE_HOOKS", "");
+    vi.stubEnv("CONTEXTBASE_API_URL", "");
+    vi.stubEnv("CONTEXTBASE_SERVER_MODE", "cloud");
+    vi.stubEnv("CONTEXTBASE_BANK_ID", "configuration-regression");
+    vi.stubEnv("CONTEXTBASE_DISABLED", "false");
+    vi.stubEnv("CONTEXTBASE_OPT_IN_ONLY", "false");
+    vi.stubEnv("CONTEXTBASE_DISABLE_HOOKS", "");
     const warning = vi.spyOn(log, "warn");
     try {
       // Only the host fields this entrypoint reads; use the real runtime, not a seed mock.
@@ -37,11 +37,11 @@ describe("persistent plugin initialization", () => {
       } as PluginInput);
       // Flush fire-and-forget initialization. Vitest also fails on unhandled rejections here.
       await new Promise<void>((resolve) => setImmediate(resolve));
-      expect(hooks.tool?.agentstratum_reflect).toBeDefined();
+      expect(hooks.tool?.contextbase_reflect).toBeDefined();
       expect(hooks["chat.message"]).toBeTypeOf("function");
       expect(warning).toHaveBeenCalledWith(
         "opencode",
-        expect.stringContaining("AGENTSTRATUM_API_URL")
+        expect.stringContaining("CONTEXTBASE_API_URL")
       );
     } finally {
       warning.mockRestore();
@@ -88,13 +88,13 @@ describe("invalid remote settings at the real plugin boundary", () => {
     { apiUrl: "definitely-not-a-url" },
     { apiUrl: "http://configured.example", serverMode: "daemon" },
   ])("keeps the host inert for %j without requests or engine startup", async (configuration) => {
-    const dir = mkdtempSync(join(tmpdir(), "agentstratum-invalid-plugin-"));
+    const dir = mkdtempSync(join(tmpdir(), "contextbase-invalid-plugin-"));
     const path = join(dir, "config.json");
     writeFileSync(path, JSON.stringify(configuration));
-    vi.stubEnv("AGENTSTRATUM_CONFIG", path);
-    vi.stubEnv("AGENTSTRATUM_BANK_ID", "invalid-remote-config");
+    vi.stubEnv("CONTEXTBASE_CONFIG", path);
+    vi.stubEnv("CONTEXTBASE_BANK_ID", "invalid-remote-config");
     for (const process of Object.values(localProcesses)) process.mockClear();
-    vi.stubEnv("AGENTSTRATUM_DISABLED", "false");
+    vi.stubEnv("CONTEXTBASE_DISABLED", "false");
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
     vi.resetModules();

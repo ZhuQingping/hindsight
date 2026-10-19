@@ -12,7 +12,7 @@ export type { Env, OAuthHelpers, OAuthReqInfo } from "./env";
  * MCP reverse-proxy. The OAuth provider routes authenticated requests for
  * `/mcp` into this class; everything else goes to `defaultHandler` below.
  */
-export class HindsightProxy extends WorkerEntrypoint<Env> {
+export class ContextBaseProxy extends WorkerEntrypoint<Env> {
   async fetch(request: Request): Promise<Response> {
     return proxyRequest(request, this.env);
   }
@@ -29,7 +29,7 @@ const defaultHandler = {
 
 const provider = new OAuthProvider({
   apiRoute: "/mcp",
-  apiHandler: HindsightProxy,
+  apiHandler: ContextBaseProxy,
   defaultHandler,
   authorizeEndpoint: "/authorize",
   tokenEndpoint: "/token",

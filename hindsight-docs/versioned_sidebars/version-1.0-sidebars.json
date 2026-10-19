@@ -280,7 +280,7 @@
       "items": [
         {
           "type": "link",
-          "href": "https://ui.hindsight.vectorize.io",
+          "href": "http://localhost:9999",
           "label": "Cloud",
           "customProps": {
             "icon": "lu-cloud",
@@ -487,7 +487,7 @@
         },
         {
           "type": "link",
-          "href": "https://github.com/vectorize-io/hindsight",
+          "href": "https://github.com/RSIXDB/hindsight",
           "label": "GitHub",
           "customProps": {
             "icon": "si-github",

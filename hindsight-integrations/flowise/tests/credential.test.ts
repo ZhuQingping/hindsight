@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import * as credModule from "../credentials/HindsightApi.credential";
+import * as credModule from "../credentials/ContextBaseApi.credential";
 
-const HindsightApi = (credModule as any).credClass;
+const ContextBaseApi = (credModule as any).credClass;
 
-describe("HindsightApi credential", () => {
-  const cred = new HindsightApi();
+describe("ContextBaseApi credential", () => {
+  const cred = new ContextBaseApi();
 
   it("declares the expected name and label", () => {
-    expect(cred.name).toBe("hindsightApi");
-    expect(cred.label).toBe("Hindsight API");
+    expect(cred.name).toBe("contextbaseApi");
+    expect(cred.label).toBe("ContextBase API");
     expect(cred.version).toBe(1.0);
   });
 
@@ -19,9 +19,9 @@ describe("HindsightApi credential", () => {
     expect(names).toContain("apiKey");
   });
 
-  it("defaults apiUrl to Hindsight Cloud", () => {
+  it("requires an explicitly configured API URL", () => {
     const apiUrl = cred.inputs.find((i: { name: string }) => i.name === "apiUrl");
-    expect(apiUrl.default).toBe("https://api.hindsight.vectorize.io");
+    expect(apiUrl.default).toBe("");
   });
 
   it("marks apiKey as a password input", () => {

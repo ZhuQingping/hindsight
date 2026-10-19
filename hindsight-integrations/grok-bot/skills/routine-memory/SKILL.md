@@ -1,6 +1,6 @@
 ---
 name: routine-memory
-description: Carry state between runs of a scheduled routine using Hindsight memory. Use when creating or editing a routine, to write the recall and retain steps into the routine's own instructions, and at the start and end of every scheduled or event-triggered routine run.
+description: Carry state between runs of a scheduled routine using ContextBase memory. Use when creating or editing a routine, to write the recall and retain steps into the routine's own instructions, and at the start and end of every scheduled or event-triggered routine run.
 ---
 
 # Remember between routine runs
@@ -11,8 +11,8 @@ A routine runs again and again. Without memory each run starts from zero, repeat
 
 Write the memory steps into the routine's own instructions, so every run carries them even when nobody is in the chat:
 
-- First: "Recall the last run of <routine name> from Hindsight and use it."
-- Last: "Retain a run note to Hindsight: what this run found, what changed, and what the next run should check first."
+- First: "Recall the last run of <routine name> from ContextBase and use it."
+- Last: "Retain a run note to ContextBase: what this run found, what changed, and what the next run should check first."
 
 Tell the user you added them.
 

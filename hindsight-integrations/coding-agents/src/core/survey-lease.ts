@@ -53,7 +53,7 @@ export interface SurveyLease {
  * command line was SIGKILLed by endpoint security within milliseconds of starting — 5/5 runs on a
  * SentinelOne-managed Mac, vs 0/5 for the identical launch with the spec in the environment (#4255
  * repro). The supervisor deletes it before starting the agent, so it goes no further. */
-export const SURVEY_SPEC_ENV = "AGENTSTRATUM_SURVEY_SPEC";
+export const SURVEY_SPEC_ENV = "CONTEXTBASE_SURVEY_SPEC";
 
 /** What the hook hands the detached supervisor (via `SURVEY_SPEC_ENV`). */
 export interface SurveySupervisorSpec {

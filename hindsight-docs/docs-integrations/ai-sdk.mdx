@@ -1,12 +1,12 @@
 ---
 sidebar_position: 4
-title: "Vercel AI SDK Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to any Vercel AI SDK application with five ready-to-use Hindsight tools. Retain conversations, recall context, and reflect on past interactions — works with any model."
+title: "Vercel AI SDK Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to any Vercel AI SDK application with five ready-to-use ContextBase tools. Retain conversations, recall context, and reflect on past interactions — works with any model."
 ---
 
 # Vercel AI SDK
 
-The `@vectorize-io/hindsight-ai-sdk` package integrates [Hindsight](https://hindsight.vectorize.io) memory with the [Vercel AI SDK](https://ai-sdk.dev). It provides five ready-to-use tools for retaining, recalling, and reflecting on long-term memories.
+The `contextbase-ai-sdk` package integrates [ContextBase](https://github.com/RSIXDB/hindsight) memory with the [Vercel AI SDK](https://ai-sdk.dev). It provides five ready-to-use tools for retaining, recalling, and reflecting on long-term memories.
 
 [View Changelog →](/changelog/integrations/ai-sdk)
 
@@ -17,12 +17,12 @@ import aiSdkTs from '!!raw-loader!@site/examples/integrations/ai-sdk.ts';
 ## Installation
 
 ```bash
-npm install @vectorize-io/hindsight-ai-sdk @vectorize-io/hindsight-client ai
+npm install contextbase-ai-sdk @vectorize-io/hindsight-client ai
 ```
 
 ## Setup
 
-Create a Hindsight client and pass it to `createHindsightTools` along with a `bankId`. The `bankId` identifies the memory store for this session—typically a user ID.
+Create a ContextBase client and pass it to `createContextBaseTools` along with a `bankId`. The `bankId` identifies the memory store for this session—typically a user ID.
 
 <CodeSnippet code={aiSdkTs} section="setup" language="typescript" />
 

@@ -57,8 +57,8 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     cwd = hook_input.get("cwd") or workspace_root(hook_input)
     session_id = hook_input.get("conversation_id") or hook_input.get("session_id", "")
     agent_name = config.get("agentName", "cursor")
-    channel_id = os.environ.get("HINDSIGHT_CHANNEL_ID", "")
-    user_id = os.environ.get("HINDSIGHT_USER_ID", "")
+    channel_id = os.environ.get("CONTEXTBASE_CHANNEL_ID", "")
+    user_id = os.environ.get("CONTEXTBASE_USER_ID", "")
 
     field_map = {
         "agent": agent_name,

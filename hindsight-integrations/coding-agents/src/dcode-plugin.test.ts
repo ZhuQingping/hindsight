@@ -13,10 +13,10 @@ describe("native Dcode plugin", () => {
     expect(manifest.version).toBe(packageManifest.version);
     expect(manifest.skills).toBe("./skill");
     expect(manifest.hooks).toBe("./hooks/hooks.json");
-    expect(manifest.mcpServers.agentstratum).toMatchObject({
+    expect(manifest.mcpServers.contextbase).toMatchObject({
       command: "node",
       args: ["${PLUGIN_ROOT}/dist/mcp-server.js"],
-      env: { AGENTSTRATUM_MCP_HARNESS: "dcode" },
+      env: { CONTEXTBASE_MCP_HARNESS: "dcode" },
     });
   });
 

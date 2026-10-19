@@ -6,18 +6,18 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
@@ -29,8 +29,8 @@ func main() {
 		"Bob is a data scientist who works with Alice",
 	} {
 		client.MemoryAPI.RetainMemories(ctx, "my-bank").
-			RetainRequest(hindsight.RetainRequest{
-				Items: []hindsight.MemoryItem{{Content: hindsight.TextContent(content)}},
+			RetainRequest(contextbase.RetainRequest{
+				Items: []contextbase.MemoryItem{{Content: contextbase.TextContent(content)}},
 			}).Execute()
 	}
 
@@ -40,7 +40,7 @@ func main() {
 
 	// [docs:recall-basic]
 	response, _, _ := client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "What does Alice do?",
 		}).Execute()
 
@@ -61,11 +61,11 @@ func main() {
 	// [/docs:recall-basic]
 
 	// [docs:recall-with-options]
-	budgetHigh := hindsight.HIGH
+	budgetHigh := contextbase.HIGH
 	maxTokens := int32(8000)
 	traceTrue := true
 	detailedResponse, _, _ := client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "What does Alice do?",
 			Types:     []string{"world", "experience"},
 			Budget:    &budgetHigh,
@@ -81,7 +81,7 @@ func main() {
 	// [docs:recall-world-only]
 	// Only world facts (objective information)
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "Where does Alice work?",
 			Types: []string{"world"},
 		}).Execute()
@@ -90,7 +90,7 @@ func main() {
 	// [docs:recall-experience-only]
 	// Only experience (conversations and events)
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "What have I recommended?",
 			Types: []string{"experience"},
 		}).Execute()
@@ -99,7 +99,7 @@ func main() {
 	// [docs:recall-observations-only]
 	// Only observations (consolidated knowledge)
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "What patterns have I learned?",
 			Types: []string{"observation"},
 		}).Execute()
@@ -108,13 +108,13 @@ func main() {
 	// [docs:recall-source-facts]
 	// Recall observations and include their source facts
 	maxSFTokens := int32(4096)
-	sfOpts := hindsight.SourceFactsIncludeOptions{MaxTokens: &maxSFTokens}
+	sfOpts := contextbase.SourceFactsIncludeOptions{MaxTokens: &maxSFTokens}
 	obsResponse, _, _ := client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query: "What patterns have I learned about Alice?",
 			Types: []string{"observation"},
-			Include: &hindsight.IncludeOptions{
-				SourceFacts: *hindsight.NewNullableSourceFactsIncludeOptions(&sfOpts),
+			Include: &contextbase.IncludeOptions{
+				SourceFacts: *contextbase.NewNullableSourceFactsIncludeOptions(&sfOpts),
 			},
 		}).Execute()
 
@@ -129,17 +129,17 @@ func main() {
 	// [/docs:recall-source-facts]
 
 	// [docs:recall-budget-levels]
-	budgetLow := hindsight.LOW
+	budgetLow := contextbase.LOW
 	// Quick lookup
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:  "Alice's email",
 			Budget: &budgetLow,
 		}).Execute()
 
 	// Deep exploration
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:  "How are Alice and Bob connected?",
 			Budget: &budgetHigh,
 		}).Execute()
@@ -149,7 +149,7 @@ func main() {
 	// Fill up to 4K tokens of context with relevant memories
 	mt4k := int32(4096)
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "What do I know about Alice?",
 			MaxTokens: &mt4k,
 		}).Execute()
@@ -157,7 +157,7 @@ func main() {
 	// Smaller budget for quick lookups
 	mt500 := int32(500)
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "Alice's email",
 			MaxTokens: &mt500,
 		}).Execute()
@@ -167,7 +167,7 @@ func main() {
 	// Filter recall to only memories tagged for a specific user
 	tagsMatch := "any"
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "What feedback did the user give?",
 			Tags:      []string{"user:alice"},
 			TagsMatch: &tagsMatch,
@@ -178,7 +178,7 @@ func main() {
 	// Strict mode: only return memories that have matching tags (exclude untagged)
 	tagsMatchStrict := "any_strict"
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "What did the user say?",
 			Tags:      []string{"user:alice"},
 			TagsMatch: &tagsMatchStrict,
@@ -189,7 +189,7 @@ func main() {
 	// AND matching: require ALL specified tags to be present
 	tagsMatchAll := "all_strict"
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "What bugs were reported?",
 			Tags:      []string{"user:alice", "bug-report"},
 			TagsMatch: &tagsMatchAll,
@@ -200,7 +200,7 @@ func main() {
 	// AND matching, includes untagged memories
 	tagsMatchAllMode := "all"
 	client.MemoryAPI.RecallMemories(ctx, "my-bank").
-		RecallRequest(hindsight.RecallRequest{
+		RecallRequest(contextbase.RecallRequest{
 			Query:     "communication tools",
 			Tags:      []string{"user:alice", "team"},
 			TagsMatch: &tagsMatchAllMode,

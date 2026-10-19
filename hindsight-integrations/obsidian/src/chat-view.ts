@@ -5,9 +5,9 @@
  */
 
 import { ItemView, MarkdownRenderer, Notice, type WorkspaceLeaf, setIcon } from "obsidian";
-import { HINDSIGHT_ICON_ID, HINDSIGHT_MARK_DATA_URI } from "./branding";
+import { CONTEXTBASE_ICON_ID, CONTEXTBASE_MARK_DATA_URI } from "./branding";
 import { runChatTurn } from "./chat";
-import type HindsightPlugin from "./main";
+import type ContextBasePlugin from "./main";
 import { collectDocIds, groundedNotes, type RetrievedNote } from "./reflect-util";
 import { renderSyncStatus } from "./status-bar";
 import type { Budget, ReflectResponse, ReflectToolCall, TagGroup, TagLeaf } from "./types";
@@ -21,7 +21,7 @@ const NOTES_VISIBLE = 3;
 // px — the composer grows with the message up to this height, then scrolls.
 const INPUT_MAX_HEIGHT = 240;
 
-export const VIEW_TYPE_CHAT = "hindsight-chat";
+export const VIEW_TYPE_CHAT = "contextbase-chat";
 
 const ALL = ""; // sentinel for "no filter" in the dropdowns
 
@@ -42,7 +42,7 @@ export class ChatView extends ItemView {
 
   constructor(
     leaf: WorkspaceLeaf,
-    private readonly plugin: HindsightPlugin
+    private readonly plugin: ContextBasePlugin
   ) {
     super(leaf);
   }
@@ -52,28 +52,28 @@ export class ChatView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Hindsight chat";
+    return "ContextBase chat";
   }
 
   getIcon(): string {
-    return HINDSIGHT_ICON_ID;
+    return CONTEXTBASE_ICON_ID;
   }
 
   async onOpen(): Promise<void> {
     const root = this.contentEl;
     root.empty();
-    root.addClass("hindsight-chat");
+    root.addClass("contextbase-chat");
 
     // "New chat" lives in the view's header action bar (top-right).
     this.addAction("square-pen", "New chat", () => this.newChat());
 
     this.buildHeader(root);
-    this.messagesEl = root.createDiv({ cls: "hindsight-chat__messages" });
+    this.messagesEl = root.createDiv({ cls: "contextbase-chat__messages" });
     this.renderEmptyState();
 
     // Filters sit just above the ask bar (right-aligned), not at the top.
     this.buildFilterBar(root);
-    const composer = root.createDiv({ cls: "hindsight-chat__composer" });
+    const composer = root.createDiv({ cls: "contextbase-chat__composer" });
     this.input = composer.createEl("textarea", {
       attr: { placeholder: "Ask about your vault…", rows: "2" },
     });
@@ -100,16 +100,16 @@ export class ChatView extends ItemView {
   }
 
   private buildHeader(root: HTMLElement): void {
-    const header = root.createDiv({ cls: "hindsight-chat__header" });
+    const header = root.createDiv({ cls: "contextbase-chat__header" });
     header.createEl("img", {
-      cls: "hindsight-chat__brand-mark",
-      attr: { src: HINDSIGHT_MARK_DATA_URI, alt: "Hindsight" },
+      cls: "contextbase-chat__brand-mark",
+      attr: { src: CONTEXTBASE_MARK_DATA_URI, alt: "ContextBase" },
     });
-    header.createEl("span", { cls: "hindsight-chat__brand-name", text: "Hindsight" });
+    header.createEl("span", { cls: "contextbase-chat__brand-name", text: "ContextBase" });
     // Sync status (label) + an explicit refresh button that triggers a sync.
-    this.syncStatusEl = header.createEl("span", { cls: "hindsight-chat__sync" });
+    this.syncStatusEl = header.createEl("span", { cls: "contextbase-chat__sync" });
     this.syncButtonEl = header.createEl("span", {
-      cls: "hindsight-chat__sync-btn clickable-icon",
+      cls: "contextbase-chat__sync-btn clickable-icon",
       attr: { "aria-label": "Sync vault now" },
     });
     setIcon(this.syncButtonEl, "refresh-cw");
@@ -137,22 +137,22 @@ export class ChatView extends ItemView {
   }
 
   private renderEmptyState(): void {
-    this.emptyState = this.messagesEl.createDiv({ cls: "hindsight-chat__empty" });
+    this.emptyState = this.messagesEl.createDiv({ cls: "contextbase-chat__empty" });
     this.emptyState.createEl("img", {
-      cls: "hindsight-chat__empty-mark",
-      attr: { src: HINDSIGHT_MARK_DATA_URI, alt: "" },
+      cls: "contextbase-chat__empty-mark",
+      attr: { src: CONTEXTBASE_MARK_DATA_URI, alt: "" },
     });
     this.emptyState.createEl("div", {
-      cls: "hindsight-chat__empty-text",
+      cls: "contextbase-chat__empty-text",
       text: "Ask anything about your vault. Answers are grounded on your notes and cite them.",
     });
   }
 
   private buildFilterBar(root: HTMLElement): void {
-    const bar = root.createDiv({ cls: "hindsight-chat__filters" });
+    const bar = root.createDiv({ cls: "contextbase-chat__filters" });
 
     const vaultName = this.app.vault.getName();
-    const vaultSel = bar.createEl("select", { cls: "hindsight-chat__filter" });
+    const vaultSel = bar.createEl("select", { cls: "contextbase-chat__filter" });
     vaultSel.createEl("option", { text: "All vaults", value: ALL });
     vaultSel.createEl("option", { text: `Vault: ${vaultName}`, value: vaultName });
     vaultSel.value = this.vaultFilter;
@@ -160,7 +160,7 @@ export class ChatView extends ItemView {
       this.vaultFilter = vaultSel.value;
     });
 
-    const folderSel = bar.createEl("select", { cls: "hindsight-chat__filter" });
+    const folderSel = bar.createEl("select", { cls: "contextbase-chat__filter" });
     folderSel.createEl("option", { text: "All folders", value: ALL });
     for (const folder of this.folderOptions()) {
       folderSel.createEl("option", { text: folder, value: folder });
@@ -172,7 +172,7 @@ export class ChatView extends ItemView {
 
     // Chat depth (reflect budget) — settable inline, and written back to the
     // persisted default so the chat-window choice sticks across turns/sessions.
-    const depthSel = bar.createEl("select", { cls: "hindsight-chat__filter" });
+    const depthSel = bar.createEl("select", { cls: "contextbase-chat__filter" });
     const depths: Record<Budget, string> = {
       low: "Depth: Low",
       mid: "Depth: Medium",
@@ -217,7 +217,7 @@ export class ChatView extends ItemView {
     this.emptyState?.remove();
     this.emptyState = null;
     const el = this.messagesEl.createDiv({
-      cls: `hindsight-chat__msg hindsight-chat__msg--${role}`,
+      cls: `contextbase-chat__msg contextbase-chat__msg--${role}`,
     });
     // sourcePath = the active note so any [[wikilinks]] in the answer resolve.
     const sourcePath = this.app.workspace.getActiveFile()?.path ?? "";
@@ -232,20 +232,20 @@ export class ChatView extends ItemView {
 
   /** Actions under an assistant answer. */
   private renderActions(container: HTMLElement, text: string): void {
-    const actions = container.createDiv({ cls: "hindsight-chat__actions" });
+    const actions = container.createDiv({ cls: "contextbase-chat__actions" });
 
-    const copy = actions.createEl("button", { cls: "hindsight-chat__action", text: "Copy" });
+    const copy = actions.createEl("button", { cls: "contextbase-chat__action", text: "Copy" });
     copy.addEventListener("click", () => {
       void navigator.clipboard.writeText(text);
-      new Notice("Hindsight: answer copied");
+      new Notice("ContextBase: answer copied");
     });
   }
 
   /** Render one grounded note (citation link + snippet); returns the row element. */
   private renderNoteItem(parent: HTMLElement, note: RetrievedNote): HTMLElement {
-    const item = parent.createDiv({ cls: "hindsight-chat__note" });
+    const item = parent.createDiv({ cls: "contextbase-chat__note" });
     const link = item.createEl("a", {
-      cls: "hindsight-chat__citation",
+      cls: "contextbase-chat__citation",
       text: this.plugin.stripDocPrefix(note.docId),
       href: "#",
     });
@@ -256,7 +256,7 @@ export class ChatView extends ItemView {
     const snippet = note.snippets[0];
     if (snippet) {
       item.createDiv({
-        cls: "hindsight-chat__snippet",
+        cls: "contextbase-chat__snippet",
         text: snippet.length > SNIPPET_MAX ? `${snippet.slice(0, SNIPPET_MAX)}…` : snippet,
       });
     }
@@ -269,7 +269,7 @@ export class ChatView extends ItemView {
     const models = response.based_on?.mental_models ?? [];
     if (notes.length === 0 && models.length === 0) return;
 
-    const details = container.createEl("details", { cls: "hindsight-chat__disclosure" });
+    const details = container.createEl("details", { cls: "contextbase-chat__disclosure" });
     // Collapsed by default; thereafter remembers the user's last choice (persisted).
     details.open = this.plugin.settings.notesExpanded;
     this.persistDisclosure(details, "notesExpanded");
@@ -286,7 +286,7 @@ export class ChatView extends ItemView {
     });
     if (overflow.length > 0) {
       const more = details.createEl("a", {
-        cls: "hindsight-chat__show-all",
+        cls: "contextbase-chat__show-all",
         text: `Show all (${overflow.length} more)`,
         href: "#",
       });
@@ -299,7 +299,7 @@ export class ChatView extends ItemView {
 
     for (const model of models) {
       details.createEl("span", {
-        cls: "hindsight-chat__citation",
+        cls: "contextbase-chat__citation",
         text: `🧠 ${model.name ?? "mental model"}`,
       });
     }
@@ -319,7 +319,7 @@ export class ChatView extends ItemView {
   private renderReasoning(container: HTMLElement, response: ReflectResponse): void {
     const calls = response.trace?.tool_calls ?? [];
     if (calls.length === 0) return;
-    const details = container.createEl("details", { cls: "hindsight-chat__disclosure" });
+    const details = container.createEl("details", { cls: "contextbase-chat__disclosure" });
     details.open = this.plugin.settings.reasoningExpanded;
     this.persistDisclosure(details, "reasoningExpanded");
     details.createEl("summary", { text: `Reasoning (${calls.length} steps)` });
@@ -329,7 +329,7 @@ export class ChatView extends ItemView {
       const query = callQuery(call);
       const noteCount = ids.size ? ` — ${ids.size} note${ids.size === 1 ? "" : "s"}` : "";
       const label = `• ${call.tool}${query ? ` · “${query}”` : ""}${noteCount}`;
-      details.createEl("div", { cls: "hindsight-chat__citation", text: label });
+      details.createEl("div", { cls: "contextbase-chat__citation", text: label });
     }
   }
 
@@ -340,7 +340,7 @@ export class ChatView extends ItemView {
 
     const client = this.plugin.getClient();
     if (!client) {
-      new Notice("Hindsight: set your API URL in settings first.");
+      new Notice("ContextBase: set your API URL in settings first.");
       return;
     }
 
@@ -349,7 +349,7 @@ export class ChatView extends ItemView {
     this.autoGrowInput();
     this.addMessage("user", message);
     const pending = this.messagesEl.createDiv({
-      cls: "hindsight-chat__msg hindsight-chat__msg--assistant hindsight-chat__pending",
+      cls: "contextbase-chat__msg contextbase-chat__msg--assistant contextbase-chat__pending",
       text: "Thinking…",
     });
 

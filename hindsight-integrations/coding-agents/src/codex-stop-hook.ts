@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** agentstratum-codex-stop-hook — Codex CLI `Stop` hook: writes the session's rollout transcript back
+/** contextbase-codex-stop-hook — Codex CLI `Stop` hook: writes the session's rollout transcript back
  *  to memory. Same runtime as the Claude Stop hook, but with the Codex rollout reader. */
 import { runHarnessRetain } from "./harness/hook-lifecycle";
 

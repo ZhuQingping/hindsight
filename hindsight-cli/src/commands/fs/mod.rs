@@ -1,9 +1,9 @@
-//! `agentstratum fs` — mirror a Agentstratum bank's knowledge base (folders + pages)
+//! `contextbase fs` — mirror a ContextBase bank's knowledge base (folders + pages)
 //! as a folder of markdown files that stay current via a background refresh
 //! loop. Once mounted, ordinary shell tools (ls, cat, grep, find, rg, fzf …)
 //! work against real files.
 //!
-//! Ported from the standalone `agentstratum-fs` TS tool into the Rust CLI.
+//! Ported from the standalone `contextbase-fs` TS tool into the Rust CLI.
 
 mod client;
 mod config;
@@ -25,10 +25,10 @@ use config::{resolve_config, save_config, Baseline, ConfigOverrides, MountConfig
 /// Options shared by every `fs` subcommand.
 #[derive(Args, Debug, Clone)]
 pub struct FsCommonArgs {
-    /// Mount directory (default: ./agentstratum-fs; env: AGENTSTRATUM_FS_DIR)
+    /// Mount directory (default: ./contextbase-fs; env: CONTEXTBASE_FS_DIR)
     pub dir: Option<String>,
 
-    /// Bank to mirror (env: AGENTSTRATUM_BANK_ID)
+    /// Bank to mirror (env: CONTEXTBASE_BANK_ID)
     #[arg(short = 'b', long)]
     pub bank: Option<String>,
 
@@ -49,7 +49,7 @@ pub struct FsCommonArgs {
     pub writable: bool,
 }
 
-/// `agentstratum fs` subcommands.
+/// `contextbase fs` subcommands.
 #[derive(Subcommand, Debug)]
 pub enum FsCommands {
     /// Mirror the bank into <dir> and keep it refreshed (foreground; Ctrl-C to stop)
@@ -151,7 +151,7 @@ pub fn dispatch(
         },
         None => Baseline {
             api_url: String::new(),
-            api_key: std::env::var("AGENTSTRATUM_API_KEY").ok(),
+            api_key: std::env::var("CONTEXTBASE_API_KEY").ok(),
         },
     };
 
@@ -306,7 +306,7 @@ fn start_background(config: &MountConfig) -> Result<()> {
             r.pid
         );
         println!(
-            "Logs: {} — stop with: agentstratum fs stop {}",
+            "Logs: {} — stop with: contextbase fs stop {}",
             daemon::log_path(&config.dir).display(),
             config.dir.display()
         );

@@ -711,7 +711,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-llamaindex"
+name = "contextbase-llamaindex"
 version = "0.1.5"
 source = { editable = "." }
 dependencies = [

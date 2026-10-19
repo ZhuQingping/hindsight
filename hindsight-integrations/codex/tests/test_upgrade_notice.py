@@ -22,7 +22,7 @@ def test_links_the_migration_guide():
 
 
 def test_says_deprecated_outright():
-    """"Superseded" is jargon; a user needs to read one word and know to act."""
+    """ "Superseded" is jargon; a user needs to read one word and know to act."""
     assert "DEPRECATED" in upgrade_notice({})
 
 

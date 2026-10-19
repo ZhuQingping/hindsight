@@ -1,4 +1,6 @@
-# Hindsight for GitHub Copilot CLI
+# ContextBase for GitHub Copilot CLI
+
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
 
 Long-term memory for [GitHub Copilot CLI](https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-copilot-cli) — remembers your projects, preferences, and past sessions across every conversation, and gives subagents (`explore`, `task`, `research`, `code-review`, `rubber-duck`, `security-review`, custom agents) baseline project memory too.
 
@@ -25,67 +27,67 @@ The built-in `general-purpose` subagent does not emit `subagentStart`/`subagentS
 
 - **GitHub Copilot CLI** with [hooks support](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks)
 - **Python 3.9+** (for hook scripts; stdlib only — no pip install required)
-- **Hindsight**: [Hindsight Cloud](https://hindsight.vectorize.io) or local `hindsight-embed`
+- **ContextBase**: [ContextBase remote service](https://github.com/RSIXDB/hindsight) or local `hindsight-embed`
 
 ## Installation
 
-Sign up free at [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io) for a Hindsight Cloud API key — or run a local server.
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```bash
-pip install hindsight-copilot-cli
+pip install contextbase-copilot-cli
 ```
 
 Then run the installer once:
 
 ```bash
-# Hindsight Cloud
-hindsight-copilot-cli install --api-url https://api.hindsight.vectorize.io --api-token your-api-key
+# ContextBase remote service
+contextbase-copilot-cli install --api-url http://localhost:8888 --api-token your-api-key
 
 # Local daemon (hindsight-embed) — omit the flags
-hindsight-copilot-cli install
+contextbase-copilot-cli install
 ```
 
 The installer:
 
-1. Copies the hook scripts to `~/.copilot/hindsight-copilot-cli/scripts/` (or `$COPILOT_HOME/hindsight-copilot-cli/scripts/` if `COPILOT_HOME` is set)
-2. Writes a standalone `~/.copilot/hooks/hindsight-copilot-cli.json` with absolute paths to the scripts — Copilot CLI loads every `*.json` file in its hooks directory, so this never needs to merge with other tools' hook files
-3. Seeds `~/.hindsight/copilot-cli.json` if it doesn't exist (drop your `hindsightApiToken` here later)
+1. Copies the hook scripts to `~/.copilot/contextbase-copilot-cli/scripts/` (or `$COPILOT_HOME/contextbase-copilot-cli/scripts/` if `COPILOT_HOME` is set)
+2. Writes a standalone `~/.copilot/hooks/contextbase-copilot-cli.json` with absolute paths to the scripts — Copilot CLI loads every `*.json` file in its hooks directory, so this never needs to merge with other tools' hook files
+3. Seeds `~/.contextbase/copilot-cli.json` if it doesn't exist (drop your `contextbaseApiToken` here later)
 
 Restart Copilot CLI to load the hooks. If memories are not recalled or retained, check that
-`~/.copilot/hooks/hindsight-copilot-cli.json` exists and that `python3` is on `$PATH` from your shell.
+`~/.copilot/hooks/contextbase-copilot-cli.json` exists and that `python3` is on `$PATH` from your shell.
 
 ### Repo-scope install (shared team hooks)
 
-To register the hooks at the repository level instead (`.github/hooks/hindsight-copilot-cli.json`, so a team can check in shared hook config):
+To register the hooks at the repository level instead (`.github/hooks/contextbase-copilot-cli.json`, so a team can check in shared hook config):
 
 ```bash
-hindsight-copilot-cli install --scope repo
+contextbase-copilot-cli install --scope repo
 ```
 
 The hook *scripts* are still installed once per machine under `~/.copilot`; only the registration
-pointer is written to `.github/hooks/hindsight-copilot-cli.json`. Since that path is absolute and per-machine,
+pointer is written to `.github/hooks/contextbase-copilot-cli.json`. Since that path is absolute and per-machine,
 every teammate needs to run the installer locally too. Never commit an API token — set
-`HINDSIGHT_API_TOKEN` in each environment instead.
+`CONTEXTBASE_API_TOKEN` in each environment instead.
 
 ### Uninstall
 
 ```bash
-hindsight-copilot-cli uninstall
+contextbase-copilot-cli uninstall
 # or, for a repo-scope install:
-hindsight-copilot-cli uninstall --scope repo
+contextbase-copilot-cli uninstall --scope repo
 ```
 
-This removes the hook scripts and the `hindsight-copilot-cli.json` registration file for the given scope. Your
-personal config at `~/.hindsight/copilot-cli.json` is preserved.
+This removes the hook scripts and the `contextbase-copilot-cli.json` registration file for the given scope. Your
+personal config at `~/.contextbase/copilot-cli.json` is preserved.
 
 ## Configuration
 
-Default config lives in `~/.copilot/hindsight-copilot-cli/settings.json`. For personal overrides stable across updates, create `~/.hindsight/copilot-cli.json`:
+Default config lives in `~/.copilot/contextbase-copilot-cli/settings.json`. For personal overrides stable across updates, create `~/.contextbase/copilot-cli.json`:
 
 ```json
 {
-  "hindsightApiUrl": "https://api.hindsight.vectorize.io",
-  "hindsightApiToken": "your-api-key",
+  "contextbaseApiUrl": "http://localhost:8888",
+  "contextbaseApiToken": "your-api-key",
   "bankId": "my-copilot-memory"
 }
 ```
@@ -94,10 +96,10 @@ Default config lives in `~/.copilot/hindsight-copilot-cli/settings.json`. For pe
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `hindsightApiUrl` | `""` | External API URL (empty = local daemon) |
-| `hindsightApiToken` | `null` | API token for Hindsight Cloud |
+| `contextbaseApiUrl` | `""` | External API URL (empty = local daemon) |
+| `contextbaseApiToken` | `null` | API token for ContextBase remote service |
 | `bankId` | `"copilot-cli"` | Memory bank identifier |
-| `bankMission` | (set) | Guides what facts Hindsight retains |
+| `bankMission` | (set) | Guides what facts ContextBase retains |
 | `autoRecall` | `true` | Recall memories on `sessionStart` and `subagentStart` |
 | `autoRetain` | `true` | Store conversations after each turn |
 | `retainMode` | `"full-session"` | `"full-session"` or `"chunked"` |
@@ -116,18 +118,18 @@ Default config lives in `~/.copilot/hindsight-copilot-cli/settings.json`. For pe
 All settings can also be set via environment variables:
 
 ```bash
-export HINDSIGHT_API_URL=https://api.hindsight.vectorize.io
-export HINDSIGHT_API_TOKEN=your-api-key
-export HINDSIGHT_BANK_ID=my-project
-export HINDSIGHT_RECALL_TIMEOUT=30
-export HINDSIGHT_DEBUG=true
+export CONTEXTBASE_API_URL=http://localhost:8888
+export CONTEXTBASE_API_TOKEN=your-api-key
+export CONTEXTBASE_BANK_ID=my-project
+export CONTEXTBASE_RECALL_TIMEOUT=30
+export CONTEXTBASE_DEBUG=true
 ```
 
 ## How memory works
 
-**Recall** — on `sessionStart`, Hindsight searches your memory bank for facts relevant to the queued prompt (or a generic project-context query when there isn't one) and injects them as `additionalContext`. The same happens on `subagentStart` for every subagent spawned during the session, since subagents otherwise run in a fully isolated context with no access to the parent session's memory.
+**Recall** — on `sessionStart`, ContextBase searches your memory bank for facts relevant to the queued prompt (or a generic project-context query when there isn't one) and injects them as `additionalContext`. The same happens on `subagentStart` for every subagent spawned during the session, since subagents otherwise run in a fully isolated context with no access to the parent session's memory.
 
-**Retain** — after configured turns (`agentStop`) and again when the session ends (`sessionEnd`), the session transcript is read from Copilot CLI's `transcriptPath` and stored to Hindsight. The memory engine extracts facts, relationships, and experiences — so you don't need to re-explain your stack, preferences, or past decisions.
+**Retain** — after configured turns (`agentStop`) and again when the session ends (`sessionEnd`), the session transcript is read from Copilot CLI's `transcriptPath` and stored to ContextBase. The memory engine extracts facts, relationships, and experiences — so you don't need to re-explain your stack, preferences, or past decisions.
 
 ## Dynamic bank IDs
 
@@ -144,9 +146,9 @@ This creates banks like `copilot-cli::my-project` automatically, deriving the pr
 
 ## Troubleshooting
 
-**Memory not appearing**: enable debug mode (`"debug": true`) and check that `HINDSIGHT_API_URL` points to a reachable server. Logs go to `~/.hindsight/copilot-cli/state/*.log` when debug is on and stderr is redirected — otherwise check the hook's stderr directly via Copilot CLI's own debug output.
+**Memory not appearing**: enable debug mode (`"debug": true`) and check that `CONTEXTBASE_API_URL` points to a reachable server. Logs go to `~/.contextbase/copilot-cli/state/*.log` when debug is on and stderr is redirected — otherwise check the hook's stderr directly via Copilot CLI's own debug output.
 
-**Hooks not firing**: check that `~/.copilot/hooks/hindsight-copilot-cli.json` (or `.github/hooks/hindsight-copilot-cli.json` for repo scope) is valid JSON. Copilot CLI loads hook configuration when it starts, so restart the CLI after installing or updating hooks.
+**Hooks not firing**: check that `~/.copilot/hooks/contextbase-copilot-cli.json` (or `.github/hooks/contextbase-copilot-cli.json` for repo scope) is valid JSON. Copilot CLI loads hook configuration when it starts, so restart the CLI after installing or updating hooks.
 
 **Subagents not getting memory**: the built-in `general-purpose` agent never emits `subagentStart` — this is a Copilot CLI limitation, not a bug in this integration. All other built-in agents (`explore`, `task`, `code-review`, `rubber-duck`, `research`, `security-review`) and custom agents do emit it.
 
@@ -158,7 +160,7 @@ uv sync
 uv run pytest tests/ -v
 ```
 
-The tests mock the HTTP client, the stdin/stdout pipe, and the file-based state. No live Hindsight server or Copilot CLI installation is required.
+The tests mock the HTTP client, the stdin/stdout pipe, and the file-based state. No live ContextBase server or Copilot CLI installation is required.
 
 ## License
 

@@ -88,7 +88,7 @@ export interface PluginConfig {
   observationsMission?: string;
   /**
    * Fact extraction mode stamped onto dynamic/static banks on first use.
-   * Leave unset to keep the Hindsight server default for new banks.
+   * Leave unset to keep the ContextBase server default for new banks.
    */
   retainExtractionMode?: "concise" | "verbose" | "custom" | "verbatim" | "chunks";
   /** Toggle observation consolidation for new banks. */
@@ -111,14 +111,14 @@ export interface PluginConfig {
   enableKnowledgeTools?: boolean;
   daemonIdleTimeout?: number; // Seconds before daemon shuts down (0 = never)
   embedVersion?: string; // hindsight-embed version (default: "latest")
-  embedPackagePath?: string; // Local path to hindsight package (e.g. '/path/to/hindsight')
+  embedPackagePath?: string; // Local path to contextbase package (e.g. '/path/to/contextbase')
   llmProvider?: string; // LLM provider (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code')
   llmModel?: string; // LLM model (e.g. 'gpt-4o-mini', 'claude-3-5-haiku-20241022')
   llmApiKey?: string; // LLM provider API key. Configure via SecretRef: openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY
   llmBaseUrl?: string; // Optional base URL override for OpenAI-compatible providers (e.g. OpenRouter)
   apiPort?: number; // Port for openclaw profile daemon (default: 9077)
-  hindsightApiUrl?: string; // External Hindsight API URL (skips local daemon when set)
-  hindsightApiToken?: string; // API token for external Hindsight API. Configure via SecretRef.
+  contextbaseApiUrl?: string; // External ContextBase API URL (skips local daemon when set)
+  contextbaseApiToken?: string; // API token for external ContextBase API. Configure via SecretRef.
   dynamicBankId?: boolean; // Enable per-channel memory banks (default: true)
   bankId?: string; // Static bank ID used when dynamicBankId is false.
   bankIdPrefix?: string; // Prefix for bank IDs (e.g. 'prod' -> 'prod-slack-C123')
@@ -153,7 +153,7 @@ export interface PluginConfig {
   debug?: boolean; // Enable debug logging (default: false)
   logLevel?: "off" | "error" | "warning" | "info" | "debug"; // Console log verbosity (default: 'info').
   logSummaryIntervalMs?: number; // Batch retain/recall log summaries over this interval in ms. 0 = log every event. Default: 300000 (5 min).
-  retainQueuePath?: string; // Path to JSONL file for buffering failed retains. Default: ~/.openclaw/data/hindsight-retain-queue.jsonl
+  retainQueuePath?: string; // Path to JSONL file for buffering failed retains. Default: ~/.openclaw/data/contextbase-retain-queue.jsonl
   retainQueueMaxAgeMs?: number; // Max age in ms for queued items. -1 = keep forever (default: -1)
   retainQueueFlushIntervalMs?: number; // How often to attempt flushing the queue in ms. Default: 60000 (1 min)
   /**
@@ -180,7 +180,7 @@ export interface ServiceConfig {
 }
 
 // -----------------------------------------------------------------------------
-// Hindsight API types
+// ContextBase API types
 // -----------------------------------------------------------------------------
 
 // MemoryResult / RecallResponse / ReflectResponse come from the generated
@@ -210,7 +210,7 @@ export interface RetainRequest {
   operationId?: string;
   /**
    * `'append'` concatenates this content to the existing document text
-   * (Hindsight ≥ 0.5 only — older versions silently ignore the field and
+   * (ContextBase ≥ 0.5 only — older versions silently ignore the field and
    * overwrite). The plugin only sets this when capability detection at
    * service.start() confirmed support; otherwise it falls back to a
    * per-turn document id and leaves this unset.

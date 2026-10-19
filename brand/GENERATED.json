@@ -4,7 +4,7 @@
   "entries": [
     {
       "path": "hindsight-api-slim/hindsight_api/brand_defaults.py",
-      "sha256": "545d70ba3f4241cb45fe39cc54eebc6aba2713c61597ac07c2a38ca78bc9d98a"
+      "sha256": "d4393386cc8e27286b2ca9bb9530e8cff7c037029dccad7874166a0fd796bb91"
     },
     {
       "path": "hindsight-control-plane/src/lib/brand-defaults.ts",
@@ -24,59 +24,59 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/package.json",
-      "sha256": "8281110135eb2cfb165157a5b4d78dde8939e51f41932eb227b7e65a7ddcead8"
+      "sha256": "78b32f9060bd98ddec6aec54d4df7b538d755e5376c0ee3de87136be7bd2bcfe"
     },
     {
       "path": "hindsight-integrations/coding-agents/plugin.json",
-      "sha256": "4188a36a2f2cca2c269addb528ffc083e52d6b03a91d3b70e1c01d20499db67b"
+      "sha256": "708487f2bfa815b868b3b1560e7e665a1b776c66431d8a5160f490c8e583ac2c"
     },
     {
       "path": "hindsight-integrations/agent-plugin/plugin.json",
-      "sha256": "8610aefc897e1f8ae29a17ebabdf9bb2751cc1be3b4a6954fb7bfcc53e088afc"
+      "sha256": "e3e160d6a9e742686aa0b20b8ab19457f1f2bddf14b4f3a320fd768e5b7c681c"
     },
     {
       "path": "hindsight-integrations/claude-code/.claude-plugin/plugin.json",
-      "sha256": "3bbbc6bc934af85f6edd92c7eb2ac4be1cefa88adbb32cfbcfe72e41f70b123f"
+      "sha256": "784f1eeef61e74c5b8939172a4f19f89d7206a93078e3dc20a04da65997e566e"
     },
     {
       "path": ".claude-plugin/marketplace.json",
-      "sha256": "04d3a6e7220cded602bd3f6524b924e1e59325af8c4a16f819cc3bdaf230ecf9"
+      "sha256": "77ab6002021604311644f6c8f1a41dc5a07dd2adb5c870652b6f3dc5958cb0ea"
     },
     {
       "path": "hindsight-cli/Cargo.toml",
-      "sha256": "c2835c22b4987e36e0e05f38b8164ee27d893588f74530509e2e730be48fb815"
+      "sha256": "90a9571542848b6f005c320c42f23a4bacca4b2cc83e1a61c55e5d30a408303f"
     },
     {
-      "path": "scripts/install-agentstratum.sh",
-      "sha256": "3878f01c506aeef8ae9672122cb7b43ce62f42bd9c79dd82fbdd19b8061fdace"
+      "path": "scripts/install-contextbase.sh",
+      "sha256": "31e65a1d91ce13667e21d35a92671d716ef4375f12d1fbc6bfc30dbe76efd5a0"
     },
     {
       "path": "hindsight-integrations/coding-agents/README.md",
-      "sha256": "243d54c77399b245570f03d46d00b7da377c9969c4663f82d7dcfdfcee913fe8"
+      "sha256": "d8eaa3a79d65197deac304cefa3499ff7a9e02819d2c2f532546a29d2f0f8610"
     },
     {
       "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",
-      "sha256": "f304ca1e249c4fadda87020d67990201125f2f034184b5dbd32998c0a96aa95c"
+      "sha256": "014861e38d959b795cb3cfd10af1bfd52dd1f26638e471cda60a55d7bf267249"
     },
     {
       "path": "hindsight-integrations/agent-plugin/README.md",
-      "sha256": "2a6655d09968fdbcd9633cb5ffe57bb580f847c973ffaa92229112519d6333f1"
+      "sha256": "6f186f8504a40331b132c0a394a2c3afeb4024034c33dcb950468dd522c8518d"
     },
     {
-      "path": "hindsight-integrations/agent-plugin/skills/agentstratum-memory/SKILL.md",
-      "sha256": "e4297f877beab8c5e604e09df3ff7a1d2765ffc78e45b9f7ab46f2e68e2f5147"
+      "path": "hindsight-integrations/agent-plugin/skills/contextbase-memory/SKILL.md",
+      "sha256": "c25195795718f23a60061c0550cb74d80cc3e5f4babab9ac3a9df61565f0b658"
     },
     {
       "path": "hindsight-integrations/claude-code/README.md",
-      "sha256": "c7e9f0d66cf528f5cdd3a71417831a62a44bf72e786a8bfbd33cb51f6c0692f3"
+      "sha256": "72c08c13bf2989d4025658956022d365105ed4cc8213220afbfdfffc7f429799"
     },
     {
       "path": "hindsight-integrations/claude-code/skills/setup.md",
-      "sha256": "bc11ef5f6ce0150a915cc40eb186ea214dfe47b181dabdbfb53bb7a4e49ef958"
+      "sha256": "20c5f425dac4626e428c387054b8933c978e57af98b2957106ce631c0bfbb986"
     },
     {
       "path": "hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
-      "sha256": "dbea47dc89176b99ee0f9740d16a640939958011c4409ceb5fc17c661710c13c"
+      "sha256": "7541bc90c92aa93270c254382c9b1b2a4f4a7e6abb3eacdcce73d1629de1e834"
     }
   ]
 }

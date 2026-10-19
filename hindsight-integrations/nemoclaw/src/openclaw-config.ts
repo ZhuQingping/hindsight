@@ -5,9 +5,9 @@ import { randomBytes } from "crypto";
 
 const CONFIG_PATH = join(homedir(), ".openclaw", "openclaw.json");
 
-export interface HindsightPluginConfig {
-  hindsightApiUrl: string;
-  hindsightApiToken: string;
+export interface ContextBasePluginConfig {
+  contextbaseApiUrl: string;
+  contextbaseApiToken: string;
   llmProvider: string;
   dynamicBankId: boolean;
   bankIdPrefix: string;
@@ -42,11 +42,11 @@ export async function readOpenClawConfig(configPath = CONFIG_PATH): Promise<Open
 
 export function mergePluginConfig(
   config: OpenClawConfig,
-  pluginConfig: HindsightPluginConfig
+  pluginConfig: ContextBasePluginConfig
 ): OpenClawConfig {
   const plugins = config.plugins ?? {};
   const entries = plugins.entries ?? {};
-  const existing = entries["hindsight-openclaw"] ?? { enabled: true };
+  const existing = entries["contextbase-openclaw"] ?? { enabled: true };
 
   return {
     ...config,
@@ -54,17 +54,17 @@ export function mergePluginConfig(
       ...plugins,
       slots: {
         ...(plugins.slots ?? {}),
-        memory: "hindsight-openclaw",
+        memory: "contextbase-openclaw",
       },
       entries: {
         ...entries,
-        "hindsight-openclaw": {
+        "contextbase-openclaw": {
           ...existing,
           enabled: true,
           config: {
             ...(existing.config ?? {}),
-            hindsightApiUrl: pluginConfig.hindsightApiUrl,
-            hindsightApiToken: pluginConfig.hindsightApiToken,
+            contextbaseApiUrl: pluginConfig.contextbaseApiUrl,
+            contextbaseApiToken: pluginConfig.contextbaseApiToken,
             llmProvider: pluginConfig.llmProvider,
             dynamicBankId: pluginConfig.dynamicBankId,
             bankIdPrefix: pluginConfig.bankIdPrefix,
@@ -73,7 +73,7 @@ export function mergePluginConfig(
       },
       installs: {
         ...(plugins.installs ?? {}),
-        "hindsight-openclaw": {
+        "contextbase-openclaw": {
           source: "npm",
           version: "latest",
           installedAt: new Date().toISOString(),
@@ -94,7 +94,7 @@ export async function writeOpenClawConfig(
 }
 
 export async function applyPluginConfig(
-  pluginConfig: HindsightPluginConfig,
+  pluginConfig: ContextBasePluginConfig,
   configPath = CONFIG_PATH
 ): Promise<void> {
   const current = await readOpenClawConfig(configPath);

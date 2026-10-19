@@ -1,12 +1,12 @@
 {
-  "name": "@vectorize-io/hindsight-openclaw",
+  "name": "contextbase-openclaw",
   "version": "1.0.0",
-  "description": "Hindsight memory plugin for OpenClaw - biomimetic long-term memory with fact extraction",
+  "description": "ContextBase memory plugin for OpenClaw - biomimetic long-term memory with fact extraction",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "hindsight-openclaw-backfill": "dist/backfill.js",
-    "hindsight-openclaw-setup": "dist/setup.js"
+    "contextbase-openclaw-backfill": "dist/backfill.js",
+    "contextbase-openclaw-setup": "dist/setup.js"
   },
   "type": "module",
   "openclaw": {
@@ -19,14 +19,14 @@
     "memory",
     "ai",
     "agent",
-    "hindsight",
+    "contextbase",
     "long-term-memory"
   ],
   "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
+    "url": "https://github.com/RSIXDB/hindsight.git",
     "directory": "hindsight-integrations/openclaw"
   },
   "files": [

@@ -3,25 +3,25 @@ import type { CliArgs } from "./types.js";
 
 function usage(): void {
   process.stdout.write(`
-hindsight-nemoclaw — Setup CLI for Hindsight memory on NemoClaw sandboxes
+contextbase-nemoclaw — Setup CLI for ContextBase memory on NemoClaw sandboxes
 
 Usage:
-  hindsight-nemoclaw setup [options]
+  contextbase-nemoclaw setup [options]
 
 Required options:
   --sandbox <name>       NemoClaw sandbox name (e.g. my-assistant)
-  --api-token <token>    Hindsight API key from https://ui.hindsight.vectorize.io
+  --api-token <token>    ContextBase API key from http://localhost:9999
   --bank-prefix <prefix> Bank ID prefix (memories go to <prefix>-openclaw)
 
 Optional options:
-  --api-url <url>        Hindsight API URL (default: https://api.hindsight.vectorize.io)
+  --api-url <url>        ContextBase API URL (required)
   --skip-policy          Skip the openshell policy update
   --skip-plugin-install  Skip openclaw plugins install
   --dry-run              Print what would be changed without executing
   --help                 Show this help
 
 Example:
-  hindsight-nemoclaw setup \\
+  contextbase-nemoclaw setup \\
     --sandbox my-assistant \\
     --api-token hsk_abc123 \\
     --bank-prefix my-sandbox
@@ -48,11 +48,12 @@ function parseArgs(argv: string[]): CliArgs | null {
   };
 
   const sandbox = get("--sandbox");
-  const apiUrl = get("--api-url") ?? "https://api.hindsight.vectorize.io";
+  const apiUrl = get("--api-url") ?? "";
   const apiToken = get("--api-token");
   const bankPrefix = get("--bank-prefix");
 
   const missing: string[] = [];
+  if (!apiUrl) missing.push("--api-url");
   if (!sandbox) missing.push("--sandbox");
   if (!apiToken) missing.push("--api-token");
   if (!bankPrefix) missing.push("--bank-prefix");

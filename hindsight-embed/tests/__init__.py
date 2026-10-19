@@ -1,1 +1,1 @@
-"""Tests for agentstratum-embed."""
+"""Tests for contextbase-embed."""

@@ -9,13 +9,13 @@ export interface EmbedCommandOptions {
 
 export function getEmbedCommand(opts: EmbedCommandOptions = {}): string[] {
   if (opts.embedPackagePath) {
-    return ["uv", "run", "--directory", opts.embedPackagePath, "agentstratum-embed"];
+    return ["uv", "run", "--directory", opts.embedPackagePath, "contextbase-embed"];
   }
-  const distribution = opts.embedPackage ?? process.env.AGENTSTRATUM_EMBED_PACKAGE;
+  const distribution = opts.embedPackage ?? process.env.CONTEXTBASE_EMBED_PACKAGE;
   if (!distribution?.trim()) {
     throw new Error(
-      "Set AGENTSTRATUM_EMBED_PACKAGE to the approved local engine distribution, or configure embedPackagePath."
+      "Set CONTEXTBASE_EMBED_PACKAGE to the approved local engine distribution, or configure embedPackagePath."
     );
   }
-  return ["uvx", "--quiet", "--from", distribution, "agentstratum-embed"];
+  return ["uvx", "--quiet", "--from", distribution, "contextbase-embed"];
 }

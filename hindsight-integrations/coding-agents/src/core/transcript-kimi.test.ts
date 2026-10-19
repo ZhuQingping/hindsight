@@ -239,7 +239,7 @@ describe("readKimiWire", () => {
         input: [
           {
             type: "text",
-            text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?",
+            text: "<contextbase_memories>\nleak\n</contextbase_memories>\nWhy retry?",
           },
         ],
         origin: { kind: "user" },
@@ -376,7 +376,7 @@ describe("readKimiTranscript", () => {
         type: "context.append_message",
         message: {
           role: "user",
-          content: [{ type: "text", text: "<agentstratum_memory>recalled</agentstratum_memory>" }],
+          content: [{ type: "text", text: "<contextbase_memory>recalled</contextbase_memory>" }],
           toolCalls: [],
           origin: { kind: "hook_result", event: "UserPromptSubmit" },
         },

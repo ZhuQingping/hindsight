@@ -1,5 +1,5 @@
 /**
- * Pure helpers behind the Hindsight OpenClaw setup wizard. Kept separate from
+ * Pure helpers behind the ContextBase OpenClaw setup wizard. Kept separate from
  * setup.ts (the @clack/prompts entry point) so the mechanical bits are easy to
  * unit test without simulating an interactive terminal.
  *
@@ -11,13 +11,13 @@ import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { homedir } from "os";
 import { join, dirname } from "path";
 
-export const PLUGIN_ID = "hindsight-openclaw";
+export const PLUGIN_ID = "contextbase-openclaw";
 
 /**
- * Default Hindsight Cloud endpoint. Update this when the hosted service URL is
+ * Default ContextBase Cloud endpoint. Update this when the hosted service URL is
  * finalized, or users can override it at the prompt.
  */
-export const HINDSIGHT_CLOUD_URL = "https://api.hindsight.vectorize.io";
+export const CONTEXTBASE_CLOUD_URL = "";
 
 export const DEFAULT_OPENCLAW_CONFIG_PATH = join(homedir(), ".openclaw", "openclaw.json");
 
@@ -74,7 +74,7 @@ export async function saveConfig(path: string, cfg: OpenClawConfigShape): Promis
 }
 
 /**
- * Ensure a `plugins.entries["hindsight-openclaw"].config` object exists, set
+ * Ensure a `plugins.entries["contextbase-openclaw"].config` object exists, set
  * `enabled: true`, and return the mutable config record. Idempotent — safe to
  * call against a fresh or already-configured OpenClaw config.
  *
@@ -98,7 +98,7 @@ export function ensurePluginConfig(cfg: OpenClawConfigShape): Record<string, unk
   }
   // OpenClaw 2026.2.19+ warns at startup when `plugins.allow` is empty and
   // non-bundled plugins are discovered: "plugins.allow is empty; discovered
-  // non-bundled plugins may auto-load: hindsight-openclaw". Cosmetic only — the
+  // non-bundled plugins may auto-load: contextbase-openclaw". Cosmetic only — the
   // plugin still loads — but noisy on every gateway start. Add ourselves to the
   // allowlist so the warning goes away. Never clobber a user-curated allowlist:
   // if `plugins.allow` is already an array, just append our id when missing.
@@ -116,8 +116,8 @@ export function envSecretRef(id: string): SecretRef {
 }
 
 export function clearCloudFields(pluginConfig: Record<string, unknown>): void {
-  delete pluginConfig.hindsightApiUrl;
-  delete pluginConfig.hindsightApiToken;
+  delete pluginConfig.contextbaseApiUrl;
+  delete pluginConfig.contextbaseApiToken;
 }
 
 export function clearLocalLlmFields(pluginConfig: Record<string, unknown>): void {
@@ -188,8 +188,8 @@ function pickCredential(
 }
 
 /**
- * Apply the Cloud mode to a plugin config in place: sets `hindsightApiUrl` and
- * `hindsightApiToken` (either as a plaintext string or as a SecretRef —
+ * Apply the Cloud mode to a plugin config in place: sets `contextbaseApiUrl` and
+ * `contextbaseApiToken` (either as a plaintext string or as a SecretRef —
  * whichever the caller provided), strips any leftover local-LLM fields so
  * mode switches don't carry stale state.
  */
@@ -201,25 +201,27 @@ export function applyCloudMode(
   if (token === undefined) {
     throw new Error("Cloud mode requires either `token` or `tokenEnvVar`");
   }
+  const apiUrl = (input.apiUrl ?? CONTEXTBASE_CLOUD_URL).trim();
+  if (!apiUrl) throw new Error("Cloud mode requires an explicit apiUrl");
   clearLocalLlmFields(pluginConfig);
-  pluginConfig.hindsightApiUrl = (input.apiUrl ?? HINDSIGHT_CLOUD_URL).trim();
-  pluginConfig.hindsightApiToken = token;
+  pluginConfig.contextbaseApiUrl = apiUrl;
+  pluginConfig.contextbaseApiToken = token;
 }
 
 /**
  * Apply the external-API mode to a plugin config in place: sets a required
- * `hindsightApiUrl`, optional `hindsightApiToken` (plaintext or SecretRef),
+ * `contextbaseApiUrl`, optional `contextbaseApiToken` (plaintext or SecretRef),
  * and strips any leftover local-LLM fields so mode switches don't carry
  * stale state.
  */
 export function applyApiMode(pluginConfig: Record<string, unknown>, input: ApiSetupInput): void {
   const token = pickCredential(input.token, input.tokenEnvVar);
   clearLocalLlmFields(pluginConfig);
-  pluginConfig.hindsightApiUrl = input.apiUrl.trim();
+  pluginConfig.contextbaseApiUrl = input.apiUrl.trim();
   if (token !== undefined) {
-    pluginConfig.hindsightApiToken = token;
+    pluginConfig.contextbaseApiToken = token;
   } else {
-    delete pluginConfig.hindsightApiToken;
+    delete pluginConfig.contextbaseApiToken;
   }
 }
 
@@ -264,7 +266,7 @@ function credentialSuffix(token: string | undefined, tokenEnvVar: string | undef
 }
 
 export function summarizeCloud(input: CloudSetupInput): string {
-  const url = (input.apiUrl ?? HINDSIGHT_CLOUD_URL).trim();
+  const url = (input.apiUrl ?? CONTEXTBASE_CLOUD_URL).trim();
   return `Cloud → ${url}${credentialSuffix(input.token, input.tokenEnvVar)}`;
 }
 

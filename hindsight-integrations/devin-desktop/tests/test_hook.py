@@ -2,7 +2,7 @@
 
 import json
 
-from hindsight_devin_desktop import devin_local, hook
+from contextbase_devin_desktop import devin_local, hook
 
 
 def _config(tmp_path, token="hsk_x", bank="devin-desktop"):
@@ -11,7 +11,7 @@ def _config(tmp_path, token="hsk_x", bank="devin-desktop"):
         json.dumps(
             {
                 "mcpServers": {
-                    "hindsight": {
+                    "contextbase": {
                         "url": "http://localhost:8888/mcp/",
                         "transport": "http",
                         "headers": {"Authorization": f"Bearer {token}", "X-Bank-Id": bank},
@@ -35,7 +35,7 @@ def _config_text():
     return json.dumps(
         {
             "mcpServers": {
-                "hindsight": {
+                "contextbase": {
                     "url": "http://localhost:8888/mcp/",
                     "headers": {"Authorization": "Bearer hsk_x", "X-Bank-Id": "devin-desktop"},
                 }
@@ -142,10 +142,10 @@ def test_retain_nudge_no_loop_when_active(tmp_path, monkeypatch, capsys):
     assert capsys.readouterr().out == ""
 
 
-def test_banner_prints_for_hindsight_tool(capsys):
-    hook.cmd_banner({"tool_info": {"mcp_server_name": "hindsight", "mcp_tool_name": "recall"}})
+def test_banner_prints_for_contextbase_tool(capsys):
+    hook.cmd_banner({"tool_info": {"mcp_server_name": "contextbase", "mcp_tool_name": "recall"}})
     out = capsys.readouterr().out
-    assert "Hindsight" in out and "recall" in out
+    assert "ContextBase" in out and "recall" in out
 
 
 def test_banner_silent_for_other_server(capsys):
@@ -177,4 +177,4 @@ def test_mcp_sends_integration_user_agent(monkeypatch):
         hook._mcp("http://hs.test/mcp", None, {}, None)
     except OSError:
         pass
-    assert sent["User-agent"].startswith("hindsight-devin-desktop/")
+    assert sent["User-agent"].startswith("contextbase-devin-desktop/")

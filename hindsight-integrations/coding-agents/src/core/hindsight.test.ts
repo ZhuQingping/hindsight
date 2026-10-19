@@ -435,7 +435,7 @@ describe("HindsightClient.retain — per_source scoping", () => {
 /**
  * #3600: the client captured `apiToken` at construction, so a long-lived host (dsh, Cline, Kilo,
  * Prime Agent, the MCP server) kept signing with a credential the operator had already replaced —
- * every call 401'd until the whole host restarted, while `agentstratum_diagnose` read the file and
+ * every call 401'd until the whole host restarted, while `contextbase_diagnose` read the file and
  * called it healthy.
  */
 describe("HindsightClient credential refresh", () => {
@@ -458,7 +458,7 @@ describe("HindsightClient credential refresh", () => {
     const { fetchMock } = server(() => undefined);
     await new HindsightClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
     const ua = new Headers(fetchMock.mock.calls[0][1].headers).get("User-Agent");
-    expect(ua).toMatch(/^agentstratum-coding-agents\/\d+\.\d+\.\d+/);
+    expect(ua).toMatch(/^contextbase-coding-agents\/\d+\.\d+\.\d+/);
   });
 
   it("recovers from a rotated credential without restarting the host", async () => {

@@ -1,6 +1,8 @@
-# hindsight-langgraph
+# contextbase-langgraph
 
-LangGraph and LangChain integration for [Hindsight](https://github.com/vectorize-io/hindsight) — persistent long-term memory for AI agents.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+
+LangGraph and LangChain integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
 
 Provides three integration patterns:
 - **Tools** — retain/recall/reflect as LangChain `@tool` functions for agent-driven memory. Works with **both LangChain and LangGraph**.
@@ -9,35 +11,33 @@ Provides three integration patterns:
 
 ## Prerequisites
 
-- A [Hindsight Cloud](https://ui.hindsight.vectorize.io) account or a [self-hosted](https://github.com/vectorize-io/hindsight#quick-start) Hindsight instance
+- A [ContextBase remote service](http://localhost:9999) account or a [self-hosted](https://github.com/RSIXDB/hindsight#quick-start) ContextBase instance
 - Python 3.10+
 
 ## Installation
 
 ```bash
-pip install hindsight-langgraph
+pip install contextbase-langgraph
 ```
 
 ## Quick Start: Tools
 
-Bind Hindsight memory tools to your LangGraph agent so it can store and retrieve memories on demand.
+Bind ContextBase memory tools to your LangGraph agent so it can store and retrieve memories on demand.
 
 ```python
-from hindsight_langgraph import create_hindsight_tools
+from contextbase_langgraph import create_contextbase_tools
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-# Set HINDSIGHT_API_KEY env var to authenticate
-tools = create_hindsight_tools(bank_id="user-123")
+# Set CONTEXTBASE_API_KEY env var to authenticate
+tools = create_contextbase_tools(bank_id="user-123")
 
 agent = create_react_agent(
     ChatOpenAI(model="gpt-4o"),
     tools=tools,
 )
 
-result = await agent.ainvoke(
-    {"messages": [{"role": "user", "content": "Remember that I prefer dark mode"}]}
-)
+result = await agent.ainvoke({"messages": [{"role": "user", "content": "Remember that I prefer dark mode"}]})
 ```
 
 ### Dynamic Bank IDs with Tools
@@ -46,7 +46,7 @@ If you build the agent once and serve multiple users, omit the static `bank_id`
 and resolve it per request from `config["configurable"]`:
 
 ```python
-tools = create_hindsight_tools(bank_id_from_config="user_id")
+tools = create_contextbase_tools(bank_id_from_config="user_id")
 agent = create_react_agent(ChatOpenAI(model="gpt-4o"), tools=tools)
 
 result = await agent.ainvoke(
@@ -63,7 +63,7 @@ precedence over `bank_id_from_config`.
 Add recall and retain nodes to your graph for automatic memory injection before LLM calls and storage after responses.
 
 ```python
-from hindsight_langgraph import create_recall_node, create_retain_node
+from contextbase_langgraph import create_recall_node, create_retain_node
 from langgraph.graph import StateGraph, MessagesState, START, END
 
 recall = create_recall_node(bank_id="user-123")
@@ -102,7 +102,7 @@ result = await graph.ainvoke(
 Pre-fetch memories and inject them into a system prompt. Works with any LangChain model — no graph needed.
 
 ```python
-from hindsight_langgraph import memory_instructions
+from contextbase_langgraph import memory_instructions
 from langchain_openai import ChatOpenAI
 
 get_instructions = memory_instructions(
@@ -112,10 +112,12 @@ get_instructions = memory_instructions(
 
 # Each call re-fetches memories, so it stays up to date
 instructions = await get_instructions()
-response = await ChatOpenAI(model="gpt-4o").ainvoke([
-    {"role": "system", "content": instructions},
-    {"role": "user", "content": "What do you know about me?"},
-])
+response = await ChatOpenAI(model="gpt-4o").ainvoke(
+    [
+        {"role": "system", "content": instructions},
+        {"role": "user", "content": "What do you know about me?"},
+    ]
+)
 ```
 
 ## Configuration
@@ -123,10 +125,10 @@ response = await ChatOpenAI(model="gpt-4o").ainvoke([
 ### Global config
 
 ```python
-from hindsight_langgraph import configure
+from contextbase_langgraph import configure
 
 configure(
-    api_key="your-api-key",  # or set HINDSIGHT_API_KEY env var
+    api_key="your-api-key",  # or set CONTEXTBASE_API_KEY env var
     budget="mid",
     tags=["source:langgraph"],
 )
@@ -134,28 +136,28 @@ configure(
 
 ### Self-hosted instance
 
-To connect to a self-hosted Hindsight instance instead of Hindsight Cloud:
+To connect to a self-hosted ContextBase instance instead of ContextBase remote service:
 
 ```python
 configure(
-    hindsight_api_url="http://localhost:8888",
+    contextbase_api_url="http://localhost:8888",
 )
 ```
 
-Or pass `hindsight_api_url` directly to any factory function:
+Or pass `contextbase_api_url` directly to any factory function:
 
 ```python
-tools = create_hindsight_tools(bank_id="user-123", hindsight_api_url="http://localhost:8888")
+tools = create_contextbase_tools(bank_id="user-123", contextbase_api_url="http://localhost:8888")
 ```
 
 ### Per-call overrides
 
-All factory functions accept `client`, `hindsight_api_url`, and `api_key` to override the global config.
+All factory functions accept `client`, `contextbase_api_url`, and `api_key` to override the global config.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `hindsight_api_url` | Hindsight API URL | `https://api.hindsight.vectorize.io` |
-| `api_key` | API key (or `HINDSIGHT_API_KEY` env var) | `None` |
+| `contextbase_api_url` | ContextBase API URL | `http://localhost:8888` |
+| `api_key` | API key (or `CONTEXTBASE_API_KEY` env var) | `None` |
 | `budget` | Recall budget: `low`, `mid`, `high` | `mid` |
 | `max_tokens` | Max tokens for recall results | `4096` |
 | `tags` | Tags applied to retain operations | `None` |
@@ -167,10 +169,10 @@ All factory functions accept `client`, `hindsight_api_url`, and `api_key` to ove
 - Python 3.10+
 - `langchain-core >= 0.3.0`
 - `hindsight-client >= 0.4.0`
-- `langgraph >= 0.3.0` *(only for nodes pattern — install with `pip install hindsight-langgraph[langgraph]`)*
+- `langgraph >= 0.3.0` *(only for nodes pattern — install with `pip install contextbase-langgraph[langgraph]`)*
 
 ## Documentation
 
-- [Integration docs](https://hindsight.vectorize.io/sdks/integrations/langgraph)
+- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
 - [Cookbook: ReAct agent with memory](https://docs.hindsight.vectorize.io/cookbook/recipes/langgraph-react-agent)
-- [Hindsight API docs](https://docs.hindsight.vectorize.io)
+- [ContextBase API docs](https://docs.hindsight.vectorize.io)

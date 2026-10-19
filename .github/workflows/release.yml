@@ -1,4 +1,4 @@
-name: Build agentstratum client candidates
+name: Build contextbase client candidates
 
 # Huawei Cloud publication is configured separately once its public resources are confirmed.
 # No push/tag trigger: these are review artifacts, not a production release.
@@ -15,16 +15,16 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            asset: agentstratum-linux-amd64
+            asset: contextbase-linux-amd64
           - os: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
-            asset: agentstratum-linux-arm64
+            asset: contextbase-linux-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
-            asset: agentstratum-darwin-amd64
+            asset: contextbase-darwin-amd64
           - os: macos-latest
             target: aarch64-apple-darwin
-            asset: agentstratum-darwin-arm64
+            asset: contextbase-darwin-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -43,9 +43,9 @@ jobs:
           ASSET: ${{ matrix.asset }}
         run: |
           VERSION=$(sed -n 's/^version = "\([^"]*\)"/\1/p' hindsight-cli/Cargo.toml | head -n 1)
-          DEST="artifacts/agentstratum-cli/$VERSION/${ASSET#agentstratum-}"
+          DEST="artifacts/contextbase-cli/$VERSION/${ASSET#contextbase-}"
           mkdir -p "$DEST"
-          cp "hindsight-cli/target/$TARGET/release/agentstratum" "$DEST/agentstratum"
+          cp "hindsight-cli/target/$TARGET/release/contextbase" "$DEST/contextbase"
           cp LICENSE "$DEST/LICENSE"
           cd hindsight-cli
           cargo fetch
@@ -53,7 +53,7 @@ jobs:
           cd ..
           mv artifacts/THIRD_PARTY_LICENSES.txt "$DEST/THIRD_PARTY_LICENSES.txt"
           cd "$DEST"
-          shasum -a 256 agentstratum LICENSE THIRD_PARTY_LICENSES.txt > SHA256SUMS
+          shasum -a 256 contextbase LICENSE THIRD_PARTY_LICENSES.txt > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset }}-candidate
@@ -72,12 +72,12 @@ jobs:
       - name: Stage installer
         run: |
           mkdir -p artifacts/installers
-          cp scripts/install-agentstratum.sh artifacts/installers/install-agentstratum.sh
+          cp scripts/install-contextbase.sh artifacts/installers/install-contextbase.sh
           cd artifacts/installers
-          sha256sum install-agentstratum.sh > SHA256SUMS
+          sha256sum install-contextbase.sh > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: agentstratum-installer-candidate
+          name: contextbase-installer-candidate
           path: artifacts/
           if-no-files-found: error
 
@@ -112,11 +112,11 @@ jobs:
         run: python scripts/package-client-plugins.py --output artifacts
       - name: Verify npm installation from an HTTPS tarball URL
         run: |
-          for tarball in artifacts/agentstratum-coding-agents/*/*.tgz; do
-            AGENTSTRATUM_TEST_NPM_TARBALL="$tarball" python hindsight-system-tests/tests/test_client_installation.py ClientInstallationStory.test_npm_installs_actual_tarball_by_https_url -v
+          for tarball in artifacts/contextbase-coding-agents/*/*.tgz; do
+            CONTEXTBASE_TEST_NPM_TARBALL="$tarball" python hindsight-system-tests/tests/test_client_installation.py ClientInstallationStory.test_npm_installs_actual_tarball_by_https_url -v
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: agentstratum-plugin-candidates
+          name: contextbase-plugin-candidates
           path: artifacts/
           if-no-files-found: error

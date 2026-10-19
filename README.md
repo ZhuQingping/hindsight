@@ -1,4 +1,4 @@
-# agentstratum
+# contextbase
 
 Agent memory delivered as a hosted service. Each customer connects using their own API Endpoint, MCP Endpoint and credential from the console.
 
@@ -6,10 +6,10 @@ Agent memory delivered as a hosted service. Each customer connects using their o
 
 | Client | Distribution identity | Connection |
 | --- | --- | --- |
-| CLI | `agentstratum` executable | API Endpoint; named Profiles supported |
-| Coding Agents | `agentstratum-coding-agents` npm tarball | One default API connection for hooks, native tools and local MCP adapter |
-| Agent Plugin | `agentstratum` plugin | One default remote MCP connection |
-| Claude Code plugin | `agentstratum-memory` plugin; `agentstratum-claude-code` archive | One default API connection for hooks and local MCP adapter |
+| CLI | `contextbase` executable | API Endpoint; named Profiles supported |
+| Coding Agents | `contextbase-coding-agents` npm tarball | One default API connection for hooks, native tools and local MCP adapter |
+| Agent Plugin | `contextbase` plugin | One default remote MCP connection |
+| Claude Code plugin | `contextbase-memory` plugin; `contextbase-claude-code` archive | One default API connection for hooks and local MCP adapter |
 
 Only these clients are included in the public release scope. Server packages/images, local engines, local Web console packages, SDKs and Helm Charts are excluded. The operator deploys the hosted service separately; its source remains in this repository.
 
@@ -22,11 +22,11 @@ Install the approved client artifact, then copy your own endpoint and credential
 For the CLI:
 
 ```bash
-agentstratum profile create work --api-url "$AGENTSTRATUM_API_URL" --api-key "$AGENTSTRATUM_API_KEY"
-agentstratum -p work bank list
+contextbase profile create work --api-url "$CONTEXTBASE_API_URL" --api-key "$CONTEXTBASE_API_KEY"
+contextbase -p work bank list
 ```
 
-The standalone CLI installer is [scripts/install-agentstratum.sh](scripts/install-agentstratum.sh). Supply the approved HTTPS download root and an explicit version; it verifies SHA-256 before replacing the binary. There is no implicit localhost endpoint or local Web installer. Missing endpoint configuration produces an actionable error.
+The standalone CLI installer is [scripts/install-contextbase.sh](scripts/install-contextbase.sh). Supply the approved HTTPS download root and an explicit version; it verifies SHA-256 before replacing the binary. There is no implicit localhost endpoint or local Web installer. Missing endpoint configuration produces an actionable error.
 
 For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents/README.md), [Agent Plugin](hindsight-integrations/agent-plugin/README.md) and [Claude Code](hindsight-integrations/claude-code/README.md). Standard Agent Plugin supplies Skills and MCP; automatic lifecycle hooks are provided by the other integrations where supported by the host.
 

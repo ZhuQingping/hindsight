@@ -1,6 +1,6 @@
 """Tests for the global_rules.md managed-block writer."""
 
-from hindsight_devin_desktop.global_rules import (
+from contextbase_devin_desktop.global_rules import (
     BEGIN_MARKER,
     END_MARKER,
     clear_global_rule,

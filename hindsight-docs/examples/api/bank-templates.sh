@@ -1,10 +1,10 @@
 #!/bin/bash
-# Bank Templates API examples for Hindsight CLI
+# Bank Templates API examples for ContextBase CLI
 # Run: bash examples/api/bank-templates.sh
 
 set -e
 
-HINDSIGHT_URL="${HINDSIGHT_API_URL:-http://localhost:8888}"
+CONTEXTBASE_URL="${CONTEXTBASE_API_URL:-http://localhost:8888}"
 
 # The export example writes template.json; keep it out of the directory the run started from
 cd "$(mktemp -d)"
@@ -14,7 +14,7 @@ cd "$(mktemp -d)"
 # =============================================================================
 
 # [docs:import-template]
-curl -X POST "$HINDSIGHT_URL/v1/default/banks/my-bank/import" \
+curl -X POST "$CONTEXTBASE_URL/v1/default/banks/my-bank/import" \
   -H "Content-Type: application/json" \
   -d '{
     "version": "1",
@@ -42,25 +42,25 @@ curl -X POST "$HINDSIGHT_URL/v1/default/banks/my-bank/import" \
 # [/docs:import-template]
 
 # [docs:import-dry-run]
-curl -X POST "$HINDSIGHT_URL/v1/default/banks/my-bank/import?dry_run=true" \
+curl -X POST "$CONTEXTBASE_URL/v1/default/banks/my-bank/import?dry_run=true" \
   -H "Content-Type: application/json" \
   -d '{"version": "1", "bank": {"retain_mission": "Dry run test."}}'
 # [/docs:import-dry-run]
 
 # [docs:export-template]
-curl "$HINDSIGHT_URL/v1/default/banks/my-bank/export"
+curl "$CONTEXTBASE_URL/v1/default/banks/my-bank/export"
 # [/docs:export-template]
 
 # [docs:export-reimport]
 # Export from source bank
-curl "$HINDSIGHT_URL/v1/default/banks/source-bank/export" > template.json
+curl "$CONTEXTBASE_URL/v1/default/banks/source-bank/export" > template.json
 
 # Import into a new bank
-curl -X POST "$HINDSIGHT_URL/v1/default/banks/new-bank/import" \
+curl -X POST "$CONTEXTBASE_URL/v1/default/banks/new-bank/import" \
   -H "Content-Type: application/json" \
   -d @template.json
 # [/docs:export-reimport]
 
 # [docs:get-schema]
-curl "$HINDSIGHT_URL/v1/bank-template-schema"
+curl "$CONTEXTBASE_URL/v1/bank-template-schema"
 # [/docs:get-schema]

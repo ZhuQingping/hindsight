@@ -24,7 +24,7 @@ describe("parsePageList", () => {
 describe("buildKnowledgePreamble", () => {
   it("names how many pages exist, withholds the index, and gives the FULL tool guide", () => {
     const out = buildKnowledgePreamble([{ id: "p1", title: "Component map" }]);
-    expect(out).toContain("<agentstratum_knowledge>");
+    expect(out).toContain("<contextbase_knowledge>");
     expect(out).toContain("1 knowledge page covers this repository");
     expect(out).toContain("deliberately NOT listed here");
     // Crediting is stated as an obligation triggered by the CALL. Measured on a real session: the
@@ -36,11 +36,11 @@ describe("buildKnowledgePreamble", () => {
     // searches — 0 searches over 40 measured turns, at 3 pages and at 12.
     expect(out).not.toContain("Component map");
     // Every meaningful tool must be named with a when-to-call, not just pages.
-    expect(out).toContain("agentstratum_list_knowledge_pages");
-    expect(out).toContain("agentstratum_read_knowledge_page");
-    expect(out).toContain("agentstratum_reflect");
-    expect(out).toContain("agentstratum_capture_initiative");
-    expect(out).toContain("agentstratum_ingest_document");
+    expect(out).toContain("contextbase_list_knowledge_pages");
+    expect(out).toContain("contextbase_read_knowledge_page");
+    expect(out).toContain("contextbase_reflect");
+    expect(out).toContain("contextbase_capture_initiative");
+    expect(out).toContain("contextbase_ingest_document");
   });
   it("tells the agent to recapture an initiative when the plan changes mid-work", () => {
     // Same contract as the MCP tool description (knowledge-tools.ts) — the two must not drift.
@@ -69,11 +69,11 @@ describe("buildKnowledgePreamble", () => {
       }),
     ]) {
       expect(out).toMatch(/new task or goal.*knowledge pages FIRST/is);
-      expect(out).toMatch(/agentstratum_reflect only when.*pages are too shallow/is);
+      expect(out).toMatch(/contextbase_reflect only when.*pages are too shallow/is);
       // No `s` flag ON PURPOSE: this must stay a per-LINE guard against the old wording
-      // ("call agentstratum_reflect with that goal FIRST"). With `s` it would span newlines and
-      // match the legitimate "agentstratum_reflect ..." / "FIRST STOP" lines further down the guide.
-      expect(out).not.toMatch(/agentstratum_reflect.*FIRST/);
+      // ("call contextbase_reflect with that goal FIRST"). With `s` it would span newlines and
+      // match the legitimate "contextbase_reflect ..." / "FIRST STOP" lines further down the guide.
+      expect(out).not.toMatch(/contextbase_reflect.*FIRST/);
     }
   });
 });
@@ -87,21 +87,21 @@ describe("buildRosterRefresh", () => {
     // searches — 0 searches over 40 measured turns, at 3 pages and at 12.
     expect(out).not.toContain("Component map");
     for (const tool of [
-      "agentstratum_list_knowledge_pages",
-      "agentstratum_read_knowledge_page",
-      "agentstratum_capture_initiative",
-      "agentstratum_ingest_document",
+      "contextbase_list_knowledge_pages",
+      "contextbase_read_knowledge_page",
+      "contextbase_capture_initiative",
+      "contextbase_ingest_document",
     ]) {
       expect(out).toContain(tool);
     }
   });
   it("still emits the full tool guide when there are no pages yet (no roster, but the guide persists)", () => {
     const out = buildRosterRefresh([]);
-    expect(out).toContain("<agentstratum_knowledge_refresh>");
-    expect(out).toContain("agentstratum_capture_initiative");
-    expect(out).toContain("agentstratum_ingest_document");
+    expect(out).toContain("<contextbase_knowledge_refresh>");
+    expect(out).toContain("contextbase_capture_initiative");
+    expect(out).toContain("contextbase_ingest_document");
     // No roster block when there are no pages.
-    expect(out).not.toContain("Current agentstratum knowledge pages");
+    expect(out).not.toContain("Current contextbase knowledge pages");
   });
 });
 
@@ -116,7 +116,7 @@ describe("toolGuideExtra (#4791)", () => {
     ]) {
       // Added, not replacing: the built-in triggers and crediting rule are still there.
       expect(out).toContain("CREDITING IS NOT OPTIONAL");
-      expect(out.indexOf(extra)).toBeGreaterThan(out.indexOf("agentstratum_ingest_document("));
+      expect(out.indexOf(extra)).toBeGreaterThan(out.indexOf("contextbase_ingest_document("));
     }
   });
 

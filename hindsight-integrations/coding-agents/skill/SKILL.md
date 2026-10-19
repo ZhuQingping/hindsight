@@ -1,5 +1,5 @@
 ---
-name: agentstratum-coding-agent
+name: contextbase-coding-agent
 description: How this machine's ContextBase coding-agent memory works — the plugin behind the 🧠 banner. Use when the user says "store/remember this in ContextBase", asks what the memory/knowledge pages are, wants to configure per-repo memory (disable, rename banks, git depth), or something memory-related looks broken.
 ---
 
@@ -8,7 +8,7 @@ description: How this machine's ContextBase coding-agent memory works — the pl
 
 # ContextBase Coding-Agent Memory
 
-This machine runs the `agentstratum-coding-agents` plugin: long-term project memory for coding
+This machine runs the `contextbase-coding-agents` plugin: long-term project memory for coding
 sessions, backed by a ContextBase server. You (the agent) are already wired into it — this skill
 explains what happens automatically, which tools you have, and how to configure or debug it.
 
@@ -31,20 +31,20 @@ explains what happens automatically, which tools you have, and how to configure 
 When the user says "store this in ContextBase" / "remember this":
 
 - The **current conversation** is captured automatically at session end — say so; no tool needed.
-- An **external document, notes, or durable findings** → `agentstratum_ingest_document(title, content)`.
-- A **new feature/initiative being started** → `agentstratum_capture_initiative(title, summary)`,
+- An **external document, notes, or durable findings** → `contextbase_ingest_document(title, content)`.
+- A **new feature/initiative being started** → `contextbase_capture_initiative(title, summary)`,
   right after the plan is agreed and before code is written.
 - A **plan that materially changed** (goal, scope, or rationale — including mid-implementation) →
-  call `agentstratum_capture_initiative` again with `relates_to_page_id` set to that initiative's page
+  call `contextbase_capture_initiative` again with `relates_to_page_id` set to that initiative's page
   id, summarising the _current_ intent. Same page, updated plan — never a second page. Trivial
   course-corrections don't count.
 
 ## Retrieving
 
-- `agentstratum_search_knowledge_pages(query)` — FIRST STOP for project questions (components,
+- `contextbase_search_knowledge_pages(query)` — FIRST STOP for project questions (components,
   conventions, past decisions, initiatives). Server-side hybrid search, fast.
-- `agentstratum_read_knowledge_page(page_id)` / `agentstratum_list_knowledge_pages` — read pages fully.
-- `agentstratum_reflect(query)` — deep reasoning over the whole memory for WHY questions and exact
+- `contextbase_read_knowledge_page(page_id)` / `contextbase_list_knowledge_pages` — read pages fully.
+- `contextbase_reflect(query)` — deep reasoning over the whole memory for WHY questions and exact
   decided values; slower (seconds), use deliberately.
 - Credit visibly whenever memory informs an answer: start that part with
   `🧠 From ContextBase memory (<page>): …` — and never credit memory that didn't contribute.
@@ -53,7 +53,7 @@ When the user says "store this in ContextBase" / "remember this":
 
 If you verify that something ContextBase served is wrong or outdated (the code, git, or an external
 source contradicts it), FIX THE RECORD — don't just ignore it. Call
-`agentstratum_ingest_document` with:
+`contextbase_ingest_document` with:
 
 - **title**: `Correction: <topic>` (e.g. `Correction: retry policy 4xx set`)
 - **content**: (1) what memory claimed, (2) what is verifiably true now, (3) the evidence you
@@ -66,38 +66,38 @@ an outdated decision — silent disregard leaves the trap armed for the next ses
 ## Install / update
 
 ```bash
-agentstratum-coding-agents install all          # every detected agent, wired natively
-agentstratum-coding-agents install claude-code  # or just one
-agentstratum-coding-agents uninstall all        # removes exactly what install added
-agentstratum-coding-agents update               # re-stage the installed package, no rewiring
-agentstratum-coding-agents stats                # how often each agent uses agentstratum
+contextbase-coding-agents install all          # every detected agent, wired natively
+contextbase-coding-agents install claude-code  # or just one
+contextbase-coding-agents uninstall all        # removes exactly what install added
+contextbase-coding-agents update               # re-stage the installed package, no rewiring
+contextbase-coding-agents stats                # how often each agent uses contextbase
 ```
 
 `install` takes an explicit target — `all`, or one or more harness names. A bare
-`agentstratum-coding-agents install` changes nothing and prints the choice, so wiring every agent on
+`contextbase-coding-agents install` changes nothing and prints the choice, so wiring every agent on
 the machine is never something that happens by accident.
 
 For the public OBS/CDN distribution, first install the chosen release with
 `npm install -g <HTTPS tarball URL>`, then run `install <harness>` again to refresh the staged
 runtime and host registration. `update` only re-stages the package already installed on your
-machine; it does not download a newer tarball. Leave `AGENTSTRATUM_CODING_AGENTS_PACKAGE` unset:
+machine; it does not download a newer tarball. Leave `CONTEXTBASE_CODING_AGENTS_PACKAGE` unset:
 this distribution does not use the optional registry-based background updater.
 
 ## Remote connection
 
-Use one default API connection across all harnesses, paths and banks. Configure `apiUrl` / `AGENTSTRATUM_API_URL` and `apiToken` / `AGENTSTRATUM_API_TOKEN`. Missing addresses produce configuration guidance; no localhost discovery or engine download occurs. Per-harness, per-path and per-bank connection overrides are ignored. CLI Profiles belong to the separate ContextBase CLI.
+Use one default API connection across all harnesses, paths and banks. Configure `apiUrl` / `CONTEXTBASE_API_URL` and `apiToken` / `CONTEXTBASE_API_TOKEN`. Missing addresses produce configuration guidance; no localhost discovery or engine download occurs. Per-harness, per-path and per-bank connection overrides are ignored. CLI Profiles belong to the separate ContextBase CLI.
 
-`serverMode` / `AGENTSTRATUM_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Historical internal fields `apiPort`, `daemonIdleTimeout`, `daemonProfile`, `embedVersion`, `embedPackage` and `embedPackagePath` have no supported customer runtime behavior. Their corresponding environment variables do not enable a local engine.
+`serverMode` / `CONTEXTBASE_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Historical internal fields `apiPort`, `daemonIdleTimeout`, `daemonProfile`, `embedVersion`, `embedPackage` and `embedPackagePath` have no supported customer runtime behavior. Their corresponding environment variables do not enable a local engine.
 
-Public distribution uses Huawei Cloud OBS + CDN. The concrete download root is pending. Install a published version with `npm install -g <HTTPS tarball URL>`; no public npm package-name registration is required. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./agentstratum-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. Keep `AGENTSTRATUM_CODING_AGENTS_PACKAGE` unset for this distribution. To install a new version, use its explicit tarball URL and re-run the host installation to refresh the staged runtime; the OBS/CDN release does not use registry-based automatic updates.
+Public distribution uses Huawei Cloud OBS + CDN. The concrete download root is pending. Install a published version with `npm install -g <HTTPS tarball URL>`; no public npm package-name registration is required. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./contextbase-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. Keep `CONTEXTBASE_CODING_AGENTS_PACKAGE` unset for this distribution. To install a new version, use its explicit tarball URL and re-run the host installation to refresh the staged runtime; the OBS/CDN release does not use registry-based automatic updates.
 
 ## Configuration
 
-Configuration is **one JSON file**: `~/.agentstratum/coding-agent.json`. Layering, later wins per field:
+Configuration is **one JSON file**: `~/.contextbase/coding-agent.json`. Layering, later wins per field:
 
 1. built-in defaults
-2. environment variables — `AGENTSTRATUM_API_URL`, `AGENTSTRATUM_API_TOKEN`, and one per scalar setting
-   (`AGENTSTRATUM_<FIELD_IN_CAPS>`), for containers and CI that inject config rather than write a file
+2. environment variables — `CONTEXTBASE_API_URL`, `CONTEXTBASE_API_TOKEN`, and one per scalar setting
+   (`CONTEXTBASE_<FIELD_IN_CAPS>`), for containers and CI that inject config rather than write a file
 3. the file's top level
 4. its `harnesses.<name>` section — per-agent override
 5. its `paths.<prefix>` section — per-directory override, applied after the bank is resolved
@@ -107,16 +107,16 @@ Configuration is **one JSON file**: `~/.agentstratum/coding-agent.json`. Layerin
 
 Environment variables are a **fallback**: the file wins wherever it sets a value, so adding env to
 an existing setup changes nothing. The two list-valued settings, `retainTags` and `optInPaths`, take
-a comma-separated value (`AGENTSTRATUM_RETAIN_TAGS="project:{gitProject},env:work"`); entries are
+a comma-separated value (`CONTEXTBASE_RETAIN_TAGS="project:{gitProject},env:work"`); entries are
 trimmed and blanks dropped.
 The map-valued settings (`mapPathToBank`, `harnesses`, `paths`, `banks`, `retainMetadata`) are file-only —
 per-key branching doesn't survive flattening into one variable. `maxParallelRetains` is available
-as `AGENTSTRATUM_MAX_PARALLEL_RETAINS` for containers and CI.
+as `CONTEXTBASE_MAX_PARALLEL_RETAINS` for containers and CI.
 
-`AGENTSTRATUM_CONFIG` moves the file itself — point it at another path for a container or a test
+`CONTEXTBASE_CONFIG` moves the file itself — point it at another path for a container or a test
 harness where `$HOME` is not the right anchor. It is still exactly one file; only its location
-changes. (The other variables that are not settings are `AGENTSTRATUM_LOG_FILE`, `AGENTSTRATUM_DIAG_FILE`,
-`AGENTSTRATUM_USAGE_FILE` and `AGENTSTRATUM_LOG_LEVEL` — see [Diagnostics & logging](#diagnostics--logging).)
+changes. (The other variables that are not settings are `CONTEXTBASE_LOG_FILE`, `CONTEXTBASE_DIAG_FILE`,
+`CONTEXTBASE_USAGE_FILE` and `CONTEXTBASE_LOG_LEVEL` — see [Diagnostics & logging](#diagnostics--logging).)
 
 ### When a change takes effect
 
@@ -127,7 +127,7 @@ what reads it:
 | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------- |
 | hook harnesses (Claude Code, Codex CLI, Cursor CLI, GitHub Copilot CLI, Grok Build, Antigravity CLI, Devin) | once per hook invocation — each hook is its own short-lived process | on your next prompt        |
 | persistent plugins (opencode, opencode 2, Kilo CLI, Cline CLI, pi, Prime Agent, DeepSeek Harness)           | once per workspace, when the host loads the plugin                  | after restarting the agent |
-| the MCP server behind the `agentstratum_*` tools                                                            | once at startup                                                     | in your next session       |
+| the MCP server behind the `contextbase_*` tools                                                             | once at startup                                                     | in your next session       |
 
 `apiToken` is the exception. Every host re-reads it when the server rejects a request, so enabling
 authentication or rotating the key is picked up on the next call with nothing to restart —
@@ -135,7 +135,7 @@ otherwise a rotation would leave a long-running agent failing every memory call 
 restarted. Everything else follows the table: `apiUrl`, `disabled`, bank routing, `gitIngest`, and
 the survey and knowledge-page settings.
 
-`agentstratum_diagnose` reports both sides of that gap — what the file says now, and what the running
+`contextbase_diagnose` reports both sides of that gap — what the file says now, and what the running
 client is actually using.
 
 ### Opt-in only
@@ -202,14 +202,14 @@ hook by Codex...), so one shared config serves several agents side by side:
 | `observationScopes`     | `"shared"`                     | how consolidation groups observations: `"shared"` (default) = ONE global scope per bank, so every agent on a repo builds one set of beliefs; also `"combined"` (the server default), `"per_tag"`, `"all_combinations"`, `[["t"]]`; `"per_source"` adds a scope per `source:` kind alongside the global one, so commit knowledge and conversation knowledge consolidate apart                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `disabled`              | `false`                        | hard off-switch (inert plugin/hook — a no-memory baseline)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `reflectTimeoutMs`      | `20000`                        | **automatic** session-reflect timeout; on hook harnesses the installer registers a 30s prompt-hook timeout, so going above ~20s also means raising that hook's `timeout` in the host's config, or the host kills the hook mid-reflect; on timeout or a 5xx the hook falls back to knowledge-page search, then to a raw recall of observations (recorded)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `reflectToolTimeoutMs`  | `330000`                       | timeout for the agent-invoked `agentstratum_reflect` tool — a call the agent waits on, whose high-budget synthesis on a populated bank runs for minutes. Defaults above the server's own reflect wall timeout (`AGENTSTRATUM_API_REFLECT_WALL_TIMEOUT`, 300s) so the server decides when to give up. Unset, it inherits an explicitly raised `reflectTimeoutMs`, but a short one never lowers it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `injectTimeoutMs`       | `7000`                         | retrieval timeout in milliseconds for `autoInject: "pages"` and `autoInject: "recall"`; also the **shared** budget for page search then recall after a reflect timeout/5xx (recall gets only the time left after page search). Set e.g. `2000` to limit turn latency or `15000` for a slower self-hosted bank. Environment fallback: `AGENTSTRATUM_INJECT_TIMEOUT_MS`. On hook harnesses, injection must fit the host's prompt-hook timeout (30s by default); for reflect with fallback, allow for **`reflectTimeoutMs` + `injectTimeoutMs`**, and raise the host hook's `timeout` when needed                                                                                                                                                                                                                                                                                                                  |
-| `reflectBudget`         | `"high"`                       | reflect budget for the `agentstratum_reflect` tool: `"low"`, `"mid"` or `"high"`. Drop it on a large bank where high-budget synthesis exceeds the server's wall timeout. The automatic session-start reflect always uses `"low"` to fit its hook window and is unaffected                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `reflectToolTimeoutMs`  | `330000`                       | timeout for the agent-invoked `contextbase_reflect` tool — a call the agent waits on, whose high-budget synthesis on a populated bank runs for minutes. Defaults above the server's own reflect wall timeout (`CONTEXTBASE_API_REFLECT_WALL_TIMEOUT`, 300s) so the server decides when to give up. Unset, it inherits an explicitly raised `reflectTimeoutMs`, but a short one never lowers it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `injectTimeoutMs`       | `7000`                         | retrieval timeout in milliseconds for `autoInject: "pages"` and `autoInject: "recall"`; also the **shared** budget for page search then recall after a reflect timeout/5xx (recall gets only the time left after page search). Set e.g. `2000` to limit turn latency or `15000` for a slower self-hosted bank. Environment fallback: `CONTEXTBASE_INJECT_TIMEOUT_MS`. On hook harnesses, injection must fit the host's prompt-hook timeout (30s by default); for reflect with fallback, allow for **`reflectTimeoutMs` + `injectTimeoutMs`**, and raise the host hook's `timeout` when needed                                                                                                                                                                                                                                                                                                                   |
+| `reflectBudget`         | `"high"`                       | reflect budget for the `contextbase_reflect` tool: `"low"`, `"mid"` or `"high"`. Drop it on a large bank where high-budget synthesis exceeds the server's wall timeout. The automatic session-start reflect always uses `"low"` to fit its hook window and is unaffected                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `autoInject`            | `"reflect"`                    | what to inject once, on the session's **first prompt**: `"reflect"` = a low-budget reflect synthesis (on timeout/5xx it falls back to page search, then recall); `"pages"` = the knowledge pages matching the prompt by search; `"recall"` = the bank's memories recalled for the prompt (what it asks for is `recallOptions`, observations by default); `"none"` = nothing — the agent searches knowledge pages first and reflects only when they are too shallow. `"pages"` and `"recall"` are retrieval only (no LLM), their time budget is `injectTimeoutMs`, and when one finds nothing for the prompt it tries again on the next one, up to 5 prompts                                                                                                                                                                                                                                                     |
 | `autoReflect`           | `true`                         | **deprecated** — use `autoInject`. Still honoured (`false` = `autoInject: "none"`), ignored when `autoInject` is set, and logs a deprecation warning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `pageSearchLimit`       | `3`                            | knowledge pages ONE search returns. Applies to every search of the bank — the `autoInject: "pages"` injection, the reflect fallback, and the agent's own `agentstratum_search_knowledge_pages` tool — because the limit lives on the client they all share                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `pageSearchLimit`       | `3`                            | knowledge pages ONE search returns. Applies to every search of the bank — the `autoInject: "pages"` injection, the reflect fallback, and the agent's own `contextbase_search_knowledge_pages` tool — because the limit lives on the client they all share                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `recallOptions`         | see description                | overrides merged key-by-key into the body of every recall — the `autoInject: "recall"` source and the reflect fallback. Keys are the API's own recall parameters, passed straight through, so anything recall accepts is settable without a new option here; `query` is the one field it cannot replace. The default body is `{"types": ["observation"], "budget": "low", "max_tokens": 2000, "include": {"entities": null}}`, and what you set is merged over it one key at a time — `{"max_tokens": 4000}` changes the budget and leaves the rest alone. Observations are the consolidated layer, so they answer best per token, but a bank with **consolidation disabled never grows any** and the default recall comes back empty on it: set `{"types": ["world", "experience"]}` there, or `{"types": null}` for every type. File-only, like `retainMetadata` — an object does not flatten into an env var |
-| `toolGuideExtra`        | —                              | your own guidance on how the agent should treat memory, added **after** the built-in tool guide (at session start and on every refresh) and after the crediting note returned with `agentstratum_search_knowledge_pages` results. It adds to the built-in text, never replaces it. Set it per harness or per bank like any other key, e.g. `"Memory is a past record, not current state: verify any claim against the code before acting on it."`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `toolGuideExtra`        | —                              | your own guidance on how the agent should treat memory, added **after** the built-in tool guide (at session start and on every refresh) and after the crediting note returned with `contextbase_search_knowledge_pages` results. It adds to the built-in text, never replaces it. Set it per harness or per bank like any other key, e.g. `"Memory is a past record, not current state: verify any claim against the code before acting on it."`                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `pageRefreshEveryTurns` | `1`                            | refetch the knowledge pages and re-inject the page roster + tool guide every N user turns (`0` also means 1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `pageTriggerType`       | `"cron"`                       | when NEW knowledge pages refresh, i.e. what keeping them current costs — `"cron"` (default) on `pageTriggerCron` only and only when actually stale, `"auto-refresh"` after every consolidation that produced new material, `"manual"` never on their own. Auto-refresh is the most current and by far the most expensive: one synthesis per page per consolidation. Maps to the page's `trigger.refresh_cron`, or `trigger.refresh_after_consolidation` in the ContextBase API (`true` for auto-refresh, `false` for manual)                                                                                                                                                                                                                                                                                                                                                                                    |
 | `pageTriggerCron`       | `"H * * * *"`                  | schedule for `pageTriggerType: "cron"` — UTC, standard 5-field cron, e.g. `"0 3 * * *"`. The default is hourly, each page on its own hashed minute. Sets the page's `trigger.refresh_cron`, which the API treats as mutually exclusive with `refresh_after_consolidation`; a scheduled refresh is skipped when nothing changed. Write a field as `H` to give each page its own value there — see **Spreading refreshes with `H`** below                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -223,8 +223,8 @@ hook by Codex...), so one shared config serves several agents side by side:
 | `surveyRefreshCommits`  | `20`                           | re-run the survey at SessionStart once this many commits have accrued since the last one, so the structural pages track an architecture that keeps moving (`0` = survey a cold repo only, never again)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `retainSessions`        | `true`                         | session write-back, honored by every harness: hook harnesses write the transcript on Stop, Factory Droid also writes on its cancellation notification, and plugin harnesses (opencode, opencode 2, Kilo) upsert it every turn plus an idle flush that captures the reply the per-turn pass can't see. Set `false` - globally, per harness, or per bank - to stop writing transcripts (the background history import stops with it) while recall, git ingest and the memory tools keep working                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `maxParallelRetains`    | `10`                           | cap on concurrent retain-related requests: drain()'s per-op polls plus deepen's chat/git retain pools. The API rate-limits bursts, not single requests — if you see 429s, lower this rather than raising it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `logLevel`              | `"info"`                       | plugin-log verbosity (`"debug"` \| `"info"` \| `"warn"` \| `"error"`); `AGENTSTRATUM_LOG_LEVEL` env overrides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `autoUpdate`            | `true`                         | keep the installed runtime current by itself: when `AGENTSTRATUM_CODING_AGENTS_PACKAGE` names an administrator-approved distribution, once a day a session start asks npm for its published version and, when it is newer, re-stages `~/.agentstratum/coding-agents` in the background. It rewires no host config, so a release adding a **new** hook entry point still needs a manual `install`. Set `false` to pin the installed version; `disabled` stops it too, since an inert plugin should stay inert. Only ever replaces a runtime installed from that explicitly configured distribution via `npx` — a copy installed with `npm i -g`, vendored as a project dependency, or built from a checkout is left to whoever manages it (update those the way you installed them), and it needs `npx` and `npm` on `PATH`                                                                                      |
+| `logLevel`              | `"info"`                       | plugin-log verbosity (`"debug"` \| `"info"` \| `"warn"` \| `"error"`); `CONTEXTBASE_LOG_LEVEL` env overrides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `autoUpdate`            | `true`                         | keep the installed runtime current by itself: when `CONTEXTBASE_CODING_AGENTS_PACKAGE` names an administrator-approved distribution, once a day a session start asks npm for its published version and, when it is newer, re-stages `~/.contextbase/coding-agents` in the background. It rewires no host config, so a release adding a **new** hook entry point still needs a manual `install`. Set `false` to pin the installed version; `disabled` stops it too, since an inert plugin should stay inert. Only ever replaces a runtime installed from that explicitly configured distribution via `npx` — a copy installed with `npm i -g`, vendored as a project dependency, or built from a checkout is left to whoever manages it (update those the way you installed them), and it needs `npx` and `npm` on `PATH`                                                                                        |
 | `gitIngest`             | `"message"`                    | git depth for seeding AND staying current (same engine): `"message"` = commit messages only (one doc, re-upserted when HEAD has a commit it lacks); `"full"` = messages + per-commit full diffs (progressive, newest first); `"none"` = git off                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `harnesses.<name>`      | —                              | per-harness override of any field above                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `harness`               | `opencode`                     | **deepen engine only**: which session format `--conversations` is read as                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -353,7 +353,7 @@ Four things worth knowing before you reach for it:
 
 A name that matches no page above is ignored with a warning in the plugin log, so a typo fails
 loudly instead of looking like it disabled something. Adding pages of your own is not what this
-setting is for: the agent's `agentstratum_capture_initiative` tool already creates pages, one per
+setting is for: the agent's `contextbase_capture_initiative` tool already creates pages, one per
 initiative, each with its own query.
 
 #### Pages of your own — `customPages`
@@ -535,7 +535,7 @@ Coding memory is **per repository**. Resolution order for the working directory:
      when you deliberately start a session there
    - `{project}` — plain working-directory basename
    - `{harness}` — the entry point asking (`opencode`, `claude-code`, `codex`, `antigravity-cli`, `cursor-cli`, `copilot-cli`)
-   - `{channel}` / `{user}` — `$AGENTSTRATUM_CHANNEL_ID` / `$AGENTSTRATUM_USER_ID`
+   - `{channel}` / `{user}` — `$CONTEXTBASE_CHANNEL_ID` / `$CONTEXTBASE_USER_ID`
 
 The default `"coding-agent::{gitProject}"` is **harness-neutral**, so opencode, Claude Code, and Codex
 all share one memory per repo — use `"{harness}-{gitProject}"` to split per agent instead.
@@ -546,7 +546,7 @@ With a bank per repo, the bank _is_ the answer to "where did this come from". On
 **shared** bank — one bank holding cross-project knowledge so facts recall everywhere — it isn't:
 every memory looks alike. `retainTags` and `retainMetadata` stamp that provenance onto conversations,
 git history and diffs, survey lifecycle documents, initiative markers, and documents saved through
-`agentstratum_ingest_document`:
+`contextbase_ingest_document`:
 
 ```jsonc
 {
@@ -621,24 +621,24 @@ provenance tag never becomes a scope. The global scope is still written first an
 untagged observations knowledge pages read are unaffected.
 
 `"per_tag"` and `"all_combinations"` split further still, and an explicit `[["project:demo"], …]`
-declares the scopes literally. `AGENTSTRATUM_OBSERVATION_SCOPES` sets the scalar modes; a scope list is
+declares the scopes literally. `CONTEXTBASE_OBSERVATION_SCOPES` sets the scalar modes; a scope list is
 file-only. Changing this does not rewrite observations already consolidated under the old scoping —
 they stay where they were built, and new work accrues under the new setting.
 
 ## Diagnostics & logging
 
-All logs live in `~/.agentstratum/coding-agents-logs/` (owner-only). Each file rotates to `<file>.1`
+All logs live in `~/.contextbase/coding-agents-logs/` (owner-only). Each file rotates to `<file>.1`
 at 10 MB.
 
-**Leveled plugin log** (humans debugging): `~/.agentstratum/coding-agents-logs/plugin.log` (override
-`AGENTSTRATUM_LOG_FILE`) — timestamped `LEVEL [scope] message` lines from every component, including
+**Leveled plugin log** (humans debugging): `~/.contextbase/coding-agents-logs/plugin.log` (override
+`CONTEXTBASE_LOG_FILE`) — timestamped `LEVEL [scope] message` lines from every component, including
 the ingestion engine. Level defaults to `info`; set `"logLevel": "debug"` in config or
-`AGENTSTRATUM_LOG_LEVEL=debug` for ad-hoc debugging (at `debug`, every diag event below is mirrored
+`CONTEXTBASE_LOG_LEVEL=debug` for ad-hoc debugging (at `debug`, every diag event below is mirrored
 here too, so one file tells the whole story).
 
 **Structured diag events** (machines/harnesses): every reflect and page-fetch outcome is appended
-as a JSON line to `~/.agentstratum/coding-agents-logs/diag.jsonl` (override with
-`AGENTSTRATUM_DIAG_FILE`):
+as a JSON line to `~/.contextbase/coding-agents-logs/diag.jsonl` (override with
+`CONTEXTBASE_DIAG_FILE`):
 
 ```json
 {
@@ -664,19 +664,19 @@ outcome with the number of items it returned: `inject_pages` for `"pages"`, `inj
 event is written on those turns — nothing reflected.
 
 **Tool usage** (is the agent using ContextBase?): one JSON line per finished user turn in
-`~/.agentstratum/coding-agents-logs/usage.jsonl` (override `AGENTSTRATUM_USAGE_FILE`) — the `agentstratum_*`
+`~/.contextbase/coding-agents-logs/usage.jsonl` (override `CONTEXTBASE_USAGE_FILE`) — the `contextbase_*`
 tools the agent called during that turn, and whether its reply credited ContextBase memory ("From
 ContextBase memory"). The credit rate counts only turns that called a retrieval tool (search, list,
 read, reflect); saving a document is not expected to be credited. Recorded at the end of each turn,
 whether or not `retainSessions` writes the session back. It never leaves your machine. Summarize it per agent with:
 
 ```bash
-agentstratum-coding-agents stats
+contextbase-coding-agents stats
 ```
 
 ### Is the memory ready yet?
 
-`agentstratum_sync_status` — the agent-facing tool, `dist/status.js` for scripts — answers exactly
+`contextbase_sync_status` — the agent-facing tool, `dist/status.js` for scripts — answers exactly
 that: `"synced": true` means the seeded memory is queryable. It also reports gitlog freshness, how
 far per-commit deepening has got, the codebase survey's state (`surveyBaseline` is the HEAD the last
 survey started from, `surveyDocs` counts the findings documents that have landed, 0–4 — a baseline

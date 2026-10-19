@@ -15,7 +15,7 @@
 
 import { basename, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
-import type { HindsightConfig } from "./config.js";
+import type { ContextBaseConfig } from "./config.js";
 import { Logger } from "./logger.js";
 import type { HindsightClient } from "@vectorize-io/hindsight-client";
 
@@ -91,7 +91,7 @@ function deriveGitProjectName(directory: string): string {
  * Static mode: returns config.bankId or DEFAULT_BANK_NAME.
  * Dynamic mode: composes from granularity fields joined by '::'.
  */
-export function deriveBankId(config: HindsightConfig, directory: string): string {
+export function deriveBankId(config: ContextBaseConfig, directory: string): string {
   const prefix = config.bankIdPrefix;
 
   if (!config.dynamicBankId) {
@@ -106,14 +106,14 @@ export function deriveBankId(config: HindsightConfig, directory: string): string
   for (const f of fields) {
     if (!VALID_FIELDS.has(f)) {
       console.error(
-        `[Hindsight] Unknown dynamicBankGranularity field "${f}" — ` +
+        `[ContextBase] Unknown dynamicBankGranularity field "${f}" — ` +
           `valid: ${[...VALID_FIELDS].sort().join(", ")}`
       );
     }
   }
 
-  const channelId = process.env.HINDSIGHT_CHANNEL_ID || "";
-  const userId = process.env.HINDSIGHT_USER_ID || "";
+  const channelId = process.env.CONTEXTBASE_CHANNEL_ID || "";
+  const userId = process.env.CONTEXTBASE_USER_ID || "";
 
   // Lazy resolution so we don't spawn `git` for `gitProject` when the field
   // isn't part of the configured granularity.
@@ -139,7 +139,7 @@ export function deriveBankId(config: HindsightConfig, directory: string): string
 export async function ensureBankMission(
   client: HindsightClient,
   bankId: string,
-  config: HindsightConfig,
+  config: ContextBaseConfig,
   missionsSet: Set<string>,
   logger: Logger = new Logger({ silent: true })
 ): Promise<void> {

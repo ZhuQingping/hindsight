@@ -6,28 +6,28 @@ import (
 	"net/http"
 	"os"
 
-	hindsight "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
 )
 
 const bankID = "directives-example-bank"
 
 func main() {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}
 
-	cfg := hindsight.NewConfiguration()
-	cfg.Servers = hindsight.ServerConfigurations{{URL: apiURL}}
-	client := hindsight.NewAPIClient(cfg)
+	cfg := contextbase.NewConfiguration()
+	cfg.Servers = contextbase.ServerConfigurations{{URL: apiURL}}
+	client := contextbase.NewAPIClient(cfg)
 	ctx := context.Background()
 
 	// =============================================================================
 	// Setup (not shown in docs)
 	// =============================================================================
 	client.BanksAPI.CreateOrUpdateBank(ctx, bankID).
-		CreateBankRequest(hindsight.CreateBankRequest{
-			Name: *hindsight.NewNullableString(hindsight.PtrString("Test Bank")),
+		CreateBankRequest(contextbase.CreateBankRequest{
+			Name: *contextbase.NewNullableString(contextbase.PtrString("Test Bank")),
 		}).Execute()
 
 	// =============================================================================
@@ -37,7 +37,7 @@ func main() {
 	// [docs:create-directive]
 	// Create a directive (hard rule for reflect)
 	directive, _, _ := client.DirectivesAPI.CreateDirective(ctx, bankID).
-		CreateDirectiveRequest(hindsight.CreateDirectiveRequest{
+		CreateDirectiveRequest(contextbase.CreateDirectiveRequest{
 			Name:    "Formal Language",
 			Content: "Always respond in formal English, avoiding slang and colloquialisms.",
 		}).Execute()
@@ -64,8 +64,8 @@ func main() {
 	// Update a directive (e.g., disable without deleting)
 	isActiveFalse := false
 	updated, _, _ := client.DirectivesAPI.UpdateDirective(ctx, bankID, directiveID).
-		UpdateDirectiveRequest(hindsight.UpdateDirectiveRequest{
-			IsActive: *hindsight.NewNullableBool(&isActiveFalse),
+		UpdateDirectiveRequest(contextbase.UpdateDirectiveRequest{
+			IsActive: *contextbase.NewNullableBool(&isActiveFalse),
 		}).Execute()
 
 	fmt.Printf("Directive active: %v\n", updated.GetIsActive())

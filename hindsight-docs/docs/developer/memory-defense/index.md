@@ -4,7 +4,7 @@ sidebar_position: 95
 
 # Memory Defense
 
-Hindsight scrubs secrets and PII from retain content using a 45-pattern regex set. Each match is replaced with a `[REDACTED:type]` marker before content reaches memory units or the document body. The feature is configured per bank and disabled by default.
+ContextBase scrubs secrets and PII from retain content using a 45-pattern regex set. Each match is replaced with a `[REDACTED:type]` marker before content reaches memory units or the document body. The feature is configured per bank and disabled by default.
 
 ## How it works
 
@@ -48,7 +48,7 @@ Memory Defense is off on every bank until you set a policy. A bank with no `memo
 
 ## Notifications
 
-When an item is redacted or blocked, Hindsight fires a [`memory_defense.triggered` webhook](../api/webhooks.mdx#memory_defensetriggered) if a webhook on the bank is subscribed to that event type. The payload reports the action taken, the document ID, and which redaction patterns matched — useful for routing security alerts to a SIEM or Slack. Clean items fire no event.
+When an item is redacted or blocked, ContextBase fires a [`memory_defense.triggered` webhook](../api/webhooks.mdx#memory_defensetriggered) if a webhook on the bank is subscribed to that event type. The payload reports the action taken, the document ID, and which redaction patterns matched — useful for routing security alerts to a SIEM or Slack. Clean items fire no event.
 
 The same redact/block decisions are also recorded as `memory_defense` entries in the [audit log](../configuration.mdx#audit-logging) (when audit logging is enabled), with the action and matched pattern labels in the entry metadata.
 

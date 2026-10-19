@@ -12,7 +12,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-cursor-cli"
+name = "contextbase-cursor-cli"
 version = "0.3.0"
 source = { editable = "." }
 

@@ -3,7 +3,7 @@
  * temp vault pointed at a throwaway node:http server, so the whole stack —
  * FsVault → SyncEngine → HindsightClient → fetch → sockets → server — runs
  * for real, with nothing mocked. This is the closest thing to hitting a live
- * Hindsight server that can run in CI.
+ * ContextBase server that can run in CI.
  */
 
 import { rm, mkdir, mkdtemp, writeFile } from "node:fs/promises";
@@ -129,6 +129,6 @@ describe("runCli end-to-end over real HTTP", () => {
       (m) => errs.push(m)
     );
     expect(code).toBe(1);
-    expect(errs.join("\n")).toMatch(/hindsight-obsidian-sync:/);
+    expect(errs.join("\n")).toMatch(/contextbase-obsidian-sync:/);
   }, 20000);
 });

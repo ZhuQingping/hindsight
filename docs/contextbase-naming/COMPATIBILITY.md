@@ -1,3 +1,5 @@
+> 历史记录：本文记录此前仅修改展示名的整合。2026-10-19 的对外身份统一已取代其命名约定；当前契约见 [NAMING-MAP.md](NAMING-MAP.md)。
+
 # 兼容与部署说明
 
 产品展示名为 ContextBase。CLI 命令仍为 `agentstratum`；Coding Agents 包/命令仍为 `agentstratum-coding-agents`；配置目录仍为 `~/.agentstratum`。这是本轮明确的兼容发行策略，新 `contextbase` 命令、目录或环境变量 alias 未引入。

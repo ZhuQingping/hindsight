@@ -518,7 +518,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-ag2"
+name = "contextbase-ag2"
 version = "0.1.2"
 source = { editable = "." }
 dependencies = [

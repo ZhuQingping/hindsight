@@ -1,4 +1,4 @@
-"""Entrypoint for the Hindsight Dify plugin."""
+"""Entrypoint for the ContextBase Dify plugin."""
 
 from __future__ import annotations
 

@@ -3,18 +3,18 @@
 import json
 import subprocess
 
-from hindsight_devin_desktop import devin_local
-from hindsight_devin_desktop.cli import Paths, Resolved, build_install, main
-from hindsight_devin_desktop.global_rules import is_installed as global_rule_installed
-from hindsight_devin_desktop.mcp_config import SERVER_NAME
-from hindsight_devin_desktop.mcp_config import is_installed as server_installed
-from hindsight_devin_desktop.rules import is_installed as rule_installed
+from contextbase_devin_desktop import devin_local
+from contextbase_devin_desktop.cli import Paths, Resolved, build_install, main
+from contextbase_devin_desktop.global_rules import is_installed as global_rule_installed
+from contextbase_devin_desktop.mcp_config import SERVER_NAME
+from contextbase_devin_desktop.mcp_config import is_installed as server_installed
+from contextbase_devin_desktop.rules import is_installed as rule_installed
 
 
 def _paths(tmp_path):
     return Paths(
         mcp=[tmp_path / "a" / "mcp_config.json", tmp_path / "b" / "mcp_config.json"],
-        rules=tmp_path / "rules" / "hindsight.md",
+        rules=tmp_path / "rules" / "contextbase.md",
         global_rules=tmp_path / "memories" / "global_rules.md",
         cascade_hooks=tmp_path / "windsurf" / "hooks.json",
         devin_config=tmp_path / "devin" / "config.json",
@@ -55,7 +55,7 @@ class TestBuildInstall:
         assert dserver["transport"] == "http"
         assert dserver["headers"]["Authorization"] == "Bearer k"
         assert dserver["headers"]["X-Bank-Id"] == "devin-desktop"
-        assert dl["permissions"]["allow"] == ["mcp__hindsight__*"]
+        assert dl["permissions"]["allow"] == ["mcp__contextbase__*"]
         # Devin Local AGENTS.md (project names both banks; global names the global bank)
         assert "devin-desktop-acme-web" in paths.devin_project_agents.read_text()
         assert devin_local.agents_installed(paths.devin_global_agents)
@@ -67,7 +67,7 @@ class TestMain:
             "--mcp-path",
             str(tmp_path / "mcp_config.json"),
             "--rules-path",
-            str(tmp_path / "rules" / "hindsight.md"),
+            str(tmp_path / "rules" / "contextbase.md"),
             "--global-rules-path",
             str(tmp_path / "global_rules.md"),
             "--cascade-hooks-path",
@@ -87,7 +87,7 @@ class TestMain:
         assert main(["init", "--api-url", "http://localhost:8888", "--bank-id", "proj", *common]) == 0
         # both agents configured
         assert server_installed(tmp_path / "mcp_config.json")  # Cascade
-        assert rule_installed(tmp_path / "rules" / "hindsight.md")
+        assert rule_installed(tmp_path / "rules" / "contextbase.md")
         assert global_rule_installed(tmp_path / "global_rules.md")
         assert devin_local.is_installed(tmp_path / "devin" / "config.json")  # Devin Local
         assert devin_local.agents_installed(tmp_path / "AGENTS.md")
@@ -112,7 +112,7 @@ class TestMain:
         out = capsys.readouterr().out
         assert "devin-desktop-acme-web" in out
         # both agents' project rules carry the derived bank
-        assert "devin-desktop-acme-web" in (tmp_path / "rules" / "hindsight.md").read_text()
+        assert "devin-desktop-acme-web" in (tmp_path / "rules" / "contextbase.md").read_text()
         assert "devin-desktop-acme-web" in (tmp_path / "AGENTS.md").read_text()
 
     def test_init_prints_activation_steps(self, tmp_path, capsys):

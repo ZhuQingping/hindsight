@@ -4,7 +4,7 @@ sidebar_position: 7
 
 # Development Guide
 
-Guide to setting up a local development environment for contributing to Hindsight.
+Guide to setting up a local development environment for contributing to ContextBase.
 
 ## Prerequisites
 
@@ -18,8 +18,8 @@ Guide to setting up a local development environment for contributing to Hindsigh
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/vectorize-io/hindsight.git
-cd hindsight
+git clone https://github.com/RSIXDB/hindsight.git
+cd contextbase
 ```
 
 ### 2. Install Dependencies
@@ -46,12 +46,12 @@ Edit `.env` with your LLM API key:
 
 ```bash
 # Database (connects to Docker postgres)
-HINDSIGHT_API_DATABASE_URL=postgresql://hindsight:hindsight_dev@localhost:5432/hindsight
+CONTEXTBASE_API_DATABASE_URL=postgresql://contextbase:contextbase_dev@localhost:5432/contextbase
 
 # LLM Provider (choose one)
-HINDSIGHT_API_LLM_PROVIDER=groq
-HINDSIGHT_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
-HINDSIGHT_API_LLM_MODEL=llama-3.1-70b-versatile
+CONTEXTBASE_API_LLM_PROVIDER=groq
+CONTEXTBASE_API_LLM_API_KEY=gsk_xxxxxxxxxxxx
+CONTEXTBASE_API_LLM_MODEL=llama-3.1-70b-versatile
 ```
 
 ### 5. Start the API Server
@@ -98,7 +98,7 @@ This generates:
 ## Project Structure
 
 ```
-hindsight/
+contextbase/
 ├── hindsight-api/          # Main API server
 │   ├── hindsight_api/
 │   │   ├── api/           # HTTP endpoints
@@ -115,7 +115,7 @@ hindsight/
 
 ## Contributing
 
-Hindsight does not accept pull requests from outside the team. To report a bug or
+ContextBase does not accept pull requests from outside the team. To report a bug or
 ask for a feature, [open an issue](https://github.com/vectorize-io/hindsight/issues/new/choose).
 See [CONTRIBUTING.md](https://github.com/vectorize-io/hindsight/blob/main/CONTRIBUTING.md)
 for details.
@@ -133,17 +133,17 @@ docker-compose ps
 Check database connectivity:
 
 ```bash
-psql postgresql://hindsight:hindsight_dev@localhost:5432/hindsight
+psql postgresql://contextbase:contextbase_dev@localhost:5432/contextbase
 ```
 
 ### ML Model Download
 
-On first run, Hindsight downloads embedding and reranking models. This may take a few minutes. Models are cached in `~/.cache/huggingface/`.
+On first run, ContextBase downloads embedding and reranking models. This may take a few minutes. Models are cached in `~/.cache/huggingface/`.
 
 ### Port Conflicts
 
 If port 8888 is in use:
 
 ```bash
-HINDSIGHT_API_PORT=8889 ./scripts/start-server.sh --env local
+CONTEXTBASE_API_PORT=8889 ./scripts/start-server.sh --env local
 ```

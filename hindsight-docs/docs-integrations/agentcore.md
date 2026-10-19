@@ -1,14 +1,14 @@
 ---
 sidebar_position: 14
-title: "Amazon Bedrock AgentCore Persistent Memory with Hindsight | Integration"
-description: "Add long-term memory to Amazon Bedrock AgentCore Runtime agents with Hindsight. Memory persists across sessions using stable user identity — not the ephemeral runtimeSessionId."
+title: "Amazon Bedrock AgentCore Persistent Memory with ContextBase | Integration"
+description: "Add long-term memory to Amazon Bedrock AgentCore Runtime agents with ContextBase. Memory persists across sessions using stable user identity — not the ephemeral runtimeSessionId."
 ---
 
 # Amazon Bedrock AgentCore Runtime
 
-Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using Hindsight.
+Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using ContextBase.
 
-AgentCore Runtime sessions are explicitly ephemeral — they terminate on inactivity and reprovision fresh environments. `hindsight-agentcore` adds durable cross-session memory so agents remember users, decisions, and learned patterns across any number of Runtime sessions.
+AgentCore Runtime sessions are explicitly ephemeral — they terminate on inactivity and reprovision fresh environments. `contextbase-agentcore` adds durable cross-session memory so agents remember users, decisions, and learned patterns across any number of Runtime sessions.
 
 [View Changelog →](/changelog/integrations/agentcore)
 
@@ -18,7 +18,7 @@ AgentCore Runtime sessions are explicitly ephemeral — they terminate on inacti
 AgentCore Runtime invocation
         │
         ▼
-   before_turn()         ← Recall relevant memories from Hindsight
+   before_turn()         ← Recall relevant memories from ContextBase
         │
         ▼
   Agent executes          ← Prompt enriched with prior context
@@ -37,25 +37,25 @@ tenant:{tenant_id}:user:{user_id}:agent:{agent_name}
 ## Installation
 
 ```bash
-pip install hindsight-agentcore
+pip install contextbase-agentcore
 ```
 
 ## Quick Start
 
-:::tip Recommended: Hindsight Cloud
-[Sign up free](https://ui.hindsight.vectorize.io) and grab an API key — no self-hosting required.
+:::tip Recommended: ContextBase remote service
+Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 :::
 
 ```python
 import os
-from hindsight_agentcore import HindsightRuntimeAdapter, TurnContext, configure
+from contextbase_agentcore import ContextBaseRuntimeAdapter, TurnContext, configure
 
 configure(
-    hindsight_api_url="https://api.hindsight.vectorize.io",
-    api_key=os.environ["HINDSIGHT_API_KEY"],
+    contextbase_api_url="http://localhost:8888",
+    api_key=os.environ["CONTEXTBASE_API_KEY"],
 )
 
-adapter = HindsightRuntimeAdapter(agent_name="support-agent")
+adapter = ContextBaseRuntimeAdapter(agent_name="support-agent")
 
 
 # Your AgentCore Runtime handler
@@ -104,9 +104,9 @@ await adapter.after_turn(context, result=result["output"], query=user_message)
 Fast multi-strategy retrieval (semantic + keyword + graph + temporal):
 
 ```python
-from hindsight_agentcore import RecallPolicy
+from contextbase_agentcore import RecallPolicy
 
-adapter = HindsightRuntimeAdapter(
+adapter = ContextBaseRuntimeAdapter(
     recall_policy=RecallPolicy(mode="recall", budget="mid", max_tokens=1500)
 )
 ```
@@ -116,7 +116,7 @@ adapter = HindsightRuntimeAdapter(
 LLM-synthesized context for complex reasoning tasks:
 
 ```python
-adapter = HindsightRuntimeAdapter(
+adapter = ContextBaseRuntimeAdapter(
     recall_policy=RecallPolicy(mode="reflect")
 )
 ```
@@ -177,12 +177,12 @@ context = TurnContext(
 Override the default `tenant:user:agent` format:
 
 ```python
-from hindsight_agentcore import TurnContext
+from contextbase_agentcore import TurnContext
 
 def my_resolver(context: TurnContext) -> str:
     return f"acme:{context.user_id}:{context.agent_name}"
 
-adapter = HindsightRuntimeAdapter(bank_resolver=my_resolver)
+adapter = ContextBaseRuntimeAdapter(bank_resolver=my_resolver)
 ```
 
 **Security rule:** The resolver must fail closed (`BankResolutionError`) rather than leak memory across users when identity is missing.
@@ -191,8 +191,8 @@ adapter = HindsightRuntimeAdapter(bank_resolver=my_resolver)
 
 | Option | Env Variable | Default | Description |
 |---|---|---|---|
-| `hindsight_api_url` | `HINDSIGHT_API_URL` | Hindsight Cloud | Hindsight server URL |
-| `api_key` | `HINDSIGHT_API_KEY` | — | API key for Hindsight Cloud |
+| `contextbase_api_url` | `CONTEXTBASE_API_URL` | ContextBase remote service | ContextBase server URL |
+| `api_key` | `CONTEXTBASE_API_KEY` | — | API key for ContextBase remote service |
 | `recall_budget` | — | `"mid"` | Search depth: `low`, `mid`, `high` |
 | `recall_max_tokens` | — | `1500` | Max tokens recalled |
 | `retain_async` | — | `True` | Non-blocking retention |
@@ -204,7 +204,7 @@ adapter = HindsightRuntimeAdapter(bank_resolver=my_resolver)
 
 | Failure | Behavior |
 |---|---|
-| Hindsight unavailable | `before_turn()` returns `""`, agent continues |
+| ContextBase unavailable | `before_turn()` returns `""`, agent continues |
 | Recall timeout | Returns `""`, agent continues |
 | Retain failure | Logged as warning, user turn unaffected |
 | Bad bank resolution | Fails closed — no cross-user memory leakage |

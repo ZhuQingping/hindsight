@@ -1,7 +1,7 @@
 """Deprecation notice for this plugin, shown at every session start.
 
 This plugin still works and is not going to stop working, but it is deprecated: development has
-moved to `@vectorize-io/hindsight-coding-agents`. Someone who installed this a year ago has no way to learn
+moved to `contextbase-coding-agents`. Someone who installed this a year ago has no way to learn
 that — a changelog entry reaches nobody — so the session itself says it.
 
 Shown every session rather than a few times: a notice that appears once is missed, and this one has
@@ -19,19 +19,19 @@ DOCS_URL = "https://hindsight.vectorize.io/sdks/integrations/coding-agents"
 MIGRATION_URL = f"{DOCS_URL}#migrating-from-the-per-agent-plugins"
 
 NOTICE = (
-    "The current Hindsight Codex plugin is DEPRECATED, replaced by the Coding Agents "
+    "The current ContextBase Codex plugin is DEPRECATED, replaced by the Coding Agents "
     "plugin.\n"
     "\n"
     "One install now covers Claude Code, Codex, Cursor, Copilot, opencode, Kilo, Grok, "
     "Antigravity,\n"
-    "Devin and Cline, and they all share a single memory per repository, leveraging the Hindsight "
+    "Devin and Cline, and they all share a single memory per repository, leveraging the ContextBase "
     "Knowledge Page (v0.9.x and onwards).\n"
     "\n"
     f"See the migration guide: {MIGRATION_URL}\n"
-    "Your Hindsight server and token carry over automatically; past conversations are re-imported "
+    "Your ContextBase server and token carry over automatically; past conversations are re-imported "
     "from\n"
     'local transcripts. Silence this with "upgradeNotice": false in '
-    "~/.hindsight/codex.json"
+    "~/.contextbase/codex.json"
 )
 
 

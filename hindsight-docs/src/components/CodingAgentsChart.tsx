@@ -17,11 +17,11 @@ import styles from './CodingAgentsChart.module.css';
  * The retrieval-accuracy chart answers "does it retrieve well". This answers the
  * question a developer evaluating a coding-agent plugin actually has: does it
  * make the agent cheaper and less annoying. Both move at once, so the form has
- * to be two-dimensional — one arrow per agent, from no memory to Hindsight, and
+ * to be two-dimensional — one arrow per agent, from no memory to ContextBase, and
  * every arrow points up and to the left.
  *
- * The agent's own logo marks the Hindsight end and a hollow grey dot marks the
- * other, so "where Hindsight is" needs no legend lookup: it is wherever the logo
+ * The agent's own logo marks the ContextBase end and a hollow grey dot marks the
+ * other, so "where ContextBase is" needs no legend lookup: it is wherever the logo
  * is. Every point also carries its corrections value, the way AMB labels its
  * own version of this chart.
  *
@@ -118,7 +118,7 @@ export default function CodingAgentsChart({
       className={styles.chart}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label="Corrections per task against cost per task on AMB's sdebench. With Hindsight, Claude Code goes from 0.85 corrections at $0.45 to 0.36 at $0.34; Codex CLI from 1.34 at $0.58 to 0.47 at $0.28; opencode from 1.20 at $0.63 to 0.80 at $0.55. Every agent moves to fewer corrections and lower cost.">
+      aria-label="Corrections per task against cost per task on AMB's sdebench. With ContextBase, Claude Code goes from 0.85 corrections at $0.45 to 0.36 at $0.34; Codex CLI from 1.34 at $0.58 to 0.47 at $0.28; opencode from 1.20 at $0.63 to 0.80 at $0.55. Every agent moves to fewer corrections and lower cost.">
       <defs>
         <marker
           id="hca-arrow"
@@ -178,7 +178,7 @@ export default function CodingAgentsChart({
             markerEnd="url(#hca-arrow)"
           />
 
-          {/* Where Hindsight is: the agent's own mark, at its true position.
+          {/* Where ContextBase is: the agent's own mark, at its true position.
               The white chip is not decoration — several of these logos are
               near-black line art and would disappear against the hero band.
               Name above and value below, both centred on the mark: beside it,
@@ -219,7 +219,7 @@ export default function CodingAgentsChart({
         <figcaption className={styles.caption}>
           <span className={styles.key}>
             <i className={styles.keyBefore} /> no memory
-            <i className={styles.keyAfter} /> with Hindsight
+            <i className={styles.keyAfter} /> with ContextBase
           </span>
           {!compact &&
             'Every agent solves 60–61 of the 61 tasks either way — memory changes what it costs to get there. Mean of 3 runs.'}

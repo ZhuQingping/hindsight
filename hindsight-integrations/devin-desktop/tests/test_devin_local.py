@@ -2,8 +2,8 @@
 
 import json
 
-import hindsight_devin_desktop.devin_local as dl
-from hindsight_devin_desktop.devin_local import (
+import contextbase_devin_desktop.devin_local as dl
+from contextbase_devin_desktop.devin_local import (
     ALLOW_PATTERN,
     RECALL_EVENT,
     RETAIN_EVENT,
@@ -159,7 +159,7 @@ class TestHooks:
         apply_to_config(p, build_http_server("http://localhost:8888", "k", "b"))
         cmds = self._cmds(json.loads(p.read_text()), RECALL_EVENT)
         assert "echo hi" in cmds  # user's hook kept
-        assert any("hindsight_devin_desktop.hook" in c for c in cmds)  # ours added
+        assert any("contextbase_devin_desktop.hook" in c for c in cmds)  # ours added
 
     def test_unchanged_includes_hook_state(self, tmp_path):
         p = tmp_path / "config.json"
@@ -190,7 +190,7 @@ class TestHooks:
         remove_from_config(p)
         data = json.loads(p.read_text())
         assert "echo hi" in self._cmds(data, RECALL_EVENT)  # user's hook survives
-        assert not any("hindsight_devin_desktop.hook" in c for c in self._cmds(data, RECALL_EVENT))
+        assert not any("contextbase_devin_desktop.hook" in c for c in self._cmds(data, RECALL_EVENT))
         assert RETAIN_EVENT not in data.get("hooks", {})  # ours gone
 
 
