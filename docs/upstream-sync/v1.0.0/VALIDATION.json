@@ -1,6 +1,6 @@
 {
-  "status": "LOCAL_INTEGRATION_VALIDATED_WITH_BOUNDARIES_READY_FOR_DRAFT_PR",
-  "updated_at_utc": "2026-10-19T08:56:08.845730+00:00",
+  "status": "PUSHED_DRAFT_PR_READY_FOR_USER_REVIEW_WITH_BOUNDARIES",
+  "updated_at_utc": "2026-10-19T09:01:18.415942+00:00",
   "ours": "4f7a278191d7c9d0ff2346199b7dafa2487bbcd5",
   "upstream_release": "v1.0.0",
   "upstream_sha": "39c65ffe2f140d0c84cee58566cad8900c5b9908",
@@ -826,7 +826,10 @@
   "delivery": {
     "main_merged": false,
     "deployed": false,
-    "pr": null
+    "pr": "https://github.com/RSIXDB/hindsight/pull/10",
+    "merge_commit": "fc7e0fb746d5c5e40c23b5d9d266f9f3cf3a44b3",
+    "upstream_ancestry_verified": true,
+    "remote_merge_commit_verified": true
   },
   "final_consistency": {
     "status": "PASS",

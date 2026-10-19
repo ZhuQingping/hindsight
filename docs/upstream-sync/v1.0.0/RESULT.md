@@ -1,6 +1,8 @@
 # v1.0.0 集成结果
 
-状态：**本地核心集成验证通过，交付 draft PR 审查；存在明确验证边界。**
+状态：**已推送并创建 [draft PR #10](https://github.com/RSIXDB/hindsight/pull/10)，待用户检查；本地核心集成验证通过，存在明确验证边界。**
+
+合并提交：`fc7e0fb746d5c5e40c23b5d9d266f9f3cf3a44b3`，两个父提交分别为维护流程提交与官方 release；已核对远端 SHA 和祖先关系。
 
 官方 `v1.0.0 / 39c65ffe` 已在 `integrate/upstream-v1.0.0` 中完成合成，基于
 我方 `4f7a2781`，20 个冲突路径全部处理。保留 ContextBase 展示、既有兼容身份、
