@@ -1,5 +1,7 @@
 # 品牌/UI 独立交付结果
 
+> 本报告冻结原品牌/UI独立候选，不能代表后续整合通过。当前整合分支的权威结果见[整合RESULT](../agentstratum-integration/RESULT.md)。
+
 状态：`LOCAL_ACCEPTANCE_PASS / INDEPENDENT_REVIEW_CLOSED / DRAFT_FOR_USER_REVIEW`。2026-10-18。独立初审发现4项P2、1项P3；全部修复并由原独立审查者复审关闭，无遗留 Must fix。人工产品接受与主干合并仍由用户决定。
 
 修复源码：`14c2d60eacf9be3e67093f374082eb4fbda3ba39`；分支 `product/agentstratum-brand-ui-20261016`；基线 `f51b165a5165b1042ba0b6408fcffb5bc1a80fdb`。[Draft PR #5](https://github.com/RSIXDB/hindsight/pull/5)，未合并 main。
