@@ -15,6 +15,37 @@ skill 源码位于 `.agents/skills/hindsight-upstream-sync/`，明确调用
 保留的 checkout，删除 worktree 前需迁移链接。预检入口为
 `python3 scripts/upstream-sync/preflight.py --ours <SHA> --theirs <SHA>`。
 
+## 同事如何使用
+
+skill、调用策略、预检脚本与测试均纳入 Git；个人机器上的安装链接仅用于本机发现。
+当前入口随 [PR #10](https://github.com/RSIXDB/hindsight/pull/10) 交付：合入前获取
+`integrate/upstream-v1.0.0` 分支，合入后更新 main 即可获得这些文件。已有工作区
+存在未提交改动时，使用独立 checkout/worktree 获取分支，保留原工作。
+
+在对应 checkout 中明确调用，例如：
+
+```text
+$hindsight-upstream-sync 请只评估官方 <目标发布标签> 与 origin/main 的差异和冲突，暂不合并。
+```
+
+需要执行时，把请求改为“按维护合同集成官方 <目标发布标签>，解决冲突、验证并交付
+draft PR，主线合入由我检查”。每次都应写明真实目标标签和接收分支，不能沿用旧报告的 SHA。
+
+如果使用的 agent 没有发现该 skill，可以明确指定仓库文件：
+
+```text
+请读取 .agents/skills/hindsight-upstream-sync/SKILL.md，按其中流程评估官方 <目标发布标签>。
+```
+
+跨机器使用的流程入口来自当前 checkout 中的 skill、维护合同及脚本，不依赖原作者的个人
+skills 目录或历史 `.local` 日志。下文绝对路径属于原执行机器的资源策略：同事应
+先检查自己机器的仓库规则、工具链和资源约束，再选择当地 runner 或串行验证方式。
+当前机器仍须复用现有共享 runner；不要因换了会话而绕开它。旧日志缺失时按本轮
+源码重新验证，不能从文档中的旧 PASS 推断新环境也通过。
+
+维护入口及调用策略在 `.agents/skills/hindsight-upstream-sync/`；行为脚本及测试在
+`scripts/upstream-sync/`。修改后随仓库提交并审查，避免同事各自维护互不一致的副本。
+
 ## 我方差异登记与验收矩阵
 
 | 差异/目的 | 权威位置 | 必须保留的行为与检查 | 可撤销条件 |
