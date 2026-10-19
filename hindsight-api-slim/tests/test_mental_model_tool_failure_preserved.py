@@ -22,6 +22,7 @@ import pytest
 
 from hindsight_api.engine.memory_engine import MemoryEngine, MentalModelRefreshError
 from hindsight_api.engine.reflect import ReflectToolExecutionError
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 from tests.conftest import stub_refresh_has_sources
 
 EXISTING = "# Team\n\nAlice leads platform. Bob owns ingest.\n"
@@ -175,7 +176,7 @@ async def test_failed_refresh_is_recorded_in_the_model_history(memory, request_c
         assert entry["kind"] == "refresh_failed"
         assert entry["outcome"] == "refresh_failed_error"
         assert entry["failure_reason"] == "retrieval_failed"
-        assert "pgvector index missing" in entry["error_message"]
+        assert entry["error_message"] == PUBLIC_INTERNAL_ERROR
         # A failure is an event, not a version: there is no content to diff.
         assert entry["previous_content"] is None
     finally:

@@ -16,6 +16,7 @@ class ConsolidationEventData(BaseModel):
     observations_created: int | None = None
     observations_updated: int | None = None
     observations_deleted: int | None = None
+    # Producers classify failures before serialization; customer identifiers are preserved.
     error_message: str | None = None
 
 

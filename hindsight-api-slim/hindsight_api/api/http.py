@@ -280,6 +280,7 @@ def _parse_tag_groups_query(raw: str | None, tags: list[str] | None) -> list[Tag
         raise HTTPException(status_code=400, detail=f"Invalid tag_groups: {e.errors(include_url=False)}")
 
 
+from hindsight_api.brand import API_SERVICE_NAME, API_TITLE
 from hindsight_api.engine.structured_output import validate_response_schema
 from hindsight_api.engine.time_filter import DocumentTimeField, MemoryTimeField
 from hindsight_api.extensions import HttpExtension, OperationValidationError, load_extension
@@ -291,6 +292,7 @@ from hindsight_api.metrics import (
     reset_metrics_collector,
 )
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -301,8 +303,8 @@ def _internal_error(exc: Exception, where: str) -> HTTPException:
     Every route's catch-all used to do this inline — 72 byte-identical copies of
     the same four lines, plus seven near-copies that logged the traceback without
     the message. The duplication is why the policy had already drifted: what gets
-    logged, and the fact that the client sees ``detail=str(exc)`` rather than a
-    traceback, was re-decided per route instead of once.
+    logged was re-decided per route instead of once. The internal diagnostic
+    stays in the log; the client receives a stable public message.
 
     ``traceback.format_exc()`` reads the *currently handled* exception, so this
     must be called from inside an ``except`` block — which is where every call
@@ -313,7 +315,7 @@ def _internal_error(exc: Exception, where: str) -> HTTPException:
     handler instead of hidden behind a call.
     """
     logger.error(f"Error in {where}: {exc}\n\nTraceback:\n{traceback.format_exc()}")
-    return HTTPException(status_code=500, detail=str(exc))
+    return HTTPException(status_code=500, detail=PUBLIC_INTERNAL_ERROR)
 
 
 def _parse_iso_datetime(value: str | None, param: str) -> datetime | None:
@@ -2127,7 +2129,7 @@ class BankConfigUpdate(BaseModel):
 
     updates: dict[str, Any] = Field(
         description="Configuration overrides. Keys can be in Python field format (retain_extraction_mode) "
-        "or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE). "
+        "or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE). "
         "Only hierarchical fields can be overridden per-bank."
     )
 
@@ -2441,7 +2443,7 @@ class PromptBlockModel(BaseModel):
 
     text: str = Field(description="The block's text; empty when the block is inactive.")
     source: Literal["config", "builtin"] = Field(
-        description="`config` — produced by a setting (`field` names it); `builtin` — Hindsight's own wording."
+        description="`config` — produced by a setting (`field` names it); `builtin` — agentstratum's own wording."
     )
     field: str = Field(default="", description="Config field behind this block; empty when no single field owns it.")
     section: str = Field(
@@ -4062,7 +4064,7 @@ class BankTemplateManifest(BaseModel):
         if ver > int(BANK_TEMPLATE_CURRENT_VERSION):
             raise ValueError(
                 f"version '{v}' is not supported by this server "
-                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade Hindsight."
+                f"(max supported: {BANK_TEMPLATE_CURRENT_VERSION}). Please upgrade agentstratum."
             )
         return v
 
@@ -5105,7 +5107,7 @@ def create_app(
         # closed DB pool — installed for the rest of the process (#3780).
         previous_metrics_collector = get_metrics_collector()
         try:
-            prometheus_reader = initialize_metrics(service_name="hindsight-api", service_version="1.0.0")
+            prometheus_reader = initialize_metrics(service_name=API_SERVICE_NAME, service_version="1.0.0")
             create_metrics_collector()
             app.state.prometheus_reader = prometheus_reader
             if config.metrics_worker_label:
@@ -5233,9 +5235,9 @@ def create_app(
     config = get_config()
 
     app = FastAPI(
-        title="Hindsight HTTP API",
+        title=API_TITLE,
         version=__version__,
-        description="HTTP API for Hindsight",
+        description="HTTP API for agentstratum",
         contact={
             "name": "Memory System",
         },
@@ -5368,9 +5370,9 @@ def _name_server_span_after_operation(span: "Span", scope: dict[str, Any]) -> No
         match = pattern.search(path)
         if match is None:
             continue
-        span.update_name(f"hindsight.{operation}")
-        span.set_attribute("hindsight.operation", operation)
-        span.set_attribute("hindsight.bank_id", match.group("bank_id"))
+        span.update_name(f"agentstratum.{operation}")
+        span.set_attribute("agentstratum.operation", operation)
+        span.set_attribute("agentstratum.bank_id", match.group("bank_id"))
         return
 
 
@@ -5882,7 +5884,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_dry_run_extract:
             raise HTTPException(
                 status_code=404,
-                detail="Dry-run extraction is disabled. Set HINDSIGHT_API_ENABLE_DRY_RUN_EXTRACT=true to re-enable.",
+                detail="Dry-run extraction is disabled. Contact your service administrator to enable this capability.",
             )
 
     @app.post(
@@ -6369,7 +6371,7 @@ def _register_routes(app: FastAPI):
             logger.error(
                 f"[RECALL ERROR] bank={bank_id} handler_duration={handler_duration:.3f}s error={str(e)}\n{error_detail}"
             )
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
 
     @app.post(
         "/v1/default/banks/{bank_id}/reflect",
@@ -6526,26 +6528,26 @@ def _register_routes(app: FastAPI):
             # placeholder sentence and return 200, which read as a real answer to
             # every caller and got stored as one (#2959). There is nothing to
             # return, so this is a failure like any other.
-            logger.warning("Reflect produced no answer in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.warning("Reflect produced no answer in bank %s: %s", bank_id, e, exc_info=True)
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except ReflectToolCallError as e:
             # The configured model/transport can't drive reflect's tool-calling loop.
             # The request itself is fine, so this is a server-side (500) failure, not a
             # 4xx -- but log at warning, not error: it's a misconfiguration, not a bug.
-            logger.warning("Reflect tool-calling failure in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.warning("Reflect tool-calling failure in bank %s: %s", bank_id, e, exc_info=True)
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except ReflectToolExecutionError as e:
             # A retrieval tool raised, so the loop could not finish gathering the
             # evidence it was asked for. Answering anyway would return a confident
             # reply built on a partial (often empty) evidence set, which callers
             # store as a real answer (#2894). Returning the failure lets them retry.
-            logger.warning("Reflect retrieval failure in bank %s: %s", bank_id, e)
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.warning("Reflect retrieval failure in bank %s: %s", bank_id, e, exc_info=True)
+            raise HTTPException(status_code=500, detail=public_error_message(e))
         except TimeoutError as e:
-            logger.error("Timeout in /v1/default/banks/%s/reflect: %s", bank_id, e)
+            logger.error("Timeout in /v1/default/banks/%s/reflect: %s", bank_id, e, exc_info=True)
             raise HTTPException(
                 status_code=504,
-                detail=str(e) or "Reflect operation timed out. Consider reducing the budget or simplifying the query.",
+                detail="Reflect operation timed out. Consider reducing the budget or simplifying the query.",
             )
         except Exception as e:
             raise _internal_error(e, f"/v1/default/banks/{bank_id}/reflect")
@@ -6644,7 +6646,7 @@ def _register_routes(app: FastAPI):
         "each (configs shared across operations are probed once), so you can discover 'not configured / unreachable' "
         "instead of a silent stall. Deliberate action (makes a real provider call); not for polling. Returns status "
         "only — never the provider, model, endpoint, API key, or raw error. Disable with "
-        "HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=false.",
+        "the server bank LLM health setting.",
         operation_id="test_bank_llm",
         tags=["Banks"],
     )
@@ -6653,7 +6655,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_llm_health:
             raise HTTPException(
                 status_code=404,
-                detail="Bank LLM health check is disabled. Set HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH=true to enable.",
+                detail="Bank LLM health check is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             result = await app.state.memory.check_bank_llm(bank_id, request_context=request_context)
@@ -8921,7 +8923,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document export API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             profile = await app.state.memory.get_bank_profile(bank_id, request_context=request_context)
             if profile is None:
@@ -8976,7 +8978,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document import API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             if on_conflict not in ("skip", "replace", "new-id"):
                 raise HTTPException(
@@ -9055,7 +9057,7 @@ def _register_routes(app: FastAPI):
             if not get_config().enable_document_export_api:
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank export API is disabled. Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    detail="Bank export API is disabled. Contact your service administrator to enable this capability.",
                 )
             if not (include_data or include_bank_config or include_history):
                 raise HTTPException(
@@ -9153,7 +9155,7 @@ def _register_routes(app: FastAPI):
             if not get_config().enable_document_import_api:
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank import API is disabled. Set HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API=true to enable.",
+                    detail="Bank import API is disabled. Contact your service administrator to enable this capability.",
                 )
             if mode not in ("restore", "merge"):
                 raise HTTPException(status_code=400, detail=f"Invalid mode '{mode}' (expected restore|merge)")
@@ -9257,8 +9259,7 @@ def _register_routes(app: FastAPI):
             if not (config.enable_document_export_api and config.enable_document_import_api):
                 raise HTTPException(
                     status_code=404,
-                    detail="Bank clone API is disabled. It requires both "
-                    "HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API and HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API.",
+                    detail="Bank clone API is disabled. It requires both the document export and import capabilities.",
                 )
             if not (include_data or include_bank_config or include_history):
                 raise HTTPException(
@@ -9369,7 +9370,7 @@ def _register_routes(app: FastAPI):
                 raise HTTPException(
                     status_code=404,
                     detail="Document export API is disabled. "
-                    "Set HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API=true to enable.",
+                    "Contact your service administrator to enable this capability.",
                 )
             # Only bank-scoped keys are downloadable. Parse the bank id out of the
             # "tenants/{schema}/banks/{bank_id}/..." key — or the "banks/{bank_id}/..."
@@ -9576,7 +9577,7 @@ def _register_routes(app: FastAPI):
         summary="Get bank configuration",
         description="Get fully resolved configuration for a bank including all hierarchical overrides (global → tenant → bank). "
         "The 'config' field contains all resolved config values. The 'overrides' field shows only bank-specific overrides. "
-        "Always available: HINDSIGHT_API_ENABLE_BANK_CONFIG_API gates only the write operations on this resource.",
+        "Always available: the server bank configuration setting gates only writes on this resource.",
         operation_id="get_bank_config",
         tags=["Banks"],
         responses=_BANK_NOT_FOUND_RESPONSES,
@@ -9605,7 +9606,7 @@ def _register_routes(app: FastAPI):
         summary="Update bank configuration",
         description="Update configuration overrides for a bank. Only hierarchical behavioral settings can be "
         "overridden (retention parameters, recall settings, etc.). Keys can be provided in Python field format "
-        "(retain_extraction_mode) or environment variable format (HINDSIGHT_API_RETAIN_EXTRACTION_MODE).",
+        "(retain_extraction_mode) or product configuration format (AGENTSTRATUM_API_RETAIN_EXTRACTION_MODE).",
         operation_id="update_bank_config",
         tags=["Banks"],
     )
@@ -9617,7 +9618,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_config_api:
             raise HTTPException(
                 status_code=404,
-                detail="Bank configuration API is disabled. Set HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true to re-enable.",
+                detail="Bank configuration API is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             state = await app.state.memory.update_bank_config(
@@ -9651,7 +9652,7 @@ def _register_routes(app: FastAPI):
         if not get_config().enable_bank_config_api:
             raise HTTPException(
                 status_code=404,
-                detail="Bank configuration API is disabled. Set HINDSIGHT_API_ENABLE_BANK_CONFIG_API=true to re-enable.",
+                detail="Bank configuration API is disabled. Contact your service administrator to enable this capability.",
             )
         try:
             state = await app.state.memory.reset_bank_config(bank_id, request_context=request_context)
@@ -10198,10 +10199,10 @@ def _register_routes(app: FastAPI):
                     raise HTTPException(
                         status_code=400,
                         detail=(
-                            "Batch API is enabled (HINDSIGHT_API_RETAIN_BATCH_ENABLED=true) but async=false. "
+                            "Batch processing is enabled but async=false. "
                             "Batch operations can take several minutes to hours and will timeout in synchronous mode. "
                             "Please set async=true in your request to use background processing, or disable batch API "
-                            "by setting HINDSIGHT_API_RETAIN_BATCH_ENABLED=false in your environment."
+                            "through your service administrator."
                         ),
                     )
 
@@ -10313,7 +10314,7 @@ def _register_routes(app: FastAPI):
                 f"Traceback:\n{traceback.format_exc()}"
             )
             logger.error(f"Error in /v1/default/banks/{bank_id}/memories (retain): {error_detail}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=public_error_message(e))
 
     @app.post(
         "/v1/default/banks/{bank_id}/files/retain",
@@ -10341,7 +10342,7 @@ def _register_routes(app: FastAPI):
         "- Set `parser` inside a `files_metadata` entry for per-file control.\n"
         "- Pass a list (e.g. `['iris', 'markitdown']`) to define an ordered fallback chain — "
         "each parser is tried in sequence until one succeeds.\n"
-        "- Falls back to the server default (`HINDSIGHT_API_FILE_PARSER`) if not specified.\n"
+        "- Falls back to the server default (`file_parser`) if not specified.\n"
         "- Only parsers enabled on the server may be requested; others return HTTP 400.",
         operation_id="file_retain",
         tags=["Files"],
@@ -10363,7 +10364,7 @@ def _register_routes(app: FastAPI):
         if not config.enable_file_upload_api:
             raise HTTPException(
                 status_code=404,
-                detail="File upload API is disabled. Set HINDSIGHT_API_ENABLE_FILE_UPLOAD_API=true to enable.",
+                detail="File upload API is disabled. Contact your service administrator to enable this capability.",
             )
 
         try:
@@ -10608,7 +10609,7 @@ def _register_routes(app: FastAPI):
         "/v1/default/banks/{bank_id}/llm-requests",
         summary="List LLM request traces",
         description="List traced LLM requests for a bank, ordered by most recent first. "
-        "Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED).",
+        "Requires LLM request tracing to be enabled.",
         operation_id="list_llm_requests",
         tags=["LLM Traces"],
         response_model=LLMRequestListResponse,

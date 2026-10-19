@@ -1,36 +1,31 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { getEmbedCommand } from "./command.js";
-
+afterEach(() => vi.unstubAllEnvs());
 describe("getEmbedCommand", () => {
-  it("defaults to uvx hindsight-embed@latest", () => {
-    expect(getEmbedCommand()).toEqual(["uvx", "hindsight-embed@latest"]);
+  it("requires an approved distribution when no checkout is configured", () => {
+    vi.stubEnv("AGENTSTRATUM_EMBED_PACKAGE", "");
+    expect(() => getEmbedCommand()).toThrow("AGENTSTRATUM_EMBED_PACKAGE");
   });
-
-  it("honours an explicit version", () => {
-    expect(getEmbedCommand({ embedVersion: "0.5.0" })).toEqual(["uvx", "hindsight-embed@0.5.0"]);
+  it("passes a complete distribution spec without shell interpolation", () => {
+    expect(getEmbedCommand({ embedPackage: "agentstratum-embed==0.5.0" })).toEqual([
+      "uvx",
+      "--quiet",
+      "--from",
+      "agentstratum-embed==0.5.0",
+      "agentstratum-embed",
+    ]);
   });
-
-  it("treats an empty version as latest", () => {
-    expect(getEmbedCommand({ embedVersion: "" })).toEqual(["uvx", "hindsight-embed@latest"]);
+  it("accepts the configured environment distribution", () => {
+    vi.stubEnv("AGENTSTRATUM_EMBED_PACKAGE", "agentstratum-embed==0.6.0");
+    expect(getEmbedCommand()[3]).toBe("agentstratum-embed==0.6.0");
   });
-
-  it("uses uv run --directory when a local path is given", () => {
+  it("uses a checkout without requiring a public distribution", () => {
     expect(getEmbedCommand({ embedPackagePath: "/abs/path" })).toEqual([
       "uv",
       "run",
       "--directory",
       "/abs/path",
-      "hindsight-embed",
-    ]);
-  });
-
-  it("local path takes precedence over version", () => {
-    expect(getEmbedCommand({ embedPackagePath: "/abs/path", embedVersion: "0.5.0" })).toEqual([
-      "uv",
-      "run",
-      "--directory",
-      "/abs/path",
-      "hindsight-embed",
+      "agentstratum-embed",
     ]);
   });
 });

@@ -67,8 +67,7 @@ export function resolveHostMemory(harness: string, directory: string): HostMemor
       recallOptions: cfg.recallOptions,
       // The credential a host STARTED with is not the one it must keep using: enable auth or
       // rotate the key mid-session and the snapshot 401s every call until restart (#3600). Read
-      // through the same pipeline the constructor used, so a per-bank `banks.<id>.apiToken` is
-      // honoured on re-resolution exactly as it was on the first one.
+      // through the same pipeline the constructor used, keeping the one default connection.
       // The URL stays the one this client was built with, so a token re-read after the config
       // moved this directory to ANOTHER server is that server's credential: never send it here.
       tokenProvider: () => {

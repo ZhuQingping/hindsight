@@ -5,7 +5,7 @@ export interface PageRef {
 
 /** Defensive parse of HindsightClient.listPages() ({items:[{id,name}]}, flattened from the
  *  knowledge-base tree). The ids are knowledge-base node ids — the same id space the agent passes
- *  back to hindsight_read_knowledge_page. */
+ *  back to agentstratum_read_knowledge_page. */
 export function parsePageList(raw: unknown): PageRef[] {
   const items = (raw as { items?: unknown })?.items;
   if (!Array.isArray(items)) return [];
@@ -19,14 +19,14 @@ export function parsePageList(raw: unknown): PageRef[] {
 }
 
 const EMPTY_STATE =
-  "No knowledge pages yet — Hindsight is still learning this repo; they'll appear as it processes.";
+  "No knowledge pages yet — agentstratum is still learning this repo; they'll appear as it processes.";
 
 /**
  * What the agent is told EXISTS, without listing it.
  *
  * A full roster of titles and ids reads as an index, and an index makes search
  * pointless: measured over 40 real Claude Code turns against a prefilled bank, every single
- * retrieval was `hindsight_read_knowledge_page` called with an id copied from this
+ * retrieval was `agentstratum_read_knowledge_page` called with an id copied from this
  * block — 0 searches at 3 pages, and still 0 at 12. The model was right: searching to
  * locate one of a dozen titles already in its context buys nothing.
  *
@@ -41,19 +41,19 @@ function indexLine(pages: PageRef[]): string {
   return (
     `${count} this repository — architecture, conventions, past decisions and ` +
     "in-flight initiatives. They are deliberately NOT listed here: call " +
-    "hindsight_search_knowledge_pages(query) to find the ones that bear on the current turn, then " +
-    "hindsight_read_knowledge_page(<id>) on anything the results show is worth reading in full."
+    "agentstratum_search_knowledge_pages(query) to find the ones that bear on the current turn, then " +
+    "agentstratum_read_knowledge_page(<id>) on anything the results show is worth reading in full."
   );
 }
 
 /**
- * When-to-call guide for the FULL Hindsight tool suite. Shared by the SessionStart preamble and the
+ * When-to-call guide for the FULL agentstratum tool suite. Shared by the SessionStart preamble and the
  * periodic refresh so the agent is told — repeatedly — not just that the tools exist but the moment
  * to reach for each one. Registering the tools isn't enough; the trigger for each has to be in
- * context. (Omits hindsight_diagnose — pure troubleshooting, no workflow trigger.)
+ * context. (Omits agentstratum_diagnose — pure troubleshooting, no workflow trigger.)
  */
 const TOOL_GUIDE =
-  "- hindsight_search_knowledge_pages(query) — FIRST STOP, and the way IN to everything below. The code " +
+  "- agentstratum_search_knowledge_pages(query) — FIRST STOP, and the way IN to everything below. The code " +
   "shows what is true today but not what was decided or why; memory shows what was decided or said " +
   "back then but not whether it still holds. Work built from either alone goes wrong: from code alone " +
   "it quietly re-litigates settled questions, from memory alone it acts on stale claims. Search " +
@@ -72,21 +72,21 @@ const TOOL_GUIDE =
   "  CREDITING IS NOT OPTIONAL AND NOT A JUDGEMENT CALL. If you called this tool and anything it " +
   "returned reached your reply — quoted, paraphrased, or merely confirming what you were about to " +
   "say — open that part with a markdown blockquote, exactly: " +
-  '"> 🧠 **From Hindsight memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
+  '"> 🧠 **From agentstratum memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
   "snippet in your own words does not make it yours. A search that turned up nothing useful needs " +
   "no mention at all — just carry on.\n" +
-  "- hindsight_list_knowledge_pages / hindsight_read_knowledge_page — BEFORE substantial work, list the pages and " +
+  "- agentstratum_list_knowledge_pages / agentstratum_read_knowledge_page — BEFORE substantial work, list the pages and " +
   "read the relevant ones to ground yourself in this repo's architecture, conventions, and past decisions instead " +
   "of re-deriving them from the code; follow any [[page:<id>]] links you see.\n" +
-  "- hindsight_reflect(query) — when pages are too shallow and you need the WHY: deep reasoning over the " +
+  "- agentstratum_reflect(query) — when pages are too shallow and you need the WHY: deep reasoning over the " +
   "repo's full memory for the past decision and exact values that explain a behavior or bug (slower — " +
-  'use deliberately, and credit results with a blockquote header "> 🧠 **From Hindsight memory** — <summary>").\n' +
-  "- hindsight_capture_initiative(title, summary) — right after the user approves a plan or finishes brainstorming a " +
+  'use deliberately, and credit results with a blockquote header "> 🧠 **From agentstratum memory** — <summary>").\n' +
+  "- agentstratum_capture_initiative(title, summary) — right after the user approves a plan or finishes brainstorming a " +
   "new feature/capability and you are about to start implementing (BEFORE you write any code), call this to " +
   "record it as a tracked page; then call it AGAIN with relates_to_page_id set to that page whenever the goal, " +
   "scope, or rationale materially changes mid-work, so the page tracks the current plan and not the opening one. " +
   "Skip bug fixes, small tweaks, chores, and trivial course-corrections.\n" +
-  "- hindsight_ingest_document(title, content) — save an external document or durable notes/findings you want " +
+  "- agentstratum_ingest_document(title, content) — save an external document or durable notes/findings you want " +
   "remembered (not the current conversation — that is captured automatically at session end).";
 
 /**
@@ -96,12 +96,12 @@ const TOOL_GUIDE =
  */
 const PAGES_FIRST_ON_GOALS =
   "- The user just set a NEW task or goal → search the knowledge pages FIRST with " +
-  "hindsight_search_knowledge_pages. No synthesis is injected automatically in this configuration; " +
-  "call hindsight_reflect only when those pages are too shallow and deeper reasoning is needed.\n";
+  "agentstratum_search_knowledge_pages. No synthesis is injected automatically in this configuration; " +
+  "call agentstratum_reflect only when those pages are too shallow and deeper reasoning is needed.\n";
 
 export interface ToolGuideOpts {
   /** Add the new-goal pull trigger (no automatic synthesis: cfg.autoInject !== "reflect"). It used to send
-   *  the agent straight to hindsight_reflect; it now goes to the knowledge pages first and keeps
+   *  the agent straight to agentstratum_reflect; it now goes to the knowledge pages first and keeps
    *  reflect for what they don't cover. The field name is unchanged so call sites stay stable. */
   reflectOnNewGoals?: boolean;
   /** cfg.toolGuideExtra: the team's own guidance, added after ours rather than replacing it. */
@@ -119,16 +119,16 @@ function toolGuide(opts?: ToolGuideOpts): string {
 export function buildKnowledgePreamble(pages: PageRef[], opts?: ToolGuideOpts): string {
   const body = pages.length ? indexLine(pages) : EMPTY_STATE;
   return (
-    "<hindsight_knowledge>\n" +
-    "This repository has a Hindsight memory + knowledge base (curated, continuously-updated pages plus the raw " +
+    "<agentstratum_knowledge>\n" +
+    "This repository has a agentstratum memory + knowledge base (curated, continuously-updated pages plus the raw " +
     "memory behind them). The tools below are registered, but you must actually CALL them at the right moments:\n" +
     `${toolGuide(opts)}\n` +
-    "ALSO your correction tool: when you verify a Hindsight memory is wrong or stale, ingest a " +
+    "ALSO your correction tool: when you verify a agentstratum memory is wrong or stale, ingest a " +
     '"Correction: <topic>" doc stating what memory claimed, what is true now, and the evidence — ' +
     "newer facts supersede older ones.\n" +
     `${body}\n` +
     "This tool guide and the page list are re-injected for you periodically as things change.\n" +
-    "</hindsight_knowledge>"
+    "</agentstratum_knowledge>"
   );
 }
 
@@ -141,10 +141,10 @@ export function buildKnowledgePreamble(pages: PageRef[], opts?: ToolGuideOpts): 
 export function buildRosterRefresh(pages: PageRef[], opts?: ToolGuideOpts): string {
   const rosterBlock = pages.length ? `${indexLine(pages)}\n` : "";
   return (
-    "<hindsight_knowledge_refresh>\n" +
+    "<agentstratum_knowledge_refresh>\n" +
     rosterBlock +
-    "Reminder — this repo's Hindsight tools are available; call them at the right moments:\n" +
+    "Reminder — this repo's agentstratum tools are available; call them at the right moments:\n" +
     `${toolGuide(opts)}\n` +
-    "</hindsight_knowledge_refresh>"
+    "</agentstratum_knowledge_refresh>"
   );
 }

@@ -18,19 +18,19 @@ providers:
       path: /otel-lgtm/grafana-dashboard-jvm-metrics.json
       foldersFromFilesStructure: false
 
-  # Hindsight dashboards
-  - name: "Hindsight Operations"
+  # agentstratum dashboards
+  - name: "agentstratum Operations"
     type: file
     options:
-      path: /otel-lgtm/hindsight-operations.json
+      path: /otel-lgtm/agentstratum-operations.json
       foldersFromFilesStructure: false
-  - name: "Hindsight LLM"
+  - name: "agentstratum LLM"
     type: file
     options:
-      path: /otel-lgtm/hindsight-llm.json
+      path: /otel-lgtm/agentstratum-llm.json
       foldersFromFilesStructure: false
-  - name: "Hindsight API Service"
+  - name: "agentstratum API Service"
     type: file
     options:
-      path: /otel-lgtm/hindsight-api-service.json
+      path: /otel-lgtm/agentstratum-api-service.json
       foldersFromFilesStructure: false

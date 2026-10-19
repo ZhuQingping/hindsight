@@ -203,7 +203,7 @@ def initialize_tracing(
     trace.set_tracer_provider(provider)
 
     # Get tracer for this application
-    _tracer = trace.get_tracer(__name__)
+    _tracer = trace.get_tracer("agentstratum.tracing")
     _tracing_enabled = True
     _provider = provider
 
@@ -229,7 +229,7 @@ def initialize_tracing_from_config(
         config: Resolved Hindsight configuration (raw dataclass or the static proxy).
         default_service_name: Service name to use when HINDSIGHT_API_OTEL_SERVICE_NAME
             is not set in the environment. Lets the worker report itself as
-            "hindsight-worker" — matching the name it already reports for metrics —
+            "agentstratum-worker" — matching the name it already reports for metrics —
             without overriding an operator's explicit choice.
 
     Returns:
@@ -322,13 +322,13 @@ def create_operation_span(operation: str, bank_id: str | None = None):
         yield None
         return
 
-    span_name = f"hindsight.{operation}"
+    span_name = f"agentstratum.{operation}"
     # OpenTelemetry returns a context manager here, not the span itself. Set
     # attributes on the span yielded by that manager so exporters receive them.
     with _tracer.start_as_current_span(span_name) as span:
-        span.set_attribute("hindsight.operation", operation)
+        span.set_attribute("agentstratum.operation", operation)
         if bank_id:
-            span.set_attribute("hindsight.bank_id", bank_id)
+            span.set_attribute("agentstratum.bank_id", bank_id)
         yield span
 
 
@@ -456,10 +456,10 @@ class LLMSpanRecorder:
             # Determine operation name based on scope/context
             operation_name = "chat"  # Default for GenAI semantic conventions
 
-            # Create span name: "hindsight.{scope}" for consistency with parent spans
+            # Create span name: "agentstratum.{scope}" for consistency with parent spans
             # Model info is available in span attributes (gen_ai.request.model)
             if scope:
-                span_name = f"hindsight.{scope}"
+                span_name = f"agentstratum.{scope}"
             else:
                 # Fallback to chat {model} if no scope provided
                 span_name = f"{operation_name} {model}"
@@ -490,8 +490,8 @@ class LLMSpanRecorder:
                     span.set_attribute("gen_ai.usage.reasoning_tokens", thoughts_tokens)
 
                 # Add custom attributes for Hindsight context
-                span.set_attribute("hindsight.scope", scope)
-                span.set_attribute("hindsight.provider.internal", provider)
+                span.set_attribute("agentstratum.scope", scope)
+                span.set_attribute("agentstratum.provider.internal", provider)
 
                 # Add tool call information if present
                 if tool_calls:

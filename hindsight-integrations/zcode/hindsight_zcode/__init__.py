@@ -1,4 +1,4 @@
-"""Hindsight long-term memory integration for ZCode."""
+"""agentstratum long-term memory integration for ZCode."""
 
 from .install import (
     get_config_path,

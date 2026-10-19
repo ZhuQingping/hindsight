@@ -28,6 +28,7 @@ from hindsight_api.engine.response_models import VALID_RECALL_FACT_TYPES, MinSco
 from hindsight_api.engine.search.tags import TagGroup, TagsMatch
 from hindsight_api.extensions import OperationValidationError
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import public_error_message
 
 _TAG_GROUP_LIST_ADAPTER = TypeAdapter(list[TagGroup])
 
@@ -333,7 +334,7 @@ class MCPToolsConfig:
     # Retain behavior
 
 
-def _error_json(message: object, **extra: Any) -> str:
+def _error_json(message: str, **extra: Any) -> str:
     """One tool error, serialized as JSON text.
 
     The bank-id-parameter variants of these tools declare ``-> str`` and return
@@ -348,7 +349,7 @@ def _error_json(message: object, **extra: Any) -> str:
     (``results``/``items``/``banks``/``text``) so a caller can keep reading the
     response with its normal shape.
     """
-    return json.dumps({"error": str(message), **extra})
+    return json.dumps({"error": message, **extra})
 
 
 class _ToolError(Exception):
@@ -427,8 +428,8 @@ async def _run_tool(
     def _ok(value: Any) -> Any:
         return json.dumps(value, indent=indent, default=str) if as_json else value
 
-    def _err(message: object) -> Any:
-        return _error_json(message, **extra) if as_json else {"error": str(message), **extra}
+    def _err(message: str) -> Any:
+        return _error_json(message, **extra) if as_json else {"error": message, **extra}
 
     try:
         target_bank = await _resolve_bank(config, bank_id)
@@ -436,10 +437,10 @@ async def _run_tool(
             return _err("No bank_id configured")
         return _ok(await run(target_bank))
     except _ToolError as e:
-        return _err(e)
+        return _err(str(e))
     except OperationValidationError as e:
         logger.warning(f"Operation rejected: {e}")
-        return _err(e)
+        return _err(str(e))
     except Exception as e:
         # ValueError is handled here rather than in its own `except ValueError`
         # clause because re-raising from a clause propagates out of the whole
@@ -447,9 +448,9 @@ async def _run_tool(
         if isinstance(e, ValueError) and value_error != "fault":
             if value_error == "rejection":
                 logger.warning(f"Operation rejected: {e}")
-            return _err(e)
+            return _err(str(e))
         logger.error(f"Error {action}: {e}", exc_info=True)
-        return _err(e)
+        return _err(public_error_message(e))
 
 
 def _get_request_context(config: MCPToolsConfig) -> RequestContext:
@@ -1061,7 +1062,7 @@ def _register_retain(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return {"status": "error", "message": str(e)}
             except Exception as e:
                 logger.error(f"Error storing memory: {e}", exc_info=True)
-                return {"status": "error", "message": str(e)}
+                return {"status": "error", "message": public_error_message(e)}
 
     else:
 
@@ -1120,7 +1121,7 @@ def _register_retain(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return {"status": "error", "message": str(e)}
             except Exception as e:
                 logger.error(f"Error storing memory: {e}", exc_info=True)
-                return {"status": "error", "message": str(e)}
+                return {"status": "error", "message": public_error_message(e)}
 
 
 def _register_sync_retain(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1186,7 +1187,7 @@ def _register_sync_retain(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
                 return {"status": "error", "message": str(e)}
             except Exception as e:
                 logger.error(f"Error in sync retain: {e}", exc_info=True)
-                return {"status": "error", "message": str(e)}
+                return {"status": "error", "message": public_error_message(e)}
 
     else:
 
@@ -1246,7 +1247,7 @@ def _register_sync_retain(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
                 return {"status": "error", "message": str(e)}
             except Exception as e:
                 logger.error(f"Error in sync retain: {e}", exc_info=True)
-                return {"status": "error", "message": str(e)}
+                return {"status": "error", "message": public_error_message(e)}
 
 
 def _register_recall(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1350,12 +1351,12 @@ def _register_recall(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return recall_result.model_dump_json()
             except OperationValidationError as e:
                 logger.warning(f"Recall rejected: {e}")
-                return json.dumps({"error": str(e), "results": []})
+                return json.dumps({"error": public_error_message(e), "results": []})
             except ValueError as e:
-                return _error_json(e, results=[])
+                return _error_json(str(e), results=[])
             except Exception as e:
                 logger.error(f"Error searching: {e}", exc_info=True)
-                return _error_json(e, results=[])
+                return _error_json(public_error_message(e), results=[])
 
     else:
 
@@ -1449,12 +1450,12 @@ def _register_recall(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig)
                 return recall_result.model_dump()
             except OperationValidationError as e:
                 logger.warning(f"Recall rejected: {e}")
-                return {"error": str(e), "results": []}
+                return {"error": public_error_message(e), "results": []}
             except ValueError as e:
                 return {"error": str(e), "results": []}
             except Exception as e:
                 logger.error(f"Error searching: {e}", exc_info=True)
-                return {"error": str(e), "results": []}
+                return {"error": public_error_message(e), "results": []}
 
 
 def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1550,10 +1551,10 @@ def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig
                 return json.dumps(result_data, indent=2)
             except OperationValidationError as e:
                 logger.warning(f"Reflect rejected: {e}")
-                return json.dumps({"error": str(e)})
+                return json.dumps({"error": public_error_message(e)})
             except Exception as e:
                 logger.error(f"Error reflecting: {e}", exc_info=True)
-                return _error_json(e, text="")
+                return _error_json(public_error_message(e), text="")
 
     else:
 
@@ -1643,10 +1644,10 @@ def _register_reflect(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig
                 return result_data
             except OperationValidationError as e:
                 logger.warning(f"Reflect rejected: {e}")
-                return {"error": str(e)}
+                return {"error": public_error_message(e)}
             except Exception as e:
                 logger.error(f"Error reflecting: {e}", exc_info=True)
-                return {"error": str(e), "text": ""}
+                return {"error": public_error_message(e), "text": ""}
 
 
 def _register_list_banks(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1679,10 +1680,10 @@ def _register_list_banks(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCon
             return json.dumps(data, indent=2)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e), "banks": []})
+            return json.dumps({"error": public_error_message(e), "banks": []})
         except Exception as e:
             logger.error(f"Error listing banks: {e}", exc_info=True)
-            return _error_json(e, banks=[])
+            return _error_json(public_error_message(e), banks=[])
 
 
 def _register_create_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsConfig) -> None:
@@ -1721,10 +1722,10 @@ def _register_create_bank(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCo
             return json.dumps(profile, indent=2)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e)})
+            return json.dumps({"error": public_error_message(e)})
         except Exception as e:
             logger.error(f"Error creating bank: {e}", exc_info=True)
-            return _error_json(e)
+            return _error_json(public_error_message(e))
 
 
 def _validate_mental_model_inputs(
@@ -3597,6 +3598,8 @@ def _register_get_memory(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCon
                 bank_id=bank_id,
                 as_json=True,
                 action="getting memory",
+                # The engine validates caller-supplied UUIDs with ValueError, as in HTTP.
+                value_error="expected",
                 run=lambda target_bank: _run(target_bank, memory_id),
             )
 
@@ -3619,6 +3622,8 @@ def _register_get_memory(mcp: FastMCP, memory: MemoryEngine, config: MCPToolsCon
                 bank_id=None,
                 as_json=False,
                 action="getting memory",
+                # The engine validates caller-supplied UUIDs with ValueError, as in HTTP.
+                value_error="expected",
                 run=lambda target_bank: _run(target_bank, memory_id),
             )
 
@@ -4373,10 +4378,10 @@ def _register_get_bank_stats(mcp: FastMCP, memory: MemoryEngine, config: MCPTool
             return json.dumps(result, indent=2, default=str)
         except OperationValidationError as e:
             logger.warning(f"Operation rejected: {e}")
-            return json.dumps({"error": str(e)})
+            return json.dumps({"error": public_error_message(e)})
         except Exception as e:
             logger.error(f"Error getting bank stats: {e}", exc_info=True)
-            return _error_json(e)
+            return _error_json(public_error_message(e))
 
 
 async def _do_update_bank(

@@ -1,16 +1,16 @@
-"""Configuration management for the Hindsight ZCode integration.
+"""Configuration management for the agentstratum ZCode integration.
 
-Mirrors `hindsight-integrations/cursor-cli/hindsight_cursor_cli/hooks/scripts/lib/config.py`
+Mirrors `agentstratum-integrations/cursor-cli/agentstratum_cursor_cli/hooks/scripts/lib/config.py`
 with the agent name and a couple of defaults rebranded for the ZCode (Z.ai GLM
 coding agent) audience.
 
 Loading order (later entries win):
   1. Built-in defaults
-  2. Install settings.json          (~/.zcode/hooks/hindsight/settings.json)
-  3. User config                   (~/.hindsight/zcode.json)
+  2. Install settings.json          (~/.zcode/hooks/agentstratum/settings.json)
+  3. User config                   (~/.agentstratum/zcode.json)
   4. Environment variable overrides
 
-`~/.hindsight/zcode.json` is the recommended place to configure the
+`~/.agentstratum/zcode.json` is the recommended place to configure the
 integration — stable across updates.
 """
 
@@ -42,12 +42,13 @@ DEFAULTS = {
     "retainTags": ["{session_id}"],
     "retainMetadata": {},
     # Connection
-    "hindsightApiUrl": None,
-    "hindsightApiToken": None,
+    "apiUrl": None,
+    "apiToken": None,
     "apiPort": 9077,
     "daemonIdleTimeout": 0,
     "embedVersion": "latest",
     "embedPackagePath": None,
+    "embedPackage": None,
     # Bank
     "bankId": None,
     "bankIdPrefix": "",
@@ -73,26 +74,27 @@ DEFAULTS = {
 }
 
 ENV_OVERRIDES = {
-    "HINDSIGHT_API_URL": ("hindsightApiUrl", str),
-    "HINDSIGHT_API_TOKEN": ("hindsightApiToken", str),
-    "HINDSIGHT_BANK_ID": ("bankId", str),
-    "HINDSIGHT_AGENT_NAME": ("agentName", str),
-    "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
-    "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
-    "HINDSIGHT_RECALL_BUDGET": ("recallBudget", str),
-    "HINDSIGHT_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "HINDSIGHT_RECALL_TIMEOUT": ("recallTimeout", int),
-    "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
-    "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "HINDSIGHT_API_PORT": ("apiPort", int),
-    "HINDSIGHT_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
-    "HINDSIGHT_EMBED_VERSION": ("embedVersion", str),
-    "HINDSIGHT_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
-    "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "HINDSIGHT_BANK_MISSION": ("bankMission", str),
-    "HINDSIGHT_LLM_PROVIDER": ("llmProvider", str),
-    "HINDSIGHT_LLM_MODEL": ("llmModel", str),
-    "HINDSIGHT_DEBUG": ("debug", bool),
+    "AGENTSTRATUM_API_URL": ("apiUrl", str),
+    "AGENTSTRATUM_API_TOKEN": ("apiToken", str),
+    "AGENTSTRATUM_BANK_ID": ("bankId", str),
+    "AGENTSTRATUM_AGENT_NAME": ("agentName", str),
+    "AGENTSTRATUM_AUTO_RECALL": ("autoRecall", bool),
+    "AGENTSTRATUM_AUTO_RETAIN": ("autoRetain", bool),
+    "AGENTSTRATUM_RECALL_BUDGET": ("recallBudget", str),
+    "AGENTSTRATUM_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
+    "AGENTSTRATUM_RECALL_TIMEOUT": ("recallTimeout", int),
+    "AGENTSTRATUM_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
+    "AGENTSTRATUM_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "AGENTSTRATUM_API_PORT": ("apiPort", int),
+    "AGENTSTRATUM_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
+    "AGENTSTRATUM_EMBED_VERSION": ("embedVersion", str),
+    "AGENTSTRATUM_EMBED_PACKAGE": ("embedPackage", str),
+    "AGENTSTRATUM_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
+    "AGENTSTRATUM_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
+    "AGENTSTRATUM_BANK_MISSION": ("bankMission", str),
+    "AGENTSTRATUM_LLM_PROVIDER": ("llmProvider", str),
+    "AGENTSTRATUM_LLM_MODEL": ("llmModel", str),
+    "AGENTSTRATUM_DEBUG": ("debug", bool),
 }
 
 
@@ -130,7 +132,7 @@ def load_config():
     _load_settings_file(os.path.join(install_root, "settings.json"), config)
 
     # 2. User config — stable, version-independent
-    user_config_path = os.path.join(os.path.expanduser("~"), ".hindsight", "zcode.json")
+    user_config_path = os.path.join(os.path.expanduser("~"), ".agentstratum", "zcode.json")
     _load_settings_file(user_config_path, config)
 
     # 3. Environment variable overrides (highest priority)
@@ -147,4 +149,4 @@ def load_config():
 def debug_log(config, *args):
     """Log to stderr if debug mode is enabled."""
     if config.get("debug"):
-        print("[Hindsight]", *args, file=sys.stderr)
+        print("[agentstratum]", *args, file=sys.stderr)

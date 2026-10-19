@@ -9,7 +9,7 @@ fn test_cli_help() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Hindsight CLI"));
+    assert!(stdout.contains("Agentstratum CLI"));
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_cli_version() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("hindsight"));
+    assert!(stdout.contains("agentstratum"));
 }
 
 #[test]
@@ -54,8 +54,8 @@ fn test_ui_command_without_config() {
 
     let output = Command::new("cargo")
         .args(["run", "--", "ui"])
-        .env_remove("HINDSIGHT_API_URL")
-        .env_remove("HINDSIGHT_API_KEY")
+        .env_remove("AGENTSTRATUM_API_URL")
+        .env_remove("AGENTSTRATUM_API_KEY")
         .env("HOME", &temp_dir)
         .output()
         .expect("Failed to execute command");
@@ -67,9 +67,9 @@ fn test_ui_command_without_config() {
     // Just verify it doesn't crash unexpectedly
     assert!(
         !output.status.success()
-            || stdout.contains("Launching Hindsight Control Plane UI")
+            || stdout.contains("Launching Agentstratum Control Plane UI")
             || stderr.contains("Configuration error")
-            || stderr.contains("HINDSIGHT_API_URL"),
+            || stderr.contains("AGENTSTRATUM_API_URL"),
         "Unexpected output - stdout: {}, stderr: {}",
         stdout,
         stderr
@@ -93,7 +93,7 @@ fn test_ui_command_with_config() {
     std::fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
 
     // Write a minimal config
-    let config_dir = temp_dir.join(".config").join("hindsight");
+    let config_dir = temp_dir.join(".config").join("agentstratum");
     std::fs::create_dir_all(&config_dir).expect("Failed to create config dir");
     let config_file = config_dir.join("config");
     std::fs::write(
@@ -110,7 +110,7 @@ fn test_ui_command_with_config() {
 
     // The --help should work regardless
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Hindsight CLI") || output.status.success());
+    assert!(stdout.contains("Agentstratum CLI") || output.status.success());
 
     // Cleanup
     std::fs::remove_dir_all(&temp_dir).ok();
@@ -126,7 +126,9 @@ fn test_memory_item_timestamp_serializes_as_plain_string() {
     // spec-massage step now collapses string-only anyOf unions into a plain
     // `{type: string}`, so the field is just `Option<String>`. Assert that.
     let item = hindsight_client::types::MemoryItem {
-        content: hindsight_client::types::Content::Variant0("Bob went hiking yesterday".to_string()),
+        content: hindsight_client::types::Content::Variant0(
+            "Bob went hiking yesterday".to_string(),
+        ),
         context: None,
         metadata: None,
         timestamp: Some("2026-05-31T10:00:00Z".to_string()),
@@ -226,7 +228,7 @@ fn test_sigpipe_terminates_with_signal_not_abort() {
     }
 
     let stdout = unsafe { std::process::Stdio::from_raw_fd(fds[1]) };
-    let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_hindsight"))
+    let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_agentstratum"))
         .arg("--help")
         .stdout(stdout)
         .stderr(std::process::Stdio::null())

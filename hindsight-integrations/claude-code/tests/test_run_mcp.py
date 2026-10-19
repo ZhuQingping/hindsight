@@ -71,8 +71,8 @@ def _run_tail_with_fake_exec(plugin_data: str, plugin_root: str) -> str:
         export CLAUDE_PLUGIN_DATA="$1"
         export CLAUDE_PLUGIN_ROOT="$2"
         PY=python
-        exec() { printf '%s\n%s' "$HINDSIGHT_MCP_PROJECT_CWD" "$(pwd)"; }
-        sed -n '/^export HINDSIGHT_MCP_PROJECT_CWD=/,$p' "$3" | source /dev/stdin
+        exec() { printf '%s\n%s' "$AGENTSTRATUM_MCP_PROJECT_CWD" "$(pwd)"; }
+        sed -n '/^export AGENTSTRATUM_MCP_PROJECT_CWD=/,$p' "$3" | source /dev/stdin
         """
     )
     result = subprocess.run(
@@ -115,9 +115,8 @@ class TestResolvePyVenvLayouts:
 
         resolved = _resolve_py(str(venv))
 
-        assert resolved == str(bin_python), (
-            "resolve_py must still select <venv>/bin/python on POSIX; got: "
-            + repr(resolved)
+        assert resolved == str(bin_python), "resolve_py must still select <venv>/bin/python on POSIX; got: " + repr(
+            resolved
         )
 
 

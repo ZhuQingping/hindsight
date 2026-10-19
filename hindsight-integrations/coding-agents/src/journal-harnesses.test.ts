@@ -34,7 +34,10 @@ vi.mock("node:fs", async (importOriginal) => {
 let rawConfig: RawConfig = {};
 vi.mock("./core/config", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./core/config")>();
-  return { ...actual, loadConfig: () => actual.resolveConfig(rawConfig) };
+  return {
+    ...actual,
+    loadConfig: () => actual.resolveConfig({ apiUrl: "https://service.example", ...rawConfig }),
+  };
 });
 
 const zcode = HOOK_HARNESSES.zcode;
@@ -77,7 +80,7 @@ beforeEach(() => {
   // the life of the session, so a reused id would pin later tests to the first one's temp dir.
   sessionId = `sess-zcode-${basename(root)}`;
   rawConfig = {};
-  vi.stubEnv("HINDSIGHT_DIAG_FILE", join(root, "diag.log"));
+  vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(root, "diag.log"));
 });
 
 afterEach(() => {

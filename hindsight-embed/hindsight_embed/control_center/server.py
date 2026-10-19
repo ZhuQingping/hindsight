@@ -3,7 +3,7 @@
 A tiny stdlib ``http.server`` (no web framework, no Node) that serves the
 single-file wizard SPA and a small JSON API over ``service.py``. Bound to
 127.0.0.1 only and gated by the control token: every ``/api/*`` route except
-``/api/health`` requires the ``X-Hindsight-Control-Token`` header to match.
+``/api/health`` requires the ``X-Agentstratum-Control-Token`` header to match.
 
 Requiring a custom header (which browsers can't set cross-origin without a CORS
 preflight the server never grants) is the CSRF defense — a malicious page can't
@@ -29,7 +29,7 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
     token: str = ""
     version: str = "unknown"
 
-    server_version = "HindsightControlCenter"
+    server_version = "AgentstratumControlCenter"
 
     # Quieter logs — default BaseHTTPRequestHandler spams stderr per request.
     def log_message(self, format: str, *args) -> None:  # noqa: A002
@@ -68,7 +68,7 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
         return parsed if isinstance(parsed, dict) else {}
 
     def _token_ok(self) -> bool:
-        provided = self.headers.get("X-Hindsight-Control-Token", "")
+        provided = self.headers.get("X-Agentstratum-Control-Token", "")
         return bool(self.token) and secrets.compare_digest(provided, self.token)
 
     @staticmethod
@@ -98,8 +98,8 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
                 return
             try:
                 self._route_get_api(segs)
-            except Exception as exc:  # surface as JSON, never a stack-trace page
-                self._send_json(500, {"error": str(exc)})
+            except Exception:  # surface as JSON, never a stack-trace page
+                self._send_json(500, {"error": "The local service could not complete the operation."})
             return
 
         self._send_json(404, {"error": "not found"})
@@ -116,8 +116,8 @@ class ControlCenterHandler(BaseHTTPRequestHandler):
             self._route_post_api(segs, self._read_body())
         except ValueError as exc:
             self._send_json(400, {"error": str(exc)})
-        except Exception as exc:
-            self._send_json(500, {"error": str(exc)})
+        except Exception:
+            self._send_json(500, {"error": "The local service could not complete the operation."})
 
     # ----- routes --------------------------------------------------------
     def _route_get_api(self, segs: list[str]) -> None:
@@ -268,7 +268,7 @@ def serve(port: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="hindsight-embed control-center server")
+    parser = argparse.ArgumentParser(prog="agentstratum-embed control-center server")
     parser.add_argument("--port", type=int, default=lifecycle.resolve_control_port())
     args = parser.parse_args()
     serve(args.port)

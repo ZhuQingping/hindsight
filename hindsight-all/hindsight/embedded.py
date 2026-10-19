@@ -136,25 +136,25 @@ class HindsightEmbedded:
         self.config: dict[str, str] = {}
 
         if llm_provider is not None:
-            self.config["HINDSIGHT_API_LLM_PROVIDER"] = llm_provider
+            self.config["AGENTSTRATUM_API_LLM_PROVIDER"] = llm_provider
 
         if llm_api_key is not None:
-            self.config["HINDSIGHT_API_LLM_API_KEY"] = llm_api_key
+            self.config["AGENTSTRATUM_API_LLM_API_KEY"] = llm_api_key
 
         if llm_model is not None:
-            self.config["HINDSIGHT_API_LLM_MODEL"] = llm_model
+            self.config["AGENTSTRATUM_API_LLM_MODEL"] = llm_model
 
         if log_level is not None:
-            self.config["HINDSIGHT_API_LOG_LEVEL"] = log_level
+            self.config["AGENTSTRATUM_API_LOG_LEVEL"] = log_level
 
         if idle_timeout is not None:
-            self.config["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+            self.config["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
 
         if llm_base_url:
-            self.config["HINDSIGHT_API_LLM_BASE_URL"] = llm_base_url
+            self.config["AGENTSTRATUM_API_LLM_BASE_URL"] = llm_base_url
 
         if database_url:
-            self.config["HINDSIGHT_EMBED_API_DATABASE_URL"] = database_url
+            self.config["AGENTSTRATUM_EMBED_API_DATABASE_URL"] = database_url
 
         self._ui = ui
         self._ui_port = ui_port

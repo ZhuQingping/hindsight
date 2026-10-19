@@ -24,7 +24,7 @@ Flow:
   5. Resolve API URL (external, existing local, or auto-start daemon)
   6. Derive bank ID and ensure mission
   7. Format transcript (strip memory tags, filter roles)
-  8. POST to Hindsight retain API (distinct document_id per turn)
+  8. POST to agentstratum retain API (distinct document_id per turn)
 
 Exit codes:
   0 — always (graceful degradation on any error)
@@ -127,14 +127,14 @@ def run_retain(hook_input: dict) -> None:
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[agentstratum] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("apiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID and ensure mission
@@ -175,7 +175,7 @@ def run_retain(hook_input: dict) -> None:
     if tags:
         debug_log(config, f"Tags: {tags}")
 
-    # POST to Hindsight retain API
+    # POST to agentstratum retain API
     try:
         response = client.retain(
             bank_id=bank_id,
@@ -188,7 +188,7 @@ def run_retain(hook_input: dict) -> None:
         )
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
-        print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        print(f"[agentstratum] Retain failed: {e}", file=sys.stderr)
 
 
 def main():
@@ -196,7 +196,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[agentstratum] Failed to read hook input", file=sys.stderr)
         return
 
     run_retain(hook_input)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in retain: {e}", file=sys.stderr)
+        print(f"[agentstratum] Unexpected error in retain: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

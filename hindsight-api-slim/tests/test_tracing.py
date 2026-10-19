@@ -16,7 +16,6 @@ from hindsight_api.tracing import (
     NoOpLLMSpanRecorder,
     _truncate_content,
     create_operation_span,
-    initialize_tracing,
     is_tracing_enabled,
 )
 
@@ -166,10 +165,10 @@ def test_llm_span_recorder_record_success(mock_time):
         error=None,
     )
 
-    # Verify span was created with correct name (hindsight.{scope})
+    # Verify span was created with correct name (agentstratum.{scope})
     mock_tracer.start_as_current_span.assert_called_once()
     call_args = mock_tracer.start_as_current_span.call_args
-    assert call_args[0][0] == "hindsight.test"
+    assert call_args[0][0] == "agentstratum.test"
 
     # Verify attributes were set
     assert mock_span.set_attribute.called
@@ -181,7 +180,7 @@ def test_llm_span_recorder_record_success(mock_time):
     assert attribute_calls[GenAIAttributes.RESPONSE_MODEL] == "gpt-4"
     assert attribute_calls[GenAIAttributes.USAGE_INPUT_TOKENS] == 10
     assert attribute_calls[GenAIAttributes.USAGE_OUTPUT_TOKENS] == 5
-    assert attribute_calls["hindsight.scope"] == "test"
+    assert attribute_calls["agentstratum.scope"] == "test"
 
     # Verify event was added
     mock_span.add_event.assert_called_once()
@@ -296,11 +295,11 @@ def test_create_operation_span_enabled(mock_tracer):
         assert span is mock_span
 
     # Verify span was created with correct name
-    mock_tracer.start_as_current_span.assert_called_once_with("hindsight.retain")
+    mock_tracer.start_as_current_span.assert_called_once_with("agentstratum.retain")
 
     # Verify attributes were set
-    mock_span.set_attribute.assert_any_call("hindsight.operation", "retain")
-    mock_span.set_attribute.assert_any_call("hindsight.bank_id", "bank123")
+    mock_span.set_attribute.assert_any_call("agentstratum.operation", "retain")
+    mock_span.set_attribute.assert_any_call("agentstratum.bank_id", "bank123")
 
 
 @patch("hindsight_api.tracing._tracer")
@@ -317,11 +316,11 @@ def test_create_operation_span_no_bank_id(mock_tracer):
         pass
 
     # Verify span was created
-    mock_tracer.start_as_current_span.assert_called_once_with("hindsight.consolidation")
+    mock_tracer.start_as_current_span.assert_called_once_with("agentstratum.consolidation")
 
     # Verify only operation attribute was set (not bank_id)
     assert mock_span.set_attribute.call_count == 1
-    mock_span.set_attribute.assert_called_once_with("hindsight.operation", "consolidation")
+    mock_span.set_attribute.assert_called_once_with("agentstratum.operation", "consolidation")
 
 
 @patch("hindsight_api.tracing._tracer")
@@ -343,11 +342,11 @@ def test_create_operation_span_all_operations(mock_tracer):
             pass
 
         # Verify span was created with correct name
-        mock_tracer.start_as_current_span.assert_called_once_with(f"hindsight.{operation}")
+        mock_tracer.start_as_current_span.assert_called_once_with(f"agentstratum.{operation}")
 
         # Verify attributes
-        mock_span.set_attribute.assert_any_call("hindsight.operation", operation)
-        mock_span.set_attribute.assert_any_call("hindsight.bank_id", "test_bank")
+        mock_span.set_attribute.assert_any_call("agentstratum.operation", operation)
+        mock_span.set_attribute.assert_any_call("agentstratum.bank_id", "test_bank")
 
 
 @patch("hindsight_api.tracing.time")
@@ -391,11 +390,11 @@ def test_parent_child_span_hierarchy(mock_tracer, mock_time):
 
     # Verify parent span was created first
     first_call = mock_tracer.start_as_current_span.call_args_list[0]
-    assert first_call[0][0] == "hindsight.retain"
+    assert first_call[0][0] == "agentstratum.retain"
 
-    # Verify child span was created second (hindsight.{scope})
+    # Verify child span was created second (agentstratum.{scope})
     second_call = mock_tracer.start_as_current_span.call_args_list[1]
-    assert second_call[0][0] == "hindsight.retain_extract_facts"
+    assert second_call[0][0] == "agentstratum.retain_extract_facts"
 
 
 @patch("hindsight_api.tracing._tracer")
@@ -500,7 +499,7 @@ def test_initialize_tracing_from_config_enables_tracing(restore_tracing_globals)
 def test_initialize_tracing_from_config_default_service_name(restore_tracing_globals, monkeypatch):
     """With HINDSIGHT_API_OTEL_SERVICE_NAME unset, the caller's default wins.
 
-    This is what lets the worker report itself as "hindsight-worker" instead of
+    This is what lets the worker report itself as "agentstratum-worker" instead of
     inheriting the API's default service name (issue #3614).
     """
     from hindsight_api.config import ENV_OTEL_SERVICE_NAME
@@ -509,10 +508,10 @@ def test_initialize_tracing_from_config_default_service_name(restore_tracing_glo
     monkeypatch.delenv(ENV_OTEL_SERVICE_NAME, raising=False)
 
     assert (
-        tracing_module.initialize_tracing_from_config(_tracing_config(), default_service_name="hindsight-worker")
+        tracing_module.initialize_tracing_from_config(_tracing_config(), default_service_name="agentstratum-worker")
         is True
     )
-    assert tracing_module._provider.resource.attributes["service.name"] == "hindsight-worker"
+    assert tracing_module._provider.resource.attributes["service.name"] == "agentstratum-worker"
 
 
 def test_initialize_tracing_from_config_env_service_name_wins(restore_tracing_globals, monkeypatch):
@@ -523,7 +522,7 @@ def test_initialize_tracing_from_config_env_service_name_wins(restore_tracing_gl
     monkeypatch.setenv(ENV_OTEL_SERVICE_NAME, "my-service")
 
     tracing_module.initialize_tracing_from_config(
-        _tracing_config(otel_service_name="my-service"), default_service_name="hindsight-worker"
+        _tracing_config(otel_service_name="my-service"), default_service_name="agentstratum-worker"
     )
 
     assert tracing_module._provider.resource.attributes["service.name"] == "my-service"

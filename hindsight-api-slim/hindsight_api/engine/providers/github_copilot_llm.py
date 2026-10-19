@@ -140,7 +140,7 @@ class _SharedCopilotRuntime:
         self.ref_count = 0
         self._started = False
         self._lifecycle_lock = asyncio.Lock()
-        self._copilot_home = None if runtime_url else Path(tempfile.mkdtemp(prefix="hindsight-github-copilot-"))
+        self._copilot_home = None if runtime_url else Path(tempfile.mkdtemp(prefix="agentstratum-github-copilot-"))
         self.client = self._new_client()
 
     def _new_client(self) -> CopilotClient:

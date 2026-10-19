@@ -2,8 +2,8 @@
  * Leveled plugin logging — ONE human-readable log file for debugging, next to (not replacing) the
  * structured diag JSONL contract (core/diag.ts, which benchmarks/harnesses parse).
  *
- *   file : ~/.hindsight/coding-agents-logs/plugin.log   (override: HINDSIGHT_LOG_FILE)
- *   level: "info" default — config `logLevel`, or HINDSIGHT_LOG_LEVEL for ad-hoc debugging
+ *   file : ~/.agentstratum/coding-agents-logs/plugin.log   (override: AGENTSTRATUM_LOG_FILE)
+ *   level: "info" default — config `logLevel`, or AGENTSTRATUM_LOG_LEVEL for ad-hoc debugging
  *          without touching config ("debug" | "info" | "warn" | "error")
  *
  * Line format: `<iso> LEVEL [scope] message {extra-json}` — greppable, tail-able. At "debug",
@@ -17,15 +17,15 @@ import { dirname, join } from "node:path";
 /**
  * Every log this plugin keeps (plugin.log, diag.jsonl, usage.jsonl) lives here.
  *
- * They used to be split between `/tmp/hindsight-plugin.log` and `$TMPDIR/hindsight-coding-agent/`:
+ * They used to be split between `/tmp/agentstratum-plugin.log` and `$TMPDIR/agentstratum-coding-agent/`:
  * the first is shared by every user on the machine (and the lines carry queries and code), both are
  * wiped on reboot, which loses exactly the history usage stats are for, and neither was bounded. A
- * sibling of the staged runtime (`~/.hindsight/coding-agents`), not a child of it: `update`
+ * sibling of the staged runtime (`~/.agentstratum/coding-agents`), not a child of it: `update`
  * replaces that directory wholesale. Scratch state (session cache, cursors, locks) stays in the OS
  * temp dir on purpose — losing it is harmless.
  */
 export function logsDir(): string {
-  return join(homedir(), ".hindsight", "coding-agents-logs");
+  return join(homedir(), ".agentstratum", "coding-agents-logs");
 }
 
 /** Past this size a log is rotated to `<file>.1` (one generation kept), so each is capped at ~2x. */
@@ -54,16 +54,16 @@ const WEIGHT: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error:
 
 let current: LogLevel =
   (["debug", "info", "warn", "error"] as const).find(
-    (l) => l === process.env.HINDSIGHT_LOG_LEVEL
+    (l) => l === process.env.AGENTSTRATUM_LOG_LEVEL
   ) ?? "info";
 
-/** Entry points call this after loadConfig; the HINDSIGHT_LOG_LEVEL env override still wins. */
+/** Entry points call this after loadConfig; the AGENTSTRATUM_LOG_LEVEL env override still wins. */
 export function setLogLevel(level: LogLevel): void {
-  if (!process.env.HINDSIGHT_LOG_LEVEL) current = level;
+  if (!process.env.AGENTSTRATUM_LOG_LEVEL) current = level;
 }
 
 export function logFilePath(): string {
-  return process.env.HINDSIGHT_LOG_FILE || join(logsDir(), "plugin.log");
+  return process.env.AGENTSTRATUM_LOG_FILE || join(logsDir(), "plugin.log");
 }
 
 function write(level: LogLevel, scope: string, msg: string, extra?: Record<string, unknown>): void {

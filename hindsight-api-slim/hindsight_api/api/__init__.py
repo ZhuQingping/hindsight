@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from hindsight_api import MemoryEngine
+from hindsight_api.brand import API_TITLE
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def create_app(
         logger.info("HTTP REST API enabled")
     else:
         # Create minimal FastAPI app
-        app = FastAPI(title="Hindsight API", version="0.0.7")
+        app = FastAPI(title=API_TITLE, version="0.0.7")
         logger.info("HTTP REST API disabled")
 
     # Add MCP middleware and chain its lifespan if enabled

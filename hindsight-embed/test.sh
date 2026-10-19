@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Smoke test for hindsight-embed CLI with daemon mode
+# Smoke test for agentstratum-embed CLI with daemon mode
 # Tests retain and recall operations via the background daemon
 # Verifies daemon lifecycle, memory retention, and recall functionality
 #
@@ -20,17 +20,17 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$(cd "$SCRIPT_DIR/../hindsight-api" && pwd)"
 
-echo "=== Hindsight Embed Smoke Test (Daemon Mode) ==="
+echo "=== Agentstratum Embed Smoke Test (Daemon Mode) ==="
 
 # Check required environment (load from config if not set)
-if [ -f ~/.hindsight/config.env ]; then
-    source ~/.hindsight/config.env
+if [ -f ~/.agentstratum/config.env ]; then
+    source ~/.agentstratum/config.env
 fi
 
 # vertexai uses GCP service account credentials instead of an API key
-if [ -z "$HINDSIGHT_API_LLM_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
-    if [ "${HINDSIGHT_API_LLM_PROVIDER}" != "vertexai" ]; then
-        echo "Error: HINDSIGHT_API_LLM_API_KEY or OPENAI_API_KEY is required"
+if [ -z "$AGENTSTRATUM_API_LLM_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
+    if [ "${AGENTSTRATUM_API_LLM_PROVIDER}" != "vertexai" ]; then
+        echo "Error: AGENTSTRATUM_API_LLM_API_KEY or OPENAI_API_KEY is required"
         exit 1
     fi
 fi
@@ -44,16 +44,16 @@ echo "API dir: $API_DIR"
 # Show environment info for debugging
 echo ""
 echo "Environment:"
-echo "  HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-not set}"
-echo "  HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-not set}"
-echo "  HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:+set (hidden)}"
+echo "  AGENTSTRATUM_API_LLM_PROVIDER: ${AGENTSTRATUM_API_LLM_PROVIDER:-not set}"
+echo "  AGENTSTRATUM_API_LLM_MODEL: ${AGENTSTRATUM_API_LLM_MODEL:-not set}"
+echo "  AGENTSTRATUM_API_LLM_API_KEY: ${AGENTSTRATUM_API_LLM_API_KEY:+set (hidden)}"
 echo "  Python: $("$PYTHON" --version 2>&1)"
 echo "  uv: $(uv --version 2>&1)"
 
 # Stop any existing daemon
 echo ""
 echo "Stopping any existing daemon..."
-uv run --project "$SCRIPT_DIR" hindsight-embed daemon stop 2>/dev/null || true
+uv run --project "$SCRIPT_DIR" agentstratum-embed daemon stop 2>/dev/null || true
 sleep 1
 
 # Test 1: Retain (this should start the daemon)
@@ -61,7 +61,7 @@ echo ""
 echo "Test 1: Retaining a memory (first call - daemon will start)..."
 START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e  # Temporarily disable exit on error to capture output
-OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory retain "$BANK_ID" "The user's favorite color is blue" 2>&1)
+OUTPUT=$(uv run --project "$SCRIPT_DIR" agentstratum-embed memory retain "$BANK_ID" "The user's favorite color is blue" 2>&1)
 EXIT_CODE=$?
 set -e
 END_TIME=$("$PYTHON" -c "import time; print(time.time())")
@@ -74,22 +74,22 @@ if [ $EXIT_CODE -ne 0 ]; then
     echo "FAIL: Command exited with code $EXIT_CODE"
     echo ""
     echo "Checking daemon logs..."
-    if [ -f ~/.hindsight/daemon.log ]; then
+    if [ -f ~/.agentstratum/daemon.log ]; then
         echo "=== daemon.log ==="
-        tail -50 ~/.hindsight/daemon.log
+        tail -50 ~/.agentstratum/daemon.log
     else
         echo "No daemon.log found"
     fi
-    if [ -f ~/.hindsight/daemon.stderr ]; then
+    if [ -f ~/.agentstratum/daemon.stderr ]; then
         echo ""
         echo "=== daemon.stderr ==="
-        cat ~/.hindsight/daemon.stderr
+        cat ~/.agentstratum/daemon.stderr
     else
         echo "No daemon.stderr found"
     fi
     echo ""
-    echo "Checking for hindsight-api..."
-    which hindsight-api 2>/dev/null || echo "hindsight-api not in PATH"
+    echo "Checking for agentstratum-api..."
+    which agentstratum-api 2>/dev/null || echo "agentstratum-api not in PATH"
     which uvx 2>/dev/null || echo "uvx not in PATH"
     which uv 2>/dev/null || echo "uv not in PATH"
     exit 1
@@ -106,7 +106,7 @@ echo ""
 echo "Test 2: Recalling memories (daemon already running)..."
 START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
-OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory recall "$BANK_ID" "What is the user's favorite color?" 2>&1)
+OUTPUT=$(uv run --project "$SCRIPT_DIR" agentstratum-embed memory recall "$BANK_ID" "What is the user's favorite color?" 2>&1)
 EXIT_CODE=$?
 set -e
 END_TIME=$("$PYTHON" -c "import time; print(time.time())")
@@ -129,7 +129,7 @@ echo ""
 echo "Test 3: Retaining memory with context..."
 START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
-OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory retain "$BANK_ID" "User prefers Python over JavaScript" --context work 2>&1)
+OUTPUT=$(uv run --project "$SCRIPT_DIR" agentstratum-embed memory retain "$BANK_ID" "User prefers Python over JavaScript" --context work 2>&1)
 EXIT_CODE=$?
 set -e
 END_TIME=$("$PYTHON" -c "import time; print(time.time())")
@@ -152,7 +152,7 @@ echo ""
 echo "Test 4: Recalling with JSON output..."
 START_TIME=$("$PYTHON" -c "import time; print(time.time())")
 set +e
-JSON_OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed memory recall "$BANK_ID" "programming preferences" -o json 2>&1)
+JSON_OUTPUT=$(uv run --project "$SCRIPT_DIR" agentstratum-embed memory recall "$BANK_ID" "programming preferences" -o json 2>&1)
 EXIT_CODE=$?
 set -e
 END_TIME=$("$PYTHON" -c "import time; print(time.time())")
@@ -187,7 +187,7 @@ fi
 # Test 6: Daemon status command
 echo ""
 echo "Test 6: Testing daemon status command..."
-STATUS_OUTPUT=$(uv run --project "$SCRIPT_DIR" hindsight-embed daemon status 2>&1)
+STATUS_OUTPUT=$(uv run --project "$SCRIPT_DIR" agentstratum-embed daemon status 2>&1)
 echo "$STATUS_OUTPUT"
 if ! echo "$STATUS_OUTPUT" | grep -qi "running"; then
     echo "FAIL: Expected 'running' in daemon status output"
@@ -198,7 +198,7 @@ echo "PASS: Daemon status command works"
 # Cleanup: Stop daemon
 echo ""
 echo "Stopping daemon..."
-uv run --project "$SCRIPT_DIR" hindsight-embed daemon stop 2>/dev/null || true
+uv run --project "$SCRIPT_DIR" agentstratum-embed daemon stop 2>/dev/null || true
 
 echo ""
 echo "=== All tests passed! ==="

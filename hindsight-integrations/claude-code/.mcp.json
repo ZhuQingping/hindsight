@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "hindsight": {
+    "agentstratum": {
       "command": "bash",
       "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/run_mcp.sh"]
     }

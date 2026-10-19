@@ -11,9 +11,9 @@
     providers:
       hindsight-stub:
         displayName: Hindsight E2E stub
-        apiKeyEnv: HINDSIGHT_STUB_KEY
+        apiKeyEnv: AGENTSTRATUM_STUB_KEY
         api: openai-completions
-        baseURL: !!js process.env.HINDSIGHT_STUB_BASE_URL
+        baseURL: !!js process.env.AGENTSTRATUM_STUB_BASE_URL
         models:
           - id: stub-model
             name: Hindsight E2E stub

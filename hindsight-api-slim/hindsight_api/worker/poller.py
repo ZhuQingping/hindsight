@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 
+from hindsight_api.public_errors import public_error_message
+
 from ..config import (
     ENV_CONSOLIDATION_WALL_TIMEOUT,
     ENV_REFLECT_WALL_TIMEOUT,
@@ -919,8 +921,9 @@ class WorkerPoller:
         already cancelled the parent rollup is skipped too, since nothing changed.
         """
         table = fq_table("async_operations", schema)
-        # Truncate error message if too long (max 5000 chars in schema)
-        error_message = error_message[:5000] if len(error_message) > 5000 else error_message
+        # The execution boundary already classified this client-visible message.
+        # Truncate it to the schema limit.
+        error_message = error_message[:5000]
 
         async with self._backend.acquire() as conn:
             async with conn.transaction():
@@ -1051,7 +1054,7 @@ class WorkerPoller:
         after being cancelled goes back to 'pending' and gets re-claimed.
         """
         table = fq_table("async_operations", schema)
-        error_message = error_message[:5000] if len(error_message) > 5000 else error_message
+        error_message = error_message[:5000]
         async with self._backend.acquire() as conn:
             result = await conn.execute(
                 f"""
@@ -1282,7 +1285,9 @@ class WorkerPoller:
             stage = holder.stage if holder is not None else "unknown"
             message = e.describe(task_type, stage)
             logger.error(f"Task {task.operation_id} timed out: {message}")
-            await self._write_terminal(task, "failed", lambda: self._mark_all_failed(task, message))
+            await self._write_terminal(
+                task, "failed", lambda: self._mark_all_failed(task, "The operation timed out. Please retry.")
+            )
             await self._notify_wall_timeout(task, message)
             terminal_success = False
         except DeferOperation as e:
@@ -1292,8 +1297,11 @@ class WorkerPoller:
         except RetryTaskAt as e:
             # Retry is not a terminal outcome — do not record a completion.
             retry = e
+            logger.warning("Task %s scheduled for retry: %s", task.operation_id, retry, exc_info=True)
             await self._write_terminal(
-                task, "retry", lambda: self._schedule_retry_all(task, retry.retry_at, str(retry))
+                task,
+                "retry",
+                lambda: self._schedule_retry_all(task, retry.retry_at, public_error_message(retry.__cause__ or retry)),
             )
         except Exception as e:
             # A store refusing the write because its own indexing is behind is backpressure, not a
@@ -1348,7 +1356,7 @@ class WorkerPoller:
             # and is the first thing lost to log rotation (issue #3218).
             error_message = format_task_error(e)
             logger.error(f"Task {task.operation_id} failed: {error_message}", exc_info=True)
-            await self._write_terminal(task, "failed", lambda: self._mark_all_failed(task, error_message))
+            await self._write_terminal(task, "failed", lambda: self._mark_all_failed(task, public_error_message(e)))
             terminal_success = False
         else:
             # Outside the except clauses on purpose: the work already ran, so a

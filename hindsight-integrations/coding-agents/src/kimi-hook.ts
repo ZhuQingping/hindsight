@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Hindsight Kimi Code `UserPromptSubmit` hook.
+ * agentstratum Kimi Code `UserPromptSubmit` hook.
  *
  * Install (~/.kimi-code/config.toml) — the entry schema is STRICT, exactly these four keys:
  *   [[hooks]]
  *   event = "UserPromptSubmit"
- *   command = "hindsight-kimi-hook"
+ *   command = "agentstratum-kimi-hook"
  *   timeout = 30
  * A fifth key drops EVERY hook in the file at warning severity while the CLI still boots.
  */

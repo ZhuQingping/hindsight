@@ -1,6 +1,6 @@
-"""Hindsight REST API client.
+"""agentstratum REST API client.
 
-Communicates with a Hindsight server via HTTP. Mirrors the HTTP mode of the
+Communicates with a agentstratum server via HTTP. Mirrors the HTTP mode of the
 Openclaw HindsightClient (client.js), adapted for Python stdlib.
 """
 
@@ -26,21 +26,23 @@ def _plugin_version() -> str:
 # Sent on every request so self-hosted deployments behind Cloudflare (or any
 # reverse proxy with UA-based bot filtering) don't block the stdlib default
 # "Python-urllib/X.Y", which trips Cloudflare error 1010.
-USER_AGENT = f"hindsight-claude-code/{_plugin_version()}"
+USER_AGENT = f"agentstratum-claude-code/{_plugin_version()}"
 
 
 def _validate_api_url(url: str) -> str:
     """Validate and normalize the API URL. Reject non-HTTP schemes."""
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme not in ("http", "https"):
-        raise ValueError(f"Hindsight API URL must use http or https, got: {parsed.scheme!r}")
+        raise ValueError(f"agentstratum API URL must use http or https, got: {parsed.scheme!r}")
     if not parsed.hostname:
-        raise ValueError(f"Hindsight API URL has no hostname: {url!r}")
+        raise ValueError(f"agentstratum API URL has no hostname: {url!r}")
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise ValueError("agentstratum API Endpoint must not contain credentials, query parameters or fragments")
     return url.rstrip("/")
 
 
 class HindsightClient:
-    """HTTP client for the Hindsight API."""
+    """HTTP client for the agentstratum API."""
 
     def __init__(
         self,
@@ -79,8 +81,8 @@ class HindsightClient:
                 body_text = e.read().decode()
             except Exception:
                 pass
-            raise RuntimeError(f"HTTP {e.code} from {url}: {body_text}") from e
-
+            message = f"HTTP {e.code} from {url}: {body_text}"
+            raise RuntimeError(message) from e
 
     def recall(
         self,
@@ -128,7 +130,7 @@ class HindsightClient:
         """Retain content into a bank's memory.
 
         Posts with async=true so the server processes in the background.
-        The context field helps Hindsight cluster memories by provenance
+        The context field helps agentstratum cluster memories by provenance
         (e.g. "claude-code" vs manual retains).
         """
         path = f"/v1/default/banks/{urllib.parse.quote(bank_id, safe='')}/memories"

@@ -30,7 +30,7 @@ from ._http_probe import ProbeResponse, probe_get
 from .embed_manager import EmbedManager
 from .profile_manager import ProfileLockTimeout, ProfileManager, lock_file, unlock_file
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("agentstratum.embed.daemon_embed_manager")
 console = Console(stderr=True)
 
 
@@ -69,22 +69,22 @@ def _parse_non_negative_int(value: str | None, default: int, name: str) -> int:
 # Allow CI/Windows to extend the startup budget — pg0-embedded's Windows wheel
 # unpacks and runs initdb on first boot, which takes noticeably longer on cold
 # runners than POSIX.
-DAEMON_STARTUP_TIMEOUT = int(os.getenv("HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT", "180"))
+DAEMON_STARTUP_TIMEOUT = int(os.getenv("AGENTSTRATUM_EMBED_DAEMON_STARTUP_TIMEOUT", "180"))
 DAEMON_STARTUP_TERMINATE_TIMEOUT = 10
 DEFAULT_DAEMON_IDLE_TIMEOUT = 0  # 0 = disabled (no auto-exit)
-ENV_DAEMON_LOG_MAX_BYTES = "HINDSIGHT_EMBED_DAEMON_LOG_MAX_BYTES"
-ENV_DAEMON_LOG_BACKUP_COUNT = "HINDSIGHT_EMBED_DAEMON_LOG_BACKUP_COUNT"
+ENV_DAEMON_LOG_MAX_BYTES = "AGENTSTRATUM_EMBED_DAEMON_LOG_MAX_BYTES"
+ENV_DAEMON_LOG_BACKUP_COUNT = "AGENTSTRATUM_EMBED_DAEMON_LOG_BACKUP_COUNT"
 DEFAULT_DAEMON_LOG_MAX_BYTES = 10 * 1024 * 1024
 DEFAULT_DAEMON_LOG_BACKUP_COUNT = 3
 # When another process is concurrently starting the daemon, the TCP port can be
 # bound before /health returns 200. Give that warming daemon a short grace window
 # before treating the listener as stale/foreign and attempting to reclaim it.
 PORT_HEALTH_GRACE_TIMEOUT = _safe_non_negative_float(
-    _parse_float_env("HINDSIGHT_EMBED_PORT_HEALTH_GRACE_TIMEOUT", 30.0),
+    _parse_float_env("AGENTSTRATUM_EMBED_PORT_HEALTH_GRACE_TIMEOUT", 30.0),
     30.0,
 )
 PORT_HEALTH_CHECK_INTERVAL = _safe_positive_float(
-    _parse_float_env("HINDSIGHT_EMBED_PORT_HEALTH_CHECK_INTERVAL", 0.5),
+    _parse_float_env("AGENTSTRATUM_EMBED_PORT_HEALTH_CHECK_INTERVAL", 0.5),
     0.5,
 )
 # Two probe budgets, split by what a wrong answer costs.
@@ -96,7 +96,7 @@ PORT_HEALTH_CHECK_INTERVAL = _safe_positive_float(
 # (issue #3099), so that probe waits as long as the worker-side liveness
 # threshold does.
 HEALTH_PROBE_TIMEOUT = _safe_positive_float(
-    _parse_float_env("HINDSIGHT_EMBED_HEALTH_PROBE_TIMEOUT", 10.0),
+    _parse_float_env("AGENTSTRATUM_EMBED_HEALTH_PROBE_TIMEOUT", 10.0),
     10.0,
 )
 # Everywhere else the question is only "is it up?", asked on hot paths (every
@@ -120,12 +120,12 @@ LOOPBACK_HOSTS = ("127.0.0.1", "::1")
 # Before signalling a PID we require its command line to identify it as one of
 # ours. Selecting the victim purely by "who holds the port" killed unrelated
 # services that happened to be on the same port (issue #3520).
-DAEMON_PROCESS_MARKERS = ("hindsight-api", "hindsight_api")
-# The control plane runs as `npx @vectorize-io/hindsight-control-plane` (or
-# `node .../hindsight-control-plane/bin/cli.js` in the monorepo), but Next.js
+DAEMON_PROCESS_MARKERS = ("agentstratum-api", "hindsight_api")
+# The control plane runs from the operator-configured distribution (or
+# `node .../agentstratum-control-plane/bin/cli.js` in the monorepo), but Next.js
 # rewrites argv to "next-server (vX.Y.Z)" once it is serving, so the package
 # name is not always still visible in the command line.
-UI_PROCESS_MARKERS = ("hindsight-control-plane", "next-server", "next start")
+UI_PROCESS_MARKERS = ("agentstratum-control-plane", "hindsight-control-plane", "next-server", "next start")
 
 # Deadline for the short read-only probes (netstat, ps, wmic, PowerShell) used to
 # identify processes. Five seconds is ample for the POSIX ones, which read procfs
@@ -152,10 +152,10 @@ _PARENT_INTERPRETER_ENV = ("PYTHONPATH", "PYTHONHOME", "PYTHONSAFEPATH", "VIRTUA
 
 
 def _runs_a_foreign_interpreter(cmd: list[str]) -> bool:
-    """Whether *cmd* launches hindsight-api on an interpreter that is not ours.
+    """Whether *cmd* launches agentstratum-api on an interpreter that is not ours.
 
-    True for every uv-launched form — the ``uvx hindsight-api@<version>`` fallback and the
-    monorepo ``uv run --project <api-slim> ... hindsight-api`` dev command — because uv resolves
+    True for every uv-launched form — the ``uvx agentstratum-api@<version>`` fallback and the
+    monorepo ``uv run --project <api-slim> ... agentstratum-api`` dev command — because uv resolves
     an environment of its own, usually on a different Python than the caller. False for the
     installed-binary paths, which are a single executable from an environment we already share.
 
@@ -227,13 +227,13 @@ def _detach_popen_kwargs(log_handle: IO[bytes]) -> dict:
 def _signal_startup_process(process: subprocess.Popen, *, force: bool) -> None:
     """Signal the daemon child's whole process group on POSIX.
 
-    The child may be the ``uvx`` launcher rather than hindsight-api itself;
+    The child may be the ``uvx`` launcher rather than agentstratum-api itself;
     signalling only its pid can leave the real API running as an orphan.
     ``_detach_popen_kwargs`` starts it with ``start_new_session``, so its pid is
     also its process group id. On Windows there is no group to signal, and
     ``terminate()`` is already an alias for ``kill()``.
     """
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         process.kill()
     else:
         os.killpg(process.pid, signal.SIGKILL if force else signal.SIGTERM)
@@ -321,7 +321,7 @@ class DaemonEmbedManager(EmbedManager):
         if db_url and db_url != "pg0":
             return db_url
         safe_profile = self._sanitize_profile_name(profile)
-        return f"pg0://hindsight-embed-{safe_profile}"
+        return f"pg0://agentstratum-embed-{safe_profile}"
 
     def get_url(self, profile: str) -> str:
         """
@@ -354,7 +354,7 @@ class DaemonEmbedManager(EmbedManager):
         """Return the dev-mode launch command when running inside the monorepo."""
         dev_api_path = Path(__file__).parent.parent.parent / "hindsight-api-slim"
         if dev_api_path.exists() and (dev_api_path / "pyproject.toml").exists():
-            return ["uv", "run", "--project", str(dev_api_path), "--extra", "all", "hindsight-api"]
+            return ["uv", "run", "--project", str(dev_api_path), "--extra", "all", "agentstratum-api"]
         return None
 
     @staticmethod
@@ -401,12 +401,12 @@ class DaemonEmbedManager(EmbedManager):
         to the preferred scripts directory or running interpreter.
 
         On Windows 11 with Windows Terminal as the default terminal app,
-        spawning the console-subsystem (CUI, subsystem 3) hindsight-api.exe
+        spawning the console-subsystem (CUI, subsystem 3) agentstratum-api.exe
         launcher makes ConPTY pop a visible terminal tab on daemon start, even
         with DETACHED_PROCESS / CREATE_NO_WINDOW (issue #1885). Launching the
         daemon through the GUI-subsystem (subsystem 2) pythonw.exe interpreter
         never allocates a console, so no window appears. Prefer the scripts dir
-        that contains hindsight-api.exe because wrapper entry points can make
+        that contains agentstratum-api.exe because wrapper entry points can make
         sys.executable point at a different launcher directory (issue #2389).
 
         When the pythonw we find is a uv trampoline, run the base interpreter
@@ -453,8 +453,8 @@ class DaemonEmbedManager(EmbedManager):
     def _needs_local_sentence_transformers(env: Mapping[str, str] | None = None) -> bool:
         """Return True when the daemon config will load the local ST providers."""
         env = env or os.environ
-        embeddings_provider = env.get("HINDSIGHT_API_EMBEDDINGS_PROVIDER", "local")
-        reranker_provider = env.get("HINDSIGHT_API_RERANKER_PROVIDER", "local")
+        embeddings_provider = env.get("AGENTSTRATUM_API_EMBEDDINGS_PROVIDER", "local")
+        reranker_provider = env.get("AGENTSTRATUM_API_RERANKER_PROVIDER", "local")
         return embeddings_provider == "local" or reranker_provider == "local"
 
     @staticmethod
@@ -465,21 +465,21 @@ class DaemonEmbedManager(EmbedManager):
         if find_spec("sentence_transformers") is not None:
             return True
         logger.warning(
-            "Installed hindsight-api binary is missing local ML dependencies; "
-            "falling back to uvx hindsight-api for the local daemon. Set "
-            "HINDSIGHT_API_EMBEDDINGS_PROVIDER and HINDSIGHT_API_RERANKER_PROVIDER "
+            "Installed agentstratum-api binary is missing local ML dependencies; "
+            "falling back to uvx agentstratum-api for the local daemon. Set "
+            "AGENTSTRATUM_API_EMBEDDINGS_PROVIDER and AGENTSTRATUM_API_RERANKER_PROVIDER "
             "to non-local providers to use a slim install."
         )
         return False
 
     def _find_api_command(self, api_version: str, env: Mapping[str, str] | None = None) -> list[str]:
-        """Find the command to run hindsight-api (api_version used only for the uvx fallback)."""
+        """Find the command to run agentstratum-api (api_version used only for the uvx fallback)."""
         # Check if we're in development mode
         dev_command = self._dev_api_command()
         if dev_command is not None:
             return dev_command
 
-        # Prefer a hindsight-api entry point installed alongside hindsight-embed.
+        # Prefer a agentstratum-api entry point installed alongside agentstratum-embed.
         # Try two strategies:
         #
         # 1. sysconfig: resolves <venv>/bin or <venv>/Scripts for standard
@@ -487,7 +487,7 @@ class DaemonEmbedManager(EmbedManager):
         # 2. __file__-relative: resolves <target>/bin or <target>/Scripts for
         #    `pip install --target` layouts where sysconfig still points at the
         #    system/venv scripts dir (issue #1240).
-        binary_name = "hindsight-api.exe" if platform.system() == "Windows" else "hindsight-api"
+        binary_name = "agentstratum-api.exe" if platform.system() == "Windows" else "agentstratum-api"
 
         scripts_dir = Path(sysconfig.get_path("scripts"))
         candidate = scripts_dir / binary_name
@@ -505,7 +505,7 @@ class DaemonEmbedManager(EmbedManager):
         for bin_dir in ("bin", "Scripts"):
             candidate = package_root / bin_dir / binary_name
             if candidate.exists():
-                # A hindsight-api binary bundled into a --target layout is a
+                # A agentstratum-api binary bundled into a --target layout is a
                 # deliberate slim-bundle install; use it unconditionally. Falling
                 # back to uvx here reintroduces issue #1240 (the Windows embed
                 # smoke test enforces this). The #2676 "missing local ML deps ->
@@ -514,7 +514,10 @@ class DaemonEmbedManager(EmbedManager):
                 return [str(candidate)]
 
         # Fall back to uvx for the installed version (resolved by the caller).
-        return ["uvx", f"hindsight-api@{api_version}"]
+        distribution = (env if env is not None else os.environ).get("AGENTSTRATUM_EMBED_API_PACKAGE")
+        if not distribution:
+            raise ValueError("Set AGENTSTRATUM_EMBED_API_PACKAGE to the approved API distribution.")
+        return ["uvx", "--quiet", "--from", distribution, "agentstratum-api"]
 
     @staticmethod
     def _is_port_in_use(port: int) -> bool:
@@ -613,7 +616,7 @@ class DaemonEmbedManager(EmbedManager):
             return pids
 
         # Lines look like:
-        #   LISTEN 0 4096 127.0.0.1:9177 0.0.0.0:* users:(("hindsight-api",pid=15774,fd=19))
+        #   LISTEN 0 4096 127.0.0.1:9177 0.0.0.0:* users:(("agentstratum-api",pid=15774,fd=19))
         output = DaemonEmbedManager._run_probe(["ss", "-tlnp", f"sport = :{port}"])
         if output:
             for line in output.splitlines():
@@ -723,7 +726,7 @@ class DaemonEmbedManager(EmbedManager):
 
     @staticmethod
     def _port_health_ok(port: int) -> bool:
-        """Return True when the listener on port responds like initialized Hindsight."""
+        """Return True when the listener on port responds like initialized Agentstratum."""
         response = _probe(f"http://127.0.0.1:{port}/health", HEALTH_PROBE_TIMEOUT)
         if response is None or response.status_code != 200:
             return False
@@ -731,7 +734,7 @@ class DaemonEmbedManager(EmbedManager):
             health = response.json()
             return health.get("status") == "healthy" and health.get("database") == "connected"
         except (ValueError, AttributeError):
-            # Not JSON, or JSON that is not an object: not Hindsight's payload.
+            # Not JSON, or JSON that is not an object: not Agentstratum's payload.
             return False
 
     def _wait_for_port_health(self, port: int, timeout: float | None = None) -> bool:
@@ -764,14 +767,14 @@ class DaemonEmbedManager(EmbedManager):
 
         Behavior:
           * Port free → True (nothing to do).
-          * Port occupied by a *healthy* hindsight daemon → True without killing.
+          * Port occupied by a *healthy* agentstratum daemon → True without killing.
             The caller's "start" is effectively a no-op: the daemon is already up.
             Killing it would race concurrent starts (one process kills the other's
             freshly-started daemon, both rush to rebind the port).
           * Port occupied but /health is unreachable, non-200, or does not return
-            Hindsight's initialized health payload → treat as a stale daemon and
+            Agentstratum's initialized health payload → treat as a stale daemon and
             attempt to reclaim it, but only after the listener's command line
-            confirms it is a Hindsight daemon. This preserves the original intent
+            confirms it is a Agentstratum daemon. This preserves the original intent
             of clearing stale daemons from version upgrades without SIGTERMing a
             foreign service that merely holds the port (issue #3520).
           * Kill failed, or unidentifiable/foreign process occupying the port → False.
@@ -779,18 +782,18 @@ class DaemonEmbedManager(EmbedManager):
         if not self._is_port_in_use(port):
             return True
 
-        # Port is occupied — check if it's a healthy Hindsight daemon. In
+        # Port is occupied — check if it's a healthy Agentstratum daemon. In
         # concurrent startup races the socket can bind before /health returns
         # 200, so wait briefly before deciding the listener is stale/foreign.
         if self._wait_for_port_health(port):
-            logger.debug(f"Port {port} already serving a healthy hindsight daemon; reusing it")
+            logger.debug(f"Port {port} already serving a healthy agentstratum daemon; reusing it")
             return True
 
         # Unhealthy after grace window — attempt to reclaim by killing the listener.
         if not self._is_port_in_use(port):
             return True
 
-        pid = self._owned_pid_on_port(port, DAEMON_PROCESS_MARKERS, "hindsight daemon")
+        pid = self._owned_pid_on_port(port, DAEMON_PROCESS_MARKERS, "agentstratum daemon")
         if pid is None:
             logger.warning(f"Port {port} is in use by another process")
             return False
@@ -812,7 +815,7 @@ class DaemonEmbedManager(EmbedManager):
         Inside the lock we re-check `is_running()`; the second caller sees
         the first caller's daemon and short-circuits.
 
-        The lock wait is bounded (see HINDSIGHT_EMBED_LOCK_TIMEOUT): a caller
+        The lock wait is bounded (see AGENTSTRATUM_EMBED_LOCK_TIMEOUT): a caller
         that cannot get in reports a startup failure instead of raising an
         opaque OS error (issue #3100).
         """
@@ -853,10 +856,10 @@ class DaemonEmbedManager(EmbedManager):
 
         # Ensure port is free before starting (handles stale daemons from version upgrades)
         if not self._clear_port(port):
-            logger.error(f"Cannot start daemon: port {port} is in use by a non-hindsight process")
+            logger.error(f"Cannot start daemon: port {port} is in use by a non-agentstratum process")
             return False
 
-        # _clear_port returns True without killing when a healthy hindsight daemon
+        # _clear_port returns True without killing when a healthy agentstratum daemon
         # already owns the port (started out-of-band, e.g. by another user or a
         # previous version upgrade). Re-check is_running so we don't spawn a
         # second daemon that would fail to bind.
@@ -873,13 +876,13 @@ class DaemonEmbedManager(EmbedManager):
         merged_config = {**profile_config, **config}
         config = merged_config
 
-        # Build the daemon environment: every HINDSIGHT_* key in the merged
+        # Build the daemon environment: every AGENTSTRATUM_* key in the merged
         # profile/explicit config, forwarded verbatim under its own name.
         #
         # There is deliberately no whitelist of known settings. There used to be
         # one — LLM/log/idle_timeout, keyed by lowercase aliases — and a setting
-        # missing from it (HINDSIGHT_API_LLM_BASE_URL, issue #4094) was reported
-        # as silently ignored while KEY/MODEL applied. hindsight-api owns the
+        # missing from it (AGENTSTRATUM_API_LLM_BASE_URL, issue #4094) was reported
+        # as silently ignored while KEY/MODEL applied. agentstratum-api owns the
         # set of settings that exist and adds to it every release; mirroring
         # that set here can only ever drift behind it.
         #
@@ -889,31 +892,33 @@ class DaemonEmbedManager(EmbedManager):
         # "not specified".
         env = os.environ.copy()
         for key, value in config.items():
-            if key.startswith("HINDSIGHT_") and value is not None:
+            if key.startswith("AGENTSTRATUM_") and value is not None:
                 env[key] = str(value)
 
         # Use profile-specific database (check config for override)
-        db_override = config.get("HINDSIGHT_EMBED_API_DATABASE_URL") or env.get("HINDSIGHT_EMBED_API_DATABASE_URL")
+        db_override = config.get("AGENTSTRATUM_EMBED_API_DATABASE_URL") or env.get(
+            "AGENTSTRATUM_EMBED_API_DATABASE_URL"
+        )
         if db_override:
-            env["HINDSIGHT_API_DATABASE_URL"] = db_override
+            env["AGENTSTRATUM_API_DATABASE_URL"] = db_override
         else:
-            env["HINDSIGHT_API_DATABASE_URL"] = self.get_database_url(profile)
+            env["AGENTSTRATUM_API_DATABASE_URL"] = self.get_database_url(profile)
 
-        database_url = env["HINDSIGHT_API_DATABASE_URL"]
+        database_url = env["AGENTSTRATUM_API_DATABASE_URL"]
         is_pg0 = database_url.startswith("pg0://")
 
         # Set defaults if not provided
-        if "HINDSIGHT_API_LOG_LEVEL" not in env:
-            env["HINDSIGHT_API_LOG_LEVEL"] = "info"
-        if "HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT" not in env:
-            env["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(DEFAULT_DAEMON_IDLE_TIMEOUT)
+        if "AGENTSTRATUM_API_LOG_LEVEL" not in env:
+            env["AGENTSTRATUM_API_LOG_LEVEL"] = "info"
+        if "AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT" not in env:
+            env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(DEFAULT_DAEMON_IDLE_TIMEOUT)
 
         # Tell the daemon child it was already launched in a detached session
         # (via our Popen below) so daemonize() skips the redundant re-exec.
         env["_HINDSIGHT_DAEMON_CHILD"] = "1"
 
         # Get idle timeout from env
-        idle_timeout = int(env.get("HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT", str(DEFAULT_DAEMON_IDLE_TIMEOUT)))
+        idle_timeout = int(env.get("AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT", str(DEFAULT_DAEMON_IDLE_TIMEOUT)))
 
         # Create log directory
         daemon_log.parent.mkdir(parents=True, exist_ok=True)
@@ -931,15 +936,22 @@ class DaemonEmbedManager(EmbedManager):
             self._rotate_daemon_log(daemon_log, max_bytes=max_bytes, backup_count=backup_count)
         except OSError as exc:
             logger.warning("Could not rotate daemon log %s: %s", daemon_log, exc)
-        env["HINDSIGHT_API_DAEMON_LOG"] = str(daemon_log)
+        env["AGENTSTRATUM_API_DAEMON_LOG"] = str(daemon_log)
 
         # Build command
-        # No --daemon: _HINDSIGHT_DAEMON_CHILD above already puts hindsight-api
+        # No --daemon: _HINDSIGHT_DAEMON_CHILD above already puts agentstratum-api
         # in daemon mode, and this Popen already detaches it. Passing --daemon
         # too was redundant, and API versions older than the Popen-based
         # daemonize() (#1519) fork on it, which can deadlock native libraries
         # on macOS.
-        cmd = self._find_api_command(self._component_version(profile, "HINDSIGHT_EMBED_API_VERSION"), env=env) + [
+        try:
+            api_command = self._find_api_command(
+                self._component_version(profile, "AGENTSTRATUM_EMBED_API_VERSION"), env=env
+            )
+        except ValueError as exc:
+            console.print(str(exc), style="red")
+            return False
+        cmd = api_command + [
             "--idle-timeout",
             str(idle_timeout),
             "--port",
@@ -950,12 +962,17 @@ class DaemonEmbedManager(EmbedManager):
         if _runs_a_foreign_interpreter(cmd):
             env = _strip_parent_interpreter_env(env)
 
+        # Only the child process sees implementation-specific configuration names.
+        for key, value in list(env.items()):
+            if key.startswith("AGENTSTRATUM_API_"):
+                env["HINDSIGHT_API_" + key.removeprefix("AGENTSTRATUM_API_")] = value
+
         try:
             # Start daemon. Redirect stdout/stderr to the daemon log so that
             # any output from the subprocess (e.g. uvx download progress,
             # Python library init messages) does not leak into the parent
             # process terminal. Python's own logging (via
-            # HINDSIGHT_API_DAEMON_LOG) will append to the same path.
+            # AGENTSTRATUM_API_DAEMON_LOG) will append to the same path.
             # Popen dups the fd into the child during spawn, so the parent
             # can close its handle as soon as Popen returns.
             with open(daemon_log, "ab") as daemon_log_handle:
@@ -1087,7 +1104,7 @@ class DaemonEmbedManager(EmbedManager):
         except FileNotFoundError:
             error_msg = (
                 f"Command not found: {cmd[0]}\nFull command: {' '.join(cmd)}\n\n"
-                "Install hindsight-api with: pip install hindsight-api"
+                "Configure AGENTSTRATUM_EMBED_API_PACKAGE with your approved API distribution."
             )
             error_panel = Panel(
                 Text(error_msg, style="red"),
@@ -1113,19 +1130,19 @@ class DaemonEmbedManager(EmbedManager):
     def _register_profile(self, profile: str, port: int, config: dict) -> None:
         """Register a named profile in metadata so it's discoverable by the CLI.
 
-        Only saves HINDSIGHT_API_* config keys (not internal daemon keys).
+        Only saves AGENTSTRATUM_API_* config keys (not internal daemon keys).
         Silently ignores errors to avoid blocking daemon startup.
         """
         try:
-            api_config = {k: v for k, v in config.items() if k.startswith("HINDSIGHT_API_")}
+            api_config = {k: v for k, v in config.items() if k.startswith("AGENTSTRATUM_API_")}
             if not api_config:
                 return
             # Additive: seed keys the profile doesn't have yet, never overwrite
             # ones it does. create_profile rewrites the whole file, so the
             # existing keys have to be carried forward regardless (UI port, idle
             # timeout, ...), and `config` here is the merged profile + this
-            # invocation's ambient HINDSIGHT_* environment — letting it win would
-            # make a one-off `HINDSIGHT_API_LLM_MODEL=... hindsight-embed recall`
+            # invocation's ambient AGENTSTRATUM_* environment — letting it win would
+            # make a one-off `AGENTSTRATUM_API_LLM_MODEL=... agentstratum-embed recall`
             # permanently rewrite the user's profile. The profile file is owned
             # by `configure` and the control center; a daemon start only fills
             # in what is missing.
@@ -1151,11 +1168,14 @@ class DaemonEmbedManager(EmbedManager):
         # interactive prompt would be invisible to users and the health-check loop would time out.
         # On Windows, detached processes may not inherit the parent's PATH, so resolve the
         # absolute path to npx to avoid "Command not found" errors.
+        distribution = os.environ.get("AGENTSTRATUM_EMBED_CP_PACKAGE")
+        if not distribution:
+            raise ValueError("Set AGENTSTRATUM_EMBED_CP_PACKAGE to the approved Web distribution.")
         npx_path = shutil.which("npx")
         if npx_path is None:
             # Fallback to bare command so the FileNotFoundError handler can report it cleanly
-            return ["npx", "-y", f"@vectorize-io/hindsight-control-plane@{cp_version}"]
-        return [npx_path, "-y", f"@vectorize-io/hindsight-control-plane@{cp_version}"]
+            return ["npx", "-y", distribution]
+        return [npx_path, "-y", distribution]
 
     def get_ui_url(self, profile: str, ui_port: int | None = None) -> str:
         """Get the URL for the UI serving this profile (callers render it for display)."""
@@ -1241,7 +1261,12 @@ class DaemonEmbedManager(EmbedManager):
         ui_log.parent.mkdir(parents=True, exist_ok=True)
 
         # Build command
-        cmd = self._find_ui_command(self._component_version(profile, "HINDSIGHT_EMBED_CP_VERSION")) + [
+        try:
+            ui_command = self._find_ui_command(self._component_version(profile, "AGENTSTRATUM_EMBED_CP_VERSION"))
+        except ValueError as exc:
+            console.print(str(exc), style="red")
+            return False
+        cmd = ui_command + [
             "--port",
             str(ui_port),
             "--hostname",
@@ -1377,9 +1402,9 @@ class DaemonEmbedManager(EmbedManager):
         Ensure daemon is running, starting it if needed.
 
         Args:
-            config: Environment configuration dict (HINDSIGHT_* vars)
+            config: Environment configuration dict (AGENTSTRATUM_* vars)
             profile: Profile name for isolation
-            extra_args: Extra CLI arguments to pass to hindsight-api (e.g. ["--offline"])
+            extra_args: Extra CLI arguments to pass to agentstratum-api (e.g. ["--offline"])
 
         Returns:
             True if daemon is running (started or already running), False on failure
@@ -1415,9 +1440,9 @@ class DaemonEmbedManager(EmbedManager):
             logger.debug(f"Daemon not running for profile '{profile}'")
             return True
 
-        pid = self._owned_pid_on_port(port, DAEMON_PROCESS_MARKERS, "hindsight daemon")
+        pid = self._owned_pid_on_port(port, DAEMON_PROCESS_MARKERS, "agentstratum daemon")
         if pid is None:
-            logger.warning(f"Port {port} is bound but no hindsight daemon could be identified on it")
+            logger.warning(f"Port {port} is bound but no agentstratum daemon could be identified on it")
             return False
 
         logger.debug(f"Found daemon PID {pid} on port {port}")

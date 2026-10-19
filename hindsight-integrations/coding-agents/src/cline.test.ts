@@ -13,7 +13,7 @@ describe("Cline native plugin adapter", () => {
     const onPrompt = vi.fn(async () => {});
     const core = {
       onPrompt,
-      getInjection: vi.fn(() => "<hindsight_memories>remember this</hindsight_memories>"),
+      getInjection: vi.fn(() => "<agentstratum_memories>remember this</agentstratum_memories>"),
       onTranscript: vi.fn(async () => {}),
     };
     const hooks = createClineHooks(core as never, "session-1");
@@ -27,8 +27,10 @@ describe("Cline native plugin adapter", () => {
     expect(onPrompt).toHaveBeenCalledWith("session-1", "plan the change");
     expect(first?.messages.at(-1)).toMatchObject({
       role: "user",
-      content: [{ type: "text", text: "<hindsight_memories>remember this</hindsight_memories>" }],
-      metadata: { hindsight_coding_agents_injection: true },
+      content: [
+        { type: "text", text: "<agentstratum_memories>remember this</agentstratum_memories>" },
+      ],
+      metadata: { agentstratum_coding_agents_injection: true },
     });
     expect(second?.messages).toHaveLength(2);
   });

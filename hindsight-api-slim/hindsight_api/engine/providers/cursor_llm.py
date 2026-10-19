@@ -136,8 +136,8 @@ def _get_dirs() -> _CursorDirs:
     with _dirs_lock:
         if _dirs is None:
             dirs = _CursorDirs(
-                workspace=tempfile.mkdtemp(prefix="hindsight-cursor-ws-"),
-                config_dir=tempfile.mkdtemp(prefix="hindsight-cursor-cfg-"),
+                workspace=tempfile.mkdtemp(prefix="agentstratum-cursor-ws-"),
+                config_dir=tempfile.mkdtemp(prefix="agentstratum-cursor-cfg-"),
             )
             config = {
                 "version": 1,

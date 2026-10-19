@@ -4,11 +4,10 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
-const DEFAULT_API_URL: &str = "http://localhost:8888";
 const CONFIG_FILE_NAME: &str = "config";
-const CONFIG_DIR_NAME: &str = ".hindsight";
+const CONFIG_DIR_NAME: &str = ".agentstratum";
 const PROFILE_DIR_NAME: &str = "cli-profiles";
-const PROFILE_ENV_VAR: &str = "HINDSIGHT_PROFILE";
+const PROFILE_ENV_VAR: &str = "AGENTSTRATUM_PROFILE";
 
 #[derive(Debug)]
 pub struct Config {
@@ -22,7 +21,6 @@ pub enum ConfigSource {
     LocalFile,
     Profile(String),
     Environment,
-    Default,
 }
 
 impl std::fmt::Display for ConfigSource {
@@ -31,7 +29,6 @@ impl std::fmt::Display for ConfigSource {
             ConfigSource::LocalFile => write!(f, "config file"),
             ConfigSource::Profile(name) => write!(f, "profile '{}'", name),
             ConfigSource::Environment => write!(f, "environment variable"),
-            ConfigSource::Default => write!(f, "default"),
         }
     }
 }
@@ -43,17 +40,31 @@ impl Config {
     }
 
     /// Load configuration with the following priority:
-    /// 1. Environment variable (HINDSIGHT_API_URL/HINDSIGHT_API_KEY) - highest priority
-    /// 2. Named profile (from `profile_name` arg, else `$HINDSIGHT_PROFILE`)
-    ///    at `~/.hindsight/cli-profiles/<name>.toml`
-    /// 3. Local config file (`~/.hindsight/config`)
-    /// 4. Default (http://localhost:8888)
+    /// 1. Environment variable (AGENTSTRATUM_API_URL/AGENTSTRATUM_API_KEY) - highest priority
+    /// 2. Named profile (from `profile_name` arg, else `$AGENTSTRATUM_PROFILE`)
+    ///    at `~/.agentstratum/cli-profiles/<name>.toml`
+    /// 3. Local config file (`~/.agentstratum/config`)
+    /// An explicit endpoint is required; there is no implicit local service.
     pub fn load_with_profile(profile_name: Option<&str>) -> Result<Self> {
-        let env_api_key = env::var("HINDSIGHT_API_KEY").ok();
+        let config = Self::read_optional_with_profile(profile_name)?.ok_or_else(|| anyhow::anyhow!(
+            "API Endpoint is required. Copy it from your console and run agentstratum configure --api-url <URL>, use a Profile, or set AGENTSTRATUM_API_URL."
+        ))?;
+        Self::validate_and_create(config.api_url, config.api_key, config.source)
+    }
+
+    /// Read the optional baseline without validating its URL. fs must first
+    /// merge its flags and saved mount, then validate the effective endpoint.
+    /// Profile lookup and file errors still propagate rather than being hidden.
+    pub fn read_optional_with_profile(profile_name: Option<&str>) -> Result<Option<Self>> {
+        let env_api_key = env::var("AGENTSTRATUM_API_KEY").ok();
 
         // 1. Environment variable takes highest priority
-        if let Ok(api_url) = env::var("HINDSIGHT_API_URL") {
-            return Self::validate_and_create(api_url, env_api_key, ConfigSource::Environment);
+        if let Ok(api_url) = env::var("AGENTSTRATUM_API_URL") {
+            return Ok(Some(Self {
+                api_url,
+                api_key: env_api_key,
+                source: ConfigSource::Environment,
+            }));
         }
 
         // 2. Named profile (explicit flag takes precedence over env var)
@@ -64,33 +75,48 @@ impl Config {
         if let Some(name) = resolved_profile {
             let (api_url, file_api_key) = Self::load_profile(&name)?;
             let api_key = env_api_key.or(file_api_key);
-            return Self::validate_and_create(api_url, api_key, ConfigSource::Profile(name));
+            return Ok(Some(Self {
+                api_url,
+                api_key,
+                source: ConfigSource::Profile(name),
+            }));
         }
 
         // 3. Local config file
         if let Some((api_url, file_api_key)) = Self::load_from_file()? {
             let api_key = env_api_key.or(file_api_key);
-            return Self::validate_and_create(api_url, api_key, ConfigSource::LocalFile);
+            return Ok(Some(Self {
+                api_url,
+                api_key,
+                source: ConfigSource::LocalFile,
+            }));
         }
 
-        // 4. Fall back to default
-        Self::validate_and_create(
-            DEFAULT_API_URL.to_string(),
-            env_api_key,
-            ConfigSource::Default,
-        )
+        Ok(None)
     }
 
-    fn validate_and_create(
+    pub fn validate_and_create(
         api_url: String,
         api_key: Option<String>,
         source: ConfigSource,
     ) -> Result<Self> {
-        if !api_url.starts_with("http://") && !api_url.starts_with("https://") {
+        let api_url = api_url.trim().trim_end_matches('/').to_string();
+        if api_url.is_empty() {
             anyhow::bail!(
-                "Invalid API URL: {}. Must start with http:// or https://",
-                api_url
+                "API Endpoint is required. Copy it from your console and set AGENTSTRATUM_API_URL."
             );
+        }
+        let parsed = reqwest::Url::parse(&api_url).context(
+            "Invalid API URL. Must start with http:// or https:// and include a hostname",
+        )?;
+        if !matches!(parsed.scheme(), "http" | "https")
+            || parsed.host_str().is_none()
+            || !parsed.username().is_empty()
+            || parsed.password().is_some()
+            || parsed.query().is_some()
+            || parsed.fragment().is_some()
+        {
+            anyhow::bail!("Invalid API URL. Must start with http:// or https://, with no credentials, query or fragment");
         }
         Ok(Config {
             api_url,
@@ -187,7 +213,7 @@ impl Config {
         load_profile_from_dir(&dir, name)
     }
 
-    /// Save a named profile to `~/.hindsight/cli-profiles/<name>.toml`.
+    /// Save a named profile to `~/.agentstratum/cli-profiles/<name>.toml`.
     /// Sets file permissions to 0600 on Unix to protect the API key.
     pub fn save_profile(name: &str, api_url: &str, api_key: Option<&str>) -> Result<PathBuf> {
         validate_profile_name(name)?;
@@ -224,7 +250,7 @@ fn load_profile_from_dir(dir: &std::path::Path, name: &str) -> Result<(String, O
     let path = dir.join(format!("{}.toml", name));
     if !path.exists() {
         anyhow::bail!(
-            "profile '{}' not found at {}; create with: hindsight profile create {} --api-url <url>",
+            "profile '{}' not found at {}; create with: agentstratum profile create {} --api-url <url>",
             name,
             path.display(),
             name
@@ -262,12 +288,12 @@ fn save_profile_to_dir(
     api_url: &str,
     api_key: Option<&str>,
 ) -> Result<PathBuf> {
-    if !api_url.starts_with("http://") && !api_url.starts_with("https://") {
-        anyhow::bail!(
-            "Invalid API URL: {}. Must start with http:// or https://",
-            api_url
-        );
-    }
+    let api_url = Config::validate_and_create(
+        api_url.to_string(),
+        None,
+        ConfigSource::Profile(name.to_string()),
+    )?
+    .api_url;
 
     if !dir.exists() {
         fs::create_dir_all(dir)
@@ -341,7 +367,7 @@ fn validate_profile_name(name: &str) -> Result<()> {
 
 /// Prompt user for API URL interactively
 pub fn prompt_api_url(current_url: Option<&str>) -> Result<String> {
-    let default = current_url.unwrap_or(DEFAULT_API_URL);
+    let default = current_url.unwrap_or("");
 
     print!("Enter API URL [{}]: ", default);
     io::stdout().flush()?;
@@ -350,6 +376,9 @@ pub fn prompt_api_url(current_url: Option<&str>) -> Result<String> {
     io::stdin().read_line(&mut input)?;
 
     let input = input.trim();
+    if input.is_empty() && default.is_empty() {
+        anyhow::bail!("API Endpoint is required; copy it from your console.");
+    }
     if input.is_empty() {
         Ok(default.to_string())
     } else {
@@ -392,7 +421,6 @@ mod tests {
             format!("{}", ConfigSource::Environment),
             "environment variable"
         );
-        assert_eq!(format!("{}", ConfigSource::Default), "default");
         assert_eq!(
             format!("{}", ConfigSource::Profile("prod".to_string())),
             "profile 'prod'"
@@ -407,7 +435,8 @@ mod tests {
             .as_nanos();
         let counter = std::sync::atomic::AtomicU64::new(0);
         let n = counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        let dir = std::env::temp_dir().join(format!("hindsight-cli-test-{}-{}-{}", pid, nanos, n));
+        let dir =
+            std::env::temp_dir().join(format!("agentstratum-cli-test-{}-{}-{}", pid, nanos, n));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -461,7 +490,7 @@ mod tests {
         let dir = tempdir();
         let err = load_profile_from_dir(&dir, "nope").unwrap_err().to_string();
         assert!(err.contains("profile 'nope' not found"));
-        assert!(err.contains("hindsight profile create nope"));
+        assert!(err.contains("agentstratum profile create nope"));
     }
 
     #[test]
@@ -500,12 +529,12 @@ mod tests {
         let config = Config::validate_and_create(
             "http://localhost:8888".to_string(),
             None,
-            ConfigSource::Default,
+            ConfigSource::LocalFile,
         );
         assert!(config.is_ok());
         let config = config.unwrap();
         assert_eq!(config.api_url, "http://localhost:8888");
-        assert_eq!(config.source, ConfigSource::Default);
+        assert_eq!(config.source, ConfigSource::LocalFile);
     }
 
     #[test]
@@ -524,8 +553,11 @@ mod tests {
 
     #[test]
     fn test_validate_and_create_invalid_url() {
-        let config =
-            Config::validate_and_create("localhost:8888".to_string(), None, ConfigSource::Default);
+        let config = Config::validate_and_create(
+            "localhost:8888".to_string(),
+            None,
+            ConfigSource::LocalFile,
+        );
         assert!(config.is_err());
         let err = config.unwrap_err().to_string();
         assert!(err.contains("Invalid API URL"));
@@ -537,7 +569,7 @@ mod tests {
         let config = Config::validate_and_create(
             "ftp://example.com".to_string(),
             None,
-            ConfigSource::Default,
+            ConfigSource::LocalFile,
         );
         assert!(config.is_err());
     }
@@ -622,7 +654,7 @@ mod tests {
         let config = Config {
             api_url: "http://test:8080".to_string(),
             api_key: None,
-            source: ConfigSource::Default,
+            source: ConfigSource::LocalFile,
         };
         assert_eq!(config.api_url(), "http://test:8080");
     }

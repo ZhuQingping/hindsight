@@ -24,10 +24,10 @@ import { join, relative, isAbsolute } from "node:path";
 import { DEFAULT_DAEMON_PORT } from "./config";
 
 /** The old per-agent Claude Code plugin's name in Claude's plugin registry (`<name>@<marketplace>`). */
-const LEGACY_CLAUDE_PLUGIN = "hindsight-memory";
+const LEGACY_CLAUDE_PLUGIN = "agentstratum-memory";
 
 /**
- * The registry key (`hindsight-memory@<marketplace>`) of the old Claude Code plugin when it is still
+ * The registry key (`agentstratum-memory@<marketplace>`) of the old Claude Code plugin when it is still
  * installed AND active for `cwd`, else undefined.
  *
  * Running both is not harmless: each recalls into every prompt and retains every transcript, so the
@@ -77,7 +77,7 @@ function readJson(path: string): Record<string, unknown> | undefined {
 /** The user-visible SessionStart warning for a still-active old plugin. */
 export function legacyClaudePluginWarning(key: string): string {
   return (
-    `⚠️ The old Hindsight Claude Code plugin (${key}) is still installed — it runs alongside this ` +
+    `⚠️ The old agentstratum Claude Code plugin (${key}) is still installed — it runs alongside this ` +
     `one, so memory is recalled and retained twice.\n` +
     `  ↳ remove it: claude plugin uninstall ${key}`
   );
@@ -86,7 +86,7 @@ export function legacyClaudePluginWarning(key: string): string {
 /**
  * The old per-agent plugins that shipped a user config, and its filename.
  *
- * Only these two ever adopted the `~/.hindsight/<agent>.json` convention — the other superseded
+ * Only these two ever adopted the `~/.agentstratum/<agent>.json` convention — the other superseded
  * integrations (Cursor CLI, Copilot CLI, opencode, Cline) have no such file, so there is no
  * endpoint of theirs to carry. Both use IDENTICAL key names, which is why one reader serves both.
  */
@@ -97,7 +97,7 @@ export const LEGACY_CONFIG_FILES: Record<string, string> = {
 
 /** Where an old plugin told users to put their config. */
 export function legacyConfigPath(harness: string, home: string = homedir()): string {
-  return join(home, ".hindsight", LEGACY_CONFIG_FILES[harness] ?? `${harness}.json`);
+  return join(home, ".agentstratum", LEGACY_CONFIG_FILES[harness] ?? `${harness}.json`);
 }
 
 export interface LegacyEndpoint {
@@ -112,12 +112,12 @@ export interface LegacyEndpoint {
   source: string;
 }
 
-const CLOUD_URL = "https://api.hindsight.vectorize.io";
+const CLOUD_URL = process.env.AGENTSTRATUM_API_URL ?? "";
 
 /**
  * Read the old plugin's endpoint, or undefined when it was never configured.
  *
- * An ABSENT `hindsightApiUrl` is meaningful rather than missing: the old plugin treated an empty
+ * An ABSENT `apiUrl` is meaningful rather than missing: the old plugin treated an empty
  * URL as "use the local daemon on `apiPort`" (`daemon.py:get_api_url`), so a config file that
  * never set one describes daemon mode, not an unconfigured user.
  */
@@ -149,8 +149,8 @@ function readOne(harness: string, home: string): LegacyEndpoint | undefined {
   }
   if (!raw || typeof raw !== "object") return undefined;
 
-  const apiToken = typeof raw.hindsightApiToken === "string" ? raw.hindsightApiToken : undefined;
-  const url = typeof raw.hindsightApiUrl === "string" ? raw.hindsightApiUrl.trim() : "";
+  const apiToken = typeof raw.apiToken === "string" ? raw.apiToken : undefined;
+  const url = typeof raw.apiUrl === "string" ? raw.apiUrl.trim() : "";
 
   if (url) {
     return {

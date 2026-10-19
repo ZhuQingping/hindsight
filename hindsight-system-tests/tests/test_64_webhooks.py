@@ -89,7 +89,7 @@ async def test_the_delivery_is_signed_with_the_shared_secret(client, stubs, bank
     raw = _json.dumps(received.body, separators=(",", ":")).encode()
     expected = hmac.new(SECRET.encode(), raw, hashlib.sha256).hexdigest()
 
-    signature = received.headers["x-hindsight-signature"]
+    signature = received.headers["x-agentstratum-signature"]
     assert signature.startswith("sha256=")
     assert hmac.compare_digest(signature.removeprefix("sha256="), expected)
 
@@ -98,7 +98,7 @@ async def test_the_event_type_travels_in_a_header_too(client, stubs, bank_id, st
     """So a receiver can route without parsing the body first."""
     await _deliver(client, stubs, bank_id, stub_server.url, settled)
 
-    assert stubs.webhooks[0].headers["x-hindsight-event"] == "consolidation.completed"
+    assert stubs.webhooks[0].headers["x-agentstratum-event"] == "consolidation.completed"
 
 
 async def test_the_server_records_the_delivery_as_completed(client, stubs, bank_id, stub_server, settled):
@@ -136,3 +136,52 @@ async def test_a_link_local_metadata_address_is_refused(client, bank_id):
     """The specific address that makes SSRF profitable on every major cloud."""
     with pytest.raises(BadRequestException):
         await client.webhooks.create_webhook(bank_id, {"url": "http://169.254.169.254/latest/meta-data/"})
+
+
+async def test_product_headers_are_authoritative_and_signed_customer_values_are_preserved(
+    client, stubs, bank_id, stub_server, settled
+):
+    """Mixed-case custom headers cannot shadow a signature; customer bytes stay intact."""
+    import json
+
+    customer_bank = f"{bank_id}-hindsight"
+    try:
+        await client.webhooks.create_webhook(
+            customer_bank,
+            {
+                "url": f"{stub_server.url}/webhook",
+                "secret": SECRET,
+                "http_config": {
+                    "headers": {
+                        "x-AgEnTsTrAtUm-EvEnT": "forged-event",
+                        "x-AgEnTsTrAtUm-SiGnAtUrE": "sha256=forged",
+                        "x-AgEnTsTrAtUm-SiGnAtUrE-v2": "t=0,v1=forged",
+                        "x-HuB-SiGnAtUrE-256": "sha256=forged",
+                        "X-Customer-Note": "hindsight is my own value",
+                    }
+                },
+            },
+        )
+        await client.aretain(bank_id=customer_bank, content="Alice moved to Berlin.")
+        await settled(customer_bank)
+        for _ in range(30):
+            if stubs.webhooks:
+                break
+            await asyncio.sleep(1)
+        assert stubs.webhooks, "no webhook delivery arrived at the receiver"
+        received = stubs.webhooks[0]
+        assert received.body["bank_id"] == customer_bank
+        assert received.headers["x-customer-note"] == "hindsight is my own value"
+        assert received.headers["x-agentstratum-event"] == "consolidation.completed"
+        assert not any("hindsight" in name.casefold() for name in received.headers)
+        raw = json.dumps(received.body, separators=(",", ":")).encode()
+        expected = "sha256=" + hmac.new(SECRET.encode(), raw, hashlib.sha256).hexdigest()
+        assert hmac.compare_digest(received.headers["x-agentstratum-signature"], expected)
+        assert hmac.compare_digest(received.headers["x-hub-signature-256"], expected)
+        timestamp, signature = received.headers["x-agentstratum-signature-v2"].split(",")
+        assert timestamp.startswith("t=") and signature.startswith("v1=")
+        signed = timestamp.removeprefix("t=").encode() + b"." + raw
+        expected_v2 = hmac.new(SECRET.encode(), signed, hashlib.sha256).hexdigest()
+        assert hmac.compare_digest(signature.removeprefix("v1="), expected_v2)
+    finally:
+        await client.banks.delete_bank(customer_bank)

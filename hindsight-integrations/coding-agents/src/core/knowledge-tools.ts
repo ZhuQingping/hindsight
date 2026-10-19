@@ -10,8 +10,8 @@
  *
  * The agent-facing surface is intentionally curated: grounding + capture only. Raw page CRUD
  * (create/update/delete) is deliberately NOT exposed — agents never author page structure; they
- * capture initiatives (`hindsight_capture_initiative`) and pages are synthesized/maintained by the
- * server. `hindsight_ingest_document` (raw-content retain) also backs the codebase survey
+ * capture initiatives (`agentstratum_capture_initiative`) and pages are synthesized/maintained by the
+ * server. `agentstratum_ingest_document` (raw-content retain) also backs the codebase survey
  * (core/survey.ts).
  */
 import { z } from "zod";
@@ -66,7 +66,7 @@ const NON_DESTRUCTIVE_WRITE_ANNOTATIONS: ToolSafetyAnnotations = {
 const CREDIT_REMINDER =
   "Crediting is mandatory, not a judgement call: if anything these results contribute reaches your " +
   "reply — quoted, paraphrased, or merely confirming what you were going to say — open that part " +
-  'with "> 🧠 **From Hindsight memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
+  'with "> 🧠 **From agentstratum memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
   "snippet in your own words does not make it yours. If none of them bear on the turn, ignore them " +
   "silently — an unhelpful search needs no mention. These are past records: check a claim that " +
   "something was fixed or works against the code before relying on it.";
@@ -117,13 +117,13 @@ export function buildKnowledgeTools(
     repoDir?: string;
     harness?: string;
     stampFor?: () => RetainStamp;
-    /** Refresh policy for a page `hindsight_capture_initiative` creates (core/missions.ts). */
+    /** Refresh policy for a page `agentstratum_capture_initiative` creates (core/missions.ts). */
     pageTrigger?: PageTrigger;
-    /** How long `hindsight_reflect` waits on the server (cfg.reflectToolTimeoutMs). Must be
+    /** How long `agentstratum_reflect` waits on the server (cfg.reflectToolTimeoutMs). Must be
      *  threaded in by every caller: left unset, the client falls back to a 120s deadline that
      *  aborts high-budget synthesis on a populated bank mid-flight (#3590). */
     reflectTimeoutMs?: number;
-    /** Reflect budget for `hindsight_reflect` (cfg.reflectBudget, default "high"). */
+    /** Reflect budget for `agentstratum_reflect` (cfg.reflectBudget, default "high"). */
     reflectBudget?: "low" | "mid" | "high";
     /** cfg.toolGuideExtra, added after the crediting note so it lands with the results too. */
     toolGuideExtra?: string;
@@ -133,7 +133,7 @@ export function buildKnowledgeTools(
   const crediting = extra ? `${CREDIT_REMINDER} ${extra}` : CREDIT_REMINDER;
   return [
     {
-      name: "hindsight_sync_status",
+      name: "agentstratum_sync_status",
       description:
         "Report whether this repo's memory bank is in sync: gitlog seed present, how much recent " +
         "history has been deepened with full diffs, conversations ingested, knowledge pages " +
@@ -151,9 +151,9 @@ export function buildKnowledgeTools(
       },
     },
     {
-      name: "hindsight_diagnose",
+      name: "agentstratum_diagnose",
       description:
-        "Report safe Hindsight runtime diagnostics for this coding-agent session: resolved bank, " +
+        "Report safe agentstratum runtime diagnostics for this coding-agent session: resolved bank, " +
         "workspace, harness, config location, API endpoint, and non-secret environment overrides. " +
         "Use this when memory, hooks, MCP tools, or configuration appear not to work. Tokens and " +
         "other secret values are never returned.",
@@ -161,7 +161,7 @@ export function buildKnowledgeTools(
       annotations: READ_ONLY_ANNOTATIONS,
       handler: async (_args: Record<string, never>) => {
         const configPath =
-          process.env.HINDSIGHT_CONFIG || join(homedir(), ".hindsight", "coding-agent.json");
+          process.env.AGENTSTRATUM_CONFIG || join(homedir(), ".agentstratum", "coding-agent.json");
         const harness = opts.harness ?? "unknown";
         // Resolve through the SAME pipeline the host used — including the `banks.<id>` section for
         // the bank this client is bound to, which may carry its own apiToken/apiUrl. A bare
@@ -191,26 +191,26 @@ export function buildKnowledgeTools(
             api_token_matches_config: client.apiToken === cfg.apiToken,
           },
           environment: {
-            config_override: Boolean(process.env.HINDSIGHT_CONFIG),
-            hooks_disabled: Boolean(process.env.HINDSIGHT_DISABLE_HOOKS),
-            log_level: process.env.HINDSIGHT_LOG_LEVEL ?? null,
+            config_override: Boolean(process.env.AGENTSTRATUM_CONFIG),
+            hooks_disabled: Boolean(process.env.AGENTSTRATUM_DISABLE_HOOKS),
+            log_level: process.env.AGENTSTRATUM_LOG_LEVEL ?? null,
             diagnostics_file: diagFilePath(),
-            channel_id_configured: Boolean(process.env.HINDSIGHT_CHANNEL_ID),
-            user_id_configured: Boolean(process.env.HINDSIGHT_USER_ID),
+            channel_id_configured: Boolean(process.env.AGENTSTRATUM_CHANNEL_ID),
+            user_id_configured: Boolean(process.env.AGENTSTRATUM_USER_ID),
           },
         });
       },
     },
     {
-      name: "hindsight_search_knowledge_pages",
+      name: "agentstratum_search_knowledge_pages",
       description:
-        "Search this repository's Hindsight knowledge pages for content relevant to a query — " +
+        "Search this repository's agentstratum knowledge pages for content relevant to a query — " +
         "hybrid full-text + semantic search, server-side. Call this when the user's question may " +
         "be answered by the project's accumulated knowledge (architecture, conventions, decisions, " +
         "initiatives) rather than by reading code. Returns ranked pages with a relevance snippet; " +
         // Same sentence the payload carries, from the same constant: two copies of a rule this
         // fiddly drift apart, and the description is what a host shows when the tool is listed.
-        "read a full page with hindsight_read_knowledge_page. " +
+        "read a full page with agentstratum_read_knowledge_page. " +
         crediting,
       inputSchema: { query: z.string().describe("what to look for") },
       annotations: READ_ONLY_ANNOTATIONS,
@@ -246,9 +246,9 @@ export function buildKnowledgeTools(
       },
     },
     {
-      name: "hindsight_list_knowledge_pages",
+      name: "agentstratum_list_knowledge_pages",
       description:
-        "List this repository's Hindsight knowledge pages — curated, continuously-updated " +
+        "List this repository's agentstratum knowledge pages — curated, continuously-updated " +
         "summaries of the project's durable knowledge (architecture, components, conventions, key " +
         "decisions, and in-flight initiatives). Returns each page's id, title, and a one-line " +
         "description of what it covers. Call this at the start of any non-trivial task, and again " +
@@ -259,10 +259,10 @@ export function buildKnowledgeTools(
       handler: guarded(async () => client.listPages()),
     },
     {
-      name: "hindsight_read_knowledge_page",
+      name: "agentstratum_read_knowledge_page",
       description:
         "Read the full content of one knowledge page by its id (from " +
-        "hindsight_list_knowledge_pages). Call this whenever a listed page is relevant to what " +
+        "agentstratum_list_knowledge_pages). Call this whenever a listed page is relevant to what " +
         "you're about to do — e.g. read Conventions before writing new code, Component map before " +
         "changing a subsystem, or an initiative's page before continuing that feature. A page may " +
         "contain [[page:<id>]] links to related pages; follow one by calling this tool again with " +
@@ -272,14 +272,14 @@ export function buildKnowledgeTools(
       handler: guarded(async ({ page_id }) => client.getPage(page_id)),
     },
     {
-      name: "hindsight_reflect",
+      name: "agentstratum_reflect",
       description:
         "Deep memory reasoning: an agentic synthesis over this repository's FULL memory (git " +
         "decisions, past sessions, ingested knowledge) that answers WHY questions — the past " +
         "decision and exact rule/values that explain a behavior, bug, or convention. Slower than " +
-        "hindsight_search_knowledge_pages (several seconds): reach for it when pages are too " +
+        "agentstratum_search_knowledge_pages (several seconds): reach for it when pages are too " +
         "shallow and you need the root cause or the decided literals. When the answer informs " +
-        'your reply, credit it visibly with a blockquote header: "> 🧠 **From Hindsight memory** — <summary>".',
+        'your reply, credit it visibly with a blockquote header: "> 🧠 **From agentstratum memory** — <summary>".',
       inputSchema: { query: z.string().describe("the question to reason over memory about") },
       annotations: READ_ONLY_ANNOTATIONS,
       handler: guarded(async ({ query }: { query: string }) =>
@@ -290,7 +290,7 @@ export function buildKnowledgeTools(
       ),
     },
     {
-      name: "hindsight_capture_initiative",
+      name: "agentstratum_capture_initiative",
       description:
         "Record a new feature or initiative as a tracked knowledge page, so future sessions know it " +
         "exists and can build on it — and keep that page tracking the plan as it moves.\n\n" +
@@ -310,7 +310,7 @@ export function buildKnowledgeTools(
         "- summary: 2-3 sentences on what you're building and why — the CURRENT intent, not the " +
         "originally approved plan (on a recapture, say what changed and why).\n" +
         "- relates_to_page_id: leave empty for a new initiative. Set it to an existing initiative's page " +
-        "id — from hindsight_list_knowledge_pages, or the id this tool returned earlier — to record a " +
+        "id — from agentstratum_list_knowledge_pages, or the id this tool returned earlier — to record a " +
         "plan change or an enhancement to it.\n\n" +
         "Returns the page id. The page is generated for you — you never format one yourself.",
       inputSchema: {
@@ -330,7 +330,7 @@ export function buildKnowledgeTools(
       ),
     },
     {
-      name: "hindsight_ingest_document",
+      name: "agentstratum_ingest_document",
       description:
         "Save an external document or a block of durable notes/findings into this repository's " +
         "memory so it informs future recall and pages. Use for design notes, research, or " +

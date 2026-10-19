@@ -25,7 +25,7 @@
  */
 import { createOpencode2PluginEntry } from "./harness/opencode2";
 
-const HindsightOpencode2Plugin = createOpencode2PluginEntry("opencode2");
+const AgentstratumOpencode2Plugin = createOpencode2PluginEntry("opencode2");
 
-export default HindsightOpencode2Plugin;
-export { HindsightOpencode2Plugin };
+export default AgentstratumOpencode2Plugin;
+export { AgentstratumOpencode2Plugin };

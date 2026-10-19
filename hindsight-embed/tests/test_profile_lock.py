@@ -93,7 +93,7 @@ def test_owner_sidecar_is_cleaned_up_on_release(tmp_path):
 
 
 def test_invalid_timeout_env_falls_back_to_default(monkeypatch):
-    """A malformed HINDSIGHT_EMBED_LOCK_TIMEOUT must not disable the bound."""
+    """A malformed AGENTSTRATUM_EMBED_LOCK_TIMEOUT must not disable the bound."""
     for bad in ("not-a-number", "0", "-5", "inf"):
         monkeypatch.setenv(ENV_LOCK_TIMEOUT, bad)
         assert profile_manager._default_lock_timeout() == profile_manager.DEFAULT_LOCK_TIMEOUT
@@ -108,9 +108,9 @@ def test_delete_profile_removes_the_lock_owner_sidecar(tmp_path, monkeypatch):
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
 
     manager = profile_manager.ProfileManager()
-    manager.create_profile("doomed", {"HINDSIGHT_API_LLM_PROVIDER": "openai"})
+    manager.create_profile("doomed", {"AGENTSTRATUM_API_LLM_PROVIDER": "openai"})
 
-    profiles_dir = tmp_path / ".hindsight" / "profiles"
+    profiles_dir = tmp_path / ".agentstratum" / "profiles"
     lock_path = profiles_dir / "doomed.lock"
     owner_path = profiles_dir / "doomed.lock.owner"
     lock_path.write_text("")

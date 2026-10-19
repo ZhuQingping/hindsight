@@ -51,7 +51,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(hindsight_http_requests_total{tenant=~\"$tenant\"})",
+          "expr": "sum(agentstratum_http_requests_total{tenant=~\"$tenant\"})",
           "refId": "A"
         }
       ],
@@ -93,7 +93,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(hindsight_http_requests_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(agentstratum_http_requests_total{tenant=~\"$tenant\"}[1m]))",
           "refId": "A"
         }
       ],
@@ -135,7 +135,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(hindsight_http_requests_in_progress_requests)",
+          "expr": "sum(agentstratum_http_requests_in_progress_requests)",
           "refId": "A"
         }
       ],
@@ -179,7 +179,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(hindsight_http_requests_total{status_class=\"5xx\", tenant=~\"$tenant\"}[5m])) / sum(rate(hindsight_http_requests_total{tenant=~\"$tenant\"}[5m]))",
+          "expr": "sum(rate(agentstratum_http_requests_total{status_class=\"5xx\", tenant=~\"$tenant\"}[5m])) / sum(rate(agentstratum_http_requests_total{tenant=~\"$tenant\"}[5m]))",
           "refId": "A"
         }
       ],
@@ -221,7 +221,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(hindsight_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(agentstratum_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
           "refId": "A"
         }
       ],
@@ -295,7 +295,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (endpoint) (rate(hindsight_http_requests_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum by (endpoint) (rate(agentstratum_http_requests_total{tenant=~\"$tenant\"}[1m]))",
           "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
@@ -383,17 +383,17 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(hindsight_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(agentstratum_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(hindsight_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(agentstratum_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(hindsight_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(agentstratum_http_duration_seconds_bucket{tenant=~\"$tenant\"}[5m])))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -481,12 +481,12 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(hindsight_http_requests_total{status_class=\"5xx\", tenant=~\"$tenant\"}[1m])) / sum(rate(hindsight_http_requests_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(agentstratum_http_requests_total{status_class=\"5xx\", tenant=~\"$tenant\"}[1m])) / sum(rate(agentstratum_http_requests_total{tenant=~\"$tenant\"}[1m]))",
           "legendFormat": "5xx Error Rate",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(hindsight_http_requests_total{status_class=\"4xx\", tenant=~\"$tenant\"}[1m])) / sum(rate(hindsight_http_requests_total{tenant=~\"$tenant\"}[1m]))",
+          "expr": "sum(rate(agentstratum_http_requests_total{status_class=\"4xx\", tenant=~\"$tenant\"}[1m])) / sum(rate(agentstratum_http_requests_total{tenant=~\"$tenant\"}[1m]))",
           "legendFormat": "4xx Error Rate",
           "refId": "B"
         }
@@ -537,7 +537,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_db_pool_size",
+          "expr": "agentstratum_db_pool_size",
           "refId": "A"
         }
       ],
@@ -580,7 +580,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_db_pool_idle",
+          "expr": "agentstratum_db_pool_idle",
           "refId": "A"
         }
       ],
@@ -623,7 +623,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_db_pool_size - hindsight_db_pool_idle",
+          "expr": "agentstratum_db_pool_size - agentstratum_db_pool_idle",
           "refId": "A"
         }
       ],
@@ -665,7 +665,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_db_pool_size / hindsight_db_pool_max",
+          "expr": "agentstratum_db_pool_size / agentstratum_db_pool_max",
           "refId": "A"
         }
       ],
@@ -759,22 +759,22 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_db_pool_size",
+          "expr": "agentstratum_db_pool_size",
           "legendFormat": "Total",
           "refId": "A"
         },
         {
-          "expr": "hindsight_db_pool_idle",
+          "expr": "agentstratum_db_pool_idle",
           "legendFormat": "Idle",
           "refId": "B"
         },
         {
-          "expr": "hindsight_db_pool_size - hindsight_db_pool_idle",
+          "expr": "agentstratum_db_pool_size - agentstratum_db_pool_idle",
           "legendFormat": "Active",
           "refId": "C"
         },
         {
-          "expr": "hindsight_db_pool_max",
+          "expr": "agentstratum_db_pool_max",
           "legendFormat": "Max",
           "refId": "D"
         }
@@ -825,7 +825,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_process_memory_bytes",
+          "expr": "agentstratum_process_memory_bytes",
           "refId": "A"
         }
       ],
@@ -867,7 +867,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_process_threads",
+          "expr": "agentstratum_process_threads",
           "refId": "A"
         }
       ],
@@ -909,7 +909,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_process_open_fds",
+          "expr": "agentstratum_process_open_fds",
           "refId": "A"
         }
       ],
@@ -951,7 +951,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(hindsight_process_cpu_seconds)",
+          "expr": "sum(agentstratum_process_cpu_seconds)",
           "refId": "A"
         }
       ],
@@ -1025,7 +1025,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_process_memory_bytes",
+          "expr": "agentstratum_process_memory_bytes",
           "legendFormat": "RSS Max",
           "refId": "A"
         }
@@ -1109,12 +1109,12 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "rate(hindsight_process_cpu_seconds{type=\"user\"}[1m])",
+          "expr": "rate(agentstratum_process_cpu_seconds{type=\"user\"}[1m])",
           "legendFormat": "User",
           "refId": "A"
         },
         {
-          "expr": "rate(hindsight_process_cpu_seconds{type=\"system\"}[1m])",
+          "expr": "rate(agentstratum_process_cpu_seconds{type=\"system\"}[1m])",
           "legendFormat": "System",
           "refId": "B"
         }
@@ -1198,12 +1198,12 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "hindsight_process_threads",
+          "expr": "agentstratum_process_threads",
           "legendFormat": "Threads",
           "refId": "A"
         },
         {
-          "expr": "hindsight_process_open_fds",
+          "expr": "agentstratum_process_open_fds",
           "legendFormat": "File Descriptors",
           "refId": "B"
         }
@@ -1214,7 +1214,7 @@
   ],
   "refresh": "5s",
   "schemaVersion": 38,
-  "tags": ["hindsight", "api", "service"],
+  "tags": ["agentstratum", "api", "service"],
   "templating": {
     "list": [
       {
@@ -1239,14 +1239,14 @@
           "value": "$__all"
         },
         "datasource": "$datasource",
-        "definition": "label_values(hindsight_http_requests_total, tenant)",
+        "definition": "label_values(agentstratum_http_requests_total, tenant)",
         "hide": 0,
         "includeAll": true,
         "label": "Tenant",
         "multi": false,
         "name": "tenant",
         "options": [],
-        "query": "label_values(hindsight_http_requests_total, tenant)",
+        "query": "label_values(agentstratum_http_requests_total, tenant)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -1261,8 +1261,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Hindsight API Service",
-  "uid": "hindsight-api-service",
+  "title": "agentstratum API Service",
+  "uid": "agentstratum-api-service",
   "version": 1,
   "weekStart": ""
 }

@@ -1,14 +1,14 @@
 /**
  * Keep the STAGED runtime current on its own.
  *
- * `install` copies this package into ~/.hindsight/coding-agents and points every wired agent's
+ * `install` copies this package into ~/.agentstratum/coding-agents and points every wired agent's
  * hooks at that copy (installer.ts `stageRuntime`). Nothing ever refreshed it: the only update
  * path was the user remembering to re-run `install`, so a machine could sit several versions
  * behind indefinitely — bugs stayed fixed only for people who happened to re-install.
  *
  * Once per `CHECK_INTERVAL_MS`, at session start, this asks npm for the published version and —
  * when it is newer than the staged one — spawns a DETACHED
- * `npx @vectorize-io/hindsight-coding-agents@<version> update`, which re-stages the runtime and
+ * `npx agentstratum-coding-agents@<version> update`, which re-stages the runtime and
  * touches no host config (see the `update` branch in installer.ts). Fire-and-forget: the current
  * session keeps running the version it already loaded and the next one starts on the new code.
  *
@@ -24,7 +24,7 @@
  *     day rather than failing a spawn each time.
  *   - it stages only. Rewiring hosts unattended would mean choosing which agents to install for,
  *     and that is the user's call (`install` spells it out for exactly this reason).
- *   - `autoUpdate: false` in ~/.hindsight/coding-agent.json (or HINDSIGHT_AUTO_UPDATE=false) turns
+ *   - `autoUpdate: false` in ~/.agentstratum/coding-agent.json (or AGENTSTRATUM_AUTO_UPDATE=false) turns
  *     it off entirely, for pinned or air-gapped setups.
  *
  * Known window: `stageRuntime` replaces dist/ wholesale, so a hook that happens to spawn during
@@ -49,8 +49,6 @@ import { fileURLToPath } from "node:url";
 import type { Config } from "./config";
 import { describeError, log } from "./log";
 import { binOnPath } from "./util";
-
-export const PACKAGE_NAME = "@vectorize-io/hindsight-coding-agents";
 
 /** A version `npm view` may return: digits.digits.digits with an optional pre-release. */
 const RELEASE_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
@@ -82,7 +80,7 @@ function packageRoot(): string {
 /** Where `install` stages the runtime — the one copy this may replace. Kept as a literal rather
  *  than imported from installer.ts, which would pull the whole installer into every hook bundle. */
 function stagedRuntimeDir(): string {
-  return join(homedir(), ".hindsight", "coding-agents");
+  return join(homedir(), ".agentstratum", "coding-agents");
 }
 
 /** Same directory, compared through realpath — a symlinked or differently-spelled HOME must not
@@ -198,7 +196,7 @@ export function selfUpdatable(runtimeDir: string): boolean {
 const LOCK_STALE_MS = 10 * 60 * 1000;
 
 function lockFile(): string {
-  return join(tmpdir(), "hindsight-coding-agent", "auto-update.lock");
+  return join(tmpdir(), "agentstratum-coding-agent", "auto-update.lock");
 }
 
 function acquireUpdateLock(file: string, now: number): boolean {
@@ -337,7 +335,7 @@ export async function npmViewVersion(
 export interface AutoUpdateOptions {
   /** Package root to treat as "where this code runs from" (tests). */
   pkgRoot?: string;
-  /** The staged runtime directory this may update (tests); defaults to ~/.hindsight/coding-agents. */
+  /** The staged runtime directory this may update (tests); defaults to ~/.agentstratum/coding-agents. */
   runtimeDir?: string;
   /** Cross-process updater lock (tests); defaults to one in the OS temp dir. */
   lockFile?: string;
@@ -362,8 +360,11 @@ export async function maybeAutoUpdate(
 ): Promise<string> {
   try {
     if (!cfg.autoUpdate) return "";
+    // No registry identity is selected until deployment explicitly configures one.
+    const packageName = process.env.AGENTSTRATUM_CODING_AGENTS_PACKAGE?.trim();
+    if (!packageName) return "";
     // The survey's own headless session must not race the runtime out from under its parent.
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return "";
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return "";
 
     const pkgRoot = opts.pkgRoot ?? packageRoot();
     const runtime = opts.runtimeDir ?? stagedRuntimeDir();
@@ -399,23 +400,19 @@ export async function maybeAutoUpdate(
     const lock = opts.lockFile ?? lockFile();
     if (!acquireUpdateLock(lock, now)) return "";
     try {
-      const latest = await (opts.npmView ?? npmViewVersion)(PACKAGE_NAME);
+      const latest = await (opts.npmView ?? npmViewVersion)(packageName);
       stampCheck(file, now, latest);
       if (!latest || !isNewer(latest, current)) {
         releaseUpdateLock(lock);
         return "";
       }
 
-      log.info("auto-update", `updating the Hindsight runtime ${current} -> ${latest}`);
-      const child = (opts.spawn ?? realSpawn)(
-        "npx",
-        ["-y", `${PACKAGE_NAME}@${latest}`, "update"],
-        {
-          detached: true,
-          stdio: "ignore",
-          windowsHide: true,
-        }
-      );
+      log.info("auto-update", `updating the agentstratum runtime ${current} -> ${latest}`);
+      const child = (opts.spawn ?? realSpawn)("npx", ["-y", `${packageName}@${latest}`, "update"], {
+        detached: true,
+        stdio: "ignore",
+        windowsHide: true,
+      });
       // A spawn failure (no npx on PATH, EACCES) arrives asynchronously as an 'error' event; an
       // unhandled one would take the session start down with it.
       child.on("error", (e) => {

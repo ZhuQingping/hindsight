@@ -1297,14 +1297,14 @@ class GeminiLLM(LLMInterface):
         file_obj = io.BytesIO(jsonl.encode("utf-8"))
         uploaded = await self._client.aio.files.upload(
             file=file_obj,
-            config=genai_types.UploadFileConfig(mime_type="jsonl", display_name="hindsight-batch-input"),
+            config=genai_types.UploadFileConfig(mime_type="jsonl", display_name="agentstratum-batch-input"),
         )
 
         batch = await self._client.aio.batches.create(
             model=self.model,
             # `name` is set on every uploaded file the SDK returns.
             src=cast(str, uploaded.name),
-            config=genai_types.CreateBatchJobConfig(display_name="hindsight-batch"),
+            config=genai_types.CreateBatchJobConfig(display_name="agentstratum-batch"),
         )
 
         logger.info(f"Gemini batch submitted: {batch.name}, state={self._state_name(batch.state)}")

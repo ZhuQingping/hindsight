@@ -380,7 +380,7 @@ describe("HindsightClient.retain — per_source scoping", () => {
 /**
  * #3600: the client captured `apiToken` at construction, so a long-lived host (dsh, Cline, Kilo,
  * Prime Agent, the MCP server) kept signing with a credential the operator had already replaced —
- * every call 401'd until the whole host restarted, while `hindsight_diagnose` read the file and
+ * every call 401'd until the whole host restarted, while `agentstratum_diagnose` read the file and
  * called it healthy.
  */
 describe("HindsightClient credential refresh", () => {

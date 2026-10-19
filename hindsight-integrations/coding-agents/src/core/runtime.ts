@@ -9,7 +9,7 @@
  *                                     NOT computed here; onPrompt builds it per session)
  *   - onPrompt(sessionId, prompt)   : each user turn -> recall + build this turn's injection
  *   - getInjection(sessionId)       : the system-prompt text to inject this turn (or undefined)
- *   - toolSpecs()                   : the hindsight_* knowledge/recall tools to register natively
+ *   - toolSpecs()                   : the agentstratum_* knowledge/recall tools to register natively
  *   - onTranscript(sessionId, turns, lastTurnComplete): full transcript -> write back (on by default)
  *   - onSessionIdle(sessionId)      : assistant finished -> refetch + write back the completed
  *                                     exchange (the Stop-equivalent these hosts lack)
@@ -17,7 +17,7 @@
  */
 import type { Config } from "./config";
 import { maybeAutoUpdate } from "./auto-update";
-import { DAEMON_WAIT_RETAIN_MS, DAEMON_WAIT_SESSION_START_MS, ensureDaemon } from "./daemon";
+import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
 import { diag } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
 import type { HindsightClient } from "./hindsight";
@@ -80,7 +80,7 @@ export class RuntimeCore {
     this.fetchTranscript = fetch;
   }
 
-  /** The hindsight_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
+  /** The agentstratum_* knowledge + recall tools, bound to this bank, for the harness to register natively. */
   toolSpecs(): ToolSpec[] {
     return buildKnowledgeTools(this.client, this.bankId, {
       repoDir: this.projectDir,
@@ -113,27 +113,21 @@ export class RuntimeCore {
    */
   async seedIfCold(repoPath: string | undefined): Promise<void> {
     // Anti-recursion: a headless survey session runs the agent (which loads this plugin) with
-    // HINDSIGHT_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
+    // AGENTSTRATUM_DISABLE_HOOKS=1 — the tools stay registered (toolSpecs, so the survey can ingest),
     // but seeding/recall/write-back must no-op or the survey would re-seed itself (see core/survey.ts).
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return;
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
     // Companion skill, the same housekeeping `runSessionStartHook` does for hook harnesses — but
     // with `install`, because a persistent-plugin host can be wired by its OWN plugin manager
     // (`dsh plugin add …`, `cline plugin install`), a route our installer never sees, leaving the
     // plugin loaded with its tools registered and no skill on disk at all (#4406). No-op for a host
     // with no skills directory (opencode; opencode2 registers it in memory instead).
-    syncCompanionSkill(this.harness, { install: true });
-    // Daemon mode: this is the SessionStart of a persistent-plugin host, so it owns the same
-    // warm-up the hook harnesses do in `runSessionStartHook` — start it before the user has typed
-    // anything, wait only briefly, and let a cold one keep coming up in the background. Without it
-    // these hosts never started a daemon at all and every request failed with ECONNREFUSED (#3524);
-    // `runSessionStartHook` is a hook-only wrapper, so calling `buildSessionStartContext` directly
-    // (as every plugin harness does) skipped the ensure entirely.
-    await ensureDaemon(this.cfg, this.harness, { waitMs: DAEMON_WAIT_SESSION_START_MS });
-    // Same session-start housekeeping the hook harnesses do in `runSessionStartHook`: a persistent
-    // plugin host is a session start too, and leaving it out would mean opencode/Kilo/Cline users
-    // never got an update — the parity gap `ensureDaemon` above already had to be fixed for.
-    void maybeAutoUpdate(this.cfg);
     try {
+      syncCompanionSkill(this.harness, { install: true });
+      // Hosts may fire-and-forget initialization. Keep validation inside the fail-open boundary:
+      // a missing endpoint should prompt configuration, not reject into the host process.
+      await ensureRemoteConnection(this.cfg);
+      // Same session-start housekeeping as the fresh-process hook harnesses.
+      void maybeAutoUpdate(this.cfg);
       const out = await buildSessionStartContext({
         cwd: repoPath || process.cwd(),
         bankId: this.bankId,
@@ -147,11 +141,19 @@ export class RuntimeCore {
       if (out.systemMessage) {
         const plain = out.systemMessage.replace(/\x1b\[[0-9;]*m/g, "");
         log.info(this.harness, plain);
-        this.notify?.("Hindsight", plain.replace(/^Hindsight is /, "Is "));
+        this.notify?.("agentstratum", plain.replace(/^agentstratum is /, "Is "));
       }
       this.deferInitialReflect = out.deferInitialReflect === true;
-    } catch {
-      /* seeding is best-effort — a cold-check failure never breaks the agent */
+    } catch (error) {
+      if (error instanceof RemoteConnectionError) {
+        log.warn(this.harness, error.message);
+        try {
+          await this.notify?.("agentstratum configuration", error.message);
+        } catch {
+          /* the configuration warning is logged even if the host notice channel fails */
+        }
+      }
+      // Seeding is best-effort — a cold-check failure never breaks the agent.
     }
   }
 
@@ -161,7 +163,7 @@ export class RuntimeCore {
    * identical across hosts while this adapter retains only delivery-specific state.
    */
   async onPrompt(sessionId: string | undefined, prompt: string): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!sessionId || !prompt.trim()) return;
     const turns = (this.turnCount.get(sessionId) ?? 0) + 1;
     this.turnCount.set(sessionId, turns);
@@ -201,7 +203,7 @@ export class RuntimeCore {
     if (output.notice) {
       const preview = output.notice.replace(/\s+/g, " ").trim().slice(0, 140);
       log.info(this.harness, "reflect goal", { preview });
-      this.notify?.("Hindsight · recalled past decisions", preview);
+      this.notify?.("agentstratum · recalled past decisions", preview);
     }
     const block = blocks.filter(Boolean).join("\n\n");
     this.injection.set(sessionId, block);
@@ -240,7 +242,7 @@ export class RuntimeCore {
      *  a wrong default records every turn one late and never the session's last. */
     lastTurnComplete: boolean
   ): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!this.writeBackEnabled || !sessionId || !turns.length) return;
     this.recordUsage(sessionId, turns, lastTurnComplete);
     const st = this.stateFor(sessionId);
@@ -260,7 +262,7 @@ export class RuntimeCore {
    * turn must not wait for a threshold it will never reach.
    */
   async onSessionIdle(sessionId: string): Promise<void> {
-    if (process.env.HINDSIGHT_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
+    if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
     if (!this.writeBackEnabled || !sessionId || !this.fetchTranscript) return;
     let turns: TransportTurn[];
     try {
@@ -317,13 +319,8 @@ export class RuntimeCore {
     trigger = "turn"
   ): void {
     const t0 = Date.now();
-    // Daemon mode: the write path is the last chance to get a daemon up — the Stop-hook role, for
-    // hosts that have no Stop hook. A daemon that died mid-session would otherwise take the whole
-    // exchange with it. The wait sits INSIDE the fire-and-forget chain, so
-    // unlike the Stop hook it costs the host nothing: this call already returns before the retain
-    // does. Deliberately not gated on the result — retain proceeds either way, so an unreachable
-    // daemon produces the same `retain_failed` diagnostic as an unreachable Cloud server.
-    void ensureDaemon(this.cfg, this.harness, { waitMs: DAEMON_WAIT_RETAIN_MS })
+    // Validate before write-back; failure is reported through the existing diagnostic path.
+    void ensureRemoteConnection(this.cfg)
       .then(() =>
         retainLiveSession(this.client, sessionId, turns, startTs, this.harness, {
           cursors: this.cursors,

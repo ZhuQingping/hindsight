@@ -1,12 +1,12 @@
 /**
- * Hindsight tool usage — is the agent calling our tools, and does it credit what they returned?
+ * agentstratum tool usage — is the agent calling our tools, and does it credit what they returned?
  *
- * One JSON line per finished user turn in `~/.hindsight/coding-agents-logs/usage.jsonl`:
+ * One JSON line per finished user turn in `~/.agentstratum/coding-agents-logs/usage.jsonl`:
  *
- *   {"ts","harness","session","bank","turn":7,"calls":["hindsight_reflect"],"credited":true}
+ *   {"ts","harness","session","bank","turn":7,"calls":["agentstratum_reflect"],"credited":true}
  *
- * - `calls`    the hindsight_* tools the agent called during that turn (other tools are not counted)
- * - `credited` the agent's reply carried the "From Hindsight memory" credit the tool guide asks for
+ * - `calls`    the agentstratum_* tools the agent called during that turn (other tools are not counted)
+ * - `credited` the agent's reply carried the "From agentstratum memory" credit the tool guide asks for
  *              whenever retrieved memory contributed — the cheap proxy for "the result was useful".
  *              The report rates it over turns that called a retrieval tool (see RETRIEVAL_TOOLS)
  *
@@ -24,16 +24,16 @@ import type { TransportTurn } from "./chat";
 import { appendLogLine, logsDir } from "./log";
 
 export function usageFilePath(): string {
-  return process.env.HINDSIGHT_USAGE_FILE || join(logsDir(), "usage.jsonl");
+  return process.env.AGENTSTRATUM_USAGE_FILE || join(logsDir(), "usage.jsonl");
 }
 
-/** A Hindsight tool name at the END of a host's tool name: hosts prefix MCP tools differently
- *  (`mcp__hindsight__hindsight_reflect`, `hindsight.hindsight_reflect`, bare `hindsight_reflect`).
- *  Each segment needs a letter, so `hindsight__hindsight_reflect` cannot match from the first one. */
-const HINDSIGHT_TOOL_RE = /hindsight_(?:[a-z]+_)*[a-z]+$/;
+/** A agentstratum tool name at the END of a host's tool name: hosts prefix MCP tools differently
+ *  (`mcp__agentstratum__agentstratum_reflect`, `agentstratum.agentstratum_reflect`, bare `agentstratum_reflect`).
+ *  Each segment needs a letter, so `agentstratum__agentstratum_reflect` cannot match from the first one. */
+const AGENTSTRATUM_TOOL_RE = /agentstratum_(?:[a-z]+_)*[a-z]+$/;
 
 /** The credit line the injected tool guide prescribes (core/knowledge-injection.ts). */
-const CREDIT_RE = /from hindsight memory/i;
+const CREDIT_RE = /from agentstratum memory/i;
 
 /**
  * The tools that hand memory BACK to the agent — the only calls a credit can follow. The write tools
@@ -42,10 +42,10 @@ const CREDIT_RE = /from hindsight memory/i;
  * on real sessions it read ~5% because ingest_document dominated.
  */
 const RETRIEVAL_TOOLS = new Set([
-  "hindsight_search_knowledge_pages",
-  "hindsight_list_knowledge_pages",
-  "hindsight_read_knowledge_page",
-  "hindsight_reflect",
+  "agentstratum_search_knowledge_pages",
+  "agentstratum_list_knowledge_pages",
+  "agentstratum_read_knowledge_page",
+  "agentstratum_reflect",
 ]);
 
 /** Roles a reader uses for the agent's own prose (Gemini-shaped transcripts say "model"). */
@@ -70,7 +70,7 @@ export function summarizeTurns(turns: TransportTurn[]): TurnUsage[] {
     const current = out.at(-1);
     if (!current) continue;
     if (t.role === "action") {
-      const tool = t.content.split(" ", 1)[0].match(HINDSIGHT_TOOL_RE)?.[0];
+      const tool = t.content.split(" ", 1)[0].match(AGENTSTRATUM_TOOL_RE)?.[0];
       if (tool) current.calls.push(tool);
     } else if (ASSISTANT_ROLES.has(t.role) && CREDIT_RE.test(t.content)) {
       current.credited = true;
@@ -181,12 +181,12 @@ function isUsageLine(v: unknown): v is UsageLine {
 export interface HarnessUsage {
   harness: string;
   turns: number;
-  /** Turns with at least one hindsight_* call. */
+  /** Turns with at least one agentstratum_* call. */
   turnsWithCalls: number;
   calls: number;
   /** Turns that called a RETRIEVAL tool — the credit rate's denominator. */
   turnsWithRetrieval: number;
-  /** Of `turnsWithRetrieval`, how many replies credited Hindsight memory. */
+  /** Of `turnsWithRetrieval`, how many replies credited agentstratum memory. */
   creditedTurnsWithRetrieval: number;
   byTool: Record<string, number>;
 }
@@ -242,13 +242,13 @@ export function readUsage(path = usageFilePath()): HarnessUsage[] {
 
 const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)}%` : "-");
 
-/** Human-readable report for `hindsight-coding-agents stats`. */
+/** Human-readable report for `agentstratum-coding-agents stats`. */
 export function formatUsageReport(usage: HarnessUsage[], path = usageFilePath()): string {
-  if (!usage.length) return `no Hindsight usage recorded yet (${path})`;
-  const out = [`Hindsight tool usage (${path})`, ""];
+  if (!usage.length) return `no agentstratum usage recorded yet (${path})`;
+  const out = [`agentstratum tool usage (${path})`, ""];
   for (const h of usage) {
     out.push(
-      `${h.harness}: ${h.turns} turns · ${h.turnsWithCalls} with a Hindsight call ` +
+      `${h.harness}: ${h.turns} turns · ${h.turnsWithCalls} with a agentstratum call ` +
         `(${pct(h.turnsWithCalls, h.turns)}) · ${(h.calls / h.turns).toFixed(2)} calls/turn · ` +
         `credited after retrieval ${h.creditedTurnsWithRetrieval}/${h.turnsWithRetrieval} ` +
         `(${pct(h.creditedTurnsWithRetrieval, h.turnsWithRetrieval)})`

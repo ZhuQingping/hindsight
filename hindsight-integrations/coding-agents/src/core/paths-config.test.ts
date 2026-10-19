@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { deriveBankId } from "./bank";
 import { applyBankConfig, resolveConfig } from "./config";
 
-/** `paths.<prefix>`: one entry sends every repo under a directory to its own server or tenant. */
+/** `paths.<prefix>`: entries customize behavior while sharing one connection. */
 describe("paths.<prefix> overrides", () => {
   let root: string;
   let clientRepo: string;
@@ -33,52 +33,42 @@ describe("paths.<prefix> overrides", () => {
     const raw = {
       apiUrl: "http://server",
       apiToken: "default-key",
-      paths: { [join(root, "work")]: { apiToken: "work-key" } },
+      paths: { [join(root, "work")]: { retainSessions: false } },
     };
     const client = resolve(raw, join(clientRepo, "src"));
-    expect(client.cfg.apiToken).toBe("work-key");
+    expect(client.cfg.retainSessions).toBe(false);
+    expect(client.cfg.apiToken).toBe("default-key");
     expect(client.bankId).toBe("coding-agent::client-x");
     expect(resolve(raw, otherRepo).cfg.apiToken).toBe("default-key");
   });
 
-  it("sends one directory to a local daemon and another to Cloud in the same config", () => {
+  it("ignores directory endpoint, credential and daemon overrides", () => {
     const raw = {
-      apiToken: "cloud-key",
+      apiUrl: "https://service.example",
+      apiToken: "global-key",
       paths: {
-        [join(root, "oss")]: { serverMode: "daemon" as const, apiPort: 9177, apiToken: "" },
-        [join(root, "work")]: { apiUrl: "http://self-hosted:8888", apiToken: "work-key" },
+        [join(root, "work")]: {
+          apiUrl: "https://other.example",
+          apiToken: "other-key",
+          serverMode: "daemon" as const,
+        },
       },
     };
-    const local = resolve(raw, otherRepo).cfg;
-    expect(local.serverMode).toBe("daemon");
-    expect(local.apiUrl).toBe("http://127.0.0.1:9177");
-    expect(local.apiToken).toBeUndefined();
-    const work = resolve(raw, clientRepo).cfg;
-    expect(work.apiUrl).toBe("http://self-hosted:8888");
-    expect(work.apiToken).toBe("work-key");
-    expect(resolve({ ...raw, paths: {} }, clientRepo).cfg.apiUrl).toBe(
-      "https://api.hindsight.vectorize.io"
-    );
-  });
-
-  it("moves a daemon-mode config to Cloud when a path entry leaves daemon mode", () => {
-    const raw = {
-      serverMode: "daemon" as const,
-      paths: { [join(root, "work")]: { serverMode: "cloud" as const, apiToken: "k" } },
-    };
-    expect(resolve(raw, clientRepo).cfg.apiUrl).toBe("https://api.hindsight.vectorize.io");
-    expect(resolve(raw, otherRepo).cfg.apiUrl).toMatch(/^http:\/\/127\.0\.0\.1:/);
+    const cfg = resolve(raw, clientRepo).cfg;
+    expect(cfg.apiUrl).toBe("https://service.example");
+    expect(cfg.apiToken).toBe("global-key");
+    expect(cfg.serverMode).toBe("cloud");
   });
 
   it("picks the longest matching prefix", () => {
     const raw = {
       apiToken: "default-key",
       paths: {
-        [join(root, "work")]: { apiToken: "work-key" },
-        [clientRepo]: { apiToken: "client-key" },
+        [join(root, "work")]: { retainSessions: false },
+        [clientRepo]: { retainSessions: true },
       },
     };
-    expect(resolve(raw, clientRepo).cfg.apiToken).toBe("client-key");
+    expect(resolve(raw, clientRepo).cfg.retainSessions).toBe(true);
   });
 
   it("lets a banks.<id> section override the path entry", () => {
@@ -88,7 +78,7 @@ describe("paths.<prefix> overrides", () => {
       banks: { "coding-agent::client-x": { apiToken: "bank-key" } },
     };
     const { cfg } = resolve(raw, clientRepo);
-    expect(cfg.apiToken).toBe("bank-key");
+    expect(cfg.apiToken).toBe("default-key");
     expect(cfg.retainSessions).toBe(false);
   });
 
@@ -108,7 +98,7 @@ describe("paths.<prefix> overrides", () => {
     };
     const client = resolve(raw, clientRepo);
     expect(client.bankId).toBe("coding-agent::client-x");
-    expect(client.cfg.apiToken).toBe("k");
+    expect(client.cfg.apiToken).toBeUndefined();
     expect(resolve(raw, otherRepo).cfg.disabled).toBe(true);
   });
 
@@ -133,8 +123,8 @@ describe("paths.<prefix> overrides", () => {
     execFileSync("git", ["worktree", "add", "-q", "-b", "linked", worktree], { cwd: clientRepo });
     const raw = {
       apiToken: "default-key",
-      paths: { [join(root, "work")]: { apiToken: "work-key" } },
+      paths: { [join(root, "work")]: { retainSessions: false } },
     };
-    expect(resolve(raw, worktree).cfg.apiToken).toBe("work-key");
+    expect(resolve(raw, worktree).cfg.retainSessions).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
-# Hindsight — Agent Plugin
+# agentstratum — Agent Plugin
 
 A portable [Agent Plugin](https://agent-plugins.org) (spec `1.0.0`) that gives any
-compatible agent client long-term memory via [Hindsight](https://hindsight.vectorize.io).
+compatible agent client long-term memory via agentstratum.
 
 Agent Plugins is the vendor-neutral standard (AWS, Cursor, GitHub/Microsoft, OpenAI,
 Vercel) for packaging **Agent Skills + MCP servers** into one distributable plugin. At
@@ -11,7 +11,7 @@ launch it is supported by **ChatGPT/Codex, Cursor, GitHub Copilot, Kiro, and VS 
 > header, so it cannot authenticate. Use the Coding Agents integration instead; see
 > [Codex](#codex) below.
 
-This is the *portable* front door to Hindsight: one artifact, every supported client. It
+This is the *portable* front door to agentstratum: one artifact, every supported client. It
 carries the same `retain` / `recall` / `reflect` memory as our per-IDE integrations, but
 as a single standards-based bundle instead of N hand-rolled configs.
 
@@ -20,16 +20,16 @@ as a single standards-based bundle instead of N hand-rolled configs.
 ```
 agent-plugin/
 ├── plugin.json                       # manifest ($schema + name + metadata)
-├── mcp.json                          # Hindsight MCP server (Streamable HTTP)
+├── mcp.json                          # agentstratum MCP server (Streamable HTTP)
 └── skills/
-    └── hindsight-memory/
+    └── agentstratum-memory/
         └── SKILL.md                  # teaches the agent when to recall/retain/reflect
 ```
 
-- **`mcp.json`** points the client at Hindsight's built-in MCP server (retain, recall,
-  reflect, knowledge pages, and more — see [MCP Server docs](https://hindsight.vectorize.io/developer/mcp-server)).
+- **`mcp.json`** points the client at agentstratum's built-in MCP server (retain, recall,
+  reflect, knowledge pages, and more — see MCP Server docs).
   The plugin is transport-only; all memory logic stays server-side.
-- **`skills/hindsight-memory/SKILL.md`** is loaded into the agent's context so it knows
+- **`skills/agentstratum-memory/SKILL.md`** is loaded into the agent's context so it knows
   *when* to reach for memory, not just that the tools exist.
 
 ## Configuration
@@ -38,20 +38,20 @@ The plugin reads two environment variables (values are interpolated into `mcp.js
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `HINDSIGHT_API_KEY` | yes (Cloud) | Your `hsk_...` key from [ui.hindsight.vectorize.io/connect](https://ui.hindsight.vectorize.io/connect). Sent as `Authorization: Bearer`. |
-| `HINDSIGHT_BANK_ID` | no | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team. |
+| `AGENTSTRATUM_API_KEY` | yes (Cloud) | Your `hsk_...` key from your service administrator. Sent as `Authorization: Bearer`. |
+| `AGENTSTRATUM_BANK_ID` | no | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team. |
 
-**Self-hosting:** replace the host in `mcp.json` (`https://api.hindsight.vectorize.io`)
-with your deployment's URL. A local server with the MCP endpoint open needs no API key.
+**Endpoint configuration (required):** replace `${AGENTSTRATUM_MCP_URL}` in `mcp.json`
+with the full MCP endpoint provided by your service administrator for your deployment's URL. Use the credential instructions supplied by the console for this endpoint.
 
 > Env-var interpolation syntax varies by client. Most use `${VAR}`; some (VS Code,
 > Cursor) prefer `${env:VAR}`. If your client doesn't substitute, paste the literal key
 > and bank id into `mcp.json` instead. This does not work in Codex, which removes the
 > `Authorization` header regardless of its value (see [Codex](#codex)).
 
-**Bank selection when `HINDSIGHT_BANK_ID` is unset.** A client that substitutes variables
+**Bank selection when `AGENTSTRATUM_BANK_ID` is unset.** A client that substitutes variables
 sends an empty `X-Bank-Id`, and the server uses the `default` bank. A client that does
-*not* substitute sends the literal text `${HINDSIGHT_BANK_ID}`, which Hindsight treats
+*not* substitute sends the literal text `${AGENTSTRATUM_BANK_ID}`, which agentstratum treats
 as a bank name: reads fail with bank-not-found, and the first `retain` creates a bank
 with that name. Set the variable, or paste the bank id literally, to avoid this.
 
@@ -74,7 +74,7 @@ skill.
 
 Codex's Agent Plugins loader treats `Authorization` as a header only the client may set, so it
 removes the one in this plugin's `mcp.json`. It also copies the other headers verbatim, without
-expanding `${VAR}` placeholders. The portable plugin therefore cannot authenticate to Hindsight
+expanding `${VAR}` placeholders. The portable plugin therefore cannot authenticate to agentstratum
 Cloud from Codex, and pasting a literal key into `mcp.json` does not help because the header is
 removed whatever its value.
 
@@ -82,7 +82,7 @@ For Codex, use the [Coding Agents](../coding-agents) integration instead. It wri
 MCP configuration and adds the automatic recall/retain hooks:
 
 ```bash
-npx @vectorize-io/hindsight-coding-agents install codex
+agentstratum-coding-agents install codex
 ```
 
 ## Want automatic capture (hooks)?
@@ -102,3 +102,8 @@ python3 hindsight-integrations/agent-plugin/validate.py
 
 Checks that `plugin.json` and `mcp.json` parse and satisfy the Agent Plugins `1.0.0`
 required-field contract.
+
+
+## Distribution and connection scope
+
+The Huawei Cloud download URL is pending. This archive is one of the four client distributions; it contains Skills and remote MCP configuration, with no local engine or lifecycle hooks. Use one default `AGENTSTRATUM_MCP_URL` copied in full from the console, together with the matching credential. Do not infer the MCP URL from the API URL. Host-specific compatibility limitations above still apply.

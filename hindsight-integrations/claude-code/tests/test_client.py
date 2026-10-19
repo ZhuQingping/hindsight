@@ -1,4 +1,4 @@
-"""Tests for lib/client.py — Hindsight REST API client."""
+"""Tests for lib/client.py — agentstratum REST API client."""
 
 import json
 import urllib.error
@@ -119,7 +119,7 @@ class TestHindsightClientRecall:
             c.recall("bank", "query")
 
         assert captured["ua"] == USER_AGENT
-        assert captured["ua"].startswith("hindsight-claude-code/")
+        assert captured["ua"].startswith("agentstratum-claude-code/")
 
     def test_http_error_raises_runtime_error(self):
         c = HindsightClient("http://localhost:9077")
@@ -167,9 +167,7 @@ class TestHindsightClientRecall:
 
         assert captured["body"]["tags"] == ["memory_type:rule"]
         assert captured["body"]["tags_match"] == "any_strict"
-        assert captured["body"]["tag_groups"] == [
-            {"op": "all", "tags": ["memory_type:rule", "tech_stack:supabase"]}
-        ]
+        assert captured["body"]["tag_groups"] == [{"op": "all", "tags": ["memory_type:rule", "tech_stack:supabase"]}]
 
 
 class TestHindsightClientRetain:
@@ -200,8 +198,6 @@ class TestHindsightClientRetain:
             c.retain("my::bank", "content")
 
         assert "my%3A%3Abank" in captured["url"]
-
-
 
 
 class TestRequestTimeoutOverride:
@@ -275,7 +271,6 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 15
 
 
-
 class TestHindsightClientSetBankMission:
     def test_patches_config_endpoint(self):
         c = HindsightClient("http://localhost:9077")
@@ -294,3 +289,38 @@ class TestHindsightClientSetBankMission:
         assert "my-bank" in captured["url"]
         assert captured["body"]["updates"]["reflect_mission"] == "I am Claude"
         assert captured["body"]["updates"]["retain_mission"] == "Extract facts"
+
+
+@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+def test_http_rejection_preserves_service_message(bank: str) -> None:
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from threading import Thread
+
+    detail = f"Access denied to bank {bank}"
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            body = json.dumps({"detail": detail}).encode()
+            self.send_response(403)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    client = HindsightClient(f"http://127.0.0.1:{server.server_port}")
+    try:
+        with pytest.raises(RuntimeError) as error:
+            client.request("GET", f"/v1/default/banks/{bank}")
+        assert "HTTP 403" in str(error.value)
+        assert detail in str(error.value)
+        assert isinstance(error.value.__cause__, urllib.error.HTTPError)
+    finally:
+        server.shutdown()
+        thread.join()
+        server.server_close()

@@ -12,7 +12,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-zcode"
+name = "agentstratum-zcode"
 version = "0.1.0"
 source = { editable = "." }
 

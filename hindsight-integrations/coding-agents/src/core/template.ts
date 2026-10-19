@@ -20,7 +20,7 @@ export function applyTemplate(template: string, resolvers: Resolvers, what: stri
     const resolve = resolvers[name];
     if (!resolve) {
       console.error(
-        `hindsight: unknown ${what} placeholder "{${name}}" — valid: ` +
+        `agentstratum: unknown ${what} placeholder "{${name}}" — valid: ` +
           Object.keys(resolvers)
             .sort()
             .map((k) => `{${k}}`)

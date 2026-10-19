@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 /** One page with a preamble and two headed sections. Pages are fetched/cached for the
- *  hindsight_search_knowledge_pages tool but are NEVER auto-injected into context. */
+ *  agentstratum_search_knowledge_pages tool but are NEVER auto-injected into context. */
 const PAGE_CONTENT =
   "Preamble prose about this page.\n\n" +
   "## Retry backoff\n" +
@@ -31,7 +31,7 @@ const PAGE_CONTENT =
   "Tokens rotate daily via the auth service.\n";
 
 /** The header formatPageInjection uses — must NEVER appear in hook context anymore. */
-const PAGES_HEADER = "Project knowledge from Hindsight, this repository's long-term memory";
+const PAGES_HEADER = "Project knowledge from agentstratum, this repository's long-term memory";
 
 /** A prompt overlapping the "Retry backoff" section (pages still must not inject). */
 const MATCHING_PROMPT = "why does the upload retry backoff fail?";
@@ -71,7 +71,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(result.context).toContain("Automatically retrieved by Hindsight");
+    expect(result.context).toContain("Automatically retrieved by agentstratum");
     expect(result.context).toContain("REFLECT_ANSWER");
     expect(existsSync(cacheFile)).toBe(true);
     const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
@@ -121,7 +121,7 @@ describe("buildHookOutput", () => {
     // The guide is re-stated every turn now (pageRefreshEveryTurns defaults to
     // 1), so context is never empty — what this test is about is that no MEMORY
     // was injected on the deferred turn.
-    expect(first.context).not.toContain("<hindsight_memory>");
+    expect(first.context).not.toContain("<agentstratum_memory>");
     expect(JSON.parse(readFileSync(cacheFile, "utf8")).deferInitialReflect).toBeUndefined();
 
     const second = await buildHookOutput({
@@ -150,7 +150,7 @@ describe("buildHookOutput", () => {
       cacheFile,
     });
     // Reflect failed -> no reflect block; pages are never auto-injected -> nothing to inject.
-    expect(t1.context).not.toContain("<hindsight_memory>");
+    expect(t1.context).not.toContain("<agentstratum_memory>");
     // ...but the turn is NOT silent: one line pointing at the diag trail (#3443).
     expect(t1.notice).toContain("no memory this turn");
     expect(t1.notice).toContain(diagFilePath());
@@ -170,7 +170,7 @@ describe("buildHookOutput", () => {
 
   it("reflect_failed records the bank, the deadline, and the server's full error body", async () => {
     const diagFile = join(root, "diag.log");
-    vi.stubEnv("HINDSIGHT_DIAG_FILE", diagFile);
+    vi.stubEnv("AGENTSTRATUM_DIAG_FILE", diagFile);
     const body = `{"detail":"${"x".repeat(400)} upstream LLM rejected the turn"}`;
     const client = {
       ...makeClient({
@@ -226,7 +226,7 @@ describe("buildHookOutput", () => {
       cacheFile,
     });
     expect(result.notice).toBeUndefined();
-    expect(result.context).not.toContain("<hindsight_memory>");
+    expect(result.context).not.toContain("<agentstratum_memory>");
   });
 
   it("uses a bounded low-budget reflect with the 20000ms default timeout", async () => {
@@ -326,9 +326,9 @@ describe("buildHookOutput", () => {
         timeoutMs: expect.any(Number),
       });
       expect(client.recallObservations).not.toHaveBeenCalled();
-      expect(t1.context).toContain("<hindsight_memory>");
+      expect(t1.context).toContain("<agentstratum_memory>");
       expect(t1.context).toContain("- Upload retries (kp-1): 200ms jitter window");
-      expect(t1.context).toContain("hindsight_read_knowledge_page");
+      expect(t1.context).toContain("agentstratum_read_knowledge_page");
       // The turn got memory, so it stays silent — the details live in the diag trail.
       expect(t1.notice).toBeUndefined();
 
@@ -405,7 +405,7 @@ describe("buildHookOutput", () => {
       });
 
       expect(client.recallObservations).toHaveBeenCalledTimes(1);
-      expect(out.context).not.toContain("<hindsight_memory>");
+      expect(out.context).not.toContain("<agentstratum_memory>");
       expect(out.notice).toContain("no memory this turn");
       // Retryable: neither reflect nor the fallbacks produced memory, so a later turn may try again.
       expect(JSON.parse(readFileSync(cacheFile, "utf8")).reflectAnswer).toBeUndefined();
@@ -434,7 +434,7 @@ describe("buildHookOutput", () => {
 
     it("records each fallback step in the diag trail", async () => {
       const diagFile = join(root, "diag.log");
-      vi.stubEnv("HINDSIGHT_DIAG_FILE", diagFile);
+      vi.stubEnv("AGENTSTRATUM_DIAG_FILE", diagFile);
       const client = makeClient({
         reflect: vi.fn(async () => {
           throw timedOut();
@@ -497,7 +497,7 @@ describe("buildHookOutput", () => {
     });
     expect(client.reflect).not.toHaveBeenCalled();
     expect(client.recallObservations).not.toHaveBeenCalled();
-    expect(out.context).toContain("<hindsight_memory>");
+    expect(out.context).toContain("<agentstratum_memory>");
     expect(out.context).toContain("Uploader guide (p1): retry backoff 200ms jitter");
     expect(out.context).not.toContain("synthesis was unavailable");
     expect(out.notice).toContain("Uploader guide");
@@ -509,7 +509,7 @@ describe("buildHookOutput", () => {
       cacheFile,
     });
     expect(client.searchKnowledgePages).toHaveBeenCalledTimes(1);
-    expect(next.context ?? "").not.toContain("<hindsight_memory>");
+    expect(next.context ?? "").not.toContain("<agentstratum_memory>");
   });
 
   it("autoInject pages: a FAILED search is retried, an empty one is not", async () => {
@@ -567,7 +567,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(out.context ?? "").not.toContain("<hindsight_memory>");
+    expect(out.context ?? "").not.toContain("<agentstratum_memory>");
     // Nothing to say is not a failure — announcing one would report a break on the sessions
     // where the plugin worked and the bank was simply sparse.
     expect(out.notice).toBeUndefined();
@@ -586,7 +586,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(out.context ?? "").not.toContain("<hindsight_memory>");
+    expect(out.context ?? "").not.toContain("<agentstratum_memory>");
     // These modes used to stay silent, so a memory-less turn looked identical to a healthy one.
     expect(out.notice).toContain("no memory this turn");
   });
@@ -602,7 +602,7 @@ describe("buildHookOutput", () => {
       cacheFile,
     });
     expect(client.reflect).not.toHaveBeenCalled();
-    expect(out.context ?? "").not.toContain("<hindsight_memory>");
+    expect(out.context ?? "").not.toContain("<agentstratum_memory>");
     // Tool-only mode's pull trigger: the roster refresh must carry the pages-first rule.
     const cfg2 = resolveConfig({ autoReflect: false, pageRefreshEveryTurns: 1 });
     const out2 = await buildHookOutput({
@@ -634,8 +634,8 @@ describe("buildHookOutput", () => {
     expect(result.context).not.toContain("Preamble prose about this page.");
     expect(result.context).not.toContain("200ms jitter window");
     expect(result.context).not.toContain("Auth tokens");
-    expect(result.context).not.toContain("hindsight_read_knowledge_page p1");
-    expect(result.context).toContain("Automatically retrieved by Hindsight");
+    expect(result.context).not.toContain("agentstratum_read_knowledge_page p1");
+    expect(result.context).toContain("Automatically retrieved by agentstratum");
     expect(result.context).toContain("REFLECT_ANSWER");
     // The roster is cached for the cadence-based refresh.
     const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
@@ -655,7 +655,7 @@ describe("buildHookOutput", () => {
     });
     expect(result.context).toContain("REFLECT_ANSWER"); // reflect still injected
     expect(result.context).not.toContain(PAGES_HEADER);
-    expect(result.context).not.toContain("hindsight_read_knowledge_page p1");
+    expect(result.context).not.toContain("agentstratum_read_knowledge_page p1");
   });
 
   it("empty page list -> no pages block", async () => {
@@ -672,7 +672,7 @@ describe("buildHookOutput", () => {
     expect(result.context).not.toContain(PAGES_HEADER);
     // The tool NAME now appears in the every-turn guide, so the thing to assert
     // is the absence of a page entry, not of the string.
-    expect(result.context).not.toContain("hindsight_read_knowledge_page p1");
+    expect(result.context).not.toContain("agentstratum_read_knowledge_page p1");
   });
 
   it("injects the page-roster refresh only on cadence turns", async () => {
@@ -686,7 +686,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(t1.context).not.toContain("hindsight_knowledge_refresh");
+    expect(t1.context).not.toContain("agentstratum_knowledge_refresh");
     // turn 2: multiple of 2 -> refresh injected, listing the page roster
     const t2 = await buildHookOutput({
       harness: "claude-code",
@@ -695,7 +695,7 @@ describe("buildHookOutput", () => {
       client,
       cacheFile,
     });
-    expect(t2.context).toContain("<hindsight_knowledge_refresh>");
+    expect(t2.context).toContain("<agentstratum_knowledge_refresh>");
     expect(t2.context).toContain("deliberately NOT listed here");
     // reflect block is NOT re-injected on cadence turns (injected once, on the reflect turn)
     expect(t2.context).not.toContain("REFLECT_ANSWER");
@@ -771,15 +771,15 @@ describe("buildHookOutput", () => {
 });
 
 describe("runHook anti-recursion guard", () => {
-  const ORIGINAL = process.env.HINDSIGHT_DISABLE_HOOKS;
+  const ORIGINAL = process.env.AGENTSTRATUM_DISABLE_HOOKS;
 
   afterEach(() => {
-    if (ORIGINAL === undefined) delete process.env.HINDSIGHT_DISABLE_HOOKS;
-    else process.env.HINDSIGHT_DISABLE_HOOKS = ORIGINAL;
+    if (ORIGINAL === undefined) delete process.env.AGENTSTRATUM_DISABLE_HOOKS;
+    else process.env.AGENTSTRATUM_DISABLE_HOOKS = ORIGINAL;
   });
 
-  it("HINDSIGHT_DISABLE_HOOKS set -> returns immediately, never reads stdin or builds a client", async () => {
-    process.env.HINDSIGHT_DISABLE_HOOKS = "1";
+  it("AGENTSTRATUM_DISABLE_HOOKS set -> returns immediately, never reads stdin or builds a client", async () => {
+    process.env.AGENTSTRATUM_DISABLE_HOOKS = "1";
     const makeClient = vi.fn();
     // No stdin is provided/mocked here — if the guard didn't return before `readFileSync(0, ...)`,
     // this call would attempt to read the real process stdin. The fact this resolves at all (let

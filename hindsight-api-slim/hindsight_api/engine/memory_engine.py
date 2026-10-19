@@ -595,6 +595,9 @@ def validate_sql_schema(sql: str) -> None:
                         )
 
 
+from hindsight_api.brand import WEBHOOK_EVENT_HEADER, WEBHOOK_SIGNATURE_HEADER, WEBHOOK_SIGNATURE_V2_HEADER
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR, public_error_message
+
 from .cross_encoder import RANK_SCORE_PROVIDERS, CrossEncoderModel
 from .embeddings import Embeddings, create_embeddings_from_env
 from .interface import BankConfigState, BankTemplateImportWrite, MemoryEngineInterface
@@ -4551,7 +4554,7 @@ class MemoryEngine(MemoryEngineInterface):
                 mental_model_id,
                 outcome="refresh_failed_error",
                 failure_reason="unexpected_error",
-                error_message=f"{type(e).__name__}: {e}",
+                error_message=public_error_message(e),
                 # A provider that is down or rate-limited will answer later; only a
                 # failure that would repeat on the same prompt pauses (#5394).
                 pause_automatic=not is_transient_remote_error(e),
@@ -4744,13 +4747,14 @@ class MemoryEngine(MemoryEngineInterface):
                 import traceback
 
                 error_traceback = traceback.format_exc()
+                client_error = public_error_message(e)
 
                 if task_type == "file_convert_retain":
                     # Non-retryable: mark as failed immediately.
                     # Conversion failures won't improve on retry (missing OCR, corrupted file, etc.)
                     logger.error(f"Not retrying task {task_type} (non-retryable), marking as failed")
                     if operation_id:
-                        await self._mark_operation_failed(operation_id, error_message, error_traceback)
+                        await self._mark_operation_failed(operation_id, client_error, error_traceback)
                 elif _is_non_retryable_task_error(e):
                     # Non-retryable: deterministic task failures (integrity violations,
                     # invalid embedding dimensions, etc.) will not succeed by rerunning
@@ -4762,11 +4766,11 @@ class MemoryEngine(MemoryEngineInterface):
                             operation_id=operation_id,
                             status="failed",
                             result=None,
-                            error_message=error_message,
+                            error_message=client_error,
                             schema=schema,
                         )
                     if operation_id:
-                        await self._mark_operation_failed(operation_id, error_message, error_traceback)
+                        await self._mark_operation_failed(operation_id, client_error, error_traceback)
                 else:
                     if task_type == "consolidation" and operation_id:
                         # Fire failure webhook (non-transactional — operation not yet marked failed;
@@ -4776,7 +4780,7 @@ class MemoryEngine(MemoryEngineInterface):
                             operation_id=operation_id,
                             status="failed",
                             result=None,
-                            error_message=error_message,
+                            error_message=client_error,
                             schema=schema,
                         )
 
@@ -4809,7 +4813,7 @@ class MemoryEngine(MemoryEngineInterface):
                         raise RetryTaskAt(
                             retry_at=datetime.now(UTC) + timedelta(seconds=backoff),
                             message=error_message,
-                        )
+                        ) from e
 
                     # Retryable: use RetryTaskAt if under the retry limit, else re-raise (poller marks failed).
                     # Retry count and backoff come from config (HINDSIGHT_API_WORKER_MAX_RETRIES and
@@ -4821,7 +4825,7 @@ class MemoryEngine(MemoryEngineInterface):
                         raise RetryTaskAt(
                             retry_at=datetime.now(UTC) + timedelta(seconds=config.worker_task_retry_backoff_seconds),
                             message=error_message,
-                        )
+                        ) from e
                     raise
 
     async def on_task_wall_timeout(self, task_dict: dict[str, Any], schema: str | None, error_message: str) -> None:
@@ -4838,6 +4842,7 @@ class MemoryEngine(MemoryEngineInterface):
         for the same reason: its ``except`` blocks never ran, and without the record
         the automatic triggers would queue it again on the next tick (#4532).
         """
+        error_message = "The operation timed out. Please retry."
         if task_dict.get("type") == "refresh_mental_model":
             token = _current_schema.set(schema)
             try:
@@ -5034,18 +5039,29 @@ class MemoryEngine(MemoryEngineInterface):
         else:
             payload_bytes = str(raw_payload).encode()
 
-        # User-supplied headers are spread FIRST so the Hindsight-controlled headers
+        # Header names are case-insensitive. Remove reserved names before merging
+        # so differently-cased custom values cannot shadow generated signatures.
+        reserved_headers = {
+            WEBHOOK_EVENT_HEADER.lower(),
+            WEBHOOK_SIGNATURE_HEADER.lower(),
+            WEBHOOK_SIGNATURE_V2_HEADER.lower(),
+            "x-hub-signature-256",
+        }
+        custom_headers = {
+            key: value for key, value in http_config.headers.items() if key.lower() not in reserved_headers
+        }
+        # User-supplied headers are spread FIRST so the service-controlled headers
         # below always win: a custom header must never be able to forge the event type
         # or overwrite a signature. Content-Type stays overridable -- some receivers
         # insist on a vendor media type, and the body is JSON either way.
         headers: dict[str, str] = {
             "Content-Type": "application/json",
-            **http_config.headers,
-            "X-Hindsight-Event": event_type,
+            **custom_headers,
+            WEBHOOK_EVENT_HEADER: event_type,
         }
         if secret and self._webhook_manager:
             signature = self._webhook_manager._sign_payload(secret, payload_bytes)
-            headers["X-Hindsight-Signature"] = signature
+            headers[WEBHOOK_SIGNATURE_HEADER] = signature
             # Byte-identical to the header above. `sha256=<hex>` over the raw body is
             # the construction GitHub popularised, so emitting the conventional name
             # too lets stock receivers verify without a Hindsight-specific shim.
@@ -5054,7 +5070,7 @@ class MemoryEngine(MemoryEngineInterface):
             # The body-only signatures above have no notion of freshness, which leaves
             # a captured delivery replayable forever; receivers that check `t` against
             # a tolerance window get replay protection.
-            headers["X-Hindsight-Signature-V2"] = self._webhook_manager._sign_payload_v2(
+            headers[WEBHOOK_SIGNATURE_V2_HEADER] = self._webhook_manager._sign_payload_v2(
                 secret, payload_bytes, int(datetime.now(UTC).timestamp())
             )
 
@@ -5191,9 +5207,9 @@ class MemoryEngine(MemoryEngineInterface):
         """
         try:
             backend = await self._get_backend()
-            # Truncate error message to avoid extremely long strings
-            full_error = f"{error_message}\n\nTraceback:\n{error_traceback}"
-            truncated_error = full_error[:5000] if len(full_error) > 5000 else full_error
+            # The executor classified this message while it still had the exception type.
+            logger.error("Operation %s failed: %s\n%s", operation_id, error_message, error_traceback)
+            truncated_error = error_message[:5000]
 
             async with acquire_with_retry(backend) as conn:
                 async with conn.transaction():
@@ -8424,28 +8440,25 @@ class MemoryEngine(MemoryEngineInterface):
         # the prose and ignore every image in it.
         if get_config().retain_batch_enabled:
             raise VisionNotSupportedError(
-                "Inline image content is not supported while the batch API is enabled "
-                "(HINDSIGHT_API_RETAIN_BATCH_ENABLED=true). Disable batch mode to retain "
-                "images, or send the content as text only."
+                "Inline image content is unavailable while batch processing is enabled. "
+                "Send text-only content or contact your service administrator to enable image processing."
             )
 
         supported = self._vlm_config.supports_vision()
         if supported:
             return
 
-        model = f"{self._vlm_config.provider}/{self._vlm_config.model}"
+        logger.warning(
+            "Attachment model %s/%s image support: %s", self._vlm_config.provider, self._vlm_config.model, supported
+        )
         if supported is False:
             raise VisionNotSupportedError(
-                f"The model configured to read attachments ({model}) cannot read images, but "
-                f"this retain carries inline image content. Point HINDSIGHT_API_VLM_MODEL at a "
-                f"vision-capable model — attachment-bearing chunks alone use it, so the retain "
-                f"LLM can stay text-only — or send the content as text only."
+                "The configured attachment model cannot read images. Send text-only content "
+                "or contact your service administrator to configure an image-capable model."
             )
         raise VisionNotSupportedError(
-            f"Hindsight cannot tell whether the model configured to read attachments ({model}) "
-            f"can read images, and this retain carries inline image content. If that model is "
-            f"vision-capable, set HINDSIGHT_API_LLM_VISION=true; otherwise point "
-            f"HINDSIGHT_API_VLM_MODEL at one that is, or send the content as text only."
+            "Image support could not be verified for the configured attachment model. "
+            "Send text-only content or contact your service administrator to verify image support."
         )
 
     async def store_retain_attachments(
@@ -9019,13 +9032,13 @@ class MemoryEngine(MemoryEngineInterface):
 
         tracer = get_tracer()
         # Use start_as_current_span to ensure child spans are linked properly
-        recall_span_context = tracer.start_as_current_span("hindsight.recall")
+        recall_span_context = tracer.start_as_current_span("agentstratum.recall")
         recall_span = recall_span_context.__enter__()
-        recall_span.set_attribute("hindsight.bank_id", bank_id)
-        recall_span.set_attribute("hindsight.query", query[:100])
-        recall_span.set_attribute("hindsight.fact_types", ",".join(fact_type))
-        recall_span.set_attribute("hindsight.thinking_budget", thinking_budget)
-        recall_span.set_attribute("hindsight.max_tokens", max_tokens)
+        recall_span.set_attribute("agentstratum.bank_id", bank_id)
+        recall_span.set_attribute("agentstratum.query", query[:100])
+        recall_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
+        recall_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
+        recall_span.set_attribute("agentstratum.max_tokens", max_tokens)
 
         try:
             # Backpressure: limit concurrent recalls to prevent overwhelming the database
@@ -9330,9 +9343,9 @@ class MemoryEngine(MemoryEngineInterface):
             # Step 1: Generate query embedding (for semantic search)
             step_start = time.time()
 
-            embedding_span = tracer_otel.start_span("hindsight.recall_embedding")
-            embedding_span.set_attribute("hindsight.bank_id", bank_id)
-            embedding_span.set_attribute("hindsight.query", query[:100])
+            embedding_span = tracer_otel.start_span("agentstratum.recall_embedding")
+            embedding_span.set_attribute("agentstratum.bank_id", bank_id)
+            embedding_span.set_attribute("agentstratum.query", query[:100])
 
             try:
                 get_metrics_collector().record_recall_phase("swr_prelude", time.time() - backend_acquire_start)
@@ -9488,10 +9501,10 @@ class MemoryEngine(MemoryEngineInterface):
                 retrieve_all_fact_types_parallel,
             )
 
-            retrieval_span = tracer_otel.start_span("hindsight.recall_retrieval")
-            retrieval_span.set_attribute("hindsight.bank_id", bank_id)
-            retrieval_span.set_attribute("hindsight.fact_types", ",".join(fact_type))
-            retrieval_span.set_attribute("hindsight.thinking_budget", thinking_budget)
+            retrieval_span = tracer_otel.start_span("agentstratum.recall_retrieval")
+            retrieval_span.set_attribute("agentstratum.bank_id", bank_id)
+            retrieval_span.set_attribute("agentstratum.fact_types", ",".join(fact_type))
+            retrieval_span.set_attribute("agentstratum.thinking_budget", thinking_budget)
 
             try:
                 # Run optimized retrieval with connection budget
@@ -9797,12 +9810,12 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             from .search.fusion import interleave_fusion, reciprocal_rank_fusion
 
-            fusion_span = tracer_otel.start_span("hindsight.recall_fusion")
-            fusion_span.set_attribute("hindsight.bank_id", bank_id)
-            fusion_span.set_attribute("hindsight.semantic_count", len(semantic_results))
-            fusion_span.set_attribute("hindsight.bm25_count", len(bm25_results))
-            fusion_span.set_attribute("hindsight.graph_count", len(graph_results))
-            fusion_span.set_attribute("hindsight.temporal_count", len(temporal_results) if temporal_results else 0)
+            fusion_span = tracer_otel.start_span("agentstratum.recall_fusion")
+            fusion_span.set_attribute("agentstratum.bank_id", bank_id)
+            fusion_span.set_attribute("agentstratum.semantic_count", len(semantic_results))
+            fusion_span.set_attribute("agentstratum.bm25_count", len(bm25_results))
+            fusion_span.set_attribute("agentstratum.graph_count", len(graph_results))
+            fusion_span.set_attribute("agentstratum.temporal_count", len(temporal_results) if temporal_results else 0)
 
             try:
                 # Merge 3 or 4 result lists depending on temporal constraint
@@ -9818,7 +9831,7 @@ class MemoryEngine(MemoryEngineInterface):
                     f"{len(merged_candidates)} unique candidates in {step_duration:.3f}s"
                 )
             finally:
-                fusion_span.set_attribute("hindsight.merged_count", len(merged_candidates))
+                fusion_span.set_attribute("agentstratum.merged_count", len(merged_candidates))
                 fusion_span.end()
 
             # The payload build is gated on `enable_trace`; the phase metric is not. The
@@ -9838,9 +9851,9 @@ class MemoryEngine(MemoryEngineInterface):
             step_start = time.time()
             reranker_instance = self._cross_encoder_reranker
 
-            rerank_span = tracer_otel.start_span("hindsight.recall_rerank")
-            rerank_span.set_attribute("hindsight.bank_id", bank_id)
-            rerank_span.set_attribute("hindsight.candidates_count", len(merged_candidates))
+            rerank_span = tracer_otel.start_span("agentstratum.recall_rerank")
+            rerank_span.set_attribute("agentstratum.bank_id", bank_id)
+            rerank_span.set_attribute("agentstratum.candidates_count", len(merged_candidates))
 
             scored_results: list = []
             # Provider that produced scored_results for THIS call. None until a
@@ -9952,9 +9965,9 @@ class MemoryEngine(MemoryEngineInterface):
                     f"scored in {step_duration:.3f}s{pre_filter_note}"
                 )
             finally:
-                rerank_span.set_attribute("hindsight.scored_count", len(scored_results))
+                rerank_span.set_attribute("agentstratum.scored_count", len(scored_results))
                 if pre_filtered_count > 0:
-                    rerank_span.set_attribute("hindsight.pre_filtered_count", pre_filtered_count)
+                    rerank_span.set_attribute("agentstratum.pre_filtered_count", pre_filtered_count)
                 rerank_span.end()
 
             # Step 4.5: Combine cross-encoder score with retrieval signals via multiplicative boosts.
@@ -15280,8 +15293,8 @@ class MemoryEngine(MemoryEngineInterface):
             from .providers.none_llm import LLMNotAvailableError
 
             raise LLMNotAvailableError(
-                "Reflect requires an LLM provider. Current provider is set to 'none'. "
-                "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+                "Reflect requires a language model, but none is configured. "
+                "Contact your service administrator to enable it."
             )
 
         # Authenticate tenant and set schema in context (for fq_table())
@@ -17426,7 +17439,7 @@ class MemoryEngine(MemoryEngineInterface):
         if refresh_cutoff is None:
             return None
         # Run reflect with the source query, excluding the mental model being refreshed
-        # Skip creating a nested "hindsight.reflect" span since we already have "hindsight.mental_model_refresh"
+        # Skip creating a nested "agentstratum.reflect" span since we already have "agentstratum.mental_model_refresh"
         mm_name = mental_model.get("name") or mental_model_id
 
         reflect_kwargs: dict[str, Any] = dict(
@@ -18221,7 +18234,7 @@ class MemoryEngine(MemoryEngineInterface):
                     mental_model_id,
                     outcome="refresh_failed_error",
                     failure_reason=failure_reason,
-                    error_message=detail,
+                    error_message=public_error_message(exc),
                 )
                 raise MentalModelRefreshError(
                     f"Refresh failed for mental_model_id={mental_model_id}: {detail} "
@@ -18319,7 +18332,7 @@ class MemoryEngine(MemoryEngineInterface):
                     mental_model_id,
                     outcome=outcome,
                     failure_reason=reason,
-                    error_message=detail,
+                    error_message=PUBLIC_INTERNAL_ERROR if reason == "structured_output_failed" else detail,
                 )
                 raise MentalModelRefreshError(
                     f"Refresh failed for mental_model_id={mental_model_id}: {detail} "
@@ -23385,6 +23398,6 @@ class MemoryEngine(MemoryEngineInterface):
         from .providers.none_llm import LLMNotAvailableError
 
         raise LLMNotAvailableError(
-            "Mental model refresh requires an LLM provider. Current provider is set to 'none'. "
-            "Set HINDSIGHT_API_LLM_PROVIDER to a real provider (e.g., openai, anthropic, gemini)."
+            "Mental model refresh requires a language model, but none is configured. "
+            "Contact your service administrator to enable it."
         )

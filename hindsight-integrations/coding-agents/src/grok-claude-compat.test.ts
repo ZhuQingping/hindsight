@@ -69,7 +69,7 @@ beforeEach(() => {
   execFileSync("git", ["init", "-q", root]);
   sessionId = `sess-grok-${basename(root)}`;
   rawConfig = { autoSeed: false, autoUpdate: false };
-  vi.stubEnv("HINDSIGHT_DIAG_FILE", join(root, "diag.log"));
+  vi.stubEnv("AGENTSTRATUM_DIAG_FILE", join(root, "diag.log"));
 });
 
 afterEach(() => {

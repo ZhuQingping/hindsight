@@ -7,4 +7,4 @@
  * that work: v1 follows package.json `main` (→ dist/index.js, the v1 plugin), while v2 ignores
  * `main` and loads `<dir>/index.js` — this file. See src/opencode2.ts.
  */
-export { default, HindsightOpencode2Plugin } from "./dist/opencode2.js";
+export { default, AgentstratumOpencode2Plugin } from "./dist/opencode2.js";

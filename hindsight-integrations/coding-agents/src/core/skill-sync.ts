@@ -40,7 +40,7 @@ export function syncCompanionSkill(
     const src = opts.srcDir ?? packagedSkillDir();
     const srcMd = join(src, "SKILL.md");
     if (!existsSync(srcMd)) return;
-    const dst = join(opts.home ?? homedir(), ...parts, "hindsight-coding-agent");
+    const dst = join(opts.home ?? homedir(), ...parts, "agentstratum-coding-agent");
     const dstMd = join(dst, "SKILL.md");
     const installed = existsSync(dstMd);
     if (!installed && !opts.install) return; // never installed here — not ours to decide

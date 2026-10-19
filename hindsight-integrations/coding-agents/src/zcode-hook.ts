@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * hindsight-zcode-hook - the ZCode entry point (a `UserPromptSubmit` hook).
+ * agentstratum-zcode-hook - the ZCode entry point (a `UserPromptSubmit` hook).
  *
  * Install (ZCode, user scope): ~/.zcode/cli/config.json
  *   { "hooks": { "enabled": true, "events": { "UserPromptSubmit": [ { "hooks": [

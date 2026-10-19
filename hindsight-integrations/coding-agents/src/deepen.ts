@@ -97,11 +97,11 @@ const log = (m: string) => {
 };
 
 // ── per-bank lease: concurrent session starts must not double-ingest ─────────────
-// Scratch, not state: in the OS temp dir so ~/.hindsight holds ONLY the config file. A heartbeat
+// Scratch, not state: in the OS temp dir so ~/.agentstratum holds ONLY the config file. A heartbeat
 // keeps the lease live for however long the run takes; a dead run's lease goes stale in seconds.
 // Previously a pid + 30-minute TTL file: a run longer than 30 minutes lost it to the next session
 // start and two runs ingested the same bank at once (#4569). Same lease as the survey's.
-const LEASE_ROOT = join(tmpdir(), "hindsight-coding-agent", "deepen");
+const LEASE_ROOT = join(tmpdir(), "agentstratum-coding-agent", "deepen");
 const lease = acquireLease(LEASE_ROOT, encodeURIComponent(FINAL_BANK ?? ""));
 if (lease) {
   setInterval(() => {
@@ -268,7 +268,7 @@ async function main() {
           const tags = [...new Set([...stamp.tags, "source:survey-baseline", "survey-state:done"])];
           await client.retain(
             content,
-            "hindsight codebase-survey baseline",
+            "agentstratum codebase-survey baseline",
             best.id,
             tags,
             "survey",

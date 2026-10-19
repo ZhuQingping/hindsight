@@ -5,7 +5,7 @@ This hook reads the prompt from stdin as JSON and emits additional context via
 the `hookSpecificOutput.additionalContext` field.
 
 Fires right after the user hits send but before the backend request.
-Retrieves relevant memories from Hindsight and injects them so the agent has
+Retrieves relevant memories from agentstratum and injects them so the agent has
 continuity across sessions. It also stashes the user prompt to state so the
 `Stop` hook (retain) can pair it with the assistant's reply — ZCode's ephemeral
 Stop transcript is assistant-only, so retain relies on this stash to reconstruct
@@ -18,10 +18,10 @@ Flow:
   4. Derive bank ID and ensure mission
   5. Compose multi-turn query if recallContextTurns > 1
   6. Truncate to recallMaxQueryChars
-  7. Call Hindsight recall API
+  7. Call agentstratum recall API
   8. Format memories and emit the `UserPromptSubmit` output:
        { "hookSpecificOutput": { "hookEventName": "UserPromptSubmit",
-                                 "additionalContext": "<hindsight_memories>..." } }
+                                 "additionalContext": "<agentstratum_memories>..." } }
 
 Exit codes:
   0 — always (graceful degradation on any error).
@@ -52,7 +52,7 @@ LAST_RECALL_STATE = "last_recall.json"
 
 
 def main():
-    if sys.platform == "win32":
+    if sys.platform == "win32" and all(hasattr(stream, "buffer") for stream in (sys.stdin, sys.stdout, sys.stderr)):
         sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
@@ -67,7 +67,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[agentstratum] Failed to read hook input", file=sys.stderr)
         return
 
     debug_log(config, f"Hook input keys: {list(hook_input.keys())}")
@@ -94,14 +94,14 @@ def main():
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[agentstratum] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("apiToken")
     try:
         client = HindsightClient(api_url, api_token)
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
         return
 
     bank_id = derive_bank_id(hook_input, config)
@@ -141,7 +141,7 @@ def main():
             timeout=recall_timeout,
         )
     except Exception as e:
-        print(f"[Hindsight] Recall failed: {e}", file=sys.stderr)
+        print(f"[agentstratum] Recall failed: {e}", file=sys.stderr)
         return
 
     results = response.get("results", [])
@@ -154,11 +154,11 @@ def main():
     memories_formatted = format_memories(results)
 
     context_message = (
-        f"<hindsight_memories>\n"
+        f"<agentstratum_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</hindsight_memories>"
+        f"</agentstratum_memories>"
     )
 
     write_state(
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in recall: {e}", file=sys.stderr)
+        print(f"[agentstratum] Unexpected error in recall: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

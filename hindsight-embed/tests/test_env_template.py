@@ -20,15 +20,15 @@ def _active_keys(text: str) -> dict[str, str]:
 def test_user_values_are_active():
     text = render_config(
         {
-            "HINDSIGHT_API_LLM_PROVIDER": "anthropic",
-            "HINDSIGHT_API_LLM_API_KEY": "sk-secret",
-            "HINDSIGHT_API_LLM_MODEL": "gpt-4o-mini",
+            "AGENTSTRATUM_API_LLM_PROVIDER": "anthropic",
+            "AGENTSTRATUM_API_LLM_API_KEY": "sk-secret",
+            "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
         }
     )
     active = _active_keys(text)
-    assert active["HINDSIGHT_API_LLM_PROVIDER"] == "anthropic"
-    assert active["HINDSIGHT_API_LLM_API_KEY"] == "sk-secret"
-    assert active["HINDSIGHT_API_LLM_MODEL"] == "gpt-4o-mini"
+    assert active["AGENTSTRATUM_API_LLM_PROVIDER"] == "anthropic"
+    assert active["AGENTSTRATUM_API_LLM_API_KEY"] == "sk-secret"
+    assert active["AGENTSTRATUM_API_LLM_MODEL"] == "gpt-4o-mini"
 
 
 def test_only_user_values_are_active():
@@ -38,21 +38,21 @@ def test_only_user_values_are_active():
     daemon sees the identical active config and never inherits the template's
     api-server defaults (port 8888, OpenAI base url, gpt-4o-mini, host)."""
     values = {
-        "HINDSIGHT_API_LLM_PROVIDER": "anthropic",
-        "HINDSIGHT_API_LLM_API_KEY": "sk-secret",
-        "HINDSIGHT_API_LLM_MODEL": "gpt-4o-mini",
+        "AGENTSTRATUM_API_LLM_PROVIDER": "anthropic",
+        "AGENTSTRATUM_API_LLM_API_KEY": "sk-secret",
+        "AGENTSTRATUM_API_LLM_MODEL": "gpt-4o-mini",
     }
     assert _active_keys(render_config(values)) == values
 
     # Minimal case: provider only — no other key leaks in active.
-    assert _active_keys(render_config({"HINDSIGHT_API_LLM_PROVIDER": "gemini"})) == {
-        "HINDSIGHT_API_LLM_PROVIDER": "gemini"
+    assert _active_keys(render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "gemini"})) == {
+        "AGENTSTRATUM_API_LLM_PROVIDER": "gemini"
     }
 
 
 def test_documentation_is_preserved():
     """Commented example blocks survive so the file is self-documenting."""
-    text = render_config({"HINDSIGHT_API_LLM_PROVIDER": "openai"})
+    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai"})
     assert "# Example: Anthropic Claude configuration" in text
     assert "Supported providers:" in text
 
@@ -61,8 +61,8 @@ def test_template_documents_macos_cpu_workarounds():
     """Installed profile templates should expose both supported MPS/XPC workarounds."""
     text = load_template()
     assert text is not None
-    assert "# HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU=false" in text
-    assert "# HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU=false" in text
+    assert "# AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU=false" in text
+    assert "# AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU=false" in text
 
 
 def test_load_template_reads_bundled_copy_as_utf8(monkeypatch):
@@ -87,24 +87,32 @@ def test_load_template_reads_bundled_copy_as_utf8(monkeypatch):
 
 
 def test_unknown_keys_are_appended():
-    text = render_config({"HINDSIGHT_API_LLM_PROVIDER": "openai", "KEY": "value"})
+    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai", "KEY": "value"})
     assert _active_keys(text)["KEY"] == "value"
 
 
 def test_falls_back_to_minimal_without_template():
-    text = render_config({"HINDSIGHT_API_LLM_PROVIDER": "openai"}, template="")
-    assert _active_keys(text) == {"HINDSIGHT_API_LLM_PROVIDER": "openai"}
+    text = render_config({"AGENTSTRATUM_API_LLM_PROVIDER": "openai"}, template="")
+    assert _active_keys(text) == {"AGENTSTRATUM_API_LLM_PROVIDER": "openai"}
 
 
 def test_bundled_template_matches_repo_root():
     """The package ships a copy of the repo-root .env.example; keep them in
     sync so installed users get the same documented options. Skips when the
     repo root isn't present (installed-package context)."""
-    bundled = load_template()
-    assert bundled is not None
+    bundled = (Path(__file__).resolve().parents[1] / "hindsight_embed" / "env.example").read_text(encoding="utf-8")
     repo_root_example = Path(__file__).resolve().parents[2] / ".env.example"
     if not repo_root_example.is_file():
         return
     assert bundled == repo_root_example.read_text(encoding="utf-8"), (
         "hindsight_embed/env.example is out of sync with the repo-root .env.example — re-copy it."
     )
+
+
+def test_public_template_has_product_identity_but_customer_values_are_unchanged():
+    template = load_template()
+    assert template is not None
+    assert "hindsight" not in template.casefold()
+    value = "https://customer.example/hindsight-model"
+    rendered = render_config({"AGENTSTRATUM_API_LLM_BASE_URL": value})
+    assert _active_keys(rendered)["AGENTSTRATUM_API_LLM_BASE_URL"] == value

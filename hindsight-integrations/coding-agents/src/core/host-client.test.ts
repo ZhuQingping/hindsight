@@ -8,10 +8,10 @@ let root: string;
 let cfgPath: string;
 
 /** `CONFIG_PATH` is resolved from the environment when core/config is first imported, so each case
- *  points HINDSIGHT_CONFIG at its own file and re-imports the module graph. */
+ *  points AGENTSTRATUM_CONFIG at its own file and re-imports the module graph. */
 async function loadFactory() {
   vi.resetModules();
-  process.env.HINDSIGHT_CONFIG = cfgPath;
+  process.env.AGENTSTRATUM_CONFIG = cfgPath;
   return import("./host-client");
 }
 
@@ -91,9 +91,8 @@ describe("resolveHostMemory", () => {
     vi.unstubAllGlobals();
   });
 
-  it("honours a per-bank apiToken on re-resolution, not just on the first read", async () => {
-    // `banks.<id>.apiToken` is a legitimate override (it is not stripped by BANK_OVERRIDE_EXCLUDED),
-    // so a provider that re-read only the top level would hand back the wrong credential.
+  it("ignores per-bank credentials and uses the default connection", async () => {
+    // Banks customize memory behavior, never the shared endpoint or credential.
     const { resolveHostMemory: probe } = await loadFactory();
     writeConfig({ apiUrl: "http://server", apiToken: "global" });
     const bankId = probe("dsh", root).bankId;
@@ -104,7 +103,7 @@ describe("resolveHostMemory", () => {
       banks: { [bankId]: { apiToken: "per-bank" } },
     });
     const { resolveHostMemory } = await loadFactory();
-    expect(resolveHostMemory("dsh", root).client.apiToken).toBe("per-bank");
+    expect(resolveHostMemory("dsh", root).client.apiToken).toBe("global");
   });
 
   it("keeps a token re-read from reaching the old server after the config moved the directory", async () => {

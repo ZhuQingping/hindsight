@@ -164,3 +164,25 @@ describe("respondWithSdk", () => {
     });
   });
 });
+
+it("preserves service errors on both SDK paths without altering validation inputs", async () => {
+  const input = { name: "hindsight is customer content" };
+  const upstreamError = {
+    detail: [{ msg: "Invalid bank 'Hindsight-review': access denied", input }],
+  };
+  for (const label of ["Failed to update bank config", "Unmapped operation failure"]) {
+    const response = respondWithSdk(fail(upstreamError, 422), label);
+    const body = await response.json();
+    expect(response.status).toBe(422);
+    expect(body.details[0].msg).toBe(upstreamError.detail[0].msg);
+    expect(body.upstream.detail.detail[0].msg).toBe(upstreamError.detail[0].msg);
+    expect(body.details[0].input).toEqual(input);
+    expect(body.upstream.detail.detail[0].input).toEqual(input);
+  }
+  expect(upstreamError.detail[0].msg).toContain("Hindsight-review");
+});
+
+it("does not rewrite successful customer data, including diagnostic-looking keys", async () => {
+  const data = { message: "hindsight", error: "Hindsight", details: ["HINDSIGHT"] };
+  await expect(respondWithSdk(ok(data), "Failed").json()).resolves.toEqual(data);
+});

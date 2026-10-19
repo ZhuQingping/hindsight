@@ -1,16 +1,16 @@
-"""Hindsight-embed daemon lifecycle management.
+"""agentstratum-embed daemon lifecycle management.
 
-Port of: HindsightServer in @vectorize-io/hindsight-all, adapted for Python
+Port of: HindsightServer in agentstratum-local-engine, adapted for Python
 subprocess calls from ephemeral hook processes.
 
 Manages three connection modes (same as Openclaw):
-  1. External API — user provides hindsightApiUrl (skip daemon entirely)
-  2. Existing local server — user already has hindsight running
-  3. Auto-managed daemon — plugin starts/stops hindsight-embed
+  1. External API — user provides apiUrl (skip daemon entirely)
+  2. Existing local server — user already has agentstratum running
+  3. Auto-managed daemon — plugin starts/stops agentstratum-embed
 
 In Claude Code's ephemeral model, daemon state is tracked via files in
 $CLAUDE_PLUGIN_DATA/state/. The daemon itself is a background OS process
-managed by hindsight-embed's built-in daemon command.
+managed by agentstratum-embed's built-in daemon command.
 """
 
 import os
@@ -29,21 +29,22 @@ PROFILE_NAME = "claude-code"
 
 
 def _get_embed_command(config: dict) -> list:
-    """Get the command to run hindsight-embed.
+    """Get the command to run agentstratum-embed.
 
-    Port of: getEmbedCommand() in @vectorize-io/hindsight-all
+    Port of: getEmbedCommand() in agentstratum-local-engine
     """
     embed_path = config.get("embedPackagePath")
     if embed_path:
-        return ["uv", "run", "--directory", embed_path, "hindsight-embed"]
+        return ["uv", "run", "--directory", embed_path, "agentstratum-embed"]
 
-    version = config.get("embedVersion", "latest")
-    package = f"hindsight-embed@{version}" if version else "hindsight-embed@latest"
-    return ["uvx", package]
+    package = config.get("embedPackage") or os.environ.get("AGENTSTRATUM_EMBED_PACKAGE")
+    if not package:
+        raise RuntimeError("Set AGENTSTRATUM_EMBED_PACKAGE or embedPackagePath for local engine mode.")
+    return ["uvx", "--quiet", "--from", package, "agentstratum-embed"]
 
 
 def _run_embed(config: dict, args: list, env: dict = None, timeout: int = 10) -> subprocess.CompletedProcess:
-    """Run a hindsight-embed command and return the result."""
+    """Run a agentstratum-embed command and return the result."""
     cmd = _get_embed_command(config) + args
     run_env = dict(os.environ)
     if env:
@@ -58,7 +59,7 @@ def _run_embed(config: dict, args: list, env: dict = None, timeout: int = 10) ->
 
 
 def _is_embed_available(config: dict) -> bool:
-    """Quick check if hindsight-embed is available on PATH.
+    """Quick check if agentstratum-embed is available on PATH.
 
     Avoids the slow uvx download path when the tool isn't installed.
     """
@@ -67,18 +68,18 @@ def _is_embed_available(config: dict) -> bool:
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return os.path.isdir(embed_path)
-    # Check for uvx or hindsight-embed on PATH
-    return shutil.which("uvx") is not None or shutil.which("hindsight-embed") is not None
+    # Check for uvx or agentstratum-embed on PATH
+    return shutil.which("uvx") is not None or shutil.which("agentstratum-embed") is not None
 
 
 def _check_health(base_url: str, timeout: int = 10) -> bool:
-    """Quick health check against a Hindsight server.
+    """Quick health check against a agentstratum server.
 
     Default timeout is 10s (matching the recall hook budget): under load an
     alive-but-busy daemon mid fact-extraction may not answer /health within a
     couple of seconds. A too-short timeout yields a false negative, so
     get_api_url() falls through to _ensure_daemon_running() ->
-    `hindsight-embed daemon start`, whose _clear_port() then SIGTERMs the
+    `agentstratum-embed daemon start`, whose _clear_port() then SIGTERMs the
     live daemon -- a restart/kill loop. A 10s budget lets a busy daemon
     respond before it is declared dead.
     """
@@ -97,7 +98,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     Returns the API URL to use for recall/retain, handling all three modes.
 
     Connection mode priority:
-      1. External API (hindsightApiUrl configured)
+      1. External API (apiUrl configured)
       2. Existing local server (check port health)
       3. Auto-managed daemon (only if allow_daemon_start=True)
 
@@ -106,7 +107,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     attempt daemon start.
     """
     # Mode 1: External API
-    external_url = config.get("hindsightApiUrl")
+    external_url = config.get("apiUrl")
     if external_url:
         if debug_fn:
             debug_fn(f"Using external API: {external_url}")
@@ -125,8 +126,8 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
     # Mode 3: Auto-start daemon (only when allowed)
     if not allow_daemon_start:
         raise RuntimeError(
-            f"No Hindsight server on port {port}. Set hindsightApiUrl for external "
-            f"API, start hindsight-embed manually, or wait for the retain hook to "
+            f"No agentstratum server on port {port}. Set apiUrl for external "
+            f"API, start agentstratum-embed manually, or wait for the retain hook to "
             f"auto-start the daemon."
         )
 
@@ -139,23 +140,22 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
         if debug_fn:
             debug_fn(f"Daemon start failed: {e}")
         raise RuntimeError(
-            "No Hindsight server available. Set hindsightApiUrl for external API, "
-            "or ensure hindsight-embed is installed for local daemon mode."
+            "No agentstratum server available. Set apiUrl for external API, "
+            "or ensure agentstratum-embed is installed for local daemon mode."
         ) from e
 
     return base_url
 
 
 def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
-    """Start the hindsight-embed daemon if not already running.
+    """Start the agentstratum-embed daemon if not already running.
 
-    Port of: HindsightServer.start() in @vectorize-io/hindsight-all
+    Port of: HindsightServer.start() in agentstratum-local-engine
     """
-    # Fast-fail if hindsight-embed toolchain is not available
+    # Fast-fail if agentstratum-embed toolchain is not available
     if not _is_embed_available(config):
         raise RuntimeError(
-            "hindsight-embed not found (uvx not on PATH). "
-            "Install with: pip install hindsight-embed, or set hindsightApiUrl."
+            "agentstratum-embed not found (uvx not on PATH). Configure AGENTSTRATUM_EMBED_PACKAGE, or set apiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -171,12 +171,12 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     # Build daemon environment
     daemon_env = dict(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 300)
-    daemon_env["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
 
     # On macOS, force CPU for embeddings/reranker (mirrors Openclaw)
     if platform.system() == "Darwin":
-        daemon_env["HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     # Step 1: Configure profile
     if debug_fn:
@@ -206,8 +206,7 @@ def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
         raise RuntimeError("Profile create timed out")
     except FileNotFoundError:
         raise RuntimeError(
-            "hindsight-embed not found. Install with: pip install hindsight-embed "
-            "or set hindsightApiUrl for external API mode."
+            "agentstratum-embed not found. Configure AGENTSTRATUM_EMBED_PACKAGE or set apiUrl for external API mode."
         )
 
     # Step 2: Start daemon
@@ -259,7 +258,7 @@ def prestart_daemon_background(config: dict, debug_fn=None):
     recall or retain hook fires. Returns immediately; the daemon starts
     asynchronously as a detached OS process.
     """
-    if config.get("hindsightApiUrl"):
+    if config.get("apiUrl"):
         return  # External API mode — no local daemon needed
 
     port = config.get("apiPort", 9077)
@@ -270,7 +269,7 @@ def prestart_daemon_background(config: dict, debug_fn=None):
 
     if not _is_embed_available(config):
         if debug_fn:
-            debug_fn("hindsight-embed not available, skipping pre-start")
+            debug_fn("agentstratum-embed not available, skipping pre-start")
         return
 
     try:
@@ -285,10 +284,10 @@ def prestart_daemon_background(config: dict, debug_fn=None):
     daemon_env = dict(os.environ)
     daemon_env.update(llm_env)
     idle_timeout = config.get("daemonIdleTimeout", 300)
-    daemon_env["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
+    daemon_env["AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT"] = str(idle_timeout)
     if platform.system() == "Darwin":
-        daemon_env["HINDSIGHT_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
-        daemon_env["HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_EMBEDDINGS_LOCAL_FORCE_CPU"] = "1"
+        daemon_env["AGENTSTRATUM_API_RERANKER_LOCAL_FORCE_CPU"] = "1"
 
     profile_args = ["profile", "create", PROFILE_NAME, "--merge", "--port", str(port)]
     for env_name, env_val in llm_env.items():

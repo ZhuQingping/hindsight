@@ -52,9 +52,9 @@ describe("readOpencode2Messages", () => {
 
   it("strips injected memory so a write-back never re-ingests what we injected", () => {
     const messages: Oc2Message[] = [
-      { type: "user", text: "<hindsight_memories>\nleak\n</hindsight_memories>\nWhy retry?" },
+      { type: "user", text: "<agentstratum_memories>\nleak\n</agentstratum_memories>\nWhy retry?" },
       // a message that is NOTHING but injected memory renders empty and is dropped entirely
-      { type: "user", text: "<hindsight_knowledge>\nall of it\n</hindsight_knowledge>" },
+      { type: "user", text: "<agentstratum_knowledge>\nall of it\n</agentstratum_knowledge>" },
     ];
     expect(readOpencode2Messages(messages)).toEqual([{ role: "user", content: "Why retry?" }]);
   });

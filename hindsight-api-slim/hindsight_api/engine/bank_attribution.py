@@ -13,7 +13,9 @@ but operators should opt in with that in mind.
 
 from typing import Any
 
-RERANKER_BANK_ID_HEADER = "X-Hindsight-Bank-Id"
+from hindsight_api.brand import RERANKER_BANK_HEADER
+
+RERANKER_BANK_ID_HEADER = RERANKER_BANK_HEADER
 
 
 def apply_bank_attribution(request: dict[str, Any]) -> None:

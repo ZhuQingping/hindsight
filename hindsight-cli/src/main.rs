@@ -30,8 +30,8 @@ impl From<Format> for OutputFormat {
 }
 
 #[derive(Parser)]
-#[command(name = "hindsight")]
-#[command(about = "Hindsight CLI - Semantic memory system", long_about = None)]
+#[command(name = "agentstratum")]
+#[command(about = "Agentstratum CLI - Semantic memory system", long_about = None)]
 #[command(version)]
 #[command(before_help = get_before_help())]
 #[command(after_help = get_after_help())]
@@ -44,10 +44,10 @@ struct Cli {
     #[arg(short = 'v', long, global = true)]
     verbose: bool,
 
-    /// Named profile to load from ~/.hindsight/cli-profiles/<name>.toml
-    /// (env var HINDSIGHT_PROFILE is used if this flag is omitted).
-    /// Environment variables (HINDSIGHT_API_URL / HINDSIGHT_API_KEY) still override profile values.
-    #[arg(short = 'p', long, global = true, env = "HINDSIGHT_PROFILE")]
+    /// Named profile to load from ~/.agentstratum/cli-profiles/<name>.toml
+    /// (env var AGENTSTRATUM_PROFILE is used if this flag is omitted).
+    /// Environment variables (AGENTSTRATUM_API_URL / AGENTSTRATUM_API_KEY) still override profile values.
+    #[arg(short = 'p', long, global = true, env = "AGENTSTRATUM_PROFILE")]
     profile: Option<String>,
 
     #[command(subcommand)]
@@ -58,10 +58,10 @@ fn get_after_help() -> String {
     let config = config::Config::load().ok();
     let (api_url, source) = match &config {
         Some(c) => (c.api_url.as_str(), c.source.to_string()),
-        None => ("http://localhost:8888", "default".to_string()),
+        None => ("not configured", "configure an API Endpoint".to_string()),
     };
     format!(
-        "Current API URL: {} (from {})\n\nRun 'hindsight configure' to change the API URL.",
+        "Current API URL: {} (from {})\n\nRun 'agentstratum configure' to change the API URL.",
         api_url, source
     )
 }
@@ -137,12 +137,9 @@ enum Commands {
     #[command(alias = "tui")]
     Explore,
 
-    /// Launch the web-based control plane UI
-    Ui,
-
     /// Configure the CLI (API URL, API key, etc.)
     #[command(
-        after_help = "Configuration priority:\n  1. Environment variables (HINDSIGHT_API_URL, HINDSIGHT_API_KEY) - highest priority\n  2. Named profile (-p / HINDSIGHT_PROFILE, see 'hindsight profile')\n  3. Config file (~/.hindsight/config)\n  4. Default (http://localhost:8888)"
+        after_help = "Configuration priority:\n  1. Environment variables (AGENTSTRATUM_API_URL, AGENTSTRATUM_API_KEY) - highest priority\n  2. Named profile (-p / AGENTSTRATUM_PROFILE, see 'agentstratum profile')\n  3. Config file (~/.agentstratum/config)\n  No default endpoint; copy your API Endpoint from the console."
     )]
     Configure {
         /// API URL to connect to (interactive prompt if not provided)
@@ -153,7 +150,7 @@ enum Commands {
         api_key: Option<String>,
     },
 
-    /// Manage named connection profiles (~/.hindsight/cli-profiles/<name>.toml)
+    /// Manage named connection profiles (~/.agentstratum/cli-profiles/<name>.toml)
     #[command(subcommand)]
     Profile(ProfileCommands),
 }
@@ -162,7 +159,7 @@ enum Commands {
 enum ProfileCommands {
     /// Create or overwrite a profile
     Create {
-        /// Profile name (used with -p/--profile or $HINDSIGHT_PROFILE)
+        /// Profile name (used with -p/--profile or $AGENTSTRATUM_PROFILE)
         name: String,
         /// API URL (required)
         #[arg(long)]
@@ -1424,7 +1421,7 @@ fn main() {
     // closed stdout pipe as an `EPIPE` error rather than a signal. But the
     // release profile sets `panic = "abort"`, so that write error becomes a
     // silent SIGABRT — a spurious "fatal error" with no message — whenever
-    // the reader closes early (e.g. `hindsight ... | head`).
+    // the reader closes early (e.g. `agentstratum ... | head`).
     //
     // Restore the default SIGPIPE disposition on Unix so the CLI terminates
     // cleanly on a broken pipe, like other Unix CLI tools. Note this also
@@ -1459,9 +1456,10 @@ fn run() -> Result<()> {
         return handle_profile(cmd, output_format);
     }
 
-    // Handle ui command - needs config but not API client
-    if let Commands::Ui = cli.command {
-        return handle_ui(profile.as_deref(), output_format);
+    // fs resolves its own flags/saved mount before requiring an endpoint and
+    // has local-only commands that do not need an API client at all.
+    if let Commands::Fs(fs_cmd) = cli.command {
+        return commands::fs::dispatch(fs_cmd, profile.as_deref(), output_format);
     }
 
     // Load configuration
@@ -1483,14 +1481,9 @@ fn run() -> Result<()> {
     let result: Result<()> = match cli.command {
         Commands::Configure { .. } => unreachable!(), // Handled above
         Commands::Profile(_) => unreachable!(),       // Handled above
-        Commands::Ui => unreachable!(),               // Handled above
         Commands::Explore => commands::explore::run(&client),
 
-        // Filesystem mirror — talks to the API directly (blocking client), so it
-        // uses the resolved endpoint rather than the generated async client.
-        Commands::Fs(fs_cmd) => {
-            commands::fs::dispatch(fs_cmd, &api_url, api_key.as_deref(), output_format)
-        }
+        Commands::Fs(_) => unreachable!(), // Handled above
 
         // Health, Metrics, and Version
         Commands::Health => commands::health::health(&client, verbose, output_format),
@@ -2349,7 +2342,7 @@ fn handle_configure(
     let current_config = Config::load().ok();
 
     if output_format == OutputFormat::Pretty {
-        ui::print_info("Hindsight CLI Configuration");
+        ui::print_info("Agentstratum CLI Configuration");
         println!();
 
         // Show current configuration
@@ -2379,16 +2372,15 @@ fn handle_configure(
         }
     };
 
-    // Validate the URL
-    if !new_api_url.starts_with("http://") && !new_api_url.starts_with("https://") {
-        anyhow::bail!(
-            "Invalid API URL: {}. Must start with http:// or https://",
-            new_api_url
-        );
-    }
-
-    // Use provided api_key, or keep existing one if not provided
-    let new_api_key = api_key.or_else(|| current_config.as_ref().and_then(|c| c.api_key.clone()));
+    let new_api_url =
+        Config::validate_and_create(new_api_url, None, config::ConfigSource::LocalFile)?.api_url;
+    // Credentials belong to an endpoint; changing the endpoint must not reuse its predecessor's key.
+    let new_api_key = api_key.or_else(|| {
+        current_config
+            .as_ref()
+            .filter(|c| c.api_url == new_api_url)
+            .and_then(|c| c.api_key.clone())
+    });
 
     // Save to config file
     let config_path = Config::save_config(&new_api_url, new_api_key.as_deref())?;
@@ -2406,7 +2398,7 @@ fn handle_configure(
             println!("  API Key: {}", masked);
         }
         println!();
-        println!("Note: Environment variables HINDSIGHT_API_URL and HINDSIGHT_API_KEY will override these settings.");
+        println!("Note: Environment variables AGENTSTRATUM_API_URL and AGENTSTRATUM_API_KEY will override these settings.");
     } else {
         let result = serde_json::json!({
             "api_url": new_api_url,
@@ -2414,53 +2406,6 @@ fn handle_configure(
             "config_path": config_path.display().to_string(),
         });
         output::print_output(&result, output_format)?;
-    }
-
-    Ok(())
-}
-
-fn handle_ui(profile: Option<&str>, output_format: OutputFormat) -> Result<()> {
-    use std::process::Command;
-
-    // Load configuration to get the API URL
-    let config = Config::load_with_profile(profile).unwrap_or_else(|e| {
-        ui::print_error(&format!("Configuration error: {}", e));
-        errors::print_config_help();
-        std::process::exit(1);
-    });
-
-    let api_url = config.api_url();
-
-    if output_format == OutputFormat::Pretty {
-        ui::print_info("Launching Hindsight Control Plane UI...");
-        println!();
-        println!("  API URL: {}", api_url);
-        println!();
-    }
-
-    // Run npx @vectorize-io/hindsight-control-plane --api-url {api_url}
-    let status = Command::new("npx")
-        .arg("@vectorize-io/hindsight-control-plane")
-        .arg("--api-url")
-        .arg(api_url)
-        .status();
-
-    match status {
-        Ok(exit_status) => {
-            if !exit_status.success() {
-                if let Some(code) = exit_status.code() {
-                    std::process::exit(code);
-                } else {
-                    std::process::exit(1);
-                }
-            }
-        }
-        Err(e) => {
-            ui::print_error(&format!("Failed to launch control plane UI: {}", e));
-            ui::print_info("Make sure you have Node.js and npm installed.");
-            ui::print_info("You can also install the control plane globally: npm install -g @vectorize-io/hindsight-control-plane");
-            std::process::exit(1);
-        }
     }
 
     Ok(())
@@ -2491,7 +2436,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 }
                 println!();
                 println!(
-                    "Use with: hindsight -p {} <command>  (or export HINDSIGHT_PROFILE={})",
+                    "Use with: agentstratum -p {} <command>  (or export AGENTSTRATUM_PROFILE={})",
                     name, name
                 );
             } else {
@@ -2511,7 +2456,7 @@ fn handle_profile(cmd: ProfileCommands, output_format: OutputFormat) -> Result<(
                 if names.is_empty() {
                     ui::print_info("No profiles found.");
                     println!();
-                    println!("Create one with: hindsight profile create <name> --api-url <url>");
+                    println!("Create one with: agentstratum profile create <name> --api-url <url>");
                 } else {
                     ui::print_info("Profiles:");
                     for name in &names {
@@ -2593,7 +2538,7 @@ mod tests {
     #[test]
     fn parses_operation_delete_with_confirmation_bypass() {
         let cli = Cli::try_parse_from([
-            "hindsight",
+            "agentstratum",
             "operation",
             "delete",
             "bank-1",

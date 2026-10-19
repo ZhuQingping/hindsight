@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
 
-const DEFAULT_CLI_USER_AGENT: &str = concat!("hindsight-cli/", env!("CARGO_PKG_VERSION"));
+const DEFAULT_CLI_USER_AGENT: &str = concat!("agentstratum-cli/", env!("CARGO_PKG_VERSION"));
 
 fn default_headers(api_key: Option<&str>) -> Result<reqwest::header::HeaderMap> {
     let mut headers = reqwest::header::HeaderMap::new();
@@ -1401,7 +1401,7 @@ impl ApiClient {
 
 // ============================================================================
 // Webhooks, audit logs, bank templates, and other endpoints added for full
-// OpenAPI coverage. Enforced by `uv run cli-coverage-check` in hindsight-dev.
+// OpenAPI coverage. Enforced by `uv run cli-coverage-check` in agentstratum-dev.
 // ============================================================================
 
 impl ApiClient {

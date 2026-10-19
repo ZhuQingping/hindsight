@@ -2,7 +2,7 @@
 CLI utilities for daemon and CLI management.
 
 This module provides CLI-specific functions for managing the daemon
-and the hindsight Rust CLI binary.
+and the agentstratum Rust CLI binary.
 """
 
 import logging
@@ -12,7 +12,7 @@ from pathlib import Path
 from .daemon_embed_manager import DaemonEmbedManager
 from .profile_manager import resolve_active_profile
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("agentstratum.embed.daemon_client")
 
 # Singleton manager instance
 _manager = DaemonEmbedManager()
@@ -20,9 +20,10 @@ _manager = DaemonEmbedManager()
 # CLI paths - check multiple locations
 CLI_INSTALL_DIRS = [
     Path.home() / ".local" / "bin",  # Standard location from get-cli installer
-    Path.home() / ".hindsight" / "bin",  # Alternative location
+    Path.home() / ".agentstratum" / "bin",  # Alternative location
 ]
-CLI_INSTALLER_URL = "https://hindsight.vectorize.io/get-cli"
+# Set only by the distribution build after the publisher confirms a trusted source.
+CLI_INSTALLER_URL: str | None = None
 
 
 def get_daemon_url(profile: str | None = None) -> str:
@@ -45,11 +46,11 @@ def ensure_daemon_running(config: dict, profile: str | None = None, extra_args: 
 
     Args:
         config: Overrides for the daemon, keyed by environment variable name
-                ("HINDSIGHT_API_LLM_API_KEY", ...). Every HINDSIGHT_* key is
+                ("AGENTSTRATUM_API_LLM_API_KEY", ...). Every AGENTSTRATUM_* key is
                 forwarded to the daemon process; the profile's own .env is
                 merged underneath it.
         profile: Profile name (None = resolve from priority).
-        extra_args: Extra CLI arguments to pass to hindsight-api (e.g. ["--offline"]).
+        extra_args: Extra CLI arguments to pass to agentstratum-api (e.g. ["--offline"]).
 
     Returns:
         True if daemon is running.
@@ -152,14 +153,14 @@ def get_ui_url(profile: str | None = None, ui_port: int | None = None) -> str:
 
 
 def find_cli_binary() -> Path | None:
-    """Find the hindsight CLI binary in known locations or PATH."""
+    """Find the agentstratum CLI binary in known locations or PATH."""
     import shutil
     import sys
 
-    binary_names = ("hindsight.exe", "hindsight") if sys.platform == "win32" else ("hindsight",)
+    binary_names = ("agentstratum.exe", "agentstratum") if sys.platform == "win32" else ("agentstratum",)
 
     # Check standard install locations. On Windows we look for both the
-    # `.exe` (produced by `cargo build`) and the bare `hindsight` in case a
+    # `.exe` (produced by `cargo build`) and the bare `agentstratum` in case a
     # user dropped a WSL/Git-Bash build there.
     for install_dir in CLI_INSTALL_DIRS:
         for name in binary_names:
@@ -168,8 +169,8 @@ def find_cli_binary() -> Path | None:
                 return binary
 
     # Check PATH. shutil.which handles PATHEXT on Windows, so passing
-    # "hindsight" finds hindsight.exe automatically.
-    path_binary = shutil.which("hindsight")
+    # "agentstratum" finds agentstratum.exe automatically.
+    path_binary = shutil.which("agentstratum")
     if path_binary:
         return Path(path_binary)
 
@@ -177,13 +178,13 @@ def find_cli_binary() -> Path | None:
 
 
 def is_cli_installed() -> bool:
-    """Check if the hindsight CLI is installed."""
+    """Check if the agentstratum CLI is installed."""
     return find_cli_binary() is not None
 
 
 def install_cli() -> bool:
     """
-    Install the hindsight CLI using the official installer.
+    Install the agentstratum CLI using the official installer.
 
     Returns True if installation succeeded.
     """
@@ -192,16 +193,20 @@ def install_cli() -> bool:
 
     from . import __version__
 
-    # Determine CLI version (use env var or match embed version)
-    cli_version = os.getenv("HINDSIGHT_EMBED_CLI_VERSION", __version__)
+    if CLI_INSTALLER_URL is None:
+        print("CLI auto-install is pending a confirmed distribution source.", file=sys.stderr)
+        return False
 
-    print(f"Installing hindsight CLI (version {cli_version})...")
+    # Determine CLI version (use env var or match embed version)
+    cli_version = os.getenv("AGENTSTRATUM_EMBED_CLI_VERSION", __version__)
+
+    print(f"Installing agentstratum CLI (version {cli_version})...")
     print(f"  Installer URL: {CLI_INSTALLER_URL}")
 
     try:
         # Download and run installer with version env var
         env = os.environ.copy()
-        env["HINDSIGHT_CLI_VERSION"] = cli_version
+        env["AGENTSTRATUM_CLI_VERSION"] = cli_version
 
         result = subprocess.run(
             ["bash", "-c", f"curl -fsSL {CLI_INSTALLER_URL} | bash"],
@@ -228,7 +233,7 @@ def install_cli() -> bool:
             print(f"  stderr: {result.stderr}", file=sys.stderr)
             # Check known locations
             for install_dir in CLI_INSTALL_DIRS:
-                binary = install_dir / "hindsight"
+                binary = install_dir / "agentstratum"
                 print(f"  Checking {binary}: exists={binary.exists()}", file=sys.stderr)
             return False
 
@@ -246,9 +251,9 @@ def ensure_cli_installed() -> bool:
 
 def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
     """
-    Run the hindsight CLI with the given arguments.
+    Run the agentstratum CLI with the given arguments.
 
-    Ensures daemon is running (unless HINDSIGHT_API_URL is already set) and passes the API URL.
+    Ensures daemon is running (unless AGENTSTRATUM_API_URL is already set) and passes the API URL.
 
     Args:
         args: CLI arguments (e.g., ["memory", "retain", "bank", "content"])
@@ -270,14 +275,14 @@ def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
 
     cli_binary = find_cli_binary()
     if not cli_binary:
-        print("Error: hindsight CLI not found", file=sys.stderr)
+        print("Error: agentstratum CLI not found", file=sys.stderr)
         return 1
 
     # Build environment
     env = os.environ.copy()
 
     # Check if user wants to use external API
-    api_url = env.get("HINDSIGHT_EMBED_API_URL")
+    api_url = env.get("AGENTSTRATUM_EMBED_API_URL")
 
     if not api_url:
         # No external API specified - ensure our daemon is running
@@ -289,13 +294,13 @@ def run_cli(args: list[str], config: dict, profile: str | None = None) -> int:
         # Using external API - skip daemon startup
         logger.debug(f"Using external API at {api_url}")
 
-    # Set the API URL for the CLI (using the standard HINDSIGHT_API_URL var that the CLI expects)
-    env["HINDSIGHT_API_URL"] = api_url
+    # Set the API URL for the CLI (using the standard AGENTSTRATUM_API_URL var that the CLI expects)
+    env["AGENTSTRATUM_API_URL"] = api_url
 
-    # Pass through API token if set (using the standard HINDSIGHT_API_KEY var that the CLI expects)
-    api_token = env.get("HINDSIGHT_EMBED_API_TOKEN")
+    # Pass through API token if set (using the standard AGENTSTRATUM_API_KEY var that the CLI expects)
+    api_token = env.get("AGENTSTRATUM_EMBED_API_TOKEN")
     if api_token:
-        env["HINDSIGHT_API_KEY"] = api_token
+        env["AGENTSTRATUM_API_KEY"] = api_token
 
     # Run CLI
     try:

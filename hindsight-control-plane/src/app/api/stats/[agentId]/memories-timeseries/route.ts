@@ -16,7 +16,9 @@ export async function GET(
     );
     const upstream = await fetch(url, { headers: getDataplaneHeaders() });
     const body = await upstream.json();
-    return NextResponse.json(body, { status: upstream.status });
+    return NextResponse.json(body, {
+      status: upstream.status,
+    });
   } catch (error) {
     console.error("Error fetching memories timeseries:", error);
     return NextResponse.json(

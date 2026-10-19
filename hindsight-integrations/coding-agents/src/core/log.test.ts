@@ -37,11 +37,13 @@ describe("describeError", () => {
   });
 
   it("renders a plain error, a bare value and a nested chain", () => {
-    expect(describeError(new Error("bank not found"))).toBe("bank not found");
+    expect(describeError(new Error("bank Hindsight-review not found"))).toBe(
+      "bank Hindsight-review not found"
+    );
     expect(describeError("something odd")).toBe("something odd");
     expect(
-      describeError(new Error("outer", { cause: new Error("middle", { cause: "root" }) }))
-    ).toBe("outer: middle: root");
+      describeError(new Error("outer", { cause: new Error("HINDSIGHT-review", { cause: "root" }) }))
+    ).toBe("outer: HINDSIGHT-review: root");
   });
 
   it("does not repeat a cause that restates its wrapper", () => {

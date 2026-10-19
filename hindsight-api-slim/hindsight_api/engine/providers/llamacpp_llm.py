@@ -40,7 +40,7 @@ DEFAULT_LLAMACPP_HF_REPO = "bartowski/google_gemma-4-E2B-it-GGUF"
 DEFAULT_LLAMACPP_HF_FILENAME = "google_gemma-4-E2B-it-Q4_K_M.gguf"
 DEFAULT_LLAMACPP_MODEL_ALIAS = "gemma-4-e2b-it"
 
-MODELS_DIR = Path.home() / ".hindsight" / "models"
+MODELS_DIR = Path.home() / ".agentstratum" / "models"
 
 # Singleton server instance — shared across all LlamaCppLLM instances
 # (retain, reflect, consolidation each create their own LLMProvider,

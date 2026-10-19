@@ -31,16 +31,16 @@ describe("installer UI renderer", () => {
     ui.log("detected: claude-code, codex");
     ui.log("claude-code: hooks merged into /home/u/.claude/settings.json");
     // A message without a harness prefix must land inside the currently open group.
-    ui.log("skill installed at /home/u/.claude/skills/hindsight-coding-agent");
+    ui.log("skill installed at /home/u/.claude/skills/agentstratum-coding-agent");
     ui.log(
       "claude-code: could not run `claude mcp add` — register the tools manually:\n" +
-        '  claude mcp add --scope user hindsight -- node "/opt/dist/mcp-server.js"'
+        '  claude mcp add --scope user agentstratum -- node "/opt/dist/mcp-server.js"'
     );
     ui.log("codex: hooks merged into /home/u/.codex/hooks.json");
     ui.outro(0);
 
     const out = lines.join("\n");
-    expect(out).toContain("┌  Hindsight coding agents  v1.2.3");
+    expect(out).toContain("┌  agentstratum coding agents  v1.2.3");
     expect(out).toContain("○ detected: claude-code, codex");
     expect(out).toContain("◇  claude-code");
     expect(out).toContain("◇  codex");
@@ -49,7 +49,7 @@ describe("installer UI renderer", () => {
     expect(out).not.toContain("/home/u/");
     // Manual-step phrasing renders as a warning, continuation line stays on the rail.
     expect(out).toContain("▲ could not run `claude mcp add`");
-    expect(out).toContain("│    claude mcp add --scope user hindsight");
+    expect(out).toContain("│    claude mcp add --scope user agentstratum");
     // The prefixless skill line sits between the two group headers, i.e. inside claude-code's group.
     const claudeAt = lines.findIndex((l) => l.includes("◇  claude-code"));
     const skillAt = lines.findIndex((l) => l.includes("skill installed"));
@@ -57,24 +57,24 @@ describe("installer UI renderer", () => {
     expect(claudeAt).toBeLessThan(skillAt);
     expect(skillAt).toBeLessThan(codexAt);
     expect(out).toMatch(/└ {2}✓ Installed 2 agents in \d+\.\ds/);
-    expect(out).toContain("~/.hindsight/coding-agent.json");
+    expect(out).toContain("~/.agentstratum/coding-agent.json");
   });
 
   it("renders the server-setup step as a group but does not count it as an agent", () => {
     const { ui, lines } = makeUi("install");
     ui.intro();
     ui.log(
-      "\nWhere should memory live?\n  1) Hindsight Cloud\n  2) Self-hosted\n  3) Local daemon\n"
+      "\nWhere should memory live?\n  1) agentstratum Cloud\n  2) Self-hosted\n  3) Local daemon\n"
     );
-    ui.log("server: daemon (/home/u/.hindsight/coding-agent.json)");
+    ui.log("server: daemon (/home/u/.agentstratum/coding-agent.json)");
     ui.log("codex: hooks merged into /home/u/.codex/hooks.json");
     ui.outro(0);
     const out = lines.join("\n");
     // The mode question is an info line with quiet option detail, not a completed action.
     expect(out).toContain("○ Where should memory live?");
-    expect(out).toContain("│    1) Hindsight Cloud");
+    expect(out).toContain("│    1) agentstratum Cloud");
     expect(out).toContain("◇  server");
-    expect(out).toContain("✓ daemon (~/.hindsight/coding-agent.json)");
+    expect(out).toContain("✓ daemon (~/.agentstratum/coding-agent.json)");
     expect(out).toMatch(/Installed 1 agent in/); // codex only — server is a step, not an agent
   });
 
@@ -151,7 +151,7 @@ describe("installer UI renderer", () => {
     const { ui, lines } = makeUi(undefined);
     ui.intro();
     ui.log(
-      "usage: hindsight-coding-agents <install|uninstall> <all|harness...>\n  all  every agent"
+      "usage: agentstratum-coding-agents <install|uninstall> <all|harness...>\n  all  every agent"
     );
     ui.outro(0);
     const out = lines.join("\n");
@@ -189,7 +189,7 @@ describe("installer UI renderer", () => {
     ui.log("codex: hooks merged into /home/u/.codex/hooks.json");
     ui.outro(0);
     expect(lines.join("\n")).toContain("settings live in /tmp/config.json.");
-    expect(lines.join("\n")).not.toContain("~/.hindsight");
+    expect(lines.join("\n")).not.toContain("~/.agentstratum");
   });
 
   it("styles readline prompts onto the rail", () => {
@@ -224,7 +224,7 @@ describe("installer UI renderer", () => {
 
   it("fits select rows to the terminal width so a row can never wrap", () => {
     const label = "Local daemon (on-device)";
-    const hint = "runs hindsight-embed here; no account, needs uv + an LLM key";
+    const hint = "runs agentstratum-embed here; no account, needs uv + an LLM key";
     // Wide terminal: everything fits untouched.
     const wide = fitSelectRow(label, hint, 120);
     expect(wide).toEqual({ label, hint: ` — ${hint}` });

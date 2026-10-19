@@ -1,18 +1,11 @@
 import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "./config";
 import type { HindsightClient } from "./hindsight";
 import { RuntimeCore } from "./runtime";
-
-// The real ensureDaemon shells out (uvx/cargo probes) and spawns a detached process; only WHERE it
-// is called from is under test here — the deciding itself is covered in daemon.test.ts.
-const daemonSpy = vi.hoisted(() => vi.fn(async () => {}));
-vi.mock("./daemon", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./daemon")>()),
-  ensureDaemon: daemonSpy,
-}));
+import { log } from "./log";
 
 describe("RuntimeCore", () => {
   it("uses the shared prompt lifecycle and consumes the new-bank reflect deferral once", async () => {
@@ -21,7 +14,11 @@ describe("RuntimeCore", () => {
       listPages: vi.fn(async () => ({ items: [] })),
       reflect: vi.fn(async () => "shared reflect"),
     } as unknown as HindsightClient;
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
 
     await runtime.seedIfCold("/definitely-not-a-git-repository");
     await runtime.onPrompt("runtime-shared-lifecycle", "first prompt");
@@ -42,7 +39,11 @@ describe("RuntimeCore", () => {
       listPages: vi.fn(async () => ({ items: pages })),
       reflect: vi.fn(async () => ""),
     } as unknown as HindsightClient;
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
 
     await runtime.seedIfCold("/definitely-not-a-git-repository"); // cold: zero pages
     await runtime.onPrompt("session-cold", "first prompt");
@@ -80,7 +81,11 @@ describe("RuntimeCore session-idle write-back", () => {
 
   it("retains the completed exchange on idle — the reply the turn-driven path never sees", async () => {
     const { client, retained } = makeClient();
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
 
     // The turn-driven path sees only what existed BEFORE the reply.
     await runtime.onTranscript("s1", [turn("user", "how do we round?")], false);
@@ -107,7 +112,11 @@ describe("RuntimeCore session-idle write-back", () => {
     // for one document), so every turn is submitted immediately and nothing is held in a process
     // the host can close without warning.
     const { client, retained } = makeClient();
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
 
     await runtime.onTranscript("s2", [turn("user", "only turn")], false);
     await new Promise((r) => setTimeout(r, 0));
@@ -121,7 +130,11 @@ describe("RuntimeCore session-idle write-back", () => {
 
   it("does not re-retain when idle fires again with no new turns", async () => {
     const { client, retained } = makeClient();
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
     runtime.setTranscriptSource(async () => [turn("user", "hi"), turn("assistant", "hello")]);
 
     await runtime.onSessionIdle("s3");
@@ -130,12 +143,17 @@ describe("RuntimeCore session-idle write-back", () => {
     expect(retained).toHaveLength(1);
   });
 
-  it("records Hindsight usage for a turn only once its reply is in", async () => {
+  it("records agentstratum usage for a turn only once its reply is in", async () => {
     const usageFile = join(mkdtempSync(join(tmpdir(), "hs-rt-usage-")), "usage.jsonl");
-    vi.stubEnv("HINDSIGHT_USAGE_FILE", usageFile);
+    vi.stubEnv("AGENTSTRATUM_USAGE_FILE", usageFile);
     try {
       const { client } = makeClient();
-      const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}), "kilo");
+      const runtime = new RuntimeCore(
+        client,
+        "bank-1",
+        resolveConfig({ apiUrl: "https://service.example" }),
+        "kilo"
+      );
 
       // Built before the reply: recording turn 1 now would log it with no calls, for good.
       await runtime.onTranscript("s6", [turn("user", "how do we round?")], false);
@@ -143,8 +161,8 @@ describe("RuntimeCore session-idle write-back", () => {
 
       runtime.setTranscriptSource(async () => [
         turn("user", "how do we round?"),
-        turn("action", "hindsight_search_knowledge_pages rounding"),
-        turn("assistant", "🧠 From Hindsight memory — half up"),
+        turn("action", "agentstratum_search_knowledge_pages rounding"),
+        turn("assistant", "🧠 From agentstratum memory — half up"),
       ]);
       await runtime.onSessionIdle("s6");
       const recorded = readFileSync(usageFile, "utf8")
@@ -157,7 +175,7 @@ describe("RuntimeCore session-idle write-back", () => {
           session: "s6",
           bank: "bank-1",
           turn: 1,
-          calls: ["hindsight_search_knowledge_pages"],
+          calls: ["agentstratum_search_knowledge_pages"],
           credited: true,
         },
       ]);
@@ -168,7 +186,11 @@ describe("RuntimeCore session-idle write-back", () => {
 
   it("no-ops when the host cannot refetch, rather than retaining a stale transcript", async () => {
     const { client, retained } = makeClient();
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
     await runtime.onSessionIdle("s4"); // no transcript source wired
     await new Promise((r) => setTimeout(r, 0));
     expect(retained).toHaveLength(0);
@@ -176,7 +198,11 @@ describe("RuntimeCore session-idle write-back", () => {
 
   it("survives a failing refetch without throwing into the host", async () => {
     const { client, retained } = makeClient();
-    const runtime = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const runtime = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
     runtime.setTranscriptSource(async () => {
       throw new Error("session gone");
     });
@@ -185,70 +211,88 @@ describe("RuntimeCore session-idle write-back", () => {
   });
 });
 
-/**
- * Daemon parity with the hook harnesses (#3524).
- *
- * A persistent-plugin host runs no hook binaries, so `runSessionStartHook`/`runRetainHook` — where
- * the hook harnesses ensure the daemon — never execute for it. dsh in daemon mode therefore never
- * started one: every `hindsight_*` call failed with ECONNREFUSED until the user ran daemon-start.js
- * by hand, and again after each idle-out. RuntimeCore is the one place all five plugin hosts
- * (opencode, Kilo, Cline, Prime Agent, dsh) share, so the two ensure points live here.
- */
-describe("RuntimeCore daemon lifecycle", () => {
-  const daemonCfg = resolveConfig({ serverMode: "daemon" });
-  const client = {
-    listDocumentIds: vi.fn(async () => new Set<string>()),
-    listPages: vi.fn(async () => ({ items: [] })),
-    retain: vi.fn(async () => {}),
-  } as unknown as HindsightClient;
-
-  beforeEach(() => daemonSpy.mockClear());
-
-  it("starts the daemon at seedIfCold — the plugin hosts' SessionStart", async () => {
-    const core = new RuntimeCore(client, "bank-1", daemonCfg, "dsh", "/repos/one");
-    await core.seedIfCold("/repos/one");
-    expect(daemonSpy).toHaveBeenCalledWith(daemonCfg, "dsh", { waitMs: 12_000 });
+describe("RuntimeCore remote connection", () => {
+  it.each([
+    { config: { apiUrl: "" }, message: "API Endpoint is required" },
+    { config: { apiUrl: "not-a-url" }, message: "API Endpoint must be a valid" },
+    {
+      config: { serverMode: "daemon" as const },
+      message: "Local engines are not distributed",
+    },
+  ])("reports $message without rejecting or seeding", async ({ config, message }) => {
+    const client = {
+      listDocumentIds: vi.fn(),
+      listPages: vi.fn(),
+      retain: vi.fn(),
+    } as unknown as HindsightClient;
+    const core = new RuntimeCore(client, "bank-1", resolveConfig(config));
+    const notify = vi.fn();
+    const warning = vi.spyOn(log, "warn");
+    core.setNotifier(notify);
+    try {
+      await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
+      expect(warning).toHaveBeenCalledWith("opencode", expect.stringContaining(message));
+      expect(notify).toHaveBeenCalledWith(
+        "agentstratum configuration",
+        expect.stringContaining(message)
+      );
+      expect(client.listDocumentIds).not.toHaveBeenCalled();
+      expect(client.listPages).not.toHaveBeenCalled();
+      expect(client.retain).not.toHaveBeenCalled();
+    } finally {
+      warning.mockRestore();
+    }
   });
 
-  // A daemon that is gone by write-back time — crashed, or stopped by the user between turns —
-  // would lose the whole exchange with no second chance to start one.
-  it("starts the daemon again on write-back — the Stop hook these hosts don't have", async () => {
-    const core = new RuntimeCore(client, "bank-1", daemonCfg, "dsh", "/repos/one");
-    core.setTranscriptSource(async () => [{ role: "user", content: "hi" }] as never);
-    await core.onSessionIdle("s1");
-    await new Promise((r) => setTimeout(r, 0)); // retain is fire-and-forget
-    expect(daemonSpy).toHaveBeenCalledWith(daemonCfg, "dsh", { waitMs: 40_000 });
-    expect(client.retain).toHaveBeenCalled();
-  });
-
-  // Waiting inside the fire-and-forget chain is the point: the host's stop handler awaits
-  // onSessionIdle, and a 40s block there would freeze the UI on a cold daemon.
-  it("never makes the host wait for the daemon on the write path", async () => {
-    let released = () => {};
-    daemonSpy.mockImplementationOnce(() => new Promise<void>((r) => (released = r)));
-    const core = new RuntimeCore(client, "bank-1", daemonCfg, "dsh", "/repos/one");
-    core.setTranscriptSource(async () => [{ role: "user", content: "hi" }] as never);
-    await expect(core.onSessionIdle("s2")).resolves.toBeUndefined();
-    released();
-  });
+  it.each(["absent", "throws", "rejects"])(
+    "survives an %s host notice channel while logging configuration guidance",
+    async (channel) => {
+      const client = { listDocumentIds: vi.fn() } as unknown as HindsightClient;
+      const core = new RuntimeCore(client, "bank-1", resolveConfig({ apiUrl: "" }));
+      if (channel === "throws") {
+        core.setNotifier(() => {
+          throw new Error("host notice unavailable");
+        });
+      } else if (channel === "rejects") {
+        core.setNotifier(async () => {
+          throw new Error("host notice unavailable");
+        });
+      }
+      const warning = vi.spyOn(log, "warn");
+      try {
+        await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
+        expect(warning).toHaveBeenCalledWith(
+          "opencode",
+          expect.stringContaining("AGENTSTRATUM_API_URL")
+        );
+        expect(client.listDocumentIds).not.toHaveBeenCalled();
+      } finally {
+        warning.mockRestore();
+      }
+    }
+  );
 });
 
 /**
  * The plugin harnesses (opencode, kilo, cline, dsh, ...) register the tools through toolSpecs()
  * rather than the MCP server, so they hit the same #3590 bug: without these forwarded, every
- * hindsight_reflect on those hosts aborts at the client's hardcoded 120s.
+ * agentstratum_reflect on those hosts aborts at the client's hardcoded 120s.
  */
 describe("RuntimeCore reflect tool settings", () => {
-  it("forwards the resolved reflect timeout and budget into hindsight_reflect", async () => {
+  it("forwards the resolved reflect timeout and budget into agentstratum_reflect", async () => {
     const reflect = vi.fn(async () => "answer");
     const client = { reflect } as unknown as HindsightClient;
     const core = new RuntimeCore(
       client,
       "bank-1",
-      resolveConfig({ reflectToolTimeoutMs: 660_000, reflectBudget: "mid" })
+      resolveConfig({
+        apiUrl: "https://service.example",
+        reflectToolTimeoutMs: 660_000,
+        reflectBudget: "mid",
+      })
     );
 
-    const tool = core.toolSpecs().find((spec) => spec.name === "hindsight_reflect")!;
+    const tool = core.toolSpecs().find((spec) => spec.name === "agentstratum_reflect")!;
     await tool.handler({ query: "why?" });
     expect(reflect).toHaveBeenCalledWith("why?", { budget: "mid", timeoutMs: 660_000 });
   });
@@ -258,7 +302,7 @@ describe("RuntimeCore reflect tool settings", () => {
  * dsh serves several repositories from ONE process, launched in a directory that is routinely not
  * the session's — so it constructs a core per workspace and passes that root. Every tool that
  * answers "what does this repo's memory look like" has to be bound to it: otherwise
- * `hindsight_sync_status` runs its git checks in the launch directory and looks for THAT repo's
+ * `agentstratum_sync_status` runs its git checks in the launch directory and looks for THAT repo's
  * `gitlog:<name>` document in the SESSION's bank, reporting a seeded repo as unsynced.
  */
 describe("RuntimeCore tool workspace binding", () => {
@@ -269,19 +313,29 @@ describe("RuntimeCore tool workspace binding", () => {
   } as unknown as HindsightClient;
 
   const workspaceOf = async (core: RuntimeCore): Promise<string> => {
-    const diagnose = core.toolSpecs().find((spec) => spec.name === "hindsight_diagnose")!;
+    const diagnose = core.toolSpecs().find((spec) => spec.name === "agentstratum_diagnose")!;
     return (JSON.parse((await diagnose.handler({})).content[0].text) as { workspace: string })
       .workspace;
   };
 
   it("binds the tools to the workspace the host opened, not the process cwd", async () => {
-    const core = new RuntimeCore(client, "bank-1", resolveConfig({}), "dsh", "/repos/session-one");
+    const core = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" }),
+      "dsh",
+      "/repos/session-one"
+    );
     expect(await workspaceOf(core)).toBe("/repos/session-one");
     expect(await workspaceOf(core)).not.toBe(process.cwd());
   });
 
   it("falls back to the process cwd for hosts whose process IS the project", async () => {
-    const core = new RuntimeCore(client, "bank-1", resolveConfig({}));
+    const core = new RuntimeCore(
+      client,
+      "bank-1",
+      resolveConfig({ apiUrl: "https://service.example" })
+    );
     expect(await workspaceOf(core)).toBe(process.cwd());
   });
 });

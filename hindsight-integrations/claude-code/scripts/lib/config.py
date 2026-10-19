@@ -1,4 +1,4 @@
-"""Configuration management for Hindsight plugin.
+"""Configuration management for agentstratum plugin.
 
 Loads settings from settings.json (plugin defaults) merged with environment
 variable overrides. Full config schema matching Openclaw's 30+ options.
@@ -40,12 +40,13 @@ DEFAULTS = {
     "recallAdditionalBanks": [],
     # Connection
     "upgradeNotice": True,  # show the superseded-by-coding-agents notice (capped, see lib/upgrade_notice.py)
-    "hindsightApiUrl": None,
-    "hindsightApiToken": None,
+    "apiUrl": None,
+    "apiToken": None,
     "apiPort": 9077,
     "daemonIdleTimeout": 0,
     "embedVersion": "latest",
     "embedPackagePath": None,
+    "embedPackage": None,
     "requestTimeoutSeconds": None,
     # Bank
     "bankId": None,
@@ -68,31 +69,32 @@ DEFAULTS = {
 
 # Map env var names to config keys and their types
 ENV_OVERRIDES = {
-    "HINDSIGHT_API_URL": ("hindsightApiUrl", str),
-    "HINDSIGHT_API_TOKEN": ("hindsightApiToken", str),
-    "HINDSIGHT_BANK_ID": ("bankId", str),
-    "HINDSIGHT_AGENT_NAME": ("agentName", str),
-    "HINDSIGHT_AUTO_RECALL": ("autoRecall", bool),
-    "HINDSIGHT_AUTO_RETAIN": ("autoRetain", bool),
-    "HINDSIGHT_RETAIN_MODE": ("retainMode", str),
-    "HINDSIGHT_RECALL_BUDGET": ("recallBudget", str),
-    "HINDSIGHT_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
-    "HINDSIGHT_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
-    "HINDSIGHT_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
-    "HINDSIGHT_RECALL_TAGS": ("recallTags", list),
-    "HINDSIGHT_RECALL_TAGS_MATCH": ("recallTagsMatch", str),
-    "HINDSIGHT_RECALL_TAG_GROUPS": ("recallTagGroups", dict),
-    "HINDSIGHT_RECALL_ADDITIONAL_BANK_FILTERS": ("recallAdditionalBankFilters", dict),
-    "HINDSIGHT_API_PORT": ("apiPort", int),
-    "HINDSIGHT_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
-    "HINDSIGHT_REQUEST_TIMEOUT_SECONDS": ("requestTimeoutSeconds", int),
-    "HINDSIGHT_EMBED_VERSION": ("embedVersion", str),
-    "HINDSIGHT_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
-    "HINDSIGHT_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
-    "HINDSIGHT_BANK_MISSION": ("bankMission", str),
-    "HINDSIGHT_LLM_PROVIDER": ("llmProvider", str),
-    "HINDSIGHT_LLM_MODEL": ("llmModel", str),
-    "HINDSIGHT_DEBUG": ("debug", bool),
+    "AGENTSTRATUM_API_URL": ("apiUrl", str),
+    "AGENTSTRATUM_API_TOKEN": ("apiToken", str),
+    "AGENTSTRATUM_BANK_ID": ("bankId", str),
+    "AGENTSTRATUM_AGENT_NAME": ("agentName", str),
+    "AGENTSTRATUM_AUTO_RECALL": ("autoRecall", bool),
+    "AGENTSTRATUM_AUTO_RETAIN": ("autoRetain", bool),
+    "AGENTSTRATUM_RETAIN_MODE": ("retainMode", str),
+    "AGENTSTRATUM_RECALL_BUDGET": ("recallBudget", str),
+    "AGENTSTRATUM_RECALL_MAX_TOKENS": ("recallMaxTokens", int),
+    "AGENTSTRATUM_RECALL_MAX_QUERY_CHARS": ("recallMaxQueryChars", int),
+    "AGENTSTRATUM_RECALL_CONTEXT_TURNS": ("recallContextTurns", int),
+    "AGENTSTRATUM_RECALL_TAGS": ("recallTags", list),
+    "AGENTSTRATUM_RECALL_TAGS_MATCH": ("recallTagsMatch", str),
+    "AGENTSTRATUM_RECALL_TAG_GROUPS": ("recallTagGroups", dict),
+    "AGENTSTRATUM_RECALL_ADDITIONAL_BANK_FILTERS": ("recallAdditionalBankFilters", dict),
+    "AGENTSTRATUM_API_PORT": ("apiPort", int),
+    "AGENTSTRATUM_DAEMON_IDLE_TIMEOUT": ("daemonIdleTimeout", int),
+    "AGENTSTRATUM_REQUEST_TIMEOUT_SECONDS": ("requestTimeoutSeconds", int),
+    "AGENTSTRATUM_EMBED_VERSION": ("embedVersion", str),
+    "AGENTSTRATUM_EMBED_PACKAGE": ("embedPackage", str),
+    "AGENTSTRATUM_EMBED_PACKAGE_PATH": ("embedPackagePath", str),
+    "AGENTSTRATUM_DYNAMIC_BANK_ID": ("dynamicBankId", bool),
+    "AGENTSTRATUM_BANK_MISSION": ("bankMission", str),
+    "AGENTSTRATUM_LLM_PROVIDER": ("llmProvider", str),
+    "AGENTSTRATUM_LLM_MODEL": ("llmModel", str),
+    "AGENTSTRATUM_DEBUG": ("debug", bool),
 }
 
 
@@ -138,10 +140,10 @@ def load_config() -> dict:
     Loading order (later entries win):
       1. Built-in defaults
       2. Plugin default settings.json  (CLAUDE_PLUGIN_ROOT/settings.json)
-      3. User config                   (~/.hindsight/claude-code.json)
+      3. User config                   (~/.agentstratum/claude-code.json)
       4. Environment variable overrides
 
-    ~/.hindsight/claude-code.json is the recommended place to configure the
+    ~/.agentstratum/claude-code.json is the recommended place to configure the
     plugin — same convention as ~/.openclaw/openclaw.json. It is stable across
     plugin updates and marketplace changes.
     """
@@ -154,7 +156,7 @@ def load_config() -> dict:
     _load_settings_file(os.path.join(plugin_root, "settings.json"), config)
 
     # 2. User config — stable, version-independent, matches openclaw convention
-    user_config_path = os.path.join(os.path.expanduser("~"), ".hindsight", "claude-code.json")
+    user_config_path = os.path.join(os.path.expanduser("~"), ".agentstratum", "claude-code.json")
     _load_settings_file(user_config_path, config)
 
     # Apply environment variable overrides
@@ -171,4 +173,4 @@ def load_config() -> dict:
 def debug_log(config: dict, *args):
     """Log to stderr if debug mode is enabled."""
     if config.get("debug"):
-        print("[Hindsight]", *args, file=sys.stderr)
+        print("[agentstratum]", *args, file=sys.stderr)

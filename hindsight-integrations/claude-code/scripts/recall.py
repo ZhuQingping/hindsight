@@ -6,12 +6,12 @@ Adapted for Claude Code hooks (ephemeral process, JSON stdin/stdout).
 
 Flow:
   1. Read hook input from stdin (prompt, session_id, transcript_path, cwd)
-  2. Resolve API URL (external, existing local, or auto-start daemon)
+  2. Resolve API URL (explicit remote endpoint)
   3. Derive bank ID (static or dynamic from project context)
   4. Ensure bank mission is set (first use only)
   5. Compose multi-turn query if recallContextTurns > 1
   6. Truncate to recallMaxQueryChars
-  7. Call Hindsight recall API
+  7. Call agentstratum recall API
   8. Format memories and output hookSpecificOutput.additionalContext
   9. Save last recall to state (for PostCompact re-injection)
 
@@ -29,13 +29,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.bank import derive_bank_id, ensure_bank_mission
 from lib.client import HindsightClient
 from lib.config import debug_log, load_config
+from lib.connection import get_api_url
 from lib.content import (
     compose_recall_query,
     format_current_time,
     format_memories,
     truncate_recall_query,
 )
-from lib.daemon import get_api_url
 from lib.state import write_state
 
 LAST_RECALL_STATE = "last_recall.json"
@@ -117,7 +117,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[agentstratum] Failed to read hook input", file=sys.stderr)
         return
 
     debug_log(config, f"Hook input keys: {list(hook_input.keys())}")
@@ -129,17 +129,17 @@ def main():
         debug_log(config, "Prompt too short for recall, skipping")
         return
 
-    # Resolve API URL (handles all three connection modes)
+    # Resolve API URL (explicit remote endpoint)
     def _dbg(*a):
         debug_log(config, *a)
 
     try:
-        api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
+        api_url = get_api_url(config.get("apiUrl"))
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[agentstratum] {e}", file=sys.stderr)
         return
 
-    api_token = config.get("hindsightApiToken")
+    api_token = config.get("apiToken")
     try:
         client = HindsightClient(
             api_url,
@@ -147,7 +147,7 @@ def main():
             request_timeout_override=config.get("requestTimeoutSeconds"),
         )
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[agentstratum] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID (static or dynamic from project context)
@@ -182,7 +182,7 @@ def main():
     tags_match = config.get("recallTagsMatch") if recall_tags or tag_groups else None
     additional_bank_filters = config.get("recallAdditionalBankFilters") or {}
 
-    # Call Hindsight recall API
+    # Call agentstratum recall API
     try:
         response = client.recall(
             bank_id=bank_id,
@@ -196,7 +196,7 @@ def main():
             timeout=10,
         )
     except Exception as e:
-        print(f"[Hindsight] Recall failed: {e}", file=sys.stderr)
+        print(f"[agentstratum] Recall failed: {e}", file=sys.stderr)
         return
 
     results = response.get("results", [])
@@ -250,11 +250,11 @@ def main():
     current_time = format_current_time()
 
     context_message = (
-        f"<hindsight_memories>\n"
+        f"<agentstratum_memories>\n"
         f"{preamble}\n"
         f"Current time - {current_time}\n\n"
         f"{memories_formatted}\n"
-        f"</hindsight_memories>"
+        f"</agentstratum_memories>"
     )
 
     # Save last recall to state for diagnostics
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in recall: {e}", file=sys.stderr)
+        print(f"[agentstratum] Unexpected error in recall: {e}", file=sys.stderr)
         # Exit 2 in debug mode surfaces errors to Claude; 0 degrades silently
         try:
             from lib.config import load_config

@@ -26,7 +26,7 @@ import { maybeAutoUpdate } from "./auto-update";
 import { syncCompanionSkill } from "./skill-sync";
 import { SURVEY_DOC_IDS, startCodebaseSurvey, type SurveyHarness } from "./survey";
 import { applyBankConfig, loadConfig } from "./config";
-import { DAEMON_WAIT_SESSION_START_MS, ensureDaemon } from "./daemon";
+import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
 import type { Config } from "./config";
 import { deriveBankIdOrSkip } from "./bank";
 import { brandWord } from "./brand";
@@ -60,12 +60,12 @@ interface SeedContextClient {
 }
 
 /**
- * The session banner: one line — the gradient "Hindsight" wordmark (same colors as the API
+ * The session banner: one line — the gradient "agentstratum" wordmark (same colors as the API
  * server's banner) plus the repo's bank. Shown on EVERY session start; "learning" on a cold
  * repo (first ingest running), "remembering" once the bank is warm.
  */
 export function buildSeedBanner(bankId: string, cold = true, gitNote?: string): string {
-  // Two lines: what Hindsight DOES for this repo (value, not mechanism), then where the memory
+  // Two lines: what agentstratum DOES for this repo (value, not mechanism), then where the memory
   // lives + sync state. The brand word leads line 1 so the host TUI's message prefix lands there.
   const headline = cold
     ? `${brandWord()} is learning this repo — ingesting its decisions, conventions and history`
@@ -191,13 +191,13 @@ export async function buildSessionStartContext(args: {
     try {
       const stamp = retainStamp();
       const content =
-        `🛰️ Hindsight is researching this codebase — survey started at commit ${sha.slice(0, 12)}. ` +
+        `🛰️ agentstratum is researching this codebase — survey started at commit ${sha.slice(0, 12)}. ` +
         `(Internal marker: no memories are extracted from this document.)`;
       const tags = [...new Set([...stamp.tags, SURVEY_BASELINE_TAG])];
       // Fire-and-forget; Promise.resolve tolerates a non-Promise return (e.g. a test spy).
       const retained = client.retain(
         content,
-        "hindsight codebase-survey baseline",
+        "agentstratum codebase-survey baseline",
         `${SURVEY_BASELINE_PREFIX}${sha}`,
         tags,
         "survey",
@@ -322,7 +322,7 @@ export async function buildSessionStartContext(args: {
   });
   const deferInitialReflect = cold === true || (pageListKnown && pages.length === 0);
 
-  // The banner shows on EVERY session — Hindsight's presence is part of the product, not a
+  // The banner shows on EVERY session — agentstratum's presence is part of the product, not a
   // one-time setup note. Wording tracks the bank state: cold = "learning", else "remembering";
   // warm banners also condense the syncStatus contract into a git-sync phrase.
   let gitNote: string | undefined;
@@ -360,7 +360,7 @@ export async function runSessionStartHook(
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless claude session (core/survey.ts) sets this
   // so its hooks are a no-op — it must not re-seed/re-survey its own survey session.
-  if (process.env.HINDSIGHT_DISABLE_HOOKS) return;
+  if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return;
 
   // Whole-body try/catch (unlike runHook/runRetainHook, which only guard individual steps): a
   // throw here happens during session bootstrap, before the agent has done anything — more
@@ -400,10 +400,7 @@ export async function runSessionStartHook(
     // Memory is live HERE — the one point where registering the host's per-repo MCP access is
     // correct: the caller of an opt-out repo must not gain a config file it never asked for.
     const mcpHint = spec.ensureMcpRegistration?.(cwd);
-    // Daemon mode: warm it up now, before the user has typed anything. The start itself is
-    // detached; we wait only briefly, so an already-running daemon is adopted immediately while a
-    // cold one keeps coming up in the background and is picked up by a later turn.
-    await ensureDaemon(cfg, harness, { waitMs: DAEMON_WAIT_SESSION_START_MS });
+    await ensureRemoteConnection(cfg);
     const client = makeClient({
       apiUrl: cfg.apiUrl,
       apiToken: cfg.apiToken,
@@ -425,7 +422,12 @@ export async function runSessionStartHook(
     if (out.systemMessage || out.additionalContext) {
       process.stdout.write(JSON.stringify(payload));
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof RemoteConnectionError) {
+      process.stdout.write(
+        JSON.stringify(spec.emit({ systemMessage: `[agentstratum] ${error.message}` }))
+      );
+    }
     /* SessionStart must never throw and break the session */
   }
 }

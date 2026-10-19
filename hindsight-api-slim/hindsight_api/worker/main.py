@@ -18,6 +18,7 @@ import sys
 import warnings
 from collections.abc import Callable
 
+from ..brand import WORKER_SERVICE_NAME
 from ..config import get_config, load_dotenv_for_entrypoint
 from ..engine.task_backend import WorkerTaskBackend
 from .poller import WorkerPoller
@@ -68,7 +69,7 @@ def create_worker_app(poller: WorkerPoller, memory):
 
     # Initialize OpenTelemetry metrics
     try:
-        prometheus_reader = initialize_metrics(service_name="hindsight-worker", service_version="1.0.0")
+        prometheus_reader = initialize_metrics(service_name=WORKER_SERVICE_NAME, service_version="1.0.0")
         create_metrics_collector()
         app.state.prometheus_reader = prometheus_reader
         logger.info("Metrics initialized - available at /metrics endpoint")
@@ -158,7 +159,7 @@ def create_worker_app(poller: WorkerPoller, memory):
     async def root():
         """Return basic worker info."""
         return {
-            "service": "hindsight-worker",
+            "service": "agentstratum-worker",
             "worker_id": poller.worker_id,
             "is_shutdown": poller.is_shutdown,
         }
@@ -174,21 +175,21 @@ def main():
     config = get_config()
 
     parser = argparse.ArgumentParser(
-        prog="hindsight-worker",
-        description="Hindsight Worker - distributed task processor",
+        prog="agentstratum-worker",
+        description="agentstratum Worker - distributed task processor",
     )
 
     # Worker options
     parser.add_argument(
         "--worker-id",
         default=config.worker_id,
-        help="Worker identifier (default: hostname, env: HINDSIGHT_API_WORKER_ID)",
+        help="Worker identifier (default: hostname, env: AGENTSTRATUM_API_WORKER_ID)",
     )
     parser.add_argument(
         "--poll-interval",
         type=int,
         default=config.worker_poll_interval_ms,
-        help=f"Poll interval in milliseconds (default: {config.worker_poll_interval_ms}, env: HINDSIGHT_API_WORKER_POLL_INTERVAL_MS)",
+        help=f"Poll interval in milliseconds (default: {config.worker_poll_interval_ms}, env: AGENTSTRATUM_API_WORKER_POLL_INTERVAL_MS)",
     )
 
     # HTTP server options
@@ -196,7 +197,7 @@ def main():
         "--http-port",
         type=int,
         default=config.worker_http_port,
-        help=f"HTTP port for metrics/health endpoints (default: {config.worker_http_port}, env: HINDSIGHT_API_WORKER_HTTP_PORT)",
+        help=f"HTTP port for metrics/health endpoints (default: {config.worker_http_port}, env: AGENTSTRATUM_API_WORKER_HTTP_PORT)",
     )
     parser.add_argument(
         "--http-host",
@@ -212,8 +213,8 @@ def main():
     args = parser.parse_args()
 
     for flag, env_var, value in (
-        ("--max-retries", "HINDSIGHT_API_WORKER_MAX_RETRIES", args.max_retries),
-        ("--log-level", "HINDSIGHT_API_LOG_LEVEL", args.log_level),
+        ("--max-retries", "AGENTSTRATUM_API_WORKER_MAX_RETRIES", args.max_retries),
+        ("--log-level", "AGENTSTRATUM_API_LOG_LEVEL", args.log_level),
     ):
         if value is not None:
             print(f"{flag} {value} is ignored: set {env_var} instead.", file=sys.stderr)
@@ -227,19 +228,19 @@ def main():
     # so the "Tracing initialized" line is visible.
     from ..tracing import initialize_tracing_from_config
 
-    initialize_tracing_from_config(config, default_service_name="hindsight-worker")
+    initialize_tracing_from_config(config, default_service_name="agentstratum-worker")
 
     from ..utils import warn_if_container_default_worker_id
 
     warn_if_container_default_worker_id(args.worker_id)
     worker_id = args.worker_id or socket.gethostname()
-    worker_id_source = "HINDSIGHT_API_WORKER_ID/--worker-id" if args.worker_id else "hostname (default)"
+    worker_id_source = "AGENTSTRATUM_API_WORKER_ID/--worker-id" if args.worker_id else "hostname (default)"
     logger.info(f"Worker id: {worker_id} (source: {worker_id_source})")
 
     # Import MemoryEngine here to avoid circular imports
     from .. import MemoryEngine
 
-    print(f"Starting Hindsight Worker: {worker_id}")
+    print(f"Starting agentstratum Worker: {worker_id}")
     print(f"  Poll interval: {args.poll_interval}ms")
     print(f"  Max retries: {config.worker_max_retries}")
     print(f"  Max slots: {config.worker_max_slots}")
@@ -292,7 +293,7 @@ def main():
 
         await memory.initialize()
 
-        print(f"Database connected: {config.database_url}")
+        print("Database connected")
 
         if tenant_extension:
             print("Tenant extension loaded - schemas will be discovered dynamically on each poll")

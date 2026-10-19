@@ -9,7 +9,7 @@
  * Drops non-message lines (`last-prompt`, `mode`, `summary`, …), `isMeta` lines, compaction
  * summaries (`isCompactSummary`), `isSidechain`
  * (subagent/Task) lines, `thinking` blocks, and turns that render to nothing. Injected recall
- * context (`<hindsight_memories>` / `<hindsight_bank>` / `<relevant_memories>`) is stripped so the
+ * context (`<agentstratum_memories>` / `<agentstratum_bank>` / `<relevant_memories>`) is stripped so the
  * write-back can't feed recalled memory back into the bank (a retain→recall feedback loop). A
  * Fail-open: never throws on a missing file, malformed line, or a line that parses to a
  * non-object JSON value (`null`, a number, a boxed primitive, …).

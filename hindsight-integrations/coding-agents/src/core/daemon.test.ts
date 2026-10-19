@@ -34,7 +34,7 @@ describe("connection modes", () => {
   it("defaults to cloud, leaving today's behaviour unchanged", () => {
     const cfg = resolveConfig({});
     expect(cfg.serverMode).toBe("cloud");
-    expect(cfg.apiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(cfg.apiUrl).toBe("");
   });
 
   it("self-hosted keeps the configured apiUrl", () => {
@@ -42,7 +42,7 @@ describe("connection modes", () => {
     expect(cfg.apiUrl).toBe("http://localhost:8888");
   });
 
-  // 9077, not hindsight-all's 8888: 8888 is the conventional port for a server the user runs, and
+  // 9077, not agentstratum-all's 8888: 8888 is the conventional port for a server the user runs, and
   // a daemon must never squat on it.
   it("defaults the daemon port to 9077", () => {
     expect(resolveConfig({ serverMode: "daemon" }).apiPort).toBe(9077);
@@ -52,7 +52,7 @@ describe("connection modes", () => {
 describe("detectLlm", () => {
   it("prefers an explicit provider, including one it knows nothing about", () => {
     const llm = detectLlm({
-      HINDSIGHT_API_LLM_PROVIDER: "ollama",
+      AGENTSTRATUM_API_LLM_PROVIDER: "ollama",
       OPENAI_API_KEY: "sk-ignored",
     } as NodeJS.ProcessEnv);
     expect(llm?.provider).toBe("ollama");
@@ -74,24 +74,26 @@ describe("daemonEnv", () => {
   const cfg = resolveConfig({ serverMode: "daemon", daemonIdleTimeout: 42 });
 
   it("passes the idle timeout through under the daemon's own env name", () => {
-    expect(daemonEnv(cfg, {} as NodeJS.ProcessEnv).HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT).toBe("42");
+    expect(daemonEnv(cfg, {} as NodeJS.ProcessEnv).AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT).toBe(
+      "42"
+    );
   });
 
   // It used to send 300 whether or not anyone asked, quietly retiring a SHARED daemon out from
-  // under an idle session — while every other Hindsight integration ships 0 (never exits).
+  // under an idle session — while every other agentstratum integration ships 0 (never exits).
   it("says nothing about the idle timeout when it is unset, leaving the daemon its own default", () => {
     const env = daemonEnv(resolveConfig({ serverMode: "daemon" }), {} as NodeJS.ProcessEnv);
-    expect(env).not.toHaveProperty("HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT");
+    expect(env).not.toHaveProperty("AGENTSTRATUM_EMBED_DAEMON_IDLE_TIMEOUT");
   });
 
-  // Forwarding the whole HINDSIGHT_API_* namespace means a new server-side knob needs no change
+  // Forwarding the whole AGENTSTRATUM_API_* namespace means a new server-side knob needs no change
   // here to reach the daemon.
-  it("forwards arbitrary HINDSIGHT_API_* settings", () => {
+  it("forwards arbitrary AGENTSTRATUM_API_* settings", () => {
     const env = daemonEnv(cfg, {
-      HINDSIGHT_API_EMBEDDINGS_PROVIDER: "tei",
+      AGENTSTRATUM_API_EMBEDDINGS_PROVIDER: "tei",
       UNRELATED: "no",
     } as NodeJS.ProcessEnv);
-    expect(env.HINDSIGHT_API_EMBEDDINGS_PROVIDER).toBe("tei");
+    expect(env.AGENTSTRATUM_API_EMBEDDINGS_PROVIDER).toBe("tei");
     expect(env.UNRELATED).toBeUndefined();
   });
 });
@@ -200,7 +202,7 @@ describe("ensureDaemon", () => {
  * something that does. Adding a harness that does neither fails here, and an entrypoint that
  * genuinely must not start one has to say why in EXEMPT.
  */
-describe("every harness entrypoint reaches a daemon", () => {
+describe("every harness entrypoint checks its remote connection", () => {
   const SRC = fileURLToPath(new URL("..", import.meta.url));
 
   /** Entrypoints that build a client but deliberately do NOT ensure a daemon, and why. */
@@ -235,7 +237,7 @@ describe("every harness entrypoint reaches a daemon", () => {
       const src = readFileSync(join(SRC, rel), "utf8");
       if (!buildsClient(src)) return false;
       // RuntimeCore is the persistent-plugin hosts' shared lifecycle; it ensures at both points.
-      return !src.includes("ensureDaemon") && !src.includes("RuntimeCore");
+      return !src.includes("ensureRemoteConnection") && !src.includes("RuntimeCore");
     });
     expect(unreached).toEqual([]);
   });

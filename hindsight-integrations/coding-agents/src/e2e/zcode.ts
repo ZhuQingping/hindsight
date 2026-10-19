@@ -20,7 +20,7 @@ import type { HarnessDockerSetup } from "./harness";
 export const zcodeDockerSetup: HarnessDockerSetup = {
   name: "zcode",
   hindsightHarness: "zcode",
-  installCommand: "hindsight-coding-agents install zcode",
-  stubModelEnv: (baseUrl) => ({ HINDSIGHT_STUB_BASE_URL: baseUrl }),
+  installCommand: "agentstratum-coding-agents install zcode",
+  stubModelEnv: (baseUrl) => ({ AGENTSTRATUM_STUB_BASE_URL: baseUrl }),
   command: (prompt) => ["hindsight-zcode-e2e-exec", prompt],
 };

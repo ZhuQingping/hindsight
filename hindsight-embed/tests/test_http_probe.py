@@ -53,7 +53,7 @@ class TestProbe:
         assert probe_get("http://127.0.0.1:notaport/health", read_timeout=1.0) is None
 
     def test_sync_entry_point_works_inside_a_running_loop(self):
-        """hindsight-all's sync _ensure_started is reached from its async methods too."""
+        """agentstratum-all's sync _ensure_started is reached from its async methods too."""
 
         async def inside_loop() -> ProbeResponse | None:
             return probe_get(f"{stub.base_url}/api/health", read_timeout=2.0)
@@ -88,9 +88,9 @@ class TestProbe:
 
 
 class TestPortHealthOk:
-    """DaemonEmbedManager._port_health_ok: only Hindsight's initialized payload counts."""
+    """DaemonEmbedManager._port_health_ok: only Agentstratum's initialized payload counts."""
 
-    def test_initialized_hindsight(self):
+    def test_initialized_agentstratum(self):
         with serve(reply(200, {"status": "healthy", "database": "connected"})) as stub:
             assert DaemonEmbedManager._port_health_ok(stub.port) is True
 

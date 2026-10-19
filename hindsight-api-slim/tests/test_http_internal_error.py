@@ -18,6 +18,7 @@ import pytest
 from fastapi import HTTPException
 
 from hindsight_api.api.http import _internal_error
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 
 
 def _raise_through(exc: Exception, where: str):
@@ -28,12 +29,12 @@ def _raise_through(exc: Exception, where: str):
         return _internal_error(e, where)
 
 
-def test_maps_to_500_with_the_message_as_detail():
-    """The client gets the message, never the traceback."""
+def test_maps_to_500_with_a_public_diagnostic():
+    """Unexpected internal failures return a stable public diagnostic."""
     result = _raise_through(RuntimeError("boom"), "GET /v1/x")
     assert isinstance(result, HTTPException)
     assert result.status_code == 500
-    assert result.detail == "boom"
+    assert result.detail == PUBLIC_INTERNAL_ERROR
     assert "Traceback" not in str(result.detail)
 
 
@@ -62,8 +63,8 @@ def test_returns_rather_than_raises():
         Exception("multi\nline\nmessage"),
     ],
 )
-def test_detail_is_always_the_stringified_exception(exc):
-    assert _raise_through(exc, "GET /v1/x").detail == str(exc)
+def test_detail_never_exposes_unhandled_exception_text(exc):
+    assert _raise_through(exc, "GET /v1/x").detail == PUBLIC_INTERNAL_ERROR
 
 
 def test_no_handler_still_builds_the_500_inline():
@@ -76,7 +77,7 @@ def test_no_handler_still_builds_the_500_inline():
     import pathlib
 
     source = pathlib.Path(__file__).resolve().parent.parent / "hindsight_api" / "api" / "http.py"
-    tree = ast.parse(source.read_text())
+    tree = ast.parse(source.read_text(encoding="utf-8"))
 
     # Two handlers legitimately keep their own catch-all because they add
     # diagnostics the shared helper cannot know about. Named, not silently

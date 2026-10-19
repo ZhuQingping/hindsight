@@ -1,4 +1,4 @@
-"""Shared fixtures for the Hindsight ZCode integration tests."""
+"""Shared fixtures for the agentstratum ZCode integration tests."""
 
 import json
 import os
@@ -89,7 +89,7 @@ def make_stop_input(response_text="world", session_id="sess-abc123", cwd="/home/
 
 def stash_prompt(tmp_path, session_id, prompt):
     """Seed the state file the recall hook would write, so retain can pair it."""
-    state_dir = tmp_path / ".hindsight" / "zcode" / "state"
+    state_dir = tmp_path / ".agentstratum" / "zcode" / "state"
     state_dir.mkdir(parents=True, exist_ok=True)
     (state_dir / f"last_prompt_{session_id}.json").write_text(
         json.dumps({"prompt": prompt, "ts": "2024-01-15T00:00:00Z"})
@@ -101,13 +101,13 @@ def make_memory(text, mem_type="experience", mentioned_at="2024-01-15"):
 
 
 def make_user_config(tmp_path, overrides=None):
-    """Write a ~/.hindsight/zcode.json in tmp_path with test defaults."""
-    hindsight_dir = tmp_path / ".hindsight"
-    hindsight_dir.mkdir(exist_ok=True)
+    """Write a ~/.agentstratum/zcode.json in tmp_path with test defaults."""
+    agentstratum_dir = tmp_path / ".agentstratum"
+    agentstratum_dir.mkdir(exist_ok=True)
     config = {"retainEveryNTurns": 1}
     if overrides:
         config.update(overrides)
-    (hindsight_dir / "zcode.json").write_text(json.dumps(config))
+    (agentstratum_dir / "zcode.json").write_text(json.dumps(config))
 
 
 class FakeHTTPResponse:

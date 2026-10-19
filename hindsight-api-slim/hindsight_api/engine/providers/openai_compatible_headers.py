@@ -1,12 +1,13 @@
 """Shared HTTP headers for Hindsight's OpenAI-compatible transports."""
 
 from hindsight_api import __version__
+from hindsight_api.brand import PRODUCT_NAME
 
-OPENAI_COMPATIBLE_USER_AGENT = f"hindsight/openai-compatible/{__version__}"
+OPENAI_COMPATIBLE_USER_AGENT = f"{PRODUCT_NAME}/openai-compatible/{__version__}"
 
 
 def with_openai_compatible_user_agent(default_headers: dict[str, str] | None) -> dict[str, str]:
-    """Return client headers with Hindsight's transport identity when unset.
+    """Return client headers with the product transport identity when unset.
 
     Header names are case-insensitive, so inspect them accordingly before adding
     the canonical spelling. An operator-supplied value remains authoritative.

@@ -10,12 +10,11 @@ export async function GET() {
     service: string;
     dataplane?: {
       status: string;
-      url: string;
       error?: string;
     };
   } = {
     status: "ok",
-    service: "hindsight-control-plane",
+    service: "agentstratum-control-plane",
   };
 
   // Check dataplane connectivity with a short timeout
@@ -35,22 +34,23 @@ export async function GET() {
     try {
       // A reachability probe, not a listing: ask for the smallest page the
       // endpoint will serve instead of pulling the default 100 banks.
-      await sdk.listBanks({ client: healthClient, query: { limit: 1 } });
+      const result = await sdk.listBanks({ client: healthClient, query: { limit: 1 } });
+      if (result.error !== undefined || result.data === undefined)
+        throw new Error("Backend unavailable");
       status.dataplane = {
         status: "connected",
-        url: dataplaneUrl,
       };
     } finally {
       clearTimeout(timeoutId);
     }
   } catch (error) {
-    let errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Backend health probe failed", error);
+    let errorMessage = "Backend unavailable";
     if (error instanceof Error && error.name === "AbortError") {
       errorMessage = `Request timed out after ${HEALTH_CHECK_TIMEOUT_MS}ms`;
     }
     status.dataplane = {
       status: "disconnected",
-      url: dataplaneUrl,
       error: errorMessage,
     };
   }

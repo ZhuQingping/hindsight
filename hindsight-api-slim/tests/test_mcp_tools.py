@@ -24,6 +24,7 @@ from hindsight_api.mcp_tools import (
     register_mcp_tools,
 )
 from hindsight_api.models import RequestContext
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 
 
 class TestParseTimestamp:
@@ -634,7 +635,7 @@ class TestListMentalModels:
         mock_memory.list_mental_models.side_effect = RuntimeError("DB connection lost")
         result = await _tools(mcp_server_with_mental_models)["list_mental_models"].fn()
         assert "error" in result
-        assert "DB connection lost" in result
+        assert json.loads(result)["error"] == PUBLIC_INTERNAL_ERROR
 
     async def test_list_engine_error_single_bank(self, mcp_server_single_bank, mock_memory):
         mock_memory.list_mental_models.side_effect = RuntimeError("DB connection lost")
@@ -1648,7 +1649,7 @@ class TestSyncRetainTool:
         mcp = _make_mcp_server(mock_memory, {"sync_retain"}, include_bank_id=True)
         result = await _tools(mcp)["sync_retain"].fn(content="test")
         assert result["status"] == "error"
-        assert "DB error" in result["message"]
+        assert result["message"] == PUBLIC_INTERNAL_ERROR
 
 
 # =========================================================================
@@ -1788,7 +1789,7 @@ class TestListToolBounds:
 class TestTagsAndBankTools:
     async def test_list_tags(self, mock_memory):
         mcp = _make_mcp_server(mock_memory, {"list_tags"}, include_bank_id=True)
-        result = await _tools(mcp)["list_tags"].fn(q="project:*", limit=50)
+        await _tools(mcp)["list_tags"].fn(q="project:*", limit=50)
         call_kwargs = mock_memory.list_tags.call_args.kwargs
         assert call_kwargs["pattern"] == "project:*"
         assert call_kwargs["limit"] == 50
@@ -1837,7 +1838,7 @@ class TestTagsAndBankTools:
 
     async def test_update_bank(self, mock_memory):
         mcp = _make_mcp_server(mock_memory, {"update_bank"}, include_bank_id=True)
-        result = await _tools(mcp)["update_bank"].fn(name="New Name", mission="New Mission")
+        await _tools(mcp)["update_bank"].fn(name="New Name", mission="New Mission")
         # name and config are applied by a single engine call
         call = mock_memory.update_bank.call_args
         assert call.kwargs["name"] == "New Name"
@@ -1909,28 +1910,28 @@ class TestOperationErrorHandling:
         mcp = _make_mcp_server(mock_memory, {"get_operation"}, include_bank_id=True)
         result = await _tools(mcp)["get_operation"].fn(operation_id="missing")
         assert "error" in result
-        assert "Operation not found" in result
+        assert json.loads(result)["error"] == PUBLIC_INTERNAL_ERROR
 
     async def test_get_operation_engine_error_single_bank(self, mock_memory):
         mock_memory.get_operation_status.side_effect = RuntimeError("Operation not found")
         mcp = _make_mcp_server(mock_memory, {"get_operation"}, include_bank_id=False)
         result = await _tools(mcp)["get_operation"].fn(operation_id="missing")
         assert isinstance(result, dict)
-        assert "Operation not found" in result["error"]
+        assert result["error"] == PUBLIC_INTERNAL_ERROR
 
     async def test_cancel_operation_engine_error(self, mock_memory):
         mock_memory.cancel_operation.side_effect = RuntimeError("Cannot cancel completed operation")
         mcp = _make_mcp_server(mock_memory, {"cancel_operation"}, include_bank_id=True)
         result = await _tools(mcp)["cancel_operation"].fn(operation_id="op-done")
         assert "error" in result
-        assert "Cannot cancel" in result
+        assert json.loads(result)["error"] == PUBLIC_INTERNAL_ERROR
 
     async def test_cancel_operation_engine_error_single_bank(self, mock_memory):
         mock_memory.cancel_operation.side_effect = RuntimeError("Cannot cancel")
         mcp = _make_mcp_server(mock_memory, {"cancel_operation"}, include_bank_id=False)
         result = await _tools(mcp)["cancel_operation"].fn(operation_id="op-done")
         assert isinstance(result, dict)
-        assert "Cannot cancel" in result["error"]
+        assert result["error"] == PUBLIC_INTERNAL_ERROR
 
 
 @pytest.mark.asyncio
@@ -1942,7 +1943,7 @@ class TestDeleteErrorHandling:
         mcp = _make_mcp_server(mock_memory, {"delete_document"}, include_bank_id=True)
         result = await _tools(mcp)["delete_document"].fn(document_id="doc-1")
         assert "error" in result
-        assert "DB error" in result
+        assert json.loads(result)["error"] == PUBLIC_INTERNAL_ERROR
 
     async def test_delete_document_single_bank(self, mock_memory):
         mcp = _make_mcp_server(mock_memory, {"delete_document"}, include_bank_id=False)

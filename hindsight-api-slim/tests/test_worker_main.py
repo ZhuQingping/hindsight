@@ -43,7 +43,7 @@ def test_main_bootstraps_tracing_for_the_worker_process(monkeypatch):
     initialize_tracing() used to be called only from the FastAPI lifespan, so a
     `hindsight-worker` process emitted no spans at all — silently, since both
     tracing chokepoints degrade to no-ops (issue #3614). It also identifies
-    itself as "hindsight-worker" by default, matching the name it already
+    itself as "agentstratum-worker" by default, matching the name it already
     reports for metrics.
     """
     import dataclasses
@@ -57,7 +57,7 @@ def test_main_bootstraps_tracing_for_the_worker_process(monkeypatch):
     monkeypatch.setattr(config, "configure_logging", lambda: None)
     monkeypatch.setattr(worker_main, "get_config", lambda: config)
     monkeypatch.setattr(worker_main, "load_dotenv_for_entrypoint", lambda: None)
-    monkeypatch.setattr(sys, "argv", ["hindsight-worker"])
+    monkeypatch.setattr(sys, "argv", ["agentstratum-worker"])
 
     bootstrap_calls = []
 
@@ -71,7 +71,7 @@ def test_main_bootstraps_tracing_for_the_worker_process(monkeypatch):
 
     worker_main.main()
 
-    assert bootstrap_calls == [{"default_service_name": "hindsight-worker"}]
+    assert bootstrap_calls == [{"default_service_name": "agentstratum-worker"}]
 
 
 def test_main_warns_on_retired_flags_and_keeps_env_config(
@@ -89,14 +89,16 @@ def test_main_warns_on_retired_flags_and_keeps_env_config(
     monkeypatch.setattr(config, "configure_logging", lambda: None)
     monkeypatch.setattr(worker_main, "get_config", lambda: config)
     monkeypatch.setattr(worker_main, "load_dotenv_for_entrypoint", lambda: None)
-    monkeypatch.setattr(sys, "argv", ["hindsight-worker", "--max-retries", "2", "--log-level", "debug"])
+    monkeypatch.setattr(sys, "argv", ["agentstratum-worker", "--max-retries", "2", "--log-level", "debug"])
     monkeypatch.setattr(tracing, "initialize_tracing_from_config", lambda *args, **kwargs: False)
     monkeypatch.setattr(worker_main.asyncio, "run", lambda coro: coro.close())
 
     worker_main.main()
 
     out = capsys.readouterr()
-    assert "--max-retries 2 is ignored: set HINDSIGHT_API_WORKER_MAX_RETRIES instead." in out.err
-    assert "--log-level debug is ignored: set HINDSIGHT_API_LOG_LEVEL instead." in out.err
+    assert "--max-retries 2 is ignored: set AGENTSTRATUM_API_WORKER_MAX_RETRIES instead." in out.err
+    assert "--log-level debug is ignored: set AGENTSTRATUM_API_LOG_LEVEL instead." in out.err
+    assert "Starting agentstratum Worker: test-worker" in out.out
+    assert "hindsight" not in (out.out + out.err).lower()
     assert "Max retries: 7" in out.out
     assert config.worker_max_retries == 7

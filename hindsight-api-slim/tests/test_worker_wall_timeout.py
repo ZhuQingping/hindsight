@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from hindsight_api.config import clear_config_cache
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 from hindsight_api.worker.poller import ClaimedTask, _wall_timeout_for
 
 
@@ -115,7 +116,7 @@ class TestWallTimeoutResolution:
 
 class TestWallTimeoutEnforcement:
     @pytest.mark.asyncio
-    async def test_wedged_retain_is_cancelled_and_marked_failed(self):
+    async def test_wedged_retain_is_cancelled_and_marked_failed(self, caplog):
         """The whole point: the executor is cancelled (freeing the slot) and the
         operation lands in 'failed', which the API *will* retry — unlike
         'processing', which it refuses to retry or cancel."""
@@ -137,12 +138,13 @@ class TestWallTimeoutEnforcement:
         assert cancelled.is_set(), "executor was not cancelled — the worker slot would stay held"
         poller._mark_completed.assert_not_awaited()
         poller._mark_failed.assert_awaited_once()
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == "The operation timed out. Please retry."
+        message = caplog.text
         assert "wall-clock limit" in message
         assert "HINDSIGHT_API_RETAIN_WALL_TIMEOUT" in message
 
     @pytest.mark.asyncio
-    async def test_failure_message_carries_the_stage(self):
+    async def test_failure_message_carries_the_stage(self, caplog):
         """The stage at the moment the ceiling fires is the only breadcrumb
         pointing at *where* the task was stuck, so it has to survive into the
         error the operator reads."""
@@ -168,7 +170,8 @@ class TestWallTimeoutEnforcement:
             with patch("hindsight_api.worker.poller.get_metrics_collector", return_value=MagicMock()):
                 await poller._execute_task_inner(task, holder)
 
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == "The operation timed out. Please retry."
+        message = caplog.text
         assert "llm.bedrock.retain_extract_facts+structured.queued" in message
 
     @pytest.mark.asyncio
@@ -181,7 +184,7 @@ class TestWallTimeoutEnforcement:
         poller._mark_failed.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_inner_timeout_is_not_reported_as_a_wedge(self):
+    async def test_inner_timeout_is_not_reported_as_a_wedge(self, caplog):
         """A TimeoutError raised *by* the task (an asyncpg command timeout, say)
         must not be dressed up as the wall-clock ceiling firing — that would send
         an operator hunting for a wedge that never happened."""
@@ -194,7 +197,8 @@ class TestWallTimeoutEnforcement:
             poller, task = await _run(inner_timeout)
 
         poller._mark_failed.assert_awaited_once()
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == PUBLIC_INTERNAL_ERROR
+        message = caplog.text
         assert "wall-clock limit" not in message
         assert "statement timeout" in message
 
@@ -215,7 +219,7 @@ class TestWallTimeoutEnforcement:
             poller._mark_failed.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_wedged_consolidation_is_cancelled_and_marked_failed(self):
+    async def test_wedged_consolidation_is_cancelled_and_marked_failed(self, caplog):
         """A consolidation that never commits a single batch — the #3726 wedge, which
         held its reserved slot (and, via the pending/processing guard in
         banks_needing_consolidation, the bank's whole reconcile sweep) for 22 days."""
@@ -237,7 +241,8 @@ class TestWallTimeoutEnforcement:
         assert cancelled.is_set()
         poller._mark_completed.assert_not_awaited()
         poller._mark_failed.assert_awaited_once()
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == "The operation timed out. Please retry."
+        message = caplog.text
         assert "made no progress" in message
         assert "HINDSIGHT_API_CONSOLIDATION_WALL_TIMEOUT" in message
 
@@ -272,7 +277,7 @@ class TestProgressExtendsTheCeiling:
         poller._mark_failed.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_a_job_that_stops_committing_is_still_cancelled(self):
+    async def test_a_job_that_stops_committing_is_still_cancelled(self, caplog):
         """Extension must not become an escape hatch: once progress stops, the
         clock runs out from the *last* batch, not from task start."""
         import asyncio
@@ -297,14 +302,15 @@ class TestProgressExtendsTheCeiling:
 
         assert cancelled.is_set()
         poller._mark_failed.assert_awaited_once()
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == "The operation timed out. Please retry."
+        message = caplog.text
         assert "made no progress" in message
         # The stage of the last batch that landed is the pointer to where it stalled.
         assert "consolidation.llm_batch.1" in message
         assert "HINDSIGHT_API_CONSOLIDATION_WALL_TIMEOUT" in message
 
     @pytest.mark.asyncio
-    async def test_retain_ceiling_stays_absolute(self):
+    async def test_retain_ceiling_stays_absolute(self, caplog):
         """Retain is one document, not a backlog: progress must NOT buy it more time,
         or the ceiling stops bounding the wedge it was written for (#3002)."""
         import asyncio
@@ -328,7 +334,8 @@ class TestProgressExtendsTheCeiling:
 
         assert cancelled.is_set()
         poller._mark_failed.assert_awaited_once()
-        message = poller._mark_failed.await_args.args[1]
+        assert poller._mark_failed.await_args.args[1] == "The operation timed out. Please retry."
+        message = caplog.text
         assert "exceeded the" in message
         assert "made no progress" not in message
 
