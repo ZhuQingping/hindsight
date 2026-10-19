@@ -7,6 +7,7 @@ import { HindsightClient } from "./hindsight";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { version } from "../../package.json";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -53,9 +54,11 @@ describe("remote connection contract", () => {
 
   it("sends each configured connection and bearer token to its own HTTP endpoint", async () => {
     const seen: string[][] = [[], []];
+    const userAgents: (string | undefined)[] = [];
     const servers = seen.map((requests) =>
       createServer((req, res) => {
         requests.push(`${req.url} ${req.headers.authorization}`);
+        userAgents.push(req.headers["user-agent"]);
         res.writeHead(req.headers.authorization === "Bearer rejected" ? 401 : 200, {
           "Content-Type": "application/json",
         });
@@ -76,6 +79,7 @@ describe("remote connection contract", () => {
         ["/v1/default/banks/b Bearer key-0", "/v1/default/banks/b Bearer rejected"],
         ["/v1/default/banks/b Bearer key-1"],
       ]);
+      expect(userAgents).toEqual(Array(3).fill(`agentstratum-coding-agents/${version}`));
     } finally {
       await Promise.all(
         servers.map((server) => new Promise<void>((resolve) => server.close(() => resolve())))

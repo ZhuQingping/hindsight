@@ -101,13 +101,13 @@ curl -fsSL https://hindsight.vectorize.io/get-cli | bash
 
 ```bash
 # Retain: Store information
-hindsight memory retain my-bank "Alice works at Google as a software engineer"
+agentstratum memory retain my-bank "Alice works at Google as a software engineer"
 
 # Recall: Search memories
-hindsight memory recall my-bank "What does Alice do?"
+agentstratum memory recall my-bank "What does Alice do?"
 
 # Reflect: Generate response
-hindsight memory reflect my-bank "Tell me about Alice"
+agentstratum memory reflect my-bank "Tell me about Alice"
 ```
 
 ### Go

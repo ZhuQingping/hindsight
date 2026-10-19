@@ -49,7 +49,7 @@ for (const root of tree.roots) {
 
 ```bash
 # Show the folder/page tree (no page bodies)
-hindsight knowledge-base tree "$BANK_ID"
+agentstratum knowledge-base tree "$BANK_ID"
 ```
 
 ### Go
@@ -159,7 +159,7 @@ console.log(`Page ID: ${page.page_id}, operation: ${page.operation_id}`);
 
 ```bash
 # Create a page — content is generated in the background
-hindsight knowledge-base create-page "$BANK_ID" \
+agentstratum knowledge-base create-page "$BANK_ID" \
   "Deploying the API" \
   "How is the API deployed?" \
   --parent-id "$FOLDER_ID" \
@@ -294,7 +294,7 @@ console.log(`Folder ID: ${folder.id}`);
 
 ```bash
 # Create a folder (omit --parent-id to create it at the root)
-hindsight knowledge-base create-folder "$BANK_ID" "Operations"
+agentstratum knowledge-base create-folder "$BANK_ID" "Operations"
 ```
 
 ### Go
@@ -347,7 +347,7 @@ console.log(document.markdown);  // YAML frontmatter + body
 
 ```bash
 # Read a page as a markdown document
-hindsight knowledge-base get-page "$BANK_ID" "$PAGE_ID"
+agentstratum knowledge-base get-page "$BANK_ID" "$PAGE_ID"
 ```
 
 ### Go
@@ -409,7 +409,7 @@ for (const hit of results.results) {
 
 ```bash
 # Hybrid search (full-text + vector) over whole pages
-hindsight knowledge-base search "$BANK_ID" "how do we deploy" --limit 5
+agentstratum knowledge-base search "$BANK_ID" "how do we deploy" --limit 5
 ```
 
 ### Go
@@ -492,11 +492,11 @@ console.log(`${notDrafts.results.length} non-draft runbooks`);
 
 ```bash
 # Narrow the tree and search to pages carrying a tag (recall's tags / tags_match / tag_groups)
-hindsight knowledge-base tree "$BANK_ID" --tags type:runbook --tags-match any_strict
-hindsight knowledge-base search "$BANK_ID" "how do we deploy" --tags ops --tags-match all_strict
+agentstratum knowledge-base tree "$BANK_ID" --tags type:runbook --tags-match any_strict
+agentstratum knowledge-base search "$BANK_ID" "how do we deploy" --tags ops --tags-match all_strict
 
 # Compound filters use --tag-groups: here, runbooks that are not drafts
-hindsight knowledge-base search "$BANK_ID" "how do we deploy" \
+agentstratum knowledge-base search "$BANK_ID" "how do we deploy" \
     --tag-groups '[{"and":[{"tags":["type:runbook"]},{"not":{"tags":["draft"]}}]}]'
 ```
 
@@ -550,7 +550,7 @@ await client.updateKnowledgeNode(BANK_ID, page.page_id, {
 ```bash
 # Rename a node, move it, and/or update a page's options.
 # Changing --source-query rebuilds the page against the new question.
-hindsight knowledge-base update "$BANK_ID" "$PAGE_ID" \
+agentstratum knowledge-base update "$BANK_ID" "$PAGE_ID" \
   --name "Deploying the API (v2)" \
   --tags ops,type:runbook,reviewed
 ```
@@ -602,7 +602,7 @@ await client.deleteKnowledgeNode(BANK_ID, folder.id);
 
 ```bash
 # Delete a folder or page — deleting a folder removes its whole subtree
-hindsight knowledge-base delete "$BANK_ID" "$FOLDER_ID" -y
+agentstratum knowledge-base delete "$BANK_ID" "$FOLDER_ID" -y
 ```
 
 ### Go
@@ -647,7 +647,7 @@ for (const file of bundle.files) {
 
 ```bash
 # Export the knowledge base as a portable markdown bundle
-hindsight knowledge-base export "$BANK_ID"
+agentstratum knowledge-base export "$BANK_ID"
 ```
 
 ### Go

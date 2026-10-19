@@ -1,0 +1,6 @@
+interface:
+  display_name: "Hindsight Upstream Sync"
+  short_description: "Integrate Hindsight releases with fork compatibility checks"
+  default_prompt: "Use $hindsight-upstream-sync to assess and integrate the requested official release into this fork."
+policy:
+  allow_implicit_invocation: false

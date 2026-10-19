@@ -30,7 +30,7 @@ await client.reflect('my-bank', 'What should I know about Alice?');
 ### CLI
 
 ```bash
-hindsight memory reflect my-bank "What do you know about Alice?"
+agentstratum memory reflect my-bank "What do you know about Alice?"
 ```
 
 ### Go
@@ -76,7 +76,7 @@ const response = await client.reflect('my-bank', 'What do you think about remote
 ### CLI
 
 ```bash
-hindsight memory reflect my-bank "Summarize my week" --budget high --max-tokens 8192
+agentstratum memory reflect my-bank "Summarize my week" --budget high --max-tokens 8192
 ```
 
 ### Go
@@ -166,7 +166,7 @@ cat > schema.json << 'EOF'
 EOF
 
 # Then use the --schema flag:
-hindsight memory reflect hiring-team \
+agentstratum memory reflect hiring-team \
   "Should we hire Alice for the ML team lead position?" \
   --schema schema.json
 
@@ -270,7 +270,7 @@ await client.reflect('my-bank', 'What feedback did the user give?', {
 ### CLI
 
 ```bash
-hindsight memory reflect my-bank "What feedback did the user give?" \
+agentstratum memory reflect my-bank "What feedback did the user give?" \
   --tags "user:alice" --tags-match any_strict
 ```
 
@@ -373,7 +373,7 @@ for (const fact of (sourcesResponse.based_on?.memories || [])) {
 ### CLI
 
 ```bash
-hindsight memory reflect my-bank "Tell me about Alice" --include-facts
+agentstratum memory reflect my-bank "Tell me about Alice" --include-facts
 ```
 
 ### Go

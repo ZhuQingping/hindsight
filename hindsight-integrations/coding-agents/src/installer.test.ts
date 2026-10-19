@@ -2157,6 +2157,14 @@ describe("grok-build installer", () => {
           ],
         },
       ],
+      // Grok hands the model context only from tool hooks (#5467): the prompt entry delivers it.
+      PostToolUse: [
+        {
+          hooks: [
+            { type: "command", command: `node "${join(ctx.dist, "grok-hook.js")}"`, timeout: 30 },
+          ],
+        },
+      ],
     });
     const config = readFileSync(configPath(ctx), "utf8");
     expect(parseToml(config)).not.toHaveProperty("hooks");
@@ -2268,6 +2276,7 @@ describe("grok-build installer", () => {
       "SessionStart",
       "UserPromptSubmit",
       "Stop",
+      "PostToolUse",
     ]);
   });
 

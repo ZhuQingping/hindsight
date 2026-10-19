@@ -12,6 +12,35 @@ Hindsight has two services, each with its own configuration prefix:
 
 ---
 
+## Product name
+
+`contextdb_name` is the fixed, case-sensitive deployment variable shared by the API
+and control plane. It defaults to `agentstratum`. Values contain 1–40 ASCII
+characters: a lowercase letter first, followed by lowercase letters, digits, or
+hyphens. Invalid values are rejected rather than trimmed or lowercased.
+
+```bash
+contextdb_name=agentstratum
+```
+
+Set the same value in both services and restart them. The same built artifacts
+support another legal value, such as `contextdb`, without rebuilding. It controls
+the UI brand, metadata and graph export names, API/OpenAPI title, and HTTP MCP
+server name. The non-secret API `/product-config` endpoint exposes the name and
+configuration version. The control plane checks its configured data API directly;
+no separate user/key-management service is required.
+
+The UI calls a bank a Workspace. API bank routes, `bank_id`, MCP tool identifiers,
+SDK package names and native Hook integrations retain their protocol identities.
+Product naming does not change resource IDs, permissions or database schemas.
+An already-open tab preserves its input and displays a refresh warning after a
+name change. Requests carrying that tab's old product name are refused before
+forwarding; the UI does not automatically resubmit them. Session cookies remain
+bound to the configured public origin and base path.
+
+Simplified Chinese and English product copy are maintained together. Other
+retained locale selections explicitly show English, including API error messages.
+
 ## API Service
 
 The API service handles all memory operations (retain, recall, reflect).
@@ -3038,3 +3067,7 @@ HINDSIGHT_CP_DATAPLANE_API_URL=http://localhost:8888
 ---
 
 For configuration issues not covered here, please [open an issue](https://github.com/vectorize-io/hindsight/issues) on GitHub.
+
+## Hosted agentstratum diagnostics
+
+The standalone API and worker accept `AGENTSTRATUM_API_*` environment variables at startup. Server stdout is an operator-only diagnostic channel and retains original log messages and exception traces in the configured text or JSON format. Customers do not have access to these server logs. Customer-visible errors are handled separately at API, MCP, and other response boundaries; a separate file log is not required to preserve internal diagnostics.

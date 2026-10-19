@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
@@ -166,8 +166,8 @@ async def test_child_is_confined_to_scratch_dirs_and_never_sees_the_key_in_argv(
     # CURSOR_CONFIG_DIR keeps session transcripts out of the operator's ~/.cursor,
     # and keeps the CLI from reading a hooks.json that points back at Hindsight.
     config_dir = kwargs["env"]["CURSOR_CONFIG_DIR"]
-    assert "hindsight-cursor-cfg-" in config_dir
-    assert "hindsight-cursor-ws-" in kwargs["cwd"]
+    assert "agentstratum-cursor-cfg-" in config_dir
+    assert "agentstratum-cursor-ws-" in kwargs["cwd"]
     assert kwargs["cwd"] != config_dir
 
 
@@ -361,3 +361,25 @@ def test_provider_is_registered():
     with patch("hindsight_api.engine.providers.cursor_llm.shutil.which", return_value="/usr/bin/cursor-agent"):
         llm = create_llm_provider(provider="cursor", api_key="", base_url="", model="auto", reasoning_effort=None)
     assert isinstance(llm, CursorLLM)
+
+
+@pytest.mark.asyncio
+async def test_successful_calls_record_a_trace_span(monkeypatch):
+    """The wrapper records only failed calls, so a successful one is the provider's to trace (#5381)."""
+    import hindsight_api.tracing as tracing
+
+    recorder = MagicMock()
+    monkeypatch.setattr(tracing, "get_span_recorder", lambda: recorder)
+
+    with _provider(_result_line("hello")) as s:
+        await s.llm.call(messages=[{"role": "user", "content": "x"}], max_retries=0)
+    assert recorder.record_llm_call.call_count == 1
+    assert recorder.record_llm_call.call_args.kwargs["response_content"] == "hello"
+
+    envelope = json.dumps({"content": None, "tool_calls": [{"name": "recall", "arguments": {"query": "q"}}]})
+    with _provider(_result_line(envelope)) as s:
+        await s.llm.call_with_tools(messages=[{"role": "user", "content": "x"}], tools=_TOOLS, max_retries=0)
+    assert recorder.record_llm_call.call_count == 2
+    kwargs = recorder.record_llm_call.call_args.kwargs
+    assert kwargs["finish_reason"] == "tool_calls"
+    assert [c["name"] for c in kwargs["tool_calls"]] == ["recall"]

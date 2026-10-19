@@ -13,6 +13,7 @@
  *   - onTranscript(sessionId, turns, lastTurnComplete): full transcript -> write back (on by default)
  *   - onSessionIdle(sessionId)      : assistant finished -> refetch + write back the completed
  *                                     exchange (the Stop-equivalent these hosts lack)
+ *   - flush()                       : host is exiting -> wait (bounded) for in-flight write-backs
  * No opencode/claude specifics live here — only the memory logic.
  */
 import { DISPLAY_NAME } from "./brand-defaults.js";
@@ -35,6 +36,8 @@ import { buildHookOutput } from "./hook";
 import { sessionCacheFile, writeSessionCache } from "./session-cache";
 
 const HARNESS = "opencode";
+/** How long `flush` holds a host's exit for in-flight write-backs: room for one retain request. */
+const FLUSH_TIMEOUT_MS = 10_000;
 
 export class RuntimeCore {
   private readonly injection = new Map<string, string>(); // sessionId -> this turn's injection block
@@ -46,6 +49,8 @@ export class RuntimeCore {
   private readonly usageCursors = memoryUsageCursorStore();
   /** Pulls a session's CURRENT transcript from the host (set by the adapter); see onSessionIdle. */
   private fetchTranscript?: (sessionId: string) => Promise<TransportTurn[]>;
+  /** Write-backs started and not yet settled — what `flush` waits for. */
+  private readonly inFlight = new Set<Promise<void>>();
   private lastInjection = ""; // most recent turn's injection block, keyed by nothing (see getInjection)
   private deferInitialReflect = false;
   /** Host-notice channel (opencode/Kilo: client.tui.showToast via the adapter). Optional, fail-open. */
@@ -249,8 +254,10 @@ export class RuntimeCore {
     lastTurnComplete: boolean
   ): Promise<void> {
     if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
-    if (!this.writeBackEnabled || !sessionId || !turns.length) return;
+    if (!sessionId || !turns.length) return;
+    // Usage is a local file, so it is recorded whether or not write-back is on (#5391).
     this.recordUsage(sessionId, turns, lastTurnComplete);
+    if (!this.writeBackEnabled) return;
     const st = this.stateFor(sessionId);
     this.retain(sessionId, turns, st.startTs);
   }
@@ -269,7 +276,7 @@ export class RuntimeCore {
    */
   async onSessionIdle(sessionId: string): Promise<void> {
     if (process.env.AGENTSTRATUM_DISABLE_HOOKS) return; // anti-recursion (see seedIfCold)
-    if (!this.writeBackEnabled || !sessionId || !this.fetchTranscript) return;
+    if (!sessionId || !this.fetchTranscript) return;
     let turns: TransportTurn[];
     try {
       turns = await this.fetchTranscript(sessionId);
@@ -282,6 +289,7 @@ export class RuntimeCore {
     }
     if (!turns.length) return;
     this.recordUsage(sessionId, turns, true); // idle: the reply is in
+    if (!this.writeBackEnabled) return; // usage above is local and recorded regardless (#5391)
     const st = this.stateFor(sessionId);
     // idle can fire more than once for one exchange (and again on a session with no new activity);
     // only retain when this transcript actually grew past what we last wrote.
@@ -317,6 +325,24 @@ export class RuntimeCore {
     return st;
   }
 
+  /**
+   * Wait for every write-back still in flight, at most `timeoutMs`. Write-backs stay fire-and-forget
+   * so a turn never blocks on the network; a host that announces its exit (pi's `session_shutdown`)
+   * calls this so the session's final retain is not dropped with the process (#5081). Bounded so a
+   * stalled server cannot hold the host's exit open. Never throws.
+   */
+  async flush(timeoutMs = FLUSH_TIMEOUT_MS): Promise<void> {
+    if (!this.inFlight.size) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      Promise.all(this.inFlight),
+      new Promise<void>((r) => {
+        timer = setTimeout(r, timeoutMs);
+      }),
+    ]);
+    clearTimeout(timer);
+  }
+
   /** Fire-and-forget upsert of the session transcript; never throws into the host. */
   private retain(
     sessionId: string,
@@ -325,8 +351,8 @@ export class RuntimeCore {
     trigger = "turn"
   ): void {
     const t0 = Date.now();
-    // Validate before write-back; failure is reported through the existing diagnostic path.
-    void ensureRemoteConnection(this.cfg)
+    // Track remote write-back so host shutdown can flush the final exchange.
+    const write = ensureRemoteConnection(this.cfg)
       .then(() =>
         retainLiveSession(this.client, sessionId, turns, startTs, this.harness, {
           cursors: this.cursors,
@@ -354,5 +380,7 @@ export class RuntimeCore {
           trigger,
         })
       );
+    this.inFlight.add(write);
+    void write.finally(() => this.inFlight.delete(write));
   }
 }

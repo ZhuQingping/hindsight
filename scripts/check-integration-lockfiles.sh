@@ -2,7 +2,8 @@
 #
 # Ensures every `hindsight-integrations/*/package-lock.json` resolves its
 # dependencies from a public npm registry — not from a monorepo workspace
-# symlink, a `file:` URL, or a relative path.
+# symlink, a `file:` URL, or a relative path. The private fork's explicitly
+# listed development-only helper is checked separately below.
 #
 # Why this matters: integrations are published by `.github/workflows/
 # release-integration.yml`, which runs `npm ci && npm run build` inside the
@@ -49,10 +50,13 @@ for lockfile in "${lockfiles[@]}"; do
 
   violations="$(python3 - "$lockfile" <<'PY'
 import json, sys
+from pathlib import Path
 
 path = sys.argv[1]
 with open(path) as f:
     data = json.load(f)
+
+manifest = json.loads(Path(path).with_name("package.json").read_text())
 
 bad = []
 for name, info in data.get("packages", {}).items():
@@ -68,6 +72,25 @@ for name, info in data.get("packages", {}).items():
 
     resolved = info.get("resolved", "")
     link = info.get("link")
+
+    # The fork's private remote-only client retains this workspace helper for
+    # development tests. Its candidate workflow builds the helper first; it is
+    # not a runtime dependency or a registry-published integration. Keep this
+    # exception exact so other private/dev links still fail the release check.
+    if (
+        manifest.get("private") is True
+        and manifest.get("name") == "agentstratum-coding-agents"
+        and Path(path).parent.name == "coding-agents"
+        and name == "node_modules/agentstratum-local-engine"
+        and data.get("packages", {}).get(resolved, {}).get("dev") is True
+        and info.get("dev") is not False
+        and link is True
+        and resolved == "../../hindsight-all-npm"
+        and manifest.get("devDependencies", {}).get("agentstratum-local-engine") == "file:../../hindsight-all-npm"
+        and "agentstratum-local-engine" not in manifest.get("dependencies", {})
+        and "agentstratum-local-engine" not in manifest.get("optionalDependencies", {})
+    ):
+        continue
 
     if link is True:
         # Workspace symlink, no registry URL. This is the bug that broke

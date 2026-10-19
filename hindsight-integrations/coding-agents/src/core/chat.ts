@@ -3,12 +3,16 @@
  * backfill (ingest past sessions) and the live runtime write-back. A leading `system` turn carries
  * the REF-ID tracer; every turn gets an ABSOLUTE timestamp.
  */
+import { diag } from "./diag";
 import { RateLimitedError, type HindsightClient } from "./hindsight";
 import {
   advancePaths,
   fingerprintTurns,
+  MAX_CURSOR_OPS,
   planRetain,
+  type RetainCursor,
   type RetainCursorStore,
+  type RetainSource,
 } from "./retain-cursor";
 import type { RetainStamp } from "./retain-stamp";
 import type { ChatSession } from "./types";
@@ -122,6 +126,72 @@ async function supportsAppend(client: HindsightClient): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Short: this runs on every write-back that follows an accepted one, inside a hook's budget. */
+const OP_CHECK_TIMEOUT_MS = 5_000;
+const LOST_OP_STATUSES = new Set(["failed", "cancelled", "error"]);
+
+/**
+ * Settle the cursor's accepted-but-unconfirmed operations (#5251). Returns the cursor to plan from —
+ * marked `dirty` when one of them failed, so the plan replaces and re-sends the turns it carried —
+ * and the ids still worth checking next time. Fail-open: an op whose status cannot be read stays
+ * tracked, never counts as failed.
+ */
+async function settleOps(
+  client: HindsightClient,
+  cursor: RetainCursor
+): Promise<{ cursor: RetainCursor; ops: string[] }> {
+  const ops = cursor.ops ?? [];
+  const statuses = await Promise.all(
+    ops.map(async (id) => {
+      try {
+        const r = await client.req(
+          "GET",
+          client.bankUrl(`/operations/${encodeURIComponent(id)}`),
+          undefined,
+          [],
+          OP_CHECK_TIMEOUT_MS
+        );
+        if (r.status === 404) return "not_found"; // pruned: nothing left to learn
+        return String(((await r.json()) as { status?: unknown }).status ?? "").toLowerCase();
+      } catch {
+        return "";
+      }
+    })
+  );
+  const lost = ops.filter((_, i) => LOST_OP_STATUSES.has(statuses[i]));
+  const open = ops.filter((_, i) => !["completed", "not_found"].includes(statuses[i]));
+  return {
+    cursor: lost.length
+      ? { ...cursor, dirty: true, recoveryId: uuidV5(JSON.stringify(lost)) }
+      : cursor,
+    ops: lost.length ? [] : open,
+  };
+}
+
+/** Rebuild exactly the submitted slices, not just the current continuation file. A missing,
+ *  truncated or rewritten earlier source must fail closed instead of erasing stored history. */
+function recoveryTurns(
+  sources: RetainSource[],
+  currentPath: string,
+  currentTurns: TransportTurn[],
+  readTranscript?: (path: string) => TransportTurn[]
+): TransportTurn[] {
+  return sources.flatMap((source) => {
+    const turns = source.path === currentPath ? currentTurns : readTranscript?.(source.path);
+    if (
+      !turns ||
+      source.fromTurn > source.turns ||
+      turns.length < source.turns ||
+      fingerprintTurns(turns, source.turns) !== source.fingerprint
+    ) {
+      throw new Error(
+        `Cannot recover session: transcript source is unavailable or changed: ${source.path}`
+      );
+    }
+    return turns.slice(source.fromTurn, source.turns);
+  });
 }
 
 /** Retry window for a caller that did not supply one — a long-lived host with no external clock. */
@@ -239,6 +309,8 @@ export async function retainLiveSession(
     retryUntil?: number;
     /** The transcript file the turns came from, when there is one — see RetainCursor.paths. */
     transcriptPath?: string;
+    /** The same harness parser that read the current transcript; used only for failure recovery. */
+    readTranscript?: (path: string) => TransportTurn[];
   } = {}
 ): Promise<void> {
   const cursors = opts.cursors;
@@ -252,7 +324,8 @@ export async function retainLiveSession(
       opts.stamp,
       undefined,
       opts.retryUntil,
-      opts.transcriptPath
+      opts.transcriptPath,
+      opts.readTranscript
     );
   // Serialised so the plan is made against the previous write-back's CONFIRMED cursor (see above).
   return serialize(cursors, sessionId, () =>
@@ -265,7 +338,8 @@ export async function retainLiveSession(
       opts.stamp,
       cursors,
       opts.retryUntil,
-      opts.transcriptPath
+      opts.transcriptPath,
+      opts.readTranscript
     )
   );
 }
@@ -280,26 +354,64 @@ async function writeSession(
   cursors?: RetainCursorStore,
   /** Absolute time this write-back may keep retrying until; the caller owns its own clock. */
   retryUntil = Date.now() + DEFAULT_RETRY_WINDOW_MS,
-  transcriptPath?: string
+  transcriptPath?: string,
+  readTranscript?: (path: string) => TransportTurn[]
 ): Promise<void> {
   if (!turns.length) return;
   const refId = `conversation:${sessionId}`;
-  const cursor = cursors?.read(sessionId);
+  let cursor = cursors?.read(sessionId);
   // A "yes" is remembered on the cursor: hook harnesses run a fresh process per Stop, so without it
   // every turn re-asked, and one slow or failed probe turned that turn's append into a full replace
   // (#4560). A "no" is not remembered — the server can be upgraded mid-session.
+  const probed = Boolean(cursors) && cursor?.appendSupported !== true;
   const appendSupported =
     Boolean(cursors) && (cursor?.appendSupported === true || (await supportsAppend(client)));
-  const plan = planRetain(turns, cursor, {
+  // Check accepted work before planning either an append or an explicit recovery replacement.
+  let ops: string[] = [];
+  if (appendSupported && cursor?.ops?.length && !cursor.dirty)
+    ({ cursor, ops } = await settleOps(client, cursor));
+  const recovering = Boolean(cursor?.dirty && cursor.recoveryId && cursor.bank === client.bank);
+  // Plan the current file's contribution before turning recovery into a full replacement.
+  // `dirty` alone used to make a continuation's tail masquerade as the entire document.
+  const plan = planRetain(turns, recovering ? { ...cursor!, dirty: false } : cursor, {
     appendSupported,
     bank: client.bank,
     path: transcriptPath,
   });
+  let sources: RetainSource[] | undefined;
+  if (transcriptPath) {
+    const source = {
+      path: transcriptPath,
+      fromTurn: 0,
+      turns: turns.length,
+      fingerprint: fingerprintTurns(turns, turns.length),
+    };
+    if (recovering && !cursor?.sources && (cursor?.paths?.length ?? 0) > 1) {
+      throw new Error("Cannot recover session: complete transcript source slices are unavailable");
+    }
+    sources =
+      cursor && cursor.bank === client.bank ? cursor.sources?.map((s) => ({ ...s })) : undefined;
+    if (plan.mode === "replace" && !recovering) sources = [source];
+    else if (!sources?.length) sources = [source];
+    else {
+      const last = sources.at(-1)!;
+      if (last.path === transcriptPath)
+        sources[sources.length - 1] = { ...source, fromTurn: last.fromTurn };
+      else if (plan.mode === "append") sources.push({ ...source, fromTurn: plan.fromTurn });
+      else if (plan.mode !== "skip") {
+        throw new Error("Cannot recover session: transcript order changed");
+      }
+    }
+  }
+  const replace = recovering || plan.mode === "replace";
+  // Recorded whenever the probe ran, so a deployment where append never activates shows up in the
+  // diag trail instead of only as oversized retains (#5286). A cached "yes" is not re-logged.
+  if (probed) diag(harness ?? "", "retain_mode", { mode: plan.mode, appendSupported });
   // Which files the document holds after this write-back. A replace rebuilds it from THIS file
   // alone, so it forgets the others — which is what lets the file it dropped be appended back as a
   // segment on its next hook, rather than replacing again.
   const paths =
-    plan.mode === "replace"
+    replace && !recovering
       ? transcriptPath
         ? [transcriptPath]
         : undefined
@@ -307,13 +419,15 @@ async function writeSession(
   // Appends built but never confirmed. A replace rewrites the whole document from the same
   // transcript, so it SUBSUMES them; on every other path they go out first, oldest first, before
   // anything new — the document only ever grows in transcript order.
-  const outbox = plan.mode === "replace" ? [] : (cursor?.pending ?? []);
-  if (plan.mode === "skip" && !outbox.length) return;
+  const outbox = replace ? [] : (cursor?.pending ?? []);
+  if (!recovering && plan.mode === "skip" && !outbox.length) return;
 
   /** Identity of ONE payload: a resubmission of the same bytes is collapsed server-side into the
    *  original operation instead of extracting (or appending) twice. */
   const opId = (mode: string, content: string) =>
-    uuidV5(`${client.bank}\n${refId}\n${mode}\n${content}`);
+    uuidV5(
+      `${client.bank}\n${refId}\n${mode}\n${content}${mode === "replace" && cursor?.recoveryId ? `\nrecovery:${cursor.recoveryId}` : ""}`
+    );
   const submit = (content: string, operationId: string, append: boolean) =>
     client.retain(
       content,
@@ -354,6 +468,13 @@ async function writeSession(
     bank: client.bank,
     ...(paths ? { paths } : {}),
     ...(appendSupported ? { appendSupported: true } : {}),
+    ...(sources ? { sources } : {}),
+    ...(cursor?.recoveryId ? { recoveryId: cursor.recoveryId } : {}),
+  };
+  /** `next` plus the ops to check on the next write-back, with `id` newly accepted. */
+  const accepted = (id?: string) => {
+    if (id) ops = [...ops, id].slice(-MAX_CURSOR_OPS);
+    return ops.length ? { ...next, ops } : next;
   };
   // Still ours to retry only while the cursor holds the claim we write below.
   const stillOurs = () => {
@@ -362,18 +483,20 @@ async function writeSession(
     return now?.turns === next.turns && now?.fingerprint === next.fingerprint;
   };
 
-  if (plan.mode === "replace") {
-    const content = renderSessionJsonl(refId, turns, startTs);
+  if (replace) {
+    const completeTurns =
+      recovering && sources && transcriptPath
+        ? recoveryTurns(sources, transcriptPath, turns, readTranscript)
+        : turns;
+    const content = renderSessionJsonl(refId, completeTurns, startTs);
     // Nothing to buffer: replace is idempotent by construction, so a later one re-establishes the
     // same truth from the same transcript. Claim the position unconfirmed so an outcome we never
     // learn resolves to another replace rather than an append onto an unknown state.
     cursors?.write(sessionId, { ...next, dirty: true });
-    await submitWithRetry(
-      () => submit(content, opId("replace", content), false),
-      stillOurs,
-      retryUntil
-    );
-    cursors?.write(sessionId, next);
+    const operationId = opId("replace", content);
+    await submitWithRetry(() => submit(content, operationId, false), stillOurs, retryUntil);
+    ops = []; // the replace re-sends every turn, so nothing older can still lose any
+    cursors?.write(sessionId, accepted(operationId));
     return;
   }
 
@@ -392,7 +515,7 @@ async function writeSession(
   // session (#3989). Replay is safe precisely because the bytes and the operation id are unchanged:
   // a write the server DID commit collapses into that same operation instead of appending twice,
   // which is the one thing appending onto an unknown state could otherwise get wrong.
-  cursors?.write(sessionId, { ...next, pending: queue });
+  cursors?.write(sessionId, { ...accepted(), pending: queue });
   for (let i = 0; i < queue.length; i++) {
     // One request per entry, each able to burn the full 15s abort — where this used to send exactly
     // once. Never START one that cannot finish inside the caller's budget: a hook harness is killed
@@ -409,6 +532,7 @@ async function writeSession(
     // Confirmed: drop it immediately, so a failure on a LATER entry cannot resubmit it as part of
     // the next flush. Whatever is still queued when this throws is what the next flush replays.
     const remaining = queue.slice(i + 1);
-    cursors?.write(sessionId, remaining.length ? { ...next, pending: remaining } : next);
+    const done = accepted(entry.operationId);
+    cursors?.write(sessionId, remaining.length ? { ...done, pending: remaining } : done);
   }
 }

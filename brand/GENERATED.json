@@ -24,11 +24,11 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/package.json",
-      "sha256": "978800729829f505fee5b8b6c510677bb746d09e0f09c0120ebd40fecce8ee32"
+      "sha256": "8281110135eb2cfb165157a5b4d78dde8939e51f41932eb227b7e65a7ddcead8"
     },
     {
       "path": "hindsight-integrations/coding-agents/plugin.json",
-      "sha256": "2f1f42a58756982fc3ec8ead3af7e706e46aa77094d693863ea201391ce11ccc"
+      "sha256": "4188a36a2f2cca2c269addb528ffc083e52d6b03a91d3b70e1c01d20499db67b"
     },
     {
       "path": "hindsight-integrations/agent-plugin/plugin.json",
@@ -44,7 +44,7 @@
     },
     {
       "path": "hindsight-cli/Cargo.toml",
-      "sha256": "640b9f657ed172d523dfdb71752cc3665420b19932eb37d4aad686e55fb5e908"
+      "sha256": "c2835c22b4987e36e0e05f38b8164ee27d893588f74530509e2e730be48fb815"
     },
     {
       "path": "scripts/install-agentstratum.sh",
@@ -52,7 +52,7 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/README.md",
-      "sha256": "e2afa6c1b28c2167610044a85c13f90ff142333d96f1ffe74e7f92cf649786fb"
+      "sha256": "243d54c77399b245570f03d46d00b7da377c9969c4663f82d7dcfdfcee913fe8"
     },
     {
       "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",

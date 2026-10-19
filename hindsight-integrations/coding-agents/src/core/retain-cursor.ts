@@ -25,6 +25,8 @@
  *   - dirty              a REPLACE was started and not confirmed. There is nothing worth replaying
  *                        (another replace re-establishes the same truth from the same transcript),
  *                        so the next write-back simply replaces again.
+ *   - failed op          a write the server accepted whose operation later FAILED (see `ops`): its
+ *                        turns never reached the document, so appending after them leaves a gap.
  *
  * An APPEND that fails does NOT fall back to replace, because that fallback is what made a single
  * outage cost a full re-extraction on every subsequent Stop for the life of the session (#3989).
@@ -116,7 +118,30 @@ export interface RetainCursor {
   /** Appends started and not confirmed, oldest first — replayed before anything new. Their turns
    *  are already counted in `turns`: the cursor covers what is committed OR buffered. */
   pending?: PendingAppend[];
+  /** Operation ids the server ACCEPTED but has not been seen to complete, oldest first. Accepted is
+   *  not stored: extraction can still fail (a provider at its usage limit), and the cursor has
+   *  already moved past those turns — so the next write-back checks these first, and one that
+   *  failed makes it replace, re-sending the turns it carried (#5251). */
+  ops?: string[];
+  /** Exact slices of host transcripts that make up this document, in submission order.
+   *  Unlike `paths` (a bounded routing hint), these cannot be evicted: recovery must preserve
+   *  every segment. Only offsets/hashes are stored, never another copy of the conversation. */
+  sources?: RetainSource[];
+  /** Identity of the failed operations this replacement repairs. Persisted before sending so
+   *  a lost acknowledgement replays the SAME recovery, while a failed recovery gets a new id. */
+  recoveryId?: string;
 }
+
+export interface RetainSource {
+  path: string;
+  fromTurn: number;
+  turns: number;
+  fingerprint: string;
+}
+
+/** How many accepted-but-unconfirmed operations a cursor tracks. Older ones are forgotten.
+ *  ponytail: an op still running after 8 more write-backs goes unchecked; widen if that shows up. */
+export const MAX_CURSOR_OPS = 8;
 
 /**
  * Identity of the first `count` turns — every one of them, hashed incrementally.
