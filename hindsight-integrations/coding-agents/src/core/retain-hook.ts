@@ -162,6 +162,7 @@ export async function buildRetain(args: {
       stamp: args.stamp,
       retryUntil: args.retryUntil,
       transcriptPath,
+      readTranscript,
     });
     diag(harness, "retain_ok", { ms: Date.now() - t0, turns: turns.length, session: sessionId });
   } catch (e) {

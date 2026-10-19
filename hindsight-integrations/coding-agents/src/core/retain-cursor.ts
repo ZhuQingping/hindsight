@@ -123,6 +123,20 @@ export interface RetainCursor {
    *  already moved past those turns — so the next write-back checks these first, and one that
    *  failed makes it replace, re-sending the turns it carried (#5251). */
   ops?: string[];
+  /** Exact slices of host transcripts that make up this document, in submission order.
+   *  Unlike `paths` (a bounded routing hint), these cannot be evicted: recovery must preserve
+   *  every segment. Only offsets/hashes are stored, never another copy of the conversation. */
+  sources?: RetainSource[];
+  /** Identity of the failed operations this replacement repairs. Persisted before sending so
+   *  a lost acknowledgement replays the SAME recovery, while a failed recovery gets a new id. */
+  recoveryId?: string;
+}
+
+export interface RetainSource {
+  path: string;
+  fromTurn: number;
+  turns: number;
+  fingerprint: string;
 }
 
 /** How many accepted-but-unconfirmed operations a cursor tracks. Older ones are forgotten.

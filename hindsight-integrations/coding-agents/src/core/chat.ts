@@ -12,6 +12,7 @@ import {
   planRetain,
   type RetainCursor,
   type RetainCursorStore,
+  type RetainSource,
 } from "./retain-cursor";
 import type { RetainStamp } from "./retain-stamp";
 import type { ChatSession } from "./types";
@@ -159,9 +160,38 @@ async function settleOps(
       }
     })
   );
-  const lost = statuses.some((s) => LOST_OP_STATUSES.has(s));
+  const lost = ops.filter((_, i) => LOST_OP_STATUSES.has(statuses[i]));
   const open = ops.filter((_, i) => !["completed", "not_found"].includes(statuses[i]));
-  return { cursor: lost ? { ...cursor, dirty: true } : cursor, ops: lost ? [] : open };
+  return {
+    cursor: lost.length
+      ? { ...cursor, dirty: true, recoveryId: uuidV5(JSON.stringify(lost)) }
+      : cursor,
+    ops: lost.length ? [] : open,
+  };
+}
+
+/** Rebuild exactly the submitted slices, not just the current continuation file. A missing,
+ *  truncated or rewritten earlier source must fail closed instead of erasing stored history. */
+function recoveryTurns(
+  sources: RetainSource[],
+  currentPath: string,
+  currentTurns: TransportTurn[],
+  readTranscript?: (path: string) => TransportTurn[]
+): TransportTurn[] {
+  return sources.flatMap((source) => {
+    const turns = source.path === currentPath ? currentTurns : readTranscript?.(source.path);
+    if (
+      !turns ||
+      source.fromTurn > source.turns ||
+      turns.length < source.turns ||
+      fingerprintTurns(turns, source.turns) !== source.fingerprint
+    ) {
+      throw new Error(
+        `Cannot recover session: transcript source is unavailable or changed: ${source.path}`
+      );
+    }
+    return turns.slice(source.fromTurn, source.turns);
+  });
 }
 
 /** Retry window for a caller that did not supply one — a long-lived host with no external clock. */
@@ -279,6 +309,8 @@ export async function retainLiveSession(
     retryUntil?: number;
     /** The transcript file the turns came from, when there is one — see RetainCursor.paths. */
     transcriptPath?: string;
+    /** The same harness parser that read the current transcript; used only for failure recovery. */
+    readTranscript?: (path: string) => TransportTurn[];
   } = {}
 ): Promise<void> {
   const cursors = opts.cursors;
@@ -292,7 +324,8 @@ export async function retainLiveSession(
       opts.stamp,
       undefined,
       opts.retryUntil,
-      opts.transcriptPath
+      opts.transcriptPath,
+      opts.readTranscript
     );
   // Serialised so the plan is made against the previous write-back's CONFIRMED cursor (see above).
   return serialize(cursors, sessionId, () =>
@@ -305,7 +338,8 @@ export async function retainLiveSession(
       opts.stamp,
       cursors,
       opts.retryUntil,
-      opts.transcriptPath
+      opts.transcriptPath,
+      opts.readTranscript
     )
   );
 }
@@ -320,7 +354,8 @@ async function writeSession(
   cursors?: RetainCursorStore,
   /** Absolute time this write-back may keep retrying until; the caller owns its own clock. */
   retryUntil = Date.now() + DEFAULT_RETRY_WINDOW_MS,
-  transcriptPath?: string
+  transcriptPath?: string,
+  readTranscript?: (path: string) => TransportTurn[]
 ): Promise<void> {
   if (!turns.length) return;
   const refId = `conversation:${sessionId}`;
@@ -331,15 +366,44 @@ async function writeSession(
   const probed = Boolean(cursors) && cursor?.appendSupported !== true;
   const appendSupported =
     Boolean(cursors) && (cursor?.appendSupported === true || (await supportsAppend(client)));
-  // Only an append can build on a lost write; a replace already re-sends everything.
+  // Check accepted work before planning either an append or an explicit recovery replacement.
   let ops: string[] = [];
   if (appendSupported && cursor?.ops?.length && !cursor.dirty)
     ({ cursor, ops } = await settleOps(client, cursor));
-  const plan = planRetain(turns, cursor, {
+  const recovering = Boolean(cursor?.dirty && cursor.recoveryId && cursor.bank === client.bank);
+  // Plan the current file's contribution before turning recovery into a full replacement.
+  // `dirty` alone used to make a continuation's tail masquerade as the entire document.
+  const plan = planRetain(turns, recovering ? { ...cursor!, dirty: false } : cursor, {
     appendSupported,
     bank: client.bank,
     path: transcriptPath,
   });
+  let sources: RetainSource[] | undefined;
+  if (transcriptPath) {
+    const source = {
+      path: transcriptPath,
+      fromTurn: 0,
+      turns: turns.length,
+      fingerprint: fingerprintTurns(turns, turns.length),
+    };
+    if (recovering && !cursor?.sources && (cursor?.paths?.length ?? 0) > 1) {
+      throw new Error("Cannot recover session: complete transcript source slices are unavailable");
+    }
+    sources =
+      cursor && cursor.bank === client.bank ? cursor.sources?.map((s) => ({ ...s })) : undefined;
+    if (plan.mode === "replace" && !recovering) sources = [source];
+    else if (!sources?.length) sources = [source];
+    else {
+      const last = sources.at(-1)!;
+      if (last.path === transcriptPath)
+        sources[sources.length - 1] = { ...source, fromTurn: last.fromTurn };
+      else if (plan.mode === "append") sources.push({ ...source, fromTurn: plan.fromTurn });
+      else if (plan.mode !== "skip") {
+        throw new Error("Cannot recover session: transcript order changed");
+      }
+    }
+  }
+  const replace = recovering || plan.mode === "replace";
   // Recorded whenever the probe ran, so a deployment where append never activates shows up in the
   // diag trail instead of only as oversized retains (#5286). A cached "yes" is not re-logged.
   if (probed) diag(harness ?? "", "retain_mode", { mode: plan.mode, appendSupported });
@@ -347,7 +411,7 @@ async function writeSession(
   // alone, so it forgets the others — which is what lets the file it dropped be appended back as a
   // segment on its next hook, rather than replacing again.
   const paths =
-    plan.mode === "replace"
+    replace && !recovering
       ? transcriptPath
         ? [transcriptPath]
         : undefined
@@ -355,13 +419,15 @@ async function writeSession(
   // Appends built but never confirmed. A replace rewrites the whole document from the same
   // transcript, so it SUBSUMES them; on every other path they go out first, oldest first, before
   // anything new — the document only ever grows in transcript order.
-  const outbox = plan.mode === "replace" ? [] : (cursor?.pending ?? []);
-  if (plan.mode === "skip" && !outbox.length) return;
+  const outbox = replace ? [] : (cursor?.pending ?? []);
+  if (!recovering && plan.mode === "skip" && !outbox.length) return;
 
   /** Identity of ONE payload: a resubmission of the same bytes is collapsed server-side into the
    *  original operation instead of extracting (or appending) twice. */
   const opId = (mode: string, content: string) =>
-    uuidV5(`${client.bank}\n${refId}\n${mode}\n${content}`);
+    uuidV5(
+      `${client.bank}\n${refId}\n${mode}\n${content}${mode === "replace" && cursor?.recoveryId ? `\nrecovery:${cursor.recoveryId}` : ""}`
+    );
   const submit = (content: string, operationId: string, append: boolean) =>
     client.retain(
       content,
@@ -402,6 +468,8 @@ async function writeSession(
     bank: client.bank,
     ...(paths ? { paths } : {}),
     ...(appendSupported ? { appendSupported: true } : {}),
+    ...(sources ? { sources } : {}),
+    ...(cursor?.recoveryId ? { recoveryId: cursor.recoveryId } : {}),
   };
   /** `next` plus the ops to check on the next write-back, with `id` newly accepted. */
   const accepted = (id?: string) => {
@@ -415,8 +483,12 @@ async function writeSession(
     return now?.turns === next.turns && now?.fingerprint === next.fingerprint;
   };
 
-  if (plan.mode === "replace") {
-    const content = renderSessionJsonl(refId, turns, startTs);
+  if (replace) {
+    const completeTurns =
+      recovering && sources && transcriptPath
+        ? recoveryTurns(sources, transcriptPath, turns, readTranscript)
+        : turns;
+    const content = renderSessionJsonl(refId, completeTurns, startTs);
     // Nothing to buffer: replace is idempotent by construction, so a later one re-establishes the
     // same truth from the same transcript. Claim the position unconfirmed so an outcome we never
     // learn resolves to another replace rather than an append onto an unknown state.
