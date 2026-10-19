@@ -46,6 +46,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    subprocess.run(["bash", str(ROOT / "scripts/sync-product-brand.sh"), "--check"], cwd=ROOT, check=True)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     package_archive(

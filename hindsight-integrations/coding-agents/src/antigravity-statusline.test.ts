@@ -10,7 +10,7 @@ describe("Antigravity status line", () => {
       { cwd: "/workspace/acme" },
       resolveConfig({ bankId: "team::acme" })
     );
-    expect(stripAnsi(out)).toBe("agentstratum · team::acme");
+    expect(stripAnsi(out)).toBe("ContextBase · team::acme");
   });
 
   it("uses workspace.current_dir when cwd is absent and hides disabled banks", () => {
@@ -25,6 +25,6 @@ describe("Antigravity status line", () => {
   });
 
   it("keeps a small indicator while Antigravity has not supplied a workspace", () => {
-    expect(stripAnsi(buildAntigravityStatusLine({}, resolveConfig()))).toBe("agentstratum");
+    expect(stripAnsi(buildAntigravityStatusLine({}, resolveConfig()))).toBe("ContextBase");
   });
 });

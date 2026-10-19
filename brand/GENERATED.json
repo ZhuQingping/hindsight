@@ -1,0 +1,82 @@
+{
+  "source": "brand/definition.json",
+  "generator": "scripts/generate-brand.mjs",
+  "entries": [
+    {
+      "path": "hindsight-api-slim/hindsight_api/brand_defaults.py",
+      "sha256": "545d70ba3f4241cb45fe39cc54eebc6aba2713c61597ac07c2a38ca78bc9d98a"
+    },
+    {
+      "path": "hindsight-control-plane/src/lib/brand-defaults.ts",
+      "sha256": "f3acc7e560f4d14f19721d7345b58ec823a4736a934ffb746c7ba02829b4e282"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/src/core/brand-defaults.ts",
+      "sha256": "23d04c0ae19bf86d8236e835d7587462a469f2ca948c04961165b67cac8aae74"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/scripts/lib/brand_defaults.py",
+      "sha256": "bf1c96955a7212b9e795855aa3208d3e9e6faf5834dbfc4af3aae2b91e62845f"
+    },
+    {
+      "path": "hindsight-cli/src/brand.rs",
+      "sha256": "8dd862311cbf5c71b948011b2e8452d2a67e537b124c3507aba3937f0abc0c38"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/package.json",
+      "sha256": "978800729829f505fee5b8b6c510677bb746d09e0f09c0120ebd40fecce8ee32"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/plugin.json",
+      "sha256": "2f1f42a58756982fc3ec8ead3af7e706e46aa77094d693863ea201391ce11ccc"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/plugin.json",
+      "sha256": "8610aefc897e1f8ae29a17ebabdf9bb2751cc1be3b4a6954fb7bfcc53e088afc"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/.claude-plugin/plugin.json",
+      "sha256": "3bbbc6bc934af85f6edd92c7eb2ac4be1cefa88adbb32cfbcfe72e41f70b123f"
+    },
+    {
+      "path": ".claude-plugin/marketplace.json",
+      "sha256": "04d3a6e7220cded602bd3f6524b924e1e59325af8c4a16f819cc3bdaf230ecf9"
+    },
+    {
+      "path": "hindsight-cli/Cargo.toml",
+      "sha256": "640b9f657ed172d523dfdb71752cc3665420b19932eb37d4aad686e55fb5e908"
+    },
+    {
+      "path": "scripts/install-agentstratum.sh",
+      "sha256": "3878f01c506aeef8ae9672122cb7b43ce62f42bd9c79dd82fbdd19b8061fdace"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/README.md",
+      "sha256": "e2afa6c1b28c2167610044a85c13f90ff142333d96f1ffe74e7f92cf649786fb"
+    },
+    {
+      "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",
+      "sha256": "f304ca1e249c4fadda87020d67990201125f2f034184b5dbd32998c0a96aa95c"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/README.md",
+      "sha256": "2a6655d09968fdbcd9633cb5ffe57bb580f847c973ffaa92229112519d6333f1"
+    },
+    {
+      "path": "hindsight-integrations/agent-plugin/skills/agentstratum-memory/SKILL.md",
+      "sha256": "e4297f877beab8c5e604e09df3ff7a1d2765ffc78e45b9f7ab46f2e68e2f5147"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/README.md",
+      "sha256": "c7e9f0d66cf528f5cdd3a71417831a62a44bf72e786a8bfbd33cb51f6c0692f3"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/skills/setup.md",
+      "sha256": "bc11ef5f6ce0150a915cc40eb186ea214dfe47b181dabdbfb53bb7a4e49ef958"
+    },
+    {
+      "path": "hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
+      "sha256": "dbea47dc89176b99ee0f9740d16a640939958011c4409ceb5fc17c661710c13c"
+    }
+  ]
+}

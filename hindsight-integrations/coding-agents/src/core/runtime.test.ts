@@ -162,7 +162,7 @@ describe("RuntimeCore session-idle write-back", () => {
       runtime.setTranscriptSource(async () => [
         turn("user", "how do we round?"),
         turn("action", "agentstratum_search_knowledge_pages rounding"),
-        turn("assistant", "🧠 From agentstratum memory — half up"),
+        turn("assistant", "🧠 From ContextBase memory — half up"),
       ]);
       await runtime.onSessionIdle("s6");
       const recorded = readFileSync(usageFile, "utf8")
@@ -233,7 +233,7 @@ describe("RuntimeCore remote connection", () => {
       await expect(core.seedIfCold("/repos/one")).resolves.toBeUndefined();
       expect(warning).toHaveBeenCalledWith("opencode", expect.stringContaining(message));
       expect(notify).toHaveBeenCalledWith(
-        "agentstratum configuration",
+        "ContextBase configuration",
         expect.stringContaining(message)
       );
       expect(client.listDocumentIds).not.toHaveBeenCalled();

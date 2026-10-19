@@ -215,3 +215,19 @@ describe("readUsage", () => {
     );
   });
 });
+
+it.each(["agentstratum", "ContextBase"])(
+  "recognizes %s attribution without changing the transcript",
+  (name) => {
+    const turns = [
+      { role: "user", content: "Customer ID agentstratum/contextbase/hindsight" },
+      { role: "action", content: "agentstratum_reflect why" },
+      { role: "assistant", content: `> 🧠 **From ${name} memory** — customer evidence` },
+    ];
+    const before = JSON.stringify(turns);
+    expect(summarizeTurns(turns)).toEqual([
+      { turn: 1, calls: ["agentstratum_reflect"], credited: true },
+    ]);
+    expect(JSON.stringify(turns)).toBe(before);
+  }
+);

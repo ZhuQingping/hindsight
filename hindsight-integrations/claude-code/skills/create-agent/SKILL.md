@@ -1,12 +1,12 @@
 ---
 name: create-agent
-description: Create a new agentstratum-powered subagent with long-term memory. Use when the user wants a specialized agent that learns and remembers across sessions.
+description: Create a new ContextBase-powered subagent with long-term memory. Use when the user wants a specialized agent that learns and remembers across sessions.
 allowed-tools: Bash(ls ~/.self-driving-agents/*) Bash(cat ~/.self-driving-agents/*) Write mcp__agentstratum__*
 ---
 
-# Create agentstratum Agent
+# Create ContextBase Agent
 
-Create a new subagent with long-term memory powered by agentstratum.
+Create a new subagent with long-term memory powered by ContextBase.
 
 ## Two invocation modes
 
@@ -18,6 +18,7 @@ If the user runs `/agentstratum-memory:create-agent <name> from <path>` (or simi
 - `bank-template.json` (optional) — defines exact mental models to create
 
 In this mode:
+
 1. Read `bank-template.json` if present — note the `mental_models` array
 2. Ingest each content file (NOT bank-template.json) using `agent_knowledge_ingest_file`
 3. Create knowledge pages:
@@ -29,6 +30,7 @@ In this mode:
 **Mode B — Empty agent (interactive):**
 
 If no directory path is provided, ask the user:
+
 1. Agent name — lowercase with hyphens
 2. What the agent does — one sentence
 3. Any seed files/text to ingest (optional)
@@ -42,12 +44,12 @@ Write to `~/.claude/agents/<name>.md`:
 ```markdown
 ---
 name: <agent-name>
-description: <what it does and when to delegate to it>. It has access to knowledge pages and memory search via agentstratum.
+description: <what it does and when to delegate to it>. It has access to knowledge pages and memory search via ContextBase.
 mcpServers:
   - agentstratum
 ---
 
-You are the **<agent-name>** agent with long-term memory powered by agentstratum.
+You are the **<agent-name>** agent with long-term memory powered by ContextBase.
 
 ## Startup — run these steps immediately
 
@@ -89,8 +91,8 @@ When you learn something durable — a user preference, a working procedure, per
 
 ## Rules
 
-- Always include `mcpServers: [agentstratum]` — this wires up the agentstratum memory tools
-- Keep the startup steps and tool instructions verbatim — they're the agentstratum scaffolding
+- Always include `mcpServers: [agentstratum]` — this wires up the ContextBase memory tools
+- Keep the startup steps and tool instructions verbatim — they're the ContextBase scaffolding
 - Do NOT pass `bank_id` on any tool call — the plugin resolves it automatically from project context
 - Before creating, call `agent_knowledge_get_current_bank` and tell the user: "This agent will be bound to bank `<bank_id>` — your conversations in this directory are retained to it."
 

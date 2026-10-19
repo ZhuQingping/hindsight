@@ -1,7 +1,7 @@
 {
-  "status": "TASK_DEFINED_ONLY",
-  "implementation": "NOT_STARTED",
-  "contextbase_validation": "NOT_RUN",
+  "status": "IMPLEMENTATION_AND_VALIDATION_IN_PROGRESS",
+  "implementation": "IN_PROGRESS",
+  "contextbase_validation": "PARTIAL_NOT_ACCEPTED",
   "captured_at_utc": "2026-10-19T03:37:45.956627+00:00",
   "workspace": "/home/cimon/code/hindsight/.local/product-brand-ui/integration-worktree",
   "branch": "integration/agentstratum-brand-ui-clients-20261019",
@@ -11,7 +11,7 @@
   "prior_draft_pr": "https://github.com/RSIXDB/hindsight/pull/8",
   "display_name_user_required": "ContextBase",
   "technical_slug_candidate": "contextbase",
-  "full_distribution_protocol_rename_decision": "NOT_CONFIRMED_ITEM_BY_ITEM",
+  "full_distribution_protocol_rename_decision": "NO_EXTERNAL_RENAME_IN_THIS_COMPATIBLE_IMPLEMENTATION",
   "legacy_configuration_key": "contextdb_name",
   "prior_pass_is_contextbase_pass": false,
   "preview_snapshot": {
@@ -28,5 +28,12 @@
     "liveness_or_lock_state_must_be_rechecked": true,
     "stopped_by_this_handoff": false
   },
-  "this_session_scope": "Documentation only: targets, acceptance, handoff, launch prompt. No source edits, heavy tasks, resource shutdown or successor implementation."
+  "this_session_scope": "Documentation only: targets, acceptance, handoff, launch prompt. No source edits, heavy tasks, resource shutdown or successor implementation.",
+  "implementation_workspace": "/home/cimon/code/hindsight/.local/product-brand-ui/contextbase-naming-worktree",
+  "implementation_branch": "product/contextbase-naming-20261019",
+  "implementation_base": "960983bb45fa2559e69ec88f7ff528676a280193",
+  "runtime_display_name": "ContextBase",
+  "new_technical_slug": "contextbase",
+  "external_identity_strategy": "KEEP_COMPATIBLE_AGENTSTRATUM_IDENTITIES_NO_BREAKING_MIGRATION",
+  "preview_current": "STOPPED_WITH_USER_AUTHORIZATION_DATA_PRESERVED"
 }

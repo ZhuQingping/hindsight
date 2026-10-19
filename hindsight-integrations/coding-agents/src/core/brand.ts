@@ -1,3 +1,5 @@
+import { DISPLAY_NAME } from "./brand-defaults.js";
+
 /**
  * "agentstratum" in the brand gradient (#0074d9 → #009296) — the same colors the API server's
  * banner uses (agentstratum_api/banner.py gradient_text). ANSI foreground-only, so it renders
@@ -6,10 +8,10 @@
 export function brandWord(): string {
   const start = [0, 116, 217];
   const end = [0, 146, 150];
-  const word = "agentstratum";
+  const word = DISPLAY_NAME;
   let out = "";
   for (let i = 0; i < word.length; i++) {
-    const t = i / (word.length - 1);
+    const t = word.length === 1 ? 0 : i / (word.length - 1);
     const [r, g, b] = start.map((s, k) => Math.round(s + (end[k] - s) * t));
     out += `\x1b[38;2;${r};${g};${b}m${word[i]}`;
   }

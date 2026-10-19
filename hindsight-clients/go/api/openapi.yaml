@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
   contact:
-    name: agentstratum
-  description: "HTTP API for agentstratum, a data foundation for agents"
+    name: ContextBase
+  description: "HTTP API for ContextBase, a data foundation for agents"
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  title: agentstratum HTTP API
+  title: ContextBase HTTP API
   version: 0.10.3
 servers:
 - url: /
@@ -22,6 +22,19 @@ paths:
                 $ref: '#/components/schemas/ProductConfig'
           description: Successful Response
       summary: Get Product Config
+      tags:
+      - Product
+  /product-config/v2:
+    get:
+      operationId: get_display_config_product_config_v2_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisplayConfig'
+          description: Successful Response
+      summary: Get Display Config
       tags:
       - Product
   /health:
@@ -7767,6 +7780,34 @@ components:
       - id
       - name
       title: DirectiveResponse
+    DisplayConfig:
+      additionalProperties: false
+      description: Versioned display contract; the slug retains its original validation.
+      example:
+        contextdb_name: contextdb_name
+        product_config_version: 0
+        display_name: display_name
+      properties:
+        product_config_version:
+          default: 2
+          enum:
+          - 2
+          title: Product Config Version
+          type: integer
+        contextdb_name:
+          maxLength: 40
+          pattern: "^[a-z][a-z0-9-]{0,39}$"
+          title: Contextdb Name
+          type: string
+        display_name:
+          maxLength: 80
+          pattern: "^[A-Za-z0-9](?:[A-Za-z0-9 ._-]{0,78}[A-Za-z0-9])?$"
+          title: Display Name
+          type: string
+      required:
+      - contextdb_name
+      - display_name
+      title: DisplayConfig
     DispositionTraits:
       description: Disposition traits that influence how memories are formed and interpreted.
       example:
@@ -11480,6 +11521,7 @@ components:
       title: OperationsListResponse
     ProductConfig:
       additionalProperties: false
+      description: Unchanged v1 wire contract for existing strict clients.
       example:
         contextdb_name: agentstratum
         product_config_version: 0

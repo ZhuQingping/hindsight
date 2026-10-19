@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Launched via scripts/run_mcp.sh which execs the venv's interpreter, so
 # `mcp` and friends resolve from ${CLAUDE_PLUGIN_DATA}/venv/site-packages.
 from lib.bank import derive_bank_id
+from lib.brand_defaults import DISPLAY_NAME
 from lib.client import HindsightClient
 from lib.config import debug_log, load_config
 from lib.connection import get_api_url
@@ -27,7 +28,8 @@ from mcp.server.fastmcp import FastMCP
 
 # ── Server setup ────────────────────────────────────────
 
-mcp = FastMCP("agentstratum")
+
+mcp = FastMCP(DISPLAY_NAME)
 
 # Resolve config at startup
 _config = load_config()

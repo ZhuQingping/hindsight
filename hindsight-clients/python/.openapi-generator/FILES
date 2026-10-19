@@ -77,6 +77,7 @@ hindsight_client_api/models/delete_operation_response.py
 hindsight_client_api/models/delete_response.py
 hindsight_client_api/models/directive_list_response.py
 hindsight_client_api/models/directive_response.py
+hindsight_client_api/models/display_config.py
 hindsight_client_api/models/disposition_traits.py
 hindsight_client_api/models/document_export_submit_response.py
 hindsight_client_api/models/document_import_submit_response.py

@@ -141,8 +141,8 @@ describe("opencode2 adapter", () => {
     expect(fake.skills[0].path).toMatch(/skill[\\/]SKILL\.md$/);
     // opencode v2 requires an absolute `path`; a draft without one disables the plugin (#4732).
     expect(isAbsolute(fake.skills[0].path)).toBe(true);
-    expect(fake.skills[0].description).toContain("agentstratum");
-    expect(fake.skills[0].content).toContain("agentstratum Coding-Agent Memory");
+    expect(fake.skills[0].description).toContain("ContextBase");
+    expect(fake.skills[0].content).toContain("ContextBase Coding-Agent Memory");
     // Frontmatter is split out, not handed to the host as part of the body.
     expect(fake.skills[0].content.startsWith("---")).toBe(false);
   });

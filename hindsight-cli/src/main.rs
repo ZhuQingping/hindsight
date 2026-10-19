@@ -1,4 +1,5 @@
 mod api;
+mod brand;
 mod commands;
 mod config;
 mod errors;
@@ -31,7 +32,7 @@ impl From<Format> for OutputFormat {
 
 #[derive(Parser)]
 #[command(name = "agentstratum")]
-#[command(about = "Agentstratum CLI - Semantic memory system", long_about = None)]
+#[command(about = brand::CLI_ABOUT, long_about = None)]
 #[command(version)]
 #[command(before_help = get_before_help())]
 #[command(after_help = get_after_help())]
@@ -2342,7 +2343,7 @@ fn handle_configure(
     let current_config = Config::load().ok();
 
     if output_format == OutputFormat::Pretty {
-        ui::print_info("Agentstratum CLI Configuration");
+        ui::print_info(&format!("{} CLI Configuration", brand::DISPLAY_NAME));
         println!();
 
         // Show current configuration

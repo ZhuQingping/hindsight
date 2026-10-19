@@ -1,4 +1,4 @@
-import { localProductConfig } from "@/lib/product-config-server";
+import { localProductName } from "@/lib/product-config-server";
 import type { AbstractIntlMessages } from "next-intl";
 import { connection } from "next/server";
 import { getRequestConfig } from "next-intl/server";
@@ -32,9 +32,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     // Other retained locale choices explicitly fall back to the complete English main flows.
-    messages: brandMessages(
-      (await loaders[messageLocale(locale)]()).default,
-      localProductConfig().contextdb_name
-    ),
+    messages: brandMessages((await loaders[messageLocale(locale)]()).default, localProductName()),
   };
 });

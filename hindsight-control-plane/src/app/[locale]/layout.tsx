@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { localProductConfig } from "@/lib/product-config-server";
+import { localProductName } from "@/lib/product-config-server";
 import { ProductRuntime } from "@/components/product-runtime";
 import { withBasePath } from "@/lib/base-path";
 import { Inter, JetBrains_Mono } from "next/font/google";
@@ -38,7 +38,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   await connection();
   const { locale } = await params;
-  const name = localProductConfig().contextdb_name;
+  const name = localProductName();
   const description = locale === "zh-CN" ? "面向 Agent 的数据底座" : "A data foundation for agents";
   return {
     title: `${name} | ${description}`,
@@ -70,7 +70,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   await connection();
-  const name = localProductConfig().contextdb_name;
+  const name = localProductName();
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
     notFound();

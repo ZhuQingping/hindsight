@@ -1,0 +1,76 @@
+{
+  "status": "IN_PROGRESS_NOT_ACCEPTED",
+  "updated_at": "2026-10-19T04:11:25.596608+00:00",
+  "base_commit": "960983bb45fa2559e69ec88f7ff528676a280193",
+  "source_commit": "UNCOMMITTED_IMPLEMENTATION",
+  "log_root": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/contextbase-naming-20261019",
+  "prior_pass_inherited": false,
+  "acceptance": {
+    "N01": {
+      "status": "IN_PROGRESS",
+      "evidence": "INVENTORY.md; naming-search.json; final changed-path classification pending"
+    },
+    "N02": {
+      "status": "DEFINED_COMPATIBLE_SCOPE",
+      "evidence": "NAMING-MAP.md; fixed external identities retained"
+    },
+    "N03": {
+      "status": "PARTIAL_PASS",
+      "evidence": "frontend390; API version/case/invalid tests passed; native combinations pending"
+    },
+    "N04": {
+      "status": "PARTIAL_PASS",
+      "evidence": "lint-02 roundtrip19 targets; final formatter fixed-point pending"
+    },
+    "N05": {
+      "status": "FAIL_THEN_REPAIR_PENDING",
+      "evidence": "drill-01: missing fixture workspace tsup dependency; drill-02 not yet run"
+    },
+    "N06": {
+      "status": "NOT_RUN",
+      "evidence": "native runtime pending"
+    },
+    "N07": {
+      "status": "PARTIAL_PASS",
+      "evidence": "Coding Agents1368/6skip; HTTPS installation8/11subtests; Claude suite pending"
+    },
+    "N08": {
+      "status": "PARTIAL_PASS",
+      "evidence": "432 baseline declarations; Go3; native SDK/content/archive stories pending"
+    },
+    "N09": {
+      "status": "NOT_RUN",
+      "evidence": "production artifact built; browser regression pending"
+    },
+    "N10": {
+      "status": "PARTIAL_PASS",
+      "evidence": "Rust/CLI ordinary tests, frontend/Coding types/build, lint/blockingknip, new plugin packages; API rerun/release pending"
+    },
+    "N11": {
+      "status": "IN_PROGRESS",
+      "evidence": "manual/generated path counts and measured times pending"
+    },
+    "N12": {
+      "status": "REVIEW_IN_PROGRESS",
+      "evidence": "independent source findings addressed; final source/evidence closure pending"
+    }
+  },
+  "excluded_not_run": [
+    "public release",
+    "main merge",
+    "other platform binaries",
+    "real third-party host sessions",
+    "real model quality",
+    "multi-user",
+    "multi-key management",
+    "Workspace schema isolation"
+  ],
+  "failures_preserved": [
+    "unit-01",
+    "unit-02",
+    "unit-03",
+    "unit-04",
+    "lint-01",
+    "drill-01"
+  ]
+}

@@ -14,7 +14,9 @@ vi.mock("next-intl/middleware", () => ({ default: () => () => new Response(null)
 let directory: string;
 const origin = "http://127.0.0.1:28901";
 beforeEach(async () => {
-  vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify({ product_config_version: 1, contextdb_name: "agentstratum" }), { status: 200 })));
+  vi.stubEnv("contextdb_name", undefined);
+  vi.stubEnv("product_display_name", undefined);
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify({ product_config_version: 2, contextdb_name: "contextbase", display_name: "ContextBase" }), { status: 200 })));
   directory = await mkdtemp(path.join(os.tmpdir(), "m2-proxy-"));
   vi.stubEnv("HINDSIGHT_CP_SESSION_DIR", directory);
   vi.stubEnv("HINDSIGHT_CP_ACCESS_KEY", "test-login-password");

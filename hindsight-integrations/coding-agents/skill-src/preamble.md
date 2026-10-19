@@ -1,12 +1,12 @@
 ---
 name: agentstratum-coding-agent
-description: How this machine's agentstratum coding-agent memory works — the plugin behind the 🧠 banner. Use when the user says "store/remember this in agentstratum", asks what the memory/knowledge pages are, wants to configure per-repo memory (disable, rename banks, git depth), or something memory-related looks broken.
+description: How this machine's ContextBase coding-agent memory works — the plugin behind the 🧠 banner. Use when the user says "store/remember this in ContextBase", asks what the memory/knowledge pages are, wants to configure per-repo memory (disable, rename banks, git depth), or something memory-related looks broken.
 ---
 
-# agentstratum Coding-Agent Memory
+# ContextBase Coding-Agent Memory
 
 This machine runs the `agentstratum-coding-agents` plugin: long-term project memory for coding
-sessions, backed by a agentstratum server. You (the agent) are already wired into it — this skill
+sessions, backed by a ContextBase server. You (the agent) are already wired into it — this skill
 explains what happens automatically, which tools you have, and how to configure or debug it.
 
 ## What happens automatically (no action needed)
@@ -25,7 +25,7 @@ explains what happens automatically, which tools you have, and how to configure 
 
 ## Storing things deliberately
 
-When the user says "store this in agentstratum" / "remember this":
+When the user says "store this in ContextBase" / "remember this":
 
 - The **current conversation** is captured automatically at session end — say so; no tool needed.
 - An **external document, notes, or durable findings** → `agentstratum_ingest_document(title, content)`.
@@ -44,11 +44,11 @@ When the user says "store this in agentstratum" / "remember this":
 - `agentstratum_reflect(query)` — deep reasoning over the whole memory for WHY questions and exact
   decided values; slower (seconds), use deliberately.
 - Credit visibly whenever memory informs an answer: start that part with
-  `🧠 From agentstratum memory (<page>): …` — and never credit memory that didn't contribute.
+  `🧠 From ContextBase memory (<page>): …` — and never credit memory that didn't contribute.
 
 ## Correcting wrong or stale memory
 
-If you verify that something agentstratum served is wrong or outdated (the code, git, or an external
+If you verify that something ContextBase served is wrong or outdated (the code, git, or an external
 source contradicts it), FIX THE RECORD — don't just ignore it. Call
 `agentstratum_ingest_document` with:
 
