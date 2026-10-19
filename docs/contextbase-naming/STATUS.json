@@ -1,0 +1,32 @@
+{
+  "status": "TASK_DEFINED_ONLY",
+  "implementation": "NOT_STARTED",
+  "contextbase_validation": "NOT_RUN",
+  "captured_at_utc": "2026-10-19T03:37:45.956627+00:00",
+  "workspace": "/home/cimon/code/hindsight/.local/product-brand-ui/integration-worktree",
+  "branch": "integration/agentstratum-brand-ui-clients-20261019",
+  "input_head_before_handoff_docs": "530a630641c7fe5ab274e510e5551eb24e99378b",
+  "input_source_commit": "5d350568ae3d7537e452999cb6d0fae86b64563b",
+  "source_input_clean_before_docs": true,
+  "prior_draft_pr": "https://github.com/RSIXDB/hindsight/pull/8",
+  "display_name_user_required": "ContextBase",
+  "technical_slug_candidate": "contextbase",
+  "full_distribution_protocol_rename_decision": "NOT_CONFIRMED_ITEM_BY_ITEM",
+  "legacy_configuration_key": "contextdb_name",
+  "prior_pass_is_contextbase_pass": false,
+  "preview_snapshot": {
+    "reported_status": "READY",
+    "supervisor_pid": 1826534,
+    "supervisor_proc_exists": true,
+    "expires_at_epoch": 1792387349.3981261,
+    "ports": [
+      28920,
+      28921,
+      28922
+    ],
+    "result_file": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/integration-20261019/preview-01/result.json",
+    "liveness_or_lock_state_must_be_rechecked": true,
+    "stopped_by_this_handoff": false
+  },
+  "this_session_scope": "Documentation only: targets, acceptance, handoff, launch prompt. No source edits, heavy tasks, resource shutdown or successor implementation."
+}

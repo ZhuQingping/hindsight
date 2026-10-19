@@ -51,3 +51,7 @@ UI制品SHA-256：`7bb60c91851cc4d621a55293f66a18bc9e9a2c568ffe4717e8dffd4f65e11
 四类候选均在本地`runs/integration-20261019/four-client-candidates`，MANIFEST绑定源码与全部12个文件摘要；CLI为Linux amd64的实际release binary（SHA-256 `9e7a3afb3b6e83babb6052628c9aeb99ec1b200b71492ec1c322df3aff4e92f9`）。包含CLI/第三方许可证、三种插件、安装脚本及SHA256SUMS。没有上传云存储或公开发行。
 
 独立工件补充复审：`PASS_LOCAL_CANDIDATE_ARTIFACT_REVIEW`，12个manifest摘要及7个SHA256SUMS目标、ZIP/tgz完整性与许可、ELF架构、源码无漂移及运行中preview均已独立核对，无新增Must fix。预览是明确保留的两小时lease，不冒充已经cleanup。
+
+## 后续任务：ContextBase 命名解耦
+
+用户另要求以ContextBase为产品展示名，并将解耦目标和验收交给新session。[新任务交接](../contextbase-naming/HANDOFF.md)与[目标/验收](../contextbase-naming/GOALS-AND-ACCEPTANCE.md)已另行持久化。本报告仍只证明原AgentStratum整合源；ContextBase实施尚未开始，不继承本报告PASS。
