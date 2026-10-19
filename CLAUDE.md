@@ -365,7 +365,9 @@ ordinary metadata.
 
 ### Coding-agents docs are generated from one README
 
-`hindsight-integrations/coding-agents/README.md` is the single source for that package's
+Product display prose in this package is generated from `brand/templates/` via
+`bash scripts/sync-product-brand.sh`; edit those templates for prose and `brand/definition.json` for names.
+The resulting `hindsight-integrations/coding-agents/README.md` remains the single source for that package's
 configuration. **Never edit `skill/SKILL.md` or the docs page by hand** — both are generated:
 
 ```bash

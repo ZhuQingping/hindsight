@@ -1,4 +1,4 @@
-# agentstratum for Claude Code
+# ContextBase for Claude Code
 
 Automatic recall before prompts, conversation retention after turns, and a local MCP adapter for knowledge tools. All calls use the single remote connection in `~/.agentstratum/claude-code.json`.
 
@@ -32,7 +32,7 @@ If the host does not register plugin hooks automatically, follow [setup](skills/
 - SessionEnd: flushes remaining transcript content; it does not stop any service.
 - Authentication failure: verify the credential for this endpoint in the console. When changing endpoints, replace the credential as well.
 
-Ask a question requiring a stored memory, inspect the agentstratum tools, and check that a new turn is retained in the intended bank. Settings for memory behavior are listed in [settings.json](settings.json).
+Ask a question requiring a stored memory, inspect the ContextBase tools, and check that a new turn is retained in the intended bank. Settings for memory behavior are listed in [settings.json](settings.json).
 
 ## Remove
 

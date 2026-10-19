@@ -2,9 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { withBasePath } from "@/lib/base-path";
-import { parseProductConfig } from "@/lib/product-config";
+import { parseProductConfig, productDisplayName } from "@/lib/product-config";
 
-const ProductNameContext = createContext("agentstratum");
+import { DISPLAY_NAME } from "@/lib/brand-defaults";
+
+const ProductNameContext = createContext(DISPLAY_NAME);
 export function useProductName() {
   return useContext(ProductNameContext);
 }
@@ -33,7 +35,7 @@ export function ProductRuntime({
           setProblem("unavailable");
           return;
         }
-        setProblem(parseProductConfig(value).contextdb_name === name ? null : "changed");
+        setProblem(productDisplayName(parseProductConfig(value)) === name ? null : "changed");
       } catch {
         if (active) setProblem("unavailable");
       }

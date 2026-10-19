@@ -18,6 +18,7 @@
  *   - non-empty set (warm/pre-seeded)  -> no seed, seededAt written  (remember, skip enumerating)
  *   - empty set (cold)                 -> start the background seed, seededAt written, note added
  */
+import { DISPLAY_NAME } from "./brand-defaults.js";
 import { readFileSync } from "node:fs";
 import { gitHeadSha, gitLogIsCurrent, hasGitHistory, commitsSince } from "./git";
 import { DEEPEN_DIFF_TARGET } from "./status";
@@ -191,7 +192,7 @@ export async function buildSessionStartContext(args: {
     try {
       const stamp = retainStamp();
       const content =
-        `🛰️ agentstratum is researching this codebase — survey started at commit ${sha.slice(0, 12)}. ` +
+        `🛰️ ${DISPLAY_NAME} is researching this codebase — survey started at commit ${sha.slice(0, 12)}. ` +
         `(Internal marker: no memories are extracted from this document.)`;
       const tags = [...new Set([...stamp.tags, SURVEY_BASELINE_TAG])];
       // Fire-and-forget; Promise.resolve tolerates a non-Promise return (e.g. a test spy).

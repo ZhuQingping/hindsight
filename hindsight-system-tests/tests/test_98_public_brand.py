@@ -36,7 +36,7 @@ async def test_discovery_and_monitoring_expose_the_product_identity(hindsight_se
     async with httpx.AsyncClient(base_url=hindsight_server.url, timeout=30, follow_redirects=True) as http:
         schema = await http.get("/openapi.json")
         schema.raise_for_status()
-        assert schema.json()["info"]["title"] == "agentstratum HTTP API"
+        assert schema.json()["info"]["title"] == "ContextBase HTTP API"
         assert "hindsight" not in schema.text.casefold()
 
         health = await http.get("/health")
@@ -67,7 +67,7 @@ async def test_mcp_initialization_and_tool_schemas_are_customer_branded(hindsigh
             },
         )
         payload = _rpc_payload(initialized)
-        assert payload["result"]["serverInfo"]["name"] == "agentstratum-mcp-server"
+        assert payload["result"]["serverInfo"]["name"] == "ContextBase-mcp-server"
         assert "hindsight" not in json.dumps(payload).casefold()
         session_id = initialized.headers.get("mcp-session-id")
         if session_id:
@@ -102,7 +102,7 @@ async def test_mcp_initialization_and_tool_schemas_are_customer_branded(hindsigh
 
 
 async def test_unchanged_sdk_preserves_customer_content_and_accepts_product_config(client, bank_id, llm, settled):
-    content = "Alice uses hindsight as a word, HINDSIGHT as a label, and Hindsight as a title."
+    content = "Alice uses hindsight as a word, HINDSIGHT as a label, and Hindsight as a title; agentstratum and contextbase are customer text."
     document_id = "customer-hindsight.txt"
     llm.on_step("extract_facts").returns(extracted(fact(content, who="Alice", entities=["Alice"])))
     llm.on_step("consolidate").returns(consolidation())

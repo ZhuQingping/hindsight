@@ -1,7 +1,7 @@
 {
   "name": "agentstratum-coding-agents",
   "version": "0.8.0",
-  "description": "Reflect-only agentstratum long-term memory for coding agents (harness-pluggable: opencode, …), with automatic background ingestion (no setup CLI).",
+  "description": "ContextBase long-term memory for coding agents; remote connection required.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

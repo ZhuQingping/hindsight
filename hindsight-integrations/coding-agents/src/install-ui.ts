@@ -1,3 +1,4 @@
+import { DISPLAY_NAME } from "./core/brand-defaults.js";
 /**
  * Styled terminal renderer for the installer CLI (clack/Vercel-style rail).
  *
@@ -195,7 +196,7 @@ export function createInstallerUi(o: InstallerUiOptions): InstallerUi {
     intro(): void {
       write("");
       write(
-        `${dim("┌")}  ${colors ? brandWord() : "agentstratum"} ${bold("coding agents")}` +
+        `${dim("┌")}  ${colors ? brandWord() : DISPLAY_NAME} ${bold("coding agents")}` +
           (o.version ? `  ${dim(`v${o.version}`)}` : "")
       );
       write(bar);

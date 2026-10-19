@@ -1,7 +1,7 @@
 /*
-agentstratum HTTP API
+ContextBase HTTP API
 
-HTTP API for agentstratum, a data foundation for agents
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */

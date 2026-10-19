@@ -1966,6 +1966,26 @@ export type DirectiveResponse = {
 };
 
 /**
+ * DisplayConfig
+ *
+ * Versioned display contract; the slug retains its original validation.
+ */
+export type DisplayConfig = {
+  /**
+   * Product Config Version
+   */
+  product_config_version?: 2;
+  /**
+   * Contextdb Name
+   */
+  contextdb_name: string;
+  /**
+   * Display Name
+   */
+  display_name: string;
+};
+
+/**
  * DispositionTraits
  *
  * Disposition traits that influence how memories are formed and interpreted.
@@ -5312,6 +5332,8 @@ export type OperationsListResponse = {
 
 /**
  * ProductConfig
+ *
+ * Unchanged v1 wire contract for existing strict clients.
  */
 export type ProductConfig = {
   /**
@@ -7136,6 +7158,23 @@ export type GetProductConfigProductConfigGetResponses = {
 
 export type GetProductConfigProductConfigGetResponse =
   GetProductConfigProductConfigGetResponses[keyof GetProductConfigProductConfigGetResponses];
+
+export type GetDisplayConfigProductConfigV2GetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/product-config/v2";
+};
+
+export type GetDisplayConfigProductConfigV2GetResponses = {
+  /**
+   * Successful Response
+   */
+  200: DisplayConfig;
+};
+
+export type GetDisplayConfigProductConfigV2GetResponse =
+  GetDisplayConfigProductConfigV2GetResponses[keyof GetDisplayConfigProductConfigV2GetResponses];
 
 export type HealthEndpointHealthGetData = {
   body?: never;

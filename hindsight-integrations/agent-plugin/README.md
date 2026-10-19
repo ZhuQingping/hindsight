@@ -1,7 +1,7 @@
-# agentstratum — Agent Plugin
+# ContextBase — Agent Plugin
 
 A portable [Agent Plugin](https://agent-plugins.org) (spec `1.0.0`) that gives any
-compatible agent client long-term memory via agentstratum.
+compatible agent client long-term memory via ContextBase.
 
 Agent Plugins is the vendor-neutral standard (AWS, Cursor, GitHub/Microsoft, OpenAI,
 Vercel) for packaging **Agent Skills + MCP servers** into one distributable plugin. At
@@ -11,7 +11,7 @@ launch it is supported by **ChatGPT/Codex, Cursor, GitHub Copilot, Kiro, and VS 
 > header, so it cannot authenticate. Use the Coding Agents integration instead; see
 > [Codex](#codex) below.
 
-This is the *portable* front door to agentstratum: one artifact, every supported client. It
+This is the _portable_ front door to ContextBase: one artifact, every supported client. It
 carries the same `retain` / `recall` / `reflect` memory as our per-IDE integrations, but
 as a single standards-based bundle instead of N hand-rolled configs.
 
@@ -26,20 +26,20 @@ agent-plugin/
         └── SKILL.md                  # teaches the agent when to recall/retain/reflect
 ```
 
-- **`mcp.json`** points the client at agentstratum's built-in MCP server (retain, recall,
+- **`mcp.json`** points the client at ContextBase's built-in MCP server (retain, recall,
   reflect, knowledge pages, and more — see MCP Server docs).
   The plugin is transport-only; all memory logic stays server-side.
 - **`skills/agentstratum-memory/SKILL.md`** is loaded into the agent's context so it knows
-  *when* to reach for memory, not just that the tools exist.
+  _when_ to reach for memory, not just that the tools exist.
 
 ## Configuration
 
 The plugin reads two environment variables (values are interpolated into `mcp.json`):
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
+| Variable               | Required    | Purpose                                                                              |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------ |
 | `AGENTSTRATUM_API_KEY` | yes (Cloud) | Your `hsk_...` key from your service administrator. Sent as `Authorization: Bearer`. |
-| `AGENTSTRATUM_BANK_ID` | no | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team. |
+| `AGENTSTRATUM_BANK_ID` | no          | Memory bank to scope to (sent as `X-Bank-Id`). Use one bank per user/project/team.   |
 
 **Endpoint configuration (required):** replace `${AGENTSTRATUM_MCP_URL}` in `mcp.json`
 with the full MCP endpoint provided by your service administrator for your deployment's URL. Use the credential instructions supplied by the console for this endpoint.
@@ -51,7 +51,7 @@ with the full MCP endpoint provided by your service administrator for your deplo
 
 **Bank selection when `AGENTSTRATUM_BANK_ID` is unset.** A client that substitutes variables
 sends an empty `X-Bank-Id`, and the server uses the `default` bank. A client that does
-*not* substitute sends the literal text `${AGENTSTRATUM_BANK_ID}`, which agentstratum treats
+_not_ substitute sends the literal text `${AGENTSTRATUM_BANK_ID}`, which ContextBase treats
 as a bank name: reads fail with bank-not-found, and the first `retain` creates a bank
 with that name. Set the variable, or paste the bank id literally, to avoid this.
 
@@ -74,7 +74,7 @@ skill.
 
 Codex's Agent Plugins loader treats `Authorization` as a header only the client may set, so it
 removes the one in this plugin's `mcp.json`. It also copies the other headers verbatim, without
-expanding `${VAR}` placeholders. The portable plugin therefore cannot authenticate to agentstratum
+expanding `${VAR}` placeholders. The portable plugin therefore cannot authenticate to ContextBase
 Cloud from Codex, and pasting a literal key into `mcp.json` does not help because the header is
 removed whatever its value.
 
@@ -102,7 +102,6 @@ python3 hindsight-integrations/agent-plugin/validate.py
 
 Checks that `plugin.json` and `mcp.json` parse and satisfy the Agent Plugins `1.0.0`
 required-field contract.
-
 
 ## Distribution and connection scope
 

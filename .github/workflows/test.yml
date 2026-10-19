@@ -5540,6 +5540,9 @@ jobs:
     - name: Install Node dependencies
       run: npm ci
 
+    - name: Check centralized branding
+      run: bash scripts/sync-product-brand.sh --check
+
     - name: Install Python dependencies
       run: |
         cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match

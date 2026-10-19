@@ -124,6 +124,8 @@ import type {
   GetDirectiveData,
   GetDirectiveErrors,
   GetDirectiveResponses,
+  GetDisplayConfigProductConfigV2GetData,
+  GetDisplayConfigProductConfigV2GetResponses,
   GetDocumentData,
   GetDocumentErrors,
   GetDocumentResponses,
@@ -330,6 +332,18 @@ export const getProductConfigProductConfigGet = <ThrowOnError extends boolean = 
   (options?.client ?? client).get<GetProductConfigProductConfigGetResponses, unknown, ThrowOnError>(
     { url: "/product-config", ...options }
   );
+
+/**
+ * Get Display Config
+ */
+export const getDisplayConfigProductConfigV2Get = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDisplayConfigProductConfigV2GetData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    GetDisplayConfigProductConfigV2GetResponses,
+    unknown,
+    ThrowOnError
+  >({ url: "/product-config/v2", ...options });
 
 /**
  * Health check endpoint

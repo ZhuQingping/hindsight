@@ -18,6 +18,7 @@
  *
  * Local only — nothing here is sent anywhere. Fail-open throughout.
  */
+import { CREDIT_DISPLAY_NAMES } from "./brand-defaults.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { TransportTurn } from "./chat";
@@ -33,7 +34,11 @@ export function usageFilePath(): string {
 const AGENTSTRATUM_TOOL_RE = /agentstratum_(?:[a-z]+_)*[a-z]+$/;
 
 /** The credit line the injected tool guide prescribes (core/knowledge-injection.ts). */
-const CREDIT_RE = /from agentstratum memory/i;
+// Recognize current and historical attribution without rewriting customer transcripts.
+const CREDIT_RE = new RegExp(
+  `from (${CREDIT_DISPLAY_NAMES.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")}) memory`,
+  "i"
+);
 
 /**
  * The tools that hand memory BACK to the agent — the only calls a credit can follow. The write tools

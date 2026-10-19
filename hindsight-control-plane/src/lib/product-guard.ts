@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { localProductConfig, verifiedProductConfig } from "./product-config-server";
+import { localProductName, verifiedProductConfig } from "./product-config-server";
 
 /** Reject a stale tab or mismatched native API before forwarding its request. */
 export async function productGuard(request: Request): Promise<NextResponse | null> {
   let code: "PRODUCT_NAME_STALE" | "PRODUCT_CONFIG_MISMATCH" | "PRODUCT_CONFIG_UNAVAILABLE";
   const submittedName = request.headers.get("X-Product-Name");
-  if (submittedName && submittedName !== localProductConfig().contextdb_name) {
+  if (submittedName && submittedName !== localProductName()) {
     code = "PRODUCT_NAME_STALE";
   } else {
     try {

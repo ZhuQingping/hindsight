@@ -1,0 +1,405 @@
+{
+  "status": "LOCAL_ACCEPTANCE_PASS_INDEPENDENT_REVIEW_CLOSED_DRAFT_FOR_USER_REVIEW",
+  "updated_at_utc": "2026-10-19T04:51:14.856215+00:00",
+  "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
+  "source_sha256": "cff739b077e5037278ed5d94ff18c2f55e5476af339c9fc6207a2d937acbaea4",
+  "source_files": 5132,
+  "input_handoff": "960983bb45fa2559e69ec88f7ff528676a280193",
+  "integration_delivery_base": "530a630641c7fe5ab274e510e5551eb24e99378b",
+  "integration_source_base": "5d350568ae3d7537e452999cb6d0fae86b64563b",
+  "workspace": "/home/cimon/code/hindsight/.local/product-brand-ui/contextbase-naming-worktree",
+  "branch": "product/contextbase-naming-20261019",
+  "log_root": "/home/cimon/code/hindsight/.local/product-brand-ui/runs/contextbase-naming-20261019",
+  "prior_pass_inherited": false,
+  "acceptance": {
+    "N01": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "INVENTORY.md",
+        "SOURCE-MAP.json",
+        "naming-search.json"
+      ]
+    },
+    "N02": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "NAMING-MAP.md",
+        "COMPATIBILITY.md",
+        "brand/definition.json",
+        "brand/identity-contract.json"
+      ]
+    },
+    "N03": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "unit-04/frontend.log",
+        "unit-05/native-api.log",
+        "runtime-03/result.json",
+        "runtime-03/sdk-story.log"
+      ]
+    },
+    "N04": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "lint-03/brand-check.log",
+        "lint-03/brand-roundtrip.log",
+        "final-01/brand-check.log"
+      ]
+    },
+    "N05": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "SECOND-RENAME-DRILL.md",
+        "drill-03/steps.json",
+        "drill-03-resume-b/result.json",
+        "drill-03-resume-b/source-binding.json"
+      ]
+    },
+    "N06": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "runtime-03/artifact-manifest.json",
+        "runtime-03/result.json",
+        "runtime-03/cli-second-brand-banks.json"
+      ]
+    },
+    "N07": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "unit-04/coding-agents-unit.log",
+        "unit-05/claude-code.log",
+        "final-01/installer-https.log",
+        "runtime-03/release-install-0.log",
+        "runtime-03/release-install-1.log"
+      ]
+    },
+    "N08": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "generation-01/sdk-compatibility.log",
+        "generation-01/go-sdk.log",
+        "api-generation-02/result.json",
+        "runtime-03/sdk-story.log",
+        "runtime-03/bank-transfer.zip",
+        "SOURCE-MAP.json"
+      ]
+    },
+    "N09": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "runtime-03/result.json",
+        "runtime-03/browser-requests.json",
+        "runtime-03/browser-responses.json",
+        "runtime-03/forwarded-native-requests.json",
+        "runtime-03/"
+      ]
+    },
+    "N10": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "unit-04/result.json",
+        "unit-05/result.json",
+        "lint-03/result.json",
+        "final-01/result.json",
+        "release-01/result.json",
+        "four-client-candidates/MANIFEST.json",
+        "toolchains-proof.json"
+      ]
+    },
+    "N11": {
+      "status": "PASS_LOCAL_SCOPE",
+      "evidence": [
+        "SOURCE-MAP.json",
+        "execution-summary.json",
+        "SECOND-RENAME-DRILL.md"
+      ]
+    },
+    "N12": {
+      "status": "PASS_LOCAL_DELIVERY",
+      "evidence": [
+        "INDEPENDENT-REVIEW.md",
+        "RESULT.md",
+        "VALIDATION.json"
+      ]
+    }
+  },
+  "tests": {
+    "frontend": {
+      "passed": 390,
+      "typecheck": "PASS"
+    },
+    "coding_agents": {
+      "passed": 1368,
+      "skipped": 6,
+      "skip_reason": "test runtime node:sqlite unavailable; 6 conditional Devin transcript cases",
+      "typecheck": "PASS",
+      "build": "PASS"
+    },
+    "api_scoped": {
+      "passed": 390,
+      "skipped": 1,
+      "deselected": 1,
+      "skip_reason": "existing tracing_spans_verification background consolidation StopIteration marker",
+      "deselected_scope": "real LLM marked test",
+      "local_ml": "available and used for scoped tests this time"
+    },
+    "claude_code": {
+      "passed": 226
+    },
+    "cli_ordinary": {
+      "passed": 153,
+      "ignored_live": 25
+    },
+    "cli_native_live": {
+      "passed": 25,
+      "ignored": 0
+    },
+    "cli_release_process": {
+      "passed": 9
+    },
+    "sdk_compatibility": {
+      "pytest_tests_passed": 6,
+      "baseline_declarations": 432,
+      "repeat_generation_drift": 0,
+      "go_consumers_passed": 3
+    },
+    "installer_actual_tarball_https": {
+      "passed": 8,
+      "subtests_passed": 11
+    },
+    "installer_without_tarball": {
+      "passed": 7,
+      "skipped": 1,
+      "subtests_passed": 11
+    },
+    "sdk_native_stories": {
+      "passed": 7
+    },
+    "native_runtime_groups": 23,
+    "required_lint": "PASS",
+    "knip_ci_files_dependencies_unlisted": "PASS",
+    "production_ui_build": "PASS",
+    "linux_release_build": "PASS"
+  },
+  "runtime": {
+    "status": "PASS",
+    "artifact": "same production standalone; runtime environment names only",
+    "artifact_sha256": "f7d19de328532e9318b176c6b63b15c7965d5fd0a02b548dec3494a63e9276b5",
+    "base_path": "/brand-ui",
+    "provider": "local stub only",
+    "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
+    "checks": {
+      "cli_native_fixture_suite": true,
+      "actual_release_https_install_and_reinstall": {
+        "sha256": "7b4e533e483646ad6f47a2969cb1a917a401a2ddca30538dd80721ca288bcbb6",
+        "same_bytes": true,
+        "platform": "linux-amd64"
+      },
+      "four_client_forms_native_connection": {
+        "cli": "current Linux binary; explicit endpoint",
+        "coding_agents": "built stdio adapter; actual list_pages HTTP",
+        "claude": "actual packaged warm launcher; actual list_pages HTTP",
+        "standard_plugin": "packaged manifest supplied complete endpoint + bank header; actual HTTP MCP get_bank",
+        "real_host_sessions": "NOT_RUN"
+      },
+      "compiled_cli_and_bundled_stdio_plugin_to_native_api": true,
+      "independent_workspace_mcp_endpoint": true,
+      "language_switch_and_fallback": true,
+      "archive_customer_words_preserved": true,
+      "native_ui_archive_download": {
+        "status": 200,
+        "bytes": [
+          80,
+          75,
+          3,
+          4
+        ]
+      },
+      "native_ui_multipart_import": true,
+      "graph_export": "ContextBase-relationship-graph.svg",
+      "mobile_navigation_and_connection": true,
+      "chooser_pagination_search_back": {
+        "workspaces": 61,
+        "page_size": 50,
+        "later_selected": "chooser-match-10",
+        "absent_from_first_page": true,
+        "query_preserved": true
+      },
+      "native_bank_ids_guide_connect_add_document": true,
+      "actual_operation_detail_archive_download": {
+        "status": 200,
+        "zip_crc": true,
+        "product_header": "ContextBase"
+      },
+      "first_brand": true,
+      "actual_operation_old_tab_download_refused": {
+        "status": 409,
+        "native_file_requests_added": 0,
+        "saved_files_added": 0,
+        "replays": 0
+      },
+      "stale_tab_preserved_without_replay": true,
+      "fixed_identity_before_after": {
+        "manifest_hashes": {
+          "brand/definition.json": "d767c19d46633d1252a4223946ca2ccefdf547c72f489da53a9bc93f88ea8df7",
+          "hindsight-cli/Cargo.toml": "640b9f657ed172d523dfdb71752cc3665420b19932eb37d4aad686e55fb5e908",
+          "hindsight-integrations/coding-agents/package.json": "978800729829f505fee5b8b6c510677bb746d09e0f09c0120ebd40fecce8ee32",
+          "hindsight-integrations/agent-plugin/plugin.json": "8610aefc897e1f8ae29a17ebabdf9bb2751cc1be3b4a6954fb7bfcc53e088afc",
+          "hindsight-integrations/agent-plugin/mcp.json": "c18ab75db449542bee327c2fe70c493dbbfc41509f16af4695292c58943a017e",
+          "hindsight-integrations/claude-code/.mcp.json": "be95c8e7e2f708feb02ee7011c624d0666c5d4a32ff5beab28dd9fc2b205677f",
+          "scripts/install-agentstratum.sh": "3878f01c506aeef8ae9672122cb7b43ce62f42bd9c79dd82fbdd19b8061fdace"
+        },
+        "unchanged": true,
+        "v1_slug": "contextbase",
+        "cli_version": "agentstratum 0.10.3",
+        "same_endpoint_credentials_and_data": true
+      },
+      "second_brand_same_artifact": true,
+      "legacy_ui_detects_api_only_display_override": true,
+      "mismatch_offline_logout_restart_revocation": true,
+      "no_rejected_mutations_forwarded": true,
+      "published_sdk_story": true
+    },
+    "cleanup": {
+      "children": [
+        {
+          "role": "api-ContextBase",
+          "pid": 1901081,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-ContextBase",
+          "pid": 1901684,
+          "exit_code": 143
+        },
+        {
+          "role": "chromium",
+          "pid": 1901717,
+          "exit_code": -15
+        },
+        {
+          "role": "api-AtlasGrove",
+          "pid": 1902336,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-AtlasGrove",
+          "pid": 1902415,
+          "exit_code": 143
+        },
+        {
+          "role": "ui-contextbase",
+          "pid": 1902653,
+          "exit_code": 143
+        },
+        {
+          "role": "ui-ContextBase",
+          "pid": 1902822,
+          "exit_code": 143
+        },
+        {
+          "role": "api-AtlasGrove",
+          "pid": 1902905,
+          "exit_code": 0
+        },
+        {
+          "role": "ui-AtlasGrove",
+          "pid": 1903028,
+          "exit_code": 143
+        }
+      ],
+      "pg_stopped": true,
+      "pg_data_preserved": true
+    }
+  },
+  "artifacts": {
+    "status": "PASS_LOCAL_CANDIDATES",
+    "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
+    "files": {
+      "agentstratum-agent-plugin/1.0.0/SHA256SUMS": "d0f08ce3c62cfe363da8a181424a55a443127124a6f6739cb914ddeb8edba4cc",
+      "agentstratum-agent-plugin/1.0.0/agentstratum-agent-plugin-1.0.0.zip": "948800733a063482571a9a4700d2cfce229ac5ca187cc1fe90b780de466b4092",
+      "agentstratum-claude-code/0.7.6/SHA256SUMS": "cb4f17b40af0be54f3674c26d5e7cef1f8a518921b7b1b15043d1116cb089d5c",
+      "agentstratum-claude-code/0.7.6/agentstratum-claude-code-0.7.6.zip": "49d12f9c8dd61d2f09e96862e4a1d39b0357d82a8c334dab19fc56ee3227c065",
+      "agentstratum-cli/0.10.3/linux-amd64/LICENSE": "01fde0bedf83bdc185065d7af524a61690efe576a67f922eaff3a1280c17b63a",
+      "agentstratum-cli/0.10.3/linux-amd64/SHA256SUMS": "609ec3aa60240be119c8e0977b70529d62c22acbc826d1ac9fbc51794b21cbb6",
+      "agentstratum-cli/0.10.3/linux-amd64/THIRD_PARTY_LICENSES.txt": "294eb6b40e12d991679e2d292afe0235f1f0fee4099c06f4a67068fc4ac0a5eb",
+      "agentstratum-cli/0.10.3/linux-amd64/agentstratum": "7b4e533e483646ad6f47a2969cb1a917a401a2ddca30538dd80721ca288bcbb6",
+      "agentstratum-coding-agents/0.8.0/SHA256SUMS": "58d09d4d83d03d8faeff740fdf5a6b682618ab4cd6c2a9eb0a25911f2cdd7086",
+      "agentstratum-coding-agents/0.8.0/agentstratum-coding-agents-0.8.0.tgz": "75408e102557dac2ebde596cd704473c1821334378fad7c0ce2f5a9be2fc7a32",
+      "installers/SHA256SUMS": "49a4602b3ebfddb9d23a611e134edc2df60dc23068ce47a8810930e4538dfc5b",
+      "installers/install-agentstratum.sh": "3878f01c506aeef8ae9672122cb7b43ce62f42bd9c79dd82fbdd19b8061fdace"
+    },
+    "four_forms": true,
+    "cli_platform": "linux-amd64",
+    "other_platforms": "NOT_RUN",
+    "publication": "NOT_RUN",
+    "real_host_installation": "NOT_RUN",
+    "provider_calls": "local declared stubs only"
+  },
+  "execution": {
+    "source_sha256": "cff739b077e5037278ed5d94ff18c2f55e5476af339c9fc6207a2d937acbaea4",
+    "source_drift": [],
+    "heavy_runs": 24,
+    "heavy_wall_seconds_including_failed_runs": 2066.0,
+    "failed_heavy_runs": 12,
+    "CPU_quota_kernel_enforced": false,
+    "CPU_affinity": [
+      0,
+      1
+    ],
+    "memory_hard_limit_bytes": 3221225472,
+    "first_input_time": "2026-10-19T03:43:11.998384+00:00",
+    "captured_at_utc": "2026-10-19T04:39:20.936545+00:00",
+    "lock_wait_seconds": "NOT_MEASURED_SEPARATELY",
+    "notes": "Wall time of serial bounded processes, including failed attempts; preparation/review can overlap these runs. Not an additive person-hours estimate."
+  },
+  "not_run": [
+    "macOS and arm64 real binaries",
+    "real third-party host sessions and cold Claude dependency installation",
+    "real model quality evaluation",
+    "public docs site full build",
+    "remote GitHub CI completion",
+    "cloud OBS/CDN publication",
+    "main merge",
+    "human product acceptance"
+  ],
+  "excluded": [
+    "multi-user",
+    "multi-Key management",
+    "Workspace schema isolation"
+  ],
+  "failed_attempts_retained": {
+    "unit-01": "v1 default auth/proxy mock versus v2 default",
+    "unit-02": "old display assertions during adaptation",
+    "unit-03": "opencode companion skill old display assertion",
+    "unit-04": "telemetry default incorrectly followed display; fixed without weakening worker assertion",
+    "lint-01": "Claude import sorting",
+    "extra-static-01": "wrong uniform root Ruff config; corrected to package configs",
+    "drill-01": "fixture missing nested tsup dependency",
+    "drill-02": "out-of-root dependency symlinks rejected by Turbopack",
+    "drill-03": "successful full build followed by HTTP probe not following locale redirect",
+    "drill-03-resume": "probe omitted mandatory MCP harness identity",
+    "runtime-01": "harness ZIP local variable typo",
+    "runtime-02": "Chrome Unix socket path exceeded limit; private /tmp mount used"
+  },
+  "draft_pr": {
+    "url": "https://github.com/RSIXDB/hindsight/pull/9",
+    "number": 9,
+    "state": "OPEN",
+    "isDraft": true,
+    "base": "integration/agentstratum-brand-ui-clients-20261019",
+    "head": "product/contextbase-naming-20261019",
+    "existing_pr_8": "PRESERVED_OPEN_DRAFT",
+    "remote_ci": "NOT_RUN_NO_CHECKS_REPORTED"
+  },
+  "main_merged": false,
+  "public_release": false,
+  "independent_review": {
+    "reviewer": "/root/independent_naming_review",
+    "status": "PASS_INDEPENDENT_SOURCE_ARTIFACTS_AND_DELIVERY",
+    "unresolved_must_fix": 0,
+    "source_commit": "c394b303cce8a5a0fe8013293882c340fb4daf5e",
+    "scope": "Independent read-only source, logs, hashes, artifacts, cleanup, final documents and live GitHub PR state verified; N01-N12 local scope closed",
+    "delivery_reviewed_head": "a7d41c5dbaa57a068c45e1b2d64e988d24007ace"
+  }
+}

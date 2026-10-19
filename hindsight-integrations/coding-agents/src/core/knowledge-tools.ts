@@ -14,6 +14,7 @@
  * server. `agentstratum_ingest_document` (raw-content retain) also backs the codebase survey
  * (core/survey.ts).
  */
+import { DISPLAY_NAME } from "./brand-defaults.js";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -66,7 +67,9 @@ const NON_DESTRUCTIVE_WRITE_ANNOTATIONS: ToolSafetyAnnotations = {
 const CREDIT_REMINDER =
   "Crediting is mandatory, not a judgement call: if anything these results contribute reaches your " +
   "reply — quoted, paraphrased, or merely confirming what you were going to say — open that part " +
-  'with "> 🧠 **From agentstratum memory (<page>)** — <the specific facts you drew on>". Rewriting a ' +
+  ('with "> 🧠 **From ' +
+    DISPLAY_NAME +
+    ' memory (<page>)** — <the specific facts you drew on>". Rewriting a ') +
   "snippet in your own words does not make it yours. If none of them bear on the turn, ignore them " +
   "silently — an unhelpful search needs no mention. These are past records: check a claim that " +
   "something was fixed or works against the code before relying on it.";
@@ -153,7 +156,9 @@ export function buildKnowledgeTools(
     {
       name: "agentstratum_diagnose",
       description:
-        "Report safe agentstratum runtime diagnostics for this coding-agent session: resolved bank, " +
+        "Report safe " +
+        DISPLAY_NAME +
+        " runtime diagnostics for this coding-agent session: resolved bank, " +
         "workspace, harness, config location, API endpoint, and non-secret environment overrides. " +
         "Use this when memory, hooks, MCP tools, or configuration appear not to work. Tokens and " +
         "other secret values are never returned.",
@@ -204,7 +209,9 @@ export function buildKnowledgeTools(
     {
       name: "agentstratum_search_knowledge_pages",
       description:
-        "Search this repository's agentstratum knowledge pages for content relevant to a query — " +
+        "Search this repository's " +
+        DISPLAY_NAME +
+        " knowledge pages for content relevant to a query — " +
         "hybrid full-text + semantic search, server-side. Call this when the user's question may " +
         "be answered by the project's accumulated knowledge (architecture, conventions, decisions, " +
         "initiatives) rather than by reading code. Returns ranked pages with a relevance snippet; " +
@@ -248,7 +255,9 @@ export function buildKnowledgeTools(
     {
       name: "agentstratum_list_knowledge_pages",
       description:
-        "List this repository's agentstratum knowledge pages — curated, continuously-updated " +
+        "List this repository's " +
+        DISPLAY_NAME +
+        " knowledge pages — curated, continuously-updated " +
         "summaries of the project's durable knowledge (architecture, components, conventions, key " +
         "decisions, and in-flight initiatives). Returns each page's id, title, and a one-line " +
         "description of what it covers. Call this at the start of any non-trivial task, and again " +
@@ -279,7 +288,9 @@ export function buildKnowledgeTools(
         "decision and exact rule/values that explain a behavior, bug, or convention. Slower than " +
         "agentstratum_search_knowledge_pages (several seconds): reach for it when pages are too " +
         "shallow and you need the root cause or the decided literals. When the answer informs " +
-        'your reply, credit it visibly with a blockquote header: "> 🧠 **From agentstratum memory** — <summary>".',
+        ('your reply, credit it visibly with a blockquote header: "> 🧠 **From ' +
+          DISPLAY_NAME +
+          ' memory** — <summary>".'),
       inputSchema: { query: z.string().describe("the question to reason over memory about") },
       annotations: READ_ONLY_ANNOTATIONS,
       handler: guarded(async ({ query }: { query: string }) =>

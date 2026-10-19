@@ -5234,15 +5234,16 @@ def create_app(
 
     config = get_config()
 
-    from hindsight_api.product_config import ProductConfig, product_config
+    from hindsight_api.product_config import DisplayConfig, ProductConfig, display_config, product_config
 
     product = product_config()
+    display = display_config()
     app = FastAPI(
         title=api_title(),
         version=__version__,
-        description=f"HTTP API for {product.contextdb_name}, a data foundation for agents",
+        description=f"HTTP API for {display.display_name}, a data foundation for agents",
         contact={
-            "name": product.contextdb_name,
+            "name": display.display_name,
         },
         license_info={
             "name": "Apache 2.0",
@@ -5303,7 +5304,14 @@ def create_app(
     @app.get("/product-config", response_model=ProductConfig, tags=["Product"])
     async def get_product_config(response: Response) -> ProductConfig:
         response.headers["Cache-Control"] = "no-store"
+        # Additive header lets a new UI using v1 detect an API-only display override.
+        response.headers["X-Product-Display-Name"] = display.display_name
         return product
+
+    @app.get("/product-config/v2", response_model=DisplayConfig, tags=["Product"])
+    async def get_display_config(response: Response) -> DisplayConfig:
+        response.headers["Cache-Control"] = "no-store"
+        return display
 
     # Register all routes
     _register_routes(app)

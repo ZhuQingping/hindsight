@@ -1,7 +1,7 @@
 /*
-agentstratum HTTP API
+ContextBase HTTP API
 
-HTTP API for agentstratum, a data foundation for agents
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -41,7 +41,7 @@ var (
 	queryDescape    = strings.NewReplacer( "%5B", "[", "%5D", "]" )
 )
 
-// APIClient manages communication with the agentstratum HTTP API API v0.10.3
+// APIClient manages communication with the ContextBase HTTP API API v0.10.3
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *Configuration

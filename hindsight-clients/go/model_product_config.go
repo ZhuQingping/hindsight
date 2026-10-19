@@ -1,7 +1,7 @@
 /*
-agentstratum HTTP API
+ContextBase HTTP API
 
-HTTP API for agentstratum, a data foundation for agents
+HTTP API for ContextBase, a data foundation for agents
 
 API version: 0.10.3
 */
@@ -17,7 +17,7 @@ import (
 // checks if the ProductConfig type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &ProductConfig{}
 
-// ProductConfig struct for ProductConfig
+// ProductConfig Unchanged v1 wire contract for existing strict clients.
 type ProductConfig struct {
 	ProductConfigVersion *int32 `json:"product_config_version,omitempty"`
 	ContextdbName *string `json:"contextdb_name,omitempty" validate:"regexp=^[a-z][a-z0-9-]{0,39}$"`

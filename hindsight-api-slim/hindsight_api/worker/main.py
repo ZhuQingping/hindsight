@@ -21,7 +21,7 @@ from collections.abc import Callable
 from ..brand import service_name
 from ..config import get_config, load_dotenv_for_entrypoint
 from ..engine.task_backend import WorkerTaskBackend
-from ..product_config import product_config
+from ..product_config import display_config
 from .poller import WorkerPoller
 
 # Filter deprecation warnings from third-party libraries
@@ -64,7 +64,7 @@ def create_worker_app(poller: WorkerPoller, memory):
     from ..metrics import create_metrics_collector, get_metrics_collector, initialize_metrics
 
     app = FastAPI(
-        title=f"{product_config().contextdb_name} Worker",
+        title=f"{display_config().display_name} Worker",
         description="Worker process for distributed task execution",
     )
 
@@ -241,7 +241,7 @@ def main():
     # Import MemoryEngine here to avoid circular imports
     from .. import MemoryEngine
 
-    print(f"Starting {product_config().contextdb_name} Worker: {worker_id}")
+    print(f"Starting {display_config().display_name} Worker: {worker_id}")
     print(f"  Poll interval: {args.poll_interval}ms")
     print(f"  Max retries: {config.worker_max_retries}")
     print(f"  Max slots: {config.worker_max_slots}")

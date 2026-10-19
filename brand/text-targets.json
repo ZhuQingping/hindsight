@@ -1,0 +1,30 @@
+[
+  {
+    "template": "brand/templates/client-text-1.md.in",
+    "output": "hindsight-integrations/coding-agents/README.md"
+  },
+  {
+    "template": "brand/templates/client-text-2.md.in",
+    "output": "hindsight-integrations/coding-agents/skill-src/preamble.md"
+  },
+  {
+    "template": "brand/templates/client-text-3.md.in",
+    "output": "hindsight-integrations/agent-plugin/README.md"
+  },
+  {
+    "template": "brand/templates/client-text-4.md.in",
+    "output": "hindsight-integrations/agent-plugin/skills/agentstratum-memory/SKILL.md"
+  },
+  {
+    "template": "brand/templates/client-text-5.md.in",
+    "output": "hindsight-integrations/claude-code/README.md"
+  },
+  {
+    "template": "brand/templates/client-text-6.md.in",
+    "output": "hindsight-integrations/claude-code/skills/setup.md"
+  },
+  {
+    "template": "brand/templates/client-text-7.md.in",
+    "output": "hindsight-integrations/claude-code/skills/create-agent/SKILL.md"
+  }
+]

@@ -30,3 +30,13 @@ def test_actual_api_startup_display_uses_deployment_name(monkeypatch, capsys, na
     assert f"{name}: Agent Memory" in output
     assert f"Starting {name} API" in output
     assert brand.PRODUCT_NAME == "agentstratum"
+
+
+@pytest.mark.parametrize("name", ["ContextBase", "Atlas Grove"])
+def test_display_only_override_keeps_default_telemetry_identity(monkeypatch, name):
+    monkeypatch.delenv("contextdb_name", raising=False)
+    monkeypatch.setenv("product_display_name", name)
+    assert brand.service_name("api") == "agentstratum-api"
+    assert brand.service_name("worker") == "agentstratum-worker"
+    assert brand.api_title() == f"{name} HTTP API"
+    assert brand.mcp_server_name() == f"{name}-mcp-server"
