@@ -911,6 +911,13 @@ fn test_mental_model_update_trigger_settings() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(stored_trigger()["refresh_cron"].is_null());
+    let output = update(&["--trigger-tags-match", ""]);
+    assert!(output.status.success(), "clearing tags_match must succeed");
+    let trigger = stored_trigger();
+    assert!(trigger["tags_match"].is_null());
+    assert!(trigger["refresh_cron"].is_null());
+    assert_eq!(trigger["keep_trace"], true);
+    assert_eq!(trigger["mode"], "full");
 
     // Unknown modes must fail loudly.
     let output = update(&["--trigger-mode", "incremental"]);

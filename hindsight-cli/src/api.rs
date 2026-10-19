@@ -982,6 +982,34 @@ impl ApiClient {
         _verbose: bool,
     ) -> Result<types::MentalModelResponse> {
         self.runtime.block_on(async {
+            if let Some(trigger) = &request.trigger {
+                // The command merges the complete stored trigger first. Clearing
+                // nullable flags must reach PATCH as null; progenitor's Option
+                // serialization omits them, which otherwise keeps the old value.
+                let mut body = serde_json::to_value(request)?;
+                body["trigger"]["refresh_cron"] = serde_json::to_value(&trigger.refresh_cron)?;
+                body["trigger"]["tags_match"] = serde_json::to_value(trigger.tags_match)?;
+                let mut url =
+                    reqwest::Url::parse(&format!("{}/", self.base_url.trim_end_matches('/')))?;
+                url.path_segments_mut()
+                    .map_err(|_| anyhow::anyhow!("API Endpoint cannot contain path segments"))?
+                    .pop_if_empty()
+                    .extend([
+                        "v1",
+                        "default",
+                        "banks",
+                        bank_id,
+                        "mental-models",
+                        mental_model_id,
+                    ]);
+                let response = self.http_client.patch(url).json(&body).send().await?;
+                if !response.status().is_success() {
+                    let status = response.status();
+                    let body = response.text().await.unwrap_or_default();
+                    anyhow::bail!("API request failed ({}): {}", status, body);
+                }
+                return Ok(response.json().await?);
+            }
             let response = self
                 .client
                 .update_mental_model(bank_id, mental_model_id, None, request)
