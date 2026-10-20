@@ -184,7 +184,7 @@ def test_recall_phase_histogram_can_resolve_a_millisecond_phase():
     source = pathlib.Path(metrics_module.__file__).read_text()
     # Slice to the NEXT instrument, not to the first ")": the description text contains
     # parentheses, which truncated this block before the argument it is checking for.
-    block = source.split('name="hindsight.recall.phase.duration"', 1)[1]
+    block = source.split('name="contextbase.recall.phase.duration"', 1)[1]
     block = block.split("self.consolidation_batch_failures", 1)[0]
     assert "explicit_bucket_boundaries_advisory" in block, (
         "the recall phase histogram needs millisecond-scale buckets, or its percentiles are fiction"

@@ -8,6 +8,9 @@ so these strip the escapes and assert on the text that actually reads.
 
 import re
 
+import pytest
+from hindsight_api.brand_defaults import DISPLAY_NAME
+
 from hindsight_api.banner import (
     GRADIENT_END,
     GRADIENT_START,
@@ -15,7 +18,14 @@ from hindsight_api.banner import (
     print_banner,
 )
 
-TAGLINE = "Hindsight: Agent Memory That Learns"
+TAGLINE = f"{DISPLAY_NAME}: Agent Memory That Learns"
+
+
+@pytest.fixture(autouse=True)
+def default_product_identity(monkeypatch):
+    monkeypatch.delenv("contextdb_name", raising=False)
+    monkeypatch.delenv("product_display_name", raising=False)
+
 
 ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 

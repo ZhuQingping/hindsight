@@ -51,6 +51,9 @@ def test_importing_package_does_not_modify_environment(tmp_path: Path) -> None:
 def test_entrypoint_dotenv_loading_is_authoritative(tmp_path: Path, monkeypatch) -> None:
     # The entry-point loader keeps override=True: a discovered .env wins over the
     # ambient process environment (unchanged precedence) AND fills missing keys.
+    # Managed acceptance disables dotenv globally; this native loader test must
+    # explicitly exercise the enabled path without changing the service policy.
+    monkeypatch.delenv("PYTHON_DOTENV_DISABLED", raising=False)
     (tmp_path / ".env").write_text("HINDSIGHT_TEST_OVERRIDDEN=from-dotenv\nHINDSIGHT_TEST_FILLED=from-dotenv\n")
     child_dir = tmp_path / "child"
     child_dir.mkdir()
@@ -82,6 +85,7 @@ def test_server_entrypoint_loads_dotenv_before_engine_semaphores(tmp_path: Path)
     )
 
     env = os.environ.copy()
+    env.pop("PYTHON_DOTENV_DISABLED", None)
     env.pop("HINDSIGHT_API_LLM_MAX_CONCURRENT", None)
     env.pop("HINDSIGHT_API_RETAIN_LLM_MAX_CONCURRENT", None)
     env["PYTHONPATH"] = os.pathsep.join(filter(None, (API_SOURCE, env.get("PYTHONPATH"))))

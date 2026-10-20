@@ -52,7 +52,7 @@ def _reset_public_schema(db_url: str) -> None:
 
 
 @pytest.fixture(scope="module")
-def pre_backsweep_db_url() -> str:
+def pre_backsweep_db_url(isolated_embedded_postgres) -> str:
     """
     Spin up a dedicated pg0 instance and ensure schema is at the revision
     just before the backsweep so each test can seed orphan data and then
@@ -63,9 +63,8 @@ def pre_backsweep_db_url() -> str:
     first, then migrate to the real pre-backsweep revision instead of stamping
     a head schema backward.
     """
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    pg0 = EmbeddedPostgres(name="hindsight-backsweep-test", port=5562)
+    pg0 = isolated_embedded_postgres(name="hindsight-backsweep-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

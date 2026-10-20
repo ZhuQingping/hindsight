@@ -20,6 +20,7 @@ from hindsight_api.webhooks.url_guard import GuardedWebhookClient, parse_allowli
 
 def test_public_config_is_an_actual_mapping(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PYTHON_DOTENV_DISABLED", raising=False)
     (tmp_path / ".env").write_text("CONTEXTBASE_API_PORT=9123\n")
     monkeypatch.setenv("HINDSIGHT_API_PORT", "8888")
     monkeypatch.setenv("CONTEXTBASE_API_PORT", "9999")

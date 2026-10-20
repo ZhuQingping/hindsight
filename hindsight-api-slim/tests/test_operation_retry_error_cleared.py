@@ -17,6 +17,7 @@ import uuid
 import httpx
 import pytest
 
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 from hindsight_api.api import create_app
 from hindsight_api.engine.providers.mock_llm import MockLLM
 from hindsight_api.worker import WorkerPoller
@@ -81,7 +82,8 @@ async def test_completed_after_retry_clears_error_message(memory, request_contex
 
     pending = await memory.get_operation_status(bank_id, str(operation_id), request_context=request_context)
     assert pending["status"] == "pending"
-    assert "503" in pending["error_message"]
+    # Team public errors deliberately hide provider details, including retries.
+    assert pending["error_message"] == PUBLIC_INTERNAL_ERROR
 
     # Attempt 2: the worker re-claims it and it succeeds.
     await pool.execute(
@@ -94,7 +96,7 @@ async def test_completed_after_retry_clears_error_message(memory, request_contex
     status = await memory.get_operation_status(bank_id, str(operation_id), request_context=request_context)
     assert status["status"] == "completed"
     assert status["error_message"] is None, f"completed operation kept a stale error: {status['error_message']!r}"
-    assert "503" in status["result_metadata"]["last_retry_error"]
+    assert status["result_metadata"]["last_retry_error"] == PUBLIC_INTERNAL_ERROR
 
     await pool.execute("DELETE FROM async_operations WHERE operation_id = $1", operation_id)
 

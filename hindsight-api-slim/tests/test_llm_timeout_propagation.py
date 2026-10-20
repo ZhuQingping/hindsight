@@ -82,6 +82,8 @@ def test_every_network_provider_receives_the_resolved_timeout(provider, extra, m
     with (
         patch.object(CodexLLM, "_load_codex_auth", return_value=("token", "account")),
         patch.object(CodexLLM, "_load_codex_refresh_token", return_value=None),
+        # Timeout propagation is independent of a developer's Copilot sign-in.
+        patch("hindsight_api.engine.providers.github_copilot_llm._sync_copilot_auth_metadata"),
         # The cursor provider resolves its CLI at construction; CI has no cursor-agent.
         patch("hindsight_api.engine.providers.cursor_llm.shutil.which", return_value="/usr/bin/cursor-agent"),
     ):

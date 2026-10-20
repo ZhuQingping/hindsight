@@ -22,6 +22,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import asyncpg
 import pytest
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 
 from hindsight_api.worker.exceptions import RetryTaskAt
 from tests import consolidation_actions
@@ -102,7 +103,7 @@ async def test_unique_violation_marks_failed_without_retry(memory):
     assert row is not None, "Operation row disappeared"
     assert row["status"] == "failed", f"Expected status='failed' after integrity violation, got {row['status']!r}"
     assert row["error_message"] is not None
-    assert "pk_chunks" in row["error_message"]
+    assert row["error_message"] == PUBLIC_INTERNAL_ERROR
 
     # Cleanup
     await pool.execute("DELETE FROM async_operations WHERE operation_id = $1", operation_id)

@@ -200,7 +200,8 @@ async def test_only_a_bank_found_via_an_alias_is_labelled_with_one(client, memor
     """``matched_aliases`` explains a surprising hit, so a row that already contains
     the search text must not be annotated — otherwise searching a bank's real id
     tags it with every alias that happens to share the prefix."""
-    alias = f"{bank}-extra"
+    tail = "-extra-" + uuid.uuid4().hex
+    alias = f"{bank}{tail}"
     await client.post(f"/v1/default/banks/{bank}/aliases", json={"alias": alias})
 
     # Searching the bank's own id: the row speaks for itself.
@@ -208,7 +209,7 @@ async def test_only_a_bank_found_via_an_alias_is_labelled_with_one(client, memor
     assert [b["matched_aliases"] for b in by_id.json()["banks"]] == [[]]
 
     # Searching only the alias's distinctive tail: now the label earns its place.
-    by_alias = await client.get("/v1/default/banks", params={"q": "-extra"})
+    by_alias = await client.get("/v1/default/banks", params={"q": tail})
     assert [(b["bank_id"], b["matched_aliases"]) for b in by_alias.json()["banks"]] == [(bank, [alias])]
 
 

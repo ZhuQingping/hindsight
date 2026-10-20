@@ -1,6 +1,7 @@
 "use client";
 
 import { productFetch } from "@/lib/product-fetch";
+import { useContextDBMode } from "@/lib/contextdb-mode";
 import { Suspense, useState, FormEvent, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -14,6 +15,8 @@ import { Database, Search, Sparkles, ArrowRight, LockKeyhole } from "lucide-reac
 function LoginForm() {
   const t = useTranslations("login");
   const tBrand = useTranslations("brand");
+  const tContextDB = useTranslations("contextDB");
+  const contextDB = useContextDBMode();
   const [key, setKey] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +45,7 @@ function LoginForm() {
       });
 
       if (res.ok) {
+        setKey("");
         // Navigate to the returnTo URL
         router.push(returnTo);
         router.refresh();
@@ -100,17 +104,24 @@ function LoginForm() {
             <h2 id="sign-in-heading" className="text-2xl font-semibold tracking-tight">
               {t("title")}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("description")}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              {contextDB ? tContextDB("loginDescription") : t("description")}
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="access-key" className="text-sm font-medium">
-                {t("accessKey")}
+                {contextDB ? tContextDB("passwordPlaceholder") : t("accessKey")}
               </label>
               <Input
                 id="access-key"
                 type="password"
-                placeholder={t("accessKeyPlaceholder")}
+                placeholder={
+                  contextDB ? tContextDB("passwordPlaceholder") : t("accessKeyPlaceholder")
+                }
+                aria-label={
+                  contextDB ? tContextDB("passwordPlaceholder") : t("accessKeyPlaceholder")
+                }
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 autoComplete="current-password"

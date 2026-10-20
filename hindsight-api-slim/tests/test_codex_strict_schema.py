@@ -16,6 +16,8 @@ The fix:
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+from hindsight_api.brand_defaults import PRODUCT_NAME
 from pydantic import BaseModel
 
 from hindsight_api.engine.providers.codex_llm import (
@@ -110,7 +112,7 @@ async def test_strict_schema_uses_forced_function_tool():
     assert sent_payload["tools"][0]["name"] == "structured_response"
     assert sent_payload["parallel_tool_calls"] is False
     assert sent_headers["originator"] == "codex_cli_rs"
-    assert sent_headers["User-Agent"] == "codex_cli_rs/0.0.0 (Hindsight)"
+    assert sent_headers["User-Agent"] == f"codex_cli_rs/0.0.0 ({PRODUCT_NAME})"
     # No prompt-injected schema in the instructions.
     assert "You must respond with valid JSON" not in sent_payload["instructions"]
 

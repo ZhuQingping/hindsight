@@ -1,6 +1,12 @@
 "use client";
 
 import { productFetch } from "@/lib/product-fetch";
+import {
+  ContextDBWorkspaceResultCheck,
+  type WorkspaceCheckTarget,
+} from "@/components/contextdb/workspace-result-check";
+import { ContextDBCreateWorkspaceDialog } from "@/components/contextdb/create-workspace-dialog";
+import { useContextDBMode } from "@/lib/contextdb-mode";
 
 import * as React from "react";
 import { Suspense } from "react";
@@ -104,6 +110,9 @@ function formatTimeAgo(isoDate: string): string {
 }
 
 function BankSelectorInner() {
+  const contextDB = useContextDBMode();
+  const [workspaceCheck, setWorkspaceCheck] = React.useState<WorkspaceCheckTarget | null>(null);
+  const tContextDB = useTranslations("contextDB");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -232,7 +241,9 @@ function BankSelectorInner() {
   // The banks overview page has its own "create bank" button; the dialog (with its
   // template import) lives here, so that button asks for it rather than duplicating it.
   React.useEffect(() => {
-    const openCreate = () => setCreateDialogOpen(true);
+    const openCreate = () => {
+      setCreateDialogOpen(true);
+    };
     window.addEventListener("hindsight:create-bank", openCreate);
     return () => window.removeEventListener("hindsight:create-bank", openCreate);
   }, []);
@@ -288,11 +299,11 @@ function BankSelectorInner() {
     setTemplateError(null);
 
     try {
-      // Create the bank first
-      await client.createBank(newBankId.trim());
+      const createdId = newBankId.trim();
+      await client.createBank(createdId);
 
       // If template JSON is provided, import it
-      if (templateJson.trim()) {
+      if (!contextDB && templateJson.trim()) {
         let manifest: Record<string, unknown>;
         try {
           manifest = JSON.parse(templateJson.trim());
@@ -321,8 +332,8 @@ function BankSelectorInner() {
       setTemplateJson("");
       setTemplateError(null);
       // Navigate to the new bank
-      setCurrentBank(newBankId.trim());
-      router.push(bankRoute(newBankId.trim(), "?view=data"));
+      setCurrentBank(createdId);
+      router.push(bankRoute(createdId, "?view=data"));
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : tAddDocument("failedToCreateBank"));
     } finally {
@@ -794,6 +805,15 @@ function BankSelectorInner() {
           </PopoverContent>
         </Popover>
 
+        {/* Separator */}
+        <div className="h-8 w-px bg-border" />
+
+        {contextDB && (
+          <Button variant="outline" onClick={() => router.push("/users")}>
+            {tContextDB("title")}
+          </Button>
+        )}
+
         {/* Add Document Button */}
         {currentBank && !resourcePage && searchParams.get("view") !== "documents" && (
           <Button
@@ -866,81 +886,109 @@ function BankSelectorInner() {
           )}
         </div>
 
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>{tAddDocument("createBankTitle")}</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <Input
-                placeholder={tAddDocument("createBankIdPlaceholder")}
-                value={newBankId}
-                onChange={(e) => setNewBankId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !isCreating && !useTemplate) {
-                    handleCreateBank();
-                  }
-                }}
-                autoFocus
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={useTemplate}
-                    onCheckedChange={(checked) => {
-                      setUseTemplate(checked);
-                      if (!checked) {
-                        setTemplateJson("");
+        {workspaceCheck && (
+          <ContextDBWorkspaceResultCheck
+            target={workspaceCheck}
+            onClose={() => setWorkspaceCheck(null)}
+          />
+        )}
+        {contextDB ? (
+          <ContextDBCreateWorkspaceDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onCreated={(workspace) => {
+              void loadBanks();
+              setCurrentBank(workspace.bank_id);
+              router.push(bankRoute(workspace.bank_id, "?view=data"));
+            }}
+            onCheckResult={(bankId) => setWorkspaceCheck({ bank_id: bankId })}
+          />
+        ) : (
+          <Dialog
+            open={createDialogOpen}
+            onOpenChange={(open) => {
+              if (!isCreating) setCreateDialogOpen(open);
+            }}
+          >
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>{tAddDocument("createBankTitle")}</DialogTitle>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <Input
+                  placeholder={tAddDocument("createBankIdPlaceholder")}
+                  aria-label={tAddDocument("createBankIdPlaceholder")}
+                  value={newBankId}
+                  onChange={(e) => setNewBankId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isCreating && !useTemplate) {
+                      handleCreateBank();
+                    }
+                  }}
+                  autoFocus
+                />
+                {!contextDB && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={useTemplate}
+                        onCheckedChange={(checked) => {
+                          setUseTemplate(checked);
+                          if (!checked) {
+                            setTemplateJson("");
+                            setTemplateError(null);
+                          }
+                        }}
+                      />
+                      <label className="text-sm font-medium">
+                        {tAddDocument("importFromTemplateLabel")}
+                      </label>
+                    </div>
+                  </div>
+                )}
+                {!contextDB && useTemplate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {tAddDocument("templateManifestHelp")}
+                    </p>
+                    <Textarea
+                      placeholder='{"version": "1", "bank": {...}, "mental_models": [...]}'
+                      value={templateJson}
+                      onChange={(e) => {
+                        setTemplateJson(e.target.value);
                         setTemplateError(null);
-                      }
-                    }}
-                  />
-                  <label className="text-sm font-medium">
-                    {tAddDocument("importFromTemplateLabel")}
-                  </label>
-                </div>
+                      }}
+                      className="font-mono text-xs min-h-[120px]"
+                    />
+                  </div>
+                )}
+                {templateError && (
+                  <p className="text-sm text-destructive whitespace-pre-wrap">{templateError}</p>
+                )}
+                {createError && <p className="text-sm text-destructive">{createError}</p>}
               </div>
-              {useTemplate && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {tAddDocument("templateManifestHelp")}
-                  </p>
-                  <Textarea
-                    placeholder='{"version": "1", "bank": {...}, "mental_models": [...]}'
-                    value={templateJson}
-                    onChange={(e) => {
-                      setTemplateJson(e.target.value);
-                      setTemplateError(null);
-                    }}
-                    className="font-mono text-xs min-h-[120px]"
-                  />
-                </div>
-              )}
-              {templateError && (
-                <p className="text-sm text-destructive whitespace-pre-wrap">{templateError}</p>
-              )}
-              {createError && <p className="text-sm text-destructive">{createError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setCreateDialogOpen(false);
-                  setNewBankId("");
-                  setUseTemplate(false);
-                  setTemplateJson("");
-                  setCreateError(null);
-                  setTemplateError(null);
-                }}
-              >
-                {tCommon("cancel")}
-              </Button>
-              <Button onClick={handleCreateBank} disabled={isCreating || !newBankId.trim()}>
-                {isCreating ? tAddDocument("creating") : tCommon("create")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button
+                  variant="secondary"
+                  disabled={isCreating}
+                  onClick={() => {
+                    setCreateDialogOpen(false);
+                    setNewBankId("");
+                    setUseTemplate(false);
+                    setTemplateJson("");
+                    setCreateError(null);
+                    setTemplateError(null);
+                  }}
+                >
+                  {tCommon("cancel")}
+                </Button>
+                <Button onClick={handleCreateBank} disabled={isCreating || !newBankId.trim()}>
+                  {isCreating ? tAddDocument("creating") : tCommon("create")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
           <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col">

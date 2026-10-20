@@ -1,4 +1,5 @@
 import { controlPlaneEnv } from "@/lib/control-plane-env";
+import { contextDBEnabled, verifyContextDBAdmin } from "@/lib/contextdb";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
   const providedKey = body && typeof body.key === "string" ? body.key : undefined;
 
   // Constant-time comparison to prevent timing attacks
-  const isValid = providedKey && constantTimeCompare(providedKey, accessKey);
+  const isValid = typeof providedKey === "string" && constantTimeCompare(providedKey, accessKey);
 
   if (!isValid) {
     return NextResponse.json(
@@ -56,6 +57,11 @@ export async function POST(request: NextRequest) {
       }),
       { status: 401 }
     );
+  }
+
+  if (contextDBEnabled()) {
+    const denied = await verifyContextDBAdmin();
+    if (denied) return denied;
   }
 
   let token: string;

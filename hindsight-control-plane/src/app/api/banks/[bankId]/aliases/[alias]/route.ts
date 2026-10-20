@@ -1,3 +1,4 @@
+import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -6,6 +7,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ bankId: string; alias: string }> }
 ) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   try {
     const { bankId, alias } = await params;
 
@@ -60,6 +62,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ bankId: string; alias: string }> }
 ) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   try {
     const { bankId, alias } = await params;
 

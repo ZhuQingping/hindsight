@@ -422,7 +422,7 @@ def _text_block(text: str) -> dict:
     "supports_vision_val,expected_detail",
     [
         (False, "cannot read images"),
-        (None, "HINDSIGHT_API_LLM_VISION=true"),
+        (None, "Image support could not be verified"),
     ],
 )
 @pytest.mark.asyncio

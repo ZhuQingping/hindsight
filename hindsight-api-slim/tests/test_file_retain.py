@@ -8,6 +8,7 @@ import json
 from datetime import datetime, timezone
 
 import pytest
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 from httpx import ASGITransport, AsyncClient
 
 from hindsight_api.extensions import FileConvertResult, OperationValidatorExtension, ValidationResult
@@ -1206,8 +1207,7 @@ async def test_file_conversion_failure_sets_status_to_failed(memory_no_llm_verif
     assert operation is not None, f"Operation {operation_id} not found"
     assert operation["status"] == "failed", f"Expected status 'failed' but got '{operation['status']}'"
     assert operation["error_message"] is not None
-    assert "Mock conversion error" in operation["error_message"]
-    assert "test.fail" in operation["error_message"]
+    assert operation["error_message"] == PUBLIC_INTERNAL_ERROR
 
 
 class FileConvertTrackingValidator(OperationValidatorExtension):

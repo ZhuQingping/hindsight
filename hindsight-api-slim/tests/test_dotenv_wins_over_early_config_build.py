@@ -22,7 +22,8 @@ import sys
 import textwrap
 
 
-def test_dotenv_applies_even_when_the_config_was_built_before_it_loaded(tmp_path) -> None:
+def test_dotenv_applies_even_when_the_config_was_built_before_it_loaded(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("PYTHON_DOTENV_DISABLED", raising=False)
     env_file = tmp_path / ".env"
     env_file.write_text("HINDSIGHT_API_LLM_MODEL=model-from-dotenv\n")
 

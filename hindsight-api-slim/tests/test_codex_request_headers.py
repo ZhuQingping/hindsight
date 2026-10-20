@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from hindsight_api.brand_defaults import PRODUCT_NAME
+
 from hindsight_api.engine.providers.codex_llm import CodexLLM
 from tests.codex_stream_stub import stub_codex_stream
 
@@ -24,7 +26,7 @@ def build_llm() -> CodexLLM:
 
 def assert_codex_request_identity(headers: Mapping[str, str]) -> None:
     assert headers["originator"] == "codex_cli_rs"
-    assert headers["User-Agent"] == "codex_cli_rs/0.0.0 (Hindsight)"
+    assert headers["User-Agent"] == f"codex_cli_rs/0.0.0 ({PRODUCT_NAME})"
 
 
 @pytest.mark.asyncio

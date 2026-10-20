@@ -11,12 +11,14 @@ option available, because the caller is an agent that will treat the answer as
 memory and act on it. A confident empty answer is indistinguishable from "your
 bank has nothing about this", and the two demand opposite responses.
 
-So each of these must raise, and the message must name the cause — someone
-pointing reflect at a model that cannot call tools needs to be told that, not
-handed a blank.
+Each failure must raise a service error. The team public-error boundary keeps
+provider output and internal tool-selection diagnostics in server logs; callers
+receive a safe administrator-facing error rather than a blank successful answer.
 """
 
 from __future__ import annotations
+
+import json
 
 import pytest
 from hindsight_client_api.exceptions import ApiException, ServiceException
@@ -44,19 +46,18 @@ async def test_a_model_that_never_calls_a_tool_is_an_error(client, llm, bank_wit
     """The provider-mismatch case: reflect's first turn forces a tool, and this
     model answers with prose instead.
 
-    The failure has to name the cause. "No answer" sends someone looking at their
-    data; "this model produced no usable tool call" sends them at their config.
+    The public failure must preserve the team safe-error contract. Model output
+    and tool-selection metadata belong in server diagnostics.
     """
     llm.on_step("reflect").returns_text("I think Alice lives in Berlin.")
 
     with pytest.raises(ServiceException) as raised:
         await client.areflect(bank_id=bank_with_facts, query=QUERY)
 
-    message = str(raised.value)
-    assert "produced no usable tool call during initial tool selection" in message
-    assert "tool_choice=" in message
-    assert "finish_reason=" in message
-    assert "I think Alice lives in Berlin." in message
+    assert json.loads(raised.value.body) == {
+        "detail": "The service could not complete the operation. Contact your service administrator."
+    }
+
 
 
 async def test_an_empty_answer_is_an_error_rather_than_an_empty_result(client, llm, bank_with_facts):

@@ -30,6 +30,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 
 from hindsight_api.engine.llm_interface import ProviderContentPolicyError, ProviderRateLimitResetError
 from hindsight_api.engine.memory_engine import _is_non_retryable_task_error
@@ -353,7 +354,7 @@ async def test_execute_task_marks_refused_retain_failed_without_retry(memory):
     )
     assert row is not None, "Operation row disappeared"
     assert row["status"] == "failed", f"Expected status='failed' after a refusal, got {row['status']!r}"
-    assert "content policy" in (row["error_message"] or "").lower()
+    assert row["error_message"] == PUBLIC_INTERNAL_ERROR
 
     await pool.execute("DELETE FROM async_operations WHERE operation_id = $1", operation_id)
     await pool.execute("DELETE FROM banks WHERE bank_id = $1", bank_id)
