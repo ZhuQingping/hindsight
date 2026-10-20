@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import secrets
 from datetime import datetime
@@ -42,6 +43,8 @@ if TYPE_CHECKING:
 
     from .repository import Repository
 
+
+logger = logging.getLogger(__name__)
 
 ResourceId = Annotated[str, Path(pattern=r"^[0-9a-f]{32}$")]
 
@@ -287,6 +290,7 @@ class ContextDBHttpExtension(HttpExtension):
                             status_code=400,
                         )
                     except (asyncpg.PostgresError, OSError):
+                        logger.exception("Management metadata service unavailable; request_id=%s", request_id)
                         response = JSONResponse(
                             ErrorResponse(
                                 code="metadata_unavailable",
@@ -296,6 +300,7 @@ class ContextDBHttpExtension(HttpExtension):
                             status_code=503,
                         )
                     except Exception:
+                        logger.exception("Management request failed; request_id=%s", request_id)
                         response = JSONResponse(
                             ErrorResponse(
                                 code="management_failed",
