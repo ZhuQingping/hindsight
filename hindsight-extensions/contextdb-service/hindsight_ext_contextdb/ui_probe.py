@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from urllib.parse import urlsplit
 
 import aiohttp
 from yarl import URL
 
+from .environment import service_env
+
 
 async def healthy() -> bool:
-    origin = os.environ.get("CONTEXTBASE_CP_PUBLIC_ORIGIN", os.environ.get("HINDSIGHT_CP_PUBLIC_ORIGIN", ""))
-    port = os.environ.get("CONTEXTBASE_CP_PORT", os.environ.get("HINDSIGHT_CP_PORT", "9999"))
+    origin = service_env("CP_PUBLIC_ORIGIN", "")
+    port = service_env("CP_PORT", "9999")
     try:
         parsed = urlsplit(origin)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:

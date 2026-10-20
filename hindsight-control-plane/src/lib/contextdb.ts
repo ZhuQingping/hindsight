@@ -81,7 +81,7 @@ async function checkContextDBAdmin(timeoutMs = 10000): Promise<AdminFailure | nu
       return {
         error: unauthorized
           ? "The configured server administrator key is invalid"
-          : "The Hindsight API is unavailable",
+          : "The backend service is unavailable",
         status: unauthorized ? response.status : 503,
         retryable: response.status >= 500 || response.status === 429,
       };
@@ -110,7 +110,7 @@ async function checkContextDBAdmin(timeoutMs = 10000): Promise<AdminFailure | nu
     }
     return null;
   } catch {
-    return { error: "Unable to connect to the Hindsight API", status: 503, retryable: true };
+    return { error: "Unable to connect to the backend service", status: 503, retryable: true };
   }
 }
 
@@ -125,7 +125,7 @@ export async function waitForContextDBAdmin(timeoutMs = 30000): Promise<void> {
   let pause = 250;
   while (true) {
     const remaining = deadline - Date.now();
-    if (remaining <= 0) throw new Error("Timed out waiting for the Hindsight API");
+    if (remaining <= 0) throw new Error("Timed out waiting for the backend service");
     const failure = await checkContextDBAdmin(Math.min(remaining, 10000));
     if (!failure) return;
     if (!failure.retryable) throw new Error(failure.error);

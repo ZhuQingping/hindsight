@@ -9,6 +9,7 @@ from typing import Protocol, cast
 import asyncpg
 from pydantic import BaseModel, ConfigDict, Field
 
+from .environment import service_env
 from .repository import Repository
 
 
@@ -22,14 +23,14 @@ class Settings(BaseModel):
     def from_environment(cls) -> Settings:
         # Native diagnostics and Webhooks remain outside the first-release
         # delivery scope. Removing deletion barriers does not enable them.
-        if os.environ.get("HINDSIGHT_API_WEBHOOK_URL"):
+        if service_env("API_WEBHOOK_URL"):
             raise ValueError("ContextDB first release does not support HINDSIGHT_API_WEBHOOK_URL")
-        if os.environ.get("HINDSIGHT_API_LLM_TRACE_ENABLED", "true").lower() != "false":
+        if service_env("API_LLM_TRACE_ENABLED", "true").lower() != "false":
             raise ValueError("ContextDB requires HINDSIGHT_API_LLM_TRACE_ENABLED=false")
-        if os.environ.get("HINDSIGHT_API_AUDIT_LOG_ENABLED", "false").lower() != "false":
+        if service_env("API_AUDIT_LOG_ENABLED", "false").lower() != "false":
             raise ValueError("ContextDB requires HINDSIGHT_API_AUDIT_LOG_ENABLED=false")
         try:
-            template = json.loads(os.environ.get("HINDSIGHT_API_DEFAULT_BANK_TEMPLATE") or "{}")
+            template = json.loads(service_env("API_DEFAULT_BANK_TEMPLATE") or "{}")
             bank = template.get("bank") or {}
             if bank.get("audit_log_enabled"):
                 raise ValueError("Native audit is not supported")
@@ -37,11 +38,11 @@ class Settings(BaseModel):
             raise ValueError("ContextDB default Bank template must not enable native audit logging") from None
         # A shared legacy MCP token wins before TenantExtension.authenticate_mcp.
         # Reject it rather than silently converting a scoped deployment to shared auth.
-        if os.environ.get("HINDSIGHT_API_MCP_AUTH_TOKEN"):
+        if service_env("API_MCP_AUTH_TOKEN"):
             raise ValueError("ContextDB requires dynamic MCP member authentication; remove MCP_AUTH_TOKEN")
         if (
-            os.environ.get("HINDSIGHT_API_MCP_ENABLED", "false").lower() == "true"
-            and os.environ.get("HINDSIGHT_API_MCP_EXTENSION") != "hindsight_ext_contextdb.mcp:ContextDBMCPExtension"
+            service_env("API_MCP_ENABLED", "false").lower() == "true"
+            and service_env("API_MCP_EXTENSION") != "hindsight_ext_contextdb.mcp:ContextDBMCPExtension"
         ):
             raise ValueError("ContextDB MCP requires hindsight_ext_contextdb.mcp:ContextDBMCPExtension")
         try:

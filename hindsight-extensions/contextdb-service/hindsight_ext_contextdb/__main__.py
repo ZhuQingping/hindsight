@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import os
 from pathlib import Path
 
 import asyncpg
@@ -20,6 +19,7 @@ from .bootstrap import (
 )
 from .config import Settings
 from .database_checks import verify_binding, verify_format
+from .environment import service_env
 from .migrations import migrate_connection
 from .preflight import preflight
 from .security import issue_admin_key
@@ -28,7 +28,7 @@ from .security import issue_admin_key
 async def migrate(credential_path: Path) -> None:
     settings = Settings.from_environment()
     credential = read_credential(credential_path)
-    url = os.environ.get("HINDSIGHT_API_DATABASE_URL")
+    url = service_env("API_DATABASE_URL")
     if not url:
         raise ValueError("Set HINDSIGHT_API_DATABASE_URL for the deployment database")
     connection = await asyncpg.connect(url)
@@ -47,7 +47,7 @@ async def migrate(credential_path: Path) -> None:
 async def rotate(credential_path: Path) -> None:
     settings = Settings.from_environment()
     credential = read_credential(credential_path)
-    url = os.environ.get("HINDSIGHT_API_DATABASE_URL")
+    url = service_env("API_DATABASE_URL")
     if not url:
         raise ValueError("Set HINDSIGHT_API_DATABASE_URL for the deployment database")
     connection = await asyncpg.connect(url, timeout=10)
@@ -85,13 +85,9 @@ def main() -> None:
         build_ui(args.source_root.resolve())
         print("Matching ContextDB UI artifact built and stamped")
     elif args.command == "prepare":
-        if args.directory is None or not os.environ.get("HINDSIGHT_API_DATABASE_URL"):
+        if args.directory is None or not service_env("API_DATABASE_URL"):
             parser.error("prepare requires --directory and HINDSIGHT_API_DATABASE_URL")
-        asyncio.run(
-            prepare_deployment(
-                args.directory, os.environ["HINDSIGHT_API_DATABASE_URL"], os.environ.get("HINDSIGHT_CP_ACCESS_KEY")
-            )
-        )
+        asyncio.run(prepare_deployment(args.directory, service_env("API_DATABASE_URL"), service_env("CP_ACCESS_KEY")))
         print("Deployment secrets persisted; existing values preserved")
     elif args.command == "run":
         if args.directory is None or args.component is None or args.source_root is None:

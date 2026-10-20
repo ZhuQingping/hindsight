@@ -9,6 +9,7 @@ from typing import Literal
 
 from .artifacts import verify_ui_build
 from .bootstrap import load_deployment_secrets
+from .environment import service_env
 
 
 def launch(component: Literal["api", "worker", "ui"], directory: Path, source_root: Path) -> None:
@@ -47,8 +48,8 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
         server = source_root / "hindsight-control-plane" / "standalone" / "server.js"
         if not server.is_file():
             raise ValueError("Build the matching UI standalone artifact before starting it")
-        os.environ["HOSTNAME"] = os.environ.get("CONTEXTBASE_CP_HOST", os.environ.get("HINDSIGHT_CP_HOST", "0.0.0.0"))
-        os.environ["PORT"] = os.environ.get("CONTEXTBASE_CP_PORT", os.environ.get("HINDSIGHT_CP_PORT", "9999"))
+        os.environ["HOSTNAME"] = service_env("CP_HOST", "0.0.0.0")
+        os.environ["PORT"] = service_env("CP_PORT", "9999")
         os.execvp("node", ["node", str(server)])
     load_deployment_secrets(directory, "api")
     # API/Worker never need the UI login password or its backend Admin Key.

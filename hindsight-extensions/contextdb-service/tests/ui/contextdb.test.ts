@@ -12,6 +12,7 @@ import {
   isContextDBLifecycleRequest,
   requireContextDBAdmin,
   waitForContextDBAdmin,
+  verifyContextDBAdmin,
 } from "@/lib/contextdb";
 import { GET, POST, PATCH, DELETE } from "@/app/api/contextdb/[...path]/route";
 import { POST as login } from "@/app/api/auth/login/route";
@@ -86,6 +87,32 @@ describe("browser management contract", () => {
 });
 
 describe("ContextDB administrator authentication", () => {
+  it.each([500, 503])("returns a neutral backend error for status %s", async (status) => {
+    backend.mockResolvedValue(new Response("private upstream body", { status }));
+    const response = await verifyContextDBAdmin();
+    expect(response?.status).toBe(503);
+    expect(await response?.json()).toEqual({
+      error: "The backend service is unavailable",
+    });
+  });
+  it("returns a neutral network error from the login endpoint", async () => {
+    backend.mockRejectedValue(new TypeError("private network diagnostic"));
+    const response = await login(
+      new NextRequest("http://ui.local/api/auth/login", {
+        method: "POST",
+        headers: {
+          host: "ui.local",
+          origin: "http://ui.local",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ key: "ui-password" }),
+      })
+    );
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: "Unable to connect to the backend service",
+    });
+  });
   it("honors team-prefixed configuration over conflicting legacy values", async () => {
     vi.stubEnv("HINDSIGHT_CP_CONTEXTDB_ENABLED", "false");
     vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "true");

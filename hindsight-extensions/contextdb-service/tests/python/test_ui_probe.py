@@ -56,7 +56,8 @@ async def test_probe_rejects_invalid_public_origin(monkeypatch: pytest.MonkeyPat
     assert await healthy() is False
 
 
-async def test_compose_health_command_exports_ui_authority(tmp_path: Path) -> None:
+@pytest.mark.parametrize("prefix", ["HINDSIGHT", "CONTEXTBASE", "both"])
+async def test_compose_health_command_exports_ui_authority(tmp_path: Path, prefix: str) -> None:
     """Run the shipped shell chain; sourced shell variables are not exported."""
     seen: list[str] = []
 
@@ -76,9 +77,15 @@ async def test_compose_health_command_exports_ui_authority(tmp_path: Path) -> No
         site = web.TCPSite(runner, "127.0.0.1", 0)
         await site.start()
         port = runner.addresses[0][1]
-        (tmp_path / "api.env").write_text(f"HINDSIGHT_API_PORT={port}\n")
+        selected_prefix = "CONTEXTBASE" if prefix == "both" else prefix
+        legacy_api = "HINDSIGHT_API_PORT=1\n" if prefix == "both" else ""
+        legacy_ui = (
+            "HINDSIGHT_CP_PUBLIC_ORIGIN=https://wrong.example.test\nHINDSIGHT_CP_PORT=1\n" if prefix == "both" else ""
+        )
+        (tmp_path / "api.env").write_text(legacy_api + f"{selected_prefix}_API_PORT={port}\n")
         (tmp_path / "ui.env").write_text(
-            f"HINDSIGHT_CP_PUBLIC_ORIGIN=https://admin.example.test\nHINDSIGHT_CP_PORT={port}\n"
+            legacy_ui
+            + f"{selected_prefix}_CP_PUBLIC_ORIGIN=https://admin.example.test\n{selected_prefix}_CP_PORT={port}\n"
         )
         package = EXTENSION
         compose = yaml.safe_load((package / "deployment/compose.yaml").read_text())
@@ -87,7 +94,9 @@ async def test_compose_health_command_exports_ui_authority(tmp_path: Path) -> No
         command = command.replace("/var/lib/contextdb/", shlex.quote(str(tmp_path)) + "/")
         command = command.replace("/app/.venv/bin/python", shlex.quote(sys.executable)).replace("$$", "$")
         environment = {
-            key: value for key, value in os.environ.items() if not key.startswith(("HINDSIGHT_CP_", "CONTEXTBASE_CP_"))
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(("HINDSIGHT_CP_", "CONTEXTBASE_CP_", "HINDSIGHT_API_", "CONTEXTBASE_API_"))
         }
         environment["PYTHONPATH"] = str(package) + os.pathsep + str(package.parents[1] / "hindsight-api-slim")
         process = await asyncio.create_subprocess_exec(

@@ -60,11 +60,11 @@ case "$command" in
     # disabled; workspace schemas are initialized by management requests.
     # This explicit public migration has no tenant/bank context; do not ask the
     # generic CLI to enumerate ContextDB tenants (it has no bound engine).
-    HINDSIGHT_API_TENANT_EXTENSION='' exec "$PY" -m hindsight_api.admin.cli run-db-migration \
+    CONTEXTBASE_API_TENANT_EXTENSION='' HINDSIGHT_API_TENANT_EXTENSION='' exec "$PY" -m hindsight_api.admin.cli run-db-migration \
       --schema public --embedding-dimension 1024
     ;;
   api|worker)
-    if [ "${CONTEXTDB_COMBINED:-0}" = 1 ] && [ "${HINDSIGHT_API_WORKER_ENABLED:-false}" != true ]; then
+    if [ "${CONTEXTDB_COMBINED:-0}" = 1 ] && [ "${CONTEXTBASE_API_WORKER_ENABLED-${HINDSIGHT_API_WORKER_ENABLED:-false}}" != true ]; then
       echo 'Combined deployment requires the in-process Worker' >&2
       exit 2
     fi
@@ -72,7 +72,7 @@ case "$command" in
     exec "$PY" -m hindsight_ext_contextdb run --component "$command" --directory "$DEPLOY" --source-root "$CODE"
     ;;
   ui)
-    ready="${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}/health/ready"
+    ready="${CONTEXTBASE_CP_DATAPLANE_API_URL-${HINDSIGHT_CP_DATAPLANE_API_URL:-http://127.0.0.1:8888}}/health/ready"
     deadline=$((SECONDS + 60))
     while ! "$PY" -m hindsight_api.http_probe "$ready" 1; do
       if [ "$SECONDS" -ge "$deadline" ]; then

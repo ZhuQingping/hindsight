@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-import os
 import platform
 import re
 import sys
@@ -13,6 +12,8 @@ from typing import Literal
 
 import asyncpg
 from pydantic import BaseModel
+
+from .environment import service_env
 
 
 class Check(BaseModel):
@@ -43,7 +44,7 @@ async def preflight(
             detail=f"{platform.system()} {platform.machine()} Python {platform.python_version()}",
         )
     ]
-    if os.environ.get("HINDSIGHT_API_WEBHOOK_URL"):
+    if service_env("API_WEBHOOK_URL"):
         checks.append(
             Check(
                 name="webhooks",
@@ -51,11 +52,11 @@ async def preflight(
                 detail="ContextDB first release does not support global webhooks; remove HINDSIGHT_API_WEBHOOK_URL",
             )
         )
-    for flag, default in [("HINDSIGHT_API_LLM_TRACE_ENABLED", "true"), ("HINDSIGHT_API_AUDIT_LOG_ENABLED", "false")]:
-        if os.environ.get(flag, default).lower() != "false":
+    for flag, default in [("API_LLM_TRACE_ENABLED", "true"), ("API_AUDIT_LOG_ENABLED", "false")]:
+        if service_env(flag, default).lower() != "false":
             checks.append(
                 Check(
-                    name=flag,
+                    name="HINDSIGHT_" + flag,
                     status="fail",
                     detail="Set false: native background diagnostics are outside the first-release workspace feature scope",
                 )
@@ -140,7 +141,7 @@ async def preflight(
                         name="ui_native_dependencies", status="fail", detail="Unable to check UI platform dependencies"
                     )
                 )
-    url = os.environ.get("HINDSIGHT_API_DATABASE_URL")
+    url = service_env("API_DATABASE_URL")
     if not url:
         checks.append(
             Check(
@@ -164,13 +165,13 @@ async def preflight(
                 )
             )
             installed = {row["extname"] for row in await connection.fetch("SELECT extname FROM pg_extension")}
-            backend = os.environ.get("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "native").lower()
+            backend = service_env("API_TEXT_SEARCH_EXTENSION", "native").lower()
             required = {"vector", "pg_trgm", "btree_gin"}
             if backend == "vchord":
                 required.update({"vchord_bm25", "pg_tokenizer"})
             elif backend != "native":
                 required.add(backend)
-            vector_backend = os.environ.get("HINDSIGHT_API_VECTOR_EXTENSION", "pgvector").lower()
+            vector_backend = service_env("API_VECTOR_EXTENSION", "pgvector").lower()
             if vector_backend == "vchord":
                 required.add("vchord")
             elif vector_backend not in {"pgvector", "vector"}:
@@ -206,9 +207,7 @@ async def preflight(
             elif language != "english" and backend == "pg_search" and "pg_search" in installed:
                 from hindsight_api._pg_search import normalize_pg_search_tokenizer
 
-                tokenizer = normalize_pg_search_tokenizer(
-                    os.environ.get("HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER")
-                )
+                tokenizer = normalize_pg_search_tokenizer(service_env("API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER"))
                 supported = tokenizer in {"jieba", "chinese_compatible", "lindera(chinese)"}
                 available = (
                     bool(
