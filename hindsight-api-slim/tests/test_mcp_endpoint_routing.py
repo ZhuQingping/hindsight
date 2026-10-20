@@ -13,6 +13,16 @@ from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
 
+@pytest.fixture(autouse=True)
+def routing_without_background_worker(monkeypatch: pytest.MonkeyPatch) -> None:
+    # These cases test MCP routing with the synchronous memory fixture. Starting
+    # a poller can claim deliberately pending jobs left by other tests sharing
+    # this worker's PG, then race engine teardown. Worker/system suites exercise
+    # real background execution separately; keep both config aliases isolated.
+    monkeypatch.setenv("CONTEXTBASE_API_WORKER_ENABLED", "false")
+    monkeypatch.setenv("HINDSIGHT_API_WORKER_ENABLED", "false")
+
+
 @pytest.mark.asyncio
 async def test_mcp_endpoint_routing_integration(memory):
     """Test that multi-bank and single-bank endpoints expose different tools using StreamableHTTP.

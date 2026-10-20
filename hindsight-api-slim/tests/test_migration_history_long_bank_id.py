@@ -40,12 +40,11 @@ def _alembic_cfg(db_url: str) -> Config:
 
 
 @pytest.fixture(scope="module")
-def pre_split_db_url():
+def pre_split_db_url(isolated_embedded_postgres):
     """pg0 instance with schema at the revision just before the split-history
     migration so the migration's backfill actually runs against seeded data."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    pg0 = EmbeddedPostgres(name="hindsight-long-bankid-test", port=5567)
+    pg0 = isolated_embedded_postgres(name="hindsight-long-bankid-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

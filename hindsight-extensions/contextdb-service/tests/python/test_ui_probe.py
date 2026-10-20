@@ -1,0 +1,108 @@
+"""The probe reaches a local UI with its configured public authority."""
+
+import asyncio
+import os
+import shlex
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+from aiohttp import web
+
+from hindsight_ext_contextdb.ui_probe import healthy
+
+from ..paths import EXTENSION
+
+
+@pytest.mark.parametrize("status", [200, 302, 421, 503])
+@pytest.mark.parametrize(
+    ("origin", "host"),
+    [
+        ("https://ADMIN.example.test:443", "admin.example.test"),
+        ("https://admin.example.test:9443", "admin.example.test:9443"),
+        ("http://[0:0:0:0:0:0:0:1]:80", "[::1]"),
+        ("https://例子.测试:443", "xn--fsqu00a.xn--0zwm56d"),
+    ],
+)
+async def test_probe_uses_local_socket_and_configured_public_host(
+    monkeypatch: pytest.MonkeyPatch, status: int, origin: str, host: str
+) -> None:
+    seen: list[str] = []
+
+    async def health(request: web.Request) -> web.Response:
+        seen.append(request.host)
+        return web.Response(status=status)
+
+    app = web.Application()
+    app.router.add_get("/api/health", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    try:
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_ORIGIN", origin)
+        monkeypatch.setenv("CONTEXTBASE_CP_PORT", str(runner.addresses[0][1]))
+        monkeypatch.setenv("HINDSIGHT_CP_PUBLIC_ORIGIN", "http://wrong.example")
+        assert await healthy() is (status == 200)
+        assert seen == [host]
+    finally:
+        await runner.cleanup()
+
+
+@pytest.mark.parametrize("origin", ["", "file:///tmp/ui", "https://user:secret@example.test", "https://ui.test/path"])
+async def test_probe_rejects_invalid_public_origin(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
+    monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_ORIGIN", origin)
+    assert await healthy() is False
+
+
+async def test_compose_health_command_exports_ui_authority(tmp_path: Path) -> None:
+    """Run the shipped shell chain; sourced shell variables are not exported."""
+    seen: list[str] = []
+
+    async def health(request: web.Request) -> web.Response:
+        seen.append(request.host)
+        if request.path == "/api/health" and request.host != "admin.example.test":
+            return web.Response(status=421)
+        return web.json_response({"status": "healthy", "database": "connected"})
+
+    app = web.Application()
+    app.router.add_get("/health/ready", health)
+    app.router.add_get("/api/health", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    process: asyncio.subprocess.Process | None = None
+    try:
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        port = runner.addresses[0][1]
+        (tmp_path / "api.env").write_text(f"HINDSIGHT_API_PORT={port}\n")
+        (tmp_path / "ui.env").write_text(
+            f"HINDSIGHT_CP_PUBLIC_ORIGIN=https://admin.example.test\nHINDSIGHT_CP_PORT={port}\n"
+        )
+        package = EXTENSION
+        compose = yaml.safe_load((package / "deployment/compose.yaml").read_text())
+        command = compose["services"]["hindsight"]["healthcheck"]["test"][1]
+        # Only substitute container filesystem paths and Compose's dollar escape.
+        command = command.replace("/var/lib/contextdb/", shlex.quote(str(tmp_path)) + "/")
+        command = command.replace("/app/.venv/bin/python", shlex.quote(sys.executable)).replace("$$", "$")
+        environment = {
+            key: value for key, value in os.environ.items() if not key.startswith(("HINDSIGHT_CP_", "CONTEXTBASE_CP_"))
+        }
+        environment["PYTHONPATH"] = str(package) + os.pathsep + str(package.parents[1] / "hindsight-api-slim")
+        process = await asyncio.create_subprocess_exec(
+            "sh",
+            "-c",
+            command,
+            env=environment,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=15)
+        assert process.returncode == 0, (stdout, stderr)
+        assert seen == [f"127.0.0.1:{port}", "admin.example.test"]
+    finally:
+        if process is not None and process.returncode is None:
+            process.kill()
+            await process.wait()
+        await runner.cleanup()

@@ -131,7 +131,7 @@ async def test_an_llm_of_unknown_vision_capability_is_also_refused(api_client, m
     response = await _retain(api_client, bank_id, [_image_block()], document_id="d")
 
     assert response.status_code == 422
-    assert "HINDSIGHT_API_LLM_VISION=true" in response.json()["detail"]
+    assert "Image support could not be verified" in response.json()["detail"]
 
 
 @pytest.mark.asyncio

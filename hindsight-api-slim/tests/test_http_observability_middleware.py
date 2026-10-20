@@ -230,13 +230,13 @@ def test_in_progress_returns_to_zero_under_the_route_template(real_app: FastAPI,
         for rm in reader.get_metrics_data().resource_metrics
         for sm in rm.scope_metrics
         for metric in sm.metrics
-        if metric.name.startswith("hindsight.http.")
+        if metric.name.startswith("contextbase.http.")
         for point in metric.data.data_points
     }
     doc = "/v1/default/banks/{bank_id}/documents/{document_id}"
     assert {endpoint for _, endpoint in points} == {doc, UNMATCHED_ENDPOINT}
-    assert points[("hindsight.http.requests.in_progress", doc)].value == 0
-    assert points[("hindsight.http.requests.in_progress", UNMATCHED_ENDPOINT)].value == 0
+    assert points[("contextbase.http.requests.in_progress", doc)].value == 0
+    assert points[("contextbase.http.requests.in_progress", UNMATCHED_ENDPOINT)].value == 0
 
 
 def test_a_matched_route_without_a_template_is_not_unmatched():

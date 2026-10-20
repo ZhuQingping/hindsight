@@ -275,6 +275,12 @@ Run both locally with:
 Most tests are deterministic (MockLLM, pure functions) — assert directly.
 
 **A user-facing capability needs a blackbox story in `hindsight-system-tests/`.**
+ContextDB's extension-owned stories are physically grouped in
+`hindsight-extensions/contextdb-service/tests/system/` and run with the same
+`hindsight-system-tests` environment and shared pytest plugin, using the extension's
+`pytest-system.ini`. This explicitly authorized location follows the same blackbox
+rules; do not duplicate them under the native test directory.
+
 Those drive a real `hindsight-api` process through the published Python client — no
 engine access, no SQL — and exist to catch the bugs the ~500-file api-slim suite
 structurally cannot: the ones in the seam *between* steps, where consolidation wipes

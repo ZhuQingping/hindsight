@@ -20,6 +20,7 @@ only on the ``retain_extract_facts`` scope, and assert the operation is retried
 (reset to ``pending`` with ``retry_count`` bumped) rather than silently completed.
 """
 
+from hindsight_api.public_errors import PUBLIC_INTERNAL_ERROR
 from hindsight_api.engine.response_models import TokenUsage
 import json
 import uuid
@@ -171,5 +172,6 @@ async def test_extraction_failure_at_retry_cap_fails_terminally(memory, request_
     assert final["status"] == "failed", f"expected retry-capped task to fail, got {final['status']!r}"
     assert final["retry_count"] == 3
     assert final["error_message"] is not None
-    assert "structured JSON parse failed" in final["error_message"]
+    # Persist the public failure contract while full diagnostics remain in server logs.
+    assert final["error_message"] == PUBLIC_INTERNAL_ERROR
     assert unit_count == 0

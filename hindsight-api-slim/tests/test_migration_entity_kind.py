@@ -78,12 +78,11 @@ def _index_def(conn, name: str) -> str | None:
 
 
 @pytest.fixture(scope="module")
-def head_db_url():
+def head_db_url(isolated_embedded_postgres):
     """pg0 migrated to just before the change, seeded, then upgraded to head."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    # port=None lets pg0 auto-assign a free port; a hardcoded port is not xdist-safe.
-    pg0 = EmbeddedPostgres(name="hindsight-entity-kind-test", port=None)
+    # Private storage and free ports isolate this migration from previous test runs.
+    pg0 = isolated_embedded_postgres(name="hindsight-entity-kind-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

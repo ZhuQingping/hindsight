@@ -1,3 +1,5 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
+import { contextdbWorkspaceMessages } from "@/i18n/contextdb-messages";
 import { NextResponse } from "next/server";
 import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
 
@@ -148,7 +150,10 @@ function getTranslationValue(locale: Locale, key: string): string | undefined {
     current = (current as Record<string, unknown>)[part];
   }
 
-  return typeof current === "string" ? current : undefined;
+  if (typeof current !== "string") return undefined;
+  return controlPlaneEnv("CONTEXTDB_ENABLED") === "true"
+    ? contextdbWorkspaceMessages({ message: current }, locale).message
+    : current;
 }
 
 function getFallbackMessage(payload: ApiErrorPayload): string | undefined {

@@ -56,11 +56,10 @@ def _col_type(conn, table: str) -> str:
 
 
 @pytest.fixture(scope="module")
-def head_db_url():
+def head_db_url(isolated_embedded_postgres):
     """pg0 instance migrated to head (includes the widen migration)."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    pg0 = EmbeddedPostgres(name="hindsight-remaining-bankid-test", port=5568)
+    pg0 = isolated_embedded_postgres(name="hindsight-remaining-bankid-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

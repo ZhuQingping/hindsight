@@ -1,3 +1,4 @@
+import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
@@ -48,6 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ bank
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
+  if (contextDBEnabled()) return contextDBLifecycleDenied();
   try {
     const { bankId } = await params;
 

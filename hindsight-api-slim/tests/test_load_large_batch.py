@@ -348,7 +348,7 @@ class TestLargeBatchRetain:
 
             if errors:
                 for e in errors:
-                    logger.error(f"Error: {e}")
+                    logger.error("Concurrent retain failed", exc_info=(type(e), e, e.__traceback__))
 
             assert len(errors) == 0, f"Expected no errors, got: {errors}"
             assert len(successes) == 10

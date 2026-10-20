@@ -43,10 +43,9 @@ def _alembic_cfg(db_url: str) -> Config:
 
 
 @pytest.fixture(scope="module")
-def pre_backfill_db_url():
+def pre_backfill_db_url(isolated_embedded_postgres):
     """pg0 instance brought to the revision just before the backfill so the
     migration's UPDATE runs against seeded NULL-search_vector observations."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
     # port=None lets pg0 auto-assign a free port. A hardcoded port is not
     # xdist-safe: under `-n` the fixed port collides with a concurrent or
@@ -54,7 +53,7 @@ def pre_backfill_db_url():
     # which the retry loop then reports as "Failed to start embedded PostgreSQL
     # after 5 attempts". The connection URL from ensure_running() carries the
     # assigned port, so nothing downstream needs to know it.
-    pg0 = EmbeddedPostgres(name="hindsight-obs-sv-backfill-test", port=None)
+    pg0 = isolated_embedded_postgres(name="hindsight-obs-sv-backfill-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

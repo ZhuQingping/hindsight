@@ -136,6 +136,9 @@ async def test_request_goes_through_the_proxy_named_by_http_proxy(monkeypatch):
         return web.Response(text="via proxy")
 
     async with stub_server(handler) as proxy_url:
+        # urllib/aiohttp prefer lowercase proxy variables when both are set.
+        # Isolate the uppercase-path test from the developer shell.
+        monkeypatch.delenv("http_proxy", raising=False)
         monkeypatch.setenv("HTTP_PROXY", proxy_url)
         monkeypatch.delenv("NO_PROXY", raising=False)
         monkeypatch.delenv("no_proxy", raising=False)

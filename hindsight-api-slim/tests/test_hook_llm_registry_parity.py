@@ -59,6 +59,9 @@ def _registry_files() -> list[Path]:
 
 @pytest.mark.parametrize("provider", NO_KEY_PROVIDERS)
 def test_all_copied_llm_registries_allow_no_key_providers(provider, monkeypatch):
+    monkeypatch.setenv("CONTEXTBASE_API_LLM_PROVIDER", provider)
+    monkeypatch.setenv("CONTEXTBASE_API_LLM_MODEL", PROVIDER_DEFAULT_MODELS[provider])
+    monkeypatch.delenv("CONTEXTBASE_API_LLM_API_KEY", raising=False)
     monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", provider)
     monkeypatch.setenv("HINDSIGHT_API_LLM_MODEL", PROVIDER_DEFAULT_MODELS[provider])
     monkeypatch.delenv("HINDSIGHT_API_LLM_API_KEY", raising=False)

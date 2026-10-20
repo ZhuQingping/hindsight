@@ -1,4 +1,11 @@
 import { controlPlaneEnv } from "@/lib/control-plane-env";
+import {
+  contextDBEnabled,
+  contextDBConfigurationError,
+  verifyContextDBAdmin,
+  isContextDBLifecycleRequest,
+  contextDBLifecycleDenied,
+} from "@/lib/contextdb";
 import { productGuard } from "@/lib/product-guard";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -39,6 +46,19 @@ export async function proxy(request: NextRequest) {
   const appPathname = stripBasePath(pathname);
 
   if (staticAsset(appPathname)) return NextResponse.next();
+
+  const contextDB = contextDBEnabled();
+  const localePrefix = appPathname.split("/")[1];
+  const pagePathname =
+    contextDB &&
+    !appPathname.startsWith("/api/") &&
+    routing.locales.some((locale) => locale === localePrefix)
+      ? appPathname.slice(localePrefix.length + 1) || "/"
+      : appPathname;
+  if (contextDB) {
+    const error = contextDBConfigurationError();
+    if (error) return NextResponse.json({ error }, { status: 503 });
+  }
 
   if (protectedMode()) {
     if (!authConfigured())
@@ -86,6 +106,16 @@ export async function proxy(request: NextRequest) {
       );
     }
 
+    if (contextDB) {
+      // Management handlers recheck the backend key at their admin-only endpoint.
+      // Native APIs also inject that key, so they require a current admin identity.
+      if (!appPathname.startsWith("/api/contextdb/")) {
+        const denied = await verifyContextDBAdmin();
+        if (denied) return denied;
+      }
+      if (isContextDBLifecycleRequest(appPathname, request.method))
+        return contextDBLifecycleDenied();
+    }
     const productFailure = await productGuard(request);
     if (productFailure) return productFailure;
     const response = NextResponse.next();
@@ -97,7 +127,7 @@ export async function proxy(request: NextRequest) {
   // locale negotiation and rewriting. With localePrefix "never" the locale is
   // never in the path, so appPathname is already the canonical route.
   if (protectedMode()) {
-    const isPublic = appPathname === "/login";
+    const isPublic = pagePathname === "/login";
 
     if (!isPublic) {
       const sessionCookie = request.cookies.get(sessionCookieName())?.value;
@@ -108,12 +138,18 @@ export async function proxy(request: NextRequest) {
         // Prefix the target explicitly, but keep returnTo as the app-relative path so
         // client-side router.push() does not double-prefix after login.
         const loginUrl = new URL(withBasePath("/login"), publicOrigin()!);
-        loginUrl.searchParams.set("returnTo", appPathname + request.nextUrl.search);
+        loginUrl.searchParams.set("returnTo", pagePathname + request.nextUrl.search);
         return NextResponse.redirect(loginUrl);
+      }
+      if (contextDB) {
+        const denied = await verifyContextDBAdmin();
+        if (denied) return denied;
       }
     }
   }
 
+  // next-intl has already rewritten this page to [locale]; re-entering loops.
+  if (contextDB && pagePathname !== appPathname) return NextResponse.next();
   const response = intlMiddleware(request);
   // Localized redirects are browser-visible; use the configured public origin
   // even when a trusted gateway reaches Next over a different internal URL.

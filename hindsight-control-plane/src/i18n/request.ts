@@ -1,3 +1,4 @@
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { localProductName } from "@/lib/product-config-server";
 import type { AbstractIntlMessages } from "next-intl";
 import { connection } from "next/server";
@@ -5,6 +6,7 @@ import { getRequestConfig } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "./routing";
 import { messageLocale } from "./config";
+import { contextdbWorkspaceMessages, withContextdbMessages } from "./contextdb-messages";
 
 // Static imports keep Turbopack/Webpack happy — dynamic template imports
 // don't resolve at build time.
@@ -28,10 +30,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
   await connection();
   const requested = await requestLocale;
   const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale;
+  const messages = withContextdbMessages((await loaders[messageLocale(locale)]()).default, locale);
 
   return {
     locale,
     // Other retained locale choices explicitly fall back to the complete English main flows.
-    messages: brandMessages((await loaders[messageLocale(locale)]()).default, localProductName()),
+    messages: brandMessages(
+      controlPlaneEnv("CONTEXTDB_ENABLED") === "true"
+        ? contextdbWorkspaceMessages(messages, locale)
+        : messages,
+      localProductName()
+    ),
   };
 });

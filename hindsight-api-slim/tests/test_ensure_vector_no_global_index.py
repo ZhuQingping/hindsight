@@ -29,11 +29,10 @@ from hindsight_api.migrations import ensure_vector_extension, run_migrations, to
 
 
 @pytest.fixture(scope="module")
-def vec_db_url():
+def vec_db_url(isolated_embedded_postgres):
     """A dedicated pg0 instance so the test owns its schema/index state."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    pg0 = EmbeddedPostgres(name="hindsight-vecidx-test", port=5570)
+    pg0 = isolated_embedded_postgres(name="hindsight-vecidx-test")
     loop = asyncio.new_event_loop()
     try:
         return loop.run_until_complete(pg0.ensure_running())

@@ -49,11 +49,10 @@ def _reset_public_schema(db_url: str) -> None:
 
 
 @pytest.fixture(scope="module")
-def pre_queue_db_url() -> str:
+def pre_queue_db_url(isolated_embedded_postgres) -> str:
     """A dedicated database migrated to the revision just before the queue."""
-    from hindsight_api.pg0 import EmbeddedPostgres
 
-    pg0 = EmbeddedPostgres(name="hindsight-entity-queue-test", port=5563)
+    pg0 = isolated_embedded_postgres(name="hindsight-entity-queue-test")
     loop = asyncio.new_event_loop()
     try:
         url = loop.run_until_complete(pg0.ensure_running())

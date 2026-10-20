@@ -6,6 +6,7 @@ import asyncio
 import importlib.util
 import inspect
 import os
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import filelock
@@ -128,6 +129,23 @@ def _reset_config_cache():
 
 
 @pytest.fixture(autouse=True)
+def _reset_data_access_ops():
+    """Give function-scoped event loops their own dialect singleton.
+
+    PostgreSQLOps now owns asyncio index-DDL locks. A contended lock binds to
+    the current loop; reusing it after pytest closes that loop makes a later
+    independent engine fail before issuing SQL. Keep singleton sharing within
+    each test (backend and memory store still see the same object), while
+    preventing a previous test's lock and patched methods from leaking.
+    """
+    from hindsight_api.engine.db import _OPS_CACHE
+
+    _OPS_CACHE.clear()
+    yield
+    _OPS_CACHE.clear()
+
+
+@pytest.fixture(autouse=True)
 def _cleanup_leaked_span_recorders():
     """Fail-safe for the process-global LLM-trace recorder registry (#2229).
 
@@ -213,14 +231,43 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def db_url():
-    """
-    Provide a PostgreSQL connection URL for tests.
+def db_url(tmp_path_factory: pytest.TempPathFactory, worker_id: str) -> Iterator[str | None]:
+    """Allow acceptance runs to isolate xdist workers' DDL and task tables.
 
-    If HINDSIGHT_API_DATABASE_URL is set, use it directly.
-    Otherwise, return None to indicate pg0 should be used (managed by pg0_instance fixture).
+    Default developer/CI behavior retains the existing configured/shared PG.
+    The task-owned acceptance runner opts in so unrelated concurrent bank DDL
+    cannot deadlock a migration/index-repair assertion in a different worker.
     """
-    return os.getenv("HINDSIGHT_API_DATABASE_URL")
+    if os.environ.get("HINDSIGHT_TEST_PRIVATE_DATABASE") != "1":
+        yield os.getenv("HINDSIGHT_API_DATABASE_URL")
+        return
+
+    import secrets
+    import socket
+
+    from pg0 import Pg0
+    from hindsight_api.config import clear_config_cache
+
+    with socket.socket() as reservation:
+        reservation.bind(("127.0.0.1", 0))
+        port = reservation.getsockname()[1]
+    database = Pg0(
+        name=f"contextdb-{worker_id}-{secrets.token_hex(6)}",
+        port=port,
+        data_dir=str(tmp_path_factory.mktemp("worker-pg")),
+        database="integration_test",
+        config={"max_connections": "150", "max_locks_per_transaction": "512"},
+    )
+    try:
+        info = database.start()
+        assert info.uri is not None
+        with pytest.MonkeyPatch.context() as environment:
+            environment.setenv("HINDSIGHT_API_DATABASE_URL", info.uri)
+            clear_config_cache()
+            yield info.uri
+    finally:
+        database.stop()
+        clear_config_cache()
 
 
 @pytest.fixture(scope="session")
@@ -798,3 +845,44 @@ def enable_audit_default(memory, enabled: bool) -> None:
 
     resolver = memory._config_resolver
     resolver._global_config = replace(resolver._global_config, audit_log_enabled=enabled)
+
+
+@pytest.fixture(scope="module")
+def isolated_embedded_postgres(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Iterator[Callable[..., EmbeddedPostgres]]:
+    """Fresh migration PGs cannot reuse an old brand's credentials or test state.
+
+    Keep migration ownership separate from the already-migrated shared engine
+    fixture. Preserve EmbeddedPostgres's API while providing private storage,
+    a random instance name/port and unconditional module teardown.
+    """
+    import secrets
+    import socket
+
+    from pg0 import Pg0
+
+    owned: list[EmbeddedPostgres] = []
+
+    def create(*, name: str) -> EmbeddedPostgres:
+        with socket.socket() as reservation:
+            reservation.bind(("127.0.0.1", 0))
+            port = reservation.getsockname()[1]
+        instance = EmbeddedPostgres(name=name + "-" + secrets.token_hex(6), port=port)
+        instance._pg0 = Pg0(
+            name=instance.name,
+            port=port,
+            username=instance.username,
+            password=instance.password,
+            database=instance.database,
+            data_dir=str(tmp_path_factory.mktemp("native-migration-pg")),
+        )
+        owned.append(instance)
+        return instance
+
+    try:
+        yield create
+    finally:
+        for instance in owned:
+            if instance._pg0 is not None:
+                instance._pg0.stop()

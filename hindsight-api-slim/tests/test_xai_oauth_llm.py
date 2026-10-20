@@ -1269,12 +1269,12 @@ def test_the_store_path_override_is_honored(tmp_path, monkeypatch):
     assert default_token_path() == target
 
 
-def test_the_default_store_lives_under_the_hindsight_home(monkeypatch):
+def test_the_default_store_lives_under_the_contextbase_home(monkeypatch):
     monkeypatch.delenv(ENV_TOKEN_PATH, raising=False)
 
     path = default_token_path()
 
-    assert path.parent.name == ".hindsight"
+    assert path.parent.name == ".contextbase"
     assert path.name == "xai_oauth.json"
 
 
