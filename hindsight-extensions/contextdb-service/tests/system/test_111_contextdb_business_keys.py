@@ -155,8 +155,9 @@ async def test_revoke_one_key_preserves_sibling_and_old_mcp_session_cannot_reuse
                     with pytest.raises(UnauthorizedException):
                         await old.arecall(bank_id=bank, query="Revoked key")
                     assert (await replacement.arecall(bank_id=bank, query="Sibling key survives")).results == []
-                    with pytest.raises(Exception):
+                    with pytest.raises(httpx.HTTPStatusError) as unauthorized:
                         await mcp.call_tool("recall", {"query": "Old session cannot retain authority"})
+                    assert unauthorized.value.response.status_code == 401
                     revoked_proved = True
                     assert transport.get_session_id() == session
             except httpx.HTTPStatusError as error:

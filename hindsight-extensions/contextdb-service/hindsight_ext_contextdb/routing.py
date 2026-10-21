@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from hindsight_api.api.http import BankListItem, BankListResponse
 from hindsight_api.models import RequestContext
 
+from .database_checks import metadata_errors
 from .models import ServiceError
 
 if TYPE_CHECKING:
@@ -75,8 +76,11 @@ async def bank_list(
 ) -> BankListResponse:
     if limit < 0 or offset < 0 or limit > 1000:
         raise ServiceError(400, "invalid_pagination", "limit must be 0..1000 and offset nonnegative")
-    principal = await repository.authenticate(credential, bank_id)
-    spaces = await repository.visible_workspaces(principal)
+    # Only our metadata reads are normalized; native catalog/hydration errors
+    # retain the host's handling instead of being mislabeled as metadata faults.
+    with metadata_errors():
+        principal = await repository.authenticate(credential, bank_id)
+        spaces = await repository.visible_workspaces(principal)
     if bank_id is not None:
         spaces = [space for space in spaces if space.bank_id == bank_id]
     from hindsight_api.engine.retain import bank_utils

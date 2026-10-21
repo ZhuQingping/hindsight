@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import parse_qs
 
 import asyncpg
+from hindsight_api.engine.chunk_ids import build_chunk_id, parse_chunk_id
 from hindsight_api.extensions.tenant import AuthenticationError
 from pydantic import TypeAdapter, ValidationError
 from starlette.datastructures import QueryParams
@@ -123,8 +124,12 @@ class WorkspaceAuthorizationMiddleware:
             await self.app(scope, receive, send)
             return
         download_prefix = "/v1/default/files/download/"
+        chunk_prefix = "/v1/default/chunks/"
         if not (
-            path == "/v1/default/banks" or path.startswith("/v1/default/banks/") or path.startswith(download_prefix)
+            path == "/v1/default/banks"
+            or path.startswith("/v1/default/banks/")
+            or path.startswith(download_prefix)
+            or path.startswith(chunk_prefix)
         ):
             await self.app(scope, receive, send)
             return
@@ -155,7 +160,19 @@ class WorkspaceAuthorizationMiddleware:
                 )
                 await JSONResponse(page.model_dump(mode="json"))(scope, receive, observed_send)
                 return
-            if path.startswith(download_prefix):
+            if path.startswith(chunk_prefix):
+                # Chunks encode the Bank instead of carrying it as a path segment.
+                # Use the native codec, but reject ambiguous pre-release encodings.
+                chunk_id = path[len(chunk_prefix) :]
+                chunk = parse_chunk_id(chunk_id)
+                if (
+                    chunk is None
+                    or chunk.chunk_index < 0
+                    or build_chunk_id(chunk.bank_id, chunk.document_id, chunk.chunk_index) != chunk_id
+                ):
+                    raise ServiceError(404, "not_found", "Chunk not found")
+                bank_id = chunk.bank_id
+            elif path.startswith(download_prefix):
                 parts = path[len(download_prefix) :].split("/")
                 if len(parts) > 4 and parts[0] == "tenants" and parts[2] == "banks" and ".." not in parts:
                     bank_id = parts[3]
@@ -191,7 +208,8 @@ class WorkspaceAuthorizationMiddleware:
                     payload_requested
                     or suffix.rstrip("/") in {"/audit-logs", "/audit-logs/stats"}
                     or path.startswith(download_prefix)
-                    or suffix in {"/export", "/transfer/export", "/document-transfer/export"}
+                    or suffix.rstrip("/")
+                    in {"/export", "/transfer/export", "/document-transfer/export", "/prompts/preview"}
                 ) and principal.role != Role.ADMIN:
                     raise ServiceError(403, "admin_required", "The operations administrator Key is required")
                 if suffix.rstrip("/") == "/config" and scope["method"] in {"GET", "PATCH", "DELETE"}:

@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -42,6 +49,37 @@ function keyAuthorizationSnapshot(value: KeyAuthorization): string {
 
 type Grant = Extract<KeyAuthorization, { mode: "selected" }>["workspaces"][number];
 
+function PermissionSelect({
+  id,
+  label,
+  value,
+  disabled,
+  onChange,
+}: {
+  id?: string;
+  label: string;
+  value: KeyPermission;
+  disabled: boolean;
+  onChange: (value: KeyPermission) => void;
+}) {
+  const t = useTranslations("contextDB");
+  return (
+    <Select
+      value={value}
+      disabled={disabled}
+      onValueChange={(next) => onChange(next as KeyPermission)}
+    >
+      <SelectTrigger id={id} aria-label={label} className="w-auto min-w-28">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="read_write">{t("readWrite")}</SelectItem>
+        <SelectItem value="read">{t("readOnly")}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 /** Owns one immutable editing snapshot and its draft; the directory owns neither. */
 export function ContextDBKeyEditorDialog({
   userId,
@@ -50,7 +88,9 @@ export function ContextDBKeyEditorDialog({
   onClose,
   onSaved,
   onCheckResult,
+  onCloseAutoFocus,
 }: {
+  onCloseAutoFocus?: (event: Event) => void;
   userId: string;
   userName: string;
   editingKey: ContextDBKeyEditable | null;
@@ -159,7 +199,7 @@ export function ContextDBKeyEditorDialog({
         if (!open && !busy) onClose(!editingKey && outcome === "unknown");
       }}
     >
-      <DialogContent>
+      <DialogContent className="w-[calc(100%-2rem)]" onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>{editingKey ? t("editKey") : t("createKey")}</DialogTitle>
           <DialogDescription>
@@ -179,15 +219,12 @@ export function ContextDBKeyEditorDialog({
           onChange={(event) => setKeyName(event.target.value)}
         />
         <Label htmlFor="key-access">{t("spaces")}</Label>
-        <select
-          id="key-access"
-          className="rounded border bg-background p-2"
+        <Select
           value={access}
           disabled={busy || blocked}
-          onChange={(event) => {
-            const mode = event.target.value as "all" | "selected";
-            // Carry a deliberately selected read-only permission into the
-            // uniform range instead of silently applying creation defaults.
+          onValueChange={(value) => {
+            const mode = value as "all" | "selected";
+            // Changing range must never upgrade an existing read-only choice.
             if (
               mode === "all" &&
               Object.values(grants).some((grant) => grant.permission === "read")
@@ -196,87 +233,111 @@ export function ContextDBKeyEditorDialog({
             setAccess(mode);
           }}
         >
-          <option value="selected">{t("selectedSpaces")}</option>
-          <option value="all">{t("allSpaces")}</option>
-        </select>
+          <SelectTrigger id="key-access" aria-label={t("spaces")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="selected">{t("selectedSpaces")}</SelectItem>
+            <SelectItem value="all">{t("allSpaces")}</SelectItem>
+          </SelectContent>
+        </Select>
         {access === "selected" ? (
-          <div className="max-h-64 space-y-2 overflow-y-auto">
-            {[...choices.values()].map((choice) => {
-              const id = choice.workspace_id;
-              const name = choice.workspace_name ?? choice.bank_id;
-              return (
-                <div className="flex items-center gap-2" key={id}>
-                  <label className="flex flex-1 items-center gap-2">
-                    <Checkbox
-                      checked={Object.hasOwn(grants, id)}
-                      disabled={busy || blocked}
-                      onCheckedChange={(checked) =>
-                        setGrants((previous) => {
-                          const next = { ...previous };
-                          if (checked) next[id] = { ...choice, permission: "read_write" };
-                          else delete next[id];
-                          return next;
-                        })
-                      }
-                    />
-                    {name}
-                    {currentIds.has(choice.bank_id) && currentIds.get(choice.bank_id) !== id
-                      ? ` (${t("unavailable")})`
-                      : ""}
-                  </label>
-                  {Object.hasOwn(grants, id) && (
-                    <select
-                      aria-label={`${name} ${t("permission")}`}
-                      className="rounded border bg-background p-1"
-                      value={grants[id].permission}
-                      disabled={busy || blocked}
-                      onChange={(event) =>
-                        setGrants((previous) => ({
-                          ...previous,
-                          [id]: {
-                            ...previous[id],
-                            permission: event.target.value as KeyPermission,
-                          },
-                        }))
-                      }
-                    >
-                      <option value="read_write">{t("readWrite")}</option>
-                      <option value="read">{t("readOnly")}</option>
-                    </select>
-                  )}
-                </div>
-              );
-            })}
-            {picker.loading && <p>{t("loading")}</p>}
-            {picker.hasMore && (
-              <Button
-                variant="outline"
-                disabled={picker.loading}
-                onClick={() => void picker.loadMore()}
-              >
-                {t("moreWorkspaces")}
-              </Button>
-            )}
-            {!picker.loading && !choices.size && <p>{t("createWorkspaceFirst")}</p>}
+          <div className="space-y-2">
+            <Input
+              aria-label={t("searchWorkspaces")}
+              placeholder={t("searchWorkspaces")}
+              value={picker.query}
+              maxLength={128}
+              disabled={busy || blocked}
+              onChange={(event) => picker.setQuery(event.target.value)}
+            />
+            <div className="max-h-64 space-y-2 overflow-y-auto">
+              {[...choices.values()].map((choice) => {
+                const id = choice.workspace_id;
+                const name = choice.workspace_name ?? choice.bank_id;
+                return (
+                  <div className="flex items-center gap-2" key={id}>
+                    <label className="flex flex-1 items-center gap-2">
+                      <Checkbox
+                        checked={Object.hasOwn(grants, id)}
+                        disabled={busy || blocked}
+                        onCheckedChange={(checked) =>
+                          setGrants((previous) => {
+                            const next = { ...previous };
+                            if (checked) next[id] = { ...choice, permission: "read_write" };
+                            else delete next[id];
+                            return next;
+                          })
+                        }
+                      />
+                      {name}
+                      {currentIds.has(choice.bank_id) && currentIds.get(choice.bank_id) !== id
+                        ? ` (${t("unavailable")})`
+                        : ""}
+                    </label>
+                    {Object.hasOwn(grants, id) && (
+                      <PermissionSelect
+                        label={`${name} ${t("permission")}`}
+                        value={grants[id].permission}
+                        disabled={busy || blocked}
+                        onChange={(value) =>
+                          setGrants((previous) => ({
+                            ...previous,
+                            [id]: { ...previous[id], permission: value },
+                          }))
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              })}
+              {picker.loading && <p>{t("loading")}</p>}
+              {picker.hasMore && (
+                <Button
+                  variant="outline"
+                  disabled={picker.loading}
+                  onClick={() => void picker.loadMore()}
+                >
+                  {t("moreWorkspaces")}
+                </Button>
+              )}
+              {!picker.loading && !picker.error && !picker.workspaces.length && (
+                <p>{t(picker.query ? "noMatches" : "emptyWorkspaces")}</p>
+              )}
+              {picker.error && (
+                <Button
+                  variant="outline"
+                  disabled={busy || blocked}
+                  onClick={() => void picker.retry()}
+                >
+                  {t("refresh")}
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <>
             <Label htmlFor="key-permission">{t("permission")}</Label>
-            <select
+            <PermissionSelect
               id="key-permission"
+              label={t("permission")}
               value={permission}
               disabled={busy || blocked}
-              className="rounded border bg-background p-2"
-              onChange={(event) => setPermission(event.target.value as KeyPermission)}
-            >
-              <option value="read_write">{t("readWrite")}</option>
-              <option value="read">{t("readOnly")}</option>
-            </select>
+              onChange={setPermission}
+            />
           </>
         )}
-        <p className="text-sm text-muted-foreground">
-          {t("readOnlyHelp")} {t("readWriteHelp")}
-        </p>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <p>
+            <strong>{t("readOnly")}: </strong>
+            {t("readOnlyHelp")}
+          </p>
+          <p>
+            <strong>{t("readWrite")}: </strong>
+            {t("readWriteHelp")}
+          </p>
+          <p>{t("managementRestriction")}</p>
+        </div>
 
         {(error || picker.error) && <p role="alert">{error || picker.error}</p>}
         {outcome && (
@@ -303,7 +364,7 @@ export function ContextDBKeyEditorDialog({
               }
               onClick={() => void save()}
             >
-              {busy ? t("saving") : t("save")}
+              {busy ? t("saving") : t(editingKey ? "saveKeyChanges" : "createKeyAction")}
             </Button>
           )}
         </DialogFooter>

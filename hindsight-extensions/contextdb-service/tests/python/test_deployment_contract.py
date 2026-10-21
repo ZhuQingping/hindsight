@@ -346,13 +346,15 @@ async def test_rendered_ui_ca_reaches_native_probe_and_survives_sanitizer(
     assert captured["SSL_CERT_FILE"] == str(certificate)
 
 
-async def test_real_source_init_preserves_secrets_and_initializes_public(tmp_path: Path) -> None:
-    """Opt-in real PG test creates/drops only a fresh task-owned database and role."""
+async def test_real_source_init_preserves_secrets_without_public_business_tables(
+    tmp_path: Path, database_url: str
+) -> None:
+    """Create/drop a fresh database and role on a task-owned PG, including in CI."""
     import secrets
 
-    admin_url = os.environ.get("CONTEXTDB_DEPLOYMENT_TEST_ADMIN_URL")
-    if not admin_url:
-        pytest.skip("Set CONTEXTDB_DEPLOYMENT_TEST_ADMIN_URL to provision an isolated test database")
+    # Standard CI invokes pytest directly; its existing private PG fixture is
+    # the safe default, so this deployment contract cannot silently disappear.
+    admin_url = os.environ.get("CONTEXTDB_DEPLOYMENT_TEST_ADMIN_URL") or database_url
     name = "ctxdb_night_deploy_" + secrets.token_hex(6)
     role_password = secrets.token_hex(32)
     admin = await asyncpg.connect(admin_url)
@@ -395,15 +397,17 @@ async def test_real_source_init_preserves_secrets_and_initializes_public(tmp_pat
             # multiline JSON emitted by operator tooling on a later restart.
             ui_secrets = directory / "ui-secrets.json"
             ui_secrets.write_text(UiSecrets.model_validate_json(ui_secrets.read_text()).model_dump_json(indent=2))
-            current = {item.name: item.read_bytes() for item in directory.glob("*secrets.json")}
+            secret_files = [directory / "admin-key.json", *directory.glob("*secrets.json")]
+            current = {item.name: item.read_bytes() for item in secret_files}
             if before is not None:
                 assert current == before
             before = current
             render(load_config(path), directory)
-            assert {item.name: item.read_bytes() for item in directory.glob("*secrets.json")} == current
+            assert {item.name: item.read_bytes() for item in secret_files} == current
         connection = await asyncpg.connect(admin_url, database=name)
         try:
-            assert await connection.fetchval("SELECT to_regclass('public.async_operations') IS NOT NULL")
+            assert await connection.fetchval("SELECT to_regnamespace('public') IS NOT NULL")
+            assert not await connection.fetchval("SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname='public')")
             assert await connection.fetchval("SELECT count(*) FROM ctxdb_meta.users WHERE role='admin'") == 1
             assert (
                 UiSecrets.model_validate_json((directory / "ui-secrets.json").read_text()).password

@@ -5,6 +5,7 @@ from hindsight_api.extensions.tenant import AuthenticationError, Tenant, TenantC
 from hindsight_api.models import RequestContext
 
 from .config import Settings, repository_for
+from .database_checks import metadata_errors
 from .models import Role, ServiceError
 from .repository import Repository
 
@@ -58,12 +59,13 @@ class ContextDBTenantExtension(TenantExtension):
         engine = self._engine()
         self._require_transport_authorization()
         self._current_mcp_credential(context)
-        repository = await repository_for(engine, self.settings)
-        bank_id = target_bank()
         try:
-            if not bank_id:
-                raise ServiceError(403, "bank_required", "A registered Bank target is required")
-            principal = await repository.authenticate(context.api_key, bank_id, record_use=True)
+            with metadata_errors():
+                repository = await repository_for(engine, self.settings)
+                bank_id = target_bank()
+                if not bank_id:
+                    raise ServiceError(403, "bank_required", "A registered Bank target is required")
+                principal = await repository.authenticate(context.api_key, bank_id, record_use=True)
         except ServiceError as error:
             raise AuthenticationError(error.message) from None
         context.api_key_id = principal.key_id
@@ -78,10 +80,11 @@ class ContextDBTenantExtension(TenantExtension):
         # message now, then the MCP extension selects and rechecks the actual
         # tool Bank. The metadata schema is an explicit no-data sentinel when
         # the Key has no visible spaces; it is never a default memory schema.
-        repository = await repository_for(self._engine(), self.settings)
         try:
-            principal = await repository.authenticate(context.api_key, record_use=True)
-            spaces = await repository.visible_workspaces(principal)
+            with metadata_errors():
+                repository = await repository_for(self._engine(), self.settings)
+                principal = await repository.authenticate(context.api_key, record_use=True)
+                spaces = await repository.visible_workspaces(principal)
         except ServiceError as error:
             raise AuthenticationError(error.message) from None
         context.api_key_id = principal.key_id
@@ -120,9 +123,10 @@ class ContextDBTenantExtension(TenantExtension):
         if context.internal:
             return allowed
         self._current_mcp_credential(context)
-        repository = await repository_for(self._engine(), self.settings)
         try:
-            principal = await repository.authenticate(context.api_key, bank_id)
+            with metadata_errors():
+                repository = await repository_for(self._engine(), self.settings)
+                principal = await repository.authenticate(context.api_key, bank_id)
         except ServiceError:
             return set()
         return allowed if principal.role == Role.ADMIN else set()

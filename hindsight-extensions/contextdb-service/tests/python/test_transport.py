@@ -260,3 +260,61 @@ async def test_config_projection_does_not_filter_unrelated_native_responses(
         )
     assert response.status_code == 200
     assert response.json() == payload
+
+
+@pytest.mark.parametrize("permission", ["admin", "read", "read_write"])
+async def test_chunk_route_reuses_native_codec_authorization_and_context(repository, configured, permission):
+    from hindsight_api.engine.chunk_ids import build_chunk_id
+
+    workspace = await ready_workspace(repository, "mysql_ops")
+    credential = ADMIN_SECRET
+    if permission != "admin":
+        user = await repository.create_user(ADMIN, UserCreate(name="Chunk reader"), "user")
+        issued = await repository.create_key(
+            ADMIN,
+            user.user_id,
+            ApiKeyCreate(
+                name="chunk",
+                authorization={
+                    "mode": "selected",
+                    "workspaces": [
+                        {"bank_id": workspace.bank_id, "permission": permission},
+                    ],
+                },
+            ),
+            "key",
+        )
+        credential = issued.secret
+    chunk_id = build_chunk_id(workspace.bank_id, "doc_part_~_1", 0)
+    app = FastAPI()
+
+    @app.get("/v1/default/chunks/{requested:path}")
+    async def read(requested: str):
+        assert target_bank() == workspace.bank_id
+        principal = await repository.authenticate(credential, target_bank())
+        assert principal.schema_name == workspace.schema_name
+        return {"chunk_id": requested, "bank_id": target_bank()}
+
+    wrapped = WorkspaceAuthorizationMiddleware(app, cast(MemoryEngine, PoolHost(repository.pool)), configured)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=wrapped), base_url="http://test") as client:
+        response = await client.get("/v1/default/chunks/" + chunk_id, headers={"Authorization": credential})
+    assert response.status_code == 200
+    assert response.json() == {"chunk_id": chunk_id, "bank_id": workspace.bank_id}
+    assert target_bank() is None
+
+
+@pytest.mark.parametrize(
+    "chunk_id", ["bad", "mysql_ops_doc_0", "bank_doc_x", "bank_doc_-1", "bank_doc_00", "bank__0", "bank_doc~5fx_0"]
+)
+async def test_ambiguous_or_malformed_chunk_ids_are_not_forwarded(repository, configured, chunk_id):
+    app = FastAPI()
+
+    @app.get("/v1/default/chunks/{requested:path}")
+    async def read(requested: str):
+        pytest.fail("An invalid chunk must not enter a native schema")
+
+    wrapped = WorkspaceAuthorizationMiddleware(app, cast(MemoryEngine, PoolHost(repository.pool)), configured)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=wrapped), base_url="http://test") as client:
+        response = await client.get("/v1/default/chunks/" + chunk_id, headers={"Authorization": ADMIN_SECRET})
+    assert response.status_code == 404
+    assert target_bank() is None

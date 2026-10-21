@@ -41,7 +41,7 @@ services:
       - "${CONTEXTDB_API_PORT:-8888}:${CONTEXTDB_API_PORT:-8888}"
       - "${CONTEXTDB_UI_PORT:-9999}:${CONTEXTDB_UI_PORT:-9999}"
     healthcheck:
-      test: [CMD-SHELL, '. /var/lib/contextdb/api.env; /app/.venv/bin/python -m hindsight_api.http_probe "http://127.0.0.1:$${CONTEXTBASE_API_PORT-$${HINDSIGHT_API_PORT:-8888}}/health/ready" 3 && (set -a; . /var/lib/contextdb/ui.env; set +a; /app/.venv/bin/python -m hindsight_ext_contextdb.ui_probe)']
+      test: [CMD-SHELL, '. /var/lib/contextdb/api.env; /app/.venv/bin/python -m hindsight_api.http_probe "http://127.0.0.1:$${CONTEXTBASE_API_PORT-$${HINDSIGHT_API_PORT:-8888}}/health/ready" 3 && (. /var/lib/contextdb/ui.env; CONTEXTBASE_CP_PUBLIC_ORIGIN="$${CONTEXTBASE_CP_PUBLIC_ORIGIN-$${HINDSIGHT_CP_PUBLIC_ORIGIN-}}" CONTEXTBASE_CP_PORT="$${CONTEXTBASE_CP_PORT-$${HINDSIGHT_CP_PORT:-9999}}" /app/.venv/bin/python -m hindsight_ext_contextdb.ui_probe)']
       interval: 15s
       timeout: 8s
       retries: 12

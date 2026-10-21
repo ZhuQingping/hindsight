@@ -3,6 +3,7 @@ import {
   ContextDBError,
   contextDBRequest,
   createContextDBKey,
+  createContextDBUser,
   workspaceMutation,
 } from "@/lib/contextdb-api";
 const userId = "b".repeat(32);
@@ -187,5 +188,68 @@ describe("management response boundaries", () => {
       await contextDBRequest(`/users/${userId}/keys/${issued.key_id}`, { method: "DELETE" })
     ).toBeUndefined();
     expect(deleteMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("member creation response identity", () => {
+  const member = {
+    user_id: "d".repeat(32),
+    name: "Alice",
+    status: "active",
+    version: 1,
+    created_at: "2026-10-21T00:00:00Z",
+  };
+  it.each([
+    null,
+    {},
+    [],
+    { ...member, user_id: "invalid" },
+    { ...member, name: "Someone else" },
+    { ...member, status: "disabled" },
+    { ...member, version: 0 },
+    { ...member, created_at: "not-a-date" },
+  ])("keeps damaged success as unknown without replay: %j", async (body) => {
+    const fetchMock = respond(JSON.stringify(body), 201);
+    await expect(createContextDBUser({ name: "Alice" })).rejects.toMatchObject({
+      code: "response_unknown",
+      status: 0,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  it.each([200, 202, 204])("does not accept a different creation status %s", async (status) => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(status === 204 ? null : JSON.stringify(member), { status }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(createContextDBUser({ name: "Alice" })).rejects.toMatchObject({
+      code: "response_unknown",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  it.each([
+    ["\u0085Alice\u0085", "Alice"],
+    ["\u001cAlice\u001f", "Alice"],
+    ["\ufeffAlice\ufeff", "\ufeffAlice\ufeff"],
+  ])("matches backend name normalization for %j", async (name, expected) => {
+    const created = { ...member, name: expected };
+    const fetchMock = respond(JSON.stringify(created), 201);
+    expect(await createContextDBUser({ name })).toEqual(created);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  it("accepts the submitted normalized name and preserves a request snapshot", async () => {
+    let finish!: (value: Response) => void;
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const body = { name: " Ａlice " };
+    const pending = createContextDBUser(body);
+    body.name = "Different";
+    finish(new Response(JSON.stringify(member), { status: 201 }));
+    expect(await pending).toEqual(member);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

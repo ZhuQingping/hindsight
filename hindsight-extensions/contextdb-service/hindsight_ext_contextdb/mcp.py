@@ -15,6 +15,7 @@ from hindsight_api.extensions.mcp import MCPExtension
 
 from .authorization import authenticated_request
 from .config import Settings, repository_for
+from .database_checks import metadata_errors
 from .diagnostics import business_operation_json
 from .models import ServiceError
 from .routing import bank_list, bank_target, multi_bank_discovery
@@ -42,10 +43,11 @@ class ContextDBMCPRouting(Middleware):
 
         request = get_http_request()
         credential = bearer_credential(request.scope["headers"])
-        repository = await repository_for(self.memory, self.settings)
         try:
-            principal = await repository.authenticate(credential)
-            spaces = await repository.visible_workspaces(principal)
+            with metadata_errors():
+                repository = await repository_for(self.memory, self.settings)
+                principal = await repository.authenticate(credential)
+                spaces = await repository.visible_workspaces(principal)
             if not spaces:
                 return []
             # Native FastMCP 3 wraps list_tools outside its middleware, then
@@ -69,9 +71,10 @@ class ContextDBMCPRouting(Middleware):
     ) -> ToolResult:
         request = get_http_request()
         request.scope["contextdb.mcp_discovery"] = False
-        repository = await repository_for(self.memory, self.settings)
-        credential = bearer_credential(request.scope["headers"])
         try:
+            with metadata_errors():
+                repository = await repository_for(self.memory, self.settings)
+            credential = bearer_credential(request.scope["headers"])
             # Obtain the CURRENT message's credential, never the initialize
             # task's ContextVars. TenantExtension rechecks the HTTP credential.
             if context.message.name == "list_banks":
@@ -111,7 +114,8 @@ class ContextDBMCPRouting(Middleware):
             tenant = self.memory.tenant_extension
             if not isinstance(tenant, ContextDBTenantExtension):
                 raise RuntimeError("ContextDB MCP requires its tenant extension")
-            principal = await repository.authenticate(credential, bank_id, record_use=True)
+            with metadata_errors():
+                principal = await repository.authenticate(credential, bank_id, record_use=True)
             assert credential is not None
             from hindsight_api.api.mcp import _current_bank_id
 

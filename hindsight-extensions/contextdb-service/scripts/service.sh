@@ -56,12 +56,8 @@ case "$command" in
     fi
     "$PY" -m hindsight_ext_contextdb prepare --directory "$DEPLOY"
     "$PY" -m hindsight_ext_contextdb migrate --directory "$DEPLOY" --admin-key-file "$DEPLOY/admin-key.json"
-    # Bootstrap the native shared task tables offline. API startup migration is
-    # disabled; workspace schemas are initialized by management requests.
-    # This explicit public migration has no tenant/bank context; do not ask the
-    # generic CLI to enumerate ContextDB tenants (it has no bound engine).
-    CONTEXTBASE_API_TENANT_EXTENSION='' HINDSIGHT_API_TENANT_EXTENSION='' exec "$PY" -m hindsight_api.admin.cli run-db-migration \
-      --schema public --embedding-dimension 1024
+    # Native tables are created only inside each workspace schema. An empty
+    # instance needs metadata and credentials, not a default public Bank.
     ;;
   api|worker)
     if [ "${CONTEXTDB_COMBINED:-0}" = 1 ] && [ "${CONTEXTBASE_API_WORKER_ENABLED-${HINDSIGHT_API_WORKER_ENABLED:-false}}" != true ]; then

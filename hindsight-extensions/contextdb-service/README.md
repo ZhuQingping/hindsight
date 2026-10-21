@@ -56,3 +56,13 @@ CP的TypeScript配置、ESLint根目录调用、Prettier、knip和CI触发范围
 `GET /v1/default/banks/{bank_id}/config`保留正常读取能力。自研ASGI传输层在原生认证/操作校验完成后，把`overrides`投影到已过滤`config`的可见字段集合，使用宿主公开响应模型校验JSON；GET、PATCH和DELETE配置响应使用同一路径。当前业务Key得到200和两个空对象，Admin保留允许配置的读写/重置；普通MCP `get_bank`读取基本信息不变。只处理配置响应，原生引擎、方法和存储均不修改，不重放权限钩子或新增授权查询。
 
 实现位于插件`transport.py::_bank_config_json`和既有纯ASGI中间件；复用任务诊断的定点JSON缓冲机制，不引入BaseHTTPMiddleware、不缓冲Retain/MCP/SSE。回归位于插件`tests/python/test_transport.py`及`tests/system/test_114_contextdb_diagnostic_credentials.py::test_business_bank_config_hides_overrides_without_rejecting_reads`，覆盖空/部分字段、分块/压缩/错误响应、单次认证查询及双Worker真实SDK/MCP。
+
+## 本轮初始化及管理体验修复（2026-10-21，未提交）
+
+`service.sh init`只持久化秘密文件、初始化/核验ctxdb_meta六表和管理员，不再迁移public业务表。创建空间时才初始化ctxdb_ws_<bank_id>。public继续保存vector等扩展对象，不删除public schema，也不自动清理旧开发库；更新脚本不得重新执行ContextDB的public全量业务迁移。纯原生过渡部署说明不受此规则替代。
+
+管理元数据的表、字段、索引、约束与函数Description统一英文；audit_events.key_id是目标Key，control_key_id是操作者Admin Key。只更新COMMENT，元数据版本、DDL结构、权限和业务数据不变。
+
+chunk详情由扩展transport使用原生codec解析Bank并进入现有授权上下文；原生接口与SDK不变。管理UI补齐GET错误状态、空间q搜索及UUID草稿保持、当前语言日期与管理导航；Secret保留到用户明确关闭，离页/卸载/切换用户仍清理，不持久化或自动重签，复制反馈防迟到。
+
+团队ProductRuntime、productFetch、proxy、Host/Origin及磁盘会话不变。公共配置使用CONTEXTBASE优先、HINDSIGHT兼容的既有合同，显式空值也具有优先级。目标旧HEAD遗漏的49d727664配置读取/健康探测修复在本轮补齐；SEC-01已有投影不重复实现。逐项适配、实际测试和未验收范围统一见[完整设计](../../docs/contextdb-management/DESIGN.md)、[检视记录](../../docs/contextdb-management/CODE-REVIEW.md)与[验证记录](../../docs/contextdb-management/VALIDATION.md)。

@@ -181,3 +181,47 @@ async def test_business_bank_config_hides_overrides_without_rejecting_reads(
         assert await clients.read_only.aget_bank_config(bank) == {"bank_id": bank, "config": {}, "overrides": {}}
     finally:
         await administrator.aclose()
+
+
+async def test_business_keys_cannot_read_hidden_settings_through_prompt_preview(
+    contextdb_deployment: ContextDBDeployment, contextdb_clients: MemberClients
+) -> None:
+    from hindsight_client_api.models.prompt_preview_request import PromptPreviewRequest
+
+    deployment, clients = contextdb_deployment, contextdb_clients
+    admin = Hindsight(
+        base_url=deployment.server.url, api_key=deployment.headers["Authorization"].removeprefix("Bearer ")
+    )
+    try:
+        await admin.aupdate_bank_config(clients.bank_id, retain_chunk_size=1877)
+        preview = await admin.banks.preview_prompt(clients.bank_id, PromptPreviewRequest(operation="retain"))
+        assert preview.run_settings is not None
+        assert {item.var_field: item.value for item in preview.run_settings}["retain_chunk_size"] == "1877"
+        async with httpx.AsyncClient(
+            base_url=deployment.server.url + "/ext/contextdb/v1", headers=deployment.headers, timeout=100
+        ) as management:
+            created = await management.post("/users", json={"name": "Preview reader " + secrets.token_hex(5)})
+            assert created.status_code == 201
+            keys = []
+            for permission in ("read", "read_write"):
+                issued = await management.post(
+                    f"/users/{created.json()['user_id']}/keys",
+                    json={"name": permission, "authorization": {"mode": "all", "permission": permission}},
+                )
+                assert issued.status_code == 201
+                keys.append(issued.json()["secret"])
+        for credential in (clients.own_key, clients.read_only_key, *keys):
+            reader = Hindsight(base_url=deployment.server.url, api_key=credential)
+            try:
+                assert await reader.aget_bank_config(clients.bank_id) == {
+                    "bank_id": clients.bank_id,
+                    "config": {},
+                    "overrides": {},
+                }
+                with pytest.raises(ForbiddenException):
+                    await reader.banks.preview_prompt(clients.bank_id, PromptPreviewRequest(operation="retain"))
+                assert await reader.arecall(clients.bank_id, "Preview did not change memory") is not None
+            finally:
+                await reader.aclose()
+    finally:
+        await admin.aclose()
