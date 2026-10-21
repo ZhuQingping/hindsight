@@ -4,10 +4,15 @@
     "src/app/**/{page,layout,route,loading,error,not-found,template,default,global-error,sitemap,robots,manifest,opengraph-image,icon}.{ts,tsx}",
     "next.config.{js,mjs,ts}",
     "tailwind.config.{js,ts}",
-    "postcss.config.{js,mjs}"
+    "postcss.config.{js,mjs}",
+    "../hindsight-extensions/contextdb-service/tests/ui/**/*.test.{ts,tsx}"
   ],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "../hindsight-extensions/contextdb-service/tests/ui/**/*.{ts,tsx}"
+  ],
   "ignoreDependencies": [
+    "server-only",
     "eslint",
     "eslint-config-next",
     "@eslint/eslintrc",

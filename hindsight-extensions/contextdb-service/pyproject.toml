@@ -1,0 +1,31 @@
+[project]
+name = "hindsight-ext-contextdb-service"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["hindsight-api-slim", "python-dotenv>=1.2.1"]
+
+[dependency-groups]
+dev = ["pytest>=7", "pytest-asyncio>=0.21", "httpx>=0.27", "pg0-embedded>=0.15.2"]
+
+[tool.uv]
+package = false
+constraint-dependencies = [
+    "aiohttp==3.14.3", "asyncpg==0.30.0", "cohere==5.20.1", "fastapi==0.136.3",
+    "fastmcp==3.2.0", "litellm==1.104.0", "mcp==1.28.1", "openai==2.24.0", "pydantic==2.12.5",
+]
+
+[tool.uv.sources]
+hindsight-api-slim = { path = "../../hindsight-api-slim", editable = true }
+
+[tool.ruff]
+extend = "../../ruff.toml"
+
+[tool.ruff.lint.isort]
+# Keep import grouping identical from the repository root and the extension CI.
+known-first-party = ["hindsight_ext_contextdb"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

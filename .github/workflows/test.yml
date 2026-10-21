@@ -51,6 +51,7 @@ jobs:
       integrations-copilot-cli: ${{ steps.filter.outputs.integrations-copilot-cli }}
       extensions-supabase-tenant: ${{ steps.filter.outputs.extensions-supabase-tenant }}
       extensions-static-keys-tenant: ${{ steps.filter.outputs.extensions-static-keys-tenant }}
+      extensions-contextdb-service: ${{ steps.filter.outputs.extensions-contextdb-service }}
       integrations-crewai: ${{ steps.filter.outputs.integrations-crewai }}
       integrations-litellm: ${{ steps.filter.outputs.integrations-litellm }}
       integrations-pydantic-ai: ${{ steps.filter.outputs.integrations-pydantic-ai }}
@@ -132,6 +133,7 @@ jobs:
             - 'hindsight-clients/go/**'
           control-plane:
             - 'hindsight-control-plane/**'
+            - 'hindsight-extensions/contextdb-service/tests/ui/**'
             - 'package.json'
             - 'package-lock.json'
           cli:
@@ -217,6 +219,8 @@ jobs:
             - 'hindsight-extensions/supabase-tenant/**'
           extensions-static-keys-tenant:
             - 'hindsight-extensions/static-keys-tenant/**'
+          extensions-contextdb-service:
+            - 'hindsight-extensions/contextdb-service/**'
           integrations-crewai:
             - 'hindsight-integrations/crewai/**'
           integrations-litellm:
@@ -3583,6 +3587,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.system-tests == 'true' ||
+      needs.detect-changes.outputs.extensions-contextdb-service == 'true' ||
       needs.detect-changes.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -3613,11 +3618,78 @@ jobs:
 
     - name: Install system-test dependencies
       working-directory: ./hindsight-system-tests
-      run: uv sync --frozen
+      run: uv sync --frozen --group contextdb
 
     - name: Run system tests
       working-directory: ./hindsight-system-tests
-      run: uv run pytest tests -v
+      run: uv run --frozen --group contextdb pytest tests -v
+
+    - name: Run extension-owned ContextDB stories with the shared system runner
+      working-directory: ./hindsight-system-tests
+      run: >-
+        uv run --frozen --group contextdb pytest
+        -c ../hindsight-extensions/contextdb-service/pytest-system.ini
+        ../hindsight-extensions/contextdb-service/tests/system -v
+
+  test-contextdb-system-ui:
+    needs: [detect-changes]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.extensions-contextdb-service == 'true' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.system-tests == 'true' ||
+      needs.detect-changes.outputs.control-plane == 'true' ||
+      needs.detect-changes.outputs.clients-ts == 'true' ||
+      needs.detect-changes.outputs.clients-python == 'true' ||
+      needs.detect-changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHON_DOTENV_DISABLED: '1'
+      PYTHONPATH: ${{ github.workspace }}/hindsight-extensions/contextdb-service
+      CONTEXTDB_UI_SERVER: ${{ github.workspace }}/hindsight-control-plane/standalone/server.js
+      CONTEXTDB_TEST_NODE_BIN: node
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
+      with:
+        python-version-file: .python-version
+    - uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - name: Install locked Node dependencies
+      run: npm ci --workspace=hindsight-control-plane --workspace=hindsight-clients/typescript
+    - name: Install system-test dependencies
+      working-directory: hindsight-system-tests
+      run: uv sync --frozen --group contextdb
+    - name: Check the UI Key response contract against Python models
+      working-directory: hindsight-system-tests
+      run: >-
+        uv run --frozen --group contextdb pytest
+        -c ../hindsight-extensions/contextdb-service/pyproject.toml
+        ../hindsight-extensions/contextdb-service/tests/contracts -v
+    - name: Build and stamp the production UI from this checkout
+      working-directory: hindsight-system-tests
+      run: uv run --frozen --group contextdb python -m hindsight_ext_contextdb build-ui --source-root "$GITHUB_WORKSPACE"
+    - name: Run both production UI Worker stories
+      working-directory: hindsight-system-tests
+      run: >-
+        uv run --frozen --group contextdb pytest
+        -c ../hindsight-extensions/contextdb-service/pytest-system.ini
+        ../hindsight-extensions/contextdb-service/tests/system/test_112_contextdb_ui_management.py
+        -v --junitxml="$RUNNER_TEMP/contextdb-production-ui.xml"
+    - name: Require both Worker stories without skips
+      if: always()
+      working-directory: hindsight-system-tests
+      run: >-
+        uv run --frozen --group contextdb python
+        ../hindsight-extensions/contextdb-service/scripts/check_production_ui.py
+        "$RUNNER_TEMP/contextdb-production-ui.xml"
 
   test-ag2-integration:
     needs: [detect-changes]
@@ -4033,6 +4105,39 @@ jobs:
     - name: Run tests
       working-directory: ./hindsight-integrations/copilot-cli
       run: uv run pytest tests -v
+
+  test-extension-contextdb-service:
+    needs: [detect-changes]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.extensions-contextdb-service == 'true' ||
+      needs.detect-changes.outputs.core == 'true' ||
+      needs.detect-changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+    - name: Install extension test environment
+      working-directory: ./hindsight-extensions/contextdb-service
+      # Extension lockfiles are not committed. Resolve and create one on first
+      # install; subsequent steps use that generated lock with --frozen.
+      run: uv sync
+    - name: Run ContextDB metadata, HTTP and policy tests
+      working-directory: ./hindsight-extensions/contextdb-service
+      run: uv run --frozen pytest tests/python -v
+    - name: Check ContextDB Python quality
+      working-directory: ./hindsight-extensions/contextdb-service
+      # Keep ty aligned with the host's pinned checker, not a floating release.
+      run: |
+        uv run --frozen --with ruff ruff check --config pyproject.toml .
+        uv run --frozen --with ruff ruff format --check --config pyproject.toml .
+        uv run --frozen --with ty==0.0.84 ty check hindsight_ext_contextdb
 
   test-extension-supabase-tenant:
     needs: [detect-changes]
@@ -5813,6 +5918,7 @@ jobs:
       - test-agent-framework-integration
       - test-extension-supabase-tenant
       - test-extension-static-keys-tenant
+      - test-extension-contextdb-service
       - test-crewai-integration
       - test-langgraph-integration
       - test-superagent-integration
@@ -5839,6 +5945,7 @@ jobs:
       - check-cli-coverage
       - check-client-coverage
       - test-system
+      - test-contextdb-system-ui
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -5852,7 +5959,10 @@ jobs:
           script: |
             const needs = ${{ toJSON(needs) }};
             const entries = Object.entries(needs);
-            const failed = entries.filter(([, v]) => v.result === 'failure');
+            const failed = entries.filter(([name, v]) =>
+              v.result === 'failure' ||
+              (name === 'test-contextdb-system-ui' && v.result === 'cancelled')
+            );
             const skipped = entries.filter(([, v]) => v.result === 'skipped');
             const succeeded = entries.filter(([, v]) => v.result === 'success');
             const overall = failed.length > 0 ? 'failure' : 'success';
