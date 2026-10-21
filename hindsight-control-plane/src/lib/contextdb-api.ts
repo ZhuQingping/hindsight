@@ -201,6 +201,35 @@ export function workspaceMutation<Method extends "POST" | "DELETE">(
   );
 }
 
+/** Verify the created identity before closing the member form or reporting success. */
+export function createContextDBUser(
+  body: { name: string },
+  signal?: AbortSignal
+): Promise<ContextDBUser> {
+  // Match Python str.strip: it includes NEL and information separators,
+  // while ECMAScript trim also removes a BOM that the backend preserves.
+  const name = body.name
+    .normalize("NFKC")
+    // eslint-disable-next-line no-control-regex -- Python strips these information separators.
+    .replace(/^[\p{White_Space}\u001c-\u001f]+|[\p{White_Space}\u001c-\u001f]+$/gu, "");
+  return requestJSON(
+    "/users",
+    { method: "POST", body, signal },
+    (data, status) =>
+      status === 201 &&
+      isObject(data) &&
+      typeof data.user_id === "string" &&
+      /^[0-9a-f]{32}$/.test(data.user_id) &&
+      data.name === name &&
+      data.status === "active" &&
+      typeof data.version === "number" &&
+      Number.isSafeInteger(data.version) &&
+      data.version > 0 &&
+      typeof data.created_at === "string" &&
+      !Number.isNaN(Date.parse(data.created_at))
+  );
+}
+
 export function createContextDBKey(
   userId: string,
   body: { name: string; authorization: KeyAuthorizationInput },

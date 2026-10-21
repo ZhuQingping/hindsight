@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { withContextdbMessages } from "@/i18n/contextdb-messages";
+import { openMenuAction } from "./support/menu";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -63,7 +64,7 @@ describe("synchronous workspace management", () => {
     );
     mount();
     await screen.findByText("MySQL");
-    fireEvent.change(screen.getByRole("textbox", { name: "Workspaces" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Search workspaces" }), {
       target: { value: "old_search" },
     });
     fireEvent.click(screen.getByText("Create workspace"));
@@ -83,7 +84,7 @@ describe("synchronous workspace management", () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
     expect(mutation).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("textbox", { name: "Workspaces", hidden: true })).toHaveProperty(
+    expect(screen.getByRole("textbox", { name: "Search workspaces", hidden: true })).toHaveProperty(
       "value",
       "old_search"
     );
@@ -227,7 +228,7 @@ describe("synchronous workspace management", () => {
   it("deletes once after confirmation with the displayed resource identity", async () => {
     mount();
     await screen.findByText("MySQL");
-    fireEvent.click(screen.getByText("Delete"));
+    await openMenuAction(screen.getByRole("button", { name: "More" }), "Delete");
     expect(mutation).not.toHaveBeenCalled();
     expect(screen.getByText(/wait for existing requests and background work/)).toBeTruthy();
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete" }));
@@ -292,10 +293,7 @@ describe("synchronous workspace management", () => {
       "disabled",
       true
     );
-    expect(within(failed).getByRole("button", { name: "Delete" })).toHaveProperty(
-      "disabled",
-      false
-    );
+    expect(within(failed).getByRole("button", { name: "More" })).toHaveProperty("disabled", false);
   });
   it("opens native workspace content using readable bank_id", async () => {
     mount();
@@ -320,4 +318,83 @@ describe("synchronous workspace management", () => {
       expect(mutation).not.toHaveBeenCalled();
     }
   );
+});
+
+describe("workspace directory GET outcomes", () => {
+  it("hides old workspaces after a failed refresh and retries only GET", async () => {
+    mount();
+    await screen.findByRole("rowheader", { name: "MySQL" });
+    api.mockRejectedValueOnce(new Error("Workspace refresh unavailable"));
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    await screen.findByText("Workspace refresh unavailable");
+    expect(screen.getByText(/Previously loaded data is not current/)).toBeTruthy();
+    expect(screen.queryByRole("rowheader", { name: "MySQL" })).toBeNull();
+    expect(screen.queryByText("No workspaces yet. Create a workspace to get started.")).toBeNull();
+    expect(screen.queryByText("1–1 / 1")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    await screen.findByRole("rowheader", { name: "MySQL" });
+    expect(api.mock.calls.every(([, options]) => !options?.method)).toBe(true);
+    expect(mutation).not.toHaveBeenCalled();
+  });
+
+  it("does not suggest creating a workspace when the first read fails", async () => {
+    api.mockRejectedValueOnce(new Error("Workspace directory unavailable"));
+    mount();
+    await screen.findByText("Workspace directory unavailable");
+    expect(screen.queryByText("No workspaces yet. Create a workspace to get started.")).toBeNull();
+    expect(screen.queryByText("0–0 / 0")).toBeNull();
+    fireEvent.click(screen.getByText("Refresh"));
+    await screen.findByRole("rowheader", { name: "MySQL" });
+    expect(mutation).not.toHaveBeenCalled();
+  });
+  it("shows no matches after a successful empty search and hides single-page arrows", async () => {
+    mount();
+    await screen.findByRole("rowheader", { name: "MySQL" });
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+    api.mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 });
+    fireEvent.change(screen.getByLabelText("Search workspaces"), { target: { value: "missing" } });
+    await screen.findByText("No matches. Clear the search to see all results.");
+    expect(screen.queryByText("No workspaces yet. Create a workspace to get started.")).toBeNull();
+  });
+});
+
+describe("management dialog focus and workspace identity", () => {
+  it.each(["Cancel", "Close", "Escape"])("returns create focus after %s", async (close) => {
+    mount();
+    await screen.findByRole("rowheader", { name: "MySQL" });
+    const trigger = screen.getByRole("button", { name: "Create workspace" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    if (close === "Escape") fireEvent.keyDown(dialog, { key: "Escape" });
+    else fireEvent.click(within(dialog).getByRole("button", { name: close }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(mutation).not.toHaveBeenCalled();
+  });
+  it("returns cancelled delete to the row action and preserves name casing", async () => {
+    mount();
+    const name = await screen.findByRole("rowheader", { name: "MySQL" });
+    expect(name.textContent).toBe("MySQL");
+    expect(name.classList.contains("normal-case")).toBe(true);
+    expect(name.getAttribute("scope")).toBe("row");
+    const trigger = screen.getByRole("button", { name: "More" });
+    await openMenuAction(trigger, "Delete");
+    fireEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Cancel" })
+    );
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(mutation).not.toHaveBeenCalled();
+  });
+});
+
+it("uses a secondary menu for workspace deletion and performs no write on cancel", async () => {
+  mount();
+  await screen.findByText("MySQL");
+  expect(screen.queryByRole("button", { name: "Delete" })).toBeNull();
+  const more = screen.getByRole("button", { name: "More" });
+  await openMenuAction(more, "Delete");
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+  await waitFor(() => expect(document.activeElement).toBe(more));
+  expect(mutation).not.toHaveBeenCalled();
 });

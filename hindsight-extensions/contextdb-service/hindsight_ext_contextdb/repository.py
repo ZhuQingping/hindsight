@@ -293,13 +293,6 @@ class Repository:
             principal = self._selected_principal(principal, row)
         return principal
 
-    async def select_workspace(self, principal: BusinessPrincipal, bank_id: str) -> BusinessPrincipal:
-        await self._require_binding()
-        row = await self.pool.fetchrow(
-            "SELECT workspace_id,schema_name,state FROM ctxdb_meta.workspaces WHERE bank_id=$1", bank_id
-        )
-        return self._selected_principal(principal, row)
-
     @staticmethod
     def _selected_principal(principal: BusinessPrincipal, row: asyncpg.Record | None) -> BusinessPrincipal:
         if row is None or row["workspace_id"] is None or row["state"] != "active":
@@ -336,9 +329,6 @@ class Repository:
             raise ServiceError(403, "admin_required", "The operations administrator Key is required")
         return principal
 
-    async def _admin(self, conn: asyncpg.Connection, principal: BusinessPrincipal) -> None:
-        self._tenant(principal)
-
     async def _user(self, conn: asyncpg.Connection, user_id: str, *, include_deleted: bool = False) -> User:
         row = await conn.fetchrow(
             "SELECT * FROM ctxdb_meta.users WHERE user_id=$1 AND role='member' AND (status<>'deleted' OR $2)",
@@ -357,7 +347,7 @@ class Repository:
     async def create_user(self, principal: BusinessPrincipal, body: UserCreate, request_id: str) -> User:
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             name = normalized_name(body.name)
             self._member_name(name)
             try:
@@ -376,7 +366,7 @@ class Repository:
     async def list_users(self, principal: BusinessPrincipal, limit: int, offset: int, q: str = "") -> Page[User]:
         async with self.pool.acquire() as conn, conn.transaction(isolation="repeatable_read", readonly=True):
             await self._require_binding(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             clause = "FROM ctxdb_meta.users WHERE role='member' AND status<>'deleted' AND ($1='' OR strpos(lower(name),lower($1))>0)"
             total = await conn.fetchval("SELECT count(*) " + clause, q)
             rows = await conn.fetch(
@@ -398,7 +388,7 @@ class Repository:
     ) -> User:
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             user = await self._user(conn, user_id, include_deleted=delete)
             if delete and user.status == "deleted":
                 return user
@@ -452,7 +442,7 @@ class Repository:
     ) -> IssuedApiKey:
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             user = await self._user(conn, user_id)
             if user.status != "active":
                 raise ServiceError(409, "inactive_user", "Inactive users cannot receive Keys")
@@ -479,7 +469,7 @@ class Repository:
     ) -> Page[KeyMetadata]:
         async with self.pool.acquire() as conn, conn.transaction(isolation="repeatable_read", readonly=True):
             await self._require_binding(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             await self._user(conn, user_id)
             clause = "WHERE k.user_id=$1 AND k.revoked_at IS NULL AND ($2='' OR strpos(lower(k.name),lower($2))>0)"
             total = await conn.fetchval("SELECT count(*) FROM ctxdb_meta.api_keys k " + clause, user_id, q)
@@ -499,7 +489,7 @@ class Repository:
     ) -> KeyMetadata:
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             await self._user(conn, user_id)
             row = await conn.fetchrow(
                 self._KEY_SELECT + "WHERE k.user_id=$1 AND k.key_id=$2 FOR UPDATE OF k", user_id, key_id
@@ -528,7 +518,7 @@ class Repository:
     async def revoke_key(self, principal: BusinessPrincipal, user_id: str, key_id: str, request_id: str) -> None:
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
-            await self._admin(conn, principal)
+            self._tenant(principal)
             await self._user(conn, user_id)
             row = await conn.fetchrow(
                 "SELECT revoked_at FROM ctxdb_meta.api_keys WHERE user_id=$1 AND key_id=$2 FOR UPDATE", user_id, key_id

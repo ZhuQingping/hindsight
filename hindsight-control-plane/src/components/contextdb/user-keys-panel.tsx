@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronRight } from "lucide-react";
+import { DirectoryPagination } from "./directory-pagination";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +30,8 @@ import {
   type Page,
 } from "@/lib/contextdb-api";
 
+import { restoreDialogFocus } from "./dialog-focus";
+
 const LIMIT = 20;
 const emptyPage = (): Page<ContextDBKeyMetadata> => ({
   items: [],
@@ -29,17 +39,26 @@ const emptyPage = (): Page<ContextDBKeyMetadata> => ({
   limit: LIMIT,
   offset: 0,
 });
-const date = (value: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
 /** Mounted with key=user_id: requests, credentials and dialogs belong to one member. */
 export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
   const t = useTranslations("contextDB");
+  const locale = useLocale();
+  const date = (value: string | null) => (value ? new Date(value).toLocaleString(locale) : "—");
+  const createButton = useRef<HTMLButtonElement>(null);
+  const editorTrigger = useRef<HTMLButtonElement | null>(null);
+  const revokeTrigger = useRef<HTMLButtonElement | null>(null);
   const [keys, setKeys] = useState(emptyPage);
   const [keyOffset, setKeyOffset] = useState(0);
   const [keyRefresh, setKeyRefresh] = useState(0);
   const [keysLoading, setKeysLoading] = useState(true);
   const [keysLoaded, setKeysLoaded] = useState(false);
   const [error, setError] = useState("");
+  const [readError, setReadError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
+  const shownSecret = useRef("");
+  const copyAttempt = useRef(0);
   const [busy, setBusy] = useState(false);
   const [editor, setEditor] = useState<{ key: ContextDBKeyEditable | null } | null>(null);
   const [revokingKey, setRevokingKey] = useState<ContextDBKeyMetadata | null>(null);
@@ -53,7 +72,7 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
   useEffect(() => {
     const controller = new AbortController();
     setKeysLoading(true);
-    setError("");
+    setReadError("");
     contextDBRequest<Page<ContextDBKeyMetadata>>(
       `/users/${user.user_id}/keys?limit=${LIMIT}&offset=${keyOffset}`,
       { signal: controller.signal }
@@ -68,7 +87,8 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
         setKeysLoaded(true);
       })
       .catch((err) => {
-        if (!controller.signal.aborted) setError(err instanceof Error ? err.message : t("failed"));
+        if (!controller.signal.aborted)
+          setReadError(err instanceof Error ? err.message : t("failed"));
       })
       .finally(() => {
         if (!controller.signal.aborted) setKeysLoading(false);
@@ -76,39 +96,55 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
     return () => controller.abort();
   }, [user.user_id, keyOffset, keyRefresh, t]);
   const allowSecret = useRef(true);
+  const clearSecret = () => {
+    shownSecret.current = "";
+    copyAttempt.current += 1;
+    setSecret("");
+    setCopied(false);
+    setCopyError("");
+  };
   useEffect(() => {
-    const clear = () => {
+    const leave = () => {
       allowSecret.current = false;
-      setSecret("");
+      clearSecret();
     };
-    const hidden = () => {
-      if (document.hidden) clear();
-    };
-    // Also invalidate a pending issuance. A late response after pagehide must
-    // not reintroduce a credential that navigation was meant to clear.
-    document.addEventListener("visibilitychange", hidden);
-    window.addEventListener("pagehide", clear);
+    window.addEventListener("pagehide", leave);
     return () => {
-      document.removeEventListener("visibilitychange", hidden);
-      window.removeEventListener("pagehide", clear);
+      allowSecret.current = false;
+      shownSecret.current = "";
+      copyAttempt.current += 1;
+      window.removeEventListener("pagehide", leave);
     };
   }, []);
-  useEffect(() => {
-    if (!secret) return;
-    const timer = setTimeout(() => setSecret(""), 60000);
-    return () => clearTimeout(timer);
-  }, [secret]);
   const openEditor = (key: ContextDBKeyEditable | null) => {
-    if (!key) allowSecret.current = !document.hidden;
+    if (!key) allowSecret.current = true;
     setEditor({ key });
+  };
+  const copySecret = async () => {
+    const value = shownSecret.current;
+    const attempt = ++copyAttempt.current;
+    setCopyError("");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(value);
+      if (shownSecret.current === value && copyAttempt.current === attempt) setCopied(true);
+    } catch {
+      if (shownSecret.current === value && copyAttempt.current === attempt) {
+        setCopied(false);
+        setCopyError(t("copyFailed"));
+      }
+    }
   };
 
   const saved = (issued?: ContextDBKeyIssued) => {
     setEditor(null);
     refreshKeys();
     if (issued) {
-      if (allowSecret.current && !document.hidden) setSecret(issued.secret);
-      else {
+      if (allowSecret.current) {
+        clearSecret();
+        shownSecret.current = issued.secret;
+        setSecret(issued.secret);
+      } else {
         setIssueUnknown(true);
         setNotice(t("keySecretNotShown", { id: issued.key_id }));
       }
@@ -154,35 +190,13 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
   };
   const displayKey = (key: ContextDBKeyMetadata) =>
     key.display_key ?? t("historicalKey", { id: key.key_id });
-  const pager = (
-    page: Page<unknown>,
-    start: number,
-    change: (offset: number) => void,
-    pending: boolean
-  ) => (
-    <div className="mt-3 flex items-center gap-3">
-      <Button
-        variant="outline"
-        disabled={pending || start === 0}
-        onClick={() => change(Math.max(0, start - LIMIT))}
-      >
-        {t("previous")}
-      </Button>
-      <span>
-        {page.total ? start + 1 : 0}–{start + page.items.length} / {page.total}
-      </span>
-      <Button
-        variant="outline"
-        disabled={pending || start + LIMIT >= page.total}
-        onClick={() => change(start + LIMIT)}
-      >
-        {t("next")}
-      </Button>
-    </div>
-  );
   return (
-    <div className="space-y-3 rounded bg-muted/20 p-4">
+    <section
+      aria-label={t("userKeys", { name: user.name })}
+      className="min-w-0 space-y-3 rounded-lg bg-muted/20 p-3 md:p-4"
+    >
       {error && <p role="alert">{error}</p>}
+      {readError && <p role="alert">{readError}</p>}
       {notice && <p role="status">{notice}</p>}
       {issueUnknown && user.status === "active" && (
         <Button
@@ -195,103 +209,166 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
           {t("newKeyAttempt")}
         </Button>
       )}
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold">{t("userKeys", { name: user.name })}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">
+          {t("keyListTitle")}
+          {keysLoaded && !keysLoading && !readError && keys.total > 0 && ` (${keys.total})`}
+        </h2>
         <div className="flex gap-2">
-          <Button variant="outline" disabled={keysLoading || busy} onClick={() => refreshKeys()}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={keysLoading || busy}
+            onClick={() => refreshKeys()}
+          >
             {t("refresh")}
           </Button>
           <Button
+            size="sm"
             disabled={busy || issueUnknown || user.status !== "active"}
-            onClick={() => openEditor(null)}
+            ref={createButton}
+            onClick={(event) => {
+              editorTrigger.current = event.currentTarget;
+              openEditor(null);
+            }}
           >
             {t("createKey")}
           </Button>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground">{t("keyHelp")}</p>
       {user.status === "disabled" && <p role="status">{t("disabledHelp")}</p>}
       {keysLoading ? (
         <p>{t("loading")}</p>
+      ) : readError ? (
+        <p>{t(keysLoaded ? "staleResults" : "readUnavailable")}</p>
+      ) : keys.items.length === 0 ? (
+        <p>{t("emptyKeys")}</p>
       ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left">
-              <th>{t("name")}</th>
-              <th>{t("maskedKey")}</th>
-              <th>
-                {t("spaces")} / {t("permission")}
-              </th>
-              <th>{t("createdAt")}</th>
-              <th>{t("lastUsed")}</th>
-              <th>{t("actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {keys.items.map((key) => (
-              <tr key={key.key_id} className="border-t">
-                <td className="py-3">
-                  {key.name}
-                  <span className="block break-all text-xs text-muted-foreground">
-                    {t("keyId", { id: key.key_id })}
-                  </span>
-                </td>
-                <td className="font-mono">{displayKey(key)}</td>
-                <td>
-                  {key.authorization.mode === "all" ? (
-                    `${t("allSpaces")} · ${t(key.authorization.permission === "read" ? "readOnly" : "readWrite")}`
-                  ) : key.authorization.workspaces.length === 0 ? (
-                    <span>{t("noAccessibleSpaces")}</span>
-                  ) : (
-                    <details>
-                      <summary>
-                        {t("spaceCount", { count: key.authorization.workspaces.length })}
-                      </summary>
-                      {key.authorization.workspaces.map((space) => (
-                        <div key={space.workspace_id} title={space.workspace_id}>
-                          {space.workspace_name ?? space.bank_id} ·{" "}
-                          {t(space.permission === "read" ? "readOnly" : "readWrite")}
-                        </div>
-                      ))}
-                    </details>
-                  )}
-                </td>
-                <td>{date(key.created_at)}</td>
-                <td>{date(key.last_used_at)}</td>
-                <td>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => openEditor(key)}
-                    >
-                      {t("edit")}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => {
-                        setError("");
-                        setRevokeUnknown(false);
-                        setRevokingKey(key);
-                      }}
-                    >
-                      {t("revoke")}
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ul aria-label={t("keyListTitle")} className="divide-y divide-border">
+          {keys.items.map((key) => (
+            <li key={key.key_id} className="min-w-0 space-y-2 py-3 first:pt-0 last:pb-0">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                  <p className="font-medium">{key.name}</p>
+                  <p className="break-all font-mono text-xs text-muted-foreground">
+                    {displayKey(key)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={busy}
+                    onClick={(event) => {
+                      editorTrigger.current = event.currentTarget;
+                      openEditor(key);
+                    }}
+                  >
+                    {t("edit")}
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        aria-label={`${t("more")}: ${key.name}`}
+                        onFocus={(event) => {
+                          revokeTrigger.current = event.currentTarget;
+                        }}
+                      >
+                        {t("more")}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                          setError("");
+                          setRevokeUnknown(false);
+                          setRevokingKey(key);
+                        }}
+                      >
+                        {t("revoke")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="min-w-0 text-sm [overflow-wrap:anywhere]">
+                {key.authorization.mode === "all" ? (
+                  `${t("allSpaces")} · ${t(key.authorization.permission === "read" ? "readOnly" : "readWrite")}`
+                ) : key.authorization.workspaces.length === 0 ? (
+                  <span>{t("noAccessibleSpaces")}</span>
+                ) : key.authorization.workspaces.length === 1 ? (
+                  <p title={key.authorization.workspaces[0].workspace_id}>
+                    {key.authorization.workspaces[0].workspace_name ??
+                      key.authorization.workspaces[0].bank_id}
+                    {" · "}
+                    {t(
+                      key.authorization.workspaces[0].permission === "read"
+                        ? "readOnly"
+                        : "readWrite"
+                    )}
+                  </p>
+                ) : (
+                  <details className="group">
+                    <summary className="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
+                      <ChevronRight
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90"
+                      />
+                      {t("spaceCount", { count: key.authorization.workspaces.length })}
+                    </summary>
+                    {key.authorization.workspaces.map((space) => (
+                      <div
+                        key={space.workspace_id}
+                        title={space.workspace_id}
+                        className="break-words"
+                      >
+                        {space.workspace_name ?? space.bank_id} ·{" "}
+                        {t(space.permission === "read" ? "readOnly" : "readWrite")}
+                      </div>
+                    ))}
+                  </details>
+                )}
+              </div>
+              <details className="group min-w-0 text-xs text-muted-foreground">
+                <summary className="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
+                  <ChevronRight
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90"
+                  />
+                  {t("keyDetails")}
+                </summary>
+                <span className="block break-all select-all">{t("keyId", { id: key.key_id })}</span>
+                <span className="block">
+                  {t("createdAt")}: {date(key.created_at)}
+                </span>
+                <span className="block">
+                  {t("lastUsed")}: {date(key.last_used_at)}
+                </span>
+              </details>
+            </li>
+          ))}
+        </ul>
       )}
-      {keysLoaded && !keysLoading && keys.items.length === 0 && <p>{t("emptyKeys")}</p>}
-      {pager(keys, keyOffset, setKeyOffset, keysLoading)}
+      {keysLoaded && !keysLoading && !readError && keys.total > LIMIT && (
+        <DirectoryPagination
+          total={keys.total}
+          count={keys.items.length}
+          offset={keyOffset}
+          limit={LIMIT}
+          loading={keysLoading}
+          onChange={setKeyOffset}
+        />
+      )}
 
       {editor && (
         <ContextDBKeyEditorDialog
+          onCloseAutoFocus={(event) =>
+            restoreDialogFocus(event, editorTrigger.current, createButton.current)
+          }
           userId={user.user_id}
           userName={user.name}
           editingKey={editor.key}
@@ -315,7 +392,12 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)]"
+          onCloseAutoFocus={(event) =>
+            restoreDialogFocus(event, revokeTrigger.current, createButton.current)
+          }
+        >
           <DialogHeader>
             <DialogTitle>{t("revokeTitle")}</DialogTitle>
             <DialogDescription>
@@ -349,10 +431,13 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
       <Dialog
         open={!!secret}
         onOpenChange={(open) => {
-          if (!open) setSecret("");
+          if (!open) clearSecret();
         }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)]"
+          onCloseAutoFocus={(event) => restoreDialogFocus(event, createButton.current)}
+        >
           <DialogHeader>
             <DialogTitle>{t("secretTitle")}</DialogTitle>
             <DialogDescription>{t("secretWarning")}</DialogDescription>
@@ -360,24 +445,16 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
           <p className="break-all rounded border p-3 font-mono text-sm" data-testid="issued-secret">
             {secret}
           </p>
-          {error && <p role="alert">{error}</p>}
+          {copyError && <p role="alert">{copyError}</p>}
+          {copied && <p role="status">{t("copied")}</p>}
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (!navigator.clipboard?.writeText) {
-                  setError(t("copyFailed"));
-                  return;
-                }
-                void navigator.clipboard.writeText(secret).catch(() => setError(t("copyFailed")));
-              }}
-            >
-              {t("copySecret")}
+            <Button onClick={() => void copySecret()}>{t("copySecret")}</Button>
+            <Button variant="outline" onClick={clearSecret}>
+              {t("closeSecret")}
             </Button>
-            <Button onClick={() => setSecret("")}>{t("closeSecret")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </section>
   );
 }

@@ -1,8 +1,18 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { DirectoryPagination } from "./directory-pagination";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContextDBUserKeysPanel } from "@/components/contextdb/user-keys-panel";
@@ -22,17 +32,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   contextDBRequest,
+  createContextDBUser,
   contextDBWriteOutcome,
   type ContextDBUser,
   type Page,
 } from "@/lib/contextdb-api";
 
+import { restoreDialogFocus } from "./dialog-focus";
+
 const LIMIT = 20;
 const emptyPage = <T,>(): Page<T> => ({ items: [], total: 0, limit: LIMIT, offset: 0 });
-const date = (value: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
 export function ContextDBUsersView() {
   const t = useTranslations("contextDB");
+  const locale = useLocale();
+  const date = (value: string | null) => (value ? new Date(value).toLocaleString(locale) : "—");
   const [users, setUsers] = useState<Page<ContextDBUser>>(emptyPage);
   const [offset, setOffset] = useState(0);
   const [query, setQuery] = useState("");
@@ -40,8 +54,11 @@ export function ContextDBUsersView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [readError, setReadError] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<ContextDBUser | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const createButton = useRef<HTMLButtonElement>(null);
+  const dialogTrigger = useRef<HTMLButtonElement | null>(null);
   const [userOpen, setUserOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<ContextDBUser | null>(null);
   const [name, setName] = useState("");
@@ -66,11 +83,7 @@ export function ContextDBUsersView() {
           return;
         }
         setUsers(page);
-        setSelectedUser((previous) =>
-          previous
-            ? (page.items.find((item) => item.user_id === previous.user_id) ?? previous)
-            : null
-        );
+        setLoaded(true);
       })
       .catch((err) => {
         if (!controller.signal.aborted) setReadError(err.message);
@@ -112,7 +125,7 @@ export function ContextDBUsersView() {
     setUserOpen(true);
   };
   const toggleUser = (user: ContextDBUser) => {
-    setSelectedUser(selectedUser?.user_id === user.user_id ? null : user);
+    setSelectedUserId(selectedUserId === user.user_id ? null : user.user_id);
   };
   const refreshUserRecords = () => {
     // Refresh is observation, not a claim that an uncertain write finished.
@@ -126,40 +139,21 @@ export function ContextDBUsersView() {
     setUserOutcome(null);
     setRefresh((value) => value + 1);
   };
-  const pager = (
-    page: Page<unknown>,
-    start: number,
-    change: (offset: number) => void,
-    pending: boolean
-  ) => (
-    <div className="mt-3 flex items-center gap-3">
-      <Button
-        variant="outline"
-        disabled={pending || start === 0}
-        onClick={() => change(Math.max(0, start - LIMIT))}
-      >
-        {t("previous")}
-      </Button>
-      <span>
-        {page.total ? start + 1 : 0}–{start + page.items.length} / {page.total}
-      </span>
-      <Button
-        variant="outline"
-        disabled={pending || start + LIMIT >= page.total}
-        onClick={() => change(start + LIMIT)}
-      >
-        {t("next")}
-      </Button>
-    </div>
-  );
   return (
-    <div className="mx-auto max-w-7xl space-y-5 p-6">
-      <div className="flex justify-between gap-4">
+    <div className="w-full min-w-0 space-y-5 p-4 md:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button disabled={busy} onClick={() => editUser(null)}>
+        <Button
+          ref={createButton}
+          disabled={busy}
+          onClick={(event) => {
+            dialogTrigger.current = event.currentTarget;
+            editUser(null);
+          }}
+        >
           {t("createUser")}
         </Button>
       </div>
@@ -172,12 +166,13 @@ export function ContextDBUsersView() {
       <div className="flex gap-2">
         <Input
           aria-label={t("searchUsers")}
+          placeholder={t("searchUsers")}
           value={query}
           maxLength={128}
           onChange={(event) => {
             setQuery(event.target.value);
             setOffset(0);
-            setSelectedUser(null);
+            setSelectedUserId(null);
           }}
         />
         <Button
@@ -189,7 +184,7 @@ export function ContextDBUsersView() {
         </Button>
       </div>
       <h2>
-        {t("users")} ({users.total})
+        {t("users")} ({!loading && !readError ? users.total : "—"})
       </h2>
       {notice && <p role="status">{notice}</p>}
       {userOutcome && !userOpen && !deletingUser && (
@@ -199,45 +194,57 @@ export function ContextDBUsersView() {
       )}
       {loading ? (
         <p>{t("loading")}</p>
+      ) : readError ? (
+        <p>{t(loaded ? "staleResults" : "readUnavailable")}</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left">
-                <th></th>
-                <th>{t("name")}</th>
-                <th>{t("status")}</th>
-                <th>{t("createdAt")}</th>
-                <th>{t("actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead className="hidden md:table-cell">{t("status")}</TableHead>
+                <TableHead className="hidden md:table-cell">{t("createdAt")}</TableHead>
+                <TableHead className="w-[180px] md:w-auto">{t("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {users.items.map((user) => (
                 <Fragment key={user.user_id}>
-                  <tr className="border-b">
-                    <td>
-                      <Button
-                        variant="ghost"
-                        aria-label={t("keys")}
-                        aria-expanded={selectedUser?.user_id === user.user_id}
-                        onClick={() => toggleUser(user)}
-                      >
-                        {selectedUser?.user_id === user.user_id ? "▾" : "▸"}
-                      </Button>
-                    </td>
-                    <td className="py-3 font-medium" title={user.user_id}>
+                  <TableRow>
+                    <TableCell
+                      className="min-w-[100px] break-words py-3 font-medium [overflow-wrap:anywhere]"
+                      title={user.user_id}
+                    >
                       {user.name}
-                    </td>
-                    <td>{t(user.status)}</td>
-                    <td>{date(user.created_at)}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => toggleUser(user)}>
-                          {t("keys")}
+                      <span className="mt-1 block text-xs font-normal text-muted-foreground md:hidden">
+                        {t(user.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{t(user.status)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{date(user.created_at)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="px-2"
+                          aria-label={t("keys")}
+                          aria-expanded={selectedUserId === user.user_id}
+                          onClick={() => toggleUser(user)}
+                        >
+                          {selectedUserId === user.user_id ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                          {t("keyListTitle")}
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
+                              onFocus={(event) => {
+                                dialogTrigger.current = event.currentTarget;
+                              }}
                               variant="outline"
                               size="sm"
                               disabled={
@@ -254,21 +261,15 @@ export function ContextDBUsersView() {
                             <DropdownMenuItem
                               onSelect={() =>
                                 void run(async (signal) => {
-                                  const saved = await contextDBRequest<ContextDBUser>(
-                                    `/users/${user.user_id}`,
-                                    {
-                                      method: "PATCH",
-                                      version: user.version,
-                                      signal,
-                                      body: {
-                                        status: user.status === "active" ? "disabled" : "active",
-                                      },
-                                    }
-                                  );
+                                  await contextDBRequest<ContextDBUser>(`/users/${user.user_id}`, {
+                                    method: "PATCH",
+                                    version: user.version,
+                                    signal,
+                                    body: {
+                                      status: user.status === "active" ? "disabled" : "active",
+                                    },
+                                  });
                                   if (signal.aborted) return;
-                                  setSelectedUser((current) =>
-                                    current?.user_id === saved.user_id ? saved : current
-                                  );
                                   setRefresh((value) => value + 1);
                                 }, user.user_id)
                               }
@@ -276,6 +277,7 @@ export function ContextDBUsersView() {
                               {t(user.status === "active" ? "disableUser" : "enableUser")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
                               onSelect={() => {
                                 userController.current?.abort();
                                 setError("");
@@ -288,30 +290,34 @@ export function ContextDBUsersView() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </td>
-                  </tr>
-                  {selectedUser?.user_id === user.user_id && (
-                    <tr>
-                      <td colSpan={5}>
+                    </TableCell>
+                  </TableRow>
+                  {selectedUserId === user.user_id && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
                         <ContextDBUserKeysPanel key={user.user_id} user={user} />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
                 </Fragment>
               ))}
-            </tbody>
-          </table>
-          {!users.items.length && <p>{t("empty")}</p>}
+            </TableBody>
+          </Table>
+          {!users.items.length && <p>{t(query ? "noMatches" : "empty")}</p>}
         </div>
       )}
-      {pager(
-        users,
-        offset,
-        (value) => {
-          setOffset(value);
-          setSelectedUser(null);
-        },
-        loading
+      {!loading && !readError && (
+        <DirectoryPagination
+          total={users.total}
+          count={users.items.length}
+          offset={offset}
+          limit={LIMIT}
+          loading={loading}
+          onChange={(value) => {
+            setOffset(value);
+            setSelectedUserId(null);
+          }}
+        />
       )}
       <Dialog
         open={userOpen}
@@ -324,7 +330,12 @@ export function ContextDBUsersView() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)]"
+          onCloseAutoFocus={(event) =>
+            restoreDialogFocus(event, dialogTrigger.current, createButton.current)
+          }
+        >
           <DialogHeader>
             <DialogTitle>{editingUser ? t("editUser") : t("createUser")}</DialogTitle>
             <DialogDescription>{t("userHelp")}</DialogDescription>
@@ -358,18 +369,17 @@ export function ContextDBUsersView() {
                 disabled={busy || !name.trim()}
                 onClick={() =>
                   void run(async (signal) => {
-                    const saved = await contextDBRequest<ContextDBUser>(
-                      editingUser ? `/users/${editingUser.user_id}` : "/users",
-                      {
-                        method: editingUser ? "PATCH" : "POST",
-                        body: { name: name.trim() },
-                        version: editingUser?.version,
-                        signal,
-                      }
-                    );
+                    const saved = editingUser
+                      ? await contextDBRequest<ContextDBUser>(`/users/${editingUser.user_id}`, {
+                          method: "PATCH",
+                          body: { name: name.trim() },
+                          version: editingUser.version,
+                          signal,
+                        })
+                      : await createContextDBUser({ name: name.trim() }, signal);
                     if (signal.aborted) return;
                     setUserOpen(false);
-                    setSelectedUser(null);
+                    setSelectedUserId(null);
                     if (!editingUser) {
                       setQuery(saved.name);
                       setOffset(0);
@@ -394,7 +404,12 @@ export function ContextDBUsersView() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)]"
+          onCloseAutoFocus={(event) =>
+            restoreDialogFocus(event, dialogTrigger.current, createButton.current)
+          }
+        >
           <DialogHeader>
             <DialogTitle>{t("deleteUserTitle")}</DialogTitle>
             <DialogDescription>
@@ -429,8 +444,8 @@ export function ContextDBUsersView() {
                       signal,
                     });
                     if (signal.aborted) return;
-                    setSelectedUser((current) =>
-                      current?.user_id === deletingUser.user_id ? null : current
+                    setSelectedUserId((current) =>
+                      current === deletingUser.user_id ? null : current
                     );
                     setDeletingUser(null);
                     setRefresh((value) => value + 1);

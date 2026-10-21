@@ -13,6 +13,7 @@ import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { locales } from "@/i18n/config";
 import { useBank } from "@/lib/bank-context";
 import { bankRoute } from "@/lib/bank-url";
 import { hoistCurrentBank } from "@/lib/bank-order";
@@ -117,6 +118,13 @@ function BankSelectorInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const appPathname = stripBasePath(pathname);
+  // Match the complete management route after the team's basePath handling;
+  // a workspace named users (/banks/users) remains a content page.
+  const managingUsers =
+    contextDB &&
+    ["/users", ...locales.map((locale) => `/${locale}/users`)].includes(
+      appPathname.replace(/\/$/, "")
+    );
   const resourcePage = appPathname === "/guide" || appPathname === "/connect";
   const tNav = useTranslations("nav");
   const tBrand = useTranslations("brand");
@@ -155,6 +163,7 @@ function BankSelectorInner() {
     };
   }, []);
   const [open, setOpen] = React.useState(false);
+  const workspaceSelectorRef = React.useRef<HTMLButtonElement>(null);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [newBankId, setNewBankId] = React.useState("");
   const [isCreating, setIsCreating] = React.useState(false);
@@ -614,6 +623,7 @@ function BankSelectorInner() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
+              ref={workspaceSelectorRef}
               role="combobox"
               aria-expanded={open}
               className="order-3 min-w-0 w-full justify-between border-border bg-background/70 font-medium hover:bg-accent lg:order-none lg:w-[250px] lg:shrink-0"
@@ -809,25 +819,32 @@ function BankSelectorInner() {
         <div className="h-8 w-px bg-border" />
 
         {contextDB && (
-          <Button variant="outline" onClick={() => router.push("/users")}>
+          <Button
+            variant={managingUsers ? "secondary" : "outline"}
+            aria-current={managingUsers ? "page" : undefined}
+            onClick={() => router.push("/users")}
+          >
             {tContextDB("title")}
           </Button>
         )}
 
         {/* Add Document Button */}
-        {currentBank && !resourcePage && searchParams.get("view") !== "documents" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="order-4 h-9 gap-1.5 justify-self-end lg:order-none"
-            onClick={() => setDocDialogOpen(true)}
-            title={tAddDocument("addDocumentToCurrentBank")}
-            data-add-document
-          >
-            <Plus className="h-4 w-4" />
-            <span>{tAddDocument("addDocumentButton")}</span>
-          </Button>
-        )}
+        {currentBank &&
+          !resourcePage &&
+          !managingUsers &&
+          searchParams.get("view") !== "documents" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="order-4 h-9 gap-1.5 justify-self-end lg:order-none"
+              onClick={() => setDocDialogOpen(true)}
+              title={tAddDocument("addDocumentToCurrentBank")}
+              data-add-document
+            >
+              <Plus className="h-4 w-4" />
+              <span>{tAddDocument("addDocumentButton")}</span>
+            </Button>
+          )}
 
         <div className="order-2 flex items-center gap-0.5 justify-self-end lg:order-none lg:ml-auto">
           <Link
@@ -888,12 +905,14 @@ function BankSelectorInner() {
 
         {workspaceCheck && (
           <ContextDBWorkspaceResultCheck
+            returnFocusRef={workspaceSelectorRef}
             target={workspaceCheck}
             onClose={() => setWorkspaceCheck(null)}
           />
         )}
         {contextDB ? (
           <ContextDBCreateWorkspaceDialog
+            returnFocusRef={workspaceSelectorRef}
             open={createDialogOpen}
             onOpenChange={setCreateDialogOpen}
             onCreated={(workspace) => {

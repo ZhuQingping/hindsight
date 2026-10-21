@@ -2,11 +2,13 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { ContextDBCreateWorkspaceDialog } from "@/components/contextdb/create-workspace-dialog";
 import { BankSelector } from "@/components/bank-selector";
 import BankPage from "@/app/[locale]/banks/[bankId]/page";
 import { contextDBRequest, workspaceMutation } from "@/lib/contextdb-api";
 const state = vi.hoisted(() => ({
   contextDB: true,
+  pathname: "/banks/jiamu",
   push: vi.fn(),
   setCurrentBank: vi.fn(),
   loadBanks: vi.fn().mockResolvedValue(undefined),
@@ -16,7 +18,7 @@ vi.mock("@/i18n/navigation", () => ({
   Link: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
 }));
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/banks/jiamu",
+  usePathname: () => state.pathname,
   useRouter: () => ({ push: state.push }),
   useSearchParams: () => new URLSearchParams("view=profile"),
   useParams: () => ({ bankId: state.bankId }),
@@ -81,6 +83,7 @@ const mutation = vi.mocked(workspaceMutation);
 const etag = '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1"';
 beforeEach(() => {
   state.bankId = "jiamu";
+  state.pathname = "/banks/jiamu";
   state.contextDB = true;
   api.mockResolvedValue({
     workspace_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -103,6 +106,37 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
+});
+
+it.each(["/users", "/users/", "/zh-CN/users", "/console/users", "/console/zh-CN/users"])(
+  "uses management context on %s and preserves the last workspace",
+  (pathname) => {
+    vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/console");
+    state.pathname = pathname;
+    const view = render(<BankSelector />);
+    expect(screen.getByRole("button", { name: "title" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.queryByText("addDocumentButton")).toBeNull();
+    expect(state.setCurrentBank).not.toHaveBeenCalled();
+    state.pathname = "/console/banks/jiamu";
+    view.rerender(<BankSelector />);
+    expect(screen.getByText("addDocumentButton")).toBeTruthy();
+  }
+);
+
+it.each([
+  "/banks/users",
+  "/zh-CN/banks/users",
+  "/console/banks/users",
+  "/console/zh-CN/banks/users",
+  "/other/users",
+])("keeps content actions outside the complete management route: %s", (pathname) => {
+  vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/console");
+  state.bankId = "users";
+  state.pathname = pathname;
+  render(<BankSelector />);
+  expect(screen.getByText("addDocumentButton")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "title" }).getAttribute("aria-current")).toBeNull();
 });
 describe("ContextDB native UI entry points", () => {
   it("centralizes ContextDB deletion in workspace management without an identity probe", async () => {
@@ -176,4 +210,78 @@ describe("ContextDB native UI entry points", () => {
     await waitFor(() => expect(client.createBank).toHaveBeenCalledWith("Native-bank"));
     expect(mutation).not.toHaveBeenCalled();
   });
+});
+
+it("does not navigate when a workspace creation succeeds after the selector unmounts", async () => {
+  let finish!: (value: Awaited<ReturnType<typeof workspaceMutation<"POST">>>) => void;
+  mutation.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+  );
+  const view = render(<BankSelector />);
+  act(() => window.dispatchEvent(new Event("hindsight:create-bank")));
+  const dialog = await screen.findByRole("dialog");
+  fireEvent.change(within(dialog).getByLabelText("workspaceName"), { target: { value: "mysql" } });
+  fireEvent.click(within(dialog).getByRole("button", { name: "createWorkspace" }));
+  const signal = mutation.mock.calls[0][3]!;
+  view.unmount();
+  expect(signal.aborted).toBe(true);
+  await act(async () =>
+    finish({
+      workspace_id: "a".repeat(32),
+      bank_id: "mysql",
+      name: "mysql",
+      description: "",
+      state: "active",
+      version: 1,
+      created_at: "2026-10-21",
+      etag,
+    })
+  );
+  expect(state.setCurrentBank).not.toHaveBeenCalled();
+  expect(state.push).not.toHaveBeenCalled();
+});
+
+it("invalidates a closed create attempt without losing a newer request's cancellation", async () => {
+  const finish: ((value: Awaited<ReturnType<typeof workspaceMutation<"POST">>>) => void)[] = [];
+  mutation.mockImplementation(() => new Promise((resolve) => finish.push(resolve)));
+  const onCreated = vi.fn();
+  const onOpenChange = vi.fn();
+  const ui = (open: boolean) => (
+    <ContextDBCreateWorkspaceDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      onCreated={onCreated}
+      onCheckResult={vi.fn()}
+    />
+  );
+  const view = render(ui(true));
+  fireEvent.change(screen.getByLabelText("workspaceName"), { target: { value: "first" } });
+  fireEvent.click(screen.getByRole("button", { name: "createWorkspace" }));
+  const first = mutation.mock.calls[0][3]!;
+  view.rerender(ui(false));
+  expect(first.aborted).toBe(true);
+  view.rerender(ui(true));
+  fireEvent.change(screen.getByLabelText("workspaceName"), { target: { value: "second" } });
+  fireEvent.click(screen.getByRole("button", { name: "createWorkspace" }));
+  expect(mutation).toHaveBeenCalledTimes(2);
+  const second = mutation.mock.calls[1][3]!;
+  await act(async () =>
+    finish[0]({
+      workspace_id: "a".repeat(32),
+      bank_id: "first",
+      name: "first",
+      description: "",
+      state: "active",
+      version: 1,
+      created_at: "2026-10-21",
+      etag,
+    })
+  );
+  expect(onCreated).not.toHaveBeenCalled();
+  expect(onOpenChange).not.toHaveBeenCalled();
+  view.unmount();
+  expect(second.aborted).toBe(true);
 });

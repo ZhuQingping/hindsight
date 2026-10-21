@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type RefObject, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +16,17 @@ import {
 } from "@/components/ui/dialog";
 import { ContextDBError, workspaceMutation, type ContextDBWorkspace } from "@/lib/contextdb-api";
 
+import { restoreDialogFocus } from "./dialog-focus";
+
 /** Both entry points share the same fields, validation, and synchronous request. */
 export function ContextDBCreateWorkspaceDialog({
   open,
   onOpenChange,
   onCreated,
   onCheckResult,
+  returnFocusRef,
 }: {
+  returnFocusRef?: RefObject<HTMLElement | null>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (workspace: ContextDBWorkspace) => void;
@@ -40,6 +44,8 @@ export function ContextDBCreateWorkspaceDialog({
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
     if (!open) {
+      controller.current?.abort();
+      setBusy(false);
       setName("");
       setDescription("");
       setError("");
@@ -61,6 +67,8 @@ export function ContextDBCreateWorkspaceDialog({
         { name, description },
         abort.signal
       );
+      // A closed/unmounted entry point must not navigate from a late success.
+      if (abort.signal.aborted) return;
       onOpenChange(false);
       onCreated(workspace);
     } catch (err) {
@@ -71,7 +79,7 @@ export function ContextDBCreateWorkspaceDialog({
       setUnknown(err instanceof ContextDBError && (err.status === 0 || err.status >= 500));
     } finally {
       if (!abort.signal.aborted) setBusy(false);
-      controller.current = null;
+      if (controller.current === abort) controller.current = null;
     }
   };
 
@@ -82,7 +90,10 @@ export function ContextDBCreateWorkspaceDialog({
         if (!busy) onOpenChange(value);
       }}
     >
-      <DialogContent>
+      <DialogContent
+        className="w-[calc(100%-2rem)]"
+        onCloseAutoFocus={(event) => restoreDialogFocus(event, returnFocusRef?.current ?? null)}
+      >
         <form noValidate onSubmit={submit} className="space-y-4">
           <DialogHeader>
             <DialogTitle>{t("createWorkspace")}</DialogTitle>

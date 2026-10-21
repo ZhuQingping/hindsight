@@ -171,13 +171,10 @@ def test_shell_initialization_and_worker_checks_use_public_settings(tmp_path: Pa
         "HINDSIGHT_API_TENANT_EXTENSION=internal-tenant\nCONTEXTBASE_API_TENANT_EXTENSION=public-tenant\n"
     )
     config.chmod(0o600)
-    capture = tmp_path / "migration-tenant"
+    capture = tmp_path / "shell-commands"
     interpreter = tmp_path / "python"
     interpreter.write_text(
-        '#!/bin/bash\nif [ "$1" = - ]; then exec "$REAL_PYTHON" "$@"; fi\n'
-        'if [ "$2" = hindsight_api.admin.cli ]; then\n'
-        '  printf "%s|%s" "$CONTEXTBASE_API_TENANT_EXTENSION" "$HINDSIGHT_API_TENANT_EXTENSION" > "$CAPTURE_ARGUMENTS"\n'
-        "fi\n"
+        '#!/bin/bash\nif [ "$1" = - ]; then exec "$REAL_PYTHON" "$@"; fi\nprintf "%s\\n" "$@" >> "$CAPTURE_ARGUMENTS"\n'
     )
     interpreter.chmod(0o700)
     result = subprocess.run(
@@ -196,4 +193,6 @@ def test_shell_initialization_and_worker_checks_use_public_settings(tmp_path: Pa
     )
     assert result.returncode == 0, result.stderr
     if command == "init":
-        assert capture.read_text() == "|"
+        commands = capture.read_text()
+        assert "hindsight_api.admin.cli" not in commands
+        assert "prepare" in commands and "migrate" in commands

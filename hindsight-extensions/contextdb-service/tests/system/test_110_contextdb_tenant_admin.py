@@ -132,12 +132,22 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                             "SchemaSentinel" not in item["text"]
                             for item in json.loads(recalled_b.content[0].text)["results"]
                         )
+                        before_a = await administrator.alist_memories(a, limit=1000)
+                        before_b = await administrator.alist_memories(b, limit=1000)
+                        before_c = await administrator.alist_memories(c, limit=1000)
+                        queued_b = (await administrator.operations.list_operations(b)).total
+                        queued_c = (await administrator.operations.list_operations(c)).total
                         denied_clear = await mcp.call_tool("clear_memories", {"bank_id": a}, raise_on_error=False)
                         assert denied_clear.is_error
                         denied = await mcp.call_tool(
                             "retain", {"bank_id": c, "content": "Forbidden MCP write"}, raise_on_error=False
                         )
                         assert denied.is_error or json.loads(denied.content[0].text).get("status") == "error"
+                        # Denial must leave both memory and the native queue intact,
+                        # not merely return an error after accepting a write.
+                        assert await administrator.alist_memories(a, limit=1000) == before_a
+                        assert await administrator.alist_memories(c, limit=1000) == before_c
+                        assert (await administrator.operations.list_operations(c)).total == queued_c
                         listed = await mcp.call_tool("list_banks", {})
                         assert {bank["bank_id"] for bank in json.loads(listed.content[0].text)["banks"]} == {a, b}
                         changed = await management.patch(
@@ -165,6 +175,8 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                             "retain", {"bank_id": b, "content": "Forbidden after read downgrade"}, raise_on_error=False
                         )
                         assert denied_write.is_error
+                        assert await administrator.alist_memories(b, limit=1000) == before_b
+                        assert (await administrator.operations.list_operations(b)).total == queued_b
                         assert "retain" not in {tool.name for tool in await mcp.list_tools()}
                         disabled = await management.patch(
                             f"/users/{user['user_id']}", headers={"If-Match": '"1"'}, json={"status": "disabled"}
@@ -172,8 +184,9 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                         assert disabled.status_code == 200, disabled.text
                         with pytest.raises(UnauthorizedException):
                             await client.arecall(bank_id=b, query="Forbidden after disable")
-                        with pytest.raises(Exception):
+                        with pytest.raises(httpx.HTTPStatusError) as unauthorized:
                             await mcp.call_tool("recall", {"bank_id": b, "query": "Forbidden after disable"})
+                        assert unauthorized.value.response.status_code == 401
                         assert transport.get_session_id() == session
                         disabled_proved = True
                         async with httpx.AsyncClient(base_url=base) as unauthenticated:

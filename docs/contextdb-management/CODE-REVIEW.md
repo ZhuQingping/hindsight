@@ -1,12 +1,16 @@
 # ContextDB 团队分支集成代码检视
 
+本次修复PR基线为已合并团队main `1dc0ad37e`，不是原管理功能基线57bbfd2。Issue #19逐项判断见[第16章](#issue19-resolution)。第13～14章保留历史阶段，当时“未提交/不推送”描述不再代表当前发布请求。
+
+当前已落地项先查 [第15章：已落地优化索引](#implemented-optimization-index)。该索引区分已提交基线、工作区修复、已有等效修复、有意撤回及待办；第13～14章保留实施过程，不再从历史记录重复推导当前状态。
+
 ## 1. 检视结论与证据入口
 
 本文件是实现者按项目 `.claude/skills/code-review/SKILL.md` 完成的自检及专家阅读指南，不代表独立专家已批准。最终测试状态见 [VALIDATION.md](VALIDATION.md)；评审必须同时查看设计约束与验证范围，不能仅依据冲突已消除或本地提交存在批准合入。
 
 本次集成范围为工作空间、用户、API Key扩展，以及直接需要的UI、部署、测试和CI适配；不包含无关运行时重构、现有部署/数据库操作或远端发布。开发步骤不再单独维护为PLAN文档。
 
-固定团队基线：`57bbfd2d39685091ce65a4742e43c6efbcb4c78e`。初始功能来源：`ddf5c360001f1db46f925b1822803ac9bff1119e`；本轮最新来源：`a05b80885883b36f879abdb2ce8a9c8f63b0922c`，增量适配经amend纳入本次单一功能提交。当前集成差异用以下命令审阅（命令在本分支执行）：
+固定团队基线：`57bbfd2d39685091ce65a4742e43c6efbcb4c78e`。初始功能来源：`ddf5c360001f1db46f925b1822803ac9bff1119e`；公开功能来源：`a05b80885883b36f879abdb2ce8a9c8f63b0922c`，历史增量适配经amend纳入eb055aff3。S16～S26最初来自该来源基准上的冻结未提交代码，当时目标状态和指纹保留在第13章；当前修复按第16章对齐main并送审。下列命令用于回溯原管理功能；本次修复PR另看git diff 1dc0ad37e...HEAD。
 
 ```sh
 git log --oneline 57bbfd2d39685091ce65a4742e43c6efbcb4c78e..HEAD
@@ -16,7 +20,7 @@ git ls-files --others --exclude-standard
 git diff 57bbfd2d39685091ce65a4742e43c6efbcb4c78e -- hindsight-api-slim/hindsight_api
 ```
 
-本次以amend提交后的完整差异为检视对象；如检视者另有工作树改动，新文件仍应按status/ls-files读取。最后一条预期没有输出：本次管理能力不修改原生 Python 运行代码；团队既有改动保留。专家不应以官方 v1.0.0 为差异基线而将团队已有改造归入本特性。
+历史功能已归并为单个提交；本轮先查看`git diff HEAD`以及status/ls-files列出的新文件，再核对相对团队基线的完整差异。最后一条预期没有输出：本次管理能力不修改原生 Python 运行代码；团队既有改动保留。专家不应以官方 v1.0.0 为差异基线而将团队已有改造归入本特性。
 
 ## 2. 必须先读的设计
 
@@ -230,3 +234,323 @@ Recommendation：送PR检视；不代替专家批准或宣告可直接发布。O
 E test_transport新增16项矩阵和HTTP边界回归，旧任务诊断测试一并验证。S test_114新增故事、两种Worker，发布SDK读取仍成功，当前member两部分为空，Admin读写/重置不丢存储，跨空间拒绝，MCP get_bank保留。原生默认兼容和双Worker生产UI属于完整系统验收，不因插件修复跳过。实际结果见VALIDATION第10章，不将针对性和完整轮重复相加。
 
 Findings：Critical无新增，Important无新增插件修复阻断；Issue #14独立作为团队基线文档生成问题，非本特性缺陷。SEC-01字段投影在当前实现关闭，公开version/schema策略仍按原设计边界处理。Verification：原仓和集成的插件实现/测试一致、原生运行差异为空、lint及实际JUnit核对；最终计数见VALIDATION。Recommendation：按明确插件边界送审，不代替独立专家批准或生产验收。
+
+## 13. S16～S26修复适配与独立检视（2026-10-21，未提交）
+
+本轮只修改团队目标工作区；开始时feature/contextdb-management的HEAD为eb055aff32e581bc355da1f3b06cbdbc1faac376，status干净。未切换/重置分支，未提交、amend或推送。来源只读：a05b80885883b36f879abdb2ce8a9c8f63b0922c上的未提交修复，完整冻结补丁SHA-256为650ab6ac472cc9737323da3bd8ab2aaf891bf19fde184d2a68aa6db70840d708，包含3个来源未跟踪的新文件；逐文件SHA-256另存任务工件。不能把当前修复归入a05b808提交。
+
+### 13.1 逐项适配
+
+路径前缀：E=`hindsight-extensions/contextdb-service/`；C=`hindsight-control-plane/src/components/`；U=`E/tests/ui/`。
+
+| 条目 | 状态 | 实现/测试与必要差异 |
+| --- | --- | --- |
+| S16 | 本轮适配 | E/scripts/service.sh移除public迁移，system/support/deployment移除准备并在故事后检查无public表；test_deployment_contract真实非超级用户重复init、管理员与秘密文件保持；不删除public或用户库 |
+| S17 | 本轮适配 | E/hindsight_ext_contextdb/schema.sql仅Description英文；test_metadata_initialization核对PG表/字段、显式注释、批量约束注释及audit目标Key/操作者Key语义；元数据版本不变 |
+| S18 | 本轮适配 | C/contextdb/key-editor-dialog及管理词条，权限说明分行和共同管理限制；既有权限模型不变 |
+| S19 | 本轮适配 | C/contextdb/user-keys-panel，取消定时/纯隐藏清理，保留pagehide/卸载/切用户/明确关闭；复制反馈以Secret及attempt校验防迟到；U/contextdb-key-state、users-view |
+| S20 | 本轮适配 | 只在E/hindsight_ext_contextdb/transport.py追加chunk路径和原生codec回编码检查；test_transport正反例，新增system/test_116真实SDK双Worker闭环；不改原生引擎或Tenant保护 |
+| S21 | 本轮适配 | users-view、workspaces-view、user-keys-panel及use-key-workspaces区分GET状态；失败不显示确定0和空实例，不重放写请求；原unknown/ETag语义保留 |
+| S22 | 本轮适配，有意团队差异 | bank-selector在stripBasePath之后匹配完整管理路径和locale白名单；保留resourcePage、documents视图条件、产品与资源导航；测试覆盖basePath、locale和合法users空间 |
+| S23 | 本轮适配 | use-key-workspaces复用q分页、abort和offset=0；key-editor草稿独立按UUID保留，不以页面缺失判失效、不升级只读；测试第51项后、迟到搜索、清空及翻页 |
+| S24 | 本轮适配 | users-view、实际展开user-keys-panel使用useLocale及原生toLocaleString；U/users-view参数化en/zh-CN和空时间，时区不变 |
+| S25 | 本轮适配 | 现有Table/Select/token、局部DirectoryPagination，单一用户展开入口，准确Key创建/编辑动词及完整辅助详情；原长文本/描述/UUID/确认/未知核对保留 |
+| S26 | 本轮适配，视觉待验 | 仅管理Dialog局部宽度class；公共ui/dialog.tsx及全局主题未改；真实浏览器不可用，不以JSDOM/HTTP代替 |
+| SEC-01 | 目标已存在等效修复，保留 | 未重复复制来源前置投影；现有GET/PATCH/DELETE、gzip/分块JSON、诊断和流式路径测试保留；只追加chunk delta |
+| 团队配置别名 | 目标旧HEAD缺少团队后续修复，本轮补齐 | 复用团队49d727664的environment/service_env及offline/preflight/健康探测合同与测试；service.sh保留CONTEXTBASE优先和显式空值语义。其历史public迁移部分按S16移除，不带入无关UI错误文案 |
+
+未修改ProductRuntime、productFetch、proxy.ts、会话目录/签名/持久化/撤销、Host/Origin安全校验或原生API运行目录。没有新增公开API、配置、表、依赖、调度器、删除屏障或测试工程。同步13项API、六表、原生Bank并发及删除先停业务的边界保留。
+
+### 13.2 自检与独立检视
+
+实现自检已核对冻结来源、团队差异及测试入口。首轮注释测试把批量生成的约束Description误计入显式COMMENT等式，断言已拆分并完整重跑；没有减少原有英文/字段语义断言。根lint顺带修改的3个无关embed格式差异已查看并恢复开始字节，差异工件保留，不纳入适配。
+
+独立检视按Hindsight/Python、UI/TS、测试完整性三个只读角色分别执行；发现、处理及复核结论将在本节追加，不能用来源检视报告替代目标独立检视。验证命令和实际目标计数统一见VALIDATION第11章。
+
+### 13.3 独立检视闭环
+
+三个角色均只读，未与实现者并行改文件；最终无剩余Must fix或Should fix。报告摘要另存任务工件independent-reviews.md，不以来源检视替代。
+
+| 检视 | 发现 | 处理及复核 |
+| --- | --- | --- |
+| Hindsight/Python | Should fix：团队49d的Compose set -a导出整份ui.env，与既有最小探测环境设计不符 | 只传解析后的origin/port，保留CONTEXTBASE存在但为空的优先级；真实shell+两前缀秘密哨兵guard及空值负例通过，后端只读复核关闭 |
+| UI/TS | 无Must fix/Should fix；保留真实浏览器视觉风险 | 逐项检查Secret身份/attempt、GET状态、UUID草稿、完整管理路径、locale和局部Dialog；保护目录未变，运行源码此后未修改 |
+| 测试完整性 | Must fix：直接pytest的CI没有ADMIN_URL时，真实init被skip；另有S21/S24断言缺口 | 默认复用既有database_url私有PG，不改CI、不新增框架；清除ADMIN_URL后全套403通过。补Key/空间/picker读取状态5例及空时间直接断言，UI624通过；只读复核关闭 |
+
+最终证据：插件Python403、UI624、ContextDB系统67、合同1全部通过零跳过；生产UI双Worker独立2项及现有JUnit门禁通过，2项不重复累计。原生相关132通过、1既有收集期条件跳过，精确选择与边界见VALIDATION第11章。正式隔离UI构建/指纹、类型、根lint、格式及CI同主版本knip阻断检查通过；原生运行目录对开始HEAD和团队基线均零差异。
+
+公开API、表、版本、安全和删除前提不变；无需扩大架构。未完成真实浏览器、远端CI、Node24/Linux、Docker原样镜像、目标ECS/RDS、真实MaaS、性能及恢复验收。当前可交用户审阅，不代替专家批准或生产发布。
+
+
+### 13.4 撤回两处等价重构（2026-10-21）
+
+按用户要求，仅将`hindsight_ext_contextdb/launch.py`和`ui_probe.py`恢复为开始HEAD的完整字节：撤掉新增`service_env`引用，恢复原内联环境变量读取。两处原实现已支持CONTEXTBASE/HINDSIGHT优先级与显式空值，不需要为本轮缺陷修复改动；`environment.py`在其他修复中的使用保留。
+
+撤回前逐文件指纹与上一轮证据一致，未发现他人新增修改。撤回及lint后，除上述两文件外的34个原修改/新增文件均与上一轮指纹一致，再更新本次文档；`bank-selector.tsx`必要接入和全部其他修复未改。相对eb055aff3的修改/新增范围从36降至34个文件，两文件现无差异；原生Python运行目录仍对开始HEAD和团队基线零差异。bank-selector仍是本轮唯一修改的社区既有文件，属于必要UI接入，不是原生引擎修改。
+
+本次按既有标准自检，未新增独立检视轮次；第13.3节报告属于撤回前版本。重跑Python全量403项、UI全量624项及仓库lint通过，命令和未重跑范围见VALIDATION第11.5节。没有提交、推送、操作现有服务或用户数据库。
+
+
+## 14. 质量修复选择性适配（2026-10-21，未提交）
+
+### 14.1 基准与范围
+
+本轮开始HEAD仍为eb055aff32e581bc355da1f3b06cbdbc1faac376，已有34个未提交修改/新增文件，逐文件与上一轮撤回重构后的指纹一致；这些改动属于已有S16～S26，保留而非重置。来源是c56c7ac17加独立`contextdb-quality-20261021-004226` worktree的未提交补丁e2c14176b562a174346e8d9bc5aadc1ff2dc8287e40c68f60b5216f50191cd7a，已冻结完整补丁、18个来源文件及每文件增量；不是声称来源主目录/提交已包含修复。
+
+| 项目 | 目标处理 | 代码及测试 |
+| --- | --- | --- |
+| N-P001 | 本轮适配 | 自研create-workspace-dialog关闭/卸载取消、迟到成功检查、controller身份清理；entrypoints追加2例，保留团队完整路径反例 |
+| N-P002 | 本轮适配 | 自研contextdb-api新增createContextDBUser，users-view创建分支采用；响应矩阵、Unicode/Python strip及未知结果仅GET核对 |
+| N-P003 | 本轮适配 | 插件transport将prompts/preview限Admin，含尾斜杠；test_114真实SDK双Worker覆盖selected/all与两类权限，GET config投影保留 |
+| N-P004 | 本轮适配并收窄来源边界 | database_checks/tenant/validator/mcp/routing仅包插件元数据，不包原生执行；协议及六hook故障、原生recall/list_banks错误边界测试 |
+| N-P005 | 已有等效修复，跳过来源增量 | test_deployment_contract保留目标ADMIN_URL或私有database_url fixture及额外断言，不重复引入来源写法 |
+| N-P006 | 本轮补强 | test_110/111的任意异常改为HTTPStatusError+401；拒绝后SDK核对记忆与队列不变 |
+| 生命周期失败 | 本轮补充测试 | 新test_117在fixture自有PG注入真实提交故障；创建激活/删除最终提交×两Worker，显式恢复、旧ETag/selected UUID与all继任语义 |
+| 小型简化 | 本轮适配 | 展开状态仅存user_id；删除未调用select_workspace及`_admin`转发，保留原检查 |
+
+逐文件应用必要增量，未整份git apply或复制同名文件覆盖。contextdb-api是本特性自研文件，官方和团队基线均不存在；新增函数仍走团队productFetch、basePath、标签页身份及原错误处理。bank-selector、本轮此前撤回的launch/ui_probe、共享Dialog、proxy、产品身份、会话、安全Host/Origin策略及SEC-01投影保持；没有新增原生Python运行修改、公开API、生产变量、依赖或元数据表。冻结源测试中entrypoints不能直接套用，手工追加新用例，不覆盖目标既有路由/basePath测试。
+
+### 14.2 独立检视与修复
+
+实现由主控串行完成，三个检视者只读分别检查后端、UI/TS和测试完整性。后端发现BR-01：来源补丁把整个MCP list_banks adapter包在metadata_errors内，连原生backend/profile/hydration故障也误报元数据不可用。已将adapter调用移出，只在routing的两项元数据读取处使用边界；不改变认证、过滤或原生错误策略。新增3阶段×2错误的6个回归，先检出错误改写，再通过；目录故障测试改用真实adapter，仍返回安全错误。后端独立复核关闭该Should fix，未发现Must fix。
+
+UI检视无Must fix/Should fix，确认团队请求管道、未知结果、Unicode和controller竞态保留。测试完整性首轮确认新增断言与434/642结果一致；最终目标Python440、UI642、系统73及生产UI双Worker门禁均通过，最终复核与精确边界见VALIDATION第12章及本轮工件。独立报告保存在本轮任务工件，不继承来源ACCEPT；真实浏览器、默认容器和云环境仍单独列限制。
+
+N-P007平台SIGILL没有代码修复可移植；N-P008～010布局/焦点/名称上限与复制待归因未纳入，来源也未修复。镜像启动免扫描、MCP缓存/查询复用、Trace/Audit/Webhook等后续方案不顺带实施。原同步API、删除先停业务/排空和失败后显式核对/恢复决策保持。
+
+
+<a id="implemented-optimization-index"></a>
+
+## 15. 已落地优化索引（当前状态，2026-10-21）
+
+### 15.1 使用方式与版本
+
+**后续适配、检视先查本章；同一项已实现且回归有效时，直接复用结论，不重新开发或重复分析。** 本章集中记录当前状态；设计规格仍以DESIGN为准，实施过程见第13～14章，实际命令和验收边界见VALIDATION第10～13章。新证据若证明回归或需求变化，应更新对应行并说明原因，不能仅因来源补丁又出现相同代码就重复移植。
+
+- 目标目录：`integration/rsixdb-contextdb`；分支：`feature/contextdb-management`。
+- 原适配起点：`eb055aff32e581bc355da1f3b06cbdbc1faac376`；历史功能基线57bbfd2。当前修复PR基线为团队main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`，本次修复提交以所在Git提交为准，不在文档内自引用最终SHA。
+- **“已落地”表示源码已实现，不等于已合入main或生产部署。** 本次将S16～S26及质量修复整理成一个修复提交送审；SEC-01、必要配置别名、团队UI安全提示及管理日志已在PR基线，保留而不重复计入修复。第13～15章记录的47文件是原eb055aff3工作树阶段；对齐main后本PR为43文件，具体用git diff main...HEAD核对。
+- S16～S26来源：a05b808基准上的冻结补丁`650ab6ac472cc9737323da3bd8ab2aaf891bf19fde184d2a68aa6db70840d708`。质量修复来源：c56c7ac17基准加独立worktree冻结补丁`e2c14176b562a174346e8d9bc5aadc1ff2dc8287e40c68f60b5216f50191cd7a`；不要把基准提交当作已包含未提交修复的版本。
+- 本索引覆盖已核对的SEC-01、S16～S26及质量修复，不将更早基础管理功能重新命名为新的优化。基础管理13项API、六表、同步生命周期等见第2～12章与完整设计。
+
+### 15.2 已实现与已有等效修复
+
+路径缩写：E=`hindsight-extensions/contextdb-service/`，P=`E/hindsight_ext_contextdb/`，C=`hindsight-control-plane/src/components/`，U=`E/tests/ui/`。下列测试均保留在最新目标套件中；专项是全量的组成部分，不再重复累加通过数。
+
+| 编号 | 当前状态与具体结果 | 实现位置 | 回归与追溯 |
+| --- | --- | --- | --- |
+| SEC-01 | HEAD已有，保留；Bank config的config/overrides统一按可见字段投影，业务Key保持200空字段，不改成整接口403 | P/transport.py | test_transport、system/test_114；DESIGN §5.1.1、VALIDATION第10/12章 |
+| S16 | 本次修复已实现；实例init不迁移public业务表，只准备元数据/管理员/秘密；空间创建初始化自己的schema，public保留扩展 | E/scripts/service.sh、system/support/deployment.py | test_deployment_contract真实非超级用户重复init；系统故事结束再检查public无表；第13章 |
+| S17 | 本次修复已实现；六表及关联对象COMMENT完整保留并改英文，key_id为目标Key、control_key_id为操作者Admin Key；DDL/权限/版本不变 | P/schema.sql | test_metadata_initialization完整性/英文/字段语义；第13章 |
+| S18 | 本次修复已实现；只读/读写行为分行，共同标明不能管理空间、用户或Key；权限模型不变 | C/contextdb/key-editor-dialog.tsx、i18n/contextdb-catalogs.json | U/contextdb-users-view、contextdb-key-state；第13章 |
+| S19 | 本次修复已实现；取消60秒/仅标签隐藏清Secret，保留明确关闭/pagehide/卸载/切用户清理，抑制迟到签发及旧复制回调 | C/contextdb/user-keys-panel.tsx | U/contextdb-key-state、contextdb-users-view；正常复制/原生粘贴已通过当前提交Chrome实测；负面竞态仍见自动化证据；第17章 |
+| S20 / B-P01 / F1 | 本次修复已修复；chunk路由复用原生codec识别canonical Bank并建立空间认证上下文；不按下划线拆分或重复解码 | P/transport.py | test_transport、system/test_116；真实SDK异步retain→等待→recall/chunks，双Worker及特殊ID/拒绝路径 |
+| S21 | 本次修复已实现；目录/Key/picker区分加载、GET失败、成功空、无匹配、刷新失败；重试只GET，未知写不重放 | C/contextdb/{users-view,workspaces-view,user-keys-panel,use-key-workspaces} | U目录/Key状态测试，含独立检视补齐5例；第13章 |
+| S22 | 本次修复已实现；完整管理路由及locale/basePath判断、选中态、隐藏空间内容动作；合法users空间不误判 | C/bank-selector.tsx | U/contextdb-native-entrypoints；保留团队resourcePage、documents和产品导航；第13章 |
+| S23 | 本次修复已实现；q服务端分页搜索、取消旧请求、搜索offset归零；授权按不可变UUID独立保留，不丢只读、不让同名继任继承 | C/contextdb/{use-key-workspaces,key-editor-dialog} | U/contextdb-key-state；第51项后、搜索迟到/替换/清空及授权保持 |
+| S24 | 本次修复已实现；用户及实际展开的Key日期跟随UI locale，空时间为“—”；时区策略不变 | C/contextdb/{users-view,user-keys-panel} | U/contextdb-users-view的en/zh-CN与空时间；第13章 |
+| S25 | 本次修复已实现；复用Table/Select/token及小型分页组件、用户单一展开入口、准确创建/编辑动词，完整ID/时间仍可看 | C/contextdb/、i18n/contextdb-catalogs.json | U目录与Key用例；保留UUID、ETag、确认、分页及未知结果核对；第13章 |
+| S26 | 代码已落地；Chrome窄屏留白通过，关闭焦点已在本地修复未提交；第18章；公共Dialog未改 | C/contextdb管理弹窗 | 组件/生产构建通过，不替代真实宽度、焦点、键盘验收；第13章 |
+| 团队配置别名 | 团队main已有并保留；CONTEXTBASE优先、存在但为空不回退HINDSIGHT；保留团队部署/预检合同 | P/{environment,config,preflight,__main__}.py、E/scripts/service.sh | test_environment、部署/预检/健康测试；第13章 |
+| 健康探测最小环境 | 本次修复已修复；Compose不再导出整份ui.env，只传有效origin/port，不把UI秘密带入探测进程 | E/deployment/compose.yaml | test_ui_probe实际shell、双前缀秘密哨兵及空值反例；§13.3 |
+| N-P001 | 本次修复已修复；空间创建关闭/卸载后迟到成功不导航；旧finally不能清掉新controller | C/contextdb/create-workspace-dialog.tsx | U/contextdb-native-entrypoints两项先红后绿；第14章 |
+| N-P002 | 本次修复已修复；用户创建成功JSON必须通过身份/名称/状态/版本/时间校验，否则进入未知结果，只GET核对 | src/lib/contextdb-api.ts、C/contextdb/users-view.tsx | U/contextdb-responses、contextdb-users-view；Unicode NFKC/Python strip及损坏响应；第14章 |
+| N-P003 | 本次修复已修复；Prompt Preview含run_settings，仅Admin可用；原config字段投影不变 | P/transport.py | system/test_114双Worker，selected/all与read/read_write；不定性为任意秘密泄漏 |
+| N-P004 | 本次修复已修复；元数据PG/IO错误不回传原文，认证/过滤失败关闭；原生执行保持宿主错误处理 | P/{database_checks,mcp,tenant,validator,routing}.py | 新test_mcp_metadata_errors；六hook/协议错误及原生错误反例；第14章 |
+| N-P005 | 目标前轮已等效修复，本轮不重复移植；缺外部ADMIN_URL时也用fixture自有PG真正执行init，不静默skip | E/tests/python/test_deployment_contract.py | test_real_source_init_preserves_secrets_without_public_business_tables；清除ADMIN_URL后全Python零skip；§13.3/第14章 |
+| N-P006 | 本次测试已补强；MCP停用/吊销明确断言HTTP401，拒绝后记忆与队列保持不变 | system/test_110、test_111 | 双Worker真实API/SDK/MCP；第14章 |
+| 生命周期部分失败 | 本次修复已补测试；原生动作后元数据激活/最终提交失败可观察、使用新ETag显式清理恢复，旧selected UUID不继承 | system/test_117_contextdb_management_failures.py | 两故障×两Worker四项；仅fixture自有PG触发器注入，业务断言走API/SDK |
+| 小型简化 | 本次修复已实施；用户展开只存user_id；删除无调用select_workspace及只转发的异步_admin，原Admin检查保留 | C/contextdb/users-view.tsx、P/repository.py | 全量UI/权限/生命周期回归；§14.1 |
+| BR-01 | 目标适配独立检视发现并已闭环；MCP list_banks仅包两项元数据读取，不把原生backend/catalog/hydrate误报元数据故障 | P/mcp.py、P/routing.py | 原生3阶段×2错误六项有效红绿，专项37项已计入Python440；§14.2 |
+
+### 15.3 有意差异、撤回与未完成项
+
+| 项目 | 当前决定 | 后续不要重复实施的边界 |
+| --- | --- | --- |
+| launch.py / ui_probe.py等价重构 | eb工作树阶段曾撤回；送审对齐main后保留main原有helper，两文件无PR差异 | 不把main已有实现再改回内联；两阶段语义相同，§13.4是历史，不是要求回退团队提交 |
+| 社区UI接入 | S22保留bank-selector必要改动；质量适配未再改它 | 不为消除文件差异新增前端插件框架；原生Python内核对HEAD/团队基线均无差异 |
+| 团队能力 | 保留品牌、productFetch/标签身份、配置优先级、proxy、安全Host/Origin、会话持久化/撤销及渲染策略 | 不用来源同名文件整体覆盖；contextdb-api为自研模块，不是新增社区内核侵入 |
+| 删除并发 | 仍要求管理员先停业务、等待在途及后台结束；超时/取消/空队列不证明执行结束 | 不恢复执行代次、删除屏障、调度器或连接池；生命周期失败测试不扩大服务承诺 |
+| N-P007 / O02 | 来源默认ARM容器SIGILL未修复，移交其他环境验收；目标本轮未测Docker | 不把诊断OPENSSL_armcap覆盖写入生产默认，也不将来源冒烟当目标默认部署通过 |
+| N-P008～010 / O01 | 来源页头/焦点/超长提示与复制需分开核对：目标关闭焦点已复现并在本地修复未提交（第18章）；390页头无整页溢出，正常复制/粘贴通过；长名提示待补验，见第17章 | 不据来源首轮ACCEPT关闭；不把JSDOM/HTTP故事当真实浏览器通过 |
+| O01-C01 | 复制内容核对归因未定，未修复 | 不把“已复制”反馈等同真实内容核对，也不直接认定产品缺陷 |
+| O03/O04及其他后续项 | 镜像启动免扫描、MCP查询复用/遥测去重、Trace/Audit/Webhook等未实施 | 只有新需求明确授权并有目标证据时再分析；不把已有测试当该方案已实现 |
+| 独立原生问题 | Issue #14文档生成、原生敏感日志等另行跟踪 | 不混入管理特性，不绕过钩子或修改持久Git配置 |
+
+### 15.4 验证基准与后续更新规则
+
+原eb工作树阶段代码快照已完成：Python **440**、UI **642/74文件**、ContextDB系统 **73**、Key合同 **1**全部通过且零跳过；独立生产UI **2**项及严格JUnit门禁通过（2项包含在系统覆盖中，不重复累加）；原生相关 **132**通过、**1**项既有可选LangChain收集跳过。正式构建/源码及bundle指纹、类型、lint、knip5.88.1、格式、diff检查通过。后端BR-01关闭，三类独立检视无剩余Must fix/Should fix。命令与限制统一引用VALIDATION第12章，不以来源391/523等计数替代。
+
+最初索引整理只改本文和README，未重跑功能测试；随后送审阶段对齐团队main并重新验收，最新结果以VALIDATION第13章为准，不再用440/642代替新快照。真实目标浏览器、Node24/Linux、原样Docker、远程CI、ECS/RDS、真实MaaS、性能/HA及备份恢复仍未验。
+
+本地证据定位：S16～S26为`/tmp/contextdb-rsix-adaptation-path`，质量修复为`/tmp/contextdb-rsix-quality-path`；对应目录保留冻结补丁、target-before、最终补丁、JUnit、命令日志与独立报告。临时路径仅是本机辅助证据，代码库内的本章和VALIDATION才是持久阅读入口；跨机器或临时目录被清理时，应携带冻结补丁/日志或重新验证，不能虚构为已有提交。质量验收的final-result.json及target-final-files-sha256.json记录的是索引整理前快照，本次文档变化另存optimization-index子目录，不改写历史指纹。
+
+后续每个新增优化先匹配上述编号及具体行为：已有等效实现则记“保留”；需要新增时更新对应行的实现、验证和状态，并在实施章节补来源基准/补丁指纹。只有代码变更、失败、新证据或需求变化才重开分析/回归；提交或合入后补实际提交号，届时才可将“工作区已实现”更新为“已提交/已合入”。
+
+
+<a id="issue19-resolution"></a>
+
+## 16. Issue #19逐项复核与本次送审（2026-10-21）
+
+> 本章为送审前静态复核历史；当前Chrome实测及重新分级以[第17章](#issue19-chrome-review)为准，尤其U4/U5/U10不再一律要求代码改动。
+
+### 16.1 明确结论
+
+**Issue #19尚未全部解决，当前PR不能据此自动关闭Issue。** F1分块详情401已修复并有双Worker真实SDK闭环；F2是团队main已修复的前缀问题，本PR保留并回归。UI意见有代码完成项，也有仅部分完成和未验收项，不能用“整体优化”代替逐项结论。以下以本次送审代码与2026-10-21重新读取的Issue正文为准；不擅自更新其checkbox，也不添加Fixes/Closes自动关闭标记。
+
+| Issue条目 | 结论 | 当前代码、证据与剩余差异 |
+| --- | --- | --- |
+| F1 | 已解决 | S20/transport使用原生codec建立chunk认证；system/test_116两Worker，Admin/read/read_write成功，跨空间及无效/吊销Key拒绝，特殊文档ID及上下文恢复 |
+| F2 | main已有修复，保留并回归 | 团队49d727664已修正前缀优先级；service.sh/环境/健康探测合同保留。S16有意取消public迁移，不恢复旧迁移测试 |
+| U1 表格/主题 | 代码已整改，视觉待验 | 三类目录用公共Table继承卡片/边界/11px表头与主题token；本快照未完成浅/深色真实浏览器对照，不宣称视觉验收关闭 |
+| U2 页面布局 | 代码已整改，视觉待验 | users/workspaces统一全宽、p-4/md:p-6与页头间距；是否达到1440px对齐及切页观感需同版浏览器确认 |
+| U3 搜索/分页 | 已实现对应行为，外观待验 | 搜索placeholder与可访问名称、服务端q、搜索offset归零；小型DirectoryPagination复用公共Button，单页不显示无效翻页按钮；未强行套入另一套分页状态 |
+| U4 动作层级 | 部分解决 | 用户只留一个Key展开入口、删除菜单标为危险色、Key创建/保存动词区分；空间删除与Key吊销仍是常驻destructive按钮，Issue要求的全部强调层级尚未完成 |
+| U5 Key子详情 | 部分解决 | 完整Key ID/时间收进辅助details，突出名称/范围/动作，单页无翻页按钮；仍保留面板标题和刷新/创建工具栏，重复控制栏及纵向密度需视觉评审，不能称全部完成 |
+| U6 表单/空间搜索 | 对应代码与行为已实现 | 公共Select、分行权限解释及服务端q分页；第51条后空间、迟到搜索、UUID及只读授权保持均有测试；未做大规模性能承诺 |
+| U7 读取状态 | 已解决所列逻辑问题 | S21区分loading/失败/成功空/无匹配/刷新失败，失败不显示确定0或旧列表；GET重试，写结果未知仍只读核对 |
+| U8 管理导航 | 已解决所列逻辑问题 | S22完整管理路径含locale/basePath、导航选中、隐藏添加文档，保留上次空间返回；合法users空间反例通过 |
+| U9 窄屏/弹窗 | 部分解决，未完成验收 | 管理Dialog局部留白、Key次要列可收起/辅助查看，公共Dialog未改；表格仍可能横向滚动，390/1024/1440真实目标页与主要动作可达性未验，不据来源弹窗截图关闭 |
+| U10 日期/图标 | 部分解决 | 日期跟随UI locale，用户主展开改Chevron，en/zh-CN含实际展开Key面板与空时间有测试；Key辅助details仍用浏览器原生箭头，全部展开控件统一未完成 |
+| U11 一次性Secret | 代码反馈与主次按钮已整改；保留规则有经确认的设计变更，真实复制待验 | 复制主按钮/关闭次按钮、成功与失败反馈及迟到保护已实现。按后续S19决策取消60秒/纯隐藏清理，保留明确关闭/pagehide/卸载/切用户；这不是照单保留Issue旧规则，也不是遗漏。真实剪贴板内容核对未验，不自动关闭 |
+
+来源后续浏览器报告另有N-P008～010（页头、焦点、长度提示）和复制待归因，它们不等于目标已复现/已修复，当前仍列待办。本次没有扩大UI整改范围来补完全部视觉意见。
+
+### 16.2 代码与文档一致性修正
+
+原文有几处已过时：DESIGN仍写独立检视待完成、SEC-01仍列在TODO、管理日志尚未增加，以及索引把旧工作树未提交状态/47文件当当前状态。已修正当前正文，历史第13～14章及VALIDATION第11～12章保留时点；当前PR采用main1dc0ad37e基线，累计43文件。新补本节的F1/F2/U1～U11矩阵，不再把S25/S26代码落地等同Issue整体验收。
+
+团队main的49d/6993已被保留：中性客户错误消息、管理request_id关联日志、配置别名及其新增测试均在本次送审快照中；不覆盖为较旧eb版本。先保存完整源码快照及自有stash，快进当前分支到main，再恢复修复；四处冲突均为S16或最小探测环境及相应测试的有意差异，按已验证语义解决。未重写团队提交或切换分支。
+
+原生Python运行目录相对main及旧团队基线零差异；launch/ui_probe、productFetch/身份、proxy/会话、公共Dialog与依赖/CI未新增PR改动。独立检视已在前轮完成，本次基线对齐后再次自检并回归；最新证据见VALIDATION第13章，不冒称重新执行了三类独立检视。
+
+## 17. 当前提交Chrome复核：U1～U11（2026-10-21）
+
+<a id="issue19-chrome-review"></a>
+
+> 本章记录修复前Chrome复核；其中焦点/名称待修项已在[第18章](#dialog-focus-and-name-fixes)本地修复，未提交。
+
+### 17.1 结论与范围
+
+复核提交为`c41e8ab2b0383fef9a1afeaf0db80c0eb9430760`，开始时工作树干净。使用Chrome、该提交独立生产构建、任务自有PG/API/UI及模型替身，未连接现有部署。不是用开发页面或来源仓截图代替目标验收。生产build-ui重新执行通过（19.07秒），ui_owner校验目标源码与manifest/bundle匹配。另启同一bundle、关闭ContextDB目录的原生工作空间列表作为样式参考；这是同版公共组件参考，不是历史PR #15的前后运行对比。
+
+**原问题已经大部分整改；需要继续修复的是实际复现的局部问题，不应把每一条风格建议变成强制代码改动。** 本轮确认两项后续修复：管理弹窗关闭焦点未返回触发按钮；工作空间行名称继承表头uppercase。U4/U5/U10先前“仍必须改代码”的表述过重，现降为可选样式改进。Issue保持OPEN，避免把仍存在的键盘问题或未验边界算作通过。
+
+### 17.2 逐项重新评估
+
+| 条目 | 当前实测与判断 | 后续处理及原因 |
+| --- | --- | --- |
+| U1 表格/主题 | 原表格/主题问题在本轮页面未复现。1440px管理目录表头11px，浅色rgb(82,88,102)、深色rgb(148,168,201)，与同版原生目录一致；公共Table边界/卡片可读。另发现空间行名称视觉大写，但DOM/API名称仍小写 | **局部待修**：workspaces-view的行头覆盖text-transform，保留scope=row。不要改公共Table。不是Bank身份或鉴权数据被改写 |
+| U2 页面布局 | 两个管理目录1440px均x=24、宽1392，页头/工具栏一致。原生目录x=112、宽1216，属于不同页的最大宽度选择；390px管理页无整页横向溢出 | 原目录相互不对齐问题已消除；不为强求所有页面等宽修改公共布局或bank-selector |
+| U3 搜索/分页 | 空实例0–0/0；56个空间可翻至21–40/56；无匹配有清空筛选说明；从第二页搜索得到1–1/1，offset归零；单页不显示无效翻页按钮 | 所列行为通过；专用清空图标是可选易用性，不需再建分页状态层 |
+| U4 动作层级 | 用户仅一个Key展开入口；编辑与创建动词区分；吊销红色且有独立确认，默认焦点Cancel，取消后Key保留 | 已整改主要问题。常驻红色按钮不等于功能缺陷；移入菜单只是可选产品取舍，会增加操作步骤，不列必须整改 |
+| U5 Key详情密度 | 单Key名称、脱敏值、权限、主要动作清晰；完整ID/时间可展开。空Key面板仍有子表头及0计数 | 核心可读性通过；空面板隐藏表头/0计数可选。所属成员标题、刷新/创建是面板作用域和必要动作，不能直接认定冗余，也无需通用详情框架 |
+| U6 表单/授权搜索 | 真实UI搜索首50项之外review_space_53；GET带q/limit=50/offset=0；用键盘选中、切只读，清空搜索仍选中且只读；成功签发后范围显示53只读。公共Select键盘可用 | 功能及键盘路径通过；保持现有UUID草稿/hook。慢搜索迟到、同名新UUID隔离沿用已有自动化证据，本轮不冒称都再做浏览器竞态验证 |
+| U7 读取状态 | 实际阻断用户GET：首次失败显示无法读取，数量—；刷新失败隐藏旧列表并明确不是最新；2200ms慢读显示加载中。恢复后刷新成功，捕获的失败/重试均GET | 原“失败显示0/空实例”通过复核。空用户、空Key与无匹配也已看见。授权选择器及所有目录故障组合未逐一重演，保持已有自动化覆盖，不重写通用CRUD状态机 |
+| U8 管理导航 | 合法/banks/users保留Add Document；进入/users后隐藏该动作，管理按钮aria-current=page，仍保留上次users空间 | 原管理上下文问题通过；浏览器验证默认路由，locale/basePath路由变体仍为已有组件测试证据 |
+| U9 窄屏/弹窗 | 实际innerWidth确认390/1024/1440。390px无整页溢出，目录表格局部横向滚动；Key弹窗宽358、左右各16px、高约832/视口844，创建按钮可见；空间弹窗358×463。**取消、X或Escape关闭后焦点落BODY**，工作空间创建和成员创建均复现 | **焦点待修**。局部滚动是合理承载，不应要求消灭所有滚动。完整窄屏键盘循环、所有表格尾部动作和系统原生辅助技术未穷尽，不作全量无障碍认证 |
+| U10 日期/图标 | 实际展开Key面板：zh-CN日期2026/10/21，en日期10/21/2026，用户与Key均跟随语言，未使用为—。用户主Chevron唯一；Key details/授权详情原生summary可Enter展开 | 日期和键盘行为通过。主导航展开与辅助details不同层级，统一箭头属可选视觉；不值得新增Disclosure组件或修改公共控件 |
+| U11 Secret | 真实UI签发，键盘触发复制；成功反馈可见，剪贴板内容与当前一次性Secret一致，再原生Cmd+V粘贴到未提交的测试草稿，内容完全一致；关闭后明文节点清除 | 正常复制/关闭通过，来源复制异常在当前目标未复现。保留S19明确关闭/pagehide/卸载/切用户清理，不恢复60秒或标签隐藏清理。拒绝剪贴板权限/API缺失和迟到回调本轮未做Chrome故障注入，沿用自动化验证 |
+
+### 17.3 两个明确问题与最小修复计划（尚未实施）
+
+1. **焦点恢复（优先，U9）：** 键盘打开创建空间或成员弹窗，按Escape/Cancel关闭；预期焦点返回原触发按钮，实际document.activeElement为BODY。当前受控Dialog与页面按钮分离，调用方没有有效触发元素恢复。先在自研调用点保存触发按钮ref，通过现有Radix onCloseAutoFocus恢复，或在合适调用点使用DialogTrigger；跨组件创建对话框仅传可选返回焦点ref/回调，不建全局注册表。用户/Key/空间各自维护局部生命周期；目标消失时使用同页确定的安全备用按钮。不得为了焦点新增写入重试、改变Secret清理或自动再次签发。候选文件为components/contextdb/{create-workspace-dialog,workspaces-view,users-view,user-keys-panel,key-editor-dialog}.tsx，按实际触发链只改必要者；bank-selector仅在它的创建入口无法通过现有接口返回焦点时才评估最小接线，不先行扩大。验证Enter打开、Tab/Shift+Tab约束、Escape/Cancel/X恢复、嵌套Select关闭及切用户/签发迟到。
+2. **名称如实显示（局部，U1）：** 搜索review_workspace，API/DOM为review_workspace，屏幕显示REVIEW_WORKSPACE；tbody th计算样式为uppercase。workspaces-view.tsx的TableHead(scope=row)继承列标题样式。优先在该行头局部加normal-case并检查tracking/字号与正文一致，保留语义。只改自研组件，验证小写/数字/下划线名称、复制/打开目标、深浅色和窄屏；公共TableHead列标题仍大写。
+
+可选密度/箭头/危险按钮样式单独作为产品取舍，不阻断上述修复，也不一并改造。长名称边界提示、授权选择器GET失败、全部窄屏尾部动作属于后续补验，未证实为当前缺陷，先复现再定代码。已有F1/F2、认证/Secret竞态/UUID搜索不重新开发。
+
+**侵入边界：** 本轮只更新文档，产品代码零改动。建议修复集中自研contextdb组件及插件目录既有UI测试；不改原生Python、REST/MCP/SDK、schema/元数据、公共Table/Dialog、主题、proxy/产品身份、会话、部署或依赖。不建立通用CRUD/分页/Disclosure/焦点管理框架；重复少量调用点ref优于增加跨目录耦合。
+
+### 17.4 证据与验收边界
+
+工件由`/tmp/contextdb-chrome-review-path`定位，目录`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-chrome-review-20261021-7r9hvxda`。保存生产构建日志/结果、initial.json、environment.json、observations.json、clipboard-result.json、search-requests.json、retry-requests.json、截图、report.md与清理记录；不保存真实用户凭据，测试秘密及临时数据库随清理删除。
+
+关键截图：01/03/04管理目录浅色、07同版原生1440浅色、09授权保留、11无匹配、12第二页、13～15读取失败/加载、16/18管理Key深色、17同版原生深色、23实际390 Key弹窗、24/25实际390目录深浅色、26/29实际1024深浅色、27危险确认、28管理导航、30名称大写、31实际390空间弹窗。**以observations中的实际viewport为准**：06参考页尺寸未匹配不用于对照，19抓到加载态不用于日期结论，20/22文件名含390但主标签实际1440，不作为窄屏证据；其后用标签页CDP明确390并核对innerWidth才纳入窄屏判断。英文Key日期来自实际展开面板22（1440），不是加载截图19。
+
+这是人工Chrome行为/视觉复核，不是新一轮448/645/73自动化回归，也不是新独立专家检视。没有执行默认Docker、Node24/Linux、远端CI、云部署、真实MaaS或性能/恢复验证。未修改、提交或推送产品代码；所有服务/数据库均任务自有，未动8888/9999及PG5432。临时网络/视口覆盖恢复，测试剪贴板清除、标签页关闭、fixture退出后清理重型构建与秘密；Issue和文档更新不代表PR已合并。
+
+
+## 18. 弹窗焦点与空间名称修复（2026-10-21，提交前验收快照）
+
+<a id="dialog-focus-and-name-fixes"></a>
+
+> 本章保留提交前验收身份；用户随后授权整理为独立后续提交并推送PR #20。代码身份以Git及PR提交列表为准，验收不再重复归属给旧c41提交。
+
+> U4/U5/U9/U10后续明确整改与当前本地验收见[第19章](#u4-u5-u9-u10-final-decision)。
+
+### 18.1 当前状态与最小实现
+
+本轮按用户授权修复第17章两个明确问题，基于HEAD `c41e8ab2b0383fef9a1afeaf0db80c0eb9430760`，**尚未提交或推送**，不是PR #20已有提交。开始时四份管理文档已有上轮修改，全部保留。代码/测试文件指纹集合SHA256为`8cb66ccde0bffb52b277a68a8e5e3d11b13e96a6d7418230750707177f090d35`（code-sha256.json及冻结新增文件），不可把未提交修复归属给c41提交。
+
+| 问题 | 修复前 → 当前行为 | 修改与必要边界 |
+| --- | --- | --- |
+| U9 管理弹窗关闭焦点 | Escape/取消/X关闭后落BODY → 返回实际触发按钮；原按钮移除或禁用时尝试同页备用按钮；新Dialog已接收焦点时不抢回 | 自研dialog-focus.ts仅一个恢复函数，无全局状态/监听/定时器。各页面/Key面板持有自己的按钮ref，通过现有onCloseAutoFocus接线；菜单编辑/删除返回More；Secret关闭返回创建Key；只读核对窗口返回稳定的目录/选择器入口 |
+| U1 空间名称视觉大写 | DOM/API为review_workspace_21、屏幕变大写 → 真实名称原样显示，14px正文，不改数据/路由 | 只在workspaces-view.tsx的TableHead(scope=row)加normal-case/tracking-normal/text-sm；列标题仍沿用公共TableHead，行头语义保留 |
+
+自研实现涉及create-workspace-dialog、workspaces-view、users-view、user-keys-panel、key-editor-dialog、workspace-result-check及小型dialog-focus函数。Key编辑关闭和Secret打开可能同一轮发生，恢复函数检测另一个活动Dialog，避免把新Secret窗口焦点拉到后台；现有签发/清理/迟到保护不变。组件持有ref，卸载后不另安排延迟恢复；不建立通用焦点管理框架。
+
+**唯一原生组件增量是bank-selector.tsx增加4行**：一个选择按钮ref、ref绑定、向ContextDB创建与结果核对窗口各传一个returnFocusRef。下拉菜单的创建按钮会卸载，不能返回该临时DOM，因此回到稳定选择按钮；不改原生模式创建逻辑。若不接线，该第二创建入口仍会落BODY。原生Python、公共ui/Dialog/Table、认证/路由/会话/productFetch、部署及依赖均无本轮改动；不把“尽量自研内完成”表述为完全没有接入修改。
+
+### 18.2 测试与Chrome闭环
+
+新增14项测试，继续使用插件目录与原Control Plane工具链：workspace-view覆盖三种关闭、删除取消及名称行头；users-view覆盖三种关闭、菜单编辑/删除、Key编辑/吊销取消、编辑→Secret焦点及明确关闭；dialog-focus测试覆盖移除/禁用目标备用返回、不抢新Dialog焦点及页面断开。取消路径断言没有写请求；不新增skip/xfail。
+
+最终UI全量**659 passed /75文件/0 skipped**（此前645，增加14）；TypeScript、仓库LINT_SERIAL=1 scripts/hooks/lint.sh、knip@5 files/dependencies、改动文件Prettier、git diff --check均通过。正式build-ui隔离构建通过（6.72秒，复用任务自有构建缓存）；目标源码/manifest/bundle经ui_owner核验一致。真实生产UI故事双Worker**2 passed/0 skipped**（17.91秒），check_production_ui.py完整性门禁exit0。
+
+Chrome使用任务自有API/PG/生产UI、模型替身：**18个焦点恢复检查通过**，覆盖1440/1024/390px；包括创建空间/成员三种关闭、菜单编辑/删除取消、下拉创建返回选择器、Key创建/编辑/吊销取消、Secret明确关闭及窄屏返回。Key编辑→Secret默认焦点为复制按钮，无抢焦点；8次Tab/Shift+Tab保持在弹窗内，嵌套Select的Escape只关闭选择层。空间名称在1440浅/深色、390深色实际计算样式none；scope=row保留，390页面无整页溢出。没有保存一次性Secret截图或明文。
+
+工件入口`/tmp/contextdb-dialog-fixes-path`，实际`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-dialog-fixes-20261021-n6b25c2h`：完整命令/日志与结果JSON、production-ui.xml、manifest、code-sha256.json、current.patch、untracked/、focus-observations.json、name-style.json、tab-containment.json及screenshots/。截图02/05为名称1440浅/深色，04为390深色，01/03为关闭后的按钮焦点。补丁含此前文档差异，代码归属以code-sha256.json为准。
+
+### 18.3 检视与限制
+
+依仓库code-review清单自检：无未闭环Must fix/Should fix；检查全部管理Dialog调用点、两个创建入口、菜单触发、Secret替换、移除按钮与原生模式接线，函数无HTTP/数据库/状态修改，所有新增逻辑有测试。**这是实现者自检，不冒称新一轮独立专家检视。** 首轮发现导入遗漏/测试类型与标签错误已修正；失败日志保留，没有删除断言或跳过失败。标准lint带出3个范围外embed格式变更，保存补丁、核对AST一致后恢复，未纳入。
+
+本轮没有Python改动，未重跑448项Python/73项全系统/132项原生回归；那些计数仍仅对应第13章历史提交。双Worker生产UI为本轮实跑2项；Chrome人工只嵌入Worker，不能当作额外自动化故事累加。只读结果核对窗口的新增返回接线未做浏览器故障注入，保留原只读核对测试及类型检查；fallback移除/禁用路径通过组件工具测试，未在Chrome人为移除DOM。完整辅助技术、剪贴板负面场景、远端CI、Docker/Linux/云/真实模型/性能仍未验。第17章两项“待修”是修复前历史，现以本章为准。
+
+Issue #19只更新状态，不自动关闭；当前远端PR提交仍为c41，不含本地修复。临时服务/PG/构建/凭据均任务自有，退出后清理；未操作8888/9999或PG5432，未提交、amend、推送或更改Git持久配置。
+
+
+## 19. U4/U5/U9/U10明确整改与Chrome验收（2026-10-21，本地候选）
+
+<a id="u4-u5-u9-u10-final-decision"></a>
+
+**结论：四项均改，已完成本地代码整改和所列场景验证，不再作为“待分析/可选样式”悬置。** 当前远端PR #20提交仍为`1613981c5e4e6e47aea04edd6835b95cb9f12df5`；本章对应其上的未提交补丁，代码/测试集合指纹`8cf769baffa6f12179e4ba2b6f6f553e541c87ceef30da4f8097b8489e016489`。不能把本地结果写成PR已纳入或已合入。第16～18章保留历史时点；早期将剩余意见降为可选的判断不再作为当前结论。
+
+| 条目 | 明确决定及依据 | 已落地修改 | 收益/验收结论 |
+| --- | --- | --- | --- |
+| U4 动作层级 | **改。** 原来空间/Key常驻红色按钮，用户删除却在菜单，三个目录规则不一致 | 正常查看/编辑保留行内次操作，空间删除与Key吊销迁入与用户管理一致的“更多”菜单；菜单危险色、确认窗、取消和结果未知处理均保留。创建为所在作用域主操作，刷新为次操作 | 三类危险菜单Chrome计算颜色一致rgb(212,24,61)；打开菜单/确认不执行写入，取消返回原按钮；单独确认后写入由既有测试覆盖。减少常驻危险按钮竞争，不修改全局Button |
+| U5 Key子详情密度 | **改。** 单Key重复成员标题、子表头及单页计数，1440px展开区高236px；辅助信息与主要信息竞争 | 单一语义列表替代内层表，不新增桌面/手机两套状态。简短API Key标题、保留创建/刷新；空列表不渲染空表头/计数，单页无页脚；单空间名称+权限直接显示，多空间可展开；完整ID/日期仍可展开/手工选择复制 | 相同1440px英文浅色、相同数据形状，展开区降至188px，减少48px（约20%）；Key表头和重复计数消失。空、单条、21条分页及62字符名称通过。不是性能基准 |
+| U9 窄屏/弹窗 | **改Key列表/父表布局，不改公共Dialog。** 原390×600外表约600px、内表约544px；编辑右界412px、吊销493px，主要动作超出视口 | Key只用一套可换行布局；父用户表在窄屏收起日期/独立状态列，状态放在名称下；保持自动表格布局，避免固定布局+colSpan把姓名挤窄。编辑、更多、名称/权限不需横向寻找 | 最终390×600父表358px、姓名列178px，页面宽390px；Key各主要按钮右界≤346px。62字符名称及多页所有动作边界在390px内。编辑窗358×536px，x16/y32；纵向滚动可达底部保存，10次Tab保持窗内，取消返回编辑。1024/1440也通过。已有局部留白/公共Dialog限高实测正确，重复改公共组件无收益 |
+| U10 日期/展开图标 | **改辅助箭头，不重复改正确的日期逻辑。** 主展开Chevron与辅助浏览器marker不一致；当前useLocale已正确 | 辅助summary保留原生键盘行为，隐藏原生marker，统一16×16 Chevron，展开旋转90°；完整ID、脱敏值、名称分开。沿用现有useLocale/toLocaleString和空时间—，不新建日期库/Disclosure框架 | 浏览器区域设置通过CDP指定en-US，UI zh-CN显示2026/10/21…；切UI en显示10/21/2026…PM；实际展开Key核对，空时间—。辅助箭头marker=none、CSS16px、展开90°，混合只读/读写逐空间信息保留 |
+
+### 19.1 真实浏览器证据
+
+均为Chrome、隔离的正式生产构建、任务自有PG/API/UI及模型替身。基线先运行HEAD，再运行本地候选；不是用来源截图或JSDOM替代。390×600、1024×768、1440×900，指定深浅主题/en/zh-CN场景通过。截图为了展示Key可正常纵向滚动；原版展开后存在横向寻址，候选主要操作不再需要横移。
+
+| 尺寸 | 修复前 | 修复后 |
+| --- | --- | --- |
+| 390×600 | ![原版短屏](screenshots/u4-u10-before-390x600.png) | ![候选短屏](screenshots/u4-u10-after-390x600.png) |
+| 1440×900 | ![原版单Key](screenshots/u4-u10-before-1440.png) | ![候选单Key](screenshots/u4-u10-after-1440.png) |
+
+补充实测：空Key面板仅必要工具栏+空提示；21条翻到21–21/21后可返回；两空间混合只读/读写；Key ID完整可查看、名称长文本可换行；三类危险菜单及确认/取消；短屏Select和键盘路径；当前日期/图标。没有在浏览器点击最终删除/吊销来破坏数据，确认后的请求断言和双Worker生命周期沿用/重跑相应自动化；不把菜单点击称为已执行删除。
+
+### 19.2 代码与测试范围
+
+生产实现只改自研`components/contextdb/{users-view,user-keys-panel,workspaces-view}.tsx`和管理词条；本轮**没有新增bank-selector或原生Python、公共Table/Dialog、proxy、SDK/API/鉴权/数据库/配置/依赖修改**。Key编辑快照、UUID授权、ETag、未知结果只读核对、Secret清理/迟到保护及用户切换隔离均保留。成员和空间主目录继续用公共Table，Key子详情采用语义ul/li，这是原U9允许的分组布局，无重复移动/桌面渲染器。
+
+测试仍在插件目录，用原工具链；增加6项空/单条/分页/完整ID图标/混合权限/危险菜单回归，并把旧直接吊销/删除点击适配为真实菜单路径；保留取消无写入、旧ETag及未知结果不重放等原断言。最终UI **665 passed/75文件/0 skipped**，双Worker生产UI **2 passed/0 skipped**及严格JUnit门禁通过；类型、仓库lint、knip@5、Prettier、正式构建/源码及bundle校验通过，见VALIDATION第16章。
+
+### 19.3 明确交付与验收边界
+
+本轮主控自检无未闭环Must fix/Should fix；没有冒称新一轮独立专家报告。Chrome暴露过中间版父表固定布局挤窄姓名，已改为自动布局并复验；最终额外保留窄屏成员状态显示，重新构建/回归和短屏截图。失败日志与中间证据保留，不删断言、不新增skip/xfail。
+
+**这四项列举的实现/浏览器场景没有继续挂起的技术决策。** 交付剩余动作是将已验证补丁纳入PR、向提出人提供本章同条件对比及命令证据、逐项复核实际整改，而不是要求对方接受“可选”。是否合入仍由committer及项目门禁决定，不能代替批准。完整辅助技术、所有系统/设备组合、远端CI、Node24/Linux、Docker/云/真实模型/性能不在本轮通过范围，不将这些泛化环境项混写为U4/U5/U9/U10仍未实现。
+
+工件入口`/tmp/contextdb-u4-u10-path`，实际`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-u4-u10-20261021-w_5z1ofo`；before为基线，after为最终，after/iteration1、iteration2保存中间复验。主矩阵在iteration2完成；其后仅增加窄屏状态文字，最终重新构建、665项/类型/lint/生产UI门禁，重验390×600、1024/1440、日期、空/多页。`code-sha256.json`、补丁、manifest、命令日志、DOM边界和截图支持回溯。仅自有临时资源，清理后不保留测试秘密；本轮未提交/推送，未操作现有8888/9999或用户PG5432。
+
+
+### 19.4 单一提交交付复核（2026-10-21）
+
+用户授权将本章修复amend至当前提交并使用指定旧SHA的`--force-with-lease`推送，保持PR #20一个提交。交付前逐项核对8个代码/测试文件SHA256，与上述已验证冻结集合完全一致；未再改变产品代码，不无理由重复完整回归。核对665项UI、双Worker生产UI及严格门禁、类型/lint/knip/格式/构建结果及Chrome证据；本章“本地候选/未提交”是验收发生时的身份，最新提交身份以Git/PR为准。四项均已整改并纳入本次送审内容，不再列为代码未完成；仍由提出人和committer复核，不自动关闭Issue。
+
+仅修改自研管理组件、词条、插件UI测试和既有资料/截图；相对本轮开始HEAD没有新增原生侵入。保留历史功能验证与本轮UI验证的时点差异。Issue #19原始正文保持不变，只更新唯一进展评论；PR同时保留Issue之外的优化说明。任务工件内amend-delivery保存交付前Git bundle、补丁、PR/Issue及评论备份。没有操作现有服务或用户数据库；不修改持久Git钩子配置。

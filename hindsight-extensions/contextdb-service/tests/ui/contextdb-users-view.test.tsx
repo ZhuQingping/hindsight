@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { withContextdbMessages } from "@/i18n/contextdb-messages";
+import { openMenuAction } from "./support/menu";
 import React from "react";
+import { selectOption } from "./support/select";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, fireEvent, waitFor, cleanup, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
@@ -9,6 +11,7 @@ import zh from "@/messages/zh-CN.json";
 import { ContextDBUsersView } from "@/components/contextdb/users-view";
 import {
   contextDBRequest,
+  createContextDBUser,
   createContextDBKey,
   ContextDBError,
   type ContextDBUser,
@@ -18,6 +21,7 @@ import {
 vi.mock("@/lib/contextdb-api", async (original) => ({
   ...(await original<typeof import("@/lib/contextdb-api")>()),
   contextDBRequest: vi.fn(),
+  createContextDBUser: vi.fn(),
   createContextDBKey: vi.fn(),
 }));
 const member: ContextDBUser = {
@@ -69,10 +73,13 @@ async function openCreate() {
   return screen.getByRole("dialog");
 }
 function selectAll(dialog: HTMLElement) {
-  fireEvent.change(within(dialog).getByLabelText("Workspaces"), { target: { value: "all" } });
+  selectOption(within(dialog).getByLabelText("Workspaces"), "all");
 }
 beforeEach(() => {
   api.mockReset();
+  vi.mocked(createContextDBUser).mockImplementation((body, signal) =>
+    contextDBRequest<ContextDBUser>("/users", { method: "POST", body, signal })
+  );
   vi.mocked(createContextDBKey).mockImplementation((userId, body) =>
     contextDBRequest<ContextDBKeyIssued>(`/users/${userId}/keys`, { method: "POST", body })
   );
@@ -122,9 +129,9 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Create member"));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Bob" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Result unknown");
-    expect(within(dialog).queryByText("Save")).toBeNull();
+    expect(within(dialog).queryByText(/^(Save|Save changes|Create)$/)).toBeNull();
     fireEvent.click(within(dialog).getByText("Check current members"));
     await screen.findByText("Bob");
     expect(api.mock.calls.some(([path]) => path.includes("limit=100"))).toBe(false);
@@ -143,9 +150,12 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Create member"));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Bob" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Invalid member name");
-    expect(within(dialog).getByText("Save")).toHaveProperty("disabled", false);
+    expect(within(dialog).getByText(/^(Save|Save changes|Create)$/)).toHaveProperty(
+      "disabled",
+      false
+    );
     expect(within(dialog).getByLabelText("Name")).toHaveProperty("disabled", false);
     expect(within(dialog).queryByText("Check current members")).toBeNull();
   });
@@ -160,13 +170,13 @@ describe("member and key management", () => {
     });
     mount();
     await screen.findByText("Alice");
-    fireEvent.keyDown(screen.getByText("More"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "More" }), { key: "Enter" });
     fireEvent.click(await screen.findByRole("menuitem", { name: "Rename member" }));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Old draft" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Version changed");
-    expect(within(dialog).queryByText("Save")).toBeNull();
+    expect(within(dialog).queryByText(/^(Save|Save changes|Create)$/)).toBeNull();
     fireEvent.click(within(dialog).getByText("Check current members"));
     await screen.findByText(/Original member ID: member/);
     expect(api.mock.calls.some(([path]) => path.includes("limit=100"))).toBe(false);
@@ -194,7 +204,7 @@ describe("member and key management", () => {
     });
     mount();
     await screen.findByText("Alice");
-    fireEvent.keyDown(screen.getByText("More"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "More" }), { key: "Enter" });
     fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
     const dialog = screen.getByRole("dialog");
     fireEvent.click(within(dialog).getByText("Delete"));
@@ -224,7 +234,7 @@ describe("member and key management", () => {
     const dialog = await openCreate();
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "new agent" } });
     selectAll(dialog);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: /^(Save|Save changes|Create)$/ }));
     await within(dialog).findByText(/Result unknown/);
     expect(screen.getByRole("dialog")).toBe(dialog);
     expect(screen.queryByTestId("issued-secret")).toBeNull();
@@ -274,9 +284,9 @@ describe("member and key management", () => {
     mount();
     await openKeys();
     expect(screen.getByText("ctx_live_***abC_-1")).toBeTruthy();
-    expect(screen.getByText("Agent").closest("table")?.closest("td")?.colSpan).toBe(5);
-    expect(screen.getAllByText("Created").length).toBe(2);
-    expect(screen.getByText("Last used")).toBeTruthy();
+    expect(screen.getByText("Agent").closest("td")?.colSpan).toBe(4);
+    expect(screen.getByText(/^Created:/)).toBeTruthy();
+    expect(screen.getByText(/^Last used:/)).toBeTruthy();
   });
   it("creates mixed permissions, defaults newly selected workspaces to read/write", async () => {
     mount();
@@ -285,14 +295,12 @@ describe("member and key management", () => {
     fireEvent.click(await within(dialog).findByText("Workspace A"));
     fireEvent.click(within(dialog).getByText("Workspace B"));
     expect(await within(dialog).findByLabelText("Workspace A Permission")).toHaveProperty(
-      "value",
-      "read_write"
+      "textContent",
+      "Read and write"
     );
-    fireEvent.change(within(dialog).getByLabelText("Workspace A Permission"), {
-      target: { value: "read" },
-    });
+    selectOption(within(dialog).getByLabelText("Workspace A Permission"), "read");
     expect(within(dialog).queryByText("Deleted workspace")).toBeNull();
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
         "/users/member/keys",
@@ -318,9 +326,12 @@ describe("member and key management", () => {
     mount();
     const dialog = await openCreate();
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "All spaces" } });
-    expect(within(dialog).getByText("Save")).toHaveProperty("disabled", true);
+    expect(within(dialog).getByText(/^(Save|Save changes|Create)$/)).toHaveProperty(
+      "disabled",
+      true
+    );
     selectAll(dialog);
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
         "/users/member/keys",
@@ -336,11 +347,11 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Edit"));
     const dialog = screen.getByRole("dialog");
     expect(await within(dialog).findByLabelText("Workspace A Permission")).toHaveProperty(
-      "value",
-      "read"
+      "textContent",
+      "Read only"
     );
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Renamed" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
         "/users/member/keys/key",
@@ -378,11 +389,11 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Edit"));
     const dialog = screen.getByRole("dialog");
     expect(await within(dialog).findByLabelText("Workspace Z Permission")).toHaveProperty(
-      "value",
-      "read"
+      "textContent",
+      "Read only"
     );
     fireEvent.click(within(dialog).getByText("Workspace B"));
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
         "/users/member/keys/key",
@@ -433,7 +444,7 @@ describe("member and key management", () => {
     fireEvent.change(within(dialog).getByLabelText("Name"), {
       target: { value: "Still editable" },
     });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
         "/users/member/keys/key",
@@ -467,10 +478,8 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Edit"));
     const dialog = screen.getByRole("dialog");
     await within(dialog).findByText("New workspace A");
-    fireEvent.change(within(dialog).getByLabelText("Workspace A Permission"), {
-      target: { value: "read_write" },
-    });
-    fireEvent.click(within(dialog).getByText("Save"));
+    selectOption(within(dialog).getByLabelText("Workspace A Permission"), "read_write");
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Workspace changed. Refresh first.");
     const writes = api.mock.calls.filter(([, options]) => options?.method === "PATCH");
     expect(writes).toHaveLength(1);
@@ -483,7 +492,7 @@ describe("member and key management", () => {
         },
       },
     });
-    expect(within(dialog).queryByText("Save")).toBeNull();
+    expect(within(dialog).queryByText(/^(Save|Save changes|Create)$/)).toBeNull();
     expect(api.mock.calls.some(([path]) => path.startsWith("/workspaces/"))).toBe(false);
   });
 
@@ -503,7 +512,7 @@ describe("member and key management", () => {
     const dialog = await openCreate();
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Application" } });
     fireEvent.click(await within(dialog).findByText("Workspace A"));
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Workspace changed. Refresh and select again.");
     const writes = api.mock.calls.filter(([, options]) => options?.method === "POST");
     expect(writes).toHaveLength(1);
@@ -519,7 +528,7 @@ describe("member and key management", () => {
   it("requires confirmation and refreshes only this key area after revocation", async () => {
     mount();
     await openKeys();
-    fireEvent.click(screen.getByText("Revoke"));
+    await openMenuAction(screen.getByRole("button", { name: /^More:/ }), "Revoke");
     expect(api.mock.calls.some(([, options]) => options?.method === "DELETE")).toBe(false);
     const original = api.getMockImplementation()!;
     api.mockImplementation(async (path, options) =>
@@ -556,7 +565,7 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Edit"));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Rename" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await within(dialog).findByText("Refresh before retrying");
     expect(api.mock.calls.filter(([, options]) => options?.method === "PATCH").length).toBe(1);
   });
@@ -566,7 +575,7 @@ describe("member and key management", () => {
     const dialog = await openCreate();
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "App" } });
     selectAll(dialog);
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await screen.findByTestId("issued-secret");
     window.dispatchEvent(new Event("pagehide"));
     await waitFor(() => expect(screen.queryByText("one-time-secret")).toBeNull());
@@ -578,13 +587,11 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Edit"));
     const dialog = screen.getByRole("dialog");
     selectAll(dialog);
-    expect(within(dialog).getByLabelText("Permission")).toHaveProperty("value", "read");
-    fireEvent.change(within(dialog).getByLabelText("Workspaces"), {
-      target: { value: "selected" },
-    });
+    expect(within(dialog).getByLabelText("Permission")).toHaveProperty("textContent", "Read only");
+    selectOption(within(dialog).getByLabelText("Workspaces"), "selected");
     expect(await within(dialog).findByLabelText("Workspace A Permission")).toHaveProperty(
-      "value",
-      "read"
+      "textContent",
+      "Read only"
     );
   });
   it("does not scan or auto-expand a directory after successful member creation", async () => {
@@ -608,7 +615,7 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Create member"));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Bob" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await screen.findByText("Member Bob created. ID: new-bob");
     expect(screen.queryByText("Keys for Bob")).toBeNull();
     expect(
@@ -620,7 +627,7 @@ describe("member and key management", () => {
   it("disables a member through the More menu with its current version", async () => {
     mount();
     await screen.findByText("Alice");
-    fireEvent.keyDown(screen.getByText("More"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "More" }), { key: "Enter" });
     fireEvent.click(await screen.findByRole("menuitem", { name: "Disable member" }));
     await waitFor(() =>
       expect(api).toHaveBeenCalledWith(
@@ -632,7 +639,7 @@ describe("member and key management", () => {
   it("confirms member deletion and closes its expanded key area", async () => {
     mount();
     await openKeys();
-    fireEvent.keyDown(screen.getByText("More"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "More" }), { key: "Enter" });
     fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
     expect(api.mock.calls.some(([, options]) => options?.method === "DELETE")).toBe(false);
     const original = api.getMockImplementation()!;
@@ -667,7 +674,7 @@ describe("member and key management", () => {
     fireEvent.click(screen.getByText("Create member"));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Bob" } });
-    fireEvent.click(within(dialog).getByText("Save"));
+    fireEvent.click(within(dialog).getByText(/^(Save|Save changes|Create)$/));
     await waitFor(() => expect(signal).toBeDefined());
     const reads = api.mock.calls.filter(([, options]) => !options?.method).length;
     view.unmount();
@@ -676,3 +683,147 @@ describe("member and key management", () => {
     expect(api.mock.calls.filter(([, options]) => !options?.method)).toHaveLength(reads);
   });
 });
+
+describe("management read states and locale", () => {
+  it("does not claim there are zero users after a failed initial GET; retry only reads", async () => {
+    api.mockRejectedValueOnce(new Error("Directory unavailable"));
+    mount();
+    await screen.findByText("Directory unavailable");
+    expect(screen.queryByText("No users yet.")).toBeNull();
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toContain("—");
+    fireEvent.click(screen.getByText("Refresh"));
+    await screen.findByText("Alice");
+    expect(api.mock.calls.every(([, options]) => !options?.method)).toBe(true);
+  });
+  it("distinguishes no search matches from an empty instance", async () => {
+    mount();
+    await screen.findByText("Alice");
+    api.mockResolvedValue(page([]));
+    fireEvent.change(screen.getByLabelText("Search members"), { target: { value: "absent" } });
+    await screen.findByText("No matches. Clear the search to see all results.");
+    expect(screen.queryByText("No users yet.")).toBeNull();
+  });
+  it("does not present a failed refresh as current data or as an empty instance", async () => {
+    mount();
+    await screen.findByText("Alice");
+    api.mockRejectedValueOnce(new Error("Refresh unavailable"));
+    fireEvent.click(screen.getByText("Refresh"));
+    await screen.findByText("Refresh unavailable");
+    expect(screen.getByText(/Previously loaded data is not current/)).toBeTruthy();
+    expect(screen.queryByText("No users yet.")).toBeNull();
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toContain("—");
+  });
+  it.each(["en", "zh-CN"])("uses UI locale %s for member and Key dates", async (locale) => {
+    const format = vi.spyOn(Date.prototype, "toLocaleString");
+    mount(locale);
+    await screen.findByText("Alice");
+    expect(format.mock.calls.every(([arg]) => arg === locale)).toBe(true);
+    const memberCalls = format.mock.calls.length;
+    expect(memberCalls).toBeGreaterThan(0);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: locale === "en" ? "Manage API keys" : "管理 API Key",
+        expanded: false,
+      })
+    );
+    await screen.findByText("Agent");
+    expect(format.mock.calls.length).toBeGreaterThan(memberCalls);
+    expect(format.mock.calls.slice(memberCalls).every(([arg]) => arg === locale)).toBe(true);
+    const row = screen.getByText("Agent").closest("tr")!;
+    const details = within(row)
+      .getByText(locale === "en" ? "Key details" : "密钥详情")
+      .closest("details")!;
+    fireEvent.click(details.querySelector("summary")!);
+    expect(details.textContent).toContain(locale === "en" ? "Last used: —" : "最后使用: —");
+    expect(row.textContent).not.toContain("Invalid Date");
+  });
+  it("uses one Manage API keys action to expand and collapse the panel", async () => {
+    mount();
+    await openKeys();
+    expect(screen.getAllByRole("button", { name: "Manage API keys" })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Manage API keys", expanded: true }));
+    expect(screen.queryByText("Agent")).toBeNull();
+  });
+});
+
+it("does not report a user created when a parseable success response lacks its identity", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/contextdb-api")>("@/lib/contextdb-api");
+  vi.mocked(createContextDBUser).mockImplementation(actual.createContextDBUser);
+  const initial = api.getMockImplementation()!;
+  api.mockImplementation((path, options) =>
+    options?.method === "POST" && path === "/users"
+      ? actual.contextDBRequest(path, options)
+      : initial(path, options)
+  );
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 201 })));
+  mount();
+  fireEvent.click(screen.getByRole("button", { name: "Create member" }));
+  const dialog = screen.getByRole("dialog");
+  fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "New user" } });
+  fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+  expect((await screen.findByRole("alert")).textContent).toContain("Result unknown");
+  expect(screen.getByRole("button", { name: "Check current members" })).toBeTruthy();
+  expect(screen.queryByText(/Member New user created/)).toBeNull();
+});
+
+describe("controlled management dialog focus", () => {
+  it.each(["Cancel", "Close", "Escape"])("returns member create focus after %s", async (close) => {
+    mount();
+    await screen.findByText("Alice");
+    const trigger = screen.getByRole("button", { name: "Create member" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    if (close === "Escape") fireEvent.keyDown(dialog, { key: "Escape" });
+    else fireEvent.click(within(dialog).getByRole("button", { name: close }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(api.mock.calls.some(([, options]) => options?.method)).toBe(false);
+  });
+  it.each(["Edit", "Revoke"])("returns cancelled %s to its key row", async (action) => {
+    mount();
+    await openKeys();
+    const trigger = screen.getByRole("button", { name: action === "Edit" ? "Edit" : /^More:/ });
+    if (action === "Revoke") await openMenuAction(trigger, "Revoke");
+    else {
+      trigger.focus();
+      fireEvent.click(trigger);
+    }
+    fireEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Cancel" })
+    );
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(api.mock.calls.some(([, options]) => options?.method)).toBe(false);
+  });
+  it("keeps the new secret dialog focused, then returns to create key", async () => {
+    mount();
+    const dialog = await openCreate();
+    fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Focus test" } });
+    selectAll(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
+    const secret = await screen.findByRole("dialog", { name: "Save this secret now" });
+    await waitFor(() => expect(secret.contains(document.activeElement)).toBe(true));
+    fireEvent.click(within(secret).getByRole("button", { name: "I saved it — close" }));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Create API key" }))
+    );
+    expect(screen.queryByTestId("issued-secret")).toBeNull();
+  });
+});
+
+it.each(["Rename member", "Delete"])(
+  "returns %s dialog to the member menu button",
+  async (action) => {
+    mount();
+    await screen.findByText("Alice");
+    const more = screen.getByRole("button", { name: "More" });
+    more.focus();
+    fireEvent.keyDown(more, { key: "Enter" });
+    fireEvent.click(await screen.findByRole("menuitem", { name: action }));
+    fireEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Cancel" })
+    );
+    await waitFor(() => expect(document.activeElement).toBe(more));
+    expect(api.mock.calls.some(([, options]) => options?.method)).toBe(false);
+  }
+);

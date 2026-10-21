@@ -62,6 +62,13 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
         finally:
             await conn.close()
 
+    async def assert_no_public_business_tables() -> None:
+        conn = await asyncpg.connect(info.uri)
+        try:
+            assert not await conn.fetchval("SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname='public')")
+        finally:
+            await conn.close()
+
     key_id = secrets.token_hex(16)
     secret = f"ctx_admin_{key_id}_{secrets.token_urlsafe(32)}"
     server = None
@@ -92,33 +99,6 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
         info = pg.start()
         assert info.uri is not None
         asyncio.run(bootstrap())
-        # Provision the native base schema offline; runtime migrations are disabled.
-        migration_env = {
-            key: value
-            for key, value in os.environ.items()
-            if not key.startswith(("HINDSIGHT_API_", "CONTEXTBASE_API_", "AGENTSTRATUM_API_"))
-        }
-        migration_env.update(stub_environment(stub_url))
-        migration_env.update(settings)
-        migration_env["HINDSIGHT_API_DATABASE_URL"] = info.uri
-        migration_env["HINDSIGHT_API_TENANT_EXTENSION"] = ""
-        migrated = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "hindsight_api.admin.cli",
-                "run-db-migration",
-                "--schema",
-                "public",
-                "--embedding-dimension",
-                "384",
-            ],
-            env=migration_env,
-            cwd=root,
-            capture_output=True,
-            text=True,
-        )
-        assert migrated.returncode == 0, "Native offline initialization failed: " + migrated.stderr[-1000:]
         server = start_hindsight_server(
             stub_url=stub_url,
             log_path=root / "server.log",
@@ -172,6 +152,9 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
                 raise AssertionError(f"Standalone worker readiness timed out; log: {worker.log_path}")
         headers = {"Authorization": "Bearer " + secret}
         yield ContextDBDeployment(server, headers, info.uri)
+        # Check after all SDK/UI stories and accepted background work, not only
+        # bootstrap; ContextDB must never recreate a public business schema.
+        asyncio.run(assert_no_public_business_tables())
     finally:
         if worker is not None:
             worker.stop()

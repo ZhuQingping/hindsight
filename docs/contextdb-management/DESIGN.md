@@ -1,10 +1,12 @@
 # ContextDB 首发设计：工作空间、用户与 API Key（RSIXDB 团队集成）
 
-> **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留总体设计、部署、UI、业务接入、认证依据、生命周期、PG、管理API及Q&A；直接在对应章节补齐团队适配和已知问题，不按读者拆成多套设计。当前以新来源a05b808刷新团队集成，回归结果分轮记录，**尚未取得本分支独立检视批准**；实际验证范围见 [VALIDATION.md](VALIDATION.md)。最新来源实现已提交为a05b808；本次依据资料仓固定快照 `5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd` 将对应优化补入正文。
+> **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留业务与技术正文，直接补齐团队适配；不按读者拆成多套设计。原功能基准a05b808、后续冻结修复及团队main的关系见第1.4节。目标三类AI独立检视已完成，尚无专家/committer批准；最新送审回归见 [VALIDATION.md](VALIDATION.md)第13章。
+
+> **当前送审（2026-10-21）：** S16～S26及质量修复已选择性落地，保留原生内核零侵入和团队安全能力；本次基线为main `1dc0ad37e`，旧eb工作树阶段的来源指纹及过程保留在第1.4节和检视记录第13～15章。Issue #19的F1已修复、F2保留已有修复；UI意见未全部验收，逐项结论见CODE-REVIEW第16章，不据本PR自动关闭Issue。
 
 > **首版决策（2026-10-19）：工作空间创建、删除同步返回201/204；同名schema、bank_id复用接受原生Bank并发边界。** 删除前由管理员停止访问、等待已有工作结束；没有全局执行排空、代次或持久故障屏障。当前管理API为13项，管理表为6张。
 
-> **差异基线：** 本次合入以 RSIXDB 团队 `57bbfd2d39685091ce65a4742e43c6efbcb4c78e` 为基线，原生 Python 运行目录与此团队基线一致；来源功能基于官方 v1.0.0，不代表集成后目录等于官方版本。须使用扩展ASGI入口；团队既有品牌、配置和安全改造继续保留。版本详见第1.4节。
+> **差异基线：** 本次修复PR比较 RSIXDB main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`；57bbfd2仅为原功能历史比较点。原生Python运行目录对两基线均无本特性差异；须使用扩展ASGI入口，团队品牌、配置、日志和安全改造保留。
 
 方案来源（2026-10-19，官方 v1.0.0 首发方案；2026-10-20更新团队集成）：新空间对外统一使用可读 bank_id，对内保留 UUID；工作空间名称仅允许字母、数字、下划线，最长54字符，统一小写。新 schema 为 ctxdb_ws_<bank_id>；正常删除后允许同名重建，旧selected授权不继承；并发删除与业务访问不在支持范围，见第5.2节。本轮功能回归与原生v1.0.0部署证据见[验证摘要](VALIDATION.md)；目标ECS/RDS、镜像安全与生产性能仍须单独验收。
 
@@ -104,11 +106,16 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 
 | 项目 | 固定版本及含义 |
 | --- | --- |
-| 团队合入基线 | `57bbfd2d39685091ce65a4742e43c6efbcb4c78e`；本特性diff的比较起点 |
-| 最新功能来源 | `a05b80885883b36f879abdb2ce8a9c8f63b0922c`；在此前ddf5c360集成之上适配其增量 |
-| 团队集成状态 | `feature/contextdb-management`；在原集成提交0e283e923上完成a05b808适配与验收，以amend合并为一个功能提交；检视以本提交及PR差异为准 |
+| 原管理功能基线 | `57bbfd2d39685091ce65a4742e43c6efbcb4c78e`；用于历史功能移植对照，不是本次修复PR基线 |
+| 本次修复PR基线 | 团队main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`，已包含原PR #15及后续别名、UI安全提示和管理日志 |
+| 来源公开功能基准（修复前） | `a05b80885883b36f879abdb2ce8a9c8f63b0922c`；S16～S26位于该基准上的冻结未提交补丁，不在该提交内 |
+| 团队集成状态 | `feature/contextdb-management`；先在eb055aff3工作树完成适配，再快进对齐上述main并保留修复；本次送审快照以本文所在提交及PR diff为准，历史阶段见CODE-REVIEW第13～16章 |
 | 完整设计依据 | 以23fc841d完整设计为底稿；本轮核对 `ContextDB-Research@5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd` 的同一完整设计，将a05b808变化直接补入对应章节 |
 | 来源功能的官方基线 | `39c65ffe2f140d0c84cee58566cad8900c5b9908`，仅解释来源及原生行为 |
+
+2026-10-21原工作树阶段收敛修改范围：撤回自研插件`launch.py`和`ui_probe.py`本轮改用`service_env`的等价重构，沿用开始HEAD的内联双前缀读取；CONTEXTBASE优先、显式空值和默认值语义不变。其他位置必要的配置别名修复与`environment.py`保留。社区UI文件`bank-selector.tsx`仍保留完整管理路由识别、管理导航选中态和隐藏空间内容操作三项接入；Python扩展无法控制宿主React工具栏，不为此新增前端插件框架。S16～S26及SEC-01行为不变，范围核对与回归见CODE-REVIEW第13.4节、VALIDATION第11.5节。
+
+后续质量适配来源为`c56c7ac17ff438228d257be42072a12c7f72e7c5`加独立质量worktree的冻结未提交补丁（SHA-256 `e2c14176b562a174346e8d9bc5aadc1ff2dc8287e40c68f60b5216f50191cd7a`）。来源主目录并不包含该未提交增量；这些增量最初在eb055aff3上适配，后按送审要求对齐团队main。S16～S26保留；launch/ui_probe不作为本次PR改动，沿用main中已有的helper实现及相同配置语义，不为恢复旧内联代码再制造反向重构。选择性差异及独立检视见CODE-REVIEW第14章；对齐main后的最新验收见VALIDATION第13章，Issue #19逐项结论见CODE-REVIEW第16章。
 
 本文保留原设计业务与技术细节，团队适配直接补入相关章节；不另设面向专家、committer或AI的设计版本。代码阅读、适配发现见 [CODE-REVIEW.md](CODE-REVIEW.md)，实际运行命令/结果见 [VALIDATION.md](VALIDATION.md)，二者是支撑记录，不取代本文。公开管理API仍为 `/ext/contextdb/v1`；元数据结构版本1、API v1和资源version各自独立。
 
@@ -128,7 +135,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 
 数据库连接不强制 SSL：部署示例不附加 sslmode，PGADMIN_URL 与 HINDSIGHT_API_DATABASE_URL 均按调用方提供的 URL 连接。未开启 SSL 的 PG 可接入；需要证书校验时部署方再显式配置 sslmode 和 CA，不由服务自动升级或降级策略。MaaS HTTPS 和 UI/API 对外入口的 TLS 配置独立。
 
-管控具体输入、PG权限和命令以[人工部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)为入口；自动化严格按[Agent配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)及 JSON Schema 校验。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后初始化管理表和原生public共享表，再启动API/Worker、检查ready及实例身份，最后启动UI。模型、插件和端口不依赖人工临时export。
+管控具体输入、PG权限和命令以[人工部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)为入口；自动化严格按[Agent配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)及 JSON Schema 校验。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后只初始化ctxdb_meta管理表、管理员身份和秘密文件，再启动API/Worker、检查ready及实例身份，最后启动UI。原生业务表仅在创建空间时初始化到ctxdb_ws_<bank_id>。模型、插件和端口不依赖人工临时export。
 
 管控调用已有节点管理 Agent 完成部署。本期不新增“创建实例”的 Hindsight HTTP 接口，工作空间目录也不在 Console 维护。
 
@@ -136,7 +143,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 | --- | --- | --- |
 | 1. 准备数据库 | 准备专用 UTF8 PG、服务账号、vector / pg_trgm / btree_gin；首版 RDS 固定 native + english | 数据库可连接，所选扩展可用 |
 | 2. 准备配置与秘密 | 配置实例归属、数据库和模型；生成并私密保存 Admin Key、pepper、UI 密码 | 重启时可复用同一份配置 |
-| 3. 离线初始化 | 执行 service.sh init：管理表迁移/管理员导入，再显式迁移原生public共享表 | API 尚未启动，也能准备管理员身份 |
+| 3. 离线初始化 | 执行 service.sh init：持久秘密文件、管理表初始化/核验、管理员导入；不迁移public业务表 | API 尚未启动，也能准备管理员身份 |
 | 4. 启动服务 | 启动 API、Worker，检查 readiness，再启动 UI | 管理与业务接口可用 |
 | 5. 交付 | 提供 UI 地址和密码；管理员进入 UI 创建空间、用户与业务 Key | 应用可以接入 |
 
@@ -230,7 +237,7 @@ UI启动器移除PG/模型秘密并保留必要系统/产品配置，API/Worker�
 
 目标数据库和登录角色由PG管理员预先创建，不由Hindsight启动时创建；服务账号需要自身数据库内的schema/DDL权限，不要求SUPERUSER。准备示例见代码仓 `deployment/prepare-pg.sql`，客户SQL边界示例见 `pg-role-boundary.sql`；二者不是可无检查地用于现有客户库的修复脚本。
 
-`python -m hindsight_ext_contextdb migrate --admin-key-file <私密文件>`读取数据库连接、实例/云租户ID、pepper和持久管理员凭据，离线建立或核验ctxdb_meta六表及管理员摘要，重复执行保留凭据与部署绑定。它不是配置查询、客户密码查询或CREATE DATABASE命令。原生public共享结构及工作空间Alembic分别由部署初始化和空间Lifecycle负责。API/Worker要求 `RUN_MIGRATIONS_ON_STARTUP=false`，不在请求/并发启动路径自动升级元数据。
+`python -m hindsight_ext_contextdb migrate --admin-key-file <私密文件>`读取数据库连接、实例/云租户ID、pepper和持久管理员凭据，离线建立或核验ctxdb_meta六表及管理员摘要，重复执行保留凭据与部署绑定。它不是配置查询、客户密码查询或CREATE DATABASE命令。public保留vector等扩展对象，不创建原生业务表；每个工作空间的原生Alembic由空间Lifecycle负责。API/Worker要求 `RUN_MIGRATIONS_ON_STARTUP=false`，不在请求/并发启动路径自动升级元数据。
 
 实例备份必须包括ctxdb_meta、所有业务schema以及匹配pepper、UI/Admin秘密；原生单Bank导出不能重建实例用户和Key。首发无开发期旧结构自动迁移、滚动升级/降级或目标RDS灾备已验收承诺。
 
@@ -241,6 +248,8 @@ UI启动器移除PG/模型秘密并保留必要系统/产品配置，API/Worker�
 Compose shell加载配置后显式将origin/port传给探测进程；source本身不导出变量，且不向探测器导出密码/Admin Key。API仍用原生健康模块。规范化地址矩阵和实际Compose shell命令的回归见验证记录。
 
 <a id="api-worker-deployment"></a>
+
+**本版部署/更新规则（S16）：** ContextDB托管部署不得再运行 `run-db-migration --schema public`，也不得在系统fixture中补建public业务表。扩展安装仍需预建专用数据库和vector等扩展，不能删除public schema。正常重启只加载既有秘密和核验格式；正式发布后各空间原生结构更新由已有受控升级入口处理，不额外迁移public业务表，不新增自动元数据迁移框架。对已有开发库不自动删除历史表或接管旧布局；本轮只验证全新独立测试库。纯原生过渡部署材料保留其原含义。
 
 ### 2.5 API 与 Worker 如何部署
 
@@ -367,6 +376,20 @@ Key 明文只在本次创建结果中展示和复制，不写入 localStorage/se
 - ContextDB工作空间删除只在工作空间管理目录执行；原生Bank详情提供管理链接，不再维护第二套删除快照和恢复交互。原生模式Bank删除照常保留，服务端生命周期旁路限制不变。
 - UI服务器保留会话、同源、固定目标、路径/方法和敏感字段保护，业务请求字段与权限由Python模型统一校验，避免两份业务字段白名单。组件集中`components/contextdb/`，无新API、生产参数或状态管理框架。
 
+当前管理UI补充行为（S18～S19、S21～S26）：
+
+- 权限说明分成只读、读写两行，并共同说明不能管理工作空间、用户或API Key；授权模型与逐空间权限不变。
+- Secret只在内存展示，复制成功/失败分别反馈；复制失败或Clipboard API不可用时可手工保存，不丢失明文。取消60秒和纯隐藏清理，用户保存后明确关闭；真正离页、卸载、切换用户继续清理，签发/复制迟到不能复活旧结果。此取舍意味着未关闭窗口中的明文可以保留更久，不持久化、不自动重签。
+- 用户、空间、Key目录与授权选择器区分加载、首次GET失败、成功为空、搜索无匹配及刷新失败；失败时不显示确定的0或把旧结果当成当前结果。重试只GET，写入未知仍按原UUID/版本只读核对。
+- 用户管理入口有当前页状态，管理页不显示添加文档。沿用团队basePath及本地化路由，以完整管理路径判断；`/banks/users`及其本地化路径仍是内容页，保留上次空间便于返回。
+- 授权选择器向现有API发送q、limit、offset，搜索变化中止旧请求并从0开始。已选草稿独立按workspace_id保存，不随搜索/分页丢失，不升级原只读授权，也不按同名新UUID换绑。
+- 用户和实际展开Key面板的日期使用当前UI locale，不改变时区。管理列表复用现有Table/Select和主题token、轻量目录分页；统一间距、搜索提示、危险操作和创建/编辑动词，用户行只有一个展开入口，完整ID和时间仍可查看。
+- 窄屏宽度仅通过管理Dialog局部class调整，公共Dialog不改；保留原最大宽度、纵向滚动和底部动作。真实浏览器视觉、焦点和剪贴板验收状态见VALIDATION，不把JSDOM或生产HTTP故事当成视觉验收。
+
+管理弹窗关闭返回实际触发按钮，目标移除/禁用时尝试同页备用入口；编辑窗切换Secret窗时保留新窗焦点，离页不延迟抢焦点。空间下拉创建返回稳定选择按钮。仅自研调用点接线，不修改公共Dialog；空间行头按真实名称显示，不继承列标题的大写样式。当前实现与未提交身份见CODE-REVIEW第18章。
+
+当前U4/U5/U9/U10管理呈现规则：主目录继续使用公共Table；Key子详情用一套语义列表响应桌面/窄屏，突出名称、脱敏值、空间权限及编辑/更多。危险动作统一进入更多菜单并二次确认；空/单页不重复子表头与页脚计数，多页仍服务端分页。完整Key ID与时间在可键盘展开的详情中保留，summary用16px Chevron且不显示原生marker。窄屏父表采用自动布局，日期列收起、状态放到名称下，主要Key动作不依赖横向寻找；390×600允许弹窗内部纵向滚动，底部动作及焦点可达。日期继续使用UI locale；不修改公共Dialog、Table或建立两套移动/桌面状态。对应未提交候选及实测见CODE-REVIEW第19章、VALIDATION第16章。
+
 ### 3.2.1 团队页面、认证与会话适配
 
 当前集成保留ProductRuntime、产品配置v2、动态metadata、data-contextdb-name、团队主题/品牌占位替换及en/zh-CN回退。ContextDBModeProvider叠加于团队布局；管理请求使用productFetch携带X-Product-Name，保留旧标签页产品不匹配保护。展示品牌不是授权身份；本地系统字体不增加Google Fonts下载前提。
@@ -453,6 +476,8 @@ Key 明文只在本次创建结果中展示和复制，不写入 localStorage/se
 ```
 
 管理层负责认证、授权与路由，记忆算法和原生接口请求、返回结构沿用 Hindsight。多空间 Key 允许切换目标空间，不代表一次 Recall 联合查询多个空间。
+
+原生分块详情是特殊路径 `GET /v1/default/chunks/{chunk_id:path}`，URL不单独携带bank_id。扩展transport使用原生parse_chunk_id，并以build_chunk_id回编码检查canonical形式；合法ID中的Bank进入与其他业务请求相同的认证和schema上下文。歧义、非canonical、负数/非法索引安全拒绝，不简单按下划线切分、不重复URL解码、不遍历schema或猜默认空间。原生REST、SDK、Tenant无目标拒绝和引擎后续文档/Bank权限检查均保留；SEC-01配置响应投影复用现有路径，不新增认证SQL或重复权限钩子。S20验收经发布SDK异步写入、后台完成、recall include_chunks、list/get_chunk闭环，详见CODE-REVIEW和VALIDATION。
 
 ### 4.2 不同 Key 能做什么
 
@@ -556,6 +581,7 @@ pepper 在实例首次部署时生成并持久保存，正常重启、扩容和�
 | 默认/openapi.json、/docs | 可查看路由/schema定义，不等于读取实际部署配置；本次不修改 |
 | GET /v1/default/banks/{bank_id}/config | 插件保持200读取，对成功响应统一过滤config/overrides；空字段权限返回两个空对象 |
 | PATCH、DELETE同一/config资源 | 原生继续校验写权限，插件对成功响应应用同一投影；拒绝/失败保持原状态码和错误body |
+| POST /v1/default/banks/{bank_id}/prompts/preview | 仅Admin；预览会包含run_settings等运维配置，不作为业务配置读取入口 |
 | MCP get_bank / Bank列表 | 读取已授权空间的基本元信息，继续保留；不等于/config接口 |
 | GET /v1/default/banks/{bank_id}裸路径 | 当前原生没有此GET路由，返回405；不能作为插件禁止配置读取的证据 |
 | 宿主环境/部署文件 | 部署账号/运维访问，不属于业务Key接口能力 |
@@ -576,6 +602,8 @@ pepper 在实例首次部署时生成并持久保存，正常重启、扩容和�
 配置响应与原有任务诊断共享定点JSON缓冲函数。分块body组装后投影，重算Content-Length，保留其他响应头；向下游请求identity编码，避免解析压缩字节。仅配置/既有诊断JSON使用该路径，Retain、MCP/SSE及其他响应不缓冲。成功响应若不是JSON或不符合宿主公开模型，返回安全503，不把未过滤内容发给客户；原生403/404/500等错误保持状态/body/头，不被投影伪装成成功。原生生命周期限制和MCP工具权限保持不变。
 
 **当前预期。** 普通业务Key读取成功、配置字段均为空；Admin仍可读取1800、修改及重置配置。若以后允许业务读取部分字段，overrides只返回已授权且真正存储过的条目。GET不由ENABLE_BANK_CONFIG_API写开关关闭，本次保持原生语义。没有启用本插件的普通原生服务不受此修复影响。
+
+**预览入口补齐（质量适配）。** Prompt Preview会在`run_settings`中返回例如retain_chunk_size的值，不能因为GET config已投影为空就视为所有配置读取入口都受保护。插件transport复用现有身份及空间授权，将`/prompts/preview`限制为Admin（含尾斜杠）；不修改原生REST/SDK，不改变GET config的200字段投影策略。真实SDK测试覆盖selected/all及read/read_write拒绝、Admin成功和拒绝后recall仍可用；证据仅证明该配置入口，不推断任意秘密泄漏。
 
 **测试与范围。** 插件test_transport新增16项，覆盖空/部分/完整可见字段、默认字段不冒充override、合成秘密排除、GET/PATCH/DELETE、分块与gzip协商、Content-Length、认证SQL只执行一次、非法成功响应安全503、错误保留及其他路径不误过滤。原有诊断投影测试一起回归，避免共享缓冲逻辑改变任务状态行为。插件system/test_114新增双Worker真实故事，使用管理API建空间/签Key和发布SDK验证read/read_write/all-read得到空配置，跨空间拒绝，Admin更新/读取/重置正常，MCP get_bank保留且生命周期工具隐藏。
 
@@ -893,7 +921,7 @@ If-Match: "object-A-v1"
 
 UUID 不承担凭据认证职责；安全访问仍依赖 Key 认证、角色/空间授权及对象状态检查。本方案保护原对象关联、生命周期操作及重试；不承诺所有携带可读地址的陈旧业务请求都能被自动识别。
 
-**评审状态：** 来源版本的历史复核不能代替当前团队分支独立检视；本分支只有实现者自检和所记录本机回归，验证及未闭环项分别见VALIDATION和第5.1.1节。
+**评审状态：** 已完成目标后端、UI/TS及测试完整性三类只读独立检视并关闭BR-01；来源历史复核不代替目标检视。自动化验证及未验视觉/部署边界见VALIDATION第12～13章，Issue #19未完成项见CODE-REVIEW第16章。
 
 <a id="api"></a>
 
@@ -1038,15 +1066,21 @@ Repository用静态源码函数 `_grant_projection(targeted=...)`产生固定SQL
 
 `permission_scopes`统一read/read_write到Scope的投影；MCP发现用 `discovery_scopes` 将当前消息的完整授权与active空间UUID集合求交，不再逐空间select_workspace。单次目录filter在1/10/1000空间的测试中均为3条元数据查询；实际MCP消息可能多次filter，使用统计UPDATE另计，不能宣称整条消息仅3条SQL或生产吞吐提升。实际tools/call仍用当前凭据认证具体目标，发现并集不是执行权限，不跨消息缓存身份。
 
+`metadata_errors()`仅把插件元数据阶段的PG/连接/IO故障转换为安全的`metadata_unavailable`，不返回原始数据库诊断；Tenant、Validator和MCP入口复用该边界，失败保持关闭访问。MCP的原生工具执行不在转换范围；`list_banks`也只在adapter的authenticate/visible_workspaces处转换，原生backend、目录查询和详情组装的错误沿用宿主处理，避免误报元数据故障。原生错误是否包含敏感诊断是独立原生问题，不据此承诺全局错误脱敏；不新增跨消息身份缓存或重复权限策略。
+
+Repository移除未调用的`select_workspace`和只转发的异步`_admin`，原七处调用点直接执行同一`_tenant`检查，Admin权限、事务和实例绑定检查不变。
+
 #### 5.5.2 UI响应边界与状态归属
 
-`contextdb-api.ts`将错误JSON先作unknown解析；null、数组、标量或非JSON不产生未分类TypeError，保留HTTP状态和request_id回退。空间POST必须满足201、提交的规范名称、有效ID/版本及匹配ETag后才报告成功；签Key必须满足201、目标用户、Key ID及必需secret，否则结果未知，不自动补发。
+`contextdb-api.ts`将错误JSON先作unknown解析；null、数组、标量或非JSON不产生未分类TypeError，保留HTTP状态和request_id回退。空间POST必须满足201、提交的规范名称、有效ID/版本及匹配ETag后才报告成功；签Key必须满足201、目标用户、Key ID及必需secret，否则结果未知，不自动补发。创建用户同样必须验证201、有效user_id、与提交名称按Python NFKC/strip规则一致的名称、active状态、正整数版本及有效创建时间；不完整或身份不符的成功JSON进入结果未知核对，不能关闭表单并报告成功。
 
 TypeScript与Python分别对齐KeyEditable（编辑快照）、KeyMetadata（列表，含last_used_at）、KeyIssued（签发，secret必需）；PATCH不读取secret、DELETE204允许空正文。专门Node合同检查比较消费字段、required、nullable和权限枚举，不生成第二套SDK。
 
-组件集中 `components/contextdb/`。users-view只管理成员；user-keys-panel以user_id为React key持有该成员Key目录、一次性secret及吊销状态；key-editor-dialog持有编辑快照/草稿/原version；use-key-workspaces仅分页加载选项，旧grant不自动换成同名继任UUID，name-only编辑不重发authorization。workspace-result-check只GET核对原bank_id/UUID/ETag，不使用新ETag重放旧DELETE，不将观察结果当作执行结束证明。
+空间创建弹窗关闭或卸载时中止当前前端请求，迟到成功不触发导航；旧请求finally仅能清理自己的controller，不能解除新请求的取消保护。这不等于服务端回滚，创建结果未知时仍需GET核对，不能自动重放。
 
-lib/contextdb.ts加server-only，Vitest只在测试环境映射为空模块；生产构建保留服务端边界。隐藏/离页/60秒清理secret，旧请求迟到结果不得重新展示；回到可见页后发起的新签发可单独展示。这些行为由状态/响应测试及生产UI故事验证，真实浏览器焦点、剪贴板和窄屏视觉仍未验收。
+组件集中 `components/contextdb/`。users-view只管理成员，展开状态仅保存user_id并使用当前目录行，不另存完整User对象；user-keys-panel以user_id为React key持有该成员Key目录、一次性secret及吊销状态；key-editor-dialog持有编辑快照/草稿/原version；use-key-workspaces仅分页加载选项，旧grant不自动换成同名继任UUID，name-only编辑不重发authorization。workspace-result-check只GET核对原bank_id/UUID/ETag，不使用新ETag重放旧DELETE，不将观察结果当作执行结束证明。
+
+lib/contextdb.ts加server-only，Vitest只在测试环境映射为空模块；生产构建保留服务端边界。Secret在内存中保持到用户明确关闭；不再因60秒超时或单纯标签页隐藏而清除。真正离页/pagehide、卸载、切换用户仍清理，迟到签发不得恢复旧Secret，旧复制回调不得影响新Secret；剪贴板不可用时保留可手工保存的明文。这些行为由状态/响应测试及生产UI故事验证；当前提交Chrome已补正常复制/原生粘贴、日期、目录状态及指定尺寸视觉验证，关闭焦点已通过本地修复补验，负面复制竞态不冒称都做浏览器复验，见CODE-REVIEW第18章和VALIDATION第15章。
 
 #### 5.5.3 测试位置、运行环境和CI门禁
 
@@ -1177,9 +1211,9 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 - 两个创建入口共享支持描述的表单；工作空间管理表格增加宽度、列间距和长文本换行。组件、构建及真实流程验证状态以验证摘要为准，不把源码变化当作所有窗口均已人工验收。
 - 来源版本保留原生env模板、语言包和Next配置；当前团队集成保留团队品牌、配置别名、ProductRuntime和语言回退，并加入管理文案，不以官方形态覆盖团队改造。系统字体用于无网络构建；原生过渡部署工具由资料仓独立管理。
 
-继续保留的TODO：
+已完成及继续保留的TODO：
 
-- **SEC-01配置响应权限过滤一致性。** 已按插件内字段过滤方案修复并补齐真实回归，见第5.1.1节及VALIDATION第10章；原生运行目录保持基线一致。
+- **已完成：SEC-01配置响应权限过滤一致性。** 已按插件内字段过滤方案修复并补齐真实回归，见第5.1.1节；不再作为开放问题，原生运行目录保持基线一致。
 - **团队文档生成基线失败。** [Issue #14](https://github.com/RSIXDB/hindsight/issues/14)单独跟踪，当前分支未包含其修复；完整提交钩子及相关CI不标通过。
 
 - **R05固定镜像启动免扫描。** 构建manifest和源码/bundle完整匹配检查保持。现有启动路径尚无可信的不可变镜像及挂载身份校验，不能仅凭manifest或环境变量跳过扫描。本轮保守保留完整检查；待交付链有充分依据后再精简，不新增产物平台，也不声称启动性能已有提升。
@@ -1187,9 +1221,9 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 - **原生可选诊断能力。** 首版Trace/Audit正文和Webhook继续关闭；后续单独验证独立schema下的正常路由和存储归属，不预设必须恢复完整代次屏障。
 - **RDS中文全文。** native+english只作为英文全文基线。中文分词、普通记忆及mental_models索引/查询一致性、预检和迁移重建另行评审，不顺带引入zhparser或其他插件。
 - **生产验收。** 目标ECS原样镜像、RDS插件/权限/备份PITR、依赖与镜像安全、混合负载及管理并发、资源规格和HA尚须独立验收。
-- **管理错误关联日志。** 安全500/503响应已经避免回显内部异常；后续补充只包含 request_id、路由和异常类别的服务端关联诊断，不打印原始异常/凭据。
+- **管理错误日志进一步收敛。** 团队main的6993b3a0e已增加带request_id的logger.exception服务端诊断，本次保留；客户500/503响应仍为安全消息。它不是仅记录异常类别的安全日志方案，后续若要求限制内部日志内容，应单独评估原始异常/凭据脱敏，不能继续写成“日志尚未增加”或声称该风险已关闭。
 
-当前团队分支已完成实现者自检和所列本机回归，独立检视尚待完成，结果与环境边界见[验证摘要](VALIDATION.md)。不据此声称原生全部可选后端、默认捕获CI或目标生产环境已验收。
+当前团队分支已完成实现者自检、三类独立检视及所列本机回归，结果与环境边界见[验证摘要](VALIDATION.md)第12～13章。不据此声称原生全部可选后端、默认捕获CI或目标生产环境已验收。
 
 ### 认证与授权复用评审（2026-10-19，本地已实施）
 
@@ -1209,3 +1243,5 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 ### v1.0.0 Append冲突与原生任务行为
 
 原生v1.0.0已有Append冲突延期重试及并行子批次取消，本版直接复用。旧完整执行准入、未知故障屏障和单输入Append结束通知已删除，原生引擎/Worker没有为此新增钩子。继续验证正常冲突重试和内容完整性；是否把原生同步冲突500改为409属于独立议题，本版不修改协议。
+
+来源状态补记（S16适配阶段历史，不代表当前HEAD）：任务开始时为a05b808上的未提交修复；任务期间外部流程将来源提交为`c56c7ac17ff438228d257be42072a12c7f72e7c5`，来源当前仅有原有verification/未跟踪项。本轮未在来源提交或写入，目标HEAD保持eb055aff3，仍以开始时冻结补丁650ab6ac…作为适配和验证依据，不将外部新提交冒充本轮测试版本。

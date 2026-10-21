@@ -4,6 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { restoreDialogFocus } from "./dialog-focus";
+import { DirectoryPagination } from "./directory-pagination";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -44,10 +61,13 @@ export function ContextDBWorkspacesView() {
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [busy, setBusy] = useState(false);
+  const createButton = useRef<HTMLButtonElement>(null);
+  const deleteButton = useRef<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<ContextDBWorkspace | null>(null);
   const [checkTarget, setCheckTarget] = useState<WorkspaceCheckTarget | null>(null);
   const [readError, setReadError] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const sync = useCallback(() => setRefresh((value) => value + 1), []);
   useEffect(() => () => controller.current?.abort(), []);
@@ -66,6 +86,7 @@ export function ContextDBWorkspacesView() {
           return;
         }
         setPage(result);
+        setLoaded(true);
       })
       .catch((err) => {
         if (!abort.signal.aborted) setReadError(err.message);
@@ -112,7 +133,7 @@ export function ContextDBWorkspacesView() {
     <div className="w-full min-w-0 space-y-5 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t("workspaceDirectory")}</h1>
-        <Button disabled={busy} onClick={() => setOpen(true)}>
+        <Button ref={createButton} disabled={busy} onClick={() => setOpen(true)}>
           {t("createWorkspace")}
         </Button>
       </div>
@@ -123,12 +144,17 @@ export function ContextDBWorkspacesView() {
       )}
       {readError && <p role="alert">{readError}</p>}
       {checkTarget && (
-        <ContextDBWorkspaceResultCheck target={checkTarget} onClose={() => setCheckTarget(null)} />
+        <ContextDBWorkspaceResultCheck
+          returnFocusRef={createButton}
+          target={checkTarget}
+          onClose={() => setCheckTarget(null)}
+        />
       )}
       {busy && <p role="status">{t("workspaceSubmitting")}</p>}
       <div className="flex gap-3">
         <Input
-          aria-label={t("spaces")}
+          aria-label={t("searchWorkspaces")}
+          placeholder={t("searchWorkspaces")}
           value={query}
           maxLength={128}
           onChange={(event) => {
@@ -142,51 +168,54 @@ export function ContextDBWorkspacesView() {
       </div>
       {loading ? (
         <p>{t("loading")}</p>
+      ) : readError ? (
+        <p>{t(loaded ? "staleResults" : "readUnavailable")}</p>
       ) : (
         <div
-          className="w-full overflow-x-auto rounded-md border"
+          className="w-full overflow-x-auto"
           role="region"
           aria-label={t("workspaceDirectory")}
           tabIndex={0}
         >
-          <table className="w-full min-w-[48rem] table-fixed text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40 text-left">
-                <th scope="col" className="w-[26%] px-4 py-3">
+          <Table className="w-full min-w-[48rem] table-fixed text-sm">
+            <TableHeader>
+              <TableRow className="border-b bg-muted/40 text-left">
+                <TableHead scope="col" className="w-[26%] px-4 py-3">
                   {t("name")}
-                </th>
-                <th scope="col" className="px-4 py-3">
+                </TableHead>
+                <TableHead scope="col" className="px-4 py-3">
                   {t("workspaceDescription")}
-                </th>
-                <th scope="col" className="w-28 px-4 py-3">
+                </TableHead>
+                <TableHead scope="col" className="w-28 px-4 py-3">
                   {t("workspaceState")}
-                </th>
-                <th scope="col" className="w-60 px-4 py-3">
+                </TableHead>
+                <TableHead scope="col" className="w-60 px-4 py-3">
                   {t("actions")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {page.items.map((workspace) => (
-                <tr className="border-b last:border-b-0" key={workspace.workspace_id}>
-                  <th
+                <TableRow key={workspace.workspace_id}>
+                  <TableHead
                     scope="row"
-                    className="whitespace-normal break-all px-4 py-4 text-left align-top font-medium"
+                    role="rowheader"
+                    className="whitespace-normal break-all px-4 py-4 text-left align-top text-sm font-medium normal-case tracking-normal"
                     title={workspace.bank_id}
                   >
                     {workspace.name}
-                  </th>
-                  <td className="whitespace-pre-wrap break-words px-4 py-4 align-top [overflow-wrap:anywhere]">
+                  </TableHead>
+                  <TableCell className="whitespace-pre-wrap break-words px-4 py-4 align-top [overflow-wrap:anywhere]">
                     {workspace.description || "—"}
-                  </td>
-                  <td className="px-4 py-4 align-top">
+                  </TableCell>
+                  <TableCell className="px-4 py-4 align-top">
                     {["active", "creating", "deleting"].includes(workspace.state)
                       ? t(workspace.state)
                       : workspace.state === "failed"
                         ? t("failedState")
                         : workspace.state}
-                  </td>
-                  <td className="px-4 py-4 align-top">
+                  </TableCell>
+                  <TableCell className="px-4 py-4 align-top">
                     <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
@@ -198,42 +227,50 @@ export function ContextDBWorkspacesView() {
                       >
                         {t("openWorkspace")}
                       </Button>
-                      <Button
-                        variant="destructive"
-                        disabled={busy || !["active", "failed"].includes(workspace.state)}
-                        onClick={() => setDeleting(workspace)}
-                      >
-                        {t("delete")}
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            disabled={busy || !["active", "failed"].includes(workspace.state)}
+                            onFocus={(event) => {
+                              deleteButton.current = event.currentTarget;
+                            }}
+                          >
+                            {t("more")}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onSelect={() => setDeleting(workspace)}
+                          >
+                            {t("delete")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
-      {!loading && !page.items.length && <p>{t("createWorkspaceFirst")}</p>}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          variant="outline"
-          disabled={!offset || loading}
-          onClick={() => setOffset(Math.max(0, offset - 20))}
-        >
-          {t("previous")}
-        </Button>
-        <span>
-          {page.total ? offset + 1 : 0}–{offset + page.items.length} / {page.total}
-        </span>
-        <Button
-          variant="outline"
-          disabled={loading || offset + 20 >= page.total}
-          onClick={() => setOffset(offset + 20)}
-        >
-          {t("next")}
-        </Button>
-      </div>
+      {!loading && !readError && !page.items.length && (
+        <p>{t(query ? "noMatches" : "emptyWorkspaces")}</p>
+      )}
+      {!loading && !readError && (
+        <DirectoryPagination
+          total={page.total}
+          count={page.items.length}
+          offset={offset}
+          limit={20}
+          loading={loading}
+          onChange={setOffset}
+        />
+      )}
       <ContextDBCreateWorkspaceDialog
+        returnFocusRef={createButton}
         open={open}
         onOpenChange={setOpen}
         onCreated={() => {
@@ -249,7 +286,12 @@ export function ContextDBWorkspacesView() {
           if (!value && !busy) setDeleting(null);
         }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)]"
+          onCloseAutoFocus={(event) =>
+            restoreDialogFocus(event, deleteButton.current, createButton.current)
+          }
+        >
           <DialogHeader>
             <DialogTitle>{t("delete")}</DialogTitle>
             <DialogDescription>

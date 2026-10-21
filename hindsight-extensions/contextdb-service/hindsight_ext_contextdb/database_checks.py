@@ -3,9 +3,22 @@
 Callers retain ownership of their connection, transaction and pool lifetime.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
 import asyncpg
 
 from . import METADATA_FORMAT_ID, METADATA_VERSION
+from .models import ServiceError
+
+
+@contextmanager
+def metadata_errors() -> Iterator[None]:
+    """Hide extension metadata diagnostics; callers keep native execution outside."""
+    try:
+        yield
+    except (asyncpg.PostgresError, asyncpg.InterfaceError, OSError):
+        raise ServiceError(503, "metadata_unavailable", "Management metadata unavailable") from None
 
 
 async def verify_background_write_policy(reader: asyncpg.Pool | asyncpg.Connection) -> None:

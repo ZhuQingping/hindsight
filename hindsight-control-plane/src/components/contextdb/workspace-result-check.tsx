@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { ContextDBError, contextDBRequest, type ContextDBWorkspace } from "@/lib/contextdb-api";
 
+import { restoreDialogFocus } from "./dialog-focus";
+
 export interface WorkspaceCheckTarget {
   bank_id: string;
   workspace_id?: string;
@@ -24,7 +26,9 @@ export interface WorkspaceCheckTarget {
 export function ContextDBWorkspaceResultCheck({
   target,
   onClose,
+  returnFocusRef,
 }: {
+  returnFocusRef?: RefObject<HTMLElement | null>;
   target: WorkspaceCheckTarget;
   onClose: () => void;
 }) {
@@ -64,7 +68,9 @@ export function ContextDBWorkspaceResultCheck({
         if (!open) onClose();
       }}
     >
-      <DialogContent>
+      <DialogContent
+        onCloseAutoFocus={(event) => restoreDialogFocus(event, returnFocusRef?.current ?? null)}
+      >
         <DialogHeader>
           <DialogTitle>{t("checkCurrentWorkspace")}</DialogTitle>
           <DialogDescription>

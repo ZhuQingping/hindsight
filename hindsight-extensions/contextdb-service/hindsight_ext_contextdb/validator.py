@@ -28,6 +28,7 @@ from hindsight_api.models import RequestContext
 
 from .authorization import management_call
 from .config import Settings, repository_for
+from .database_checks import metadata_errors
 from .models import Role, Scope, ServiceError
 
 _KNOWLEDGE_READS = frozenset(
@@ -84,46 +85,49 @@ class ContextDBOperationValidator(OperationValidatorExtension):
         # are being constructed would create a circular import.
         from hindsight_api.engine.memory_engine import get_current_bank_id, get_current_schema
 
-        repository = await repository_for(self.context.get_memory_engine(), self.settings)
         try:
-            if context.internal:
-                workspace = await repository.internal_workspace(bank_id, get_current_schema())
-                if context.tenant_id is not None and context.tenant_id != workspace.workspace_id:
-                    return ValidationResult.reject(
-                        "Internal task belongs to another workspace generation", status_code=409
-                    )
-                call = management_call(context, bank_id, get_current_schema())
-                if lifecycle_purpose and (call is None or call.action != lifecycle_purpose):
-                    return ValidationResult.reject("Bank management requires a trusted management call")
-                if call is not None and (
-                    call.workspace_id != workspace.workspace_id
-                    or workspace.state not in ({"creating"} if call.action == "create_workspace" else {"deleting"})
-                ):
-                    return ValidationResult.reject("Workspace management state changed", status_code=409)
-                if workspace.state in {"creating", "failed"} and call is None:
-                    return ValidationResult.reject("Workspace is not ready for background memory operations")
-                if (
-                    workspace.state in {"deleting"}
-                    and scope == Scope.MEMORY_WRITE
-                    and not context.api_key_id
-                    and not context.user_initiated
-                    and call is None
-                    and get_current_bank_id() != bank_id
-                ):
-                    return ValidationResult.reject("Periodic work cannot enqueue new jobs into an inactive workspace")
+            with metadata_errors():
+                repository = await repository_for(self.context.get_memory_engine(), self.settings)
+                if context.internal:
+                    workspace = await repository.internal_workspace(bank_id, get_current_schema())
+                    if context.tenant_id is not None and context.tenant_id != workspace.workspace_id:
+                        return ValidationResult.reject(
+                            "Internal task belongs to another workspace generation", status_code=409
+                        )
+                    call = management_call(context, bank_id, get_current_schema())
+                    if lifecycle_purpose and (call is None or call.action != lifecycle_purpose):
+                        return ValidationResult.reject("Bank management requires a trusted management call")
+                    if call is not None and (
+                        call.workspace_id != workspace.workspace_id
+                        or workspace.state not in ({"creating"} if call.action == "create_workspace" else {"deleting"})
+                    ):
+                        return ValidationResult.reject("Workspace management state changed", status_code=409)
+                    if workspace.state in {"creating", "failed"} and call is None:
+                        return ValidationResult.reject("Workspace is not ready for background memory operations")
+                    if (
+                        workspace.state in {"deleting"}
+                        and scope == Scope.MEMORY_WRITE
+                        and not context.api_key_id
+                        and not context.user_initiated
+                        and call is None
+                        and get_current_bank_id() != bank_id
+                    ):
+                        return ValidationResult.reject(
+                            "Periodic work cannot enqueue new jobs into an inactive workspace"
+                        )
+                    return ValidationResult.accept()
+                if lifecycle_purpose:
+                    return ValidationResult.reject("Business Keys cannot manage Banks")
+                principal = await repository.authenticate(context.api_key, bank_id)
+                # Tenant resolution must precede every hook. Rechecking this binding
+                # also rejects MCP/static-token and cross-schema adapter mistakes.
+                if get_current_schema() != principal.schema_name:
+                    return ValidationResult.reject("Authenticated schema does not match this Key")
+                if admin and principal.role != Role.ADMIN:
+                    return ValidationResult.reject("The operations administrator Key is required")
+                if scope and scope not in principal.scopes:
+                    return ValidationResult.reject("Key lacks the required operation scope")
                 return ValidationResult.accept()
-            if lifecycle_purpose:
-                return ValidationResult.reject("Business Keys cannot manage Banks")
-            principal = await repository.authenticate(context.api_key, bank_id)
-            # Tenant resolution must precede every hook. Rechecking this binding
-            # also rejects MCP/static-token and cross-schema adapter mistakes.
-            if get_current_schema() != principal.schema_name:
-                return ValidationResult.reject("Authenticated schema does not match this Key")
-            if admin and principal.role != Role.ADMIN:
-                return ValidationResult.reject("The operations administrator Key is required")
-            if scope and scope not in principal.scopes:
-                return ValidationResult.reject("Key lacks the required operation scope")
-            return ValidationResult.accept()
         except ServiceError as error:
             return ValidationResult.reject(error.message, status_code=error.status)
 
@@ -207,21 +211,22 @@ class ContextDBOperationValidator(OperationValidatorExtension):
         return await self._authorize(ctx.request_context, ctx.bank_id, Scope.MEMORY_WRITE)
 
     async def bank_list_scope(self, request_context: RequestContext) -> BankListScope:
-        repository = await repository_for(self.context.get_memory_engine(), self.settings)
-        if request_context.internal:
-            from hindsight_api.engine.memory_engine import get_current_schema
+        with metadata_errors():
+            repository = await repository_for(self.context.get_memory_engine(), self.settings)
+            if request_context.internal:
+                from hindsight_api.engine.memory_engine import get_current_schema
 
-            # Maintenance may enumerate banks without a customer credential.
-            # Deleting workspaces drain queued jobs, but get no new sweep.
-            workspace = await repository.maintenance_workspace(get_current_schema())
-            return BankListScope(bank_ids=[workspace.bank_id] if workspace else [])
-        from .routing import target_bank
+                # Maintenance may enumerate banks without a customer credential.
+                # Deleting workspaces drain queued jobs, but get no new sweep.
+                workspace = await repository.maintenance_workspace(get_current_schema())
+                return BankListScope(bank_ids=[workspace.bank_id] if workspace else [])
+            from .routing import target_bank
 
-        bank_id = target_bank()
-        if not bank_id:
-            return BankListScope(bank_ids=[])
-        principal = await repository.authenticate(request_context.api_key, bank_id)
-        return BankListScope(bank_ids=[bank_id] if Scope.MEMORY_READ in principal.scopes else [])
+            bank_id = target_bank()
+            if not bank_id:
+                return BankListScope(bank_ids=[])
+            principal = await repository.authenticate(request_context.api_key, bank_id)
+            return BankListScope(bank_ids=[bank_id] if Scope.MEMORY_READ in principal.scopes else [])
 
     async def filter_mcp_tools(
         self,
@@ -229,39 +234,40 @@ class ContextDBOperationValidator(OperationValidatorExtension):
         request_context: RequestContext,
         tools: frozenset[str],
     ) -> frozenset[str]:
-        repository = await repository_for(self.context.get_memory_engine(), self.settings)
         try:
-            from fastmcp.server.dependencies import get_http_request
+            with metadata_errors():
+                repository = await repository_for(self.context.get_memory_engine(), self.settings)
+                from fastmcp.server.dependencies import get_http_request
 
-            from .routing import is_multi_bank_discovery
-            from .security import bearer_credential
+                from .routing import is_multi_bank_discovery
+                from .security import bearer_credential
 
-            credential = request_context.api_key
-            discovery = is_multi_bank_discovery()
-            target = bank_id
-            try:
-                request = get_http_request()
-            except RuntimeError:
-                request = None
-            if request is not None:
-                # Native list_tools filters once more after its middleware has
-                # restored ContextVars. Scope belongs to this actual message,
-                # unlike a stateful session's initialization identity.
-                credential = bearer_credential(request.scope["headers"])
-                path_bank = request.scope.get("contextdb.mcp_path_bank")
-                target = path_bank or target
-                discovery = bool(request.scope.get("contextdb.mcp_discovery")) and not path_bank
-            if discovery:
-                principal = await repository.authenticate(credential)
-                # Discovery may advertise the union, but execution always sets
-                # the actual target and derives scopes for that workspace only.
-                spaces = await repository.visible_workspaces(principal)
-                from .authorization import discovery_scopes
+                credential = request_context.api_key
+                discovery = is_multi_bank_discovery()
+                target = bank_id
+                try:
+                    request = get_http_request()
+                except RuntimeError:
+                    request = None
+                if request is not None:
+                    # Native list_tools filters once more after its middleware has
+                    # restored ContextVars. Scope belongs to this actual message,
+                    # unlike a stateful session's initialization identity.
+                    credential = bearer_credential(request.scope["headers"])
+                    path_bank = request.scope.get("contextdb.mcp_path_bank")
+                    target = path_bank or target
+                    discovery = bool(request.scope.get("contextdb.mcp_discovery")) and not path_bank
+                if discovery:
+                    principal = await repository.authenticate(credential)
+                    # Discovery may advertise the union, but execution always sets
+                    # the actual target and derives scopes for that workspace only.
+                    spaces = await repository.visible_workspaces(principal)
+                    from .authorization import discovery_scopes
 
-                scopes = discovery_scopes(principal, spaces)
-            else:
-                principal = await repository.authenticate(credential, target)
-                scopes = principal.scopes
+                    scopes = discovery_scopes(principal, spaces)
+                else:
+                    principal = await repository.authenticate(credential, target)
+                    scopes = principal.scopes
         except ServiceError:
             return frozenset()
         allowed: set[str] = set()
