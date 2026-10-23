@@ -4873,6 +4873,35 @@ class VersionResponse(BaseModel):
     features: FeaturesInfo = Field(description="Enabled feature flags")
 
 
+class FileStorageConfigResponse(BaseModel):
+    """Current file-storage backend configuration (secrets masked)."""
+
+    storage_type: str = Field(description="Active backend: native, s3, gcs, or azure")
+    extension: str | None = Field(default=None, description="Custom FileStorage extension path")
+    s3_bucket: str | None = Field(default=None)
+    s3_region: str | None = Field(default=None)
+    s3_endpoint: str | None = Field(default=None)
+    s3_access_key_id: str | None = Field(default=None, description="Masked when set")
+    s3_secret_access_key: str | None = Field(default=None, description="Masked when set")
+
+
+class FileStorageConfigUpdate(BaseModel):
+    """Partial update for file-storage configuration.
+
+    Only fields present in the request body are applied.  Secret fields set to
+    the mask string (returned by GET) keep their current value.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    storage_type: str | None = Field(default=None)
+    s3_bucket: str | None = Field(default=None)
+    s3_region: str | None = Field(default=None)
+    s3_endpoint: str | None = Field(default=None)
+    s3_access_key_id: str | None = Field(default=None)
+    s3_secret_access_key: str | None = Field(default=None)
+
+
 # =========================================================================
 # Webhook Models
 # =========================================================================
@@ -5761,6 +5790,103 @@ def _register_routes(app: FastAPI):
                 llm_trace=config.llm_trace_enabled,
                 store_document_text=config.store_document_text,
             ),
+        )
+
+    @app.get(
+        "/v1/file-storage/config",
+        response_model=FileStorageConfigResponse,
+        summary="Get file-storage configuration",
+        description="Returns the current file-storage backend configuration. "
+        "Secret credentials are masked.",
+        tags=["System"],
+        operation_id="get_file_storage_config",
+    )
+    async def get_file_storage_config() -> FileStorageConfigResponse:
+        """Return the active file-storage backend configuration."""
+        from hindsight_api.config import _SECRET_MASK, _get_raw_config
+
+        config = _get_raw_config()
+        return FileStorageConfigResponse(
+            storage_type=config.file_storage_type,
+            extension=config.file_storage_extension or None,
+            s3_bucket=config.file_storage_s3_bucket,
+            s3_region=config.file_storage_s3_region,
+            s3_endpoint=config.file_storage_s3_endpoint,
+            s3_access_key_id=_SECRET_MASK if config.file_storage_s3_access_key_id else None,
+            s3_secret_access_key=_SECRET_MASK if config.file_storage_s3_secret_access_key else None,
+        )
+
+    @app.put(
+        "/v1/file-storage/config",
+        response_model=FileStorageConfigResponse,
+        summary="Update file-storage configuration",
+        description="Updates file-storage backend configuration in memory and "
+        "reinitializes the storage backend. Only fields present in the request "
+        "body are applied; secret fields set to the mask string keep their "
+        "current value. Changes are in-memory only and revert on restart.",
+        tags=["System"],
+        operation_id="update_file_storage_config",
+    )
+    async def update_file_storage_config_endpoint(
+        update: FileStorageConfigUpdate,
+    ) -> FileStorageConfigResponse:
+        """Update the file-storage backend configuration at runtime."""
+        from hindsight_api.config import _SECRET_MASK, _get_raw_config, update_file_storage_config
+
+        # Map API field names to HindsightConfig field names
+        _FIELD_MAP = {
+            "storage_type": "file_storage_type",
+            "s3_bucket": "file_storage_s3_bucket",
+            "s3_region": "file_storage_s3_region",
+            "s3_endpoint": "file_storage_s3_endpoint",
+            "s3_access_key_id": "file_storage_s3_access_key_id",
+            "s3_secret_access_key": "file_storage_s3_secret_access_key",
+        }
+
+        config = _get_raw_config()
+        updates: dict[str, str | None] = {}
+        for api_name in update.model_fields_set:
+            config_name = _FIELD_MAP[api_name]
+            value = getattr(update, api_name)
+            if value == _SECRET_MASK:
+                continue
+            updates[config_name] = value or None
+
+        if updates:
+            update_file_storage_config(updates)
+            # Persist to the database so the config survives restarts.
+            from hindsight_api.engine.system_config import save_file_storage_config
+
+            full_config = {}
+            for fname in (
+                "file_storage_type",
+                "file_storage_s3_bucket",
+                "file_storage_s3_region",
+                "file_storage_s3_endpoint",
+                "file_storage_s3_access_key_id",
+                "file_storage_s3_secret_access_key",
+            ):
+                full_config[fname] = getattr(_get_raw_config(), fname)
+            try:
+                await save_file_storage_config(app.state.memory._pool, full_config)
+            except Exception as e:
+                # Persisting is best-effort: the in-memory update already
+                # succeeded, so log and continue rather than failing the
+                # request.  The config reverts on the next restart.
+                import logging
+                logging.getLogger(__name__).warning("Failed to persist file storage config: %s", e)
+            await app.state.memory.reinitialize_file_storage()
+
+        # Return the updated config (re-read so masked secrets reflect new state)
+        updated = _get_raw_config()
+        return FileStorageConfigResponse(
+            storage_type=updated.file_storage_type,
+            extension=updated.file_storage_extension or None,
+            s3_bucket=updated.file_storage_s3_bucket,
+            s3_region=updated.file_storage_s3_region,
+            s3_endpoint=updated.file_storage_s3_endpoint,
+            s3_access_key_id=_SECRET_MASK if updated.file_storage_s3_access_key_id else None,
+            s3_secret_access_key=_SECRET_MASK if updated.file_storage_s3_secret_access_key else None,
         )
 
     @app.get(

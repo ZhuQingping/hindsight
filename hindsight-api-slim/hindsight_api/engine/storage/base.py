@@ -132,7 +132,7 @@ class FileStorage(ABC):
 
 
 async def delete_object_store_prefix(store, prefix: str) -> int:
-    """:meth:`FileStorage.delete_prefix` for the obstore-backed stores (S3, GCS, Azure)."""
+    """:meth:`FileStorage.delete_prefix` for the obstore-backed stores (S3-compatible)."""
     deleted = 0
     # One page per bulk delete: S3's DeleteObjects takes up to 1000 keys.
     async for page in obs.list(store, prefix=prefix, chunk_size=1000):
@@ -142,13 +142,13 @@ async def delete_object_store_prefix(store, prefix: str) -> int:
 
 
 def _is_not_found(error: Exception) -> bool:
-    """obstore raises one generic error type; S3, GCS and Azure each word a missing key differently."""
+    """obstore raises one generic error type; S3-compatible backends word a missing key differently."""
     message = str(error).lower()
     return "not found" in message or "nosuchkey" in message or "blobnotfound" in message
 
 
 class ObstoreFileStorage(FileStorage):
-    """Shared base class for obstore-backed object storage backends (S3, GCS, Azure)."""
+    """Shared base class for obstore-backed object storage backends (S3-compatible)."""
 
     _store: Any
 
@@ -178,7 +178,7 @@ class ObstoreFileStorage(FileStorage):
             # Note: obstore's writer does not expose an explicit abort() method, so abandoning
             # the writer leaves uncommitted multipart upload parts in the target bucket.
             # Attempting delete_async(key) cleans up any completed/overwritten object that
-            # may exist, but cloud storage buckets (AWS S3, GCS, Azure) MUST configure an
+            # may exist, but cloud storage buckets (AWS S3, MinIO, Cloudflare R2, etc.) MUST configure an
             # AbortIncompleteMultipartUpload lifecycle rule (e.g. 7 days) to automatically
             # purge orphaned multipart parts.
             try:

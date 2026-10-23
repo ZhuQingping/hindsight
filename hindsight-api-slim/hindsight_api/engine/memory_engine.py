@@ -6042,6 +6042,17 @@ class MemoryEngine(MemoryEngineInterface):
         self._config_resolver = ConfigResolver(backend=self._require_backend(), tenant_extension=self._tenant_extension)
         logger.debug("Config resolver initialized for hierarchical configuration")
 
+        # Load persisted file-storage config from the database so runtime
+        # changes survive restarts.  Done here (after the pool is ready,
+        # before storage is created) so create_file_storage sees the
+        # persisted values.
+        from .system_config import load_file_storage_config
+        from ..config import update_file_storage_config
+
+        persisted = await load_file_storage_config(self._pool)
+        if persisted:
+            update_file_storage_config(persisted)
+
         # Initialize file storage
         from .storage import create_file_storage
 
@@ -6051,7 +6062,10 @@ class MemoryEngine(MemoryEngineInterface):
             pool_getter=lambda: self._backend,
             schema_getter=get_current_schema,
         )
-        logger.debug(f"File storage initialized ({config.file_storage_type})")
+        if persisted:
+            logger.info("File storage initialized from persisted config (%s)", config.file_storage_type)
+        else:
+            logger.debug(f"File storage initialized ({config.file_storage_type})")
 
         # Initialize parser registry
         from .parsers import FileParserRegistry, IrisParser, LlamaParseParser, MarkitdownParser
@@ -6133,6 +6147,25 @@ class MemoryEngine(MemoryEngineInterface):
 
         self._initialized = True
         logger.info("Memory system initialized (pool and task backend started)")
+
+    async def reinitialize_file_storage(self):
+        """Recreate the file storage backend from the current global config.
+
+        Called after a runtime config update changes ``file_storage_type`` or
+        any backend-specific credential.  Reads the live config (already updated
+        via ``update_file_storage_config``) and swaps ``self._file_storage`` so
+        new requests use the new backend.
+        """
+        from .storage import create_file_storage
+
+        config = get_config()
+        new_storage = create_file_storage(
+            storage_type=config.file_storage_type,
+            pool_getter=lambda: self._backend,
+            schema_getter=get_current_schema,
+        )
+        self._file_storage = new_storage
+        logger.info(f"File storage reinitialized ({config.file_storage_type})")
 
     async def _get_pool(self) -> asyncpg.Pool:
         """Get the connection pool (must call initialize() first)."""

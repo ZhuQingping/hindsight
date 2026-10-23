@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from datetime import datetime, timezone
 from typing import Any, Literal, Union, cast
 
@@ -832,11 +832,6 @@ ENV_FILE_STORAGE_S3_REGION = "HINDSIGHT_API_FILE_STORAGE_S3_REGION"
 ENV_FILE_STORAGE_S3_ENDPOINT = "HINDSIGHT_API_FILE_STORAGE_S3_ENDPOINT"
 ENV_FILE_STORAGE_S3_ACCESS_KEY_ID = "HINDSIGHT_API_FILE_STORAGE_S3_ACCESS_KEY_ID"
 ENV_FILE_STORAGE_S3_SECRET_ACCESS_KEY = "HINDSIGHT_API_FILE_STORAGE_S3_SECRET_ACCESS_KEY"
-ENV_FILE_STORAGE_GCS_BUCKET = "HINDSIGHT_API_FILE_STORAGE_GCS_BUCKET"
-ENV_FILE_STORAGE_GCS_SERVICE_ACCOUNT_KEY = "HINDSIGHT_API_FILE_STORAGE_GCS_SERVICE_ACCOUNT_KEY"
-ENV_FILE_STORAGE_AZURE_CONTAINER = "HINDSIGHT_API_FILE_STORAGE_AZURE_CONTAINER"
-ENV_FILE_STORAGE_AZURE_ACCOUNT_NAME = "HINDSIGHT_API_FILE_STORAGE_AZURE_ACCOUNT_NAME"
-ENV_FILE_STORAGE_AZURE_ACCOUNT_KEY = "HINDSIGHT_API_FILE_STORAGE_AZURE_ACCOUNT_KEY"
 ENV_FILE_PARSER = "HINDSIGHT_API_FILE_PARSER"
 ENV_FILE_PARSER_ALLOWLIST = "HINDSIGHT_API_FILE_PARSER_ALLOWLIST"
 ENV_FILE_PARSER_MARKITDOWN_OCR_ENABLED = "HINDSIGHT_API_FILE_PARSER_MARKITDOWN_OCR_ENABLED"
@@ -3433,11 +3428,6 @@ class HindsightConfig:
     file_storage_s3_endpoint: str | None  # S3 endpoint URL (for MinIO, R2, etc.)
     file_storage_s3_access_key_id: str | None  # S3 access key (optional, uses env/IAM)
     file_storage_s3_secret_access_key: str | None  # S3 secret key (optional, uses env/IAM)
-    file_storage_gcs_bucket: str | None  # GCS bucket name (required for gcs storage)
-    file_storage_gcs_service_account_key: str | None  # GCS service account key JSON (optional, uses ADC)
-    file_storage_azure_container: str | None  # Azure container name (required for azure storage)
-    file_storage_azure_account_name: str | None  # Azure storage account name
-    file_storage_azure_account_key: str | None  # Azure storage account key
     file_parser: list[str]  # Ordered fallback chain of parsers (e.g. ["iris", "markitdown"])
     file_parser_allowlist: list[str] | None  # Parsers clients may request (None = all registered)
     file_parser_iris_token: str | None  # Vectorize API token for iris parser (VECTORIZE_TOKEN)
@@ -3766,8 +3756,6 @@ class HindsightConfig:
         # File storage credentials
         "file_storage_s3_access_key_id",
         "file_storage_s3_secret_access_key",
-        "file_storage_gcs_service_account_key",
-        "file_storage_azure_account_key",
         # File parser credentials
         "file_parser_markitdown_ocr_api_key",
         "file_parser_markitdown_ocr_base_url",
@@ -4974,11 +4962,6 @@ class HindsightConfig:
             file_storage_s3_endpoint=os.getenv(ENV_FILE_STORAGE_S3_ENDPOINT) or None,
             file_storage_s3_access_key_id=os.getenv(ENV_FILE_STORAGE_S3_ACCESS_KEY_ID) or None,
             file_storage_s3_secret_access_key=os.getenv(ENV_FILE_STORAGE_S3_SECRET_ACCESS_KEY) or None,
-            file_storage_gcs_bucket=os.getenv(ENV_FILE_STORAGE_GCS_BUCKET) or None,
-            file_storage_gcs_service_account_key=os.getenv(ENV_FILE_STORAGE_GCS_SERVICE_ACCOUNT_KEY) or None,
-            file_storage_azure_container=os.getenv(ENV_FILE_STORAGE_AZURE_CONTAINER) or None,
-            file_storage_azure_account_name=os.getenv(ENV_FILE_STORAGE_AZURE_ACCOUNT_NAME) or None,
-            file_storage_azure_account_key=os.getenv(ENV_FILE_STORAGE_AZURE_ACCOUNT_KEY) or None,
             file_parser=_parse_str_list(os.getenv(ENV_FILE_PARSER, DEFAULT_FILE_PARSER)),
             file_parser_allowlist=_env_str_list(ENV_FILE_PARSER_ALLOWLIST),
             file_parser_markitdown_ocr_enabled=os.getenv(
@@ -5523,3 +5506,40 @@ def clear_config_cache() -> None:
     """Clear the config cache. Useful for testing or reloading config."""
     global _config_cache
     _config_cache = None
+
+#: Mask string returned for set secrets in the file-storage config API. The PUT
+#: endpoint treats this value (and omitted fields) as "keep current" so the UI
+#: can round-trip the config without ever learning the real credential.
+_SECRET_MASK = "••••••••"
+
+#: Valid file-storage config field names that update_file_storage_config accepts.
+_FILE_STORAGE_CONFIG_FIELDS = frozenset(
+    {
+        "file_storage_type",
+        "file_storage_s3_bucket",
+        "file_storage_s3_region",
+        "file_storage_s3_endpoint",
+        "file_storage_s3_access_key_id",
+        "file_storage_s3_secret_access_key",
+    }
+)
+
+
+def update_file_storage_config(updates: dict[str, str | None]) -> None:
+    """Update file-storage config fields on the live config singleton.
+
+    Replaces the cached ``HindsightConfig`` with a copy that has the given
+    ``file_storage_*`` fields updated.  Only known file-storage keys are applied;
+    unknown keys are silently ignored.  Call
+    ``MemoryEngine.reinitialize_file_storage()`` afterwards to swap the live
+    storage backend.
+
+    Note: this is an in-memory update only.  A process restart reverts to
+    environment-variable configuration.
+    """
+    global _config_cache
+    current = _get_raw_config()
+    kwargs = {k: v for k, v in updates.items() if k in _FILE_STORAGE_CONFIG_FIELDS}
+    if kwargs:
+        _config_cache = replace(current, **kwargs)
+
