@@ -55,6 +55,7 @@ import {
   Sun,
   BookOpen,
   Plug,
+  Settings,
   Upload,
   X,
   Lock,
@@ -847,6 +848,15 @@ function BankSelectorInner() {
           >
             <BookOpen className="h-4 w-4" />
             <span className="hidden text-xs xl:inline">{tBrand("documentation")}</span>
+          </Link>
+          <Link
+            href="/settings"
+            className="flex items-center gap-1.5 rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label={tNav("settings")}
+            title={tNav("settings")}
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden text-xs xl:inline">{tNav("settings")}</span>
           </Link>
           <Button
             variant="ghost"
