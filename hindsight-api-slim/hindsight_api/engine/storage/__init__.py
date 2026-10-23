@@ -90,34 +90,9 @@ def create_file_storage(
             access_key_id=config.file_storage_s3_access_key_id,
             secret_access_key=config.file_storage_s3_secret_access_key,
         )
-    elif storage_type == "gcs":
-        from ...config import get_config
-        from .gcs import GCSFileStorage
-
-        config = get_config()
-        bucket = config.file_storage_gcs_bucket
-        if not bucket:
-            raise ValueError("HINDSIGHT_API_FILE_STORAGE_GCS_BUCKET is required for GCS storage")
-        return GCSFileStorage(
-            bucket=bucket,
-            service_account_key=config.file_storage_gcs_service_account_key,
-        )
-    elif storage_type == "azure":
-        from ...config import get_config
-        from .azure import AzureFileStorage
-
-        config = get_config()
-        container = config.file_storage_azure_container
-        if not container:
-            raise ValueError("HINDSIGHT_API_FILE_STORAGE_AZURE_CONTAINER is required for Azure storage")
-        return AzureFileStorage(
-            container_name=container,
-            account_name=config.file_storage_azure_account_name,
-            account_key=config.file_storage_azure_account_key,
-        )
     else:
         raise ValueError(
-            f"Unknown storage type: {storage_type}. Supported: 'native', 's3', 'gcs', 'azure'. "
+            f"Unknown storage type: {storage_type}. Supported: 'native', 's3'. "
             "External backends load through HINDSIGHT_API_FILE_STORAGE_EXTENSION."
         )
 

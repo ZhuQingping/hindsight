@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { ConnectBankChooser } from "@/components/connect-bank-chooser";
 import { ConnectionCode } from "@/components/connection-code";
 import { ResourcePageShell } from "@/components/resource-page-shell";
+import { controlPlaneEnv } from "@/lib/control-plane-env";
 
 export default async function ConnectPage({
   searchParams,
@@ -30,6 +31,9 @@ export default async function ConnectPage({
     null,
     2
   );
+
+  const dataplaneApiUrl = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";
+  const hookInstall = `npx contextbase-coding-agents install all --api-url ${dataplaneApiUrl} --api-token <API_KEY>`;
 
   return (
     <ResourcePageShell bankId={bankId}>
@@ -63,8 +67,14 @@ export default async function ConnectPage({
             <h2 className="text-lg font-semibold">{t("credentialsTitle")}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("credentialsBody")}</p>
             <ConnectionCode
-              code={`export CONTEXTBASE_API_URL="<API_BASE_URL>"\nexport CONTEXTBASE_API_KEY="<API_KEY>"`}
+              code={`export CONTEXTBASE_API_URL="${dataplaneApiUrl}"\nexport CONTEXTBASE_API_KEY="<API_KEY>"`}
             />
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 md:p-6">
+            <h2 className="text-lg font-semibold">{t("hookTitle")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("hookBody")}</p>
+            <ConnectionCode code={hookInstall} />
           </section>
 
           <div className="grid min-w-0 gap-4 lg:grid-cols-2">

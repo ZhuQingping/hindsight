@@ -60,7 +60,8 @@
       "copied": "Copied to clipboard",
       "viaAlias": "via {aliases}"
     },
-    "viewOnGitHub": "View on GitHub"
+    "viewOnGitHub": "View on GitHub",
+    "settings": "Settings"
   },
   "bank": {
     "bankConfiguration": "Settings and activity",
@@ -2304,7 +2305,7 @@
     "guideConnectTitle": "Connect an agent or application",
     "guideConnectBody": "Connection instructions are on a separate page for the selected Workspace.",
     "connectTitle": "Connect",
-    "connectIntro": "Choose a workspace, then connect an application or agent through the Python SDK, REST API, or MCP. One Workspace corresponds to one API bank; the bank_id parameter is unchanged.",
+    "connectIntro": "Choose a workspace, then connect an application or agent through Hook, the Python SDK, REST API, or MCP. One Workspace corresponds to one API bank; the bank_id parameter is unchanged.",
     "chooseBank": "Choose a Workspace",
     "chooseBankDescription": "Connection details are scoped to one Workspace. Search for the Workspace you want to connect.",
     "searchBanks": "Search Workspaces",
@@ -2322,7 +2323,9 @@
     "mcpAuth": "Send Authorization: Bearer <API_KEY> from the MCP client. The API address is different from this console address.",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "Coding Agent Hook",
+    "hookBody": "Run one command to auto-detect and wire every coding agent on this machine — Claude Code, Codex, Cursor, Copilot and more. Hooks inject memory at each prompt and write back transcripts automatically."
   },
   "brand": {
     "console": "A data foundation for agents",
@@ -2344,5 +2347,31 @@
     "reflectDetail": "Explore answers grounded in your Workspace.",
     "localAccess": "Use the access password provided by your administrator. Platform single sign-on is not connected.",
     "signOutFailed": "Sign out failed. Your session may still be active. Please try again."
+  },
+  "settings": {
+    "storage": {
+      "title": "File Storage",
+      "description": "Configure where uploaded files are stored. Changes take effect immediately but revert on server restart — update environment variables for permanent changes.",
+      "storageType": "Storage Type",
+      "types": {
+        "native": "PostgreSQL (Native)",
+        "s3": "OBS (S3-Compatible)"
+      },
+      "s3": {
+        "title": "OBS Configuration",
+        "bucket": "Bucket",
+        "region": "Region",
+        "endpoint": "Endpoint URL (optional)",
+        "accessKeyId": "Access Key ID",
+        "secretAccessKey": "Secret Access Key",
+        "endpointHint": "For MinIO, Cloudflare R2, Tigris, or other S3-compatible services. Leave empty for AWS S3."
+      },
+      "restartHint": "Changes apply to new requests immediately. Configure AbortIncompleteMultipartUpload lifecycle rules on your bucket when using object storage.",
+      "saveSuccess": "File storage configuration updated.",
+      "saveError": "Failed to update file storage configuration.",
+      "loadError": "Failed to load file storage configuration.",
+      "saved": "Saved",
+      "extensionActive": "File storage is managed by a custom extension: {extension}. Configure it via environment variables."
+    }
   }
 }

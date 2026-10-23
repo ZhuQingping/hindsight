@@ -2304,7 +2304,7 @@
     "guideConnectTitle": "Connecter un agent ou une application",
     "guideConnectBody": "Les instructions de la banque sélectionnée figurent sur une page distincte.",
     "connectTitle": "Connexion",
-    "connectIntro": "Choisissez une banque puis connectez une application ou un agent via le SDK Python, l’API REST ou MCP.",
+    "connectIntro": "Choisissez une banque puis connectez une application ou un agent via Hook, le SDK Python, l’API REST ou MCP.",
     "chooseBank": "Choisir une banque",
     "chooseBankDescription": "Les informations de connexion concernent une banque. Recherchez celle à connecter.",
     "searchBanks": "Rechercher des banques",
@@ -2322,7 +2322,9 @@
     "mcpAuth": "Envoyez Authorization: Bearer <API_KEY> depuis le client MCP. L’adresse API diffère de celle de la console.",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "Hook d’agent de codage",
+    "hookBody": "Une commande détecte et connecte automatiquement tous les agents de codage de cette machine (Claude Code, Codex, Cursor, Copilot, etc.). Les hooks injectent la mémoire à chaque prompt et écrivent les transcriptions automatiquement."
   },
   "brand": {
     "console": "Moteur de données et de mémoire pour les agents",

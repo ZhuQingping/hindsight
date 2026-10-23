@@ -60,7 +60,8 @@
       "copied": "已复制到剪贴板",
       "viaAlias": "通过 {aliases}"
     },
-    "viewOnGitHub": "在 GitHub 查看"
+    "viewOnGitHub": "在 GitHub 查看",
+    "settings": "设置"
   },
   "bank": {
     "bankConfiguration": "设置与运行",
@@ -2304,7 +2305,7 @@
     "guideConnectTitle": "接入智能体或应用",
     "guideConnectBody": "当前工作空间的接入说明放在独立页面。",
     "connectTitle": "接入方式",
-    "connectIntro": "选择工作空间，再通过 Python SDK、REST API 或 MCP 接入应用和 Agent。一个工作空间对应 API 中的一个 bank，代码参数 bank_id 保持不变。",
+    "connectIntro": "选择工作空间，再通过 Hook、Python SDK、REST API 或 MCP 接入应用和 Agent。一个工作空间对应 API 中的一个 bank，代码参数 bank_id 保持不变。",
     "chooseBank": "选择工作空间",
     "chooseBankDescription": "接入信息按工作空间展示。请搜索并选择要接入的工作空间。",
     "searchBanks": "搜索工作空间",
@@ -2322,7 +2323,9 @@
     "mcpAuth": "MCP 客户端需发送 Authorization: Bearer <API_KEY>。API 地址与当前控制台地址不同。",
     "loadMore": "加载更多",
     "showingWorkspaces": "已显示 {shown} / {total} 个工作空间",
-    "mcpEndpointHelp": "请向管理员获取当前所选工作空间的完整 MCP Endpoint；它与 API Endpoint 分别提供，不要从 API 地址自行拼接。"
+    "mcpEndpointHelp": "请向管理员获取当前所选工作空间的完整 MCP Endpoint；它与 API Endpoint 分别提供，不要从 API 地址自行拼接。",
+    "hookTitle": "编码 Agent Hook",
+    "hookBody": "一条命令自动检测并接入本机所有编码 Agent（Claude Code、Codex、Cursor、Copilot 等）。Hook 在每次提示时注入记忆，并在会话结束时自动写回对话记录。"
   },
   "brand": {
     "console": "面向 Agent 的数据底座",
@@ -2344,5 +2347,31 @@
     "reflectDetail": "基于工作空间中的信息，探索有依据的回答。",
     "localAccess": "请使用管理员提供的访问密码。平台单点登录尚未接入。",
     "signOutFailed": "退出失败，会话可能仍然有效，请重试。"
+  },
+  "settings": {
+    "storage": {
+      "title": "文件存储",
+      "description": "配置上传文件的存储位置。更改立即生效，但服务器重启后会恢复默认值 — 请修改环境变量以保持永久生效。",
+      "storageType": "存储类型",
+      "types": {
+        "native": "PostgreSQL（本地）",
+        "s3": "OBS兼容存储"
+      },
+      "s3": {
+        "title": "OBS 配置",
+        "bucket": "存储桶",
+        "region": "区域",
+        "endpoint": "端点 URL（可选）",
+        "accessKeyId": "Access Key ID",
+        "secretAccessKey": "Secret Access Key",
+        "endpointHint": "用于 MinIO、Cloudflare R2、Tigris 等 S3 兼容服务。使用 AWS S3 时留空。"
+      },
+      "restartHint": "更改对新请求立即生效。使用对象存储时请在存储桶上配置 AbortIncompleteMultipartUpload 生命周期规则。",
+      "saveSuccess": "文件存储配置已更新。",
+      "saveError": "更新文件存储配置失败。",
+      "loadError": "加载文件存储配置失败。",
+      "saved": "已保存",
+      "extensionActive": "文件存储由自定义扩展管理：{extension}。请通过环境变量进行配置。"
+    }
   }
 }

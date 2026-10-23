@@ -2304,7 +2304,7 @@
     "guideConnectTitle": "Agent oder Anwendung verbinden",
     "guideConnectBody": "Die Anleitungen für die gewählte Bank stehen auf einer eigenen Seite.",
     "connectTitle": "Verbinden",
-    "connectIntro": "Wählen Sie eine Bank und verbinden Sie eine Anwendung oder einen Agenten über Python SDK, REST API oder MCP.",
+    "connectIntro": "Wählen Sie eine Bank und verbinden Sie eine Anwendung oder einen Agenten über Hook, Python SDK, REST API oder MCP.",
     "chooseBank": "Speicherbank wählen",
     "chooseBankDescription": "Verbindungsdaten gelten für eine Bank. Suchen Sie die Bank, die Sie verbinden möchten.",
     "searchBanks": "Speicherbanken suchen",
@@ -2322,7 +2322,9 @@
     "mcpAuth": "Im MCP-Client Authorization: Bearer <API_KEY> senden. Die API-Adresse unterscheidet sich von der Konsolenadresse.",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "Coding-Agent-Hook",
+    "hookBody": "Ein Befehl erkennt automatisch alle Coding-Agenten auf diesem Rechner (Claude Code, Codex, Cursor, Copilot u. a.) und verkabelt sie. Hooks injizieren bei jedem Prompt Speicher und schreiben Transkripte automatisch zurück."
   },
   "brand": {
     "console": "Daten- und Gedächtnis-Engine für Agenten",

@@ -2304,7 +2304,7 @@
     "guideConnectTitle": "에이전트 또는 앱 연결",
     "guideConnectBody": "선택한 뱅크의 연결 안내는 별도 페이지에 있습니다.",
     "connectTitle": "연결 방법",
-    "connectIntro": "뱅크를 선택하고 기존 Python SDK, REST API 또는 MCP 엔드포인트로 연결하세요.",
+    "connectIntro": "뱅크를 선택하고 Hook, Python SDK, REST API 또는 MCP 엔드포인트로 연결하세요.",
     "chooseBank": "뱅크 선택",
     "chooseBankDescription": "연결 정보는 뱅크별로 표시됩니다. 연결할 뱅크를 검색하세요.",
     "searchBanks": "뱅크 검색",
@@ -2322,7 +2322,9 @@
     "mcpAuth": "MCP 클라이언트에서 Authorization: Bearer <API_KEY>를 전송하세요. API 주소는 콘솔 주소와 다릅니다.",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "코딩 에이전트 훅",
+    "hookBody": "명령 하나로 이 머신의 모든 코딩 에이전트(Claude Code, Codex, Cursor, Copilot 등)를 자동 감지하여 연결합니다. 훅은 각 프롬프트에서 메모리를 주입하고 세션 종료 시 대화 기록을 자동으로 기록합니다."
   },
   "brand": {
     "console": "에이전트용 데이터·메모리 엔진",
