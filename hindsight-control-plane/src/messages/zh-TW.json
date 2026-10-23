@@ -2304,7 +2304,7 @@
     "guideConnectTitle": "接入智能體或應用",
     "guideConnectBody": "目前記憶庫的接入說明放在獨立頁面。",
     "connectTitle": "接入方式",
-    "connectIntro": "選擇記憶庫，透過現有 Python SDK、REST API 或 MCP 端點接入應用與智能體。",
+    "connectIntro": "選擇記憶庫，透過 Hook、現有 Python SDK、REST API 或 MCP 端點接入應用與智能體。",
     "chooseBank": "選擇記憶庫",
     "chooseBankDescription": "接入資訊依記憶庫顯示。請搜尋並選擇要接入的記憶庫。",
     "searchBanks": "搜尋記憶庫",
@@ -2322,7 +2322,9 @@
     "mcpAuth": "MCP 用戶端需傳送 Authorization: Bearer <API_KEY>。API 位址與目前控制台位址不同。",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "編碼智能體 Hook",
+    "hookBody": "一個指令自動偵測並接入本機所有編碼智能體（Claude Code、Codex、Cursor、Copilot 等）。Hook 在每次提示時注入記憶，並在工作階段結束時自動寫回對話紀錄。"
   },
   "brand": {
     "console": "面向 Agent 的資料與記憶引擎",

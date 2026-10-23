@@ -2304,7 +2304,7 @@
     "guideConnectTitle": "エージェントやアプリを接続",
     "guideConnectBody": "選択したバンクの接続手順は専用ページにあります。",
     "connectTitle": "接続方法",
-    "connectIntro": "バンクを選び、Python SDK、REST API、MCP の既存の接続方法を使います。",
+    "connectIntro": "バンクを選び、Hook、Python SDK、REST API、MCP の接続方法を使います。",
     "chooseBank": "バンクを選択",
     "chooseBankDescription": "接続情報はバンクごとに表示されます。接続するバンクを検索してください。",
     "searchBanks": "バンクを検索",
@@ -2322,7 +2322,9 @@
     "mcpAuth": "MCP クライアントから Authorization: Bearer <API_KEY> を送信します。API アドレスはコンソールのアドレスとは異なります。",
     "loadMore": "Load more",
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other."
+    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
+    "hookTitle": "コーディングエージェントフック",
+    "hookBody": "コマンド一つで、このマシンのすべてのコーディングエージェント（Claude Code、Codex、Cursor、Copilot など）を自動検出して接続します。フックは各プロンプトで記憶を注入し、セッション終了時にトランスクリプトを自動的に書き戻します。"
   },
   "brand": {
     "console": "エージェント向けデータ・メモリエンジン",
