@@ -32,12 +32,14 @@ import {
   readFileSync,
   readSync,
   realpathSync,
+  statSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { isatty } from "node:tty";
-import { dirname, join } from "node:path";
+import { isDeepStrictEqual } from "node:util";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { applyEdits, modify } from "jsonc-parser";
 import { parse as parseToml } from "smol-toml";
@@ -354,7 +356,7 @@ export interface HarnessInstaller {
 
 function onPath(bin: string): boolean {
   try {
-    execFileSync("which", [bin], { stdio: "pipe" });
+    execFileSync(process.platform === "win32" ? "where.exe" : "which", [bin], { stdio: "pipe" });
     return true;
   } catch {
     return false;
@@ -627,7 +629,7 @@ const claudeCode: HarnessInstaller = {
       c.log?.(
         "claude-code: preserved the existing contextbase MCP registration managed outside this plugin (or unreadable); register plugin tools under a distinct name if needed"
       );
-      return;
+      return false;
     }
     // Only a script owned by this package may be repointed; a remote URL with
     // the same product name belongs to its administrator.
@@ -652,6 +654,7 @@ const claudeCode: HarnessInstaller = {
         `claude-code: could not run \`claude mcp add\` — register the tools manually:\n` +
           `  claude mcp add --scope user contextbase --env CONTEXTBASE_MCP_HARNESS=claude-code -- node "${join(c.dist, "mcp-server.js")}"`
       );
+      return false;
     }
   },
   uninstall(c) {
@@ -678,9 +681,26 @@ const claudeCode: HarnessInstaller = {
   },
 };
 
-function defaultClaudeMcp(args: string[]): boolean {
+export function defaultClaudeMcp(args: string[]): boolean {
   try {
-    execFileSync("claude", args, { stdio: "pipe" });
+    if (process.platform === "win32") {
+      const candidates = execFileSync("where.exe", ["claude"], { encoding: "utf8" })
+        .trim()
+        .split(/\r?\n/);
+      const executable = candidates.find((file) => /\.exe$/i.test(file));
+      if (executable) execFileSync(executable, args, { stdio: "pipe" });
+      else {
+        // npm's .cmd shim cannot be passed to execFile. Run its JS entry with Node,
+        // keeping project paths and arguments out of cmd.exe's shell expansion.
+        const entry = candidates
+          .map((file) =>
+            join(dirname(file), "node_modules", "@anthropic-ai", "claude-code", "cli.js")
+          )
+          .find((file) => existsSync(file));
+        if (!entry) return false;
+        execFileSync(process.execPath, [entry, ...args], { stdio: "pipe" });
+      }
+    } else execFileSync("claude", args, { stdio: "pipe" });
     return true;
   } catch {
     return false;
@@ -698,6 +718,42 @@ const CODEX_MCP_BLOCK_RE =
 const codexMcpBlock = (dist: string) =>
   `[mcp_servers.contextbase]\ncommand = "node"\nargs = [${JSON.stringify(join(dist, "mcp-server.js"))}]\n` +
   `env = { CONTEXTBASE_MCP_HARNESS = "codex" }`;
+
+/** Edit only the features table; validate the result before touching the user's file. */
+function enableCodexHooks(toml: string): string {
+  const parsed = parseToml(toml);
+  const features: unknown = parsed.features;
+  if (isPlainObject(features) && features.hooks === true) return toml;
+  const header = /^[ \t]*\[(?:features|"features"|'features')\][^\n]*(?:\n|$)/m;
+  const match = header.exec(toml);
+  let next: string;
+  if (match) {
+    const start = match.index + match[0].length;
+    const rest = toml.slice(start);
+    const end = rest.search(/^[ \t]*\[/m);
+    const body = end < 0 ? rest : rest.slice(0, end);
+    const key = /^([ \t]*(?:hooks|"hooks"|'hooks')[ \t]*=[ \t]*)(?:true|false)([^\n]*)$/m;
+    const updated = key.test(body) ? body.replace(key, "$1true$2") : `hooks = true\n${body}`;
+    next = toml.slice(0, start).replace(/\n?$/, "\n") + updated + (end < 0 ? "" : rest.slice(end));
+  } else {
+    next = `${toml.replace(/\n*$/, "\n\n")}[features]\nhooks = true\n`;
+  }
+  const expected = {
+    ...parsed,
+    features: { ...(isPlainObject(parsed.features) ? parsed.features : {}), hooks: true },
+  };
+  // Unusual TOML forms (inline/dotted tables or multiline strings) must never be
+  // silently rewritten incorrectly. Leave them intact and report a failed install.
+  if (
+    !isDeepStrictEqual(
+      JSON.parse(JSON.stringify(parseToml(next))),
+      JSON.parse(JSON.stringify(expected))
+    )
+  ) {
+    throw new Error("could not safely enable [features].hooks; set hooks = true and retry");
+  }
+  return next;
+}
 
 const codex: HarnessInstaller = {
   name: "codex",
@@ -720,33 +776,28 @@ const codex: HarnessInstaller = {
     if (!registration.readable) {
       c.log?.("codex: could not inspect config.toml; MCP configuration preserved");
       installSkill(c, "codex");
-      return;
+      return false;
     }
     const owned = isOurMcpEntry(registration.entry);
     const foreign = registration.entry !== undefined && !owned;
-    const toml = owned ? existing.replace(CODEX_MCP_BLOCK_RE, "") : existing;
+    let toml = owned ? existing.replace(CODEX_MCP_BLOCK_RE, "") : existing;
     if (owned && toml === existing) {
       c.log?.(
         "codex: could not isolate the owned MCP table; configuration preserved, update it manually"
       );
       installSkill(c, "codex");
-      return;
+      return false;
     }
     if (foreign)
       c.log?.(
         "codex: preserved the existing contextbase MCP registration managed outside this plugin"
       );
     const additions: string[] = [];
-    // Codex ≥ 0.145 deprecates `codex_hooks` for `[features].hooks`; accept either as "already
-    // enabled", write the modern name for new installs.
-    if (!/^\s*(codex_hooks|hooks)\s*=/m.test(toml)) {
-      if (/^\[features\]/m.test(toml)) {
-        c.log?.(
-          "codex: add `hooks = true` under your existing [features] section in ~/.codex/config.toml"
-        );
-      } else {
-        additions.push("[features]\nhooks = true");
-      }
+    try {
+      toml = enableCodexHooks(toml);
+    } catch (error) {
+      c.log?.(`codex: ${(error as Error).message}; config.toml preserved`);
+      return false;
     }
     if (!foreign) additions.push(codexMcpBlock(c.dist));
     const next = additions.length
@@ -761,6 +812,7 @@ const codex: HarnessInstaller = {
       c.log?.(`codex: wrote ${additions.length} section(s) to ${tomlPath}`);
     }
     installSkill(c, "codex"); // agentskills-standard shared dir
+    if (foreign) return false;
   },
   uninstall(c) {
     const hooksPath = join(c.home, ".codex", "hooks.json");
@@ -1060,7 +1112,33 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
     return false;
   }
   const configPath = hindsightConfigPath(c);
-  const existing = readJson(configPath);
+  let existing: Record<string, any> = {};
+  try {
+    if (existsSync(configPath)) existing = JSON.parse(readFileSync(configPath, "utf8"));
+    if (!isPlainObject(existing)) throw new Error("expected a JSON object");
+  } catch {
+    c.log?.(`server: invalid config at ${configPath}; fix it before installing`);
+    return false;
+  }
+  const bankId = flagValue(args, "bank-id");
+  const projectPath = flagValue(args, "project-path");
+  if (
+    (projectPath !== undefined && bankId === undefined) ||
+    (bankId !== undefined && !bankId.trim())
+  ) {
+    c.log?.("server: --project-path requires a non-empty --bank-id");
+    return false;
+  }
+  let project: string | undefined;
+  if (bankId !== undefined) {
+    try {
+      project = realpathSync(resolve(projectPath ?? process.cwd()));
+      if (!statSync(project).isDirectory()) throw new Error("not a directory");
+    } catch {
+      c.log?.("server: --project-path must name an existing project directory");
+      return false;
+    }
+  }
   if (!explicit && existing.serverMode === "daemon") {
     c.log?.(
       "Local engine mode is not supported. Configure --server cloud --api-url <API Endpoint>."
@@ -1093,6 +1171,22 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
   // Credentials may be supplied later through the user's secret manager; never prompt with echo.
   if (!next.apiToken)
     c.log?.("server: configure apiToken or CONTEXTBASE_API_TOKEN before authenticated requests.");
+  if (bankId !== undefined && project) {
+    next.mapPathToBank = { ...existing.mapPathToBank, [project]: bankId.trim() };
+    next.optInOnly = true;
+    // The service owns this pre-provisioned bank. Ordinary customer keys can retain
+    // and recall but cannot import bank configuration or create knowledge pages.
+    const bankSettings = {
+      ...existing.banks?.[bankId.trim()],
+      manageBankConfig: false,
+      autoSeed: false,
+      codebaseSurvey: false,
+    };
+    // An old bank alias must not redirect an explicitly selected Workspace.
+    delete bankSettings.bank;
+    next.banks = { ...existing.banks, [bankId.trim()]: bankSettings };
+    c.log?.(`server: project ${project} bound to bank ${bankId.trim()} (service-managed)`);
+  }
   writeJson(configPath, next);
   c.log?.(`server: remote connection (${configPath})`);
   return true;
@@ -2390,14 +2484,29 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   let ctx = ctxIn;
   const [command, ...rawArgs] = argv;
   ctx = { ...ctx, args: rawArgs };
+  for (const name of ["server", "api-url", "api-token", "bank-id", "project-path"]) {
+    const index = rawArgs.indexOf(`--${name}`);
+    if (index >= 0 && (!rawArgs[index + 1] || rawArgs[index + 1].startsWith("--"))) {
+      ctx.log?.(`--${name} requires a value`);
+      return 1;
+    }
+  }
   // `--import-conversations` backfills this repo's PAST sessions for the harness being installed —
   // the migration path off the older per-agent plugins, whose banks the server cannot merge into
   // this one. Opt-in: it re-extracts history and therefore costs tokens.
   const importHistory = rawArgs.includes("--import-conversations");
   // A flag's VALUE (`--server daemon`) is a bare word too — excluding it keeps "daemon" from being
   // read as a harness name and rejected.
-  const valueArgs = flagValueArgs(rawArgs, ["server", "api-url", "api-token"]);
-  const names = rawArgs.filter((a) => !a.startsWith("--") && !valueArgs.has(a));
+  const valueFlags = new Set([
+    "--server",
+    "--api-url",
+    "--api-token",
+    "--bank-id",
+    "--project-path",
+  ]);
+  const names = rawArgs.filter(
+    (a, index) => !a.startsWith("--") && !(index > 0 && valueFlags.has(rawArgs[index - 1]))
+  );
   // Read-only: summarizes the local usage log (core/usage.ts) and touches nothing else.
   if (command === "stats") {
     ctx.log?.(formatUsageReport(readUsage()));
@@ -2432,6 +2541,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
         `       contextbase-coding-agents update\n` +
         `       contextbase-coding-agents stats\n` +
         `       [--server cloud|self-hosted] [--api-url <url>] [--api-token <token>]\n` +
+        `       [--bank-id <id>] [--project-path <directory>]\n` +
         `       [--import-conversations] [--enable-workspace-mcp]\n` +
         `  all      every agent detected on this machine\n` +
         `  harness  ${INSTALLERS.map((i) => i.name).join(", ")} (agy aliases antigravity-cli)\n` +

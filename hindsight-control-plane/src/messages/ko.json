@@ -2324,7 +2324,8 @@
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
     "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
     "hookTitle": "코딩 에이전트 훅",
-    "hookBody": "명령 하나로 이 머신의 모든 코딩 에이전트(Claude Code, Codex, Cursor, Copilot 등)를 자동 감지하여 연결합니다. 훅은 각 프롬프트에서 메모리를 주입하고 세션 종료 시 대화 기록을 자동으로 기록합니다."
+    "hookBody": "프로젝트 디렉터리에서 <API_KEY>를 이 워크스페이스에 권한이 있는 업무용 키로 바꾸고 터미널에 맞는 명령을 실행하세요. Claude Code와 Codex의 Hook 및 로컬 MCP를 설치하고 이 워크스페이스에 연결합니다. 필요한 클라이언트 이름만 남겨도 됩니다. 설치 후 클라이언트를 다시 시작하고 요청 시 Hook을 승인하세요.",
+    "connectionUnavailable": "연결 정보가 아직 설정되지 않았습니다. 서비스 제공자에게 엔드포인트와 설치 패키지를 요청하세요."
   },
   "brand": {
     "console": "에이전트용 데이터·메모리 엔진",

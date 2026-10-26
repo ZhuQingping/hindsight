@@ -2324,7 +2324,8 @@
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
     "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
     "hookTitle": "Hook de agente de codificação",
-    "hookBody": "Um comando detecta e conecta automaticamente todos os agentes de codificação nesta máquina (Claude Code, Codex, Cursor, Copilot e mais). Os hooks injetam memória em cada prompt e gravam transcrições automaticamente."
+    "hookBody": "Abra o diretório do projeto, substitua <API_KEY> por uma chave de uso autorizada para este espaço e execute os comandos do seu terminal. Eles instalam hooks e MCP local do Claude Code e Codex, vinculados a este espaço. Mantenha apenas um nome de agente se necessário. Reinicie o cliente e autorize os hooks quando solicitado.",
+    "connectionUnavailable": "A conexão ainda não está totalmente configurada. Solicite o endpoint e o pacote de instalação ao provedor."
   },
   "brand": {
     "console": "Motor de dados e memória para agentes",

@@ -2324,7 +2324,8 @@
     "showingWorkspaces": "Showing {shown} of {total} Workspaces",
     "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
     "hookTitle": "Coding-Agent-Hook",
-    "hookBody": "Ein Befehl erkennt automatisch alle Coding-Agenten auf diesem Rechner (Claude Code, Codex, Cursor, Copilot u. a.) und verkabelt sie. Hooks injizieren bei jedem Prompt Speicher und schreiben Transkripte automatisch zurück."
+    "hookBody": "Öffnen Sie das Projektverzeichnis, ersetzen Sie <API_KEY> durch einen für diesen Workspace berechtigten Geschäftsschlüssel und führen Sie die Befehle für Ihr Terminal aus. Sie installieren Hooks und lokales MCP für Claude Code und Codex und binden diesen Workspace. Behalten Sie bei Bedarf nur einen Agentennamen. Starten Sie den Client neu und bestätigen Sie die Hooks, wenn Sie dazu aufgefordert werden.",
+    "connectionUnavailable": "Die Verbindungsdaten sind noch nicht vollständig konfiguriert. Fragen Sie Ihren Anbieter nach Endpunkt und Installationspaket."
   },
   "brand": {
     "console": "Daten- und Gedächtnis-Engine für Agenten",

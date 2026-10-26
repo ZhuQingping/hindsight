@@ -17,6 +17,8 @@ import { TRAECODE_WORKSPACE_ENABLED_KEY } from "./core/traecode-mcp";
 import { SKILL_DIRS } from "./core/skill-dirs";
 import { parse as parseToml } from "smol-toml";
 import { HOOK_HARNESSES } from "./harness/hook-lifecycle";
+import { applyBankConfig, loadConfig } from "./core/config";
+import { deriveBankId } from "./core/bank";
 
 /** The uninstall sweep and the hook seed both shell out to the system sqlite3 — absent on some
  *  runners, so the DB-backed tests gate on a probe instead of assuming. */
@@ -247,12 +249,12 @@ describe("claude-code installer", () => {
     ]);
   });
 
-  it("still succeeds when claudeMcp reports the CLI is unusable (manual instructions)", () => {
+  it("reports failure when Claude MCP registration is unusable and prints recovery instructions", () => {
     const ctx = makeCtx();
     ctx.claudeMcp.mockReturnValue(false);
     const logs: string[] = [];
     ctx.log = (m) => logs.push(m);
-    expect(run(["install", "claude-code"], ctx)).toBe(0);
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
     expect(logs.join("\n")).toContain("claude mcp add");
     // hooks were still written despite the MCP failure
     expect(existsSync(settingsPath(ctx))).toBe(true);
@@ -1380,7 +1382,7 @@ describe("codex installer", () => {
     run(["install", "codex"], ctx);
     const toml = readFileSync(tomlPath(ctx), "utf8");
     expect(toml.match(/^\[features\]/gm)).toHaveLength(1);
-    expect(toml).not.toContain("hooks = true"); // user is told to add it manually
+    expect(toml).toContain("hooks = true");
     expect(toml).toContain("[mcp_servers.contextbase]");
     expect(readFileSync(`${tomlPath(ctx)}.contextbase-backup`, "utf8")).toBe(original);
   });
@@ -3298,4 +3300,112 @@ describe("Qwen scoped ownership", () => {
     expect(ctx.qwenMcp).not.toHaveBeenCalled();
     expect(readFileSync(path, "utf8")).toBe("{ broken");
   });
+});
+
+describe("customer Workspace setup", () => {
+  it("binds only the project, shares its bank across clients, and preserves other mappings", () => {
+    const ctx = makeCtx();
+    const project = join(ctx.home, "project with spaces");
+    mkdirSync(project);
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    writeJsonAt(path, {
+      apiUrl: "https://service.example",
+      mapPathToBank: { "/other": "other-bank" },
+      banks: { "other-bank": { autoSeed: true } },
+    });
+    const args = [
+      "install",
+      "claude-code",
+      "codex",
+      "--bank-id",
+      "customer-bank",
+      "--project-path",
+      project,
+    ];
+    expect(run(args, ctx)).toBe(0);
+    expect(run(args, ctx)).toBe(0);
+    const cfg = readJson(path);
+    expect(cfg.mapPathToBank).toEqual({ "/other": "other-bank", [project]: "customer-bank" });
+    expect(cfg.optInOnly).toBe(true);
+    expect(cfg.banks["customer-bank"]).toEqual({
+      manageBankConfig: false,
+      autoSeed: false,
+      codebaseSurvey: false,
+    });
+    expect(cfg.banks["other-bank"]).toEqual({ autoSeed: true });
+    for (const harness of ["claude-code", "codex"]) {
+      const loaded = loadConfig({ path, harness });
+      const bank = deriveBankId(loaded, project, harness);
+      expect(bank).toBe("customer-bank");
+      expect(applyBankConfig(loaded, bank, project).cfg).toMatchObject({
+        autoSeed: false,
+        manageBankConfig: false,
+        codebaseSurvey: false,
+        retainSessions: true,
+      });
+      expect(applyBankConfig(loaded, "unrelated", ctx.home).cfg.disabled).toBe(true);
+    }
+    expect(
+      parseToml(readFileSync(join(ctx.home, ".codex", "config.toml"), "utf8")).features
+    ).toMatchObject({ hooks: true });
+  });
+  it.each([
+    ["--bank-id"],
+    ["--bank-id", "--api-url", "https://service.example"],
+    ["--bank-id="],
+    ["--project-path", "."],
+    ["--bank-id", "bank", "--project-path", "/does-not-exist/contextbase"],
+  ])("rejects incomplete binding %j before registering clients", (...args) => {
+    const ctx = makeCtx();
+    expect(run(["install", "claude-code", ...args], ctx)).toBe(1);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    expect(existsSync(join(ctx.home, ".contextbase", "coding-agent.json"))).toBe(false);
+  });
+  it("preserves malformed customer configuration and fails", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "{broken");
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
+    expect(readFileSync(path, "utf8")).toBe("{broken");
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+  });
+  it.each([
+    "[features]\nhooks = false # disabled\nother = true\n",
+    "[features]\nother = true\n",
+    '["features"]\n"hooks" = false\n',
+    "[features]\ncodex_hooks = true\n",
+    "[unrelated]\nhooks = false\n",
+  ])("enables Codex hooks in the correct table without changing model settings: %s", (features) => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".codex", "config.toml");
+    mkdirSync(dirname(path), { recursive: true });
+    const original = 'model = "custom-model"\n# keep this comment\n' + features;
+    writeFileSync(path, original);
+    expect(run(["install", "codex"], ctx)).toBe(0);
+    const saved = readFileSync(path, "utf8");
+    const parsed = parseToml(saved);
+    expect(parsed.features).toMatchObject({ hooks: true });
+    expect(parsed.model).toBe("custom-model");
+    expect(saved).toContain("# keep this comment");
+    expect(readFileSync(path + ".contextbase-backup", "utf8")).toBe(original);
+    expect(run(["install", "codex"], ctx)).toBe(0);
+  });
+  it("does not claim success for an unreadable Codex config", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".codex", "config.toml");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "[broken");
+    expect(run(["install", "codex"], ctx)).toBe(1);
+    expect(readFileSync(path, "utf8")).toBe("[broken");
+  });
+});
+
+it("treats a bank named codex as a flag value without losing the Codex target", () => {
+  const ctx = makeCtx();
+  const path = join(ctx.home, ".contextbase", "coding-agent.json");
+  writeJsonAt(path, { banks: { codex: { bank: "old-alias", autoSeed: true } } });
+  expect(run(["install", "codex", "--bank-id", "codex", "--project-path", ctx.home], ctx)).toBe(0);
+  expect(readJson(path).banks.codex.bank).toBeUndefined();
+  expect(existsSync(join(ctx.home, ".codex", "config.toml"))).toBe(true);
 });
