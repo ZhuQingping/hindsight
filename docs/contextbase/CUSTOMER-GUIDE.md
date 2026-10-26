@@ -17,7 +17,7 @@
 contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz
 ```
 
-只需使用这个 `.tgz`，无需再次解压，也无需安装 ZIP 中的其他组件。从解压后的目录打开终端，按包内的 `SHA256SUMS` 核对文件后执行：
+只需使用这个 `.tgz`，无需再次解压，也无需安装 ZIP 中的其他组件。从解压后的目录打开终端，执行：
 
 Windows PowerShell：
 
@@ -30,8 +30,6 @@ Linux 或 macOS Bash：
 ```bash
 npm install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz"
 ```
-
-使用其他版本时，将路径和文件名中的 `0.8.1` 替换为实际版本。安装的是客户端集成；记忆保存在 ContextBase 服务端，无需在本机部署数据库。
 
 ## 2 配置连接和项目
 
@@ -57,20 +55,9 @@ contextbase-coding-agents install claude-code codex --api-url 'https://实际API
 
 安装器会配置本地 MCP 工具、自动读写记忆的 Hooks 和配套 Skill。安装对当前系统用户生效，**API 地址和 Key 全局共享，Bank 按项目目录选择**。
 
-连接和项目映射保存在 `~/.contextbase/coding-agent.json`；Windows 对应 `%USERPROFILE%\.contextbase\coding-agent.json`。设置了 `CONTEXTBASE_CONFIG` 时，以该变量指定的文件为准。文件包含凭据，不要提交到代码仓库。
+连接和项目映射保存在 `~/.contextbase/coding-agent.json`；Windows 对应 `%USERPROFILE%\.contextbase\coding-agent.json`。设置了 `CONTEXTBASE_CONFIG` 时，以该变量指定的文件为准。
 
-项目映射示例（仅展示相关字段，修改时保留其他配置）：
-
-```json
-{
-  "mapPathToBank": {
-    "D:/code/my-project": "bank_my_project",
-    "D:/code/other-project": "bank_other"
-  }
-}
-```
-
-映射对子目录也生效；多个路径匹配时使用最长路径。Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记忆。
+Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记忆。
 
 首次接入请指定 `--bank-id`。不指定时复用已有配置；没有映射时按默认规则选择 Bank，云端不一定存在或授权该 Bank。`--project-path` 必须与 `--bank-id` 一起使用。
 
