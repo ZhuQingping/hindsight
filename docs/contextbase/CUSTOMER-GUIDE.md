@@ -1,40 +1,41 @@
 # ContextBase 客户使用指南
 
-让 Claude Code 和 Codex 使用同一个项目记忆库，自动保存工作记录，并在后续会话中调用。推荐按第 1 至 5 节完成安装；只需要远端 MCP 时，直接使用第 6 节。
+通过 ContextBase，Claude Code 和 Codex 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证；只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
 
-## 1 准备
+## 1 下载和安装
 
-请准备 Node.js 24、已能正常使用的 Claude Code 或 Codex CLI，以及服务提供方给出的：
+安装包适用于 Windows、Linux 和 macOS，需要 Node.js 24。
 
-- Coding Agents 安装包或下载地址。
+- [下载 Coding Agents 安装包（0.8.1，包含在 contextbase-plugin-candidates ZIP 中）](https://github.com/RSIXDB/hindsight/actions/runs/40296078727/artifacts/12638142440)
+- [查看后续构建](https://github.com/RSIXDB/hindsight/actions/workflows/release.yml)：选择成功的构建，在 **Artifacts** 中下载 `contextbase-plugin-candidates`。
 
-- API Endpoint 和访问凭据。
+下载需要登录有仓库访问权限的 GitHub 账号。当前链接为构建候选产物，有保留期限；过期后请从后续构建获取安装包。
 
-- 已授权的 Bank ID。
+解压下载的 ZIP，找到：
 
-本地 MCP 适配器随集成安装，记忆保存在远端，无需在本机部署数据库。
+```text
+contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz
+```
 
-## 2 安装
-
-下载服务提供方交付的 tgz 文件，按提供的 SHA256SUMS 校验后安装。将以下文件名替换为实际文件名。
+只需使用这个 `.tgz`，无需再次解压，也无需安装 ZIP 中的其他组件。从解压后的目录打开终端，按包内的 `SHA256SUMS` 核对文件后执行：
 
 Windows PowerShell：
 
 ```powershell
-npm.cmd install -g ./contextbase-coding-agents-版本.tgz
+npm.cmd install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz"
 ```
 
 Linux 或 macOS Bash：
 
 ```bash
-npm install -g ./contextbase-coding-agents-版本.tgz
+npm install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz"
 ```
 
-也可以将本地文件名替换为服务提供方给出的完整 HTTPS 下载地址。
+使用其他版本时，将路径和文件名中的 `0.8.1` 替换为实际版本。安装的是客户端集成；记忆保存在 ContextBase 服务端，无需在本机部署数据库。
 
-## 3 配置连接和项目
+## 2 配置连接和项目
 
-进入需要启用记忆的项目目录，使用服务提供方给出的 API 地址、业务 API Key 和 Bank ID 执行安装命令。Bank 必须已创建，Key 必须具有对应读写权限。
+先进入需要启用记忆的项目目录，再填写服务提供方给出的 API 地址、API Key 和 Bank ID。Bank 需已创建并授权；`--project-path '.'` 绑定的是执行命令时的当前目录。
 
 Windows PowerShell：
 
@@ -54,32 +55,26 @@ contextbase-coding-agents install claude-code codex --api-url 'https://实际API
 
 只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。API 地址不要填写下载地址或 MCP Endpoint。
 
-安装器会注册本地 MCP、Hooks 和配套 Skill，并把连接与项目映射写入 **~/.contextbase/coding-agent.json**。Windows 的 ~ 通常为 C:/Users/用户名；如果设置了 CONTEXTBASE_CONFIG，则使用该变量指定的文件。配置文件包含凭据，不要提交到代码仓库。
+安装器会配置本地 MCP 工具、自动读写记忆的 Hooks 和配套 Skill。安装对当前系统用户生效，**API 地址和 Key 全局共享，Bank 按项目目录选择**。
 
-配置示例：
+连接和项目映射保存在 `~/.contextbase/coding-agent.json`；Windows 对应 `%USERPROFILE%\.contextbase\coding-agent.json`。设置了 `CONTEXTBASE_CONFIG` 时，以该变量指定的文件为准。文件包含凭据，不要提交到代码仓库。
+
+项目映射示例（仅展示相关字段，修改时保留其他配置）：
 
 ```json
 {
-  "apiUrl": "https://实际API端点",
-  "apiToken": "实际访问凭据",
   "mapPathToBank": {
-    "D:/code/my-project": "实际Bank-ID"
-  },
-  "banks": {
-    "实际Bank-ID": {
-      "manageBankConfig": false,
-      "autoSeed": false,
-      "codebaseSurvey": false
-    }
+    "D:/code/my-project": "bank_my_project",
+    "D:/code/other-project": "bank_other"
   }
 }
 ```
 
-`mapPathToBank` 将项目目录绑定到 Bank，子目录也适用；多个映射匹配时使用最长路径。安装器不设置或修改 `optInOnly`；未配置时默认 `false`，未绑定项目会沿用默认 Bank 解析规则，仍需云端授权。已有 `true` 需要自行修改为 `false` 或删除该项，重装不会覆盖。`optInOnly: true` 表示只有已绑定或明确启用的项目才使用记忆。Claude Code 和 Codex 使用相同映射即可共享记忆。
+映射对子目录也生效；多个路径匹配时使用最长路径。Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记忆。
 
-API 地址和 Key 由各项目共用；不同项目可绑定不同 Bank。修改全局连接会影响所有已配置项目。客户模式不自动修改云端 Bank 配置、不初始化历史数据或启动代码调查，仍可保存会话、查询记忆和主动写入文档。
+首次接入请指定 `--bank-id`。不指定时复用已有配置；没有映射时按默认规则选择 Bank，云端不一定存在或授权该 Bank。`--project-path` 必须与 `--bank-id` 一起使用。
 
-首次接入建议指定 `--bank-id`；后续重装可复用已有配置。不指定时保留原配置，没有映射时通常按项目名生成 Bank 名称，但云端不一定存在或授权该 Bank。`--project-path` 必须配合 `--bank-id` 使用。
+`optInOnly` 控制未绑定项目是否启用记忆：`true` 表示仅已绑定或明确启用的项目使用记忆，`false` 表示其他项目也按默认规则选择 Bank。未配置时默认 `false`，安装器保留已有值。
 
 其他项目使用不同 Bank 时，添加映射即可，已有映射会保留：
 
@@ -89,9 +84,9 @@ contextbase-coding-agents.cmd install claude-code --bank-id "bank_other" --proje
 
 需要切换 Bank 时，修改对应路径映射并重启客户端。旧 Bank 的记忆不会自动迁移。
 
-已有 Claude MCP 注册时，仅更新本插件拥有的本地注册，保留额外环境变量和其他配置，并备份原配置。同名远端 MCP 不自动覆盖；配置无法解析时停止并提示修复。注册命令失败会显示底层错误和使用绝对路径的手动恢复命令。
+重复安装会保留已有项目映射。已有同名 Claude MCP 配置若不属于本集成，安装器会提示处理，不会直接覆盖。
 
-## 4 启动客户端
+## 3 启动客户端
 
 ### Claude Code
 
@@ -124,9 +119,9 @@ codex
 
 在会话中输入 **/hooks**，按提示审阅并信任 ContextBase Hook；输入 **/mcp**，确认 contextbase 已连接。完成设置后重新启动客户端。
 
-## 5 使用和验证
+## 4 使用和验证
 
-安装后正常工作即可。Hook 会在提问时获取相关记忆，在每轮回复结束后保存会话。也可以明确要求客户端调用记忆工具。
+启用 Hooks 后，客户端会自动检索相关记忆并保存会话。也可以在对话中要求调用记忆工具。先用下面的示例验证读写：
 
 **保存一条约定：**
 
@@ -140,7 +135,7 @@ codex
 
 ### 日常记忆使用示例
 
-以下提示词可直接输入 Claude Code 或 Codex 的对话框，适用于前面安装的本地 MCP 集成。两端连接同一服务、映射到同一个 Bank 后，可以共享这些记忆。
+以下示例可直接输入 Claude Code 或 Codex。工具名用于说明用途，实际调用以客户端加载的工具列表为准。
 
 #### 保存项目约定
 
@@ -200,7 +195,7 @@ codex
 
 若没有查到，先让客户端调用 **contextbase_diagnose**，核对当前项目、连接和 Bank。不要仅凭模型回答正确就判断记忆接入成功。
 
-## 6 可选的远端 MCP 接入
+## 5 可选的远端 MCP 接入
 
 只需要按需查询和保存记忆时，可直接连接远端 MCP，无需安装本地适配器。此方式不自动保存会话。
 
@@ -245,7 +240,7 @@ bearer_token_env_var = "CONTEXTBASE_MCP_TOKEN"
 
 随后要求客户端“使用 contextbase-remote 保存并查询一条测试记忆”。远端工具与本地适配器不同，以客户端显示的工具列表为准。如果服务提供方要求额外配置 Bank 请求头，使用其提供的配置。
 
-## 7 常见问题和维护
+## 6 常见问题和维护
 
 | 问题                       | 处理                                               |
 | -------------------------- | -------------------------------------------------- |
@@ -264,7 +259,7 @@ bearer_token_env_var = "CONTEXTBASE_MCP_TOKEN"
 
 **更新**
 
-安装新版本 tgz，然后重新运行第 3 节的 install 命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `contextbase-coding-agents install claude-code codex`（PowerShell 使用 `.cmd`）。
+安装新版本 tgz，然后重新运行第 2 节的 install 命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `contextbase-coding-agents install claude-code codex`（PowerShell 使用 `.cmd`）。
 
 **卸载**
 
