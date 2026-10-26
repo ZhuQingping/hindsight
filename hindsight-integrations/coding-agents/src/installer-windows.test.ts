@@ -15,21 +15,33 @@ afterEach(() => {
 });
 
 describe("Windows Claude MCP registration", () => {
-  it("launches the npm entry through Node without a shell, preserving special path characters", () => {
-    Object.defineProperty(process, "platform", { value: "win32", configurable: true });
-    const home = mkdtempSync(join(tmpdir(), "claude npm & "));
-    homes.push(home);
-    const entry = join(home, "node_modules", "@anthropic-ai", "claude-code", "cli.js");
-    mkdirSync(dirname(entry), { recursive: true });
-    writeFileSync(entry, "");
-    vi.mocked(execFileSync).mockReturnValueOnce(join(home, "claude.cmd") + "\r\n");
-    const args = ["mcp", "add", "contextbase", "--", "node", "C:\\User name & team\\mcp-server.js"];
-    expect(defaultClaudeMcp(args)).toBe(true);
-    expect(execFileSync).toHaveBeenNthCalledWith(1, "where.exe", ["claude"], { encoding: "utf8" });
-    expect(execFileSync).toHaveBeenNthCalledWith(2, process.execPath, [entry, ...args], {
-      stdio: "pipe",
-    });
-  });
+  it.each(["cli.js", "cli-wrapper.cjs"])(
+    "launches npm %s through Node without a shell",
+    (launcher) => {
+      Object.defineProperty(process, "platform", { value: "win32", configurable: true });
+      const home = mkdtempSync(join(tmpdir(), "claude npm & "));
+      homes.push(home);
+      const entry = join(home, "node_modules", "@anthropic-ai", "claude-code", launcher);
+      mkdirSync(dirname(entry), { recursive: true });
+      writeFileSync(entry, "");
+      vi.mocked(execFileSync).mockReturnValueOnce(join(home, "claude.cmd") + "\r\n");
+      const args = [
+        "mcp",
+        "add",
+        "contextbase",
+        "--",
+        "node",
+        "C:\\User name & team\\mcp-server.js",
+      ];
+      expect(defaultClaudeMcp(args)).toBe(true);
+      expect(execFileSync).toHaveBeenNthCalledWith(1, "where.exe", ["claude"], {
+        encoding: "utf8",
+      });
+      expect(execFileSync).toHaveBeenNthCalledWith(2, process.execPath, [entry, ...args], {
+        stdio: "pipe",
+      });
+    }
+  );
   it("uses the native executable when installed", () => {
     Object.defineProperty(process, "platform", { value: "win32", configurable: true });
     vi.mocked(execFileSync).mockReturnValueOnce("C:\\bin\\claude.exe\r\n");
@@ -42,6 +54,8 @@ describe("Windows Claude MCP registration", () => {
     vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error("unavailable");
     });
-    expect(defaultClaudeMcp(["mcp", "list"])).toBe(false);
+    const log = vi.fn();
+    expect(defaultClaudeMcp(["mcp", "list"], log)).toBe(false);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("unavailable"));
   });
 });

@@ -209,25 +209,58 @@ describe("claude-code installer", () => {
     }
   });
 
-  it("removes before adding so an owned registration is REPOINTED, not skipped", () => {
+  it("updates only its owned registration, preserving custom env, other servers and project settings", () => {
     const ctx = makeCtx();
-    writeJsonAt(join(ctx.home, ".claude.json"), {
+    const path = join(ctx.home, ".claude.json");
+    const original = {
       mcpServers: {
+        other: { type: "http", url: "https://example.com/mcp" },
         contextbase: {
           command: "node",
           args: ["/old/contextbase-coding-agents/dist/mcp-server.js"],
+          env: { CUSTOM_ENV: "keep", CONTEXTBASE_MCP_HARNESS: "old" },
         },
       },
+      projects: { project: { allowedTools: ["keep"] } },
+    };
+    writeJsonAt(path, original);
+    expect(run(["install", "claude-code"], ctx)).toBe(0);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    const updated = readJson(path);
+    expect(updated.mcpServers.contextbase.args).toEqual([join(ctx.dist, "mcp-server.js")]);
+    expect(updated.mcpServers.contextbase.env).toEqual({
+      CUSTOM_ENV: "keep",
+      CONTEXTBASE_MCP_HARNESS: "claude-code",
     });
-    run(["install", "claude-code"], ctx);
-    const calls = ctx.claudeMcp.mock.calls.map((c) => c[0]);
-    const removeAt = calls.findIndex((a) => a[1] === "remove");
-    const addAt = calls.findIndex((a) => a[1] === "add");
-    // `claude mcp add` refuses a name that already exists, so without the remove a re-install
-    // silently leaves a stale (possibly dead) server path registered.
-    expect(removeAt).toBeGreaterThanOrEqual(0);
-    expect(removeAt).toBeLessThan(addAt);
-    expect(calls[removeAt]).toEqual(["mcp", "remove", "--scope", "user", "contextbase"]);
+    expect(updated.mcpServers.other).toEqual(original.mcpServers.other);
+    expect(updated.projects).toEqual(original.projects);
+    expect(readJson(`${path}.contextbase-backup`)).toEqual(original);
+    expect(run(["install", "claude-code"], ctx)).toBe(0);
+    expect(readJson(path)).toEqual(updated);
+  });
+
+  it("does not replace malformed user settings", () => {
+    const ctx = makeCtx();
+    mkdirSync(dirname(settingsPath(ctx)), { recursive: true });
+    writeFileSync(settingsPath(ctx), "{ broken");
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
+    expect(readFileSync(settingsPath(ctx), "utf8")).toBe("{ broken");
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+  });
+
+  it("keeps the old registration if preparing its replacement fails", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".claude.json");
+    writeJsonAt(path, {
+      mcpServers: {
+        contextbase: { command: "node", args: ["/old/coding-agents/dist/mcp-server.js"] },
+      },
+    });
+    const original = readFileSync(path, "utf8");
+    mkdirSync(`${path}.contextbase-${process.pid}.tmp`);
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
+    expect(readFileSync(path, "utf8")).toBe(original);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
   });
 
   it("registers the MCP server via `claude mcp add` (user scope)", () => {
@@ -238,11 +271,13 @@ describe("claude-code installer", () => {
       "add",
       "--scope",
       "user",
-      "contextbase",
       // Every host launches the same mcp-server.js, so the registration has to name its harness —
       // otherwise the server falls back to claude-code and mis-attributes the other hosts' writes.
       "--env",
       "CONTEXTBASE_MCP_HARNESS=claude-code",
+      "--transport",
+      "stdio",
+      "contextbase",
       "--",
       "node",
       join(ctx.dist, "mcp-server.js"),
@@ -3303,6 +3338,38 @@ describe("Qwen scoped ownership", () => {
 });
 
 describe("customer Workspace setup", () => {
+  it.each([true, false, undefined])(
+    "preserves existing optInOnly=%s when adding a project",
+    (optInOnly) => {
+      const ctx = makeCtx();
+      const path = join(ctx.home, ".contextbase", "coding-agent.json");
+      writeJsonAt(path, { apiUrl: "https://service.example", optInOnly });
+      expect(
+        run(["install", "claude-code", "--bank-id", "new-bank", "--project-path", ctx.home], ctx)
+      ).toBe(0);
+      expect(readJson(path).optInOnly).toBe(optInOnly);
+    }
+  );
+  it("does not force opt-in for a new customer configuration", () => {
+    const ctx = makeCtx();
+    expect(
+      run(
+        [
+          "install",
+          "claude-code",
+          "--api-url",
+          "https://service.example",
+          "--bank-id",
+          "new-bank",
+          "--project-path",
+          ctx.home,
+        ],
+        ctx
+      )
+    ).toBe(0);
+    expect(readJson(join(ctx.home, ".contextbase", "coding-agent.json")).optInOnly).toBeUndefined();
+  });
+
   it("binds only the project, shares its bank across clients, and preserves other mappings", () => {
     const ctx = makeCtx();
     const project = join(ctx.home, "project with spaces");
@@ -3311,6 +3378,7 @@ describe("customer Workspace setup", () => {
     writeJsonAt(path, {
       apiUrl: "https://service.example",
       mapPathToBank: { "/other": "other-bank" },
+      optInOnly: true,
       banks: { "other-bank": { autoSeed: true } },
     });
     const args = [

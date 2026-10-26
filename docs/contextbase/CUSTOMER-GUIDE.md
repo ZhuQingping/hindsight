@@ -62,7 +62,6 @@ contextbase-coding-agents install claude-code codex --api-url 'https://实际API
 {
   "apiUrl": "https://实际API端点",
   "apiToken": "实际访问凭据",
-  "optInOnly": true,
   "mapPathToBank": {
     "D:/code/my-project": "实际Bank-ID"
   },
@@ -76,13 +75,21 @@ contextbase-coding-agents install claude-code codex --api-url 'https://实际API
 }
 ```
 
-`mapPathToBank` 将项目目录绑定到 Bank，子目录也适用；多个映射匹配时使用最长路径。`optInOnly: true` 表示只有已绑定或明确启用的项目才使用记忆。Claude Code 和 Codex 使用相同映射即可共享记忆。
+`mapPathToBank` 将项目目录绑定到 Bank，子目录也适用；多个映射匹配时使用最长路径。安装器不设置或修改 `optInOnly`；未配置时默认 `false`，未绑定项目会沿用默认 Bank 解析规则，仍需云端授权。已有 `true` 需要自行修改为 `false` 或删除该项，重装不会覆盖。`optInOnly: true` 表示只有已绑定或明确启用的项目才使用记忆。Claude Code 和 Codex 使用相同映射即可共享记忆。
 
 API 地址和 Key 由各项目共用；不同项目可绑定不同 Bank。修改全局连接会影响所有已配置项目。客户模式不自动修改云端 Bank 配置、不初始化历史数据或启动代码调查，仍可保存会话、查询记忆和主动写入文档。
 
 首次接入建议指定 `--bank-id`；后续重装可复用已有配置。不指定时保留原配置，没有映射时通常按项目名生成 Bank 名称，但云端不一定存在或授权该 Bank。`--project-path` 必须配合 `--bank-id` 使用。
 
+其他项目使用不同 Bank 时，添加映射即可，已有映射会保留：
+
+```powershell
+contextbase-coding-agents.cmd install claude-code --bank-id "bank_other" --project-path "D:\code\other-project"
+```
+
 需要切换 Bank 时，修改对应路径映射并重启客户端。旧 Bank 的记忆不会自动迁移。
+
+已有 Claude MCP 注册时，仅更新本插件拥有的本地注册，保留额外环境变量和其他配置，并备份原配置。同名远端 MCP 不自动覆盖；配置无法解析时停止并提示修复。注册命令失败会显示底层错误和使用绝对路径的手动恢复命令。
 
 ## 4 启动客户端
 

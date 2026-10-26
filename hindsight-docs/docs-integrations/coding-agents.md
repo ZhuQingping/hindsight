@@ -91,7 +91,7 @@ Keep only `claude-code` or `codex` if you use one client. Restart clients after 
 Codex may also require approval of hooks in its trusted project.
 
 `--bank-id` maps `--project-path` (the current directory by default) to an existing Workspace,
-merges other project mappings, and enables `optInOnly`. It does not create a Workspace or grant
+merges other project mappings, and preserves the existing `optInOnly` policy (default: `false`). It does not create a Workspace or grant
 permissions. The connection remains shared across the configured projects. A bound Workspace
 uses `manageBankConfig: false`, `autoSeed: false`, and `codebaseSurvey: false`: service-owned
 configuration and knowledge-page initialization are left to the provider. Session write-back,

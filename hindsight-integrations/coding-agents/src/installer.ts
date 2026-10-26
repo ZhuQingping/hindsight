@@ -32,6 +32,7 @@ import {
   readFileSync,
   readSync,
   realpathSync,
+  renameSync,
   statSync,
   rmSync,
   writeFileSync,
@@ -615,7 +616,20 @@ const claudeCode: HarnessInstaller = {
   detect: (c) => onPath("claude") || existsSync(join(c.home, ".claude")),
   install(c) {
     const path = join(c.home, ".claude", "settings.json");
-    const settings = readJson(path);
+    let settings: Record<string, any> = {};
+    if (existsSync(path)) {
+      try {
+        settings = JSON.parse(readFileSync(path, "utf8"));
+        if (
+          !isPlainObject(settings) ||
+          (settings.hooks !== undefined && !isPlainObject(settings.hooks))
+        )
+          throw new Error("expected a settings object with an optional hooks object");
+      } catch (error) {
+        c.log?.(`claude-code: could not read settings; existing file preserved: ${String(error)}`);
+        return false;
+      }
+    }
     settings.hooks = settings.hooks ?? {};
     mergeHarnessHooks(settings.hooks, "claude-code", c.dist);
     writeJson(path, settings);
@@ -623,7 +637,7 @@ const claudeCode: HarnessInstaller = {
     // Companion SKILL: every skills-capable host gets it (claude/antigravity/cursor native dirs;
     // codex via the ~/.agents/skills standard).
     installSkill(c, "claude-code");
-    const mcp = c.claudeMcp ?? defaultClaudeMcp;
+    const mcp = c.claudeMcp ?? ((args: string[]) => defaultClaudeMcp(args, c.log));
     const existing = claudeMcpRegistration(c);
     if (!existing.readable || (existing.entry !== undefined && !isOurMcpEntry(existing.entry))) {
       c.log?.(
@@ -631,18 +645,54 @@ const claudeCode: HarnessInstaller = {
       );
       return false;
     }
-    // Only a script owned by this package may be repointed; a remote URL with
-    // the same product name belongs to its administrator.
-    if (existing.entry !== undefined) mcp(["mcp", "remove", "--scope", "user", "contextbase"]);
+    // Update only our entry atomically: removing it through the CLI first loses a working
+    // registration when the subsequent add fails. Preserve custom env and other host settings.
+    if (existing.entry !== undefined) {
+      const configPath = join(process.env.CLAUDE_CONFIG_DIR || c.home, ".claude.json");
+      const text = readFileSync(configPath, "utf8");
+      const config = JSON.parse(text);
+      const old = config.mcpServers.contextbase;
+      if (!isOurMcpEntry(old)) return false;
+      const next = {
+        ...old,
+        args: [resolve(c.dist, "mcp-server.js"), ...old.args.slice(1)],
+        env: { ...old.env, CONTEXTBASE_MCP_HARNESS: "claude-code" },
+      };
+      const updated = applyEdits(text, modify(text, ["mcpServers", "contextbase"], next, {}));
+      const temporary = `${configPath}.contextbase-${process.pid}.tmp`;
+      let staged = false;
+      try {
+        backupOnce(configPath);
+        writeFileSync(temporary, updated, { mode: 0o600, flag: "wx" });
+        staged = true;
+        // Do not overwrite settings changed by another process while preparing the update.
+        if (readFileSync(configPath, "utf8") !== text)
+          throw new Error("Claude config changed during installation; retry after closing Claude");
+        renameSync(temporary, configPath);
+      } catch (error) {
+        c.log?.(
+          `claude-code: could not update MCP registration; original retained: ${String(error)}`
+        );
+        return false;
+      } finally {
+        if (staged) rmSync(temporary, { force: true });
+      }
+      c.log?.(
+        "claude-code: owned MCP registration updated; other settings and environment preserved"
+      );
+      return;
+    }
     if (
       mcp([
         "mcp",
         "add",
         "--scope",
         "user",
-        "contextbase",
         "--env",
         "CONTEXTBASE_MCP_HARNESS=claude-code",
+        "--transport",
+        "stdio",
+        "contextbase",
         "--",
         "node",
         join(c.dist, "mcp-server.js"),
@@ -652,7 +702,7 @@ const claudeCode: HarnessInstaller = {
     } else {
       c.log?.(
         `claude-code: could not run \`claude mcp add\` — register the tools manually:\n` +
-          `  claude mcp add --scope user contextbase --env CONTEXTBASE_MCP_HARNESS=claude-code -- node "${join(c.dist, "mcp-server.js")}"`
+          `  claude mcp add --scope user --env CONTEXTBASE_MCP_HARNESS=claude-code --transport stdio contextbase -- node "${join(c.dist, "mcp-server.js")}"`
       );
       return false;
     }
@@ -667,7 +717,7 @@ const claudeCode: HarnessInstaller = {
         writeJson(path, settings);
       }
     }
-    const mcp = c.claudeMcp ?? defaultClaudeMcp;
+    const mcp = c.claudeMcp ?? ((args: string[]) => defaultClaudeMcp(args, c.log));
     const existing = claudeMcpRegistration(c);
     if (existing.readable && isOurMcpEntry(existing.entry)) {
       mcp(["mcp", "remove", "--scope", "user", "contextbase"]);
@@ -681,7 +731,7 @@ const claudeCode: HarnessInstaller = {
   },
 };
 
-export function defaultClaudeMcp(args: string[]): boolean {
+export function defaultClaudeMcp(args: string[], log?: (message: string) => void): boolean {
   try {
     if (process.platform === "win32") {
       const candidates = execFileSync("where.exe", ["claude"], { encoding: "utf8" })
@@ -693,16 +743,26 @@ export function defaultClaudeMcp(args: string[]): boolean {
         // npm's .cmd shim cannot be passed to execFile. Run its JS entry with Node,
         // keeping project paths and arguments out of cmd.exe's shell expansion.
         const entry = candidates
-          .map((file) =>
-            join(dirname(file), "node_modules", "@anthropic-ai", "claude-code", "cli.js")
-          )
+          .flatMap((file) => {
+            const root = join(dirname(file), "node_modules", "@anthropic-ai", "claude-code");
+            // Current npm releases wrap a native binary; older releases shipped cli.js.
+            return [join(root, "cli-wrapper.cjs"), join(root, "cli.js")];
+          })
           .find((file) => existsSync(file));
-        if (!entry) return false;
+        if (!entry) throw new Error("Claude executable or npm launcher was not found on PATH");
         execFileSync(process.execPath, [entry, ...args], { stdio: "pipe" });
       }
     } else execFileSync("claude", args, { stdio: "pipe" });
     return true;
-  } catch {
+  } catch (error) {
+    const failure = error as {
+      stderr?: Buffer | string;
+      code?: string;
+      status?: number;
+      message?: string;
+    };
+    const detail = failure.stderr?.toString().trim() || failure.message || "unknown error";
+    log?.(`claude-code: CLI failed (${failure.code ?? failure.status ?? "error"}): ${detail}`);
     return false;
   }
 }
@@ -1173,7 +1233,8 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
     c.log?.("server: configure apiToken or CONTEXTBASE_API_TOKEN before authenticated requests.");
   if (bankId !== undefined && project) {
     next.mapPathToBank = { ...existing.mapPathToBank, [project]: bankId.trim() };
-    next.optInOnly = true;
+    // Bank binding must not change the user's global opt-in policy.
+    c.log?.(`server: optInOnly=${next.optInOnly ?? false} (unchanged)`);
     // The service owns this pre-provisioned bank. Ordinary customer keys can retain
     // and recall but cannot import bank configuration or create knowledge pages.
     const bankSettings = {
@@ -1186,6 +1247,9 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
     delete bankSettings.bank;
     next.banks = { ...existing.banks, [bankId.trim()]: bankSettings };
     c.log?.(`server: project ${project} bound to bank ${bankId.trim()} (service-managed)`);
+    c.log?.(
+      "server: user-wide installation and API credentials; Bank routing is per project, existing project mappings preserved"
+    );
   }
   writeJson(configPath, next);
   c.log?.(`server: remote connection (${configPath})`);
