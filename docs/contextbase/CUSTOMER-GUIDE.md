@@ -63,13 +63,45 @@ Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记�
 
 `optInOnly` 控制未绑定项目是否启用记忆：`true` 表示仅已绑定或明确启用的项目使用记忆，`false` 表示其他项目也按默认规则选择 Bank。未配置时默认 `false`，安装器保留已有值。
 
-其他项目使用不同 Bank 时，添加映射即可，已有映射会保留：
+### 为项目指定或切换 Bank
+
+已配置 API 地址和 Key 后，可直接为项目指定 Bank，无需重复填写连接信息。Bank 需已创建，且当前 Key 有访问权限。
+
+在项目目录中执行（Windows PowerShell）：
 
 ```powershell
-contextbase-coding-agents.cmd install claude-code --bank-id "bank_other" --project-path "D:\code\other-project"
+cd D:\code\xiyan
+contextbase-coding-agents.cmd install claude-code codex --bank-id "test_cli" --project-path "."
 ```
 
-需要切换 Bank 时，修改对应路径映射并重启客户端。旧 Bank 的记忆不会自动迁移。
+也可以直接指定其他项目的绝对路径：
+
+```powershell
+contextbase-coding-agents.cmd install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
+```
+
+Linux 或 macOS Bash：
+
+```bash
+contextbase-coding-agents install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
+```
+
+只使用一个客户端时，保留对应的 `claude-code` 或 `codex`。这些命令会更新指定项目的绑定，保留其他项目的映射和已有 API 地址、Key。
+
+映射写入前述用户配置文件的 `mapPathToBank` 字段，子目录也适用；多个路径匹配时使用最长路径。例如：
+
+```json
+{
+  "mapPathToBank": {
+    "D:/code/xiyan": "test_cli",
+    "D:/code/other-project": "bank_other"
+  }
+}
+```
+
+以上仅展示映射字段，手动修改时保留文件中的其他配置。为同一项目切换 Bank 时，重新执行绑定命令并替换 `--bank-id` 即可，旧 Bank 的记忆不会自动迁移。
+
+绑定或切换后，在对应项目目录重新启动 Claude Code 或 Codex。可让客户端调用已加载的 ContextBase 诊断工具，确认返回的 `workspace` 和 `bank_id` 与预期一致。
 
 重复安装会保留已有项目映射。已有同名 Claude MCP 配置若不属于本集成，安装器会提示处理，不会直接覆盖。
 
@@ -106,81 +138,17 @@ codex
 
 在会话中输入 **/hooks**，按提示审阅并信任 ContextBase Hook；输入 **/mcp**，确认 contextbase 已连接。完成设置后重新启动客户端。
 
-## 4 使用和验证
+## 4 验证安装
 
-启用 Hooks 后，客户端会自动检索相关记忆并保存会话。也可以在对话中要求调用记忆工具。先用下面的示例验证读写：
+在已绑定项目目录启动 Claude Code 或 Codex，输入 `/mcp`，确认 `contextbase` 显示已连接，并加载 8 个工具。
 
-**保存一条约定：**
+随后在对话中输入：
 
-> 请调用 contextbase_ingest_document，保存项目约定：迁移脚本先在影子库执行，验证标识为 CB-DEMO-7429。
+> 请调用当前已加载的 ContextBase 诊断工具，返回 workspace、bank_id、harness 和 api_url。请使用工具的实际返回结果。
 
-**换到另一个客户端的新会话：**
+确认工具调用成功，且返回的项目路径、Bank、客户端类型和 API 地址与配置一致，即可确认本地 MCP 已安装并可调用。仅显示“已连接”或模型声称安装成功，不代表工具调用成功。
 
-> 请调用 contextbase_reflect，从项目记忆中查找迁移脚本的执行约定和验证标识。
-
-看到实际工具调用并返回正确内容，说明跨客户端读写已打通。新记忆可能需要等待处理后才能查询。
-
-### 日常记忆使用示例
-
-以下示例可直接输入 Claude Code 或 Codex。工具名用于说明用途，实际调用以客户端加载的工具列表为准。
-
-#### 保存项目约定
-
-在 Claude Code 中输入：
-
-> 请调用 contextbase_ingest_document，将以下已确认的约定保存到当前项目记忆：数据库变更必须提供回滚脚本；接口新增字段必须补充接口文档；错误日志必须包含 request_id。标题为“项目开发约定”。
-
-以后在 Claude Code 或 Codex 中开始任务时输入：
-
-> 请调用 contextbase_reflect，查询本项目的开发约定，再结合当前代码列出这次修改需要遵守的要求。没有查到的约定请明确说明。
-
-#### 保存设计决策并查询原因
-
-方案讨论结束后输入：
-
-> 请调用 contextbase_ingest_document，保存本次设计决策：批量导入采用异步任务，接口返回 task_id，客户端轮询进度。原因是导入耗时不固定，同步请求容易超时。暂不采用长连接推送，以降低客户端接入成本。标题为“批量导入接口设计决策”。
-
-后续会话中输入：
-
-> 请调用 contextbase_reflect，查询批量导入为什么采用异步任务，以及当时没有选择长连接推送的原因。区分已记录的结论和你的新建议。
-
-#### 从 Claude Code 切换到 Codex 继续工作
-
-结束 Claude Code 会话前输入：
-
-> 请总结本次任务的目标、已完成修改、验证结果和待办事项，调用 contextbase_ingest_document 保存为“批量导入任务交接记录”。只记录实际完成的内容，未运行的测试标明未运行。
-
-然后在同一项目目录启动 Codex 的新会话，输入：
-
-> 请调用 contextbase_reflect，查询最新的“批量导入任务交接记录”。先核对当前代码和 Git 状态，再告诉我还剩哪些工作，暂不修改代码。
-
-应能查到之前保存的工作记录。记忆用于恢复背景，实际进度仍需与当前代码核对。
-
-#### 记录故障处理经验
-
-问题修复后输入：
-
-> 请根据本次已经验证的排查结果，整理故障现象、触发条件、根因、修复方法和验证步骤，调用 contextbase_ingest_document 保存为“连接池耗尽排查记录”。未证实的猜测不要写成结论。
-
-再次遇到类似问题时输入：
-
-> 请调用 contextbase_reflect，查询本项目是否有连接池耗尽的处理经验，结合当前错误日志列出排查步骤，并说明哪些历史条件需要重新验证。
-
-#### 补充新的约定
-
-约定发生变化时输入：
-
-> 请调用 contextbase_ingest_document，记录本项目今天确认的新约定：批量导入的单批上限从 1000 条调整为 500 条，原因是降低单批处理延迟。请写明生效日期和替代的旧约定，标题为“批量导入单批上限调整”。
-
-后续查询时输入：
-
-> 请调用 contextbase_reflect，查询批量导入当前生效的单批上限，列出对应决策的日期；如有冲突记录，请指出冲突。
-
-新增记录不等于删除旧记忆，因此变更约定时应写清日期和替代关系。
-
-保存时查看工具是否实际执行成功。若刚保存的内容暂时查不到，等待处理完成后再查询；跨会话示例应使用新会话验证。
-
-若没有查到，先让客户端调用 **contextbase_diagnose**，核对当前项目、连接和 Bank。不要仅凭模型回答正确就判断记忆接入成功。
+此检查不验证云端读写权限或 Hooks 自动保存；遇到错误可参考第 6 节。
 
 ## 5 可选的远端 MCP 接入
 
