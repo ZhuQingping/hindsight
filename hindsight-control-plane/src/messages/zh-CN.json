@@ -2325,7 +2325,8 @@
     "showingWorkspaces": "已显示 {shown} / {total} 个工作空间",
     "mcpEndpointHelp": "请向管理员获取当前所选工作空间的完整 MCP Endpoint；它与 API Endpoint 分别提供，不要从 API 地址自行拼接。",
     "hookTitle": "编码 Agent Hook",
-    "hookBody": "一条命令自动检测并接入本机所有编码 Agent（Claude Code、Codex、Cursor、Copilot 等）。Hook 在每次提示时注入记忆，并在会话结束时自动写回对话记录。"
+    "hookBody": "进入项目目录，将 <API_KEY> 替换为已获此工作空间授权的业务密钥，再执行对应终端的命令。命令安装 Claude Code 和 Codex 的 Hook 与本地 MCP，并绑定当前工作空间；只用一个客户端时保留对应名称。安装后重启客户端，按提示信任 Hook。",
+    "connectionUnavailable": "接入信息尚未配置完整，请联系服务提供方获取端点和安装包。"
   },
   "brand": {
     "console": "面向 Agent 的数据底座",

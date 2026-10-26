@@ -76,6 +76,31 @@ this distribution does not use the optional registry-based background updater.
 
 Before installation, copy your API Endpoint and credential from the console. Set `CONTEXTBASE_API_URL` and `CONTEXTBASE_API_TOKEN`, or pass `--api-url` and `--api-token` to `install`. There is no default service address. Installation stops before registering hooks if the endpoint is missing. This package connects to a remote service; it never installs or starts a local engine.
 
+### Connect a service-managed Workspace
+
+Run in the project directory with the API endpoint and a business API key from your service provider:
+
+```bash
+export CONTEXTBASE_API_TOKEN='your-business-key'
+npm exec --yes --package='https://downloads.example.com/contextbase-coding-agents-VERSION.tgz' -- contextbase-coding-agents install claude-code codex --api-url 'https://api.example.com' --bank-id 'your-bank-id' --project-path '.'
+```
+
+Use the actual versioned HTTPS tarball URL. In PowerShell, set
+`$env:CONTEXTBASE_API_TOKEN = 'your-business-key'` and use `npm.cmd exec` for the same arguments.
+Keep only `claude-code` or `codex` if you use one client. Restart clients after installation;
+Codex may also require approval of hooks in its trusted project.
+
+`--bank-id` maps `--project-path` (the current directory by default) to an existing Workspace,
+merges other project mappings, and enables `optInOnly`. It does not create a Workspace or grant
+permissions. The connection remains shared across the configured projects. A bound Workspace
+uses `manageBankConfig: false`, `autoSeed: false`, and `codebaseSurvey: false`: service-owned
+configuration and knowledge-page initialization are left to the provider. Session write-back,
+retrieval and explicit document ingestion remain available. Do not use an administrator key.
+Manual history import and knowledge-page creation require additional server permissions.
+
+Missing or conflicting MCP registrations return a non-zero exit status; follow the reported
+instructions and re-run installation. Existing external MCP registrations are preserved.
+
 ### Per agent
 
 Same command, only the harness name changes. Run after installing the package globally.
@@ -94,7 +119,7 @@ contextbase-coding-agents install claude-code
 contextbase-coding-agents install codex
 ```
 
-3 hooks in `~/.codex/hooks.json` plus `[mcp_servers]` in `config.toml` (needs `codex_hooks = true`).
+3 hooks in `~/.codex/hooks.json` plus `[mcp_servers]` in `config.toml` (the installer enables `[features].hooks = true`).
 
 #### DeepAgents Dcode
 
