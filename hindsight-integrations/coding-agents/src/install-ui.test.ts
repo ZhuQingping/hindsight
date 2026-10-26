@@ -25,6 +25,17 @@ function makeUi(command?: string, colors = false): { ui: InstallerUi; lines: str
 }
 
 describe("installer UI renderer", () => {
+  it("keeps absolute paths in copyable recovery commands", () => {
+    const { ui, lines } = makeUi("install");
+    ui.log(
+      'claude-code: register manually:\n  claude mcp add contextbase -- node "/home/u/.contextbase/coding-agents/dist/mcp-server.js"'
+    );
+    expect(lines.join("\n")).toContain(
+      'node "/home/u/.contextbase/coding-agents/dist/mcp-server.js"'
+    );
+    expect(lines.join("\n")).not.toContain('node "~');
+  });
+
   it("frames the run, groups messages by harness prefix, and picks symbols from phrasing", () => {
     const { ui, lines } = makeUi("install");
     ui.intro();

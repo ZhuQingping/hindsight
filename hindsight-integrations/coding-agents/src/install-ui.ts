@@ -88,7 +88,7 @@ export function fitSelectRow(
  */
 export function splitKeys(chunk: string): string[] {
   const keys: string[] = [];
-  for (let i = 0; i < chunk.length; ) {
+  for (let i = 0; i < chunk.length;) {
     if (chunk[i] === "\x1b" && chunk[i + 1] === "[") {
       let j = i + 2;
       while (j < chunk.length && !(chunk[j] >= "@" && chunk[j] <= "~")) j++;
@@ -163,7 +163,11 @@ export function createInstallerUi(o: InstallerUiOptions): InstallerUi {
   const symbol = { ok: green("✓"), warn: yellow("▲"), error: red("✖"), info: dim("○") };
 
   // Messages embed absolute config paths; shorten $HOME so the action stays the eye-catcher.
-  const tidy = (s: string): string => s.replaceAll(o.home, "~");
+  const tidy = (s: string): string =>
+    s
+      .split("\n")
+      .map((line) => (/^\s/.test(line) ? line : line.replaceAll(o.home, "~")))
+      .join("\n");
   // The lookbehind keeps URL slashes ("http://…") from being treated as a path start.
   const dimPaths = (s: string): string => s.replace(/(?<![:\w/])~?\/[^\s"',)]+/g, (m) => dim(m));
 
