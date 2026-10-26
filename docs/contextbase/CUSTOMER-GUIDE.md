@@ -63,13 +63,45 @@ Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记�
 
 `optInOnly` 控制未绑定项目是否启用记忆：`true` 表示仅已绑定或明确启用的项目使用记忆，`false` 表示其他项目也按默认规则选择 Bank。未配置时默认 `false`，安装器保留已有值。
 
-其他项目使用不同 Bank 时，添加映射即可，已有映射会保留：
+### 为项目指定或切换 Bank
+
+已配置 API 地址和 Key 后，可直接为项目指定 Bank，无需重复填写连接信息。Bank 需已创建，且当前 Key 有访问权限。
+
+在项目目录中执行（Windows PowerShell）：
 
 ```powershell
-contextbase-coding-agents.cmd install claude-code --bank-id "bank_other" --project-path "D:\code\other-project"
+cd D:\code\xiyan
+contextbase-coding-agents.cmd install claude-code codex --bank-id "test_cli" --project-path "."
 ```
 
-需要切换 Bank 时，修改对应路径映射并重启客户端。旧 Bank 的记忆不会自动迁移。
+也可以直接指定其他项目的绝对路径：
+
+```powershell
+contextbase-coding-agents.cmd install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
+```
+
+Linux 或 macOS Bash：
+
+```bash
+contextbase-coding-agents install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
+```
+
+只使用一个客户端时，保留对应的 `claude-code` 或 `codex`。这些命令会更新指定项目的绑定，保留其他项目的映射和已有 API 地址、Key。
+
+映射写入前述用户配置文件的 `mapPathToBank` 字段，子目录也适用；多个路径匹配时使用最长路径。例如：
+
+```json
+{
+  "mapPathToBank": {
+    "D:/code/xiyan": "test_cli",
+    "D:/code/other-project": "bank_other"
+  }
+}
+```
+
+以上仅展示映射字段，手动修改时保留文件中的其他配置。为同一项目切换 Bank 时，重新执行绑定命令并替换 `--bank-id` 即可，旧 Bank 的记忆不会自动迁移。
+
+绑定或切换后，在对应项目目录重新启动 Claude Code 或 Codex。可让客户端调用已加载的 ContextBase 诊断工具，确认返回的 `workspace` 和 `bank_id` 与预期一致。
 
 重复安装会保留已有项目映射。已有同名 Claude MCP 配置若不属于本集成，安装器会提示处理，不会直接覆盖。
 
