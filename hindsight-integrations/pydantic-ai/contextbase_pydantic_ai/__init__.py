@@ -5,11 +5,11 @@ giving them long-term memory across runs.
 
 Basic usage::
 
-    from hindsight_client import Hindsight
+    from contextbase_client import ContextBase
     from contextbase_pydantic_ai import create_contextbase_tools, memory_instructions
     from pydantic_ai import Agent
 
-    client = Hindsight(base_url="", api_key="hsk_...")
+    client = ContextBase(base_url="", api_key="hsk_...")
 
     agent = Agent(
         "openai:gpt-4o",
@@ -26,7 +26,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import create_contextbase_tools, memory_instructions
 
 __version__ = "0.1.0"
@@ -36,7 +36,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBasePydanticAIConfig",
-    "HindsightError",
+    "ContextBaseError",
     "create_contextbase_tools",
     "memory_instructions",
 ]

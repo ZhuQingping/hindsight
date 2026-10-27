@@ -3,7 +3,9 @@
 Documents API examples for ContextBase.
 Run: python examples/api/documents.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +13,11 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples
@@ -23,11 +25,7 @@ client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # [docs:document-retain]
 # Retain with document ID
-client.retain(
-    bank_id="my-bank",
-    content="Alice presented the Q4 roadmap...",
-    document_id="meeting-2024-03-15"
-)
+client.retain(bank_id="my-bank", content="Alice presented the Q4 roadmap...", document_id="meeting-2024-03-15")
 
 # Batch retain for a document with different sections
 client.retain_batch(
@@ -35,32 +33,25 @@ client.retain_batch(
     items=[
         {"content": "Item 1: Product launch delayed to Q2", "document_id": "meeting-2024-03-15-section-1"},
         {"content": "Item 2: New hiring targets announced", "document_id": "meeting-2024-03-15-section-2"},
-        {"content": "Item 3: Budget approved for ML team", "document_id": "meeting-2024-03-15-section-3"}
-    ]
+        {"content": "Item 3: Budget approved for ML team", "document_id": "meeting-2024-03-15-section-3"},
+    ],
 )
 # [/docs:document-retain]
 
 
 # [docs:document-update]
 # Original
-client.retain(
-    bank_id="my-bank",
-    content="Project deadline: March 31",
-    document_id="project-plan"
-)
+client.retain(bank_id="my-bank", content="Project deadline: March 31", document_id="project-plan")
 
 # Update (deletes old facts, creates new ones)
-client.retain(
-    bank_id="my-bank",
-    content="Project deadline: April 15 (extended)",
-    document_id="project-plan"
-)
+client.retain(bank_id="my-bank", content="Project deadline: April 15 (extended)", document_id="project-plan")
 # [/docs:document-update]
 
 
 # [docs:document-list]
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
+
 
 async def list_documents_example():
     config = Configuration(host="http://localhost:8888")
@@ -93,14 +84,17 @@ async def list_documents_example():
     result = await api.list_documents(bank_id="my-bank", limit=20, offset=40)
     print(f"Page items: {len(result.items)}")
 
+
 import asyncio
+
 asyncio.run(list_documents_example())
 # [/docs:document-list]
 
 
 # [docs:document-get]
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
+
 
 async def get_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -108,24 +102,23 @@ async def get_document_example():
     api = DocumentsApi(api_client)
 
     # Get document to expand context from recall results
-    doc = await api.get_document(
-        bank_id="my-bank",
-        document_id="meeting-2024-03-15"
-    )
+    doc = await api.get_document(bank_id="my-bank", document_id="meeting-2024-03-15")
 
     print(f"Document: {doc.id}")
     print(f"Original text: {doc.original_text}")
     print(f"Memory count: {doc.memory_unit_count}")
     print(f"Created: {doc.created_at}")
 
+
 asyncio.run(get_document_example())
 # [/docs:document-get]
 
 
 # [docs:document-update-tags]
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
-from hindsight_client_api.models import UpdateDocumentRequest
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
+from contextbase_client_api.models import UpdateDocumentRequest
+
 
 async def update_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -147,13 +140,15 @@ async def update_document_example():
         update_document_request=UpdateDocumentRequest(tags=[]),
     )
 
+
 asyncio.run(update_document_example())
 # [/docs:document-update-tags]
 
 
 # [docs:document-delete]
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
+
 
 async def delete_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -161,12 +156,10 @@ async def delete_document_example():
     api = DocumentsApi(api_client)
 
     # Delete document and all its memories
-    result = await api.delete_document(
-        bank_id="my-bank",
-        document_id="meeting-2024-03-15"
-    )
+    result = await api.delete_document(bank_id="my-bank", document_id="meeting-2024-03-15")
 
     print(f"Deleted {result.memory_units_deleted} memories")
+
 
 asyncio.run(delete_document_example())
 # [/docs:document-delete]

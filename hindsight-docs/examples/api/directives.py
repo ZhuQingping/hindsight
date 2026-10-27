@@ -3,6 +3,7 @@
 Directives API examples for ContextBase.
 Run: python examples/api/directives.py
 """
+
 import os
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +12,11 @@ BANK_ID = "directives-example-bank"
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # Create a test bank
 client.create_bank(bank_id=BANK_ID, name="Test Bank")
@@ -29,7 +30,7 @@ client.create_bank(bank_id=BANK_ID, name="Test Bank")
 directive = client.create_directive(
     bank_id=BANK_ID,
     name="Formal Language",
-    content="Always respond in formal English, avoiding slang and colloquialisms."
+    content="Always respond in formal English, avoiding slang and colloquialisms.",
 )
 
 print(f"Created directive: {directive.id}")
@@ -47,21 +48,14 @@ for d in directives.items:
 
 # [docs:update-directive]
 # Update a directive (e.g., disable without deleting)
-updated = client.update_directive(
-    bank_id=BANK_ID,
-    directive_id=directive_id,
-    is_active=False
-)
+updated = client.update_directive(bank_id=BANK_ID, directive_id=directive_id, is_active=False)
 
 print(f"Directive active: {updated.is_active}")
 # [/docs:update-directive]
 
 # [docs:delete-directive]
 # Delete a directive
-client.delete_directive(
-    bank_id=BANK_ID,
-    directive_id=directive_id
-)
+client.delete_directive(bank_id=BANK_ID, directive_id=directive_id)
 # [/docs:delete-directive]
 
 # =============================================================================

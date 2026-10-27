@@ -21,8 +21,7 @@ extraction is genuinely in flight, rather than racing the stub's instant answer.
 from __future__ import annotations
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio
@@ -35,9 +34,9 @@ _CLIENT_TIMEOUT_SECONDS = 2.0
 
 
 @pytest.fixture
-async def impatient(hindsight_server) -> Hindsight:
+async def impatient(hindsight_server) -> ContextBase:
     """A client that gives up mid-retain, the way a timing-out caller does."""
-    client = Hindsight(base_url=hindsight_server.url, timeout=_CLIENT_TIMEOUT_SECONDS)
+    client = ContextBase(base_url=hindsight_server.url, timeout=_CLIENT_TIMEOUT_SECONDS)
     yield client
     await client.aclose()
 

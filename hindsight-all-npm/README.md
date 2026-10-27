@@ -2,7 +2,7 @@
 
 Programmatic lifecycle manager for a local contextbase daemon.
 
-This package deliberately does **not** ship an HTTP client. Once the daemon is running, talk to it with [`@vectorize-io/hindsight-client`](https://www.npmjs.com/package/@vectorize-io/hindsight-client) against `server.getBaseUrl()`. The two packages compose — one owns the daemon process, the other owns the HTTP API surface.
+This package deliberately does **not** ship an HTTP client. Once the daemon is running, talk to it with [`contextbase-client`](https://www.npmjs.com/package/contextbase-client) against `server.getBaseUrl()`. The two packages compose — one owns the daemon process, the other owns the HTTP API surface.
 
 ## Requirements
 
@@ -16,14 +16,14 @@ The workspace package is private until the release namespace is approved. Set `C
 ## Install
 
 ```bash
-npm install --save contextbase-local-engine="file:../hindsight-all-npm" @vectorize-io/hindsight-client
+npm install --save contextbase-local-engine="file:../hindsight-all-npm" contextbase-client
 ```
 
 ## Example
 
 ```ts
 import { ContextBaseServer, consoleLogger } from "contextbase-local-engine";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 
 const server = new ContextBaseServer({
   embedPackage: process.env.CONTEXTBASE_EMBED_PACKAGE,
@@ -39,7 +39,7 @@ const server = new ContextBaseServer({
 
 await server.start();
 
-const client = new HindsightClient({ baseUrl: server.getBaseUrl() });
+const client = new ContextBaseClient({ baseUrl: server.getBaseUrl() });
 
 await client.retain("user-123", "User prefers dark mode and concise answers.", {
   documentId: "pref-2026-04-01",
@@ -51,7 +51,7 @@ console.log(recall.results);
 await server.stop();
 ```
 
-For a remote ContextBase API, skip `ContextBaseServer` entirely and just point `HindsightClient` at the remote URL.
+For a remote ContextBase API, skip `ContextBaseServer` entirely and just point `ContextBaseClient` at the remote URL.
 
 ## Open config — forward-compatible with new daemon flags
 
@@ -77,7 +77,7 @@ new ContextBaseServer({
 - `Logger` interface plus `silentLogger` (default) and `consoleLogger` helpers.
 - `getEmbedCommand(opts)` — low-level helper that returns the `[cmd, ...args]` tuple used to invoke the underlying Python CLI.
 
-For memory operations (retain, recall, reflect, bank management, stats) use [`@vectorize-io/hindsight-client`](https://www.npmjs.com/package/@vectorize-io/hindsight-client).
+For memory operations (retain, recall, reflect, bank management, stats) use [`contextbase-client`](https://www.npmjs.com/package/contextbase-client).
 
 ## License
 

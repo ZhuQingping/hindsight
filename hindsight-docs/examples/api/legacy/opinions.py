@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 """
-Opinions API examples for Hindsight (deprecated - kept for versioned docs).
+Opinions API examples for ContextBase (deprecated - kept for versioned docs).
 This file is preserved for backward compatibility with v0.3 documentation.
 Opinions have been replaced by Mental Models in v0.4+.
 """
-import os
-import requests
 
-from hindsight_client import Hindsight
+import os
+
+import requests
+from contextbase_client import ContextBase
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # [docs:opinion-form]
 # Opinions are automatically formed when the bank encounters
 # claims, preferences, or judgments in retained content
-client.retain(
-    bank_id="my-bank",
-    content="I think Python is excellent for data science because of its libraries"
-)
+client.retain(bank_id="my-bank", content="I think Python is excellent for data science because of its libraries")
 
 # The bank forms an opinion with confidence based on evidence
 # [/docs:opinion-form]
@@ -28,11 +26,7 @@ client.retain(
 
 # [docs:opinion-search]
 # Search for opinions on a topic
-response = client.recall(
-    bank_id="my-bank",
-    query="What do you think about Python?",
-    types=["opinion"]
-)
+response = client.recall(bank_id="my-bank", query="What do you think about Python?", types=["opinion"])
 
 for opinion in response.results:
     print(f"Opinion: {opinion.text}")
@@ -42,27 +36,20 @@ for opinion in response.results:
 
 # [docs:recall-opinions-only]
 # Only retrieve opinions (beliefs and preferences)
-opinions = client.recall(
-    bank_id="my-bank",
-    query="What are my preferences?",
-    types=["opinion"]
-)
+opinions = client.recall(bank_id="my-bank", query="What are my preferences?", types=["opinion"])
 # [/docs:recall-opinions-only]
 
 
 # [docs:recall-include-entities]
 # Include entity summaries in recall results
 response = client.recall(
-    bank_id="my-bank",
-    query="What do I know about Alice?",
-    include_entities=True,
-    max_entity_tokens=500
+    bank_id="my-bank", query="What do I know about Alice?", include_entities=True, max_entity_tokens=500
 )
 
 # Results include both facts and entity summaries
 for result in response.results:
     print(f"- {result.text}")
-    if hasattr(result, 'entity_summary'):
+    if hasattr(result, "entity_summary"):
         print(f"  Entity: {result.entity_summary}")
 # [/docs:recall-include-entities]
 
@@ -72,10 +59,7 @@ for result in response.results:
 # High skepticism = lower confidence, requires more evidence
 # Low skepticism = higher confidence, accepts claims more readily
 
-client.create_bank(
-    bank_id="skeptical-bank",
-    disposition={"skepticism": 5, "literalism": 3, "empathy": 2}
-)
+client.create_bank(bank_id="skeptical-bank", disposition={"skepticism": 5, "literalism": 3, "empathy": 2})
 
 # Same content, different confidence due to disposition
 client.retain(bank_id="skeptical-bank", content="Python is the best language")
@@ -84,10 +68,7 @@ client.retain(bank_id="skeptical-bank", content="Python is the best language")
 
 # [docs:opinion-in-reflect]
 # Opinions influence reflect responses
-response = client.reflect(
-    bank_id="my-bank",
-    query="Should I use Python for my data project?"
-)
+response = client.reflect(bank_id="my-bank", query="Should I use Python for my data project?")
 
 # The response incorporates the bank's opinions with appropriate confidence
 print(response.text)

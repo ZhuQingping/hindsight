@@ -15,13 +15,13 @@ pip install contextbase-haystack
 ## Quick Start
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_haystack import create_contextbase_tools
 from haystack.components.agents import Agent
 from haystack.components.generators.chat import OpenAIChatGenerator
 from haystack.dataclasses import ChatMessage
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 tools = create_contextbase_tools(
     client=client,
@@ -101,7 +101,7 @@ tools = create_contextbase_tools(bank_id="user-123")
 
 - Python 3.10+
 - `haystack-ai >= 2.12.0`
-- `hindsight-client >= 0.4.0`
+- `contextbase-client >= 0.4.0`
 
 ## Documentation
 

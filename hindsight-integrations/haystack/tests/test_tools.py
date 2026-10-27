@@ -3,14 +3,14 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from haystack.dataclasses import ChatMessage
 from contextbase_haystack import (
     ContextBaseMemoryWrapper,
     configure,
     create_contextbase_tools,
     reset_config,
 )
-from contextbase_haystack.errors import HindsightError
+from contextbase_haystack.errors import ContextBaseError
+from haystack.dataclasses import ChatMessage
 
 
 def _mock_client():
@@ -114,14 +114,14 @@ class TestCreateContextBaseTools:
     def test_reads_api_key_from_env_without_config(self, monkeypatch):
         """CONTEXTBASE_API_KEY is honoured even when configure() was never called."""
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(contextbase_api_url="http://localhost:8888", bank_id="test")
             assert mock_cls.call_args.kwargs["api_key"] == "sk-from-env"
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -131,7 +131,7 @@ class TestCreateContextBaseTools:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once()
@@ -446,7 +446,7 @@ class TestBankMission:
             contextbase_api_url="http://localhost:8888",
             mission="config mission",
         )
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.aretain.return_value = _mock_retain_response()
@@ -528,7 +528,7 @@ class TestHaystackCompatibility:
     def test_tools_round_trip_serialization_with_config(self):
         """Tool.from_dict(tool.to_dict()) should produce a working tool (config path)."""
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.aretain.return_value = _mock_retain_response()
@@ -555,11 +555,11 @@ class TestHaystackCompatibility:
         from_dict path picks the key back up from the CONTEXTBASE_API_KEY env
         var via resolve_client.
         """
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
 
         reset_config()
         # Create a real-ish client to extract base_url from
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_instance._base_url = "http://from-client:8888"
             mock_instance._api_key = "client-key"
@@ -613,7 +613,7 @@ class TestConfigFallback:
 
     def test_budget_falls_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.arecall.return_value = _mock_recall_response(["fact"])
@@ -630,7 +630,7 @@ class TestConfigFallback:
 
     def test_explicit_budget_overrides_config(self):
         configure(contextbase_api_url="http://localhost:8888", budget="high")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.arecall.return_value = _mock_recall_response(["fact"])
@@ -643,7 +643,7 @@ class TestConfigFallback:
 
     def test_tags_fall_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config:tag"])
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.aretain.return_value = _mock_retain_response()
@@ -656,7 +656,7 @@ class TestConfigFallback:
 
     def test_context_falls_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888", context="my-app")
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.aretain.return_value = _mock_retain_response()
@@ -819,7 +819,7 @@ class TestContextBaseMemoryWrapper:
         assert d["data"]["auto_retain"] is True
         assert d["data"]["backend_kwargs"]["bank_id"] == "test"
 
-        with patch("contextbase_haystack._client.Hindsight") as mock_cls:
+        with patch("contextbase_haystack._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             restored = ContextBaseMemoryWrapper.from_dict(d)
             assert len(restored) == 3

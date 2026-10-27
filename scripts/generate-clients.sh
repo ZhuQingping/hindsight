@@ -74,32 +74,32 @@ echo "=================================================="
 # The pinned generator needs explicit non-null bare array items. Keep the
 # published spec (and Rust/TypeScript inputs) untouched; both Docker generators
 # must consume the same prepared private input.
-OPENAPI_GENERATOR_SPEC="$(mktemp -t hindsight-client-spec.XXXXXX)"
+OPENAPI_GENERATOR_SPEC="$(mktemp -t contextbase-client-spec.XXXXXX)"
 trap 'rm -f "$OPENAPI_GENERATOR_SPEC"' EXIT
 python3 "$SCRIPT_DIR/prepare-client-spec.py" "$OPENAPI_SPEC" "$OPENAPI_GENERATOR_SPEC"
 
 PYTHON_CLIENT_DIR="$CLIENTS_DIR/python"
 
 # Backup the maintained wrapper file
-WRAPPER_FILE="$PYTHON_CLIENT_DIR/hindsight_client/hindsight_client.py"
-WRAPPER_BACKUP="/tmp/hindsight_client_backup.py"
+WRAPPER_FILE="$PYTHON_CLIENT_DIR/contextbase_client/contextbase_client.py"
+WRAPPER_BACKUP="/tmp/contextbase_client_backup.py"
 if [ -f "$WRAPPER_FILE" ]; then
-    echo "📦 Backing up maintained wrapper: hindsight_client.py"
+    echo "📦 Backing up maintained wrapper: contextbase_client.py"
     cp "$WRAPPER_FILE" "$WRAPPER_BACKUP"
 fi
 
 # Backup the README.md
 README_FILE="$PYTHON_CLIENT_DIR/README.md"
-README_BACKUP="/tmp/hindsight_python_readme_backup.md"
+README_BACKUP="/tmp/contextbase_python_readme_backup.md"
 if [ -f "$README_FILE" ]; then
     echo "📦 Backing up README.md"
     cp "$README_FILE" "$README_BACKUP"
 fi
 
 # Remove old generated code (but keep config and maintained files)
-if [ -d "$PYTHON_CLIENT_DIR/hindsight_client_api" ]; then
+if [ -d "$PYTHON_CLIENT_DIR/contextbase_client_api" ]; then
     echo "Removing old generated code..."
-    rm -rf "$PYTHON_CLIENT_DIR/hindsight_client_api"
+    rm -rf "$PYTHON_CLIENT_DIR/contextbase_client_api"
 fi
 
 # Remove other generated files but keep pyproject.toml and config
@@ -119,7 +119,7 @@ cd "$PYTHON_CLIENT_DIR"
 # mount silently dropped under that filesystem driver. Generating into /tmp
 # (which Docker Desktop handles via a separate driver) and rsync'ing avoids
 # the issue without changing what we ship.
-GEN_TMP_DIR="$(mktemp -d -t hindsight-py-gen.XXXXXX)"
+GEN_TMP_DIR="$(mktemp -d -t contextbase-py-gen.XXXXXX)"
 trap 'rm -rf "$GEN_TMP_DIR"; rm -f "$OPENAPI_GENERATOR_SPEC"' EXIT
 
 # Run openapi-generator via Docker (pinned version for reproducibility)
@@ -141,17 +141,17 @@ docker run --rm \
     -c /local/config.yaml || true
 
 # Verify critical generated files exist in the tmp dir
-if [ ! -f "$GEN_TMP_DIR/hindsight_client_api/api_client.py" ]; then
+if [ ! -f "$GEN_TMP_DIR/contextbase_client_api/api_client.py" ]; then
     echo "❌ Error: Python client generation failed - api_client.py not found"
     exit 1
 fi
 
 # Sync the generated tree into the client dir. We only copy the things the
-# generator owns so maintained files (pyproject.toml, hindsight_client/,
+# generator owns so maintained files (pyproject.toml, contextbase_client/,
 # tests/, openapi-generator-config.yaml, .openapi-generator-ignore) are
 # preserved.
 echo "Syncing generated tree into $PYTHON_CLIENT_DIR..."
-cp -R "$GEN_TMP_DIR/hindsight_client_api" "$PYTHON_CLIENT_DIR/"
+cp -R "$GEN_TMP_DIR/contextbase_client_api" "$PYTHON_CLIENT_DIR/"
 if [ -d "$GEN_TMP_DIR/.openapi-generator" ]; then
     rm -rf "$PYTHON_CLIENT_DIR/.openapi-generator"
     cp -R "$GEN_TMP_DIR/.openapi-generator" "$PYTHON_CLIENT_DIR/"
@@ -164,7 +164,7 @@ echo "Organizing generated files..."
 
 # Restore the maintained wrapper file
 if [ -f "$WRAPPER_BACKUP" ]; then
-    echo "📦 Restoring maintained wrapper: hindsight_client.py"
+    echo "📦 Restoring maintained wrapper: contextbase_client.py"
     cp "$WRAPPER_BACKUP" "$WRAPPER_FILE"
     rm "$WRAPPER_BACKUP"
 fi
@@ -178,8 +178,8 @@ fi
 
 # Create PEP 561 py.typed marker files for type checker support
 echo "📦 Creating PEP 561 py.typed marker files..."
-touch "$PYTHON_CLIENT_DIR/hindsight_client_api/py.typed"
-touch "$PYTHON_CLIENT_DIR/hindsight_client/py.typed"
+touch "$PYTHON_CLIENT_DIR/contextbase_client_api/py.typed"
+touch "$PYTHON_CLIENT_DIR/contextbase_client/py.typed"
 
 # Keep our custom pyproject.toml (don't let generator overwrite it)
 if [ -f "setup.py" ]; then
@@ -187,22 +187,22 @@ if [ -f "setup.py" ]; then
 fi
 
 # Remove the auto-generated README (we have our own)
-if [ -f "$PYTHON_CLIENT_DIR/hindsight_client_api_README.md" ]; then
+if [ -f "$PYTHON_CLIENT_DIR/contextbase_client_api_README.md" ]; then
     echo "Removing auto-generated README..."
-    rm "$PYTHON_CLIENT_DIR/hindsight_client_api_README.md"
+    rm "$PYTHON_CLIENT_DIR/contextbase_client_api_README.md"
 fi
 
 # Patch rest.py to defer aiohttp initialization (fixes "no running event loop" error)
 # The generated code creates aiohttp.TCPConnector in __init__ which requires a running event loop.
 # We patch it to defer initialization until the first request (which runs in async context).
 echo "Patching rest.py for deferred aiohttp initialization..."
-REST_FILE="$PYTHON_CLIENT_DIR/hindsight_client_api/rest.py"
+REST_FILE="$PYTHON_CLIENT_DIR/contextbase_client_api/rest.py"
 if [ -f "$REST_FILE" ]; then
     cd "$PROJECT_ROOT"
     python3 << PATCH_SCRIPT
 import re
 
-rest_file = "$PYTHON_CLIENT_DIR/hindsight_client_api/rest.py"
+rest_file = "$PYTHON_CLIENT_DIR/contextbase_client_api/rest.py"
 
 with open(rest_file, 'r') as f:
     content = f.read()
@@ -353,7 +353,7 @@ echo "Patching content models in Python client..."
 python3 << PATCH_CONTENT_SCRIPT
 import os
 
-inner_file = "$PYTHON_CLIENT_DIR/hindsight_client_api/models/content_any_of_inner.py"
+inner_file = "$PYTHON_CLIENT_DIR/contextbase_client_api/models/content_any_of_inner.py"
 if os.path.exists(inner_file):
     with open(inner_file, 'r') as f:
         content = f.read()
@@ -403,7 +403,7 @@ if os.path.exists(inner_file):
     else:
         raise SystemExit("Could not find expected __init__ in content_any_of_inner.py")
 
-content_file = "$PYTHON_CLIENT_DIR/hindsight_client_api/models/content.py"
+content_file = "$PYTHON_CLIENT_DIR/contextbase_client_api/models/content.py"
 if os.path.exists(content_file):
     with open(content_file, 'r') as f:
         c_content = f.read()
@@ -441,6 +441,8 @@ if os.path.exists(content_file):
     else:
         raise SystemExit("Could not find expected to_dict in content.py")
 PATCH_CONTENT_SCRIPT
+
+python3 "$SCRIPT_DIR/brand-sdk-generated.py" python
 
 echo "✓ Python client generated at $PYTHON_CLIENT_DIR"
 echo ""
@@ -637,7 +639,7 @@ echo "Python client:     $PYTHON_CLIENT_DIR"
 echo "TypeScript client: $TYPESCRIPT_CLIENT_DIR"
 echo "Go client:         $GO_CLIENT_DIR"
 echo ""
-echo "⚠️  Important: The maintained wrapper hindsight_client.py and README.md were preserved"
+echo "⚠️  Important: The maintained wrapper contextbase_client.py and README.md were preserved"
 echo ""
 echo "Next steps:"
 echo "  1. Review the generated clients"

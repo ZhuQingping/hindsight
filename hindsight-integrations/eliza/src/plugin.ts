@@ -17,10 +17,10 @@ import { createContextBaseProvider } from "./provider.js";
  * @example
  * ```ts
  * import { createContextBasePlugin } from "contextbase-eliza";
- * import { HindsightClient } from "@vectorize-io/hindsight-client";
+ * import { ContextBaseClient } from "contextbase-client";
  *
  * const plugin = createContextBasePlugin({
- *   client: new HindsightClient({ apiKey: process.env.CONTEXTBASE_API_KEY }),
+ *   client: new ContextBaseClient({ apiKey: process.env.CONTEXTBASE_API_KEY }),
  *   recall: { budget: "high", includeEntities: true },
  *   retain: { tags: ["source:eliza"] },
  * });

@@ -26,13 +26,13 @@ npm install contextbase-chat
 
 ```typescript
 import { Chat } from 'chat';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 import { withContextBaseChat } from 'contextbase-chat';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 const chat = new Chat({ connectors: [/* your connectors */] });
-const contextbase = new HindsightClient({ apiKey: process.env.CONTEXTBASE_API_KEY });
+const contextbase = new ContextBaseClient({ apiKey: process.env.CONTEXTBASE_API_KEY });
 
 chat.onNewMention(
   withContextBaseChat(
@@ -76,7 +76,7 @@ chat.onNewMention(
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `client` | `HindsightClient` | *required* | ContextBase client instance |
+| `client` | `ContextBaseClient` | *required* | ContextBase client instance |
 | `bankId` | `string \| (msg) => string` | *required* | Memory bank ID or resolver function |
 | `recall.enabled` | `boolean` | `true` | Auto-recall memories before handler |
 | `recall.budget` | `'low' \| 'mid' \| 'high'` | `'mid'` | Processing budget for recall |

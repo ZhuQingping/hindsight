@@ -3,10 +3,10 @@
 from importlib import metadata
 from typing import Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 try:
     _VERSION = metadata.version("contextbase-google-adk")
@@ -23,10 +23,10 @@ TIMEOUT_DEFAULT = 30.0
 
 
 def resolve_client(
-    client: Optional[Hindsight],
+    client: Optional[ContextBase],
     contextbase_api_url: Optional[str],
     api_key: Optional[str],
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -36,7 +36,7 @@ def resolve_client(
     key = api_key or (config.api_key if config else None)
 
     if url is None:
-        raise HindsightError(
+        raise ContextBaseError(
             "No ContextBase API URL configured. Pass client= or contextbase_api_url=, or call configure() first."
         )
 
@@ -45,4 +45,4 @@ def resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)

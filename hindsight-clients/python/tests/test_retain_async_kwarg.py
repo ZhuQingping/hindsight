@@ -10,21 +10,20 @@ import warnings
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 OPERATION_ID = "123e4567-e89b-12d3-a456-426614174000"
 
 
 def _make_client():
-    return Hindsight(base_url="http://localhost:8888")
+    return ContextBase(base_url="http://localhost:8888")
 
 
 def _captured_request(client):
     return client._memory_api.retain_memories.call_args.args[1]
 
 
-class _LegacyBatchOverrides(Hindsight):
+class _LegacyBatchOverrides(ContextBase):
     """Models subclasses written before operation_id was added."""
 
     def retain_batch(
@@ -147,21 +146,21 @@ def test_retain_preserves_legacy_batch_override_for_default_call():
     """Default retain() calls should not pass new kwargs to old overrides."""
     client = _LegacyBatchOverrides(base_url="http://localhost:8888")
 
-    Hindsight.retain(client, "bank", "content")
+    ContextBase.retain(client, "bank", "content")
 
 
 def test_retain_batch_preserves_legacy_async_override_for_default_call():
     """Default retain_batch() calls should keep old async overrides callable."""
     client = _LegacyBatchOverrides(base_url="http://localhost:8888")
 
-    Hindsight.retain_batch(client, "bank", [{"content": "content"}])
+    ContextBase.retain_batch(client, "bank", [{"content": "content"}])
 
 
 async def test_aretain_preserves_legacy_batch_override_for_default_call():
     """Default aretain() calls should not pass new kwargs to old overrides."""
     client = _LegacyBatchOverrides(base_url="http://localhost:8888")
 
-    await Hindsight.aretain(client, "bank", "content")
+    await ContextBase.aretain(client, "bank", "content")
 
 
 def test_retain_warns_once_when_operation_id_dropped_on_sync():

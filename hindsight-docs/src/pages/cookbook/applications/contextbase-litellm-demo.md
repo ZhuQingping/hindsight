@@ -100,7 +100,7 @@ The script will check and install dependencies automatically.
 pip install streamlit litellm
 
 # Install ContextBase packages
-pip install hindsight-client contextbase-litellm
+pip install contextbase-client contextbase-litellm
 
 # Run the app
 streamlit run app.py

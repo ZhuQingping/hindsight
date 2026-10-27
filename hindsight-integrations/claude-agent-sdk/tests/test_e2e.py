@@ -24,9 +24,8 @@ import uuid
 
 import pytest
 import pytest_asyncio
-from hindsight_client import Hindsight
-
 from contextbase_claude_agent_sdk import create_contextbase_tools
+from contextbase_client import ContextBase
 
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 _NO_MEMORIES = "No relevant memories found."
@@ -62,7 +61,7 @@ def _tool(tools, name):
 
 @pytest_asyncio.fixture
 async def live():
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"claude-agent-sdk-e2e-{uuid.uuid4().hex[:8]}"
     await client.acreate_bank(bank_id, name=f"Claude Agent SDK E2E {bank_id}")
     try:

@@ -10,7 +10,7 @@
  * tests/test_retain_content_blocks.py; the two must stay in step.
  */
 
-import { HindsightClient, type ContentBlock } from "../src";
+import { ContextBaseClient, type ContentBlock } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -23,10 +23,10 @@ const IMAGE_BLOCK: ContentBlock = {
 };
 
 describe("retain content blocks", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedRetain.mockReset();
     mockedRetain.mockResolvedValue({ data: { success: true } } as never);
   });

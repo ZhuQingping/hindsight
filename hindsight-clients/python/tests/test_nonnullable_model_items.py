@@ -1,11 +1,10 @@
 """Generated clients preserve the native schema's non-null array elements."""
 
 import pytest
+from contextbase_client_api.models.bank_template_config import BankTemplateConfig
+from contextbase_client_api.models.memory_unit_list_item import MemoryUnitListItem
+from contextbase_client_api.models.mental_model_delta_operations import MentalModelDeltaOperations
 from pydantic import ValidationError
-
-from hindsight_client_api.models.bank_template_config import BankTemplateConfig
-from hindsight_client_api.models.memory_unit_list_item import MemoryUnitListItem
-from hindsight_client_api.models.mental_model_delta_operations import MentalModelDeltaOperations
 
 
 @pytest.mark.parametrize(

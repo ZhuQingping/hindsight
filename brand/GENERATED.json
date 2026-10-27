@@ -24,7 +24,7 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/package.json",
-      "sha256": "78b32f9060bd98ddec6aec54d4df7b538d755e5376c0ee3de87136be7bd2bcfe"
+      "sha256": "98793540365ac482607f7ec3dc0c6aacceefd36a6d3cb35a0f3a832447af1357"
     },
     {
       "path": "hindsight-integrations/coding-agents/plugin.json",
@@ -68,7 +68,7 @@
     },
     {
       "path": "hindsight-integrations/claude-code/README.md",
-      "sha256": "72c08c13bf2989d4025658956022d365105ed4cc8213220afbfdfffc7f429799"
+      "sha256": "30d82ec7a9634c9ca6c41363a41e41db6324cc0e78a19f9337f89b76f7df7322"
     },
     {
       "path": "hindsight-integrations/claude-code/skills/setup.md",

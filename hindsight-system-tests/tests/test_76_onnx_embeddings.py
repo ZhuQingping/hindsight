@@ -13,8 +13,7 @@ from contextlib import suppress
 from pathlib import Path
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_tests import start_hindsight_server, wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.server import HindsightServer
@@ -48,7 +47,7 @@ def onnx_server(request, stub_server, tmp_path) -> Iterator[HindsightServer]:
 
 
 async def test_real_onnx_memory_lifecycle(onnx_server, llm):
-    client = Hindsight(base_url=onnx_server.url)
+    client = ContextBase(base_url=onnx_server.url)
     bank = f"systest-onnx-{uuid.uuid4().hex[:12]}"
     llm.on_step("extract_facts", contains="Berlin").returns(
         extracted(

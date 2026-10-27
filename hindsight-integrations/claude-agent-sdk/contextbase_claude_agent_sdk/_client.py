@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._version import __version__
 from .config import CONTEXTBASE_API_KEY_ENV, DEFAULT_CONTEXTBASE_API_URL, get_config
@@ -14,10 +14,10 @@ _USER_AGENT = f"contextbase-claude-agent-sdk/{__version__}"
 
 
 def resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config.
 
     Falls back to the default API URL and the ``CONTEXTBASE_API_KEY`` env var
@@ -40,4 +40,4 @@ def resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)

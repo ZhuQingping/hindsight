@@ -21,7 +21,7 @@ This guide walks through installing the package, creating a memory bank, wiring 
 > **Quick answer**
 >
 > 1. `pip install hindsight-autogen autogen-agentchat "autogen-ext[openai]"`.
-> 2. Point a `Hindsight` client at your backend and create a bank with `acreate_bank`.
+> 2. Point a `ContextBase` client at your backend and create a bank with `acreate_bank`.
 > 3. Build tools with `create_hindsight_tools(client=client, bank_id="user-123")`.
 > 4. Pass those tools to `AssistantAgent(tools=tools)`.
 > 5. Verify that a later run recalls what an earlier run stored.
@@ -42,7 +42,7 @@ Install the integration alongside AutoGen itself.
 pip install hindsight-autogen autogen-agentchat "autogen-ext[openai]"
 ```
 
-`hindsight-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
+`hindsight-autogen` pulls in `autogen-core` and `contextbase-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
 
 ## Step 2: Create the tools and wire them into your agent
 
@@ -52,11 +52,11 @@ Create a Hindsight client, make a bank, build the tools, and pass them to your a
 import asyncio
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_autogen import create_hindsight_tools
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
@@ -72,7 +72,7 @@ async def main():
     result = await agent.run(task="Remember that I prefer dark mode")
     print(result.messages[-1].content)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall.
     await asyncio.sleep(3)
@@ -168,7 +168,7 @@ Hindsight processes retained content asynchronously. When retain and recall happ
 
 ### Not handling memory errors
 
-Tools raise `HindsightError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls if you want graceful degradation instead of a hard failure.
+Tools raise `ContextBaseError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls if you want graceful degradation instead of a hard failure.
 
 ### Mismatched tags
 
@@ -178,7 +178,7 @@ If you store with one set of `tags` but filter recall with `recall_tags` that do
 
 ### Do I need Hindsight Cloud?
 
-No. A self-hosted Hindsight server works too — point the `Hindsight` client at its `base_url` (or set `hindsight_api_url` via `configure()`).
+No. A self-hosted Hindsight server works too — point the `ContextBase` client at its `base_url` (or set `hindsight_api_url` via `configure()`).
 
 ### Does this work in AutoGen's async runtime?
 

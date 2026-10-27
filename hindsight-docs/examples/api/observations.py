@@ -3,11 +3,12 @@
 Observations (consolidation) examples for ContextBase.
 Run: python examples/api/observations.py
 """
+
 import asyncio
 import os
 
-from hindsight_client import Hindsight
-from hindsight_client_api.models.consolidation_request import ConsolidationRequest
+from contextbase_client import ContextBase
+from contextbase_client_api.models.consolidation_request import ConsolidationRequest
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "observations-demo-bank"
@@ -19,7 +20,7 @@ async def main():
     # =========================================================================
     if not CONTEXTBASE_URL:
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    client = Hindsight(base_url=CONTEXTBASE_URL)
+    client = ContextBase(base_url=CONTEXTBASE_URL)
     await client.acreate_bank(bank_id=BANK_ID)
     await client.aretain(bank_id=BANK_ID, content="Alice prefers dark mode.", tags=["user:alice"])
     await client.aretain(bank_id=BANK_ID, content="The engineering team ships on Fridays.", tags=["team:engineering"])
@@ -38,9 +39,7 @@ async def main():
     # Consolidate memories for alice OR the engineering team
     await client.banks.trigger_consolidation(
         bank_id=BANK_ID,
-        consolidation_request=ConsolidationRequest(
-            observation_scopes=[["user:alice"], ["team:engineering"]]
-        ),
+        consolidation_request=ConsolidationRequest(observation_scopes=[["user:alice"], ["team:engineering"]]),
     )
     # [/docs:targeted-consolidation]
 

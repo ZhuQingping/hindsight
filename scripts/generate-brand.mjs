@@ -8,25 +8,36 @@ import { format } from "prettier";
 
 const args = process.argv.slice(2);
 const rootIndex = args.indexOf("--root");
-const root = rootIndex < 0 ? resolve(dirname(fileURLToPath(import.meta.url)), "..") : resolve(args[rootIndex + 1]);
+const root =
+  rootIndex < 0
+    ? resolve(dirname(fileURLToPath(import.meta.url)), "..")
+    : resolve(args[rootIndex + 1]);
 const check = args.includes("--check");
 const source = "brand/definition.json";
 const brand = JSON.parse(readFileSync(resolve(root, source), "utf8"));
 const validDisplay = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,78}[A-Za-z0-9]$|^[A-Za-z0-9]$/;
 const validSlug = /^[a-z][a-z0-9-]{0,39}$/;
-const isDisplay = (value) => typeof value === "string" && value.trim() === value && validDisplay.test(value);
-if (Object.keys(brand).sort().join(",") !== "deployment_slug,display_name,historical_display_names,identity,schema_version" ||
-    brand.schema_version !== 1 || !isDisplay(brand.display_name) ||
-    typeof brand.deployment_slug !== "string" || brand.deployment_slug.trim() !== brand.deployment_slug ||
-    !validSlug.test(brand.deployment_slug) || !Array.isArray(brand.historical_display_names) ||
-    !brand.historical_display_names.every(isDisplay)) {
+const isDisplay = (value) =>
+  typeof value === "string" && value.trim() === value && validDisplay.test(value);
+if (
+  Object.keys(brand).sort().join(",") !==
+    "deployment_slug,display_name,historical_display_names,identity,schema_version" ||
+  brand.schema_version !== 1 ||
+  !isDisplay(brand.display_name) ||
+  typeof brand.deployment_slug !== "string" ||
+  brand.deployment_slug.trim() !== brand.deployment_slug ||
+  !validSlug.test(brand.deployment_slug) ||
+  !Array.isArray(brand.historical_display_names) ||
+  !brand.historical_display_names.every(isDisplay)
+) {
   throw new Error("Invalid brand schema, display name, history or deployment slug");
 }
 const fixed = brand.identity;
 // Public identities are pinned separately from display defaults. An explicit rename
 // updates this contract and its consumers together; display changes alone cannot rename them.
 const previous = JSON.parse(readFileSync(resolve(root, "brand/identity-contract.json"), "utf8"));
-if (JSON.stringify(fixed) !== JSON.stringify(previous)) throw new Error("Identity changes require a matching reviewed public contract");
+if (JSON.stringify(fixed) !== JSON.stringify(previous))
+  throw new Error("Identity changes require a matching reviewed public contract");
 // Check actual identity consumers before writing even the first output. The hash ledger
 // must never legitimize a manually renamed package or a different MCP ownership key.
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -35,41 +46,103 @@ for (const [path, expected] of [
   ["hindsight-integrations/coding-agents/plugin.json", fixed.coding_agents],
   ["hindsight-integrations/agent-plugin/plugin.json", fixed.agent_plugin],
   ["hindsight-integrations/claude-code/.claude-plugin/plugin.json", fixed.claude_plugin],
+  ["hindsight-clients/typescript/package.json", fixed.node_sdk],
 ]) {
   if (readJson(path).name !== expected) throw new Error(`Identity drift: ${path}`);
 }
 const codingPackage = readJson("hindsight-integrations/coding-agents/package.json");
-if (codingPackage.bin?.[fixed.coding_agents] !== "dist/installer.js") throw new Error("Coding Agents bin identity drift");
-for (const path of ["hindsight-integrations/coding-agents/plugin.json", "hindsight-integrations/agent-plugin/mcp.json", "hindsight-integrations/claude-code/.mcp.json"]) {
-  if (Object.keys(readJson(path).mcpServers ?? {}).join(",") !== fixed.mcp_registration) throw new Error(`MCP identity drift: ${path}`);
+const pythonSdk = readFileSync(resolve(root, "hindsight-clients/python/pyproject.toml"), "utf8");
+if (
+  pythonSdk.match(/^name\s*=\s*"([^"]+)"/m)?.[1] !== fixed.python_sdk ||
+  !pythonSdk.includes(`packages = ["${fixed.python_import}", "${fixed.python_api_import}"]`)
+) {
+  throw new Error("Python SDK identity drift");
 }
-const marketplacePlugins = readJson(".claude-plugin/marketplace.json").plugins.filter((plugin) => plugin.source === "./hindsight-integrations/claude-code");
-if (marketplacePlugins.length !== 1 || marketplacePlugins[0].name !== fixed.claude_plugin) throw new Error("Marketplace identity drift");
-const binaries = [...readFileSync(resolve(root, "hindsight-cli/Cargo.toml"), "utf8").matchAll(/\[\[bin\]\]([\s\S]*?)(?=\n\[|$)/g)]
-  .map((match) => match[1]).filter((block) => /^path\s*=\s*["']src\/main\.rs["']\s*$/m.test(block));
-if (binaries.length !== 1 || binaries[0].match(/^name\s*=\s*["']([^"']+)["']\s*$/m)?.[1] !== fixed.cli) throw new Error("CLI binary identity drift");
+if (codingPackage.bin?.[fixed.coding_agents] !== "dist/installer.js")
+  throw new Error("Coding Agents bin identity drift");
+for (const path of [
+  "hindsight-integrations/coding-agents/plugin.json",
+  "hindsight-integrations/agent-plugin/mcp.json",
+  "hindsight-integrations/claude-code/.mcp.json",
+]) {
+  if (Object.keys(readJson(path).mcpServers ?? {}).join(",") !== fixed.mcp_registration)
+    throw new Error(`MCP identity drift: ${path}`);
+}
+const marketplacePlugins = readJson(".claude-plugin/marketplace.json").plugins.filter(
+  (plugin) => plugin.source === "./hindsight-integrations/claude-code"
+);
+if (marketplacePlugins.length !== 1 || marketplacePlugins[0].name !== fixed.claude_plugin)
+  throw new Error("Marketplace identity drift");
+const binaries = [
+  ...readFileSync(resolve(root, "hindsight-cli/Cargo.toml"), "utf8").matchAll(
+    /\[\[bin\]\]([\s\S]*?)(?=\n\[|$)/g
+  ),
+]
+  .map((match) => match[1])
+  .filter((block) => /^path\s*=\s*["']src\/main\.rs["']\s*$/m.test(block));
+if (
+  binaries.length !== 1 ||
+  binaries[0].match(/^name\s*=\s*["']([^"']+)["']\s*$/m)?.[1] !== fixed.cli
+)
+  throw new Error("CLI binary identity drift");
 const outputs = new Map();
 const quote = JSON.stringify;
 const py = `# Generated by scripts/generate-brand.mjs from ${source}; do not edit.\n`;
 const ts = `// Generated by scripts/generate-brand.mjs from ${source}; do not edit.\n`;
-outputs.set("hindsight-api-slim/hindsight_api/brand_defaults.py", py + [
-  ["DISPLAY_NAME", brand.display_name], ["DEPLOYMENT_SLUG", brand.deployment_slug],
-  ["LEGACY_SLUG", fixed.legacy_slug], ["PRODUCT_NAME", fixed.cli],
-  ["WEBHOOK_EVENT_HEADER", fixed.webhook_event_header], ["WEBHOOK_SIGNATURE_HEADER", fixed.webhook_signature_header],
-  ["WEBHOOK_SIGNATURE_V2_HEADER", fixed.webhook_signature_v2_header], ["RERANKER_BANK_HEADER", fixed.reranker_bank_header],
-].map(([key, value]) => `${key} = ${quote(value)}\n`).join(""));
-outputs.set("hindsight-control-plane/src/lib/brand-defaults.ts", ts +
-  `export const DISPLAY_NAME = ${quote(brand.display_name)};\nexport const DEPLOYMENT_SLUG = ${quote(brand.deployment_slug)};\n`);
-outputs.set("hindsight-integrations/coding-agents/src/core/brand-defaults.ts", ts +
-  `export const DISPLAY_NAME = ${quote(brand.display_name)};\n` +
-  `export const CREDIT_DISPLAY_NAMES = ${"[" + [...new Set([brand.display_name, ...brand.historical_display_names])].map(quote).join(", ") + "]"};\n`);
-outputs.set("hindsight-integrations/claude-code/scripts/lib/brand_defaults.py", py + `DISPLAY_NAME = ${quote(brand.display_name)}\n`);
-outputs.set("hindsight-cli/src/brand.rs", ts + `pub const DISPLAY_NAME: &str = ${quote(brand.display_name)};\n` + `pub const CLI_ABOUT: &str = ${quote(brand.display_name + " CLI - Semantic memory system")};\n`);
+outputs.set(
+  "hindsight-api-slim/hindsight_api/brand_defaults.py",
+  py +
+    [
+      ["DISPLAY_NAME", brand.display_name],
+      ["DEPLOYMENT_SLUG", brand.deployment_slug],
+      ["LEGACY_SLUG", fixed.legacy_slug],
+      ["PRODUCT_NAME", fixed.cli],
+      ["WEBHOOK_EVENT_HEADER", fixed.webhook_event_header],
+      ["WEBHOOK_SIGNATURE_HEADER", fixed.webhook_signature_header],
+      ["WEBHOOK_SIGNATURE_V2_HEADER", fixed.webhook_signature_v2_header],
+      ["RERANKER_BANK_HEADER", fixed.reranker_bank_header],
+    ]
+      .map(([key, value]) => `${key} = ${quote(value)}\n`)
+      .join("")
+);
+outputs.set(
+  "hindsight-control-plane/src/lib/brand-defaults.ts",
+  ts +
+    `export const DISPLAY_NAME = ${quote(brand.display_name)};\nexport const DEPLOYMENT_SLUG = ${quote(brand.deployment_slug)};\n`
+);
+outputs.set(
+  "hindsight-integrations/coding-agents/src/core/brand-defaults.ts",
+  ts +
+    `export const DISPLAY_NAME = ${quote(brand.display_name)};\n` +
+    `export const CREDIT_DISPLAY_NAMES = ${"[" + [...new Set([brand.display_name, ...brand.historical_display_names])].map(quote).join(", ") + "]"};\n`
+);
+outputs.set(
+  "hindsight-integrations/claude-code/scripts/lib/brand_defaults.py",
+  py + `DISPLAY_NAME = ${quote(brand.display_name)}\n`
+);
+outputs.set(
+  "hindsight-cli/src/brand.rs",
+  ts +
+    `pub const DISPLAY_NAME: &str = ${quote(brand.display_name)};\n` +
+    `pub const CLI_ABOUT: &str = ${quote(brand.display_name + " CLI - Semantic memory system")};\n`
+);
 const metadata = [
-  ["hindsight-integrations/coding-agents/package.json", `${brand.display_name} long-term memory for coding agents; remote connection required.`],
-  ["hindsight-integrations/coding-agents/plugin.json", `${brand.display_name} long-term project memory for coding agents`],
-  ["hindsight-integrations/agent-plugin/plugin.json", `${brand.display_name} long-term memory for AI agents with retain, recall and reflect.`],
-  ["hindsight-integrations/claude-code/.claude-plugin/plugin.json", `Automatic long-term memory for Claude Code via ${brand.display_name}.`],
+  [
+    "hindsight-integrations/coding-agents/package.json",
+    `${brand.display_name} long-term memory for coding agents; remote connection required.`,
+  ],
+  [
+    "hindsight-integrations/coding-agents/plugin.json",
+    `${brand.display_name} long-term project memory for coding agents`,
+  ],
+  [
+    "hindsight-integrations/agent-plugin/plugin.json",
+    `${brand.display_name} long-term memory for AI agents with retain, recall and reflect.`,
+  ],
+  [
+    "hindsight-integrations/claude-code/.claude-plugin/plugin.json",
+    `Automatic long-term memory for Claude Code via ${brand.display_name}.`,
+  ],
 ];
 for (const [path, description] of metadata) {
   const value = JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -79,33 +152,69 @@ for (const [path, description] of metadata) {
 const marketplacePath = ".claude-plugin/marketplace.json";
 const marketplace = JSON.parse(readFileSync(resolve(root, marketplacePath), "utf8"));
 marketplace.description = `${brand.display_name} integrations for coding agents`;
-for (const plugin of marketplace.plugins) plugin.description = `${brand.display_name} long-term memory integration`;
+for (const plugin of marketplace.plugins)
+  plugin.description = `${brand.display_name} long-term memory integration`;
 outputs.set(marketplacePath, JSON.stringify(marketplace, null, 2) + "\n");
 const cargoPath = "hindsight-cli/Cargo.toml";
-outputs.set(cargoPath, readFileSync(resolve(root, cargoPath), "utf8").replace(/^description = .*$/m,
-  `description = ${quote(`A CLI for ${brand.display_name} - semantic memory system`)}`));
-outputs.set("scripts/install-contextbase.sh", readFileSync(resolve(root, "brand/templates/install-cli.sh.in"), "utf8")
-  .replaceAll("@DISPLAY_NAME@", brand.display_name));
-for (const {template, output} of JSON.parse(readFileSync(resolve(root, "brand/text-targets.json"), "utf8"))) {
-  outputs.set(output, readFileSync(resolve(root, template), "utf8")
-    .replaceAll("@DISPLAY_NAME@", brand.display_name).replaceAll("@DEPLOYMENT_SLUG@", brand.deployment_slug));
+outputs.set(
+  cargoPath,
+  readFileSync(resolve(root, cargoPath), "utf8").replace(
+    /^description = .*$/m,
+    `description = ${quote(`A CLI for ${brand.display_name} - semantic memory system`)}`
+  )
+);
+outputs.set(
+  "scripts/install-contextbase.sh",
+  readFileSync(resolve(root, "brand/templates/install-cli.sh.in"), "utf8").replaceAll(
+    "@DISPLAY_NAME@",
+    brand.display_name
+  )
+);
+for (const { template, output } of JSON.parse(
+  readFileSync(resolve(root, "brand/text-targets.json"), "utf8")
+)) {
+  outputs.set(
+    output,
+    readFileSync(resolve(root, template), "utf8")
+      .replaceAll("@DISPLAY_NAME@", brand.display_name)
+      .replaceAll("@DEPLOYMENT_SLUG@", brand.deployment_slug)
+  );
 }
 // Apply the repository formatter here so lint and regeneration have the same fixed point.
 const formatOptions = JSON.parse(readFileSync(resolve(root, ".prettierrc.json"), "utf8"));
 for (const [path, contents] of outputs) {
-  const parser = path.endsWith(".json") ? "json" : path.endsWith(".ts") ? "typescript" : path.endsWith(".md") ? "markdown" : null;
-  if (parser) outputs.set(path, await format(contents, {...formatOptions, filepath: path}));
+  const parser = path.endsWith(".json")
+    ? "json"
+    : path.endsWith(".ts")
+      ? "typescript"
+      : path.endsWith(".md")
+        ? "markdown"
+        : null;
+  if (parser) outputs.set(path, await format(contents, { ...formatOptions, filepath: path }));
 }
-const entries = [...outputs].map(([path, contents]) => ({path, sha256: createHash("sha256").update(contents).digest("hex")}));
-outputs.set("brand/GENERATED.json", JSON.stringify({source, generator: "scripts/generate-brand.mjs", entries}, null, 2) + "\n");
+const entries = [...outputs].map(([path, contents]) => ({
+  path,
+  sha256: createHash("sha256").update(contents).digest("hex"),
+}));
+outputs.set(
+  "brand/GENERATED.json",
+  JSON.stringify({ source, generator: "scripts/generate-brand.mjs", entries }, null, 2) + "\n"
+);
 const drift = [];
 for (const [path, contents] of outputs) {
   const target = resolve(root, path);
   let existing;
-  try { existing = readFileSync(target, "utf8"); } catch { /* Missing output is drift. */ }
+  try {
+    existing = readFileSync(target, "utf8");
+  } catch {
+    /* Missing output is drift. */
+  }
   if (existing === contents) continue;
   drift.push(path);
-  if (!check) { mkdirSync(dirname(target), {recursive: true}); writeFileSync(target, contents); }
+  if (!check) {
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, contents);
+  }
 }
-console.log(JSON.stringify({mode: check ? "check" : "generate", source, changed: drift}));
+console.log(JSON.stringify({ mode: check ? "check" : "generate", source, changed: drift }));
 if (check && drift.length) process.exitCode = 1;

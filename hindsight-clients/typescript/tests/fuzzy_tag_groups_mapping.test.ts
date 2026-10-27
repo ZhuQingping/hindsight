@@ -6,7 +6,7 @@
  * fuzzy tag matching (#4026) is usable through the wrapper and not only over raw HTTP.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -21,10 +21,10 @@ const FUZZY_GROUP = {
 };
 
 describe("fuzzy tag_groups mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedRecall.mockReset();
     mockedReflect.mockReset();
     mockedRecall.mockResolvedValue({ data: { results: [] } } as any);

@@ -32,7 +32,7 @@ interface PluginCopy {
 /** Evaluate a fresh copy of the plugin module, as a new OpenClaw registry does. */
 async function loadCopy(): Promise<PluginCopy> {
   vi.resetModules();
-  const Client = (await import("@vectorize-io/hindsight-client")).HindsightClient;
+  const Client = (await import("contextbase-client")).ContextBaseClient;
   const retain = vi.fn().mockResolvedValue({ success: true });
   vi.spyOn(Client.prototype, "retain").mockImplementation(retain);
   const plugin = (await import("./index.js")).default;

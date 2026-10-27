@@ -3,9 +3,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from hindsight_client_api.models.reflect_response import ReflectResponse
-
 from contextbase_agentcore import (
     ContextBaseRuntimeAdapter,
     RecallPolicy,
@@ -14,6 +11,7 @@ from contextbase_agentcore import (
     configure,
     reset_config,
 )
+from contextbase_client_api.models.reflect_response import ReflectResponse
 
 
 def _ctx(**kwargs):
@@ -299,9 +297,9 @@ class TestRunTurn:
 
 
 def test_client_sends_integration_user_agent(monkeypatch):
-    import hindsight_client
+    import contextbase_client
 
     mock_cls = MagicMock()
-    monkeypatch.setattr(hindsight_client, "Hindsight", mock_cls)
+    monkeypatch.setattr(contextbase_client, "ContextBase", mock_cls)
     ContextBaseRuntimeAdapter(contextbase_api_url="http://fake:9077")._get_client()
     assert mock_cls.call_args.kwargs["user_agent"].startswith("contextbase-agentcore/")

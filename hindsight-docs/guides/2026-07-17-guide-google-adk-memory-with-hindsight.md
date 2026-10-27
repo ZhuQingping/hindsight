@@ -40,7 +40,7 @@ Before you start, make sure you have:
 pip install hindsight-google-adk
 ```
 
-This pulls in `hindsight-client>=0.4.0`, which the integration uses to talk to your Hindsight backend.
+This pulls in `contextbase-client>=0.4.0`, which the integration uses to talk to your Hindsight backend.
 
 ## Step 2: Wire up the memory service
 

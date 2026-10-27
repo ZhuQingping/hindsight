@@ -40,7 +40,7 @@ Each user gets their own memory bank. Complete isolation, simple mental model.
 
 
 ```python
-!pip install hindsight-client nest_asyncio openai python-dotenv -U
+!pip install contextbase-client nest_asyncio openai python-dotenv -U
 ```
 
 ## 1. Create a Bank When User Signs Up
@@ -65,9 +65,9 @@ load_dotenv()
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url=CONTEXTBASE_API_URL)
+client = ContextBase(base_url=CONTEXTBASE_API_URL)
 llm = OpenAIClient()  # Uses OPENAI_API_KEY from .env
 
 def on_user_signup(user_id: str):

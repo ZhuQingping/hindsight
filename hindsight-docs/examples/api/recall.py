@@ -3,7 +3,9 @@
 Recall API examples for ContextBase.
 Run: python examples/api/recall.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +13,11 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # Seed some data for recall examples
 client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
@@ -69,31 +71,19 @@ for r in response.results:
 
 # [docs:recall-world-only]
 # Only world facts (objective information)
-world_facts = client.recall(
-    bank_id="my-bank",
-    query="Where does Alice work?",
-    types=["world"]
-)
+world_facts = client.recall(bank_id="my-bank", query="Where does Alice work?", types=["world"])
 # [/docs:recall-world-only]
 
 
 # [docs:recall-experience-only]
 # Only experience (conversations and events)
-experience = client.recall(
-    bank_id="my-bank",
-    query="What have I recommended?",
-    types=["experience"]
-)
+experience = client.recall(bank_id="my-bank", query="What have I recommended?", types=["experience"])
 # [/docs:recall-experience-only]
 
 
 # [docs:recall-observations-only]
 # Only observations (consolidated knowledge)
-observations = client.recall(
-    bank_id="my-bank",
-    query="What patterns have I learned?",
-    types=["observation"]
-)
+observations = client.recall(bank_id="my-bank", query="What patterns have I learned?", types=["observation"])
 # [/docs:recall-observations-only]
 
 
@@ -102,15 +92,11 @@ observations = client.recall(
 results = client.recall(
     bank_id="my-bank",
     query="What programming languages does Alice prefer?",
-    types=["world", "experience", "observation"]
+    types=["world", "experience", "observation"],
 )
 
 # Observations only
-observations = client.recall(
-    bank_id="my-bank",
-    query="What patterns have I learned?",
-    types=["observation"]
-)
+observations = client.recall(bank_id="my-bank", query="What patterns have I learned?", types=["observation"])
 # [/docs:recall-with-observations]
 
 
@@ -144,8 +130,6 @@ results = client.recall(bank_id="my-bank", query="Alice's email", max_tokens=500
 # [/docs:recall-token-budget]
 
 
-
-
 # [docs:recall-budget-levels]
 # Quick lookup
 results = client.recall(bank_id="my-bank", query="Alice's email", budget="low")
@@ -161,7 +145,7 @@ response = client.recall(
     bank_id="my-bank",
     query="What feedback did the user give?",
     tags=["user:alice"],
-    tags_match="any"  # OR matching, includes untagged (default)
+    tags_match="any",  # OR matching, includes untagged (default)
 )
 # [/docs:recall-with-tags]
 
@@ -172,7 +156,7 @@ response = client.recall(
     bank_id="my-bank",
     query="What did the user say?",
     tags=["user:alice"],
-    tags_match="any_strict"  # OR matching, excludes untagged memories
+    tags_match="any_strict",  # OR matching, excludes untagged memories
 )
 # [/docs:recall-tags-strict]
 
@@ -183,7 +167,7 @@ response = client.recall(
     bank_id="my-bank",
     query="What bugs were reported?",
     tags=["user:alice", "bug-report"],
-    tags_match="all_strict"  # Memory must have BOTH tags
+    tags_match="all_strict",  # Memory must have BOTH tags
 )
 # [/docs:recall-tags-all]
 

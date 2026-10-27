@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Python SDK page examples for Hindsight (docs/sdks/python.mdx).
+Python SDK page examples for ContextBase (docs/sdks/python.mdx).
 Run: python examples/api/python-sdk.py
 """
+
 import os
 
 import requests
@@ -14,9 +15,9 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 
 # [docs:quickstart]
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 # Retain a memory
 client.retain(bank_id="python-sdk-bank", content="Alice works at Google")
@@ -33,11 +34,11 @@ print(answer.text)
 
 
 # [docs:client-init]
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(
+client = ContextBase(
     base_url="http://localhost:8888",  # ContextBase API URL
-    timeout=30.0,                       # Request timeout in seconds
+    timeout=30.0,  # Request timeout in seconds
     # api_key="your-api-key",          # Optional bearer token
 )
 
@@ -128,7 +129,7 @@ response = client.recall(
     budget="mid",
     max_tokens=4096,
     include_chunks=True,
-    max_chunk_tokens=500
+    max_chunk_tokens=500,
 )
 
 print(f"Found {len(response.results)} memories")
@@ -158,9 +159,9 @@ client.create_bank(
     name="Assistant",
     mission="You're a helpful AI assistant - keep track of user preferences and conversation history.",
     disposition={
-        "skepticism": 3,    # 1-5: trusting to skeptical
-        "literalism": 3,    # 1-5: flexible to literal
-        "empathy": 3,       # 1-5: detached to empathetic
+        "skepticism": 3,  # 1-5: trusting to skeptical
+        "literalism": 3,  # 1-5: flexible to literal
+        "empathy": 3,  # 1-5: detached to empathetic
     },
 )
 # [/docs:create-bank]
@@ -181,10 +182,12 @@ client.close()
 
 # [docs:async]
 import asyncio
-from hindsight_client import Hindsight
+
+from contextbase_client import ContextBase
+
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Async retain
     await client.aretain(bank_id="python-sdk-bank", content="Hello world")
@@ -200,14 +203,15 @@ async def main():
 
     await client.aclose()
 
+
 asyncio.run(main())
 # [/docs:async]
 
 
 # [docs:context-manager]
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-with Hindsight(base_url="http://localhost:8888") as client:
+with ContextBase(base_url="http://localhost:8888") as client:
     client.retain(bank_id="python-sdk-bank", content="Hello")
     results = client.recall(bank_id="python-sdk-bank", query="Hello")
 # Client automatically closed

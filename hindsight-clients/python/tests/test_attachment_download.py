@@ -6,7 +6,7 @@ for this endpoint, so the generated client decoded the body as UTF-8 text and a
 PNG failed on its 0x89 magic byte. This goes through the real server and the
 generated method so a spec regression shows up as a client failure.
 
-These tests require a running Hindsight API server.
+These tests require a running ContextBase API server.
 """
 
 import base64
@@ -14,11 +14,10 @@ import os
 import uuid
 
 import pytest
+from contextbase_client import ContextBase
+from contextbase_client.contextbase_client import _run_async
 
-from hindsight_client import Hindsight
-from hindsight_client.hindsight_client import _run_async
-
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 PNG_BYTES = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
@@ -27,7 +26,7 @@ PNG_BYTES = base64.b64decode(
 
 @pytest.fixture
 def client():
-    with Hindsight(base_url=HINDSIGHT_API_URL) as client:
+    with ContextBase(base_url=CONTEXTBASE_API_URL) as client:
         yield client
 
 

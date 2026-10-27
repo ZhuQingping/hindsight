@@ -375,7 +375,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "agent-framework-core" },
-    { name = "hindsight-client" },
+    { name = "contextbase-client" },
 ]
 
 [package.dev-dependencies]
@@ -388,7 +388,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-framework-core", specifier = ">=1.7,<2" },
-    { name = "hindsight-client", specifier = ">=0.4.0" },
+    { name = "contextbase-client", editable = "../../hindsight-clients/python" },
 ]
 
 [package.metadata.requires-dev]
@@ -399,9 +399,9 @@ dev = [
 ]
 
 [[package]]
-name = "hindsight-client"
-version = "0.7.2"
-source = { registry = "https://pypi.org/simple" }
+name = "contextbase-client"
+version = "1.0.0"
+source = { editable = "../../hindsight-clients/python" }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiohttp-retry" },
@@ -409,11 +409,23 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "typing-extensions" },
     { name = "urllib3" },
+    { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/f4/4ef6939b48e7de481c1a0e70562827aeb4b3c37daea27512ce2f00489587/hindsight_client-0.7.2.tar.gz", hash = "sha256:9dc5692221d70edeafcea0dd712b5ada5b403cd3cb7a1c6ab8e8f5f5264243cf", size = 100822, upload-time = "2026-06-02T13:18:23.828Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/92/1d18d32f5f52817d39a974c23d609de581ee635e331bc71968777fae7ceb/hindsight_client-0.7.2-py3-none-any.whl", hash = "sha256:d1320e15482ca28346209d0e5b4542b9f327566150315e42b36f1d8c454c5fe0", size = 251191, upload-time = "2026-06-02T13:18:22.299Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.8.4" },
+    { name = "aiohttp-retry", specifier = ">=2.8.3" },
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
+    { name = "python-dateutil", specifier = ">=2.8.2" },
+    { name = "requests", marker = "extra == 'test'", specifier = ">=2.33.0" },
+    { name = "typing-extensions", specifier = ">=4.7.1" },
+    { name = "urllib3", specifier = ">=2.1.0,<3.0.0" },
+    { name = "yarl", specifier = ">=1.9,<2.0" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "idna"

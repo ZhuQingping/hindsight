@@ -13,7 +13,7 @@
  * tests/test_list_time_window_mapping.py; the two must stay in step.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -22,10 +22,10 @@ const mockedListMemories = sdk.listMemories as jest.MockedFunction<typeof sdk.li
 const mockedListDocuments = sdk.listDocuments as jest.MockedFunction<typeof sdk.listDocuments>;
 
 describe("list time window mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedListMemories.mockReset();
     mockedListMemories.mockResolvedValue({
       data: { items: [], total: 0, limit: 100, offset: 0 },

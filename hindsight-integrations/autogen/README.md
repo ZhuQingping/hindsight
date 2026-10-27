@@ -17,7 +17,7 @@ Provides `FunctionTool` instances that give [AutoGen](https://microsoft.github.i
 pip install contextbase-autogen autogen-agentchat "autogen-ext[openai]"
 ```
 
-`contextbase-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
+`contextbase-autogen` pulls in `autogen-core` and `contextbase-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
 
 ## Quick Start
 
@@ -25,12 +25,12 @@ pip install contextbase-autogen autogen-agentchat "autogen-ext[openai]"
 import asyncio
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_autogen import create_contextbase_tools
 
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
@@ -150,7 +150,7 @@ tools = create_contextbase_tools(
 
 - Python >= 3.10
 - autogen-core >= 0.4.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 
 ## Documentation
 

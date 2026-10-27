@@ -3,9 +3,9 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-from hindsight_client import Hindsight
-from hindsight_client_api.models.recall_response import RecallResponse
-from hindsight_client_api.models.recall_result import RecallResult
+from contextbase_client import ContextBase
+from contextbase_client_api.models.recall_response import RecallResponse
+from contextbase_client_api.models.recall_result import RecallResult
 from contextbase_langgraph import create_recall_node
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
@@ -23,7 +23,7 @@ async def test_empty_recall_removes_previous_context_without_removing_other_mess
     app = web.Application()
     app.router.add_post("/v1/default/banks/test/memories/recall", recall)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")))
+        client = ContextBase(base_url=str(server.make_url("")))
         try:
             builder = StateGraph(MessagesState)
             builder.add_node(

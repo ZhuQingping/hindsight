@@ -5,10 +5,9 @@ from threading import Thread
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from hindsight_client_api.models.reflect_request import ReflectRequest
-from hindsight_client_api.models.reflect_response import ReflectResponse
-
 from contextbase_agentcore import ContextBaseRuntimeAdapter, RecallPolicy, TurnContext, reset_config
+from contextbase_client_api.models.reflect_request import ReflectRequest
+from contextbase_client_api.models.reflect_response import ReflectResponse
 
 
 @pytest.mark.asyncio

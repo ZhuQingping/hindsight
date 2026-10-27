@@ -1,5 +1,5 @@
 import type { Memory } from "@elizaos/core";
-import type { Budget, FactType, HindsightClient } from "./client.js";
+import type { Budget, FactType, ContextBaseClient } from "./client.js";
 
 /**
  * Resolves which ContextBase memory bank a message belongs to.
@@ -38,8 +38,8 @@ export interface RetainOptions {
 }
 
 export interface ContextBasePluginOptions {
-  /** A ContextBase client instance (e.g. from `@vectorize-io/hindsight-client`). */
-  client: HindsightClient;
+  /** A ContextBase client instance (e.g. from `contextbase-client`). */
+  client: ContextBaseClient;
   /**
    * The memory bank to read and write. Defaults to the message's `entityId`,
    * giving each user/agent an isolated memory store.

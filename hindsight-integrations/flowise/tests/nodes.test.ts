@@ -7,8 +7,8 @@ const mockRecall = vi.fn();
 const mockReflect = vi.fn();
 const clientOpts: unknown[] = [];
 
-vi.mock("@vectorize-io/hindsight-client", () => ({
-  HindsightClient: class {
+vi.mock("contextbase-client", () => ({
+  ContextBaseClient: class {
     retain = mockRetain;
     recall = mockRecall;
     reflect = mockReflect;

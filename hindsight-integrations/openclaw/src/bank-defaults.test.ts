@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type { HindsightClient } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient } from "contextbase-client";
 import { readFileSync } from "fs";
 import type { PluginConfig } from "./types.js";
 import {
@@ -150,7 +150,7 @@ describe("applyConfiguredBankDefaults", () => {
 
   it("is a no-op when no defaults are configured", async () => {
     const createBank = vi.fn();
-    const client = { createBank } as unknown as HindsightClient;
+    const client = { createBank } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", {}, clientOpts);
 
@@ -160,7 +160,7 @@ describe("applyConfiguredBankDefaults", () => {
 
   it("sends createBank and config patch for a derived dynamic bank", async () => {
     const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as HindsightClient;
+    const client = { createBank } as unknown as ContextBaseClient;
     vi.mocked(global.fetch).mockResolvedValue(new Response("{}", { status: 200 }));
 
     const config: PluginConfig = {
@@ -194,7 +194,7 @@ describe("applyConfiguredBankDefaults", () => {
 
   it("applies missions via createBank without config patch when only missions are set", async () => {
     const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as HindsightClient;
+    const client = { createBank } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(
       client,

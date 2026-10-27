@@ -23,11 +23,11 @@ pip install contextbase-pydantic-ai
 > Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_pydantic_ai import create_contextbase_tools, memory_instructions
 from pydantic_ai import Agent
 
-client = Hindsight(base_url="http://localhost:8888", api_key="hsk_...")
+client = ContextBase(base_url="http://localhost:8888", api_key="hsk_...")
 
 agent = Agent(
     "openai:gpt-4o",
@@ -52,7 +52,7 @@ The `memory_instructions` callable automatically recalls relevant memories and i
 If you're running ContextBase locally with `./scripts/dev/start-api.sh`, point at your local server instead:
 
 ```python
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 ```
 
 See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
@@ -197,7 +197,7 @@ instructions_fn = memory_instructions(
 
 - Python >= 3.10
 - pydantic-ai-slim >= 1.0.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running ContextBase API server
 
 ## License

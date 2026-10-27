@@ -12,8 +12,7 @@ reintroduce the gap.
 import inspect
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 # `suspend_retains` is a sync context manager over a task-local flag: it never runs the
 # event loop, so it already works inside async code and an async twin would be redundant.
@@ -22,7 +21,7 @@ _NO_ASYNC_TWIN_NEEDED = {"suspend_retains"}
 
 def _public_methods() -> dict[str, object]:
     return {
-        name: attr for name, attr in vars(Hindsight).items() if not name.startswith("_") and inspect.isfunction(attr)
+        name: attr for name, attr in vars(ContextBase).items() if not name.startswith("_") and inspect.isfunction(attr)
     }
 
 
@@ -46,10 +45,10 @@ def test_every_sync_convenience_method_has_an_async_twin():
 
 
 def test_the_pairs_are_actually_sync_and_async():
-    assert _pairs(), "expected to find sync/async method pairs on Hindsight"
+    assert _pairs(), "expected to find sync/async method pairs on ContextBase"
     for sync_name, async_name in _pairs():
-        sync_fn = getattr(Hindsight, sync_name)
-        async_fn = getattr(Hindsight, async_name)
+        sync_fn = getattr(ContextBase, sync_name)
+        async_fn = getattr(ContextBase, async_name)
         assert not inspect.iscoroutinefunction(sync_fn), f"{sync_name} should be sync"
         assert inspect.iscoroutinefunction(async_fn), f"{async_name} should be a coroutine function"
 
@@ -57,8 +56,8 @@ def test_the_pairs_are_actually_sync_and_async():
 @pytest.mark.parametrize(("sync_name", "async_name"), _pairs())
 def test_pair_signatures_match(sync_name: str, async_name: str):
     """The twins must accept the same arguments, or callers silently lose one."""
-    sync_params = inspect.signature(getattr(Hindsight, sync_name)).parameters
-    async_params = inspect.signature(getattr(Hindsight, async_name)).parameters
+    sync_params = inspect.signature(getattr(ContextBase, sync_name)).parameters
+    async_params = inspect.signature(getattr(ContextBase, async_name)).parameters
     assert list(sync_params) == list(async_params), f"{sync_name} and {async_name} take different arguments"
     for name, param in sync_params.items():
         other = async_params[name]
@@ -77,7 +76,7 @@ async def test_async_twin_is_usable_from_a_running_event_loop(monkeypatch):
         captured["request"] = request
         return MagicMock()
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     monkeypatch.setattr(client.mental_models, "create_mental_model", fake_create)
 
     await client.acreate_mental_model(bank_id="alice", name="Alice housing", source_query="Where does Alice live?")

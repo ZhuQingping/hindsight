@@ -5,7 +5,7 @@
  * `detail=full` default or drop list pagination and tag-match controls.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -14,10 +14,10 @@ const mockedList = sdk.listMentalModels as jest.MockedFunction<typeof sdk.listMe
 const mockedGet = sdk.getMentalModel as jest.MockedFunction<typeof sdk.getMentalModel>;
 
 describe("mental-model query mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedList.mockReset();
     mockedGet.mockReset();
     mockedList.mockResolvedValue({ data: { items: [], total: 0 } } as any);

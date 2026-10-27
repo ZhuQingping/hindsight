@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 from autogen_core.tools import FunctionTool
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import (
@@ -22,7 +22,7 @@ from .config import (
     TagsMatch,
     get_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: Budget | None = None,
@@ -86,7 +86,7 @@ def create_contextbase_tools(
         List of AutoGen FunctionTool instances.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client = resolve_client(client, contextbase_api_url, api_key)
 
@@ -126,11 +126,11 @@ def create_contextbase_tools(
                     retain_kwargs["document_id"] = retain_document_id
                 await resolved_client.aretain(**retain_kwargs)
                 return "Memory stored successfully."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error("Retain failed: %s", e)
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(
             FunctionTool(
@@ -172,11 +172,11 @@ def create_contextbase_tools(
                 for i, result in enumerate(response.results, 1):
                     lines.append(f"{i}. {result.text}")
                 return "\n".join(lines)
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error("Recall failed: %s", e)
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(
             FunctionTool(
@@ -218,11 +218,11 @@ def create_contextbase_tools(
                     reflect_kwargs["tags_match"] = effective_reflect_tags_match
                 response = await resolved_client.areflect(**reflect_kwargs)
                 return response.text or "No relevant memories found."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error("Reflect failed: %s", e)
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(
             FunctionTool(

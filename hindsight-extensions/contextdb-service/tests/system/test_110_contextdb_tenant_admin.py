@@ -7,10 +7,10 @@ import secrets
 
 import httpx
 import pytest
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException, UnauthorizedException
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException, UnauthorizedException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
@@ -67,8 +67,8 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                 extracted(fact("Bob builds OtherSentinel", who="Bob", entities=["Bob", "OtherSentinel"]))
             )
             llm.on_step("consolidate").returns(consolidation())
-            client = Hindsight(base_url=base, api_key=key["secret"])
-            administrator = Hindsight(base_url=base, api_key=admin_key)
+            client = ContextBase(base_url=base, api_key=key["secret"])
+            administrator = ContextBase(base_url=base, api_key=admin_key)
             try:
                 await administrator.aretain(bank_id=b, content="Bob builds OtherSentinel.", retain_async=True)
                 await wait_until_settled(administrator, b)

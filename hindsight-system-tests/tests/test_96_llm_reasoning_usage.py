@@ -10,8 +10,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from hindsight_client_api.api.llm_traces_api import LLMTracesApi
-
+from contextbase_client_api.api.llm_traces_api import LLMTracesApi
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio

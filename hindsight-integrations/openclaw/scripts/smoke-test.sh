@@ -6,7 +6,7 @@
 #   1. The plugin tarball installs cleanly via `openclaw plugins install`
 #      WITHOUT --dangerously-force-unsafe-install (install scanner reports
 #      zero findings).
-#   2. Workspace deps (@vectorize-io/hindsight-all, hindsight-client) resolve
+#   2. Workspace deps (@vectorize-io/hindsight-all, contextbase-client) resolve
 #      from the npm registry into the extracted extension's node_modules.
 #   3. The non-interactive `contextbase-openclaw-setup` wizard writes a valid
 #      openclaw.json plugin config for each of the three modes.
@@ -244,8 +244,8 @@ main() {
   if [[ ! -d "$EXT_DIR/node_modules/@vectorize-io/hindsight-all" ]]; then
     fail "expected @vectorize-io/hindsight-all in installed extension"
   fi
-  if [[ ! -d "$EXT_DIR/node_modules/@vectorize-io/hindsight-client" ]]; then
-    fail "expected @vectorize-io/hindsight-client in installed extension"
+  if [[ ! -d "$EXT_DIR/node_modules/contextbase-client" ]]; then
+    fail "expected contextbase-client in installed extension"
   fi
   log "✓ workspace deps resolved from registry"
 

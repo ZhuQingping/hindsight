@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 export async function GET() {
   const response = await fetch(`${DATAPLANE_URL}/v1/file-storage/config`, {

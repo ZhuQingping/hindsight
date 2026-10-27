@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 /**
- * Knowledge Pages API examples for Hindsight (Node.js)
+ * Knowledge Pages API examples for ContextBase (Node.js)
  * Run: node examples/api/knowledge-pages.mjs
  */
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from "contextbase-client";
 
-const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
-const BANK_ID = 'knowledge-pages-demo-bank-node';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
+const BANK_ID = "knowledge-pages-demo-bank-node";
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
-await client.createBank(BANK_ID, { name: 'Knowledge Pages Demo' });
-await client.retain(BANK_ID, 'The API is deployed to Kubernetes with a rolling update');
-await client.retain(BANK_ID, 'Deploys run from the main branch after CI passes');
-await client.retain(BANK_ID, 'A failed deploy is rolled back by redeploying the previous tag');
-await new Promise(r => setTimeout(r, 2000));
+const client = new ContextBaseClient({ baseUrl: CONTEXTBASE_URL });
+await client.createBank(BANK_ID, { name: "Knowledge Pages Demo" });
+await client.retain(BANK_ID, "The API is deployed to Kubernetes with a rolling update");
+await client.retain(BANK_ID, "Deploys run from the main branch after CI passes");
+await client.retain(BANK_ID, "A failed deploy is rolled back by redeploying the previous tag");
+await new Promise((r) => setTimeout(r, 2000));
 
 // =============================================================================
 // Doc Examples
@@ -24,7 +24,7 @@ await new Promise(r => setTimeout(r, 2000));
 
 // [docs:create-folder]
 // Create a folder (omit parentId, or pass null, to create it at the root)
-const folder = await client.createKnowledgeFolder(BANK_ID, 'Operations');
+const folder = await client.createKnowledgeFolder(BANK_ID, "Operations");
 
 console.log(`Folder ID: ${folder.id}`);
 // [/docs:create-folder]
@@ -32,10 +32,10 @@ console.log(`Folder ID: ${folder.id}`);
 // [docs:create-page]
 // Create a page — content is generated in the background
 const page = await client.createKnowledgePage(
-    BANK_ID,
-    'Deploying the API',
-    'How is the API deployed?',
-    { parentId: folder.id, tags: ['ops', 'type:runbook'] },
+  BANK_ID,
+  "Deploying the API",
+  "How is the API deployed?",
+  { parentId: folder.id, tags: ["ops", "type:runbook"] }
 );
 
 // Poll the operation to know when the first build has finished
@@ -43,17 +43,17 @@ console.log(`Page ID: ${page.page_id}, operation: ${page.operation_id}`);
 // [/docs:create-page]
 
 // Wait for the page's first build
-await new Promise(r => setTimeout(r, 20000));
+await new Promise((r) => setTimeout(r, 20000));
 
 // [docs:get-tree]
 // Fetch the whole knowledge base as a nested folder/page tree (no page bodies)
 const tree = await client.getKnowledgeBaseTree(BANK_ID);
 
 for (const root of tree.roots) {
-    console.log(`${root.kind}: ${root.name}`);
-    for (const child of root.children ?? []) {
-        console.log(`  ${child.kind}: ${child.name} (stale: ${child.is_stale})`);
-    }
+  console.log(`${root.kind}: ${root.name}`);
+  for (const child of root.children ?? []) {
+    console.log(`  ${child.kind}: ${child.name} (stale: ${child.is_stale})`);
+  }
 }
 // [/docs:get-tree]
 
@@ -61,29 +61,35 @@ for (const root of tree.roots) {
 // Read a page as a markdown document
 const document = await client.getKnowledgePage(BANK_ID, page.page_id);
 
-console.log(document.type);      // "runbook" — from the type:runbook tag
-console.log(document.body);      // the synthesized markdown body
-console.log(document.markdown);  // YAML frontmatter + body
+console.log(document.type); // "runbook" — from the type:runbook tag
+console.log(document.body); // the synthesized markdown body
+console.log(document.markdown); // YAML frontmatter + body
 // [/docs:get-page]
 
 // [docs:search-pages]
 // Hybrid search (full-text + vector) over whole pages
-const results = await client.searchKnowledgeBase(BANK_ID, 'how do we deploy', { limit: 5 });
+const results = await client.searchKnowledgeBase(BANK_ID, "how do we deploy", { limit: 5 });
 
 for (const hit of results.results) {
-    console.log(`${hit.score.toFixed(3)}  ${hit.name}: ${hit.snippet}`);
+  console.log(`${hit.score.toFixed(3)}  ${hit.name}: ${hit.snippet}`);
 }
 // [/docs:search-pages]
 
 // [docs:filter-by-tags]
 // Narrow the tree and search to pages carrying a tag (recall's tags / tags_match / tag_groups)
-const runbooks = await client.getKnowledgeBaseTree(BANK_ID, { tags: ['type:runbook'], tagsMatch: 'any_strict' });
-const opsHits = await client.searchKnowledgeBase(BANK_ID, 'how do we deploy', { tags: ['ops'], tagsMatch: 'all_strict' });
+const runbooks = await client.getKnowledgeBaseTree(BANK_ID, {
+  tags: ["type:runbook"],
+  tagsMatch: "any_strict",
+});
+const opsHits = await client.searchKnowledgeBase(BANK_ID, "how do we deploy", {
+  tags: ["ops"],
+  tagsMatch: "all_strict",
+});
 console.log(`${runbooks.roots.length} runbook roots, ${opsHits.results.length} ops hits`);
 
 // Compound filters use tagGroups: here, runbooks that are not drafts
-const notDrafts = await client.searchKnowledgeBase(BANK_ID, 'how do we deploy', {
-    tagGroups: [{ and: [{ tags: ['type:runbook'] }, { not: { tags: ['draft'] } }] }],
+const notDrafts = await client.searchKnowledgeBase(BANK_ID, "how do we deploy", {
+  tagGroups: [{ and: [{ tags: ["type:runbook"] }, { not: { tags: ["draft"] } }] }],
 });
 console.log(`${notDrafts.results.length} non-draft runbooks`);
 // [/docs:filter-by-tags]
@@ -92,8 +98,8 @@ console.log(`${notDrafts.results.length} non-draft runbooks`);
 // Rename a node, move it, and/or update a page's options.
 // Changing sourceQuery rebuilds the page against the new question.
 await client.updateKnowledgeNode(BANK_ID, page.page_id, {
-    name: 'Deploying the API (v2)',
-    tags: ['ops', 'type:runbook', 'reviewed'],
+  name: "Deploying the API (v2)",
+  tags: ["ops", "type:runbook", "reviewed"],
 });
 // [/docs:update-node]
 
@@ -102,7 +108,7 @@ await client.updateKnowledgeNode(BANK_ID, page.page_id, {
 const bundle = await client.exportKnowledgeBase(BANK_ID);
 
 for (const file of bundle.files) {
-    console.log(file.path);  // index.md, <page-id>.md, <page-id>.log.md
+  console.log(file.path); // index.md, <page-id>.md, <page-id>.log.md
 }
 // [/docs:export]
 
@@ -116,4 +122,4 @@ await client.deleteKnowledgeNode(BANK_ID, folder.id);
 // =============================================================================
 await client.deleteBank(BANK_ID);
 
-console.log('knowledge-pages.mjs: All examples passed');
+console.log("knowledge-pages.mjs: All examples passed");

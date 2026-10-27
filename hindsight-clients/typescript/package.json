@@ -1,7 +1,7 @@
 {
-  "name": "@vectorize-io/hindsight-client",
+  "name": "contextbase-client",
   "version": "1.0.0",
-  "description": "TypeScript client for Hindsight - Semantic memory system with personality-driven thinking",
+  "description": "TypeScript client for ContextBase - Semantic memory system with personality-driven thinking",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -18,22 +18,18 @@
     "generate": "npx @hey-api/openapi-ts",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "test:deno": "deno test --no-check --allow-env --allow-net --unstable-sloppy-imports --preload=tests/deno_setup.ts tests/main_operations.test.ts"
+    "test:deno": "deno test --no-check --allow-env --allow-net --unstable-sloppy-imports --preload=tests/deno_setup.ts tests/main_operations.test.ts",
+    "postgenerate": "python3 ../../scripts/brand-sdk-generated.py node"
   },
   "keywords": [
-    "hindsight",
+    "contextbase",
     "memory",
     "api",
     "client",
     "typescript"
   ],
-  "author": "Hindsight Team",
+  "author": "ContextBase Team",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vectorize-io/hindsight.git",
-    "directory": "hindsight-clients/typescript"
-  },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.97.3",
     "@types/jest": "^29.0.0",
@@ -47,6 +43,10 @@
     "dist",
     "src",
     "generated",
-    "README.md"
-  ]
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
 }

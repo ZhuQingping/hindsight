@@ -3,11 +3,12 @@
 Memories API examples for ContextBase — read, list, and curate memory units.
 Run: python examples/api/memories.py
 """
+
 import asyncio
 import os
 
-from hindsight_client import Hindsight
-from hindsight_client_api.models.update_memory_request import UpdateMemoryRequest
+from contextbase_client import ContextBase
+from contextbase_client_api.models.update_memory_request import UpdateMemoryRequest
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 BANK_ID = "memories-demo-bank"
@@ -25,9 +26,7 @@ async def wait_for_idle(client, bank_id, *, attempts=120, interval=0.5):
     for _ in range(attempts):
         busy = False
         for state in ("pending", "processing"):
-            res = await client.operations.list_operations(
-                bank_id=bank_id, status=state, limit=1
-            )
+            res = await client.operations.list_operations(bank_id=bank_id, status=state, limit=1)
             if res.operations:
                 busy = True
                 break
@@ -42,7 +41,7 @@ async def main():
     # =========================================================================
     if not CONTEXTBASE_URL:
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    client = Hindsight(base_url=CONTEXTBASE_URL)
+    client = ContextBase(base_url=CONTEXTBASE_URL)
     await client.acreate_bank(bank_id=BANK_ID, name="Memories Demo")
     await client.aretain(bank_id=BANK_ID, content="The assistant visited Paris in 2023.")
     await client.aretain(bank_id=BANK_ID, content="The deploy server srv-04 runs PostgreSQL 14.")
@@ -71,9 +70,7 @@ async def main():
     if observation is not None:
         # [docs:observation-history]
         # Get the refresh history of a derived observation.
-        history = await client.memory.get_observation_history(
-            bank_id=BANK_ID, memory_id=observation.id
-        )
+        history = await client.memory.get_observation_history(bank_id=BANK_ID, memory_id=observation.id)
         print(f"Observation history entries: {len(history)}")
         # [/docs:observation-history]
 

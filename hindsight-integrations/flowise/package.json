@@ -32,7 +32,7 @@
   ],
   "dependencies": {
     "@langchain/core": "^1.1.48",
-    "@vectorize-io/hindsight-client": "^0.5.6",
+    "contextbase-client": "file:../../hindsight-clients/typescript",
     "zod": "^3.23.0"
   },
   "devDependencies": {

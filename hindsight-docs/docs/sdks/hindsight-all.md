@@ -6,9 +6,9 @@ sidebar_position: 2
 
 The `hindsight-all` Python package lets your code spawn and manage a local ContextBase daemon without deploying any server infrastructure. It bundles the ContextBase API server, embedded PostgreSQL, and the Python client into one install — `pip install hindsight-all` and you can start a fully-functional ContextBase instance from a few lines of Python.
 
-The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Python process memory). Your code talks to it over HTTP via the bundled `HindsightClient`.
+The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Python process memory). Your code talks to it over HTTP via the bundled `ContextBaseClient`.
 
-If you already have a ContextBase server running and just need a client, use [Python Client (hindsight-client)](./python.mdx) instead.
+If you already have a ContextBase server running and just need a client, use [Python Client (contextbase-client)](./python.mdx) instead.
 
 ## How it works
 
@@ -17,7 +17,7 @@ If you already have a ContextBase server running and just need a client, use [Py
 - **`HindsightServer`** — explicit lifecycle. Use it as a context manager when you want deterministic startup/shutdown (e.g. in tests).
 - **`HindsightEmbedded`** — auto-managed. Starts a daemon on first use and reuses it across calls. Easiest for application code that doesn't want to think about lifecycle.
 
-Both end up talking to the same underlying daemon via the same `HindsightClient` HTTP interface — the difference is only how the server process is managed.
+Both end up talking to the same underlying daemon via the same `ContextBaseClient` HTTP interface — the difference is only how the server process is managed.
 
 ## Installation
 
@@ -25,7 +25,7 @@ Both end up talking to the same underlying daemon via the same `HindsightClient`
 pip install hindsight-all
 ```
 
-The `hindsight-all` wheel bundles `hindsight-api-slim`, `hindsight-client`, and `hindsight-embed` as dependencies, so one `pip install` gets you everything.
+The `hindsight-all` wheel bundles `hindsight-api-slim`, `contextbase-client`, and `hindsight-embed` as dependencies, so one `pip install` gets you everything.
 
 On Intel (x86_64) Macs, install `hindsight-all-slim` instead — the full bundle's local ML models have no Intel-Mac wheels. See [Supported Platforms](../developer/installation#supported-platforms).
 
@@ -35,14 +35,14 @@ Use `HindsightServer` as a context manager when you want the server to start imm
 
 ```python
 import os
-from hindsight import HindsightServer, HindsightClient
+from hindsight import HindsightServer, ContextBaseClient
 
 with HindsightServer(
     llm_provider="openai",
     llm_model="gpt-4o-mini",
     llm_api_key=os.environ["OPENAI_API_KEY"],
 ) as server:
-    client = HindsightClient(base_url=server.url)
+    client = ContextBaseClient(base_url=server.url)
 
     client.retain(bank_id="my-bank", content="Alice works at Google")
     results = client.recall(bank_id="my-bank", query="What does Alice do?")
@@ -89,11 +89,11 @@ A profile is an isolated ContextBase environment. Each profile gets its own embe
 |---|---|
 | Tests, short-lived scripts, deterministic startup/shutdown | `HindsightServer` (context manager) |
 | Long-running application, auto-start on first use, don't want to manage lifecycle | `HindsightEmbedded` |
-| Existing ContextBase server running elsewhere | [`hindsight-client`](./python.mdx) directly |
+| Existing ContextBase server running elsewhere | [`contextbase-client`](./python.mdx) directly |
 
 ## API namespaces
 
-Both `HindsightEmbedded` and `HindsightClient` expose organized API namespaces for bank management, mental models, directives, and memories:
+Both `HindsightEmbedded` and `ContextBaseClient` expose organized API namespaces for bank management, mental models, directives, and memories:
 
 ```python
 from hindsight import HindsightEmbedded

@@ -29,7 +29,7 @@ classifiers = [
 
 dependencies = [
     "langchain-core>=0.3.0",
-    "hindsight-client>=0.4.0",
+    "contextbase-client>=1.0.0,<2",
     # Transitive dependency security fixes
     "langchain-core>=1.2.22",  # Path traversal in legacy load_prompt functions fix
     "requests>=2.33.0",  # Insecure temp file reuse in extract_zipped_paths()
@@ -68,3 +68,6 @@ dev = [
     "pytest>=9.0.2",
     "pytest-asyncio>=0.23.0",
 ]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

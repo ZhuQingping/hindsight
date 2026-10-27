@@ -4,7 +4,7 @@
  * Mirrors tests/test_retry_on_capacity.py in the Python wrapper: the two
  * maintained wrappers are expected to expose the same behaviour.
  */
-import { HindsightClient, retryAfterMs, retryOnCapacity } from "../src/index";
+import { ContextBaseClient, retryAfterMs, retryOnCapacity } from "../src/index";
 
 function res(status: number, retryAfter?: string): { response: Response } {
   const headers = new Headers();
@@ -186,7 +186,7 @@ describe("retry cancellation", () => {
           headers: { "Content-Type": "application/json", "Retry-After": "30" },
         })
       );
-      const client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+      const client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
       const pending = client[operation]("test-bank", "question", { signal: controller.signal });
       const settled = pending.catch((error: unknown) => error);
       await jest.advanceTimersByTimeAsync(0);

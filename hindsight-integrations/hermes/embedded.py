@@ -89,7 +89,7 @@ def _check_local_runtime() -> LocalRuntimeStatus:
     are declared in this plugin's pyproject and conflict with nothing.
     """
     try:
-        for module in ("hindsight_client", "hindsight_embed.daemon_embed_manager"):
+        for module in ("contextbase_client", "hindsight_embed.daemon_embed_manager"):
             importlib.import_module(module)
         return LocalRuntimeStatus(available=True)
     except Exception as exc:
@@ -105,9 +105,9 @@ def _local_runtime_hint(reason: str | None) -> str:
     fix; Hermes' own missing-dependency warning names the same command. NousResearch/hermes-agent#7718, #123784.
     """
     text = (reason or "").lower()
-    if "no module named" in text and any(m in text for m in ("hindsight_client", "hindsight_embed")):
+    if "no module named" in text and any(m in text for m in ("contextbase_client", "hindsight_embed")):
         return (
-            " The plugin's own packages (hindsight-client, hindsight-embed) are missing from "
+            " The plugin's own packages (contextbase-client, hindsight-embed) are missing from "
             "this environment: run 'hermes pm repair' and restart Hermes to rebuild them. The ContextBase server itself is NOT needed here — it runs as a "
             "separate process."
         )
@@ -225,7 +225,7 @@ def _start_daemon(config: dict[str, str], profile: str) -> str:
     """Start (or reuse) the out-of-process daemon for *profile* and return its base URL.
 
     This is what ``hindsight.HindsightEmbedded`` does internally — it is a composition of
-    ``hindsight_client.Hindsight`` + ``hindsight_embed.get_embed_manager()`` and nothing more
+    ``contextbase_client.ContextBase`` + ``hindsight_embed.get_embed_manager()`` and nothing more
     (see hindsight-all/hindsight/embedded.py). Calling the manager directly keeps the identical
     daemon, profile, profile ``.env`` and pg0 database while dropping the ``hindsight-all``
     dependency that cannot be installed alongside Hermes.

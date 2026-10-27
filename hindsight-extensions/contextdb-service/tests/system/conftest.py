@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
-from hindsight_client_api.models.create_knowledge_page_response import (
+from contextbase_client_api.models.create_knowledge_page_response import (
     CreateKnowledgePageResponse,
 )
 from hindsight_system_tests import LLMStub

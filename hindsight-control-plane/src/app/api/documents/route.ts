@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload, missingQueryParam } from "@/lib/i18n/api-errors";
-import { sdk, lowLevelClient, dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
+import {
+  sdk,
+  lowLevelClient,
+  dataplaneBankUrl,
+  getDataplaneHeaders,
+} from "@/lib/contextbase-client";
 import { respondWithSdk } from "@/lib/sdk-response";
 
 // Tag matching modes accepted by the dataplane's list_documents endpoint.

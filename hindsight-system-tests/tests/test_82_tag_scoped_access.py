@@ -18,10 +18,9 @@ the rule itself.
 from __future__ import annotations
 
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException, NotFoundException
-from hindsight_client_api.models.update_memory_request import UpdateMemoryRequest
-
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException, NotFoundException
+from contextbase_client_api.models.update_memory_request import UpdateMemoryRequest
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.waiting import wait_until_settled
 
@@ -39,9 +38,9 @@ DANS = "Dan is planning a production deploy this Friday | Involving: Dan"
 
 @pytest.fixture
 async def clients(scoped_server):
-    admin = Hindsight(base_url=scoped_server.url)
-    dan = Hindsight(base_url=scoped_server.url, api_key="dan")
-    kate = Hindsight(base_url=scoped_server.url, api_key="kate")
+    admin = ContextBase(base_url=scoped_server.url)
+    dan = ContextBase(base_url=scoped_server.url, api_key="dan")
+    kate = ContextBase(base_url=scoped_server.url, api_key="kate")
     yield admin, dan, kate
     for client in (admin, dan, kate):
         await client.aclose()

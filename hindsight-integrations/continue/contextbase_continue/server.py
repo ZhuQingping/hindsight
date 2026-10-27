@@ -13,11 +13,11 @@ import logging
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import ContextBaseContinueConfig, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .provider import build_context_items, serialize
 
 logger = logging.getLogger("contextbase_continue.server")
@@ -25,7 +25,7 @@ logger = logging.getLogger("contextbase_continue.server")
 _MAX_BODY_BYTES = 1_000_000
 
 
-def make_handler(config: ContextBaseContinueConfig, client: Optional[Hindsight] = None):
+def make_handler(config: ContextBaseContinueConfig, client: Optional[ContextBase] = None):
     """Build a request-handler class.
 
     When ``client`` is None (production), a fresh ContextBase client is resolved
@@ -81,7 +81,7 @@ def make_handler(config: ContextBaseContinueConfig, client: Optional[Hindsight] 
             try:
                 request_client = client if client is not None else resolve_client()
                 items = build_context_items(payload, client=request_client, config=config)
-            except HindsightError as e:
+            except ContextBaseError as e:
                 # Surface the failure so it shows up in Continue's warnings rather
                 # than silently returning no memory.
                 self._write_json(502, {"error": str(e)})
@@ -106,7 +106,7 @@ def make_handler(config: ContextBaseContinueConfig, client: Optional[Hindsight] 
 
 
 def build_server(
-    config: Optional[ContextBaseContinueConfig] = None, client: Optional[Hindsight] = None
+    config: Optional[ContextBaseContinueConfig] = None, client: Optional[ContextBase] = None
 ) -> ThreadingHTTPServer:
     """Create (but do not start) the adapter HTTP server."""
     config = config or get_config()

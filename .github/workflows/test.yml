@@ -312,7 +312,7 @@ jobs:
   # Fail fast if any hindsight-integrations/*/package-lock.json was regenerated
   # from the monorepo root and ended up symlinked at a workspace path instead
   # of the npm registry. That bit us on the 0.6.0 openclaw release — tsc in
-  # the release workflow couldn't find `@vectorize-io/hindsight-client`
+  # the release workflow couldn't find `contextbase-client`
   # because its `resolved` url pointed at a workspace dir whose `dist/` was
   # gitignored and unbuilt. Catching this at PR time means the release CI
   # never hits that class of failure.
@@ -501,14 +501,14 @@ jobs:
         cache-dependency-path: package-lock.json
 
     # openclaw depends on two monorepo workspaces via `file:` deps:
-    # @vectorize-io/hindsight-client and @vectorize-io/hindsight-all. Their
+    # contextbase-client and @vectorize-io/hindsight-all. Their
     # `dist/` directories are gitignored, so we must build them first.
     # Otherwise vitest/tsc in openclaw fails with
     # "Failed to resolve entry for package ..." on the value imports.
     - name: Install root workspace dependencies
       run: npm ci
 
-    - name: Build hindsight-client (openclaw dep)
+    - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
 
     - name: Build hindsight-all-npm (openclaw dep)
@@ -572,7 +572,7 @@ jobs:
     - name: Install root workspace dependencies
       run: npm ci
 
-    - name: Build hindsight-client (openclaw dep)
+    - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
 
     - name: Build hindsight-all-npm (openclaw dep)
@@ -1044,6 +1044,9 @@ jobs:
       uses: actions/setup-node@v6
       with:
         node-version: '22'
+
+    - name: Build the source SDK
+      run: npm ci --workspace=hindsight-clients/typescript && npm run build --workspace=hindsight-clients/typescript
 
     - name: Install dependencies
       working-directory: ./hindsight-integrations/opencode
@@ -3417,13 +3420,13 @@ jobs:
         print('Models downloaded successfully')
         "
 
-    # openclaw depends on @vectorize-io/hindsight-client and
+    # openclaw depends on contextbase-client and
     # @vectorize-io/hindsight-all via `file:` — their `dist/` directories are
     # gitignored and must be built before openclaw's npm ci copies them.
     - name: Install root workspace dependencies
       run: npm ci
 
-    - name: Build hindsight-client (openclaw dep)
+    - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
 
     - name: Build hindsight-all-npm (openclaw dep)
@@ -5790,7 +5793,7 @@ jobs:
         cd hindsight-dev
         uv run cli-coverage-check
 
-  # The wrapper clients (hindsight_client.py / src/index.ts) are hand-written
+  # The wrapper clients (contextbase_client.py / src/index.ts) are hand-written
   # convenience layers over the generated SDKs, so nothing regenerates them when
   # the API gains a field. client-coverage-check has existed for that, but had no
   # job: it sat red on main with reflect.apply_all_directives missing from both

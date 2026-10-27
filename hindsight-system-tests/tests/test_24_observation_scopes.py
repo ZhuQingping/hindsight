@@ -20,9 +20,7 @@ Two spellings one character apart, opposite meanings, no error either way.
 from __future__ import annotations
 
 import pytest
-
-from hindsight_client_api.models.update_document_request import UpdateDocumentRequest
-
+from contextbase_client_api.models.update_document_request import UpdateDocumentRequest
 from hindsight_system_tests.payloads import Consolidation, Observation, extracted, fact, fact_ids_in
 
 pytestmark = pytest.mark.asyncio

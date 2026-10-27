@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   dataplaneBankUrl: (bank: string, suffix: string) =>
     "http://dataplane/v1/default/banks/" + encodeURIComponent(bank) + suffix,
   getDataplaneHeaders: () => ({ Authorization: "Bearer internal-fixture" }),
@@ -79,7 +79,11 @@ it.each(routes)("$name preserves service errors, status and validation input", a
   expect(body.detail[0].input).toBe("customer hindsight");
 });
 it.each(routes)("$name preserves successful customer data", async ({ call, name }) => {
-  const data = { message: "customer hindsight", error: "customer Hindsight", content: "hindsight" };
+  const data = {
+    message: "customer hindsight",
+    error: "customer ContextBase",
+    content: "hindsight",
+  };
   upstream.mockResolvedValue(Response.json(data));
   const response = await call();
   await expect(response.json()).resolves.toEqual(data);

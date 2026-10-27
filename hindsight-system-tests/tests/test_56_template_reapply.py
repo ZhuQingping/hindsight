@@ -13,9 +13,8 @@ worker spends the tokens. Only a story that lets the worker run can see the bill
 from __future__ import annotations
 
 import pytest
-from hindsight_client_api.api.bank_templates_api import BankTemplatesApi
-from hindsight_client_api.models.bank_template_manifest import BankTemplateManifest
-
+from contextbase_client_api.api.bank_templates_api import BankTemplatesApi
+from contextbase_client_api.models.bank_template_manifest import BankTemplateManifest
 from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 

@@ -15,7 +15,7 @@ from crewai.memory.storage.interface import Storage
 
 from ._compat import call_sync
 from .config import DEFAULT_CONTEXTBASE_API_URL, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -108,11 +108,11 @@ class ContextBaseStorage(Storage):
         """
         client = getattr(self._local, "client", None)
         if client is None:
-            from hindsight_client import Hindsight
+            from contextbase_client import ContextBase
 
             if not self._api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            client = Hindsight(
+            client = ContextBase(
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
@@ -176,7 +176,7 @@ class ContextBaseStorage(Storage):
             agent: Optional agent role/name that produced this output.
 
         Raises:
-            HindsightError: If the retain operation fails.
+            ContextBaseError: If the retain operation fails.
         """
         bank_id = self._resolve_bank_id(agent)
         self._ensure_bank(bank_id)
@@ -204,7 +204,7 @@ class ContextBaseStorage(Storage):
                 logger.info(f"Stored memory to bank {bank_id} (agent={agent}, len={len(value)})")
         except Exception as e:
             logger.error(f"Failed to store memory: {e}")
-            raise HindsightError(f"Failed to store memory: {e}") from e
+            raise ContextBaseError(f"Failed to store memory: {e}") from e
 
     def search(
         self,
@@ -225,7 +225,7 @@ class ContextBaseStorage(Storage):
             List of dicts with keys: context, score, metadata.
 
         Raises:
-            HindsightError: If the recall operation fails.
+            ContextBaseError: If the recall operation fails.
         """
         bank_id = self._resolve_bank_id(agent=None)
 
@@ -287,7 +287,7 @@ class ContextBaseStorage(Storage):
 
         except Exception as e:
             logger.error(f"Failed to search memories: {e}")
-            raise HindsightError(f"Failed to search memories: {e}") from e
+            raise ContextBaseError(f"Failed to search memories: {e}") from e
 
     def reset(self) -> None:
         """Clear all memories by deleting and recreating the bank.

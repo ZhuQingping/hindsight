@@ -3,8 +3,7 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 METHODS = ["acreate_bank", "aget_bank_config", "aupdate_bank_config", "areset_bank_config"]
 
@@ -32,7 +31,7 @@ async def test_bank_routes_encode_reserved_characters(method: str, bank_id: str)
     app = web.Application()
     app.router.add_route("*", "/{path:.*}", handler)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")).rstrip("/"))
+        client = ContextBase(base_url=str(server.make_url("")).rstrip("/"))
         try:
             await getattr(client, method)(bank_id)
         finally:

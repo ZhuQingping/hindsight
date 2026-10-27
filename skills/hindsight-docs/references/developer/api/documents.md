@@ -175,8 +175,8 @@ Retrieve a document's original text and metadata. This is useful for expanding d
 ### Python
 
 ```python
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
 
 async def get_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -242,9 +242,9 @@ The `tags` array **replaces** the document's tags — it is not merged into them
 ### Python
 
 ```python
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
-from hindsight_client_api.models import UpdateDocumentRequest
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
+from contextbase_client_api.models import UpdateDocumentRequest
 
 async def update_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -336,8 +336,8 @@ Remove a document and all its associated memories:
 ### Python
 
 ```python
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
 
 async def delete_document_example():
     config = Configuration(host="http://localhost:8888")
@@ -393,8 +393,8 @@ Because filtering and ordering follow the same column, `total` counts only the d
 ### Python
 
 ```python
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api import DocumentsApi
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api import DocumentsApi
 
 async def list_documents_example():
     config = Configuration(host="http://localhost:8888")

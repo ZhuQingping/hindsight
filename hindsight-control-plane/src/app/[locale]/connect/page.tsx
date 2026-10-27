@@ -15,7 +15,7 @@ export default async function ConnectPage({
   const bankId = typeof rawBankId === "string" && rawBankId ? rawBankId : null;
   const connection = customerConnection(bankId ?? "");
   const python = bankId
-    ? `from hindsight_client import Hindsight\nimport os\n\nclient = Hindsight(\n    base_url=os.environ["CONTEXTBASE_API_URL"],\n    api_key=os.environ["CONTEXTBASE_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
+    ? `from contextbase_client import ContextBase\nimport os\n\nclient = ContextBase(\n    base_url=os.environ["CONTEXTBASE_API_URL"],\n    api_key=os.environ["CONTEXTBASE_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
     : "";
   const encodedBankId = bankId ? encodeURIComponent(bankId) : "";
   const rest = `curl -H "Authorization: Bearer $CONTEXTBASE_API_KEY" "$CONTEXTBASE_API_URL/v1/default/banks/${encodedBankId}/stats"`;
@@ -94,7 +94,7 @@ export default async function ConnectPage({
               <p className="mt-2 text-sm text-muted-foreground">{t("pythonBody")}</p>
               {connection.apiUrl ? (
                 <>
-                  <ConnectionCode code="pip install hindsight-client" />
+                  <ConnectionCode code="pip install contextbase-client" />
                   <ConnectionCode code={python} />
                 </>
               ) : (

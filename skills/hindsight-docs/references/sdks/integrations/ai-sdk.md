@@ -8,7 +8,7 @@ The `@vectorize-io/hindsight-ai-sdk` package integrates [Hindsight](https://hind
 ## Installation
 
 ```bash
-npm install @vectorize-io/hindsight-ai-sdk @vectorize-io/hindsight-client ai
+npm install @vectorize-io/hindsight-ai-sdk contextbase-client ai
 ```
 
 ## Setup
@@ -16,10 +16,10 @@ npm install @vectorize-io/hindsight-ai-sdk @vectorize-io/hindsight-client ai
 Create a Hindsight client and pass it to `createHindsightTools` along with a `bankId`. The `bankId` identifies the memory store for this session—typically a user ID.
 
 ```typescript
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
 
-const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
+const client = new ContextBaseClient({ baseUrl: 'http://localhost:8888' });
 
 const tools = createHindsightTools({
   client,
@@ -70,10 +70,10 @@ for await (const chunk of result.textStream) {
 ```typescript
 import { generateText, ToolLoopAgent, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
 
-const client = new HindsightClient({ baseUrl: process.env.HINDSIGHT_API_URL! });
+const client = new ContextBaseClient({ baseUrl: process.env.HINDSIGHT_API_URL! });
 
 const agent = new ToolLoopAgent({
   model: openai('gpt-4o'),
@@ -93,10 +93,10 @@ const result = await agent.generate({
 // app/api/chat/route.ts
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 import { createHindsightTools } from '@vectorize-io/hindsight-ai-sdk';
 
-const hindsightClient = new HindsightClient({
+const hindsightClient = new ContextBaseClient({
   baseUrl: process.env.HINDSIGHT_API_URL!,
 });
 

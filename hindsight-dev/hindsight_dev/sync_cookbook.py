@@ -123,8 +123,8 @@ def extract_tags_from_readme(readme_path: Path) -> dict[str, str]:
 
     Supports multiple formats:
     - Array: tags: ["Python", "Client"]
-    - Structured YAML: tags:\n  sdk: "hindsight-client"\n  topic: "Learning"
-    - Object literal: tags: { sdk: "hindsight-client", topic: "Learning" }
+    - Structured YAML: tags:\n  sdk: "contextbase-client"\n  topic: "Learning"
+    - Object literal: tags: { sdk: "contextbase-client", topic: "Learning" }
 
     Returns a dict with keys like 'sdk', 'topic', 'language'.
     """
@@ -146,7 +146,7 @@ def extract_tags_from_readme(readme_path: Path) -> dict[str, str]:
                             values = [t.strip().strip('"').strip("'") for t in tags_str.split(",")]
                             return _infer_tags_from_list(values)
 
-                        # Object literal: tags: { sdk: "hindsight-client", topic: "Learning" }
+                        # Object literal: tags: { sdk: "contextbase-client", topic: "Learning" }
                         if tags_str.startswith("{"):
                             obj_str = tags_str
                             if "}" not in obj_str:
@@ -166,7 +166,7 @@ def extract_tags_from_readme(readme_path: Path) -> dict[str, str]:
 
                         # Structured YAML:
                         # tags:
-                        #   sdk: "hindsight-client"
+                        #   sdk: "contextbase-client"
                         #   topic: "Learning"
                         if not tags_str:
                             result = {}
@@ -383,7 +383,7 @@ sidebar_position: {len(apps) + 1}
 
         callout = f"""
 :::info Complete Application
-This is a complete, runnable application demonstrating Hindsight integration.
+This is a complete, runnable application demonstrating ContextBase integration.
 [**View source on GitHub →**]({app_url})
 :::
 """
@@ -529,7 +529,7 @@ import CookbookGrid from '@site/src/components/CookbookGrid';
     marginBottom: '0.75rem',
   }}}}>Cookbook</h1>
   <p style={{{{fontSize: '1.05rem', color: 'var(--ifm-color-emphasis-600)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7}}}}>
-    Practical examples and complete applications built with Hindsight.
+    Practical examples and complete applications built with ContextBase.
   </p>
 </div>
 

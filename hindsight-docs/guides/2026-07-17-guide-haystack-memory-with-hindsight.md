@@ -21,7 +21,7 @@ This guide walks through installing the package, pointing it at your Hindsight b
 > **Quick answer**
 >
 > 1. `pip install hindsight-haystack`.
-> 2. Create a `Hindsight` client pointed at your backend (`base_url` or `HINDSIGHT_API_KEY` for Cloud).
+> 2. Create a `ContextBase` client pointed at your backend (`base_url` or `HINDSIGHT_API_KEY` for Cloud).
 > 3. Build tools with `create_hindsight_tools(client=client, bank_id="user-123")`.
 > 4. Pass the tools to a Haystack `Agent`, or use `HindsightMemoryWrapper` for automatic recall/retain.
 > 5. Verify that a later turn recalls what an earlier one stored.
@@ -32,7 +32,7 @@ Before you start, make sure you have:
 
 - Python 3.10+
 - A Haystack project using `haystack-ai >= 2.12.0`
-- `hindsight-client >= 0.4.0` (installed as a dependency of `hindsight-haystack`)
+- `contextbase-client >= 0.4.0` (installed as a dependency of `hindsight-haystack`)
 - A reachable Hindsight backend, [Hindsight Cloud](https://hindsight.vectorize.io) or a self-hosted server
 
 ## Step 1: Install the package
@@ -47,12 +47,12 @@ This pulls in the Hindsight client so you can build memory tools for a Haystack 
 
 ## Step 2: Point it at Hindsight
 
-Create a `Hindsight` client for your backend. For a self-hosted server, pass the `base_url`:
+Create a `ContextBase` client for your backend. For a self-hosted server, pass the `base_url`:
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 ```
 
 For Hindsight Cloud, the API URL defaults to `https://api.hindsight.vectorize.io` and the API key falls back to the `HINDSIGHT_API_KEY` environment variable. You can also set connection defaults once with `configure()` so you can omit `client=` / `hindsight_api_url=` on every call:
@@ -182,7 +182,7 @@ The API URL defaults to Hindsight Cloud (`https://api.hindsight.vectorize.io`). 
 
 ### Do I need Hindsight Cloud?
 
-No. A self-hosted Hindsight server works too — pass its `base_url` to the `Hindsight` client (or `hindsight_api_url` to `configure()`).
+No. A self-hosted Hindsight server works too — pass its `base_url` to the `ContextBase` client (or `hindsight_api_url` to `configure()`).
 
 ### What is the difference between the tools and the wrapper?
 

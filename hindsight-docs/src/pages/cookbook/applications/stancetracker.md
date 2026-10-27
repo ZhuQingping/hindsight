@@ -224,7 +224,7 @@ stancetracker/
 ├── components/       # React components
 ├── lib/
 │   ├── db/          # JSON database utilities
-│   ├── hindsight-client.ts    # ContextBase API client
+│   ├── contextbase-client.ts    # ContextBase API client
 │   ├── llm-client.ts       # LLM provider client
 │   ├── web-scraper.ts      # Tavily web scraper
 │   ├── scraper-agent.ts    # Content scraper

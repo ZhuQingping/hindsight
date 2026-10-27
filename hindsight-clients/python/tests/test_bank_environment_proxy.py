@@ -3,8 +3,7 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 METHODS = ["acreate_bank", "aget_bank_config", "aupdate_bank_config", "areset_bank_config"]
 
@@ -35,10 +34,10 @@ async def test_bank_routes_use_http_proxy(method: str, monkeypatch: pytest.Monke
             monkeypatch.setenv(name, proxy_url)
         for name in ("NO_PROXY", "no_proxy"):
             monkeypatch.setenv(name, "")
-        client = Hindsight(base_url="http://hindsight.invalid", api_key="test-key", timeout=2)
+        client = ContextBase(base_url="http://contextbase.invalid", api_key="test-key", timeout=2)
         try:
             await getattr(client, method)("test")
         finally:
             await client.aclose()
     suffix = "" if method == "acreate_bank" else "/config"
-    assert seen == [f"http://hindsight.invalid/v1/default/banks/test{suffix}"]
+    assert seen == [f"http://contextbase.invalid/v1/default/banks/test{suffix}"]

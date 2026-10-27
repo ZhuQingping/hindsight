@@ -26,7 +26,7 @@ from claude_agent_sdk import (
     StopHookInput,
     UserPromptSubmitHookInput,
 )
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import (
@@ -111,7 +111,7 @@ class MemoryHookConfig:
 def create_memory_hooks(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: Budget | None = None,
@@ -149,7 +149,7 @@ def create_memory_hooks(
         for use with ``ClaudeAgentOptions(hooks=...)``.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
 
     Example::
 

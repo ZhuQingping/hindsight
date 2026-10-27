@@ -84,7 +84,7 @@ V05 应按固定版本的实际功能清单形成回归场景，不以一次模�
 | --- | --- | --- |
 | 单租 API key | [builtin tenant](../../hindsight-api-slim/hindsight_api/extensions/builtin/tenant.py#L44) | 原生内置实现为单 key，完整多 key、有效期和 bank 授权需要补充 |
 | 授权扩展 | [operation validator](../../hindsight-api-slim/hindsight_api/extensions/operation_validator.py#L1119) | 可复用 bank 读写和列表等 hook，仍需完整覆盖审计 |
-| UI 后端凭证 | [hindsight client](../../hindsight-control-plane/src/lib/hindsight-client.ts#L14) | 当前 UI 使用服务器凭证，符合实例内完整管理权限边界 |
+| UI 后端凭证 | [hindsight client](../../hindsight-control-plane/src/lib/contextbase-client.ts#L14) | 当前 UI 使用服务器凭证，符合实例内完整管理权限边界 |
 | 原生 S3 配置 | [S3 storage](../../hindsight-api-slim/hindsight_api/engine/storage/s3.py#L20) | 接受 bucket、region、endpoint、AK／SK；OBS 需真实兼容性验证 |
 | 文件后端扩展 | [storage factory](../../hindsight-api-slim/hindsight_api/engine/storage/__init__.py#L44) | 原生配置优先，必要时使用 FileStorage 扩展 |
 | 原始文件默认清理 | [file defaults](../../hindsight-api-slim/hindsight_api/config.py#L1717) | 原件默认不长期保留，继续沿用原生行为 |

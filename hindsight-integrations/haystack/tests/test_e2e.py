@@ -24,8 +24,7 @@ import uuid
 
 import pytest
 import requests
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from contextbase_haystack import create_contextbase_tools
 from contextbase_haystack.tools import _run_sync
 
@@ -70,7 +69,7 @@ def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"haystack-e2e-{uuid.uuid4().hex[:8]}"
     # Run all client I/O on the tools' background loop so the aiohttp session is
     # created and closed on the same loop (avoids unclosed-connector warnings).

@@ -25,7 +25,7 @@ import logging
 from typing import Any, Optional
 
 from agent_framework import AgentSession, ContextProvider, Message, SessionContext
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import get_config
@@ -50,7 +50,7 @@ class ContextBaseProvider(ContextProvider):
         self,
         bank_id: str,
         *,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         contextbase_api_url: Optional[str] = None,
         api_key: Optional[str] = None,
         budget: Optional[str] = None,

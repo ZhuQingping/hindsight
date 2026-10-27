@@ -156,7 +156,7 @@ tools = register_hindsight_tools(composio)
 
 - Python >= 3.10
 - composio >= 0.13.1, < 1
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running Hindsight API server (or Hindsight Cloud)
 
 > **📝 Note**

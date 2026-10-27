@@ -9,15 +9,15 @@ If you want to **embed and run a Hindsight server in your Python process** (no e
 ## Installation
 
 ```bash
-pip install hindsight-client
+pip install contextbase-client
 ```
 
 ## Quick Start
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 # Retain a memory
 client.retain(bank_id="python-sdk-bank", content="Alice works at Google")
@@ -35,10 +35,10 @@ print(answer.text)
 ## Client Initialization
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(
-    base_url="http://localhost:8888",  # Hindsight API URL
+client = ContextBase(
+    base_url="http://localhost:8888",  # ContextBase API URL
     timeout=30.0,                       # Request timeout in seconds
     # api_key="your-api-key",          # Optional bearer token
 )
@@ -200,10 +200,10 @@ All methods have async versions prefixed with `a`:
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Async retain
     await client.aretain(bank_id="python-sdk-bank", content="Hello world")
@@ -225,9 +225,9 @@ asyncio.run(main())
 ## Context Manager
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-with Hindsight(base_url="http://localhost:8888") as client:
+with ContextBase(base_url="http://localhost:8888") as client:
     client.retain(bank_id="python-sdk-bank", content="Hello")
     results = client.recall(bank_id="python-sdk-bank", query="Hello")
 # Client automatically closed

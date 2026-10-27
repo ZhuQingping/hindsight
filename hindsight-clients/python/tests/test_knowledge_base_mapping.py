@@ -10,7 +10,7 @@ must not be serialized at all.
 import json
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture(monkeypatch, client, method, captured):
@@ -23,7 +23,7 @@ def _capture(monkeypatch, client, method, captured):
 
 
 def test_create_page_maps_every_option(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "create_knowledge_page", captured)
 
@@ -48,7 +48,7 @@ def test_create_page_maps_every_option(monkeypatch):
 
 
 def test_create_page_threads_trigger_fields(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "create_knowledge_page", captured)
 
@@ -72,7 +72,7 @@ def test_create_page_threads_trigger_fields(monkeypatch):
 
 
 def test_update_node_sends_only_provided_fields(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "update_knowledge_node", captured)
 
@@ -85,7 +85,7 @@ def test_update_node_sends_only_provided_fields(monkeypatch):
 
 
 def test_update_node_sends_explicit_null_parent(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "update_knowledge_node", captured)
 
@@ -97,7 +97,7 @@ def test_update_node_sends_explicit_null_parent(monkeypatch):
 
 
 def test_update_node_maps_page_options(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "update_knowledge_node", captured)
 
@@ -123,7 +123,7 @@ def test_update_node_forwards_a_partial_trigger(monkeypatch):
     resetting the page to a from-scratch rebuild over its sibling pages — #3506's bug,
     one layer down.
     """
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "update_knowledge_node", captured)
 
@@ -135,7 +135,7 @@ def test_update_node_forwards_a_partial_trigger(monkeypatch):
 
 
 def test_search_forwards_query_and_limit(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "search_knowledge_base", captured)
 
@@ -148,7 +148,7 @@ def test_search_forwards_query_and_limit(monkeypatch):
 
 
 def test_create_folder_maps_parent(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, "create_knowledge_folder", captured)
 
@@ -161,7 +161,7 @@ def test_create_folder_maps_parent(monkeypatch):
 
 
 def test_tree_and_search_forward_the_tag_filter(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     groups = [{"or": [{"tags": ["user:kate"], "match": "all_strict"}, {"tags": ["team"]}]}]
     for method, call in (
         ("get_knowledge_base_tree", lambda **kw: client.get_knowledge_base_tree("bank-1", **kw)),

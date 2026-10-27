@@ -10,11 +10,11 @@ from __future__ import annotations
 import json
 
 import pytest
-from fastmcp import Client
-from fastmcp.client.transports import StreamableHttpTransport
-from hindsight_client_api.models.create_knowledge_page_response import (
+from contextbase_client_api.models.create_knowledge_page_response import (
     CreateKnowledgePageResponse,
 )
+from fastmcp import Client
+from fastmcp.client.transports import StreamableHttpTransport
 
 from .support.clients import MemberClients
 from .support.deployment import ContextDBDeployment

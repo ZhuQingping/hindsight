@@ -4,14 +4,14 @@ Agent memory delivered as a hosted service. Each customer connects using their o
 
 ## Client distribution
 
-| Client | Distribution identity | Connection |
-| --- | --- | --- |
-| CLI | `contextbase` executable | API Endpoint; named Profiles supported |
-| Coding Agents | `contextbase-coding-agents` npm tarball | One default API connection for hooks, native tools and local MCP adapter |
-| Agent Plugin | `contextbase` plugin | One default remote MCP connection |
-| Claude Code plugin | `contextbase-memory` plugin; `contextbase-claude-code` archive | One default API connection for hooks and local MCP adapter |
+| Client             | Distribution identity                                          | Connection                                                               |
+| ------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| CLI                | `contextbase` executable                                       | API Endpoint; named Profiles supported                                   |
+| Coding Agents      | `contextbase-coding-agents` npm tarball                        | One default API connection for hooks, native tools and local MCP adapter |
+| Agent Plugin       | `contextbase` plugin                                           | One default remote MCP connection                                        |
+| Claude Code plugin | `contextbase-memory` plugin; `contextbase-claude-code` archive | One default API connection for hooks and local MCP adapter               |
 
-Only these clients are included in the public release scope. Server packages/images, local engines, local Web console packages, SDKs and Helm Charts are excluded. The operator deploys the hosted service separately; its source remains in this repository.
+Python (`contextbase-client`, import `contextbase_client`) and Node.js (`contextbase-client`, `ContextBaseClient`) SDKs are also built as downloadable artifacts. See the [Python SDK](hindsight-clients/python/README.md) and [Node.js SDK](hindsight-clients/typescript/README.md). Server packages/images, local engines, local Web console packages, Go/Rust SDKs and Helm Charts are excluded. The operator deploys the hosted service separately; its source remains in this repository.
 
 Public distribution uses Huawei Cloud OBS + CDN; Coding Agents installs from an explicit `.tgz` URL with npm. The actual resources and production download domain are pending. The release workflow builds reviewable client artifacts only; it does not publish to npm, PyPI, container registries or a customer download host.
 
@@ -36,4 +36,4 @@ For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents
 
 ## Development and attribution
 
-See [CLAUDE.md](CLAUDE.md) for repository development instructions. This project derives from Hindsight; upstream attribution and licensing remain in [LICENSE](LICENSE). Internal directory and SDK names are retained where they are outside the public branding boundary.
+See [CLAUDE.md](CLAUDE.md) for repository development instructions. This project derives from Hindsight; upstream attribution and licensing remain in [LICENSE](LICENSE). Internal directory names remain repository implementation details. Python and Node.js SDK package names and public imports use ContextBase.

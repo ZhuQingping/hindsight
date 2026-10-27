@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 /** Proxies POST /v1/default/banks/{bank_id}/consolidation-strategies/preview — the
  *  strategy editor's "which existing scopes does this rule match" summary. */

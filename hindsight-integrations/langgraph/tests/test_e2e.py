@@ -28,8 +28,7 @@ import uuid
 import pytest
 import pytest_asyncio
 import requests
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from contextbase_langgraph import (
     create_contextbase_tools,
     memory_instructions,
@@ -81,7 +80,7 @@ async def live_client():
     The bank is deleted and the client closed on teardown so aiohttp doesn't
     warn about unclosed sessions and banks don't leak between runs.
     """
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"langgraph-e2e-{uuid.uuid4().hex[:8]}"
     await client.acreate_bank(bank_id, name=f"LangGraph E2E {bank_id}")
     try:
@@ -181,9 +180,8 @@ class TestE2ENodes:
 
     @pytest.mark.asyncio
     async def test_retain_node_then_recall_node(self, live_client):
-        from langchain_core.messages import HumanMessage
-
         from contextbase_langgraph import create_recall_node, create_retain_node
+        from langchain_core.messages import HumanMessage
 
         client, bank_id = live_client
         retain_node = create_retain_node(client=client, bank_id=bank_id, retain_human=True)
@@ -199,10 +197,9 @@ class TestE2ENodes:
 
     @pytest.mark.asyncio
     async def test_full_graph_flow_recall_agent_retain(self, live_client):
+        from contextbase_langgraph import create_recall_node, create_retain_node
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
         from langgraph.graph import END, START, MessagesState, StateGraph
-
-        from contextbase_langgraph import create_recall_node, create_retain_node
 
         client, bank_id = live_client
         recall = create_recall_node(client=client, bank_id=bank_id)

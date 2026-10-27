@@ -2,14 +2,14 @@
 
 import asyncio
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_langgraph import create_recall_node, create_retain_node
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
 
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     try:
         await client.acreate_bank("langgraph-nodes-test", name="Nodes Test")
 

@@ -1,10 +1,10 @@
 [project]
-name = "hindsight-client"
+name = "contextbase-client"
 version = "1.0.0"
-description = "Python client for Hindsight - Semantic memory system with personality-driven thinking"
+description = "Python client for ContextBase - Semantic memory system with personality-driven thinking"
 license = "MIT"
 authors = [
-    {name = "Hindsight Team"}
+    {name = "ContextBase Team"}
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -30,7 +30,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hindsight_client", "hindsight_client_api"]
+packages = ["contextbase_client", "contextbase_client_api"]
 
 [tool.ruff]
 line-length = 120
@@ -48,3 +48,6 @@ addopts = "--timeout 120 -n auto --durations=10 -v"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 log_auto_indent = true
+
+[tool.hatch.build.targets.sdist]
+include = ["contextbase_client", "contextbase_client_api", "pyproject.toml", "README.md", "LICENSE"]

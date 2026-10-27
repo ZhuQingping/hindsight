@@ -15,7 +15,7 @@ import { POST as createAlias } from "@/app/api/banks/[bankId]/aliases/route";
 
 const localeMiddleware = vi.hoisted(() => vi.fn());
 vi.mock("next-intl/middleware", () => ({ default: () => localeMiddleware }));
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   sdk: {},
   lowLevelClient: {},
   getDataplaneHeaders: vi.fn(),

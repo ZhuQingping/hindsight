@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { afterEach, expect, it, vi } from "vitest";
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   DATAPLANE_URL: "http://dataplane",
   getDataplaneHeaders: () => ({ Authorization: "Bearer fixture-service-key" }),
 }));

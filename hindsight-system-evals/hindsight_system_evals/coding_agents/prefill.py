@@ -44,8 +44,7 @@ import contextlib
 import time
 from dataclasses import dataclass
 
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals.coding_agents.scenario import SettleFn
 
 #: A never-refreshed page carries an empty body, and the emptiness checks below
@@ -270,7 +269,7 @@ SEED_PAGES: list[SeedPage] = [
 ]
 
 
-async def prefill_bank(client: Hindsight, bank_id: str, settle: SettleFn) -> None:
+async def prefill_bank(client: ContextBase, bank_id: str, settle: SettleFn) -> None:
     """Retain the prior sessions, then give the bank pages with real content."""
     await client.aretain_batch(
         bank_id=bank_id,
@@ -281,7 +280,7 @@ async def prefill_bank(client: Hindsight, bank_id: str, settle: SettleFn) -> Non
     await create_seed_pages(client, bank_id)
 
 
-async def drop_placeholder_pages(client: Hindsight, bank_id: str) -> list[str]:
+async def drop_placeholder_pages(client: ContextBase, bank_id: str) -> list[str]:
     """Delete the pages the plugin seeded but never filled. Returns their names.
 
     Only the placeholders: a page that already has content is knowledge this run
@@ -301,7 +300,7 @@ async def drop_placeholder_pages(client: Hindsight, bank_id: str) -> list[str]:
     return dropped
 
 
-async def create_seed_pages(client: Hindsight, bank_id: str) -> list[str]:
+async def create_seed_pages(client: ContextBase, bank_id: str) -> list[str]:
     """Create the pages and synthesise each one, in order.
 
     One at a time: each refresh is a full reflect, and firing three at one small
@@ -323,7 +322,7 @@ async def create_seed_pages(client: Hindsight, bank_id: str) -> list[str]:
     return created
 
 
-async def placeholder_pages(client: Hindsight, bank_id: str) -> list[str]:
+async def placeholder_pages(client: ContextBase, bank_id: str) -> list[str]:
     """The pages whose content is still empty or the server's placeholder.
 
     Checked rather than assumed: a refresh that fails leaves the page in exactly
@@ -334,7 +333,7 @@ async def placeholder_pages(client: Hindsight, bank_id: str) -> list[str]:
     return [m.name for m in models.items if not (m.content or "").strip() or PLACEHOLDER in (m.content or "")]
 
 
-async def _page_nodes(client: Hindsight, bank_id: str) -> list[PageNode]:
+async def _page_nodes(client: ContextBase, bank_id: str) -> list[PageNode]:
     """Every page in the knowledge tree, flattened."""
     tree = await client.aget_knowledge_base_tree(bank_id=bank_id)
     out: list[PageNode] = []
@@ -342,16 +341,14 @@ async def _page_nodes(client: Hindsight, bank_id: str) -> list[PageNode]:
     def walk(nodes) -> None:
         for node in nodes or []:
             if getattr(node, "kind", None) == "page":
-                out.append(
-                    PageNode(id=node.id, name=node.name, mental_model_id=getattr(node, "mental_model_id", None))
-                )
+                out.append(PageNode(id=node.id, name=node.name, mental_model_id=getattr(node, "mental_model_id", None)))
             walk(getattr(node, "children", None))
 
     walk(getattr(tree, "roots", None))
     return out
 
 
-async def _settle_ignoring_failures(client: Hindsight, bank_id: str) -> None:
+async def _settle_ignoring_failures(client: ContextBase, bank_id: str) -> None:
     """Wait for background work, tolerating a failed operation.
 
     The suite's `wait_until_settled` raises on any failed operation in the bank,

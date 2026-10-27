@@ -4,7 +4,7 @@
 
 What happens, in order:
 
-1. a Hindsight server starts on its own pg0 instance (or ``--api-url`` points at
+1. a ContextBase server starts on its own pg0 instance (or ``--api-url`` points at
    one you already run);
 2. a temp HOME is built, the plugin installed into it from the checkout, and a
    small git repo written for the agent to work in;
@@ -33,8 +33,7 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals.coding_agents.metric import read_usage_stats, transcript_credits
 from hindsight_system_evals.coding_agents.prefill import placeholder_pages, prefill_bank
 from hindsight_system_evals.coding_agents.sandbox import (
@@ -73,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sessions", type=int, default=5, help="measured sessions (default: 5)")
     parser.add_argument("--turns", type=int, default=8, help="turns per session, from the scripted list")
     parser.add_argument("--model", default="opus", help="Claude Code model (default: opus)")
-    parser.add_argument("--api-url", default=None, help="an existing Hindsight server; one is started otherwise")
+    parser.add_argument("--api-url", default=None, help="an existing ContextBase server; one is started otherwise")
     parser.add_argument("--build", action="store_true", help="npm run build the plugin first")
     parser.add_argument("--no-warmup", action="store_true", help="skip the seeding warm-up (measures a cold bank)")
     parser.add_argument(
@@ -233,7 +232,7 @@ def _config_overrides(args: argparse.Namespace) -> dict:
 
 
 async def _settle(api_url: str, bank_id: str) -> None:
-    client = Hindsight(base_url=api_url)
+    client = ContextBase(base_url=api_url)
     try:
         await wait_until_settled(client, bank_id)
     finally:
@@ -241,7 +240,7 @@ async def _settle(api_url: str, bank_id: str) -> None:
 
 
 async def _prefill(api_url: str, bank_id: str) -> list[str]:
-    client = Hindsight(base_url=api_url)
+    client = ContextBase(base_url=api_url)
     try:
         await prefill_bank(client, bank_id, lambda bank: wait_until_settled(client, bank))
         return await placeholder_pages(client, bank_id)

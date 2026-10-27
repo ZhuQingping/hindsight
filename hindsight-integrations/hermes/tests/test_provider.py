@@ -1,5 +1,5 @@
 """The provider driven through the Hermes MemoryProvider interface, asserting what it
-sends to Hindsight (a recording fake client stands in for the real SDK)."""
+sends to ContextBase (a recording fake client stands in for the real SDK)."""
 
 import asyncio
 import json
@@ -7,11 +7,10 @@ import sys
 import threading
 from types import SimpleNamespace
 
-import pytest
-
 import contextbase_hermes as plugin
+import pytest
 from conftest import FakeClient, FakeRecallResponse
-from hindsight_client_api.exceptions import NotFoundException
+from contextbase_client_api.exceptions import NotFoundException
 
 
 def _retain_item(fake: FakeClient, index: int = 0) -> dict:
@@ -438,7 +437,7 @@ def test_building_the_embedded_client_announces_before_it_waits(provider, monkey
     monkeypatch.setattr(
         plugin, "_start_daemon", lambda config, profile: order.append("started") or "http://127.0.0.1:1"
     )
-    monkeypatch.setattr(plugin, "Hindsight", lambda **kw: object(), raising=False)
+    monkeypatch.setattr(plugin, "ContextBase", lambda **kw: object(), raising=False)
     instance._warning_callback = lambda m: order.append("announced")
 
     instance._new_embedded_client()
@@ -465,7 +464,7 @@ def test_the_embedded_client_sends_the_daemons_tenant_key(provider, monkeypatch)
     monkeypatch.setattr(plugin, "_check_local_runtime", lambda: LocalRuntimeStatus(available=True))
     monkeypatch.setattr(plugin, "_start_daemon", lambda config, profile: "http://127.0.0.1:1")
     monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: True)
-    monkeypatch.setitem(sys.modules, "hindsight_client", SimpleNamespace(Hindsight=_Client))
+    monkeypatch.setitem(sys.modules, "contextbase_client", SimpleNamespace(ContextBase=_Client))
 
     instance._new_embedded_client()
 

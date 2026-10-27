@@ -33,7 +33,6 @@ nothing else tests.
 from __future__ import annotations
 
 import pytest
-
 from hindsight_system_tests.payloads import Consolidation, Observation, extracted, fact, fact_ids_in
 
 pytestmark = pytest.mark.asyncio
@@ -325,7 +324,7 @@ async def test_the_preview_shows_which_existing_scopes_each_rule_would_take(clie
     this endpoint, computed with consolidation's own matching and first-strategy-wins
     rule. Asserted whole: every count, every sample and who handles it. A draft is
     previewed, never saved."""
-    from hindsight_client_api.models.consolidation_strategies_preview_request import (
+    from contextbase_client_api.models.consolidation_strategies_preview_request import (
         ConsolidationStrategiesPreviewRequest,
     )
 

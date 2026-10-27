@@ -19,14 +19,14 @@ pip install contextbase-llamaindex
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_llamaindex import ContextBaseToolSpec
 from llama_index.llms.openai import OpenAI
 from llama_index.core.agent import ReActAgent
 
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     spec = ContextBaseToolSpec(
         client=client,
@@ -46,10 +46,10 @@ asyncio.run(main())
 ## Quick Start: Automatic Memory
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_llamaindex import ContextBaseMemory
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 memory = ContextBaseMemory.from_client(
     client=client,
     bank_id="user-123",
@@ -78,7 +78,7 @@ configure(
 
 - Python 3.10+
 - `llama-index-core >= 0.11.0`
-- `hindsight-client >= 0.4.0`
+- `contextbase-client >= 0.4.0`
 
 ## Documentation
 

@@ -212,4 +212,4 @@ adapter = ContextBaseRuntimeAdapter(bank_resolver=my_resolver)
 ## Requirements
 
 - Python 3.10+
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`

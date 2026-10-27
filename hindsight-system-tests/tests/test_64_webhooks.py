@@ -1,6 +1,6 @@
 """A webhook is delivered to somewhere allowed, signed so the receiver can trust it.
 
-Webhooks are the one place Hindsight makes an outbound request to a URL a caller
+Webhooks are the one place ContextBase makes an outbound request to a URL a caller
 chose, which makes them two features at once.
 
 The first is delivery: something happened, and a payload describing it reaches
@@ -9,7 +9,7 @@ delivery log only proves it *tried*.
 
 The second is that the caller's URL is untrusted input. A server that fetches
 whatever it is handed is an SSRF primitive — point a webhook at `169.254.169.254`
-or a service on the internal network and Hindsight becomes the attacker's HTTP
+or a service on the internal network and ContextBase becomes the attacker's HTTP
 client, from inside the perimeter. That is GHSA-ggrr-69wp-fj54, and the guard
 that fixed it is asserted here as a security property rather than a config
 detail.
@@ -25,8 +25,7 @@ import hashlib
 import hmac
 
 import pytest
-from hindsight_client_api.exceptions import BadRequestException
-
+from contextbase_client_api.exceptions import BadRequestException
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio
@@ -103,7 +102,7 @@ async def test_the_event_type_travels_in_a_header_too(client, stubs, bank_id, st
 
 async def test_the_server_records_the_delivery_as_completed(client, stubs, bank_id, stub_server, settled):
     """The other side of the same event: whoever is debugging a receiver that
-    saw nothing needs to know whether Hindsight sent it and what came back."""
+    saw nothing needs to know whether ContextBase sent it and what came back."""
     await _deliver(client, stubs, bank_id, stub_server.url, settled)
 
     webhooks = await client.webhooks.list_webhooks(bank_id)
@@ -119,7 +118,7 @@ async def test_the_server_records_the_delivery_as_completed(client, stubs, bank_
 async def test_a_loopback_destination_is_refused(client, bank_id):
     """The SSRF guard (GHSA-ggrr-69wp-fj54).
 
-    The caller chooses this URL, so an unguarded webhook turns Hindsight into an
+    The caller chooses this URL, so an unguarded webhook turns ContextBase into an
     HTTP client the attacker aims — at link-local metadata endpoints, at services
     reachable only from inside the network. Refused at registration, where the
     operator finds out, rather than at delivery time where it is a log line.

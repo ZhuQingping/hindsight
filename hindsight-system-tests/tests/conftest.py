@@ -16,8 +16,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from pathlib import Path
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_tests import (
     start_hindsight_server,
     wait_until_settled,
@@ -118,28 +117,28 @@ def retrying_server(stub_server, tmp_path_factory: pytest.TempPathFactory) -> It
 
 
 @pytest.fixture
-async def retrying_client(retrying_server) -> AsyncIterator[Hindsight]:
-    client = Hindsight(base_url=retrying_server.url)
+async def retrying_client(retrying_server) -> AsyncIterator[ContextBase]:
+    client = ContextBase(base_url=retrying_server.url)
     yield client
     await client.aclose()
 
 
 @pytest.fixture
-async def typesafe_client(typesafe_server) -> AsyncIterator[Hindsight]:
-    client = Hindsight(base_url=typesafe_server.url)
+async def typesafe_client(typesafe_server) -> AsyncIterator[ContextBase]:
+    client = ContextBase(base_url=typesafe_server.url)
     yield client
     await client.aclose()
 
 
 @pytest.fixture
-async def client(hindsight_server) -> AsyncIterator[Hindsight]:
-    client = Hindsight(base_url=hindsight_server.url)
+async def client(hindsight_server) -> AsyncIterator[ContextBase]:
+    client = ContextBase(base_url=hindsight_server.url)
     yield client
     await client.aclose()
 
 
 @pytest.fixture
-def settled(client: Hindsight) -> SettleFn:
+def settled(client: ContextBase) -> SettleFn:
     """Wait for the bank's background work to finish.
 
     Retain returns before the worker has run consolidation, so a test that asserts
@@ -153,7 +152,7 @@ def settled(client: Hindsight) -> SettleFn:
 
 
 @pytest.fixture
-async def bank_id(client: Hindsight) -> AsyncIterator[str]:
+async def bank_id(client: ContextBase) -> AsyncIterator[str]:
     """A bank of this test's own, deleted when the test ends.
 
     Isolation is half the reason; the other half is that the database outlives the
@@ -170,7 +169,7 @@ async def bank_id(client: Hindsight) -> AsyncIterator[str]:
 
 
 async def _delete_leftover_banks(base_url: str) -> None:
-    client = Hindsight(base_url=base_url)
+    client = ContextBase(base_url=base_url)
     try:
         banks = await client.banks.list_banks()
         for bank in banks.banks:

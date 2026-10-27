@@ -6,7 +6,7 @@ const { listBanks } = vi.hoisted(() => ({
   listBanks: vi.fn<(arg: ListBanksArg) => Promise<unknown>>(),
 }));
 
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   sdk: { listBanks },
   lowLevelClient: {},
 }));

@@ -8,7 +8,7 @@ import logging
 import uuid
 from typing import Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from llama_index.core.tools.tool_spec.base import BaseToolSpec
 
 from ._client import resolve_client
@@ -49,10 +49,10 @@ class ContextBaseToolSpec(BaseToolSpec):
 
     Example::
 
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
         from contextbase_llamaindex import ContextBaseToolSpec
 
-        client = Hindsight(base_url="http://localhost:8888")
+        client = ContextBase(base_url="http://localhost:8888")
         spec = ContextBaseToolSpec(client=client, bank_id="user-123")
         tools = spec.to_tool_list()
 
@@ -72,7 +72,7 @@ class ContextBaseToolSpec(BaseToolSpec):
         self,
         *,
         bank_id: str,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         contextbase_api_url: Optional[str] = None,
         api_key: Optional[str] = None,
         budget: Optional[str] = None,
@@ -339,7 +339,7 @@ class ContextBaseToolSpec(BaseToolSpec):
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: Optional[str] = None,
@@ -402,7 +402,7 @@ def create_contextbase_tools(
         List of LlamaIndex FunctionTool instances.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     spec = ContextBaseToolSpec(
         bank_id=bank_id,

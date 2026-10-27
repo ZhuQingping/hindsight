@@ -139,7 +139,7 @@ See the [installation guide](https://github.com/RSIXDB/hindsight/tree/main/hinds
 
 - Python >= 3.10
 - composio >= 0.13.1, < 1
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running ContextBase API server (or ContextBase remote service)
 
 > **Note:** Composio's custom-tools API is currently experimental. This integration targets the

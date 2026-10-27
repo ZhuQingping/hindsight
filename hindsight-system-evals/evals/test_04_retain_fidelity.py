@@ -47,8 +47,7 @@ import logging
 from dataclasses import dataclass
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import evaluate
 from hindsight_system_evals.pages import SettleFn
 from hindsight_system_evals.report import RECORDED, EvalRecord
@@ -127,7 +126,7 @@ _CASES = {
 MINIMUM_ACCEPTANCE = ("date-borrowed-from-nearby-subject",)
 
 
-async def _extracted_facts(client: Hindsight, bank_id: str) -> str:
+async def _extracted_facts(client: ContextBase, bank_id: str) -> str:
     """Every stored fact with the metadata that travels with it.
 
     A borrowed date can surface in two places — inside the fact text the
@@ -157,7 +156,7 @@ class FidelityOutcome:
     facts: str
 
 
-async def _run(client: Hindsight, bank_id: str, settled: SettleFn, case_id: str) -> FidelityOutcome:
+async def _run(client: ContextBase, bank_id: str, settled: SettleFn, case_id: str) -> FidelityOutcome:
     case = _CASES[case_id]
     # Observations and consolidation off for the same reason as every other suite
     # here — they cost model time and write rows this eval never reads. The
@@ -226,12 +225,12 @@ def _assert_sound(outcome: FidelityOutcome) -> None:
 
 @pytest.mark.parametrize("case_id", MINIMUM_ACCEPTANCE)
 async def test_retain_fidelity_minimum_acceptance(
-    client: Hindsight, bank_id: str, settled: SettleFn, case_id: str
+    client: ContextBase, bank_id: str, settled: SettleFn, case_id: str
 ) -> None:
     _assert_sound(await _run(client, bank_id, settled, case_id))
 
 
 @pytest.mark.full
 @pytest.mark.parametrize("case_id", [c for c in _CASES if c not in MINIMUM_ACCEPTANCE])
-async def test_retain_fidelity_full(client: Hindsight, bank_id: str, settled: SettleFn, case_id: str) -> None:
+async def test_retain_fidelity_full(client: ContextBase, bank_id: str, settled: SettleFn, case_id: str) -> None:
     _assert_sound(await _run(client, bank_id, settled, case_id))

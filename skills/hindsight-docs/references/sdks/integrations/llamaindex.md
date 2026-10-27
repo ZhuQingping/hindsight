@@ -22,13 +22,13 @@ The simplest way to add Hindsight memory to a LlamaIndex agent. Messages are aut
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_llamaindex import HindsightMemory
 from llama_index.core.agent import ReActAgent
 from llama_index.llms.openai import OpenAI
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     memory = HindsightMemory.from_client(
         client=client,
@@ -55,7 +55,7 @@ asyncio.run(main())
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `client` | `Hindsight` | *required* | Hindsight client instance |
+| `client` | `ContextBase` | *required* | Hindsight client instance |
 | `bank_id` | `str` | *required* | Memory bank ID |
 | `mission` | `str` | `None` | Bank mission — auto-creates bank on first use |
 | `context` | `str` | `"llamaindex"` | Source label for retain operations |
@@ -79,13 +79,13 @@ For explicit control, expose retain/recall/reflect as tools the agent can choose
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_llamaindex import HindsightToolSpec
 from llama_index.llms.openai import OpenAI
 from llama_index.core.agent import ReActAgent
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     spec = HindsightToolSpec(
         client=client,
@@ -154,7 +154,7 @@ tools = create_hindsight_tools(bank_id="user-123")
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `bank_id` | `str` | *required* | Hindsight memory bank to operate on |
-| `client` | `Hindsight` | `None` | Pre-configured Hindsight client |
+| `client` | `ContextBase` | `None` | Pre-configured Hindsight client |
 | `hindsight_api_url` | `str` | `None` | API URL (used if no client provided) |
 | `api_key` | `str` | `None` | API key (used if no client provided) |
 | `budget` | `str` | `None` → `"mid"` | Recall/reflect budget: `low`, `mid`, `high` |
@@ -245,4 +245,4 @@ response = await agent.run("What should I prioritize?", memory=memory)
 
 - Python 3.10+
 - `llama-index-core >= 0.11.0`
-- `hindsight-client >= 0.4.0`
+- `contextbase-client >= 0.4.0`

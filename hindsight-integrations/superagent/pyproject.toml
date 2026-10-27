@@ -33,7 +33,7 @@ dependencies = [
     # Upper-bounded because safety-agent is pre-1.0 and may break the
     # SafetyClient / create_client / response model APIs in a minor release.
     "safety-agent>=0.1.5,<0.2.0",
-    "hindsight-client>=0.4.0,<1.0",
+    "contextbase-client>=1.0.0,<2",
 ]
 
 [project.urls]
@@ -64,3 +64,6 @@ dev = [
 
 [tool.ruff]
 line-length = 120
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

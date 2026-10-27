@@ -1,7 +1,7 @@
 import type { MemoryProviderRuntime } from "./memory-provider.js";
 // Moltbot plugin API types (minimal subset needed for this plugin)
 
-import type { MinScores } from "@vectorize-io/hindsight-client";
+import type { MinScores } from "contextbase-client";
 
 export interface PluginPromptHookResult {
   prependContext?: string;
@@ -184,13 +184,13 @@ export interface ServiceConfig {
 // -----------------------------------------------------------------------------
 
 // MemoryResult / RecallResponse / ReflectResponse come from the generated
-// hindsight-client SDK. We alias MemoryResult → RecallResult so existing code
+// contextbase-client SDK. We alias MemoryResult → RecallResult so existing code
 // paths (formatMemories, etc.) keep the old name.
 export type {
   RecallResult as MemoryResult,
   RecallResponse,
   ReflectResponse,
-} from "@vectorize-io/hindsight-client";
+} from "contextbase-client";
 
 /**
  * Internal retain payload shape built by `buildRetainRequest`. Not a

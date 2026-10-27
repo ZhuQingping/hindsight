@@ -28,7 +28,7 @@ classifiers = [
 
 dependencies = [
     "crewai>=0.86.0,<1.10",  # 1.10+ renamed Storage -> StorageBackend; needs migration
-    "hindsight-client>=0.4.0",
+    "contextbase-client>=1.0.0,<2",
     # Transitive dependency security fixes
     "cryptography>=50.0.0", # GHSA-g6cj-pr64-35w5: Bleichenbacher oracle in PKCS#7 EnvelopedData decryption
     "pillow>=12.1.1", # Out-of-bounds write in PSD image loading fix
@@ -69,3 +69,6 @@ dev = [
 # package -- `repair_json`, in tool_usage.py and agents/parser.py -- so the
 # override is narrow. Revisit if crewai relaxes the pin itself.
 override-dependencies = ["json-repair>=0.60.1"]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

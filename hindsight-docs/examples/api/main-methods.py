@@ -3,7 +3,9 @@
 Main Methods overview examples for ContextBase.
 Run: python examples/api/main-methods.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +13,11 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples - Retain Section
@@ -23,10 +25,7 @@ client = Hindsight(base_url=CONTEXTBASE_URL)
 
 # [docs:main-retain]
 # Store a single fact
-client.retain(
-    bank_id="my-bank",
-    content="Alice joined Google in March 2024 as a Senior ML Engineer"
-)
+client.retain(bank_id="my-bank", content="Alice joined Google in March 2024 as a Senior ML Engineer")
 
 # Store a conversation
 conversation = """
@@ -36,11 +35,7 @@ User: How did it look?
 Assistant: Promising, but needs better error handling.
 """
 
-client.retain(
-    bank_id="my-bank",
-    content=conversation,
-    context="Daily standup conversation"
-)
+client.retain(bank_id="my-bank", content=conversation, context="Daily standup conversation")
 
 # Batch retain multiple items
 client.retain_batch(
@@ -48,8 +43,8 @@ client.retain_batch(
     items=[
         {"content": "Bob prefers Python for data science"},
         {"content": "Alice recommends using pytest for testing"},
-        {"content": "The team uses GitHub for code reviews"}
-    ]
+        {"content": "The team uses GitHub for code reviews"},
+    ],
 )
 # [/docs:main-retain]
 
@@ -60,10 +55,7 @@ client.retain_batch(
 
 # [docs:main-recall]
 # Basic search
-results = client.recall(
-    bank_id="my-bank",
-    query="What does Alice do at Google?"
-)
+results = client.recall(bank_id="my-bank", query="What does Alice do at Google?")
 
 for result in results.results:
     print(f"- {result.text}")
@@ -74,16 +66,11 @@ results = client.recall(
     query="What happened last spring?",
     budget="high",  # More thorough graph traversal
     max_tokens=8192,  # Return more context
-    types=["world"]  # Only world facts
+    types=["world"],  # Only world facts
 )
 
 # Include source chunks for more context
-results = client.recall(
-    bank_id="my-bank",
-    query="Tell me about Alice",
-    include_chunks=True,
-    max_chunk_tokens=500
-)
+results = client.recall(bank_id="my-bank", query="Tell me about Alice", include_chunks=True, max_chunk_tokens=500)
 
 # Check chunk details (chunks are on response level, keyed by memory ID)
 for result in results.results:
@@ -118,7 +105,7 @@ response = client.reflect(
 )
 
 # See which facts influenced the response
-for fact in (response.based_on.memories if response.based_on else []):
+for fact in response.based_on.memories if response.based_on else []:
     print(f"- {fact.text}")
 # [/docs:main-reflect]
 
@@ -129,27 +116,16 @@ for fact in (response.based_on.memories if response.based_on else []):
 
 # [docs:main-list-memories]
 # List all memories in a bank
-memories = client.list_memories(
-    bank_id="my-bank",
-    limit=10
-)
+memories = client.list_memories(bank_id="my-bank", limit=10)
 
 for memory in memories.items:
     print(f"- [{memory.fact_type}] {memory.text}")
 
 # Filter by type
-world_facts = client.list_memories(
-    bank_id="my-bank",
-    type="world",
-    limit=5
-)
+world_facts = client.list_memories(bank_id="my-bank", type="world", limit=5)
 
 # Search within memories
-search_results = client.list_memories(
-    bank_id="my-bank",
-    search_query="Alice",
-    limit=10
-)
+search_results = client.list_memories(bank_id="my-bank", search_query="Alice", limit=10)
 # [/docs:main-list-memories]
 
 
@@ -160,11 +136,12 @@ search_results = client.list_memories(
 # [docs:main-async]
 import asyncio
 
+
 async def async_example():
     # Create a fresh client for async operations
     if not CONTEXTBASE_URL:
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    async_client = Hindsight(base_url=CONTEXTBASE_URL)
+    async_client = ContextBase(base_url=CONTEXTBASE_URL)
 
     # All sync methods have async versions prefixed with 'a'
     await async_client.aretain(bank_id="my-bank", content="Async memory")
@@ -175,6 +152,7 @@ async def async_example():
 
     response = await async_client.areflect(bank_id="my-bank", query="What was stored?")
     print(response.text)
+
 
 asyncio.run(async_example())
 # [/docs:main-async]

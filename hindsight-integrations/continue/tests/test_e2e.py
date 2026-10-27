@@ -18,8 +18,7 @@ import time
 import uuid
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from contextbase_continue import build_context_items, configure
 
 requires_real_llm = pytest.mark.requires_real_llm
@@ -34,7 +33,7 @@ def test_retain_then_recall_through_adapter():
     client_kwargs = {"base_url": api_url}
     if api_key:
         client_kwargs["api_key"] = api_key
-    client = Hindsight(**client_kwargs)
+    client = ContextBase(**client_kwargs)
     client.create_bank(bank_id=bank_id)
     try:
         client.retain(bank_id=bank_id, content="The deploy command for this project is `make ship`.")

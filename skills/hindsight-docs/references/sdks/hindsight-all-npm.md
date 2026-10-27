@@ -4,11 +4,11 @@ sidebar_position: 6
 
 # Programmatic API (Node.js)
 
-The `@vectorize-io/hindsight-all` npm package is the Node.js equivalent of the Python [`hindsight-all`](./hindsight-all.md) package. It lets your Node code spawn and supervise a local Hindsight daemon without deploying any server infrastructure — pair it with [`@vectorize-io/hindsight-client`](./nodejs.md) for memory operations.
+The `@vectorize-io/hindsight-all` npm package is the Node.js equivalent of the Python [`hindsight-all`](./hindsight-all.md) package. It lets your Node code spawn and supervise a local Hindsight daemon without deploying any server infrastructure — pair it with [`contextbase-client`](./nodejs.md) for memory operations.
 
-The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Node process). Your code talks to it over HTTP via `HindsightClient`.
+The daemon runs as a **separate OS process** on `127.0.0.1` (not in your Node process). Your code talks to it over HTTP via `ContextBaseClient`.
 
-This package **does not ship an HTTP client** — it only owns the server process. Once the daemon is running, talk to it with [`@vectorize-io/hindsight-client`](./nodejs.md) against `server.getBaseUrl()`. The two packages compose: one owns the process, the other owns the API surface.
+This package **does not ship an HTTP client** — it only owns the server process. Once the daemon is running, talk to it with [`contextbase-client`](./nodejs.md) against `server.getBaseUrl()`. The two packages compose: one owns the process, the other owns the API surface.
 
 ## How it works
 
@@ -28,14 +28,14 @@ The server is intentionally transparent: new daemon env vars or CLI flags never 
 ## Install
 
 ```bash
-npm install @vectorize-io/hindsight-all @vectorize-io/hindsight-client
+npm install @vectorize-io/hindsight-all contextbase-client
 ```
 
 ## Example
 
 ```ts
 import { HindsightServer, consoleLogger } from '@vectorize-io/hindsight-all';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 
 const server = new HindsightServer({
   profile: 'my-app',
@@ -50,14 +50,14 @@ const server = new HindsightServer({
 
 await server.start();
 
-const client = new HindsightClient({ baseUrl: server.getBaseUrl() });
+const client = new ContextBaseClient({ baseUrl: server.getBaseUrl() });
 await client.retain('user-123', 'User prefers dark mode.');
 const recall = await client.recall('user-123', 'what are the user preferences?');
 
 await server.stop();
 ```
 
-For a remote Hindsight API, skip the server entirely and point `HindsightClient` directly at the remote URL.
+For a remote Hindsight API, skip the server entirely and point `ContextBaseClient` directly at the remote URL.
 
 ## `HindsightServerOptions`
 
@@ -83,7 +83,7 @@ For a remote Hindsight API, skip the server entirely and point `HindsightClient`
 | `start()` | `Promise<void>` | Configure profile, spawn the daemon, wait for `/health`. Idempotent — safe to re-run. |
 | `stop()` | `Promise<void>` | Stop the daemon. Never throws; logs and resolves even on failure. |
 | `checkHealth()` | `Promise<boolean>` | One-shot `/health` probe with a 2 s timeout. |
-| `getBaseUrl()` | `string` | `http://host:port` — pass this straight to `HindsightClient`. |
+| `getBaseUrl()` | `string` | `http://host:port` — pass this straight to `ContextBaseClient`. |
 | `getProfile()` | `string` | The profile name this server operates on. |
 
-For memory operations (retain, recall, reflect, bank management) use [`@vectorize-io/hindsight-client`](./nodejs.md).
+For memory operations (retain, recall, reflect, bank management) use [`contextbase-client`](./nodejs.md).

@@ -1,4 +1,4 @@
-import type { HindsightClient, HindsightClientOptions } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient, ContextBaseClientOptions } from "contextbase-client";
 import type { PluginConfig } from "./types.js";
 
 export type RetainExtractionMode = "concise" | "verbose" | "custom" | "verbatim" | "chunks";
@@ -123,7 +123,7 @@ export function hasConfiguredBankDefaults(config: PluginConfig): boolean {
 export async function patchBankConfig(
   bankId: string,
   updates: Record<string, unknown>,
-  options: HindsightClientOptions
+  options: ContextBaseClientOptions
 ): Promise<void> {
   const url = `${options.baseUrl.replace(/\/$/, "")}/v1/default/banks/${encodeURIComponent(bankId)}/config`;
   const headers: Record<string, string> = {
@@ -151,10 +151,10 @@ export async function patchBankConfig(
  * process lifetime (caller tracks the set). No-op when no defaults are configured.
  */
 export async function applyConfiguredBankDefaults(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bankId: string,
   config: PluginConfig,
-  clientOpts: HindsightClientOptions
+  clientOpts: ContextBaseClientOptions
 ): Promise<void> {
   const createPayload = buildCreateBankDefaults(config);
   const configUpdates = buildBankConfigApiUpdates(config);

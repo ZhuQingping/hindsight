@@ -91,13 +91,13 @@ This gives explicit ownership and clean shutdown via `await client.aclose()`.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_strands import create_hindsight_tools, memory_instructions
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = Hindsight(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
-    app.state.hindsight_client = client
+    client = ContextBase(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
+    app.state.contextbase_client = client
     try:
         yield
     finally:
@@ -107,7 +107,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/chat")
 async def chat():
-    client = app.state.hindsight_client
+    client = app.state.contextbase_client
     tools = create_hindsight_tools(bank_id="user-123", client=client)
     memories = memory_instructions(bank_id="user-123", client=client)
     ...
@@ -205,5 +205,5 @@ tools = create_hindsight_tools(bank_id="user-123")
 
 - Python >= 3.10
 - strands-agents
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running Hindsight API server

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { isNativeFileDownloadPath } from "@/lib/file-download";
-import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 /**
  * Download a stored file (e.g. an async document-export archive) by its dataplane

@@ -26,11 +26,11 @@ import logging
 from importlib import metadata
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from pydantic import BaseModel, Field
 
 from .config import Budget, TagsMatch, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +64,10 @@ class ReflectInput(BaseModel):
 
 
 def _resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -77,7 +77,7 @@ def _resolve_client(
     key = api_key or (config.api_key if config else None)
 
     if url is None:
-        raise HindsightError(
+        raise ContextBaseError(
             "No ContextBase API URL configured. Pass client= or contextbase_api_url=, or call configure() first."
         )
 
@@ -86,13 +86,13 @@ def _resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 def register_contextbase_tools(
     composio: Any,
     *,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     default_bank: str | None = None,
@@ -148,7 +148,7 @@ def register_contextbase_tools(
     def _bank(ctx: Any) -> str:
         bank = getattr(ctx, "user_id", None) or default_bank
         if not bank:
-            raise HindsightError(
+            raise ContextBaseError(
                 "No ContextBase bank for this call: set a Composio user_id on the session, "
                 "or pass default_bank= to register_contextbase_tools()."
             )
@@ -180,11 +180,11 @@ def register_contextbase_tools(
                 retain_kwargs["tags"] = tags
             resolved.retain(**retain_kwargs)
             return {"status": "stored", "bank": bank}
-        except HindsightError:
+        except ContextBaseError:
             raise
         except Exception as e:
             logger.error(f"Retain failed: {e}")
-            raise HindsightError(f"Retain failed: {e}") from e
+            raise ContextBaseError(f"Retain failed: {e}") from e
 
     def contextbase_recall(input: RecallInput, ctx: Any) -> dict:
         """Search long-term memory for relevant information.
@@ -207,11 +207,11 @@ def register_contextbase_tools(
             results = response.results or []
             memories = [r.text for r in results]
             return {"memories": memories, "count": len(memories)}
-        except HindsightError:
+        except ContextBaseError:
             raise
         except Exception as e:
             logger.error(f"Recall failed: {e}")
-            raise HindsightError(f"Recall failed: {e}") from e
+            raise ContextBaseError(f"Recall failed: {e}") from e
 
     def contextbase_reflect(input: ReflectInput, ctx: Any) -> dict:
         """Synthesize a thoughtful answer from long-term memories.
@@ -223,11 +223,11 @@ def register_contextbase_tools(
             bank = _bank(ctx)
             response = resolved.reflect(bank_id=bank, query=input.query, budget=budget)
             return {"answer": response.text or "No relevant memories found."}
-        except HindsightError:
+        except ContextBaseError:
             raise
         except Exception as e:
             logger.error(f"Reflect failed: {e}")
-            raise HindsightError(f"Reflect failed: {e}") from e
+            raise ContextBaseError(f"Reflect failed: {e}") from e
 
     decorate = composio.experimental.tool
 
@@ -244,7 +244,7 @@ def register_contextbase_tools(
 def memory_instructions(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     query: str = "relevant context about the user",
@@ -278,7 +278,7 @@ def memory_instructions(
         A formatted string of memories, or empty string if none found.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved = _resolve_client(client, contextbase_api_url, api_key)
 

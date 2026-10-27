@@ -6,11 +6,11 @@ import importlib.metadata
 import os
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from safety_agent import SafetyClient, create_client
 
 from .config import CONTEXTBASE_API_KEY_ENV, DEFAULT_CONTEXTBASE_API_URL, SUPERAGENT_API_KEY_ENV, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 try:
     _VERSION = importlib.metadata.version("contextbase-superagent")
@@ -20,11 +20,11 @@ except importlib.metadata.PackageNotFoundError:
 _USER_AGENT = f"contextbase-superagent/{_VERSION}"
 
 
-def resolve_hindsight_client(
-    client: Hindsight | None,
+def resolve_contextbase_client(
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -42,7 +42,7 @@ def resolve_hindsight_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 def snapshot_safety_config(
@@ -74,12 +74,12 @@ def snapshot_safety_config(
 def build_safety_client(snapshot: dict[str, Any]) -> SafetyClient:
     """Build a SafetyClient from a previously-resolved snapshot.
 
-    Raises HindsightError if the snapshot is missing the Superagent API key —
+    Raises ContextBaseError if the snapshot is missing the Superagent API key —
     this is the call site that finally requires it, so lazy construction with
     every safety hook disabled never trips the error.
     """
     if not snapshot.get("api_key"):
-        raise HindsightError(
+        raise ContextBaseError(
             "No Superagent API key configured. Pass superagent_api_key=, set SUPERAGENT_API_KEY env var, "
             "or call configure(superagent_api_key=...) first. Get a key at https://www.superagent.sh"
         )

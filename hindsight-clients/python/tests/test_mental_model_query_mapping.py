@@ -7,7 +7,7 @@ default or drop list pagination / tag-match controls.
 
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_list(monkeypatch, client, captured):
@@ -30,7 +30,7 @@ def _capture_get(monkeypatch, client, captured):
 
 
 def test_list_forwards_every_supported_query_option(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_list(monkeypatch, client, captured)
 
@@ -53,7 +53,7 @@ def test_list_forwards_every_supported_query_option(monkeypatch):
 
 
 def test_list_defaults_leave_controls_unset(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_list(monkeypatch, client, captured)
 
@@ -69,7 +69,7 @@ def test_list_defaults_leave_controls_unset(monkeypatch):
 
 
 def test_list_tags_only_shape_preserved(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_list(monkeypatch, client, captured)
 
@@ -81,7 +81,7 @@ def test_list_tags_only_shape_preserved(monkeypatch):
 
 
 def test_get_forwards_detail(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_get(monkeypatch, client, captured)
 
@@ -93,7 +93,7 @@ def test_get_forwards_detail(monkeypatch):
 
 
 def test_get_defaults_leave_detail_unset(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_get(monkeypatch, client, captured)
 

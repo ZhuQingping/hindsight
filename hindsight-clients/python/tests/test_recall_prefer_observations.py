@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_recall(monkeypatch, client, captured):
@@ -14,7 +14,7 @@ def _capture_recall(monkeypatch, client, captured):
 
 
 def test_recall_threads_prefer_observations(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 
@@ -29,7 +29,7 @@ def test_recall_threads_prefer_observations(monkeypatch):
 
 
 def test_recall_prefer_observations_defaults_false(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 

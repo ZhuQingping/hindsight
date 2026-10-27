@@ -11,8 +11,8 @@ import json
 import asyncpg
 import httpx
 import pytest
+from contextbase_client_api.exceptions import ApiException
 from fastmcp import Client
-from hindsight_client_api.exceptions import ApiException
 
 from .support.clients import MemberClients, workspace_condition_headers
 from .support.deployment import ContextDBDeployment

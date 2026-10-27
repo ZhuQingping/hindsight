@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { lowLevelClient, sdk } from "@/lib/hindsight-client";
+import { lowLevelClient, sdk } from "@/lib/contextbase-client";
 import { respondWithSdk } from "@/lib/sdk-response";
 
 export async function POST(

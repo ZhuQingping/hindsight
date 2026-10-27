@@ -30,8 +30,7 @@ import dataclasses
 import logging
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import AnswerOutcome, ask, evaluate
 from hindsight_system_evals.pages import SettleFn
 from hindsight_system_evals.report import RECORDED, EvalRecord
@@ -46,7 +45,7 @@ _QUESTIONS = {question.id: question for question in questions()}
 MINIMUM_ACCEPTANCE = ("sp-datastore", "sp-approvals")
 
 
-async def _run(client: Hindsight, bank_id: str, settled: SettleFn, question_id: str) -> AnswerOutcome:
+async def _run(client: ContextBase, bank_id: str, settled: SettleFn, question_id: str) -> AnswerOutcome:
     question = _QUESTIONS[question_id]
     # The ``query`` strategy carries the ranking on the question itself; every
     # other strategy leaves it exactly as written.
@@ -102,12 +101,12 @@ def _assert_sound(outcome: AnswerOutcome) -> None:
 
 @pytest.mark.parametrize("question_id", MINIMUM_ACCEPTANCE)
 async def test_source_priority_minimum_acceptance(
-    client: Hindsight, bank_id: str, settled: SettleFn, question_id: str
+    client: ContextBase, bank_id: str, settled: SettleFn, question_id: str
 ) -> None:
     _assert_sound(await _run(client, bank_id, settled, question_id))
 
 
 @pytest.mark.full
 @pytest.mark.parametrize("question_id", [q for q in _QUESTIONS if q not in MINIMUM_ACCEPTANCE])
-async def test_source_priority_full(client: Hindsight, bank_id: str, settled: SettleFn, question_id: str) -> None:
+async def test_source_priority_full(client: ContextBase, bank_id: str, settled: SettleFn, question_id: str) -> None:
     _assert_sound(await _run(client, bank_id, settled, question_id))

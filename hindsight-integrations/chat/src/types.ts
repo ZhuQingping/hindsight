@@ -74,9 +74,9 @@ export interface RetainResponse {
 }
 
 /**
- * ContextBase client interface — matches @vectorize-io/hindsight-client.
+ * ContextBase client interface — matches contextbase-client.
  */
-export interface HindsightClient {
+export interface ContextBaseClient {
   retain(
     bankId: string,
     content: string,
@@ -206,7 +206,7 @@ export interface RetainOptions {
  */
 export interface ContextBaseChatOptions {
   /** ContextBase client instance. */
-  client: HindsightClient;
+  client: ContextBaseClient;
   /** Bank ID — static string or function deriving it from the message. */
   bankId: BankIdResolver;
   /** Auto-recall options (default: enabled). */

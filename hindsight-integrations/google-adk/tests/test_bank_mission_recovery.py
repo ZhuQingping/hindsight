@@ -3,14 +3,14 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
+from contextbase_client import ContextBase
+from contextbase_client_api.models.bank_profile_response import BankProfileResponse
+from contextbase_client_api.models.disposition_traits import DispositionTraits
+from contextbase_client_api.models.retain_response import RetainResponse
+from contextbase_google_adk import ContextBaseMemoryService
 from google.adk.events import Event
 from google.adk.sessions import Session
 from google.genai import types
-from hindsight_client import Hindsight
-from hindsight_client_api.models.bank_profile_response import BankProfileResponse
-from hindsight_client_api.models.disposition_traits import DispositionTraits
-from hindsight_client_api.models.retain_response import RetainResponse
-from contextbase_google_adk import ContextBaseMemoryService
 
 
 async def test_later_session_retries_failed_mission_setup_then_caches_success() -> None:
@@ -40,7 +40,7 @@ async def test_later_session_retries_failed_mission_setup_then_caches_success() 
     app.router.add_put("/v1/default/banks/app::user", setup)
     app.router.add_post("/v1/default/banks/app::user/memories", retain)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")))
+        client = ContextBase(base_url=str(server.make_url("")))
         service = ContextBaseMemoryService(client=client, mission="Track user preferences")
         try:
             for session_id in ["first", "second", "third"]:

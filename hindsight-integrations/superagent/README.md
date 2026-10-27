@@ -85,7 +85,7 @@ async with SafeContextBase(bank_id="user-123", ...) as safe:
 # clients closed automatically on exit
 ```
 
-Clients passed in via `hindsight_client=` or `safety_client=` are not closed
+Clients passed in via `contextbase_client=` or `safety_client=` are not closed
 on shutdown — the caller retains ownership.
 
 ## Handling Blocked Inputs
@@ -158,7 +158,7 @@ safe = SafeContextBase(bank_id="user-123")
 | Parameter | Default | Description |
 |---|---|---|
 | `bank_id` | *required* | ContextBase memory bank ID |
-| `hindsight_client` | `None` | Pre-configured ContextBase client |
+| `contextbase_client` | `None` | Pre-configured ContextBase client |
 | `safety_client` | `None` | Pre-configured Superagent SafetyClient |
 | `contextbase_api_url` | `http://localhost:8888` | ContextBase API URL |
 | `api_key` | `None` | ContextBase API key (for ContextBase remote service) |
@@ -183,7 +183,7 @@ safe = SafeContextBase(bank_id="user-123")
 
 ### `configure()`
 
-Same parameters as `SafeContextBase()` except `bank_id`, `hindsight_client`, and `safety_client`.
+Same parameters as `SafeContextBase()` except `bank_id`, `contextbase_client`, and `safety_client`.
 
 ## Guard Model
 
@@ -207,7 +207,7 @@ If you don't set `guard_model` and the default hosted model is unavailable, guar
 
 - Python >= 3.10
 - safety-agent >= 0.1.5, < 0.2.0
-- hindsight-client >= 0.4.0, < 1.0
+- contextbase-client >= 0.4.0, < 1.0
 - A running ContextBase API server or [ContextBase remote service](http://localhost:9999) account
 - A Superagent API key (`SUPERAGENT_API_KEY` env var)
 - An OpenAI API key (`OPENAI_API_KEY` env var) for guard and redact models — or another [supported LLM provider](https://docs.superagent.sh/sdk)

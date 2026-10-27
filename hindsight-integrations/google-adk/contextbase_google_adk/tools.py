@@ -10,12 +10,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from contextbase_client import ContextBase
 from google.adk.tools import FunctionTool
-from hindsight_client import Hindsight
 
 from ._client import resolve_client
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: Optional[str] = None,
@@ -73,7 +73,7 @@ def create_contextbase_tools(
         List of ADK ``FunctionTool`` instances.
 
     Raises:
-        HindsightError: If no client can be resolved from args + global config.
+        ContextBaseError: If no client can be resolved from args + global config.
     """
     resolved_client = resolve_client(client, contextbase_api_url, api_key)
     config = get_config()
@@ -107,11 +107,11 @@ def create_contextbase_tools(
                     retain_kwargs["document_id"] = retain_document_id
                 await resolved_client.aretain(**retain_kwargs)
                 return "Memory stored successfully."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:  # noqa: BLE001
                 logger.error("Retain failed: %s", e)
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(FunctionTool(contextbase_retain))
 
@@ -145,11 +145,11 @@ def create_contextbase_tools(
                     return "No relevant memories found."
                 lines = [f"{i}. {r.text}" for i, r in enumerate(response.results, 1)]
                 return "\n".join(lines)
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:  # noqa: BLE001
                 logger.error("Recall failed: %s", e)
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(FunctionTool(contextbase_recall))
 
@@ -184,11 +184,11 @@ def create_contextbase_tools(
                     reflect_kwargs["tags_match"] = effective_reflect_tags_match
                 response = await resolved_client.areflect(**reflect_kwargs)
                 return response.text or "No relevant memories found."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:  # noqa: BLE001
                 logger.error("Reflect failed: %s", e)
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(FunctionTool(contextbase_reflect))
 

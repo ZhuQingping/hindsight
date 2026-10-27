@@ -30,5 +30,5 @@ def test_every_code_snippet_renders_its_example_code():
 
 def test_code_import_lines_survive():
     cleaned = clean_markdown(Path(get_docs_dir() / "sdks" / "nodejs.mdx").read_text())
-    assert "import { HindsightClient } from '@vectorize-io/hindsight-client';" in cleaned
-    assert 'from "npm:@vectorize-io/hindsight-client"' in cleaned
+    assert "import { ContextBaseClient } from 'contextbase-client';" in cleaned
+    assert 'from "npm:contextbase-client"' in cleaned

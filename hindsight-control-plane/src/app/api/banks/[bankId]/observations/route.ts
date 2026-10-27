@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { sdk, lowLevelClient } from "@/lib/hindsight-client";
+import { sdk, lowLevelClient } from "@/lib/contextbase-client";
 
 export async function GET(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
   try {

@@ -81,7 +81,7 @@ All global settings can be overridden per `create_contextbase_tools()` call:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `bank_id` | Memory bank ID (required) | — |
-| `client` | Pre-configured `Hindsight` client | — |
+| `client` | Pre-configured `ContextBase` client | — |
 | `contextbase_api_url` | API URL | Global config or production |
 | `api_key` | API key | Global config or env var |
 | `budget` | Recall/reflect budget | `"mid"` |
@@ -137,7 +137,7 @@ manager = GroupChatManager(groupchat=group_chat)
 ## Requirements
 
 - `ag2>=0.9.0`
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`
 
 ## Documentation
 

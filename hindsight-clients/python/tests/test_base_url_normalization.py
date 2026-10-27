@@ -3,10 +3,9 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
-from hindsight_client_api.models.features_info import FeaturesInfo
-from hindsight_client_api.models.version_response import VersionResponse
+from contextbase_client import ContextBase
+from contextbase_client_api.models.features_info import FeaturesInfo
+from contextbase_client_api.models.version_response import VersionResponse
 
 
 @pytest.mark.parametrize("suffix", ["", "/", "///"])
@@ -25,7 +24,7 @@ async def test_generated_routes_preserve_base_prefix_without_double_slashes(pref
     app = web.Application()
     app.router.add_get(f"{prefix}/version", version)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=f"{str(server.make_url(prefix)).rstrip('/')}{suffix}")
+        client = ContextBase(base_url=f"{str(server.make_url(prefix)).rstrip('/')}{suffix}")
         try:
             response = await client.aget_version()
         finally:

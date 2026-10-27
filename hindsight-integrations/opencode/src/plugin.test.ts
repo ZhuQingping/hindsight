@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock the HindsightClient before importing the plugin
-vi.mock("@vectorize-io/hindsight-client", () => {
+// Mock the ContextBaseClient before importing the plugin
+vi.mock("contextbase-client", () => {
   const MockContextBaseClient = vi.fn(function (this: any) {
     this.retain = vi.fn().mockResolvedValue({});
     this.recall = vi.fn().mockResolvedValue({ results: [] });
     this.reflect = vi.fn().mockResolvedValue({ text: "" });
     this.createBank = vi.fn().mockResolvedValue({});
   });
-  return { HindsightClient: MockContextBaseClient };
+  return { ContextBaseClient: MockContextBaseClient };
 });
 
 import { ContextBasePlugin } from "./index.js";
 import { DEFAULT_CONTEXTBASE_API_URL } from "./config.js";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 
 const mockPluginInput = {
   client: {
@@ -45,7 +45,7 @@ describe("ContextBasePlugin", () => {
   it("defaults to the hosted backend URL when no API URL is configured", async () => {
     const result = await ContextBasePlugin(mockPluginInput as any);
 
-    expect(HindsightClient).toHaveBeenCalledWith({
+    expect(ContextBaseClient).toHaveBeenCalledWith({
       baseUrl: DEFAULT_CONTEXTBASE_API_URL,
       apiKey: undefined,
       userAgent: expect.stringMatching(/^contextbase-opencode\/\d+\.\d+\.\d+$/),
@@ -63,7 +63,7 @@ describe("ContextBasePlugin", () => {
 
     const result = await ContextBasePlugin(mockPluginInput as any);
 
-    expect(HindsightClient).toHaveBeenCalledWith({
+    expect(ContextBaseClient).toHaveBeenCalledWith({
       baseUrl: "http://localhost:8888",
       apiKey: undefined,
       userAgent: expect.stringMatching(/^contextbase-opencode\/\d+\.\d+\.\d+$/),
@@ -84,7 +84,7 @@ describe("ContextBasePlugin", () => {
 
     await ContextBasePlugin(mockPluginInput as any);
 
-    expect(HindsightClient).toHaveBeenCalledWith({
+    expect(ContextBaseClient).toHaveBeenCalledWith({
       baseUrl: "http://localhost:8888",
       apiKey: "my-token",
       userAgent: expect.stringMatching(/^contextbase-opencode\/\d+\.\d+\.\d+$/),
@@ -98,7 +98,7 @@ describe("ContextBasePlugin", () => {
     });
 
     expect(result.tool).toBeDefined();
-    expect(HindsightClient).toHaveBeenCalledWith({
+    expect(ContextBaseClient).toHaveBeenCalledWith({
       baseUrl: "http://example.com",
       apiKey: undefined,
       userAgent: expect.stringMatching(/^contextbase-opencode\/\d+\.\d+\.\d+$/),
@@ -135,8 +135,8 @@ describe("ContextBasePlugin state sharing", () => {
 
     // The recall was attempted (state was shared — sess-A was found in recalledSessions).
     // If state were per-instance, result2 would have an empty recalledSessions and skip recall.
-    // result2 uses the second HindsightClient instance (index 1).
-    const clientInstance = (HindsightClient as any).mock.instances[1];
+    // result2 uses the second ContextBaseClient instance (index 1).
+    const clientInstance = (ContextBaseClient as any).mock.instances[1];
     expect(clientInstance.recall).toHaveBeenCalled();
   });
 });

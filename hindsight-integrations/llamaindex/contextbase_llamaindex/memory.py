@@ -11,7 +11,7 @@ import re
 import uuid
 from typing import Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.memory.types import BaseMemory
@@ -56,10 +56,10 @@ class ContextBaseMemory(BaseMemory):
 
     Example::
 
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
         from contextbase_llamaindex import ContextBaseMemory
 
-        client = Hindsight(base_url="http://localhost:8888")
+        client = ContextBase(base_url="http://localhost:8888")
         memory = ContextBaseMemory.from_client(
             client=client,
             bank_id="user-123",
@@ -81,13 +81,13 @@ class ContextBaseMemory(BaseMemory):
     system_prompt: str = Field(default=DEFAULT_SYSTEM_PROMPT, description="Memory system message template")
     chat_history_limit: int = Field(default=100, description="Max messages in local buffer")
 
-    _client: Hindsight = PrivateAttr()
+    _client: ContextBase = PrivateAttr()
     _chat_history: list[ChatMessage] = PrivateAttr(default_factory=list)
     _session_id: str = PrivateAttr()
     _bank_initialized: bool = PrivateAttr(default=False)
     _mission: Optional[str] = PrivateAttr(default=None)
 
-    def __init__(self, client: Hindsight, mission: Optional[str] = None, **kwargs: Any):
+    def __init__(self, client: ContextBase, mission: Optional[str] = None, **kwargs: Any):
         super().__init__(**kwargs)
         self._client = client
         self._session_id = str(uuid.uuid4())[:8]
@@ -104,7 +104,7 @@ class ContextBaseMemory(BaseMemory):
         cls,
         bank_id: str,
         *,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         contextbase_api_url: Optional[str] = None,
         api_key: Optional[str] = None,
         mission: Optional[str] = None,
@@ -157,7 +157,7 @@ class ContextBaseMemory(BaseMemory):
     @classmethod
     def from_client(
         cls,
-        client: Hindsight,
+        client: ContextBase,
         bank_id: str,
         *,
         mission: Optional[str] = None,
@@ -216,12 +216,16 @@ class ContextBaseMemory(BaseMemory):
             api_key: Optional API key.
             **kwargs: Additional arguments passed to ``from_client()``.
         """
-        client_kwargs: dict[str, Any] = {"base_url": contextbase_api_url, "timeout": 30.0, "user_agent": "contextbase-llamaindex"}
+        client_kwargs: dict[str, Any] = {
+            "base_url": contextbase_api_url,
+            "timeout": 30.0,
+            "user_agent": "contextbase-llamaindex",
+        }
         if api_key:
             client_kwargs["api_key"] = api_key
         if not client_kwargs.get("base_url"):
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        client = Hindsight(**client_kwargs)
+        client = ContextBase(**client_kwargs)
         return cls.from_client(client=client, bank_id=bank_id, **kwargs)
 
     def _ensure_bank(self) -> None:
@@ -281,7 +285,7 @@ class ContextBaseMemory(BaseMemory):
         return ""
 
     def _retain_message(self, message: ChatMessage) -> None:
-        """Retain a message to Hindsight (sync)."""
+        """Retain a message to ContextBase (sync)."""
         if message.role not in (MessageRole.USER, MessageRole.ASSISTANT):
             return
         content = str(message.content) if message.content else ""
@@ -304,7 +308,7 @@ class ContextBaseMemory(BaseMemory):
             logger.error(f"Failed to retain message: {e}")
 
     async def _aretain_message(self, message: ChatMessage) -> None:
-        """Retain a message to Hindsight (async)."""
+        """Retain a message to ContextBase (async)."""
         if message.role not in (MessageRole.USER, MessageRole.ASSISTANT):
             return
         content = str(message.content) if message.content else ""

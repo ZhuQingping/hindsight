@@ -24,7 +24,7 @@ Persistent long-term memory for [AutoGen](https://microsoft.github.io/autogen/) 
 pip install contextbase-autogen autogen-agentchat "autogen-ext[openai]"
 ```
 
-`contextbase-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
+`contextbase-autogen` pulls in `autogen-core` and `contextbase-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
 
 ## Quick Start
 
@@ -32,11 +32,11 @@ pip install contextbase-autogen autogen-agentchat "autogen-ext[openai]"
 import asyncio
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_autogen import create_contextbase_tools
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
@@ -133,14 +133,14 @@ tools = create_contextbase_tools(
 
 ### Error Handling
 
-Tools raise `HindsightError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls for graceful degradation:
+Tools raise `ContextBaseError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls for graceful degradation:
 
 ```python
-from contextbase_autogen.errors import HindsightError
+from contextbase_autogen.errors import ContextBaseError
 
 try:
     result = await agent.run(task="What do you remember about me?")
-except HindsightError as e:
+except ContextBaseError as e:
     print(f"Memory operation failed: {e}")
 ```
 
@@ -150,7 +150,7 @@ Create banks before first use and clean up when done:
 
 ```python
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Create bank (idempotent)
     await client.acreate_bank(bank_id="user-123")
@@ -223,4 +223,4 @@ shared_tools = create_contextbase_tools(
 
 - Python >= 3.10
 - autogen-core >= 0.4.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0

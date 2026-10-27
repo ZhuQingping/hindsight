@@ -2,12 +2,12 @@
 
 import asyncio
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_langgraph import create_contextbase_tools
 
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     try:
         # Create a test bank
         await client.acreate_bank("langgraph-test", name="LangGraph Test")

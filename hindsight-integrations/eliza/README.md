@@ -14,7 +14,7 @@ Both are enabled by default, layer on top of elizaOS's existing memory, and fail
 ## Installation
 
 ```bash
-npm install contextbase-eliza @vectorize-io/hindsight-client
+npm install contextbase-eliza contextbase-client
 ```
 
 Requires `@elizaos/core` `^1.7.2` (peer dependency).
@@ -23,10 +23,10 @@ Requires `@elizaos/core` `^1.7.2` (peer dependency).
 
 ```ts
 import { createContextBasePlugin } from "contextbase-eliza";
-import { Hindsight } from "@vectorize-io/hindsight-client";
+import { ContextBase } from "contextbase-client";
 
 const contextbasePlugin = createContextBasePlugin({
-  client: new Hindsight({ apiKey: process.env.CONTEXTBASE_API_KEY }),
+  client: new ContextBase({ apiKey: process.env.CONTEXTBASE_API_KEY }),
   recall: { budget: "high", includeEntities: true },
   retain: { tags: ["source:eliza"] },
 });

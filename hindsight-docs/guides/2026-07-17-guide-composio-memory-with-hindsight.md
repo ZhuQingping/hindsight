@@ -42,7 +42,7 @@ Install the integration package.
 pip install hindsight-composio
 ```
 
-This pulls in `hindsight-client` (>= 0.4.0) and gives you `register_hindsight_tools` and `configure`, the two functions you use to wire Hindsight into Composio.
+This pulls in `contextbase-client` (>= 0.4.0) and gives you `register_hindsight_tools` and `configure`, the two functions you use to wire Hindsight into Composio.
 
 ## Step 2: Point the tools at Hindsight
 

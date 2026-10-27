@@ -1,20 +1,19 @@
 """Integration tests for contextbase-litellm."""
 
 import pytest
-
 from contextbase_litellm import (
-    configure,
-    set_defaults,
-    get_defaults,
-    enable,
-    disable,
-    is_enabled,
-    cleanup,
-    get_config,
-    is_configured,
-    reset_config,
-    contextbase_memory,
     MemoryInjectionMode,
+    cleanup,
+    configure,
+    contextbase_memory,
+    disable,
+    enable,
+    get_config,
+    get_defaults,
+    is_configured,
+    is_enabled,
+    reset_config,
+    set_defaults,
 )
 from contextbase_litellm.callbacks import ContextBaseCallback
 
@@ -719,7 +718,8 @@ class TestStreamingResponseHandling:
         and returns immediately, so the POST never lands on the server before
         a short-lived process exits — cross-process drop-in silently fails.
         """
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         import contextbase_litellm
 
         configure(contextbase_api_url="http://localhost:8888", sync_storage=True, store_conversations=True)
@@ -741,6 +741,7 @@ class TestStreamingResponseHandling:
     def test_sync_storage_streamed_forwards_sync_true_to_retain(self):
         """Regression: streamed sync_storage path must also pass sync=True."""
         from unittest.mock import patch
+
         import contextbase_litellm
 
         configure(contextbase_api_url="http://localhost:8888", sync_storage=True, store_conversations=True)
@@ -753,7 +754,8 @@ class TestStreamingResponseHandling:
 
     def test_wrapped_completion_returns_stream_wrapper(self):
         """Test that completion() wraps streaming responses for deferred storage."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _LiteLLMStreamWrapper
 
         configure(contextbase_api_url="http://localhost:8888", store_conversations=True)
@@ -795,6 +797,7 @@ class TestStreamingResponseHandling:
     def test_stream_wrapper_stores_conversation_on_exhaustion(self):
         """Test that _LiteLLMStreamWrapper stores conversation when stream is consumed."""
         from unittest.mock import patch
+
         from contextbase_litellm import _LiteLLMStreamWrapper
 
         configure(contextbase_api_url="http://localhost:8888", store_conversations=True)
@@ -817,6 +820,7 @@ class TestStreamingResponseHandling:
     def test_stream_wrapper_stores_on_context_manager_exit(self):
         """Test that _LiteLLMStreamWrapper stores conversation on context manager exit."""
         from unittest.mock import patch
+
         from contextbase_litellm import _LiteLLMStreamWrapper
 
         configure(contextbase_api_url="http://localhost:8888", store_conversations=True)
@@ -865,7 +869,8 @@ class TestStreamingSupport:
 
     def test_wrap_openai_with_stream_no_error(self):
         """Test that wrap_openai handles streaming without errors."""
-        from unittest.mock import Mock, MagicMock
+        from unittest.mock import MagicMock, Mock
+
         from contextbase_litellm.wrappers import wrap_openai
 
         # Create mock OpenAI client
@@ -897,7 +902,8 @@ class TestStreamingSupport:
 
     def test_wrap_anthropic_with_stream_no_error(self):
         """Test that wrap_anthropic handles streaming without errors."""
-        from unittest.mock import Mock, MagicMock
+        from unittest.mock import MagicMock, Mock
+
         from contextbase_litellm.wrappers import wrap_anthropic
 
         # Create mock Anthropic client
@@ -930,7 +936,8 @@ class TestStreamingSupport:
 
     def test_wrap_openai_stream_stores_conversation(self):
         """Test that streaming stores conversation after all chunks are consumed."""
-        from unittest.mock import Mock, MagicMock, patch
+        from unittest.mock import MagicMock, Mock, patch
+
         from contextbase_litellm.wrappers import wrap_openai
 
         # Create mock OpenAI client
@@ -959,8 +966,8 @@ class TestStreamingSupport:
         )
 
         # Mock the contextbase client
-        mock_hindsight_client = MagicMock()
-        with patch.object(wrapped, "_get_hindsight_client", return_value=mock_hindsight_client):
+        mock_contextbase_client = MagicMock()
+        with patch.object(wrapped, "_get_contextbase_client", return_value=mock_contextbase_client):
             # Call with stream=True
             result = wrapped.chat.completions.create(
                 model="gpt-4o-mini",
@@ -977,14 +984,15 @@ class TestStreamingSupport:
             assert len(collected) == 4
 
             # Verify retain was called with the complete conversation
-            mock_hindsight_client.retain.assert_called_once()
-            call_kwargs = mock_hindsight_client.retain.call_args[1]
+            mock_contextbase_client.retain.assert_called_once()
+            call_kwargs = mock_contextbase_client.retain.call_args[1]
             assert "USER: Hello" in call_kwargs["content"]
             assert "ASSISTANT: Hello world!" in call_kwargs["content"]
 
     def test_wrap_anthropic_stream_stores_conversation(self):
         """Test that streaming stores conversation after all chunks are consumed."""
-        from unittest.mock import Mock, MagicMock, patch
+        from unittest.mock import MagicMock, Mock, patch
+
         from contextbase_litellm.wrappers import wrap_anthropic
 
         # Create mock Anthropic client
@@ -1014,8 +1022,8 @@ class TestStreamingSupport:
         )
 
         # Mock the contextbase client
-        mock_hindsight_client = MagicMock()
-        with patch.object(wrapped, "_get_hindsight_client", return_value=mock_hindsight_client):
+        mock_contextbase_client = MagicMock()
+        with patch.object(wrapped, "_get_contextbase_client", return_value=mock_contextbase_client):
             # Call with stream=True
             result = wrapped.messages.create(
                 model="claude-sonnet-4-20250514",
@@ -1033,8 +1041,8 @@ class TestStreamingSupport:
             assert len(collected) == 4
 
             # Verify retain was called with the complete conversation
-            mock_hindsight_client.retain.assert_called_once()
-            call_kwargs = mock_hindsight_client.retain.call_args[1]
+            mock_contextbase_client.retain.assert_called_once()
+            call_kwargs = mock_contextbase_client.retain.call_args[1]
             assert "USER: Hello" in call_kwargs["content"]
             assert "ASSISTANT: Hello world!" in call_kwargs["content"]
 
@@ -1051,6 +1059,7 @@ class TestRecallNewParams:
     def test_recall_passes_include_entities(self):
         """recall() should forward include_entities to the client."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import recall
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1067,6 +1076,7 @@ class TestRecallNewParams:
     def test_recall_passes_trace(self):
         """recall() should forward trace to the client."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import recall
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1083,6 +1093,7 @@ class TestRecallNewParams:
     def test_recall_passes_recall_tags(self):
         """recall() should forward recall_tags and recall_tags_match to the client."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import recall
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1100,6 +1111,7 @@ class TestRecallNewParams:
     def test_recall_no_tags_key_when_empty(self):
         """recall() should not pass tags key when recall_tags is None."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import recall
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1116,6 +1128,7 @@ class TestRecallNewParams:
     def test_recall_inherits_include_entities_from_defaults(self):
         """recall() should inherit include_entities from set_defaults() if not overridden."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import recall
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1142,6 +1155,7 @@ class TestReflectNewParams:
     def test_reflect_passes_recall_tags(self):
         """reflect() should forward recall_tags and recall_tags_match to the client."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import reflect
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1162,6 +1176,7 @@ class TestReflectNewParams:
     def test_reflect_no_tags_key_when_empty(self):
         """reflect() should not pass tags key when recall_tags is None."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import reflect
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1304,6 +1319,7 @@ class TestInjectionMode:
     def test_system_message_injection_appends_to_existing_system(self):
         """SYSTEM_MESSAGE mode appends memories to an existing system message."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1331,6 +1347,7 @@ class TestInjectionMode:
     def test_system_message_injection_creates_system_when_absent(self):
         """SYSTEM_MESSAGE mode creates a new system message when none exists."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1354,6 +1371,7 @@ class TestInjectionMode:
     def test_prepend_user_injection_prepends_to_last_user_message(self):
         """PREPEND_USER mode prepends memories to the last user message."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1383,6 +1401,7 @@ class TestInjectionMode:
     def test_prepend_user_does_not_touch_system_message(self):
         """PREPEND_USER mode leaves existing system message untouched."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1427,6 +1446,7 @@ class TestInjectionPathPassesApiKey:
     def test_inject_path_passes_configured_api_key_to_get_client(self):
         """Configure with api_key + url → _inject_memories must call _get_client(url, api_key)."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(
@@ -1469,6 +1489,7 @@ class TestQueryField:
     def test_defaults_query_used_when_no_custom_query(self):
         """defaults.query is used as recall query when no contextbase_query kwarg given."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
         from contextbase_litellm.config import ContextBaseCallSettings
 
@@ -1498,6 +1519,7 @@ class TestQueryField:
     def test_custom_query_overrides_defaults_query(self):
         """custom_query parameter overrides defaults.query."""
         from unittest.mock import MagicMock, patch
+
         from contextbase_litellm import _inject_memories
 
         configure(contextbase_api_url="http://localhost:8888")
@@ -1520,7 +1542,7 @@ class TestQueryField:
 
 
 class TestContextBaseErrorConsistency:
-    """Tests that HindsightError (not ValueError) is raised for config errors."""
+    """Tests that ContextBaseError (not ValueError) is raised for config errors."""
 
     def setup_method(self):
         reset_config()
@@ -1529,21 +1551,21 @@ class TestContextBaseErrorConsistency:
         cleanup()
 
     def test_inject_memories_raises_contextbase_error_when_no_bank_id(self):
-        """_inject_memories raises HindsightError (not ValueError) when bank_id missing."""
-        from contextbase_litellm import HindsightError, _inject_memories
-        from contextbase_litellm.callbacks import HindsightError as CallbackContextBaseError
+        """_inject_memories raises ContextBaseError (not ValueError) when bank_id missing."""
+        from contextbase_litellm import ContextBaseError, _inject_memories
+        from contextbase_litellm.callbacks import ContextBaseError as CallbackContextBaseError
 
         configure(contextbase_api_url="http://localhost:8888")
         # No bank_id set
 
         messages = [{"role": "user", "content": "Hello"}]
 
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             _inject_memories(messages)
 
     def test_callback_log_pre_api_call_raises_contextbase_error_when_no_bank_id(self):
-        """ContextBaseCallback.log_pre_api_call raises HindsightError (not ValueError)."""
-        from contextbase_litellm.callbacks import ContextBaseCallback, HindsightError
+        """ContextBaseCallback.log_pre_api_call raises ContextBaseError (not ValueError)."""
+        from contextbase_litellm.callbacks import ContextBaseCallback, ContextBaseError
 
         configure(contextbase_api_url="http://localhost:8888")
         # No bank_id set
@@ -1551,7 +1573,7 @@ class TestContextBaseErrorConsistency:
         callback = ContextBaseCallback()
         messages = [{"role": "user", "content": "Hello"}]
 
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             callback.log_pre_api_call("gpt-4o-mini", messages, {})
 
 
@@ -1628,18 +1650,18 @@ class TestContextManagerFullRestore:
 
 
 class TestSetBankMission:
-    """set_bank_mission() configures a bank's mission via hindsight-client."""
+    """set_bank_mission() configures a bank's mission via contextbase-client."""
 
     def test_requires_bank_id_when_not_configured(self):
-        """Raises HindsightError if no bank_id can be resolved."""
-        from contextbase_litellm import HindsightError, reset_config, set_bank_mission
+        """Raises ContextBaseError if no bank_id can be resolved."""
+        from contextbase_litellm import ContextBaseError, reset_config, set_bank_mission
 
         reset_config()
-        with pytest.raises(HindsightError, match="bank_id"):
+        with pytest.raises(ContextBaseError, match="bank_id"):
             set_bank_mission("Some mission")
 
     def test_forwards_to_contextbase_client_create_bank(self):
-        """Calls Hindsight.create_bank with the resolved bank_id, name, and mission."""
+        """Calls ContextBase.create_bank with the resolved bank_id, name, and mission."""
         from unittest.mock import MagicMock, patch
 
         from contextbase_litellm import configure, set_bank_mission, set_defaults
@@ -1648,7 +1670,7 @@ class TestSetBankMission:
         set_defaults(bank_id="agent-7")
 
         mock_client = MagicMock()
-        with patch("hindsight_client.Hindsight", return_value=mock_client):
+        with patch("contextbase_client.ContextBase", return_value=mock_client):
             set_bank_mission(
                 "Remember user preferences across conversations.",
                 name="Pref Agent",
@@ -1670,25 +1692,25 @@ class TestSetBankMission:
         set_defaults(bank_id="default-bank")
 
         mock_client = MagicMock()
-        with patch("hindsight_client.Hindsight", return_value=mock_client):
+        with patch("contextbase_client.ContextBase", return_value=mock_client):
             set_bank_mission("override mission", bank_id="other-bank")
 
         called_kwargs = mock_client.create_bank.call_args.kwargs
         assert called_kwargs["bank_id"] == "other-bank"
 
     def test_wraps_client_failure_in_contextbase_error(self):
-        """Underlying client errors are re-raised as HindsightError."""
+        """Underlying client errors are re-raised as ContextBaseError."""
         from unittest.mock import MagicMock, patch
 
-        from contextbase_litellm import HindsightError, configure, set_bank_mission, set_defaults
+        from contextbase_litellm import ContextBaseError, configure, set_bank_mission, set_defaults
 
         configure(contextbase_api_url="http://localhost:8888")
         set_defaults(bank_id="agent-7")
 
         mock_client = MagicMock()
         mock_client.create_bank.side_effect = RuntimeError("server unavailable")
-        with patch("hindsight_client.Hindsight", return_value=mock_client):
-            with pytest.raises(HindsightError, match="server unavailable"):
+        with patch("contextbase_client.ContextBase", return_value=mock_client):
+            with pytest.raises(ContextBaseError, match="server unavailable"):
                 set_bank_mission("a mission")
 
 
@@ -1847,13 +1869,13 @@ class TestWrapperClose:
         )
         # Force the lazy ContextBase client into existence.
         fake_hs = MagicMock()
-        wrapped._hindsight_client = fake_hs
+        wrapped._contextbase_client = fake_hs
 
         wrapped.close()
 
         fake_hs.close.assert_called_once()
         mock_client.close.assert_called_once()
-        assert wrapped._hindsight_client is None
+        assert wrapped._contextbase_client is None
 
     def test_close_is_idempotent(self):
         from unittest.mock import Mock
@@ -1864,7 +1886,7 @@ class TestWrapperClose:
         wrapped = wrap_openai(mock_client, contextbase_api_url="http://localhost:8888", bank_id="b")
         wrapped.close()
         wrapped.close()  # second call must not raise
-        assert wrapped._hindsight_client is None
+        assert wrapped._contextbase_client is None
 
     def test_close_without_underlying_close_is_safe(self):
         from unittest.mock import MagicMock
@@ -1886,8 +1908,8 @@ class TestWrapperClose:
 
         mock_client = Mock()
         with wrap_openai(mock_client, contextbase_api_url="http://localhost:8888", bank_id="b") as wrapped:
-            wrapped._hindsight_client = MagicMock()
-            hs = wrapped._hindsight_client
+            wrapped._contextbase_client = MagicMock()
+            hs = wrapped._contextbase_client
         hs.close.assert_called_once()
         mock_client.close.assert_called_once()
 
@@ -1899,11 +1921,11 @@ class TestWrapperClose:
         mock_client = Mock()
         wrapped = wrap_anthropic(mock_client, contextbase_api_url="http://localhost:8888", bank_id="b")
         fake_hs = MagicMock()
-        wrapped._hindsight_client = fake_hs
+        wrapped._contextbase_client = fake_hs
         wrapped.close()
         fake_hs.close.assert_called_once()
         mock_client.close.assert_called_once()
-        assert wrapped._hindsight_client is None
+        assert wrapped._contextbase_client is None
 
 
 class TestWrapBankSetupOwnsLoop:
@@ -1916,7 +1938,7 @@ class TestWrapBankSetupOwnsLoop:
 
         with (
             patch("contextbase_litellm.wrappers.ensure_loop") as mock_ensure,
-            patch("hindsight_client.Hindsight") as mock_hs,
+            patch("contextbase_client.ContextBase") as mock_hs,
         ):
             wrap_openai(
                 Mock(),
@@ -1935,7 +1957,7 @@ class TestWrapBankSetupOwnsLoop:
 
         with (
             patch("contextbase_litellm.wrappers.ensure_loop") as mock_ensure,
-            patch("hindsight_client.Hindsight") as mock_hs,
+            patch("contextbase_client.ContextBase") as mock_hs,
         ):
             wrap_anthropic(
                 Mock(),
@@ -1952,7 +1974,7 @@ class TestWrapBankSetupOwnsLoop:
 
         from contextbase_litellm.wrappers import wrap_openai
 
-        with patch("hindsight_client.Hindsight") as mock_hs:
+        with patch("contextbase_client.ContextBase") as mock_hs:
             wrap_openai(Mock(), contextbase_api_url="http://localhost:8888", bank_id="b")
         mock_hs.assert_not_called()
 
@@ -1973,10 +1995,10 @@ class TestDeterministicInjectionFlow:
         cleanup()
 
     def test_completion_injects_recalled_memory_into_llm_messages(self):
-        import litellm
         from unittest.mock import MagicMock, patch
 
         import contextbase_litellm
+        import litellm
 
         configure(contextbase_api_url="http://localhost:8888", store_conversations=False)
         set_defaults(bank_id="t")

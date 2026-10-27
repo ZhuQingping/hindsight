@@ -10,12 +10,11 @@ import asyncio
 import random
 
 import pytest
-
-from hindsight_client.hindsight_client import (
+from contextbase_client.contextbase_client import (
     _retry_after_seconds,
     _retry_on_capacity,
 )
-from hindsight_client_api.exceptions import ApiException
+from contextbase_client_api.exceptions import ApiException
 
 
 def _at_capacity(status: int = 503, retry_after: str | None = "2") -> ApiException:
@@ -115,7 +114,7 @@ class TestRetryBehaviour:
         async def fake_sleep(seconds):
             slept.append(seconds)
 
-        monkeypatch.setattr("hindsight_client.hindsight_client.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("contextbase_client.contextbase_client.asyncio.sleep", fake_sleep)
 
         async def call():
             raise _at_capacity(503, "4")
@@ -143,7 +142,7 @@ async def test_cancel_during_backoff_does_not_send_again(status: int, monkeypatc
         calls += 1
         raise _at_capacity(status, "30")
 
-    monkeypatch.setattr("hindsight_client.hindsight_client.asyncio.sleep", observed_sleep)
+    monkeypatch.setattr("contextbase_client.contextbase_client.asyncio.sleep", observed_sleep)
     task = asyncio.create_task(_retry_on_capacity(send, 3, random.Random(0)))
     try:
         await asyncio.wait_for(entered_sleep.wait(), timeout=1)

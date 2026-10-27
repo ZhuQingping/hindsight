@@ -35,7 +35,7 @@ COPY hindsight-control-plane ./hindsight-control-plane/
 COPY hindsight-extensions/contextdb-service ./hindsight-extensions/contextdb-service/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package hindsight-api-slim --no-dev \
-    && npm run build -w @vectorize-io/hindsight-client
+    && npm run build -w contextbase-client
 ENV PYTHONPATH=/app/hindsight-extensions/contextdb-service:/app/hindsight-api-slim
 RUN /app/.venv/bin/python -m hindsight_ext_contextdb build-ui --source-root /app
 

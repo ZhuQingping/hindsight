@@ -11,8 +11,8 @@ from urllib.parse import quote
 
 import httpx
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
@@ -56,9 +56,11 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
             json={"name": "All future spaces", "authorization": {"mode": "all", "permission": "read"}},
         )
         assert all_issued.status_code == 201, all_issued.text
-        all_spaces = Hindsight(base_url=base, api_key=all_issued.json()["secret"])
-        member = Hindsight(base_url=base, api_key=key["secret"])
-        admin = Hindsight(base_url=base, api_key=contextdb_deployment.headers["Authorization"].removeprefix("Bearer "))
+        all_spaces = ContextBase(base_url=base, api_key=all_issued.json()["secret"])
+        member = ContextBase(base_url=base, api_key=key["secret"])
+        admin = ContextBase(
+            base_url=base, api_key=contextdb_deployment.headers["Authorization"].removeprefix("Bearer ")
+        )
         try:
             llm.on_step("extract_facts", contains="RecreateSentinel").returns(
                 extracted(fact("Alice builds RecreateSentinel", who="Alice", entities=["Alice", "RecreateSentinel"]))
@@ -121,7 +123,7 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
 async def test_deleted_user_name_can_be_reused_without_inheriting_old_credentials(
     contextdb_deployment: ContextDBDeployment,
 ) -> None:
-    from hindsight_client_api.exceptions import UnauthorizedException
+    from contextbase_client_api.exceptions import UnauthorizedException
 
     deployment = contextdb_deployment
     base = deployment.server.url
@@ -137,7 +139,7 @@ async def test_deleted_user_name_can_be_reused_without_inheriting_old_credential
             json={"name": "Old user key", "authorization": {"mode": "all", "permission": "read"}},
         )
         assert issued.status_code == 201, issued.text
-        old = Hindsight(base_url=base, api_key=issued.json()["secret"])
+        old = ContextBase(base_url=base, api_key=issued.json()["secret"])
         try:
             await old.banks.list_banks(limit=1)
             removed = await management.delete(f"/users/{original['user_id']}")

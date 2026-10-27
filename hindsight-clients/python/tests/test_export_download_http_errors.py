@@ -3,9 +3,8 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ApiException
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ApiException
 
 OPERATION_ID = "123e4567-e89b-12d3-a456-426614174000"
 ARCHIVE = b"PK\x03\x04archive"
@@ -34,7 +33,7 @@ async def test_relative_export_download_validates_http_status(export_method: str
     app = web.Application()
     app.router.add_route("*", "/{path:.*}", handler)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")).rstrip("/"), api_key="test-key")
+        client = ContextBase(base_url=str(server.make_url("")).rstrip("/"), api_key="test-key")
         try:
             if download_status == 200:
                 assert await getattr(client, export_method)("test", poll_interval=0) == ARCHIVE

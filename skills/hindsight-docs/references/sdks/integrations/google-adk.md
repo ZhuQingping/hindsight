@@ -157,4 +157,4 @@ You can use both at once — `Runner(memory_service=HindsightMemoryService(...))
 
 - Python 3.10+
 - `google-adk>=2.0`
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`

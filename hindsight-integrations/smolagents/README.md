@@ -193,7 +193,7 @@ tools = create_contextbase_tools(bank_id="user-123")
 
 - Python >= 3.10
 - smolagents
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running ContextBase API server
 
 ## License

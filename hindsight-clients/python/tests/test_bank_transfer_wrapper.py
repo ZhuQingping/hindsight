@@ -9,8 +9,7 @@ covered by the API's own test_document_transfer.py.
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 OPERATION_ID = "123e4567-e89b-12d3-a456-426614174000"
 STORAGE_KEY = f"banks/my-bank/exports/{OPERATION_ID}/transfer.zip"
@@ -19,7 +18,7 @@ ARCHIVE_BYTES = b"PK\x03\x04 fake zip bytes"
 
 
 def _make_client():
-    return Hindsight(base_url="http://localhost:8888")
+    return ContextBase(base_url="http://localhost:8888")
 
 
 def _status(status, result_metadata=None, error_message=None):
@@ -78,9 +77,7 @@ async def test_export_bank_forwards_a_narrowed_scope():
 async def test_export_bank_raises_on_failed_operation():
     client = _make_client()
     client._bank_transfer_api.export_bank_transfer = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
-    client._operations_api.get_operation_status = AsyncMock(
-        return_value=_status("failed", error_message="disk full")
-    )
+    client._operations_api.get_operation_status = AsyncMock(return_value=_status("failed", error_message="disk full"))
 
     with pytest.raises(RuntimeError, match="disk full"):
         await client.aexport_bank("my-bank", poll_interval=0)

@@ -40,4 +40,4 @@ Disable or remove the plugin through Claude Code. If you ran `setup_hooks.py`, r
 
 ## Development
 
-Run `pytest tests/`. Local-engine implementation files remain in the repository for internal development; customer archives exclude them. The server, local engine, Web console, SDK and Helm Chart are outside this client release.
+Run `pytest tests/`. Local-engine implementation files remain in the repository for internal development; customer archives exclude them. Python and Node.js SDKs have separate artifact jobs. The server, local engine, Web console and Helm Chart are outside this client release.

@@ -1,7 +1,7 @@
 import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 /**
  * Clone a bank into a new one.

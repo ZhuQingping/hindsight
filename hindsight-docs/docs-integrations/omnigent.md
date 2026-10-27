@@ -8,7 +8,7 @@ description: "Give every harness you run in Omnigent persistent memory. One Cont
 
 Persistent long-term memory for every harness in [Omnigent](https://github.com/omnigent-ai/omnigent) — the meta-harness that wraps and coordinates multiple AI agents (Claude Code, Codex, Cursor, OpenCode, Hermes, Pi, and more).
 
-Omnigent ships three built-in memory tools — `contextbase_recall`, `contextbase_retain`, and `contextbase_reflect` — that Omnigent intercepts and executes locally using `hindsight-client`. Because the tools live in the Omnigent runner rather than in each harness, every wrapped agent gets memory regardless of whether it has native ContextBase support.
+Omnigent ships three built-in memory tools — `contextbase_recall`, `contextbase_retain`, and `contextbase_reflect` — that Omnigent intercepts and executes locally using `contextbase-client`. Because the tools live in the Omnigent runner rather than in each harness, every wrapped agent gets memory regardless of whether it has native ContextBase support.
 
 ## Installation
 
@@ -47,7 +47,7 @@ Restart your agent — the three tools will appear in its tool list.
 
 ## How It Works
 
-Omnigent intercepts `contextbase_*` calls at the runner level before they reach the wrapped harness, executes them locally via `hindsight-client`, and returns the result. This means:
+Omnigent intercepts `contextbase_*` calls at the runner level before they reach the wrapped harness, executes them locally via `contextbase-client`, and returns the result. This means:
 
 - **Wrapped harnesses** (Claude Code, Codex, Cursor, Pi…) never need to handle the call; the runner does it.
 - **Native harnesses** (when running agents in native mode) have the tools relayed to them as well.

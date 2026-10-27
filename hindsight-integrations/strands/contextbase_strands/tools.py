@@ -32,11 +32,11 @@ def _run_in_thread(fn: Any, *args: Any, **kwargs: Any) -> Any:
     return _executor.submit(fn, *args, **kwargs).result()
 
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from strands import tool
 
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class ContextBaseTools(list):
     """List-compatible container for Strands tools with optional client cleanup."""
 
-    def __init__(self, tools: list[Any], client: Hindsight, owns_client: bool):
+    def __init__(self, tools: list[Any], client: ContextBase, owns_client: bool):
         super().__init__(tools)
         self._client = client
         self._owns_client = owns_client
@@ -78,10 +78,10 @@ class ContextBaseTools(list):
 
 
 def _resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> tuple[Hindsight, bool]:
+) -> tuple[ContextBase, bool]:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client, False
@@ -91,7 +91,7 @@ def _resolve_client(
     key = api_key or (config.api_key if config else None)
 
     if url is None:
-        raise HindsightError(
+        raise ContextBaseError(
             "No ContextBase API URL configured. Pass client= or contextbase_api_url=, or call configure() first."
         )
 
@@ -100,13 +100,13 @@ def _resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs), True
+    return ContextBase(**kwargs), True
 
 
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: str = "mid",
@@ -142,7 +142,7 @@ def create_contextbase_tools(
         A list of Strands tool functions.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client, owns_client = _resolve_client(client, contextbase_api_url, api_key)
 
@@ -183,11 +183,11 @@ def create_contextbase_tools(
                     retain_kwargs["tags"] = effective_tags
                 _run_in_thread(resolved_client.retain, **retain_kwargs)
                 return "Memory stored successfully."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Retain failed: {e}")
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(contextbase_retain)
 
@@ -217,11 +217,11 @@ def create_contextbase_tools(
                 for i, result in enumerate(response.results, 1):
                     lines.append(f"{i}. {result.text}")
                 return "\n".join(lines)
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Recall failed: {e}")
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(contextbase_recall)
 
@@ -242,11 +242,11 @@ def create_contextbase_tools(
                 }
                 response = _run_in_thread(resolved_client.reflect, **reflect_kwargs)
                 return response.text or "No relevant memories found."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Reflect failed: {e}")
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(contextbase_reflect)
 
@@ -256,7 +256,7 @@ def create_contextbase_tools(
 def memory_instructions(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     query: str = "relevant context about the user",
@@ -290,7 +290,7 @@ def memory_instructions(
         A formatted string of memories, or empty string if none found.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client, owns_client = _resolve_client(client, contextbase_api_url, api_key)
 

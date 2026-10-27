@@ -182,7 +182,7 @@ class ContextBaseRuntimeAdapter:
             return ""
 
         if self._verbose:
-            logger.info("[Hindsight] Recalling from bank '%s'", bank_id)
+            logger.info("[ContextBase] Recalling from bank '%s'", bank_id)
 
         try:
             client = self._get_client()
@@ -211,7 +211,7 @@ class ContextBaseRuntimeAdapter:
 
         except Exception:
             # Graceful degradation — memory is enhancement, not infrastructure
-            logger.warning("[Hindsight] Recall failed — continuing without memory", exc_info=True)
+            logger.warning("[ContextBase] Recall failed — continuing without memory", exc_info=True)
             return ""
 
     async def after_turn(
@@ -316,11 +316,11 @@ class ContextBaseRuntimeAdapter:
     def _get_client(self) -> Any:
         """Return a lazily-initialized ContextBase client."""
         if self._client is None:
-            from hindsight_client import Hindsight  # type: ignore[import]
+            from contextbase_client import ContextBase  # type: ignore[import]
 
             if not self._api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            self._client = Hindsight(
+            self._client = ContextBase(
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=self._timeout,
@@ -351,7 +351,7 @@ class ContextBaseRuntimeAdapter:
         metadata = {**context.as_metadata(), **policy.extra_metadata}
 
         if self._verbose:
-            logger.info("[Hindsight] Retaining to bank '%s'", bank_id)
+            logger.info("[ContextBase] Retaining to bank '%s'", bank_id)
 
         try:
             client = self._get_client()
@@ -367,7 +367,7 @@ class ContextBaseRuntimeAdapter:
             )
         except Exception:
             # Never surface retention failures to the user turn
-            logger.warning("[Hindsight] Retain failed — memory not stored", exc_info=True)
+            logger.warning("[ContextBase] Retain failed — memory not stored", exc_info=True)
 
 
 def _format_memories(results: list[Any]) -> str:

@@ -16,8 +16,7 @@ right either way, and it is the wire payload the server reads.
 from unittest.mock import MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 # The fields whose model default is not None — the ones that leaked into every
 # request before the wrapper started blanking them.
@@ -33,8 +32,8 @@ def _capture(monkeypatch, api, method, captured):
     monkeypatch.setattr(api, method, fake)
 
 
-def _client() -> Hindsight:
-    return Hindsight(base_url="http://example.invalid")
+def _client() -> ContextBase:
+    return ContextBase(base_url="http://example.invalid")
 
 
 def test_update_mental_model_sends_only_the_named_setting(monkeypatch):

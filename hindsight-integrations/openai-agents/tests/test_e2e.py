@@ -21,8 +21,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from contextbase_openai_agents import create_contextbase_tools, memory_instructions
 
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -69,7 +68,7 @@ async def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest_asyncio.fixture
 async def live():
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"openai-agents-e2e-{uuid.uuid4().hex[:8]}"
     await client.acreate_bank(bank_id, name=f"OpenAI Agents E2E {bank_id}")
     try:

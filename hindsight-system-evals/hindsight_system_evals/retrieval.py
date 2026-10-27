@@ -47,8 +47,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals.beir import BeirQuery, BeirSlice, load_beir_slice
 from hindsight_system_evals.retrieval_metrics import QueryScore, RunScore, aggregate, score_query
 
@@ -122,7 +121,7 @@ def read_manifest() -> Manifest | None:
     return Manifest(**json.loads(BANK_MANIFEST.read_text(encoding="utf-8")))
 
 
-async def build_bank(client: Hindsight, sliced: BeirSlice, drain: SettleFn) -> bytes:
+async def build_bank(client: ContextBase, sliced: BeirSlice, drain: SettleFn) -> bytes:
     """Retain every document with real extraction and export the bank as an archive.
 
     The corpus id becomes `document_id`, which is what makes scoring possible at
@@ -175,7 +174,7 @@ def _write_manifest(sliced: BeirSlice, facts: int) -> None:
     BANK_MANIFEST.write_text(json.dumps(manifest.__dict__, indent=1) + "\n", encoding="utf-8")
 
 
-async def _drain(client: Hindsight, bank_id: str, timeout: float = 7200) -> None:
+async def _drain(client: ContextBase, bank_id: str, timeout: float = 7200) -> None:
     """Wait until nothing is queued, then fail on anything that ended failed.
 
     Not `wait_until_settled`: that gives up on the first operation carrying an
@@ -206,7 +205,7 @@ async def _drain(client: Hindsight, bank_id: str, timeout: float = 7200) -> None
 # --------------------------------------------------------------------------- #
 
 
-async def restore_bank(client: Hindsight, host_bank: str, settled: SettleFn) -> str:
+async def restore_bank(client: ContextBase, host_bank: str, settled: SettleFn) -> str:
     """Restore the frozen archive into a fresh bank and wait for the re-embedding.
 
     The import operation is recorded against an existing bank while the target
@@ -239,7 +238,7 @@ _STABLE_READINGS = 3
 _STABLE_INTERVAL_SECONDS = 4.0
 
 
-async def _await_full_restore(client: Hindsight, bank_id: str) -> None:
+async def _await_full_restore(client: ContextBase, bank_id: str) -> None:
     """Block until the restore has stopped changing what `recall` can see.
 
     Two waits, because neither alone is enough and both were learned the hard way.
@@ -294,7 +293,7 @@ async def _await_full_restore(client: Hindsight, bank_id: str) -> None:
     )
 
 
-async def score(client: Hindsight, bank_id: str, sliced: BeirSlice) -> RunScore:
+async def score(client: ContextBase, bank_id: str, sliced: BeirSlice) -> RunScore:
     """Recall each query once and score the document ranking it produced."""
     semaphore = asyncio.Semaphore(QUERY_CONCURRENCY)
 
@@ -403,7 +402,7 @@ async def _build(out: Path, api_url: str, api_key: str | None) -> None:
     """
     sliced = load_beir_slice()
     print(f"building from {sliced.describe()} against {api_url}, extraction={BUILD_EXTRACTION_MODE}")
-    client = Hindsight(base_url=api_url, api_key=api_key, timeout=1800)
+    client = ContextBase(base_url=api_url, api_key=api_key, timeout=1800)
     try:
         archive = await build_bank(client, sliced, lambda bank: _drain(client, bank))
     finally:

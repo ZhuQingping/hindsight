@@ -18,11 +18,10 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.api.bank_transfer_api import BankTransferApi
-from hindsight_client_api.api.document_transfer_api import DocumentTransferApi
-from hindsight_client_api.exceptions import ForbiddenException
-
+from contextbase_client import ContextBase
+from contextbase_client_api.api.bank_transfer_api import BankTransferApi
+from contextbase_client_api.api.document_transfer_api import DocumentTransferApi
+from contextbase_client_api.exceptions import ForbiddenException
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.waiting import wait_until_settled
 
@@ -30,10 +29,10 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture
-async def banks(scoped_server, llm, bank_id) -> AsyncIterator[tuple[Hindsight, str, str]]:
+async def banks(scoped_server, llm, bank_id) -> AsyncIterator[tuple[ContextBase, str, str]]:
     """An admin client, the key's own bank (``bank_id``, holding one document) and a neighbour
     bank that already exists but is empty."""
-    admin = Hindsight(base_url=scoped_server.url)
+    admin = ContextBase(base_url=scoped_server.url)
     neighbour = f"systest-{uuid.uuid4().hex[:12]}"
     llm.on_step("extract_facts").returns(extracted(fact("Alice moved to Berlin", who="Alice", entities=["Alice"])))
     llm.on_step("consolidate").returns(consolidation())
@@ -48,7 +47,7 @@ async def banks(scoped_server, llm, bank_id) -> AsyncIterator[tuple[Hindsight, s
 async def test_a_bank_scoped_key_imports_only_into_its_own_bank(scoped_server, banks):
     admin, own, neighbour = banks
     archive = await admin.aexport_documents(bank_id=own)
-    scoped = Hindsight(base_url=scoped_server.url, api_key=f"bank:{own}")
+    scoped = ContextBase(base_url=scoped_server.url, api_key=f"bank:{own}")
     documents = DocumentTransferApi(scoped.documents.api_client)
     transfer = BankTransferApi(scoped.documents.api_client)
     try:

@@ -7,7 +7,7 @@ would silently restore the entity substitution the flag exists to prevent (#3479
 
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_retain(monkeypatch, client, captured):
@@ -19,7 +19,7 @@ def _capture_retain(monkeypatch, client, captured):
 
 
 def test_retain_threads_resolve_entities(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -34,7 +34,7 @@ def test_retain_threads_resolve_entities(monkeypatch):
 
 
 def test_retain_resolve_entities_defaults_to_resolving(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -45,7 +45,7 @@ def test_retain_resolve_entities_defaults_to_resolving(monkeypatch):
 
 
 def test_retain_batch_passes_resolve_entities_through(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 

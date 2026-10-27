@@ -210,7 +210,7 @@ tools = [ContextBaseTools(bank_id="user-123")]
 
 - Python >= 3.10
 - agno
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running ContextBase API server
 
 ## License

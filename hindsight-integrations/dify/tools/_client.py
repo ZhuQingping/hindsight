@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _plugin_version() -> str:
@@ -22,7 +22,7 @@ def _plugin_version() -> str:
 USER_AGENT = f"contextbase-dify/{_plugin_version()}"
 
 
-def build_client(credentials: dict[str, Any]) -> Hindsight:
+def build_client(credentials: dict[str, Any]) -> ContextBase:
     """Construct a ContextBase client from the provider credentials dict."""
     api_url = (credentials.get("api_url") or "").rstrip("/")
     api_key = credentials.get("api_key") or None
@@ -32,7 +32,7 @@ def build_client(credentials: dict[str, Any]) -> Hindsight:
         kwargs["api_key"] = api_key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 def parse_tags(value: str | None) -> list[str] | None:

@@ -7,7 +7,7 @@ import type { MoltbotPluginAPI, ServiceConfig } from "./types.js";
 let directory: string;
 let service: ServiceConfig;
 let hook: Parameters<MoltbotPluginAPI["on"]>[1];
-let Client: typeof import("@vectorize-io/hindsight-client").HindsightClient;
+let Client: typeof import("contextbase-client").ContextBaseClient;
 const memory = { results: [{ id: "fixture", text: "A fixture observation", type: "observation" }] };
 const ctx = {
   agentId: "main",
@@ -23,7 +23,7 @@ function recall() {
 beforeEach(async () => {
   // Start with the actual never-started module state, not a stopped generation.
   vi.resetModules();
-  Client = (await import("@vectorize-io/hindsight-client")).HindsightClient;
+  Client = (await import("contextbase-client")).ContextBaseClient;
   const plugin = (await import("./index.js")).default;
   directory = mkdtempSync(join(tmpdir(), "contextbase-recall-lazy-"));
   vi.stubGlobal(

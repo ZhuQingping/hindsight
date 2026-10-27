@@ -41,7 +41,7 @@ Install the ContextBase Python client:
 
 
 ```python
-!pip install hindsight-client nest_asyncio python-dotenv -U
+!pip install contextbase-client nest_asyncio python-dotenv -U
 ```
 
 ## Connect to ContextBase
@@ -65,9 +65,9 @@ load_dotenv()
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url=CONTEXTBASE_API_URL)
+client = ContextBase(base_url=CONTEXTBASE_API_URL)
 ```
 
 ## Retain: Store Information

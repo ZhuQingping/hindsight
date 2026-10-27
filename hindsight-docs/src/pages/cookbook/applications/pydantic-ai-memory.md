@@ -115,9 +115,9 @@ python personal_assistant.py --reset
 ### 1. Create a ContextBase Client
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 ```
 
 ### 2. Create Memory Tools

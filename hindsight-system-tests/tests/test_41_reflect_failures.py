@@ -21,8 +21,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from hindsight_client_api.exceptions import ApiException, ServiceException
-
+from contextbase_client_api.exceptions import ApiException, ServiceException
 from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
@@ -57,7 +56,6 @@ async def test_a_model_that_never_calls_a_tool_is_an_error(client, llm, bank_wit
     assert json.loads(raised.value.body) == {
         "detail": "The service could not complete the operation. Contact your service administrator."
     }
-
 
 
 async def test_an_empty_answer_is_an_error_rather_than_an_empty_result(client, llm, bank_with_facts):

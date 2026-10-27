@@ -131,13 +131,13 @@ ContextBaseMemoryService.from_url(contextbase_api_url="http://localhost:8888")
 
 ## Error Handling
 
-All `add_*` and `search_memory` methods are resilient: ContextBase failures are logged but never propagate to the `Runner`. The explicit tools raise `HindsightError` on failure so the agent can react.
+All `add_*` and `search_memory` methods are resilient: ContextBase failures are logged but never propagate to the `Runner`. The explicit tools raise `ContextBaseError` on failure so the agent can react.
 
 ## Requirements
 
 - Python 3.10+
 - `google-adk>=2.0`
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`
 
 ## License
 

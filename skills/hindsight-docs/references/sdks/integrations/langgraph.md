@@ -26,12 +26,12 @@ The tools pattern creates standard LangChain `@tool` functions that work with an
 **With LangGraph (recommended):**
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import create_hindsight_tools
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 tools = create_hindsight_tools(client=client, bank_id="user-123")
 
 agent = create_react_agent(ChatOpenAI(model="gpt-4o"), tools=tools)
@@ -44,11 +44,11 @@ result = await agent.ainvoke(
 **With plain LangChain:**
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import create_hindsight_tools
 from langchain_openai import ChatOpenAI
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 tools = create_hindsight_tools(client=client, bank_id="user-123")
 
 model = ChatOpenAI(model="gpt-4o").bind_tools(tools)
@@ -68,11 +68,11 @@ The agent gets three tools it can call:
 Add recall and retain nodes to your graph for automatic memory injection and storage.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import create_recall_node, create_retain_node
 from langgraph.graph import StateGraph, MessagesState, START, END
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 recall = create_recall_node(client=client, bank_id="user-123")
 retain = create_retain_node(client=client, bank_id="user-123")
@@ -97,10 +97,10 @@ The recall node extracts the latest user message, searches Hindsight, and inject
 Use Hindsight as a LangGraph `BaseStore` for cross-thread persistent memory with semantic search.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import HindsightStore
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 store = HindsightStore(client=client)
 
 graph = builder.compile(checkpointer=checkpointer, store=store)
@@ -224,7 +224,7 @@ recall = create_recall_node(
 
 ### Error Handling
 
-- **Tools** raise `HindsightError` on failure, which surfaces to the agent as a tool error.
+- **Tools** raise `ContextBaseError` on failure, which surfaces to the agent as a tool error.
 - **Nodes** silently log errors and return empty messages, so a Hindsight outage does not crash your graph.
 
 ## API Reference
@@ -310,5 +310,5 @@ recall = create_recall_node(
 
 - Python >= 3.10
 - langchain-core >= 0.3.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - langgraph >= 0.3.0 *(only for nodes and store patterns — install with `pip install hindsight-langgraph[langgraph]`)*

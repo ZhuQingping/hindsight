@@ -57,10 +57,10 @@ pytestmark = [requires_contextbase, pytest.mark.requires_real_llm]
 
 @pytest.fixture
 def live():
-    """Yield (hindsight_client, bank_id) backed by a freshly-created test bank."""
-    from hindsight_client import Hindsight
+    """Yield (contextbase_client, bank_id) backed by a freshly-created test bank."""
+    from contextbase_client import ContextBase
 
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"cursor-e2e-{uuid.uuid4().hex[:8]}"
     client.create_bank(bank_id, name=f"Cursor E2E {bank_id}")
     try:

@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 /**
- * Mental Models API examples for Hindsight (Node.js)
+ * Mental Models API examples for ContextBase (Node.js)
  * Run: node examples/api/mental-models.mjs
  */
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from "contextbase-client";
 
-const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
-const BANK_ID = 'mental-models-demo-bank';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
+const BANK_ID = "mental-models-demo-bank";
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
-await client.createBank(BANK_ID, { name: 'Mental Models Demo' });
-await client.retain(BANK_ID, 'The team prefers async communication via Slack');
-await client.retain(BANK_ID, 'For urgent issues, use the #incidents channel');
-await client.retain(BANK_ID, 'Weekly syncs happen every Monday at 10am');
-await new Promise(r => setTimeout(r, 2000));
+const client = new ContextBaseClient({ baseUrl: CONTEXTBASE_URL });
+await client.createBank(BANK_ID, { name: "Mental Models Demo" });
+await client.retain(BANK_ID, "The team prefers async communication via Slack");
+await client.retain(BANK_ID, "For urgent issues, use the #incidents channel");
+await client.retain(BANK_ID, "Weekly syncs happen every Monday at 10am");
+await new Promise((r) => setTimeout(r, 2000));
 
 // =============================================================================
 // Doc Examples
@@ -25,10 +25,10 @@ await new Promise(r => setTimeout(r, 2000));
 // [docs:create-mental-model]
 // Create a mental model (runs reflect in background)
 const result = await client.createMentalModel(
-    BANK_ID,
-    'Team Communication Preferences',
-    'How does the team prefer to communicate?',
-    { tags: ['team', 'communication'] },
+  BANK_ID,
+  "Team Communication Preferences",
+  "How does the team prefer to communicate?",
+  { tags: ["team", "communication"] }
 );
 
 // Returns an operation_id — check operations endpoint for completion
@@ -38,24 +38,24 @@ console.log(`Operation ID: ${result.operation_id}`);
 // [docs:create-mental-model-with-id]
 // Create a mental model with a specific custom ID
 const resultWithId = await client.createMentalModel(
-    BANK_ID,
-    'Communication Policy',
-    "What are the team's communication guidelines?",
-    { id: 'communication-policy' },
+  BANK_ID,
+  "Communication Policy",
+  "What are the team's communication guidelines?",
+  { id: "communication-policy" }
 );
 
 console.log(`Created with custom ID: ${resultWithId.operation_id}`);
 // [/docs:create-mental-model-with-id]
 
-await new Promise(r => setTimeout(r, 5000));
+await new Promise((r) => setTimeout(r, 5000));
 
 // [docs:create-mental-model-with-trigger]
 // Create a mental model with automatic refresh enabled
 const result2 = await client.createMentalModel(
-    BANK_ID,
-    'Project Status',
-    'What is the current project status?',
-    { trigger: { refreshCron: '0 3 * * *' } },
+  BANK_ID,
+  "Project Status",
+  "What is the current project status?",
+  { trigger: { refreshCron: "0 3 * * *" } }
 );
 
 // This mental model checks daily at 03:00 UTC and refreshes when scoped memories changed
@@ -68,19 +68,19 @@ console.log(`Operation ID: ${result2.operation_id}`);
 // use 'any' when your memories are tagged narrowly (one topic each), so the
 // refresh reads any memory carrying at least one of the model's tags.
 const result3 = await client.createMentalModel(
-    BANK_ID,
-    'Current Projects',
-    'Which projects is the user currently working on?',
-    {
-        tags: ['projects', 'mental-model'],
-        trigger: { tagsMatch: 'any' },
-    },
+  BANK_ID,
+  "Current Projects",
+  "Which projects is the user currently working on?",
+  {
+    tags: ["projects", "mental-model"],
+    trigger: { tagsMatch: "any" },
+  }
 );
 
 console.log(`Operation ID: ${result3.operation_id}`);
 // [/docs:create-mental-model-tags-match]
 
-await new Promise(r => setTimeout(r, 5000));
+await new Promise((r) => setTimeout(r, 5000));
 
 // [docs:list-mental-models]
 // List all mental models in a bank. The list returns metadata by default;
@@ -88,15 +88,15 @@ await new Promise(r => setTimeout(r, 5000));
 const mentalModels = await client.listMentalModels(BANK_ID, { detail: "content" });
 
 for (const mm of mentalModels.items) {
-    console.log(`- ${mm.name}: ${mm.source_query}`);
+  console.log(`- ${mm.name}: ${mm.source_query}`);
 }
 // [/docs:list-mental-models]
 
 const mentalModelId = mentalModels.items[0]?.id;
 if (!mentalModelId) {
-    console.log('mental-models.mjs: All examples passed (no mental models created yet)');
-    await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}`, { method: 'DELETE' });
-    process.exit(0);
+  console.log("mental-models.mjs: All examples passed (no mental models created yet)");
+  await fetch(`${CONTEXTBASE_URL}/v1/default/banks/${BANK_ID}`, { method: "DELETE" });
+  process.exit(0);
 }
 
 // [docs:get-mental-model]
@@ -128,8 +128,8 @@ console.log(`Full refresh operation ID: ${fullRefreshResult.operation_id}`);
 // [docs:update-mental-model]
 // Update a mental model's metadata
 const updated = await client.updateMentalModel(BANK_ID, mentalModelId, {
-    name: 'Updated Team Communication Preferences',
-    trigger: { refreshAfterConsolidation: true },
+  name: "Updated Team Communication Preferences",
+  trigger: { refreshAfterConsolidation: true },
 });
 
 console.log(`Updated name: ${updated.name}`);
@@ -140,8 +140,8 @@ console.log(`Updated name: ${updated.name}`);
 const history = await client.getMentalModelHistory(BANK_ID, mentalModelId);
 
 for (const entry of history) {
-    console.log(`Changed at: ${entry.changed_at}`);
-    console.log(`Previous content: ${entry.previous_content}`);
+  console.log(`Changed at: ${entry.changed_at}`);
+  console.log(`Previous content: ${entry.previous_content}`);
 }
 // [/docs:get-mental-model-history]
 
@@ -150,7 +150,7 @@ for (const entry of history) {
 await client.listMentalModels(BANK_ID);
 
 // List with content but without provenance chains (opt-in)
-await client.listMentalModels(BANK_ID, { detail: 'content' });
+await client.listMentalModels(BANK_ID, { detail: "content" });
 
 // Get one model — full detail is the default here
 await client.getMentalModel(BANK_ID, mentalModelId);
@@ -167,7 +167,7 @@ console.log(preview.diff);
 // [docs:keep-trace]
 // Record how every refresh (scheduled ones too) reached its result
 await client.updateMentalModel(BANK_ID, mentalModelId, {
-    trigger: { mode: 'delta', keepTrace: true },
+  trigger: { mode: "delta", keepTrace: true },
 });
 // [/docs:keep-trace]
 
@@ -181,4 +181,4 @@ await client.deleteMentalModel(BANK_ID, mentalModelId);
 // =============================================================================
 await client.deleteBank(BANK_ID);
 
-console.log('mental-models.mjs: All examples passed');
+console.log("mental-models.mjs: All examples passed");

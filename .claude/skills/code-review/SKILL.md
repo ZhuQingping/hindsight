@@ -309,8 +309,8 @@ If any files in `hindsight-api-slim/hindsight_api/api/` were changed:
 ### 7a. Check TS/Python wrapper-client parity
 
 Two of the generated SDKs ship a **hand-written, maintained convenience wrapper** on top of the auto-generated low-level client — and *only* these two:
-- **TypeScript**: `hindsight-clients/typescript/src/index.ts` (`HindsightClient`)
-- **Python**: `hindsight-clients/python/hindsight_client/hindsight_client.py` (`Hindsight`)
+- **TypeScript**: `hindsight-clients/typescript/src/index.ts` (`ContextBaseClient`)
+- **Python**: `hindsight-clients/python/contextbase_client/contextbase_client.py` (`ContextBase`)
 
 (The Rust/Go/etc. clients are generated-only — no wrapper to keep in sync.)
 

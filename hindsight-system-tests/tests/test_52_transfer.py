@@ -24,8 +24,7 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from hindsight_client_api.api.document_transfer_api import DocumentTransferApi
-
+from contextbase_client_api.api.document_transfer_api import DocumentTransferApi
 from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact, observes
 

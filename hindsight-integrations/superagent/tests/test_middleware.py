@@ -7,17 +7,16 @@ import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from contextbase_superagent import (
+    ContextBaseError,
     GuardBlockedError,
-    HindsightError,
     SafeContextBase,
     configure,
     reset_config,
 )
 
 
-def _mock_hindsight_client() -> MagicMock:
+def _mock_contextbase_client() -> MagicMock:
     """Create a mock ContextBase client with async methods."""
     client = MagicMock()
     client.aretain = AsyncMock()
@@ -77,11 +76,11 @@ class TestSafeContextBaseInit:
             SafeContextBase(bank_id="test", safety_client=_mock_safety_client())
 
     def test_creates_with_explicit_clients(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
         assert safe._bank_id == "test"
@@ -93,10 +92,10 @@ class TestSafeContextBaseInit:
             redact_model="openai/gpt-4o-mini",
         )
         with (
-            patch("contextbase_superagent._client.Hindsight") as mock_h,
+            patch("contextbase_superagent._client.ContextBase") as mock_h,
             patch("contextbase_superagent._client.create_client") as mock_s,
         ):
-            mock_h.return_value = _mock_hindsight_client()
+            mock_h.return_value = _mock_contextbase_client()
             mock_s.return_value = _mock_safety_client()
             safe = SafeContextBase(bank_id="test")
             assert safe._bank_id == "test"
@@ -112,11 +111,11 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_with_guard_and_redact(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(redacted_text="User prefers dark mode")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
         )
@@ -134,7 +133,7 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_blocked_by_guard(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             guard_classification="block",
             guard_reasoning="Prompt injection detected",
@@ -143,7 +142,7 @@ class TestRetain:
         )
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
         )
@@ -156,11 +155,11 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_guard_disabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(redacted_text="safe content")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
             enable_guard_on_retain=False,
@@ -174,11 +173,11 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_redact_disabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             enable_redact_on_retain=False,
         )
@@ -194,11 +193,11 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_with_tags(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(redacted_text="content")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
             tags=["env:prod"],
@@ -211,11 +210,11 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_with_context_and_timestamp(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(redacted_text="content")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
         )
@@ -228,16 +227,16 @@ class TestRetain:
 
     @pytest.mark.asyncio
     async def test_retain_requires_redact_model(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             # No redact_model set
         )
 
-        with pytest.raises(HindsightError, match="Redact requires a model"):
+        with pytest.raises(ContextBaseError, match="Redact requires a model"):
             await safe.retain("content with PII")
 
 
@@ -250,13 +249,13 @@ class TestRecall:
 
     @pytest.mark.asyncio
     async def test_recall_with_guard(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["User prefers dark mode"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
 
@@ -267,7 +266,7 @@ class TestRecall:
 
     @pytest.mark.asyncio
     async def test_recall_blocked_by_guard(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             guard_classification="block",
             guard_reasoning="Malicious query",
@@ -275,7 +274,7 @@ class TestRecall:
         )
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
 
@@ -286,13 +285,13 @@ class TestRecall:
 
     @pytest.mark.asyncio
     async def test_recall_guard_disabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["fact"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             enable_guard_on_recall=False,
         )
@@ -304,13 +303,13 @@ class TestRecall:
 
     @pytest.mark.asyncio
     async def test_recall_with_budget_and_tags(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["fact"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             recall_tags=["env:prod"],
         )
@@ -331,12 +330,12 @@ class TestReflect:
 
     @pytest.mark.asyncio
     async def test_reflect_with_guard(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.areflect = AsyncMock(return_value="Synthesized answer")
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
 
@@ -347,7 +346,7 @@ class TestReflect:
 
     @pytest.mark.asyncio
     async def test_reflect_blocked_by_guard(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             guard_classification="block",
             guard_reasoning="Malicious query",
@@ -355,7 +354,7 @@ class TestReflect:
         )
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
 
@@ -366,12 +365,12 @@ class TestReflect:
 
     @pytest.mark.asyncio
     async def test_reflect_guard_disabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.areflect = AsyncMock(return_value="answer")
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             enable_guard_on_reflect=False,
         )
@@ -401,7 +400,7 @@ class TestGuardBlockedError:
             violation_types=[],
             cwe_codes=[],
         )
-        assert isinstance(err, HindsightError)
+        assert isinstance(err, ContextBaseError)
 
 
 class TestRedactLogging:
@@ -413,14 +412,14 @@ class TestRedactLogging:
 
     @pytest.mark.asyncio
     async def test_redact_logs_findings(self, caplog: pytest.LogCaptureFixture) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             redacted_text="User prefers dark mode",
             redact_findings=["Email address redacted", "Name redacted"],
         )
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
         )
@@ -456,10 +455,10 @@ class TestConfigureFallthrough:
             enable_redact_on_retain=False,
         )
         with (
-            patch("contextbase_superagent._client.Hindsight") as mock_h,
+            patch("contextbase_superagent._client.ContextBase") as mock_h,
             patch("contextbase_superagent._client.create_client") as mock_s,
         ):
-            mock_h.return_value = _mock_hindsight_client()
+            mock_h.return_value = _mock_contextbase_client()
             mock_s.return_value = _mock_safety_client()
             safe = SafeContextBase(bank_id="test")
 
@@ -477,11 +476,11 @@ class TestConfigureFallthrough:
         assert safe._enable_redact_on_retain is False
 
     def test_defaults_without_config(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
         assert safe._tags is None
@@ -505,13 +504,13 @@ class TestRedactOnRecall:
 
     @pytest.mark.asyncio
     async def test_redact_applied_to_each_result_when_enabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["John's email is john@acme.com", "Phone: 555-1234"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client(redacted_text="[REDACTED]")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             enable_redact_on_recall=True,
@@ -527,13 +526,13 @@ class TestRedactOnRecall:
 
     @pytest.mark.asyncio
     async def test_redact_skipped_by_default(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["original text"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client(redacted_text="[SHOULD NOT BE USED]")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             enable_guard_on_recall=False,
         )
@@ -545,13 +544,13 @@ class TestRedactOnRecall:
 
     @pytest.mark.asyncio
     async def test_redact_recall_with_no_results_is_noop(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response([])  # empty
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             enable_redact_on_recall=True,
@@ -579,10 +578,10 @@ class TestLazySafetyClient:
         # No safety_client, no superagent_api_key, no env var — must still
         # construct because lazy resolution defers the requirement until
         # the first guard/redact call.
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             enable_guard_on_retain=False,
             enable_guard_on_recall=False,
             enable_guard_on_reflect=False,
@@ -592,11 +591,11 @@ class TestLazySafetyClient:
 
     @pytest.mark.asyncio
     async def test_unsafe_path_does_not_resolve_safety_client(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain = AsyncMock(return_value=None)
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             enable_guard_on_retain=False,
             enable_redact_on_retain=False,
         )
@@ -606,11 +605,11 @@ class TestLazySafetyClient:
 
     @pytest.mark.asyncio
     async def test_explicit_safety_client_used_directly(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
         )
         # Already resolved — the explicit client wins, _get_safety returns it.
@@ -630,16 +629,16 @@ class TestSafetyConfigSnapshot:
 
     def test_snapshot_taken_at_init_not_at_first_use(self) -> None:
         configure(superagent_api_key="key-A")
-        contextbase = _mock_hindsight_client()
-        safe = SafeContextBase(bank_id="test", hindsight_client=contextbase)
+        contextbase = _mock_contextbase_client()
+        safe = SafeContextBase(bank_id="test", contextbase_client=contextbase)
         # Reconfigure AFTER construction — must not affect this instance.
         configure(superagent_api_key="key-B")
         assert safe._safety_snapshot["api_key"] == "key-A"
 
     def test_constructor_arg_overrides_global_config_snapshot(self) -> None:
         configure(superagent_api_key="from-global")
-        contextbase = _mock_hindsight_client()
-        safe = SafeContextBase(bank_id="test", hindsight_client=contextbase, superagent_api_key="from-arg")
+        contextbase = _mock_contextbase_client()
+        safe = SafeContextBase(bank_id="test", contextbase_client=contextbase, superagent_api_key="from-arg")
         assert safe._safety_snapshot["api_key"] == "from-arg"
 
 
@@ -655,7 +654,7 @@ class TestRedactConcurrencyCap:
     @pytest.mark.asyncio
     async def test_safety_concurrency_default_caps_inflight(self) -> None:
         """No more than `safety_concurrency` redact calls in flight at once."""
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response([f"text-{i}" for i in range(20)])
         contextbase.arecall = AsyncMock(return_value=recall_response)
 
@@ -681,7 +680,7 @@ class TestRedactConcurrencyCap:
         safety.redact = AsyncMock(side_effect=slow_redact)
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             safety_concurrency=3,  # cap
@@ -705,14 +704,14 @@ class TestRedactOnReflect:
 
     @pytest.mark.asyncio
     async def test_redact_applied_to_reflect_text_when_enabled(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         reflect_response = MagicMock()
         reflect_response.text = "John's SSN is 123-45-6789"
         contextbase.areflect = AsyncMock(return_value=reflect_response)
         safety = _mock_safety_client(redacted_text="[REDACTED]")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             enable_redact_on_reflect=True,
@@ -726,14 +725,14 @@ class TestRedactOnReflect:
 
     @pytest.mark.asyncio
     async def test_reflect_redact_off_by_default(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         reflect_response = MagicMock()
         reflect_response.text = "original synthesis"
         contextbase.areflect = AsyncMock(return_value=reflect_response)
         safety = _mock_safety_client(redacted_text="[SHOULD NOT BE USED]")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             enable_guard_on_reflect=False,
         )
@@ -745,7 +744,7 @@ class TestRedactOnReflect:
 
 
 class TestRetainBatch:
-    """SafeContextBase.retain_batch wraps Hindsight.aretain_batch with safety checks."""
+    """SafeContextBase.retain_batch wraps ContextBase.aretain_batch with safety checks."""
 
     def setup_method(self) -> None:
         reset_config()
@@ -755,12 +754,12 @@ class TestRetainBatch:
 
     @pytest.mark.asyncio
     async def test_batch_applies_guard_and_redact_to_each_item(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="REDACTED")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -787,7 +786,7 @@ class TestRetainBatch:
 
     @pytest.mark.asyncio
     async def test_batch_blocked_by_guard_aborts_whole_batch(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(
             guard_classification="block",
@@ -796,7 +795,7 @@ class TestRetainBatch:
         )
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -808,12 +807,12 @@ class TestRetainBatch:
 
     @pytest.mark.asyncio
     async def test_batch_empty_is_noop(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -836,9 +835,9 @@ class TestLifecycle:
 
     @pytest.mark.asyncio
     async def test_aclose_closes_owned_contextbase(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aclose = AsyncMock()
-        with patch("contextbase_superagent._client.Hindsight", return_value=contextbase):
+        with patch("contextbase_superagent._client.ContextBase", return_value=contextbase):
             safe = SafeContextBase(
                 bank_id="test",
                 contextbase_api_url="http://localhost:8888",
@@ -852,11 +851,11 @@ class TestLifecycle:
 
     @pytest.mark.asyncio
     async def test_aclose_does_not_close_caller_owned_contextbase(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aclose = AsyncMock()
         safe = SafeContextBase(
             bank_id="test",
-            hindsight_client=contextbase,  # caller-owned
+            contextbase_client=contextbase,  # caller-owned
             enable_guard_on_retain=False,
             enable_guard_on_recall=False,
             enable_guard_on_reflect=False,
@@ -867,9 +866,9 @@ class TestLifecycle:
 
     @pytest.mark.asyncio
     async def test_aclose_is_idempotent(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aclose = AsyncMock()
-        with patch("contextbase_superagent._client.Hindsight", return_value=contextbase):
+        with patch("contextbase_superagent._client.ContextBase", return_value=contextbase):
             safe = SafeContextBase(
                 bank_id="test",
                 contextbase_api_url="http://localhost:8888",
@@ -884,9 +883,9 @@ class TestLifecycle:
 
     @pytest.mark.asyncio
     async def test_async_context_manager_closes(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aclose = AsyncMock()
-        with patch("contextbase_superagent._client.Hindsight", return_value=contextbase):
+        with patch("contextbase_superagent._client.ContextBase", return_value=contextbase):
             async with SafeContextBase(
                 bank_id="test",
                 contextbase_api_url="http://localhost:8888",
@@ -910,11 +909,11 @@ class TestTagMergeOrder:
 
     @pytest.mark.asyncio
     async def test_tag_order_preserved_when_merging(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(redacted_text="c")
         safe = SafeContextBase(
             bank_id="test-bank",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             tags=["default:a", "default:b"],
@@ -940,8 +939,8 @@ class TestEnvFallback:
 
     def test_env_key_picked_up_without_configure(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_superagent._client.Hindsight") as mock_h:
-            mock_h.return_value = _mock_hindsight_client()
+        with patch("contextbase_superagent._client.ContextBase") as mock_h:
+            mock_h.return_value = _mock_contextbase_client()
             SafeContextBase(
                 bank_id="test",
                 contextbase_api_url="http://localhost:8888",
@@ -955,8 +954,8 @@ class TestEnvFallback:
 
     def test_explicit_arg_beats_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_superagent._client.Hindsight") as mock_h:
-            mock_h.return_value = _mock_hindsight_client()
+        with patch("contextbase_superagent._client.ContextBase") as mock_h:
+            mock_h.return_value = _mock_contextbase_client()
             SafeContextBase(
                 bank_id="test",
                 contextbase_api_url="http://localhost:8888",
@@ -982,7 +981,7 @@ class TestSafetyConcurrencyValidation:
         with pytest.raises(ValueError, match="safety_concurrency must be a positive int"):
             SafeContextBase(
                 bank_id="t",
-                hindsight_client=_mock_hindsight_client(),
+                contextbase_client=_mock_contextbase_client(),
                 safety_client=_mock_safety_client(),
                 safety_concurrency=0,
             )
@@ -991,7 +990,7 @@ class TestSafetyConcurrencyValidation:
         with pytest.raises(ValueError, match="safety_concurrency must be a positive int"):
             SafeContextBase(
                 bank_id="t",
-                hindsight_client=_mock_hindsight_client(),
+                contextbase_client=_mock_contextbase_client(),
                 safety_client=_mock_safety_client(),
                 safety_concurrency=-1,
             )
@@ -1004,7 +1003,7 @@ class TestSafetyConcurrencyValidation:
         # Edge of valid range — must not raise.
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=_mock_hindsight_client(),
+            contextbase_client=_mock_contextbase_client(),
             safety_client=_mock_safety_client(),
             safety_concurrency=1,
         )
@@ -1027,11 +1026,11 @@ class TestOnGuardCallback:
         def on_guard(scope: str, result) -> None:
             captured.append((scope, result.classification))
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()  # pass by default
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             on_guard=on_guard,
@@ -1046,7 +1045,7 @@ class TestOnGuardCallback:
         def on_guard(scope: str, result) -> None:
             captured.append((scope, result.classification))
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             guard_classification="block",
             guard_reasoning="blocked",
@@ -1054,7 +1053,7 @@ class TestOnGuardCallback:
         )
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             on_guard=on_guard,
         )
@@ -1072,11 +1071,11 @@ class TestOnGuardCallback:
             await asyncio.sleep(0)
             captured.append(scope)
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             on_guard=on_guard,
         )
@@ -1090,12 +1089,12 @@ class TestOnGuardCallback:
         def on_guard(scope: str, result) -> None:
             captured.append(scope)
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             on_guard=on_guard,
@@ -1105,7 +1104,7 @@ class TestOnGuardCallback:
 
 
 class TestRetainBatchFieldPassthrough:
-    """retain_batch must forward the full set of fields Hindsight.aretain_batch supports."""
+    """retain_batch must forward the full set of fields ContextBase.aretain_batch supports."""
 
     def setup_method(self) -> None:
         reset_config()
@@ -1115,12 +1114,12 @@ class TestRetainBatchFieldPassthrough:
 
     @pytest.mark.asyncio
     async def test_passes_metadata_document_id_entities_observation_scopes_strategy(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -1150,12 +1149,12 @@ class TestRetainBatchFieldPassthrough:
 
     @pytest.mark.asyncio
     async def test_top_level_document_id_and_document_tags_passed(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -1171,12 +1170,12 @@ class TestRetainBatchFieldPassthrough:
     @pytest.mark.asyncio
     async def test_passes_update_mode_per_item(self) -> None:
         """update_mode is a per-item passthrough — aretain_batch reads it from each dict."""
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -1192,12 +1191,12 @@ class TestRetainBatchFieldPassthrough:
     @pytest.mark.asyncio
     async def test_retain_async_top_level_kwarg(self) -> None:
         """retain_async=True is forwarded to aretain_batch for background processing."""
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -1207,12 +1206,12 @@ class TestRetainBatchFieldPassthrough:
     @pytest.mark.asyncio
     async def test_retain_async_default_not_forwarded(self) -> None:
         """When retain_async=False (default), don't forward the kwarg — let the client default win."""
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.aretain_batch = AsyncMock(return_value=None)
         safety = _mock_safety_client(redacted_text="r")
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
         )
@@ -1239,11 +1238,11 @@ class TestOnGuardErrorContainment:
         def boom(scope: str, result) -> None:
             raise RuntimeError("downstream metrics endpoint is down")
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4.1-nano",
             on_guard=boom,
@@ -1261,13 +1260,13 @@ class TestOnGuardErrorContainment:
         async def boom(scope: str, result) -> None:
             raise RuntimeError("async logger blew up")
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         recall_response = _mock_recall_response(["a", "b"])
         contextbase.arecall = AsyncMock(return_value=recall_response)
         safety = _mock_safety_client()
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             on_guard=boom,
         )
@@ -1283,7 +1282,7 @@ class TestOnGuardErrorContainment:
         def boom(scope: str, result) -> None:
             raise RuntimeError("ignored")
 
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         safety = _mock_safety_client(
             guard_classification="block",
             guard_reasoning="bad",
@@ -1291,7 +1290,7 @@ class TestOnGuardErrorContainment:
         )
         safe = SafeContextBase(
             bank_id="t",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             on_guard=boom,
         )
@@ -1316,7 +1315,7 @@ class TestDeterministicRoundTrip:
 
     @pytest.mark.asyncio
     async def test_retain_recall_reflect_roundtrip(self) -> None:
-        contextbase = _mock_hindsight_client()
+        contextbase = _mock_contextbase_client()
         contextbase.arecall.return_value = _mock_recall_response(["The team uses PostgreSQL 16"])
         reflect_resp = MagicMock()
         reflect_resp.text = "The team's stack centers on PostgreSQL 16."
@@ -1325,7 +1324,7 @@ class TestDeterministicRoundTrip:
 
         safe = SafeContextBase(
             bank_id="roundtrip",
-            hindsight_client=contextbase,
+            contextbase_client=contextbase,
             safety_client=safety,
             redact_model="openai/gpt-4o-mini",
         )

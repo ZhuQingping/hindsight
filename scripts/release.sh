@@ -115,7 +115,7 @@ fi
 PYTHON_INIT_FILES=(
     "hindsight-api-slim/hindsight_api/__init__.py"
     "hindsight-embed/hindsight_embed/__init__.py"
-    "hindsight-clients/python/hindsight_client_api/__init__.py"
+    "hindsight-clients/python/contextbase_client_api/__init__.py"
 )
 for init_file in "${PYTHON_INIT_FILES[@]}"; do
     if [ -f "$init_file" ]; then
@@ -190,7 +190,7 @@ fi
 
 # Refresh root package-lock.json so workspace versions match the bumped
 # package.json files. Without this, `npm ci` in CI fails with
-# "Missing @vectorize-io/hindsight-client@<old-version> from lock file"
+# "Missing contextbase-client@<old-version> from lock file"
 # and the npm-publish + docs-deploy jobs break.
 print_info "Refreshing root package-lock.json to match bumped workspace versions..."
 if npm install --ignore-scripts --no-audit --no-fund > /dev/null 2>&1; then

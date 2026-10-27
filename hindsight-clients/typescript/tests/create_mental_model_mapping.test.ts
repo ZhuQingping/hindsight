@@ -8,7 +8,7 @@
  * so a caller could not set tags_match.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -20,10 +20,10 @@ function lastBody(): any {
 }
 
 describe("createMentalModel trigger mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedCreate.mockReset();
     mockedCreate.mockResolvedValue({
       data: { mental_model_id: "mm-1", operation_id: "op-1" },

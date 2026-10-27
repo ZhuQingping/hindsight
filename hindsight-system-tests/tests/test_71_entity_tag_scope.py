@@ -18,8 +18,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from hindsight_client_api.exceptions import NotFoundException
-
+from contextbase_client_api.exceptions import NotFoundException
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio
@@ -39,7 +38,9 @@ async def scoped_bank(client, llm, bank_id, settled) -> str:
     )
     llm.on_step("extract_facts", contains="billing").returns(
         extracted(
-            fact("Kate asked Alice about the billing service", who="Kate", entities=["Alice", "Kate", "billing service"])
+            fact(
+                "Kate asked Alice about the billing service", who="Kate", entities=["Alice", "Kate", "billing service"]
+            )
         )
     )
     llm.on_step("consolidate").returns(consolidation())

@@ -17,7 +17,7 @@ import { basename, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { ContextBaseConfig } from "./config.js";
 import { Logger } from "./logger.js";
-import type { HindsightClient } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient } from "contextbase-client";
 
 const DEFAULT_BANK_NAME = "opencode";
 const VALID_FIELDS = new Set(["agent", "project", "gitProject", "channel", "user"]);
@@ -137,7 +137,7 @@ export function deriveBankId(config: ContextBaseConfig, directory: string): stri
  * Uses an in-memory Set (plugin is long-lived, unlike Claude Code's ephemeral hooks).
  */
 export async function ensureBankMission(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bankId: string,
   config: ContextBaseConfig,
   missionsSet: Set<string>,

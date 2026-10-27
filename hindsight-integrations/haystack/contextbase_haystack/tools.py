@@ -14,9 +14,9 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from contextbase_client import ContextBase
 from haystack.dataclasses import ChatMessage
 from haystack.tools import Tool, Toolset
-from hindsight_client import Hindsight
 
 from ._client import resolve_client
 from .config import get_config
@@ -43,7 +43,7 @@ threading.Thread(target=_start_loop, daemon=True).start()
 def _run_sync(coro):  # type: ignore[no-untyped-def]
     """Run an async coroutine synchronously from any context.
 
-    Haystack's ``Tool`` requires sync callables, but the hindsight_client's
+    Haystack's ``Tool`` requires sync callables, but the contextbase_client's
     async methods (aretain, arecall, areflect) must be awaited.  This helper
     submits the coroutine to a persistent background event loop and blocks
     until the result is ready.  Works regardless of whether the caller is
@@ -58,11 +58,11 @@ def _run_sync(coro):  # type: ignore[no-untyped-def]
 # would otherwise leak "Unclosed client session/connector" warnings at exit, so
 # we close them on that loop via an atexit hook. Caller-owned clients are left
 # to the caller to close.
-_owned_clients: list[Hindsight] = []
+_owned_clients: list[ContextBase] = []
 _owned_clients_lock = threading.Lock()
 
 
-def _register_owned_client(client: Hindsight) -> None:
+def _register_owned_client(client: ContextBase) -> None:
     with _owned_clients_lock:
         _owned_clients.append(client)
 
@@ -104,7 +104,7 @@ class _ContextBaseToolBackend:
         self,
         *,
         bank_id: str,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         contextbase_api_url: Optional[str] = None,
         api_key: Optional[str] = None,
         budget: Optional[str] = None,
@@ -436,7 +436,7 @@ class _ContextBaseTool(Tool):
 def _build_backend_kwargs(
     *,
     bank_id: str,
-    client: Optional[Hindsight],
+    client: Optional[ContextBase],
     contextbase_api_url: Optional[str],
     api_key: Optional[str],
     budget: Optional[str],
@@ -518,7 +518,7 @@ def _build_tools(
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: Optional[str] = None,
@@ -694,7 +694,7 @@ class ContextBaseMemoryWrapper(Toolset):
         self,
         *,
         bank_id: str,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         contextbase_api_url: Optional[str] = None,
         api_key: Optional[str] = None,
         budget: Optional[str] = None,

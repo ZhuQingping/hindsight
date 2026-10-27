@@ -11,8 +11,8 @@ import secrets
 
 import httpx
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException, UnauthorizedException
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException, UnauthorizedException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
@@ -161,9 +161,9 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
         assert writer_key["secret"] not in listed.text
         assert ui_settings.admin_key not in listed.text
         base = contextdb_deployment.server.url
-        reader = Hindsight(base_url=base, api_key=reader_key["secret"])
-        writer = Hindsight(base_url=base, api_key=writer_key["secret"])
-        all_spaces = Hindsight(base_url=base, api_key=all_key["secret"])
+        reader = ContextBase(base_url=base, api_key=reader_key["secret"])
+        writer = ContextBase(base_url=base, api_key=writer_key["secret"])
+        all_spaces = ContextBase(base_url=base, api_key=all_key["secret"])
         try:
             assert (await reader.arecall(bank_id=a, query="Lighthouse")).results == []
             with pytest.raises(ForbiddenException):

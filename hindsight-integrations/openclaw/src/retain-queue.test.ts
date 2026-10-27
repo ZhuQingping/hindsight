@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import type { HindsightClient } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient } from "contextbase-client";
 import {
   buildRetainRequest,
   createAsyncRetainOperationId,
@@ -37,7 +37,7 @@ describe("RetainQueue operation id persistence", () => {
       .fn()
       .mockRejectedValueOnce(new Error("acknowledgement lost"))
       .mockResolvedValueOnce({});
-    const rawClient = { retain } as unknown as HindsightClient;
+    const rawClient = { retain } as unknown as ContextBaseClient;
     const bankClient = scopeClient(rawClient, "bank-1");
 
     await expect(bankClient.retain(request, "supported")).rejects.toThrow("acknowledgement lost");
@@ -66,7 +66,7 @@ describe("RetainQueue operation id persistence", () => {
       .fn()
       .mockRejectedValueOnce(new Error("second acknowledgement lost"))
       .mockResolvedValueOnce({});
-    const rawClient = { retain } as unknown as HindsightClient;
+    const rawClient = { retain } as unknown as ContextBaseClient;
 
     await flushRetainQueue(queue, rawClient, "supported");
 
@@ -92,7 +92,7 @@ describe("RetainQueue operation id persistence", () => {
       .fn()
       .mockRejectedValueOnce(new Error("old server unavailable"))
       .mockResolvedValueOnce({});
-    const rawClient = { retain } as unknown as HindsightClient;
+    const rawClient = { retain } as unknown as ContextBaseClient;
 
     await flushRetainQueue(queue, rawClient, "unsupported");
 
@@ -111,7 +111,7 @@ describe("RetainQueue operation id persistence", () => {
     const queue = new RetainQueue({ filePath: queuePath });
     queue.enqueue("bank-1", { content: "queued" });
     const retain = vi.fn();
-    const rawClient = { retain } as unknown as HindsightClient;
+    const rawClient = { retain } as unknown as ContextBaseClient;
 
     await flushRetainQueue(queue, rawClient, "unknown");
 
@@ -132,7 +132,7 @@ describe("RetainQueue operation id persistence", () => {
         controller.abort();
         throw new DOMException("service stopped", "AbortError");
       });
-    const rawClient = { retain } as unknown as HindsightClient;
+    const rawClient = { retain } as unknown as ContextBaseClient;
 
     await flushRetainQueue(queue, rawClient, "unsupported", 0, controller.signal);
 

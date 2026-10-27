@@ -43,9 +43,9 @@ When you retain content in any language, Hindsight extracts and stores facts in 
 ### Example: Chinese Content
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-hindsight = Hindsight(base_url=HINDSIGHT_URL)
+hindsight = ContextBase(base_url=HINDSIGHT_URL)
 
 # Retain Chinese content
 hindsight.retain(

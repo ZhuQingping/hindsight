@@ -36,7 +36,7 @@ if [ "$_DEPLOY_MODE" = "unknown" ]; then
   if grep -q "hindsight-all" pyproject.toml requirements*.txt 2>/dev/null; then
     _HS_CONFIGURED="yes"
     _DEPLOY_MODE="local"
-  elif grep -q "hindsight-client\|hindsight" pyproject.toml requirements*.txt package.json 2>/dev/null; then
+  elif grep -q "contextbase-client\|hindsight" pyproject.toml requirements*.txt package.json 2>/dev/null; then
     _HS_CONFIGURED="yes"
     # client SDK could be cloud or self-hosted, don't assume
   fi
@@ -728,9 +728,9 @@ Design how the application stores/derives the mental model ID so it can fetch th
 **Python (Cloud / Self-hosted):**
 ```python
 import os
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(
+client = ContextBase(
     base_url=os.environ["HINDSIGHT_API_URL"],
     api_key=os.environ.get("HINDSIGHT_API_KEY")
 )
@@ -753,9 +753,9 @@ BANK_ID = os.environ["HINDSIGHT_BANK_ID"]
 
 **Node.js:**
 ```javascript
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 
-const client = new HindsightClient({
+const client = new ContextBaseClient({
     baseUrl: process.env.HINDSIGHT_API_URL,
     apiKey: process.env.HINDSIGHT_API_KEY
 });
@@ -814,9 +814,9 @@ OPENAI_API_KEY=<your key>
 ```
 
 Install commands:
-- Cloud/Self-hosted Python: `pip install hindsight-client`
+- Cloud/Self-hosted Python: `pip install contextbase-client`
 - Local Python: `pip install hindsight-all`
-- Node.js: `npm install @vectorize-io/hindsight-client`
+- Node.js: `npm install contextbase-client`
 
 ### Compliance & Privacy Notes (only if the user selected any enterprise/privacy/compliance considerations)
 

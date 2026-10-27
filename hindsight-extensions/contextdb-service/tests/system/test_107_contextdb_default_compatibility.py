@@ -6,8 +6,8 @@ import sys
 from collections.abc import Iterator
 
 import pytest
+from contextbase_client import ContextBase
 from fastmcp import Client
-from hindsight_client import Hindsight
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import extracted, fact, observes
 from hindsight_system_tests.server import (
@@ -50,7 +50,7 @@ async def test_default_oss_rest_worker_and_stateful_mcp_still_work(ordinary_serv
     answer = "CompatibilityAgent works in an ordinary OSS deployment."
     llm.on_step("extract_facts").returns(extracted(fact(answer, who="CompatibilityAgent")))
     llm.on_step("consolidate").answers_with(observes(answer))
-    client = Hindsight(base_url=ordinary_server.url)
+    client = ContextBase(base_url=ordinary_server.url)
     try:
         retained = await client.aretain("ordinary-bank", answer, retain_async=True)
         assert retained.operation_id is not None

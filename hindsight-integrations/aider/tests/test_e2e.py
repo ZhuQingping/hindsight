@@ -14,10 +14,9 @@ import uuid
 from pathlib import Path
 
 import pytest
-from hindsight_client import Hindsight
-
 from contextbase_aider.config import AiderConfig
 from contextbase_aider.runner import do_recall, do_retain
+from contextbase_client import ContextBase
 
 requires_real_llm = pytest.mark.requires_real_llm
 
@@ -31,7 +30,7 @@ def test_retain_then_recall_roundtrip(tmp_path):
     kwargs = {"base_url": api_url}
     if api_token:
         kwargs["api_key"] = api_token
-    client = Hindsight(**kwargs)
+    client = ContextBase(**kwargs)
     client.create_bank(bank_id=bank)
     cfg = AiderConfig(
         contextbase_api_url=api_url,

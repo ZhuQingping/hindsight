@@ -9,13 +9,13 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool, tool
 
 from ._client import resolve_client
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def _resolve_bank_id(
         resolved_bank_id = configurable.get(bank_id_from_config)
         if resolved_bank_id:
             return resolved_bank_id
-    raise HindsightError(
+    raise ContextBaseError(
         f"No bank_id available for ContextBase tool. Pass bank_id or set config['configurable']['{bank_id_from_config}']."
     )
 
@@ -40,7 +40,7 @@ def _resolve_bank_id(
 def create_contextbase_tools(
     *,
     bank_id: Optional[str] = None,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: Optional[str] = None,
@@ -139,11 +139,11 @@ def create_contextbase_tools(
                     retain_kwargs["document_id"] = retain_document_id
                 await resolved_client.aretain(**retain_kwargs)
                 return "Memory stored successfully."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Retain failed: {e}")
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(contextbase_retain)
 
@@ -181,11 +181,11 @@ def create_contextbase_tools(
                 for i, result in enumerate(response.results, 1):
                     lines.append(f"{i}. {result.text}")
                 return "\n".join(lines)
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Recall failed: {e}")
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(contextbase_recall)
 
@@ -223,11 +223,11 @@ def create_contextbase_tools(
                     reflect_kwargs["tags_match"] = effective_reflect_tags_match
                 response = await resolved_client.areflect(**reflect_kwargs)
                 return response.text or "No relevant memories found."
-            except HindsightError:
+            except ContextBaseError:
                 raise
             except Exception as e:
                 logger.error(f"Reflect failed: {e}")
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(contextbase_reflect)
 
@@ -238,7 +238,7 @@ def memory_instructions(
     *,
     bank_id: str,
     base_instructions: str = "",
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     query: str = "relevant context about the user",
@@ -274,7 +274,7 @@ def memory_instructions(
         On ContextBase error (network failure, etc.), logs the failure and
         returns ``base_instructions`` unchanged so the LLM call can proceed.
         This differs from the recall/retain nodes, which raise
-        ``HindsightError`` — ``memory_instructions`` is intended for the
+        ``ContextBaseError`` — ``memory_instructions`` is intended for the
         prompt-construction path where a failure should degrade silently
         rather than break the request.
 

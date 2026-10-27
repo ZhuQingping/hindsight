@@ -28,7 +28,7 @@ cp -r /path/to/contextbase/hindsight-integrations/flowise/nodes/tools/ContextBas
 cp /path/to/contextbase/hindsight-integrations/flowise/credentials/ContextBaseApi.credential.ts \
    packages/components/credentials/
 # Add the client dep
-cd packages/components && pnpm add @vectorize-io/hindsight-client
+cd packages/components && pnpm add contextbase-client
 cd ../.. && pnpm install && pnpm build
 pnpm start  # opens http://localhost:3000
 ```

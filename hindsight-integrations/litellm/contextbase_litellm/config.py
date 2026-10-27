@@ -525,12 +525,12 @@ def _create_or_update_bank(
         verbose: Enable verbose logging
     """
     try:
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
 
         ensure_loop()
         if not contextbase_api_url:
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        client = Hindsight(base_url=contextbase_api_url, api_key=api_key, user_agent=USER_AGENT)
+        client = ContextBase(base_url=contextbase_api_url, api_key=api_key, user_agent=USER_AGENT)
         client.create_bank(
             bank_id=bank_id,
             name=name,
@@ -545,7 +545,7 @@ def _create_or_update_bank(
             import logging
 
             logging.getLogger("contextbase_litellm").warning(
-                "hindsight_client not installed. Cannot create bank. Install with: pip install hindsight-client"
+                "contextbase_client not installed. Cannot create bank. Install with: pip install contextbase-client"
             )
     except Exception as e:
         if verbose:
@@ -580,15 +580,15 @@ def set_bank_mission(
             configured key, then to the ``CONTEXTBASE_API_KEY`` env var.
 
     Raises:
-        HindsightError: If no bank_id can be resolved or the bank
+        ContextBaseError: If no bank_id can be resolved or the bank
             cannot be created/updated.
     """
-    from .callbacks import HindsightError
+    from .callbacks import ContextBaseError
 
     config = get_config()
     resolved_bank = bank_id or (config.default_settings.bank_id if config else None)
     if not resolved_bank:
-        raise HindsightError(
+        raise ContextBaseError(
             "set_bank_mission requires bank_id (either as an argument or via configure(...)/set_defaults(bank_id=...))."
         )
 
@@ -596,20 +596,20 @@ def set_bank_mission(
     resolved_key = api_key or (config.api_key if config else None) or os.getenv("CONTEXTBASE_API_KEY")
 
     try:
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
     except ImportError as e:
-        raise HindsightError(
-            "hindsight_client is required for set_bank_mission. Install with: pip install hindsight-client"
+        raise ContextBaseError(
+            "contextbase_client is required for set_bank_mission. Install with: pip install contextbase-client"
         ) from e
 
     try:
         ensure_loop()
         if not resolved_url:
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        client = Hindsight(base_url=resolved_url, api_key=resolved_key, user_agent=USER_AGENT)
+        client = ContextBase(base_url=resolved_url, api_key=resolved_key, user_agent=USER_AGENT)
         client.create_bank(bank_id=resolved_bank, name=name, mission=mission)
     except Exception as e:
-        raise HindsightError(f"Failed to set bank mission for '{resolved_bank}': {e}") from e
+        raise ContextBaseError(f"Failed to set bank mission for '{resolved_bank}': {e}") from e
 
 
 def get_config() -> Optional[ContextBaseConfig]:

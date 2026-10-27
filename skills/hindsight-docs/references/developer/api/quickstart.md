@@ -54,13 +54,13 @@ See [LLM Providers](../models.md#llm) for more details.
 ### Python
 
 ```bash
-pip install hindsight-client
+pip install contextbase-client
 ```
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 # Retain: Store information
 client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
@@ -75,13 +75,13 @@ client.reflect(bank_id="my-bank", query="Tell me about Alice")
 ### Node.js
 
 ```bash
-npm install @vectorize-io/hindsight-client
+npm install contextbase-client
 ```
 
 ```javascript
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 
-const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
+const client = new ContextBaseClient({ baseUrl: 'http://localhost:8888' });
 
 // Retain: Store information
 await client.retain('my-bank', 'Alice works at Google as a software engineer');

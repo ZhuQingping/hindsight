@@ -1,8 +1,8 @@
-import { DEFAULT_USER_AGENT, HindsightClient } from "../src";
+import { DEFAULT_USER_AGENT, ContextBaseClient } from "../src";
 
-describe("HindsightClient options", () => {
+describe("ContextBaseClient options", () => {
   test("flattens custom headers into the generated client configuration", () => {
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       baseUrl: "http://localhost:8888",
       apiKey: "test-api-key",
       headers: {
@@ -21,16 +21,16 @@ describe("HindsightClient options", () => {
   });
 
   test("puts a caller's user agent in front of the client's own", () => {
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       baseUrl: "http://localhost:8888",
-      userAgent: "hindsight-test/1.2.3",
+      userAgent: "contextbase-test/1.2.3",
     });
     const internalClient = client as unknown as {
       client: { getConfig: () => { headers: Headers } };
     };
 
     expect(internalClient.client.getConfig().headers.get("User-Agent")).toBe(
-      `hindsight-test/1.2.3 ${DEFAULT_USER_AGENT}`
+      `contextbase-test/1.2.3 ${DEFAULT_USER_AGENT}`
     );
   });
 });

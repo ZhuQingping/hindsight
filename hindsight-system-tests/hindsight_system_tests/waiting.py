@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import time
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 SETTLE_TIMEOUT_SECONDS = 90.0
 POLL_INTERVAL_SECONDS = 0.2
@@ -31,7 +31,7 @@ _BUSY_STATUSES = ("pending", "processing")
 
 
 async def wait_until_settled(
-    client: Hindsight,
+    client: ContextBase,
     bank_id: str,
     *,
     timeout: float = SETTLE_TIMEOUT_SECONDS,

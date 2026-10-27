@@ -20,8 +20,8 @@ This guide walks through installing the plugin, wiring in a Hindsight client, un
 
 > **Quick answer**
 >
-> 1. `npm install @vectorize-io/hindsight-eliza @vectorize-io/hindsight-client`.
-> 2. Create a `Hindsight` client with your `HINDSIGHT_API_KEY`.
+> 1. `npm install @vectorize-io/hindsight-eliza contextbase-client`.
+> 2. Create a `ContextBase` client with your `HINDSIGHT_API_KEY`.
 > 3. Build the plugin with `createHindsightPlugin({ client, ... })`.
 > 4. Add the plugin to your character's `plugins` list — memory defaults to one bank per user.
 > 5. Verify that a later turn remembers what an earlier one stored.
@@ -39,7 +39,7 @@ Before you start, make sure you have:
 Install the plugin alongside the Hindsight client.
 
 ```bash
-npm install @vectorize-io/hindsight-eliza @vectorize-io/hindsight-client
+npm install @vectorize-io/hindsight-eliza contextbase-client
 ```
 
 The package targets `@elizaos/core` `^1.7.2`, declared as a peer dependency, so install it into an existing elizaOS project.
@@ -50,10 +50,10 @@ Create the plugin with a Hindsight client and add it to your character's `plugin
 
 ```ts
 import { createHindsightPlugin } from "@vectorize-io/hindsight-eliza";
-import { Hindsight } from "@vectorize-io/hindsight-client";
+import { ContextBase } from "contextbase-client";
 
 const hindsightPlugin = createHindsightPlugin({
-  client: new Hindsight({ apiKey: process.env.HINDSIGHT_API_KEY }),
+  client: new ContextBase({ apiKey: process.env.HINDSIGHT_API_KEY }),
   recall: { budget: "high", includeEntities: true },
   retain: { tags: ["source:eliza"] },
 });
@@ -140,7 +140,7 @@ If the recalled memory surfaces the earlier detail, the setup is working.
 
 ### Forgetting the client dependency
 
-The plugin needs a Hindsight client, so install and import `@vectorize-io/hindsight-client` and pass an instance as `client`.
+The plugin needs a Hindsight client, so install and import `contextbase-client` and pass an instance as `client`.
 
 ### Not adding the plugin to the character
 

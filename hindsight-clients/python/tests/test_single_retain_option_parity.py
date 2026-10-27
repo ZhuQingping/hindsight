@@ -3,8 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_retain(monkeypatch, client, captured):
@@ -17,7 +16,7 @@ def _capture_retain(monkeypatch, client, captured):
 
 @pytest.mark.parametrize("scopes", ["per_tag", "combined", "all_combinations", "shared", [["project:p1"], []]])
 def test_retain_forwards_scopes_and_strategy(monkeypatch, scopes):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -29,7 +28,7 @@ def test_retain_forwards_scopes_and_strategy(monkeypatch, scopes):
 
 
 async def test_aretain_forwards_scopes_and_strategy(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -41,7 +40,7 @@ async def test_aretain_forwards_scopes_and_strategy(monkeypatch):
 
 
 def test_retain_omits_scopes_and_strategy_by_default(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 

@@ -81,9 +81,9 @@ print(f"Bank ID: {BANK_ID}")
 
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-contextbase = Hindsight(base_url=CONTEXTBASE_API_URL, api_key=CONTEXTBASE_API_KEY)
+contextbase = ContextBase(base_url=CONTEXTBASE_API_URL, api_key=CONTEXTBASE_API_KEY)
 
 # Create a dedicated bank for this demo (safe to re-run)
 try:

@@ -12,8 +12,8 @@ from contextlib import AsyncExitStack
 import asyncpg
 import httpx
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException
 
 from .support.deployment import ContextDBDeployment
 
@@ -45,7 +45,7 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
             json={"name": "All reader", "authorization": {"mode": "all", "permission": "read"}},
         )
         assert issued.status_code == 201
-        reader = Hindsight(base_url=deployment.server.url, api_key=issued.json()["secret"])
+        reader = ContextBase(base_url=deployment.server.url, api_key=issued.json()["secret"])
         resources.push_async_callback(reader.aclose)
         selected = None
         selected_key = None
@@ -63,7 +63,7 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
             )
             assert issued.status_code == 201
             selected_key = issued.json()
-            selected = Hindsight(base_url=deployment.server.url, api_key=selected_key["secret"])
+            selected = ContextBase(base_url=deployment.server.url, api_key=selected_key["secret"])
             resources.push_async_callback(selected.aclose)
             assert (await selected.arecall(bank, "Before failed deletion")).results == []
         # A trigger is needed to place a fault AFTER native work, at the commit
@@ -122,7 +122,7 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
         assert replacement.json()["workspace_id"] != failed_resource["workspace_id"]
         assert (await reader.arecall(bank, "All access includes a fresh empty successor")).results == []
         if selected_key is not None:
-            old = Hindsight(base_url=deployment.server.url, api_key=selected_key["secret"])
+            old = ContextBase(base_url=deployment.server.url, api_key=selected_key["secret"])
             try:
                 with pytest.raises(ForbiddenException):
                     await old.arecall(bank, "A successor must not inherit selected grants")

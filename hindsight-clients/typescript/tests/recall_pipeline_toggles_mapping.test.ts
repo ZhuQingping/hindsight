@@ -12,7 +12,7 @@
  * tests/test_bank_config_update_payload.py; the two must stay in step.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -23,10 +23,10 @@ const mockedCreateBank = sdk.createOrUpdateBank as jest.MockedFunction<
 const mockedUpdateConfig = sdk.updateBankConfig as jest.MockedFunction<typeof sdk.updateBankConfig>;
 
 describe("recall pipeline toggle mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedCreateBank.mockReset();
     mockedCreateBank.mockResolvedValue({
       data: { bank_id: "bank", name: "bank" },

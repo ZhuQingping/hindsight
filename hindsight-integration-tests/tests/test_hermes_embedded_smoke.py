@@ -1,11 +1,11 @@
-"""Smoke test for the Hermes Agent ↔ Hindsight integration in embedded mode.
+"""Smoke test for the Hermes Agent ↔ ContextBase integration in embedded mode.
 
 Drives the `HindsightMemoryProvider` plugin shipped with Hermes Agent against
-a locally-spawned Hindsight Embedded daemon, exercising the full retain →
+a locally-spawned ContextBase Embedded daemon, exercising the full retain →
 recall roundtrip end-to-end.
 
 Run on demand via the installed Hermes venv (it already has every dep —
-hermes-agent's plugin code, hindsight_embed, hindsight_client, pytest):
+hermes-agent's plugin code, hindsight_embed, contextbase_client, pytest):
 
     HINDSIGHT_LLM_API_KEY=... \
         ~/.hermes/hermes-agent/venv/bin/python -m pytest \
@@ -29,7 +29,6 @@ import uuid
 from pathlib import Path
 
 import pytest
-
 
 HERMES_VENV_SITE = Path.home() / ".hermes" / "hermes-agent"
 LLM_API_KEY = os.environ.get("HINDSIGHT_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY", "")
@@ -60,7 +59,7 @@ def embedded_provider(tmp_path, monkeypatch, hermes_path):
     """Spin up a HindsightMemoryProvider in local_embedded mode.
 
     Uses a temp HERMES_HOME so we never touch the user's real ~/.hermes.
-    The Hindsight daemon stores its data under that temp dir too.
+    The ContextBase daemon stores its data under that temp dir too.
     """
     profile_name = f"hermes-smoke-{uuid.uuid4().hex[:8]}"
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -104,7 +103,7 @@ def embedded_provider(tmp_path, monkeypatch, hermes_path):
         time.sleep(2.0)
     else:
         provider.shutdown()
-        pytest.fail(f"Hindsight embedded daemon did not start within 240s (last error: {last_err!r})")
+        pytest.fail(f"ContextBase embedded daemon did not start within 240s (last error: {last_err!r})")
 
     yield provider
 
@@ -146,7 +145,4 @@ def test_retain_then_recall_roundtrip(embedded_provider):
             return
         time.sleep(2.0)
 
-    pytest.fail(
-        f"recall did not surface the stored fact within 60s. "
-        f"Last prefetch result: {last_result!r}"
-    )
+    pytest.fail(f"recall did not surface the stored fact within 60s. Last prefetch result: {last_result!r}")

@@ -38,11 +38,11 @@ logger = logging.getLogger(__name__)
 def _get_client(api_url: str, api_key: Optional[str] = None):
     """Create a fresh ContextBase client for the given URL.
 
-    Note: We create a fresh client each time because the hindsight_client
+    Note: We create a fresh client each time because the contextbase_client
     uses aiohttp internally, and reusing clients across different sync
     calls causes asyncio context issues.
     """
-    from hindsight_client import Hindsight
+    from contextbase_client import ContextBase
 
     # Establish this thread's owned event loop before the client's first call so
     # the client's internal get_event_loop() reuses it (no deprecation, no
@@ -50,7 +50,7 @@ def _get_client(api_url: str, api_key: Optional[str] = None):
     ensure_loop()
     if not api_url:
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(base_url=api_url, api_key=api_key, timeout=30.0, user_agent=USER_AGENT)
+    return ContextBase(base_url=api_url, api_key=api_key, timeout=30.0, user_agent=USER_AGENT)
 
 
 def _close_client():
@@ -236,7 +236,7 @@ def recall(
         return RecallResponse(results=recall_results, debug=debug_info)
 
     except ImportError as e:
-        raise RuntimeError(f"hindsight-client not installed: {e}")
+        raise RuntimeError(f"contextbase-client not installed: {e}")
     except Exception as e:
         if config and config.verbose:
             logger.warning(f"Failed to recall memories: {e}")
@@ -389,7 +389,7 @@ def reflect(
         return ReflectResult(text=text, based_on=based_on, debug=debug_info)
 
     except ImportError as e:
-        raise RuntimeError(f"hindsight-client not installed: {e}")
+        raise RuntimeError(f"contextbase-client not installed: {e}")
     except Exception as e:
         if config and config.verbose:
             logger.warning(f"Failed to reflect: {e}")
@@ -507,7 +507,7 @@ def _retain_sync(
         return RetainResult(success=success, items_count=items_count, debug=debug_info)
 
     except ImportError as e:
-        raise RuntimeError(f"hindsight-client not installed: {e}")
+        raise RuntimeError(f"contextbase-client not installed: {e}")
     except Exception as e:
         if verbose:
             logger.warning(f"Failed to retain: {e}")
@@ -896,7 +896,7 @@ class ContextBaseOpenAI:
         self._client = client
         self._api_url = contextbase_api_url
         self._api_key = api_key
-        self._hindsight_client = None
+        self._contextbase_client = None
 
         # Build default settings from kwargs or use provided settings
         if default_settings is not None:
@@ -918,11 +918,11 @@ class ContextBaseOpenAI:
         has one. Safe to call multiple times. Also usable as a context manager
         (``with wrap_openai(OpenAI()) as client: ...``).
         """
-        if self._hindsight_client is not None:
+        if self._contextbase_client is not None:
             try:
-                self._hindsight_client.close()
+                self._contextbase_client.close()
             finally:
-                self._hindsight_client = None
+                self._contextbase_client = None
         underlying_close = getattr(self._client, "close", None)
         if callable(underlying_close):
             underlying_close()
@@ -934,23 +934,23 @@ class ContextBaseOpenAI:
         self.close()
         return False
 
-    def _get_hindsight_client(self):
+    def _get_contextbase_client(self):
         """Get or create the ContextBase client."""
-        if self._hindsight_client is None:
-            from hindsight_client import Hindsight
+        if self._contextbase_client is None:
+            from contextbase_client import ContextBase
 
             # Own this thread's loop before the client's first call so its
             # cached session binds to our managed, reused loop.
             ensure_loop()
             if not self._api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            self._hindsight_client = Hindsight(
+            self._contextbase_client = ContextBase(
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
                 user_agent=USER_AGENT,
             )
-        return self._hindsight_client
+        return self._contextbase_client
 
     def _recall_memories(self, query: str, settings: ContextBaseCallSettings) -> str:
         """Recall and format memories for injection."""
@@ -963,7 +963,7 @@ class ContextBaseOpenAI:
             return ""
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
 
             recall_kwargs = {
                 "bank_id": settings.bank_id,
@@ -1047,7 +1047,7 @@ class ContextBaseOpenAI:
             return ""
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
 
             reflect_kwargs = {
                 "bank_id": settings.bank_id,
@@ -1085,10 +1085,10 @@ class ContextBaseOpenAI:
         Returns:
             The document's original_text, or None if not found.
         """
-        from hindsight_client_api.api import documents_api
+        from contextbase_client_api.api import documents_api
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
             docs_api = documents_api.DocumentsApi(client._api_client)
 
             async def _fetch():
@@ -1126,7 +1126,7 @@ class ContextBaseOpenAI:
             return
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
             new_exchange = f"USER: {user_input}\n\nASSISTANT: {assistant_output}"
 
             # If document_id is set, fetch existing content and append
@@ -1328,7 +1328,7 @@ class ContextBaseAnthropic:
         self._client = client
         self._api_url = contextbase_api_url
         self._api_key = api_key
-        self._hindsight_client = None
+        self._contextbase_client = None
 
         # Build default settings from kwargs or use provided settings
         if default_settings is not None:
@@ -1350,11 +1350,11 @@ class ContextBaseAnthropic:
         has one. Safe to call multiple times. Also usable as a context manager
         (``with wrap_anthropic(Anthropic()) as client: ...``).
         """
-        if self._hindsight_client is not None:
+        if self._contextbase_client is not None:
             try:
-                self._hindsight_client.close()
+                self._contextbase_client.close()
             finally:
-                self._hindsight_client = None
+                self._contextbase_client = None
         underlying_close = getattr(self._client, "close", None)
         if callable(underlying_close):
             underlying_close()
@@ -1366,23 +1366,23 @@ class ContextBaseAnthropic:
         self.close()
         return False
 
-    def _get_hindsight_client(self):
+    def _get_contextbase_client(self):
         """Get or create the ContextBase client."""
-        if self._hindsight_client is None:
-            from hindsight_client import Hindsight
+        if self._contextbase_client is None:
+            from contextbase_client import ContextBase
 
             # Own this thread's loop before the client's first call so its
             # cached session binds to our managed, reused loop.
             ensure_loop()
             if not self._api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            self._hindsight_client = Hindsight(
+            self._contextbase_client = ContextBase(
                 base_url=self._api_url,
                 api_key=self._api_key,
                 timeout=30.0,
                 user_agent=USER_AGENT,
             )
-        return self._hindsight_client
+        return self._contextbase_client
 
     def _recall_memories(self, query: str, settings: ContextBaseCallSettings) -> str:
         """Recall and format memories for injection."""
@@ -1395,7 +1395,7 @@ class ContextBaseAnthropic:
             return ""
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
 
             recall_kwargs = {
                 "bank_id": settings.bank_id,
@@ -1479,7 +1479,7 @@ class ContextBaseAnthropic:
             return ""
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
 
             reflect_kwargs = {
                 "bank_id": settings.bank_id,
@@ -1517,10 +1517,10 @@ class ContextBaseAnthropic:
         Returns:
             The document's original_text, or None if not found.
         """
-        from hindsight_client_api.api import documents_api
+        from contextbase_client_api.api import documents_api
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
             docs_api = documents_api.DocumentsApi(client._api_client)
 
             async def _fetch():
@@ -1558,7 +1558,7 @@ class ContextBaseAnthropic:
             return
 
         try:
-            client = self._get_hindsight_client()
+            client = self._get_contextbase_client()
             new_exchange = f"USER: {user_input}\n\nASSISTANT: {assistant_output}"
 
             # If document_id is set, fetch existing content and append
@@ -1772,14 +1772,14 @@ def wrap_openai(
     # Create/update bank if mission or bank_name is provided
     if mission or bank_name:
         try:
-            from hindsight_client import Hindsight
+            from contextbase_client import ContextBase
 
             # Reuse this thread's managed loop for the bank-setup call too, so
             # it doesn't auto-create an orphaned loop / trip the deprecation.
             ensure_loop()
             if not resolved_api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
+            hs_client = ContextBase(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
             hs_client.create_bank(
                 bank_id=settings_kwargs["bank_id"],
                 name=bank_name,
@@ -1879,14 +1879,14 @@ def wrap_anthropic(
     # Create/update bank if mission or bank_name is provided
     if mission or bank_name:
         try:
-            from hindsight_client import Hindsight
+            from contextbase_client import ContextBase
 
             # Reuse this thread's managed loop for the bank-setup call too, so
             # it doesn't auto-create an orphaned loop / trip the deprecation.
             ensure_loop()
             if not resolved_api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            hs_client = Hindsight(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
+            hs_client = ContextBase(base_url=resolved_api_url, api_key=resolved_api_key, user_agent=USER_AGENT)
             hs_client.create_bank(
                 bank_id=settings_kwargs["bank_id"],
                 name=bank_name,

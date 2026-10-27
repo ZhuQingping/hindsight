@@ -8,11 +8,11 @@
  * what decides how much of a bank travels.
  *
  * The Python wrapper has the same coverage in
- * hindsight-clients/python/tests/test_bank_transfer_wrapper.py; the two wrappers
+ * the Python SDK tests/test_bank_transfer_wrapper.py; the two wrappers
  * are expected to expose the same surface.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -31,10 +31,10 @@ const SIGNED_URL = "https://storage.example.com/archive?X-Amz-Signature=abc%2Fde
 const ARCHIVE = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
 
 describe("exportBank mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedExport.mockReset();
     mockedStatus.mockReset();
     mockedExport.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
@@ -97,7 +97,10 @@ describe("signed export archive downloads", () => {
       });
       globalThis.fetch = fetchMock as typeof fetch;
       try {
-        const client = new HindsightClient({ baseUrl: "http://localhost:8888", apiKey: "secret" });
+        const client = new ContextBaseClient({
+          baseUrl: "http://localhost:8888",
+          apiKey: "secret",
+        });
         (client as any).client.get = jest.fn();
         mockedExport.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
         mockedExportDocuments.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
@@ -118,7 +121,7 @@ describe("signed export archive downloads", () => {
 });
 
 test("exportDocuments keeps API-relative downloads on the authenticated client", async () => {
-  const client = new HindsightClient({ baseUrl: "http://localhost:8888", apiKey: "secret" });
+  const client = new ContextBaseClient({ baseUrl: "http://localhost:8888", apiKey: "secret" });
   const clientGet = jest.fn().mockResolvedValue({ data: ARCHIVE.buffer });
   (client as any).client.get = clientGet;
   mockedExportDocuments.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
@@ -133,14 +136,14 @@ test("exportDocuments keeps API-relative downloads on the authenticated client",
 });
 
 describe("export timeoutMs bounds the whole polling phase", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
   let clientGet: jest.Mock;
   let lateReply: ReturnType<typeof setTimeout> | undefined;
 
   afterEach(() => clearTimeout(lateReply));
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     clientGet = jest.fn().mockResolvedValue({ data: ARCHIVE.buffer });
     (client as any).client.get = clientGet;
     mockedStatus.mockReset();
@@ -189,10 +192,10 @@ describe("export timeoutMs bounds the whole polling phase", () => {
 });
 
 describe("importBank mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedImport.mockReset();
     mockedImport.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
   });
@@ -224,10 +227,10 @@ describe("importBank mapping", () => {
 });
 
 describe("cloneBank mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedClone.mockReset();
     mockedClone.mockResolvedValue({ data: { operation_id: OPERATION_ID } } as any);
   });

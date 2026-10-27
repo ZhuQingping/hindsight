@@ -2,7 +2,7 @@
 
 Management calls below belong to fixture provisioning, because the upstream SDK
 does not expose optional extension APIs. Memory assertions and background waiting
-go exclusively through the published Hindsight client, never SQL or an engine.
+go exclusively through the published ContextBase client, never SQL or an engine.
 The deployment has a unique PG instance and leaves the developer's runtime alone.
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import httpx
 import pytest
-from hindsight_client_api.exceptions import ForbiddenException
+from contextbase_client_api.exceptions import ForbiddenException
 from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.waiting import wait_until_settled

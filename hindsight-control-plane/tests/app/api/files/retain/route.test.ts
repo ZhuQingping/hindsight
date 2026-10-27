@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   dataplaneBankUrl: vi.fn(() => "http://localhost/v1/default/banks/test-bank/files/retain"),
   getDataplaneHeaders: vi.fn(() => ({})),
 }));

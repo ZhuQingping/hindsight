@@ -25,8 +25,7 @@ from __future__ import annotations
 import logging
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import build_page, evaluate, questions, split_into_waves
 from hindsight_system_evals.pages import PageOutcome, SettleFn, facts
 from hindsight_system_evals.report import RECORDED, EvalRecord
@@ -42,7 +41,7 @@ MINIMUM_ACCEPTANCE = ("hq-release-prod", "hq-count-billing")
 
 
 async def _run(
-    client: Hindsight, bank_id: str, settled: SettleFn, question_id: str, *, record: bool = True
+    client: ContextBase, bank_id: str, settled: SettleFn, question_id: str, *, record: bool = True
 ) -> PageOutcome:
     question = _QUESTIONS[question_id]
     outcome = await build_page(client, bank_id, question, split_into_waves(facts()), settled)
@@ -109,7 +108,7 @@ def _assert_sound(outcome: PageOutcome) -> None:
 
 @pytest.mark.parametrize("question_id", MINIMUM_ACCEPTANCE)
 async def test_page_converges_minimum_acceptance(
-    client: Hindsight, bank_id: str, settled: SettleFn, question_id: str
+    client: ContextBase, bank_id: str, settled: SettleFn, question_id: str
 ) -> None:
     """The two cases that have actually regressed. This is the CI gate."""
     outcome = await _run(client, bank_id, settled, question_id)
@@ -118,7 +117,7 @@ async def test_page_converges_minimum_acceptance(
 
 @pytest.mark.full
 @pytest.mark.parametrize("question_id", [q for q in _QUESTIONS if q not in MINIMUM_ACCEPTANCE])
-async def test_page_converges_full(client: Hindsight, bank_id: str, settled: SettleFn, question_id: str) -> None:
+async def test_page_converges_full(client: ContextBase, bank_id: str, settled: SettleFn, question_id: str) -> None:
     """The rest of the categories: supersession, entity confusion, scoped truth,
     dense absence, numeric precision. Run with ``--full``."""
     outcome = await _run(client, bank_id, settled, question_id)
@@ -126,7 +125,7 @@ async def test_page_converges_full(client: Hindsight, bank_id: str, settled: Set
 
 
 @pytest.mark.full
-async def test_a_page_never_silently_collapses(client: Hindsight, bank_id: str, settled: SettleFn) -> None:
+async def test_a_page_never_silently_collapses(client: ContextBase, bank_id: str, settled: SettleFn) -> None:
     """A wave that shrinks a page to almost nothing is a destructive edit.
 
     Separate from correctness because a page can shrink legitimately — a

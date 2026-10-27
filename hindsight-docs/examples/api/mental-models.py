@@ -3,6 +3,7 @@
 Mental Models API examples for ContextBase.
 Run: python examples/api/mental-models.py
 """
+
 import os
 import time
 
@@ -12,11 +13,11 @@ BANK_ID = "mental-models-demo-bank"
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # Create bank and seed some data
 client.create_bank(bank_id=BANK_ID, name="Mental Models Demo")
@@ -37,7 +38,7 @@ result = client.create_mental_model(
     bank_id=BANK_ID,
     name="Team Communication Preferences",
     source_query="How does the team prefer to communicate?",
-    tags=["team", "communication"]
+    tags=["team", "communication"],
 )
 
 # Returns an operation_id - check operations endpoint for completion
@@ -50,7 +51,7 @@ result_with_id = client.create_mental_model(
     bank_id=BANK_ID,
     name="Communication Policy",
     source_query="What are the team's communication guidelines?",
-    id="communication-policy"
+    id="communication-policy",
 )
 
 print(f"Created with custom ID: {result_with_id.operation_id}")
@@ -65,7 +66,7 @@ result = client.create_mental_model(
     bank_id=BANK_ID,
     name="Project Status",
     source_query="What is the current project status?",
-    trigger={"refresh_cron": "0 3 * * *"}
+    trigger={"refresh_cron": "0 3 * * *"},
 )
 
 # This mental model checks daily at 03:00 UTC and refreshes when scoped memories changed
@@ -82,7 +83,7 @@ result = client.create_mental_model(
     name="Current Projects",
     source_query="Which projects is the user currently working on?",
     tags=["projects", "mental-model"],
-    trigger={"tags_match": "any"}
+    trigger={"tags_match": "any"},
 )
 
 print(f"Operation ID: {result.operation_id}")
@@ -106,44 +107,29 @@ mental_model_id = mental_models.items[0].id if mental_models.items else None
 if mental_model_id:
     # [docs:get-mental-model]
     # Get a specific mental model
-    mental_model = client.get_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    mental_model = client.get_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     print(f"Name: {mental_model.name}")
     print(f"Content: {mental_model.content}")
     print(f"Last refreshed: {mental_model.last_refreshed_at}")
     # [/docs:get-mental-model]
 
-
     # [docs:refresh-mental-model]
     # Refresh a mental model to update with current knowledge
-    result = client.refresh_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    result = client.refresh_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     print(f"Refresh operation ID: {result.operation_id}")
     # [/docs:refresh-mental-model]
 
-
     # [docs:clear-mental-model]
     # Clear a mental model's content, then refresh for a full re-synthesis
-    client.clear_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    client.clear_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     # Trigger a fresh full rebuild
-    result = client.refresh_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    result = client.refresh_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     print(f"Full refresh operation ID: {result.operation_id}")
     # [/docs:clear-mental-model]
-
 
     # [docs:update-mental-model]
     # Update a mental model's metadata
@@ -151,19 +137,15 @@ if mental_model_id:
         bank_id=BANK_ID,
         mental_model_id=mental_model_id,
         name="Updated Team Communication Preferences",
-        trigger={"refresh_after_consolidation": True}  # Enable auto-refresh
+        trigger={"refresh_after_consolidation": True},  # Enable auto-refresh
     )
 
     print(f"Updated name: {updated.name}")
     # [/docs:update-mental-model]
 
-
     # [docs:get-mental-model-history]
     # Get the change history of a mental model
-    history = client.get_mental_model_history(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    history = client.get_mental_model_history(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     for entry in history:
         print(f"Changed at: {entry['changed_at']}")
@@ -183,10 +165,7 @@ if mental_model_id:
 
     # [docs:dry-run-refresh]
     # Preview what a refresh would do, without writing anything
-    preview = client.dry_run_refresh_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    preview = client.dry_run_refresh_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
 
     print(f"Mode: {preview.effective_mode}, would persist: {preview.would_persist}")
     print(preview.diff)
@@ -195,18 +174,13 @@ if mental_model_id:
     # [docs:keep-trace]
     # Record how every refresh (scheduled ones too) reached its result
     client.update_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id,
-        trigger={"mode": "delta", "keep_trace": True}
+        bank_id=BANK_ID, mental_model_id=mental_model_id, trigger={"mode": "delta", "keep_trace": True}
     )
     # [/docs:keep-trace]
 
     # [docs:delete-mental-model]
     # Delete a mental model
-    client.delete_mental_model(
-        bank_id=BANK_ID,
-        mental_model_id=mental_model_id
-    )
+    client.delete_mental_model(bank_id=BANK_ID, mental_model_id=mental_model_id)
     # [/docs:delete-mental-model]
 
 

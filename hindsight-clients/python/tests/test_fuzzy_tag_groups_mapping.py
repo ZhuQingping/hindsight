@@ -13,8 +13,7 @@ are pinned here:
 from unittest.mock import MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 FUZZY_GROUP = {"tags": ["typsecript"], "match": "any_strict", "resolve": "fuzzy"}
 
@@ -36,7 +35,7 @@ def _capture(monkeypatch, client, api_attr, method, captured):
     ],
 )
 def test_wrapper_forwards_fuzzy_tag_groups(monkeypatch, api_attr, method, call):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture(monkeypatch, client, api_attr, method, captured)
 
