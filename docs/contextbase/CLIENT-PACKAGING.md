@@ -56,9 +56,19 @@ node hindsight-integrations/coding-agents/scripts/test-customer-install.mjs
 
 ```dotenv
 CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL=https://downloads.example.com/contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz
+CONTEXTBASE_CP_OPENCLAW_PACKAGE_URL=https://downloads.example.com/contextbase-openclaw/1.0.0/contextbase-openclaw-1.0.0.tgz
+CONTEXTBASE_CP_HERMES_PACKAGE_URL=https://downloads.example.com/hermes-plugin-contextbase/1.2.2/hermes-plugin-contextbase-1.2.2.zip
+CONTEXTBASE_CP_PYTHON_SDK_PACKAGE_URL=https://downloads.example.com/contextbase-client/1.0.0/contextbase_client-1.0.0-py3-none-any.whl
+CONTEXTBASE_CP_NODE_SDK_PACKAGE_URL=https://downloads.example.com/contextbase-client/1.0.0/contextbase-client-1.0.0.tgz
 ```
 
-该变量仅用于安装包下载地址。API 地址由 `CONTEXTBASE_CP_PUBLIC_API_URL` 配置；需要远端 MCP 时另设 `CONTEXTBASE_CP_PUBLIC_MCP_URL`。更新环境变量后按部署方式重启控制台服务。
+这些变量分别对应 Coding Agents、OpenClaw、Hermes、Python SDK 和 Node.js SDK。版本以实际构建产物为准，页面命令使用配置的完整地址，不假定包已公开发布到 npm 或 PyPI。地址须指向表中对应的实际安装文件；不能使用 Actions 页面地址或其外层 artifact ZIP。缺少某个包地址时，页面会提示该客户端安装包暂未提供，其他客户端仍可使用。
+
+API 地址由 `CONTEXTBASE_CP_PUBLIC_API_URL` 配置；需要远端 MCP 时另设 `CONTEXTBASE_CP_PUBLIC_MCP_URL`，不要从 API 地址推导。所有地址须为客户可访问的 HTTPS URL，不含用户名、密码或 fragment；API/MCP 地址不接受 query，下载地址允许签名 query。
+
+把变量写入控制台实际加载的环境配置（部署脚本方式为持久目录中的 `ui.env`），再按部署方式重启控制台。编辑 `contextdb.env.example` 不会更新已运行的服务。下载地址会交给浏览器和客户端，不应放入服务端管理凭据；签名下载链接须在客户安装时仍有效。
+
+接入页按客户端提供命令或代码，API Key 始终保留 `<API_KEY>` 占位符，不读取控制台管理 Key。项目型 Agent 命令只安装选中客户端，并通过 `--bank-id` 与 `--project-path '.'` 绑定当前项目；OpenClaw/Hermes 使用各自的宿主设置。CMD 遇到会被终端展开的特殊字符时提示改用 PowerShell。
 
 向客户交付安装包地址、SHA256SUMS、API Endpoint、业务 API Key 和已授权的 Bank ID，并附客户指南。
 

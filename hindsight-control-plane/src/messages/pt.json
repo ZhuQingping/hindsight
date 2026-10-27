@@ -60,7 +60,8 @@
       "copied": "Copiado para a área de transferência",
       "viaAlias": "via {aliases}"
     },
-    "viewOnGitHub": "Ver no GitHub"
+    "viewOnGitHub": "Ver no GitHub",
+    "settings": "Settings"
   },
   "bank": {
     "bankConfiguration": "Configurações e atividade",
@@ -2304,28 +2305,15 @@
     "guideConnectTitle": "Conectar um agente ou aplicativo",
     "guideConnectBody": "As instruções do banco selecionado estão em uma página separada.",
     "connectTitle": "Conectar",
-    "connectIntro": "Escolha um banco e conecte um aplicativo ou agente pelo Hook, SDK Python, API REST ou MCP.",
+    "connectIntro": "Choose a workspace and client, then copy its commands or code. The bank_id in each example is the selected workspace ID.",
     "chooseBank": "Escolher um banco",
     "chooseBankDescription": "Os dados de conexão pertencem a um banco. Pesquise o banco que deseja conectar.",
     "searchBanks": "Pesquisar bancos",
     "noBanks": "Nenhum banco correspondente.",
     "selectedBank": "Banco selecionado",
     "changeBank": "Trocar banco",
-    "credentialsTitle": "Endereço e credenciais da API",
-    "credentialsBody": "Peça a URL base e a chave da API ao administrador da implantação. Este console não cria nem mostra chaves. Identidade da plataforma e OAuth não estão conectados nesta versão.",
-    "pythonTitle": "SDK Python",
-    "pythonBody": "Use o pacote existente hindsight-client com a URL da API e o ID do banco.",
-    "restTitle": "API REST",
-    "restBody": "Confira URL, chave e ID do banco com uma consulta de estatísticas somente leitura.",
-    "mcpTitle": "MCP",
-    "mcpBody": "Configure the complete MCP Endpoint for this Workspace in your MCP client.",
-    "mcpAuth": "Envie Authorization: Bearer <API_KEY> pelo cliente MCP. O endereço da API é diferente do endereço do console.",
     "loadMore": "Load more",
-    "showingWorkspaces": "Showing {shown} of {total} Workspaces",
-    "mcpEndpointHelp": "Ask your administrator for the complete MCP Endpoint for the selected Workspace. It is provided separately from the API Endpoint; do not derive one from the other.",
-    "hookTitle": "Hook de agente de codificação",
-    "hookBody": "Abra o diretório do projeto, substitua <API_KEY> por uma chave de uso autorizada para este espaço e execute os comandos do seu terminal. Eles instalam hooks e MCP local do Claude Code e Codex, vinculados a este espaço. Mantenha apenas um nome de agente se necessário. Reinicie o cliente e autorize os hooks quando solicitado.",
-    "connectionUnavailable": "A conexão ainda não está totalmente configurada. Solicite o endpoint e o pacote de instalação ao provedor."
+    "showingWorkspaces": "Showing {shown} of {total} Workspaces"
   },
   "brand": {
     "console": "Motor de dados e memória para agentes",
@@ -2347,5 +2335,89 @@
     "reflectDetail": "Explore respostas fundamentadas no seu banco de memória.",
     "localAccess": "Use a senha de acesso fornecida pelo administrador. O login único da plataforma não está conectado.",
     "signOutFailed": "Falha ao sair. Sua sessão pode continuar ativa. Tente novamente."
+  },
+  "connectionSetup": {
+    "setupLabel": "Client connection instructions",
+    "categoryLabel": "Connection category",
+    "agents": "Agent clients",
+    "development": "Application development",
+    "clientLabel": "Client",
+    "terminalLabel": "Terminal",
+    "credentials": "Replace '<API_KEY>' locally with a key authorized for this workspace. This page does not create or store keys.",
+    "descriptions": {
+      "coding": "Install the ContextBase integration for this client and bind the current project to the selected workspace.",
+      "openclaw": "Install the ContextBase plugin and connect your OpenClaw Gateway to this workspace.",
+      "hermes": "Install ContextBase as the memory provider for your current Hermes profile.",
+      "python": "Install the Python SDK and run a read-only memory query.",
+      "node": "Install the Node.js SDK and run a read-only memory query.",
+      "rest": "Check access to this workspace with a read-only statistics request.",
+      "mcp": "Connect an HTTP MCP client to the remote ContextBase service. No local adapter is required for this option."
+    },
+    "requirements": {
+      "coding": "Requires the selected client and Node.js 24+. Run these commands in the environment where your client runs, including WSL if applicable.",
+      "python": "Requires Python 3.10+; use an activated virtual environment.",
+      "node": "Requires Node.js 18+; run the commands in your application directory.",
+      "openclaw": "Requires OpenClaw and Node.js 22+. Run in your Gateway environment.",
+      "hermes": "Requires Python 3.11+ and a Hermes version supporting external memory providers."
+    },
+    "apiUnavailable": "The service API address is not available yet. Contact your service provider.",
+    "packageUnavailable": "The installation package is not available yet. Contact your service provider.",
+    "mcpUnavailable": "The remote MCP endpoint is not available yet. Contact your service provider.",
+    "cmdUnavailable": "These connection values contain characters that CMD expands. Switch to PowerShell to copy the command.",
+    "installTitle": "1. Install",
+    "hermesInstallTitle": "1. Install in your Hermes profile",
+    "downloadPackage": "Download installation package ↗",
+    "projectDirectory": "First open your project directory. The command installs only this client and maps the current directory (.) to the selected workspace; it preserves other project mappings.",
+    "hermesExtract": "Download and extract the plugin ZIP. Copy the complete hermes-plugin-contextbase folder, including sdk/, to plugins/contextbase under your active HERMES_HOME profile. Then enable it and open the setup wizard:",
+    "configureTitle": "2. Configure",
+    "mcpConfigTitle": "1. Configure remote MCP",
+    "mcpConfigHelp": "Use this HTTP configuration as a reference for your client. Replace '<API_KEY>' locally. The MCP endpoint is separate from the REST API address.",
+    "hermesConfigHelp": "Select ContextBase in the wizard and enter the following values:",
+    "openclawConfigHelp": "Set CONTEXTBASE_API_TOKEN in the Gateway process environment and select contextbase-openclaw as the memory plugin. Merge the following into its plugin settings, preserve other settings, then restart the Gateway:",
+    "codeTitle": "2. Run the example",
+    "readonlyTitle": "1. Send a read-only request",
+    "saveExample": "Save as {filename}, then run it in the same terminal:",
+    "exampleQuery": "What conventions does this project follow?",
+    "verifyTitle": "Verify the connection",
+    "verifyAgent": "Restart the client in this project directory. Check the available ContextBase tools, then send this prompt:",
+    "verifyMcpAgent": "Restart the client in this project directory. Check ContextBase under /mcp, approve hooks if prompted, then send this prompt:",
+    "diagnosePrompt": "Call the currently loaded ContextBase diagnostic tool using its actual registered name. Return workspace, bank_id, harness and config.api_url from the tool result.",
+    "diagnoseExpected": "Expect this project directory, bank_id = {bankId}, harness = {harness}, and the API address shown above. This checks local configuration, not cloud permissions.",
+    "openCodeShared": "OpenCode and OpenCode 2 use the same host plugin entry. Choose the version you actually run.",
+    "verify": {
+      "sdk": "A successful recall response, including an empty result, confirms the request reached the service. Authentication or workspace errors must be resolved; a running script alone does not mean success.",
+      "rest": "Expect HTTP 200 with workspace statistics. Resolve HTTP 401/403/404 before using the service.",
+      "mcp": "Reconnect your MCP client and check the returned tool list. Make a read-only recall request for this workspace to verify service access.",
+      "openclaw": "After restarting, check that the plugin log reports remote API mode and this workspace. Use OpenClaw memory search and inspect its actual result. Plugin loading alone does not confirm cloud access.",
+      "hermes": "Restart Hermes and confirm ContextBase is the active memory provider. Ask the agent to call the loaded ContextBase recall tool for this workspace and inspect its actual result."
+    },
+    "installScopeTitle": "Installation scope",
+    "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project."
+  },
+  "settings": {
+    "storage": {
+      "title": "File Storage",
+      "description": "Configure where uploaded files are stored. Changes take effect immediately but revert on server restart — update environment variables for permanent changes.",
+      "storageType": "Storage Type",
+      "types": {
+        "native": "PostgreSQL (Native)",
+        "s3": "OBS (S3-Compatible)"
+      },
+      "s3": {
+        "title": "OBS Configuration",
+        "bucket": "Bucket",
+        "region": "Region",
+        "endpoint": "Endpoint URL (optional)",
+        "accessKeyId": "Access Key ID",
+        "secretAccessKey": "Secret Access Key",
+        "endpointHint": "For MinIO, Cloudflare R2, Tigris, or other S3-compatible services. Leave empty for AWS S3."
+      },
+      "restartHint": "Changes apply to new requests immediately. Configure AbortIncompleteMultipartUpload lifecycle rules on your bucket when using object storage.",
+      "saveSuccess": "File storage configuration updated.",
+      "saveError": "Failed to update file storage configuration.",
+      "loadError": "Failed to load file storage configuration.",
+      "saved": "Saved",
+      "extensionActive": "File storage is managed by a custom extension: {extension}. Configure it via environment variables."
+    }
   }
 }
