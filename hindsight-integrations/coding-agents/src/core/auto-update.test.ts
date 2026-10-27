@@ -510,7 +510,7 @@ describe("maybeAutoUpdate", () => {
 });
 
 /**
- * Session-start parity across harnesses — the same shape as the daemon guard in daemon.test.ts,
+ * Session-start parity across harnesses — the same shape as the connection guard in remote-package.test.ts,
  * and for the same reason (#3524): session-start housekeeping keeps getting written for the
  * fresh-process hook harnesses and missed by the persistent-plugin hosts, which call the shared
  * lifecycle directly. A harness that never checks for updates is stuck on its installed version

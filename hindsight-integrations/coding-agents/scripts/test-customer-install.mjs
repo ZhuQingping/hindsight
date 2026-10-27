@@ -79,6 +79,25 @@ try {
   // Inspect the customer's installed runtime, not just source files: bundling preserves class
   // names and source-path comments that are otherwise easy to miss during a brand rename.
   const dist = join(home, ".contextbase", "coding-agents", "dist");
+  // package.json is copied alongside dist into the customer's runtime, including devDependencies.
+  // A build-only file: reference can therefore leak repository internals even when npm omits it.
+  const manifestText = readFileSync(join(dist, "..", "package.json"), "utf8");
+  assert(!/hindsight|contextbase-local-engine/i.test(manifestText), "installed package metadata");
+  const manifest = JSON.parse(manifestText);
+  for (const field of [
+    "dependencies",
+    "devDependencies",
+    "optionalDependencies",
+    "peerDependencies",
+  ]) {
+    for (const version of Object.values(manifest[field] ?? {})) {
+      assert(
+        !/^(file:|link:|workspace:)/.test(version),
+        `${field} must not reference the source checkout`
+      );
+    }
+  }
+  assert(!readdirSync(dist).some((file) => file.startsWith("daemon-start")));
   for (const file of readdirSync(dist)) {
     if (file.endsWith(".js") || file.endsWith(".d.ts")) {
       assert(!/hindsight/i.test(readFileSync(join(dist, file), "utf8")), file);
