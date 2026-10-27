@@ -4,7 +4,7 @@
  * the REF-ID tracer; every turn gets an ABSOLUTE timestamp.
  */
 import { diag } from "./diag";
-import { RateLimitedError, type HindsightClient } from "./hindsight";
+import { RateLimitedError, type ContextBaseClient } from "./contextbase";
 import {
   advancePaths,
   fingerprintTurns,
@@ -45,7 +45,7 @@ export function renderSessionJsonl(refId: string, turns: TransportTurn[], baseTs
 
 /** Backfill: ingest past sessions RAW as JSON transcripts under the `conversation` strategy. */
 export async function ingestChats(
-  client: HindsightClient,
+  client: ContextBaseClient,
   sessions: ChatSession[],
   opts: {
     concurrency?: number;
@@ -118,9 +118,9 @@ export async function ingestChats(
 
 /** Capability probe for the append path. A failed server-version probe answers "no": appending
  *  without `operation_id` dedupe can double-write, so doubt falls back to a full replace. A failed
- *  bank-config probe answers "yes" (see HindsightClient.supportsAppendRetain): banks store document
+ *  bank-config probe answers "yes" (see ContextBaseClient.supportsAppendRetain): banks store document
  *  text by default, and only an explicit `store_document_text: false` rules append out (#4613). */
-async function supportsAppend(client: HindsightClient): Promise<boolean> {
+async function supportsAppend(client: ContextBaseClient): Promise<boolean> {
   try {
     return await client.supportsAppendRetain();
   } catch {
@@ -139,7 +139,7 @@ const LOST_OP_STATUSES = new Set(["failed", "cancelled", "error"]);
  * tracked, never counts as failed.
  */
 async function settleOps(
-  client: HindsightClient,
+  client: ContextBaseClient,
   cursor: RetainCursor
 ): Promise<{ cursor: RetainCursor; ops: string[] }> {
   const ops = cursor.ops ?? [];
@@ -298,7 +298,7 @@ export const DEFAULT_RETAIN_CONTEXT =
  * (see core/transcript*.ts).
  */
 export async function retainLiveSession(
-  client: HindsightClient,
+  client: ContextBaseClient,
   sessionId: string,
   turns: TransportTurn[],
   startTs: string,
@@ -345,7 +345,7 @@ export async function retainLiveSession(
 }
 
 async function writeSession(
-  client: HindsightClient,
+  client: ContextBaseClient,
   sessionId: string,
   turns: TransportTurn[],
   startTs: string,

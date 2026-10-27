@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `mcp` and friends resolve from ${CLAUDE_PLUGIN_DATA}/venv/site-packages.
 from lib.bank import derive_bank_id
 from lib.brand_defaults import DISPLAY_NAME
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.connection import get_api_url
 from mcp.server.fastmcp import FastMCP
@@ -59,7 +59,7 @@ except Exception as e:
 _project_cwd = os.environ.get("CONTEXTBASE_MCP_PROJECT_CWD", os.getcwd())
 _hook_input = {"cwd": _project_cwd, "session_id": ""}
 _default_bank_id = derive_bank_id(_hook_input, _config)
-_client = HindsightClient(
+_client = ContextBaseClient(
     _api_url,
     _config.get("apiToken"),
     request_timeout_override=_config.get("requestTimeoutSeconds"),

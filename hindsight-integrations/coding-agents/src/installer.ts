@@ -71,7 +71,7 @@ import { createInstallerUi, type SelectOption } from "./install-ui";
  *
  * It must appear in the package path under BOTH layouts: npm
  * (`node_modules/contextbase-coding-agents/...`) and a repo checkout
- * (`hindsight-integrations/coding-agents/...`). The old value was the full package name, which the
+ * (a repository directory named `coding-agents`). The old value was the full package name, which the
  * repo path stopped containing when the directory dropped its `contextbase-` prefix — silently
  * breaking dedupe-on-reinstall and uninstall for anyone running from a checkout.
  */
@@ -1130,7 +1130,7 @@ export function flagValueArgs(args: string[], names: string[]): Set<string> {
 const CONFIG_RELATIVE = [".contextbase", "coding-agent.json"];
 /** The runtime resolves its config as CONTEXTBASE_CONFIG || ~/.contextbase/coding-agent.json
  *  (core/config.ts CONFIG_PATH); every installer read/write must honor the same override. */
-const hindsightConfigPath = (c: InstallCtx): string =>
+const contextbaseConfigPath = (c: InstallCtx): string =>
   process.env.CONTEXTBASE_CONFIG || join(c.home, ...CONFIG_RELATIVE);
 
 /**
@@ -1171,7 +1171,7 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
     );
     return false;
   }
-  const configPath = hindsightConfigPath(c);
+  const configPath = contextbaseConfigPath(c);
   let existing: Record<string, any> = {};
   try {
     if (existsSync(configPath)) existing = JSON.parse(readFileSync(configPath, "utf8"));
@@ -2301,7 +2301,7 @@ const traecode: HarnessInstaller = {
     // sandbox.json rules targeting Trae's own storage, so on stock installs both hook writes
     // fail — the installer runs unsandboxed and lands them. Because the hook checks before
     // writing, a pre-seeded repo turns every later session into a read-only no-op.
-    const config = readJson(hindsightConfigPath(c));
+    const config = readJson(contextbaseConfigPath(c));
     const repos = Object.keys(config.mapPathToBank ?? {}).sort();
     if (repos.length) {
       const written: string[] = [];
@@ -2364,7 +2364,7 @@ const traecode: HarnessInstaller = {
     // opted-in repo's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
     // servers and foreign "contextbase" entries are never touched — same ownership check as the
     // hook's. Missing repos skip silently; the storage sweep below still catches their switches.
-    const config = readJson(hindsightConfigPath(c));
+    const config = readJson(contextbaseConfigPath(c));
     const repoEntries = Object.keys(config.mapPathToBank ?? {}).sort();
     const cleaned = repoEntries.filter((repo) =>
       removeTraecodeWorkspaceMcpEntry(repo, { home: c.home })

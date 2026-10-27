@@ -4,7 +4,7 @@
  *
  * `src/mcp-server.ts` is the only file with a runtime MCP SDK import; this module uses only its
  * `ToolAnnotations` type. The server wires the specs returned here into an `McpServer`. Each tool
- * wraps one `HindsightClient` knowledge-page/recall method: it never throws — a thrown client error
+ * wraps one `ContextBaseClient` knowledge-page/recall method: it never throws — a thrown client error
  * is caught and turned into an `isError:true` text result so the calling LLM sees the failure
  * instead of the process crashing.
  *
@@ -22,7 +22,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { ZodRawShape } from "zod";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import { syncStatus } from "./status";
 import { applyBankConfig, DEFAULT_REFLECT_TOOL_TIMEOUT_MS, loadConfig } from "./config";
 import { diagFilePath } from "./diag";
@@ -114,7 +114,7 @@ function guarded(fn: (args: any) => Promise<unknown>): (args: any) => Promise<To
 
 /** Build the knowledge-page + recall MCP tool specs, bound to one client/bank. */
 export function buildKnowledgeTools(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bankId: string,
   opts: {
     repoDir?: string;

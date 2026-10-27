@@ -1,7 +1,6 @@
 """contextbase REST API client.
 
-Communicates with a contextbase server via HTTP. Mirrors the HTTP mode of the
-Openclaw HindsightClient (client.js), adapted for Python stdlib.
+Communicates with a contextbase server via HTTP using Python stdlib.
 """
 
 import json
@@ -41,7 +40,7 @@ def _validate_api_url(url: str) -> str:
     return url.rstrip("/")
 
 
-class HindsightClient:
+class ContextBaseClient:
     """HTTP client for the contextbase API."""
 
     def __init__(

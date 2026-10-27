@@ -4,7 +4,7 @@ export interface PageRef {
   title: string;
 }
 
-/** Defensive parse of HindsightClient.listPages() ({items:[{id,name}]}, flattened from the
+/** Defensive parse of ContextBaseClient.listPages() ({items:[{id,name}]}, flattened from the
  *  knowledge-base tree). The ids are knowledge-base node ids — the same id space the agent passes
  *  back to contextbase_read_knowledge_page. */
 export function parsePageList(raw: unknown): PageRef[] {

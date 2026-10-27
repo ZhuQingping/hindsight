@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "./config";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import { RuntimeCore } from "./runtime";
 import { log } from "./log";
 
@@ -27,7 +27,7 @@ describe("RuntimeCore", () => {
       listDocumentIds: vi.fn(async () => new Set(["git:existing"])),
       listPages: vi.fn(async () => ({ items: [] })),
       reflect: vi.fn(async () => "shared reflect"),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     const runtime = new RuntimeCore(
       client,
       "bank-1",
@@ -57,7 +57,7 @@ describe("RuntimeCore", () => {
       listDocumentIds: vi.fn(async () => new Set(["git:existing"])),
       listPages: vi.fn(async () => ({ items: pages })),
       reflect: vi.fn(async () => ""),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     const runtime = new RuntimeCore(
       client,
       "bank-1",
@@ -94,7 +94,7 @@ describe("RuntimeCore session-idle write-back", () => {
       retain: vi.fn(async (text: string, _ctx: string, docId: string) => {
         retained.push({ turns: text, docId });
       }),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     return { client, retained };
   }
 
@@ -266,7 +266,7 @@ describe("RuntimeCore remote connection", () => {
       listDocumentIds: vi.fn(),
       listPages: vi.fn(),
       retain: vi.fn(),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     const core = new RuntimeCore(client, "bank-1", resolveConfig(config));
     const notify = vi.fn();
     const warning = vi.spyOn(log, "warn");
@@ -289,7 +289,7 @@ describe("RuntimeCore remote connection", () => {
   it.each(["absent", "throws", "rejects"])(
     "survives an %s host notice channel while logging configuration guidance",
     async (channel) => {
-      const client = { listDocumentIds: vi.fn() } as unknown as HindsightClient;
+      const client = { listDocumentIds: vi.fn() } as unknown as ContextBaseClient;
       const core = new RuntimeCore(client, "bank-1", resolveConfig({ apiUrl: "" }));
       if (channel === "throws") {
         core.setNotifier(() => {
@@ -323,7 +323,7 @@ describe("RuntimeCore remote connection", () => {
 describe("RuntimeCore reflect tool settings", () => {
   it("forwards the resolved reflect timeout and budget into contextbase_reflect", async () => {
     const reflect = vi.fn(async () => "answer");
-    const client = { reflect } as unknown as HindsightClient;
+    const client = { reflect } as unknown as ContextBaseClient;
     const core = new RuntimeCore(
       client,
       "bank-1",
@@ -352,7 +352,7 @@ describe("RuntimeCore tool workspace binding", () => {
     listDocumentIds: vi.fn(async () => new Set<string>()),
     listPages: vi.fn(async () => ({ items: [] })),
     activeOperations: vi.fn(async () => 0),
-  } as unknown as HindsightClient;
+  } as unknown as ContextBaseClient;
 
   const workspaceOf = async (core: RuntimeCore): Promise<string> => {
     const diagnose = core.toolSpecs().find((spec) => spec.name === "contextbase_diagnose")!;
@@ -388,7 +388,7 @@ describe("RuntimeCore.flush", () => {
     let release: (() => void) | undefined;
     const client = {
       retain: vi.fn(() => new Promise<void>((r) => (release = r))),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     const runtime = new RuntimeCore(
       client,
       "bank-1",

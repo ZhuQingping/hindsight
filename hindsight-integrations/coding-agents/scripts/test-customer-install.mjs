@@ -1,6 +1,6 @@
 // Packaged-client smoke test against a business-key-only HTTP fixture.
 // Run after npm run build; no live service, LLM, or customer credentials are used.
-import { mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,6 +40,8 @@ const env = {
   CONTEXTBASE_CONFIG: join(home, "coding-agent.json"),
   CONTEXTBASE_API_TOKEN: "customer-key",
   CONTEXTBASE_CODING_AGENTS_PACKAGE: "",
+  CONTEXTBASE_LOG_LEVEL: "debug",
+  CONTEXTBASE_LOG_FILE: join(home, "plugin.log"),
 };
 let client;
 try {
@@ -74,6 +76,14 @@ try {
   const cfg = JSON.parse(readFileSync(env.CONTEXTBASE_CONFIG));
   assert.equal(cfg.mapPathToBank[project], "customer-bank");
   assert.equal(cfg.banks["customer-bank"].autoSeed, false);
+  // Inspect the customer's installed runtime, not just source files: bundling preserves class
+  // names and source-path comments that are otherwise easy to miss during a brand rename.
+  const dist = join(home, ".contextbase", "coding-agents", "dist");
+  for (const file of readdirSync(dist)) {
+    if (file.endsWith(".js") || file.endsWith(".d.ts")) {
+      assert(!/hindsight/i.test(readFileSync(join(dist, file), "utf8")), file);
+    }
+  }
   for (const harness of ["claude-code", "codex"]) {
     client = new Client({ name: "customer-smoke", version: "1.0" });
     const transport = new StdioClientTransport({
@@ -86,6 +96,12 @@ try {
     await client.connect(transport);
     const list = await client.listTools();
     assert(list.tools.some((t) => t.name === "contextbase_ingest_document"));
+    const diagnosed = await client.callTool({ name: "contextbase_diagnose", arguments: {} });
+    assert(!diagnosed.isError);
+    const diagnosis = JSON.parse(diagnosed.content.find((c) => c.type === "text").text);
+    assert.equal(diagnosis.bank_id, "customer-bank");
+    assert.equal(diagnosis.harness, harness);
+    assert.equal(diagnosis.workspace, project);
     if (harness === "claude-code") {
       const ingested = await client.callTool({
         name: "contextbase_ingest_document",
@@ -108,8 +124,21 @@ try {
     ["/v1/default/banks/customer-bank/memories", "/v1/default/banks/customer-bank/reflect"]
   );
   assert(received.every((r) => r.auth === "Bearer customer-key"));
+  // Exercise the installed hook's logger without issuing another memory request.
+  const disabledConfig = join(home, "disabled-hook.json");
+  writeFileSync(disabledConfig, JSON.stringify({ ...cfg, disabled: true, logLevel: "debug" }));
+  execFileSync(process.execPath, [join(dist, "claude-hook.js")], {
+    env: { ...env, CONTEXTBASE_CONFIG: disabledConfig },
+    cwd: project,
+    input: JSON.stringify({ prompt: "Check installed logging", cwd: project, session_id: "smoke" }),
+    encoding: "utf8",
+    timeout: 10000,
+  });
+  const lines = readFileSync(env.CONTEXTBASE_LOG_FILE, "utf8").trimEnd().split("\n");
+  assert(lines.length > 0);
+  assert(lines.every((line) => /\[contextbase\] \[/.test(line)));
   console.log(
-    "PASS: packed tgz install -> staged local MCP -> Claude write -> Codex reflect; only business-key memory endpoints called (HTTP fixture, no real model)."
+    "PASS: packed tgz install -> branded runtime/logs -> MCP diagnosis -> Claude write -> Codex reflect; only business-key memory endpoints called (HTTP fixture, no real model)."
   );
 } finally {
   await client?.close();

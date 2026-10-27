@@ -8,7 +8,7 @@
  */
 import { deriveBankIdOrSkip } from "./core/bank";
 import { applyBankConfig, loadConfig } from "./core/config";
-import { HindsightClient } from "./core/hindsight";
+import { ContextBaseClient } from "./core/contextbase";
 import { syncStatus } from "./core/status";
 
 function arg(name: string): string | undefined {
@@ -31,7 +31,7 @@ if (!BANK) {
 const resolved0 = BANK ? applyBankConfig(cfg0, BANK, REPO) : { cfg: cfg0, bankId: BANK };
 const cfg = resolved0.cfg;
 const FINAL_BANK = resolved0.bankId ?? BANK;
-const client = new HindsightClient({
+const client = new ContextBaseClient({
   apiUrl: arg("api-url") ?? cfg.apiUrl,
   apiToken: arg("api-token") ?? cfg.apiToken,
   bank: FINAL_BANK!,

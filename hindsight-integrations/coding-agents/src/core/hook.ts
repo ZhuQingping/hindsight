@@ -28,8 +28,8 @@ import { applyBankConfig, loadConfig } from "./config";
 import { diag, diagFilePath, readHookEvent } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
 import { startBackgroundSeed } from "./seed";
-import type { ClientOpts } from "./hindsight";
-import { HindsightClient, ReflectError } from "./hindsight";
+import type { ClientOpts } from "./contextbase";
+import { ContextBaseClient, ReflectError } from "./contextbase";
 import { brandWord } from "./brand";
 import {
   buildReflectQuery,
@@ -85,7 +85,7 @@ export interface HookSpec {
   };
 }
 
-/** Minimal client shape `buildHookOutput` needs — `HindsightClient` satisfies it structurally. */
+/** Minimal client shape `buildHookOutput` needs — `ContextBaseClient` satisfies it structurally. */
 interface HookClient {
   reflect(query: string, opts: { budget?: string; timeoutMs: number }): Promise<string>;
   listPages(): Promise<unknown>;
@@ -427,7 +427,7 @@ export async function buildHookOutput(args: {
 /** Run one hook invocation: stdin event in, (maybe) an injection object on stdout. */
 export async function runHook(
   spec: HookSpec,
-  makeClient: (opts: ClientOpts) => HookClient = (o) => new HindsightClient(o)
+  makeClient: (opts: ClientOpts) => HookClient = (o) => new ContextBaseClient(o)
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless session sets this so its hooks are a no-op.
   if (process.env.CONTEXTBASE_DISABLE_HOOKS) return;

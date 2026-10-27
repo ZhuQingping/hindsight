@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
-import { HindsightClient } from "./hindsight";
+import { ContextBaseClient } from "./contextbase";
 import { retainLiveSession, type TransportTurn } from "./chat";
 import { memoryCursorStore } from "./retain-cursor";
 import { buildRetain } from "./retain-hook";
@@ -66,7 +66,10 @@ async function service() {
   close.push(() => new Promise<void>((resolve) => server.close(() => resolve())));
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("Missing test server address");
-  const client = new HindsightClient({ apiUrl: `http://127.0.0.1:${address.port}`, bank: "test" });
+  const client = new ContextBaseClient({
+    apiUrl: `http://127.0.0.1:${address.port}`,
+    bank: "test",
+  });
   let cursors = memoryCursorStore();
   const files = new Map<string, TransportTurn[]>();
   const write = async (turns: TransportTurn[], path?: string, viaHook = false) => {

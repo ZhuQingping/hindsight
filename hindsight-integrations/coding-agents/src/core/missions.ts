@@ -620,7 +620,7 @@ export function pageTriggerPatch(desired: PageTrigger): PageTrigger {
 // The seeded pages are NOT part of this manifest: the template's `mental_models` key creates bare
 // mental models with no knowledge-base node, which leaves them invisible to page search (it joins
 // through `knowledge_pages`) and unreadable by node id. Pages are seeded separately, through the
-// knowledge-base API, by `HindsightClient.seedPages()`.
+// knowledge-base API, by `ContextBaseClient.seedPages()`.
 export const CODING_BANK_TEMPLATE = {
   version: "1",
   bank: {

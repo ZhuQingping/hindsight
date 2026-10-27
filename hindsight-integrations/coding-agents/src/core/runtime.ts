@@ -22,7 +22,7 @@ import { maybeAutoUpdate } from "./auto-update";
 import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
 import { diag } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import { buildKnowledgePreamble } from "./knowledge-injection";
 import { buildKnowledgeTools, type ToolSpec } from "./knowledge-tools";
 import { buildPageTrigger } from "./missions";
@@ -57,7 +57,7 @@ export class RuntimeCore {
   private notify?: (title: string, message: string) => void;
 
   constructor(
-    private readonly client: HindsightClient,
+    private readonly client: ContextBaseClient,
     private readonly bankId: string,
     private readonly cfg: Config,
     /**

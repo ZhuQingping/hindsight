@@ -27,7 +27,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.connection import get_api_url
 from lib.content import (
@@ -141,7 +141,7 @@ def main():
 
     api_token = config.get("apiToken")
     try:
-        client = HindsightClient(
+        client = ContextBaseClient(
             api_url,
             api_token,
             request_timeout_override=config.get("requestTimeoutSeconds"),

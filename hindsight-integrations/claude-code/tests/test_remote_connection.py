@@ -9,7 +9,7 @@ from pathlib import Path
 from threading import Thread
 
 import pytest
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.connection import get_api_url
 
 
@@ -47,8 +47,8 @@ def test_distinct_endpoints_and_credentials() -> None:
     try:
         for index, server in enumerate(servers):
             url = get_api_url(f"http://127.0.0.1:{server.server_port}/")
-            HindsightClient(url, f"key-{index}").request("GET", "/version")
-        denied = HindsightClient(f"http://127.0.0.1:{servers[0].server_port}", "rejected")
+            ContextBaseClient(url, f"key-{index}").request("GET", "/version")
+        denied = ContextBaseClient(f"http://127.0.0.1:{servers[0].server_port}", "rejected")
         with pytest.raises(RuntimeError, match="HTTP 401"):
             denied.request("GET", "/version")
         assert seen == [

@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { RateLimitedError, type HindsightClient } from "./hindsight";
+import { RateLimitedError, type ContextBaseClient } from "./contextbase";
 import {
   DEFAULT_RETAIN_CONTEXT,
   ingestChats,
@@ -56,7 +56,7 @@ describe("renderSessionJsonl", () => {
 describe("retainLiveSession", () => {
   it("upserts the JSONL transcript under conversation:<id> with the unified conversation strategy", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
     const turns: TransportTurn[] = [
       { role: "user", content: "hi", timestamp: "2026-01-01T00:00:00Z" },
     ];
@@ -90,7 +90,7 @@ describe("retainLiveSession", () => {
     // The default says nothing about authorship, so extraction can record an assistant's
     // proposal as the user's decision. This is the path a deployment uses to state the boundary.
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
     const turns: TransportTurn[] = [
       { role: "user", content: "hi", timestamp: "2026-01-01T00:00:00Z" },
     ];
@@ -106,7 +106,7 @@ describe("retainLiveSession", () => {
 
   it("keeps the default when a stamp carries tags but no context", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
     const turns: TransportTurn[] = [
       { role: "user", content: "hi", timestamp: "2026-01-01T00:00:00Z" },
     ];
@@ -123,7 +123,7 @@ describe("retainLiveSession", () => {
 describe("ingestChats", () => {
   it("applies per-session retain attribution while preserving built-in chat identity", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
 
     await ingestChats(
       client,
@@ -149,7 +149,7 @@ describe("ingestChats", () => {
 
   it("dates a backfilled document from the session's own source timestamps, not the import clock", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
 
     const importedAt = Date.now();
     await ingestChats(client, [
@@ -177,7 +177,7 @@ describe("ingestChats", () => {
 
   it("keeps the synthetic import-time anchor when no turn carries a usable timestamp", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
 
     const importedAt = Date.now();
     await ingestChats(client, [
@@ -194,7 +194,7 @@ describe("ingestChats", () => {
 
   it("anchors a timestamp-less turn to the session's own clock instead of the import clock", async () => {
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
 
     await ingestChats(client, [
       {
@@ -230,12 +230,15 @@ describe("retainLiveSession — incremental write-back", () => {
         retain,
         bank: "coding-agent::repo",
         supportsAppendRetain: async () => supported,
-      } as unknown as HindsightClient,
+      } as unknown as ContextBaseClient,
     };
   };
 
-  const write = (client: HindsightClient, turnList: TransportTurn[], cursors: RetainCursorStore) =>
-    retainLiveSession(client, "s1", turnList, "2026-01-01T00:00:00Z", "codex", { cursors });
+  const write = (
+    client: ContextBaseClient,
+    turnList: TransportTurn[],
+    cursors: RetainCursorStore
+  ) => retainLiveSession(client, "s1", turnList, "2026-01-01T00:00:00Z", "codex", { cursors });
 
   it("replaces when an accepted write's operation later failed (#5251)", async () => {
     const status = new Map<string, string>();
@@ -302,7 +305,7 @@ describe("retainLiveSession — incremental write-back", () => {
       retain,
       bank: "coding-agent::repo",
       supportsAppendRetain: probe,
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     await write(next, turns(4), cursors);
     expect(probe).not.toHaveBeenCalled();
     expect(retain.mock.calls[0][5].updateMode).toBe("append");
@@ -502,7 +505,7 @@ describe("retainLiveSession — incremental write-back", () => {
       retain,
       bank: "b",
       supportsAppendRetain: async () => true,
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     const cursors = memoryCursorStore();
 
     const first = write(client, turns(5), cursors);
@@ -560,7 +563,7 @@ describe("retainLiveSession — incremental write-back", () => {
         retain: vi.fn(async (_c: string, ...rest: unknown[]) => {
           sent.push({ bank, mode: (rest[4] as { updateMode?: string }).updateMode ?? "replace" });
         }),
-      }) as unknown as HindsightClient;
+      }) as unknown as ContextBaseClient;
     const cursors = memoryCursorStore();
 
     await write(mk("repo-a"), turns(5), cursors);
@@ -715,7 +718,7 @@ describe("retainLiveSession — incremental write-back", () => {
       supportsAppendRetain: async () => {
         throw new Error("unreachable");
       },
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     await write(client, turns(2), memoryCursorStore());
     expect(retain).toHaveBeenCalledTimes(1);
     expect(retain.mock.calls[0][5].updateMode).toBeUndefined();

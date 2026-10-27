@@ -34,7 +34,7 @@ import {
   releaseLease,
 } from "./core/survey-lease";
 import { buildPageTrigger } from "./core/missions";
-import { HindsightClient } from "./core/hindsight";
+import { ContextBaseClient } from "./core/contextbase";
 import { DEEPEN_DIFF_TARGET } from "./core/status";
 import type { ChatSession } from "./core/types";
 import { pool } from "./core/util";
@@ -120,7 +120,7 @@ async function main() {
   diag("deepen", "deepen_started", { bank: FINAL_BANK });
   try {
     const harness = await getHarness(HARNESS);
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: API_URL,
       apiToken: API_TOKEN,
       bank: FINAL_BANK!,

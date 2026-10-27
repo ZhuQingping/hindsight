@@ -19,7 +19,7 @@ import { commitsSince, repoNameOf } from "./git";
 import { parsePageList } from "./knowledge-injection";
 import { SURVEY_DOC_IDS } from "./survey";
 
-/** Minimal client shape (HindsightClient satisfies it structurally). */
+/** Minimal client shape (ContextBaseClient satisfies it structurally). */
 export interface StatusClient {
   listDocumentIds(tag: string, tagsMatch?: "all" | "all_strict"): Promise<Set<string>>;
   listPages(): Promise<unknown>;

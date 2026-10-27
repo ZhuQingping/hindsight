@@ -36,10 +36,10 @@ import { brandWord } from "./brand";
 import { diag, readHookEvent } from "./diag";
 import { setLogLevel } from "./log";
 import { parsePageList, buildKnowledgePreamble, type PageRef } from "./knowledge-injection";
-import type { ClientOpts, RetainOpts } from "./hindsight";
+import type { ClientOpts, RetainOpts } from "./contextbase";
 import { buildRetainStamp } from "./retain-stamp";
 import { detectLegacyClaudePlugin, legacyClaudePluginWarning } from "./legacy";
-import { HindsightClient } from "./hindsight";
+import { ContextBaseClient } from "./contextbase";
 import {
   sessionCacheFile,
   sessionRootDir,
@@ -58,7 +58,7 @@ interface SeedContextClient {
   // never deferred — only a confirmed-empty bank is.
   hasDocuments?(): Promise<boolean>;
   knowledgePagesSupported?: boolean;
-  // Optional: used to write the survey-baseline marker (Option A). HindsightClient has it; the
+  // Optional: used to write the survey-baseline marker (Option A). ContextBaseClient has it; the
   // minimal test clients omit it, and the baseline write guards on its presence.
   retain?(
     content: string,
@@ -393,7 +393,7 @@ export async function buildSessionStartContext(args: {
 /** Run one SessionStart hook invocation: stdin event in, (maybe) an additionalContext object on stdout. */
 export async function runSessionStartHook(
   spec: SessionStartHookSpec,
-  makeClient: (opts: ClientOpts) => SeedContextClient = (o) => new HindsightClient(o)
+  makeClient: (opts: ClientOpts) => SeedContextClient = (o) => new ContextBaseClient(o)
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless claude session (core/survey.ts) sets this
   // so its hooks are a no-op — it must not re-seed/re-survey its own survey session.

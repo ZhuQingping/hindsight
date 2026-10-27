@@ -1,10 +1,12 @@
-import { rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   fileCursorStore,
   readSessionCache,
   sessionCacheFile,
   sessionRootDir,
+  stashPendingContext,
+  takePendingContext,
   writeSessionCache,
 } from "./session-cache";
 
@@ -16,7 +18,17 @@ afterEach(() => {
     rmSync(sessionCacheFile(HARNESS, s), { force: true });
     rmSync(sessionCacheFile(HARNESS, s).replace(/\.json$/, ".retain.json"), { force: true });
     rmSync(sessionCacheFile(HARNESS, s).replace(/\.json$/, ".root"), { force: true });
+    rmSync(sessionCacheFile(HARNESS, s).replace(/\.json$/, ".pending"), { force: true });
   }
+});
+
+it("keeps pending hook context beside the session cache and delivers it only once", () => {
+  const file = sessionCacheFile(HARNESS, "s1").replace(/\.json$/, ".pending");
+  stashPendingContext(HARNESS, "s1", "customer text: hindsight-review");
+  expect(readFileSync(file, "utf8")).toBe("customer text: hindsight-review");
+  expect(takePendingContext(HARNESS, "s1")).toBe("customer text: hindsight-review");
+  expect(takePendingContext(HARNESS, "s1")).toBeUndefined();
+  expect(existsSync(file)).toBe(false);
 });
 
 describe("fileCursorStore", () => {

@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { buildSystemInjection } from "./inject";
 import { stripInjectedMemory } from "./transcript-util";
 import { buildKnowledgeTools } from "./knowledge-tools";
-import { HindsightClient } from "./hindsight";
+import { ContextBaseClient } from "./contextbase";
 import { maybeAutoUpdate } from "./auto-update";
 
 const customerText = "Customer document: hindsight Hindsight HINDSIGHT must stay unchanged.";
@@ -19,7 +19,7 @@ it("strips the generated prompt wrapper without rewriting customer text", () => 
 it("preserves customer content and actionable service errors", async () => {
   const client = {
     getPage: vi.fn().mockResolvedValue({ body: customerText }),
-  } as unknown as HindsightClient;
+  } as unknown as ContextBaseClient;
   const tool = buildKnowledgeTools(client, "b").find(
     (t) => t.name === "contextbase_read_knowledge_page"
   )!;
@@ -35,7 +35,7 @@ it("preserves customer content and actionable service errors", async () => {
 it("does not send credentials to an implicit cloud endpoint", async () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
-  const client = new HindsightClient({ apiUrl: "", apiToken: "secret", bank: "b" });
+  const client = new ContextBaseClient({ apiUrl: "", apiToken: "secret", bank: "b" });
   await expect(client.req("GET", "/version")).rejects.toThrow("CONTEXTBASE_API_URL");
   expect(fetch).not.toHaveBeenCalled();
 });

@@ -69,7 +69,7 @@ export function writeSessionCache(cacheFile: string, cache: SessionCache): void 
 /** Context a prompt hook could not deliver itself, waiting for the session's next tool hook (see
  *  HookSpec.toolHook). Its own file: `buildHookOutput` rewrites the session cache every turn. */
 function pendingContextFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `hindsight-${harness}`, `${sessionId}.pending`);
+  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}.pending`);
 }
 
 /** Add a block to the session's pending context. A block already waiting is not added again, so a

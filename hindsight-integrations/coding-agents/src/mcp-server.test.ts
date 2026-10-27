@@ -6,11 +6,11 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildMcpServer, resolveHarness, resolveProjectCwd, selectTools } from "./mcp-server";
 import { resolveConfig } from "./core/config";
-import type { HindsightClient } from "./core/hindsight";
+import type { ContextBaseClient } from "./core/contextbase";
 
 // Plain stub — no SDK, no network. selectTools only needs a client reference to hand to
 // buildKnowledgeTools when enabled; it never calls any client method itself.
-const stubClient = {} as HindsightClient;
+const stubClient = {} as ContextBaseClient;
 
 describe("selectTools", () => {
   it("returns [] when cfg.disabled is true — a disabled contextbase exposes NO tools", () => {
@@ -49,7 +49,7 @@ describe("selectTools", () => {
   // back to the client's hardcoded 120s deadline and reflectTimeoutMs was dead config.
   it("forwards the resolved reflect timeout and budget into contextbase_reflect", async () => {
     const reflect = vi.fn().mockResolvedValue("answer");
-    const client = { reflect } as unknown as HindsightClient;
+    const client = { reflect } as unknown as ContextBaseClient;
     const cfg = resolveConfig({ reflectToolTimeoutMs: 660_000, reflectBudget: "mid" });
     const tools = selectTools(cfg, client, "b");
 
@@ -62,7 +62,7 @@ describe("selectTools", () => {
     // documents list resolves a document's agent logo from `metadata.harness` / `harness:<id>`,
     // so MCP-ingested documents used to show up unattributed.
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain } as unknown as HindsightClient;
+    const client = { retain } as unknown as ContextBaseClient;
     const tools = selectTools(resolveConfig({ harness: "codex" }), client, "b");
     const ingest = tools.find((tool) => tool.name === "contextbase_ingest_document");
 
