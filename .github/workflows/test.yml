@@ -500,9 +500,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
 
-    # openclaw depends on two monorepo workspaces via `file:` deps:
-    # contextbase-client and @vectorize-io/hindsight-all. Their
-    # `dist/` directories are gitignored, so we must build them first.
+    # OpenClaw uses the SDK source workspace; build its gitignored dist first.
     # Otherwise vitest/tsc in openclaw fails with
     # "Failed to resolve entry for package ..." on the value imports.
     - name: Install root workspace dependencies
@@ -510,10 +508,6 @@ jobs:
 
     - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
-
-    - name: Build hindsight-all-npm (openclaw dep)
-      run: npm run build --workspace=hindsight-all-npm
-
 
     - name: Install openclaw dependencies
       working-directory: ./hindsight-integrations/openclaw
@@ -574,10 +568,6 @@ jobs:
 
     - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
-
-    - name: Build hindsight-all-npm (openclaw dep)
-      run: npm run build --workspace=hindsight-all-npm
-
 
     - name: Install openclaw dependencies
       working-directory: ./hindsight-integrations/openclaw
@@ -3420,18 +3410,12 @@ jobs:
         print('Models downloaded successfully')
         "
 
-    # openclaw depends on contextbase-client and
-    # @vectorize-io/hindsight-all via `file:` — their `dist/` directories are
-    # gitignored and must be built before openclaw's npm ci copies them.
+    # OpenClaw uses the SDK source workspace; build its gitignored dist first.
     - name: Install root workspace dependencies
       run: npm ci
 
     - name: Build contextbase-client (openclaw dep)
       run: npm run build --workspace=hindsight-clients/typescript
-
-    - name: Build hindsight-all-npm (openclaw dep)
-      run: npm run build --workspace=hindsight-all-npm
-
 
     - name: Install openclaw integration dependencies
       working-directory: ./hindsight-integrations/openclaw

@@ -91,3 +91,17 @@ python scripts/package-sdks.py node --output artifacts
 ```
 
 出包任务扫描归档内的文件名和内容，检查旧 SDK 名称，并在独立临时目录安装 wheel、源码包和 tgz，验证自定义 Endpoint、Bearer 鉴权、User-Agent 及服务响应/错误原文。这里使用本地 HTTP 测试服务，不替代真实云服务验收。安装与调用示例见 [Python SDK](../../hindsight-clients/python/README.md) 和 [Node.js SDK](../../hindsight-clients/typescript/README.md)。
+
+
+## OpenClaw 与 Hermes
+
+| Artifact | 内容 | 安装方式 |
+| --- | --- | --- |
+| `contextbase-openclaw-candidate` | `contextbase-openclaw-版本.tgz`、校验文件 | OpenClaw 插件管理器；tgz 内置 Node SDK |
+| `contextbase-hermes-candidate` | `hermes-plugin-contextbase-版本.zip`、校验文件 | Hermes 用户插件目录；ZIP 包含 Python SDK wheel，交由 Hermes 管理依赖 |
+
+`assistant-openclaw`、`assistant-hermes` 两个任务分别执行源代码测试、SDK 构建、静态产物品牌扫描及源码目录外的实际安装和 HTTP 验证。HTTP 验证使用业务 Key、服务路径前缀和指定 Bank；测试故意包含旧品牌词的客户文本，以确认没有运行时过滤。
+
+其余 8 个宿主继续共用 `contextbase-coding-agents`。包安装验证覆盖 8 个 harness 的 MCP 诊断身份；原生插件生命周期使用仓库现有宿主协议测试。此验证不等价于所有真实宿主版本或 Windows 实机认证。
+
+客户操作见 [客户使用指南](CUSTOMER-GUIDE.md)。OpenClaw、Hermes 配置分别由宿主管理，不自动继承 Coding Agents 的连接文件。服务部署和 Bank 授权由服务方完成；客户端发行包不携带本地引擎。

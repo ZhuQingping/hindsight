@@ -73,6 +73,61 @@ jobs:
           path: artifacts/contextbase-node-sdk/
           if-no-files-found: error
 
+  assistant-openclaw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Build the bundled Node SDK
+        run: |
+          npm --prefix hindsight-clients/typescript ci --ignore-scripts --workspaces=false
+          python scripts/package-sdks.py node --output sdk-build
+      - name: Build and test OpenClaw remote integration
+        working-directory: hindsight-integrations/openclaw
+        run: |
+          npm ci --ignore-scripts --workspaces=false
+          npm run build
+          npm test -- --maxWorkers=2
+      - name: Package and install the real plugin outside the checkout
+        run: |
+          python scripts/package-agent-assistants.py openclaw --sdk-artifact sdk-build/contextbase-node-sdk/*/*.tgz --output artifacts
+          python scripts/test-agent-assistants.py openclaw artifacts/contextbase-openclaw/*/*.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contextbase-openclaw-candidate
+          path: artifacts/contextbase-openclaw/
+          if-no-files-found: error
+
+  assistant-hermes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install SDK, test and build dependencies
+        run: python -m pip install build uv pytest ./hindsight-clients/python
+      - name: Test the Hermes Memory Provider contract
+        run: python -m pytest hindsight-integrations/hermes/tests -q
+      - name: Build the bundled Python SDK
+        run: python scripts/package-sdks.py python --output sdk-build
+      - name: Package and install the real plugin outside the checkout
+        run: |
+          python scripts/package-agent-assistants.py hermes --sdk-artifact sdk-build/contextbase-python-sdk/*/*.whl --output artifacts
+          python scripts/test-agent-assistants.py hermes artifacts/hermes-plugin-contextbase/*/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contextbase-hermes-candidate
+          path: artifacts/hermes-plugin-contextbase/
+          if-no-files-found: error
+
   cli:
     strategy:
       matrix:

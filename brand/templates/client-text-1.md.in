@@ -14,7 +14,7 @@ in front of the agent at the moment it starts working, and keeps a curated set o
 
 <!-- figure: coding-agents -->
 
-[Upstream changelog →](https://hindsight.vectorize.io/changelog/integrations/coding-agents)
+
 
 ## Does it work?
 
@@ -1077,7 +1077,7 @@ npm run skill:build   # after editing this README or the preamble
 `src/docs-freshness.test.ts` fails when the skill is stale, and when a field of `RawConfig` is
 readable from a config file but named nowhere in this README — the drift that produced #3735, where
 the skill and the README each documented a different subset of the same settings. The docs site page
-is generated from this file too (`node contextbase-docs/scripts/sync-coding-agents-doc.mjs`), which
+is generated from this file too (using the repository documentation sync script), which
 drops the markers along with the contributor-only sections.
 
 <!-- skill:begin -->

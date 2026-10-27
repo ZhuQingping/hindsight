@@ -12,18 +12,14 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List
+from urllib.parse import urlsplit
 
 # Log under the plugin package's own logger name (loader-path independent).
 logger = logging.getLogger(__name__.rpartition(".")[0])
 
 _DEFAULT_API_URL = ""
-_DEFAULT_LOCAL_URL = "http://localhost:8888"
-# Keep in sync with plugin.yaml and pyproject.toml. Raised to 0.10.1 with the embed
-# floor (see pyproject.toml): _maybe_upgrade_client() then pulls the 0.10.0 cohort's
-# client forward on session start instead of waiting for a `hermes update`.
-_MIN_CLIENT_VERSION = "0.10.1"
+_MIN_CLIENT_VERSION = "1.0.0"
 _DEFAULT_TIMEOUT = 120  # seconds — cloud API can take 30-40s per request
-_DEFAULT_IDLE_TIMEOUT = 300  # seconds — ContextBase embedded daemon default
 # ``metadata.source`` on retained memories is OPT-IN (AGENTS.md forbids
 # on-by-default attribution tags): ``retain_source`` / CONTEXTBASE_RETAIN_SOURCE.
 _DEFAULT_RETAIN_SOURCE = ""
@@ -35,23 +31,10 @@ _DEFAULT_RETAIN_STRATEGY = ""
 _CONTEXTBASE_GLYPH = "👁️"
 # ContextBase 0.5.0 added ``update_mode='append'``; older APIs would silently
 # overwrite prior turns under a stable document_id, so they keep the per-process id.
-# Mirrors hindsight-integrations/openclaw — ContextBase 0.5.0 added `update_mode='append'` semantics on retain
-# (vectorize-io/hindsight#932).
+# Mirrors the OpenClaw integration — ContextBase 0.5.0 added `update_mode='append'` semantics on retain
+# (the upstream append-mode change).
 _MIN_VERSION_FOR_UPDATE_MODE_APPEND = "0.5.0"
 _VALID_BUDGETS = {"low", "mid", "high"}
-_PROVIDER_DEFAULT_MODELS = {
-    "openai": "gpt-4o-mini",
-    "anthropic": "claude-haiku-4-5",
-    "gemini": "gemini-3.8-flash",
-    "groq": "openai/gpt-oss-120b",
-    "openrouter": "qwen/qwen3.5-9b",
-    "minimax": "MiniMax-M2.7",
-    "ollama": "gemma3:12b",
-    "lmstudio": "local-model",
-    "openai_compatible": "your-model-name",
-}
-# The embedded daemon speaks OpenAI wire format for these providers.
-_OPENAI_WIRE_PROVIDERS = {"openai_compatible", "openrouter"}
 _OBSERVATION_SCOPE_KEYWORDS = {"per_tag", "combined", "all_combinations", "shared"}
 
 
@@ -75,10 +58,6 @@ def _parse_float_setting(value: Any, default: float) -> float:
     except (TypeError, ValueError):
         logger.warning("Invalid number for ContextBase setting %r; using default %s", value, default)
         return default
-
-
-def _daemon_llm_provider(provider: str) -> str:
-    return "openai" if provider in _OPENAI_WIRE_PROVIDERS else provider
 
 
 def _normalize_string_list(value: Any) -> List[str]:
@@ -303,3 +282,21 @@ def _template_fields(template: str) -> set[str]:
         return {field.split(".")[0].split("[")[0] for _, field, _, _ in string.Formatter().parse(template) if field}
     except ValueError:
         return set()
+
+
+def validate_api_url(value: str) -> str:
+    """Require a service endpoint and preserve any API path prefix."""
+    value = value.strip()
+    parsed = urlsplit(value)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError(
+            "ContextBase API URL is required and must be an HTTP(S) endpoint without credentials, query or fragment."
+        )
+    return value.rstrip("/")

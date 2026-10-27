@@ -3,7 +3,6 @@ import { existsSync, realpathSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
-import { HindsightServer } from "@vectorize-io/hindsight-all";
 import { ContextBaseClient } from "contextbase-client";
 
 function loadPackageVersion(): string {
@@ -17,7 +16,7 @@ function loadPackageVersion(): string {
 }
 
 const USER_AGENT = `contextbase-openclaw/${loadPackageVersion()}`;
-import { DEFAULT_RETAIN_CONTEXT, detectExternalApi, detectLLMConfig } from "./index.js";
+import { DEFAULT_RETAIN_CONTEXT, detectExternalApi, validateApiUrl } from "./index.js";
 import type { BankStats, PluginConfig } from "./types.js";
 import {
   buildBackfillPlan,
@@ -189,27 +188,9 @@ function inferApiSettings(
   explicitApiUrl?: string,
   explicitApiToken?: string
 ): { apiUrl: string; apiToken?: string } {
-  const apiUrl =
-    explicitApiUrl ||
-    pluginConfig.contextbaseApiUrl ||
-    `http://127.0.0.1:${pluginConfig.apiPort || 9077}`;
+  const apiUrl = explicitApiUrl || pluginConfig.contextbaseApiUrl || "";
   const apiToken = explicitApiToken || pluginConfig.contextbaseApiToken;
   return { apiUrl, apiToken: apiToken || undefined };
-}
-
-async function checkHealth(apiUrl: string, apiToken?: string): Promise<boolean> {
-  try {
-    const headers: Record<string, string> = { "User-Agent": USER_AGENT };
-    if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
-    const response = await fetch(`${apiUrl.replace(/\/$/, "")}/health`, {
-      method: "GET",
-      headers,
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
 }
 
 export function filterEntriesForResume(
@@ -300,53 +281,7 @@ export async function createBackfillRuntime(
   explicitApiToken?: string
 ): Promise<BackfillRuntime> {
   const explicit = inferApiSettings(pluginConfig, explicitApiUrl, explicitApiToken);
-  const externalApi = detectExternalApi(pluginConfig);
-  const useExternalApi = !!(
-    explicitApiUrl ||
-    explicitApiToken ||
-    externalApi.apiUrl ||
-    pluginConfig.contextbaseApiUrl
-  );
-
-  if (useExternalApi) {
-    return {
-      apiUrl: explicit.apiUrl,
-      apiToken: explicit.apiToken,
-      async stop() {},
-    };
-  }
-
-  if (await checkHealth(explicit.apiUrl, explicit.apiToken)) {
-    return {
-      apiUrl: explicit.apiUrl,
-      apiToken: explicit.apiToken,
-      async stop() {},
-    };
-  }
-
-  const llmConfig = detectLLMConfig(pluginConfig);
-  const manager = new HindsightServer({
-    profile: "openclaw",
-    port: pluginConfig.apiPort || 9077,
-    embedVersion: pluginConfig.embedVersion,
-    embedPackagePath: pluginConfig.embedPackagePath,
-    env: {
-      HINDSIGHT_API_LLM_PROVIDER: llmConfig.provider || "",
-      HINDSIGHT_API_LLM_API_KEY: llmConfig.apiKey || "",
-      HINDSIGHT_API_LLM_MODEL: llmConfig.model,
-      HINDSIGHT_API_LLM_BASE_URL: llmConfig.baseUrl,
-      HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT: String(pluginConfig.daemonIdleTimeout ?? 0),
-    },
-  });
-  await manager.start();
-
-  return {
-    apiUrl: manager.getBaseUrl(),
-    apiToken: undefined,
-    async stop() {
-      await manager.stop();
-    },
-  };
+  return { apiUrl: validateApiUrl(explicit.apiUrl), apiToken: explicit.apiToken, async stop() {} };
 }
 
 /**

@@ -15,6 +15,9 @@ ContextBaseMemoryProvider = plugin.ContextBaseMemoryProvider
 
 @pytest.fixture(autouse=True)
 def _pin_update_mode_probe(monkeypatch):
+    from conftest import SECRETS
+
+    monkeypatch.setitem(SECRETS, "CONTEXTBASE_API_URL", "https://api.example.com")
     # The /version probe is a live HTTP call; pin the capability, as conftest's provider fixture does.
     monkeypatch.setattr(plugin, "_check_api_supports_update_mode_append", lambda *a, **k: True)
 

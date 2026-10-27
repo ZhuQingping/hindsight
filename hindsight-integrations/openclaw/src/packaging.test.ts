@@ -43,7 +43,6 @@ describe("published manifest", () => {
     expect(stripped.has("dependencies")).toBe(false);
     expect(Object.keys(manifest.dependencies).sort()).toEqual([
       "@clack/prompts",
-      "@vectorize-io/hindsight-all",
       "contextbase-client",
     ]);
   });

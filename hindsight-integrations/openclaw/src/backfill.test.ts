@@ -6,32 +6,9 @@ import { pathToFileURL } from "url";
 import type { BankStats, PluginConfig } from "./types.js";
 import type { BackfillCheckpoint, BackfillPlanEntry } from "./backfill-lib.js";
 
-const managerStart = vi.fn();
-const managerStop = vi.fn();
-const managerGetBaseUrl = vi.fn(() => "http://127.0.0.1:9077");
-
-vi.mock("@vectorize-io/hindsight-all", async () => {
-  const actual = await vi.importActual<typeof import("@vectorize-io/hindsight-all")>(
-    "@vectorize-io/hindsight-all"
-  );
-  return {
-    ...actual,
-    HindsightServer: vi.fn(
-      class {
-        start = managerStart;
-        stop = managerStop;
-        getBaseUrl = managerGetBaseUrl;
-      }
-    ),
-  };
-});
-
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
-  managerStart.mockReset();
-  managerStop.mockReset();
-  managerGetBaseUrl.mockClear();
 });
 
 function makeEntry(bankId: string, sessionId: string): BackfillPlanEntry {
@@ -178,20 +155,16 @@ describe("backfill helpers", () => {
     expect(checkpoint.entries.b.status).toBe("enqueued");
   });
 
-  it("starts local daemon when no external API is configured and health check fails", async () => {
-    const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
-    vi.stubGlobal("fetch", fetchMock);
+  it("requires an explicit API endpoint and never starts an engine", async () => {
     const { createBackfillRuntime } = await import("./backfill.js");
-    const pluginConfig: PluginConfig = {
-      apiPort: 9077,
-      llmProvider: "openai-codex",
-      llmModel: "gpt-5.4",
-    };
-    const runtime = await createBackfillRuntime(pluginConfig);
-    expect(managerStart).toHaveBeenCalledTimes(1);
-    expect(runtime.apiUrl).toBe("http://127.0.0.1:9077");
+    await expect(createBackfillRuntime({})).rejects.toThrow("API URL is required");
+    const runtime = await createBackfillRuntime({
+      contextbaseApiUrl: "https://api.example.com/customer",
+      contextbaseApiToken: "token",
+    });
+    expect(runtime.apiUrl).toBe("https://api.example.com/customer");
+    expect(runtime.apiToken).toBe("token");
     await runtime.stop();
-    expect(managerStop).toHaveBeenCalledTimes(1);
   });
 
   it("treats a symlinked bin path as direct execution", async () => {

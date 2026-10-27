@@ -1,5 +1,5 @@
 """ContextBase memory plugin — MemoryProvider with knowledge graph, entity resolution
-and multi-strategy retrieval; cloud (API key), local_external, or local_embedded.
+and multi-strategy retrieval through an explicitly configured remote API.
 
 Config: $HERMES_HOME/contextbase/config.json (profile-scoped), else ~/.contextbase/
 config.json (legacy, shared), else env: CONTEXTBASE_API_KEY / BANK_ID / BUDGET /
@@ -32,37 +32,16 @@ from hermes_time import now as _hermes_now
 from tools.registry import tool_error
 from utils import read_json_or_empty
 
-from .embedded import (
-    _RETRIABLE_CONNECTION_MARKERS,
-    _build_embedded_profile_env,
-    _check_local_runtime,
-    _daemon_is_running,
-    _embedded_llm_api_key,
-    _embedded_profile_env_path,
-    _export_port_health_grace_timeout,
-    _installed_api_binary_exists,
-    _load_simple_env,
-    _local_runtime_hint,
-    _materialize_embedded_profile_env,
-    _may_rewrite_profile_env,
-    _profile_env_drifted,
-    _start_daemon,
-    _stop_daemon,
-)
 from .settings import (
     _CONTEXTBASE_GLYPH,
     _DEFAULT_API_URL,
-    _DEFAULT_IDLE_TIMEOUT,
-    _DEFAULT_LOCAL_URL,
     _DEFAULT_RETAIN_SOURCE,
     _DEFAULT_RETAIN_STRATEGY,
     _DEFAULT_TIMEOUT,
     _MIN_CLIENT_VERSION,
     _MIN_VERSION_FOR_UPDATE_MODE_APPEND,
-    _PROVIDER_DEFAULT_MODELS,
     _VALID_BUDGETS,
     _clears_min_scores,
-    _daemon_llm_provider,
     _discover_cwd_bank_id,
     _normalize_min_scores,
     _normalize_observation_scopes,
@@ -73,11 +52,11 @@ from .settings import (
     _repository_root,
     _resolve_bank_id_template,
     _template_fields,
+    validate_api_url,
 )
 
 logger = logging.getLogger(__name__)
 
-_LOCAL_MODES = {"local", "local_embedded"}
 # Share of the operation timeout an extra recall bank may use, so a slow extra bank
 # always gives up before the operation that also carries the primary's result does.
 _EXTRA_BANK_TIMEOUT_SHARE = 0.8
@@ -106,7 +85,7 @@ def _scoped_setting(name: str, default: str = "") -> str:
     """Profile-scoped read of a retain SHAPING value, with the provider's own default on a miss.
 
     Under ``gateway.multiplex_profiles`` ``os.environ`` holds the DEFAULT profile's ``.env``, so a miss
-    is a miss — never ``os.environ`` (same rule as the daemon's key and base URL in ``embedded.py``).
+    is a miss — never ``os.environ`` (the same isolation rule applies to the service connection).
     Single-profile deployments are unchanged: with no scope installed ``get_secret`` still reads the
     process env, where the value IS this profile's own.
 
@@ -134,7 +113,12 @@ def _scoped_flag(name: str, default: bool) -> bool:
 
 
 def _cloud_api_key(config: dict) -> str:
-    return config.get("apiKey") or config.get("api_key") or get_secret("CONTEXTBASE_API_KEY", "")
+    return (
+        config.get("apiKey")
+        or config.get("api_key")
+        or get_secret("CONTEXTBASE_API_TOKEN", "")
+        or get_secret("CONTEXTBASE_API_KEY", "")
+    )
 
 
 def _warn_if_client_outdated() -> None:
@@ -377,9 +361,8 @@ def _bank_not_written_yet(exc: Exception) -> bool:
 
 
 def _load_config() -> dict:
-    """$HERMES_HOME/contextbase/config.json (profile-scoped), else ~/.contextbase/config.json
-    (legacy, shared), else environment variables."""
-    for path in (get_hermes_home() / "contextbase" / "config.json", Path.home() / ".contextbase" / "config.json"):
+    """Read the active profile configuration, then its scoped environment."""
+    for path in (get_hermes_home() / "contextbase" / "config.json",):
         # A corrupt (or empty) file falls through to the next source, as before the dedup.
         if path.exists() and (data := read_json_or_empty(path)):
             return data
@@ -388,9 +371,8 @@ def _load_config() -> dict:
     # the default profile's bank/mode. Tuning knobs (timeouts, budget) stay process-global.
     return {
         "mode": get_secret("CONTEXTBASE_MODE", "") or "cloud",
-        "apiKey": get_secret("CONTEXTBASE_API_KEY", ""),
+        "apiKey": get_secret("CONTEXTBASE_API_TOKEN", "") or get_secret("CONTEXTBASE_API_KEY", ""),
         "timeout": _parse_int_setting(os.environ.get("CONTEXTBASE_TIMEOUT"), _DEFAULT_TIMEOUT),
-        "idle_timeout": _parse_int_setting(os.environ.get("CONTEXTBASE_IDLE_TIMEOUT"), _DEFAULT_IDLE_TIMEOUT),
         "retain_tags": get_secret("CONTEXTBASE_RETAIN_TAGS", "") or "",
         "observation_scopes": get_secret("CONTEXTBASE_RETAIN_OBSERVATION_SCOPES", "") or "",
         "retain_source": _scoped_setting("CONTEXTBASE_RETAIN_SOURCE", _DEFAULT_RETAIN_SOURCE),
@@ -478,17 +460,16 @@ class ContextBaseMemoryProvider(MemoryProvider):
     _RETAIN_OP_POLL_INTERVAL_S = 0.5
 
     def backup_paths(self) -> List[str]:
-        """Legacy shared config + embedded-mode profile env files live under ~/.contextbase."""
+        """Back up this profile's ContextBase configuration."""
         with contextlib.suppress(Exception):
-            return [str(Path.home() / ".contextbase")]
+            return [str(get_hermes_home() / "contextbase")]
         return []
 
     def __init__(self):
         self._config = self._api_key = self._client = None
-        self._embedded_url = None
         self._client_lock = threading.Lock()
         self._api_url, self._mode = _DEFAULT_API_URL, "cloud"
-        self._timeout, self._idle_timeout = _DEFAULT_TIMEOUT, _DEFAULT_IDLE_TIMEOUT
+        self._timeout = _DEFAULT_TIMEOUT
         self._bank_id, self._budget, self._bank_id_template = "hermes", "mid", ""
         self._bank_mission, self._bank_retain_mission = "", None
         self._mirror_to_own_bank = False
@@ -504,8 +485,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
             setattr(self, f"_{name}", "")
         self._session_id = self._parent_session_id = self._document_id = ""
         self._status_callback: Optional[Callable[[str], None]] = None
-        # Set from initialize() kwargs; defaults keep _start_embedded_daemon safe when a
-        # host constructs the provider without calling initialize() (availability probes do).
+        # Hosts may construct the provider for an availability probe before initialize().
         self._warning_callback: Optional[Callable[[str], None]] = None
         self._platform: str = "cli"
 
@@ -551,34 +531,15 @@ class ContextBaseMemoryProvider(MemoryProvider):
     def is_available(self) -> bool:
         try:
             cfg = _load_config()
-            mode = cfg.get("mode", "cloud")
-            if mode in _LOCAL_MODES:
-                # The availability gate is the only place worth self-healing from: agent_init drops
-                # the provider outright when this returns False, and every other runtime probe below
-                # runs after it has already passed.
-                return _check_local_runtime().available
-            return mode == "local_external" or bool(
-                _cloud_api_key(cfg) or cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
+            return cfg.get("mode", "cloud") in {"cloud", "self-hosted"} and bool(
+                cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
             )
         except Exception:
             logger.debug("ContextBase availability check failed", exc_info=True)
             return False
 
     def unavailable_reason(self) -> str:
-        """Install hint for an unavailable local_embedded runtime (is_available() gates
-        initialize() out, so the hint it would log never fires; agent_init shows this).
-
-        ``is_available()`` returns False for local modes when the embedded runtime can't be imported, so
-        ``initialize()`` — and the hint it would log — is never reached (#7718). Surface the install
-        guidance here, where agent_init warns about an unavailable provider.
-        """
-        try:
-            if _load_config().get("mode", "cloud") not in _LOCAL_MODES:
-                return ""
-        except Exception:
-            return ""
-        status = _check_local_runtime()
-        return "" if status.available else _local_runtime_hint(status.reason).strip()
+        return "Configure the ContextBase API URL and credentials; only cloud or self-hosted remote APIs are supported."
 
     def save_config(self, values, hermes_home):
         """Merge *values* into $HERMES_HOME/contextbase/config.json."""
@@ -599,75 +560,21 @@ class ContextBaseMemoryProvider(MemoryProvider):
                 "key": "mode",
                 "description": "Connection mode",
                 "default": "cloud",
-                "choices": ["cloud", "local_embedded", "local_external"],
+                "choices": ["cloud", "self-hosted"],
             },
             # Cloud mode
             {
                 "key": "api_url",
                 "description": "ContextBase Cloud API URL",
                 "default": _DEFAULT_API_URL,
-                "when": {"mode": "cloud"},
             },
             {
                 "key": "api_key",
                 "description": "ContextBase Cloud API key",
                 "secret": True,
-                "env_var": "CONTEXTBASE_API_KEY",
-                "url": "http://localhost:9999",
-                "when": {"mode": "cloud"},
+                "env_var": "CONTEXTBASE_API_TOKEN",
             },
             # Local external mode
-            {
-                "key": "api_url",
-                "description": "ContextBase API URL",
-                "default": _DEFAULT_LOCAL_URL,
-                "when": {"mode": "local_external"},
-            },
-            {
-                "key": "api_key",
-                "description": "API key (optional)",
-                "secret": True,
-                "env_var": "CONTEXTBASE_API_KEY",
-                "when": {"mode": "local_external"},
-            },
-            # Local embedded mode
-            {
-                "key": "llm_provider",
-                "description": "LLM provider",
-                "default": "openai",
-                "choices": [
-                    "openai",
-                    "anthropic",
-                    "gemini",
-                    "groq",
-                    "openrouter",
-                    "minimax",
-                    "ollama",
-                    "lmstudio",
-                    "openai_compatible",
-                ],
-                "when": {"mode": "local_embedded"},
-            },
-            {
-                "key": "llm_base_url",
-                "description": "Endpoint URL (e.g. http://192.168.1.10:8080/v1)",
-                "default": "",
-                "when": {"mode": "local_embedded", "llm_provider": "openai_compatible"},
-            },
-            {
-                "key": "llm_api_key",
-                "description": "LLM API key (optional for openai_compatible)",
-                "secret": True,
-                "env_var": "CONTEXTBASE_LLM_API_KEY",
-                "when": {"mode": "local_embedded"},
-            },
-            {
-                "key": "llm_model",
-                "description": "LLM model",
-                "default": "gpt-4o-mini",
-                "default_from": {"field": "llm_provider", "map": _PROVIDER_DEFAULT_MODELS},
-                "when": {"mode": "local_embedded"},
-            },
             {
                 "key": "bank_id",
                 "description": "Memory bank name (static fallback when bank_id_template is unset)",
@@ -816,18 +723,6 @@ class ContextBaseMemoryProvider(MemoryProvider):
             },
             {"key": "recall_prompt_preamble", "description": "Custom preamble for recalled memories in context"},
             {"key": "timeout", "description": "API request timeout in seconds", "default": _DEFAULT_TIMEOUT},
-            {
-                "key": "idle_timeout",
-                "description": "Embedded daemon idle timeout in seconds (0 disables auto-shutdown)",
-                "default": _DEFAULT_IDLE_TIMEOUT,
-                "when": {"mode": "local_embedded"},
-            },
-            {
-                "key": "port_health_grace_timeout",
-                "description": "Seconds to wait for a slow daemon /health before treating it as stale (raise on busy/low-resource hosts; blank uses the 30s default)",
-                "default": "",
-                "when": {"mode": "local_embedded"},
-            },
         ]
 
     # -- client -------------------------------------------------------------
@@ -836,51 +731,6 @@ class ContextBaseMemoryProvider(MemoryProvider):
         """Config value if set (explicit 0 preserved), else env var, else default."""
         value = self._config.get(key)
         return _parse_int_setting(os.environ.get(env_var, env_default) if value is None else value, default)
-
-    def _new_embedded_client(self):
-        """Client for local_embedded: start the daemon out-of-process, then talk HTTP to it.
-
-        This used to be ``from hindsight import HindsightEmbedded``, which required the
-        ``hindsight-all`` package — the entire hindsight-api-slim server tree — inside Hermes'
-        venv, where it cannot resolve against Hermes' pinned extras. ``HindsightEmbedded`` is
-        only ``contextbase_client.ContextBase`` + ``hindsight_embed.get_embed_manager()``, so we
-        compose the same two packages ourselves. Same daemon, same profile, same profile ``.env``,
-        same pg0 database: nothing of an existing user's data or config moves.
-        """
-        status = _check_local_runtime()
-        if not status.available:
-            raise RuntimeError(
-                "ContextBase local runtime is unavailable" + (f": {status.reason}" if status.reason else "")
-            )
-        from contextbase_client import ContextBase
-
-        cfg = self._config
-        profile = str(cfg.get("profile", "hermes") or "hermes")
-        self._idle_timeout = self._int_setting(
-            "idle_timeout",
-            "CONTEXTBASE_IDLE_TIMEOUT",
-            _DEFAULT_IDLE_TIMEOUT,
-            env_default=self._idle_timeout,
-        )
-        # Only explicitly-configured keys: an omitted one is resolved by the daemon from the
-        # profile .env, then the parent environment (#3253). This mirrors HindsightEmbedded's
-        # own config assembly so the daemon sees exactly what it saw before.
-        daemon_config = _build_embedded_profile_env(cfg)
-        daemon_config["HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT"] = str(self._idle_timeout)
-        logger.debug(
-            "Starting embedded ContextBase daemon (profile=%s, provider=%s)",
-            profile,
-            daemon_config.get("HINDSIGHT_API_LLM_PROVIDER", ""),
-        )
-        self._announce_slow_first_start(profile)
-        self._embedded_url = _start_daemon(daemon_config, profile)
-        logger.info("Connected to embedded ContextBase daemon at %s", self._embedded_url)
-        # A daemon running ApiKeyTenantExtension rejects every keyless call with 401 (#5023). Its key
-        # lives in the profile env the daemon boots from; a configured apiKey is the fallback.
-        api_key = _load_simple_env(_embedded_profile_env_path(cfg)).get("HINDSIGHT_API_TENANT_API_KEY") or self._api_key
-        if not self._embedded_url:
-            raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        return ContextBase(base_url=self._embedded_url, api_key=api_key or None, user_agent=_USER_AGENT)
 
     def _new_cloud_client(self):
         from contextbase_client import ContextBase
@@ -902,50 +752,11 @@ class ContextBaseMemoryProvider(MemoryProvider):
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
         return ContextBase(**kwargs)
 
-    def _announce_slow_first_start(self, profile: str) -> None:
-        """Tell the user once when the embedded daemon is about to be fetched, not just started.
-
-        With no ``hindsight-api`` binary in the environment the daemon runs through
-        ``uvx hindsight-api@<version>``, which downloads the server (and its ML stack) into uv's
-        cache before it can boot. Until now nothing reached the user during that: the manager's
-        Rich panel is written to ~/.hermes/logs/hindsight-embed.log and only after the attempt
-        ends, so a first run looked like Hermes hanging, and #4936 reported a reply that took
-        6m23s, retained nothing and printed no error. Same sink as the root-refusal notice.
-        """
-        if _daemon_is_running(profile) or _installed_api_binary_exists():
-            return
-        msg = (
-            "ContextBase is downloading its local memory server (0.5-3 GB on first use, depending "
-            "on platform). "
-            "Memory will start working once it finishes; progress is in "
-            f"{get_hermes_home() / 'logs' / 'hindsight-embed.log'}."
-        )
-        logger.info(msg)
-        with contextlib.suppress(Exception):
-            if self._warning_callback is not None:
-                self._warning_callback(msg)
-            else:
-                from gateway.warning_notifications import render_notification
-
-                render_notification(
-                    lambda: print(f"  ⏳ {msg}", file=sys.stderr, flush=True),
-                    platform=self._platform,
-                )
-
     def _get_client(self):
-        """Return the cached ContextBase client, creating it at most once.
-
-        Locked because in local_embedded the creation *starts the daemon*: the background start
-        worker and the first memory operation both land here, and an unguarded check-then-set let
-        them each start one and build one client, of which the loser was dropped without being
-        closed (an unclosed aiohttp session). threading.Lock, not asyncio: these are threads, and
-        the guarded section never awaits.
-        """
+        """Create the HTTP client once per provider; no engine is installed or started."""
         with self._client_lock:
             if self._client is None:
-                self._client = (
-                    self._new_embedded_client() if self._mode == "local_embedded" else self._new_cloud_client()
-                )
+                self._client = self._new_cloud_client()
             return self._client
 
     def _run_sync(self, coro):
@@ -953,23 +764,8 @@ class ContextBaseMemoryProvider(MemoryProvider):
         return _run_sync(coro, timeout=self._timeout)
 
     def _run_contextbase_operation(self, operation):
-        """Run an async client operation; for local_embedded, a stale-daemon
-        connection failure recreates the client and retries once."""
-        try:
-            return self._run_sync(operation(self._get_client()))
-        except Exception as exc:
-            text = f"{type(exc).__name__}: {exc}".lower()
-            if self._mode != "local_embedded" or not any(m in text for m in _RETRIABLE_CONNECTION_MARKERS):
-                raise
-            logger.info("ContextBase embedded daemon appears unreachable; recreating client and retrying once: %s", exc)
-            with self._client_lock:
-                stale, self._client = self._client, None
-            if stale is not None:
-                # Close it, or its aiohttp session leaks ("Unclosed client session").
-                with contextlib.suppress(Exception):
-                    self._run_sync(stale.aclose())
-            client = self._get_client()
-            return self._run_sync(operation(client))
+        """Run against the configured service and preserve its original errors."""
+        return self._run_sync(operation(self._get_client()))
 
     # -- retain writer thread + server-side visibility -------------------------
 
@@ -1113,7 +909,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         stable session-scoped id with ``update_mode='append'``; older APIs get
         *fallback_document_id* (per-process unique) and no update_mode — the only
         way the resume-overwrite fix works there. The /version probe targets the
-        embedded client's dynamic per-profile port when running, else api_url.
+        the explicitly configured service URL.
 
         On ContextBase ≥ 0.5.0 the API supports ``update_mode='append'``, which lets us reuse a stable
         session-scoped ``document_id`` across process lifecycles without overwriting prior turns. On older
@@ -1121,8 +917,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         minted at initialize / switch time) and don't pass ``update_mode`` at all — that's the only way the
         resume-overwrite fix (#6654) keeps working on legacy servers.
         """
-        url = self._embedded_url if self._mode == "local_embedded" else None
-        probe_url = str(url) if url else (self._api_url or "")
+        probe_url = self._api_url or ""
         if self._session_id and _check_api_supports_update_mode_append(probe_url, self._api_key):
             return self._session_id, "append"
         return fallback_document_id, None
@@ -1151,21 +946,8 @@ class ContextBaseMemoryProvider(MemoryProvider):
         self._session_turns = []
         self._mode = cfg.get("mode", "cloud")
         self._timeout = self._int_setting("timeout", "CONTEXTBASE_TIMEOUT", _DEFAULT_TIMEOUT)
-        self._idle_timeout = self._int_setting("idle_timeout", "CONTEXTBASE_IDLE_TIMEOUT", _DEFAULT_IDLE_TIMEOUT)
-        if self._mode == "local":  # legacy alias
-            self._mode = "local_embedded"
-        if self._mode == "local_embedded":
-            # Must precede the daemon_embed_manager import, which reads it at import time.
-            _export_port_health_grace_timeout(cfg)
-            status = _check_local_runtime()
-            if not status.available:
-                logger.warning(
-                    "ContextBase local mode disabled because its runtime could not be imported: %s.%s",
-                    status.reason,
-                    _local_runtime_hint(status.reason),
-                )
-                self._mode = "disabled"
-                return
+        if self._mode not in {"cloud", "self-hosted"}:
+            raise ValueError("ContextBase supports only cloud or self-hosted remote APIs; configure api_url.")
         self._apply_connection_settings(cfg)
         self._apply_retain_settings(cfg)
         self._apply_recall_settings(cfg)
@@ -1211,9 +993,6 @@ class ContextBaseMemoryProvider(MemoryProvider):
             self._tags,
             self._recall_tags,
         )
-
-        if self._mode == "local_embedded":
-            self._start_embedded_daemon()
 
     def _build_write_bank_ids(self) -> list[str]:
         """The deduped, ordered set of banks this provider writes to (and
@@ -1301,8 +1080,8 @@ class ContextBaseMemoryProvider(MemoryProvider):
     def _apply_connection_settings(self, cfg: dict) -> None:
         """Endpoint, bank and mode selectors from *cfg* (env fallbacks where documented)."""
         self._api_key = _cloud_api_key(cfg)
-        default_url = _DEFAULT_LOCAL_URL if self._mode in {"local_embedded", "local_external"} else _DEFAULT_API_URL
-        self._api_url = cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "") or default_url
+        self._api_url = cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "") or _DEFAULT_API_URL
+        self._api_url = validate_api_url(self._api_url)
 
         banks = cfg_get(cfg, "banks", "hermes", default={})
         self._bank_id_template = cfg.get("bank_id_template", "") or ""
@@ -1423,83 +1202,6 @@ class ContextBaseMemoryProvider(MemoryProvider):
         self._recall_prompt_preamble = cfg.get("recall_prompt_preamble", "")
         self._recall_indicator = bool(cfg.get("recall_indicator", True))
 
-    def _start_embedded_daemon(self) -> None:
-        """Start the embedded daemon on a background thread (Rich output -> log file)."""
-        # PostgreSQL's initdb refuses root; without this guard the start thread
-        # retries forever, reloading embedding models (~958MB RAM, ~33% CPU)
-        # with no user-visible error.
-        if hasattr(os, "geteuid") and os.geteuid() == 0:
-            msg = (
-                "ContextBase local_embedded mode cannot run as root "
-                "(PostgreSQL initdb refuses root). Skipping the embedded "
-                "memory daemon. Run Hermes as a non-root user, or switch "
-                "to cloud / local_external mode via 'hermes memory setup'."
-            )
-            logger.warning(msg)
-            # Surface to the terminal too — a daemon that never starts would otherwise fail silently and
-            # the user would only see Hermes get sluggish (issue #13125). This is an automatic
-            # startup diagnostic: it goes through the agent's gated warning sink when wired,
-            # otherwise through the shared render boundary; the log line above never does.
-            with contextlib.suppress(Exception):
-                if self._warning_callback is not None:
-                    self._warning_callback(msg)
-                else:
-                    from gateway.warning_notifications import render_notification
-
-                    render_notification(
-                        lambda: print(f"  ⚠ {msg}", file=sys.stderr, flush=True),
-                        platform=self._platform,
-                    )
-            self._mode = "disabled"
-            return
-        spawn_context_thread(self._daemon_start_worker, name="contextbase-daemon-start").start()
-
-    def _daemon_start_worker(self) -> None:
-        import traceback
-
-        log_path = get_hermes_home() / "logs" / "hindsight-embed.log"
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-
-        def _log(text: str) -> None:
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(text)
-
-        try:
-            # Rich console -> our log file (redirecting global fds would capture other threads).
-            import hindsight_embed.daemon_embed_manager as dem
-            from rich.console import Console
-
-            dem.console = Console(file=open(log_path, "a", encoding="utf-8"), force_terminal=False)
-
-            profile = self._config.get("profile", "hermes")
-            # Profile .env out of sync with config -> rewrite and restart a running daemon.
-            # Fail-closed on key material: when this process holds no key (no secret
-            # scope on this thread) but the file does, a rewrite would destroy the
-            # only key copy the daemon subprocess can read. Skip the write AND the
-            # stop: restarting the daemon now would boot it keyless, which is the
-            # exact outage this guards against. _get_client() below sends the daemon
-            # whatever key WAS available (config, secret scope, or the file itself).
-            if _profile_env_drifted(self._config):
-                if _may_rewrite_profile_env(self._config):
-                    _materialize_embedded_profile_env(self._config)
-                    if _daemon_is_running(profile):
-                        _log("\n=== Config changed, restarting daemon ===\n")
-                        _stop_daemon(profile)
-                else:
-                    logger.warning(
-                        "ContextBase profile env for %r holds an LLM API key this process cannot see "
-                        "(no secret scope); leaving the file untouched so the daemon keeps its key.",
-                        profile,
-                    )
-                    _log("\n=== Profile env has a key this process cannot see; left untouched ===\n")
-            # Builds the client, which starts (or reuses) the daemon. This runs AFTER the
-            # profile-env reconciliation above on purpose: the daemon reads that file at boot,
-            # so starting first would pin the stale values for the life of the process.
-            self._get_client()
-            _log("\n=== Daemon started successfully ===\n")
-        except Exception as e:
-            _log(f"\n=== Daemon startup failed: {e} ===\n" + traceback.format_exc())
-
     def system_prompt_block(self) -> str:
         mode = self._memory_mode if self._memory_mode in _SYSTEM_PROMPT_TAILS else "hybrid"
         label = "" if mode == "hybrid" else f" ({mode} mode)"
@@ -1556,7 +1258,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
             ]
             try:
                 # Raising keeps the primary's single-bank contract and lets
-                # _run_contextbase_operation retry a stale embedded daemon.
+                # Surface the original API failure to the caller.
                 first = await primary
             except BaseException as exc:
                 if not _bank_not_written_yet(exc):
@@ -2026,13 +1728,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         )
 
     def _close_client(self) -> None:
-        """Both modes now hold a plain ``contextbase_client.ContextBase``, so one aclose on the
-        shared loop is the whole story. The old local_embedded branch existed because
-        ``HindsightEmbedded.close()`` closed its inner sync client from the calling thread
-        ("attached to a different loop" before aiohttp released the session); there is no
-        wrapper to unwind any more. The daemon deliberately outlives us — it is shared with
-        the hindsight-embed CLI and other profiles' clients.
-        """
+        """Close the remote SDK client on its owning event loop."""
         self._run_sync(self._client.aclose())
 
     def shutdown(self) -> None:

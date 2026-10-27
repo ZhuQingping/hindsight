@@ -47,8 +47,24 @@ for (const [path, expected] of [
   ["hindsight-integrations/agent-plugin/plugin.json", fixed.agent_plugin],
   ["hindsight-integrations/claude-code/.claude-plugin/plugin.json", fixed.claude_plugin],
   ["hindsight-clients/typescript/package.json", fixed.node_sdk],
+  ["hindsight-integrations/openclaw/package.json", fixed.openclaw_plugin],
 ]) {
   if (readJson(path).name !== expected) throw new Error(`Identity drift: ${path}`);
+}
+const hermesProject = readFileSync(
+  resolve(root, "hindsight-integrations/hermes/pyproject.toml"),
+  "utf8"
+);
+const hermesManifest = readFileSync(
+  resolve(root, "hindsight-integrations/hermes/plugin.yaml"),
+  "utf8"
+);
+if (
+  hermesProject.match(/^name\s*=\s*"([^"]+)"/m)?.[1] !== fixed.hermes_plugin ||
+  hermesManifest.match(/^name:\s*(\S+)/m)?.[1] !== fixed.hermes_provider ||
+  readJson("hindsight-integrations/openclaw/openclaw.plugin.json").id !== fixed.openclaw_plugin
+) {
+  throw new Error("Assistant plugin identity drift");
 }
 const codingPackage = readJson("hindsight-integrations/coding-agents/package.json");
 const pythonSdk = readFileSync(resolve(root, "hindsight-clients/python/pyproject.toml"), "utf8");

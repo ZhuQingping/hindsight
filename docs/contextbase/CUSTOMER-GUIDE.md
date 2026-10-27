@@ -1,6 +1,6 @@
 # ContextBase 客户使用指南
 
-通过 ContextBase，Claude Code 和 Codex 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证。
+通过 ContextBase，多个 Agent 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证。
 只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
 
 ## 1 下载和安装
@@ -230,3 +230,36 @@ npm uninstall -g contextbase-coding-agents
 ```
 
 卸载不会删除远端记忆。若只配置了远端 MCP，使用宿主的 MCP 管理命令移除 contextbase-remote。
+
+
+## 7 其他 Agent
+
+Coding Agents 安装包也支持以下宿主。第 2 节命令中的 `claude-code codex` 可替换为实际使用的安装目标；连接参数和项目 Bank 绑定方式相同。
+
+| 客户端 | 安装目标 | 接入方式 |
+| --- | --- | --- |
+| Claude Code | `claude-code` | Hooks + 本地 MCP |
+| Codex CLI | `codex` | Hooks + 本地 MCP |
+| Cursor CLI | `cursor-cli` | Hooks + 本地 MCP |
+| DSH / DeepSeek Harness | `dsh` | 原生插件 |
+| OpenCode | `opencode` | 原生插件 |
+| OpenCode 2 | `opencode2` | 原生插件 |
+| pi | `pi` | 原生扩展 |
+| WorkBuddy | `workbuddy` | Hooks + 本地 MCP |
+
+例如在 PowerShell 中配置 Cursor CLI：
+
+```powershell
+contextbase-coding-agents.cmd install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
+```
+
+原生插件的工具出现在宿主自己的工具列表中；它们不需要另建一个 MCP 注册。重启宿主后，调用实际加载的 ContextBase 诊断工具，核对 `workspace`、`bank_id`、`harness`、`api_url`。DSH 安装项作用于全部配置档，请用新会话验证。
+
+OpenClaw 和 Hermes 使用各自的独立安装包，不能作为上述安装命令的目标：
+
+| 客户端 | 构建产物 | 操作指南 |
+| --- | --- | --- |
+| OpenClaw | `contextbase-openclaw-candidate`，内含 `.tgz` | [OpenClaw 使用指南](../../hindsight-integrations/openclaw/README.md) |
+| Hermes Agent | `contextbase-hermes-candidate`，内含插件 ZIP | [Hermes 使用指南](../../hindsight-integrations/hermes/README.md) |
+
+两个包都包含对应的 ContextBase SDK。下载仍使用第 1 节的构建页面，选择成功的构建。它们分别使用 OpenClaw 或 Hermes 的配置，不会自动读取 `coding-agent.json`；要共享记忆，请指定相同的 Endpoint 和 Bank，并分别配置有效凭据。

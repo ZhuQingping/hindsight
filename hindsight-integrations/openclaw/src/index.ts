@@ -6,7 +6,6 @@ import type {
   MemoryResult,
   RetainRequest,
 } from "./types.js";
-import { HindsightServer, type Logger } from "@vectorize-io/hindsight-all";
 import {
   ContextBaseClient,
   type ContextBaseClientOptions,
@@ -56,16 +55,6 @@ export const DEFAULT_RETAIN_CONTEXT =
   "and tags in metadata are also operational routing identifiers, " +
   "not human names, project names, or organizations.";
 
-// Logger adapter that routes the embed wrapper's output through openclaw's
-// batched structured logger so messages share the same prefix and respect
-// the configured log level.
-const embedLogger: Logger = {
-  debug: (msg) => log.verbose(msg),
-  info: (msg) => log.info(msg),
-  warn: (msg) => log.warn(msg),
-  error: (msg) => log.error(msg),
-};
-
 // Debug logging: silent by default, enable with debug: true or logLevel: 'debug'
 let debugEnabled = false;
 const debug = (...args: unknown[]) => {
@@ -78,16 +67,14 @@ const debug = (...args: unknown[]) => {
 };
 
 // Module-level state
-let contextbaseServer: HindsightServer | null = null;
 let client: ContextBaseClient | null = null;
 let clientOptions: ContextBaseClientOptions | null = null;
 let initPromise: Promise<void> | null = null;
 let isInitialized = false;
-let usingExternalApi = false; // Track if using external API (skip daemon management)
 
 // Capability detected once per service.start() against `<apiUrl>/version`.
 // `true` when the ContextBase API supports `update_mode: 'append'` (added in
-// 0.5.0 — see vectorize-io/hindsight#932) and stores document text. When false,
+// 0.5.0 — see the upstream append-mode change) and stores document text. When false,
 // retain falls back to a per-turn document id so prior turns aren't silently
 // overwritten or rejected by text-disabled deployments.
 let supportsUpdateModeAppend = false;
@@ -349,7 +336,7 @@ let lastReinitAttempt = 0;
 let isReinitInProgress = false;
 const REINIT_COOLDOWN_MS = 30_000;
 
-// Retain queue (both external-API and local-daemon mode)
+// Persistent retry queue for temporary API outages
 let retainQueue: RetainQueue | null = null;
 let retainQueueFlushTimer: ReturnType<typeof setInterval> | null = null;
 let isFlushInProgress = false;
@@ -610,7 +597,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
   const externalApi = detectExternalApi(config);
   if (!externalApi.apiUrl) {
     isReinitInProgress = false;
-    return; // Only external API mode supports lazy reinit
+    return;
   }
 
   debug("[ContextBase] Attempting lazy re-initialization...");
@@ -618,8 +605,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
     await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
     await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
-    const llmConfig = detectLLMConfig(config);
-    clientOptions = buildClientOptions(llmConfig, config, externalApi);
+    clientOptions = buildClientOptions(externalApi);
     banksWithDefaultsApplied.clear();
     client = new ContextBaseClient(clientOptions);
 
@@ -627,7 +613,6 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
       await ensureBankDefaultsApplied(getStaticBankId(config), config);
     }
 
-    usingExternalApi = true;
     isInitialized = true;
     // A copy that was never started has no retain queue, so a failed retain
     // would be dropped instead of replayed. (#4537)
@@ -1724,68 +1709,6 @@ export function formatMemories(results: MemoryResult[]): string {
     .join("\n\n");
 }
 
-// Providers that authenticate via OAuth or run locally — no API key needed.
-const NO_KEY_REQUIRED_PROVIDERS = new Set([
-  "ollama",
-  "openai-codex",
-  "claude-code",
-  "cursor",
-  "github-copilot",
-]);
-
-export function detectLLMConfig(pluginConfig?: PluginConfig): {
-  provider?: string;
-  apiKey?: string;
-  model?: string;
-  baseUrl?: string;
-  source: string;
-} {
-  // External API mode: the daemon handles LLM credentials, plugin doesn't need them.
-  const externalApiCheck = detectExternalApi(pluginConfig);
-  if (externalApiCheck.apiUrl) {
-    return {
-      provider: undefined,
-      apiKey: undefined,
-      model: undefined,
-      baseUrl: undefined,
-      source: "external-api-mode-no-llm",
-    };
-  }
-
-  const provider = pluginConfig?.llmProvider;
-  if (!provider) {
-    throw new Error(
-      `No LLM provider configured for the ContextBase memory plugin.\n\n` +
-        `Set the provider via 'openclaw config set':\n` +
-        `  openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai\n\n` +
-        `For providers that need an API key, configure it as a SecretRef so the value\n` +
-        `is read from an env var (or file/exec source) at runtime instead of stored in plain text:\n` +
-        `  openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \\\n` +
-        `      --ref-source env --ref-provider default --ref-id OPENAI_API_KEY\n\n` +
-        `Providers that don't need an API key: ${[...NO_KEY_REQUIRED_PROVIDERS].join(", ")}.\n` +
-        `Or point the plugin at an external ContextBase API by setting contextbaseApiUrl instead.`
-    );
-  }
-
-  const apiKey = pluginConfig?.llmApiKey ?? "";
-  if (!apiKey && !NO_KEY_REQUIRED_PROVIDERS.has(provider)) {
-    throw new Error(
-      `llmProvider is set to "${provider}" but llmApiKey is empty.\n\n` +
-        `Configure it via 'openclaw config set' as a SecretRef:\n` +
-        `  openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \\\n` +
-        `      --ref-source env --ref-provider default --ref-id OPENAI_API_KEY`
-    );
-  }
-
-  return {
-    provider,
-    apiKey,
-    model: pluginConfig?.llmModel,
-    baseUrl: pluginConfig?.llmBaseUrl,
-    source: "plugin config",
-  };
-}
-
 /**
  * Detect external ContextBase API configuration from plugin config.
  */
@@ -1799,39 +1722,34 @@ export function detectExternalApi(pluginConfig?: PluginConfig): {
   };
 }
 
-/**
- * The ContextBase API this plugin is currently talking to, whichever mode it is
- * in: the configured external API, or the local daemon we spawned ourselves.
- *
- * Capability probing must not care which one it is — the embedded daemon serves
- * the same `/version` endpoint as any other ContextBase API. Treating local-daemon
- * mode as a special case is precisely what left `supportsUpdateModeAppend` stuck
- * at `false` there, silently downgrading every retain to a per-turn document id.
- * (#3686)
- */
+/** One explicit service endpoint for hooks, tools and capability probes. */
 function getActiveApiEndpoint(): { apiUrl: string | null; apiToken: string | null } {
-  const externalApi = detectExternalApi(currentPluginConfig ?? undefined);
-  if (externalApi.apiUrl) return externalApi;
-  return { apiUrl: contextbaseServer?.getBaseUrl() ?? null, apiToken: null };
+  return detectExternalApi(currentPluginConfig ?? undefined);
 }
 
-/**
- * Build ContextBaseClientOptions for the generated contextbase-client. In
- * external-API mode we use the configured URL/token; in local daemon mode
- * the caller overrides with the daemon's base URL after start().
- * The llmConfig parameter is currently only consumed by the daemon manager
- * (via env vars); it's kept on the client builder signature so callers
- * don't need to branch and so future features can forward it.
- */
-export function buildClientOptions(
-  _llmConfig: { provider?: string; apiKey?: string; model?: string },
-  _pluginCfg: PluginConfig,
-  externalApi: { apiUrl: string | null; apiToken: string | null }
-): ContextBaseClientOptions {
-  return {
-    baseUrl: externalApi.apiUrl ?? "",
-    apiKey: externalApi.apiToken ?? undefined,
-  };
+export function buildClientOptions(externalApi: {
+  apiUrl: string | null;
+  apiToken: string | null;
+}): ContextBaseClientOptions {
+  return { baseUrl: validateApiUrl(externalApi.apiUrl), apiKey: externalApi.apiToken ?? undefined };
+}
+
+export function validateApiUrl(value: string | null | undefined): string {
+  if (!value?.trim())
+    throw new Error("ContextBase API URL is required; configure contextbaseApiUrl.");
+  const url = new URL(value);
+  if (
+    !["https:", "http:"].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(
+      "ContextBase API URL must be an HTTP(S) endpoint without credentials, query or fragment."
+    );
+  }
+  return value.trim().replace(/\/+$/, "");
 }
 
 /**
@@ -2011,7 +1929,7 @@ async function refreshQueueOperationIdCapability(
  * document text.
  *
  * Called wherever the plugin (re)connects to an API — external *and* local
- * daemon. It used to hang off the `checkExternalApiHealth` call sites only,
+ * service. It used to hang off the `checkExternalApiHealth` call sites only,
  * which is why local-daemon mode never probed at all and silently retained
  * with per-turn document ids. (#3686)
  */
@@ -2143,17 +2061,8 @@ export function getPluginConfig(api: MoltbotPluginAPI): PluginConfig {
     dispositionLiteralism: normalizeDispositionTrait(config.dispositionLiteralism),
     dispositionEmpathy: normalizeDispositionTrait(config.dispositionEmpathy),
     entityLabels: normalizeEntityLabels(config.entityLabels),
-    embedPort: config.embedPort || 0,
-    daemonIdleTimeout: config.daemonIdleTimeout !== undefined ? config.daemonIdleTimeout : 0,
-    embedVersion: config.embedVersion || "latest",
-    embedPackagePath: config.embedPackagePath,
-    llmProvider: config.llmProvider,
-    llmModel: config.llmModel,
-    llmApiKey: config.llmApiKey,
-    llmBaseUrl: config.llmBaseUrl,
     contextbaseApiUrl: config.contextbaseApiUrl,
     contextbaseApiToken: config.contextbaseApiToken,
-    apiPort: config.apiPort || 9077,
     // Dynamic bank ID options (default: enabled)
     dynamicBankId: config.dynamicBankId !== false,
     bankId:
@@ -2297,7 +2206,7 @@ export default function (api: MoltbotPluginAPI) {
     debug("[ContextBase] Plugin loaded successfully (deferred heavy init to gateway start)");
 
     // Register background service for cleanup
-    // IMPORTANT: Heavy initialization (LLM detection, daemon start, API health checks)
+    // IMPORTANT: Heavy initialization (API connection and capability checks)
     // happens in service.start() which is ONLY called on gateway start,
     // not on every CLI command.
     debug("[ContextBase] Registering service...");
@@ -2314,273 +2223,37 @@ export default function (api: MoltbotPluginAPI) {
         log.info("service.start invoked");
         debug("[ContextBase] Service start called - beginning heavy initialization...");
 
-        // Detect LLM configuration (env vars > plugin config > auto-detect)
-        debug("[ContextBase] Detecting LLM config...");
-        const llmConfig = detectLLMConfig(pluginConfig);
-
-        const baseUrlInfo = llmConfig.baseUrl ? `, base URL: ${llmConfig.baseUrl}` : "";
-        const modelInfo = llmConfig.model || "default";
-
-        if (llmConfig.provider === "ollama") {
-          debug(
-            `[ContextBase] ✓ Using provider: ${llmConfig.provider}, model: ${modelInfo} (${llmConfig.source})`
-          );
-        } else {
-          debug(
-            `[ContextBase] ✓ Using provider: ${llmConfig.provider}, model: ${modelInfo} (${llmConfig.source}${baseUrlInfo})`
-          );
-        }
-        if (pluginConfig.bankMission) {
-          debug(
-            `[ContextBase] Custom bank mission configured: "${pluginConfig.bankMission.substring(0, 50)}..."`
-          );
-        }
-
-        // Log bank ID mode
-        if (pluginConfig.dynamicBankId) {
-          const prefixInfo = pluginConfig.bankIdPrefix
-            ? ` (prefix: ${pluginConfig.bankIdPrefix})`
-            : "";
-          debug(
-            `[ContextBase] ✓ Dynamic bank IDs enabled${prefixInfo} - each channel gets isolated memory`
-          );
-        } else {
-          const sourceInfo = getConfiguredBankId(pluginConfig) ? "configured" : "default";
-          debug(
-            `[ContextBase] Dynamic bank IDs disabled - using ${sourceInfo} static bank: ${getStaticBankId(pluginConfig)}`
-          );
-        }
-
-        // Detect external API mode
         const externalApi = detectExternalApi(pluginConfig);
-        usingExternalApi = Boolean(externalApi.apiUrl);
-
-        // Get API port from config (default: 9077)
-        const apiPort = pluginConfig.apiPort || 9077;
-
-        // Both modes get the queue: a local daemon is unreachable while it is
-        // still booting or after it has crashed, and a retain that fails then is
-        // just as lost as one that fails against a remote API. (#3686)
+        // Validate before starting timers or making any request; never discover or start an engine.
+        client = null;
+        isInitialized = false;
+        const options = buildClientOptions(externalApi);
+        clientOptions = options;
         initRetainQueue(pluginConfig, startGeneration, serviceController.signal);
-
-        if (externalApi.apiUrl) {
-          // External API mode - skip local daemon
-          usingExternalApi = true;
-          debug(`[ContextBase] ✓ Using external API: ${externalApi.apiUrl}`);
-
-          if (externalApi.apiToken) {
-            debug("[ContextBase] API token configured");
-          }
-        } else {
-          debug(`[ContextBase] API Port: ${apiPort}`);
-        }
-
-        // Initialize (runs synchronously in service.start())
-        debug("[ContextBase] Starting initialization...");
         initPromise = (async () => {
-          try {
-            if (usingExternalApi && externalApi.apiUrl) {
-              // External API mode - check health, skip daemon startup
-              debug("[ContextBase] External API mode - skipping local daemon...");
-              await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
-              await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
-
-              // Initialize client for external API
-              debug("[ContextBase] Creating ContextBaseClient (external API)...");
-              clientOptions = buildClientOptions(llmConfig, pluginConfig, externalApi);
-              banksWithDefaultsApplied.clear();
-              client = new ContextBaseClient(clientOptions);
-
-              const defaultBankId = deriveBankId(undefined, pluginConfig);
-              debug(`[ContextBase] Default bank: ${defaultBankId}`);
-
-              // Defaults are stamped per-bank when dynamic bank IDs are enabled.
-              // For static banks, stamp once here on init.
-              if (usesStaticBank(pluginConfig)) {
-                debug(`[ContextBase] Applying configured bank defaults...`);
-                await ensureBankDefaultsApplied(defaultBankId, pluginConfig);
-              }
-
-              if (!isInitialized) {
-                const mode = "external API";
-                const autoRecall = pluginConfig.autoRecall !== false;
-                const autoRetain = pluginConfig.autoRetain !== false;
-                log.info(
-                  `initialized (mode: ${mode}, bank: ${defaultBankId}, autoRecall: ${autoRecall}, autoRetain: ${autoRetain})`
-                );
-              }
-              isInitialized = true;
-              debug("[ContextBase] ✓ Ready (external API mode)");
-            } else {
-              // Local daemon mode - start hindsight-embed daemon
-              debug("[ContextBase] Creating HindsightServer...");
-              contextbaseServer = new HindsightServer({
-                profile: "openclaw",
-                port: apiPort,
-                embedVersion: pluginConfig.embedVersion,
-                embedPackagePath: pluginConfig.embedPackagePath,
-                env: {
-                  HINDSIGHT_API_LLM_PROVIDER: llmConfig.provider || "",
-                  HINDSIGHT_API_LLM_API_KEY: llmConfig.apiKey || "",
-                  HINDSIGHT_API_LLM_MODEL: llmConfig.model,
-                  HINDSIGHT_API_LLM_BASE_URL: llmConfig.baseUrl,
-                  HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT: String(pluginConfig.daemonIdleTimeout ?? 0),
-                },
-                logger: embedLogger,
-              });
-
-              // Start the embedded server
-              debug("[ContextBase] Starting embedded server...");
-              await contextbaseServer.start();
-
-              // The daemon is a ContextBase API like any other: probe it for the
-              // same capabilities as an external one, or retains here silently
-              // fall back to per-turn document ids. (#3686)
-              await detectAppendCapability(contextbaseServer.getBaseUrl());
-
-              // Initialize client pointed at the local daemon URL
-              debug("[ContextBase] Creating ContextBaseClient (local daemon)...");
-              clientOptions = { baseUrl: contextbaseServer.getBaseUrl() };
-              banksWithDefaultsApplied.clear();
-              client = new ContextBaseClient(clientOptions);
-
-              const defaultBankId = deriveBankId(undefined, pluginConfig);
-              debug(`[ContextBase] Default bank: ${defaultBankId}`);
-
-              // Defaults are stamped per-bank when dynamic bank IDs are enabled.
-              // For static banks, stamp once here on init.
-              if (usesStaticBank(pluginConfig)) {
-                debug(`[ContextBase] Applying configured bank defaults...`);
-                await ensureBankDefaultsApplied(defaultBankId, pluginConfig);
-              }
-
-              if (!isInitialized) {
-                const mode = "local daemon";
-                const autoRecall = pluginConfig.autoRecall !== false;
-                const autoRetain = pluginConfig.autoRetain !== false;
-                log.info(
-                  `initialized (mode: ${mode}, bank: ${defaultBankId}, autoRecall: ${autoRecall}, autoRetain: ${autoRetain})`
-                );
-              }
-              isInitialized = true;
-              debug("[ContextBase] ✓ Ready");
-            }
-          } catch (error) {
-            log.error("initialization error", error);
-            throw error;
-          }
+          await checkExternalApiHealth(options.baseUrl, externalApi.apiToken);
+          if (serviceController.signal.aborted || startGeneration !== serviceGeneration) return;
+          await detectAppendCapability(options.baseUrl, externalApi.apiToken);
+          if (serviceController.signal.aborted || startGeneration !== serviceGeneration) return;
+          banksWithDefaultsApplied.clear();
+          client = new ContextBaseClient(options);
+          const bankId = deriveBankId(undefined, pluginConfig);
+          if (usesStaticBank(pluginConfig)) await ensureBankDefaultsApplied(bankId, pluginConfig);
+          if (serviceController.signal.aborted || startGeneration !== serviceGeneration) return;
+          isInitialized = true;
+          log.info(
+            `initialized (mode: remote API, bank: ${bankId}, autoRecall: ${pluginConfig.autoRecall !== false}, autoRetain: ${pluginConfig.autoRetain !== false})`
+          );
         })();
-
-        // Wait for initialization to complete
         try {
           await initPromise;
         } catch (error) {
-          log.error("initial initialization failed", error);
-          // Continue to health check below
-        }
-
-        // External API mode: check external API health
-        if (usingExternalApi) {
-          const externalApi = detectExternalApi(pluginConfig);
-          if (externalApi.apiUrl && isInitialized) {
-            try {
-              await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
-              await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
-              debug("[ContextBase] External API is healthy");
-              return;
-            } catch (error) {
-              log.error("external API health check failed", error);
-              // Reset state for reinitialization attempt
-              client = null;
-              clientOptions = null;
-              banksWithDefaultsApplied.clear();
-              isInitialized = false;
-            }
-          }
-        } else {
-          // Local daemon mode: check daemon health (handles SIGUSR1 restart case)
-          if (contextbaseServer && isInitialized) {
-            const healthy = await contextbaseServer.checkHealth();
-            if (healthy) {
-              // Same re-probe the external branch does after its health check:
-              // the daemon may have been restarted (SIGUSR1) onto a different
-              // embed version since we last looked. (#3686)
-              await detectAppendCapability(contextbaseServer.getBaseUrl());
-              debug("[ContextBase] Daemon is healthy");
-              return;
-            }
-
-            debug("[ContextBase] Daemon is not responding - reinitializing...");
-            // Reset state for reinitialization
-            contextbaseServer = null;
-            client = null;
-            clientOptions = null;
-            banksWithDefaultsApplied.clear();
-            isInitialized = false;
-          }
-        }
-
-        // Reinitialize if needed (fresh start or recovery)
-        if (!isInitialized) {
-          debug("[ContextBase] Reinitializing...");
-          const reinitPluginConfig = getPluginConfig(api);
-          currentPluginConfig = reinitPluginConfig;
-          const llmConfig = detectLLMConfig(reinitPluginConfig);
-          const externalApi = detectExternalApi(reinitPluginConfig);
-          const apiPort = reinitPluginConfig.apiPort || 9077;
-
-          if (externalApi.apiUrl) {
-            // External API mode
-            usingExternalApi = true;
-
-            await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
-            await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
-
-            clientOptions = buildClientOptions(llmConfig, reinitPluginConfig, externalApi);
-            banksWithDefaultsApplied.clear();
-            client = new ContextBaseClient(clientOptions);
-            const defaultBankId = deriveBankId(undefined, reinitPluginConfig);
-
-            if (usesStaticBank(reinitPluginConfig)) {
-              await ensureBankDefaultsApplied(defaultBankId, reinitPluginConfig);
-            }
-
-            isInitialized = true;
-            debug("[ContextBase] Reinitialization complete (external API mode)");
-          } else {
-            // Local daemon mode
-            contextbaseServer = new HindsightServer({
-              profile: "openclaw",
-              port: apiPort,
-              embedVersion: reinitPluginConfig.embedVersion,
-              embedPackagePath: reinitPluginConfig.embedPackagePath,
-              env: {
-                HINDSIGHT_API_LLM_PROVIDER: llmConfig.provider || "",
-                HINDSIGHT_API_LLM_API_KEY: llmConfig.apiKey || "",
-                HINDSIGHT_API_LLM_MODEL: llmConfig.model,
-                HINDSIGHT_API_LLM_BASE_URL: llmConfig.baseUrl,
-                HINDSIGHT_EMBED_DAEMON_IDLE_TIMEOUT: String(
-                  reinitPluginConfig.daemonIdleTimeout ?? 0
-                ),
-              },
-              logger: embedLogger,
-            });
-
-            await contextbaseServer.start();
-            await detectAppendCapability(contextbaseServer.getBaseUrl());
-
-            clientOptions = { baseUrl: contextbaseServer.getBaseUrl() };
-            banksWithDefaultsApplied.clear();
-            client = new ContextBaseClient(clientOptions);
-            const defaultBankId = deriveBankId(undefined, reinitPluginConfig);
-
-            if (usesStaticBank(reinitPluginConfig)) {
-              await ensureBankDefaultsApplied(defaultBankId, reinitPluginConfig);
-            }
-
-            isInitialized = true;
-            debug("[ContextBase] Reinitialization complete");
-          }
+          client = null;
+          isInitialized = false;
+          log.error(
+            "ContextBase initialization failed; hooks will retry the configured API",
+            error
+          );
         }
       },
 
@@ -2592,12 +2265,6 @@ export default function (api: MoltbotPluginAPI) {
           serviceAbortController = null;
           inflightRecalls.clear();
           debug("[ContextBase] Service stopping...");
-
-          // Only stop daemon if in local mode
-          if (!usingExternalApi && contextbaseServer) {
-            await contextbaseServer.stop();
-            contextbaseServer = null;
-          }
 
           // Close retain queue
           if (retainQueueFlushTimer) {
@@ -2618,7 +2285,6 @@ export default function (api: MoltbotPluginAPI) {
           client = null;
           clientOptions = null;
           asyncRetainOperationIdCapability = "unknown";
-          usingExternalApi = false;
           banksWithDefaultsApplied.clear();
           isInitialized = false;
 
