@@ -1,6 +1,7 @@
 # ContextBase 客户使用指南
 
-通过 ContextBase，Claude Code 和 Codex 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证；只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
+通过 ContextBase，Claude Code 和 Codex 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证。
+只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
 
 ## 1 下载和安装
 
@@ -8,8 +9,6 @@
 
 - [下载 Coding Agents 安装包（0.8.1，包含在 contextbase-plugin-candidates ZIP 中）](https://github.com/RSIXDB/hindsight/actions/runs/40296078727/artifacts/12638142440)
 - [查看后续构建](https://github.com/RSIXDB/hindsight/actions/workflows/release.yml)：选择成功的构建，在 **Artifacts** 中下载 `contextbase-plugin-candidates`。
-
-下载需要登录有仓库访问权限的 GitHub 账号。当前链接为构建候选产物，有保留期限；过期后请从后续构建获取安装包。
 
 解压下载的 ZIP，找到：
 
