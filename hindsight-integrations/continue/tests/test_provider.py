@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import pytest
-
 from contextbase_continue import (
-    HindsightError,
+    ContextBaseError,
     build_context_items,
     configure,
     serialize,
@@ -65,7 +64,7 @@ class TestBuildContextItems:
         client = make_client(["x"])
         configure()  # no bank id, no env
 
-        with pytest.raises(HindsightError, match="bank id"):
+        with pytest.raises(ContextBaseError, match="bank id"):
             build_context_items(continue_request(query="hello"), client=client)
         client.recall.assert_not_called()
 
@@ -85,11 +84,11 @@ class TestBuildContextItems:
         client.recall.side_effect = RuntimeError("boom")
         configure(bank_id="proj-1")
 
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             build_context_items(continue_request(query="hi"), client=client)
 
     def test_http_status_surfaced_in_error(self):
-        # hindsight_client raises an ApiException with a ``status`` attribute;
+        # contextbase_client raises an ApiException with a ``status`` attribute;
         # the adapter should surface it so a bad token (401) is distinguishable.
         client = make_client()
         err = RuntimeError("unauthorized")
@@ -97,7 +96,7 @@ class TestBuildContextItems:
         client.recall.side_effect = err
         configure(bank_id="proj-1")
 
-        with pytest.raises(HindsightError, match="HTTP 401"):
+        with pytest.raises(ContextBaseError, match="HTTP 401"):
             build_context_items(continue_request(query="hi"), client=client)
 
     def test_types_and_tags_passed_through_when_configured(self):

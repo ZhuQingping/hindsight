@@ -69,5 +69,8 @@ markers = [
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
-    "hindsight-client>=0.4.19,<1.0",
+    "contextbase-client>=1.0.0,<2",
 ]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

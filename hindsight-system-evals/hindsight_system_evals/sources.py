@@ -56,8 +56,7 @@ from __future__ import annotations
 import datetime
 import os
 
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals.corpus import HardCorpus, HardFact, HardQuestion
 from hindsight_system_evals.pages import SettleFn, prepare_bank
 
@@ -96,8 +95,7 @@ _GUIDE_FACTS = [
     ),
     _guide(
         "g-approvals",
-        "A pull request needs two approvals from engineers outside the author's own team before it can "
-        "be merged.",
+        "A pull request needs two approvals from engineers outside the author's own team before it can be merged.",
     ),
     _guide(
         "g-postmortem",
@@ -110,8 +108,7 @@ _GUIDE_FACTS = [
     ),
     _guide(
         "g-deploy-window",
-        "Production deploys run Monday to Thursday. A Friday deploy requires written approval from the "
-        "on-call lead.",
+        "Production deploys run Monday to Thursday. A Friday deploy requires written approval from the on-call lead.",
     ),
     _guide(
         "g-oncall",
@@ -309,9 +306,7 @@ _QUESTIONS = [
             "deploys run Monday to Thursday with a Friday deploy needing the on-call lead's written "
             "approval."
         ),
-        must_not_claim=(
-            "the payments team may not deploy on a Friday, or that Friday deploys need no approval at all"
-        ),
+        must_not_claim=("the payments team may not deploy on a Friday, or that Friday deploys need no approval at all"),
     ),
 ]
 
@@ -398,12 +393,11 @@ options for the reader to choose between."""
 #: The mission form. A mission REPLACES the agent's default role rather than adding
 #: to it, so it has to say what the agent is before it says how to rank.
 MISSION = (
-    "You are a reflection agent that answers questions by reasoning over retrieved memories.\n\n"
-    + SOURCE_PRECEDENCE
+    "You are a reflection agent that answers questions by reasoning over retrieved memories.\n\n" + SOURCE_PRECEDENCE
 )
 
 
-async def apply_strategy(client: Hindsight, bank_id: str) -> None:
+async def apply_strategy(client: ContextBase, bank_id: str) -> None:
     """Configure the bank for the strategy under measurement."""
     if STRATEGY == "none":
         return
@@ -433,7 +427,7 @@ def decorate_query(question: str) -> str:
     return f"{question}\n\n{SOURCE_PRECEDENCE}"
 
 
-async def seed_bank(client: Hindsight, bank_id: str, corpus_facts: list[HardFact], settle: SettleFn) -> None:
+async def seed_bank(client: ContextBase, bank_id: str, corpus_facts: list[HardFact], settle: SettleFn) -> None:
     """Retain every fact with its provenance tag, stored verbatim.
 
     ``prepare_bank`` puts the bank in ``chunks`` mode, so a fact reaches recall as

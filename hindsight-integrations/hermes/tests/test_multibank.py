@@ -2,13 +2,12 @@
 
 import asyncio
 import logging
-from unittest.mock import MagicMock, patch
 from pathlib import Path
 from types import SimpleNamespace
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 import contextbase_hermes as plugin
+import pytest
 from contextbase_hermes.settings import _discover_cwd_bank_id, _repository_root
 
 ContextBaseMemoryProvider = plugin.ContextBaseMemoryProvider
@@ -563,7 +562,7 @@ def test_single_bank_recall_returns_the_server_response_unchanged():
 
 
 def _not_found() -> Exception:
-    from hindsight_client_api.exceptions import NotFoundException
+    from contextbase_client_api.exceptions import NotFoundException
 
     return NotFoundException(status=404, reason="Not Found")
 

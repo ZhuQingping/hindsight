@@ -33,12 +33,12 @@ import uuid
 from pathlib import Path
 
 import httpx
-from hindsight_client import Hindsight
-from hindsight_client_api.models.llm_request_list_response import LLMRequestListResponse
-
+from contextbase_client import ContextBase
+from contextbase_client_api.models.llm_request_list_response import LLMRequestListResponse
 from hindsight_system_evals.pages import create_page, facts, prepare_bank, questions, read_page, split_into_waves
 from hindsight_system_evals.server import start_eval_server
 from hindsight_system_evals.waiting import wait_until_settled
+
 
 def _excerpt(text: str, limit: int = 400) -> str:
     flat = " ".join((text or "").split())
@@ -58,7 +58,7 @@ async def _traces(url: str, bank_id: str) -> LLMRequestListResponse:
 async def diagnose(url: str, question_id: str, repeats: int, dump: Path | None) -> None:
     question = next(q for q in questions() if q.id == question_id)
     waves = split_into_waves(facts())
-    client = Hindsight(base_url=url)
+    client = ContextBase(base_url=url)
     bank_id = f"syseval-diag-{uuid.uuid4().hex[:8]}"
     try:
         await prepare_bank(client, bank_id)

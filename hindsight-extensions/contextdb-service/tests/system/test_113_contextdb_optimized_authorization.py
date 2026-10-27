@@ -11,9 +11,9 @@ import secrets
 
 import httpx
 import pytest
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException
 from fastmcp import Client
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
@@ -87,7 +87,7 @@ async def test_mixed_workspace_authorization_editing_and_native_clients(
             extracted(fact("Alice builds MixedSentinel", who="Alice", entities=["Alice", "MixedSentinel"]))
         )
         llm.on_step("consolidate").returns(consolidation())
-        client = Hindsight(base_url=base, api_key=key["secret"])
+        client = ContextBase(base_url=base, api_key=key["secret"])
         try:
             assert (await client.arecall(bank_id=a, query="Empty read space")).results == []
             with pytest.raises(ForbiddenException):

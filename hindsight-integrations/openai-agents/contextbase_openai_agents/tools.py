@@ -14,7 +14,7 @@ from typing import Any
 
 from agents import function_tool
 from agents.tool import FunctionTool
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import (
@@ -25,7 +25,7 @@ from .config import (
     TagsMatch,
     get_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: Budget | None = None,
@@ -89,7 +89,7 @@ def create_contextbase_tools(
         List of OpenAI Agents SDK FunctionTool instances.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client = resolve_client(client, contextbase_api_url, api_key)
 
@@ -132,7 +132,7 @@ def create_contextbase_tools(
                 return "Memory stored successfully."
             except Exception as e:
                 logger.error("Retain failed: %s", e)
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(contextbase_retain)
 
@@ -175,7 +175,7 @@ def create_contextbase_tools(
                 return "\n".join(lines)
             except Exception as e:
                 logger.error("Recall failed: %s", e)
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(contextbase_recall)
 
@@ -218,7 +218,7 @@ def create_contextbase_tools(
                 return "No relevant memories found."
             except Exception as e:
                 logger.error("Reflect failed: %s", e)
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(contextbase_reflect)
 
@@ -229,7 +229,7 @@ def memory_instructions(
     *,
     bank_id: str,
     base_instructions: str = "",
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     query: str = "relevant context about the user",

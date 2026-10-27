@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# One-shot dev environment setup for Hindsight.
+# One-shot dev environment setup for ContextBase.
 #
 # Installs every toolchain the repo needs (uv/Python, Node/npm, Rust/cargo),
 # installs all workspace dependencies, and builds the core artifacts so the
@@ -269,19 +269,19 @@ PY
 # ---------------------------------------------------------------------------
 
 build_ts_client() {
-    step "Build TypeScript SDK (@vectorize-io/hindsight-client)"
+    step "Build TypeScript SDK (contextbase-client)"
     # The control plane imports the built SDK, so this must come first.
     if [ "$FORCE" = false ] && [ -d "$ROOT_DIR/hindsight-clients/typescript/dist" ]; then
         ok "dist/ present — skipping (use --force to rebuild)"
         return
     fi
-    npm run build -w @vectorize-io/hindsight-client
+    npm run build -w contextbase-client
     ok "SDK built"
     SUMMARY+=("ts-client: built")
 }
 
 build_cli() {
-    step "Build Hindsight CLI (cargo release)"
+    step "Build ContextBase CLI (cargo release)"
     # Building also vendors every crate into ~/.cargo, priming the offline cache.
     if [ "$FORCE" = false ] && [ -x "$ROOT_DIR/hindsight-cli/target/release/contextbase" ]; then
         ok "release binary present — skipping (use --force to rebuild)"

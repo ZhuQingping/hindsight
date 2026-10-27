@@ -48,7 +48,7 @@ sit at that prompt rather than finish.
 
 The Hindsight server is **not** a dependency of Hermes' venv. `local_embedded` starts it as a
 separate process — an installed `hindsight-api` binary, else a `uvx hindsight-api` fallback that
-gets its own environment — and talks HTTP to it. This venv keeps only `hindsight-client` and
+gets its own environment — and talks HTTP to it. This venv keeps only `contextbase-client` and
 `hindsight-embed`, both declared in `pyproject.toml`, so every mode installs with the plugin and
 nothing has to be fetched at runtime.
 
@@ -60,7 +60,7 @@ one pin only uncovers the next. It is also 482 MB on macOS arm64 and 3.2 GB on L
 CUDA wheels torch pulls there) that cloud-mode users would pay for nothing.
 
 `_new_embedded_client` therefore composes what the old `hindsight.HindsightEmbedded` wrapper composed
-internally — `hindsight_embed.get_embed_manager()` plus `hindsight_client.Hindsight` — instead of
+internally — `hindsight_embed.get_embed_manager()` plus `contextbase_client.Hindsight` — instead of
 importing it. **Existing embedded users keep everything**: the profile decides the daemon, so the
 database (`~/.pg0/instances/hindsight-embed-<profile>/`) and the profile env
 (`~/.hindsight/profiles/<profile>.env`) are the same files, read the same way. No migration step, no
@@ -397,7 +397,7 @@ These are used **only when there is no config file at all**. Once `hermes memory
 
 ## Client Version
 
-Requires `hindsight-client >= 0.10.1` and, for `local_embedded`, `hindsight-embed >= 0.10.1`. A version below
+Requires `contextbase-client >= 0.10.1` and, for `local_embedded`, `hindsight-embed >= 0.10.1`. A version below
 the floor only logs a warning; `hermes plugins update hindsight` moves the environment.
 
 The floor is 0.10.1 rather than the 0.6.1 this plugin needs at the API level because
@@ -438,7 +438,7 @@ Check `hermes memory status` reports `hindsight` as the active provider and `Sta
 `memory_mode: context` the tools are hidden on purpose.
 
 **`Status: not available` in `local_embedded`** — this plugin's own packages
-(`hindsight-client`, `hindsight-embed`) are missing from the environment, which happens when a venv
+(`contextbase-client`, `hindsight-embed`) are missing from the environment, which happens when a venv
 rebuild dropped the plugin member. Run `hermes pm repair` and restart Hermes to rebuild them. The Hindsight server is *not* needed in that venv — it runs as a separate
 process, and first use downloads it if no `hindsight-api` binary is present yet.
 

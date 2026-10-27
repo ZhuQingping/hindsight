@@ -151,7 +151,7 @@ bot.onNewMention(
 );
 ```
 
-- **`client`**: A `@vectorize-io/hindsight-client` instance pointing at your ContextBase API
+- **`client`**: A `contextbase-client` instance pointing at your ContextBase API
 - **`bankId`**: Static string or function -- shared bank = cross-platform memory
 - **`ctx.memoriesAsSystemPrompt()`**: Formats recalled memories for the LLM system prompt
 - **`ctx.retain()`**: Stores conversation content back to the bank

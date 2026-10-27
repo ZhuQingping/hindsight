@@ -135,9 +135,9 @@ export interface DocumentResponse {
 }
 
 /**
- * ContextBase client interface - matches @vectorize-io/hindsight-client
+ * ContextBase client interface - matches contextbase-client
  */
-export interface HindsightClient {
+export interface ContextBaseClient {
   retain(
     bankId: string,
     content: string,
@@ -184,7 +184,7 @@ export interface HindsightClient {
 
 export interface ContextBaseToolsOptions {
   /** ContextBase client instance */
-  client: HindsightClient;
+  client: ContextBaseClient;
   /** Memory bank ID to use for all tool calls (e.g. the user ID) */
   bankId: string;
 

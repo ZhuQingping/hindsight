@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 
 import pytest
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_composio import (
     RecallInput,
     ReflectInput,
@@ -83,7 +83,7 @@ def _recall_until_nonempty(recall, ctx, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"composio-e2e-{uuid.uuid4().hex[:8]}"
     try:
         yield client, bank_id

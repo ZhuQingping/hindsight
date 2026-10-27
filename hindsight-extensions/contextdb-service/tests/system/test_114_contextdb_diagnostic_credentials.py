@@ -11,9 +11,9 @@ from dataclasses import dataclass, field
 import asyncpg
 import httpx
 import pytest
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException
 from fastmcp import Client
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException
 
 from .support.clients import MemberClients
 from .support.deployment import ContextDBDeployment
@@ -92,7 +92,7 @@ async def test_native_task_credentials_are_admin_only(
 ) -> None:
     deployment = contextdb_deployment
     bank, operation = sensitive_operation.bank_id, sensitive_operation.operation_id
-    administrator = Hindsight(
+    administrator = ContextBase(
         base_url=deployment.server.url, api_key=deployment.headers["Authorization"].removeprefix("Bearer ")
     )
     try:
@@ -100,7 +100,7 @@ async def test_native_task_credentials_are_admin_only(
         assert visible.task_payload["secret"] == SENTINEL
         assert visible.result_metadata["last_response_body"] == SENTINEL
         for key in sensitive_operation.keys:
-            client = Hindsight(base_url=deployment.server.url, api_key=key)
+            client = ContextBase(base_url=deployment.server.url, api_key=key)
             try:
                 with pytest.raises(ForbiddenException):
                     await client.operations.get_operation_status(bank, operation, include_payload=True)
@@ -132,7 +132,7 @@ async def test_business_bank_config_hides_overrides_without_rejecting_reads(
     deployment = contextdb_deployment
     clients = contextdb_clients
     bank = clients.bank_id
-    administrator = Hindsight(
+    administrator = ContextBase(
         base_url=deployment.server.url, api_key=deployment.headers["Authorization"].removeprefix("Bearer ")
     )
     try:
@@ -153,7 +153,7 @@ async def test_business_bank_config_hides_overrides_without_rejecting_reads(
                 json={"name": "All-space config reader", "authorization": {"mode": "all", "permission": "read"}},
             )
             assert issued.status_code == 201, issued.text
-        all_reader = Hindsight(base_url=deployment.server.url, api_key=issued.json()["secret"])
+        all_reader = ContextBase(base_url=deployment.server.url, api_key=issued.json()["secret"])
         try:
             for reader in (clients.read_only, clients.own, all_reader):
                 # The published client must still succeed: this is field filtering,
@@ -186,10 +186,10 @@ async def test_business_bank_config_hides_overrides_without_rejecting_reads(
 async def test_business_keys_cannot_read_hidden_settings_through_prompt_preview(
     contextdb_deployment: ContextDBDeployment, contextdb_clients: MemberClients
 ) -> None:
-    from hindsight_client_api.models.prompt_preview_request import PromptPreviewRequest
+    from contextbase_client_api.models.prompt_preview_request import PromptPreviewRequest
 
     deployment, clients = contextdb_deployment, contextdb_clients
-    admin = Hindsight(
+    admin = ContextBase(
         base_url=deployment.server.url, api_key=deployment.headers["Authorization"].removeprefix("Bearer ")
     )
     try:
@@ -211,7 +211,7 @@ async def test_business_keys_cannot_read_hidden_settings_through_prompt_preview(
                 assert issued.status_code == 201
                 keys.append(issued.json()["secret"])
         for credential in (clients.own_key, clients.read_only_key, *keys):
-            reader = Hindsight(base_url=deployment.server.url, api_key=credential)
+            reader = ContextBase(base_url=deployment.server.url, api_key=credential)
             try:
                 assert await reader.aget_bank_config(clients.bank_id) == {
                     "bank_id": clients.bank_id,

@@ -1,7 +1,7 @@
 """Sync-to-async bridge backed by a single owned event loop per thread.
 
 The integration exposes synchronous APIs (``recall``, ``retain``, ``reflect``,
-``enable()``, ``wrap_openai`` …) that drive the async ``hindsight-client`` under
+``enable()``, ``wrap_openai`` …) that drive the async ``contextbase-client`` under
 the hood. Bridging sync → async needs an event loop, and the historical pattern
 used across this package was::
 
@@ -18,7 +18,7 @@ That pattern has two problems on modern Python:
    ``DeprecationWarning`` on 3.12+ and is slated for removal — it raised in
    early 3.14 betas.
 2. Loops created this way are never closed, so the interpreter warns about
-   "unclosed event loop" at exit, and the ``hindsight-client``'s cached aiohttp
+   "unclosed event loop" at exit, and the ``contextbase-client``'s cached aiohttp
    session is left bound to a loop nobody owns.
 
 A fresh loop per call (``asyncio.run``) is *not* an option: the client caches

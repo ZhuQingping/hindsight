@@ -2,7 +2,7 @@
 
 The administrator stays deployment configuration. Two business keys belonging
 to one user can be independently revoked while an all-workspace key sees newly
-created spaces. Native memory reads use only the published Hindsight SDK/MCP.
+created spaces. Native memory reads use only the published ContextBase SDK/MCP.
 """
 
 from __future__ import annotations
@@ -12,10 +12,10 @@ import secrets
 
 import httpx
 import pytest
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException, UnauthorizedException
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException, UnauthorizedException
 
 from .support.deployment import ContextDBDeployment
 
@@ -39,7 +39,7 @@ async def test_all_workspace_business_key_covers_future_spaces_without_managemen
         )
         assert issued.status_code == 201, issued.text
         key = issued.json()
-        client = Hindsight(base_url=base, api_key=key["secret"])
+        client = ContextBase(base_url=base, api_key=key["secret"])
         try:
             old_spaces = {bank.bank_id for bank in (await client.banks.list_banks(limit=1000)).banks}
             created = await management.post(
@@ -138,8 +138,8 @@ async def test_revoke_one_key_preserves_sibling_and_old_mcp_session_cannot_reuse
         listed = await management.get(f"/users/{user_id}/keys")
         assert listed.status_code == 200, listed.text
         assert "secret" not in listed.json() and all("secret" not in item for item in listed.json()["items"])
-        old = Hindsight(base_url=base, api_key=keys[0]["secret"])
-        replacement = Hindsight(base_url=base, api_key=keys[1]["secret"])
+        old = ContextBase(base_url=base, api_key=keys[0]["secret"])
+        replacement = ContextBase(base_url=base, api_key=keys[1]["secret"])
         try:
             transport = StreamableHttpTransport(
                 base + f"/mcp/{bank}/", headers={"Authorization": "Bearer " + keys[0]["secret"]}

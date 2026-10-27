@@ -1,7 +1,7 @@
 /**
  * Minimal ContextBase client surface used by this integration.
  *
- * It is a structural subset of `@vectorize-io/hindsight-client` so that
+ * It is a structural subset of `contextbase-client` so that
  * consumers can pass a real client instance without this package taking a hard
  * dependency on it. Only `recall` and `retain` are required.
  */
@@ -42,9 +42,9 @@ export interface RetainResponse {
 }
 
 /**
- * ContextBase client interface - matches `@vectorize-io/hindsight-client`.
+ * ContextBase client interface - matches `contextbase-client`.
  */
-export interface HindsightClient {
+export interface ContextBaseClient {
   retain(
     bankId: string,
     content: string,

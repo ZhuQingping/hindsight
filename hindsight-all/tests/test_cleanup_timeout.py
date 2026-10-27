@@ -17,11 +17,14 @@ def test_cleanup_completes_when_lock_held():
     _cleanup should complete (best-effort) even when self._lock is held
     by another thread, e.g. during a long _ensure_started call.
     """
-    with patch.dict("sys.modules", {
-        "hindsight_client": MagicMock(),
-        "hindsight_embed": MagicMock(),
-        "hindsight.api_namespaces": MagicMock(),
-    }):
+    with patch.dict(
+        "sys.modules",
+        {
+            "contextbase_client": MagicMock(),
+            "hindsight_embed": MagicMock(),
+            "hindsight.api_namespaces": MagicMock(),
+        },
+    ):
         from hindsight.embedded import HindsightEmbedded
 
         client = HindsightEmbedded.__new__(HindsightEmbedded)
@@ -45,9 +48,7 @@ def test_cleanup_completes_when_lock_held():
         t.start()
 
         # Cleanup should complete within the timeout (5s) + margin
-        assert cleanup_done.wait(timeout=8.0), (
-            "_cleanup hung instead of timing out on lock acquisition"
-        )
+        assert cleanup_done.wait(timeout=8.0), "_cleanup hung instead of timing out on lock acquisition"
 
         # Release the lock from the simulating thread
         client._lock.release()

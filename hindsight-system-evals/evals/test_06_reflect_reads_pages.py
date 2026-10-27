@@ -19,8 +19,7 @@ from __future__ import annotations
 import logging
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import build_page, evaluate, questions, split_into_waves
 from hindsight_system_evals.pages import SettleFn, facts
 from hindsight_system_evals.report import RECORDED, EvalRecord
@@ -34,7 +33,7 @@ _QUESTIONS = {question.id: question for question in questions()}
 PAGE_BACKED = ("hq-release-prod", "hq-count-billing")
 
 
-async def _page_then_reflect(client: Hindsight, bank_id: str, settled: SettleFn, question_id: str):
+async def _page_then_reflect(client: ContextBase, bank_id: str, settled: SettleFn, question_id: str):
     """Build the page, ask its own question, and check the answer came from it.
 
     Deliberately NOT graded against the corpus gold: whether the page itself got
@@ -93,6 +92,6 @@ async def _page_then_reflect(client: Hindsight, bank_id: str, settled: SettleFn,
 
 @pytest.mark.parametrize("question_id", PAGE_BACKED)
 async def test_reflect_answers_from_the_page_it_was_given(
-    client: Hindsight, bank_id: str, settled: SettleFn, question_id: str
+    client: ContextBase, bank_id: str, settled: SettleFn, question_id: str
 ) -> None:
     await _page_then_reflect(client, bank_id, settled, question_id)

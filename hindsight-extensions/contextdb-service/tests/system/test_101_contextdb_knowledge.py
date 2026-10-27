@@ -12,14 +12,14 @@ import json
 import zipfile
 
 import pytest
-from fastmcp import Client
-from hindsight_client import Hindsight
-from hindsight_client_api.api.audit_api import AuditApi
-from hindsight_client_api.api.llm_traces_api import LLMTracesApi
-from hindsight_client_api.exceptions import ApiException, ForbiddenException
-from hindsight_client_api.models.create_knowledge_page_response import (
+from contextbase_client import ContextBase
+from contextbase_client_api.api.audit_api import AuditApi
+from contextbase_client_api.api.llm_traces_api import LLMTracesApi
+from contextbase_client_api.exceptions import ApiException, ForbiddenException
+from contextbase_client_api.models.create_knowledge_page_response import (
     CreateKnowledgePageResponse,
 )
+from fastmcp import Client
 from hindsight_system_tests import LLMStub, wait_until_settled
 from hindsight_system_tests.payloads import extracted, fact
 
@@ -97,7 +97,7 @@ async def test_reader_sees_memory_but_native_trace_is_disabled_and_admin_owns_ar
         await knowledge.aexport_bank(bank_id=clients.bank_id)
     with pytest.raises(ForbiddenException):
         await knowledge.document_transfer.download_file(f"banks/{clients.bank_id}/known-export.zip")
-    administrator = Hindsight(
+    administrator = ContextBase(
         base_url=contextdb_deployment.server.url,
         api_key=contextdb_deployment.headers["Authorization"].removeprefix("Bearer "),
     )

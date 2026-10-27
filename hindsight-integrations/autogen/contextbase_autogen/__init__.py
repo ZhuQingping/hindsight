@@ -5,10 +5,10 @@ via ContextBase's retain/recall/reflect APIs.
 
 Basic usage::
 
-    from hindsight_client import Hindsight
+    from contextbase_client import ContextBase
     from contextbase_autogen import create_contextbase_tools
 
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     tools = create_contextbase_tools(client=client, bank_id="user-123")
 
     # Use with an AutoGen AssistantAgent
@@ -21,7 +21,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import create_contextbase_tools
 
 __version__ = "0.1.0"
@@ -31,6 +31,6 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseAutoGenConfig",
-    "HindsightError",
+    "ContextBaseError",
     "create_contextbase_tools",
 ]

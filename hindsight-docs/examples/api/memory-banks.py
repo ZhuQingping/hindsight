@@ -3,7 +3,9 @@
 Memory Banks API examples for ContextBase.
 Run: python examples/api/memory-banks.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +13,11 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples
@@ -31,10 +33,10 @@ client.create_bank(bank_id="architect-bank")
 client.update_bank_config(
     "architect-bank",
     reflect_mission="You're a senior software architect - keep track of system designs, "
-            "technology decisions, and architectural patterns. Prefer simplicity over cutting-edge.",
-    disposition_skepticism=4,   # Questions new technologies
-    disposition_literalism=4,   # Focuses on concrete specs
-    disposition_empathy=2,      # Prioritizes technical facts
+    "technology decisions, and architectural patterns. Prefer simplicity over cutting-edge.",
+    disposition_skepticism=4,  # Questions new technologies
+    disposition_literalism=4,  # Focuses on concrete specs
+    disposition_empathy=2,  # Prioritizes technical facts
 )
 # [/docs:bank-with-disposition]
 
@@ -53,7 +55,7 @@ client.create_bank(bank_id="my-bank")
 client.update_bank_config(
     "my-bank",
     reflect_mission="You're a senior software architect - keep track of system designs, "
-            "technology decisions, and architectural patterns.",
+    "technology decisions, and architectural patterns.",
 )
 # [/docs:bank-mission]
 
@@ -63,7 +65,7 @@ client.create_bank(bank_id="support-bank")
 client.update_bank_config(
     "support-bank",
     observations_mission="I am a customer support agent. Track customer preferences, "
-            "recurring issues, and resolution history to provide consistent, personalized support.",
+    "recurring issues, and resolution history to provide consistent, personalized support.",
 )
 # [/docs:bank-support-agent]
 
@@ -118,7 +120,7 @@ async def transfer_examples() -> None:
     # A fresh client: the sync calls above ran on another event loop.
     if not CONTEXTBASE_URL:
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    client = Hindsight(base_url=CONTEXTBASE_URL)
+    client = ContextBase(base_url=CONTEXTBASE_URL)
     for bank_id in TRANSFER_BANKS:
         requests.delete(f"{CONTEXTBASE_URL}/v1/default/banks/{bank_id}")
     # Chunks mode stores text verbatim, so no LLM call is needed.
@@ -134,7 +136,7 @@ async def transfer_examples() -> None:
     await client.acreate_bank(bank_id="transfer-py-other")
 
     # [docs:prompts-preview]
-    from hindsight_client_api.models import PromptPreviewRequest
+    from contextbase_client_api.models import PromptPreviewRequest
 
     preview = await client.banks.preview_prompt("my-bank", PromptPreviewRequest(operation="retain"))
     for message in preview.messages:

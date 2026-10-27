@@ -33,7 +33,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "hindsight-client>=0.4.0",  # provides both hindsight_client and hindsight_client_api
+    "contextbase-client>=1.0.0,<2",  # provides both contextbase_client and contextbase_client_api
     # 1.82.7/1.82.8 supply-chain fix plus GHSA-jjhc-v7c2-5hh6 /
     # GHSA-53mr-6c8q-9789 / GHSA-qrc4-49gv-mv9m / GHSA-wpfp-gwwc-vwq6 /
     # GHSA-4xpc-pv4p-pm3w. Floor 1.95.1: every release from it on ships cp314
@@ -79,3 +79,6 @@ dev = [
     "pytest>=9.0.2",
     "pytest-asyncio>=0.23.0",
 ]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

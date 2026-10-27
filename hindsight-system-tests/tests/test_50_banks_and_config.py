@@ -96,7 +96,7 @@ async def test_a_bank_that_does_not_exist_is_a_404_not_an_empty_answer(client):
     same shape as data loss and sends people looking for the wrong thing.
     """
     from aiohttp import ClientResponseError
-    from hindsight_client_api.exceptions import ApiException, NotFoundException
+    from contextbase_client_api.exceptions import ApiException, NotFoundException
 
     with pytest.raises(NotFoundException):
         await client.banks.get_bank_config("systest-no-such-bank")
@@ -117,7 +117,7 @@ async def test_a_bank_id_over_the_byte_limit_is_refused_before_the_bank_exists(c
     bank behind.
     """
     from aiohttp import ClientResponseError
-    from hindsight_client_api.exceptions import ApiException
+    from contextbase_client_api.exceptions import ApiException
 
     too_long = "systest-" + "中" * 62  # 8 + 186 = 194 bytes
     # acreate_bank surfaces aiohttp's error, aretain the generated SDK's; both carry .status.
@@ -152,7 +152,7 @@ async def test_reflect_default_options_persist_and_are_validated(client, configu
     matter — a typo'd key stored silently would quietly do nothing on every
     reflect afterwards, with nothing to explain why the budget never changed.
     """
-    from hindsight_client_api.exceptions import ApiException
+    from contextbase_client_api.exceptions import ApiException
 
     await client.banks.update_bank_config(
         configured_bank,

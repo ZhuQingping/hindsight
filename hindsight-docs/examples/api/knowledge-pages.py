@@ -3,6 +3,7 @@
 Knowledge Pages API examples for ContextBase.
 Run: python examples/api/knowledge-pages.py
 """
+
 import os
 import time
 
@@ -12,11 +13,11 @@ BANK_ID = "knowledge-pages-demo-bank"
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 client.create_bank(bank_id=BANK_ID, name="Knowledge Pages Demo")
 client.retain(bank_id=BANK_ID, content="The API is deployed to Kubernetes with a rolling update")
@@ -67,8 +68,8 @@ for root in tree.roots:
 # Read a page as a markdown document
 document = client.get_knowledge_page(BANK_ID, page.page_id)
 
-print(document.type)      # "runbook" — from the type:runbook tag
-print(document.body)      # the synthesized markdown body
+print(document.type)  # "runbook" — from the type:runbook tag
+print(document.body)  # the synthesized markdown body
 print(document.markdown)  # YAML frontmatter + body
 # [/docs:get-page]
 

@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "path";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import { HindsightServer } from "@vectorize-io/hindsight-all";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 
 function loadPackageVersion(): string {
   try {
@@ -350,7 +350,7 @@ export async function createBackfillRuntime(
 }
 
 /**
- * Fetch stats for a single bank over HTTP. The high-level `HindsightClient`
+ * Fetch stats for a single bank over HTTP. The high-level `ContextBaseClient`
  * doesn't yet wrap this endpoint, so we go direct — it's one call.
  */
 async function fetchBankStats(
@@ -480,9 +480,9 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   }
 
   const runtime = await createBackfillRuntime(pluginConfig, args.apiUrl, args.apiToken);
-  // Single shared client — hindsight-client takes bankId as a parameter on
+  // Single shared client — contextbase-client takes bankId as a parameter on
   // every call, so there's no reason to cache per-bank clients anymore.
-  const client = new HindsightClient({
+  const client = new ContextBaseClient({
     baseUrl: runtime.apiUrl,
     apiKey: runtime.apiToken,
     userAgent: USER_AGENT,

@@ -8,10 +8,10 @@ import type {
 } from "./types.js";
 import { HindsightServer, type Logger } from "@vectorize-io/hindsight-all";
 import {
-  HindsightClient,
-  type HindsightClientOptions,
+  ContextBaseClient,
+  type ContextBaseClientOptions,
   type MinScores,
-} from "@vectorize-io/hindsight-client";
+} from "contextbase-client";
 import { RetainQueue } from "./retain-queue.js";
 import { createMemoryProviderRuntime } from "./memory-provider.js";
 import { compileSessionPatterns, matchesSessionPattern } from "./session-patterns.js";
@@ -79,8 +79,8 @@ const debug = (...args: unknown[]) => {
 
 // Module-level state
 let contextbaseServer: HindsightServer | null = null;
-let client: HindsightClient | null = null;
-let clientOptions: HindsightClientOptions | null = null;
+let client: ContextBaseClient | null = null;
+let clientOptions: ContextBaseClientOptions | null = null;
 let initPromise: Promise<void> | null = null;
 let isInitialized = false;
 let usingExternalApi = false; // Track if using external API (skip daemon management)
@@ -143,11 +143,11 @@ const banksWithDefaultsApplied = new Set<string>();
 import type { RecallResponse } from "./types.js";
 const inflightRecalls = new Map<string, Promise<RecallResponse>>();
 
-// Lightweight bank-scoped facade over HindsightClient. Created per-request via
+// Lightweight bank-scoped facade over ContextBaseClient. Created per-request via
 // getClientForContext() so hook bodies can keep their bankId-implicit style
 // without going back to a stateful setBankId pattern. Also bridges the
 // small shape differences (e.g. RetainRequest.metadata is Record<string, unknown>
-// at build time; HindsightClient wants Record<string, string>).
+// at build time; ContextBaseClient wants Record<string, string>).
 export interface BankScopedClient {
   readonly bankId: string;
   retain(
@@ -176,7 +176,7 @@ export interface BankMissionsUpdate {
   observationsMission?: string;
 }
 
-export function scopeClient(c: HindsightClient, bankId: string): BankScopedClient {
+export function scopeClient(c: ContextBaseClient, bankId: string): BankScopedClient {
   return {
     bankId,
     async retain(req, capability = asyncRetainOperationIdCapability, signal) {
@@ -408,7 +408,7 @@ function initRetainQueue(
  */
 export async function flushRetainQueue(
   queueOverride?: RetainQueue,
-  clientOverride?: HindsightClient,
+  clientOverride?: ContextBaseClient,
   capabilityOverride?: AsyncRetainOperationIdCapability,
   expectedGeneration = serviceGeneration,
   signal: globalThis.AbortSignal | undefined = serviceAbortController?.signal
@@ -621,7 +621,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
     const llmConfig = detectLLMConfig(config);
     clientOptions = buildClientOptions(llmConfig, config, externalApi);
     banksWithDefaultsApplied.clear();
-    client = new HindsightClient(clientOptions);
+    client = new ContextBaseClient(clientOptions);
 
     if (usesStaticBank(config)) {
       await ensureBankDefaultsApplied(getStaticBankId(config), config);
@@ -753,14 +753,14 @@ export function agentOnlyBankId(agentId: string, pluginConfig: PluginConfig): st
 
 /** The initialized client and its options, initializing lazily like the hooks do. */
 async function readyClient(): Promise<{
-  client: HindsightClient;
-  options: HindsightClientOptions;
+  client: ContextBaseClient;
+  options: ContextBaseClientOptions;
 } | null> {
   await (global as any).__contextbaseClient?.waitForReady();
   return client && clientOptions ? { client, options: clientOptions } : null;
 }
 
-function authHeaders(options: HindsightClientOptions): Record<string, string> {
+function authHeaders(options: ContextBaseClientOptions): Record<string, string> {
   return options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {};
 }
 
@@ -1816,7 +1816,7 @@ function getActiveApiEndpoint(): { apiUrl: string | null; apiToken: string | nul
 }
 
 /**
- * Build HindsightClientOptions for the generated hindsight-client. In
+ * Build ContextBaseClientOptions for the generated contextbase-client. In
  * external-API mode we use the configured URL/token; in local daemon mode
  * the caller overrides with the daemon's base URL after start().
  * The llmConfig parameter is currently only consumed by the daemon manager
@@ -1827,7 +1827,7 @@ export function buildClientOptions(
   _llmConfig: { provider?: string; apiKey?: string; model?: string },
   _pluginCfg: PluginConfig,
   externalApi: { apiUrl: string | null; apiToken: string | null }
-): HindsightClientOptions {
+): ContextBaseClientOptions {
   return {
     baseUrl: externalApi.apiUrl ?? "",
     apiKey: externalApi.apiToken ?? undefined,
@@ -2386,10 +2386,10 @@ export default function (api: MoltbotPluginAPI) {
               await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
               // Initialize client for external API
-              debug("[ContextBase] Creating HindsightClient (external API)...");
+              debug("[ContextBase] Creating ContextBaseClient (external API)...");
               clientOptions = buildClientOptions(llmConfig, pluginConfig, externalApi);
               banksWithDefaultsApplied.clear();
-              client = new HindsightClient(clientOptions);
+              client = new ContextBaseClient(clientOptions);
 
               const defaultBankId = deriveBankId(undefined, pluginConfig);
               debug(`[ContextBase] Default bank: ${defaultBankId}`);
@@ -2439,10 +2439,10 @@ export default function (api: MoltbotPluginAPI) {
               await detectAppendCapability(contextbaseServer.getBaseUrl());
 
               // Initialize client pointed at the local daemon URL
-              debug("[ContextBase] Creating HindsightClient (local daemon)...");
+              debug("[ContextBase] Creating ContextBaseClient (local daemon)...");
               clientOptions = { baseUrl: contextbaseServer.getBaseUrl() };
               banksWithDefaultsApplied.clear();
-              client = new HindsightClient(clientOptions);
+              client = new ContextBaseClient(clientOptions);
 
               const defaultBankId = deriveBankId(undefined, pluginConfig);
               debug(`[ContextBase] Default bank: ${defaultBankId}`);
@@ -2538,7 +2538,7 @@ export default function (api: MoltbotPluginAPI) {
 
             clientOptions = buildClientOptions(llmConfig, reinitPluginConfig, externalApi);
             banksWithDefaultsApplied.clear();
-            client = new HindsightClient(clientOptions);
+            client = new ContextBaseClient(clientOptions);
             const defaultBankId = deriveBankId(undefined, reinitPluginConfig);
 
             if (usesStaticBank(reinitPluginConfig)) {
@@ -2571,7 +2571,7 @@ export default function (api: MoltbotPluginAPI) {
 
             clientOptions = { baseUrl: contextbaseServer.getBaseUrl() };
             banksWithDefaultsApplied.clear();
-            client = new HindsightClient(clientOptions);
+            client = new ContextBaseClient(clientOptions);
             const defaultBankId = deriveBankId(undefined, reinitPluginConfig);
 
             if (usesStaticBank(reinitPluginConfig)) {

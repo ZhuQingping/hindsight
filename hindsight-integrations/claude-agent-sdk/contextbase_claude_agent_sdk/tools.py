@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 from claude_agent_sdk import McpSdkServerConfig, SdkMcpTool, ToolAnnotations, create_sdk_mcp_server, tool
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from ._version import __version__
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: Budget | None = None,
@@ -86,7 +86,7 @@ def create_contextbase_tools(
         List of ``SdkMcpTool`` instances.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client = resolve_client(client, contextbase_api_url, api_key)
 
@@ -236,7 +236,7 @@ def create_contextbase_tools(
 def create_contextbase_server(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: Budget | None = None,

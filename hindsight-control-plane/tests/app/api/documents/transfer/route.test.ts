@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   DATAPLANE_URL: "http://dataplane",
   dataplaneBankUrl: (bank: string, suffix: string) =>
     `http://dataplane/v1/default/banks/${encodeURIComponent(bank)}${suffix}`,

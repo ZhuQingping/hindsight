@@ -4,7 +4,7 @@ Check that the Python and TypeScript high-level client wrappers expose every
 request-body parameter from the OpenAPI spec.
 
 The generated (low-level) clients are auto-generated from the spec and are
-always in sync.  The *wrapper* clients (``hindsight_client.py`` for Python,
+always in sync.  The *wrapper* clients (``contextbase_client.py`` for Python,
 ``src/index.ts`` for TypeScript) are hand-written convenience layers that
 re-export a curated surface.  This script catches fields that are present in
 the OpenAPI spec but missing from the wrapper.
@@ -399,7 +399,7 @@ def main() -> None:
         clients.append(
             {
                 "client_name": "python",
-                "source_path": root / "hindsight-clients" / "python" / "hindsight_client" / "hindsight_client.py",
+                "source_path": root / "hindsight-clients" / "python" / "contextbase_client" / "contextbase_client.py",
                 "manifest_path": root / "hindsight-clients" / "python" / ".openapi-coverage.toml",
                 "find_covered_ops": find_py_covered_ops,
             }

@@ -16,7 +16,7 @@ from __future__ import annotations
 import inspect
 
 import pytest
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 pytestmark = pytest.mark.asyncio
 
@@ -33,7 +33,7 @@ def _convenience_methods() -> list[str]:
     """Public methods on the wrapper that are not already the async half of a pair."""
     names = [
         name
-        for name, _ in inspect.getmembers(Hindsight, callable)
+        for name, _ in inspect.getmembers(ContextBase, callable)
         if not name.startswith("_") and name not in _NOT_API_CALLS
     ]
     async_variants = {name for name in names if name.startswith("a") and name[1:] in names}
@@ -51,6 +51,6 @@ async def test_every_convenience_method_has_an_async_variant():
     27 of them did not, until #4221 — which put mental models, knowledge pages,
     directives and bank config out of reach of every async caller.
     """
-    missing = [name for name in _convenience_methods() if not hasattr(Hindsight, f"a{name}")]
+    missing = [name for name in _convenience_methods() if not hasattr(ContextBase, f"a{name}")]
 
     assert missing == [], f"{len(missing)} convenience methods have no async variant: {missing}"

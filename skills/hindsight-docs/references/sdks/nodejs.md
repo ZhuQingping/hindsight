@@ -9,7 +9,7 @@ Official TypeScript/JavaScript client for the Hindsight API. Supports **Node.js*
 ### Node.js
 
 ```bash
-npm install @vectorize-io/hindsight-client
+npm install contextbase-client
 ```
 
 ### Deno
@@ -22,9 +22,9 @@ No installation needed — import directly via the `npm:` specifier:
 ## Quick Start
 
 ```typescript
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 
-const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
+const client = new ContextBaseClient({ baseUrl: 'http://localhost:8888' });
 
 // Retain a memory
 await client.retain('nodejs-sdk-bank', 'Alice works at Google');
@@ -43,9 +43,9 @@ console.log(answer.text);
 ## Client Initialization
 
 ```typescript
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from 'contextbase-client';
 
-const client = new HindsightClient({
+const client = new ContextBaseClient({
     baseUrl: 'http://localhost:8888',
 });
 ```

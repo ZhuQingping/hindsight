@@ -4,39 +4,39 @@
  */
 
 // [docs:setup]
-import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createContextBaseTools } from 'contextbase-ai-sdk';
+import { ContextBaseClient } from "contextbase-client";
+import { createContextBaseTools } from "contextbase-ai-sdk";
 
-const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
+const client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
 
 const tools = createContextBaseTools({
   client,
-  bankId: 'user-123',
+  bankId: "user-123",
 });
 // [/docs:setup]
 
 // [docs:generate-text]
-import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
 
 const { text } = await generateText({
-  model: openai('gpt-4o'),
+  model: openai("gpt-4o"),
   tools,
   maxSteps: 5,
-  system: 'You are a helpful assistant with long-term memory.',
-  prompt: 'Remember that I prefer dark mode and large fonts.',
+  system: "You are a helpful assistant with long-term memory.",
+  prompt: "Remember that I prefer dark mode and large fonts.",
 });
 // [/docs:generate-text]
 
 // [docs:stream-text]
-import { streamText } from 'ai';
+import { streamText } from "ai";
 
 const result = streamText({
-  model: openai('gpt-4o'),
+  model: openai("gpt-4o"),
   tools,
   maxSteps: 5,
-  system: 'You are a helpful assistant with long-term memory.',
-  prompt: 'What are my display preferences?',
+  system: "You are a helpful assistant with long-term memory.",
+  prompt: "What are my display preferences?",
 });
 
 for await (const chunk of result.textStream) {
@@ -45,33 +45,33 @@ for await (const chunk of result.textStream) {
 // [/docs:stream-text]
 
 // [docs:tool-loop-agent]
-import { generateText, ToolLoopAgent, stepCountIs } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createContextBaseTools } from 'contextbase-ai-sdk';
+import { generateText, ToolLoopAgent, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { ContextBaseClient } from "contextbase-client";
+import { createContextBaseTools } from "contextbase-ai-sdk";
 
-const client = new HindsightClient({ baseUrl: process.env.CONTEXTBASE_API_URL! });
+const client = new ContextBaseClient({ baseUrl: process.env.CONTEXTBASE_API_URL! });
 
 const agent = new ToolLoopAgent({
-  model: openai('gpt-4o'),
-  tools: createContextBaseTools({ client, bankId: 'user-123' }),
+  model: openai("gpt-4o"),
+  tools: createContextBaseTools({ client, bankId: "user-123" }),
   stopWhen: stepCountIs(10),
-  system: 'You are a helpful assistant with long-term memory.',
+  system: "You are a helpful assistant with long-term memory.",
 });
 
 const result = await agent.generate({
-  prompt: 'Remember that my favorite editor is Neovim',
+  prompt: "Remember that my favorite editor is Neovim",
 });
 // [/docs:tool-loop-agent]
 
 // [docs:next-api-route]
 // app/api/chat/route.ts
-import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { HindsightClient } from '@vectorize-io/hindsight-client';
-import { createContextBaseTools } from 'contextbase-ai-sdk';
+import { streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { ContextBaseClient } from "contextbase-client";
+import { createContextBaseTools } from "contextbase-ai-sdk";
 
-const contextbaseClient = new HindsightClient({
+const contextbaseClient = new ContextBaseClient({
   baseUrl: process.env.CONTEXTBASE_API_URL!,
 });
 
@@ -85,10 +85,10 @@ export async function POST(req: Request) {
   });
 
   return streamText({
-    model: openai('gpt-4o'),
+    model: openai("gpt-4o"),
     tools,
     maxSteps: 5,
-    system: 'You are a helpful assistant with long-term memory.',
+    system: "You are a helpful assistant with long-term memory.",
     messages,
   }).toDataStreamResponse();
 }
@@ -100,23 +100,22 @@ const tools = createContextBaseTools({
   bankId: userId,
 
   retain: {
-    async: true,                        // fire-and-forget (default: false)
-    tags: ['env:prod', 'app:support'],  // always attached to every retained memory
-    metadata: { version: '2.0' },       // always attached to every retained memory
+    async: true, // fire-and-forget (default: false)
+    tags: ["env:prod", "app:support"], // always attached to every retained memory
+    metadata: { version: "2.0" }, // always attached to every retained memory
   },
 
   recall: {
-    budget: 'high',                     // processing depth: low | mid | high (default: 'mid')
-    types: ['experience', 'world'],     // restrict to these fact types (default: all)
-    maxTokens: 2048,                    // cap token budget (default: API default)
-    includeEntities: true,              // include entity observations (default: false)
-    includeChunks: true,                // include raw source chunks (default: false)
+    budget: "high", // processing depth: low | mid | high (default: 'mid')
+    types: ["experience", "world"], // restrict to these fact types (default: all)
+    maxTokens: 2048, // cap token budget (default: API default)
+    includeEntities: true, // include entity observations (default: false)
+    includeChunks: true, // include raw source chunks (default: false)
   },
 
   reflect: {
-    budget: 'mid',                      // processing depth (default: 'mid')
+    budget: "mid", // processing depth (default: 'mid')
   },
-
 });
 
 // [/docs:constructor-options]

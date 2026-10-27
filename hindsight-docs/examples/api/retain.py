@@ -3,9 +3,11 @@
 Retain API examples for ContextBase.
 Run: python examples/api/retain.py
 """
+
 import os
-import requests
 from pathlib import Path
+
+import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 EXAMPLES_DIR = Path(__file__).parent
@@ -13,21 +15,18 @@ EXAMPLES_DIR = Path(__file__).parent
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # =============================================================================
 # Doc Examples
 # =============================================================================
 
 # [docs:retain-basic]
-client.retain(
-    bank_id="my-bank",
-    content="Alice works at Google as a software engineer"
-)
+client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
 # [/docs:retain-basic]
 
 
@@ -35,13 +34,15 @@ client.retain(
 # Retain an entire conversation as a single document.
 # Format each message as "Name (timestamp): text" so the LLM can attribute
 # facts to the right person and resolve temporal references across the thread.
-conversation = "\n".join([
-    "Alice (2024-03-15T09:00:00Z): Hi Bob! Did you end up going to the doctor last week?",
-    "Bob (2024-03-15T09:01:00Z): Yes, finally. Turns out I have a mild peanut allergy.",
-    "Alice (2024-03-15T09:02:00Z): Oh no! Are you okay?",
-    "Bob (2024-03-15T09:03:00Z): Yeah, nothing serious. Just need to carry an antihistamine.",
-    "Alice (2024-03-15T09:04:00Z): Good to know. We'll avoid peanuts at the team lunch.",
-])
+conversation = "\n".join(
+    [
+        "Alice (2024-03-15T09:00:00Z): Hi Bob! Did you end up going to the doctor last week?",
+        "Bob (2024-03-15T09:01:00Z): Yes, finally. Turns out I have a mild peanut allergy.",
+        "Alice (2024-03-15T09:02:00Z): Oh no! Are you okay?",
+        "Bob (2024-03-15T09:03:00Z): Yeah, nothing serious. Just need to carry an antihistamine.",
+        "Alice (2024-03-15T09:04:00Z): Good to know. We'll avoid peanuts at the team lunch.",
+    ]
+)
 
 client.retain(
     bank_id="my-bank",
@@ -58,7 +59,7 @@ client.retain(
     bank_id="my-bank",
     content="Alice got promoted to senior engineer",
     context="career update",
-    timestamp="2024-03-15T10:00:00Z"
+    timestamp="2024-03-15T10:00:00Z",
 )
 # [/docs:retain-with-context]
 
@@ -69,8 +70,8 @@ client.retain_batch(
     items=[
         {"content": "Alice works at Google", "context": "career", "document_id": "conversation_001_msg_1"},
         {"content": "Bob is a data scientist at Meta", "context": "career", "document_id": "conversation_001_msg_2"},
-        {"content": "Alice and Bob are friends", "context": "relationship", "document_id": "conversation_001_msg_3"}
-    ]
+        {"content": "Alice and Bob are friends", "context": "relationship", "document_id": "conversation_001_msg_3"},
+    ],
 )
 # [/docs:retain-batch]
 
@@ -83,7 +84,7 @@ result = client.retain_batch(
         {"content": "Large batch item 1", "document_id": "large-doc-1"},
         {"content": "Large batch item 2", "document_id": "large-doc-2"},
     ],
-    retain_async=True
+    retain_async=True,
 )
 
 # Check if it was processed asynchronously
@@ -99,14 +100,14 @@ client.retain_batch(
         {
             "content": "User Alice said she loves the new dashboard",
             "tags": ["user:alice", "feedback"],
-            "document_id": "user_feedback_001"
+            "document_id": "user_feedback_001",
         },
         {
             "content": "User Bob reported a bug in the search feature",
             "tags": ["user:bob", "bug-report"],
-            "document_id": "user_feedback_002"
-        }
-    ]
+            "document_id": "user_feedback_002",
+        },
+    ],
 )
 # [/docs:retain-with-tags]
 
@@ -117,9 +118,9 @@ client.retain_batch(
     bank_id="my-bank",
     items=[
         {"content": "Alice mentioned she prefers dark mode", "document_id": "support_session_123_msg_1"},
-        {"content": "Bob asked about keyboard shortcuts", "document_id": "support_session_123_msg_2"}
+        {"content": "Bob asked about keyboard shortcuts", "document_id": "support_session_123_msg_2"},
     ],
-    document_tags=["session:123", "support"]  # Applied to all items
+    document_tags=["session:123", "support"],  # Applied to all items
 )
 # [/docs:retain-with-document-tags]
 

@@ -163,4 +163,4 @@ You can use both at once — `Runner(memory_service=ContextBaseMemoryService(...
 
 - Python 3.10+
 - `google-adk>=2.0`
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`

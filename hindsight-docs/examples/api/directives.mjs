@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * Directives API examples for Hindsight (Node.js)
+ * Directives API examples for ContextBase (Node.js)
  * Run: node examples/api/directives.mjs
  */
-import { HindsightClient } from '@vectorize-io/hindsight-client';
+import { ContextBaseClient } from "contextbase-client";
 
-const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || 'http://localhost:8888';
-const BANK_ID = 'directives-example-bank';
+const CONTEXTBASE_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
+const BANK_ID = "directives-example-bank";
 
 // =============================================================================
 // Setup (not shown in docs)
 // =============================================================================
-const client = new HindsightClient({ baseUrl: CONTEXTBASE_URL });
-await client.createBank(BANK_ID, { name: 'Test Bank' });
+const client = new ContextBaseClient({ baseUrl: CONTEXTBASE_URL });
+await client.createBank(BANK_ID, { name: "Test Bank" });
 
 // =============================================================================
 // Doc Examples
@@ -21,9 +21,9 @@ await client.createBank(BANK_ID, { name: 'Test Bank' });
 // [docs:create-directive]
 // Create a directive (hard rule for reflect)
 const directive = await client.createDirective(
-    BANK_ID,
-    'Formal Language',
-    'Always respond in formal English, avoiding slang and colloquialisms.'
+  BANK_ID,
+  "Formal Language",
+  "Always respond in formal English, avoiding slang and colloquialisms."
 );
 
 console.log(`Created directive: ${directive.id}`);
@@ -36,14 +36,14 @@ const directiveId = directive.id;
 const directives = await client.listDirectives(BANK_ID);
 
 for (const d of directives.items) {
-    console.log(`- ${d.name}: ${d.content.slice(0, 50)}...`);
+  console.log(`- ${d.name}: ${d.content.slice(0, 50)}...`);
 }
 // [/docs:list-directives]
 
 // [docs:update-directive]
 // Update a directive (e.g., disable without deleting)
 const updated = await client.updateDirective(BANK_ID, directiveId, {
-    isActive: false
+  isActive: false,
 });
 
 console.log(`Directive active: ${updated.is_active}`);
@@ -59,4 +59,4 @@ await client.deleteDirective(BANK_ID, directiveId);
 // =============================================================================
 await client.deleteBank(BANK_ID);
 
-console.log('directives.mjs: All examples passed');
+console.log("directives.mjs: All examples passed");

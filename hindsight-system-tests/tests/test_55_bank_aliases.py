@@ -30,9 +30,8 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from hindsight_client_api.models.create_bank_alias_request import CreateBankAliasRequest
-from hindsight_client_api.models.set_bank_alias_primary_request import SetBankAliasPrimaryRequest
-
+from contextbase_client_api.models.create_bank_alias_request import CreateBankAliasRequest
+from contextbase_client_api.models.set_bank_alias_primary_request import SetBankAliasPrimaryRequest
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio

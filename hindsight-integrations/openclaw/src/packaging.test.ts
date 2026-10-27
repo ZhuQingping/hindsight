@@ -44,7 +44,7 @@ describe("published manifest", () => {
     expect(Object.keys(manifest.dependencies).sort()).toEqual([
       "@clack/prompts",
       "@vectorize-io/hindsight-all",
-      "@vectorize-io/hindsight-client",
+      "contextbase-client",
     ]);
   });
 });

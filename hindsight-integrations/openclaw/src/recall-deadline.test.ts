@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { scopeClient } from "./index.js";
 const memory = {
   results: [{ id: "fixture", text: "A fixture observation", type: "observation" as const }],
@@ -16,7 +16,7 @@ describe("bank-scoped recall cancellation", () => {
       (_bank: string, _query: string, _options?: { signal?: AbortSignal }) =>
         new Promise<never>(() => {})
     );
-    const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+    const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
     const pending = scoped.recall({ query: "question" }, 1000).catch((error: unknown) => error);
     await vi.advanceTimersByTimeAsync(1000);
     // The caller classifies with `error instanceof DOMException && name === "TimeoutError"`
@@ -29,20 +29,20 @@ describe("bank-scoped recall cancellation", () => {
   });
   it("clears the deadline after success", async () => {
     const recall = vi.fn().mockResolvedValue(memory);
-    const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+    const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
     expect(await scoped.recall({ query: "question" }, 1000)).toEqual(memory);
     expect(vi.getTimerCount()).toBe(0);
   });
   it("clears the deadline after failure", async () => {
     const error = new Error("transport failed");
     const recall = vi.fn().mockRejectedValue(error);
-    const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+    const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
     await expect(scoped.recall({ query: "question" }, 1000)).rejects.toBe(error);
     expect(vi.getTimerCount()).toBe(0);
   });
   it("keeps recall without a deadline working", async () => {
     const recall = vi.fn().mockResolvedValue(memory);
-    const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+    const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
     expect(await scoped.recall({ query: "question" })).toEqual(memory);
     expect(recall.mock.calls[0]?.[2]?.signal.aborted).toBe(false);
     expect(vi.getTimerCount()).toBe(0);

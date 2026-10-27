@@ -523,9 +523,9 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-client"
-version = "0.8.1"
-source = { registry = "https://pypi.org/simple" }
+name = "contextbase-client"
+version = "1.0.0"
+source = { editable = "../../hindsight-clients/python" }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiohttp-retry" },
@@ -533,11 +533,23 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "typing-extensions" },
     { name = "urllib3" },
+    { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/4e/f69ed24d930e6fc958eea3ffa86dffce5a0ed81128346235d68e28c1ca89/hindsight_client-0.8.1.tar.gz", hash = "sha256:d5fbd248a0245428dbb92a332c0f88cc432fe1b8477dc2e8a0dff0ff2582ec1c", size = 107822, upload-time = "2026-06-09T12:56:00.584Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/c2/fe0b792445686527d018d1274136c0356dcc6e0d8aef55c9c9337271870b/hindsight_client-0.8.1-py3-none-any.whl", hash = "sha256:6fc08474ebc24377e0630634519780308d19c31819b922bc252cce04519bbd49", size = 269298, upload-time = "2026-06-09T12:55:59.252Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.8.4" },
+    { name = "aiohttp-retry", specifier = ">=2.8.3" },
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
+    { name = "python-dateutil", specifier = ">=2.8.2" },
+    { name = "requests", marker = "extra == 'test'", specifier = ">=2.33.0" },
+    { name = "typing-extensions", specifier = ">=4.7.1" },
+    { name = "urllib3", specifier = ">=2.1.0,<3.0.0" },
+    { name = "yarl", specifier = ">=1.9,<2.0" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "contextbase-composio"
@@ -545,7 +557,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "composio" },
-    { name = "hindsight-client" },
+    { name = "contextbase-client" },
     { name = "pydantic" },
 ]
 
@@ -558,7 +570,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "composio", specifier = ">=0.13.1,<1" },
-    { name = "hindsight-client", specifier = ">=0.4.0" },
+    { name = "contextbase-client", editable = "../../hindsight-clients/python" },
     { name = "pydantic", specifier = ">=2" },
 ]
 

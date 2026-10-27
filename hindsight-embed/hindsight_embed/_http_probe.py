@@ -68,7 +68,7 @@ def probe_get(url: str, *, read_timeout: float, connect_timeout: float | None = 
        calling thread with NO current event loop (``set_event_loop(None)``).
        Event-loop state is per-thread, so doing that on the caller's thread
        quietly sabotages any sync caller that reaches us between its own calls:
-       hindsight-client's ``_run_async`` then sees no current loop, builds a
+       contextbase-client's ``_run_async`` then sees no current loop, builds a
        fresh one, and runs against an ``aiohttp`` session still bound to the old
        one — which fails with "Timeout context manager should be used inside a
        task". That is exactly the shape of the Hermes memory plugin in

@@ -2,17 +2,17 @@ import { controlPlaneEnv } from "@/lib/control-plane-env";
 import "server-only";
 
 /**
- * Shared Hindsight API client instance for the control plane.
+ * Shared ContextBase API client instance for the control plane.
  * Configured to connect to the dataplane API server.
  */
 
 import {
-  HindsightClient,
-  HindsightError,
+  ContextBaseClient,
+  ContextBaseError,
   createClient,
   createConfig,
   sdk,
-} from "@vectorize-io/hindsight-client";
+} from "contextbase-client";
 
 export const DATAPLANE_URL = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";
 const DATAPLANE_API_KEY = controlPlaneEnv("DATAPLANE_API_KEY") || "";
@@ -40,7 +40,7 @@ export function dataplaneBankUrl(bankId: string, suffix = ""): string {
 /**
  * High-level client with convenience methods
  */
-export const hindsightClient = new HindsightClient({
+export const hindsightClient = new ContextBaseClient({
   baseUrl: DATAPLANE_URL,
   apiKey: DATAPLANE_API_KEY || undefined,
 });
@@ -61,6 +61,6 @@ export const lowLevelClient = createClient(
 export { sdk };
 
 /**
- * Export HindsightError for error handling
+ * Export ContextBaseError for error handling
  */
-export { HindsightError };
+export { ContextBaseError };

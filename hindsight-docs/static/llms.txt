@@ -24,7 +24,7 @@ Hindsight is an agent memory system that gives AI agents persistent, structured 
 ## Quick Start
 
 ```bash
-pip install hindsight-client
+pip install contextbase-client
 ```
 
 ```python
@@ -101,8 +101,8 @@ pip install hindsight-all
 
 ### Clients
 ```bash
-pip install hindsight-client          # Python
-npm install @vectorize-io/hindsight-client  # TypeScript
+pip install contextbase-client          # Python
+npm install contextbase-client  # TypeScript
 ```
 
 ## MCP Integration

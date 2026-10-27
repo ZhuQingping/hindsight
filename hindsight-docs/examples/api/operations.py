@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Operations API examples for Hindsight (async tracking).
+Operations API examples for ContextBase (async tracking).
 Run: python examples/api/operations.py
 """
+
 import asyncio
 import os
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
@@ -15,7 +16,7 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 
 async def main() -> None:
@@ -37,9 +38,7 @@ async def main() -> None:
         print(op.id, op.task_type, op.status)
 
     # Filter by status and type.
-    pending_recompute = await client.operations.list_operations(
-        "my-bank", status="pending", type="graph_maintenance"
-    )
+    pending_recompute = await client.operations.list_operations("my-bank", status="pending", type="graph_maintenance")
 
     # Hide retain_batch parent rows (show only individual child retain jobs).
     flat = await client.operations.list_operations("my-bank", exclude_parents=True)
@@ -50,9 +49,7 @@ async def main() -> None:
     print(status.status, status.error_message)
 
     # Include the submission payload (can be large for retain batches).
-    detailed = await client.operations.get_operation_status(
-        "my-bank", seeded_id, include_payload=True
-    )
+    detailed = await client.operations.get_operation_status("my-bank", seeded_id, include_payload=True)
     # [/docs:operations-get]
 
     # [docs:operations-cancel]

@@ -10,10 +10,9 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api import ApiClient, Configuration
-from hindsight_client_api.api.product_api import ProductApi
-
+from contextbase_client import ContextBase
+from contextbase_client_api import ApiClient, Configuration
+from contextbase_client_api.api.product_api import ProductApi
 from hindsight_system_tests.server import HindsightServer, StubServer, start_hindsight_server
 
 
@@ -46,7 +45,7 @@ async def test_brand_and_native_sdk_work_without_hosted_management(
         assert {key.lower(): value for key, value in result.headers.items()}["cache-control"] == "no-store"
         assert result.data.to_dict() == {"product_config_version": 1, "contextdb_name": name}
 
-    client = Hindsight(base_url=named_server.url)
+    client = ContextBase(base_url=named_server.url)
     bank_id = f"systest-brand-{uuid4().hex[:12]}"
     try:
         created = await client.acreate_bank(bank_id)

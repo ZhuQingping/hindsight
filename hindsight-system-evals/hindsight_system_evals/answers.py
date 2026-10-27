@@ -17,8 +17,7 @@ import json
 import os
 from dataclasses import dataclass, field
 
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals.corpus import HardFact, HardQuestion
 from hindsight_system_evals.pages import SettleFn, prepare_bank
 
@@ -57,14 +56,14 @@ class AnswerOutcome:
         return "reasoning (every gold fact reached the model)"
 
 
-async def seed_bank(client: Hindsight, bank_id: str, facts: list[HardFact], settle: SettleFn) -> None:
+async def seed_bank(client: ContextBase, bank_id: str, facts: list[HardFact], settle: SettleFn) -> None:
     """Store the whole corpus as written, with no model calls — see ``prepare_bank``."""
     await prepare_bank(client, bank_id)
     await client.aretain_batch(bank_id=bank_id, items=[{"content": fact.text} for fact in facts])
     await settle(bank_id)
 
 
-async def ask(client: Hindsight, bank_id: str, question: HardQuestion, facts: list[HardFact]) -> AnswerOutcome:
+async def ask(client: ContextBase, bank_id: str, question: HardQuestion, facts: list[HardFact]) -> AnswerOutcome:
     """Reflect once and record which gold facts its tools actually returned."""
     outcome = AnswerOutcome(question_id=question.id, category=question.category, bank_id=bank_id)
     response = await client.areflect(

@@ -11,7 +11,7 @@ The TypeScript wrapper has the matching test in
 
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 IMAGE_BLOCK = {
     "type": "image",
@@ -28,7 +28,7 @@ def _capture_retain(monkeypatch, client, captured):
 
 
 def test_retain_forwards_a_block_list_verbatim(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -47,7 +47,7 @@ def test_retain_forwards_a_block_list_verbatim(monkeypatch):
 
 def test_retain_still_forwards_a_plain_string(monkeypatch):
     """Widening the type must not disturb every existing caller."""
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 
@@ -57,7 +57,7 @@ def test_retain_still_forwards_a_plain_string(monkeypatch):
 
 
 def test_retain_batch_forwards_block_lists(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_retain(monkeypatch, client, captured)
 

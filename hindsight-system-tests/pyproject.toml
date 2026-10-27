@@ -16,7 +16,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn>=0.30.0",
     "pydantic>=2",
-    "hindsight-client",
+    "contextbase-client>=1.0.0,<2",
 ]
 
 [dependency-groups]
@@ -37,7 +37,7 @@ constraint-dependencies = [
 # snapshot of the client taken whenever the venv was last built — an endpoint
 # added or regenerated since then simply is not there. The whole point of driving
 # the published client is that it is the current one.
-hindsight-client = { path = "../hindsight-clients/python", editable = true }
+contextbase-client = { path = "../hindsight-clients/python", editable = true }
 hindsight-api-slim = { path = "../hindsight-api-slim", editable = true }
 
 [tool.hatch.build.targets.wheel]

@@ -1,18 +1,18 @@
 /**
- * Tests for Hindsight TypeScript client.
+ * Tests for ContextBase TypeScript client.
  *
- * These tests require a running Hindsight API server.
+ * These tests require a running ContextBase API server.
  */
 
-import { HindsightClient, HindsightError, sdk } from "../src";
+import { ContextBaseClient, ContextBaseError, sdk } from "../src";
 
 // Test configuration
-const HINDSIGHT_API_URL = process.env.HINDSIGHT_API_URL || "http://localhost:8888";
+const CONTEXTBASE_API_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
 
-let client: HindsightClient;
+let client: ContextBaseClient;
 
 beforeAll(() => {
-  client = new HindsightClient({ baseUrl: HINDSIGHT_API_URL });
+  client = new ContextBaseClient({ baseUrl: CONTEXTBASE_API_URL });
 });
 
 function randomBankId(): string {
@@ -238,8 +238,8 @@ describe("TestBankProfile", () => {
     } catch (err) {
       caught = err;
     }
-    expect(caught).toBeInstanceOf(HindsightError);
-    expect((caught as HindsightError).statusCode).toBe(410);
+    expect(caught).toBeInstanceOf(ContextBaseError);
+    expect((caught as ContextBaseError).statusCode).toBe(410);
 
     const { config } = await client.getBankConfig(bankId);
     expect(config.reflect_mission).toBe("I am a helpful assistant for testing.");
@@ -261,7 +261,7 @@ describe("TestBankStats", () => {
 
   test("get bank stats", async () => {
     const { sdk, createClient, createConfig } = await import("../src");
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
 
     const { data: stats } = await sdk.getAgentStats({
       client: apiClient,
@@ -288,7 +288,7 @@ describe("TestOperations", () => {
       async: true,
     });
 
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
     const { data: response } = await sdk.listOperations({
       client: apiClient,
       path: { bank_id: bankId },
@@ -312,7 +312,7 @@ describe("TestDocuments", () => {
     });
     expect(retainResponse.success).toBe(true);
 
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
     const { data: response } = await sdk.deleteDocument({
       client: apiClient,
       path: { bank_id: bankId, document_id: docId },
@@ -334,7 +334,7 @@ describe("TestDocuments", () => {
       documentId: docId,
     });
 
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
     const { data: document } = await sdk.getDocument({
       client: apiClient,
       path: { bank_id: bankId, document_id: docId },
@@ -360,7 +360,7 @@ describe("TestEntities", () => {
 
   test("list entities", async () => {
     const { sdk, createClient, createConfig } = await import("../src");
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
 
     const { data: response } = await sdk.listEntities({
       client: apiClient,
@@ -374,7 +374,7 @@ describe("TestEntities", () => {
 
   test("get entity", async () => {
     const { sdk, createClient, createConfig } = await import("../src");
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
 
     // First list entities to get an ID
     const { data: listResponse } = await sdk.listEntities({
@@ -408,7 +408,7 @@ describe("TestDeleteBank", () => {
     });
     await client.retain(bankId, "Some memory to store");
 
-    const apiClient = createClient(createConfig({ baseUrl: HINDSIGHT_API_URL }));
+    const apiClient = createClient(createConfig({ baseUrl: CONTEXTBASE_API_URL }));
     const { data: response } = await sdk.deleteBank({
       client: apiClient,
       path: { bank_id: bankId },

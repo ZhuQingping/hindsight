@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { hindsightClient } from "@/lib/hindsight-client";
+import { hindsightClient } from "@/lib/contextbase-client";
 import { readTagFilter } from "@/lib/tag-filter-params";
 
 // Time axes accepted by the dataplane's list_memories endpoint.

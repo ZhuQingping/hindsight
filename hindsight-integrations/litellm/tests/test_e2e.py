@@ -77,9 +77,9 @@ def bank_id():
 
 @pytest.fixture
 def client():
-    from hindsight_client import Hindsight
+    from contextbase_client import ContextBase
 
-    c = Hindsight(base_url=CONTEXTBASE_API_URL)
+    c = ContextBase(base_url=CONTEXTBASE_API_URL)
     try:
         yield c
     finally:
@@ -299,11 +299,11 @@ class TestEnableMonkeypatch:
 
     def test_per_call_bank_id_override(self, bank_id):
         import contextbase_litellm
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
         from contextbase_litellm import configure, enable, retain, set_defaults
 
         other_bank = f"other-{uuid.uuid4().hex[:8]}"
-        client = Hindsight(base_url=CONTEXTBASE_API_URL)
+        client = ContextBase(base_url=CONTEXTBASE_API_URL)
         client.create_bank(other_bank, name="Other bank")
 
         try:
@@ -398,7 +398,7 @@ class TestContextManager:
         assert "typescript" in texts or "javascript" in texts, f"Expected stored fact, got: {texts}"
 
     def test_context_manager_with_session_id(self, bank_id):
-        from contextbase_litellm import get_defaults, contextbase_memory
+        from contextbase_litellm import contextbase_memory, get_defaults
 
         with contextbase_memory(
             contextbase_api_url=CONTEXTBASE_API_URL,
@@ -624,9 +624,9 @@ class TestDesignFixes:
         from contextbase_litellm import (
             cleanup,
             configure,
+            contextbase_memory,
             get_config,
             get_defaults,
-            contextbase_memory,
             set_defaults,
         )
 
@@ -683,11 +683,11 @@ class TestDesignFixes:
         cleanup()
 
     def test_contextbase_error_not_value_error_on_missing_bank_id(self, bank_id):
-        """Missing bank_id raises HindsightError (not ValueError) from _inject_memories."""
-        from contextbase_litellm import HindsightError, _inject_memories, cleanup, configure
+        """Missing bank_id raises ContextBaseError (not ValueError) from _inject_memories."""
+        from contextbase_litellm import ContextBaseError, _inject_memories, cleanup, configure
 
         configure(contextbase_api_url=CONTEXTBASE_API_URL)
 
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             _inject_memories([{"role": "user", "content": "Hello"}])
         cleanup()

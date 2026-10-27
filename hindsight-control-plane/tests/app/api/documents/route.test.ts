@@ -9,7 +9,7 @@ const { listDocuments, getDocument, deleteDocument } = vi.hoisted(() => ({
   deleteDocument: vi.fn<(arg: { path: Record<string, unknown> }) => Promise<unknown>>(),
 }));
 
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   sdk: { listDocuments, getDocument, deleteDocument },
   lowLevelClient: {},
   dataplaneBankUrl: (bankId: string, suffix: string) => `http://dataplane/${bankId}${suffix}`,
@@ -36,7 +36,9 @@ describe("GET /api/documents", () => {
   });
 
   it("forwards the `q` search term to the dataplane (search by document ID)", async () => {
-    await GET(makeRequest("http://localhost/api/documents?bank_id=b1&q=my-doc-id&limit=25&offset=0"));
+    await GET(
+      makeRequest("http://localhost/api/documents?bank_id=b1&q=my-doc-id&limit=25&offset=0")
+    );
 
     expect(listDocuments).toHaveBeenCalledTimes(1);
     expect(listDocuments.mock.calls[0][0].query).toMatchObject({ q: "my-doc-id" });
@@ -50,7 +52,9 @@ describe("GET /api/documents", () => {
 
   it("forwards repeated `tags` params and `tags_match` to the dataplane", async () => {
     await GET(
-      makeRequest("http://localhost/api/documents?bank_id=b1&tags=alpha&tags=beta&tags_match=all_strict")
+      makeRequest(
+        "http://localhost/api/documents?bank_id=b1&tags=alpha&tags=beta&tags_match=all_strict"
+      )
     );
 
     expect(listDocuments.mock.calls[0][0].query).toMatchObject({
@@ -82,9 +86,7 @@ describe("GET /api/documents", () => {
   // so the route never has to reconstruct it from path segments.
   it("fetches a single document when `document_id` is present, slashes intact", async () => {
     await GET(
-      makeRequest(
-        "http://localhost/api/documents?bank_id=b1&document_id=folder%2Fsub%2Fdoc.pdf"
-      )
+      makeRequest("http://localhost/api/documents?bank_id=b1&document_id=folder%2Fsub%2Fdoc.pdf")
     );
 
     expect(listDocuments).not.toHaveBeenCalled();

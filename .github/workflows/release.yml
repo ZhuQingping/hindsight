@@ -9,6 +9,70 @@ permissions:
   contents: read
 
 jobs:
+  sdk-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install SDK build and test dependencies
+        run: python -m pip install build twine pytest-timeout pytest-xdist './hindsight-clients/python[test]'
+      - name: Test Python SDK without a live service
+        run: >-
+          python -m pytest hindsight-clients/python/tests -o addopts='' -q
+          --ignore=hindsight-clients/python/tests/test_main_operations.py
+          --ignore=hindsight-clients/python/tests/test_attachment_download.py
+      - name: Verify SDK paths, wrapper coverage and Python branding
+        run: python scripts/test-sdk-generation.py python
+      - name: Build wheel and source archive and inspect brand names
+        run: python scripts/package-sdks.py python --output artifacts
+      - name: Check Python package metadata
+        run: python -m twine check artifacts/contextbase-python-sdk/*/*whl artifacts/contextbase-python-sdk/*/*tar.gz
+      - name: Verify wheel and source archive installation
+        run: |
+          for directory in artifacts/contextbase-python-sdk/*; do
+            python scripts/test-sdk-installation.py python "$directory"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contextbase-python-sdk-candidate
+          path: artifacts/contextbase-python-sdk/
+          if-no-files-found: error
+
+  sdk-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install Node SDK dependencies from its lockfile
+        working-directory: hindsight-clients/typescript
+        run: npm ci --ignore-scripts --workspaces=false
+      - name: Test Node SDK without a live service
+        working-directory: hindsight-clients/typescript
+        run: npm test -- --runInBand --testPathIgnorePatterns=main_operations.test.ts
+      - name: Verify real Node generation and data preservation
+        run: python scripts/test-sdk-generation.py node
+      - name: Build npm tarball and inspect brand names
+        run: python scripts/package-sdks.py node --output artifacts
+      - name: Verify ESM and CommonJS installation
+        run: |
+          for directory in artifacts/contextbase-node-sdk/*; do
+            python scripts/test-sdk-installation.py node "$directory"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contextbase-node-sdk-candidate
+          path: artifacts/contextbase-node-sdk/
+          if-no-files-found: error
+
   cli:
     strategy:
       matrix:

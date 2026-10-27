@@ -23,9 +23,8 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 
-from hindsight_client import Hindsight
-from hindsight_client_api.models.create_knowledge_page_response import CreateKnowledgePageResponse
-
+from contextbase_client import ContextBase
+from contextbase_client_api.models.create_knowledge_page_response import CreateKnowledgePageResponse
 from hindsight_system_evals import corpus as corpus_module
 from hindsight_system_evals.corpus import HardFact, HardQuestion
 
@@ -87,7 +86,7 @@ def facts() -> list[HardFact]:
     return corpus_module.build().facts
 
 
-async def prepare_bank(client: Hindsight, bank_id: str) -> None:
+async def prepare_bank(client: ContextBase, bank_id: str) -> None:
     """Configure the bank so seeding the corpus costs no model calls.
 
     Measured on the first blackbox run: of 269s wall time per page, 789s of LLM
@@ -112,7 +111,7 @@ async def prepare_bank(client: Hindsight, bank_id: str) -> None:
     )
 
 
-async def create_page(client: Hindsight, bank_id: str, question: HardQuestion) -> CreateKnowledgePageResponse:
+async def create_page(client: ContextBase, bank_id: str, question: HardQuestion) -> CreateKnowledgePageResponse:
     """Create the page for one question, reading raw facts and refreshed explicitly."""
     return await client.knowledge_base.create_knowledge_page(
         bank_id,
@@ -136,7 +135,7 @@ async def create_page(client: Hindsight, bank_id: str, question: HardQuestion) -
 
 
 async def build_page(
-    client: Hindsight,
+    client: ContextBase,
     bank_id: str,
     question: HardQuestion,
     waves: list[list[HardFact]],
@@ -166,7 +165,7 @@ async def build_page(
     return outcome
 
 
-async def read_page(client: Hindsight, bank_id: str, mental_model_id: str) -> str:
+async def read_page(client: ContextBase, bank_id: str, mental_model_id: str) -> str:
     """The page's stored content, read through the public API.
 
     A page is a tree node backed by a mental model; the content lives on the

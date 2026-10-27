@@ -45,9 +45,9 @@ pip install hindsight-langgraph
 ## Step 2: Connect LangGraph to Hindsight
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 ```
 
 For [Hindsight Cloud](https://hindsight.vectorize.io), set the base URL to `https://api.hindsight.vectorize.io` and pass your API token through the client configuration you already use in your app.
@@ -55,11 +55,11 @@ For [Hindsight Cloud](https://hindsight.vectorize.io), set the base URL to `http
 ## Step 3: Wire memory into your runtime
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import create_recall_node, create_retain_node
 from langgraph.graph import StateGraph, MessagesState, START, END
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 recall = create_recall_node(client=client, bank_id_from_config="user_id")
 retain = create_retain_node(client=client, bank_id_from_config="user_id")
 

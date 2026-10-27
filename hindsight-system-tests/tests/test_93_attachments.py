@@ -20,9 +20,8 @@ from __future__ import annotations
 import base64
 
 import pytest
-from hindsight_client_api.exceptions import NotFoundException
-from hindsight_client_api.models.dry_run_extract_request import DryRunExtractRequest
-
+from contextbase_client_api.exceptions import NotFoundException
+from contextbase_client_api.models.dry_run_extract_request import DryRunExtractRequest
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
 pytestmark = pytest.mark.asyncio

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload, missingQueryParam } from "@/lib/i18n/api-errors";
-import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,15 +1,15 @@
 /**
- * Hindsight Client - Clean, TypeScript SDK for the Hindsight API.
+ * ContextBase Client - Clean, TypeScript SDK for the ContextBase API.
  *
  * Example:
  * ```typescript
- * import { HindsightClient } from '@vectorize-io/hindsight-client';
+ * import { ContextBaseClient } from 'contextbase-client';
  *
  * // Without authentication
- * const client = new HindsightClient({ baseUrl: 'http://localhost:8888' });
+ * const client = new ContextBaseClient({ baseUrl: 'http://localhost:8888' });
  *
  * // With API key authentication
- * const client = new HindsightClient({
+ * const client = new ContextBaseClient({
  *   baseUrl: 'http://localhost:8888',
  *   apiKey: 'your-api-key'
  * });
@@ -89,7 +89,7 @@ import type {
 declare const __CLIENT_VERSION__: string | undefined;
 export const CLIENT_VERSION: string =
   typeof __CLIENT_VERSION__ !== "undefined" ? __CLIENT_VERSION__ : "0.0.0-dev";
-export const DEFAULT_USER_AGENT = `hindsight-client-typescript/${CLIENT_VERSION}`;
+export const DEFAULT_USER_AGENT = `contextbase-client-typescript/${CLIENT_VERSION}`;
 
 /** Attempts a retryable call makes in total, including the first. */
 export const DEFAULT_MAX_ATTEMPTS = 3;
@@ -155,7 +155,7 @@ export async function retryOnCapacity<T extends { response?: Response }>(
   return result;
 }
 
-export interface HindsightClientOptions {
+export interface ContextBaseClientOptions {
   baseUrl: string;
   /**
    * Optional API key for authentication (sent as Bearer token in Authorization header)
@@ -164,10 +164,10 @@ export interface HindsightClientOptions {
   /**
    * Product token placed in front of the client's own in the `User-Agent`
    * header. Integrations should set this to identify themselves (e.g.
-   * `"hindsight-ai-sdk/1.2.0"` is sent as
-   * `"hindsight-ai-sdk/1.2.0 hindsight-client-typescript/<version>"`). Browsers
+   * `"contextbase-ai-sdk/1.2.0"` is sent as
+   * `"contextbase-ai-sdk/1.2.0 contextbase-client-typescript/<version>"`). Browsers
    * ignore attempts to set `User-Agent`; this only takes effect in Node.js /
-   * Bun / Deno runtimes. Defaults to `hindsight-client-typescript/<version>`.
+   * Bun / Deno runtimes. Defaults to `contextbase-client-typescript/<version>`.
    */
   userAgent?: string;
   /** Optional headers sent with every request. */
@@ -181,16 +181,16 @@ export interface HindsightClientOptions {
 }
 
 /**
- * Error thrown by the Hindsight client when an API request fails.
+ * Error thrown by the ContextBase client when an API request fails.
  * Includes the HTTP status code and error details from the API.
  */
-export class HindsightError extends Error {
+export class ContextBaseError extends Error {
   public statusCode?: number;
   public details?: unknown;
 
   constructor(message: string, statusCode?: number, details?: unknown) {
     super(message);
-    this.name = "HindsightError";
+    this.name = "ContextBaseError";
     this.statusCode = statusCode;
     this.details = details;
   }
@@ -340,11 +340,11 @@ function knowledgeTagQuery(options?: KnowledgeTagFilterOptions) {
   };
 }
 
-export class HindsightClient {
+export class ContextBaseClient {
   private client: Client;
   private maxAttempts: number;
 
-  constructor(options: HindsightClientOptions) {
+  constructor(options: ContextBaseClientOptions) {
     const headers: Record<string, string> = {
       ...options.headers,
       // Prefix rather than replace, so the server still learns the client version behind an
@@ -366,7 +366,7 @@ export class HindsightClient {
   }
 
   /**
-   * Get API version and feature flags for the connected Hindsight deployment.
+   * Get API version and feature flags for the connected ContextBase deployment.
    */
   async getVersion(options?: { signal?: AbortSignal }): Promise<VersionResponse> {
     const response = await sdk.getVersion({
@@ -394,7 +394,7 @@ export class HindsightClient {
       const statusCode = httpResponse?.status;
       const details = error?.detail || error?.message || error;
 
-      throw new HindsightError(
+      throw new ContextBaseError(
         `${operation} failed: ${JSON.stringify(details)}`,
         statusCode,
         details
@@ -884,7 +884,7 @@ export class HindsightClient {
   /**
    * Get the resolved configuration for a bank, including any bank-level overrides.
    *
-   * Always available: `HINDSIGHT_API_ENABLE_BANK_CONFIG_API=false` disables only the
+   * Always available: `CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=false` disables only the
    * config writes, not this read.
    */
   async getBankConfig(
@@ -903,7 +903,7 @@ export class HindsightClient {
   /**
    * Update configuration overrides for a bank.
    *
-   * Can be disabled on the server by setting `HINDSIGHT_API_ENABLE_BANK_CONFIG_API=false`.
+   * Can be disabled on the server by setting `CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=false`.
    *
    * @param bankId - The memory bank ID
    * @param options - Fields to override
@@ -1122,7 +1122,7 @@ export class HindsightClient {
   /**
    * Reset all bank-level configuration overrides, reverting to server defaults.
    *
-   * Can be disabled on the server by setting `HINDSIGHT_API_ENABLE_BANK_CONFIG_API=false`.
+   * Can be disabled on the server by setting `CONTEXTBASE_API_ENABLE_BANK_CONFIG_API=false`.
    */
   async resetBankConfig(
     bankId: string,
@@ -1777,7 +1777,7 @@ export class HindsightClient {
    * the archive, and resolves with its bytes. For the raw flow use the low-level
    * `sdk.exportDocuments` / `sdk.getOperationStatus` / `sdk.downloadFile`.
    *
-   * @throws {HindsightError} if the export fails, times out, or completes without an archive.
+   * @throws {ContextBaseError} if the export fails, times out, or completes without an archive.
    */
   async exportDocuments(
     bankId: string,
@@ -1821,7 +1821,7 @@ export class HindsightClient {
    * and LLM-request logs. Embeddings never travel — the importing instance
    * regenerates them, which is what makes an archive portable.
    *
-   * @throws {HindsightError} if the export fails, times out, or completes without an archive.
+   * @throws {ContextBaseError} if the export fails, times out, or completes without an archive.
    */
   async exportBank(
     bankId: string,
@@ -1951,7 +1951,7 @@ export class HindsightClient {
     const timeout = options?.timeoutMs ?? 300000;
     const deadline = Date.now() + timeout;
     const timedOut = () =>
-      new HindsightError(`Export operation ${operationId} did not complete within ${timeout}ms`);
+      new ContextBaseError(`Export operation ${operationId} did not complete within ${timeout}ms`);
     let resultMetadata: Record<string, unknown> | null | undefined;
     for (;;) {
       // The deadline bounds the in-flight status request and the sleep too, so
@@ -1983,7 +1983,7 @@ export class HindsightClient {
         break;
       }
       if (status.status === "failed" || status.status === "cancelled") {
-        throw new HindsightError(
+        throw new ContextBaseError(
           `Export operation ${operationId} ${status.status}: ${status.error_message ?? ""}`
         );
       }
@@ -1995,14 +1995,16 @@ export class HindsightClient {
     const downloadUrl = (resultMetadata as { download_url?: string } | null | undefined)
       ?.download_url;
     if (!downloadUrl) {
-      throw new HindsightError(`Export operation ${operationId} completed without a download_url`);
+      throw new ContextBaseError(
+        `Export operation ${operationId} completed without a download_url`
+      );
     }
     if (/^https?:\/\//i.test(downloadUrl)) {
       // Signed object-store URLs need their own request: the API client prefixes
-      // its base URL and forwards Hindsight credentials to every request.
+      // its base URL and forwards ContextBase credentials to every request.
       const response = await fetch(downloadUrl, { signal: options?.signal });
       if (!response.ok) {
-        throw new HindsightError(`downloadFile failed: HTTP ${response.status}`, response.status);
+        throw new ContextBaseError(`downloadFile failed: HTTP ${response.status}`, response.status);
       }
       return new Uint8Array(await response.arrayBuffer());
     }
@@ -2027,7 +2029,7 @@ export class HindsightClient {
  *   and source_chunk (if the result's chunk_id matches a chunk in the response).
  * - Entities: entity summaries from observations, formatted as sections.
  *
- * Mirrors the format used internally by Hindsight's reflect operation.
+ * Mirrors the format used internally by ContextBase's reflect operation.
  */
 export function recallResponseToPromptString(response: RecallResponse): string {
   const chunksMap = response.chunks ?? {};

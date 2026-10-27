@@ -11,11 +11,11 @@ from collections.abc import Awaitable, Callable
 from importlib import metadata
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from pydantic_ai import RunContext, Tool
 
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +27,10 @@ _USER_AGENT = f"contextbase-pydantic-ai/{_VERSION}"
 
 
 def _resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -40,7 +40,7 @@ def _resolve_client(
     key = api_key or (config.api_key if config else None)
 
     if url is None:
-        raise HindsightError(
+        raise ContextBaseError(
             "No ContextBase API URL configured. Pass client= or contextbase_api_url=, or call configure() first."
         )
 
@@ -49,13 +49,13 @@ def _resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     budget: str = "mid",
@@ -91,7 +91,7 @@ def create_contextbase_tools(
         List of Pydantic AI Tool instances.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client = _resolve_client(client, contextbase_api_url, api_key)
 
@@ -121,7 +121,7 @@ def create_contextbase_tools(
                 return "Memory stored successfully."
             except Exception as e:
                 logger.error(f"Retain failed: {e}")
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(Tool(contextbase_retain, takes_ctx=False))
 
@@ -152,7 +152,7 @@ def create_contextbase_tools(
                 return "\n".join(lines)
             except Exception as e:
                 logger.error(f"Recall failed: {e}")
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(Tool(contextbase_recall, takes_ctx=False))
 
@@ -174,7 +174,7 @@ def create_contextbase_tools(
                 return response.text or "No relevant memories found."
             except Exception as e:
                 logger.error(f"Reflect failed: {e}")
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(Tool(contextbase_reflect, takes_ctx=False))
 
@@ -184,7 +184,7 @@ def create_contextbase_tools(
 def memory_instructions(
     *,
     bank_id: str,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     contextbase_api_url: str | None = None,
     api_key: str | None = None,
     query: str = "relevant context about the user",
@@ -219,7 +219,7 @@ def memory_instructions(
         An async function compatible with ``Agent(instructions=[...])``.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
     """
     resolved_client = _resolve_client(client, contextbase_api_url, api_key)
 

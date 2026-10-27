@@ -6,7 +6,7 @@ import os
 from importlib import metadata
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from .config import CONTEXTBASE_API_KEY_ENV, DEFAULT_CONTEXTBASE_API_URL, AiderConfig
 
@@ -17,7 +17,7 @@ except metadata.PackageNotFoundError:
 _USER_AGENT = f"contextbase-aider/{_VERSION}"
 
 
-def resolve_client(config: AiderConfig) -> Hindsight:
+def resolve_client(config: AiderConfig) -> ContextBase:
     """Build a ContextBase client from config, falling back to ``CONTEXTBASE_API_KEY``."""
     url = config.contextbase_api_url or DEFAULT_CONTEXTBASE_API_URL
     key = config.contextbase_api_token or os.environ.get(CONTEXTBASE_API_KEY_ENV)
@@ -26,4 +26,4 @@ def resolve_client(config: AiderConfig) -> Hindsight:
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)

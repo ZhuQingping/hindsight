@@ -13,13 +13,13 @@ Features:
 - Session grouping for conversation threading
 - Direct recall API for manual memory queries
 - Native client wrappers for OpenAI and Anthropic
-- STRICT ERROR HANDLING: Raises HindsightError on any memory operation failure
+- STRICT ERROR HANDLING: Raises ContextBaseError on any memory operation failure
 
 Error Handling:
     Unlike LiteLLM's callback system which silently swallows exceptions, this
     integration uses STRICT error handling. If memory injection fails (when
     inject_memories=True) or storage fails (when store_conversations=True),
-    a HindsightError will be raised and propagate to your code.
+    a ContextBaseError will be raised and propagate to your code.
 
 API Structure:
     1. configure() - All settings in one place
@@ -36,7 +36,7 @@ API Structure:
 
 Basic usage:
     >>> import contextbase_litellm
-    >>> from contextbase_litellm import HindsightError
+    >>> from contextbase_litellm import ContextBaseError
     >>>
     >>> # Configure everything in one call
     >>> contextbase_litellm.configure(
@@ -55,7 +55,7 @@ Basic usage:
     ...         model="gpt-4",
     ...         messages=[{"role": "user", "content": "What did we discuss?"}]
     ...     )
-    ... except HindsightError as e:
+    ... except ContextBaseError as e:
     ...     print(f"Memory operation failed: {e}")
     >>>
     >>> # Override per-call:
@@ -110,7 +110,7 @@ import litellm
 from ._async import ensure_loop, run_sync
 from .callbacks import (
     ContextBaseCallback,
-    HindsightError,
+    ContextBaseError,
     cleanup_callback,
     get_callback,
 )
@@ -258,7 +258,7 @@ def _inject_memories(
         return messages
 
     if not bank_id_override and (not defaults or not defaults.bank_id):
-        raise HindsightError(
+        raise ContextBaseError(
             "No bank_id configured. Either call set_defaults(bank_id=...) "
             "or pass contextbase_bank_id=... to the completion call."
         )
@@ -333,7 +333,7 @@ def _inject_memories(
 
             # If reflect_include_facts is enabled, use the API directly to include facts
             if defaults.reflect_include_facts:
-                from hindsight_client_api.models import (
+                from contextbase_client_api.models import (
                     reflect_include_options,
                     reflect_request,
                 )
@@ -506,7 +506,7 @@ def _inject_memories(
     except ImportError as e:
         if config and config.verbose:
             logging.getLogger("contextbase_litellm").warning(
-                f"hindsight_client not installed: {e}. Install with: pip install hindsight-client"
+                f"contextbase_client not installed: {e}. Install with: pip install contextbase-client"
             )
             _last_injection_debug = InjectionDebugInfo(
                 mode="reflect" if (defaults and defaults.use_reflect) else "recall",
@@ -515,7 +515,7 @@ def _inject_memories(
                 memory_context="",
                 results_count=0,
                 injected=False,
-                error=f"hindsight_client not installed: {e}",
+                error=f"contextbase_client not installed: {e}",
             )
         return messages
     except Exception as e:
@@ -558,9 +558,9 @@ def _wrapped_completion(*args, **kwargs):
     """Wrapper for litellm.completion that handles memory injection and storage.
 
     This wrapper:
-    1. Injects memories before the LLM call (raises HindsightError on failure)
+    1. Injects memories before the LLM call (raises ContextBaseError on failure)
     2. Calls the original litellm.completion
-    3. Stores the conversation after success (raises HindsightError on failure)
+    3. Stores the conversation after success (raises ContextBaseError on failure)
     """
     config = get_config()
 
@@ -581,7 +581,7 @@ def _wrapped_completion(*args, **kwargs):
     if _is_model_excluded(model, config):
         return _original_completion(*args, **kwargs)
 
-    # Step 1: Inject memories (raises HindsightError on failure)
+    # Step 1: Inject memories (raises ContextBaseError on failure)
     if config and config.inject_memories and messages:
         try:
             injected_messages = _inject_memories(
@@ -592,12 +592,12 @@ def _wrapped_completion(*args, **kwargs):
             )
             kwargs["messages"] = injected_messages
         except Exception as e:
-            raise HindsightError(f"Failed to inject memories: {e}") from e
+            raise ContextBaseError(f"Failed to inject memories: {e}") from e
 
     # Step 2: Call original LLM
     response = _original_completion(*args, **kwargs)
 
-    # Step 3: Store conversation (raises HindsightError on failure)
+    # Step 3: Store conversation (raises ContextBaseError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
@@ -614,9 +614,9 @@ async def _wrapped_acompletion(*args, **kwargs):
     """Wrapper for litellm.acompletion that handles memory injection and storage.
 
     This wrapper:
-    1. Injects memories before the LLM call (raises HindsightError on failure)
+    1. Injects memories before the LLM call (raises ContextBaseError on failure)
     2. Calls the original litellm.acompletion
-    3. Stores the conversation after success (raises HindsightError on failure)
+    3. Stores the conversation after success (raises ContextBaseError on failure)
     """
     config = get_config()
 
@@ -637,7 +637,7 @@ async def _wrapped_acompletion(*args, **kwargs):
     if _is_model_excluded(model, config):
         return await _original_acompletion(*args, **kwargs)
 
-    # Step 1: Inject memories (raises HindsightError on failure)
+    # Step 1: Inject memories (raises ContextBaseError on failure)
     if config and config.inject_memories and messages:
         try:
             injected_messages = _inject_memories(
@@ -648,12 +648,12 @@ async def _wrapped_acompletion(*args, **kwargs):
             )
             kwargs["messages"] = injected_messages
         except Exception as e:
-            raise HindsightError(f"Failed to inject memories: {e}") from e
+            raise ContextBaseError(f"Failed to inject memories: {e}") from e
 
     # Step 2: Call original LLM
     response = await _original_acompletion(*args, **kwargs)
 
-    # Step 3: Store conversation (raises HindsightError on failure)
+    # Step 3: Store conversation (raises ContextBaseError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
@@ -674,7 +674,7 @@ def enable() -> None:
     2. Store conversations to ContextBase after successful LLM calls
 
     STRICT ERROR HANDLING: Unlike LiteLLM's callback system which swallows
-    exceptions, this integration raises HindsightError on any failure. If
+    exceptions, this integration raises ContextBaseError on any failure. If
     memory injection fails (when inject_memories=True) or storage fails
     (when store_conversations=True), the error will propagate to your code.
 
@@ -686,7 +686,7 @@ def enable() -> None:
     Must be called after configure() and set_defaults(bank_id=...).
 
     Example:
-        >>> from contextbase_litellm import configure, set_defaults, enable, HindsightError
+        >>> from contextbase_litellm import configure, set_defaults, enable, ContextBaseError
         >>> import litellm
         >>>
         >>> configure()
@@ -699,7 +699,7 @@ def enable() -> None:
         ...         model="gpt-4",
         ...         messages=[{"role": "user", "content": "Hello!"}]
         ...     )
-        ... except HindsightError as e:
+        ... except ContextBaseError as e:
         ...     print(f"Memory operation failed: {e}")
 
     Raises:
@@ -1046,11 +1046,11 @@ def _get_existing_document_content(bank_id: str, document_id: str, verbose: bool
         return None
 
     try:
-        import hindsight_client_api
-        from hindsight_client_api.api import documents_api
+        import contextbase_client_api
+        from contextbase_client_api.api import documents_api
 
-        api_config = hindsight_client_api.Configuration(host=config.contextbase_api_url, access_token=config.api_key)
-        api_client = hindsight_client_api.ApiClient(api_config)
+        api_config = contextbase_client_api.Configuration(host=config.contextbase_api_url, access_token=config.api_key)
+        api_client = contextbase_client_api.ApiClient(api_config)
         api_client.user_agent = USER_AGENT
         if config.api_key:
             api_client.set_default_header("Authorization", f"Bearer {config.api_key}")
@@ -1115,7 +1115,7 @@ def _store_conversation_sync(
         _storage_logger.error(f"Failed to store conversation: {e}")
         # Store error to raise on next completion call
         with _storage_error_lock:
-            _pending_storage_errors.append(HindsightError(f"Background storage failed: {e}"))
+            _pending_storage_errors.append(ContextBaseError(f"Background storage failed: {e}"))
 
 
 def get_pending_storage_errors() -> List[Exception]:
@@ -1125,7 +1125,7 @@ def get_pending_storage_errors() -> List[Exception]:
     Clears the error queue after returning.
 
     Returns:
-        List of HindsightError exceptions from failed background storage operations
+        List of ContextBaseError exceptions from failed background storage operations
     """
     global _pending_storage_errors
     with _storage_error_lock:
@@ -1173,7 +1173,7 @@ def _store_conversation_from_text(conversation_text: str, model: str, bank_id_ov
             if config.verbose:
                 _storage_logger.info(f"Stored streamed conversation to bank: {effective_bank_id}")
         except Exception as e:
-            raise HindsightError(f"Failed to store conversation: {e}") from e
+            raise ContextBaseError(f"Failed to store conversation: {e}") from e
         return
 
     thread = threading.Thread(
@@ -1245,7 +1245,7 @@ def _store_conversation(
             if config.verbose:
                 _storage_logger.info(f"Stored conversation to bank: {effective_bank_id}")
         except Exception as e:
-            raise HindsightError(f"Failed to store conversation: {e}") from e
+            raise ContextBaseError(f"Failed to store conversation: {e}") from e
         return
 
     # Async mode (default): run in background thread
@@ -1268,7 +1268,7 @@ def completion(*args, **kwargs):
     """Call LiteLLM completion with ContextBase memory integration.
 
     This wrapper handles memory injection and storage explicitly, ensuring
-    that any ContextBase failures raise HindsightError instead of failing silently.
+    that any ContextBase failures raise ContextBaseError instead of failing silently.
 
     Args:
         *args: Positional arguments passed to litellm.completion()
@@ -1280,7 +1280,7 @@ def completion(*args, **kwargs):
         LiteLLM ModelResponse object
 
     Raises:
-        HindsightError: If memory injection or storage fails
+        ContextBaseError: If memory injection or storage fails
 
     Example:
         >>> import contextbase_litellm
@@ -1328,7 +1328,7 @@ def completion(*args, **kwargs):
     if model is None and len(args) > 0:
         model = args[0]
 
-    # Step 1: Inject memories (raises HindsightError on failure)
+    # Step 1: Inject memories (raises ContextBaseError on failure)
     if config and config.inject_memories and messages:
         try:
             injected_messages = _inject_memories(
@@ -1339,12 +1339,12 @@ def completion(*args, **kwargs):
             )
             kwargs["messages"] = injected_messages
         except Exception as e:
-            raise HindsightError(f"Failed to inject memories: {e}") from e
+            raise ContextBaseError(f"Failed to inject memories: {e}") from e
 
     # Step 2: Call LLM
     response = litellm.completion(*args, **kwargs)
 
-    # Step 3: Store conversation (raises HindsightError on failure)
+    # Step 3: Store conversation (raises ContextBaseError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
@@ -1361,7 +1361,7 @@ async def acompletion(*args, **kwargs):
     """Call LiteLLM async completion with ContextBase memory integration.
 
     This wrapper handles memory injection and storage explicitly, ensuring
-    that any ContextBase failures raise HindsightError instead of failing silently.
+    that any ContextBase failures raise ContextBaseError instead of failing silently.
 
     Args:
         *args: Positional arguments passed to litellm.acompletion()
@@ -1373,7 +1373,7 @@ async def acompletion(*args, **kwargs):
         LiteLLM ModelResponse object
 
     Raises:
-        HindsightError: If memory injection or storage fails
+        ContextBaseError: If memory injection or storage fails
 
     Example:
         >>> import contextbase_litellm
@@ -1410,7 +1410,7 @@ async def acompletion(*args, **kwargs):
     if model is None and len(args) > 0:
         model = args[0]
 
-    # Step 1: Inject memories (raises HindsightError on failure)
+    # Step 1: Inject memories (raises ContextBaseError on failure)
     if config and config.inject_memories and messages:
         try:
             injected_messages = _inject_memories(
@@ -1421,12 +1421,12 @@ async def acompletion(*args, **kwargs):
             )
             kwargs["messages"] = injected_messages
         except Exception as e:
-            raise HindsightError(f"Failed to inject memories: {e}") from e
+            raise ContextBaseError(f"Failed to inject memories: {e}") from e
 
     # Step 2: Call LLM
     response = await litellm.acompletion(*args, **kwargs)
 
-    # Step 3: Store conversation (raises HindsightError on failure)
+    # Step 3: Store conversation (raises ContextBaseError on failure)
     if config and config.store_conversations:
         final_messages = kwargs.get("messages", messages)
         if final_messages:
@@ -1599,5 +1599,5 @@ __all__ = [
     "get_callback",
     "cleanup_callback",
     # Exceptions
-    "HindsightError",
+    "ContextBaseError",
 ]

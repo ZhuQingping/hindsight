@@ -5,7 +5,7 @@ const { recallMemories } = vi.hoisted(() => ({
   recallMemories: vi.fn(),
 }));
 
-vi.mock("@/lib/hindsight-client", () => ({
+vi.mock("@/lib/contextbase-client", () => ({
   sdk: { recallMemories },
   lowLevelClient: {},
 }));

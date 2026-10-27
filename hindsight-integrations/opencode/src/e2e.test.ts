@@ -17,7 +17,7 @@ import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { randomBytes } from "node:crypto";
 
 import { ContextBasePlugin } from "./index.js";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 
 const LIVE = process.env.CONTEXTBASE_LIVE_E2E === "1";
 const URL = process.env.CONTEXTBASE_API_URL || "http://127.0.0.1:8888";
@@ -45,7 +45,7 @@ describeLive("live: OpenCode plugin against ContextBase", () => {
   // retain/recall/deleteBank calls need the same token the plugin reads from
   // CONTEXTBASE_API_TOKEN — otherwise they 401 even when the plugin path is fine.
   const TOKEN = process.env.CONTEXTBASE_API_TOKEN;
-  const client = new HindsightClient(TOKEN ? { baseUrl: URL, apiKey: TOKEN } : { baseUrl: URL });
+  const client = new ContextBaseClient(TOKEN ? { baseUrl: URL, apiKey: TOKEN } : { baseUrl: URL });
 
   afterAll(async () => {
     try {

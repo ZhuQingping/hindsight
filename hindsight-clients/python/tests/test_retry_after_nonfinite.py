@@ -4,9 +4,8 @@ import asyncio
 import random
 
 import pytest
-
-from hindsight_client.hindsight_client import _retry_after_seconds, _retry_on_capacity
-from hindsight_client_api.exceptions import ApiException
+from contextbase_client.contextbase_client import _retry_after_seconds, _retry_on_capacity
+from contextbase_client_api.exceptions import ApiException
 
 
 @pytest.mark.parametrize("header", ["Infinity", "inf", "1e309", "NaN"])

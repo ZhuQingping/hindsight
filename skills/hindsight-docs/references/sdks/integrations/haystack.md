@@ -17,13 +17,13 @@ pip install hindsight-haystack
 ## Quick Start
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_haystack import create_hindsight_tools
 from haystack.components.agents import Agent
 from haystack.components.generators.chat import OpenAIChatGenerator
 from haystack.dataclasses import ChatMessage
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 tools = create_hindsight_tools(
     client=client,
@@ -106,7 +106,7 @@ The API URL defaults to Hindsight Cloud (`https://api.hindsight.vectorize.io`), 
 
 - Python 3.10+
 - `haystack-ai >= 2.12.0`
-- `hindsight-client >= 0.4.0`
+- `contextbase-client >= 0.4.0`
 
 ## Prerequisites
 

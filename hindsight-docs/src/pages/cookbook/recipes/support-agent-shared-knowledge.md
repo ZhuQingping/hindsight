@@ -47,7 +47,7 @@ A naive approach would index product docs into each user's memory bank, but this
 
 
 ```python
-!pip install hindsight-client nest_asyncio openai python-dotenv -U
+!pip install contextbase-client nest_asyncio openai python-dotenv -U
 ```
 
 ## 1. Set Up Memory Banks
@@ -74,9 +74,9 @@ load_dotenv()
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 CONTEXTBASE_UI_URL = os.getenv("CONTEXTBASE_UI_URL", "http://localhost:9999")
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url=CONTEXTBASE_API_URL)
+client = ContextBase(base_url=CONTEXTBASE_API_URL)
 llm = OpenAIClient()  # Uses OPENAI_API_KEY from .env
 
 # Shared knowledge bank (created once)

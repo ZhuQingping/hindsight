@@ -35,7 +35,7 @@ import logging
 from importlib import metadata
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from .config import get_config
 from .errors import ContextBaseVapiError
@@ -52,10 +52,10 @@ _MEMORY_MARKER = "<contextbase_memories>"
 
 
 def _resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -74,7 +74,7 @@ def _resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 class ContextBaseVapiWebhook:
@@ -107,7 +107,7 @@ class ContextBaseVapiWebhook:
         self,
         bank_id: str,
         *,
-        client: Hindsight | None = None,
+        client: ContextBase | None = None,
         contextbase_api_url: str | None = None,
         api_key: str | None = None,
         recall_budget: str = "mid",
@@ -120,7 +120,9 @@ class ContextBaseVapiWebhook:
         self._client = _resolve_client(client, contextbase_api_url, api_key)
         config = get_config()
         self._recall_budget = recall_budget or (config.recall_budget if config else "mid")
-        self._recall_max_tokens = recall_max_tokens or (config.recall_max_tokens if config else 4096)
+        self._recall_max_tokens = recall_max_tokens or (
+            config.recall_max_tokens if config else 4096
+        )
         self._enable_recall = enable_recall
         self._enable_retain = enable_retain
         self._memory_prefix = memory_prefix

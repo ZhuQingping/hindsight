@@ -1,6 +1,6 @@
 """Recall through the TypeSafe reranker, which ranks the pool and can cut it.
 
-Every other reranker Hindsight speaks to scores one (query, document) pair at a
+Every other reranker ContextBase speaks to scores one (query, document) pair at a
 time and hands back a number per pair. TypeSafe does neither: it ranks the whole
 pool by making the candidates the options of a single question, and — with
 `prune_candidates` on — asks a second question for where relevance ends, so recall
@@ -24,8 +24,7 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from hindsight_client_api.exceptions import ApiException
-
+from contextbase_client_api.exceptions import ApiException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 

@@ -452,7 +452,7 @@ The operation is the whole request. Everything that shapes the prompt is read fr
 ### Python
 
 ```python
-from hindsight_client_api.models import PromptPreviewRequest
+from contextbase_client_api.models import PromptPreviewRequest
 
 preview = await client.banks.preview_prompt("my-bank", PromptPreviewRequest(operation="retain"))
 for message in preview.messages:

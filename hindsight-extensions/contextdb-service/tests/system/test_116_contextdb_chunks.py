@@ -6,8 +6,8 @@ import secrets
 
 import httpx
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
+from contextbase_client import ContextBase
+from contextbase_client_api.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.waiting import wait_until_settled
 
@@ -49,11 +49,11 @@ async def test_native_chunks_read_back_with_member_read_only_and_admin_keys(
     assert recalled.chunks[expected.chunk_id].text == text
     assert expected.chunk_text == text
     assert "~5F" in expected.chunk_id and "~7E" in expected.chunk_id
-    admin = Hindsight(
+    admin = ContextBase(
         base_url=contextdb_deployment.server.url,
         api_key=contextdb_deployment.headers["Authorization"].removeprefix("Bearer "),
     )
-    invalid = Hindsight(base_url=contextdb_deployment.server.url, api_key="invalid-test-key")
+    invalid = ContextBase(base_url=contextdb_deployment.server.url, api_key="invalid-test-key")
     try:
         async with httpx.AsyncClient(base_url=contextdb_deployment.server.url) as anonymous:
             assert (await anonymous.get("/v1/default/chunks/" + expected.chunk_id)).status_code == 401
@@ -89,7 +89,7 @@ async def test_native_chunks_read_back_with_member_read_only_and_admin_keys(
             )
             assert response.status_code == 201
             issued = response.json()
-            revoked = Hindsight(base_url=contextdb_deployment.server.url, api_key=issued["secret"])
+            revoked = ContextBase(base_url=contextdb_deployment.server.url, api_key=issued["secret"])
             try:
                 assert (await revoked.documents.get_chunk(expected.chunk_id)).chunk_text == text
                 response = await management.delete(f"/users/{user_id}/keys/{issued['key_id']}")

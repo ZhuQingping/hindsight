@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-dependencies = ["hindsight-client>=0.4.0"]
+dependencies = ["contextbase-client>=1.0.0,<2"]
 
 [project.scripts]
 contextbase-aider = "contextbase_aider.cli:main"
@@ -45,3 +45,6 @@ markers = [
 
 [dependency-groups]
 dev = ["pytest>=9.0.2", "ruff>=0.8.0"]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

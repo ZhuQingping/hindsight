@@ -73,7 +73,7 @@ async def test_client_provisioning_failure_closes_already_created_clients(monkey
     )
     client = Mock(aclose=AsyncMock())
     monkeypatch.setattr(module.httpx, "AsyncClient", Mock(return_value=session))
-    monkeypatch.setattr(module, "Hindsight", Mock(return_value=client))
+    monkeypatch.setattr(module, "ContextBase", Mock(return_value=client))
     deployment = ContextDBDeployment(Mock(url="http://unused.invalid"), {})
     with pytest.raises(RuntimeError, match="second client"):
         async with module.clients_owner(deployment):

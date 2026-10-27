@@ -5,7 +5,7 @@
  * `limit`/`offset` here would strand SDK callers on the server's first page.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -13,10 +13,10 @@ jest.mock("../generated/sdk.gen");
 const mockedList = sdk.listDirectives as jest.MockedFunction<typeof sdk.listDirectives>;
 
 describe("directive query mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedList.mockReset();
     mockedList.mockResolvedValue({ data: { items: [], total: 0 } } as any);
   });

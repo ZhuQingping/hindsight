@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Compatibility gate: hermes-agent @ main + the Hindsight stack in THIS checkout.
+# Compatibility gate: hermes-agent @ main + the ContextBase stack in THIS checkout.
 #
 # Why this exists (see #3251):
 #
 # Hermes exact-pins every direct dependency (`==X.Y.Z`) as a deliberate
-# supply-chain policy — they will not loosen a pin to accommodate us. Hindsight
+# supply-chain policy — they will not loosen a pin to accommodate us. ContextBase
 # is installed *into Hermes' own venv* by `hermes memory setup` in
 # `local_embedded` mode (the wizard installs `hindsight-all`), so any version
 # range we declare that excludes one of their pins makes the pair impossible to
@@ -19,11 +19,11 @@
 # while it is still cheap to fix, instead of in a released Hermes.
 #
 # What it verifies, in order of increasing depth:
-#   1. Resolution   — Hermes @ main and this checkout's Hindsight co-resolve.
+#   1. Resolution   — Hermes @ main and this checkout's ContextBase co-resolve.
 #   2. pip check    — the resulting environment is internally consistent.
 #   3. Plugin       — this checkout's provider installs as an EXTERNAL plugin and
 #                     is the one Hermes loads.
-#   4. Wiring       — `hermes memory status` sees Hindsight in local_embedded mode.
+#   4. Wiring       — `hermes memory status` sees ContextBase in local_embedded mode.
 #   5. Runtime      — the modules Hermes imports for embedded memory import cleanly.
 #   6. Embedded     — the daemon actually boots under Hermes' pinned dependency
 #                     set and serves bank operations.
@@ -49,7 +49,7 @@
 #
 # Step 6 boots a real embedded daemon (pg0 + local embedding models), which is
 # the only way to prove the co-installed dependency set can actually *run*
-# Hindsight rather than merely import it. The daemon refuses to construct a
+# ContextBase rather than merely import it. The daemon refuses to construct a
 # MemoryEngine without an LLM key, so it boots on a placeholder one — nothing
 # calls the LLM during startup or bank operations.
 #
@@ -121,7 +121,7 @@ trap cleanup EXIT
 
 # Hermes state goes in a throwaway dir via its documented override.
 #
-# Hindsight state is isolated by *profile* rather than by redirecting HOME: the
+# ContextBase state is isolated by *profile* rather than by redirecting HOME: the
 # embedded daemon keys both its profile env (~/.hindsight/profiles/<profile>.env)
 # and its pg0 data directory (~/.pg0/instances/hindsight-embed-<profile>) on the
 # profile name, so a dedicated "hermes-ci" profile cannot collide with a
@@ -135,9 +135,9 @@ mkdir -p "$HERMES_HOME"
 VENV="$WORKDIR/venv"
 VENV_PY="$VENV/bin/python"
 
-echo "=== Hermes ↔ Hindsight compatibility test ==="
+echo "=== Hermes ↔ ContextBase compatibility test ==="
 echo "  Hermes ref:   $HERMES_REF"
-echo "  Hindsight:    $REPO_ROOT (working tree)"
+echo "  ContextBase:    $REPO_ROOT (working tree)"
 echo "  Work dir:     $WORKDIR"
 echo ""
 
@@ -145,10 +145,10 @@ echo ""
 # 1. Resolution — the #3251 gate
 # ---------------------------------------------------------------------------
 # Everything goes into ONE resolution on purpose. Installing Hermes first and
-# Hindsight second would let the second install silently downgrade a Hermes pin
+# ContextBase second would let the second install silently downgrade a Hermes pin
 # and report success; resolved together, an unsatisfiable pin is a hard error.
 #
-# The Hindsight distributions are built into wheels from this checkout and
+# The ContextBase distributions are built into wheels from this checkout and
 # installed from those, so the gate tests the branch under review.
 #
 # Wheels, NOT `file://` directory requirements: uv installs a workspace member
@@ -167,7 +167,7 @@ echo ""
 # the path their own docs point developers at. It also puts the repo's
 # `plugins/` tree on sys.path, which is how `plugins.memory` — the registry that
 # discovers our external plugin in step 3 — becomes importable at all.
-echo "--- [1/7] Resolving hermes-agent@$HERMES_REF + local Hindsight stack ---"
+echo "--- [1/7] Resolving hermes-agent@$HERMES_REF + local ContextBase stack ---"
 HERMES_SRC="$WORKDIR/hermes-agent"
 # Use the runner token when available to avoid the low unauthenticated limit on
 # shared CI runner IPs. Environment-based Git config is ephemeral: it is not
@@ -234,7 +234,7 @@ uv pip check --python "$VENV_PY"
 "$VENV_PY" - <<'PYVER'
 from importlib.metadata import version, PackageNotFoundError
 
-for name in ("hermes-agent", "hindsight-api-slim", "hindsight-embed", "hindsight-client",
+for name in ("hermes-agent", "hindsight-api-slim", "hindsight-embed", "contextbase-client",
              "cryptography", "pillow", "protobuf", "opentelemetry-sdk", "pydantic", "openai"):
     try:
         print(f"    {name:22} {version(name)}")
@@ -254,7 +254,7 @@ echo ""
 # prove which one loaded. `hermes plugins install` wants a git remote; a direct
 # copy into the plugins dir is the same end state and keeps CI off the network.
 PLUGIN_SRC="$REPO_ROOT/hindsight-integrations/hermes"
-echo "--- [3/7] Installing the Hindsight provider as an external plugin ---"
+echo "--- [3/7] Installing the ContextBase provider as an external plugin ---"
 if [ -d "$HERMES_SRC/plugins/memory/hindsight" ]; then
     rm -rf "$HERMES_SRC/plugins/memory/hindsight"
     echo "    removed Hermes' bundled copy (ours must be the one under test)"
@@ -294,15 +294,15 @@ echo ""
 # ---------------------------------------------------------------------------
 # `hermes memory setup` is a curses wizard and cannot be driven headlessly, so
 # we write the same two artifacts it writes: the provider selection in
-# config.yaml and the Hindsight provider config under $HERMES_HOME. Keep this in
+# config.yaml and the ContextBase provider config under $HERMES_HOME. Keep this in
 # sync with the plugin's own post_setup if the config shape changes.
 #
 # memory_enabled/user_profile_enabled are the flags our docs tell users to set
-# so Hindsight is the only memory path (they silence the built-in MEMORY.md and
+# so ContextBase is the only memory path (they silence the built-in MEMORY.md and
 # USER.md stores). They are set here so the status assertion below covers the
 # configuration we actually document: turning the flat-file stores off must not
-# take the Hindsight provider down with it.
-echo "--- [4/7] Configuring Hermes for local_embedded Hindsight ---"
+# take the ContextBase provider down with it.
+echo "--- [4/7] Configuring Hermes for local_embedded ContextBase ---"
 mkdir -p "$HERMES_HOME/hindsight"
 cat > "$HERMES_HOME/config.yaml" <<EOF
 memory:
@@ -322,13 +322,13 @@ cat > "$HERMES_HOME/hindsight/config.json" <<EOF
 }
 EOF
 
-# Hermes' own CLI must agree that Hindsight is the active provider and that its
+# Hermes' own CLI must agree that ContextBase is the active provider and that its
 # plugin loaded — this catches plugin/config-shape drift that a pure import
 # check would sail straight past.
 #
 # Match the specific "Provider:" and "Status:" lines, not a bare "hindsight":
 # the command also prints every *installed* plugin, so a loose grep would pass
-# even with Hindsight inactive. Note this command reports the provider, not the
+# even with ContextBase inactive. Note this command reports the provider, not the
 # mode (it renders `memory.<provider>` from config.yaml, while the mode lives in
 # the plugin's own config.json) — step 6 is what proves local_embedded is live,
 # because only that mode starts a daemon.
@@ -343,10 +343,10 @@ echo "$STATUS_OUT" | grep -qE "^ *Provider: +hindsight *$" || {
     exit 1
 }
 echo "$STATUS_OUT" | grep -qE "^ *Status: +available" || {
-    echo "ERROR: Hermes reports the Hindsight plugin as unavailable" >&2
+    echo "ERROR: Hermes reports the ContextBase plugin as unavailable" >&2
     exit 1
 }
-echo "✓ Hermes reports Hindsight as the active, available memory provider"
+echo "✓ Hermes reports ContextBase as the active, available memory provider"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -369,7 +369,7 @@ for mod in ("hindsight", "hindsight_embed.daemon_embed_manager", "sentence_trans
 from hindsight import HindsightEmbedded  # noqa: F401
 print("    ✓ from hindsight import HindsightEmbedded")
 
-# Guard the gate's premise: every Hindsight distribution here must still be the
+# Guard the gate's premise: every ContextBase distribution here must still be the
 # wheel step 1 built from this checkout. The plugin self-installs `hindsight-all`
 # from PyPI when local_embedded has no runtime (embedded.py::_ensure_local_runtime),
 # which is right for a user and fatal here — it would swap the branch under review
@@ -377,13 +377,13 @@ print("    ✓ from hindsight import HindsightEmbedded")
 # uv records a `file://` direct_url.json for a wheel install; PyPI records none.
 from importlib.metadata import distribution
 
-for name in ("hindsight-api-slim", "hindsight-client", "hindsight-embed", "hindsight-all"):
+for name in ("hindsight-api-slim", "contextbase-client", "hindsight-embed", "hindsight-all"):
     direct_url = distribution(name).read_text("direct_url.json") or ""
     assert '"file://' in direct_url, (
         f"{name} was not installed from a locally built wheel (direct_url.json: {direct_url!r}). "
         "Something replaced it with a published release, so this run would not be testing this checkout."
     )
-print("    ✓ all four Hindsight distributions are the locally built wheels")
+print("    ✓ all four ContextBase distributions are the locally built wheels")
 PYPROBE
 echo "✓ Embedded runtime imports cleanly under Hermes' pinned dependencies"
 echo ""
@@ -418,8 +418,8 @@ api_cmd = DaemonEmbedManager()._find_api_command("0.0.0")
 venv_root = str(Path(sys.prefix).resolve())
 assert str(Path(api_cmd[0]).resolve()).startswith(venv_root), (
     f"daemon would launch via {api_cmd!r}, outside the test venv ({venv_root}). "
-    "That runs Hindsight from the monorepo, not from Hermes' environment, so this "
-    "step would prove nothing. Install Hindsight from built wheels, not directories."
+    "That runs ContextBase from the monorepo, not from Hermes' environment, so this "
+    "step would prove nothing. Install ContextBase from built wheels, not directories."
 )
 print(f"    ✓ daemon binary resolves inside the test venv ({Path(api_cmd[0]).name})")
 
@@ -430,7 +430,7 @@ model = os.environ.get("HERMES_COMPAT_LLM_MODEL", "gpt-4o-mini")
 
 # MemoryEngine refuses to construct without an LLM key, so the daemon cannot
 # boot at all without one. Booting is what proves the co-installed dependency
-# set can run Hindsight, and that is worth having on credential-less runs, so
+# set can run ContextBase, and that is worth having on credential-less runs, so
 # feed a placeholder: nothing calls the LLM during startup or bank operations.
 # The retain/recall round-trip below stays gated on a real key.
 boot_key = api_key or "hermes-compat-ci-placeholder-not-a-real-key"
@@ -486,7 +486,7 @@ PYEMBED
 # ---------------------------------------------------------------------------
 # 7. Provider — the plugin's own surface, driven the way Hermes drives it
 # ---------------------------------------------------------------------------
-# Steps 4-6 prove Hindsight *runs* inside Hermes' environment; none of them
+# Steps 4-6 prove ContextBase *runs* inside Hermes' environment; none of them
 # execute a line of the plugin. This one does: it loads the provider through
 # Hermes' registry and calls the MemoryProvider contract agent_init uses —
 # is_available, initialize, sync_turn (auto-retain), prefetch (auto-recall),
@@ -584,4 +584,4 @@ else
 fi
 
 echo ""
-echo "=== PASS: hermes-agent@$HERMES_REF is compatible with this Hindsight ==="
+echo "=== PASS: hermes-agent@$HERMES_REF is compatible with this ContextBase ==="

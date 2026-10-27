@@ -69,3 +69,25 @@ CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL=https://downloads.example.com/contextba
 此工作流只生成候选产物，不会自动发布到 npm 或对象存储。仍需完成上面的真实服务验收和下载地址发布。
 
 实现入口：[打包脚本](../../scripts/package-client-plugins.py)、[构建工作流](../../.github/workflows/release.yml)。
+
+## Python 与 Node.js SDK
+
+同一工作流中的 `sdk-python` 和 `sdk-node` 分别生成以下独立 artifact：
+
+| Artifact                           | 文件                                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| `contextbase-python-sdk-candidate` | `1.0.0/contextbase_client-1.0.0-py3-none-any.whl`、源码包 `.tar.gz`、`SHA256SUMS` |
+| `contextbase-node-sdk-candidate`   | `1.0.0/contextbase-client-1.0.0.tgz`、`SHA256SUMS`                                |
+
+版本取自各 SDK 的 manifest。Python 导入名为 `contextbase_client`，低层接口为 `contextbase_client_api`；Node.js 包名为 `contextbase-client`，支持 ESM、CommonJS 和 TypeScript 类型声明。
+
+本地构建入口：
+
+```bash
+python -m pip install build
+python scripts/package-sdks.py python --output artifacts
+(cd hindsight-clients/typescript && npm ci --ignore-scripts --workspaces=false)
+python scripts/package-sdks.py node --output artifacts
+```
+
+出包任务扫描归档内的文件名和内容，检查旧 SDK 名称，并在独立临时目录安装 wheel、源码包和 tgz，验证自定义 Endpoint、Bearer 鉴权、User-Agent 及服务响应/错误原文。这里使用本地 HTTP 测试服务，不替代真实云服务验收。安装与调用示例见 [Python SDK](../../hindsight-clients/python/README.md) 和 [Node.js SDK](../../hindsight-clients/typescript/README.md)。

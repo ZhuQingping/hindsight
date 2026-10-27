@@ -18,8 +18,7 @@ import urllib.request
 import uuid
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from contextbase_llamaindex import ContextBaseMemory, create_contextbase_tools
 
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -60,7 +59,7 @@ def _recall_until_nonempty(recall_tool, query, attempts=12, delay=1.0):
 
 @pytest.fixture
 def live():
-    client = Hindsight(base_url=CONTEXTBASE_API_URL)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL)
     bank_id = f"llamaindex-e2e-{uuid.uuid4().hex[:8]}"
     client.create_bank(bank_id, name=f"LlamaIndex E2E {bank_id}")
     try:

@@ -45,9 +45,9 @@ pip install hindsight-llamaindex
 ## Step 2: Connect LlamaIndex to Hindsight
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 ```
 
 For [Hindsight Cloud](https://hindsight.vectorize.io), use the cloud API URL and authenticate the client the same way you do in other Python integrations.
@@ -56,13 +56,13 @@ For [Hindsight Cloud](https://hindsight.vectorize.io), use the cloud API URL and
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_llamaindex import HindsightMemory
 from llama_index.core.agent import ReActAgent
 from llama_index.llms.openai import OpenAI
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     memory = HindsightMemory.from_client(
         client=client,
         bank_id="user-123",

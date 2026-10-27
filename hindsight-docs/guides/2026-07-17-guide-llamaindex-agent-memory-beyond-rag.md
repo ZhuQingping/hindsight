@@ -55,13 +55,13 @@ The `hindsight-llamaindex` package exposes two complementary patterns. You can u
 
 ```python
 import asyncio
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_llamaindex import HindsightMemory
 from llama_index.core.agent import ReActAgent
 from llama_index.llms.openai import OpenAI
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     memory = HindsightMemory.from_client(
         client=client,
@@ -79,12 +79,12 @@ asyncio.run(main())
 **Agent-driven tools (`HindsightToolSpec`)** expose retain, recall, and reflect as tools the agent can choose to call. This fits when you want the model to decide *when* memory is worth writing or searching, rather than doing it on every turn:
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_llamaindex import HindsightToolSpec
 from llama_index.core.agent import ReActAgent
 from llama_index.llms.openai import OpenAI
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 spec = HindsightToolSpec(
     client=client,
@@ -100,7 +100,7 @@ You can narrow which tools are exposed with `spec.to_tool_list(spec_functions=["
 
 ## Connect LlamaIndex to Hindsight
 
-Installation and first-run wiring are covered in the [LlamaIndex setup guide](https://hindsight.vectorize.io/guides/2026/05/04/guide-llamaindex-memory-with-hindsight). In short: `pip install hindsight-llamaindex`, point a `Hindsight` client at Hindsight Cloud or a local API, and pass a stable `bank_id`. Once that is in place, come back here for how memory sits alongside your RAG index.
+Installation and first-run wiring are covered in the [LlamaIndex setup guide](https://hindsight.vectorize.io/guides/2026/05/04/guide-llamaindex-memory-with-hindsight). In short: `pip install hindsight-llamaindex`, point a `ContextBase` client at Hindsight Cloud or a local API, and pass a stable `bank_id`. Once that is in place, come back here for how memory sits alongside your RAG index.
 
 ## Using RAG and memory together
 
@@ -166,7 +166,7 @@ The bank `mission` guides fact extraction. For a domain-specific agent, a descri
 
 ### Do I need Hindsight Cloud?
 
-No. A self-hosted Hindsight server works the same way — point the `Hindsight` client at your local API URL (e.g. `http://localhost:8888`). Cloud is just a hosted backend.
+No. A self-hosted Hindsight server works the same way — point the `ContextBase` client at your local API URL (e.g. `http://localhost:8888`). Cloud is just a hosted backend.
 
 ### Does adding memory replace my RAG pipeline?
 

@@ -10,5 +10,9 @@
   "webhook_signature_header": "X-ContextBase-Signature",
   "webhook_signature_v2_header": "X-ContextBase-Signature-V2",
   "reranker_bank_header": "X-ContextBase-Bank-Id",
-  "mcp_registration": "contextbase"
+  "mcp_registration": "contextbase",
+  "python_sdk": "contextbase-client",
+  "python_import": "contextbase_client",
+  "python_api_import": "contextbase_client_api",
+  "node_sdk": "contextbase-client"
 }

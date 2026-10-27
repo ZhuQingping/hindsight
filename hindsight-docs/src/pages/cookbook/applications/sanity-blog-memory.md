@@ -148,7 +148,7 @@ npm run query
 Find related content using natural language:
 
 ```typescript
-import { recallMemory } from './hindsight-client.js';
+import { recallMemory } from './contextbase-client.js';
 
 // Find posts about AI agents
 const result = await recallMemory('AI agents and automation', {
@@ -175,7 +175,7 @@ const result = await recallMemory('What did I write about in January 2025?', {
 Generate AI-powered analysis of your content:
 
 ```typescript
-import { reflectOnMemory } from './hindsight-client.js';
+import { reflectOnMemory } from './contextbase-client.js';
 
 // Analyze blog themes
 const insights = await reflectOnMemory(

@@ -24,8 +24,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import evaluate
 from hindsight_system_evals.pages import SettleFn
 from hindsight_system_evals.report import RECORDED, EvalRecord
@@ -112,7 +111,7 @@ class LanguageOutcome:
     wrong_language: list[str] = field(default_factory=list)
 
 
-async def _run(client: Hindsight, bank_id: str, settled: SettleFn, case_id: str) -> LanguageOutcome:
+async def _run(client: ContextBase, bank_id: str, settled: SettleFn, case_id: str) -> LanguageOutcome:
     case = _CASES[case_id]
     await client.aupdate_bank_config(bank_id, enable_observations=False, enable_auto_consolidation=False)
     await client.aretain_batch(
@@ -187,12 +186,12 @@ def _assert_sound(outcome: LanguageOutcome) -> None:
 
 @pytest.mark.parametrize("case_id", MINIMUM_ACCEPTANCE)
 async def test_retain_language_minimum_acceptance(
-    client: Hindsight, bank_id: str, settled: SettleFn, case_id: str
+    client: ContextBase, bank_id: str, settled: SettleFn, case_id: str
 ) -> None:
     _assert_sound(await _run(client, bank_id, settled, case_id))
 
 
 @pytest.mark.full
 @pytest.mark.parametrize("case_id", [c for c in _CASES if c not in MINIMUM_ACCEPTANCE])
-async def test_retain_language_full(client: Hindsight, bank_id: str, settled: SettleFn, case_id: str) -> None:
+async def test_retain_language_full(client: ContextBase, bank_id: str, settled: SettleFn, case_id: str) -> None:
     _assert_sound(await _run(client, bank_id, settled, case_id))

@@ -7,11 +7,11 @@ bank default, with nothing in the response to say the argument was ignored.
 
 from unittest.mock import AsyncMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _make_client():
-    return Hindsight(base_url="http://localhost:8888")
+    return ContextBase(base_url="http://localhost:8888")
 
 
 def _captured_request(mock):

@@ -9,7 +9,7 @@ and expects back either a single context item or a list of them, each shaped::
     {"name": str, "description": str, "content": str}
 
 :func:`build_context_items` performs that translation by recalling from
-Hindsight. It is transport-agnostic (no HTTP types) so it can be unit-tested
+ContextBase. It is transport-agnostic (no HTTP types) so it can be unit-tested
 directly against Continue's exact request contract.
 """
 
@@ -19,11 +19,11 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import ContextBaseContinueConfig, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def _resolve_bank_id(payload: dict[str, Any], config: ContextBaseContinueConfig)
 def build_context_items(
     payload: dict[str, Any],
     *,
-    client: Hindsight | None = None,
+    client: ContextBase | None = None,
     config: ContextBaseContinueConfig | None = None,
 ) -> list[ContextItem]:
     """Recall memory for a Continue HTTP context request.
@@ -83,7 +83,7 @@ def build_context_items(
         memories match.
 
     Raises:
-        HindsightError: If no bank id is configured or the recall call fails.
+        ContextBaseError: If no bank id is configured or the recall call fails.
     """
     config = config or get_config()
     search = _resolve_query(payload)
@@ -92,7 +92,7 @@ def build_context_items(
 
     bank_id = _resolve_bank_id(payload, config)
     if not bank_id:
-        raise HindsightError(
+        raise ContextBaseError(
             "No ContextBase bank id configured. Set CONTEXTBASE_CONTINUE_BANK_ID, "
             "call configure(bank_id=...), or pass options.bankId in the request."
         )
@@ -113,20 +113,20 @@ def build_context_items(
 
     try:
         response = resolved_client.recall(**recall_kwargs)
-    except HindsightError:
+    except ContextBaseError:
         raise
     except Exception as e:
-        # hindsight_client raises an ApiException carrying the HTTP ``status`` on
+        # contextbase_client raises an ApiException carrying the HTTP ``status`` on
         # auth/connection failures; surface it so a 401/403 (bad token) is
         # distinguishable from a benign "no results" in the adapter logs.
         status = getattr(e, "status", None)
         if status is not None:
             logger.error("Recall failed for bank %s (HTTP %s): %s", bank_id, status, e)
-            raise HindsightError(
+            raise ContextBaseError(
                 f"Recall failed (HTTP {status}) — check CONTEXTBASE_API_KEY / CONTEXTBASE_API_URL"
             ) from e
         logger.error("Recall failed for bank %s: %s", bank_id, e)
-        raise HindsightError(f"Recall failed: {e}") from e
+        raise ContextBaseError(f"Recall failed: {e}") from e
 
     results = getattr(response, "results", None) or []
     if not results:

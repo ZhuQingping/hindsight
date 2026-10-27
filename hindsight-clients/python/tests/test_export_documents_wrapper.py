@@ -12,8 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 OPERATION_ID = "123e4567-e89b-12d3-a456-426614174000"
 STORAGE_KEY = f"banks/my-bank/exports/{OPERATION_ID}/transfer.zip"
@@ -22,7 +21,7 @@ ARCHIVE_BYTES = b"PK\x03\x04 fake zip bytes"
 
 
 def _make_client():
-    return Hindsight(base_url="http://localhost:8888")
+    return ContextBase(base_url="http://localhost:8888")
 
 
 def _status(status, result_metadata=None, error_message=None):
@@ -42,9 +41,7 @@ def _mock_download(client):
 
 async def test_export_documents_submits_polls_and_downloads():
     client = _make_client()
-    client._document_transfer_api.export_documents = AsyncMock(
-        return_value=MagicMock(operation_id=OPERATION_ID)
-    )
+    client._document_transfer_api.export_documents = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
     # First poll still processing, second poll completed with the archive location.
     client._operations_api.get_operation_status = AsyncMock(
         side_effect=[
@@ -80,7 +77,7 @@ async def test_export_downloads_signed_url_without_api_credentials(export_method
     await server.start_server()
     try:
         download_url = str(server.make_url("/archive")) + "?X-Amz-Signature=abc%2Fdef+ghi"
-        client = Hindsight(base_url="http://localhost:8888", api_key="secret")
+        client = ContextBase(base_url="http://localhost:8888", api_key="secret")
         client._operations_api.get_operation_status = AsyncMock(
             return_value=_status("completed", result_metadata={"download_url": download_url})
         )
@@ -106,9 +103,7 @@ async def test_export_downloads_signed_url_without_api_credentials(export_method
 
 async def test_export_documents_forwards_subset_and_observations():
     client = _make_client()
-    client._document_transfer_api.export_documents = AsyncMock(
-        return_value=MagicMock(operation_id=OPERATION_ID)
-    )
+    client._document_transfer_api.export_documents = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
     client._operations_api.get_operation_status = AsyncMock(
         return_value=_status("completed", result_metadata={"download_url": DOWNLOAD_URL})
     )
@@ -122,12 +117,8 @@ async def test_export_documents_forwards_subset_and_observations():
 
 async def test_export_documents_raises_on_failed_operation():
     client = _make_client()
-    client._document_transfer_api.export_documents = AsyncMock(
-        return_value=MagicMock(operation_id=OPERATION_ID)
-    )
-    client._operations_api.get_operation_status = AsyncMock(
-        return_value=_status("failed", error_message="boom")
-    )
+    client._document_transfer_api.export_documents = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
+    client._operations_api.get_operation_status = AsyncMock(return_value=_status("failed", error_message="boom"))
 
     with pytest.raises(RuntimeError, match="boom"):
         await client.aexport_documents("my-bank", poll_interval=0)
@@ -135,9 +126,7 @@ async def test_export_documents_raises_on_failed_operation():
 
 async def test_export_documents_times_out():
     client = _make_client()
-    client._document_transfer_api.export_documents = AsyncMock(
-        return_value=MagicMock(operation_id=OPERATION_ID)
-    )
+    client._document_transfer_api.export_documents = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
     client._operations_api.get_operation_status = AsyncMock(return_value=_status("processing"))
 
     with pytest.raises(TimeoutError):
@@ -146,12 +135,8 @@ async def test_export_documents_times_out():
 
 async def test_export_documents_raises_without_download_url():
     client = _make_client()
-    client._document_transfer_api.export_documents = AsyncMock(
-        return_value=MagicMock(operation_id=OPERATION_ID)
-    )
-    client._operations_api.get_operation_status = AsyncMock(
-        return_value=_status("completed", result_metadata={})
-    )
+    client._document_transfer_api.export_documents = AsyncMock(return_value=MagicMock(operation_id=OPERATION_ID))
+    client._operations_api.get_operation_status = AsyncMock(return_value=_status("completed", result_metadata={}))
 
     with pytest.raises(RuntimeError, match="download_url"):
         await client.aexport_documents("my-bank", poll_interval=0)

@@ -35,8 +35,7 @@ import uuid
 from pathlib import Path
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import provider_environment
 from hindsight_system_evals.pages import SettleFn
 from hindsight_system_evals.refresh_cost import (
@@ -58,7 +57,7 @@ log = logging.getLogger(__name__)
 MINIMUM_PAGES = ("Known bugs and fixes",)
 
 
-async def _import_fixture(client: Hindsight, host_bank: str, settled: SettleFn) -> str:
+async def _import_fixture(client: ContextBase, host_bank: str, settled: SettleFn) -> str:
     """Restore the frozen bank into a fresh one and wait for the re-embedding."""
     if not FIXTURE.exists():
         pytest.fail(f"missing {FIXTURE} — build it with `uv run python -m hindsight_system_evals.refresh_cost build`")
@@ -77,12 +76,12 @@ async def _import_fixture(client: Hindsight, host_bank: str, settled: SettleFn) 
     return target
 
 
-async def _page_ids(client: Hindsight, bank: str) -> dict[str, str]:
+async def _page_ids(client: ContextBase, bank: str) -> dict[str, str]:
     models = await client.alist_mental_models(bank_id=bank, detail="metadata")
     return {m.name: m.id for m in models.items}
 
 
-async def _measure(client: Hindsight, bank: str, settled: SettleFn, pages: tuple[str, ...]) -> list[RefreshCost]:
+async def _measure(client: ContextBase, bank: str, settled: SettleFn, pages: tuple[str, ...]) -> list[RefreshCost]:
     ids = await _page_ids(client, bank)
     missing = [p for p in pages if p not in ids]
     assert not missing, f"the fixture has no page named {missing}; it has {sorted(ids)}"
@@ -147,7 +146,7 @@ def _assert_measured(results: list[RefreshCost]) -> None:
         assert r.calls, f"{r.page} ({r.mode}): no LLM calls traced — is HINDSIGHT_API_LLM_TRACE_ENABLED off?"
 
 
-async def test_refresh_cost_minimum(request: pytest.FixtureRequest, client: Hindsight, settled: SettleFn) -> None:
+async def test_refresh_cost_minimum(request: pytest.FixtureRequest, client: ContextBase, settled: SettleFn) -> None:
     bank = await _import_fixture(client, f"syseval-{uuid.uuid4().hex[:10]}", settled)
     results = await _measure(client, bank, settled, MINIMUM_PAGES)
     _report(request, results)
@@ -155,7 +154,7 @@ async def test_refresh_cost_minimum(request: pytest.FixtureRequest, client: Hind
 
 
 @pytest.mark.full
-async def test_refresh_cost_full(request: pytest.FixtureRequest, client: Hindsight, settled: SettleFn) -> None:
+async def test_refresh_cost_full(request: pytest.FixtureRequest, client: ContextBase, settled: SettleFn) -> None:
     bank = await _import_fixture(client, f"syseval-{uuid.uuid4().hex[:10]}", settled)
     results = await _measure(client, bank, settled, tuple(PAGES))
     _report(request, results)

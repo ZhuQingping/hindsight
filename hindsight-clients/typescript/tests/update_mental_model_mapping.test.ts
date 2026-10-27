@@ -12,7 +12,7 @@
  * the generated model's own defaults did ride along on every request.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -32,10 +32,10 @@ function sentTriggerKeys(): string[] {
 }
 
 describe("updateMentalModel trigger mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedUpdate.mockReset();
     mockedUpdate.mockResolvedValue({
       data: { id: "mm-1", bank_id: "bank", name: "Model", tags: [] },

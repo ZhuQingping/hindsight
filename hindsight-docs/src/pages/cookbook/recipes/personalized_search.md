@@ -45,7 +45,7 @@ docker run --rm -it -p 8888:8888 -p 9999:9999 \
 
 ```python
 # Tavily is optional - demo works with simulated results if not installed
-!pip install -q hindsight-client openai tavily-python nest-asyncio
+!pip install -q contextbase-client openai tavily-python nest-asyncio
 ```
 
 ## 2. Configure API Keys
@@ -78,10 +78,10 @@ import nest_asyncio
 nest_asyncio.apply()
 
 from openai import OpenAI
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 # Initialize ContextBase client (connects to local Docker instance)
-contextbase = Hindsight(
+contextbase = ContextBase(
     base_url=os.getenv("CONTEXTBASE_BASE_URL", "http://localhost:8888"),
 )
 

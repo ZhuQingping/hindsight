@@ -168,7 +168,7 @@ All factory functions accept `client`, `contextbase_api_url`, and `api_key` to o
 
 - Python 3.10+
 - `langchain-core >= 0.3.0`
-- `hindsight-client >= 0.4.0`
+- `contextbase-client >= 0.4.0`
 - `langgraph >= 0.3.0` *(only for nodes pattern — install with `pip install contextbase-langgraph[langgraph]`)*
 
 ## Documentation

@@ -194,7 +194,7 @@ async def preflight(
                 )
             if backend not in {"native", "pgroonga", "pg_search", "pg_textsearch", "vchord"}:
                 checks.append(
-                    Check(name="text_search", status="fail", detail="Unsupported Hindsight full-text backend")
+                    Check(name="text_search", status="fail", detail="Unsupported ContextBase full-text backend")
                 )
             elif language != "english" and backend not in {"pgroonga", "pg_search"}:
                 checks.append(

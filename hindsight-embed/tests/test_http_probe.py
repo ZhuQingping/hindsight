@@ -8,7 +8,6 @@ import asyncio
 import time
 
 import pytest
-
 from hindsight_embed._http_probe import ProbeResponse, aprobe_get, probe_get
 from hindsight_embed.control_center import lifecycle
 from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
@@ -71,7 +70,7 @@ class TestProbe:
         """``asyncio.run`` clears the calling thread's current loop; a probe must not.
 
         A sync caller that keeps a long-lived aiohttp session across calls — e.g.
-        hindsight-client's ``_run_async`` under the Hermes memory plugin — would
+        contextbase-client's ``_run_async`` under the Hermes memory plugin — would
         otherwise build a fresh loop for its next call and hit the old session
         with "Timeout context manager should be used inside a task".
         """

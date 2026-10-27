@@ -8,9 +8,9 @@ All memory assertions use published SDK/MCP clients on the isolated deployment.
 from __future__ import annotations
 
 import pytest
+from contextbase_client_api.exceptions import ForbiddenException
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
-from hindsight_client_api.exceptions import ForbiddenException
 from hindsight_system_tests import LLMStub, wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 

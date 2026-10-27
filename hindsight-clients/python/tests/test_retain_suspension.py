@@ -1,7 +1,7 @@
 """
 Test the client-level retain suspension seam.
 
-``Hindsight.suspend_retains`` lets a caller run a read-only session against a
+``ContextBase.suspend_retains`` lets a caller run a read-only session against a
 real bank: recall and reflect keep working, while every retain entry point
 becomes a no-op that sends no request. These tests pin that both halves hold
 and that leaving the scope restores normal retains.
@@ -11,14 +11,13 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 BANK = "bank-1"
 
 
 def _make_client():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     client._memory_api = MagicMock()
     client._memory_api.retain_memories = AsyncMock(return_value=MagicMock())
     client._memory_api.recall_memories = AsyncMock(return_value=MagicMock())

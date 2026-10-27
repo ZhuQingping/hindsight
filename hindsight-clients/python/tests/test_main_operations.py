@@ -1,7 +1,7 @@
 """
-Tests for Hindsight Python client.
+Tests for ContextBase Python client.
 
-These tests require a running Hindsight API server.
+These tests require a running ContextBase API server.
 """
 
 import os
@@ -9,17 +9,16 @@ import uuid
 from datetime import datetime
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 # Test configuration
-HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
 
 @pytest.fixture
 def client():
-    """Create a Hindsight client for testing."""
-    with Hindsight(base_url=HINDSIGHT_API_URL) as client:
+    """Create a ContextBase client for testing."""
+    with ContextBase(base_url=CONTEXTBASE_API_URL) as client:
         yield client
 
 
@@ -323,10 +322,10 @@ class TestBankStats:
     @pytest.mark.asyncio
     async def test_get_bank_stats(self, client, bank_id):
         """Test getting bank statistics."""
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import BanksApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import BanksApi
 
-        config = Configuration(host=HINDSIGHT_API_URL)
+        config = Configuration(host=CONTEXTBASE_API_URL)
         api_client = ApiClient(config)
         api = BanksApi(api_client)
         stats = await api.get_agent_stats(bank_id=bank_id)
@@ -346,8 +345,8 @@ class TestOperations:
     @pytest.mark.asyncio
     async def test_list_operations(self, client, bank_id):
         """Test listing operations."""
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import OperationsApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import OperationsApi
 
         # First create an async operation using aretain_batch
         await client.aretain_batch(
@@ -356,7 +355,7 @@ class TestOperations:
             retain_async=True,
         )
 
-        config = Configuration(host=HINDSIGHT_API_URL)
+        config = Configuration(host=CONTEXTBASE_API_URL)
         api_client = ApiClient(config)
         api = OperationsApi(api_client)
         response = await api.list_operations(bank_id=bank_id)
@@ -373,8 +372,8 @@ class TestDocuments:
         """Test deleting a document."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import DocumentsApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import DocumentsApi
 
         # First create a document using sync retain
         doc_id = f"test-doc-{uuid.uuid4().hex[:8]}"
@@ -386,7 +385,7 @@ class TestDocuments:
 
         # Use async API for delete (run in event loop)
         async def do_delete():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = DocumentsApi(api_client)
 
@@ -405,8 +404,8 @@ class TestDocuments:
         """Test getting a document."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import DocumentsApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import DocumentsApi
 
         # First create a document
         doc_id = f"test-doc-{uuid.uuid4().hex[:8]}"
@@ -417,7 +416,7 @@ class TestDocuments:
         )
 
         async def do_get():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = DocumentsApi(api_client)
             return await api.get_document(bank_id=bank_id, document_id=doc_id)
@@ -448,11 +447,11 @@ class TestEntities:
         """Test listing entities."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import EntitiesApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import EntitiesApi
 
         async def do_list():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = EntitiesApi(api_client)
             return await api.list_entities(bank_id=bank_id)
@@ -473,11 +472,11 @@ class TestEntities:
         """Test listing entities with pagination parameters."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import EntitiesApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import EntitiesApi
 
         async def do_list_paginated():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = EntitiesApi(api_client)
 
@@ -500,11 +499,11 @@ class TestEntities:
         """Test getting a specific entity."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import EntitiesApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import EntitiesApi
 
         async def do_test():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = EntitiesApi(api_client)
 
@@ -526,7 +525,6 @@ class TestEntities:
             assert entity.id == entity_id
 
 
-
 class TestTags:
     """Tests for tags filtering functionality."""
 
@@ -537,8 +535,14 @@ class TestTags:
             bank_id=bank_id,
             items=[
                 {"content": "Alice presented the Q3 roadmap at the Monday standup", "tags": ["project_x", "meetings"]},
-                {"content": "Bob wrote the architecture document for the new auth system", "tags": ["project_x", "docs"]},
-                {"content": "Charlie led the sprint planning session for the mobile app", "tags": ["project_y", "meetings"]},
+                {
+                    "content": "Bob wrote the architecture document for the new auth system",
+                    "tags": ["project_x", "docs"],
+                },
+                {
+                    "content": "Charlie led the sprint planning session for the mobile app",
+                    "tags": ["project_y", "meetings"],
+                },
                 {"content": "Diana announced the company picnic for next Friday", "tags": ["company"]},
                 {"content": "Eve mentioned she likes pineapple on pizza"},  # no tags
             ],
@@ -680,8 +684,8 @@ class TestDeleteBank:
         """Test deleting a bank."""
         import asyncio
 
-        from hindsight_client_api import ApiClient, Configuration
-        from hindsight_client_api.api import BanksApi
+        from contextbase_client_api import ApiClient, Configuration
+        from contextbase_client_api.api import BanksApi
 
         # Create a unique bank for this test
         bank_id = f"test_bank_delete_{uuid.uuid4().hex[:12]}"
@@ -697,7 +701,7 @@ class TestDeleteBank:
         )
 
         async def do_delete():
-            config = Configuration(host=HINDSIGHT_API_URL)
+            config = Configuration(host=CONTEXTBASE_API_URL)
             api_client = ApiClient(config)
             api = BanksApi(api_client)
             return await api.delete_bank(bank_id=bank_id)
@@ -708,7 +712,7 @@ class TestDeleteBank:
         assert response.success is True
 
         # The bank is gone: reading it 404s, the same as a bank that never existed
-        from hindsight_client_api.exceptions import NotFoundException
+        from contextbase_client_api.exceptions import NotFoundException
 
         with pytest.raises(NotFoundException):
             client.list_memories(bank_id=bank_id)
@@ -747,7 +751,7 @@ class TestAsyncRecall:
     @pytest.mark.asyncio
     async def test_arecall_returns_recall_response(self, client, bank_id):
         """Test that arecall returns a RecallResponse (not a list)."""
-        from hindsight_client_api.models.recall_response import RecallResponse
+        from contextbase_client_api.models.recall_response import RecallResponse
 
         response = await client.arecall(
             bank_id=bank_id,

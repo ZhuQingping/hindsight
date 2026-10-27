@@ -615,9 +615,9 @@ wheels = [
 ]
 
 [[package]]
-name = "hindsight-client"
-version = "0.5.2"
-source = { registry = "https://pypi.org/simple" }
+name = "contextbase-client"
+version = "1.0.0"
+source = { editable = "../../hindsight-clients/python" }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiohttp-retry" },
@@ -625,18 +625,30 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "typing-extensions" },
     { name = "urllib3" },
+    { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ff/ee/b22c14d77aff8888e482c36923100c10ed5a5dfa5e63f8b4d24256465ae2/hindsight_client-0.5.2.tar.gz", hash = "sha256:3a6892a06466422f11ad395977541e6f467493001f5e92ad3086ec1d621a5267", size = 96897, upload-time = "2026-04-15T09:17:28.575Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/fc/7bc9bd18773dbef011a1a1e41a7c8cc9ec2ae98dadbc10d185173ae941f8/hindsight_client-0.5.2-py3-none-any.whl", hash = "sha256:8c8c40bd20f9744e84a6b60cc6cbf8fabcd9f50146a7bbc9141782636412ef39", size = 243914, upload-time = "2026-04-15T09:17:26.602Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.8.4" },
+    { name = "aiohttp-retry", specifier = ">=2.8.3" },
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
+    { name = "python-dateutil", specifier = ">=2.8.2" },
+    { name = "requests", marker = "extra == 'test'", specifier = ">=2.33.0" },
+    { name = "typing-extensions", specifier = ">=4.7.1" },
+    { name = "urllib3", specifier = ">=2.1.0,<3.0.0" },
+    { name = "yarl", specifier = ">=1.9,<2.0" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "contextbase-superagent"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "hindsight-client" },
+    { name = "contextbase-client" },
     { name = "safety-agent" },
 ]
 
@@ -649,7 +661,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hindsight-client", specifier = ">=0.4.0,<1.0" },
+    { name = "contextbase-client", editable = "../../hindsight-clients/python" },
     { name = "safety-agent", specifier = ">=0.1.5,<0.2.0" },
 ]
 

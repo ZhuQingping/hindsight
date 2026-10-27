@@ -3,7 +3,9 @@
 Quickstart examples for ContextBase API.
 Run: python examples/api/quickstart.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -13,9 +15,9 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 
 # [docs:quickstart-full]
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 
 # Retain: Store information
 client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")

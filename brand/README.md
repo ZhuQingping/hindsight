@@ -31,5 +31,6 @@ against an old API. No machine identity is inferred from display text.
 The customer CLI command is `contextbase`. Packages, plugin IDs, directories, environment
 variables, tool names, outbound product identifiers and protocol headers use the same brand.
 The public identity switch is explicit: there are no old-name installation aliases or automatic
-configuration migration. SDK package/import names, resource IDs and customer content are unchanged.
+configuration migration. Python and Node.js SDK package/import names are part of the public identity contract.
+Resource IDs and customer content are unchanged.
 Help and descriptions use the generated display name. See `docs/contextbase-naming/NAMING-MAP.md`.

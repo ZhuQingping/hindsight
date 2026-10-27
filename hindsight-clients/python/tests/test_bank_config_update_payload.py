@@ -1,4 +1,4 @@
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def test_update_bank_config_can_set_retain_structured_chunk_size(monkeypatch):
@@ -9,9 +9,9 @@ def test_update_bank_config_can_set_retain_structured_chunk_size(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     result = client.update_bank_config(
         "test-bank",
         retain_structured_chunk_size=12000,
@@ -29,9 +29,9 @@ def test_update_bank_config_omits_retain_structured_chunk_size_when_unset(monkey
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     result = client.update_bank_config("test-bank")
 
     assert result["bank_id"] == "test-bank"
@@ -51,9 +51,9 @@ def test_update_bank_config_forwards_recall_pipeline_toggles(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.update_bank_config(
         "test-bank",
         enable_text_search=False,
@@ -113,7 +113,7 @@ def test_create_bank_forwards_recall_pipeline_toggles(monkeypatch):
 
     monkeypatch.setattr(aiohttp, "ClientSession", lambda *a, **k: FakeSession())
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.create_bank(
         "test-bank",
         retain_extraction_mode="chunks",
@@ -172,7 +172,7 @@ def test_create_bank_omits_recall_pipeline_toggles_when_unset(monkeypatch):
 
     monkeypatch.setattr(aiohttp, "ClientSession", lambda *a, **k: FakeSession())
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.create_bank("test-bank")
 
     body = captured["body"]
@@ -194,7 +194,7 @@ def test_update_bank_config_forwards_entity_labels(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
     labels = [
         {
@@ -206,7 +206,7 @@ def test_update_bank_config_forwards_entity_labels(monkeypatch):
         {"key": "topic", "type": "value", "values": [{"value": "infra"}]},
     ]
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.update_bank_config("test-bank", entity_labels=labels, entities_allow_free_form=False)
 
     assert captured["updates"] == {
@@ -223,9 +223,9 @@ def test_update_bank_config_omits_entity_labels_when_unset(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.update_bank_config("test-bank", retain_chunk_size=1000)
 
     assert "entity_labels" not in captured["updates"]
@@ -248,9 +248,9 @@ def test_update_bank_config_forwards_the_full_configurable_surface(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.update_bank_config(
         "test-bank",
         recall_max_tokens=4096,
@@ -319,10 +319,10 @@ def test_update_bank_config_gemini_safety_settings_is_a_list(monkeypatch):
         captured["updates"] = updates
         return {"bank_id": bank_id, "config": {}, "overrides": updates}
 
-    monkeypatch.setattr(Hindsight, "_aupdate_bank_config", fake_update)
+    monkeypatch.setattr(ContextBase, "_aupdate_bank_config", fake_update)
 
     settings = [{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"}]
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     client.update_bank_config("test-bank", llm_gemini_safety_settings=settings)
 
     assert captured["updates"] == {"llm_gemini_safety_settings": settings}

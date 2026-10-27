@@ -43,8 +43,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from hindsight_client import Hindsight
-from hindsight_client_api.api.llm_traces_api import LLMTracesApi
+from contextbase_client import ContextBase
+from contextbase_client_api.api.llm_traces_api import LLMTracesApi
 from pydantic import BaseModel
 
 #: Overridable so a rebuilt archive can be measured before it replaces the committed one.
@@ -410,7 +410,7 @@ class CostReport(BaseModel):
     refreshes: list[RefreshCost]
 
 
-async def llm_calls(client: Hindsight, bank_id: str, since: str, until: str) -> list[LLMCall]:
+async def llm_calls(client: ContextBase, bank_id: str, since: str, until: str) -> list[LLMCall]:
     """Every LLM call the server traced for ``bank_id`` in ``[since, until)``, oldest first.
 
     Read through the public trace endpoint. The window is enough to attribute
@@ -457,7 +457,7 @@ class _Attempt:
     outcome: str
 
 
-async def _first_attempt(client: Hindsight, bank_id: str, operation_id: str, timeout: float = 1800) -> _Attempt:
+async def _first_attempt(client: ContextBase, bank_id: str, operation_id: str, timeout: float = 1800) -> _Attempt:
     """Wait for one attempt of a refresh, and stop it from retrying if it failed.
 
     A failed refresh is held ``pending`` for a retry. The retry would be a second
@@ -479,7 +479,7 @@ async def _first_attempt(client: Hindsight, bank_id: str, operation_id: str, tim
 
 
 async def measure_refresh(
-    client: Hindsight, bank_id: str, mental_model_id: str, *, page: str, mode: str
+    client: ContextBase, bank_id: str, mental_model_id: str, *, page: str, mode: str
 ) -> RefreshCost:
     """Refresh one page and collect every LLM call its first attempt made."""
     since = _now()
@@ -585,7 +585,7 @@ class _BuildResult:
 
 
 async def build_bank(
-    client: Hindsight, settle: Callable[[str], Awaitable[None]], count: int = FACT_COUNT
+    client: ContextBase, settle: Callable[[str], Awaitable[None]], count: int = FACT_COUNT
 ) -> _BuildResult:
     """Retain the corpus with real consolidation, write the pages, and export the bank."""
     bank_id = f"refresh-cost-{uuid.uuid4().hex[:8]}"
@@ -617,7 +617,7 @@ async def build_bank(
     return _BuildResult(bank_id=bank_id, archive=archive, pages=pages)
 
 
-async def _drain(client: Hindsight, bank_id: str, timeout: float = 7200) -> None:
+async def _drain(client: ContextBase, bank_id: str, timeout: float = 7200) -> None:
     """Wait until nothing is queued, then fail on anything that ended failed.
 
     Not ``wait_until_settled``: that gives up on the first attempt that errors,
@@ -646,7 +646,7 @@ async def _build(out: Path, count: int) -> None:
     from hindsight_system_evals.target import eval_target
 
     with eval_target() as target:
-        client = Hindsight(base_url=target.url, api_key=target.api_key, timeout=900)
+        client = ContextBase(base_url=target.url, api_key=target.api_key, timeout=900)
         try:
             result = await build_bank(client, lambda bank: _drain(client, bank), count)
         finally:

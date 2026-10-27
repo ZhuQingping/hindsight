@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const { listBanks } = vi.hoisted(() => ({ listBanks: vi.fn() }));
-vi.mock("@vectorize-io/hindsight-client", () => ({
+vi.mock("contextbase-client", () => ({
   createClient: (config: unknown) => config,
   createConfig: (config: unknown) => config,
   sdk: { listBanks },
 }));
-vi.mock("@/lib/hindsight-client", () => ({ getDataplaneHeaders: () => ({}) }));
+vi.mock("@/lib/contextbase-client", () => ({ getDataplaneHeaders: () => ({}) }));
 import { GET } from "@/app/api/health/route";
 beforeEach(() => {
   listBanks.mockReset();
@@ -33,7 +33,7 @@ it.each(["contextbase", "contextdb"])(
 );
 it.each(["sdk error", "exception"])("keeps %s diagnostics internal", async (failure) => {
   if (failure === "sdk error")
-    listBanks.mockResolvedValue({ error: { detail: "Hindsight failed" } });
+    listBanks.mockResolvedValue({ error: { detail: "ContextBase failed" } });
   else listBanks.mockRejectedValue(new Error("connect hindsight-api.internal failed"));
   const response = await GET();
   const body = await response.json();

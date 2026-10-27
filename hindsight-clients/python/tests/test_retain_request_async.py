@@ -5,9 +5,9 @@ Regression test for a bug where the client passed async_=True (invalid kwarg)
 instead of var_async=True, causing async mode to be silently ignored.
 """
 
-from hindsight_client_api.models.content import Content
-from hindsight_client_api.models.memory_item import MemoryItem
-from hindsight_client_api.models.retain_request import RetainRequest
+from contextbase_client_api.models.content import Content
+from contextbase_client_api.models.memory_item import MemoryItem
+from contextbase_client_api.models.retain_request import RetainRequest
 
 
 def _make_item():

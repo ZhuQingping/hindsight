@@ -11,13 +11,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "hindsight-api-slim[all]==1.0.0",
-    "hindsight-client>=0.0.7",
+    "contextbase-client>=1.0.0,<2",
     "hindsight-embed==1.0.0",
 ]
 
 [tool.uv.sources]
 hindsight-api-slim = { workspace = true }
-hindsight-client = { workspace = true }
+contextbase-client = { path = "../hindsight-clients/python", editable = true }
 hindsight-embed = { workspace = true }
 
 [project.optional-dependencies]

@@ -7,7 +7,7 @@
  * nothing in the response to say the argument was ignored.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -15,10 +15,10 @@ jest.mock("../generated/sdk.gen");
 const mockedReflect = sdk.reflect as jest.MockedFunction<typeof sdk.reflect>;
 
 describe("reflect search_observations options mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedReflect.mockReset();
     mockedReflect.mockResolvedValue({ data: { text: "" } } as any);
   });

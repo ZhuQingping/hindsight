@@ -16,8 +16,7 @@ from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
-from hindsight_client import Hindsight
-
+from contextbase_client import ContextBase
 from hindsight_system_evals import (
     Target,
     eval_target,
@@ -26,8 +25,8 @@ from hindsight_system_evals import (
     wait_until_settled,
 )
 from hindsight_system_evals.pages import SettleFn
-from hindsight_system_evals.target import ENV_API_KEY, ENV_API_URL
 from hindsight_system_evals.report import RECORDED, ModelConfig, ModelRef, RunReport, summarise
+from hindsight_system_evals.target import ENV_API_KEY, ENV_API_URL
 
 BANK_PREFIX = "syseval-"
 
@@ -64,14 +63,14 @@ def _judge_is_independent(target: Target) -> None:
 
 
 @pytest.fixture
-async def client(target: Target) -> AsyncIterator[Hindsight]:
-    client = Hindsight(base_url=target.url, api_key=target.api_key)
+async def client(target: Target) -> AsyncIterator[ContextBase]:
+    client = ContextBase(base_url=target.url, api_key=target.api_key)
     yield client
     await client.aclose()
 
 
 @pytest.fixture
-async def bank_id(request: pytest.FixtureRequest, target: Target, client: Hindsight) -> AsyncIterator[str]:
+async def bank_id(request: pytest.FixtureRequest, target: Target, client: ContextBase) -> AsyncIterator[str]:
     # One bank per eval. Sharing would let every page's refresh reflect over
     # every other question's corpus, which is not the scenario and makes a
     # failure impossible to attribute.
@@ -86,7 +85,7 @@ async def bank_id(request: pytest.FixtureRequest, target: Target, client: Hindsi
 
 
 @pytest.fixture
-def settled(client: Hindsight) -> SettleFn:
+def settled(client: ContextBase) -> SettleFn:
     async def _settle(bank: str) -> None:
         await wait_until_settled(client, bank)
 
@@ -161,7 +160,7 @@ def _hindsight_model(config: pytest.Config) -> ModelRef:
 
     with contextlib.suppress(Exception):
         url = config.getoption("--api-url") or os.environ[ENV_API_URL]
-        cfg = Hindsight(base_url=url, api_key=os.getenv(ENV_API_KEY)).get_bank_config(RECORDED[0].bank_id)
+        cfg = ContextBase(base_url=url, api_key=os.getenv(ENV_API_KEY)).get_bank_config(RECORDED[0].bank_id)
         return ModelRef(provider=cfg.get("llm_provider"), model=cfg.get("llm_model") or "unknown")
     return ModelRef(provider="remote", model="unknown")
 
@@ -185,7 +184,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         correct=overall.correct,
         correct_rate=(overall.correct / overall.total) if overall.total else None,
         trap_count=overall.trap_count,
-        by_kind={kind: summarise([r for r in RECORDED if r.kind == kind]) for kind in sorted({r.kind for r in RECORDED})},
+        by_kind={
+            kind: summarise([r for r in RECORDED if r.kind == kind]) for kind in sorted({r.kind for r in RECORDED})
+        },
         items=RECORDED,
     )
     Path(output).write_text(report.to_json(), encoding="utf-8")

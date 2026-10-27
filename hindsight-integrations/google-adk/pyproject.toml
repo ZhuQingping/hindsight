@@ -29,7 +29,7 @@ classifiers = [
 
 dependencies = [
     "google-adk>=2.0",
-    "hindsight-client>=0.4.0",
+    "contextbase-client>=1.0.0,<2",
 ]
 
 [project.urls]
@@ -54,3 +54,6 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "ruff>=0.8.0",
 ]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

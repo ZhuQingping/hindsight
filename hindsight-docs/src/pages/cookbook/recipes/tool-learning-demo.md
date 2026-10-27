@@ -46,7 +46,7 @@ docker run --rm -it -p 8888:8888 -p 9999:9999 \
 
 
 ```python
-!pip install contextbase-litellm hindsight-client litellm nest_asyncio python-dotenv -U -q
+!pip install contextbase-litellm contextbase-client litellm nest_asyncio python-dotenv -U -q
 ```
 
 ## Setup
@@ -72,7 +72,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 import litellm
 import contextbase_litellm
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 CONTEXTBASE_API_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 
@@ -216,7 +216,7 @@ def make_routing_request(user_request: str, use_contextbase: bool, bank_id: Opti
 
 def store_feedback(bank_id: str, request: str, correct_tool: str, request_type: str):
     """Store feedback about which tool was correct for a request type."""
-    client = Hindsight(base_url=CONTEXTBASE_API_URL, timeout=60.0)
+    client = ContextBase(base_url=CONTEXTBASE_API_URL, timeout=60.0)
 
     feedback_content = f"""ROUTING FEEDBACK:
 Request type: {request_type}

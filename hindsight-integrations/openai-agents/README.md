@@ -17,19 +17,19 @@ Provides `FunctionTool` instances that give [OpenAI Agents SDK](https://github.c
 pip install contextbase-openai-agents openai-agents
 ```
 
-`contextbase-openai-agents` pulls in `openai-agents` and `hindsight-client`.
+`contextbase-openai-agents` pulls in `openai-agents` and `contextbase-client`.
 
 ## Quick Start
 
 ```python
 import asyncio
 from agents import Agent, Runner
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from contextbase_openai_agents import create_contextbase_tools
 
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     tools = create_contextbase_tools(client=client, bank_id="user-123")
@@ -174,7 +174,7 @@ tools = create_contextbase_tools(
 Tools surface errors to the agent as tool error results. The OpenAI Agents SDK catches exceptions from tools automatically and returns them as error strings, allowing the agent to handle failures gracefully:
 
 ```python
-from contextbase_openai_agents.errors import HindsightError
+from contextbase_openai_agents.errors import ContextBaseError
 
 # The agent will see error messages and can decide how to proceed
 result = await Runner.run(agent, "What do you remember about me?")
@@ -187,7 +187,7 @@ Create banks before first use and clean up when done:
 
 ```python
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Create bank (idempotent)
     await client.acreate_bank(bank_id="user-123")
@@ -220,7 +220,7 @@ shared_tools = create_contextbase_tools(
 
 - Python >= 3.10
 - openai-agents >= 0.7.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 
 ## Documentation
 

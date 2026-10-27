@@ -19,7 +19,7 @@
 
 import { createRequire } from "node:module";
 import type { Plugin } from "@opencode-ai/plugin";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { loadConfig } from "./config.js";
 import { deriveBankId } from "./bank.js";
 import { createTools } from "./tools.js";
@@ -61,7 +61,7 @@ const ContextBasePlugin: Plugin = async (input, options) => {
   // Requests fail at call time if no API key is configured for a Cloud URL —
   // that surfaces a clear, actionable error from the server rather than silently
   // disabling the plugin.
-  const client = new HindsightClient({
+  const client = new ContextBaseClient({
     baseUrl: config.contextbaseApiUrl!,
     apiKey: config.contextbaseApiToken || undefined,
     userAgent: USER_AGENT,

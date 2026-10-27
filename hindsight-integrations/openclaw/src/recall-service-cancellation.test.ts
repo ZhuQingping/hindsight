@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { scopeClient } from "./index.js";
 
 beforeEach(() => vi.useFakeTimers());
@@ -12,7 +12,7 @@ it("does not send with an already-stopped service signal", async () => {
   const controller = new AbortController();
   controller.abort();
   const recall = vi.fn();
-  const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+  const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
   await expect(scoped.recall({ query: "question" }, 1000, controller.signal)).rejects.toBe(
     controller.signal.reason
   );
@@ -26,7 +26,7 @@ it("settles on stop even if transport never returns and cleans up", async () => 
     (_bank: string, _query: string, _options?: { signal?: AbortSignal }) =>
       new Promise<never>(() => {})
   );
-  const scoped = scopeClient({ recall } as unknown as HindsightClient, "test-bank");
+  const scoped = scopeClient({ recall } as unknown as ContextBaseClient, "test-bank");
   const pending = scoped
     .recall({ query: "question" }, 1000, controller.signal)
     .catch((error: unknown) => error);

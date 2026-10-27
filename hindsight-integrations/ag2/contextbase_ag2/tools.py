@@ -10,11 +10,11 @@ import logging
 from collections.abc import Callable
 from typing import Annotated, Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from ._client import resolve_client
 from .config import get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def create_contextbase_tools(
     *,
     bank_id: str,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: Optional[str] = None,
@@ -79,7 +79,7 @@ def create_contextbase_tools(
         List of callable tool functions.
 
     Raises:
-        HindsightError: If no client or API URL can be resolved.
+        ContextBaseError: If no client or API URL can be resolved.
 
     Usage::
 
@@ -127,7 +127,7 @@ def create_contextbase_tools(
                 return "Memory stored successfully."
             except Exception as e:
                 logger.error("Retain failed: %s", e)
-                raise HindsightError(f"Retain failed: {e}") from e
+                raise ContextBaseError(f"Retain failed: {e}") from e
 
         tools.append(contextbase_retain)
 
@@ -167,7 +167,7 @@ def create_contextbase_tools(
                 return "\n".join(lines)
             except Exception as e:
                 logger.error("Recall failed: %s", e)
-                raise HindsightError(f"Recall failed: {e}") from e
+                raise ContextBaseError(f"Recall failed: {e}") from e
 
         tools.append(contextbase_recall)
 
@@ -207,7 +207,7 @@ def create_contextbase_tools(
                 return response.text or "No relevant memories found."
             except Exception as e:
                 logger.error("Reflect failed: %s", e)
-                raise HindsightError(f"Reflect failed: {e}") from e
+                raise ContextBaseError(f"Reflect failed: {e}") from e
 
         tools.append(contextbase_reflect)
 

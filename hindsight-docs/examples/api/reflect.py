@@ -3,7 +3,9 @@
 Reflect API examples for ContextBase.
 Run: python examples/api/reflect.py
 """
+
 import os
+
 import requests
 
 CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
@@ -11,11 +13,11 @@ CONTEXTBASE_URL = os.getenv("CONTEXTBASE_API_URL", "http://localhost:8888")
 # =============================================================================
 # Setup (not shown in docs)
 # =============================================================================
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 if not CONTEXTBASE_URL:
     raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-client = Hindsight(base_url=CONTEXTBASE_URL)
+client = ContextBase(base_url=CONTEXTBASE_URL)
 
 # Seed some data for reflect examples
 client.retain(bank_id="my-bank", content="Alice works at Google as a software engineer")
@@ -45,7 +47,7 @@ response = client.reflect(
 response = client.reflect(
     bank_id="my-bank",
     query="What do you think about the proposal?",
-    context="We're in a budget review meeting discussing Q4 spending"
+    context="We're in a budget review meeting discussing Q4 spending",
 )
 # [/docs:reflect-with-context]
 
@@ -57,17 +59,14 @@ client.create_bank(
     name="Cautious Advisor",
     mission="I am a risk-aware financial advisor",
     disposition={
-        "skepticism": 5,   # Very skeptical of claims
-        "literalism": 4,   # Focuses on exact requirements
-        "empathy": 2       # Prioritizes facts over feelings
-    }
+        "skepticism": 5,  # Very skeptical of claims
+        "literalism": 4,  # Focuses on exact requirements
+        "empathy": 2,  # Prioritizes facts over feelings
+    },
 )
 
 # Reflect responses will reflect this disposition
-response = client.reflect(
-    bank_id="cautious-advisor",
-    query="Should I invest in crypto?"
-)
+response = client.reflect(bank_id="cautious-advisor", query="Should I invest in crypto?")
 # Response will likely emphasize risks and caution
 # [/docs:reflect-disposition]
 
@@ -82,7 +81,7 @@ response = client.reflect(
 
 print("Response:", response.text)
 print("\nBased on:")
-for fact in (response.based_on.memories if response.based_on else []):
+for fact in response.based_on.memories if response.based_on else []:
     print(f"  - [{fact.type}] {fact.text}")
 # [/docs:reflect-sources]
 
@@ -93,7 +92,7 @@ response = client.reflect(
     bank_id="my-bank",
     query="What does this user think about our product?",
     tags=["user:alice"],
-    tags_match="any_strict"  # Only use memories tagged for this user
+    tags_match="any_strict",  # Only use memories tagged for this user
 )
 # [/docs:reflect-with-tags]
 
@@ -101,12 +100,14 @@ response = client.reflect(
 # [docs:reflect-structured-output]
 from pydantic import BaseModel
 
+
 # Define your response structure with Pydantic
 class HiringRecommendation(BaseModel):
     recommendation: str
     confidence: str  # "low", "medium", "high"
     key_factors: list[str]
     risks: list[str] = []
+
 
 response = client.reflect(
     bank_id="hiring-team",

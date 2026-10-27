@@ -23,7 +23,7 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import type { RecallResponse, RetainResponse } from "@vectorize-io/hindsight-client";
+import type { RecallResponse, RetainResponse } from "contextbase-client";
 import type { MoltbotPluginAPI, PluginConfig } from "../src/types.js";
 
 const CONTEXTBASE_API_URL = process.env.CONTEXTBASE_API_URL || "http://localhost:8888";
@@ -146,7 +146,7 @@ let apiReachable = false;
 let triggerHook: MockApiHandle["trigger"];
 let stopServicesFn: () => Promise<void>;
 // Typed loosely as MockInstance because vi.spyOn's generic form doesn't
-// play nicely with the hindsight-client class shape (method overloads).
+// play nicely with the contextbase-client class shape (method overloads).
 let recallSpy: MockInstance;
 let retainSpy: MockInstance;
 
@@ -163,7 +163,7 @@ beforeAll(async () => {
   vi.resetModules();
 
   const mod = await import("../src/index.js");
-  const { HindsightClient } = await import("@vectorize-io/hindsight-client");
+  const { ContextBaseClient } = await import("contextbase-client");
   const pluginFn = mod.default;
   const getClient = mod.getClient;
 
@@ -192,10 +192,10 @@ beforeAll(async () => {
   if (!getClient())
     throw new Error("[Hooks Integration] Client not initialized after service start");
 
-  // Spy on the HindsightClient prototype so all calls go through the spy.
+  // Spy on the ContextBaseClient prototype so all calls go through the spy.
   // The plugin's scopeClient() wrapper calls through these prototype methods.
-  recallSpy = vi.spyOn(HindsightClient.prototype, "recall");
-  retainSpy = vi.spyOn(HindsightClient.prototype, "retain");
+  recallSpy = vi.spyOn(ContextBaseClient.prototype, "recall");
+  retainSpy = vi.spyOn(ContextBaseClient.prototype, "retain");
 }, 30_000);
 
 afterAll(async () => {
@@ -321,7 +321,7 @@ describe("before_prompt_build hook", () => {
     );
 
     expect(recallSpy).toHaveBeenCalledOnce();
-    // HindsightClient.recall signature: (bankId, query, options?)
+    // ContextBaseClient.recall signature: (bankId, query, options?)
     const [, query] = recallSpy.mock.calls[0];
     expect(query).not.toContain("[Telegram");
     expect(query).not.toContain("[from: Alice]");
@@ -490,7 +490,7 @@ describe("agent_end hook", () => {
     );
 
     expect(retainSpy).toHaveBeenCalledOnce();
-    // HindsightClient.retain signature: (bankId, content, options?)
+    // ContextBaseClient.retain signature: (bankId, content, options?)
     // Default retainFormat is 'json' with Anthropic-shaped typed blocks.
     const [, content] = retainSpy.mock.calls[0];
     const parsed = JSON.parse(content);

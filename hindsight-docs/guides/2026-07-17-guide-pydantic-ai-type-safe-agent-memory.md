@@ -53,11 +53,11 @@ There are two clean attachment points, and they map onto two different intents.
 **Instructions** — pass `memory_instructions(...)` to the agent's `instructions=[...]`. This recalls relevant memory and injects it into the system prompt *before* the run starts, so context is present without the agent having to decide to fetch it.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_pydantic_ai import create_hindsight_tools, memory_instructions
 from pydantic_ai import Agent
 
-client = Hindsight(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
+client = ContextBase(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
 
 agent = Agent(
     "openai:gpt-4o",

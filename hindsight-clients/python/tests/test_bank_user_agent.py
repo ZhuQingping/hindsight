@@ -3,15 +3,14 @@
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
-from hindsight_client import Hindsight
-from hindsight_client.hindsight_client import DEFAULT_USER_AGENT
-from hindsight_client_api.models.bank_profile_response import BankProfileResponse
-from hindsight_client_api.models.disposition_traits import DispositionTraits
+from contextbase_client import ContextBase
+from contextbase_client.contextbase_client import DEFAULT_USER_AGENT
+from contextbase_client_api.models.bank_profile_response import BankProfileResponse
+from contextbase_client_api.models.disposition_traits import DispositionTraits
 
 
 @pytest.mark.parametrize("method", ["acreate_bank", "aget_bank_config", "aupdate_bank_config", "areset_bank_config"])
-@pytest.mark.parametrize("user_agent", [None, "hindsight-integration-test/1.2.3"])
+@pytest.mark.parametrize("user_agent", [None, "contextbase-integration-test/1.2.3"])
 async def test_bank_helper_uses_configured_user_agent(method: str, user_agent: str | None) -> None:
     observed: list[str] = []
     profile = BankProfileResponse(
@@ -29,7 +28,7 @@ async def test_bank_helper_uses_configured_user_agent(method: str, user_agent: s
     app = web.Application()
     app.router.add_route("*", "/{path:.*}", bank_route)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")), api_key="test-key", user_agent=user_agent)
+        client = ContextBase(base_url=str(server.make_url("")), api_key="test-key", user_agent=user_agent)
         try:
             await getattr(client, method)("test")
         finally:

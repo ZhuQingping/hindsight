@@ -1,5 +1,5 @@
 """
-Embedded Hindsight client with automatic daemon lifecycle management.
+Embedded ContextBase client with automatic daemon lifecycle management.
 
 This module provides HindsightEmbedded, a client that uses the same daemon
 management interface as hindsight-embed CLI, ensuring full compatibility.
@@ -37,7 +37,7 @@ import logging
 import threading
 from typing import Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_embed import get_embed_manager
 
 from .api_namespaces import BanksAPI, DirectivesAPI, MemoriesAPI, MentalModelsAPI
@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 class HindsightEmbedded:
     """
-    Hindsight client with automatic daemon lifecycle management.
+    ContextBase client with automatic daemon lifecycle management.
 
     This client uses the same daemon management interface as hindsight-embed CLI,
     ensuring full compatibility and shared profiles. The daemon is started automatically
@@ -160,7 +160,7 @@ class HindsightEmbedded:
         self._ui_port = ui_port
         self._ui_hostname = ui_hostname
 
-        self._client: Optional[Hindsight] = None
+        self._client: Optional[ContextBase] = None
         self._lock = threading.Lock()
         self._started = False
         self._closed = False
@@ -206,30 +206,24 @@ class HindsightEmbedded:
                 self._started = False
 
             if self._closed:
-                raise RuntimeError(
-                    "Cannot use HindsightEmbedded after it has been closed"
-                )
+                raise RuntimeError("Cannot use HindsightEmbedded after it has been closed")
 
             # Use embed manager interface for daemon management
             logger.info(f"Ensuring daemon is running for profile '{self.profile}'...")
             success = self._manager.ensure_running(self.config, self.profile)
             if not success:
-                raise RuntimeError(
-                    f"Failed to start daemon for profile '{self.profile}'"
-                )
+                raise RuntimeError(f"Failed to start daemon for profile '{self.profile}'")
 
             # Get daemon URL and create client
             daemon_url = self._manager.get_url(self.profile)
-            self._client = Hindsight(base_url=daemon_url)
+            self._client = ContextBase(base_url=daemon_url)
             self._started = True
             logger.info(f"Connected to daemon at {daemon_url}")
 
             # Start UI if requested
             if self._ui:
                 logger.info(f"Starting UI for profile '{self.profile}'...")
-                ui_started = self._manager.start_ui(
-                    self.profile, self._ui_port, self._ui_hostname
-                )
+                ui_started = self._manager.start_ui(self.profile, self._ui_port, self._ui_hostname)
                 if not ui_started:
                     logger.warning(f"Failed to start UI for profile '{self.profile}'")
 
@@ -250,8 +244,7 @@ class HindsightEmbedded:
             # Mark closed to prevent new operations but skip shared-state
             # teardown — the daemon's idle timeout handles the rest.
             logger.warning(
-                "Cleanup lock acquisition timed out for profile '%s'; "
-                "marking closed, daemon will idle-stop on its own",
+                "Cleanup lock acquisition timed out for profile '%s'; marking closed, daemon will idle-stop on its own",
                 self.profile,
             )
             self._closed = True
@@ -302,7 +295,7 @@ class HindsightEmbedded:
 
     def __getattr__(self, name: str):
         """
-        Proxy all method calls to the underlying Hindsight client.
+        Proxy all method calls to the underlying ContextBase client.
 
         This allows HindsightEmbedded to expose all HindsightClient methods
         without manually wrapping each one.
@@ -431,15 +424,15 @@ class HindsightEmbedded:
         return self._memories_api
 
     @property
-    def client(self) -> Hindsight:
+    def client(self) -> ContextBase:
         """
-        Get the underlying Hindsight client for direct access.
+        Get the underlying ContextBase client for direct access.
 
         Ensures daemon is started (and restarts it if it has crashed) before
         returning the client.
 
         Returns:
-            Hindsight: The underlying client instance
+            ContextBase: The underlying client instance
 
         Example:
             ```python
@@ -464,10 +457,7 @@ class HindsightEmbedded:
     def is_running(self) -> bool:
         """Check if the client is initialized and the daemon is responsive."""
         return (
-            self._started
-            and not self._closed
-            and self._client is not None
-            and self._manager.is_running(self.profile)
+            self._started and not self._closed and self._client is not None and self._manager.is_running(self.profile)
         )
 
     @property

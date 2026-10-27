@@ -6,19 +6,19 @@ import asyncio
 import logging
 from typing import Any, Awaitable, Callable
 
-from hindsight_client import Hindsight
-from hindsight_client_api.models.recall_response import RecallResponse
-from hindsight_client_api.models.reflect_response import ReflectResponse
+from contextbase_client import ContextBase
+from contextbase_client_api.models.recall_response import RecallResponse
+from contextbase_client_api.models.reflect_response import ReflectResponse
 from safety_agent import SafetyClient
 
-from ._client import build_safety_client, resolve_hindsight_client, snapshot_safety_config
+from ._client import build_safety_client, resolve_contextbase_client, snapshot_safety_config
 from .config import Budget, TagsMatch, get_config
-from .errors import GuardBlockedError, HindsightError
+from .errors import ContextBaseError, GuardBlockedError
 
 logger = logging.getLogger(__name__)
 
 # Per-item keys passed straight through from a retain_batch caller's dict to
-# Hindsight.aretain_batch.  `content` is mandatory (handled separately).  Tags
+# ContextBase.aretain_batch.  `content` is mandatory (handled separately).  Tags
 # are merged with default tags, so they're handled separately too.
 _BATCH_PASSTHROUGH_KEYS = (
     "timestamp",
@@ -85,7 +85,7 @@ class SafeContextBase:
         self,
         *,
         bank_id: str,
-        hindsight_client: Hindsight | None = None,
+        contextbase_client: ContextBase | None = None,
         safety_client: SafetyClient | None = None,
         contextbase_api_url: str | None = None,
         api_key: str | None = None,
@@ -111,7 +111,7 @@ class SafeContextBase:
         on_guard: GuardCallback | None = None,
     ) -> None:
         self._bank_id = bank_id
-        self._contextbase = resolve_hindsight_client(hindsight_client, contextbase_api_url, api_key)
+        self._contextbase = resolve_contextbase_client(contextbase_client, contextbase_api_url, api_key)
         self._on_guard = on_guard
 
         # Snapshot the safety client config eagerly so a later configure()
@@ -127,7 +127,7 @@ class SafeContextBase:
 
         # Also track whether we own the underlying ContextBase client.  If the
         # caller passed in their own, we don't aclose() it on our way out.
-        self._owns_contextbase = hindsight_client is None
+        self._owns_contextbase = contextbase_client is None
         self._owns_safety = safety_client is None
         self._closed = False
 
@@ -217,7 +217,7 @@ class SafeContextBase:
     async def _redact(self, text: str) -> str:
         """Run Superagent Redact on text. Returns redacted text."""
         if not self._redact_model:
-            raise HindsightError("Redact requires a model. Set redact_model in SafeContextBase() or configure().")
+            raise ContextBaseError("Redact requires a model. Set redact_model in SafeContextBase() or configure().")
         redact_kwargs: dict[str, Any] = {
             "input": text,
             "model": self._redact_model,
@@ -276,7 +276,7 @@ class SafeContextBase:
 
         Raises:
             GuardBlockedError: If content is blocked by Guard.
-            HindsightError: If the operation fails.
+            ContextBaseError: If the operation fails.
         """
         try:
             if self._enable_guard_on_retain:
@@ -300,11 +300,11 @@ class SafeContextBase:
 
             await self._contextbase.aretain(**retain_kwargs)
             return "Memory stored successfully."
-        except (GuardBlockedError, HindsightError):
+        except (GuardBlockedError, ContextBaseError):
             raise
         except Exception as e:
             logger.error("Retain failed: %s", e)
-            raise HindsightError(f"Retain failed: {e}") from e
+            raise ContextBaseError(f"Retain failed: {e}") from e
 
     async def retain_batch(
         self,
@@ -317,7 +317,7 @@ class SafeContextBase:
         """Store a batch of memories, applying safety checks to each item.
 
         Each item is a dict matching the shape accepted by
-        `Hindsight.aretain_batch` — `content` (required) plus any of
+        `ContextBase.aretain_batch` — `content` (required) plus any of
         `timestamp`, `context`, `metadata`, `document_id`, `entities`,
         `observation_scopes`, `strategy`, `update_mode`, `tags`.  Tags merge
         with the instance's default tags (preserving order, deduped); every
@@ -346,7 +346,7 @@ class SafeContextBase:
 
         Raises:
             GuardBlockedError: If any item's content is blocked.
-            HindsightError: If the operation fails.
+            ContextBaseError: If the operation fails.
         """
         if not items:
             return "Memory stored successfully."
@@ -389,11 +389,11 @@ class SafeContextBase:
 
             await self._contextbase.aretain_batch(**batch_kwargs)
             return "Memory stored successfully."
-        except (GuardBlockedError, HindsightError):
+        except (GuardBlockedError, ContextBaseError):
             raise
         except Exception as e:
             logger.error("Retain batch failed: %s", e)
-            raise HindsightError(f"Retain batch failed: {e}") from e
+            raise ContextBaseError(f"Retain batch failed: {e}") from e
 
     async def recall(
         self,
@@ -422,7 +422,7 @@ class SafeContextBase:
 
         Raises:
             GuardBlockedError: If query is blocked by Guard.
-            HindsightError: If the operation fails.
+            ContextBaseError: If the operation fails.
         """
         try:
             if self._enable_guard_on_recall:
@@ -447,11 +447,11 @@ class SafeContextBase:
                     result.text = redacted_text
 
             return response
-        except (GuardBlockedError, HindsightError):
+        except (GuardBlockedError, ContextBaseError):
             raise
         except Exception as e:
             logger.error("Recall failed: %s", e)
-            raise HindsightError(f"Recall failed: {e}") from e
+            raise ContextBaseError(f"Recall failed: {e}") from e
 
     async def reflect(
         self,
@@ -475,7 +475,7 @@ class SafeContextBase:
 
         Raises:
             GuardBlockedError: If query is blocked by Guard.
-            HindsightError: If the operation fails.
+            ContextBaseError: If the operation fails.
         """
         try:
             if self._enable_guard_on_reflect:
@@ -494,17 +494,17 @@ class SafeContextBase:
                 response.text = await self._redact(response.text)
 
             return response
-        except (GuardBlockedError, HindsightError):
+        except (GuardBlockedError, ContextBaseError):
             raise
         except Exception as e:
             logger.error("Reflect failed: %s", e)
-            raise HindsightError(f"Reflect failed: {e}") from e
+            raise ContextBaseError(f"Reflect failed: {e}") from e
 
     async def aclose(self) -> None:
-        """Release the underlying Hindsight (and SafetyClient if owned) connection pools.
+        """Release the underlying ContextBase (and SafetyClient if owned) connection pools.
 
         Safe to call multiple times.  Clients passed in by the caller via
-        `hindsight_client=` or `safety_client=` are NOT closed — the caller
+        `contextbase_client=` or `safety_client=` are NOT closed — the caller
         retains ownership of those.
         """
         if self._closed:

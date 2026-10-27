@@ -47,9 +47,9 @@ pip install hindsight-pydantic-ai
 > ✨ **Recommended:** [Hindsight Cloud](https://ui.hindsight.vectorize.io) — free tier, no self-hosting required.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
+client = ContextBase(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
 ```
 
 If you're self-hosting Hindsight locally instead, use `Hindsight(base_url="http://localhost:8888")`.
@@ -59,11 +59,11 @@ You can also call `configure()` once and create tools without passing a client e
 ## Step 3: Wire memory into your runtime
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_pydantic_ai import create_hindsight_tools, memory_instructions
 from pydantic_ai import Agent
 
-client = Hindsight(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
+client = ContextBase(base_url="https://api.hindsight.vectorize.io", api_key="hsk_...")
 
 agent = Agent(
     "openai:gpt-4o",

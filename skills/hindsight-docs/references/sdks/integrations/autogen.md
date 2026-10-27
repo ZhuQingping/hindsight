@@ -19,7 +19,7 @@ Persistent long-term memory for [AutoGen](https://microsoft.github.io/autogen/) 
 pip install hindsight-autogen autogen-agentchat "autogen-ext[openai]"
 ```
 
-`hindsight-autogen` pulls in `autogen-core` and `hindsight-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
+`hindsight-autogen` pulls in `autogen-core` and `contextbase-client`. You also need `autogen-agentchat` for `AssistantAgent` and `autogen-ext[openai]` for the OpenAI model client.
 
 ## Quick Start
 
@@ -27,11 +27,11 @@ pip install hindsight-autogen autogen-agentchat "autogen-ext[openai]"
 import asyncio
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_autogen import create_hindsight_tools
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
@@ -47,7 +47,7 @@ async def main():
     result = await agent.run(task="Remember that I prefer dark mode")
     print(result.messages[-1].content)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall. In production, this delay is only
     # needed when retain and recall happen back-to-back in the same script.
@@ -127,14 +127,14 @@ tools = create_hindsight_tools(
 
 ### Error Handling
 
-Tools raise `HindsightError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls for graceful degradation:
+Tools raise `ContextBaseError` on failure, which AutoGen surfaces to the agent as a tool error. Wrap agent calls for graceful degradation:
 
 ```python
-from hindsight_autogen.errors import HindsightError
+from hindsight_autogen.errors import ContextBaseError
 
 try:
     result = await agent.run(task="What do you remember about me?")
-except HindsightError as e:
+except ContextBaseError as e:
     print(f"Memory operation failed: {e}")
 ```
 
@@ -144,7 +144,7 @@ Create banks before first use and clean up when done:
 
 ```python
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Create bank (idempotent)
     await client.acreate_bank(bank_id="user-123")
@@ -217,4 +217,4 @@ shared_tools = create_hindsight_tools(
 
 - Python >= 3.10
 - autogen-core >= 0.4.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0

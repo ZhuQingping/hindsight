@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from hindsight_client_api.models.create_knowledge_page_response import (
+from contextbase_client_api.models.create_knowledge_page_response import (
     CreateKnowledgePageResponse,
 )
 from hindsight_system_tests import LLMStub, reflect_loop, wait_until_settled

@@ -162,7 +162,7 @@ tools = register_contextbase_tools(composio)
 
 - Python >= 3.10
 - composio >= 0.13.1, < 1
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0
 - A running ContextBase API server (or ContextBase remote service)
 
 :::note

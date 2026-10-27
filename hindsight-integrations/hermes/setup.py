@@ -87,7 +87,7 @@ def _prompt_embedded_llm(llm_provider: str, provider_config: dict, env_writes: d
 def _check_mode_dependencies(mode: str) -> None:
     """Report whether what this mode needs in-process is importable.
 
-    There is nothing to install here any more. Every mode needs only ``hindsight-client`` plus,
+    There is nothing to install here any more. Every mode needs only ``contextbase-client`` plus,
     for local_embedded, ``hindsight-embed`` — both declared in this plugin's ``pyproject.toml``
     and installed with the plugin. The ContextBase server is no longer a dependency of this venv:
     local_embedded starts it as a separate process (an installed ``hindsight-api`` binary, else

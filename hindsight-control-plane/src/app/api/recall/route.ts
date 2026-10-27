@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { lowLevelClient, sdk } from "@/lib/hindsight-client";
+import { lowLevelClient, sdk } from "@/lib/contextbase-client";
 
 export async function POST(request: NextRequest) {
   try {

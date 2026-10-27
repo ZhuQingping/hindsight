@@ -1,0 +1,7 @@
+# Keep source archives independent of repository-wide ignore patterns.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/

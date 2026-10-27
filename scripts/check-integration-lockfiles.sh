@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Ensures every `hindsight-integrations/*/package-lock.json` resolves its
-# dependencies from a public npm registry — not from a monorepo workspace
-# symlink, a `file:` URL, or a relative path. The private fork's explicitly
+# dependencies from a public npm registry or the explicitly approved local SDK — not arbitrary workspace
+# symlinks, `file:` URLs, or relative paths. The private fork's explicitly
 # listed development-only helper is checked separately below.
 #
 # Why this matters: integrations are published by `.github/workflows/
@@ -12,7 +12,7 @@
 # with `Cannot find module '@vectorize-io/...'`.
 #
 # This bit us once on integrations/openclaw/v0.6.0 — the lockfile had
-# @vectorize-io/hindsight-client resolved to ../../hindsight-clients/typescript
+# contextbase-client resolved to ../../hindsight-clients/typescript
 # because `npm install` was originally run from the monorepo root, where npm
 # silently preferred the workspace even though openclaw isn't itself listed
 # in the root `workspaces` array. The test CI job masked it (it pre-builds
@@ -72,6 +72,20 @@ for name, info in data.get("packages", {}).items():
 
     resolved = info.get("resolved", "")
     link = info.get("link")
+
+    # The renamed SDK is distributed as a tarball, not through a registry yet.
+    # Repository integrations explicitly use the source SDK; CI builds it first.
+    if (
+        name == "node_modules/contextbase-client"
+        and resolved == "../../hindsight-clients/typescript"
+        and link is True
+        and any(
+            manifest.get(field, {}).get("contextbase-client") == "file:../../hindsight-clients/typescript"
+            for field in ("dependencies", "devDependencies")
+        )
+        and data.get("packages", {}).get(resolved, {}).get("name") == "contextbase-client"
+    ):
+        continue
 
     # The fork's private remote-only client retains this workspace helper for
     # development tests. Its candidate workflow builds the helper first; it is

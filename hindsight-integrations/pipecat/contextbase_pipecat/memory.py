@@ -20,7 +20,7 @@ import logging
 from importlib import metadata
 from typing import Any
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from pipecat.frames.frames import Frame, LLMContextFrame
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 
@@ -39,10 +39,10 @@ _MEMORY_MARKER = "<contextbase_memories>"
 
 
 def _resolve_client(
-    client: Hindsight | None,
+    client: ContextBase | None,
     contextbase_api_url: str | None,
     api_key: str | None,
-) -> Hindsight:
+) -> ContextBase:
     """Resolve a ContextBase client from explicit args or global config."""
     if client is not None:
         return client
@@ -61,7 +61,7 @@ def _resolve_client(
         kwargs["api_key"] = key
     if not kwargs.get("base_url"):
         raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-    return Hindsight(**kwargs)
+    return ContextBase(**kwargs)
 
 
 class ContextBaseMemoryService(FrameProcessor):
@@ -104,7 +104,7 @@ class ContextBaseMemoryService(FrameProcessor):
         self,
         bank_id: str,
         *,
-        client: Hindsight | None = None,
+        client: ContextBase | None = None,
         contextbase_api_url: str | None = None,
         api_key: str | None = None,
         recall_budget: str = "mid",

@@ -138,7 +138,7 @@ def _cloud_api_key(config: dict) -> str:
 
 
 def _warn_if_client_outdated() -> None:
-    """Warn when the installed ``hindsight-client`` is below what this plugin needs.
+    """Warn when the installed ``contextbase-client`` is below what this plugin needs.
 
     This used to try to fix it by calling ``tools.lazy_deps.install_specs``, which on
     package-manager Hermes hands the process to the updater instead of installing (the loop in
@@ -152,10 +152,10 @@ def _warn_if_client_outdated() -> None:
 
         from packaging.version import Version
 
-        installed = pkg_version("hindsight-client")
+        installed = pkg_version("contextbase-client")
         if Version(installed) < Version(_MIN_CLIENT_VERSION):
             logger.warning(
-                "hindsight-client %s is older than this plugin needs (>=%s). "
+                "contextbase-client %s is older than this plugin needs (>=%s). "
                 "Run 'hermes plugins update contextbase' to prepare its declared dependencies.",
                 installed,
                 _MIN_CLIENT_VERSION,
@@ -843,7 +843,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         This used to be ``from hindsight import HindsightEmbedded``, which required the
         ``hindsight-all`` package — the entire hindsight-api-slim server tree — inside Hermes'
         venv, where it cannot resolve against Hermes' pinned extras. ``HindsightEmbedded`` is
-        only ``hindsight_client.Hindsight`` + ``hindsight_embed.get_embed_manager()``, so we
+        only ``contextbase_client.ContextBase`` + ``hindsight_embed.get_embed_manager()``, so we
         compose the same two packages ourselves. Same daemon, same profile, same profile ``.env``,
         same pg0 database: nothing of an existing user's data or config moves.
         """
@@ -852,7 +852,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
             raise RuntimeError(
                 "ContextBase local runtime is unavailable" + (f": {status.reason}" if status.reason else "")
             )
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
 
         cfg = self._config
         profile = str(cfg.get("profile", "hermes") or "hermes")
@@ -880,10 +880,10 @@ class ContextBaseMemoryProvider(MemoryProvider):
         api_key = _load_simple_env(_embedded_profile_env_path(cfg)).get("HINDSIGHT_API_TENANT_API_KEY") or self._api_key
         if not self._embedded_url:
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        return Hindsight(base_url=self._embedded_url, api_key=api_key or None, user_agent=_USER_AGENT)
+        return ContextBase(base_url=self._embedded_url, api_key=api_key or None, user_agent=_USER_AGENT)
 
     def _new_cloud_client(self):
-        from hindsight_client import Hindsight
+        from contextbase_client import ContextBase
 
         kwargs = {
             "base_url": self._api_url,
@@ -900,7 +900,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         )
         if not kwargs.get("base_url"):
             raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-        return Hindsight(**kwargs)
+        return ContextBase(**kwargs)
 
     def _announce_slow_first_start(self, profile: str) -> None:
         """Tell the user once when the embedded daemon is about to be fetched, not just started.
@@ -1032,7 +1032,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
     def _is_retain_op_complete(self, bank_id: str, op_id: str) -> bool:
         """True when a server-side retain op is done or gone (completed ops are evicted,
         so 404 = no longer pending). Transient errors -> False, caller keeps waiting."""
-        from hindsight_client_api.exceptions import NotFoundException
+        from contextbase_client_api.exceptions import NotFoundException
 
         try:
             resp = self._run_contextbase_operation(
@@ -1174,7 +1174,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         with contextlib.suppress(Exception):
             from importlib.metadata import version as pkg_version
 
-            client_version = pkg_version("hindsight-client")
+            client_version = pkg_version("contextbase-client")
         logger.info(
             "ContextBase initialized: mode=%s, api_url=%s, bank=%s, budget=%s, memory_mode=%s, prefetch_method=%s, client=%s",
             self._mode,
@@ -2026,7 +2026,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         )
 
     def _close_client(self) -> None:
-        """Both modes now hold a plain ``hindsight_client.Hindsight``, so one aclose on the
+        """Both modes now hold a plain ``contextbase_client.ContextBase``, so one aclose on the
         shared loop is the whole story. The old local_embedded branch existed because
         ``HindsightEmbedded.close()`` closed its inner sync client from the calling thread
         ("attached to a different loop" before aiohttp released the session); there is no

@@ -13,7 +13,7 @@ def msg(role: str, text: str) -> Message:
 
 
 def recall_response(*texts: str):
-    """A stand-in for hindsight_client RecallResponse with .results[].text."""
+    """A stand-in for contextbase_client RecallResponse with .results[].text."""
     return types.SimpleNamespace(results=[types.SimpleNamespace(text=t) for t in texts])
 
 

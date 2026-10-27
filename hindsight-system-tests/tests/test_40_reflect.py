@@ -17,8 +17,7 @@ the mechanism around it.
 from __future__ import annotations
 
 import pytest
-from hindsight_client_api.exceptions import ApiException
-
+from contextbase_client_api.exceptions import ApiException
 from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 

@@ -21,7 +21,7 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from hindsight_client_api.api.bank_templates_api import BankTemplatesApi
+from contextbase_client_api.api.bank_templates_api import BankTemplatesApi
 
 pytestmark = pytest.mark.asyncio
 
@@ -250,7 +250,7 @@ async def test_a_misspelled_strategy_is_refused_instead_of_stored(client, config
     """`consolidation_strategies` is a free-form list in the config store, so a
     typo used to be accepted and then ignored for the life of the bank: the
     strategy simply never applied, with nothing to show why."""
-    from hindsight_client_api.exceptions import BadRequestException
+    from contextbase_client_api.exceptions import BadRequestException
 
     with pytest.raises(BadRequestException) as caught:
         await client.banks.update_bank_config(

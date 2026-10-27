@@ -6,7 +6,7 @@ only one wrapper forwards is silently dropped for every consumer of the other.
 
 from unittest.mock import MagicMock
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_recall(monkeypatch, client, captured):
@@ -18,7 +18,7 @@ def _capture_recall(monkeypatch, client, captured):
 
 
 def test_recall_threads_temporal_window(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 
@@ -35,7 +35,7 @@ def test_recall_threads_temporal_window(monkeypatch):
 
 
 def test_recall_temporal_window_defaults_none(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 

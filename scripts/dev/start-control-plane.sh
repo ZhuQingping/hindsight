@@ -14,7 +14,7 @@ if [ ! -f "$ROOT_DIR/.env" ]; then
 fi
 
 echo "🔨 Building TypeScript SDK first to ensure it's up to date..."
-npm run build -w @vectorize-io/hindsight-client
+npm run build -w contextbase-client
 echo "✅ SDK built successfully"
 echo ""
 

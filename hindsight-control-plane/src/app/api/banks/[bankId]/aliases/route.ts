@@ -1,7 +1,7 @@
 import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
-import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 export async function GET(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
   try {

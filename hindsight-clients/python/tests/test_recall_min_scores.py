@@ -3,8 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 def _capture_recall(monkeypatch, client, captured):
@@ -16,7 +15,7 @@ def _capture_recall(monkeypatch, client, captured):
 
 
 def test_recall_threads_min_scores(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 
@@ -36,7 +35,7 @@ def test_recall_threads_min_scores(monkeypatch):
 
 
 def test_recall_min_scores_defaults_none(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 
@@ -46,7 +45,7 @@ def test_recall_min_scores_defaults_none(monkeypatch):
 
 
 def test_recall_min_scores_rejects_unknown_key(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     captured: dict[str, object] = {}
     _capture_recall(monkeypatch, client, captured)
 

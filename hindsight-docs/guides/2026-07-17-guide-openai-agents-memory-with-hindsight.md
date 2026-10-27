@@ -21,7 +21,7 @@ This guide walks through installing the package, pointing it at your Hindsight b
 > **Quick answer**
 >
 > 1. `pip install hindsight-openai-agents openai-agents`.
-> 2. Create a `Hindsight` client pointed at your backend and create a bank.
+> 2. Create a `ContextBase` client pointed at your backend and create a bank.
 > 3. Build tools with `create_hindsight_tools(client=client, bank_id="...")`.
 > 4. Pass them to `Agent(tools=tools)` — the agent gets retain, recall, and reflect.
 > 5. Verify that a later run recalls what an earlier one stored.
@@ -42,16 +42,16 @@ Install the integration alongside the Agents SDK itself.
 pip install hindsight-openai-agents openai-agents
 ```
 
-`hindsight-openai-agents` pulls in `openai-agents` and `hindsight-client`, so you get the memory tools and the Hindsight client in one install.
+`hindsight-openai-agents` pulls in `openai-agents` and `contextbase-client`, so you get the memory tools and the Hindsight client in one install.
 
 ## Step 2: Create a client and a bank
 
-Point a `Hindsight` client at your backend, then create the memory bank the agent will use. `acreate_bank` is idempotent, so it is safe to call on every startup.
+Point a `ContextBase` client at your backend, then create the memory bank the agent will use. `acreate_bank` is idempotent, so it is safe to call on every startup.
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 await client.acreate_bank(bank_id="user-123")
 ```
 
@@ -64,11 +64,11 @@ Create the memory tools with `create_hindsight_tools()` and pass them to your `A
 ```python
 import asyncio
 from agents import Agent, Runner
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_openai_agents import create_hindsight_tools
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     tools = create_hindsight_tools(client=client, bank_id="user-123")
@@ -86,7 +86,7 @@ async def main():
     result = await Runner.run(agent, "Remember that I prefer dark mode")
     print(result.final_output)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall. In production, this delay is only
     # needed when retain and recall happen back-to-back in the same script.
@@ -203,7 +203,7 @@ Each bank is an isolated memory store. Give each agent or user its own `bank_id`
 
 ### Do I need Hindsight Cloud?
 
-No. A self-hosted Hindsight server works too — point the `Hindsight` client at your server's `base_url`.
+No. A self-hosted Hindsight server works too — point the `ContextBase` client at your server's `base_url`.
 
 ### Do I have to pass a client to every call?
 

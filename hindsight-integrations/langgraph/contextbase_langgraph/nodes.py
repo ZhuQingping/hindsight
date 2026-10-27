@@ -7,13 +7,13 @@ inject memories at conversation start and store new memories after responses.
 import logging
 from typing import Any, Optional
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, RemoveMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import MessagesState
 
 from ._client import resolve_client
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def _extract_text_content(content: Any) -> str:
 def create_recall_node(
     *,
     bank_id: Optional[str] = None,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     budget: str = "mid",
@@ -174,7 +174,7 @@ def create_recall_node(
             return {"messages": [SystemMessage(content=memory_text, id="contextbase_memory_context")]}
         except Exception as e:
             logger.error(f"Recall node failed: {e}")
-            raise HindsightError(f"Recall node failed: {e}") from e
+            raise ContextBaseError(f"Recall node failed: {e}") from e
 
     return recall_node
 
@@ -182,7 +182,7 @@ def create_recall_node(
 def create_retain_node(
     *,
     bank_id: Optional[str] = None,
-    client: Optional[Hindsight] = None,
+    client: Optional[ContextBase] = None,
     contextbase_api_url: Optional[str] = None,
     api_key: Optional[str] = None,
     tags: Optional[list[str]] = None,
@@ -266,7 +266,7 @@ def create_retain_node(
             await resolved_client.aretain(**retain_kwargs)
         except Exception as e:
             logger.error(f"Retain node failed: {e}")
-            raise HindsightError(f"Retain node failed: {e}") from e
+            raise ContextBaseError(f"Retain node failed: {e}") from e
 
         return {"messages": []}
 

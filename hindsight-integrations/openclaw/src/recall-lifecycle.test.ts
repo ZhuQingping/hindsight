@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -87,9 +87,9 @@ describe("automatic recall service lifecycle", () => {
   it("shares a recall within the running service", async () => {
     const response = deferred<typeof memory>();
     const started = deferred<void>();
-    const recall = vi.spyOn(HindsightClient.prototype, "recall").mockImplementation(() => {
+    const recall = vi.spyOn(ContextBaseClient.prototype, "recall").mockImplementation(() => {
       started.resolve();
-      return response.promise as ReturnType<HindsightClient["recall"]>;
+      return response.promise as ReturnType<ContextBaseClient["recall"]>;
     });
     const first = run();
     await started.promise;
@@ -106,10 +106,10 @@ describe("automatic recall service lifecycle", () => {
     const response = deferred<typeof memory>();
     const started = deferred<void>();
     let signal: AbortSignal | undefined;
-    vi.spyOn(HindsightClient.prototype, "recall").mockImplementation((_bank, _query, options) => {
+    vi.spyOn(ContextBaseClient.prototype, "recall").mockImplementation((_bank, _query, options) => {
       signal = options?.signal;
       started.resolve();
-      return response.promise as ReturnType<HindsightClient["recall"]>;
+      return response.promise as ReturnType<ContextBaseClient["recall"]>;
     });
     const pending = run();
     await started.promise;
@@ -125,12 +125,12 @@ describe("automatic recall service lifecycle", () => {
       const fresh = deferred<typeof memory>();
       const started = deferred<void>();
       const recall = vi
-        .spyOn(HindsightClient.prototype, "recall")
+        .spyOn(ContextBaseClient.prototype, "recall")
         .mockImplementationOnce(() => {
           started.resolve();
-          return old.promise as ReturnType<HindsightClient["recall"]>;
+          return old.promise as ReturnType<ContextBaseClient["recall"]>;
         })
-        .mockImplementation(() => fresh.promise as ReturnType<HindsightClient["recall"]>);
+        .mockImplementation(() => fresh.promise as ReturnType<ContextBaseClient["recall"]>);
       const previous = run();
       await started.promise;
       if (stopFirst) await service.stop();
@@ -155,7 +155,9 @@ describe("automatic recall service lifecycle", () => {
       globalThis as unknown as { __contextbaseClient: { waitForReady(): Promise<void> } }
     ).__contextbaseClient;
     vi.spyOn(globalClient, "waitForReady").mockReturnValue(ready.promise);
-    const recall = vi.spyOn(HindsightClient.prototype, "recall").mockResolvedValue(memory as never);
+    const recall = vi
+      .spyOn(ContextBaseClient.prototype, "recall")
+      .mockResolvedValue(memory as never);
     const pending = run();
     await service.stop();
     ready.resolve();

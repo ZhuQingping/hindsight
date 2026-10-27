@@ -9,7 +9,7 @@
  *   - experimental.session.compacting → inject memories into compaction context
  */
 
-import type { HindsightClient } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient } from "contextbase-client";
 import type { ContextBaseConfig } from "./config.js";
 import { Logger } from "./logger.js";
 import {
@@ -84,7 +84,7 @@ export interface ContextBaseHooks {
 }
 
 export function createHooks(
-  contextbaseClient: HindsightClient,
+  contextbaseClient: ContextBaseClient,
   bankId: string,
   config: ContextBaseConfig,
   state: PluginState,

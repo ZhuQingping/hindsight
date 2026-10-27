@@ -13,7 +13,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from contextbase_hermes import embedded
 
 
@@ -24,7 +23,7 @@ def test_the_probe_requires_only_the_client_and_the_daemon_manager(monkeypatch):
     monkeypatch.setattr(embedded.importlib, "import_module", lambda name: asked.append(name))
 
     assert embedded._check_local_runtime() == embedded.LocalRuntimeStatus(available=True)
-    assert asked == ["hindsight_client", "hindsight_embed.daemon_embed_manager"]
+    assert asked == ["contextbase_client", "hindsight_embed.daemon_embed_manager"]
 
 
 def test_a_missing_plugin_package_reports_it_with_the_repair_hint(monkeypatch):

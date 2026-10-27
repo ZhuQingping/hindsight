@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { nativeFileDownloadPath } from "@/lib/file-download";
-import { DATAPLANE_URL, dataplaneBankUrl, getDataplaneHeaders } from "@/lib/hindsight-client";
+import { DATAPLANE_URL, dataplaneBankUrl, getDataplaneHeaders } from "@/lib/contextbase-client";
 
 // The dataplane export is asynchronous (a large whole-bank export can pin the API,
 // so the synchronous endpoint was removed). We hide that from the browser: submit

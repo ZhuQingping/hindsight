@@ -20,7 +20,7 @@ This guide walks through copying the nodes into a Flowise checkout, creating the
 
 > **Quick answer**
 >
-> 1. Copy the Hindsight Retain, Recall, and Reflect nodes plus the credential class into a Flowise checkout, then `pnpm add @vectorize-io/hindsight-client`, `pnpm install`, `pnpm build`, `pnpm start`.
+> 1. Copy the Hindsight Retain, Recall, and Reflect nodes plus the credential class into a Flowise checkout, then `pnpm add contextbase-client`, `pnpm install`, `pnpm build`, `pnpm start`.
 > 2. Create a **Hindsight API** credential with your API URL and `hsk_...` key.
 > 3. Attach the three tool nodes to a Conversational Agent, all sharing that credential.
 > 4. Set a Default Bank ID like `user-${sessionId}` on each node so memory is per user.
@@ -52,7 +52,7 @@ cp /path/to/hindsight/hindsight-integrations/flowise/credentials/HindsightApi.cr
   packages/components/credentials/
 
 # Add the client dep
-cd packages/components && pnpm add @vectorize-io/hindsight-client
+cd packages/components && pnpm add contextbase-client
 cd ../.. && pnpm install && pnpm build
 pnpm start  # opens http://localhost:3000
 ```

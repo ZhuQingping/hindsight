@@ -11,13 +11,12 @@ error to catch it. The `client-coverage-check` CI tool only validates request
 from unittest.mock import MagicMock
 
 import pytest
-
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 
 @pytest.fixture
 def captured(monkeypatch):
-    client = Hindsight(base_url="http://example.invalid")
+    client = ContextBase(base_url="http://example.invalid")
     seen: dict[str, object] = {}
 
     async def fake_list(**kwargs):

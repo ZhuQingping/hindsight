@@ -7,19 +7,15 @@ This tests the client's ability to parse reflect responses from:
 """
 
 import pytest
-from hindsight_client_api.models.reflect_response import ReflectResponse
-from hindsight_client_api.models.reflect_based_on import ReflectBasedOn
+from contextbase_client_api.models.reflect_based_on import ReflectBasedOn
+from contextbase_client_api.models.reflect_response import ReflectResponse
 
 
 def test_parse_v4_format_with_empty_based_on():
     """Test parsing v0.4.0+ format with empty based_on object."""
     response_data = {
         "text": "I don't have any information about that.",
-        "based_on": {
-            "memories": [],
-            "mental_models": [],
-            "directives": []
-        }
+        "based_on": {"memories": [], "mental_models": [], "directives": []},
     }
 
     response = ReflectResponse.from_dict(response_data)
@@ -34,10 +30,7 @@ def test_parse_v4_format_with_empty_based_on():
 
 def test_parse_v4_format_with_null_based_on():
     """Test parsing v0.4.0+ format with null based_on (include.facts not set)."""
-    response_data = {
-        "text": "Hello!",
-        "based_on": None
-    }
+    response_data = {"text": "Hello!", "based_on": None}
 
     response = ReflectResponse.from_dict(response_data)
     assert response is not None
@@ -57,24 +50,12 @@ def test_parse_v4_format_with_populated_based_on():
                     "type": "world",
                     "context": None,
                     "occurred_start": None,
-                    "occurred_end": None
+                    "occurred_end": None,
                 }
             ],
-            "mental_models": [
-                {
-                    "id": "mm-456",
-                    "text": "AI transforms industries",
-                    "context": "technology trends"
-                }
-            ],
-            "directives": [
-                {
-                    "id": "dir-789",
-                    "name": "Be concise",
-                    "content": "Keep responses brief"
-                }
-            ]
-        }
+            "mental_models": [{"id": "mm-456", "text": "AI transforms industries", "context": "technology trends"}],
+            "directives": [{"id": "dir-789", "name": "Be concise", "content": "Keep responses brief"}],
+        },
     }
 
     response = ReflectResponse.from_dict(response_data)
@@ -102,7 +83,7 @@ def test_parse_v3_format_with_empty_list_fails():
     """
     response_data = {
         "text": "No information available.",
-        "based_on": []  # v0.3.0 format - incompatible with v0.4.0+ client
+        "based_on": [],  # v0.3.0 format - incompatible with v0.4.0+ client
     }
 
     with pytest.raises(Exception) as exc_info:

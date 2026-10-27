@@ -16,7 +16,7 @@ from pydantic import Field, PrivateAttr
 
 from ._compat import call_sync
 from .config import DEFAULT_CONTEXTBASE_API_URL, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class ContextBaseReflectTool(BaseTool):
         """Get or create a thread-local ContextBase client."""
         client = getattr(self._local, "client", None)
         if client is None:
-            from hindsight_client import Hindsight
+            from contextbase_client import ContextBase
 
             config = get_config()
             api_url = self.contextbase_api_url or (
@@ -83,7 +83,7 @@ class ContextBaseReflectTool(BaseTool):
 
             if not api_url:
                 raise ValueError("Configure the ContextBase API URL explicitly before connecting.")
-            client = Hindsight(
+            client = ContextBase(
                 base_url=api_url,
                 api_key=api_key,
                 timeout=30.0,
@@ -102,7 +102,7 @@ class ContextBaseReflectTool(BaseTool):
             The synthesized reflect response text.
 
         Raises:
-            HindsightError: If the reflect operation fails.
+            ContextBaseError: If the reflect operation fails.
         """
         reflect_kwargs: dict[str, Any] = {
             "bank_id": self.bank_id,
@@ -126,4 +126,4 @@ class ContextBaseReflectTool(BaseTool):
 
         except Exception as e:
             logger.error(f"Reflect failed: {e}")
-            raise HindsightError(f"Reflect failed: {e}") from e
+            raise ContextBaseError(f"Reflect failed: {e}") from e

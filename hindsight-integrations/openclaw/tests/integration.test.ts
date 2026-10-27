@@ -3,7 +3,7 @@
  *
  * Exercises both HTTP mode (direct API calls) and Embed mode (local daemon
  * spawned via HindsightServer), talking to ContextBase through
- * `@vectorize-io/hindsight-client`.
+ * `contextbase-client`.
  *
  * Requirements:
  *   HTTP mode:  Running ContextBase API at CONTEXTBASE_API_URL (default: http://localhost:8888)
@@ -18,7 +18,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { HindsightServer } from "@vectorize-io/hindsight-all";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -67,7 +67,7 @@ async function waitForApi(url: string, maxMs = 5000): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 describe("openclaw integration — HTTP mode", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeAll(async () => {
     const reachable = await waitForApi(CONTEXTBASE_API_URL);
@@ -78,7 +78,7 @@ describe("openclaw integration — HTTP mode", () => {
       );
     }
 
-    client = new HindsightClient({ baseUrl: CONTEXTBASE_API_URL });
+    client = new ContextBaseClient({ baseUrl: CONTEXTBASE_API_URL });
   });
 
   it("should retain a conversation", async () => {
@@ -182,7 +182,7 @@ describe("openclaw integration — HTTP mode", () => {
 // ---------------------------------------------------------------------------
 
 describe("openclaw integration — embed mode", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
   let server: HindsightServer;
 
   const hasEmbedCredentials = Boolean(LLM_PROVIDER && LLM_API_KEY);
@@ -211,7 +211,7 @@ describe("openclaw integration — embed mode", () => {
 
     await server.start();
 
-    client = new HindsightClient({ baseUrl: server.getBaseUrl() });
+    client = new ContextBaseClient({ baseUrl: server.getBaseUrl() });
   }, 120_000); // daemon startup can take up to 2 minutes
 
   afterAll(async () => {

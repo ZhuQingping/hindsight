@@ -1,8 +1,8 @@
 import { controlPlaneEnv } from "@/lib/control-plane-env";
 import { localProductName } from "@/lib/product-config-server";
 import { NextResponse } from "next/server";
-import { createClient, createConfig, sdk } from "@vectorize-io/hindsight-client";
-import { getDataplaneHeaders } from "@/lib/hindsight-client";
+import { createClient, createConfig, sdk } from "contextbase-client";
+import { getDataplaneHeaders } from "@/lib/contextbase-client";
 
 const HEALTH_CHECK_TIMEOUT_MS = 3000;
 

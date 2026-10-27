@@ -8,18 +8,18 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field
 
 import httpx
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 from .deployment import ContextDBDeployment
 
 
 @dataclass
 class MemberClients:
-    own: Hindsight
-    same_bank: Hindsight
-    other_bank: Hindsight
-    read_only: Hindsight
-    knowledge_reader: Hindsight
+    own: ContextBase
+    same_bank: ContextBase
+    other_bank: ContextBase
+    read_only: ContextBase
+    knowledge_reader: ContextBase
     bank_id: str
     other_bank_id: str
     own_key: str = field(repr=False)
@@ -76,8 +76,8 @@ async def clients_owner(contextdb_deployment: ContextDBDeployment) -> AsyncItera
             assert response.status_code == 201, response.text
             return response.json()["secret"]
 
-        def client_for(key: str) -> Hindsight:
-            client = Hindsight(base_url=base, api_key=key)
+        def client_for(key: str) -> ContextBase:
+            client = ContextBase(base_url=base, api_key=key)
             resources.push_async_callback(client.aclose)
             return client
 

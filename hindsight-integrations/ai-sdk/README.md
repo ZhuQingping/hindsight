@@ -7,17 +7,17 @@ Give your AI agents persistent, human-like memory using [ContextBase](https://gi
 ## Quick Start
 
 ```bash
-npm install contextbase-ai-sdk @vectorize-io/hindsight-client ai zod
+npm install contextbase-ai-sdk contextbase-client ai zod
 ```
 
 ```typescript
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { createContextBaseTools } from "contextbase-ai-sdk";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 // 1. Initialize ContextBase client
-const contextbaseClient = new HindsightClient({
+const contextbaseClient = new ContextBaseClient({
   apiUrl: "http://localhost:8000",
 });
 

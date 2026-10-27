@@ -7,7 +7,7 @@
 
 import { tool } from "@opencode-ai/plugin/tool";
 import type { ToolDefinition } from "@opencode-ai/plugin/tool";
-import type { HindsightClient } from "@vectorize-io/hindsight-client";
+import type { ContextBaseClient } from "contextbase-client";
 import type { ContextBaseConfig } from "./config.js";
 import { formatMemories, formatCurrentTime } from "./content.js";
 import { ensureBankMission } from "./bank.js";
@@ -23,7 +23,7 @@ export interface ContextBaseTools {
 }
 
 export function createTools(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bankId: string,
   config: ContextBaseConfig,
   missionsSet?: Set<string>,

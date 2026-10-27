@@ -1,5 +1,5 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
-import { HindsightClient } from "@vectorize-io/hindsight-client";
+import { ContextBaseClient } from "contextbase-client";
 import { z } from "zod";
 
 import { ICommonObject, INode, INodeData, INodeParams } from "../../../src/Interface";
@@ -81,7 +81,7 @@ class ContextBaseReflect_Tools implements INode {
     const defaultBudget = ((nodeData.inputs?.budget as string) || "mid") as "low" | "mid" | "high";
 
     if (!apiUrl.trim()) throw new Error("Configure the ContextBase API URL in credentials.");
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       baseUrl: apiUrl,
       ...(apiKey ? { apiKey } : {}),
       userAgent: USER_AGENT,

@@ -17,7 +17,7 @@ import asyncio
 import os
 import time
 
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 
 # Far longer than the system tests use, and for a concrete reason: there a stub
 # answers instantly, so 90s is generous. Here a settle waits on real fact
@@ -39,7 +39,7 @@ _BUSY_STATUSES = ("pending", "processing")
 
 
 async def wait_until_settled(
-    client: Hindsight,
+    client: ContextBase,
     bank_id: str,
     *,
     timeout: float = SETTLE_TIMEOUT_SECONDS,

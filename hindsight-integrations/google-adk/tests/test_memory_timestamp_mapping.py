@@ -5,13 +5,13 @@ from datetime import datetime
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
+from contextbase_client import ContextBase
+from contextbase_client_api.models.memory_item import MemoryItem
+from contextbase_client_api.models.retain_request import RetainRequest
+from contextbase_client_api.models.retain_response import RetainResponse
+from contextbase_google_adk import ContextBaseMemoryService
 from google.adk.memory.memory_entry import MemoryEntry
 from google.genai import types
-from hindsight_client import Hindsight
-from hindsight_client_api.models.memory_item import MemoryItem
-from hindsight_client_api.models.retain_request import RetainRequest
-from hindsight_client_api.models.retain_response import RetainResponse
-from contextbase_google_adk import ContextBaseMemoryService
 
 
 @pytest.mark.parametrize(
@@ -38,7 +38,7 @@ async def test_explicit_memory_preserves_timestamp(timestamp: str | None, expect
     app = web.Application()
     app.router.add_post("/v1/default/banks/app::user/memories", retain)
     async with TestServer(app) as server:
-        client = Hindsight(base_url=str(server.make_url("")))
+        client = ContextBase(base_url=str(server.make_url("")))
         service = ContextBaseMemoryService(client=client)
         try:
             entry = MemoryEntry(

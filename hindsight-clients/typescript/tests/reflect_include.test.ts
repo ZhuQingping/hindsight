@@ -7,11 +7,11 @@
  * mapping. No server required: sdk.reflect is mocked.
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
-function makeClient(): HindsightClient {
-  return new HindsightClient({ baseUrl: "http://localhost:8888" });
+function makeClient(): ContextBaseClient {
+  return new ContextBaseClient({ baseUrl: "http://localhost:8888" });
 }
 
 function capturedInclude(spy: jest.SpyInstance): any {

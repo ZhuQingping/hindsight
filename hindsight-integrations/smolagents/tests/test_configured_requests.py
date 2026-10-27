@@ -5,9 +5,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 
 import pytest
-from hindsight_client import Hindsight
-from hindsight_client_api.models.recall_request import RecallRequest
-from hindsight_client_api.models.reflect_request import ReflectRequest
+from contextbase_client import ContextBase
+from contextbase_client_api.models.recall_request import RecallRequest
+from contextbase_client_api.models.reflect_request import ReflectRequest
 from contextbase_smolagents import configure, create_contextbase_tools, reset_config
 
 
@@ -41,7 +41,7 @@ def test_factory_configuration_reaches_api(explicit: bool) -> None:
     reset_config()
     try:
         configure(budget="high", max_tokens=1234, recall_tags=["team"], recall_tags_match="all")
-        client = Hindsight(base_url=f"http://127.0.0.1:{server.server_port}", timeout=2.0)
+        client = ContextBase(base_url=f"http://127.0.0.1:{server.server_port}", timeout=2.0)
         if explicit:
             created_tools = create_contextbase_tools(
                 bank_id="test", client=client, budget="mid", max_tokens=4096, recall_tags_match="any"

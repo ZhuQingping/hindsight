@@ -8,12 +8,12 @@ typed VersionResponse (parity with the TypeScript client's getVersion helper).
 
 from unittest.mock import AsyncMock
 
-from hindsight_client import Hindsight, VersionResponse
-from hindsight_client_api.models.features_info import FeaturesInfo
+from contextbase_client import ContextBase, VersionResponse
+from contextbase_client_api.models.features_info import FeaturesInfo
 
 
-def _make_client() -> Hindsight:
-    return Hindsight(base_url="http://localhost:8888")
+def _make_client() -> ContextBase:
+    return ContextBase(base_url="http://localhost:8888")
 
 
 def _version_response() -> VersionResponse:

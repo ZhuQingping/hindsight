@@ -9,7 +9,7 @@
  * "move to the root").
  */
 
-import { HindsightClient } from "../src";
+import { ContextBaseClient } from "../src";
 import * as sdk from "../generated/sdk.gen";
 
 jest.mock("../generated/sdk.gen");
@@ -24,10 +24,10 @@ const mockedSearch = sdk.searchKnowledgeBase as jest.MockedFunction<typeof sdk.s
 const mockedTree = sdk.getKnowledgeBaseTree as jest.MockedFunction<typeof sdk.getKnowledgeBaseTree>;
 
 describe("createKnowledgePage mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedCreatePage.mockReset();
     mockedCreatePage.mockResolvedValue({
       data: { page_id: "kp-1", mental_model_id: "mm-1", operation_id: "op-1" },
@@ -84,10 +84,10 @@ describe("createKnowledgePage mapping", () => {
 });
 
 describe("updateKnowledgeNode mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedUpdateNode.mockReset();
     mockedUpdateNode.mockResolvedValue({ data: { id: "kp-1", kind: "page", name: "Page" } } as any);
   });
@@ -139,10 +139,10 @@ describe("updateKnowledgeNode mapping", () => {
 });
 
 describe("searchKnowledgeBase mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedSearch.mockReset();
     mockedSearch.mockResolvedValue({ data: { results: [], total: 0 } } as any);
   });
@@ -163,13 +163,13 @@ describe("searchKnowledgeBase mapping", () => {
 });
 
 describe("knowledge-base tag filter mapping", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
   const tagGroups = [
     { or: [{ tags: ["user:kate"], match: "all_strict" as const }, { tags: ["team"] }] },
   ];
 
   beforeEach(() => {
-    client = new HindsightClient({ baseUrl: "http://localhost:8888" });
+    client = new ContextBaseClient({ baseUrl: "http://localhost:8888" });
     mockedSearch.mockReset();
     mockedSearch.mockResolvedValue({ data: { results: [], total: 0 } } as any);
     mockedTree.mockReset();

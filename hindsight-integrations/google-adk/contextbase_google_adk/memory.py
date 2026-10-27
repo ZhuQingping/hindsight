@@ -2,7 +2,7 @@
 
 Implements ``google.adk.memory.BaseMemoryService`` so any ``Runner`` configured
 with ``ContextBaseMemoryService`` gets persistent long-term memory backed by
-Hindsight. Sessions are retained on ``add_session_to_memory`` and recalled on
+ContextBase. Sessions are retained on ``add_session_to_memory`` and recalled on
 ``search_memory``; both per-event deltas and explicit ``MemoryEntry`` writes
 are supported.
 """
@@ -15,15 +15,15 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 from uuid import uuid4
 
+from contextbase_client import ContextBase
 from google.adk.memory import BaseMemoryService
 from google.adk.memory.base_memory_service import SearchMemoryResponse
 from google.adk.memory.memory_entry import MemoryEntry
 from google.genai import types
-from hindsight_client import Hindsight
 
 from ._client import resolve_client
 from .config import DEFAULT_BANK_ID_TEMPLATE, get_config
-from .errors import HindsightError
+from .errors import ContextBaseError
 
 if TYPE_CHECKING:
     from google.adk.events.event import Event
@@ -68,7 +68,7 @@ class ContextBaseMemoryService(BaseMemoryService):
             placeholders.
         context: Source label attached to retained content (``contextbase``'s
             provenance field).
-        budget: Recall budget passed to Hindsight (``low``/``mid``/``high``).
+        budget: Recall budget passed to ContextBase (``low``/``mid``/``high``).
         max_tokens: Max tokens for recall results.
         tags: Default tags added to every retain.
         recall_tags: Default tags appended to every recall query filter.
@@ -80,7 +80,7 @@ class ContextBaseMemoryService(BaseMemoryService):
     def __init__(
         self,
         *,
-        client: Optional[Hindsight] = None,
+        client: Optional[ContextBase] = None,
         bank_id_template: Optional[str] = None,
         context: Optional[str] = None,
         budget: Optional[str] = None,
@@ -91,7 +91,7 @@ class ContextBaseMemoryService(BaseMemoryService):
         mission: Optional[str] = None,
     ) -> None:
         if client is None:
-            raise HindsightError(
+            raise ContextBaseError(
                 "ContextBaseMemoryService requires a ContextBase client. "
                 "Use ContextBaseMemoryService.from_url(...) or pass client=..."
             )
@@ -108,7 +108,7 @@ class ContextBaseMemoryService(BaseMemoryService):
         self._banks_with_mission_set: set[str] = set()
 
     @classmethod
-    def from_client(cls, client: Hindsight, **kwargs: Any) -> "ContextBaseMemoryService":
+    def from_client(cls, client: ContextBase, **kwargs: Any) -> "ContextBaseMemoryService":
         """Construct from a pre-built ContextBase client."""
         return cls(client=client, **kwargs)
 

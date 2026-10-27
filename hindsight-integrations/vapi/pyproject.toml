@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "hindsight-client>=0.4.0",
+    "contextbase-client>=1.0.0,<2",
 ]
 
 [project.urls]
@@ -58,3 +58,6 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.uv.sources]
+contextbase-client = { path = "../../hindsight-clients/python", editable = true }

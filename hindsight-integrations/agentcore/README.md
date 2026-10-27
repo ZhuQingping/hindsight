@@ -207,4 +207,4 @@ Configure your ContextBase service URL and credentials from your deployment admi
 ## Requirements
 
 - Python 3.10+
-- `hindsight-client>=0.4.0`
+- `contextbase-client>=0.4.0`

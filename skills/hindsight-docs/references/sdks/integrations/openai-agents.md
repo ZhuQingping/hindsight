@@ -20,18 +20,18 @@ Persistent long-term memory for [OpenAI Agents SDK](https://github.com/openai/op
 pip install hindsight-openai-agents openai-agents
 ```
 
-`hindsight-openai-agents` pulls in `openai-agents` and `hindsight-client`.
+`hindsight-openai-agents` pulls in `openai-agents` and `contextbase-client`.
 
 ## Quick Start
 
 ```python
 import asyncio
 from agents import Agent, Runner
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_openai_agents import create_hindsight_tools
 
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
     await client.acreate_bank(bank_id="user-123")
 
     tools = create_hindsight_tools(client=client, bank_id="user-123")
@@ -46,7 +46,7 @@ async def main():
     result = await Runner.run(agent, "Remember that I prefer dark mode")
     print(result.final_output)
 
-    # Hindsight processes retained content asynchronously (fact extraction,
+    # ContextBase processes retained content asynchronously (fact extraction,
     # entity resolution, embeddings). A brief pause ensures memories are
     # searchable before the next recall. In production, this delay is only
     # needed when retain and recall happen back-to-back in the same script.
@@ -152,7 +152,7 @@ tools = create_hindsight_tools(
 Tools surface errors to the agent as tool error results. The OpenAI Agents SDK catches exceptions from tools automatically and returns them as error strings, allowing the agent to handle failures gracefully:
 
 ```python
-from hindsight_openai_agents.errors import HindsightError
+from hindsight_openai_agents.errors import ContextBaseError
 
 # The agent will see error messages and can decide how to proceed
 result = await Runner.run(agent, "What do you remember about me?")
@@ -165,7 +165,7 @@ Create banks before first use and clean up when done:
 
 ```python
 async def main():
-    client = Hindsight(base_url="http://localhost:8888")
+    client = ContextBase(base_url="http://localhost:8888")
 
     # Create bank (idempotent)
     await client.acreate_bank(bank_id="user-123")
@@ -255,4 +255,4 @@ shared_tools = create_hindsight_tools(
 
 - Python >= 3.10
 - openai-agents >= 0.7.0
-- hindsight-client >= 0.4.0
+- contextbase-client >= 0.4.0

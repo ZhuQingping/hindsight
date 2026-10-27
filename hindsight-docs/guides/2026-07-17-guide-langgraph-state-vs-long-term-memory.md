@@ -66,10 +66,10 @@ LangGraph already distinguishes these two layers in its own API. The **checkpoin
 You pass both to `compile()` — checkpointer for short-term, store for long-term — and they coexist:
 
 ```python
-from hindsight_client import Hindsight
+from contextbase_client import ContextBase
 from hindsight_langgraph import HindsightStore
 
-client = Hindsight(base_url="http://localhost:8888")
+client = ContextBase(base_url="http://localhost:8888")
 store = HindsightStore(client=client)
 
 graph = builder.compile(checkpointer=checkpointer, store=store)
