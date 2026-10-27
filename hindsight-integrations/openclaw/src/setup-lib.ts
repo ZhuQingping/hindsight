@@ -45,15 +45,7 @@ export interface OpenClawConfigShape {
   [key: string]: unknown;
 }
 
-export type SetupMode = "cloud" | "api" | "embedded";
-
-export const NO_KEY_PROVIDERS: ReadonlySet<string> = new Set([
-  "claude-code",
-  "cursor",
-  "github-copilot",
-  "openai-codex",
-  "ollama",
-]);
+export type SetupMode = "cloud" | "api";
 
 export async function loadConfig(path: string): Promise<OpenClawConfigShape> {
   try {
@@ -125,6 +117,14 @@ export function clearLocalLlmFields(pluginConfig: Record<string, unknown>): void
   delete pluginConfig.llmModel;
   delete pluginConfig.llmApiKey;
   delete pluginConfig.llmBaseUrl;
+  for (const key of [
+    "embedPort",
+    "daemonIdleTimeout",
+    "embedVersion",
+    "embedPackagePath",
+    "apiPort",
+  ])
+    delete pluginConfig[key];
 }
 
 const ENV_VAR_RE = /^[A-Z][A-Z0-9_]*$/;
@@ -164,13 +164,6 @@ export interface ApiSetupInput {
   apiUrl: string;
   token?: string;
   tokenEnvVar?: string;
-}
-
-export interface EmbeddedSetupInput {
-  llmProvider: string;
-  apiKey?: string;
-  apiKeyEnvVar?: string;
-  llmModel?: string;
 }
 
 function pickCredential(
@@ -217,41 +210,12 @@ export function applyCloudMode(
 export function applyApiMode(pluginConfig: Record<string, unknown>, input: ApiSetupInput): void {
   const token = pickCredential(input.token, input.tokenEnvVar);
   clearLocalLlmFields(pluginConfig);
+  if (!input.apiUrl.trim()) throw new Error("ContextBase API URL is required");
   pluginConfig.contextbaseApiUrl = input.apiUrl.trim();
   if (token !== undefined) {
     pluginConfig.contextbaseApiToken = token;
   } else {
     delete pluginConfig.contextbaseApiToken;
-  }
-}
-
-/**
- * Apply the embedded-daemon mode to a plugin config in place: sets
- * `llmProvider`, optional `llmApiKey` (plaintext or SecretRef), optional
- * `llmModel`, and strips any external-API settings so mode switches don't
- * carry stale state.
- */
-export function applyEmbeddedMode(
-  pluginConfig: Record<string, unknown>,
-  input: EmbeddedSetupInput
-): void {
-  const key = pickCredential(input.apiKey, input.apiKeyEnvVar);
-  clearCloudFields(pluginConfig);
-  pluginConfig.llmProvider = input.llmProvider;
-  if (NO_KEY_PROVIDERS.has(input.llmProvider)) {
-    delete pluginConfig.llmApiKey;
-  } else {
-    if (key === undefined) {
-      throw new Error(
-        `llmProvider "${input.llmProvider}" requires either \`apiKey\` or \`apiKeyEnvVar\``
-      );
-    }
-    pluginConfig.llmApiKey = key;
-  }
-  if (input.llmModel && input.llmModel.trim().length > 0) {
-    pluginConfig.llmModel = input.llmModel.trim();
-  } else {
-    delete pluginConfig.llmModel;
   }
 }
 
@@ -272,14 +236,4 @@ export function summarizeCloud(input: CloudSetupInput): string {
 
 export function summarizeApi(input: ApiSetupInput): string {
   return `External API → ${input.apiUrl.trim()}${credentialSuffix(input.token, input.tokenEnvVar)}`;
-}
-
-export function summarizeEmbedded(input: EmbeddedSetupInput): string {
-  if (NO_KEY_PROVIDERS.has(input.llmProvider)) {
-    return `Embedded daemon → ${input.llmProvider}`;
-  }
-  const keyHint = input.apiKeyEnvVar
-    ? ` (key from \${${input.apiKeyEnvVar.trim()}})`
-    : " (key stored inline)";
-  return `Embedded daemon → ${input.llmProvider}${keyHint}`;
 }

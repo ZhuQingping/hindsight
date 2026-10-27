@@ -30,7 +30,7 @@ const page = join(here, '..', 'docs-integrations', 'hermes.md');
 const FRONTMATTER = `---
 sidebar_position: 10
 title: "Hermes Agent Persistent Memory with ContextBase | Integration"
-description: "Add long-term memory to Hermes Agent with ContextBase. Install from the Hermes plugin catalog, then recall context automatically before every turn and retain conversations for future sessions."
+description: "Add long-term memory to Hermes Agent with ContextBase. Install the service provider's build, then recall context automatically before every turn and retain conversations for future sessions."
 ---
 
 {/* GENERATED from hindsight-integrations/hermes/README.md — edit that file, then run
@@ -45,19 +45,7 @@ const DROP_SECTIONS = ['Development'];
  * plugin directory (the Desktop app is a different surface, and the old pip plugin is a docs-era
  * migration note pointing at a guide that only exists on the site).
  */
-const SITE_ONLY_INTRO = `:::tip
-Using the **Hermes desktop app**? You can select and configure ContextBase entirely in Settings — no
-terminal required. See [Hermes Desktop](/sdks/integrations/hermes-desktop).
-:::
-
-:::warning Deprecated: the standalone \`contextbase-hermes\` plugin
-The old **\`contextbase-hermes\`** pip plugin (installed into the Hermes virtual environment and
-registered through the \`hermes_agent.plugins\` entry point) is **deprecated** — on current Hermes
-builds its tools fail with \`{"error": "Timeout context manager should be used inside a task"}\`.
-Follow [Migrate contextbase-hermes to Native Hermes Memory](/guides/2026/04/14/guide-migrate-contextbase-hermes-to-native-hermes-memory)
-to switch over while keeping the same memory bank.
-:::
-`;
+const SITE_ONLY_INTRO = "";
 
 function build() {
   const src = readFileSync(readme, 'utf8');

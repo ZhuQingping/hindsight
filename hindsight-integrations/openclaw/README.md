@@ -1,345 +1,54 @@
-# ContextBase Memory Plugin for OpenClaw
+# ContextBase for OpenClaw
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+Connect OpenClaw to your ContextBase service for automatic memory recall and conversation retention. Node.js 22+ is required. The plugin includes its ContextBase SDK and requires no local memory server or LLM credentials.
 
-Biomimetic long-term memory for [OpenClaw](https://openclaw.ai) using [ContextBase](https://github.com/RSIXDB/hindsight). Automatically captures conversations and intelligently recalls relevant context.
+## Install
 
-## Quick Start
-
-```bash
-# 1. Install the plugin
-openclaw plugins install contextbase-openclaw
-
-# 2. Run the interactive setup wizard
-npx --package contextbase-openclaw contextbase-openclaw-setup
-
-# 3. Start OpenClaw
-openclaw gateway
-```
-
-`contextbase-openclaw-setup` walks you through picking one of three modes:
-
-- **Cloud** — managed ContextBase. Paste your cloud API token, done.
-- **External API** — your own running ContextBase deployment. Prompts for the URL and optional token.
-- **Embedded daemon** — spawns a local `hindsight-embed` daemon on this machine. Prompts for the LLM provider (OpenAI / Anthropic / Gemini / Groq / Claude Code / Codex / Ollama) and its API key.
-
-The interactive wizard stores credentials **inline** in `openclaw.json` for simplicity — the value is masked as you paste it. For CI / production you can store credentials as a `SecretRef` (resolved from an env var, file, or exec source at startup) by using the non-interactive flags with `--token-env` / `--api-key-env`, or by switching an existing field afterwards with `openclaw config set ... --ref-source env --ref-id …`.
-
-### Manual configuration (without the wizard)
-
-The wizard is a convenience wrapper — all of the same fields can be set directly with `openclaw config set`:
+Download `contextbase-openclaw-candidate` from the service provider's successful build. Extract the ZIP, then install its `.tgz` through OpenClaw:
 
 ```bash
-# Embedded daemon with OpenAI
-openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai
-openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey \
-    --ref-source env --ref-provider default --ref-id OPENAI_API_KEY
-
-# Or: Claude Code (no API key needed)
-openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider claude-code
-
-# Or: point at an external ContextBase API
-openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiUrl https://mcp.hindsight.example.com
-openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken \
-    --ref-source env --ref-id CONTEXTBASE_API_TOKEN
+openclaw plugins install ./contextbase-openclaw-1.0.0.tgz
 ```
 
-## Migrating from 0.5.x
+Use the path of the extracted `.tgz` on your machine. Keep the `.tgz` compressed.
 
-0.6.0 removes all process-environment reads from the plugin. Configuration that
-previously came from shell env vars must now go through OpenClaw's plugin config
-(with SecretRef for credentials). Concrete mappings:
+## Configure
 
-| Old (0.5.x)                              | New (0.6.0)                                                                                                                                                                                                |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY=…` (auto-detected)       | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider openai` <br> `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id OPENAI_API_KEY` |
-| `CONTEXTBASE_API_LLM_PROVIDER=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmProvider …`                                                                                                                              |
-| `CONTEXTBASE_API_LLM_MODEL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.llmModel …`                                                                                                                                 |
-| `CONTEXTBASE_API_LLM_API_KEY=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.llmApiKey --ref-source env --ref-id …`                                                                                                      |
-| `CONTEXTBASE_API_LLM_BASE_URL=…`           | `openclaw config set plugins.entries.contextbase-openclaw.config.llmBaseUrl …`                                                                                                                               |
-| `CONTEXTBASE_EMBED_API_URL=…`              | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiUrl …`                                                                                                                          |
-| `CONTEXTBASE_EMBED_API_TOKEN=…`            | `openclaw config set plugins.entries.contextbase-openclaw.config.contextbaseApiToken --ref-source env --ref-id …`                                                                                              |
-| `CONTEXTBASE_BANK_ID=…`                    | `openclaw config set plugins.entries.contextbase-openclaw.config.bankId …`                                                                                                                                   |
-| `llmApiKeyEnv: "MY_KEY"` (plugin config) | `llmApiKey` configured as a SecretRef with `--ref-id MY_KEY`                                                                                                                                               |
+Use the API Endpoint, API Key and existing authorized Bank supplied by your service provider. Run the installed `contextbase-openclaw-setup` command. If the plugin's commands are not on PATH, run `node` with the installed plugin's `dist/setup.js` file.
 
-If your shell already exports `OPENAI_API_KEY`, the SecretRef config above resolves
-to the same value at startup — no need to change your shell setup, just point the
-plugin at the variable explicitly. Run `openclaw config validate` after migrating
-to confirm the new shape parses cleanly.
+```bash
+contextbase-openclaw-setup --mode cloud --api-url "https://api.example.com" --token-env CONTEXTBASE_API_TOKEN --bank-id "my-bank"
+```
 
-## Features
+Set `CONTEXTBASE_API_TOKEN` in the environment of the OpenClaw gateway process. The setup command writes an OpenClaw SecretRef, so OpenClaw resolves the token itself. In PowerShell:
 
-- **Auto-capture** and **auto-recall** of memories each turn, injected into system prompt space so recalled memories stay out of the visible chat transcript
-- **Memory isolation** — configurable per agent, channel, user, or provider via `dynamicBankGranularity`
-- **Historical backfill CLI** — import prior OpenClaw session history into ContextBase using the active plugin bank-routing config by default
-- **Retention controls** — choose which message roles to retain, toggle auto-retain on/off, and stamp retained documents with consistent tags/source metadata
+```powershell
+$env:CONTEXTBASE_API_TOKEN = 'your-api-key'
+```
 
-## Configuration
-
-Optional settings in `~/.openclaw/openclaw.json` under `plugins.entries.contextbase-openclaw.config`:
-
-| Option                     | Default                        | Description                                                                                                                                                                                                                                                                                                      |
-| -------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apiPort`                  | `9077`                         | Port for the local ContextBase daemon                                                                                                                                                                                                                                                                              |
-| `embedPort`                | `0`                            | Port for `hindsight-embed` server (`0` = auto-assign)                                                                                                                                                                                                                                                            |
-| `embedVersion`             | `"latest"`                     | hindsight-embed version                                                                                                                                                                                                                                                                                          |
-| `embedPackagePath`         | —                              | Local path to `hindsight-embed` package for development                                                                                                                                                                                                                                                          |
-| `bankMission`              | —                              | Mission stamped onto the bank's `reflect_mission` column on first use. **Only affects the `reflect` operation** — does not steer retain or recall. Leave unset (or empty) to manage missions out-of-band via `PATCH /banks/{id}`.                                                                                |
-| `retainMission`            | —                              | Mission stamped onto the bank's `retain_mission` column on first use. Steers what gets extracted as facts during retain. Leave unset to use built-in extraction rules.                                                                                                                                           |
-| `observationsMission`      | —                              | Mission stamped onto the bank's `observations_mission` column on first use. Controls what gets synthesised into observations during consolidation.                                                                                                                                                               |
-| `retainExtractionMode`     | —                              | Fact extraction mode stamped on each bank's first use: `concise`, `verbose`, `custom`, `verbatim`, or `chunks`. Use with dynamic banks so per-user banks match your analytics/base bank settings.                                                                                                                |
-| `enableObservations`       | —                              | When set, stamped on first bank use to toggle observation consolidation after retain.                                                                                                                                                                                                                            |
-| `enableAutoConsolidation`  | —                              | When set, stamped on first bank use (via bank config API) to toggle automatic consolidation scheduling.                                                                                                                                                                                                          |
-| `dispositionSkepticism`    | —                              | Reflect skepticism trait (`1`–`5`) stamped on first bank use.                                                                                                                                                                                                                                                    |
-| `dispositionLiteralism`    | —                              | Reflect literalism trait (`1`–`5`) stamped on first bank use.                                                                                                                                                                                                                                                    |
-| `dispositionEmpathy`       | —                              | Reflect empathy trait (`1`–`5`) stamped on first bank use.                                                                                                                                                                                                                                                       |
-| `entityLabels`             | —                              | Controlled vocabulary for entity labels. Either a list of attribute defs (see example below) or a `{ "attributes": [...] }` object — other shapes are ignored. Passed through to `PATCH /banks/{id}/config` as `entity_labels` on first bank use.                                                                |
-| `llmProvider`              | —                              | LLM provider for memory extraction (`openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`). Required unless `contextbaseApiUrl` is set.                                                                                                                                                 |
-| `llmModel`                 | provider default               | LLM model used with `llmProvider`                                                                                                                                                                                                                                                                                |
-| `llmApiKey`                | —                              | API key for the LLM provider. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY` to reference an env var (or `--ref-source file`/`exec` for mounted-secret/Vault sources).                                                                                               |
-| `llmBaseUrl`               | —                              | Optional base URL override for OpenAI-compatible providers (e.g. `https://openrouter.ai/api/v1`)                                                                                                                                                                                                                 |
-| `dynamicBankId`            | `true`                         | Enable per-context memory banks                                                                                                                                                                                                                                                                                  |
-| `bankId`                   | —                              | Static bank ID used when `dynamicBankId` is `false`.                                                                                                                                                                                                                                                             |
-| `bankIdPrefix`             | —                              | Prefix for bank IDs (e.g. `"prod"`)                                                                                                                                                                                                                                                                              |
-| `agentBankMap`             | —                              | Explicit `agentId` → `bankId` routing, checked before static/dynamic derivation. Lets a group of agents share one named bank while others keep derived banks (e.g. `{"inbound": "ps-technology", "limpieza": "ps-limpieza"}`). Mapped names are used exactly as given — `bankIdPrefix` is not applied.           |
-| `retainTags`               | `[]`                           | Tags applied to every retained document, useful for cross-agent/source labeling (e.g. `source_system:openclaw`, `agent:agentname`). Auto-retain also merges inline per-message tags from `<retain_tags>...</retain_tags>` or `<contextbase_retain_tags>...</contextbase_retain_tags>` blocks in user messages.       |
-| `retainSource`             | `"openclaw"`                   | `source` value written into retained document metadata                                                                                                                                                                                                                                                           |
-| `retainContext`            | built-in OpenClaw guidance     | Interpretation guidance sent through the ContextBase retain API `context` field. The default tells the extraction LLM that sender/channel/provider metadata, bank IDs, session keys, source systems, and tags are operational routing metadata, not human names, project names, or organizations.                  |
-| `senderPrefixPattern`      | —                              | Regex matching a human display-name prefix some channels prepend to user text (e.g. `Alice: today weather?`). Give the name part only (`Alice\|Bob`, `[A-Za-z ]{1,20}`) — the `:` and anchoring are added. Strips it from recall queries and retained transcripts. Unset strips nothing; invalid regex ignored.  |
-| `dynamicBankGranularity`   | `["agent", "channel", "user"]` | Fields used to derive bank ID. Options: `agent`, `channel`, `user`, `provider`                                                                                                                                                                                                                                   |
-| `excludeProviders`         | `["heartbeat"]`                | Message providers to skip for recall/retain (e.g. `heartbeat`, `slack`, `telegram`, `discord`)                                                                                                                                                                                                                   |
-| `autoRecall`               | `true`                         | Auto-inject memories before each turn. Set to `false` when the agent has its own recall tool.                                                                                                                                                                                                                    |
-| `autoRetain`               | `true`                         | Auto-retain conversations after each turn                                                                                                                                                                                                                                                                        |
-| `retainRoles`              | `["user", "assistant"]`        | Which message roles to retain. Options: `user`, `assistant`, `system`, `tool`                                                                                                                                                                                                                                    |
-| `retainFormat`             | `"json"`                       | Serialization format for retained conversation content. `"json"` emits a structured array of `{role, content}` messages (matches Claude Code). `"text"` emits legacy `[role: x] … [x:end]` markers.                                                                                                              |
-| `retainToolCalls`          | `true`                         | With `retainFormat: "json"`, each message's content is an Anthropic-shaped block array (`text` / `tool_use` / `tool_result`). Tool results are truncated at 2000 chars. ContextBase's own MCP tools (recall/retain/search/…) are filtered to prevent feedback loops. Set `false` to retain text-only content.      |
-| `retainEveryNTurns`        | `1`                            | Retain every Nth turn. `1` = every turn (default). Values > 1 enable chunked retention with a sliding window. When a session ends (`/new`, `/reset`, gateway stop) the turns since the last retain are flushed; on SQLite-backed OpenClaw this needs 2026.10.1 or newer.                                         |
-| `retainOverlapTurns`       | `0`                            | Extra prior turns included when chunked retention fires. Window = `retainEveryNTurns + retainOverlapTurns`. Only applies when `retainEveryNTurns > 1`.                                                                                                                                                           |
-| `recallBudget`             | `"mid"`                        | Recall effort: `low`, `mid`, or `high`. Higher budgets use more retrieval strategies.                                                                                                                                                                                                                            |
-| `recallMaxTokens`          | `1024`                         | Max tokens for recall response. Controls how much memory context is injected per turn.                                                                                                                                                                                                                           |
-| `recallTimeoutMs`          | `10000`                        | Deadline for the auto-recall request, in ms. Values below `1000` are ignored. At the deadline the HTTP request itself is aborted, not just abandoned, so a slow recall stops consuming a connection.                                                                                                             |
-| `recallTypes`              | `["observation"]`              | Memory types to recall. Options: `world`, `experience`, `observation`. Defaults to observations — the consolidated, deduplicated view — to avoid surfacing the same answer multiple times when many raw memories say the same thing.                                                                             |
-| `preferObservations`       | `false`                        | When `true`, recall drops raw facts already consolidated into an observation while keeping unconsolidated ones. Pair with a `recallTypes` that includes raw types (e.g. `["observation", "world", "experience"]`) to surface just-retained facts before consolidation, without duplicating consolidated content. |
-| `recallMinScores`          | `{}`                           | Optional score floors for auto-recall, keyed by stage (for example `{"reranker": 0.3}`). Missing fields impose no floor; memories with missing or `null` scores pass. Reranker scores are query-local, so use this as a garbage gate rather than a calibrated relevance dial.                                    |
-| `recallRoles`              | `["user", "assistant"]`        | Roles included when building prior context for recall query composition. Options: `user`, `assistant`, `system`, `tool`.                                                                                                                                                                                         |
-| `recallTopK`               | —                              | Max number of memories to inject per turn. Applied after API response as a hard cap.                                                                                                                                                                                                                             |
-| `recallContextTurns`       | `1`                            | Number of user turns to include when composing recall query context. `1` keeps latest-message-only behavior.                                                                                                                                                                                                     |
-| `recallMaxQueryChars`      | `800`                          | Maximum character length for the composed recall query before calling recall.                                                                                                                                                                                                                                    |
-| `recallPromptPreamble`     | built-in string                | Prompt text placed above recalled memories in the injected `<contextbase_memories>` context block.                                                                                                                                                                                                                 |
-| `recallInjectionPosition`  | `"user"`                       | Where to inject recalled memories: `user` places them before the user message and preserves the system prompt cache; `prepend` and `append` place them at the start or end of the system prompt.                                                                                                                 |
-| `contextbaseApiUrl`          | —                              | External ContextBase API URL (skips local daemon)                                                                                                                                                                                                                                                                  |
-| `contextbaseApiToken`        | —                              | Auth token for external API. **Sensitive** — set via `openclaw config set ... --ref-source env --ref-id CONTEXTBASE_API_TOKEN`.                                                                                                                                                                                    |
-| `ignoreSessionPatterns`    | `[]`                           | Session key glob patterns to skip entirely — no recall, no retain (e.g. `["agent:*:cron:**"]`)                                                                                                                                                                                                                   |
-| `statelessSessionPatterns` | `[]`                           | Session key glob patterns for read-only sessions — retain is always skipped; recall is skipped when `skipStatelessSessions` is `true` (e.g. `["agent:*:subagent:**", "agent:*:heartbeat:**"]`)                                                                                                                   |
-| `skipStatelessSessions`    | `true`                         | When `true`, sessions matching `statelessSessionPatterns` also skip recall. Set to `false` to allow recall but still skip retain.                                                                                                                                                                                |
-| `debugPerfTiming`          | `false`                        | Emit one info-level perf line per `before_prompt_build` (recall path) and `agent_end` (retain path) so you can spot whether latency is in the plugin or upstream. Off by default. Format: `perf: <hook> hook_total=Xms <hook-specific fields>`. Safe in production — uses the existing logger.                   |
-
-### Per-agent bank mapping
-
-`dynamicBankId` is all-or-nothing: either every agent shares one bank, or every agent gets its own derived one. `agentBankMap` adds the middle ground — name the bank for specific agents and leave the rest alone:
+Alternatively use OpenClaw's settings UI to configure the plugin `contextbase-openclaw`:
 
 ```json
 {
-  "dynamicBankId": true,
-  "dynamicBankGranularity": ["agent", "channel", "user"],
-  "agentBankMap": {
-    "inbound": "ps-technology",
-    "outbound": "ps-technology",
-    "limpieza": "ps-limpieza"
-  }
+  "contextbaseApiUrl": "https://api.example.com",
+  "contextbaseApiToken": {"source": "env", "provider": "default", "id": "CONTEXTBASE_API_TOKEN"},
+  "bankId": "my-bank",
+  "dynamicBankId": false,
+  "autoRecall": true,
+  "autoRetain": true
 }
 ```
 
-`inbound` and `outbound` share `ps-technology`, `limpieza` gets `ps-limpieza`, and every other agent keeps the per-agent/channel/user bank it had before. The map is consulted first, so it also overrides a static `bankId` — one gateway can pin most traffic to a shared bank while carving out named banks for a few agents.
+Setup preserves other plugins and existing conversation-access opt-outs. Automatic retention requires OpenClaw to allow this plugin to access conversation hooks. Restart the gateway after changing configuration.
 
-Details worth knowing:
+API paths may include a service prefix. The endpoint and credentials are shared by this plugin's recall, retention and backfill operations. The setup command binds a static Bank; it does not create a Bank. Dynamic routing and `agentBankMap` remain available for deployments whose credentials authorize the selected Banks.
 
-- **Mapped names are used verbatim.** `bankIdPrefix` is not applied, because you named the bank yourself.
-- **Retain and recall both follow the map** — they resolve the bank through the same path.
-- **Bank defaults still apply.** A mapped bank is stamped with the configured missions, extraction mode, entity labels and so on when it is first used, exactly like a derived bank.
-- **Agent ids match exactly** — the lookup is case-sensitive and not fuzzy, so `Inbound` is not `inbound`. Keys are trimmed, values too.
-- **Mapped agents are exempt from the sender/surface skips.** A session whose sender cannot be resolved, or whose dispatch surface differs from the session's provider, is normally skipped rather than routed into a bank keyed by the wrong thing. A mapped agent's bank depends on neither, so those sessions are retained as intended. Operational sessions (`cron`, `heartbeat`, `subagent`, `temp:`) are still skipped for mapped agents, exactly as before.
-- **Entries with a blank or non-string bank are ignored** (and logged), rather than routing an agent to a bank named `""`.
+## Verify
 
-### Per-user dynamic bank defaults
+Confirm the plugin is loaded and the log reports `initialized (mode: remote API, bank: ...)`. Store a distinctive test fact in a conversation, wait for retention, then ask for it in a new conversation using the same Bank. A successful plugin load alone does not verify service permissions.
 
-When `dynamicBankId` is enabled (default), OpenClaw derives a separate ContextBase bank per context (e.g. per Slack user). New banks otherwise inherit only ContextBase server defaults (`concise` extraction, no entity labels, etc.). Set the options below in plugin config to stamp **full bank defaults on first use** — before the first retain or recall touches that bank:
+A 401/403 requires checking the Endpoint, API Key and Bank authorization. Configuration changes require a gateway restart. Logs use ContextBase branding and preserve the service's original error information.
 
-```json
-{
-  "dynamicBankId": true,
-  "dynamicBankGranularity": ["agent", "channel", "user"],
-  "retainExtractionMode": "verbose",
-  "enableObservations": true,
-  "enableAutoConsolidation": true,
-  "dispositionSkepticism": 3,
-  "dispositionLiteralism": 3,
-  "dispositionEmpathy": 4,
-  "entityLabels": [
-    { "name": "person", "description": "A human user or contact" },
-    { "name": "project", "description": "A software project or product" }
-  ],
-  "retainMission": "Extract durable preferences, decisions, and project context.",
-  "observationsMission": "Synthesise stable user preferences and active projects.",
-  "bankMission": "You are a helpful assistant with long-term memory across channels."
-}
-```
+## Update or remove
 
-Unset options are not sent — existing behaviour is unchanged when you only configure missions (as before). Each bank is configured at most once per gateway process.
-
-### Session pattern filtering
-
-`ignoreSessionPatterns` and `statelessSessionPatterns` accept glob patterns matched against the session key (format: `agent:<agentId>:<type>:<uuid>`).
-
-Glob syntax:
-
-- `*` — matches any characters except `:` (single segment)
-- `**` — matches anything including `:` (multiple segments)
-
-| Pattern               | Matches                             |
-| --------------------- | ----------------------------------- |
-| `agent:*:cron:**`     | All cron sessions for any agent     |
-| `agent:*:subagent:**` | All subagent sessions for any agent |
-| `agent:main:**`       | All sessions under the `main` agent |
-
-**Difference between the two options:**
-
-|        | `ignoreSessionPatterns` | `statelessSessionPatterns`                      |
-| ------ | ----------------------- | ----------------------------------------------- |
-| Retain | Skipped                 | Always skipped                                  |
-| Recall | Skipped                 | Skipped only when `skipStatelessSessions: true` |
-
-**Example config** — exclude cron jobs from memory entirely, allow subagents to read but not write memories:
-
-```json
-{
-  "ignoreSessionPatterns": ["agent:*:cron:**"],
-  "statelessSessionPatterns": ["agent:*:subagent:**"],
-  "skipStatelessSessions": false
-}
-```
-
-## Retention details
-
-Retained documents use stable session-scoped IDs derived from the OpenClaw `sessionKey`. Every retain in a session shares one document id like `openclaw:agent:agentname:discord:channel:123`, so all turns of the conversation accumulate under a single ContextBase document (on legacy APIs without `update_mode: 'append'` support, the integration falls back to per-retain ids — `...:turn:<boot>:000001`, `...:window:<boot>:000002` for chunked retention — so prior turns aren't overwritten; `<boot>` is a token minted per host process, which keeps a restart from replaying ids the previous run already used). Retained documents include richer metadata such as `session_key`, `agent_id`, `provider`, `channel_id`, `thread_id`, `sender_id`, `turn_index`, and `retention_scope`. Each message in the retained JSON also carries a structured `timestamp` field (ISO 8601) lifted from OpenClaw's per-message time, so facts are not polluted by inline weekday/date prefixes.
-
-`retainContext` is sent separately from the transcript content and gives ContextBase's extraction LLM interpretation guidance for the retained document. The default is designed for OpenClaw transcripts: it explains that sender/channel/provider metadata is operational routing data, that assistant-role first-person statements belong to the AI assistant, and that bank IDs or tags should not be treated as the discussed project. Sender/channel/provider stay in retain request metadata/context and are not prepended into retained transcript content.
-
-## OpenClaw compatibility
-
-Version 0.12.0 and later work with **OpenClaw 2026.7.x through 2026.10.x**. The plugin reads both the old and the new conversation-metadata labels, so plugin and OpenClaw versions do not need to match.
-
-**On OpenClaw 2026.8.1 or later, use 0.12.0 or later.** 2026.8.1 changed how OpenClaw labels the metadata it attaches to each message; earlier plugin versions no longer recognised it, so turns were skipped with `missing stable sender identity`, routing IDs were stored as conversation content, and automatic recall could search using that metadata instead of your message.
-
-Two expected (non-error) messages on 2026.8.1+:
-
-- Install prints `Exclusive slot "memory" switched from "memory-core" to "contextbase-openclaw"` — correct; ContextBase replaces OpenClaw's built-in memory.
-- `openclaw plugins doctor` then reports `memory-core` is not selected for the memory slot — that is OpenClaw noting its built-in memory stepped aside.
-
-Upgrading from 0.11.1 or earlier: installs could fail with `npm error Cannot read properties of null (reading 'edgesOut')`. That was a packaging problem in the plugin, fixed in 0.12.0 — retry with the new version.
-
-## OpenClaw's memory page, status and search
-
-On OpenClaw 2026.10 or later, the plugin registers as OpenClaw's native memory provider. OpenClaw's own memory surfaces then read from ContextBase instead of reporting "memory plugin unavailable":
-
-- `memory.status` and the Memory page report ContextBase's health.
-- Gateway `memory.search` (with `version: 2`) and `memory.get` return ContextBase memories.
-
-Search is read-only and answers only callers allowed to see the whole bank: an operator, or the agent owner's private session. It works when an agent's bank depends on the agent alone: `dynamicBankGranularity: ["agent"]`, a static `bankId`, or an `agentBankMap` entry. When banks are keyed by user or channel (the default granularity), OpenClaw can't tell which user's bank to search, so search is refused and status still reports ready. Prompt-side recall stays with `autoRecall`, so turning this on never injects memories twice. Older OpenClaw versions ignore it.
-
-## Documentation
-
-For full documentation, configuration options, troubleshooting, and development guide, see:
-
-**[OpenClaw Integration Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)**
-
-## Development
-
-To test local changes to the ContextBase package before publishing:
-
-1. Add `embedPackagePath` to your plugin config in `~/.openclaw/openclaw.json`:
-
-```json
-{
-  "plugins": {
-    "entries": {
-      "contextbase-openclaw": {
-        "enabled": true,
-        "config": {
-          "embedPackagePath": "/path/to/contextbase-wt3/hindsight-embed"
-        }
-      }
-    }
-  }
-}
-```
-
-2. The plugin will use `uv run --directory <path> hindsight-embed` instead of `uvx hindsight-embed@latest`
-
-3. To use a specific profile for testing:
-
-```bash
-# Check daemon status
-uvx hindsight-embed@latest -p openclaw daemon status
-
-# View logs
-tail -f ~/.contextbase/profiles/openclaw.log
-
-# List profiles
-uvx hindsight-embed@latest profile list
-```
-
-## Backfilling Existing OpenClaw History
-
-The package includes a config-aware backfill CLI for importing historical OpenClaw sessions into ContextBase.
-
-By default it mirrors the active plugin settings for:
-
-- `dynamicBankId`
-- `dynamicBankGranularity`
-- `bankIdPrefix`
-- local daemon vs external `contextbaseApiUrl`
-
-Dry-run example:
-
-```bash
-npx --package contextbase-openclaw contextbase-openclaw-backfill \
-  --openclaw-root ~/.openclaw \
-  --dry-run
-```
-
-Direct invocation from a built checkout:
-
-```bash
-node dist/backfill.js --openclaw-root ~/.openclaw --dry-run
-```
-
-Migration-oriented overrides are explicit:
-
-```bash
-node dist/backfill.js \
-  --openclaw-root ~/.openclaw \
-  --bank-strategy agent \
-  --agent proj-run \
-  --resume \
-  --max-pending-operations 10
-```
-
-Useful options:
-
-- `--agent <id>` limit import to selected agents
-- `--exclude-archive` ignore `sessions-archive-from-migration_backup`
-- `--bank-strategy mirror-config|agent|fixed`
-- `--resume` skip only entries already finalized as completed
-- `--checkpoint <path>` store progress outside the default location
-- `--wait-until-drained` block until the touched bank queues have finished and checkpoint state can be finalized
-
-## Links
-
-- [ContextBase Documentation](https://github.com/RSIXDB/hindsight)
-- [OpenClaw Documentation](https://openclaw.ai)
-- [GitHub Repository](https://github.com/RSIXDB/hindsight)
-
-## License
-
-MIT
+Install the new `.tgz` through OpenClaw's plugin manager and restart the gateway. Use that manager to remove `contextbase-openclaw`. Configuration and remote memories are separate; removing the plugin does not delete the Bank.

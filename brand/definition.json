@@ -18,7 +18,13 @@
     "python_sdk": "contextbase-client",
     "python_import": "contextbase_client",
     "python_api_import": "contextbase_client_api",
-    "node_sdk": "contextbase-client"
+    "node_sdk": "contextbase-client",
+    "openclaw_plugin": "contextbase-openclaw",
+    "hermes_plugin": "hermes-plugin-contextbase",
+    "hermes_provider": "contextbase"
   },
-  "historical_display_names": ["agentstratum", "ContextBase"]
+  "historical_display_names": [
+    "agentstratum",
+    "ContextBase"
+  ]
 }

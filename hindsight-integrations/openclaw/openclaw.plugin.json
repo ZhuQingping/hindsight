@@ -19,19 +19,9 @@
   "configSchema": {
     "type": "object",
     "properties": {
-      "daemonIdleTimeout": {
-        "type": "number",
-        "description": "Deprecated and ignored: the daemon no longer shuts down from inactivity",
-        "default": 0
-      },
-      "embedPort": {
-        "type": "number",
-        "description": "Port for hindsight-embed server (auto-assigned if not specified)",
-        "default": 0
-      },
       "bankMission": {
         "type": "string",
-        "description": "Mission stamped onto the bank's reflect_mission column on first use. Only affects the /reflect operation — does not steer retain or recall. Leave unset (or empty) to manage missions out-of-band via PATCH /banks/{id}."
+        "description": "Mission stamped onto the bank's reflect_mission column on first use. Only affects the /reflect operation \u2014 does not steer retain or recall. Leave unset (or empty) to manage missions out-of-band via PATCH /banks/{id}."
       },
       "retainMission": {
         "type": "string",
@@ -75,40 +65,9 @@
       "entityLabels": {
         "description": "Controlled vocabulary for entity labels. Either a list of attribute defs (e.g. [{\"name\":\"person\",\"description\":\"Human user\"}]) or a { \"attributes\": [...] } object, passed through to PATCH /banks/{id}/config as entity_labels on first bank use. Other shapes are ignored."
       },
-      "embedVersion": {
-        "type": "string",
-        "description": "hindsight-embed version to use (e.g. 'latest', '0.4.2', or empty for latest)",
-        "default": "latest"
-      },
-      "llmProvider": {
-        "type": "string",
-        "description": "LLM provider for ContextBase memory (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code').",
-        "enum": ["openai", "anthropic", "gemini", "groq", "ollama", "openai-codex", "claude-code"]
-      },
-      "llmModel": {
-        "type": "string",
-        "description": "LLM model to use (e.g. 'gpt-4o-mini', 'claude-3-5-haiku-20241022'). Used with llmProvider."
-      },
-      "llmApiKey": {
-        "type": ["string", "object"],
-        "description": "API key for the LLM provider used by the ContextBase memory daemon. Set via 'openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY' to reference an env var without storing plaintext."
-      },
-      "llmBaseUrl": {
-        "type": "string",
-        "description": "Optional base URL override for OpenAI-compatible providers (e.g. 'https://openrouter.ai/api/v1')."
-      },
-      "embedPackagePath": {
-        "type": "string",
-        "description": "Local path to contextbase package for development (e.g. '/path/to/contextbase'). When set, uses 'uv run --directory <path>' instead of 'uvx hindsight-embed@latest'."
-      },
-      "apiPort": {
-        "type": "number",
-        "description": "Port for the openclaw profile daemon (default: 9077)",
-        "default": 9077
-      },
       "contextbaseApiUrl": {
         "type": "string",
-        "description": "External ContextBase API URL (e.g. 'https://mcp.hindsight.devcraft.team'). When set, skips local daemon and connects directly to this API."
+        "description": "ContextBase API Endpoint supplied by your service provider. Required; no default endpoint."
       },
       "contextbaseApiToken": {
         "type": ["string", "object"],
@@ -195,7 +154,7 @@
       },
       "retainToolCalls": {
         "type": "boolean",
-        "description": "When true (default) and retainFormat is 'json', each message's content is an Anthropic-shaped array of typed blocks including tool_use (agent tool calls) and tool_result (truncated at 2000 chars). Operational MCP tools — ContextBase's own recall/retain/search — are filtered out to avoid feedback loops. Set to false to retain text-only content, one string per message.",
+        "description": "When true (default) and retainFormat is 'json', each message's content is an Anthropic-shaped array of typed blocks including tool_use (agent tool calls) and tool_result (truncated at 2000 chars). Operational MCP tools \u2014 ContextBase's own recall/retain/search \u2014 are filtered out to avoid feedback loops. Set to false to retain text-only content, one string per message.",
         "default": true
       },
       "retainEveryNTurns": {
@@ -228,7 +187,7 @@
           "type": "string",
           "enum": ["world", "experience", "observation"]
         },
-        "description": "Memory types to recall. Defaults to ['observation'] — surfaces only the consolidated, deduplicated view; raw world/experience facts can drive the same answer multiple times when many memories say the same thing.",
+        "description": "Memory types to recall. Defaults to ['observation'] \u2014 surfaces only the consolidated, deduplicated view; raw world/experience facts can drive the same answer multiple times when many memories say the same thing.",
         "default": ["observation"]
       },
       "preferObservations": {
@@ -241,10 +200,22 @@
         "description": "Optional per-stage score floors for auto-recall. Missing fields impose no floor; memories with a missing or null score for a configured stage pass.",
         "additionalProperties": false,
         "properties": {
-          "semantic": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
-          "keyword": { "type": ["number", "null"] },
-          "reranker": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
-          "final": { "type": ["number", "null"] }
+          "semantic": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "keyword": {
+            "type": ["number", "null"]
+          },
+          "reranker": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "final": {
+            "type": ["number", "null"]
+          }
         }
       },
       "recallRoles": {
@@ -351,20 +322,13 @@
       },
       "senderPrefixPattern": {
         "type": "string",
-        "description": "Regex matching a human display-name prefix some channels prepend to user text (e.g. 'Alice: today weather?'). Supply the name part only — 'Alice|Bob' or '[A-Za-z ]{1,20}' — the ':' separator and anchoring are added by the plugin. When set, the prefix is stripped from both recall queries and retained transcripts. Unset strips nothing; an invalid regex is ignored."
+        "description": "Regex matching a human display-name prefix some channels prepend to user text (e.g. 'Alice: today weather?'). Supply the name part only \u2014 'Alice|Bob' or '[A-Za-z ]{1,20}' \u2014 the ':' separator and anchoring are added by the plugin. When set, the prefix is stripped from both recall queries and retained transcripts. Unset strips nothing; an invalid regex is ignored."
       }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "required": ["contextbaseApiUrl"]
   },
   "uiHints": {
-    "daemonIdleTimeout": {
-      "label": "Daemon Idle Timeout",
-      "placeholder": "deprecated, ignored"
-    },
-    "embedPort": {
-      "label": "Embed Server Port",
-      "placeholder": "0 (auto-assign)"
-    },
     "bankMission": {
       "label": "Bank Mission (reflect)",
       "placeholder": "Custom context for what this agent does..."
@@ -383,60 +347,31 @@
     },
     "enableObservations": {
       "label": "Enable Observations",
-      "placeholder": "true or false — stamped on first bank use"
+      "placeholder": "true or false \u2014 stamped on first bank use"
     },
     "enableAutoConsolidation": {
       "label": "Enable Auto Consolidation",
-      "placeholder": "true or false — stamped on first bank use"
+      "placeholder": "true or false \u2014 stamped on first bank use"
     },
     "dispositionSkepticism": {
       "label": "Disposition Skepticism",
-      "placeholder": "1–5"
+      "placeholder": "1\u20135"
     },
     "dispositionLiteralism": {
       "label": "Disposition Literalism",
-      "placeholder": "1–5"
+      "placeholder": "1\u20135"
     },
     "dispositionEmpathy": {
       "label": "Disposition Empathy",
-      "placeholder": "1–5"
+      "placeholder": "1\u20135"
     },
     "entityLabels": {
       "label": "Entity Labels",
       "placeholder": "e.g. [{\"name\":\"person\",\"description\":\"Human user\"}]"
     },
-    "embedVersion": {
-      "label": "ContextBase Embed Version",
-      "placeholder": "latest (or pin to specific version like 0.4.2)"
-    },
-    "llmProvider": {
-      "label": "LLM Provider",
-      "placeholder": "e.g. openai, anthropic, gemini, groq"
-    },
-    "llmModel": {
-      "label": "LLM Model",
-      "placeholder": "e.g. gpt-4o-mini, claude-3-5-haiku-20241022"
-    },
-    "llmApiKey": {
-      "label": "LLM API Key",
-      "placeholder": "API key for the chosen LLM provider",
-      "sensitive": true
-    },
-    "llmBaseUrl": {
-      "label": "LLM Base URL",
-      "placeholder": "e.g. https://openrouter.ai/api/v1 (optional)"
-    },
-    "embedPackagePath": {
-      "label": "Local Package Path (Dev)",
-      "placeholder": "/path/to/contextbase (for local development)"
-    },
-    "apiPort": {
-      "label": "API Port",
-      "placeholder": "9077 (default)"
-    },
     "contextbaseApiUrl": {
       "label": "External ContextBase API URL",
-      "placeholder": "e.g. https://mcp.hindsight.devcraft.team (leave empty for local daemon)"
+      "placeholder": "https://api.example.com"
     },
     "contextbaseApiToken": {
       "label": "External API Token",
@@ -497,7 +432,7 @@
     },
     "retainToolCalls": {
       "label": "Retain Tool Calls",
-      "placeholder": "true (default) — include tool_use / tool_result blocks in retained JSON"
+      "placeholder": "true (default) \u2014 include tool_use / tool_result blocks in retained JSON"
     },
     "retainEveryNTurns": {
       "label": "Retain Every N Turns",
@@ -567,7 +502,7 @@
     },
     "debugPerfTiming": {
       "label": "Debug Perf Timing",
-      "placeholder": "false (default) — enable to log per-hook latency"
+      "placeholder": "false (default) \u2014 enable to log per-hook latency"
     },
     "enableKnowledgeTools": {
       "label": "Enable Knowledge Tools",

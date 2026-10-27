@@ -316,22 +316,6 @@ def test_overwrite_mode_keeps_every_turn(provider, monkeypatch):
     assert len(fake.retains) == 2
 
 
-def test_root_warning_goes_through_the_hosts_warning_callback(provider, monkeypatch):
-    """The 'cannot run as root' notice is an automatic startup diagnostic: hosts that
-    wire a gated sink must receive it there, not on stderr (hermes-agent cd3de040ab9)."""
-    seen = []
-    instance, _ = provider({}, warning_callback=seen.append, platform="telegram")
-    assert instance._platform == "telegram"
-
-    monkeypatch.setattr(plugin.os, "geteuid", lambda: 0, raising=False)
-    instance._mode = "local_embedded"
-    instance._start_embedded_daemon()
-
-    assert len(seen) == 1 and "cannot run as root" in seen[0]
-    assert instance._mode == "disabled"
-    instance.shutdown()
-
-
 def test_warning_sink_defaults_exist_without_initialize():
     """_start_embedded_daemon reads these directly, and availability probes construct a
     provider without ever calling initialize() — so __init__ must supply both."""
@@ -356,39 +340,9 @@ def test_system_prompt_guides_tool_choice_only_when_tools_exist(provider):
     assert "automatically injected" not in blocks["tools"]
 
 
-def test_the_first_run_download_is_announced_through_the_warning_sink(provider, monkeypatch):
-    """A first embedded start fetches the server through uvx, which took minutes with nothing on
-    screen (hermes-agent#4936: a 6m23s reply that retained nothing and printed no error). The
-    notice goes to the same gated sink as the root-refusal warning."""
-    seen = []
-    instance, _ = provider({}, warning_callback=seen.append, platform="telegram")
-    monkeypatch.setattr(plugin, "_daemon_is_running", lambda profile: False)
-    monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: False)
-
-    instance._announce_slow_first_start("hermes")
-
-    assert len(seen) == 1 and "downloading its local memory server" in seen[0]
-    instance.shutdown()
-
-
-def test_no_announcement_when_the_server_is_already_there(provider, monkeypatch):
-    seen = []
-    instance, _ = provider({}, warning_callback=seen.append)
-    monkeypatch.setattr(plugin, "_daemon_is_running", lambda profile: False)
-    monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: True)
-    instance._announce_slow_first_start("hermes")
-
-    monkeypatch.setattr(plugin, "_daemon_is_running", lambda profile: True)
-    monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: False)
-    instance._announce_slow_first_start("hermes")
-
-    assert seen == []
-    instance.shutdown()
-
-
-def test_concurrent_callers_start_the_daemon_and_build_the_client_once(provider, monkeypatch):
-    """The start worker and the first memory operation both reach _get_client. Unguarded, each
-    started a daemon and built a client, and the loser's client was dropped without being closed.
+def test_concurrent_callers_build_one_remote_client(provider, monkeypatch):
+    """Concurrent memory operations both reach _get_client. Unguarded, each
+    built a client, and the loser's client was dropped without being closed.
 
     No barrier inside the build: with the lock in place only one caller ever gets there, so the
     contention window is opened with a sleep instead.
@@ -397,15 +351,15 @@ def test_concurrent_callers_start_the_daemon_and_build_the_client_once(provider,
     import time as _time
 
     instance, _ = provider({})
-    instance._mode = "local_embedded"
+    instance._mode = "cloud"
     built = []
 
     def _slow_build(self):
-        _time.sleep(0.2)  # as wide as a real daemon start, in miniature
+        _time.sleep(0.2)  # as wide as real client setup, in miniature
         built.append(object())
         return built[-1]
 
-    monkeypatch.setattr(type(instance), "_new_embedded_client", _slow_build)
+    monkeypatch.setattr(instance, "_new_cloud_client", lambda: _slow_build(instance))
 
     results = []
     threads = [threading.Thread(target=lambda: results.append(instance._get_client())) for _ in range(3)]
@@ -416,59 +370,6 @@ def test_concurrent_callers_start_the_daemon_and_build_the_client_once(provider,
 
     assert len(built) == 1, f"client built {len(built)} times"
     assert len({id(r) for r in results}) == 1  # every caller got the same client
-    instance.shutdown()
-
-
-def test_building_the_embedded_client_announces_before_it_waits(provider, monkeypatch):
-    """The notice has to fire from the path that actually blocks — asserting the helper in
-    isolation would keep passing if nothing called it."""
-    seen = []
-    # Mode is switched after init: configuring local_embedded would also start the background
-    # daemon worker, which builds a client too and made this test announce twice at random.
-    instance, _ = provider({"profile": "hermes"}, warning_callback=seen.append)
-    instance._mode = "local_embedded"
-    order = []
-    from contextbase_hermes.embedded import LocalRuntimeStatus
-
-    monkeypatch.setattr(plugin, "_check_local_runtime", lambda: LocalRuntimeStatus(available=True))
-    monkeypatch.setattr(plugin, "_daemon_is_running", lambda profile: False)
-    monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: False)
-    monkeypatch.setattr(plugin, "_build_embedded_profile_env", lambda cfg: {})
-    monkeypatch.setattr(
-        plugin, "_start_daemon", lambda config, profile: order.append("started") or "http://127.0.0.1:1"
-    )
-    monkeypatch.setattr(plugin, "ContextBase", lambda **kw: object(), raising=False)
-    instance._warning_callback = lambda m: order.append("announced")
-
-    instance._new_embedded_client()
-
-    assert order == ["announced", "started"], order
-    instance.shutdown()
-
-
-def test_the_embedded_client_sends_the_daemons_tenant_key(provider, monkeypatch):
-    """#5023: a daemon running ApiKeyTenantExtension answers 401 to a keyless client."""
-    instance, _ = provider({"profile": "hermes"})
-    instance._mode = "local_embedded"
-    from contextbase_hermes.embedded import LocalRuntimeStatus, _embedded_profile_env_path
-
-    profile_env = _embedded_profile_env_path({"profile": "hermes"})
-    profile_env.parent.mkdir(parents=True, exist_ok=True)
-    profile_env.write_text("HINDSIGHT_API_TENANT_API_KEY=tenant-secret\n")
-    built = {}
-
-    class _Client:
-        def __init__(self, **kwargs):
-            built.update(kwargs)
-
-    monkeypatch.setattr(plugin, "_check_local_runtime", lambda: LocalRuntimeStatus(available=True))
-    monkeypatch.setattr(plugin, "_start_daemon", lambda config, profile: "http://127.0.0.1:1")
-    monkeypatch.setattr(plugin, "_installed_api_binary_exists", lambda: True)
-    monkeypatch.setitem(sys.modules, "contextbase_client", SimpleNamespace(ContextBase=_Client))
-
-    instance._new_embedded_client()
-
-    assert built == {"base_url": "http://127.0.0.1:1", "api_key": "tenant-secret", "user_agent": plugin._USER_AGENT}
     instance.shutdown()
 
 
@@ -682,28 +583,6 @@ def test_prompt_does_not_promise_injected_memories_when_auto_recall_is_off(provi
     assert plugin._TOOL_GUIDANCE in off.system_prompt_block()
 
 
-def test_reconnect_closes_the_client_it_replaces(provider, monkeypatch):
-    """#4662: the retry after a dead embedded daemon dropped the old client unclosed."""
-
-    class Dead(FakeClient):
-        closed = False
-
-        async def arecall(self, **kwargs):
-            raise RuntimeError("Cannot connect to host 127.0.0.1:8888")
-
-        async def aclose(self):
-            Dead.closed = True
-
-    dead, fresh = Dead(), FakeClient(recall_texts=["back"])
-    instance, _ = provider({}, client=dead)
-    instance._mode, instance._client = "local_embedded", dead
-    monkeypatch.setattr(instance, "_new_embedded_client", lambda: fresh)
-
-    result = json.loads(instance.handle_tool_call("contextbase_recall", {"query": "q"}))
-    assert result["result"] == "1. back"
-    assert Dead.closed
-
-
 def test_shutdown_drops_its_atexit_hook(provider, monkeypatch):
     """#4662: the hook kept every provider alive until exit; the gateway makes one per chat session.
     Hooks are recorded rather than counted: atexit._ncallbacks() does not drop on unregister on
@@ -734,7 +613,7 @@ def test_desktop_panel_offers_every_mode_the_plugin_runs():
     from contextbase_hermes.config_schema import CONFIG_SCHEMA
 
     mode = next(field for field in CONFIG_SCHEMA["fields"] if field["key"] == "mode")
-    assert {option[0] for option in mode["options"]} == {"cloud", "local_embedded", "local_external"}
+    assert {option[0] for option in mode["options"]} == {"cloud", "self-hosted"}
 
 
 def test_cron_runs_are_not_auto_retained(provider):

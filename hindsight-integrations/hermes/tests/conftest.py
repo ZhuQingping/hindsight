@@ -97,6 +97,12 @@ def _install_hermes_stubs(hermes_home: Path) -> None:
         RecallStatus=RecallStatus,
         spawn_context_thread=_spawn_context_thread,
     )
+    import hashlib
+
+    module(
+        "agent.credential_persistence",
+        fingerprint_secret_value=lambda value: hashlib.sha256(str(value).encode()).hexdigest(),
+    )
     module("agent.secret_scope", get_secret=_get_secret, UnscopedSecretError=UnscopedSecretError)
     module("agent.async_utils", safe_schedule_threadsafe=_safe_schedule_threadsafe)
     module("hermes_cli")

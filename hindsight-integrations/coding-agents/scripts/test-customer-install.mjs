@@ -103,7 +103,16 @@ try {
       assert(!/hindsight/i.test(readFileSync(join(dist, file), "utf8")), file);
     }
   }
-  for (const harness of ["claude-code", "codex"]) {
+  for (const harness of [
+    "claude-code",
+    "codex",
+    "cursor-cli",
+    "dsh",
+    "opencode",
+    "opencode2",
+    "pi",
+    "workbuddy",
+  ]) {
     client = new Client({ name: "customer-smoke", version: "1.0" });
     const transport = new StdioClientTransport({
       command: process.execPath,
@@ -127,7 +136,7 @@ try {
         arguments: { title: "Customer decision", content: "CB-SMOKE-7429: keep rollback scripts" },
       });
       assert(!ingested.isError);
-    } else {
+    } else if (harness === "codex") {
       const answer = await client.callTool({
         name: "contextbase_reflect",
         arguments: { query: "What was the decision?" },

@@ -6,7 +6,14 @@ from conftest import SECRETS, FakeClient
 
 
 def _provider_from_env(monkeypatch, **env) -> plugin.ContextBaseMemoryProvider:
-    SECRETS.update({"CONTEXTBASE_MODE": "cloud", "CONTEXTBASE_API_KEY": "test-key", **env})
+    SECRETS.update(
+        {
+            "CONTEXTBASE_API_URL": "https://api.example.com",
+            "CONTEXTBASE_MODE": "cloud",
+            "CONTEXTBASE_API_KEY": "test-key",
+            **env,
+        }
+    )
     instance = plugin.ContextBaseMemoryProvider()
     monkeypatch.setattr(instance, "_new_cloud_client", lambda: FakeClient())
     monkeypatch.setattr(plugin, "_check_api_supports_update_mode_append", lambda *a, **k: True)

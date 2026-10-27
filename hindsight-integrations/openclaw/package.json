@@ -22,13 +22,8 @@
     "contextbase",
     "long-term-memory"
   ],
-  "author": "Vectorize <support@vectorize.io>",
+  "author": "ContextBase Team",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/openclaw"
-  },
   "files": [
     "dist",
     "openclaw.plugin.json",
@@ -48,7 +43,6 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.2.0",
-    "@vectorize-io/hindsight-all": "^0.6.2",
     "contextbase-client": "file:../../hindsight-clients/typescript"
   },
   "devDependencies": {

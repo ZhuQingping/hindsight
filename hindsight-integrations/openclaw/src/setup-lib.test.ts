@@ -6,7 +6,6 @@ import {
   PLUGIN_ID,
   applyApiMode,
   applyCloudMode,
-  applyEmbeddedMode,
   ensurePluginConfig,
   envSecretRef,
   isValidEnvVarName,
@@ -14,7 +13,6 @@ import {
   saveConfig,
   summarizeApi,
   summarizeCloud,
-  summarizeEmbedded,
   type OpenClawConfigShape,
 } from "./setup-lib.js";
 
@@ -308,102 +306,14 @@ describe("applyApiMode", () => {
   });
 });
 
-describe("applyEmbeddedMode — direct API key value", () => {
-  it("stores the API key inline when a literal value is provided", () => {
-    const pc: Record<string, unknown> = {};
-    applyEmbeddedMode(pc, { llmProvider: "openai", apiKey: "sk-literal" });
-    expect(pc.llmProvider).toBe("openai");
-    expect(pc.llmApiKey).toBe("sk-literal");
-  });
-
-  it("throws when both apiKey and apiKeyEnvVar are provided", () => {
-    const pc: Record<string, unknown> = {};
-    expect(() =>
-      applyEmbeddedMode(pc, {
-        llmProvider: "openai",
-        apiKey: "sk-x",
-        apiKeyEnvVar: "OPENAI_API_KEY",
-      })
-    ).toThrow(/either a direct value or an env var name/);
-  });
-});
-
-describe("applyEmbeddedMode", () => {
-  it("writes llmProvider + SecretRef for providers that require a key", () => {
-    const pc: Record<string, unknown> = {
-      contextbaseApiUrl: "https://stale.example.com",
-      contextbaseApiToken: { source: "env", provider: "default", id: "STALE" },
-    };
-    applyEmbeddedMode(pc, { llmProvider: "openai", apiKeyEnvVar: "OPENAI_API_KEY" });
-    expect(pc.llmProvider).toBe("openai");
-    expect(pc.llmApiKey).toEqual({
-      source: "env",
-      provider: "default",
-      id: "OPENAI_API_KEY",
-    });
-    expect(pc.contextbaseApiUrl).toBeUndefined();
-    expect(pc.contextbaseApiToken).toBeUndefined();
-  });
-
-  it("omits llmApiKey for no-key providers like claude-code", () => {
-    const pc: Record<string, unknown> = {
-      llmApiKey: { source: "env", provider: "default", id: "STALE" },
-    };
-    applyEmbeddedMode(pc, { llmProvider: "claude-code" });
-    expect(pc.llmProvider).toBe("claude-code");
-    expect(pc.llmApiKey).toBeUndefined();
-  });
-
-  it("omits llmApiKey for github-copilot", () => {
-    const pc: Record<string, unknown> = {
-      llmApiKey: { source: "env", provider: "default", id: "STALE" },
-    };
-    applyEmbeddedMode(pc, { llmProvider: "github-copilot" });
-    expect(pc.llmProvider).toBe("github-copilot");
-    expect(pc.llmApiKey).toBeUndefined();
-  });
-
-  it("throws when a key-requiring provider is given without a key", () => {
-    const pc: Record<string, unknown> = {};
-    expect(() => applyEmbeddedMode(pc, { llmProvider: "openai" })).toThrow(
-      /requires either `apiKey` or `apiKeyEnvVar`/
-    );
-  });
-
-  it("persists llmModel when provided and clears it when absent", () => {
-    const pc: Record<string, unknown> = { llmModel: "legacy-model" };
-    applyEmbeddedMode(pc, { llmProvider: "ollama", llmModel: "llama3" });
-    expect(pc.llmModel).toBe("llama3");
-
-    applyEmbeddedMode(pc, { llmProvider: "ollama" });
-    expect(pc.llmModel).toBeUndefined();
-  });
-});
-
 describe("summarize*", () => {
-  it("produces human-readable mode summaries", () => {
+  it("summarizes remote connections without exposing tokens", () => {
+    expect(summarizeApi({ apiUrl: "https://api.example.com", token: "secret" })).not.toContain(
+      "secret"
+    );
     expect(
-      summarizeCloud({
-        apiUrl: "https://memory.example.com",
-        tokenEnvVar: "CONTEXTBASE_CLOUD_TOKEN",
-      })
-    ).toBe("Cloud → https://memory.example.com (token from ${CONTEXTBASE_CLOUD_TOKEN})");
-    expect(summarizeApi({ apiUrl: "https://api.example.com", tokenEnvVar: "T" })).toBe(
-      "External API → https://api.example.com (token from ${T})"
-    );
-    expect(summarizeApi({ apiUrl: "https://api.example.com", token: "literal" })).toBe(
-      "External API → https://api.example.com (token stored inline)"
-    );
-    expect(summarizeApi({ apiUrl: "https://api.example.com" })).toBe(
-      "External API → https://api.example.com (no auth)"
-    );
-    expect(summarizeEmbedded({ llmProvider: "openai", apiKeyEnvVar: "X" })).toBe(
-      "Embedded daemon → openai (key from ${X})"
-    );
-    expect(summarizeEmbedded({ llmProvider: "openai", apiKey: "sk-test" })).toBe(
-      "Embedded daemon → openai (key stored inline)"
-    );
-    expect(summarizeEmbedded({ llmProvider: "claude-code" })).toBe("Embedded daemon → claude-code");
+      summarizeCloud({ apiUrl: "https://api.example.com", tokenEnvVar: "CONTEXTBASE_API_TOKEN" })
+    ).toContain("https://api.example.com");
   });
 });
 

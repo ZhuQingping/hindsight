@@ -105,19 +105,10 @@ export interface PluginConfig {
    * as `entity_labels`. Other shapes are ignored (the server only accepts these two).
    */
   entityLabels?: unknown;
-  embedPort?: number;
   // Deprecated and ignored: the agent_knowledge_* tools were removed. Kept so
   // existing configs that set it still pass the strict manifest schema.
   enableKnowledgeTools?: boolean;
-  daemonIdleTimeout?: number; // Seconds before daemon shuts down (0 = never)
-  embedVersion?: string; // hindsight-embed version (default: "latest")
-  embedPackagePath?: string; // Local path to contextbase package (e.g. '/path/to/contextbase')
-  llmProvider?: string; // LLM provider (e.g. 'openai', 'anthropic', 'gemini', 'groq', 'ollama', 'openai-codex', 'claude-code')
-  llmModel?: string; // LLM model (e.g. 'gpt-4o-mini', 'claude-3-5-haiku-20241022')
-  llmApiKey?: string; // LLM provider API key. Configure via SecretRef: openclaw config set ... --ref-source env --ref-id OPENAI_API_KEY
-  llmBaseUrl?: string; // Optional base URL override for OpenAI-compatible providers (e.g. OpenRouter)
-  apiPort?: number; // Port for openclaw profile daemon (default: 9077)
-  contextbaseApiUrl?: string; // External ContextBase API URL (skips local daemon when set)
+  contextbaseApiUrl?: string; // ContextBase API Endpoint (required)
   contextbaseApiToken?: string; // API token for external ContextBase API. Configure via SecretRef.
   dynamicBankId?: boolean; // Enable per-channel memory banks (default: true)
   bankId?: string; // Static bank ID used when dynamicBankId is false.

@@ -21,12 +21,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             default="cloud",
             description="How Hermes connects to ContextBase.",
             options=(
-                ProviderFieldOption("cloud", "Cloud", "Remote ContextBase API (requires your service URL and credentials)"),
-                ProviderFieldOption("local_external", "Local External", "Connect to an existing ContextBase instance"),
-                # Without it the panel can't show a local_embedded config, and saving it rewrote the mode.
                 ProviderFieldOption(
-                    "local_embedded", "Local Embedded", "Run a local ContextBase daemon on this machine"
+                    "cloud", "Cloud", "Remote ContextBase API (requires your service URL and credentials)"
                 ),
+                ProviderFieldOption("self-hosted", "Self-hosted", "Connect to your explicitly configured API Endpoint"),
             ),
             inline=True,
         ),
@@ -34,7 +32,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             key="api_key",
             label="API key",
             kind=KIND_SECRET,
-            env_key="CONTEXTBASE_API_KEY",
+            env_key="CONTEXTBASE_API_TOKEN",
             description="Used to authenticate with the ContextBase API.",
             placeholder="Enter ContextBase API key",
             inline=True,
