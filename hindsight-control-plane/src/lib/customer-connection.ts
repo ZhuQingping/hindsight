@@ -1,54 +1,51 @@
+import "server-only";
 import { controlPlaneEnv } from "./control-plane-env";
 
-// These are customer-facing addresses, never the console's internal dataplane URL.
-function publicUrl(name: string, bankId?: string): string | undefined {
+export interface CustomerConnection {
+  apiUrl?: string;
+  mcpUrl?: string;
+  packages: {
+    codingAgents?: string;
+    openclaw?: string;
+    hermes?: string;
+    python?: string;
+    node?: string;
+  };
+}
+
+// Only explicitly public settings cross the server/client boundary. Never fall
+// back to the console's internal dataplane address or operator credentials.
+function publicUrl(name: string, options: { bankId?: string; extension?: string } = {}) {
   const configured = controlPlaneEnv(name)?.trim();
-  if (!configured) return undefined;
-  const value = configured.replaceAll("{bank_id}", encodeURIComponent(bankId ?? ""));
+  if (
+    !configured ||
+    Array.from(configured).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
+  )
+    return undefined;
+  const value = configured.replaceAll("{bank_id}", encodeURIComponent(options.bankId ?? ""));
   try {
     const url = new URL(value);
     if (url.protocol !== "https:" || url.username || url.password || url.hash) return undefined;
-    if (name !== "CODING_AGENTS_PACKAGE_URL" && url.search) return undefined;
-    if (name === "CODING_AGENTS_PACKAGE_URL" && !url.pathname.endsWith(".tgz")) return undefined;
+    if (options.extension) {
+      // Downloads may use signed query strings; API/MCP endpoints may not.
+      if (!url.pathname.endsWith(options.extension)) return undefined;
+    } else if (url.search) return undefined;
     return value;
   } catch {
     return undefined;
   }
 }
 
-export function customerConnection(bankId: string) {
-  const apiUrl = publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, "");
-  const mcpUrl = publicUrl("PUBLIC_MCP_URL", bankId);
-  const packageUrl = publicUrl("CODING_AGENTS_PACKAGE_URL");
-  const command = (powershell: boolean) => {
-    if (!apiUrl || !packageUrl) return undefined;
-    // Bank names and download URLs are data, including quotes and shell metacharacters.
-    const quote = (value: string) =>
-      "'" + value.replaceAll("'", powershell ? "''" : "'\"'\"'") + "'";
-    const token = powershell
-      ? "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'"
-      : "export CONTEXTBASE_API_TOKEN='<API_KEY>'";
-    return (
-      token +
-      "\n" +
-      [
-        powershell ? "npm.cmd" : "npm",
-        "exec",
-        "--yes",
-        quote(`--package=${packageUrl}`),
-        "--",
-        "contextbase-coding-agents",
-        "install",
-        "claude-code",
-        "codex",
-        "--api-url",
-        quote(apiUrl),
-        "--bank-id",
-        quote(bankId),
-        "--project-path",
-        quote("."),
-      ].join(" ")
-    );
+export function customerConnection(bankId: string): CustomerConnection {
+  return {
+    apiUrl: publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, ""),
+    mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
+    packages: {
+      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }),
+      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
+      hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
+      python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
+      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }),
+    },
   };
-  return { apiUrl, mcpUrl, bashInstall: command(false), powershellInstall: command(true) };
 }

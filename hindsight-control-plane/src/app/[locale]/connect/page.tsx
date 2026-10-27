@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ConnectBankChooser } from "@/components/connect-bank-chooser";
-import { ConnectionCode } from "@/components/connection-code";
+import { ClientConnectionSetup } from "@/components/client-connection-setup";
 import { ResourcePageShell } from "@/components/resource-page-shell";
 import { customerConnection } from "@/lib/customer-connection";
 
@@ -14,24 +14,6 @@ export default async function ConnectPage({
   const rawBankId = (await searchParams).bank_id;
   const bankId = typeof rawBankId === "string" && rawBankId ? rawBankId : null;
   const connection = customerConnection(bankId ?? "");
-  const python = bankId
-    ? `from contextbase_client import ContextBase\nimport os\n\nclient = ContextBase(\n    base_url=os.environ["CONTEXTBASE_API_URL"],\n    api_key=os.environ["CONTEXTBASE_API_KEY"],\n)\nresult = client.recall(${JSON.stringify(bankId)}, "your question")`
-    : "";
-  const encodedBankId = bankId ? encodeURIComponent(bankId) : "";
-  const rest = `curl -H "Authorization: Bearer $CONTEXTBASE_API_KEY" "$CONTEXTBASE_API_URL/v1/default/banks/${encodedBankId}/stats"`;
-  const mcp = JSON.stringify(
-    {
-      mcpServers: {
-        contextbase: {
-          type: "http",
-          url: connection.mcpUrl,
-          headers: { Authorization: "Bearer <API_KEY>", "X-Bank-Id": bankId },
-        },
-      },
-    },
-    null,
-    2
-  );
 
   return (
     <ResourcePageShell bankId={bankId}>
@@ -61,69 +43,7 @@ export default async function ConnectPage({
             </div>
           </section>
 
-          <section className="rounded-xl border border-border bg-muted/30 p-5 md:p-6">
-            <h2 className="text-lg font-semibold">{t("credentialsTitle")}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("credentialsBody")}</p>
-            {connection.apiUrl ? (
-              <ConnectionCode
-                code={`export CONTEXTBASE_API_URL='${connection.apiUrl.replaceAll("'", "'\"'\"'")}'\nexport CONTEXTBASE_API_KEY='<API_KEY>'`}
-              />
-            ) : (
-              <p>{t("connectionUnavailable")}</p>
-            )}
-          </section>
-
-          <section className="rounded-xl border border-border bg-card p-5 md:p-6">
-            <h2 className="text-lg font-semibold">{t("hookTitle")}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{t("hookBody")}</p>
-            {connection.bashInstall && connection.powershellInstall ? (
-              <>
-                <p className="mt-3 font-medium">Bash</p>
-                <ConnectionCode code={connection.bashInstall} />
-                <p className="mt-3 font-medium">Windows PowerShell</p>
-                <ConnectionCode code={connection.powershellInstall} />
-              </>
-            ) : (
-              <p>{t("connectionUnavailable")}</p>
-            )}
-          </section>
-
-          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-            <section className="min-w-0 self-start rounded-xl border border-border bg-card p-5 md:p-6">
-              <h2 className="text-lg font-semibold">{t("pythonTitle")}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{t("pythonBody")}</p>
-              {connection.apiUrl ? (
-                <>
-                  <ConnectionCode code="pip install contextbase-client" />
-                  <ConnectionCode code={python} />
-                </>
-              ) : (
-                <p>{t("connectionUnavailable")}</p>
-              )}
-            </section>
-            <div className="min-w-0 space-y-4">
-              <section className="min-w-0 rounded-xl border border-border bg-card p-5 md:p-6">
-                <h2 className="text-lg font-semibold">{t("restTitle")}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{t("restBody")}</p>
-                {connection.apiUrl ? (
-                  <ConnectionCode code={rest} />
-                ) : (
-                  <p>{t("connectionUnavailable")}</p>
-                )}
-              </section>
-              <section className="min-w-0 rounded-xl border border-border bg-card p-5 md:p-6">
-                <h2 className="text-lg font-semibold">{t("mcpTitle")}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{t("mcpEndpointHelp")}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{t("mcpBody")}</p>
-                {connection.mcpUrl ? (
-                  <ConnectionCode code={mcp} />
-                ) : (
-                  <p>{t("connectionUnavailable")}</p>
-                )}
-                <p className="mt-3 text-xs text-muted-foreground">{t("mcpAuth")}</p>
-              </section>
-            </div>
-          </div>
+          <ClientConnectionSetup key={bankId} bankId={bankId} connection={connection} />
         </>
       )}
 
