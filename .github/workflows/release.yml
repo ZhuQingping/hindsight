@@ -24,7 +24,7 @@ jobs:
           python -m pytest hindsight-clients/python/tests -o addopts='' -q
           --ignore=hindsight-clients/python/tests/test_main_operations.py
           --ignore=hindsight-clients/python/tests/test_attachment_download.py
-      - name: Verify Python generation preserves wire identifiers and data
+      - name: Verify SDK paths, wrapper coverage and Python branding
         run: python scripts/test-sdk-generation.py python
       - name: Build wheel and source archive and inspect brand names
         run: python scripts/package-sdks.py python --output artifacts
@@ -58,7 +58,7 @@ jobs:
       - name: Test Node SDK without a live service
         working-directory: hindsight-clients/typescript
         run: npm test -- --runInBand --testPathIgnorePatterns=main_operations.test.ts
-      - name: Verify Node generation preserves wire identifiers and data
+      - name: Verify real Node generation and data preservation
         run: python scripts/test-sdk-generation.py node
       - name: Build npm tarball and inspect brand names
         run: python scripts/package-sdks.py node --output artifacts

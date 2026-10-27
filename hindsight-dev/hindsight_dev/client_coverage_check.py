@@ -50,7 +50,7 @@ HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 def get_repo_root() -> Path:
     here = Path(__file__).resolve().parent
     for parent in (here, *here.parents):
-        if (parent / "contextbase-clients").is_dir() and (parent / "hindsight-docs").is_dir():
+        if (parent / "hindsight-clients").is_dir() and (parent / "hindsight-docs").is_dir():
             return parent
     raise RuntimeError(f"Could not locate repo root from {here}")
 
@@ -399,8 +399,8 @@ def main() -> None:
         clients.append(
             {
                 "client_name": "python",
-                "source_path": root / "contextbase-clients" / "python" / "contextbase_client" / "contextbase_client.py",
-                "manifest_path": root / "contextbase-clients" / "python" / ".openapi-coverage.toml",
+                "source_path": root / "hindsight-clients" / "python" / "contextbase_client" / "contextbase_client.py",
+                "manifest_path": root / "hindsight-clients" / "python" / ".openapi-coverage.toml",
                 "find_covered_ops": find_py_covered_ops,
             }
         )
@@ -409,8 +409,8 @@ def main() -> None:
         clients.append(
             {
                 "client_name": "typescript",
-                "source_path": root / "contextbase-clients" / "typescript" / "src" / "index.ts",
-                "manifest_path": root / "contextbase-clients" / "typescript" / ".openapi-coverage.toml",
+                "source_path": root / "hindsight-clients" / "typescript" / "src" / "index.ts",
+                "manifest_path": root / "hindsight-clients" / "typescript" / ".openapi-coverage.toml",
                 "find_covered_ops": find_ts_covered_ops,
             }
         )
