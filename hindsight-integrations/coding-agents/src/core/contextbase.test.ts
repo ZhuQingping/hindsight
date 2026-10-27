@@ -438,7 +438,7 @@ describe("ContextBaseClient.retain — per_source scoping", () => {
  * The scoping default lives in the client, so an entrypoint that forgets to forward the config
  * fails SOFTLY — it keeps writing correct memories and just ignores the user's `observationScopes`.
  * Nothing would notice, and the next harness added would copy the site that forgot. So assert it
- * over the whole family instead of per entrypoint, the way daemon.test.ts guards `ensureDaemon`.
+ * over the whole family instead of per entrypoint, the way remote-package.test.ts guards connection validation.
  */
 /**
  * #3600: the client captured `apiToken` at construction, so a long-lived host (dsh, Cline, Kilo,

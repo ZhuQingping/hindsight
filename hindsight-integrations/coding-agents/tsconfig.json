@@ -12,8 +12,5 @@
     "outDir": "dist",
     "types": ["node"]
   },
-  "include": ["src"],
-  // The internal local-engine launcher is not a client build entrypoint (see tsup.config.ts).
-  // Keep its source, but do not require the engine's generated declarations to check clients.
-  "exclude": ["src/daemon-start.ts"]
+  "include": ["src"]
 }
