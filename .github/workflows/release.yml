@@ -103,6 +103,9 @@ jobs:
           npm run typecheck
           npm run build
           npm test
+      - name: Verify installed client runtime, logs and MCP tools
+        working-directory: hindsight-integrations/coding-agents
+        run: node scripts/test-customer-install.mjs
       - name: Verify Claude Code and Agent Plugin
         run: |
           python -m pip install pytest -r hindsight-integrations/claude-code/requirements.txt

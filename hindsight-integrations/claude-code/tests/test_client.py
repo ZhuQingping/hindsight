@@ -6,7 +6,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 import pytest
-from lib.client import USER_AGENT, HindsightClient, _validate_api_url
+from lib.client import USER_AGENT, ContextBaseClient, _validate_api_url
 
 
 class TestValidateApiUrl:
@@ -43,30 +43,30 @@ class FakeResp:
         pass
 
 
-class TestHindsightClientInit:
+class TestContextBaseClientInit:
     def test_rejects_non_http_url(self):
         with pytest.raises(ValueError):
-            HindsightClient("ftp://bad")
+            ContextBaseClient("ftp://bad")
 
     def test_stores_token(self):
-        c = HindsightClient("http://localhost:9077", api_token="tok123")
+        c = ContextBaseClient("http://localhost:9077", api_token="tok123")
         assert c.api_token == "tok123"
 
     def test_no_token(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         assert c.api_token is None
 
 
-class TestHindsightClientRecall:
+class TestContextBaseClientRecall:
     def test_posts_to_correct_path(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         response_data = {"results": [{"text": "Paris", "type": "world"}]}
         with patch("urllib.request.urlopen", return_value=FakeResp(response_data)):
             resp = c.recall("my-bank", "capital of France")
         assert resp["results"][0]["text"] == "Paris"
 
     def test_bank_id_url_encoded(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -79,7 +79,7 @@ class TestHindsightClientRecall:
         assert "bank%20with%20spaces" in captured["url"]
 
     def test_includes_auth_header_when_token_set(self):
-        c = HindsightClient("http://localhost:9077", api_token="mytoken")
+        c = ContextBaseClient("http://localhost:9077", api_token="mytoken")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -93,7 +93,7 @@ class TestHindsightClientRecall:
         assert "mytoken" in captured["headers"]["Authorization"]
 
     def test_no_auth_header_without_token(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -108,7 +108,7 @@ class TestHindsightClientRecall:
     def test_sends_user_agent_header(self):
         # Regression test for #1041: the stdlib default "Python-urllib/X.Y" UA
         # is blocked by Cloudflare with error 1010, so we must always send our own.
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -122,7 +122,7 @@ class TestHindsightClientRecall:
         assert captured["ua"].startswith("contextbase-claude-code/")
 
     def test_http_error_raises_runtime_error(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         err = urllib.error.HTTPError(
             url="http://localhost:9077/v1/default/banks/b/memories/recall",
             code=500,
@@ -135,7 +135,7 @@ class TestHindsightClientRecall:
                 c.recall("b", "query")
 
     def test_sends_budget_and_types(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -149,7 +149,7 @@ class TestHindsightClientRecall:
         assert captured["body"]["types"] == ["world", "experience"]
 
     def test_sends_tag_filters(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -170,9 +170,9 @@ class TestHindsightClientRecall:
         assert captured["body"]["tag_groups"] == [{"op": "all", "tags": ["memory_type:rule", "tech_stack:supabase"]}]
 
 
-class TestHindsightClientRetain:
+class TestContextBaseClientRetain:
     def test_posts_with_async_true(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -187,7 +187,7 @@ class TestHindsightClientRetain:
         assert captured["body"]["items"][0]["context"] == "claude-code"
 
     def test_bank_id_encoded_in_retain_path(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -206,7 +206,7 @@ class TestRequestTimeoutOverride:
     the original per-call default is preserved (issue #1575)."""
 
     def test_override_replaces_recall_default(self):
-        c = HindsightClient("http://localhost:9077", request_timeout_override=60)
+        c = ContextBaseClient("http://localhost:9077", request_timeout_override=60)
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -219,7 +219,7 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 60
 
     def test_override_replaces_retain_default(self):
-        c = HindsightClient("http://localhost:9077", request_timeout_override=60)
+        c = ContextBaseClient("http://localhost:9077", request_timeout_override=60)
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -232,7 +232,7 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 60
 
     def test_override_replaces_explicit_request_timeout(self):
-        c = HindsightClient("http://localhost:9077", request_timeout_override=60)
+        c = ContextBaseClient("http://localhost:9077", request_timeout_override=60)
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -245,7 +245,7 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 60
 
     def test_no_override_preserves_recall_default(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -258,7 +258,7 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 10
 
     def test_no_override_preserves_retain_default(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -271,9 +271,9 @@ class TestRequestTimeoutOverride:
         assert captured["timeout"] == 15
 
 
-class TestHindsightClientSetBankMission:
+class TestContextBaseClientSetBankMission:
     def test_patches_config_endpoint(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -313,7 +313,7 @@ def test_http_rejection_preserves_service_message(bank: str) -> None:
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    client = HindsightClient(f"http://127.0.0.1:{server.server_port}")
+    client = ContextBaseClient(f"http://127.0.0.1:{server.server_port}")
     try:
         with pytest.raises(RuntimeError) as error:
             client.request("GET", f"/v1/default/banks/{bank}")

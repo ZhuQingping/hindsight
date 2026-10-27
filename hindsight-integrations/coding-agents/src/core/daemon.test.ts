@@ -218,9 +218,9 @@ describe("every harness entrypoint checks its remote connection", () => {
 
   /** A module is a request origin if it constructs a client directly OR asks the shared builder
    *  (core/host-client.ts) for one — the long-lived hosts do the latter, and reading only for
-   *  `new HindsightClient(` would silently stop checking every one of them. */
+   *  `new ContextBaseClient(` would silently stop checking every one of them. */
   const buildsClient = (src: string): boolean =>
-    src.includes("new HindsightClient(") || src.includes("resolveHostMemory(");
+    src.includes("new ContextBaseClient(") || src.includes("resolveHostMemory(");
 
   function sourceFiles(dir: string, prefix = ""): string[] {
     return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

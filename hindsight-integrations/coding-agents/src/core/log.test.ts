@@ -1,8 +1,29 @@
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { appendLogLine, describeError, LOG_MAX_BYTES } from "./log";
+import { describe, expect, it, vi } from "vitest";
+import { appendLogLine, describeError, log, LOG_MAX_BYTES } from "./log";
+
+it("identifies client logs without rewriting service errors or customer data", () => {
+  const root = mkdtempSync(join(tmpdir(), "contextbase-log-"));
+  const file = join(root, "plugin.log");
+  vi.stubEnv("CONTEXTBASE_LOG_FILE", file);
+  try {
+    log.info("codex", "session ready");
+    log.error("mcp", describeError(new Error("bank Hindsight-review not found")), {
+      query: "hindsight is part of the customer's document",
+    });
+    const lines = readFileSync(file, "utf8").trimEnd().split("\n");
+    expect(lines[0]).toMatch(/INFO\s+\[contextbase\] \[codex\] session ready$/);
+    expect(lines[1]).toContain("ERROR [contextbase] [mcp] bank Hindsight-review not found");
+    expect(JSON.parse(lines[1].slice(lines[1].indexOf("{")))).toEqual({
+      query: "hindsight is part of the customer's document",
+    });
+  } finally {
+    vi.unstubAllEnvs();
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 describe("appendLogLine", () => {
   it("creates an owner-only directory and rotates one generation past the cap", () => {

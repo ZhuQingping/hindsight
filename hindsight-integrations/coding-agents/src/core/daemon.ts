@@ -40,7 +40,7 @@ import { execFileSync, spawn as realSpawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Config } from "./config";
-import { USER_AGENT } from "./hindsight";
+import { USER_AGENT } from "./contextbase";
 import { diag } from "./diag";
 import { log } from "./log";
 

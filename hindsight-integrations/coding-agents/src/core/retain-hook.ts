@@ -19,8 +19,8 @@ import { applyBankConfig, loadConfig } from "./config";
 import { ensureRemoteConnection } from "./connection";
 import { diag, readHookEvent } from "./diag";
 import { describeError, log, setLogLevel } from "./log";
-import type { ClientOpts } from "./hindsight";
-import { HindsightClient } from "./hindsight";
+import type { ClientOpts } from "./contextbase";
+import { ContextBaseClient } from "./contextbase";
 import type { RetainCursorStore } from "./retain-cursor";
 import { buildRetainStamp, type RetainStamp } from "./retain-stamp";
 import { fileCursorStore, fileUsageCursorStore, sessionRootDir } from "./session-cache";
@@ -82,13 +82,13 @@ export interface RetainHookSpec {
   };
 }
 
-/** Minimal client shape `buildRetain` needs — `HindsightClient` satisfies it structurally. The
+/** Minimal client shape `buildRetain` needs — `ContextBaseClient` satisfies it structurally. The
  *  capability probe is part of the contract: appending to a document is only safe against a server
  *  that can deduplicate a resubmitted write (see core/retain-cursor.ts), into a bank that keeps
  *  document text to append to (#4613). */
 interface RetainClient {
-  retain: HindsightClient["retain"];
-  supportsAppendRetain: HindsightClient["supportsAppendRetain"];
+  retain: ContextBaseClient["retain"];
+  supportsAppendRetain: ContextBaseClient["supportsAppendRetain"];
 }
 
 /**
@@ -157,7 +157,7 @@ export async function buildRetain(args: {
   const startTs = turns[0]?.timestamp ?? new Date().toISOString();
   const t0 = Date.now();
   try {
-    await retainLiveSession(client as HindsightClient, sessionId, turns, startTs, harness, {
+    await retainLiveSession(client as ContextBaseClient, sessionId, turns, startTs, harness, {
       cursors: args.cursors ?? fileCursorStore(harness),
       stamp: args.stamp,
       retryUntil: args.retryUntil,
@@ -180,7 +180,7 @@ export async function buildRetain(args: {
 /** Run one Stop-hook invocation: stdin event in, no stdout output (a Stop hook injects nothing). */
 export async function runRetainHook(
   spec: RetainHookSpec,
-  makeClient: (opts: ClientOpts) => RetainClient = (o) => new HindsightClient(o)
+  makeClient: (opts: ClientOpts) => RetainClient = (o) => new ContextBaseClient(o)
 ): Promise<void> {
   // Anti-recursion: the codebase survey's own headless claude session (core/survey.ts) sets this
   // so its hooks are a no-op — it must not retain its own survey session's transcript.

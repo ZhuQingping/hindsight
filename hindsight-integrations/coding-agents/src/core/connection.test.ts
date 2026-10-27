@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ensureRemoteConnection, validateRemoteEndpoint } from "./connection";
 import { applyBankConfig, loadConfig, resolveConfig } from "./config";
-import { HindsightClient } from "./hindsight";
+import { ContextBaseClient } from "./contextbase";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -70,10 +70,10 @@ describe("remote connection contract", () => {
         await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
       const urls = servers.map((s) => `http://127.0.0.1:${(s.address() as AddressInfo).port}`);
       for (const [i, apiUrl] of urls.entries()) {
-        const client = new HindsightClient({ apiUrl, apiToken: `key-${i}`, bank: "b" });
+        const client = new ContextBaseClient({ apiUrl, apiToken: `key-${i}`, bank: "b" });
         await client.req("GET", client.bankUrl());
       }
-      const denied = new HindsightClient({ apiUrl: urls[0], apiToken: "rejected", bank: "b" });
+      const denied = new ContextBaseClient({ apiUrl: urls[0], apiToken: "rejected", bank: "b" });
       await expect(denied.req("GET", denied.bankUrl())).rejects.toThrow("401");
       expect(seen).toEqual([
         ["/v1/default/banks/b Bearer key-0", "/v1/default/banks/b Bearer rejected"],

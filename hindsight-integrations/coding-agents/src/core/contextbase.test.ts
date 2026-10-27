@@ -7,10 +7,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_MAX_PARALLEL_RETAINS,
   DEFAULT_OBSERVATION_SCOPES,
-  HindsightClient,
+  ContextBaseClient,
   ReflectError,
   retryAfterMs,
-} from "./hindsight";
+} from "./contextbase";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -24,21 +24,21 @@ function jsonResponse(status: number, body: unknown, headers?: Record<string, st
   });
 }
 
-describe("HindsightClient.maxParallelRetains", () => {
+describe("ContextBaseClient.maxParallelRetains", () => {
   it("defaults to 10 when not provided", () => {
-    const c = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const c = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     expect(c.maxParallelRetains).toBe(DEFAULT_MAX_PARALLEL_RETAINS);
   });
 
   it("honours the configured cap", () => {
-    const c = new HindsightClient({ apiUrl: "http://x", bank: "b", maxParallelRetains: 3 });
+    const c = new ContextBaseClient({ apiUrl: "http://x", bank: "b", maxParallelRetains: 3 });
     expect(c.maxParallelRetains).toBe(3);
   });
 });
 
-describe("HindsightClient document-list safety", () => {
+describe("ContextBaseClient document-list safety", () => {
   it("uses strict strategy-tag matching on every page", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "shared-bank" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "shared-bank" });
     const firstPage = Array.from({ length: 500 }, (_, i) => ({ id: `git:${i}` }));
     const fetchMock = vi.fn(async (_url: string | URL | Request) => {
       const offset = String(_url).includes("offset=500") ? 500 : 0;
@@ -62,7 +62,7 @@ describe("HindsightClient document-list safety", () => {
   });
 
   it("preserves the inclusive all mode for existing callers that do not opt into strict matching", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "shared-bank" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "shared-bank" });
     const fetchMock = vi.fn(async (_url: string | URL | Request) =>
       jsonResponse(200, { items: [], total: 0 })
     );
@@ -76,9 +76,9 @@ describe("HindsightClient document-list safety", () => {
   });
 });
 
-describe("HindsightClient.documentTags", () => {
+describe("ContextBaseClient.documentTags", () => {
   it("reads one document's tags from the id-filtered listing, not the full document", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "shared-bank" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "shared-bank" });
     const fetchMock = vi.fn(async (_url: string | URL | Request) =>
       jsonResponse(200, {
         items: [
@@ -98,7 +98,7 @@ describe("HindsightClient.documentTags", () => {
   });
 
   it("pages past ids that only contain the requested one, and answers undefined without it", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "shared-bank" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "shared-bank" });
     const lookalikes = Array.from({ length: 100 }, (_, i) => ({
       id: `gitlog:repo-${i}`,
       tags: [],
@@ -119,13 +119,13 @@ describe("HindsightClient.documentTags", () => {
   });
 });
 
-describe("HindsightClient.hasDocuments", () => {
+describe("ContextBaseClient.hasDocuments", () => {
   it.each([
     [200, { items: [{ id: "a" }], total: 7 }, true],
     [200, { items: [], total: 0 }, false],
     [404, { detail: "Bank not found" }, false],
   ])("status %s %j -> %s", async (status, body, expected) => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(status, body));
     vi.stubGlobal("fetch", fetchMock);
     expect(await client.hasDocuments()).toBe(expected);
@@ -135,7 +135,7 @@ describe("HindsightClient.hasDocuments", () => {
   });
 
   it("throws on a server error, so a caller cannot read it as an empty bank", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => jsonResponse(500, { detail: "boom" }))
@@ -144,10 +144,14 @@ describe("HindsightClient.hasDocuments", () => {
   });
 });
 
-describe("HindsightClient.drain", () => {
+describe("ContextBaseClient.drain", () => {
   it("polls at most maxParallelRetains ops concurrently", async () => {
     const cap = 2;
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b", maxParallelRetains: cap });
+    const client = new ContextBaseClient({
+      apiUrl: "http://x",
+      bank: "b",
+      maxParallelRetains: cap,
+    });
     let inFlight = 0;
     let maxInFlight = 0;
     const fetchMock = vi.fn(async () => {
@@ -168,7 +172,7 @@ describe("HindsightClient.drain", () => {
 
   it("backs off by Retry-After when it exceeds the 10s floor", async () => {
     vi.useFakeTimers();
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(429, {}, { "Retry-After": "30" }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -187,7 +191,7 @@ describe("HindsightClient.drain", () => {
     // The header is a hint, not a budget we owe the server: an hour-long value would otherwise
     // park the drain — and the background seed behind it — for that hour.
     vi.useFakeTimers();
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(429, {}, { "Retry-After": "3600" }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -202,7 +206,7 @@ describe("HindsightClient.drain", () => {
 
   it("uses the 10s floor when Retry-After is shorter than it", async () => {
     vi.useFakeTimers();
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(429, {}, { "Retry-After": "2" }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -219,7 +223,7 @@ describe("HindsightClient.drain", () => {
 
   it("backs off 10s on a 429 that carries no Retry-After", async () => {
     vi.useFakeTimers();
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(429, {}));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -236,7 +240,7 @@ describe("HindsightClient.drain", () => {
 
   it("keeps the 5s cycle when ops stay pending without a 429", async () => {
     vi.useFakeTimers();
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(200, { status: "running" }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -250,7 +254,7 @@ describe("HindsightClient.drain", () => {
   });
 
   it("marks non-completed terminal ops as failed and drops them from polling", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async (url: string | URL | Request) => {
       const id = String(url).split("/").pop();
       return id === "1"
@@ -259,7 +263,7 @@ describe("HindsightClient.drain", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const log = vi.fn();
-    const c = new HindsightClient({ apiUrl: "http://x", bank: "b", log });
+    const c = new ContextBaseClient({ apiUrl: "http://x", bank: "b", log });
 
     await c.drain(["1", "2"], "test", 10_000);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -271,7 +275,7 @@ describe("HindsightClient.drain", () => {
       const fetchMock = vi.fn(async () => jsonResponse(status, { detail: "nope" }));
       vi.stubGlobal("fetch", fetchMock);
       const log = vi.fn();
-      const c = new HindsightClient({ apiUrl: "http://x", bank: "b", log });
+      const c = new ContextBaseClient({ apiUrl: "http://x", bank: "b", log });
 
       await c.drain(["1"], "test", 60_000);
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -285,7 +289,7 @@ describe("HindsightClient.drain", () => {
     const fetchMock = vi.fn(async () => jsonResponse(503, {}));
     vi.stubGlobal("fetch", fetchMock);
     const log = vi.fn();
-    const c = new HindsightClient({ apiUrl: "http://x", bank: "b", log });
+    const c = new ContextBaseClient({ apiUrl: "http://x", bank: "b", log });
 
     const p = c.drain(["1"], "test", 60 * 60 * 1000);
     await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
@@ -316,9 +320,9 @@ describe("retryAfterMs", () => {
   });
 });
 
-describe("HindsightClient.retain — observation scoping", () => {
+describe("ContextBaseClient.retain — observation scoping", () => {
   async function retainItem(
-    client: HindsightClient,
+    client: ContextBaseClient,
     tags: string[] = ["source:chat", "harness:claude-code"]
   ): Promise<Record<string, unknown>> {
     let sent: string | undefined;
@@ -336,7 +340,7 @@ describe("HindsightClient.retain — observation scoping", () => {
 
   it("defaults every retain to the single global scope, so two agents on one repo build ONE set of observations (#3564)", async () => {
     expect(DEFAULT_OBSERVATION_SCOPES).toBe("shared");
-    const item = await retainItem(new HindsightClient({ apiUrl: "http://x", bank: "b" }));
+    const item = await retainItem(new ContextBaseClient({ apiUrl: "http://x", bank: "b" }));
     expect(item.observation_scopes).toBe("shared");
     // The harness tag still travels: it is what the documents list filters and draws its logo from.
     expect(item.tags).toEqual(["source:chat", "harness:claude-code"]);
@@ -344,11 +348,15 @@ describe("HindsightClient.retain — observation scoping", () => {
 
   it("sends a configured scoping instead, including the server's own default", async () => {
     const combined = await retainItem(
-      new HindsightClient({ apiUrl: "http://x", bank: "b", observationScopes: "combined" })
+      new ContextBaseClient({ apiUrl: "http://x", bank: "b", observationScopes: "combined" })
     );
     expect(combined.observation_scopes).toBe("combined");
     const explicit = await retainItem(
-      new HindsightClient({ apiUrl: "http://x", bank: "b", observationScopes: [["project:demo"]] })
+      new ContextBaseClient({
+        apiUrl: "http://x",
+        bank: "b",
+        observationScopes: [["project:demo"]],
+      })
     );
     expect(explicit.observation_scopes).toEqual([["project:demo"]]);
   });
@@ -365,9 +373,9 @@ describe("HindsightClient.retain — observation scoping", () => {
  * It reads ONLY `source:`, so volatile provenance tags (a session id in `retainTags`) can never
  * become a scope — the failure mode `per_tag` would reintroduce.
  */
-describe("HindsightClient.retain — per_source scoping", () => {
+describe("ContextBaseClient.retain — per_source scoping", () => {
   async function retainItem(
-    client: HindsightClient,
+    client: ContextBaseClient,
     tags: string[]
   ): Promise<Record<string, unknown>> {
     let sent: string | undefined;
@@ -384,7 +392,7 @@ describe("HindsightClient.retain — per_source scoping", () => {
   }
 
   const perSource = () =>
-    new HindsightClient({ apiUrl: "http://x", bank: "b", observationScopes: "per_source" });
+    new ContextBaseClient({ apiUrl: "http://x", bank: "b", observationScopes: "per_source" });
 
   it("keeps the global scope and adds the document's own source scope", async () => {
     const item = await retainItem(perSource(), ["source:chat", "harness:claude-code"]);
@@ -438,7 +446,7 @@ describe("HindsightClient.retain — per_source scoping", () => {
  * every call 401'd until the whole host restarted, while `contextbase_diagnose` read the file and
  * called it healthy.
  */
-describe("HindsightClient credential refresh", () => {
+describe("ContextBaseClient credential refresh", () => {
   /** Stub fetch that only accepts one bearer token, and records what it was asked. */
   function server(accepted: () => string | undefined) {
     const calls: { auth: string | null; body: string | null }[] = [];
@@ -456,7 +464,7 @@ describe("HindsightClient credential refresh", () => {
 
   it("identifies itself with the integration's User-Agent", async () => {
     const { fetchMock } = server(() => undefined);
-    await new HindsightClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
+    await new ContextBaseClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
     const ua = new Headers(fetchMock.mock.calls[0][1].headers).get("User-Agent");
     expect(ua).toMatch(/^contextbase-coding-agents\/\d+\.\d+\.\d+/);
   });
@@ -464,7 +472,7 @@ describe("HindsightClient credential refresh", () => {
   it("recovers from a rotated credential without restarting the host", async () => {
     const { calls } = server(() => "new-key");
     let onDisk = "old-key";
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       apiToken: onDisk,
@@ -480,7 +488,7 @@ describe("HindsightClient credential refresh", () => {
 
   it("does not retry when the credential is unchanged — a wrong key stays one 401, not two", async () => {
     const { calls } = server(() => "right-key");
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       apiToken: "wrong-key",
@@ -493,7 +501,7 @@ describe("HindsightClient credential refresh", () => {
 
   it("keeps the last credential that worked when the provider throws", async () => {
     const { calls } = server(() => "any");
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       apiToken: "good-key",
@@ -510,7 +518,7 @@ describe("HindsightClient credential refresh", () => {
 
   it("leaves a provider-less client exactly as it was", async () => {
     const { calls } = server(() => "any");
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b", apiToken: "stale" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b", apiToken: "stale" });
 
     await expect(client.req("GET", "http://x/thing")).rejects.toThrow(/401/);
     expect(calls).toHaveLength(1);
@@ -519,7 +527,7 @@ describe("HindsightClient credential refresh", () => {
   it("replays the body of a retried POST", async () => {
     const { calls } = server(() => "new-key");
     let onDisk = "old-key";
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       apiToken: onDisk,
@@ -540,7 +548,7 @@ describe("HindsightClient credential refresh", () => {
   it("recovers on the reflect path too, not just the generic request path", async () => {
     const { calls } = server(() => "new-key");
     let onDisk = "old-key";
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       apiToken: onDisk,
@@ -554,10 +562,10 @@ describe("HindsightClient credential refresh", () => {
 
   it("says whether a credential was even sent, which the server's 401 cannot", async () => {
     server(() => "needed");
-    const none = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const none = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     await expect(none.req("GET", "http://x/thing")).rejects.toThrow(/no apiToken is configured/);
 
-    const wrong = new HindsightClient({ apiUrl: "http://x", bank: "b", apiToken: "nope" });
+    const wrong = new ContextBaseClient({ apiUrl: "http://x", bank: "b", apiToken: "nope" });
     await expect(wrong.req("GET", "http://x/thing")).rejects.toThrow(/was rejected/);
   });
 });
@@ -586,11 +594,11 @@ describe("every memory write goes through the one call site that scopes it", () 
     const writers = sourceFiles(SRC).filter((rel) =>
       readFileSync(join(SRC, rel), "utf8").includes('"/memories')
     );
-    expect(writers).toEqual(["core/hindsight.ts"]);
+    expect(writers).toEqual(["core/contextbase.ts"]);
   });
 
   it("keeps that call site inside retain(), with the scoping on the item it posts", () => {
-    const src = readFileSync(join(SRC, "core/hindsight.ts"), "utf8");
+    const src = readFileSync(join(SRC, "core/contextbase.ts"), "utf8");
     expect(src.match(/bankUrl\("\/memories"\)/g)).toHaveLength(1);
     // Everything between retain()'s signature and the POST is the body it builds; the scoping
     // has to be set in there, not left to whatever the server defaults to.
@@ -618,20 +626,20 @@ describe("every client-building entrypoint forwards observationScopes", () => {
       const src = readFileSync(join(SRC, rel), "utf8");
       // `makeClient({` is the hook/session-start seam: the ClientOpts are built there even though
       // the constructor call itself is the injected default further up the file.
-      const buildsClient = src.includes("new HindsightClient({") || src.includes("makeClient({");
+      const buildsClient = src.includes("new ContextBaseClient({") || src.includes("makeClient({");
       return buildsClient && !src.includes("observationScopes:");
     });
     expect(dropped).toEqual([]);
   });
 });
 
-describe("HindsightClient.reflect failures", () => {
+describe("ContextBaseClient.reflect failures", () => {
   it("keeps the server's error body, not just the status", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => jsonResponse(500, { detail: "tool_call ids must be unique" }))
     );
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
 
     await expect(client.reflect("why?", { timeoutMs: 5_000 })).rejects.toThrow(
       /^reflect 500 .*tool_call ids must be unique/
@@ -648,7 +656,7 @@ describe("HindsightClient.reflect failures", () => {
           })
       )
     );
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
 
     await expect(client.reflect("why?", { timeoutMs: 10 })).rejects.toThrow(
       "reflect timed out after 10ms"
@@ -656,7 +664,7 @@ describe("HindsightClient.reflect failures", () => {
   });
 
   it("types the failure so the hook can tell a fallback-worthy one apart", async () => {
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const failWith = async (status: number) => {
       vi.stubGlobal(
         "fetch",
@@ -704,7 +712,7 @@ describe("HindsightClient.reflect failures", () => {
     const Agent = original.constructor as new (opts: object) => object;
     g[key] = new Agent({ headersTimeout: 100 });
     try {
-      const client = new HindsightClient({ apiUrl: `http://127.0.0.1:${port}`, bank: "b" });
+      const client = new ContextBaseClient({ apiUrl: `http://127.0.0.1:${port}`, bank: "b" });
       expect(await client.reflect("why?", { timeoutMs: 10_000 })).toBe("late answer");
     } finally {
       g[key] = original;
@@ -713,14 +721,14 @@ describe("HindsightClient.reflect failures", () => {
   });
 });
 
-describe("HindsightClient.recallObservations", () => {
+describe("ContextBaseClient.recallObservations", () => {
   it("merges recallOptions key-by-key over the defaults, leaving untouched keys alone", async () => {
     const fetchMock = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) =>
       jsonResponse(200, { results: [{ text: "only" }] })
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await new HindsightClient({
+    await new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       recallOptions: { types: ["world", "experience"], max_tokens: 250, tags: ["t"] },
@@ -744,7 +752,7 @@ describe("HindsightClient.recallObservations", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await new HindsightClient({
+    await new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       recallOptions: { types: null },
@@ -759,7 +767,7 @@ describe("HindsightClient.recallObservations", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await new HindsightClient({
+    await new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       recallOptions: { query: "a fixed string" },
@@ -773,7 +781,7 @@ describe("HindsightClient.recallObservations", () => {
       jsonResponse(200, { results: [{ text: " first " }, { text: "" }, { text: "second" }] })
     );
     vi.stubGlobal("fetch", fetchMock);
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
 
     const out = await client.recallObservations("goal", { timeoutMs: 5_000 });
 
@@ -795,11 +803,11 @@ describe("HindsightClient.recallObservations", () => {
  * undecoded — so every tool died in `.json()` on the gzip magic. Asking for `identity` means the
  * server never compresses, whatever fetch the host provides.
  */
-describe("HindsightClient response encoding", () => {
+describe("ContextBaseClient response encoding", () => {
   it("asks the server not to compress responses", async () => {
     const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => jsonResponse(200, {}));
     vi.stubGlobal("fetch", fetchMock);
-    await new HindsightClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
+    await new ContextBaseClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
     expect(new Headers(fetchMock.mock.calls[0][1].headers).get("Accept-Encoding")).toBe("identity");
   });
 });
@@ -818,14 +826,14 @@ describe("package.json", () => {
   });
 });
 
-describe("HindsightClient rate-limit patience", () => {
-  const retainOnce = (client: HindsightClient) =>
+describe("ContextBaseClient rate-limit patience", () => {
+  const retainOnce = (client: ContextBaseClient) =>
     client.retain("chat body", "developer chat", "chat:1", [], "conversation");
 
   it("fails fast on a 429 by default — a hook answers to its host's deadline", async () => {
     const fetchMock = vi.fn(async () => jsonResponse(429, {}, { "Retry-After": "0" }));
     vi.stubGlobal("fetch", fetchMock);
-    const client = new HindsightClient({ apiUrl: "http://x", bank: "b" });
+    const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     await expect(retainOnce(client)).rejects.toMatchObject({ code: "rate_limited" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -839,7 +847,7 @@ describe("HindsightClient rate-limit patience", () => {
       .mockResolvedValueOnce(jsonResponse(429, {}, { "Retry-After": "0" }))
       .mockResolvedValueOnce(jsonResponse(200, { operation_id: "op-1" }));
     vi.stubGlobal("fetch", fetchMock);
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       rateLimitPatienceMs: 60_000,
@@ -858,7 +866,7 @@ describe("HindsightClient rate-limit patience", () => {
     vi.useFakeTimers();
     const fetchMock = vi.fn(async () => jsonResponse(429, {}, { "Retry-After": "0" }));
     vi.stubGlobal("fetch", fetchMock);
-    const client = new HindsightClient({
+    const client = new ContextBaseClient({
       apiUrl: "http://x",
       bank: "b",
       rateLimitPatienceMs: 5_000,

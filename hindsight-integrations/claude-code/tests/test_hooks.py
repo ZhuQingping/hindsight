@@ -513,7 +513,7 @@ class TestRetainHook:
 
         assert "body" in captured, "retain API was not called"
         item = captured["body"]["items"][0]
-        # HindsightClient.retain only sets item["tags"] if tags is truthy (client.py:144).
+        # ContextBaseClient.retain only sets item["tags"] if tags is truthy (client.py:144).
         # With all tags dropped, retain.py sets tags=None, so "tags" is absent from item.
         assert "tags" not in item
 

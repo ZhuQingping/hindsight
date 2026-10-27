@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "./config";
 import { buildHookOutput, runHook } from "./hook";
 import { diagFilePath } from "./diag";
-import { ReflectError } from "./hindsight";
+import { ReflectError } from "./contextbase";
 import { buildReflectQuery } from "./inject";
 
 let root: string;

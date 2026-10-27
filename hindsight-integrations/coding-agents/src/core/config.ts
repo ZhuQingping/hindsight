@@ -22,7 +22,7 @@ import {
   DEFAULT_OBSERVATION_SCOPES,
   DEFAULT_PAGE_SEARCH_LIMIT,
   type ObservationScopes,
-} from "./hindsight";
+} from "./contextbase";
 import {
   type CustomPagesConfig,
   DEFAULT_PAGE_TRIGGER_CRON,

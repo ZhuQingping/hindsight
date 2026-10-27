@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { deriveBankId } from "./bank";
 import type { TransportTurn } from "./chat";
 import { type RawConfig, resolveConfig } from "./config";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import { buildRetain, runRetainHook } from "./retain-hook";
 import { fingerprintTurns, memoryCursorStore, type RetainCursorStore } from "./retain-cursor";
 import { readCodexTranscript } from "./transcript-codex";
@@ -99,7 +99,7 @@ describe("buildRetain usage stats", () => {
         transcriptPath: file,
         bankId: "bank-1",
         usageCursors: memoryUsageCursorStore(),
-        client: { retain: vi.fn().mockResolvedValue(undefined) } as unknown as HindsightClient,
+        client: { retain: vi.fn().mockResolvedValue(undefined) } as unknown as ContextBaseClient,
       });
       expect(JSON.parse(readFileSync(usageFile, "utf8"))).toMatchObject({
         harness: "claude-code",
@@ -454,7 +454,7 @@ describe("buildRetain", () => {
     args: Parameters<typeof buildRetain>[0] & { retainSpy: ReturnType<typeof vi.fn> }
   ): Promise<Array<{ role: string; content: string }>> {
     const { retainSpy, ...rest } = args;
-    await buildRetain({ ...rest, client: { retain: retainSpy } as unknown as HindsightClient });
+    await buildRetain({ ...rest, client: { retain: retainSpy } as unknown as ContextBaseClient });
     const [content] = retainSpy.mock.calls[0];
     return (content as string).split("\n").map((line) => JSON.parse(line));
   }
@@ -548,7 +548,7 @@ describe("buildRetain", () => {
     writeFileSync(file, lines.join("\n"));
 
     const retainSpy = vi.fn().mockResolvedValue(undefined);
-    const client = { retain: retainSpy } as unknown as HindsightClient;
+    const client = { retain: retainSpy } as unknown as ContextBaseClient;
 
     await buildRetain({
       harness: "claude-code",
@@ -587,7 +587,7 @@ describe("buildRetain", () => {
     writeFileSync(file, lines.join("\n"));
 
     const retainSpy = vi.fn().mockResolvedValue(undefined);
-    const client = { retain: retainSpy } as unknown as HindsightClient;
+    const client = { retain: retainSpy } as unknown as ContextBaseClient;
 
     await buildRetain({
       harness: "claude-code",
@@ -610,7 +610,7 @@ describe("buildRetain", () => {
     );
 
     const retainSpy = vi.fn().mockRejectedValue(new Error("boom"));
-    const client = { retain: retainSpy } as unknown as HindsightClient;
+    const client = { retain: retainSpy } as unknown as ContextBaseClient;
 
     await expect(
       buildRetain({
@@ -655,7 +655,7 @@ describe("buildRetain — incremental write-back across Stop hooks", () => {
 
   /** One Stop-hook invocation over the transcript as it stands. Each hook run is a fresh process in
    *  production, so only the cursor store carries state between these calls. */
-  const stop = async (client: HindsightClient, cursors: RetainCursorStore) =>
+  const stop = async (client: ContextBaseClient, cursors: RetainCursorStore) =>
     buildRetain({
       harness: "codex",
       sessionId: "sess-append",
@@ -672,7 +672,7 @@ describe("buildRetain — incremental write-back across Stop hooks", () => {
         retain,
         bank: "coding-agent::repo",
         supportsAppendRetain: async () => true,
-      } as unknown as HindsightClient,
+      } as unknown as ContextBaseClient,
     };
   };
 

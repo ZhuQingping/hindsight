@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import {
   commitsSince,
   gitLogNewestAuthorDate,
@@ -102,7 +102,7 @@ describe("ingestGitLog", () => {
     execFileSync("git", ["-C", dir, "commit", "--allow-empty", "-m", "fix: thing two"]);
 
     const retainSpy = vi.fn().mockResolvedValue(undefined);
-    const client = { retain: retainSpy, opIds: [] } as unknown as HindsightClient;
+    const client = { retain: retainSpy, opIds: [] } as unknown as ContextBaseClient;
 
     const failures = await ingestGitLog(client, dir, { limit: 10 });
 
@@ -118,7 +118,7 @@ describe("ingestGitLog", () => {
 
   it("does not call retain for a repo with no commits, and returns 0", async () => {
     const retainSpy = vi.fn().mockResolvedValue(undefined);
-    const client = { retain: retainSpy, opIds: [] } as unknown as HindsightClient;
+    const client = { retain: retainSpy, opIds: [] } as unknown as ContextBaseClient;
 
     const failures = await ingestGitLog(client, dir, { limit: 10 });
 
@@ -129,7 +129,7 @@ describe("ingestGitLog", () => {
   it("applies retain attribution to aggregated git history", async () => {
     execFileSync("git", ["-C", dir, "commit", "--allow-empty", "-m", "feat: attributed"]);
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain, opIds: [] } as unknown as HindsightClient;
+    const client = { retain, opIds: [] } as unknown as ContextBaseClient;
 
     await ingestGitLog(client, dir, {
       limit: 10,
@@ -150,7 +150,7 @@ describe("ingestGitLog", () => {
       env: { ...process.env, GIT_AUTHOR_DATE: "2024-03-04T05:06:07+00:00" },
     });
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain, opIds: [] } as unknown as HindsightClient;
+    const client = { retain, opIds: [] } as unknown as ContextBaseClient;
 
     await ingestGitLog(client, dir, { limit: 10 });
 
@@ -163,7 +163,7 @@ describe("ingestGitLog", () => {
     execFileSync("git", ["-C", dir, "commit", "--allow-empty", "-m", "feat: full diff"]);
     const sha = execFileSync("git", ["-C", dir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { retain, opIds: [] } as unknown as HindsightClient;
+    const client = { retain, opIds: [] } as unknown as ContextBaseClient;
 
     await retainCommit(client, dir, sha, repoNameOf(dir), {
       tags: ["project:repo-a"],
@@ -197,7 +197,7 @@ describe("syncGitLog", () => {
       retain,
       deleteDocument,
       opIds: [],
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
 
     const failures = await syncGitLog(client, dir, { limit: 10 });
 
@@ -217,7 +217,7 @@ describe("syncGitLog", () => {
         new Set([`gitlog:${repoNameOf(dir)}`])
     );
     const retain = vi.fn().mockResolvedValue(undefined);
-    const client = { listDocumentIds, retain, opIds: [] } as unknown as HindsightClient;
+    const client = { listDocumentIds, retain, opIds: [] } as unknown as ContextBaseClient;
 
     const failures = await syncGitLog(client, dir, { limit: 10 });
 
@@ -240,7 +240,7 @@ describe("syncGitLog", () => {
       listDocumentIds: async (tag: string) =>
         new Set([...docs].filter(([, tags]) => tags.includes(tag)).map(([id]) => id)),
       documentTags: async (id: string) => docs.get(id),
-    } as unknown as HindsightClient;
+    } as unknown as ContextBaseClient;
     return { client, retain, docs };
   }
 

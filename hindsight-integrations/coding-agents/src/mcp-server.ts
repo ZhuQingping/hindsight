@@ -20,7 +20,7 @@ import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { describeError } from "./core/log";
 import { type Config } from "./core/config";
 import { resolveHostMemory } from "./core/host-client";
-import { HindsightClient } from "./core/hindsight";
+import { ContextBaseClient } from "./core/contextbase";
 import { buildKnowledgeTools, type ToolSpec } from "./core/knowledge-tools";
 import { buildPageTrigger } from "./core/missions";
 import { buildRetainStamp } from "./core/retain-stamp";
@@ -33,7 +33,7 @@ import { buildRetainStamp } from "./core/retain-stamp";
  */
 export function selectTools(
   cfg: Config,
-  client: HindsightClient,
+  client: ContextBaseClient,
   bankId: string,
   opts: { cwd?: string; harness?: string } = {}
 ): ToolSpec[] {

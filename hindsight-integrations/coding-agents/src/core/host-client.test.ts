@@ -177,14 +177,14 @@ describe("long-lived hosts build their client through the shared factory", () =>
   it("has no module constructing a client outside the factory without a stated reason", () => {
     const unexplained = sourceFiles(SRC).filter(
       (rel) =>
-        !(rel in DIRECT) && readFileSync(join(SRC, rel), "utf8").includes("new HindsightClient(")
+        !(rel in DIRECT) && readFileSync(join(SRC, rel), "utf8").includes("new ContextBaseClient(")
     );
     expect(unexplained).toEqual([]);
   });
 
   it("keeps no entry for a module that stopped constructing one", () => {
     const stale = Object.keys(DIRECT).filter(
-      (rel) => !readFileSync(join(SRC, rel), "utf8").includes("new HindsightClient(")
+      (rel) => !readFileSync(join(SRC, rel), "utf8").includes("new ContextBaseClient(")
     );
     expect(stale).toEqual([]);
   });

@@ -3,7 +3,7 @@
  *
  * Every persistent host (dsh, Cline, Kilo, Prime Agent, opencode and the other plugin entries, the
  * MCP server) used to carry its own copy of the same four steps — loadConfig, deriveBankId,
- * applyBankConfig, `new HindsightClient({...})`. Five copies of a block is five chances to leave a
+ * applyBankConfig, `new ContextBaseClient({...})`. Five copies of a block is five chances to leave a
  * field out, and two already had: dsh and Prime Agent never passed `maxParallelRetains` (so both
  * silently ignored that setting), and dsh never passed the directory to `applyBankConfig` (so
  * `optInOnly` was not enforced there at all). #3600 was the same shape a third time — the
@@ -18,14 +18,14 @@ import { applyBankConfig, loadConfig, resolveConfig, type Config } from "./confi
 import { bankProjectName, deriveBankIdOrSkip } from "./bank";
 import { RemoteConnectionError } from "./connection";
 import { log } from "./log";
-import { HindsightClient } from "./hindsight";
+import { ContextBaseClient } from "./contextbase";
 
 /** A host's resolved memory: the config for THIS workspace, the bank it resolved to, and a client
  *  bound to both. */
 export interface HostMemory {
   cfg: Config;
   bankId: string;
-  client: HindsightClient;
+  client: ContextBaseClient;
 }
 
 /** Resolve config for one workspace: env + file + `harnesses.<name>`, then the `banks.<id>`
@@ -72,7 +72,7 @@ export function resolveHostMemory(harness: string, directory: string): HostMemor
   return {
     cfg,
     bankId,
-    client: new HindsightClient({
+    client: new ContextBaseClient({
       apiUrl: cfg.apiUrl,
       apiToken: cfg.apiToken,
       bank: bankId,

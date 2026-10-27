@@ -6,7 +6,7 @@
  *   level: "info" default — config `logLevel`, or CONTEXTBASE_LOG_LEVEL for ad-hoc debugging
  *          without touching config ("debug" | "info" | "warn" | "error")
  *
- * Line format: `<iso> LEVEL [scope] message {extra-json}` — greppable, tail-able. At "debug",
+ * Line format: `<iso> LEVEL [contextbase] [scope] message {extra-json}` — greppable, tail-able. At "debug",
  * every diag event is mirrored here too, so one file tells the whole story. Never throws: logging
  * must not break the agent.
  */
@@ -71,7 +71,7 @@ function write(level: LogLevel, scope: string, msg: string, extra?: Record<strin
   try {
     appendLogLine(
       logFilePath(),
-      `${new Date().toISOString()} ${level.toUpperCase().padEnd(5)} [${scope}] ${msg}` +
+      `${new Date().toISOString()} ${level.toUpperCase().padEnd(5)} [contextbase] [${scope}] ${msg}` +
         (extra && Object.keys(extra).length ? ` ${JSON.stringify(extra)}` : "") +
         "\n"
     );

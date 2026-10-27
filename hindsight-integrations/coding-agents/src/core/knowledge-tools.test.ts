@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { buildKnowledgeTools } from "./knowledge-tools";
 import { DEFAULT_REFLECT_TOOL_TIMEOUT_MS } from "./config";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 
-/** Minimal stub of the HindsightClient surface the tools call — no SDK, no network. */
+/** Minimal stub of the ContextBaseClient surface the tools call — no SDK, no network. */
 function stubClient(overrides: Partial<Record<string, ReturnType<typeof vi.fn>>> = {}) {
   return {
     listPages: vi.fn(async () => ({ pages: [] })),
@@ -16,7 +16,7 @@ function stubClient(overrides: Partial<Record<string, ReturnType<typeof vi.fn>>>
     captureInitiative: vi.fn(async (_a: unknown) => ({ page_id: "initiative-x" })),
     retain: vi.fn(async (..._args: unknown[]) => undefined),
     ...overrides,
-  } as unknown as HindsightClient;
+  } as unknown as ContextBaseClient;
 }
 
 function findTool(tools: ReturnType<typeof buildKnowledgeTools>, name: string) {

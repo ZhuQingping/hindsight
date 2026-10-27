@@ -9,7 +9,7 @@
  * failure (offline, no remote, unconfigured bank) must never break the agent.
  */
 import { execFileSync } from "node:child_process";
-import type { HindsightClient } from "./hindsight";
+import type { ContextBaseClient } from "./contextbase";
 import { retainCommit, repoNameOf } from "./git";
 import { pool } from "./util";
 
@@ -51,7 +51,7 @@ function resolveRef(repo: string, preferred: string): string | null {
 }
 
 export async function syncGit(
-  client: HindsightClient,
+  client: ContextBaseClient,
   repo: string,
   opts: SyncOpts = {}
 ): Promise<SyncResult> {

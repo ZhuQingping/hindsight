@@ -46,12 +46,7 @@ export interface KnowledgeNode {
  * retain API). The scalar modes are the server's; a `string[][]` declares the scopes explicitly.
  */
 export type ObservationScopes =
-  | "shared"
-  | "combined"
-  | "per_tag"
-  | "all_combinations"
-  | "per_source"
-  | string[][];
+  "shared" | "combined" | "per_tag" | "all_combinations" | "per_source" | string[][];
 
 /**
  * `per_source` is resolved HERE, per document, and never reaches the server: it expands to the
@@ -349,8 +344,7 @@ function signalOnlyDispatcher(): unknown {
   // global loads it; touching `fetch` does not (it is a wrapper until first called).
   void globalThis.Headers;
   const d = (globalThis as Record<symbol, unknown>)[GLOBAL_DISPATCHER] as
-    | { compose?: (interceptor: unknown) => unknown }
-    | undefined;
+    { compose?: (interceptor: unknown) => unknown } | undefined;
   if (typeof d?.compose !== "function") return undefined; // Node 18's undici predates compose()
   type Dispatch = (opts: Record<string, unknown>, handler: unknown) => boolean;
   return d.compose(
@@ -359,7 +353,7 @@ function signalOnlyDispatcher(): unknown {
   );
 }
 
-export class HindsightClient {
+export class ContextBaseClient {
   readonly apiUrl: string;
   /** The credential the NEXT request will sign with — NOT the one the config file holds. The two
    *  diverge exactly when #3600 bites, which is why `contextbase_diagnose` reports both. */
