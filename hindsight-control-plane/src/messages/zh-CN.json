@@ -740,6 +740,12 @@
     "viewDocument": "查看文档"
   },
   "dataView": {
+    "sortTimeField": "排序时间",
+    "noMentionedTime": "无提及时间",
+    "noOccurredTime": "无发生时间",
+    "newestFirst": "最新在前",
+    "oldestFirst": "最早在前",
+    "toggleTimeOrder": "切换时间正序或倒序",
     "loadingMemories": "正在加载记忆...",
     "noMemoriesYet": "暂无记忆",
     "noMemoriesDescription": "添加文档以开始构建此工作空间。",

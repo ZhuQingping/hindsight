@@ -3,6 +3,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { client } from "@/lib/api";
+import {
+  formatMemoryTime,
+  sortMemoriesByTime,
+  type MemorySortOrder,
+  type MemoryDisplayTimeField,
+} from "@/lib/memory-time";
 import { useBank } from "@/lib/bank-context";
 import {
   AppliedMemoryFilters,
@@ -28,6 +34,8 @@ import {
   List,
   Search,
   Layers,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -85,6 +93,47 @@ interface DataViewProps {
   onExpandToggle?: () => void;
 }
 
+function MemorySortControl({
+  order,
+  onChange,
+  timeField,
+  onTimeFieldChange,
+}: {
+  order: MemorySortOrder;
+  onChange: (order: MemorySortOrder) => void;
+  timeField: MemoryDisplayTimeField;
+  onTimeFieldChange: (field: MemoryDisplayTimeField) => void;
+}) {
+  const t = useTranslations("dataView");
+  const basis = t(timeField === "mentioned_at" ? "columnMentioned" : "columnOccurred");
+  const label = order === "desc" ? t("newestFirst") : t("oldestFirst");
+  const Icon = order === "desc" ? ArrowDownWideNarrow : ArrowUpWideNarrow;
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        aria-label={t("sortTimeField")}
+        value={timeField}
+        onChange={(event) => onTimeFieldChange(event.target.value as MemoryDisplayTimeField)}
+        className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground"
+      >
+        <option value="mentioned_at">{t("columnMentioned")}</option>
+        <option value="occurred_start">{t("columnOccurred")}</option>
+      </select>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 gap-1.5 text-xs"
+        aria-label={`${basis}: ${label}`}
+        title={t("toggleTimeOrder")}
+        onClick={() => onChange(order === "desc" ? "asc" : "desc")}
+      >
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </Button>
+    </div>
+  );
+}
+
 export function DataView({
   factType,
   documentId,
@@ -96,6 +145,8 @@ export function DataView({
   const tg = useTranslations("constellation");
   const locale = useLocale();
   const tAddDoc = useTranslations("addDocument");
+  const [sortOrder, setSortOrder] = useState<MemorySortOrder>("desc");
+  const [timeField, setTimeField] = useState<MemoryDisplayTimeField>("mentioned_at");
   const { currentBank } = useBank();
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [compactMode, setCompactMode] = useState(compact);
@@ -224,9 +275,13 @@ export function DataView({
   // Table rows: live rows are graph-fed (filtered server-side); invalidated rows
   // come from the archive via list.
   const filteredTableRows = useMemo(() => {
-    if (showInvalidated) return invalidatedRows;
-    return data?.table_rows ?? [];
-  }, [data, showInvalidated, invalidatedRows]);
+    // Sort the entire loaded set before pagination, including the archive.
+    return sortMemoriesByTime(
+      showInvalidated ? invalidatedRows : (data?.table_rows ?? []),
+      timeField,
+      sortOrder
+    );
+  }, [data, showInvalidated, invalidatedRows, sortOrder, timeField]);
   // Read from the applied filters, not the live ones, so every "filtered vs.
   // unfiltered" label describes the rows actually on screen.
   const filtersActive = hasActiveMemoryFilters(appliedFilters);
@@ -365,7 +420,7 @@ export function DataView({
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [tagFilters, selectedScope]);
+  }, [tagFilters, selectedScope, sortOrder, timeField]);
 
   // Resolve the active tag filter into (tags, tags_match) for the graph query.
   // A selected observation scope takes precedence and uses exact set-equality
@@ -851,6 +906,14 @@ export function DataView({
 
           {!compactMode && viewMode === "table" && (
             <div>
+              <div className="flex justify-end mb-3">
+                <MemorySortControl
+                  order={sortOrder}
+                  onChange={setSortOrder}
+                  timeField={timeField}
+                  onTimeFieldChange={setTimeField}
+                />
+              </div>
               {factType !== "observation" && (
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
@@ -929,20 +992,11 @@ export function DataView({
                             </TableHeader>
                             <TableBody>
                               {paginatedRows.map((row: any, idx: number) => {
-                                const occurredDisplay = row.occurred_start
-                                  ? new Date(row.occurred_start).toLocaleDateString(locale, {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })
-                                  : null;
-                                const mentionedDisplay = row.mentioned_at
-                                  ? new Date(row.mentioned_at).toLocaleDateString(locale, {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })
-                                  : null;
+                                const occurredDisplay = formatMemoryTime(
+                                  row.occurred_start,
+                                  locale
+                                );
+                                const mentionedDisplay = formatMemoryTime(row.mentioned_at, locale);
 
                                 return (
                                   <TableRow
@@ -1030,6 +1084,7 @@ export function DataView({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setCurrentPage(1)}
+                                  aria-label={t("first")}
                                   disabled={currentPage === 1}
                                   className="h-7 w-7 p-0"
                                 >
@@ -1039,6 +1094,7 @@ export function DataView({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                  aria-label={t("previous")}
                                   disabled={currentPage === 1}
                                   className="h-7 w-7 p-0"
                                 >
@@ -1051,6 +1107,7 @@ export function DataView({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                  aria-label={t("next")}
                                   disabled={currentPage === totalPages}
                                   className="h-7 w-7 p-0"
                                 >
@@ -1060,6 +1117,7 @@ export function DataView({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setCurrentPage(totalPages)}
+                                  aria-label={t("last")}
                                   disabled={currentPage === totalPages}
                                   className="h-7 w-7 p-0"
                                 >
@@ -1085,6 +1143,10 @@ export function DataView({
             <TimelineView
               data={data}
               filteredRows={filteredTableRows}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+              timeField={timeField}
+              onTimeFieldChange={setTimeField}
               bankId={currentBank || undefined}
               onMemoryClick={(id) => setModalMemoryId(id)}
             />
@@ -1122,40 +1184,48 @@ export function TimelineView({
   filteredRows,
   bankId,
   onMemoryClick,
+  sortOrder: controlledSortOrder,
+  onSortOrderChange,
+  timeField: controlledTimeField,
+  onTimeFieldChange,
 }: {
   data: any;
   filteredRows: any[];
   bankId?: string;
   onMemoryClick: (id: string) => void;
+  sortOrder?: MemorySortOrder;
+  onSortOrderChange?: (order: MemorySortOrder) => void;
+  timeField?: MemoryDisplayTimeField;
+  onTimeFieldChange?: (field: MemoryDisplayTimeField) => void;
 }) {
   const t = useTranslations("dataView");
   const locale = useLocale();
+  const [localSortOrder, setLocalSortOrder] = useState<MemorySortOrder>("desc");
+  const sortOrder = controlledSortOrder ?? localSortOrder;
+  const changeSortOrder = onSortOrderChange ?? setLocalSortOrder;
+  const [localTimeField, setLocalTimeField] = useState<MemoryDisplayTimeField>("mentioned_at");
+  const timeField = controlledTimeField ?? localTimeField;
+  const changeTimeField = onTimeFieldChange ?? setLocalTimeField;
+  const secondaryTimeField = timeField === "mentioned_at" ? "occurred_start" : "mentioned_at";
   const [granularity, setGranularity] = useState<Granularity>("month");
   const [currentIndex, setCurrentIndex] = useState(0);
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  // Filter and sort items that have occurred_start dates (using filtered data)
+  // Both views use the selected axis. Unknown dates stay visible in a final
+  // group, rather than disappearing or being replaced with a different timestamp.
   const { sortedItems, itemsWithoutDates } = useMemo(() => {
     if (!filteredRows || filteredRows.length === 0)
       return { sortedItems: [], itemsWithoutDates: [] };
 
-    const withDates = filteredRows
-      .filter((row: any) => row.occurred_start)
-      .sort((a: any, b: any) => {
-        const dateA = new Date(a.occurred_start).getTime();
-        const dateB = new Date(b.occurred_start).getTime();
-        return dateA - dateB;
-      });
-
-    const withoutDates = filteredRows.filter((row: any) => !row.occurred_start);
+    const hasDate = (row: any) => row[timeField] && Number.isFinite(Date.parse(row[timeField]));
+    const withDates = sortMemoriesByTime(filteredRows.filter(hasDate), timeField, sortOrder);
+    const withoutDates = filteredRows.filter((row: any) => !hasDate(row));
 
     return { sortedItems: withDates, itemsWithoutDates: withoutDates };
-  }, [filteredRows]);
+  }, [filteredRows, sortOrder, timeField]);
 
   // Group items by granularity
   const timelineGroups = useMemo(() => {
-    if (sortedItems.length === 0) return [];
-
     const getGroupKey = (date: Date): string => {
       const year = date.getFullYear();
       const month = date.getMonth();
@@ -1197,7 +1267,7 @@ export function TimelineView({
 
     const groups: { [key: string]: { items: any[]; date: Date } } = {};
     sortedItems.forEach((row: any) => {
-      const date = new Date(row.occurred_start);
+      const date = new Date(row[timeField]);
       const key = getGroupKey(date);
       if (!groups[key]) {
         // For week, parse the start date from key
@@ -1211,23 +1281,45 @@ export function TimelineView({
       groups[key].items.push(row);
     });
 
-    return Object.entries(groups)
-      .sort(([, a], [, b]) => a.date.getTime() - b.date.getTime())
-      .map(([key, { items, date }]) => ({
-        key,
-        label: getGroupLabel(key, date),
-        items,
-        date,
-      }));
-  }, [sortedItems, granularity]);
+    const result: Array<{ key: string; label: string; items: any[]; date: Date | null }> =
+      Object.entries(groups)
+        .sort(
+          ([, a], [, b]) => (a.date.getTime() - b.date.getTime()) * (sortOrder === "asc" ? 1 : -1)
+        )
+        .map(([key, { items, date }]) => ({
+          key,
+          label: getGroupLabel(key, date),
+          items,
+          date,
+        }));
+    if (itemsWithoutDates.length > 0) {
+      result.push({
+        key: "undated",
+        label: t(timeField === "mentioned_at" ? "noMentionedTime" : "noOccurredTime"),
+        items: itemsWithoutDates,
+        date: null,
+      });
+    }
+    return result;
+  }, [sortedItems, itemsWithoutDates, granularity, sortOrder, locale, timeField, t]);
+
+  // Changing direction or zoom starts navigation at the first visible group.
+  useEffect(() => {
+    setCurrentIndex(0);
+    if (timelineRef.current) timelineRef.current.scrollTop = 0;
+  }, [sortOrder, granularity, timeField]);
+
+  useEffect(() => {
+    setCurrentIndex((index) => Math.max(0, Math.min(index, timelineGroups.length - 1)));
+  }, [timelineGroups.length]);
 
   // Get date range info
   const dateRange = useMemo(() => {
     if (sortedItems.length === 0) return null;
-    const first = new Date(sortedItems[0].occurred_start);
-    const last = new Date(sortedItems[sortedItems.length - 1].occurred_start);
+    const first = new Date(sortedItems[0][timeField]);
+    const last = new Date(sortedItems[sortedItems.length - 1][timeField]);
     return { first, last };
-  }, [sortedItems]);
+  }, [sortedItems, timeField]);
 
   // Navigation
   const scrollToGroup = (index: number) => {
@@ -1253,18 +1345,13 @@ export function TimelineView({
     }
   };
 
-  if (sortedItems.length === 0) {
+  if (timelineGroups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Calendar className="w-12 h-12 text-muted-foreground mb-3" />
         <div className="text-base font-medium text-foreground mb-1">{t("noTimelineData")}</div>
         <div className="text-xs text-muted-foreground text-center max-w-md">
-          {t("noTimelineDataDescription")}
-          {itemsWithoutDates.length > 0 && (
-            <span className="block mt-1">
-              {t("memoriesWithoutDatesInTable", { count: itemsWithoutDates.length })}
-            </span>
-          )}
+          {t("noMemoriesFound")}
         </div>
       </div>
     );
@@ -1295,7 +1382,7 @@ export function TimelineView({
         {/* Controls */}
         <div className="flex items-center justify-between mb-3 gap-4">
           <div className="text-xs text-muted-foreground">
-            <span>{t("timelineMemoriesCount", { count: sortedItems.length })}</span>
+            <span>{t("timelineMemoriesCount", { count: filteredRows.length })}</span>
             {dateRange && (
               <span className="ml-1.5 text-foreground">
                 ({dateRange.first.toLocaleDateString(locale, { month: "short", year: "numeric" })} →{" "}
@@ -1306,7 +1393,13 @@ export function TimelineView({
               ` ${t("timelineWithoutDates", { count: itemsWithoutDates.length })}`}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
+            <MemorySortControl
+              order={sortOrder}
+              onChange={changeSortOrder}
+              timeField={timeField}
+              onTimeFieldChange={changeTimeField}
+            />
             {/* Zoom controls */}
             <div className="flex items-center border border-border rounded mr-2">
               <Button
@@ -1388,7 +1481,12 @@ export function TimelineView({
           <div className="absolute left-[60px] top-0 bottom-0 w-0.5 bg-border" />
 
           {timelineGroups.map((group, groupIdx) => (
-            <div key={group.key} id={`timeline-group-${groupIdx}`} className="mb-4">
+            <div
+              key={group.key}
+              id={`timeline-group-${groupIdx}`}
+              data-time-group={group.key}
+              className="mb-4"
+            >
               {/* Group header */}
               <div
                 className="flex items-center mb-2 cursor-pointer hover:opacity-80"
@@ -1415,10 +1513,10 @@ export function TimelineView({
                     {/* Date & Time */}
                     <div className="w-[60px] text-right pr-3 pt-1 flex-shrink-0">
                       <div className="text-[10px] text-muted-foreground">
-                        {formatDateTime(item.occurred_start).date}
+                        {group.date ? formatDateTime(item[timeField]).date : "—"}
                       </div>
                       <div className="text-[9px] text-muted-foreground/70">
-                        {formatDateTime(item.occurred_start).time}
+                        {group.date ? formatDateTime(item[timeField]).time : ""}
                       </div>
                     </div>
 
@@ -1436,6 +1534,16 @@ export function TimelineView({
                       <p className="text-xs text-foreground line-clamp-2 leading-relaxed">
                         {item.text}
                       </p>
+                      {formatMemoryTime(item[secondaryTimeField], locale) && (
+                        <div className="text-[10px] text-muted-foreground mt-1">
+                          {t(
+                            secondaryTimeField === "mentioned_at"
+                              ? "columnMentioned"
+                              : "columnOccurred"
+                          )}
+                          : {formatMemoryTime(item[secondaryTimeField], locale)}
+                        </div>
+                      )}
                       {item.context && (
                         <p className="text-[10px] text-muted-foreground mt-1 truncate">
                           {item.context}

@@ -740,6 +740,12 @@
     "viewDocument": "ドキュメントを表示"
   },
   "dataView": {
+    "sortTimeField": "並べ替えの日時",
+    "noMentionedTime": "言及日時なし",
+    "noOccurredTime": "発生日時なし",
+    "newestFirst": "新しい順",
+    "oldestFirst": "古い順",
+    "toggleTimeOrder": "時系列の並び順を切り替え",
     "loadingMemories": "メモリを読み込み中...",
     "noMemoriesYet": "メモリがまだありません",
     "noMemoriesDescription": "ドキュメントを追加してメモリバンクの構築を始めてください。",

@@ -740,6 +740,12 @@
     "viewDocument": "Ver documento"
   },
   "dataView": {
+    "sortTimeField": "Ordenar por data",
+    "noMentionedTime": "Sem data de menção",
+    "noOccurredTime": "Sem data do evento",
+    "newestFirst": "Mais recentes primeiro",
+    "oldestFirst": "Mais antigas primeiro",
+    "toggleTimeOrder": "Alternar ordem cronológica",
     "loadingMemories": "Carregando memórias...",
     "noMemoriesYet": "Nenhuma memória ainda",
     "noMemoriesDescription": "Adicione um documento para começar a construir este banco de memória.",

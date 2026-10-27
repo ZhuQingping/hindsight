@@ -740,6 +740,12 @@
     "viewDocument": "View Document"
   },
   "dataView": {
+    "sortTimeField": "Sort by time",
+    "noMentionedTime": "No mention time",
+    "noOccurredTime": "No occurrence time",
+    "newestFirst": "Newest first",
+    "oldestFirst": "Oldest first",
+    "toggleTimeOrder": "Switch chronological order",
     "loadingMemories": "Loading memories...",
     "noMemoriesYet": "No memories yet",
     "noMemoriesDescription": "Add a document to start building this Workspace.",
