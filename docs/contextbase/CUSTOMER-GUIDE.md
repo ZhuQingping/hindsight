@@ -32,7 +32,7 @@ npm install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.
 
 ## 2 配置连接和项目
 
-先进入需要启用记忆的项目目录，再填写服务提供方给出的 API 地址、API Key 和 Bank ID。Bank 需已创建并授权；`--project-path '.'` 绑定的是执行命令时的当前目录。
+填写服务提供方给出的 API 地址、API Key 和 Bank ID。Bank 需已创建并授权；`--project-path '.'` 绑定的是执行命令时的当前目录。
 
 Windows PowerShell：
 
@@ -50,7 +50,7 @@ export CONTEXTBASE_API_TOKEN='你的业务API-Key'
 contextbase-coding-agents install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
 ```
 
-只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。API 地址不要填写下载地址或 MCP Endpoint。
+只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。
 
 安装器会配置本地 MCP 工具、自动读写记忆的 Hooks 和配套 Skill。安装对当前系统用户生效，**API 地址和 Key 全局共享，Bank 按项目目录选择**。
 
@@ -59,8 +59,6 @@ contextbase-coding-agents install claude-code codex --api-url 'https://实际API
 Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记忆。
 
 首次接入请指定 `--bank-id`。不指定时复用已有配置；没有映射时按默认规则选择 Bank，云端不一定存在或授权该 Bank。`--project-path` 必须与 `--bank-id` 一起使用。
-
-`optInOnly` 控制未绑定项目是否启用记忆：`true` 表示仅已绑定或明确启用的项目使用记忆，`false` 表示其他项目也按默认规则选择 Bank。未配置时默认 `false`，安装器保留已有值。
 
 ### 为项目指定或切换 Bank
 
