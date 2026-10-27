@@ -31,6 +31,7 @@ from ...paths import EXTENSION, ROOT
 class DeploymentOptions:
     worker_mode: Literal["embedded-worker", "standalone-worker"] = "embedded-worker"
     default_template: str | None = None
+    maintenance_probe: bool = False
 
 
 @dataclass
@@ -38,6 +39,7 @@ class ContextDBDeployment:
     server: HindsightServer
     headers: dict[str, str] = field(repr=False)
     database_url: str = field(default="", repr=False)
+    worker: HindsightServer | None = None
 
 
 @contextmanager
@@ -90,6 +92,16 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
         "HINDSIGHT_API_MCP_EXTENSION": "hindsight_ext_contextdb.mcp:ContextDBMCPExtension",
         "HINDSIGHT_API_WORKER_ENABLED": "true" if options.worker_mode == "embedded-worker" else "false",
     }
+    if options.maintenance_probe:
+        # Existing server settings shorten only the check cadence; the native
+        # 60-second ticker and real background workers remain unchanged.
+        settings.update(
+            {
+                "HINDSIGHT_API_MAINTENANCE_START_JITTER_SECONDS": "0",
+                "HINDSIGHT_API_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS": "1",
+                "HINDSIGHT_API_MENTAL_MODEL_REFRESH_TICK_SECONDS": "1",
+            }
+        )
     template = options.default_template
     if template is not None:
         settings["HINDSIGHT_API_DEFAULT_BANK_TEMPLATE"] = template
@@ -151,7 +163,7 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
             else:
                 raise AssertionError(f"Standalone worker readiness timed out; log: {worker.log_path}")
         headers = {"Authorization": "Bearer " + secret}
-        yield ContextDBDeployment(server, headers, info.uri)
+        yield ContextDBDeployment(server, headers, info.uri, worker)
         # Check after all SDK/UI stories and accepted background work, not only
         # bootstrap; ContextDB must never recreate a public business schema.
         asyncio.run(assert_no_public_business_tables())

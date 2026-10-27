@@ -64,7 +64,7 @@ async def test_mcp_metadata_failures_hide_details_without_falling_through(monkey
         reached()
         return "unreachable"
 
-    server.add_middleware(ContextDBMCPRouting(Mock(tenant_extension=Mock(spec=ContextDBTenantExtension)), settings))
+    ContextDBMCPRouting(Mock(tenant_extension=Mock(spec=ContextDBTenantExtension)), settings).install(server)
     async with Client(server) as client:
         if operation == "list":
             with pytest.raises(McpError) as error:
@@ -154,7 +154,7 @@ async def test_native_tool_failure_is_not_rewritten_as_a_metadata_error(monkeypa
     async def recall() -> str:
         raise OSError("synthetic-native-tool-failure")
 
-    server.add_middleware(ContextDBMCPRouting(Mock(tenant_extension=Mock(spec=ContextDBTenantExtension)), settings))
+    ContextDBMCPRouting(Mock(tenant_extension=Mock(spec=ContextDBTenantExtension)), settings).install(server)
     async with Client(server) as client:
         result = await client.call_tool("recall", {}, raise_on_error=False)
     assert result.is_error
@@ -202,7 +202,7 @@ async def test_native_bank_listing_failure_keeps_its_original_error(monkeypatch,
     async def list_banks() -> str:
         return "unreachable"
 
-    server.add_middleware(ContextDBMCPRouting(memory, settings))
+    ContextDBMCPRouting(memory, settings).install(server)
     async with Client(server) as client:
         result = await client.call_tool("list_banks", {}, raise_on_error=False)
     assert result.is_error

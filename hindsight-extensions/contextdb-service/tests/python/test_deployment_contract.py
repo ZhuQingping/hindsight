@@ -409,6 +409,13 @@ async def test_real_source_init_preserves_secrets_without_public_business_tables
             assert await connection.fetchval("SELECT to_regnamespace('public') IS NOT NULL")
             assert not await connection.fetchval("SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname='public')")
             assert await connection.fetchval("SELECT count(*) FROM ctxdb_meta.users WHERE role='admin'") == 1
+            for signature in (
+                "banks_needing_consolidation()",
+                "mental_models_with_cron()",
+                "schemas_with_expired_rows(text,text,integer)",
+                "schemas_with_expired_operations(integer)",
+            ):
+                assert await connection.fetchval("SELECT to_regprocedure($1) IS NOT NULL", "public." + signature)
             assert (
                 UiSecrets.model_validate_json((directory / "ui-secrets.json").read_text()).password
                 == (tmp_path / "password").read_text().strip()

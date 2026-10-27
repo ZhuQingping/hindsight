@@ -59,10 +59,17 @@ CP的TypeScript配置、ESLint根目录调用、Prettier、knip和CI触发范围
 
 ## 本轮初始化及管理体验修复（2026-10-21，未提交）
 
-`service.sh init`只持久化秘密文件、初始化/核验ctxdb_meta六表和管理员，不再迁移public业务表。创建空间时才初始化ctxdb_ws_<bank_id>。public继续保存vector等扩展对象，不删除public schema，也不自动清理旧开发库；更新脚本不得重新执行ContextDB的public全量业务迁移。纯原生过渡部署说明不受此规则替代。
+`service.sh init`持久化秘密文件、初始化/核验ctxdb_meta六表、管理员及四个原生共享维护函数，不再迁移public业务表。创建空间时才初始化ctxdb_ws_<bank_id>。public继续保存vector等扩展对象，不删除public schema，也不自动清理旧开发库；更新脚本不得重新执行ContextDB的public全量业务迁移。纯原生过渡部署说明不受此规则替代。
 
 管理元数据的表、字段、索引、约束与函数Description统一英文；audit_events.key_id是目标Key，control_key_id是操作者Admin Key。只更新COMMENT，元数据版本、DDL结构、权限和业务数据不变。
 
 chunk详情由扩展transport使用原生codec解析Bank并进入现有授权上下文；原生接口与SDK不变。管理UI补齐GET错误状态、空间q搜索及UUID草稿保持、当前语言日期与管理导航；Secret保留到用户明确关闭，离页/卸载/切换用户仍清理，不持久化或自动重签，复制反馈防迟到。
 
 团队ProductRuntime、productFetch、proxy、Host/Origin及磁盘会话不变。公共配置使用CONTEXTBASE优先、HINDSIGHT兼容的既有合同，显式空值也具有优先级。目标旧HEAD遗漏的49d727664配置读取/健康探测修复在本轮补齐；SEC-01已有投影不重复实现。逐项适配、实际测试和未验收范围统一见[完整设计](../../docs/contextdb-management/DESIGN.md)、[检视记录](../../docs/contextdb-management/CODE-REVIEW.md)与[验证记录](../../docs/contextdb-management/VALIDATION.md)。
+
+
+## MCP与共享维护函数（2026-10-27）
+
+MCP适配器先认证当前消息的目标空间，将其登记schema用于原生工具筛选、审计配置读取和执行；root工具目录按每个可见空间的原生配置与权限筛选后求并集。没有跨请求身份缓存，未改变业务Key配置字段投影。
+
+`service.sh init`复用原生revision `c8b4e2a71f95`安装四个共享维护函数，不补建public业务表。函数默认位于public，也可使用事先创建的配置schema；离线CLI与API/Worker保持CONTEXTBASE优先、HINDSIGHT兼容及显式空值规则，不加载父`.env`。已声明外部接管的函数不覆盖，须满足原生签名、返回列及EXECUTE权限。已有部署在维护窗口保留配置/秘密文件重复init即可补齐；本轮未操作现有部署。完整部署与错误边界见[设计§5.5.4](../../docs/contextdb-management/DESIGN.md)，实际测试与限制见[验证第17章](../../docs/contextdb-management/VALIDATION.md)。

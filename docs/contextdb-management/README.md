@@ -1,12 +1,14 @@
 # ContextDB 工作空间、用户与 API Key
 
+当前维护修复（2026-10-27）基于main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复分支`codex/fix-contextdb-31-32-integration`；提交身份以同版Git/PR为准。Issue #31的MCP配置作用域、Issue #32的共享维护函数初始化均在插件内修复。走读[设计第5.5.4节](DESIGN.md)、[检视第20章](CODE-REVIEW.md)、[验证记录（第17章独立目录、第18章本地集成目录）](VALIDATION.md)。下列送审信息为原管理功能历史。
+
 **先查[已落地优化索引（CODE-REVIEW第15章）](CODE-REVIEW.md#implemented-optimization-index)**：逐项列出SEC-01、S16～S26、质量修复N-P001～006、独立检视BR-01、已有等效修复、有意撤回及未完成项。后续先核对索引，避免把已实现问题重新分析或重复移植。
 
 - [完整设计](DESIGN.md)：统一业务/技术规格，保留原始设计，不按专家、committer或AI拆分版本。
 - [检视与优化索引](CODE-REVIEW.md#implemented-optimization-index)：第15章看当前状态，第13～14章看适配过程、团队差异及独立检视闭环。
 - [最新验证（第16章四项整改；第13章完整回归）](VALIDATION.md)：目标实际命令、结果、失败历史、跳过及未验边界；旧章节保留对应日期/版本。
 
-当前分支`feature/contextdb-management`；历史功能基线`57bbfd2d39685091ce65a4742e43c6efbcb4c78e`。原HEAD eb055aff3是适配起点，送审已快进对齐团队main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`。本次修复整理为单个提交，提交身份以Git/PR为准；变更文件数以PR实际差异为准。SEC-01、配置别名、团队安全错误提示及管理日志在基线已有，保留不回退；不代表已合入或生产部署。
+历史管理功能分支`feature/contextdb-management`；历史功能基线`57bbfd2d39685091ce65a4742e43c6efbcb4c78e`。原HEAD eb055aff3是适配起点，送审已快进对齐团队main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`。本次修复整理为单个提交，提交身份以Git/PR为准；变更文件数以PR实际差异为准。SEC-01、配置别名、团队安全错误提示及管理日志在基线已有，保留不回退；不代表已合入或生产部署。
 
 当前[U4/U5/U9/U10明确整改（第19章）](CODE-REVIEW.md#u4-u5-u9-u10-final-decision)：**四项都改，实现及列举场景已通过**，包括统一危险菜单、收敛Key详情、390×600主要动作可达和辅助图标统一；日期逻辑/公共Dialog实测正确，保留不重复改。本轮已授权amend至单一送审提交，最终提交身份以Git/PR为准；第19章与验收第16章保留提交前冻结快照及交付复核。最终UI665、双Worker生产UI2及门禁通过，Chrome有前后截图、动作坐标及短屏键盘证据。最新验收见VALIDATION第16章；此前完整回归见第13章，旧“部分/可选”判断保留为历史。
 

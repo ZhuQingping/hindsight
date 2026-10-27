@@ -1,5 +1,7 @@
 # ContextDB 首发设计：工作空间、用户与 API Key（RSIXDB 团队集成）
 
+> 当前维护修复（2026-10-27）：基于 RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复 MCP 配置读取的空间作用域与离线初始化遗漏的共享维护函数。实现见第5.5.4节，检视见 CODE-REVIEW 第20章，验证见 VALIDATION 第17～18章。下列2026-10-21送审信息为管理功能历史基准。
+
 > **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留业务与技术正文，直接补齐团队适配；不按读者拆成多套设计。原功能基准a05b808、后续冻结修复及团队main的关系见第1.4节。目标三类AI独立检视已完成，尚无专家/committer批准；最新送审回归见 [VALIDATION.md](VALIDATION.md)第13章。
 
 > **当前送审（2026-10-21）：** S16～S26及质量修复已选择性落地，保留原生内核零侵入和团队安全能力；本次基线为main `1dc0ad37e`，旧eb工作树阶段的来源指纹及过程保留在第1.4节和检视记录第13～15章。Issue #19的F1已修复、F2保留已有修复；UI意见未全部验收，逐项结论见CODE-REVIEW第16章，不据本PR自动关闭Issue。
@@ -135,7 +137,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 
 数据库连接不强制 SSL：部署示例不附加 sslmode，PGADMIN_URL 与 HINDSIGHT_API_DATABASE_URL 均按调用方提供的 URL 连接。未开启 SSL 的 PG 可接入；需要证书校验时部署方再显式配置 sslmode 和 CA，不由服务自动升级或降级策略。MaaS HTTPS 和 UI/API 对外入口的 TLS 配置独立。
 
-管控具体输入、PG权限和命令以[人工部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)为入口；自动化严格按[Agent配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)及 JSON Schema 校验。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后只初始化ctxdb_meta管理表、管理员身份和秘密文件，再启动API/Worker、检查ready及实例身份，最后启动UI。原生业务表仅在创建空间时初始化到ctxdb_ws_<bank_id>。模型、插件和端口不依赖人工临时export。
+管控具体输入、PG权限和命令以[人工部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)为入口；自动化严格按[Agent配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)及 JSON Schema 校验。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后初始化ctxdb_meta管理表、管理员身份、秘密文件及原生共享维护函数，再启动API/Worker、检查ready及实例身份，最后启动UI。原生业务表仅在创建空间时初始化到ctxdb_ws_<bank_id>。模型、插件和端口不依赖人工临时export。
 
 管控调用已有节点管理 Agent 完成部署。本期不新增“创建实例”的 Hindsight HTTP 接口，工作空间目录也不在 Console 维护。
 
@@ -143,7 +145,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 | --- | --- | --- |
 | 1. 准备数据库 | 准备专用 UTF8 PG、服务账号、vector / pg_trgm / btree_gin；首版 RDS 固定 native + english | 数据库可连接，所选扩展可用 |
 | 2. 准备配置与秘密 | 配置实例归属、数据库和模型；生成并私密保存 Admin Key、pepper、UI 密码 | 重启时可复用同一份配置 |
-| 3. 离线初始化 | 执行 service.sh init：持久秘密文件、管理表初始化/核验、管理员导入；不迁移public业务表 | API 尚未启动，也能准备管理员身份 |
+| 3. 离线初始化 | 执行 service.sh init：持久秘密文件、管理表初始化/核验、管理员导入、共享维护函数安装/核验；不迁移public业务表 | API 尚未启动，也能准备管理员身份 |
 | 4. 启动服务 | 启动 API、Worker，检查 readiness，再启动 UI | 管理与业务接口可用 |
 | 5. 交付 | 提供 UI 地址和密码；管理员进入 UI 创建空间、用户与业务 Key | 应用可以接入 |
 
@@ -237,7 +239,7 @@ UI启动器移除PG/模型秘密并保留必要系统/产品配置，API/Worker�
 
 目标数据库和登录角色由PG管理员预先创建，不由Hindsight启动时创建；服务账号需要自身数据库内的schema/DDL权限，不要求SUPERUSER。准备示例见代码仓 `deployment/prepare-pg.sql`，客户SQL边界示例见 `pg-role-boundary.sql`；二者不是可无检查地用于现有客户库的修复脚本。
 
-`python -m hindsight_ext_contextdb migrate --admin-key-file <私密文件>`读取数据库连接、实例/云租户ID、pepper和持久管理员凭据，离线建立或核验ctxdb_meta六表及管理员摘要，重复执行保留凭据与部署绑定。它不是配置查询、客户密码查询或CREATE DATABASE命令。public保留vector等扩展对象，不创建原生业务表；每个工作空间的原生Alembic由空间Lifecycle负责。API/Worker要求 `RUN_MIGRATIONS_ON_STARTUP=false`，不在请求/并发启动路径自动升级元数据。
+`python -m hindsight_ext_contextdb migrate --admin-key-file <私密文件>`读取数据库连接、实例/云租户ID、pepper和持久管理员凭据，离线建立或核验ctxdb_meta六表、管理员摘要及四个原生共享维护函数，重复执行保留凭据与部署绑定。它不是配置查询、客户密码查询或CREATE DATABASE命令。public保留vector等扩展对象及默认部署的共享维护函数，不创建原生业务表；每个工作空间的原生Alembic由空间Lifecycle负责。API/Worker要求 `RUN_MIGRATIONS_ON_STARTUP=false`，不在请求/并发启动路径自动升级元数据。
 
 实例备份必须包括ctxdb_meta、所有业务schema以及匹配pepper、UI/Admin秘密；原生单Bank导出不能重建实例用户和Key。首发无开发期旧结构自动迁移、滚动升级/降级或目标RDS灾备已验收承诺。
 
@@ -1064,7 +1066,7 @@ q为自研管理目录的字面子串匹配，空串不过滤；不是原生记�
 
 Repository用静态源码函数 `_grant_projection(targeted=...)`产生固定SQL投影，替代字符串replace；目标认证仍在单条SELECT快照核验部署、用户、Key、目标空间和目标grant。复用Pydantic TypeAdapter不增加权限结果缓存。
 
-`permission_scopes`统一read/read_write到Scope的投影；MCP发现用 `discovery_scopes` 将当前消息的完整授权与active空间UUID集合求交，不再逐空间select_workspace。单次目录filter在1/10/1000空间的测试中均为3条元数据查询；实际MCP消息可能多次filter，使用统计UPDATE另计，不能宣称整条消息仅3条SQL或生产吞吐提升。实际tools/call仍用当前凭据认证具体目标，发现并集不是执行权限，不跨消息缓存身份。
+`permission_scopes`统一read/read_write到Scope的投影。MCP每条消息读取当前凭据；单空间发现按该空间原生可见配置与权限筛选，多空间发现逐个可见active空间筛选后取工具并集。实际tools/call仍认证具体目标，发现不是执行授权，不跨消息缓存身份。`discovery_scopes`与单次validator筛选的1/10/1000空间三条元数据查询测试仍保留，但不代表整条MCP消息查询量；当前root发现成本随可见空间数增加，未做规模性能验收，详见第5.5.4节。
 
 `metadata_errors()`仅把插件元数据阶段的PG/连接/IO故障转换为安全的`metadata_unavailable`，不返回原始数据库诊断；Tenant、Validator和MCP入口复用该边界，失败保持关闭访问。MCP的原生工具执行不在转换范围；`list_banks`也只在adapter的authenticate/visible_workspaces处转换，原生backend、目录查询和详情组装的错误沿用宿主处理，避免误报元数据故障。原生错误是否包含敏感诊断是独立原生问题，不据此承诺全局错误脱敏；不新增跨消息身份缓存或重复权限策略。
 
@@ -1098,6 +1100,29 @@ python/support提供合成身份、管理ASGI装配及PG资源owner；system/sup
 CI普通system job分别运行原生及插件故事。独立test-contextdb-system-ui job从同一源码正式build-ui，直接运行双Worker生产UI故事并输出JUnit；check_production_ui.py要求两个明确参数项各出现一次且无skip/failure/error。缺报告、缺用例或跳过均失败，并进入汇总门禁；普通本地运行可沿用无构建时的skip，不以此声称生产UI验收完成。旧CONTEXTDB_REQUIRE_UI_TESTS不再作为门禁机制，不新增生产严格模式参数。
 
 集成验收包装器 `scripts/verify_integration.py`分api、system、contextdb-system、extension、contracts五个入口，用临时PG隔离各测试；system不再隐含插件故事，contextdb-system必须显式运行，并要求生产UI存在。具体命令和当前结果见VALIDATION。
+
+#### 5.5.4 MCP配置作用域与共享维护函数（Issue #31、#32）
+
+**MCP配置读取。** 原生工具列表筛选、调用前筛选和审计决策可能先于引擎的Tenant认证读取Bank配置。原插件只设置Bank、清空schema，导致这些读取落到`public.banks`；数据库异常被原生解析器记录后回退为空配置，客户端功能成功也会产生错误日志。
+
+插件`ContextDBMCPExtension`在原生工具注册完成后包住FastMCP公开的`list_tools`和`call_tool`操作。先使用当前HTTP消息的Key认证，再把元数据中登记的bank_id/schema放入请求作用域；作用域涵盖原生内外两次筛选、审计决策和工具执行，结束或异常均恢复ContextVar。内部`run_middleware=False`递归沿用外层作用域，不重复插件入口认证。继续使用原生配置解析、审计和Validator，不修改原生REST、SDK、配置字段投影或引擎代码。
+
+`/mcp/{bank_id}/`只筛选指定空间；`/mcp/`对每个可见空间分别计算“原生可见配置允许的工具 ∩ 该空间权限”，然后求并集。不能把首空间的配置限制套给其他空间，也不能把所有空间的权限并集套回某个只读空间。该实现复用原生筛选，代价是目录发现随可见空间数量增长；本轮未引入跨请求权限缓存、批量配置协议或第二套权限规则。SEC-01业务Key配置字段投影保持原状。
+
+**共享维护函数。** 不迁移public业务表，不等于不需要public共享函数。原生维护循环通过以下函数发现跨空间候选；缺失会使后台合成补偿、定时Mental Model刷新及相应保留期清理无法正常发现工作。
+
+| 函数 | 用途 |
+| --- | --- |
+| `banks_needing_consolidation()` | 发现有待合成事实、没有在途合成操作的Bank |
+| `mental_models_with_cron()` | 发现配置了cron、没有在途刷新操作的Mental Model |
+| `schemas_with_expired_rows(text,text,integer)` | 查找指定表/时间字段中存在过期记录的schema |
+| `schemas_with_expired_operations(integer)` | 查找存在过期终态任务的schema；不清理pending/processing |
+
+`migrate_connection`在原有元数据事务中、部署信息行锁保护下调用插件`initialize_maintenance`。后者仅离线生成并执行原生Alembic revision `c8b4e2a71f95`的四条函数定义，保留原生250ms锁等待及DDL竞态处理；使用named参数风格生成SQL，避免PostgreSQL函数体`format()`中的`%`被转义成`%%`。不运行完整public迁移，不写public版本表，不修改各工作空间Alembic历史，不新增元数据版本、生产变量或依赖。升级原生版本时须重新核对该revision、返回合同和维护循环调用方。
+
+函数位于原生`database_schema`配置指定的schema，默认为public；自定义schema须事先由运维创建；不支持名称中含双引号或NUL字符。离线CLI复用团队原生配置桥接：CONTEXTBASE前缀存在时优先，含显式空值；兼容HINDSIGHT前缀，不加载父目录`.env`。初始化与API/Worker必须使用相同配置。`EXTERNALLY_OWNED_ROUTINES`沿用原生逻辑名称列表：已声明接管的函数不覆盖，仍须提供相同输入签名、集合返回列/类型及当前初始化账号的EXECUTE权限；不满足则初始化失败、事务回滚，不自动提升权限或修改ACL。
+
+已有部署的修复步骤为：在本实例维护窗口停止API/Worker，保留部署配置和秘密文件，使用同版`service.sh init`补齐/核验函数，再启动并检查ready与后台日志。无需创建public业务表、删除历史表或清空用户数据。正常API/Worker启动不自动修改这些函数；本轮开发验证只操作任务自有临时实例。
 
 <a id="boundaries"></a>
 
