@@ -526,9 +526,10 @@ class ContextBase:
             "document_id": document_id,
             "retain_async": retain_async,
         }
-        # Delegate the sync-only operation_id warning to retain_batch so the
-        # retain -> retain_batch path emits it exactly once.
-        if operation_id is not None:
+        # Warn here for the single-item sync wrapper. Do not pass operation_id
+        # into retain_batch for sync calls, or the delegated wrapper can warn again.
+        _warn_if_operation_id_dropped(retain_async, operation_id)
+        if retain_async and operation_id is not None:
             batch_kwargs["operation_id"] = operation_id
         return self.retain_batch(**batch_kwargs)
 
