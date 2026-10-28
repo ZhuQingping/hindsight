@@ -132,7 +132,7 @@ jobs:
           test -d "$PACKAGE_DIR" || { echo "Expected package directory not found: $PACKAGE_DIR" >&2; find artifacts/contextbase-coding-agents -maxdepth 2 -print; exit 1; }
           TGZ="$PACKAGE_DIR/contextbase-coding-agents-$PACKAGE_VERSION.tgz"
           test -s "$TGZ" || { echo "Expected tarball not found or empty: $TGZ" >&2; ls -la "$PACKAGE_DIR"; exit 1; }
-          npm pack --dry-run "$TGZ"
+          tar -tzf "$TGZ" >/dev/null
           echo "Coding Agents package validated: $TGZ"
 
       - name: Stage selected release assets and checksums
