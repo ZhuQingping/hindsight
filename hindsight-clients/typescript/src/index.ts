@@ -1987,9 +1987,19 @@ export class ContextBaseClient {
           `Export operation ${operationId} ${status.status}: ${status.error_message ?? ""}`
         );
       }
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.min(pollInterval, Math.max(deadline - Date.now(), 0)))
-      );
+      const remainingAfterPoll = deadline - Date.now();
+      if (remainingAfterPoll <= 0) {
+        throw timedOut();
+      }
+      // If the configured poll interval reaches or exceeds the remaining budget,
+      // wait only until the deadline and time out instead of starting one more poll.
+      // This avoids a timer-scheduling race where a second request can begin just
+      // before the deadline when pollIntervalMs is much larger than timeoutMs.
+      if (pollInterval >= remainingAfterPoll) {
+        await new Promise((resolve) => setTimeout(resolve, remainingAfterPoll));
+        throw timedOut();
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
     const downloadUrl = (resultMetadata as { download_url?: string } | null | undefined)
