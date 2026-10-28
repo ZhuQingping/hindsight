@@ -80,20 +80,20 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
 });
 
-it("uses published release assets in development when package URLs are unset", () => {
+it("does not invent package download URLs when deployment settings are unset", () => {
   vi.stubEnv("NODE_ENV", "development");
-  // No package URLs configured.
-  const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz");
-  expect(result.packages.node).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-client-1.0.0.tgz");
-  expect(result.packages.python).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase_client-1.0.0-py3-none-any.whl");
-  expect(result.packages.hermes).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/hermes-plugin-contextbase-1.2.2.zip");
-});
+  const development = customerConnection("bank");
+  expect(development.packages.codingAgents).toBeUndefined();
+  expect(development.packages.openclaw).toBeUndefined();
+  expect(development.packages.hermes).toBeUndefined();
+  expect(development.packages.python).toBeUndefined();
+  expect(development.packages.node).toBeUndefined();
 
-it("uses published release assets in production when package URLs are unset", () => {
   vi.stubEnv("NODE_ENV", "production");
-  const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toContain("/contextbase-coding-agents-0.8.1.tgz");
-  expect(result.packages.node).toContain("/contextbase-client-1.0.0.tgz");
-  expect(result.packages.python).toContain("/contextbase_client-1.0.0-py3-none-any.whl");
+  const production = customerConnection("bank");
+  expect(production.packages.codingAgents).toBeUndefined();
+  expect(production.packages.openclaw).toBeUndefined();
+  expect(production.packages.hermes).toBeUndefined();
+  expect(production.packages.python).toBeUndefined();
+  expect(production.packages.node).toBeUndefined();
 });
