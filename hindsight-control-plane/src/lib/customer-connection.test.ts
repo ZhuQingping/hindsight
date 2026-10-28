@@ -68,7 +68,7 @@ it.each(downloads)(
       `https://downloads.example.com/cl\nient${extension}`,
     ]) {
       vi.stubEnv(`CONTEXTBASE_CP_${env}`, url);
-      expect(customerConnection("bank").packages[field]).toBe(`https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/${({ codingAgents: "contextbase-coding-agents-0.8.1.tgz", openclaw: "contextbase-openclaw-1.0.0.tgz", hermes: "hermes-plugin-contextbase-1.2.2.zip", python: "contextbase_client-1.0.0-py3-none-any.whl", node: "contextbase-client-1.0.0.tgz" } as const)[field]}`);
+      expect(customerConnection("bank").packages[field]).toBeUndefined();
     }
   }
 );
