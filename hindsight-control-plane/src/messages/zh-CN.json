@@ -2380,7 +2380,7 @@
       "mcp": "通过 HTTP MCP 客户端连接远端 ContextBase 服务。此方式无需安装本地适配器。"
     },
     "requirements": {
-      "coding": "需要已安装对应客户端和 Node.js 24+。请在客户端实际运行的环境中执行；使用 WSL 时在 WSL 内执行。",
+      "coding": "需要已安装对应客户端和 Node.js 24+。",
       "python": "需要 Python 3.10+，请先激活虚拟环境。",
       "node": "需要 Node.js 18+，请在应用目录执行命令。",
       "openclaw": "需要 OpenClaw 和 Node.js 22+，请在 Gateway 所在环境中操作。",
