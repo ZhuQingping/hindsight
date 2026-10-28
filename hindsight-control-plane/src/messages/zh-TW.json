@@ -740,6 +740,12 @@
     "viewDocument": "查看文件"
   },
   "dataView": {
+    "sortTimeField": "排序時間",
+    "noMentionedTime": "無提及時間",
+    "noOccurredTime": "無發生時間",
+    "newestFirst": "最新在前",
+    "oldestFirst": "最早在前",
+    "toggleTimeOrder": "切換時間正序或倒序",
     "loadingMemories": "載入中記憶...",
     "noMemoriesYet": "尚無記憶",
     "noMemoriesDescription": "新增文件以開始建立此記憶庫。",

@@ -740,6 +740,12 @@
     "viewDocument": "문서 보기"
   },
   "dataView": {
+    "sortTimeField": "시간 정렬 기준",
+    "noMentionedTime": "언급 시간 없음",
+    "noOccurredTime": "발생 시간 없음",
+    "newestFirst": "최신순",
+    "oldestFirst": "오래된순",
+    "toggleTimeOrder": "시간순 정렬 전환",
     "loadingMemories": "메모리 불러오는 중...",
     "noMemoriesYet": "아직 메모리 없음",
     "noMemoriesDescription": "문서를 추가하여 이 메모리 뱅크 구축을 시작하세요.",

@@ -740,6 +740,12 @@
     "viewDocument": "Dokument anzeigen"
   },
   "dataView": {
+    "sortTimeField": "Nach Zeit sortieren",
+    "noMentionedTime": "Keine Erwähnungszeit",
+    "noOccurredTime": "Keine Ereigniszeit",
+    "newestFirst": "Neueste zuerst",
+    "oldestFirst": "Älteste zuerst",
+    "toggleTimeOrder": "Chronologische Reihenfolge umkehren",
     "loadingMemories": "Erinnerungen werden geladen...",
     "noMemoriesYet": "Noch keine Erinnerungen",
     "noMemoriesDescription": "Fügen Sie ein Dokument hinzu, um diese Speicherbank aufzubauen.",

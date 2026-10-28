@@ -740,6 +740,12 @@
     "viewDocument": "Voir le document"
   },
   "dataView": {
+    "sortTimeField": "Trier par date",
+    "noMentionedTime": "Date de mention inconnue",
+    "noOccurredTime": "Date de survenue inconnue",
+    "newestFirst": "Plus récentes en premier",
+    "oldestFirst": "Plus anciennes en premier",
+    "toggleTimeOrder": "Inverser l’ordre chronologique",
     "loadingMemories": "Chargement des souvenirs...",
     "noMemoriesYet": "Aucun souvenir pour l'instant",
     "noMemoriesDescription": "Ajoutez un document pour commencer à alimenter cette banque de mémoire.",
