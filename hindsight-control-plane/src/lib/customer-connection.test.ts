@@ -80,20 +80,20 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
 });
 
-it("falls back to a placeholder package URL in development when unset", () => {
+it("does not invent package download URLs when deployment settings are unset", () => {
   vi.stubEnv("NODE_ENV", "development");
-  // No package URLs configured.
-  const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toBe("https://placeholder.contextbase.local/contextbase-coding-agents-PACKAGE-URL-NOT-SET.tgz");
-  expect(result.packages.node).toBe("https://placeholder.contextbase.local/contextbase-client-PACKAGE-URL-NOT-SET.tgz");
-  expect(result.packages.python).toBe("https://placeholder.contextbase.local/contextbase_client-PACKAGE-URL-NOT-SET.whl");
-  expect(result.packages.hermes).toBe("https://placeholder.contextbase.local/contextbase-hermes-PACKAGE-URL-NOT-SET.zip");
-});
+  const development = customerConnection("bank");
+  expect(development.packages.codingAgents).toBeUndefined();
+  expect(development.packages.openclaw).toBeUndefined();
+  expect(development.packages.hermes).toBeUndefined();
+  expect(development.packages.python).toBeUndefined();
+  expect(development.packages.node).toBeUndefined();
 
-it("does not fall back to placeholder package URLs in production", () => {
   vi.stubEnv("NODE_ENV", "production");
-  const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toBeUndefined();
-  expect(result.packages.node).toBeUndefined();
-  expect(result.packages.python).toBeUndefined();
+  const production = customerConnection("bank");
+  expect(production.packages.codingAgents).toBeUndefined();
+  expect(production.packages.openclaw).toBeUndefined();
+  expect(production.packages.hermes).toBeUndefined();
+  expect(production.packages.python).toBeUndefined();
+  expect(production.packages.node).toBeUndefined();
 });

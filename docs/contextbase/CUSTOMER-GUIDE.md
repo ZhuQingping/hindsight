@@ -7,28 +7,22 @@
 
 安装包适用于 Windows、Linux 和 macOS，需要 Node.js 24。
 
-- [下载 Coding Agents 安装包（0.8.1，包含在 contextbase-plugin-candidates ZIP 中）](https://github.com/RSIXDB/hindsight/actions/runs/40296078727/artifacts/12638142440)
-- [查看后续构建](https://github.com/RSIXDB/hindsight/actions/workflows/release.yml)：选择成功的构建，在 **Artifacts** 中下载 `contextbase-plugin-candidates`。
-
-解压下载的 ZIP，找到：
-
-```text
-contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz
-```
-
-只需使用这个 `.tgz`，无需再次解压，也无需安装 ZIP 中的其他组件。从解压后的目录打开终端，执行：
+- [打开 ContextBase Clients v0.1.0 发布页并查看所有客户端安装包](https://github.com/RSIXDB/hindsight/releases/tag/contextbase-clients-v0.1.0)
+- [直接下载 Coding Agents 安装包（0.8.1）](https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz)
 
 Windows PowerShell：
 
 ```powershell
-npm.cmd install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz"
+npm.cmd install -g "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz"
 ```
 
 Linux 或 macOS Bash：
 
 ```bash
-npm install -g "./contextbase-coding-agents/0.8.1/contextbase-coding-agents-0.8.1.tgz"
+npm install -g "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz"
 ```
+
+无需下载或解压 Actions 构建产物 ZIP。其他客户端、Python/Node.js SDK 及校验文件可在发布页中按名称下载。
 
 ## 2 配置连接和项目
 
