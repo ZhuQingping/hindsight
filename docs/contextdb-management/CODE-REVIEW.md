@@ -118,7 +118,7 @@ C08中原生两个Worker测试的失败断言在修改前已单独复现，且�
 
 ### 7.3 MCP发现与执行
 
-`mcp.ContextDBMCPExtension` 中间件读取当前HTTP消息Bearer，设置实际工具Bank；Tenant/Validator筛选当前工具集合及授权实际目标。`filter_mcp_tools` 在原生外层恢复ContextVar之后仍从当前HTTP request取凭据/目标。检查新session与旧session、工具发现并集和实际执行、path Bank与参数Bank不同的冲突行为。
+`mcp.ContextDBMCPExtension` 在原生MCP注册后包装公开list_tools/call_tool，读取当前HTTP消息Bearer，在原生配置筛选和审计读取之前设置认证得到的Bank/schema。单空间筛选与root逐空间筛选均使用实际目标权限，root最后求工具并集。检查内层递归不重复插件入口认证、异常恢复、并发、旧session换Key、path Bank与参数冲突；实现细节见DESIGN §5.5.4。
 
 静态工具隐藏只是减少误调用，不能覆盖执行授权。优先打开system test_104/105/111，核对先writer后reader、跨空间和吊销后重放session的断言。
 
@@ -195,7 +195,7 @@ C01～C15是移植过程中发现且已按所列测试修正的实现者记录�
 
 T18：新响应边界及Key投影 → contextdb-api.ts → tests/ui/contextdb-responses、contextdb-key-types、tests/contracts/test_ui_key_contract。
 
-T19：MCP目录无逐空间查询 → authorization.discovery_scopes、validator.filter_mcp_tools → tests/python/test_mcp_discovery（1/10/1000空间、空目录、当前消息和执行权限）。
+T19（历史优化的局部合同）：discovery_scopes与单次validator筛选 → tests/python/test_mcp_discovery（1/10/1000空间、空目录、当前消息和执行权限）。Issue #31后root按各空间原生配置/权限求并集，整条消息存在逐空间筛选成本，见第20章，不能继续称目录无逐空间查询。
 
 T20：UI状态归属/secret迟到清理 → components/contextdb/user-keys-panel、key-editor-dialog → tests/ui/contextdb-key-state和contextdb-users-view；实际进程见system/test_112。
 
@@ -340,7 +340,7 @@ N-P007平台SIGILL没有代码修复可移植；N-P008～010布局/焦点/名称
 | 编号 | 当前状态与具体结果 | 实现位置 | 回归与追溯 |
 | --- | --- | --- | --- |
 | SEC-01 | HEAD已有，保留；Bank config的config/overrides统一按可见字段投影，业务Key保持200空字段，不改成整接口403 | P/transport.py | test_transport、system/test_114；DESIGN §5.1.1、VALIDATION第10/12章 |
-| S16 | 本次修复已实现；实例init不迁移public业务表，只准备元数据/管理员/秘密；空间创建初始化自己的schema，public保留扩展 | E/scripts/service.sh、system/support/deployment.py | test_deployment_contract真实非超级用户重复init；系统故事结束再检查public无表；第13章 |
+| S16 | 本次修复已实现；实例init不迁移public业务表，准备元数据/管理员/秘密；Issue #32补齐共享维护函数（第20章）；空间创建初始化自己的schema，public保留扩展 | E/scripts/service.sh、system/support/deployment.py | test_deployment_contract真实非超级用户重复init；系统故事结束再检查public无表；第13章 |
 | S17 | 本次修复已实现；六表及关联对象COMMENT完整保留并改英文，key_id为目标Key、control_key_id为操作者Admin Key；DDL/权限/版本不变 | P/schema.sql | test_metadata_initialization完整性/英文/字段语义；第13章 |
 | S18 | 本次修复已实现；只读/读写行为分行，共同标明不能管理空间、用户或Key；权限模型不变 | C/contextdb/key-editor-dialog.tsx、i18n/contextdb-catalogs.json | U/contextdb-users-view、contextdb-key-state；第13章 |
 | S19 | 本次修复已实现；取消60秒/仅标签隐藏清Secret，保留明确关闭/pagehide/卸载/切用户清理，抑制迟到签发及旧复制回调 | C/contextdb/user-keys-panel.tsx | U/contextdb-key-state、contextdb-users-view；正常复制/原生粘贴已通过当前提交Chrome实测；负面竞态仍见自动化证据；第17章 |
@@ -554,3 +554,24 @@ Issue #19只更新状态，不自动关闭；当前远端PR提交仍为c41，不
 用户授权将本章修复amend至当前提交并使用指定旧SHA的`--force-with-lease`推送，保持PR #20一个提交。交付前逐项核对8个代码/测试文件SHA256，与上述已验证冻结集合完全一致；未再改变产品代码，不无理由重复完整回归。核对665项UI、双Worker生产UI及严格门禁、类型/lint/knip/格式/构建结果及Chrome证据；本章“本地候选/未提交”是验收发生时的身份，最新提交身份以Git/PR为准。四项均已整改并纳入本次送审内容，不再列为代码未完成；仍由提出人和committer复核，不自动关闭Issue。
 
 仅修改自研管理组件、词条、插件UI测试和既有资料/截图；相对本轮开始HEAD没有新增原生侵入。保留历史功能验证与本轮UI验证的时点差异。Issue #19原始正文保持不变，只更新唯一进展评论；PR同时保留Issue之外的优化说明。任务工件内amend-delivery保存交付前Git bundle、补丁、PR/Issue及评论备份。没有操作现有服务或用户数据库；不修改持久Git钩子配置。
+
+
+## 20. MCP与后台维护修复（2026-10-27）
+
+基线为RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复分支`codex/fix-contextdb-31-32-integration`，在用户指定的本地集成目录交付；提交身份以同版Git/PR为准。前述送审提交与计数保留历史身份，本章为本轮当前状态。
+
+| 问题 | 实现与复核位置 | 当前处理 |
+| --- | --- | --- |
+| [#31](https://github.com/RSIXDB/hindsight/issues/31)：MCP配置查询落到public.banks | 插件mcp.py公开操作适配、routing.bank_target；tests/python/test_mcp_schema_context；system/test_119 | 使用当前请求认证得到的schema，覆盖原生筛选及审计；root按各空间配置与权限求并集；保留原生调用与安全策略 |
+| [#32](https://github.com/RSIXDB/hindsight/issues/32)：离线init遗漏共享维护函数 | 插件maintenance.py、migrations.py、__main__.migrate；test_maintenance_bootstrap、test_deployment_contract；system/test_120 | 复用最新原生四函数定义；事务内安装/校验，public无业务表；CLI配置前缀与API/Worker一致 |
+
+独立只读检视覆盖MCP安全、Hindsight/Python维护路径、测试完整性。已发现并整改：①首次scope未覆盖外层原生审计；②root错误采用首空间配置上限；③离线CLI未桥接CONTEXTBASE配置，可能安装到错误schema或覆盖接管函数。对应补了审计/交叉权限、并发/异常和真实CLI回归。另补新fixture类型注解；EXECUTE低权测试识别了全部函数由外部接管时asyncpg不能执行空DDL的边界，已跳过空DDL并增加有/无EXECUTE正反例。最终结论以VALIDATION第17～18章实际结果为准，不以检视建议替代执行证据。
+
+原生`hindsight-api-slim/hindsight_api/`及Control Plane均无本轮修改。未新增公开API、配置变量、依赖、表或版本。共享函数复用一个既有revision，后续原生升级需核对该依赖；root发现的规模性能未验收。本轮不处理Issue #33等其他日志类别。
+
+
+### 20.1 本地集成目录交付复核
+
+用户指定目录`integration/rsixdb-contextdb`开始时干净，原分支HEAD为2606e883。保留原分支，从最新team_repo/main fe967543建立独立修复分支，迁入本章修复；不把原管理功能或其他main提交重新归入本PR。12个Python实现/测试文件与独立目录冻结指纹逐一一致，本地复验另记VALIDATION第18章。
+
+独立只读复核确认：没有原生API、Control Plane或embed源码差异，未新增生产变量/依赖/表，两个Issue按一个提交交付。提交前核对暂存区仅含18个插件及相关文档文件，排除钩子生成文件、运行产物、日志、凭据及证据补丁；main已有门禁失败单独披露，不混入修复。

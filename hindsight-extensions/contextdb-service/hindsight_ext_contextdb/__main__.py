@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 from pathlib import Path
 
 import asyncpg
+from hindsight_api.config import load_dotenv_for_entrypoint
 
 from . import METADATA_VERSION
 from .bootstrap import (
@@ -26,6 +28,10 @@ from .security import issue_admin_key
 
 
 async def migrate(credential_path: Path) -> None:
+    # Match API/Worker alias precedence for the native routine migration, without
+    # allowing a parent .env to change the offline command's explicit deployment.
+    os.environ["PYTHON_DOTENV_DISABLED"] = "1"
+    load_dotenv_for_entrypoint()
     settings = Settings.from_environment()
     credential = read_credential(credential_path)
     url = service_env("API_DATABASE_URL")

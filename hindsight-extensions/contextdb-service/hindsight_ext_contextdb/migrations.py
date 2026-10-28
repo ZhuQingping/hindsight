@@ -12,6 +12,7 @@ import asyncpg
 from . import METADATA_FORMAT_ID, METADATA_VERSION
 from .bootstrap import initialize_administrator
 from .database_checks import verify_background_write_policy, verify_binding, verify_format
+from .maintenance import initialize_maintenance
 
 ROOT = Path(__file__).parent
 
@@ -48,7 +49,11 @@ async def migrate_connection(
             await verify_binding(conn, instance_id, cloud_tenant_id)
             if not await conn.fetchval("SELECT EXISTS(SELECT 1 FROM ctxdb_meta.users WHERE role='admin')"):
                 raise ValueError("System administrator is missing; use controlled offline recovery")
+        # Repeat offline initialization may repair missing shared functions.
+        # Serialize it on the existing deployment row, without advisory locks.
+        await conn.fetchval("SELECT singleton FROM ctxdb_meta.deployment_info FOR UPDATE")
         await initialize_administrator(conn, admin_secret, pepper)
         await verify_format(conn)
         await verify_binding(conn, instance_id, cloud_tenant_id)
         await verify_background_write_policy(conn)
+        await initialize_maintenance(conn)

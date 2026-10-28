@@ -545,3 +545,100 @@ before/screenshots为压缩后原提交基线；after/iteration2保留主矩阵�
 
 
 本次实际执行标准提交钩子，check-unused完成后，generate-docs-skill仍因缺少`hindsight-docs/figures/what-contextbase-does.json`退出1（Issue #14），未进入后续lint。生成器产生的范围外skills文档差异已完整保存并按提交前索引恢复，未纳入修复。按本次用户明确授权，仅amend命令使用`git -c core.hooksPath=/dev/null commit --amend`；持久配置未改，独立lint等通过不能替代文档生成门禁。
+
+
+## 17. Issue #31、#32独立目录验收快照（2026-10-27）
+
+### 17.1 基准与隔离
+
+基线main `fe96754356f4ee46d6413852d76b9562f7dc890c`；独立工作区`/Users/zhuqingping/.codex/worktrees/contextdb-issues-31-32/hindsight`，分支`codex/fix-contextdb-31-32`，开始状态干净，本章记录迁入本地集成目录前的未提交快照。当前交付身份及本地复验见第18章。修复仅在插件实现/测试及相关文档；原生Python运行目录、Control Plane源码与基线无差异。
+
+根环境使用Python3.11.15、`uv sync --frozen --all-packages --extra embedded-db`；系统环境使用独立Python3.12.13、`uv sync --frozen --group contextdb --project hindsight-system-tests`。Node23.11.0/npm10.9.2，`npm ci --ignore-scripts`安装在本工作区，不执行prepare、不更改持久Git钩子、不共享正在运行UI的构建产物。
+
+所有PG/API/Worker均由既有fixture在随机端口及临时目录创建/清理。Python全量运行前移除继承的HINDSIGHT/CONTEXTBASE/CONTEXTDB/AGENTSTRATUM环境，尤其不允许继承`CONTEXTDB_DEPLOYMENT_TEST_ADMIN_URL`指向用户库；真实非超级用户部署测试只在其自有PG创建临时库/角色。模型调用显式接入系统替身，等待已接受后台工作结束；没有停止或部署现有服务。
+
+### 17.2 命令与结果
+
+| 检查 | 结果 |
+| --- | --- |
+| 插件Python全量 | 475通过，零跳过 |
+| 新维护机制测试（含真实CLI） | 13通过，包含全量，不另行累加 |
+| 完整非UI系统故事，两种Worker | 75通过，零跳过；新增4项属于其中，不重复累加 |
+| 原生相关回归 | 65通过，零跳过 |
+| 跨语言Key合同 | 1通过 |
+| 插件Ruff check、format check、ty | 通过 |
+| 仓库`scripts/hooks/lint.sh` | 未通过：main原生`api/http.py:5846` F841；其余hook任务通过 |
+| CI同命令`knip@5 --no-progress --include files,dependencies,unlisted` | 未通过：既有`src/lib/hindsight-client.ts`未使用；UI与knip配置均无本轮改动 |
+| `git diff --check`、原生目录差异核对 | 通过；相对开始HEAD及main基线均无原生Python修改 |
+
+核心执行命令（在工作区根目录；先清理上述继承部署环境）：
+
+```bash
+PYTHON_DOTENV_DISABLED=1 PYTHONPATH=hindsight-extensions/contextdb-service \
+  .venv/bin/python -m pytest -c hindsight-extensions/contextdb-service/pyproject.toml \
+  hindsight-extensions/contextdb-service/tests/python -q
+
+uv run --frozen --group contextdb --project hindsight-system-tests pytest \
+  -c hindsight-extensions/contextdb-service/pytest-system.ini \
+  hindsight-extensions/contextdb-service/tests/system \
+  --ignore=hindsight-extensions/contextdb-service/tests/system/test_112_contextdb_ui_management.py -q
+
+HINDSIGHT_TEST_PRIVATE_DATABASE=1 PYTHON_DOTENV_DISABLED=1 .venv/bin/python -m pytest \
+  hindsight-api-slim/tests/test_mcp_extension.py \
+  hindsight-api-slim/tests/test_mcp_tool_filtering.py \
+  hindsight-api-slim/tests/test_mcp_routing.py \
+  hindsight-api-slim/tests/test_mcp_error_payloads.py \
+  hindsight-api-slim/tests/test_mcp_endpoint_routing.py \
+  hindsight-api-slim/tests/test_sql_schema_safety.py \
+  hindsight-api-slim/tests/test_maintenance_loop.py::test_start_is_noop_on_oracle \
+  hindsight-api-slim/tests/test_maintenance_loop.py::test_is_due_runs_at_start_then_waits_interval \
+  hindsight-api-slim/tests/test_maintenance_loop.py::test_retention_sweep_cadence_is_configurable -q
+
+LINT_SERIAL=1 bash scripts/hooks/lint.sh
+```
+
+### 17.3 覆盖与检视闭环
+
+- #31：原生工具筛选及审计读取使用认证schema；覆盖Admin、只读、读写、单Bank/root、配置上限、各空间权限交叉、并发交错、异常恢复。test_119使用真实SDK配置两个空间并通过MCP验证；既有test_104/test_111覆盖同会话换Key、跨空间与吊销后拒绝。系统日志检查没有新增`Failed to load bank config`或审计配置解析错误。
+- #32：四个函数在真实PG执行非空候选；覆盖重复/并发init、非超级用户service.sh、配置schema与search_path、保留期及非终态任务保护、锁超时恢复、外部接管、返回合同和EXECUTE正反例。真实CLI覆盖两配置前缀、冲突、显式空值及父`.env`干扰。
+- test_120使用SDK构造未排队的待合成事实，然后重新启用自动合成；创建cron模型、追加新事实，等待原生60秒ticker、合成补偿及定时刷新实际完成。两种Worker都执行，没有手工触发刷新替代定时维护。fixture在故事结束后再次检查public无业务表。
+- 三类独立只读检视发现的审计外层scope、首空间配置遮蔽、离线别名桥接及fixture类型注解均已整改复核；未发现剩余Must fix。外部接管全部函数时的空DDL驱动错误由补充测试识别，修复后正反例通过。
+
+### 17.4 失败记录、证据与未验边界
+
+新增首批回归在修改前4项失败，日志`baseline-red.log`。CLI测试首次因测试夹具缺少本版要求的trace=false被拒绝，补齐合法测试配置后通过；低权EXECUTE用例首次发现全部接管时空DDL触发asyncpg错误，保留该次`python-full-before-empty-sql-fix.log/xml`（473通过、1失败），修复后重新完整执行，未删断言或添加skip/xfail。
+
+仓库lint自动格式化的8个范围外文件，已保存为`lint-outside-scope.patch`并逐一恢复原始main字节；没有把无关格式变化纳入修复。对原始main的http.py直接执行F841检查仍失败，证据`baseline-ruff-http.log`。本轮没有修复该原生问题，也没有绕过或修改Git钩子。knip失败路径属于未修改的Control Plane源码，不作为本次回归通过。
+
+本机证据目录由`/tmp/contextdb-fix-31-32-path`定位，包含完整补丁、冻结指纹、JUnit、执行日志及独立检视记录；临时目录需另行归档才能长期保存。历史468项Python及首轮75项系统结果与最终结果分开保留。
+
+本轮未运行UI单测/生产build/浏览器视觉验收，未修改UI；未执行远程CI、Docker、Linux/Node20矩阵、云端PG/真实模型与规模性能。root工具发现随可见空间逐一筛选，未以旧局部SQL计数宣称规模性能改善。已有服务与用户数据库未操作，部署生效须由用户另行安排。
+
+
+## 18. 本地集成目录提交与发布复核（2026-10-27）
+
+工作目录为`/Users/zhuqingping/Work/Database/Context/hindsight/integration/rsixdb-contextdb`；从干净的原功能分支2606e883保留分支并切至新修复分支`codex/fix-contextdb-31-32-integration`，基线为最新RSIXDB main fe967543。迁入的18文件与第17章冻结补丁/指纹一致；文档仅更新当前身份和本地执行证据，未复制修改原生代码。
+
+### 18.1 本地实际执行
+
+沿用第17.2节相同用例、相同冻结依赖。本地root环境Python3.11.15、系统环境Python3.12.13、Node23.11.0；两个Python环境都在本目录执行uv frozen sync，实际解释器/可编辑源码指向本目录。以下结果来自本目录重跑，不继承独立目录计数。
+
+| 检查 | 本地结果 |
+| --- | --- |
+| 插件Python全量 | 475通过，零跳过 |
+| 双Worker完整非UI系统故事 | 75通过，零跳过 |
+| 原生相关回归 | 65通过，零跳过 |
+| Key合同 | 1通过 |
+| 插件Ruff/format/ty、diff检查 | 通过 |
+| 仓库lint | 未通过：基线原生http.py:5846 F841，其他hook子任务通过 |
+| CI同版本knip阻断检查 | 未通过：与基线相同的src/lib/hindsight-client.ts未使用文件 |
+
+PG、API、Worker均由本轮自有fixture在随机端口创建/清理，模型显式替身；没有部署、停止或替换现有8891/9991等服务，也没有接管现有PG数据库。UI源码未改，不构建覆盖现有UI产物；未运行UI/Chrome与远程CI。root多空间工具发现规模性能仍未验。
+
+### 18.2 提交检查与证据
+
+一个提交同时说明Issue #31的空间配置读取与Issue #32的共享维护初始化、回归结果和基线门禁边界。PR及两个Issue只追加本轮修复/验证/提交链接；Issue原始描述保留。
+
+标准提交尝试返回1：generate-docs-skill缺少hindsight-docs/figures/what-contextbase-does.json（Issue #14），该次没有生成提交。钩子产生的160个范围外skills文档差异已完整保存并恢复，未纳入修复；持久core.hooksPath保持原值。独立lint、类型检查和回归不能替代文档生成门禁，不能声称全部门禁通过。 本次用户明确授权后，仅本次提交命令使用`git -c core.hooksPath=/dev/null commit`临时禁用钩子；不修改持久配置，PR保留上述失败记录。
+
+本轮证据目录由`/tmp/contextdb-31-32-publish-path`定位，包含迁入前分支状态、源指纹对照、本地JUnit/日志、独立检视、暂存补丁及提交消息；发布后追加GitHub回读。第17章原独立目录证据继续保留，不冒称为本地执行证据。

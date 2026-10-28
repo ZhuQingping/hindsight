@@ -48,14 +48,15 @@ def content_clear() -> bool:
 
 
 @contextmanager
-def bank_target(bank_id: str, *, clear_memories: bool = False) -> Iterator[None]:
+def bank_target(bank_id: str, *, clear_memories: bool = False, schema_name: str | None = None) -> Iterator[None]:
     from hindsight_api.engine.memory_engine import _current_schema
 
     token = _target_bank.set(bank_id)
     clear_token = _content_clear.set(clear_memories)
-    # Core memoizes schema on each RequestContext. Lists use a new context for
-    # each Bank and restore the caller's schema even when a nested read fails.
-    schema_token = _current_schema.set(None)
+    # Ordinary engine calls resolve a fresh tenant context. MCP's configuration
+    # filter runs before that engine entry, so its authenticated adapter supplies
+    # the registered workspace schema explicitly. Never derive it from a name.
+    schema_token = _current_schema.set(schema_name)
     try:
         yield
     finally:
