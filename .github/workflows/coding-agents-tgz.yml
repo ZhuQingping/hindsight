@@ -127,11 +127,13 @@ jobs:
         if: ${{ inputs.coding_agents }}
         run: |
           python scripts/package-client-plugins.py --output artifacts
-          PACKAGE_DIR=$(find artifacts/contextbase-coding-agents -mindepth 2 -maxdepth 2 -type d | head -n 1)
-          test -n "$PACKAGE_DIR"
-          TGZ=$(find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.tgz' | head -n 1)
-          test -n "$TGZ"
-          test -s "$TGZ"
+          PACKAGE_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('hindsight-integrations/coding-agents/package.json', 'utf8')).version")
+          PACKAGE_DIR="artifacts/contextbase-coding-agents/$PACKAGE_VERSION"
+          test -d "$PACKAGE_DIR" || { echo "Expected package directory not found: $PACKAGE_DIR" >&2; find artifacts/contextbase-coding-agents -maxdepth 2 -print; exit 1; }
+          TGZ="$PACKAGE_DIR/contextbase-coding-agents-$PACKAGE_VERSION.tgz"
+          test -s "$TGZ" || { echo "Expected tarball not found or empty: $TGZ" >&2; ls -la "$PACKAGE_DIR"; exit 1; }
+          tar -tzf "$TGZ" >/dev/null
+          echo "Coding Agents package validated: $TGZ"
 
       - name: Stage selected release assets and checksums
         env:
