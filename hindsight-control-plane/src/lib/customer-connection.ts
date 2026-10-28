@@ -13,17 +13,6 @@ export interface CustomerConnection {
   };
 }
 
-const RELEASE_ASSETS =
-  "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0";
-
-const DEFAULT_PACKAGES = {
-  codingAgents: `${RELEASE_ASSETS}/contextbase-coding-agents-0.8.1.tgz`,
-  openclaw: `${RELEASE_ASSETS}/contextbase-openclaw-1.0.0.tgz`,
-  hermes: `${RELEASE_ASSETS}/hermes-plugin-contextbase-1.2.2.zip`,
-  python: `${RELEASE_ASSETS}/contextbase_client-1.0.0-py3-none-any.whl`,
-  node: `${RELEASE_ASSETS}/contextbase-client-1.0.0.tgz`,
-} as const;
-
 // Only explicitly public settings cross the server/client boundary. Never fall
 // back to the console's internal dataplane address or operator credentials.
 function publicUrl(name: string, options: { bankId?: string; extension?: string } = {}) {
@@ -59,15 +48,11 @@ export function customerConnection(bankId: string): CustomerConnection {
     apiUrl: publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, ""),
     mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
     packages: {
-      codingAgents:
-        publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }) ?? DEFAULT_PACKAGES.codingAgents,
-      openclaw:
-        publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }) ?? DEFAULT_PACKAGES.openclaw,
-      hermes:
-        publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }) ?? DEFAULT_PACKAGES.hermes,
-      python:
-        publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }) ?? DEFAULT_PACKAGES.python,
-      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }) ?? DEFAULT_PACKAGES.node,
+      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }),
+      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
+      hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
+      python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
+      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }),
     },
   };
 }
