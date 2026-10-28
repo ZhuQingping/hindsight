@@ -33,6 +33,8 @@ async function proxy(request: Request, context: RouteContext) {
   }
   const { path } = await context.params;
   // This is an explicit management allowlist, never an arbitrary URL proxy.
+  const identityRoute =
+    path.length === 2 && path[0] === "admin" && path[1] === "identity" && request.method === "GET";
   const usersRoute =
     path[0] === "users" &&
     ((path.length === 1 && ["GET", "POST"].includes(request.method)) ||
@@ -48,16 +50,39 @@ async function proxy(request: Request, context: RouteContext) {
         path[2] === "keys" &&
         RESOURCE_ID.test(path[3]) &&
         ["PATCH", "DELETE"].includes(request.method)));
+  const usageRoute =
+    path[0] === "workspaces" &&
+    path.length === 3 &&
+    /^[a-z0-9][a-z0-9_]{0,53}$/.test(path[1]) &&
+    path[2] === "usage" &&
+    request.method === "GET";
   const workspaceRoute =
     path[0] === "workspaces" &&
     ((path.length === 1 && ["GET", "POST"].includes(request.method)) ||
       (path.length === 2 &&
         ["GET", "DELETE"].includes(request.method) &&
         /^[a-z0-9][a-z0-9_]{0,53}$/.test(path[1])));
-  if (!usersRoute && !workspaceRoute) return failure("not_found", "Unknown management route", 404);
+  if (!usersRoute && !workspaceRoute && !usageRoute && !identityRoute)
+    return failure("not_found", "Unknown management route", 404);
   const target = new URL(contextDBUrl(`/${path.map(encodeURIComponent).join("/")}`));
   const incoming = new URL(request.url);
-  for (const key of ["limit", "offset", "q"]) {
+  if (usageRoute) {
+    const kind = incoming.searchParams.getAll("object_type");
+    const ids = incoming.searchParams.getAll("ids");
+    if (
+      kind.length !== 1 ||
+      !["memory", "knowledge_page"].includes(kind[0]) ||
+      ids.length < 1 ||
+      ids.length > 100 ||
+      ids.some((id) => !id || id.length > 64) ||
+      [...incoming.searchParams.keys()].some((key) => !["object_type", "ids"].includes(key))
+    ) {
+      return failure("invalid_request", "Use one object type and 1 to 100 object IDs", 400);
+    }
+    target.searchParams.set("object_type", kind[0]);
+    ids.forEach((id) => target.searchParams.append("ids", id));
+  }
+  for (const key of usageRoute || identityRoute ? [] : ["limit", "offset", "q"]) {
     if (incoming.searchParams.getAll(key).length > 1)
       return failure("invalid_request", "Duplicate query parameter", 400);
     const value = incoming.searchParams.get(key);

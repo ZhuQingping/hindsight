@@ -42,6 +42,7 @@ class DeploymentConfig(BaseModel):
     db_pool_max: int = Field(default=10, ge=2, le=100)
     llm_model: str = Field(default="deepseek-v4.1-flash", min_length=1, max_length=128)
     ca_bundle_file: Path | None = None
+    recall_usage_enabled: bool = Field(default=False, strict=True)
 
     @field_validator("database_url_file", "maas_api_key_file", "ui_password_file", "ca_bundle_file", "ui_session_dir")
     @classmethod
@@ -164,6 +165,7 @@ def render(config: DeploymentConfig, directory: Path, *, replace: bool = False) 
     api = {
         "CONTEXTDB_INSTANCE_ID": config.instance_id,
         "CONTEXTDB_CLOUD_TENANT_ID": config.cloud_tenant_id,
+        "CONTEXTDB_RECALL_USAGE_ENABLED": str(config.recall_usage_enabled).lower(),
         "HINDSIGHT_API_DATABASE_URL": read_secret(config.database_url_file),
         "HINDSIGHT_API_HOST": "0.0.0.0",
         "HINDSIGHT_API_PORT": str(config.api_port),

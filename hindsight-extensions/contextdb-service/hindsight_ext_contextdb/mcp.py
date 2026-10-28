@@ -20,6 +20,7 @@ from .models import ServiceError
 from .routing import bank_list, bank_target, multi_bank_discovery
 from .security import bearer_credential
 from .tenant import ContextDBTenantExtension
+from .usage import record_knowledge, usage_call
 
 if TYPE_CHECKING:
     from hindsight_api import MemoryEngine
@@ -153,10 +154,22 @@ class ContextDBMCPRouting:
                     schema_name=principal.schema_name,
                 ),
                 authenticated_request(credential, principal, bank_id, self.settings),
+                usage_call(
+                    self.memory,
+                    principal,
+                    bank_id,
+                    "memory" if name == "recall" else "knowledge_page" if name == "search_knowledge_base" else None,
+                ) as usage,
             ):
                 bank_token = _current_bank_id.set(bank_id)
                 try:
                     result = await call_next()
+                    if name == "search_knowledge_base" and isinstance(result, ToolResult):
+                        payload = result.structured_content
+                        if payload is None:
+                            texts = [block.text for block in result.content if isinstance(block, mt.TextContent)]
+                            payload = texts[0] if len(texts) == 1 else None
+                        record_knowledge(usage, payload)
                     if (
                         principal.role.value != "admin"
                         and name in {"get_operation", "list_operations"}

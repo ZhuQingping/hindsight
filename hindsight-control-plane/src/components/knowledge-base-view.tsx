@@ -1,5 +1,6 @@
 "use client";
 
+import { ContextDBRecallUsage } from "./contextdb/recall-usage";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -725,6 +726,11 @@ export function KnowledgeBaseView() {
                   mental model with a place in the tree, so the two headers read
                   identically rather than one saying "Updated 5 hours ago [IN SYNC]"
                   and the other a sentence. */}
+              <ContextDBRecallUsage
+                bankId={currentBank ?? ""}
+                objectType="knowledge_page"
+                objectId={selected.id}
+              />
               {selected.timestamp ? (
                 <FreshnessLine
                   className="mt-2"

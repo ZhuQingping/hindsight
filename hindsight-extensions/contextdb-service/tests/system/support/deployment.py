@@ -32,6 +32,7 @@ class DeploymentOptions:
     worker_mode: Literal["embedded-worker", "standalone-worker"] = "embedded-worker"
     default_template: str | None = None
     maintenance_probe: bool = False
+    recall_usage_enabled: bool = True
 
 
 @dataclass
@@ -40,6 +41,24 @@ class ContextDBDeployment:
     headers: dict[str, str] = field(repr=False)
     database_url: str = field(default="", repr=False)
     worker: HindsightServer | None = None
+    environment: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def restart_api(self, stub_url: str, *, recall_usage_enabled: bool) -> None:
+        """Restart only this fixture-owned API against its retained temporary PG."""
+        self.server.stop()
+        self.environment["CONTEXTDB_RECALL_USAGE_ENABLED"] = str(recall_usage_enabled).lower()
+        replacement = start_hindsight_server(
+            stub_url=stub_url,
+            log_path=self.server.log_path.with_name("restart-" + self.server.log_path.name),
+            database_url=self.database_url,
+            python_executable=sys.executable,
+            app_factory="hindsight_ext_contextdb.asgi:create_app",
+            extra_env=self.environment,
+        )
+        # Keep the same owner handle so deployment_owner.finally stops the new process.
+        self.server.url = replacement.url
+        self.server.log_path = replacement.log_path
+        self.server._process = replacement._process
 
 
 @contextmanager
@@ -81,6 +100,7 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
         "CONTEXTDB_INSTANCE_ID": "story-instance",
         "CONTEXTDB_CLOUD_TENANT_ID": "story-tenant",
         "CONTEXTDB_KEY_PEPPER": "synthetic-story-pepper-32-bytes-long",
+        "CONTEXTDB_RECALL_USAGE_ENABLED": str(options.recall_usage_enabled).lower(),
         "HINDSIGHT_API_TENANT_EXTENSION": "hindsight_ext_contextdb.tenant:ContextDBTenantExtension",
         "HINDSIGHT_API_OPERATION_VALIDATOR_EXTENSION": "hindsight_ext_contextdb.validator:ContextDBOperationValidator",
         "HINDSIGHT_API_HTTP_EXTENSION": "hindsight_ext_contextdb.http:ContextDBHttpExtension",
@@ -163,7 +183,7 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
             else:
                 raise AssertionError(f"Standalone worker readiness timed out; log: {worker.log_path}")
         headers = {"Authorization": "Bearer " + secret}
-        yield ContextDBDeployment(server, headers, info.uri, worker)
+        yield ContextDBDeployment(server, headers, info.uri, worker, settings)
         # Check after all SDK/UI stories and accepted background work, not only
         # bootstrap; ContextDB must never recreate a public business schema.
         asyncio.run(assert_no_public_business_tables())

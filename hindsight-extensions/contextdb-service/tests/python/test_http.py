@@ -7,6 +7,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from hindsight_ext_contextdb.models import ApiKeyCreate
+
 from .support.identities import (
     ADMIN_SECRET,
     admin_actor,
@@ -113,10 +115,16 @@ async def test_user_key_crud_and_etag_without_user_authorization(repository, man
         ("DELETE", "/users/" + "a" * 32 + "/keys/" + "b" * 32),
     ],
 )
-async def test_business_keys_cannot_call_any_management_method(repository, management, method, path):
+@pytest.mark.parametrize("access_mode", ["selected", "all"])
+async def test_business_keys_cannot_call_any_management_method(repository, management, method, path, access_mode):
     space = await ready_workspace(repository)
     user = await space_user(repository, space.workspace_id)
-    key = await repository.create_key(await admin_actor(repository), user.user_id, key_input(space.bank_id), "key")
+    body = (
+        key_input(space.bank_id)
+        if access_mode == "selected"
+        else ApiKeyCreate(name="all", authorization={"mode": "all"})
+    )
+    key = await repository.create_key(await admin_actor(repository), user.user_id, body, "key")
     response = await management.client.request(
         method, path, headers={"Authorization": f"Bearer {key.secret}"}, content="invalid-json"
     )
@@ -142,13 +150,15 @@ async def test_missing_preconditions_and_legacy_fields_fail_safely(management):
     assert response.status_code == 401
 
 
-def test_management_openapi_declares_only_thirteen_operations(management):
+def test_management_openapi_declares_resource_operations_and_usage_lookup(management):
     spec = management.app.openapi()
-    assert sum(len(path) for path in spec["paths"].values()) == 13
-    assert set(spec["components"]["securitySchemes"]) == {"AdministratorKey"}
+    assert sum(len(path) for path in spec["paths"].values()) == 14
+    assert set(spec["paths"]["/ext/contextdb/v1/workspaces/{bank_id}/usage"]) == {"get"}
+    assert set(spec["components"]["securitySchemes"]) == {"AdministratorKey", "WorkspaceReadKey"}
     for path, methods in spec["paths"].items():
         for method, operation in methods.items():
-            assert operation["security"] == [{"AdministratorKey": []}]
+            scheme = "WorkspaceReadKey" if path.endswith("/usage") else "AdministratorKey"
+            assert operation["security"] == [{scheme: []}]
             assert "422" not in operation["responses"]
             if method == "get" and path.endswith(("/workspaces", "/users", "/keys")):
                 assert {"q", "limit", "offset"} == {x["name"] for x in operation["parameters"] if x["in"] == "query"}

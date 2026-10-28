@@ -4,6 +4,7 @@ import { localProductName } from "@/lib/product-config-server";
 import { ProductRuntime } from "@/components/product-runtime";
 import { withBasePath } from "@/lib/base-path";
 import { contextDBEnabled } from "@/lib/contextdb";
+import { ContextDBUsageCapabilities } from "@/components/contextdb/usage-capabilities";
 import { ContextDBModeProvider } from "@/lib/contextdb-mode";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -76,13 +77,15 @@ export default async function LocaleLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ProductRuntime name={name} locale={locale}>
           <ContextDBModeProvider enabled={contextDBEnabled()}>
-            <ThemeProvider>
-              <FeaturesProvider>
-                <BankProvider>
-                  <NextIntlClientProvider>{children}</NextIntlClientProvider>
-                </BankProvider>
-              </FeaturesProvider>
-            </ThemeProvider>
+            <ContextDBUsageCapabilities>
+              <ThemeProvider>
+                <FeaturesProvider>
+                  <BankProvider>
+                    <NextIntlClientProvider>{children}</NextIntlClientProvider>
+                  </BankProvider>
+                </FeaturesProvider>
+              </ThemeProvider>
+            </ContextDBUsageCapabilities>
           </ContextDBModeProvider>
           <Toaster />
         </ProductRuntime>

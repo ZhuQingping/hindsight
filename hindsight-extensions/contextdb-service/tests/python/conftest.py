@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
+
 from hindsight_ext_contextdb.config import Settings
 from hindsight_ext_contextdb.repository import Repository
 
@@ -21,6 +22,8 @@ def disable_unfenced_native_diagnostics(monkeypatch: pytest.MonkeyPatch) -> None
 
 @pytest.fixture
 def configured(repository: Repository, monkeypatch: pytest.MonkeyPatch) -> Settings:
+    # Usage stories opt in explicitly; production remains disabled by default.
+    monkeypatch.setenv("CONTEXTDB_RECALL_USAGE_ENABLED", "true")
     monkeypatch.setenv("CONTEXTDB_INSTANCE_ID", repository.instance_id)
     monkeypatch.setenv("CONTEXTDB_CLOUD_TENANT_ID", repository.cloud_tenant_id)
     monkeypatch.setenv("CONTEXTDB_KEY_PEPPER", repository.pepper)

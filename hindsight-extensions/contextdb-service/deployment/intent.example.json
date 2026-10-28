@@ -1,5 +1,6 @@
 {
   "format": 1,
+  "recall_usage_enabled": false,
   "instance_id": "example-instance",
   "cloud_tenant_id": "example-tenant",
   "topology": "merged",

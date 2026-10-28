@@ -22,6 +22,7 @@ from .diagnostics import business_operation_json
 from .models import Role, ServiceError
 from .routing import bank_list, bank_target
 from .security import bearer_credential
+from .usage import observe_knowledge, usage_call
 
 if TYPE_CHECKING:
     from hindsight_api import MemoryEngine
@@ -187,9 +188,18 @@ class WorkspaceAuthorizationMiddleware:
             principal = await repository.authenticate(credential, bank_id, record_use=True)
             assert credential is not None
             clearing = scope["method"] == "DELETE" and path == f"/v1/default/banks/{bank_id}/memories"
+            suffix = path[len(f"/v1/default/banks/{bank_id}") :]
+            operation = (
+                "memory"
+                if scope["method"] == "POST" and suffix == "/memories/recall"
+                else "knowledge_page"
+                if scope["method"] == "GET" and suffix == "/knowledge-base/search"
+                else None
+            )
             with (
                 bank_target(bank_id, clear_memories=clearing),
                 authenticated_request(credential, principal, bank_id, self.settings),
+                usage_call(self.memory, principal, bank_id, operation) as usage,
             ):
                 suffix = path[len(f"/v1/default/banks/{bank_id}") :]
                 if (scope["method"] == "POST" and suffix in {"/import", "/clone", "/transfer/import"}) or (
@@ -212,7 +222,9 @@ class WorkspaceAuthorizationMiddleware:
                     in {"/export", "/transfer/export", "/document-transfer/export", "/prompts/preview"}
                 ) and principal.role != Role.ADMIN:
                     raise ServiceError(403, "admin_required", "The operations administrator Key is required")
-                if suffix.rstrip("/") == "/config" and scope["method"] in {"GET", "PATCH", "DELETE"}:
+                if operation == "knowledge_page" and usage is not None:
+                    await observe_knowledge(self.app, scope, receive, observed_send, usage)
+                elif suffix.rstrip("/") == "/config" and scope["method"] in {"GET", "PATCH", "DELETE"}:
                     await self._project_json_response(
                         scope,
                         receive,

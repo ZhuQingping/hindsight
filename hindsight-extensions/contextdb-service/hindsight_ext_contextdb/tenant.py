@@ -1,6 +1,7 @@
 """Dynamic member credentials select a workspace schema on REST and MCP alike."""
 
 import asyncpg
+from hindsight_api.extensions.bank_tables import BankScopedTable
 from hindsight_api.extensions.tenant import AuthenticationError, Tenant, TenantContext, TenantExtension
 from hindsight_api.models import RequestContext
 
@@ -11,6 +12,14 @@ from .repository import Repository
 
 
 class ContextDBTenantExtension(TenantExtension):
+    def extra_bank_tables(self) -> list[BankScopedTable]:
+        return [BankScopedTable("ctxdb_usage_stats")]
+
+    async def provision_bank_tables(self, conn: asyncpg.Connection, schema: str) -> None:
+        from .usage_repository import provision_usage_tables
+
+        await provision_usage_tables(conn, schema)
+
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config)
         self.settings = Settings.from_environment()

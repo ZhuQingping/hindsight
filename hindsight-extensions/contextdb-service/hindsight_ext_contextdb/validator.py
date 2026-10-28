@@ -20,6 +20,7 @@ from hindsight_api.extensions.operation_validator import (
     PrecheckContext,
     PrecheckOperation,
     RecallContext,
+    RecallResult,
     ReflectContext,
     RetainContext,
     ValidationResult,
@@ -143,6 +144,12 @@ class ContextDBOperationValidator(OperationValidatorExtension):
 
     async def validate_recall(self, ctx: RecallContext) -> ValidationResult:
         return await self._authorize(ctx.request_context, ctx.bank_id, Scope.MEMORY_READ)
+
+    async def on_recall_complete(self, result: RecallResult) -> None:
+        from .usage import record_recall
+
+        if result.success and result.result is not None and not result.request_context.internal:
+            record_recall(result.bank_id, (str(fact.id) for fact in result.result.results))
 
     async def validate_reflect(self, ctx: ReflectContext) -> ValidationResult:
         return await self._authorize(ctx.request_context, ctx.bank_id, Scope.REFLECT)

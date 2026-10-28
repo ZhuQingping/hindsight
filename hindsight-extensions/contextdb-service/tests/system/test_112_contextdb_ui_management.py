@@ -7,18 +7,27 @@ processes, and this story starts and stops only its own UI on a free local port.
 
 from __future__ import annotations
 
+import asyncio
 import secrets
+from datetime import datetime
 
 import httpx
 import pytest
 from contextbase_client import ContextBase
 from contextbase_client_api.exceptions import ForbiddenException, UnauthorizedException
-from hindsight_system_tests import wait_until_settled
+from hindsight_system_tests import reflect_loop, wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
+from pydantic import BaseModel
 
 from .support.clients import workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 from .support.ui import AdminUI
+
+
+class UiUsageItem(BaseModel):
+    object_id: str
+    recall_count: int
+    last_recalled_at: datetime | None
 
 
 @pytest.mark.asyncio
@@ -46,6 +55,11 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
         assert page.status_code == 200
         assert "用户管理" in page.text
         assert ui_settings.admin_key not in page.text
+
+        capability = await ui.get("/api/contextdb/admin/identity")
+        assert capability.status_code == 200
+        assert capability.json()["capabilities"]["recall_usage"] is True
+        assert ui_settings.admin_key not in capability.text
 
         async def workspace(label: str) -> str:
             name = label.lower() + "_" + secrets.token_hex(4)
@@ -179,6 +193,50 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
             assert [
                 item.text for item in (await reader.arecall(bank_id=a, query="What does Alice build?")).results
             ] == ["Alice builds Lighthouse | Involving: Alice"]
+            # The UI's fixed proxy supplies its server-only administrator Key.
+            # Native content reads do not wait for these asynchronous statistics.
+            memories = await reader.memory.list_memories(a, limit=10)
+            assert memories.items
+            memory_id = memories.items[0].id
+
+            async def usage(kind: str, object_id: str) -> UiUsageItem:
+                params = [("object_type", kind), ("ids", object_id)]
+                for _ in range(100):
+                    response = await ui.get(f"/api/contextdb/workspaces/{a}/usage", params=params)
+                    assert response.status_code == 200, response.text
+                    assert "no-store" in response.headers["cache-control"]
+                    assert ui_settings.admin_key not in response.text
+                    assert "workspace_id" not in response.json()
+                    items = response.json()["items"]
+                    if items:
+                        item = UiUsageItem.model_validate(items[0])
+                        if item.recall_count >= 1:
+                            assert item.last_recalled_at is not None and item.last_recalled_at.tzinfo is not None
+                            return item
+                    await asyncio.sleep(0.1)
+                raise AssertionError("UI usage proxy did not expose the recorded hit")
+
+            memory_usage = await usage("memory", memory_id)
+            assert memory_usage.recall_count == 1
+            reflect_loop(llm, answer="Alice builds Lighthouse.")
+            knowledge = await writer.acreate_knowledge_page(
+                a, name="Lighthouse team", source_query="What does Alice build?", trigger={"mode": "full"}
+            )
+            await wait_until_settled(writer, a)
+            assert (await writer.asearch_knowledge_base(a, "Lighthouse")).results
+            page_usage = await usage("knowledge_page", knowledge.page_id)
+            assert page_usage.recall_count == 1
+            await writer.aget_knowledge_page(a, knowledge.page_id)
+            assert (await usage("knowledge_page", knowledge.page_id)).recall_count == 1
+            async with httpx.AsyncClient(base_url=base) as raw:
+                path = f"/ext/contextdb/v1/workspaces/{a}/usage"
+                params = {"object_type": "memory", "ids": memory_id}
+                assert (await raw.get(path, params=params)).status_code == 401
+                allowed = await raw.get(
+                    path, params=params, headers={"Authorization": "Bearer " + reader_key["secret"]}
+                )
+                assert allowed.status_code == 200
+                assert allowed.json()["items"][0]["recall_count"] == memory_usage.recall_count
             assert (await reader.arecall(bank_id=b, query="Lighthouse")).results == []
             future = await workspace("Future")
             assert (await all_spaces.arecall(bank_id=future, query="Future memory")).results == []
