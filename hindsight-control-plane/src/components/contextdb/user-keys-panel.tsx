@@ -58,6 +58,7 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState("");
   const shownSecret = useRef("");
+  const secretField = useRef<HTMLTextAreaElement>(null);
   const copyAttempt = useRef(0);
   const [busy, setBusy] = useState(false);
   const [editor, setEditor] = useState<{ key: ContextDBKeyEditable | null } | null>(null);
@@ -120,19 +121,51 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
     if (!key) allowSecret.current = true;
     setEditor({ key });
   };
-  const copySecret = async () => {
+  const copySecret = () => {
     const value = shownSecret.current;
     const attempt = ++copyAttempt.current;
+    setCopied(false);
     setCopyError("");
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(value);
-      if (shownSecret.current === value && copyAttempt.current === attempt) setCopied(true);
-    } catch {
+    const finish = (success: boolean) => {
       if (shownSecret.current === value && copyAttempt.current === attempt) {
-        setCopied(false);
-        setCopyError(t("copyFailed"));
+        setCopied(success);
+        setCopyError(success ? "" : t("copyFailed"));
       }
+    };
+    // HTTP deployments may have no Clipboard API. Copy synchronously during the
+    // click, using the field INSIDE the modal so its focus trap cannot redirect
+    // selection away from the key. Restore focus and selection even on failure.
+    const field = secretField.current;
+    let success = false;
+    if (field) {
+      const previous = document.activeElement;
+      const { selectionStart, selectionEnd, selectionDirection } = field;
+      try {
+        field.focus({ preventScroll: true });
+        field.select();
+        success = document.execCommand("copy");
+      } catch {
+        // Some browsers disable the legacy command; try the Clipboard API below.
+      } finally {
+        field.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
+        if (previous instanceof HTMLElement) previous.focus({ preventScroll: true });
+      }
+    }
+    if (success) {
+      finish(true);
+      return;
+    }
+    try {
+      if (!navigator.clipboard?.writeText) {
+        finish(false);
+        return;
+      }
+      void navigator.clipboard.writeText(value).then(
+        () => finish(true),
+        () => finish(false)
+      );
+    } catch {
+      finish(false);
     }
   };
 
@@ -442,13 +475,20 @@ export function ContextDBUserKeysPanel({ user }: { user: ContextDBUser }) {
             <DialogTitle>{t("secretTitle")}</DialogTitle>
             <DialogDescription>{t("secretWarning")}</DialogDescription>
           </DialogHeader>
-          <p className="break-all rounded border p-3 font-mono text-sm" data-testid="issued-secret">
-            {secret}
-          </p>
+          <textarea
+            ref={secretField}
+            aria-label={t("secretTitle")}
+            readOnly
+            value={secret}
+            rows={3}
+            onClick={(event) => event.currentTarget.select()}
+            className="w-full resize-none break-all rounded border p-3 font-mono text-sm"
+            data-testid="issued-secret"
+          />
           {copyError && <p role="alert">{copyError}</p>}
           {copied && <p role="status">{t("copied")}</p>}
           <DialogFooter>
-            <Button onClick={() => void copySecret()}>{t("copySecret")}</Button>
+            <Button onClick={copySecret}>{t("copySecret")}</Button>
             <Button variant="outline" onClick={clearSecret}>
               {t("closeSecret")}
             </Button>
