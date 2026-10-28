@@ -68,7 +68,7 @@ it.each(downloads)(
       `https://downloads.example.com/cl\nient${extension}`,
     ]) {
       vi.stubEnv(`CONTEXTBASE_CP_${env}`, url);
-      expect(customerConnection("bank").packages[field]).toBeUndefined();
+      expect(customerConnection("bank").packages[field]).toBe(`https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/${({ codingAgents: "contextbase-coding-agents-0.8.1.tgz", openclaw: "contextbase-openclaw-1.0.0.tgz", hermes: "hermes-plugin-contextbase-1.2.2.zip", python: "contextbase_client-1.0.0-py3-none-any.whl", node: "contextbase-client-1.0.0.tgz" } as const)[field]}`);
     }
   }
 );
@@ -80,20 +80,20 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
 });
 
-it("falls back to a placeholder package URL in development when unset", () => {
+it("uses published release assets in development when package URLs are unset", () => {
   vi.stubEnv("NODE_ENV", "development");
   // No package URLs configured.
   const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toBe("https://placeholder.contextbase.local/contextbase-coding-agents-PACKAGE-URL-NOT-SET.tgz");
-  expect(result.packages.node).toBe("https://placeholder.contextbase.local/contextbase-client-PACKAGE-URL-NOT-SET.tgz");
-  expect(result.packages.python).toBe("https://placeholder.contextbase.local/contextbase_client-PACKAGE-URL-NOT-SET.whl");
-  expect(result.packages.hermes).toBe("https://placeholder.contextbase.local/contextbase-hermes-PACKAGE-URL-NOT-SET.zip");
+  expect(result.packages.codingAgents).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz");
+  expect(result.packages.node).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-client-1.0.0.tgz");
+  expect(result.packages.python).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase_client-1.0.0-py3-none-any.whl");
+  expect(result.packages.hermes).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/hermes-plugin-contextbase-1.2.2.zip");
 });
 
-it("does not fall back to placeholder package URLs in production", () => {
+it("uses published release assets in production when package URLs are unset", () => {
   vi.stubEnv("NODE_ENV", "production");
   const result = customerConnection("bank");
-  expect(result.packages.codingAgents).toBeUndefined();
-  expect(result.packages.node).toBeUndefined();
-  expect(result.packages.python).toBeUndefined();
+  expect(result.packages.codingAgents).toContain("/contextbase-coding-agents-0.8.1.tgz");
+  expect(result.packages.node).toContain("/contextbase-client-1.0.0.tgz");
+  expect(result.packages.python).toContain("/contextbase_client-1.0.0-py3-none-any.whl");
 });
