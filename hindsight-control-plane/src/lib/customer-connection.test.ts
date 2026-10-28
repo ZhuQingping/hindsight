@@ -4,6 +4,7 @@ import { customerConnection } from "./customer-connection";
 afterEach(() => vi.unstubAllEnvs());
 
 it("only exposes public addresses and independently configured packages", () => {
+  vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "https://api.example.com/customer-api/");
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "https://mcp.example.com/banks/{bank_id}/mcp");
   vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "http://private-service:8888");
@@ -24,7 +25,6 @@ it("only exposes public addresses and independently configured packages", () => 
 });
 
 it.each([
-  "http://localhost:8888",
   "https://admin:secret@service.example",
   "https://api.example.com?token=secret",
   "https://api.example.com/#fragment",
@@ -32,6 +32,15 @@ it.each([
   "not-a-url",
 ])("rejects invalid public API address %s", (url) => {
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", url);
+  expect(customerConnection("bank").apiUrl).toBeUndefined();
+});
+
+it("allows http for the public API address in development, rejects it in production", () => {
+  const url = "http://localhost:8888";
+  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", url);
+  vi.stubEnv("NODE_ENV", "development");
+  expect(customerConnection("bank").apiUrl).toBe(url);
+  vi.stubEnv("NODE_ENV", "production");
   expect(customerConnection("bank").apiUrl).toBeUndefined();
 });
 
@@ -46,6 +55,8 @@ const downloads = [
 it.each(downloads)(
   "validates %s as an install file, allowing signed downloads",
   (env, field, extension) => {
+    // Package distribution always requires HTTPS, even in development.
+    vi.stubEnv("NODE_ENV", "production");
     const valid = `https://downloads.example.com/client${extension}?sig=a%2Fb&expiry=123`;
     vi.stubEnv(`CONTEXTBASE_CP_${env}`, valid);
     expect(customerConnection("bank").packages[field]).toBe(valid);
@@ -67,4 +78,22 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "");
   vi.stubEnv("HINDSIGHT_CP_PUBLIC_MCP_URL", "https://legacy.example.com/mcp");
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
+});
+
+it("falls back to a placeholder package URL in development when unset", () => {
+  vi.stubEnv("NODE_ENV", "development");
+  // No package URLs configured.
+  const result = customerConnection("bank");
+  expect(result.packages.codingAgents).toBe("https://placeholder.contextbase.local/contextbase-coding-agents-PACKAGE-URL-NOT-SET.tgz");
+  expect(result.packages.node).toBe("https://placeholder.contextbase.local/contextbase-client-PACKAGE-URL-NOT-SET.tgz");
+  expect(result.packages.python).toBe("https://placeholder.contextbase.local/contextbase_client-PACKAGE-URL-NOT-SET.whl");
+  expect(result.packages.hermes).toBe("https://placeholder.contextbase.local/contextbase-hermes-PACKAGE-URL-NOT-SET.zip");
+});
+
+it("does not fall back to placeholder package URLs in production", () => {
+  vi.stubEnv("NODE_ENV", "production");
+  const result = customerConnection("bank");
+  expect(result.packages.codingAgents).toBeUndefined();
+  expect(result.packages.node).toBeUndefined();
+  expect(result.packages.python).toBeUndefined();
 });

@@ -2380,7 +2380,7 @@
       "mcp": "Connect an HTTP MCP client to the remote ContextBase service. No local adapter is required for this option."
     },
     "requirements": {
-      "coding": "Requires the selected client and Node.js 24+. Run these commands in the environment where your client runs, including WSL if applicable.",
+      "coding": "Requires the selected client and Node.js 24+.",
       "python": "Requires Python 3.10+; use an activated virtual environment.",
       "node": "Requires Node.js 18+; run the commands in your application directory.",
       "openclaw": "Requires OpenClaw and Node.js 22+. Run in your Gateway environment.",
