@@ -23,6 +23,7 @@ vi.mock("@/lib/contextdb-api", async (original) => ({
   createContextDBKey: vi.fn(),
 }));
 const originalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+const originalExecCommand = Object.getOwnPropertyDescriptor(document, "execCommand");
 const api = vi.mocked(contextDBRequest);
 const create = vi.mocked(createContextDBKey);
 const user: ContextDBUser = {
@@ -71,6 +72,8 @@ afterEach(() => {
   vi.restoreAllMocks();
   if (originalClipboard) Object.defineProperty(navigator, "clipboard", originalClipboard);
   else Reflect.deleteProperty(navigator, "clipboard");
+  if (originalExecCommand) Object.defineProperty(document, "execCommand", originalExecCommand);
+  else Reflect.deleteProperty(document, "execCommand");
 });
 
 describe("member-local key state", () => {
@@ -599,6 +602,115 @@ describe("Key picker search and credential saving", () => {
     expect(screen.getByTestId("issued-secret")).toBeTruthy();
     fireEvent.click(screen.getByText("I saved it — close"));
     expect(screen.queryByTestId("issued-secret")).toBeNull();
+  });
+  it("copies synchronously inside the modal when the Clipboard API is unavailable", async () => {
+    Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true });
+    const copy = vi.fn(() => {
+      const field = screen.getByTestId("issued-secret") as HTMLTextAreaElement;
+      expect(document.activeElement).toBe(field);
+      expect(field.closest('[role="dialog"]')).not.toBeNull();
+      expect(field.value.slice(field.selectionStart, field.selectionEnd)).toBe("one-time-secret");
+      return true;
+    });
+    Object.defineProperty(document, "execCommand", { value: copy, configurable: true });
+    render(panel());
+    await issue();
+    const field = (await screen.findByTestId("issued-secret")) as HTMLTextAreaElement;
+    const button = screen.getByText("Copy API key");
+    button.focus();
+    fireEvent.click(button);
+    expect(copy).toHaveBeenCalledWith("copy");
+    expect(document.activeElement).toBe(button);
+    expect(field.value).toBe("one-time-secret");
+    expect(screen.getByText("Copied")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+  it.each([false, "throw"])(
+    "keeps the key selectable and restores focus when synchronous copying fails (%s)",
+    async (outcome) => {
+      Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true });
+      Object.defineProperty(document, "execCommand", {
+        value: vi.fn(() => {
+          if (outcome === "throw") throw new Error("Copy denied");
+          return false;
+        }),
+        configurable: true,
+      });
+      render(panel());
+      await issue();
+      const field = (await screen.findByTestId("issued-secret")) as HTMLTextAreaElement;
+      field.setSelectionRange(2, 5);
+      const button = screen.getByText("Copy API key");
+      button.focus();
+      fireEvent.click(button);
+      expect(document.activeElement).toBe(button);
+      expect([field.selectionStart, field.selectionEnd]).toEqual([2, 5]);
+      expect(field.value).toBe("one-time-secret");
+      expect(screen.queryByText("Copied")).toBeNull();
+      expect(screen.getByText("Copy failed. Select and save the key manually.")).toBeTruthy();
+    }
+  );
+  it.each([false, "throw"])(
+    "falls back to the Clipboard API after legacy copy fails (%s)",
+    async (outcome) => {
+      const copy = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, "clipboard", {
+        value: { writeText: copy },
+        configurable: true,
+      });
+      Object.defineProperty(document, "execCommand", {
+        value: vi.fn(() => {
+          if (outcome === "throw") throw new Error("Copy denied");
+          return false;
+        }),
+        configurable: true,
+      });
+      render(panel());
+      await issue();
+      await screen.findByTestId("issued-secret");
+      fireEvent.click(screen.getByText("Copy API key"));
+      await screen.findByText("Copied");
+      expect(copy).toHaveBeenCalledWith("one-time-secret");
+    }
+  );
+  it.each([true, false])(
+    "ignores an older async result after a newer synchronous success (%s)",
+    async (success) => {
+      let done!: () => void;
+      let fail!: (reason: Error) => void;
+      const pending = new Promise<void>((resolve, reject) => {
+        done = resolve;
+        fail = reject;
+      });
+      Object.defineProperty(navigator, "clipboard", {
+        value: { writeText: vi.fn().mockReturnValue(pending) },
+        configurable: true,
+      });
+      const legacy = vi.fn().mockReturnValueOnce(false).mockReturnValue(true);
+      Object.defineProperty(document, "execCommand", { value: legacy, configurable: true });
+      render(panel());
+      await issue();
+      await screen.findByTestId("issued-secret");
+      fireEvent.click(screen.getByText("Copy API key"));
+      fireEvent.click(screen.getByText("Copy API key"));
+      expect(screen.getByText("Copied")).toBeTruthy();
+      await act(async () => (success ? done() : fail(new Error("Old attempt failed"))));
+      expect(screen.getByText("Copied")).toBeTruthy();
+      expect(screen.queryByText("Copy failed. Select and save the key manually.")).toBeNull();
+    }
+  );
+  it("only selects the read-only key when clicked, rather than when focused", async () => {
+    render(panel());
+    await issue();
+    const field = (await screen.findByTestId("issued-secret")) as HTMLTextAreaElement;
+    expect(field.tagName).toBe("TEXTAREA");
+    expect(field.readOnly).toBe(true);
+    field.setSelectionRange(0, 0);
+    field.blur();
+    field.focus();
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 0]);
+    fireEvent.click(field);
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, field.value.length]);
   });
   it("a failed copy keeps the Secret available for retry", async () => {
     Object.defineProperty(navigator, "clipboard", {
