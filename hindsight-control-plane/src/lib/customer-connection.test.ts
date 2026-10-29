@@ -20,7 +20,7 @@ it("only exposes public addresses and independently configured packages", () => 
   expect(result.packages.codingAgents).toBe(
     "https://downloads.example.com/agents.tgz?sig=a&value=$HOME"
   );
-  expect(result.packages.openclaw).toBeUndefined();
+  expect(result.packages.openclaw).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-openclaw-1.0.0.tgz");
   expect(JSON.stringify(result)).not.toMatch(/private-service|operator-secret/);
 });
 
@@ -80,20 +80,26 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
 });
 
-it("does not invent package download URLs when deployment settings are unset", () => {
-  vi.stubEnv("NODE_ENV", "development");
-  const development = customerConnection("bank");
-  expect(development.packages.codingAgents).toBeUndefined();
-  expect(development.packages.openclaw).toBeUndefined();
-  expect(development.packages.hermes).toBeUndefined();
-  expect(development.packages.python).toBeUndefined();
-  expect(development.packages.node).toBeUndefined();
-
-  vi.stubEnv("NODE_ENV", "production");
-  const production = customerConnection("bank");
-  expect(production.packages.codingAgents).toBeUndefined();
-  expect(production.packages.openclaw).toBeUndefined();
-  expect(production.packages.hermes).toBeUndefined();
-  expect(production.packages.python).toBeUndefined();
-  expect(production.packages.node).toBeUndefined();
+it.each(["development", "production"])("uses release packages by default in %s", (mode) => {
+  vi.stubEnv("NODE_ENV", mode);
+  for (const [env] of downloads) {
+    vi.stubEnv(`CONTEXTBASE_CP_${env}`, "");
+  }
+  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "");
+  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "");
+  const result = customerConnection("bank");
+  expect(result.packages).toEqual({
+    codingAgents:
+      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz",
+    openclaw:
+      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-openclaw-1.0.0.tgz",
+    hermes:
+      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/hermes-plugin-contextbase-1.2.2.zip",
+    python:
+      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase_client-1.0.0-py3-none-any.whl",
+    node:
+      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-client-1.0.0.tgz",
+  });
+  expect(result.apiUrl).toBeUndefined();
+  expect(result.mcpUrl).toBeUndefined();
 });

@@ -13,10 +13,25 @@ export interface CustomerConnection {
   };
 }
 
+// Pin verified release artifacts so the guide works without package overrides.
+// Deployment settings still allow private mirrors or newer client releases.
+const releaseBase =
+  "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/";
+const defaultPackages = {
+  codingAgents: releaseBase + "contextbase-coding-agents-0.8.1.tgz",
+  openclaw: releaseBase + "contextbase-openclaw-1.0.0.tgz",
+  hermes: releaseBase + "hermes-plugin-contextbase-1.2.2.zip",
+  python: releaseBase + "contextbase_client-1.0.0-py3-none-any.whl",
+  node: releaseBase + "contextbase-client-1.0.0.tgz",
+};
+
 // Only explicitly public settings cross the server/client boundary. Never fall
 // back to the console's internal dataplane address or operator credentials.
-function publicUrl(name: string, options: { bankId?: string; extension?: string } = {}) {
-  const configured = controlPlaneEnv(name)?.trim();
+function publicUrl(
+  name: string,
+  options: { bankId?: string; extension?: string; defaultUrl?: string } = {}
+) {
+  const configured = controlPlaneEnv(name)?.trim() || options.defaultUrl;
   if (
     !configured ||
     Array.from(configured).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
@@ -48,11 +63,26 @@ export function customerConnection(bankId: string): CustomerConnection {
     apiUrl: publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, ""),
     mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
     packages: {
-      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }),
-      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
-      hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
-      python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
-      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }),
+      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", {
+        extension: ".tgz",
+        defaultUrl: defaultPackages.codingAgents,
+      }),
+      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", {
+        extension: ".tgz",
+        defaultUrl: defaultPackages.openclaw,
+      }),
+      hermes: publicUrl("HERMES_PACKAGE_URL", {
+        extension: ".zip",
+        defaultUrl: defaultPackages.hermes,
+      }),
+      python: publicUrl("PYTHON_SDK_PACKAGE_URL", {
+        extension: ".whl",
+        defaultUrl: defaultPackages.python,
+      }),
+      node: publicUrl("NODE_SDK_PACKAGE_URL", {
+        extension: ".tgz",
+        defaultUrl: defaultPackages.node,
+      }),
     },
   };
 }
