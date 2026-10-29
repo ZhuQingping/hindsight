@@ -2386,7 +2386,7 @@
       "mcp": "通过 HTTP MCP 客户端连接远端 ContextBase 服务。此方式无需安装本地适配器。"
     },
     "requirements": {
-      "coding": "需要已安装对应客户端和 Node.js 24+。",
+      "coding": "需要已安装对应客户端和 Node.js 18+。",
       "python": "需要 Python 3.10+，请先激活虚拟环境。",
       "node": "需要 Node.js 18+，请在应用目录执行命令。",
       "openclaw": "需要 OpenClaw 和 Node.js 22+，请在 Gateway 所在环境中操作。",
@@ -2399,7 +2399,7 @@
     "installTitle": "1. 安装",
     "hermesInstallTitle": "1. 安装到 Hermes profile",
     "downloadPackage": "下载安装包 ↗",
-    "projectDirectory": "先进入需要接入的项目目录。命令只安装当前客户端，将当前目录（.）映射到所选工作空间，并保留其他项目的映射。",
+    "projectDirectory": "命令只安装所选客户端，并将上方填写的项目路径绑定到当前工作空间，保留其他项目的映射。",
     "hermesExtract": "下载并解压插件 ZIP，将完整的 hermes-plugin-contextbase 文件夹（包含 sdk/）放到当前 HERMES_HOME profile 下的 plugins/contextbase，再启用插件并打开配置向导：",
     "configureTitle": "2. 配置",
     "mcpConfigTitle": "1. 配置远端 MCP",
@@ -2424,6 +2424,13 @@
       "hermes": "重启 Hermes，确认当前记忆提供方为 ContextBase，再要求 Agent 对当前 工作空间 调用已加载的 ContextBase recall 工具，并检查实际结果。"
     },
     "installScopeTitle": "安装范围",
-    "installScope": "集成安装到当前用户。API 地址和密钥由各项目共享，更改后会影响其他项目；项目与工作空间的映射分别保留。"
+    "installScope": "集成安装到当前用户。API 地址和密钥由各项目共享，更改后会影响其他项目；项目与工作空间的映射分别保留。",
+    "endpointLabel": "API Endpoint",
+    "bankIdLabel": "Bank ID",
+    "projectPathLabel": "项目路径",
+    "projectPathHelp": "填写你电脑上的项目路径。点号（.）表示运行命令时所在的目录。",
+    "projectPathRequired": "请填写项目路径，且不要包含换行符。",
+    "npmInstallTitle": "1. 使用 npx 接入",
+    "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。"
   }
 }

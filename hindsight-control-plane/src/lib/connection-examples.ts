@@ -28,7 +28,12 @@ interface ConnectionExample {
   run?: string;
   configuration?: string;
   downloadUrl?: string;
-  unavailable?: "apiUnavailable" | "packageUnavailable" | "mcpUnavailable" | "cmdUnavailable";
+  unavailable?:
+    | "apiUnavailable"
+    | "packageUnavailable"
+    | "mcpUnavailable"
+    | "cmdUnavailable"
+    | "projectPathRequired";
 }
 
 function quote(value: string, terminal: ConnectionTerminal): string {
@@ -55,7 +60,8 @@ export function connectionExample(
   terminal: ConnectionTerminal,
   bankId: string,
   connection: CustomerConnection,
-  query: string
+  query: string,
+  projectPath = "."
 ): ConnectionExample {
   const { apiUrl, mcpUrl, packages } = connection;
   if (client === "mcp") {
@@ -103,16 +109,20 @@ export function connectionExample(
     };
   }
   const isCoding = codingClients.some((entry) => entry.id === client);
-  const packageUrl = isCoding ? packages.codingAgents : packages[client as keyof typeof packages];
-  if (!packageUrl) return { unavailable: "packageUnavailable" };
-  const data = isCoding ? [packageUrl, apiUrl, bankId] : [packageUrl];
-  if (client !== "hermes" && cmdUnsafe(data, terminal)) return { unavailable: "cmdUnavailable" };
   if (isCoding) {
-    return {
-      downloadUrl: packageUrl,
-      install: `${token}\n${npm} exec --yes ${q(`--package=${packageUrl}`)} -- contextbase-coding-agents install ${client} --api-url ${q(apiUrl)} --api-token ${tokenArgument} --bank-id ${q(bankId)} --project-path ${q(".")}`,
-    };
+    if (!projectPath.trim() || /[\0\r\n]/.test(projectPath))
+      return { unavailable: "projectPathRequired" };
+    if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
+    if (cmdUnsafe([apiUrl, bankId, projectPath], terminal))
+      return { unavailable: "cmdUnavailable" };
+    const args = `install ${client} --api-url ${q(apiUrl)} --api-token ${tokenArgument} --bank-id ${q(bankId)} --project-path ${q(projectPath)}`;
+    const npx = terminal === "bash" ? "npx" : "npx.cmd";
+    return { install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} ${args}` };
   }
+  const packageUrl = packages[client as keyof typeof packages];
+  if (!packageUrl) return { unavailable: "packageUnavailable" };
+  if (client !== "hermes" && cmdUnsafe([packageUrl], terminal))
+    return { unavailable: "cmdUnavailable" };
   if (client === "openclaw") {
     return {
       downloadUrl: packageUrl,
