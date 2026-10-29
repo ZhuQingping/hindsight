@@ -40,7 +40,7 @@ async def management_client(repository: Repository) -> AsyncIterator[ManagementC
     host = PoolHost(repository.pool, tenant_extension=tenant)
     host.update_bank = AsyncMock()
     host.get_bank_profile = AsyncMock(return_value=object())
-    host.delete_bank = AsyncMock()
+    host.delete_bank = AsyncMock(return_value={})
     app.include_router(extension.get_router(cast(MemoryEngine, host)), prefix="/ext")
     transport = httpx.ASGITransport(app=app, client=("192.0.2.10", 23001))
     headers = {"Authorization": f"Bearer {ADMIN_SECRET}"}

@@ -1,14 +1,16 @@
 # ContextDB 首发设计：工作空间、用户与 API Key（RSIXDB 团队集成）
 
-> 当前维护修复（2026-10-27）：基于 RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复 MCP 配置读取的空间作用域与离线初始化遗漏的共享维护函数。实现见第5.5.4节，检视见 CODE-REVIEW 第20章，验证见 VALIDATION 第17～18章。下列2026-10-21送审信息为管理功能历史基准。
+> 当前Bank REST交付（2026-10-29，PR #57）：基线为团队main `93640b6c1395423c1669048cef84c4e61a545002`。REST隔离原型已实现，保留旧入口、description及UI，MCP管理关闭；见[第8章](#bank-api-reuse-design)、[接入取舍8.12节](#bank-rest-adapter-decision)、CODE-REVIEW第29章及VALIDATION第30章。下列早期送审状态和差异基线仅用于历史追溯。
+
+> 历史维护修复（2026-10-27）：基于 RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复 MCP 配置读取的空间作用域与离线初始化遗漏的共享维护函数。实现见第5.5.4节，检视见 CODE-REVIEW 第20章，验证见 VALIDATION 第17～18章。下列2026-10-21送审信息为管理功能历史基准。
 
 > **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留业务与技术正文，直接补齐团队适配；不按读者拆成多套设计。原功能基准a05b808、后续冻结修复及团队main的关系见第1.4节。目标三类AI独立检视已完成，尚无专家/committer批准；最新送审回归见 [VALIDATION.md](VALIDATION.md)第13章。
 
-> **当前送审（2026-10-21）：** S16～S26及质量修复已选择性落地，保留原生内核零侵入和团队安全能力；本次基线为main `1dc0ad37e`，旧eb工作树阶段的来源指纹及过程保留在第1.4节和检视记录第13～15章。Issue #19的F1已修复、F2保留已有修复；UI意见未全部验收，逐项结论见CODE-REVIEW第16章，不据本PR自动关闭Issue。
+> **历史送审（2026-10-21）：** S16～S26及质量修复已选择性落地，保留原生内核零侵入和团队安全能力；当时基线为main `1dc0ad37e`，旧eb工作树阶段的来源指纹及过程保留在第1.4节和检视记录第13～15章。Issue #19的F1已修复、F2保留已有修复；当时UI意见未全部验收，逐项判断见CODE-REVIEW第16章，后续整改见第19章。
 
 > **首版决策（2026-10-19）：工作空间创建、删除同步返回201/204；同名schema、bank_id复用接受原生Bank并发边界。** 删除前由管理员停止访问、等待已有工作结束；没有全局执行排空、代次或持久故障屏障。当前管理API为13项，管理表为6张。
 
-> **差异基线：** 本次修复PR比较 RSIXDB main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`；57bbfd2仅为原功能历史比较点。原生Python运行目录对两基线均无本特性差异；须使用扩展ASGI入口，团队品牌、配置、日志和安全改造保留。
+> **管理功能历史差异基线：** 当时修复PR比较 RSIXDB main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`；57bbfd2仅为原功能历史比较点。原生Python运行目录对两基线均无本特性差异；须使用扩展ASGI入口，团队品牌、配置、日志和安全改造保留。
 
 方案来源（2026-10-19，官方 v1.0.0 首发方案；2026-10-20更新团队集成）：新空间对外统一使用可读 bank_id，对内保留 UUID；工作空间名称仅允许字母、数字、下划线，最长54字符，统一小写。新 schema 为 ctxdb_ws_<bank_id>；正常删除后允许同名重建，旧selected授权不继承；并发删除与业务访问不在支持范围，见第5.2节。本轮功能回归与原生v1.0.0部署证据见[验证摘要](VALIDATION.md)；目标ECS/RDS、镜像安全与生产性能仍须单独验收。
 
@@ -24,6 +26,8 @@
 | [4. 客户应用访问记忆服务](#business) | 原生 REST/MCP、权限检查、按名称查询与按身份操作 |
 | [5. 核心实现与设计理由](#implementation) | 认证安全、同步管理决策、当前生命周期实现、PG 字段与约束、完整管理 API |
 | [6. 规格约束与 Q&A](#boundaries) | 支持范围、删除使用前提、超时/取消边界、安全约束及常见问题 |
+| [7. 记忆与知识召回统计](#7-记忆与知识召回统计) | 统计口径、权限、升级、配置及UI展示 |
+| [8. Bank 接口复用设计（REST原型已实现）](#bank-api-reuse-design) | 插件模式、兼容边界、生命周期、接入取舍及验收条件 |
 
 <a id="overview"></a>
 
@@ -1398,3 +1402,230 @@ python -m hindsight_ext_contextdb reset-usage --offline \
 关闭时不创建collector/统计任务，不采集、不刷盘、不执行统计GC，知识搜索直接走原响应，不缓冲/解析也不因统计移除压缩协商。已授权的usage请求返回404 usage_disabled且不读取统计表；匿名/无效Key仍401，无空间读取权限仍403。UI无统计字段/按钮/usage请求，原记忆知识照常可用。已有统计和备份/删除登记保留，新空间仍按受控provision建立插件表；关闭不是删表或撤销身份隔离。重新开启从旧计数继续，关闭期间不补算；无动态热更新或第二套调度框架。
 
 usage请求和响应均不要求workspace_id；UI同步删除格式检查。空间定位与写入前的事务校验仍存在，不新增逐对象JOIN/目录查询。事件必须保存发生时的32位随机工作空间身份，不能在刷盘时按同名bank替换成新身份。管理删除的身份ETag及Key授权中的workspace_id不改。
+
+<a id="bank-api-reuse-design"></a>
+
+## 8. 复用 Bank 接口管理空间：设计方案（Issue #53）
+
+状态：REST隔离原型已实现并完成隔离验收（2026-10-29），本轮不部署现有服务。源码基准为本地HEAD `9a5ba2c61d27a2a6c94cd91b9e3a6089325df6b5`，相关上游实现与已合入main `93640b6c1395423c1669048cef84c4e61a545002`一致。以下合同同时区分已验证的REST原型与后续UI/MCP切换设计；实现与验收范围见第8.10节及VALIDATION第28章。现有workspace POST、description及UI调用完整保留，MCP管理未开放，现网行为未改。
+
+### 8.1 目标与取舍
+
+对外复用 Bank 创建、更新、删除入口，ContextDB 插件负责空间元数据、独立 schema 和授权关系的生命周期。Bank 与 workspace 仍一对一；`ctxdb_meta.workspaces`、不可变空间 UUID、版本及状态继续保留，不能因减少外部接口而删除内部身份模型。
+
+推荐收敛创建、删除入口，同时保留必要的管理员只读空间目录/详情查询，用于失败对象、UUID、版本、描述及删除条件。当前 ContextDB 适配的 Bank 列表只返回 active 对象，原生响应没有这些管理字段，不能替代完整管理目录。保留查询意味着不是一次移除全部四项 workspace CRUD；本方案不以减少接口数量作为验收目标。
+
+复用 Bank 路径有利于 SDK、CLI 和 UI 使用同一资源入口，但不消除外围协调代码，也不代表原生客户端可以无条件迁移。现有 workspace 接口仍是可用方案；若原型必须复制整套原生端点或改写引擎才能成立，应保留现有入口，重新评审收益。
+
+### 8.2 插件模式与 REST 行为
+
+是否改变行为取决于扩展是否实际启用，不取决于是否仅安装 Python 包；沿用现有插件加载条件，不新增生产开关。未启用 ContextDB 时，使用原生应用及原生配置，不能挂载 ContextDB transport 或改变 Bank 合同。启用时继续要求匹配的 Tenant、Validator、HTTP 扩展及自研 ASGI 入口，配置不完整时按既有规则拒绝启动，不能静默退回不受控原生模式。
+
+| 请求 | 未启用 ContextDB | 启用 ContextDB 后的拟议行为 |
+| --- | --- | --- |
+| `GET /v1/default/banks` | 原生列表 | 保留现有按空间聚合、权限过滤、搜索和分页的 Bank 目录；只返回 active 对象 |
+| `PUT /v1/default/banks/{bank_id}`，目标不存在 | 原生创建或更新逻辑 | 仅 Admin 可创建；验证请求后在短事务中处理可选创建条件并登记 UUID/creating，初始化独立 schema，调用一次原生 Bank 创建，完成后激活；成功沿用 `200 BankProfileResponse` |
+| 无条件 PUT，目标已 active | 原生更新逻辑 | 仅 Admin 更新，调用 `update_bank(create_if_missing=False)`；不生成 UUID、不重新迁移，Bank 行缺失则404而非隐式重建；成功沿用 `200 BankProfileResponse` |
+| PUT 携带 `If-None-Match: *` | 不改变社区原生行为，不额外承诺该条件生效 | 插件严格创建：已登记任何状态的目标返回412；创建条件与身份预留在同一事务，不能先 GET 再创建 |
+| `PATCH /v1/default/banks/{bank_id}` | 原生仅更新逻辑 | 仅 Admin 更新本入口管理的属性；保持 `create_if_missing=false`，不存在返回404；成功沿用 `200 BankProfileResponse` |
+| `DELETE /v1/default/banks/{bank_id}` | 原生删除及 `DeleteResponse` | 仅 Admin，先校验身份 ETag，再执行完整空间删除；全部成功后返回 `200 DeleteResponse`，不再使用 workspace DELETE 的204 |
+| 既有 workspace GET 列表/详情 | 插件路由不存在 | 保留管理员只读管理视图，详情返回身份 ETag；可查询非 active 及部分失败对象 |
+| 既有 workspace POST/DELETE | 插件路由不存在 | 调用方迁移完成后下线；迁移期只能调用同一生命周期实现，不维护两套独立创建器/删除器 |
+
+以上 Admin 限制针对这些 Bank 管理入口，不收紧独立 Bank config 接口当前的字段策略，不放开普通只读、读写或 all Key 的管理权限。其他内容接口继续逐请求核对身份、目标和原有读写规则。
+
+`creating/deleting/failed` 不能当作 PUT 的普通“已存在”分支更新，也不能静默重试创建；返回明确冲突并引导管理员从只读视图核对结果。新创建时遇到孤立 schema 或归属冲突同样拒绝，不接管不明对象。
+
+### 8.3 字段、身份条件与兼容边界
+
+1. **保留原生字段语义。** `bank_id` 是稳定地址，继续遵守 ContextDB 当前名称规范化、长度和 schema 归属规则；更新原生 `name` 只改变展示名，不改变 UUID、bank_id 或 schema。原生 `name` 虽已标 deprecated，仍按当前兼容规则处理。管理视图和授权选择器仍使用稳定 bank_id/UUID，不新增一份可漂移的展示名真值。
+2. **保留当前描述能力。** 原生 mission/config 会影响业务行为，不是workspace description，description不能映射为mission。本次原型新增Bank REST入口，新Bank的描述为空；旧workspace POST与创建UI继续支持description，已有描述不变。用户未授权删除该能力，因此本次不迁移UI或退役旧POST。以后若统一全部写入口，再评审最小插件描述字段合同或明确产品取舍，不为本次原型预建第二套CRUD。
+3. **不扩充原生响应体。** 引擎返回 profile 或计数字典，边界适配层按原生映射构造 `BankProfileResponse` / `DeleteResponse`，不能把引擎返回值直接当作 HTTP 模型。删除计数为 `memory_units_deleted + entities_deleted + documents_deleted`；本次没有执行原生删除的残留清理计数为0，不推算前次已提交的数量，不统计 DROP SCHEMA 对象数。协调器保留一次执行结果，不为凑响应重新执行操作；响应不塞入 UUID/state/description。管理身份与失败状态从插件只读视图获取；原生没有 `GET /banks/{bank_id}`，已退休的 `/profile` 不恢复。
+4. **删除仍要求身份 ETag。** 先读取管理详情，取得 `"<workspace_id>:<version>"`，再通过原生 Bank DELETE 路径发送 `If-Match`。保持现有缺失条件428、格式错误400、身份/版本不符412；不存在返回404。已完成删除后重复请求不宣称幂等成功；同名重建的旧 ETag 必须失败。该版本是空间生命周期版本，不随展示名、mission 或业务内容自动递增；它保护对象身份/管理状态，不是 Bank 内容的完整乐观锁。
+5. **不能在代理内补取最新 ETag 后自动删除。** 这会丢失用户确认时的目标身份。UI 必须传递确认时的条件，结果未知后只发 GET 核对，不自动重放删除。HTTP 条件并非排空或跨进程执行屏障。
+6. **SDK 只部分直接兼容。** 满足名称规则、使用有效 Admin 的无条件创建/更新/列表可按原生路径接入；无条件 PUT 仍是 upsert，不能承诺严格创建。删除客户端须先取得管理身份并显式传 `If-Match`。已核对的逐请求头能力见下表；原型不要求修改生成 SDK 或 CLI。业务 Key 的业务读写按既有合同保留。
+7. **未纳入的创建旁路继续拒绝。** retain 等业务请求不能隐式创建未知 Bank。导入、克隆、恢复、别名等按现有限制处理，不因统一 Bank URL 顺带开放。整 Bank 删除与 `DELETE .../memories` 内容清空严格区分：内容清空保留空间和授权，按既有扩展表登记清理统计数据。
+
+8. **创建 UI 保持严格创建。** ContextDB 创建 UI 必须发送单个 `If-None-Match: *`。插件只支持这一种可选条件值，其他格式返回400，不实现通用 ETag 框架；Admin 验证后，在既有身份预留事务内判断规范 bank_id，已有任何状态的登记返回412。同名并发后到请求同样412，不能先 GET 后 PUT；仅映射目标 bank_id 的存在/唯一冲突，孤立 schema 仍409 `schema_conflict`，不能把所有数据库错误改成412。无条件 PUT 遇 creating/deleting/failed 仍409，不等待其完成后自动转为更新。未启用插件时不新增条件语义。
+
+| 当前客户端 | 已核对的条件头能力 | 拟议插件模式下的使用方式 |
+| --- | --- | --- |
+| Python 高层 `delete_bank/adelete_bank` | 方法只接 bank_id，不暴露逐请求头 | 默认删除不兼容必填条件；使用生成底层或独立 REST 请求 |
+| Python 生成 `BanksApi.delete_bank` | 支持逐请求 `_headers` | 从管理详情读取 ETag 后传入 `If-Match`；仍需原型端到端验证 |
+| TypeScript 高层 `deleteBank` | 方法仅有 signal；构造时 headers 属于实例全局 | 默认删除不兼容；使用请求级低层适配，不能修改共享实例全局条件头 |
+| 现成 CLI Bank 删除 | 命令只有 bank_id/yes，没有 If-Match 参数 | 第一阶段使用 REST 替代，不宣称直接兼容，不为原型修改 CLI |
+| MCP 管理工具 | 缺少删除条件参数，现有工具结果也不提供空间 ETag | 第一阶段继续关闭，后续按独立合同接入 |
+
+源码位置：`hindsight-clients/python/contextbase_client/contextbase_client.py:3238`、`hindsight-clients/python/contextbase_client_api/api/banks_api.py:1261`、`hindsight-clients/typescript/src/index.ts:1143`、`hindsight-cli/src/main.rs:290` / `src/api.rs:683`。上述为源码能力核对，不是兼容性运行通过记录。
+
+复用 Bank 路径是插件模式下的行为适配，不是与社区完全等价的协议。插件 OpenAPI/使用说明须显式列出 Bank 根路径的可选 `If-None-Match`、必填 `If-Match`、响应与412/428等错误；不能只更新旧 workspace 路径。原生模式的 OpenAPI 和生成 SDK 不因本方案被强制改变。
+
+### 8.4 插件实现位置与调用链
+
+下表为目标职责；本次仅完成REST原型，具体落地范围见第8.10节，UI/MCP切换仍未实施。插件路径前缀为 `hindsight-extensions/contextdb-service/hindsight_ext_contextdb/`。
+
+```text
+原生 Bank REST 路径
+  ├─ 原生应用（未启用 ContextDB） → 原生路由/引擎
+  └─ ContextDB ASGI → 精确的 Bank 管理请求分派
+                       → Admin 身份及完整参数验证
+                       → 共享生命周期服务
+                       → 新建/删除：限定用途的受信管理上下文
+                         已有更新：外部 Admin 上下文与正常目标认证
+                       → 原生 Bank 引擎（一次）
+                       → 必要元数据收尾及类型化响应
+MCP 管理工具（后续接入） ────────────┘
+```
+
+| 文件/模块 | 拟议职责 | 需要保留的边界 |
+| --- | --- | --- |
+| `asgi.py`、`transport.py` | 保留扩展包围原生应用的方式；在常规目标空间认证前，精确匹配 Bank 根资源的 PUT/PATCH/DELETE，交给小型管理适配函数；现有 GET 目录逻辑复用 | 不能前缀匹配所有子路径；不能误接管 config、memories、chunks 等请求；不读取 MCP 消息体猜目标，不重复解码路径 |
+| `lifecycle.py` | 最小调整现有共享服务，接受已验证 Bank 参数，区分创建/更新；保留实际原生返回值，由边界构造协议响应 | 新建/删除才使用受信管理上下文；已有 active 更新保持外部 Admin 上下文；不新增 update_workspace 管理用途，不重复转发执行 |
+| `repository.py`、`authorization.py` | 复用元数据短事务、归属检查、UUID/版本条件及限定目标/用途的管理上下文 | 客户端不能通过 header、body 或 MCP 参数伪造 internal/schema；管理事务不跨原生 DDL 等待 |
+| `tenant.py`、`validator.py` | 仅补足受控管理入口及已有 Bank 更新的策略；业务请求仍按已登记 active 空间授权 | 必须先验证真实 Admin 和请求，才能建立限定管理上下文；沿用原生字段/配置验证，不把受信上下文当作跳过验证的总开关 |
+| `http.py` | 保留只读管理视图和 ETag；按切换阶段退役旧 workspace POST/DELETE，并更新插件 OpenAPI | 不改变用户、Key、usage 的既有权限；不把只读管理视图开放给普通业务 Key |
+| `mcp.py` | 后续让 create/update/delete Bank 工具通过同一服务；目录与执行策略一致 | 保留当前消息身份、全局/Bank 工具白名单，不跨消息缓存授权 |
+
+不能仅放开 `validate_create_bank()`：原生 `update_bank()` 先认证 Tenant，新目标尚未登记就会被拒绝；该钩子是前置校验，不提供完成激活、失败收尾及删除授权清理的完整生命周期。不要在权限钩子里承担这些副作用。
+
+也不能通过 `HttpExtension.get_root_router()` 注册同名 Bank 路由，假定后注册路径能可靠覆盖原生端点；应沿用现有 transport 入口。不要 monkey patch 引擎、替换 FastAPI 路由表、复制整个原生处理器，或直接写原生 banks 表。
+
+REST原型已验证无新增原生Python修改；以下约束仍适用于后续调用方迁移。外层 transport 直接响应会绕过原生路由及内层中间件，不只绕过 HTTP 审计装饰器。原型必须逐项核对：请求/响应模型、字段转换、依赖与异常映射、参数错误状态/类型、未知参数报告（包括 `X-Ignored-Params`）、HTTP 指标/追踪及适用审计。仅复用模型和一次引擎调用不自动保留这些能力。
+
+原型用插件内三个FastAPI处理器复用原生请求/响应模型、UnknownParamsRoute、HttpObservabilityMiddleware及GzipMiddleware；这里复用的是协议、模型和引擎，不是原生HTTP处理函数。插件重新承担管理认证、条件头、部分响应映射及HTTP装配职责。原生外层FastAPI instrumentation继续包围分派，追踪不重复安装。异常映射复用原生_internal_error，包括包装的StoreWriteUnavailable→503/Retry-After、稳定JSON500，以及原生AuthenticationError→401。该内部辅助函数是明确的上游耦合点，升级时由故障合同测试约束，不修改其原生源码。
+
+本版Settings及Bank配置策略要求原生Audit关闭；原型不执行原生审计装饰器的逐Bank配置探测，避免新建schema前或删除schema后查询错误目标。Repository的管理审计继续保留。观测/故障单测和真实新库日志补证见VALIDATION第28章，不把Mock审计调用一次等同真实Audit可用。原生断连取消不针对Bank PUT/PATCH/DELETE，不新增管理断连取消器。不复制完整原生处理器、引擎业务或中间件实现，不建立第二套观测框架；插件HTTP适配本身仍有升级维护成本，取舍见8.12节。原型未保留的重要合同须先报告，不顺带扩大内核修改。
+
+### 8.5 生命周期与失败处理
+
+**创建：** Admin 鉴权、规范化及不依赖目标 schema 的参数/配置验证（DTO类型检查及原生ConfigResolver语义预校验） → 同一短事务检查可选创建条件并预留 UUID/creating → 验证 schema 归属 → 原生迁移及插件表 provision → 受信目标上下文执行一次原生创建 → 核对 Bank → 激活并记录管理审计。依赖目标 schema 的原生检查在受控初始化后、激活前完成。当前 `Lifecycle.create()` 只传入 name；适配时必须接住原生支持的 disposition/mission/config 字段，不能无声忽略，也不能在验证失败时留下一个 active 空间。
+
+**更新：** 分支以管理目录为准；仅 active 且无严格创建条件的目标进入更新。已有 active PUT 与 PATCH 均使用 `update_bank(create_if_missing=False)`，Bank 行缺失返回404，不在旧 UUID/授权下自动重建。使用外部 Admin RequestContext、bank_target 及正常 Tenant/字段权限检查；仅补足 UPDATE_BANK 的 Admin 策略，不扩张受信管理用途。不改变身份、schema 或 selected 授权，不重复初始化。展示名以 Bank 为准，不改目录稳定地址。
+
+**删除：** Admin 和身份条件验证 → 标记 deleting → schema 归属检查 → 对存在的 Bank 执行一次原生删除 → 清理 selected 授权、递增受影响 Key 编辑版本、删除专属 schema/元数据并记录管理审计。失败空间没有 Bank 行时，只清理已经验证归属的残留；不为不存在的原生操作伪造删除计数。
+
+原生执行成功但激活/删除收尾失败时，不能返回整体成功；创建/删除异常保留 failed 或结果未知状态供管理员核对。超时、断连或取消不代表实际执行停止，不能自动重放 PUT/DELETE，也不新增后台自动修复任务。不要把跨原生事务、DDL、文件清理和管理事务的多步流程描述为整体原子事务。
+
+GET 只用于核对，不是恢复。failed 在确认旧执行已结束后，可持当前 ETag 再次 DELETE；creating/deleting 不会因查询或停服自动解锁，当前没有公开恢复 API/CLI。后两类须在维护窗口按 UUID、schema 归属、实际 Bank/DDL 结果由运维核查处置；未经验证的手工状态修改不算已支持功能。原型必须形成可审阅的停服处置步骤，或明确保留恢复验收缺口，不新建恢复框架。原生数据提交后文件/索引失败的边界继续保留，再次删除不保证修复所有事务外残留。
+
+删除前仍由管理员停止业务访问并等待已有请求及后台工作结束。标记 deleting 只能关闭后续目标准入，不能排空已经接受的工作。本方案不新增删除调度器、租约、代次屏障或准入连接池。同名重建产生新 UUID，旧 selected 授权和旧事件不继承；all 授权继续沿用“当前及未来空间”的既有含义。
+
+### 8.6 MCP 兼容范围
+
+建议先完成 REST 合同和隔离原型，再接入 MCP；MCP 管理工具启用前继续保持现有隐藏/拒绝行为，并在使用说明中明确阶段差异。仅 REST 成功不能声明 MCP 生命周期已支持。
+
+MCP 接入必须在普通 active 目标认证前识别受控管理工具，处理 Admin 零 Bank 冷启动：工具发现与首个 Bank 创建不能先要求已有 active Bank；仍验证消息当前凭据及全局白名单，已有目标继续执行对应 Bank 白名单。不能从外层分派直接调用协调器而绕过原生工具策略。共享生命周期服务，不建设通用工具替换框架。
+
+REST 与 MCP 不共用一个不分协议的字段转换器。当前 MCP create 有 name/mission 时走 `update_bank(mission=...)`，无字段时走 `ensure_bank_profile`；MCP update 原生默认 upsert，而 REST PATCH 是 update-only。后续按各工具原生字段语义和管理目录分支明确转换、条件及缺失目标行为，不能因为工具名为 update 就宣称等同 PATCH。
+
+删除工具既需要条件参数，也需要调用者取得条件的渠道。现有 list/profile 不提供空间 UUID/version/ETag，保留 REST 管理 GET 不等于纯 MCP 客户端已能取得这些信息。后续须明确管理员只读工具或管理结果中的条件获取合同、工具 schema 和白名单，再启用管理工具；REST+MCP 混合客户端也必须先取得并显式传递用户确认时的条件。不能临时补取最新 ETag 替代确认，不承诺原生 MCP schema 完全不变，也不为保持旧 schema 取消删除条件。
+
+### 8.7 必要 UI 改动及原生侵入范围
+
+UI 仍显示“工作空间”产品概念；不改变团队 ContextBase 品牌、locale、productFetch/标签页身份、会话撤销以及 Host/Origin 校验。核心逻辑放在自研组件，原生文件只保留必要接线。
+
+| 位置 | 必要改动 | 是否涉及原生文件 |
+| --- | --- | --- |
+| `components/contextdb/create-workspace-dialog.tsx`、`workspaces-view.tsx`、`workspace-result-check.tsx` | 原型通过且描述取舍确认后，创建切换到携带 If-None-Match:* 的 Bank PUT，412显示同名冲突；成功后查管理身份并刷新目录，失败/未知只查询 | 自研组件 |
+| `components/contextdb/use-key-workspaces.ts` 及授权选择器 | 继续从管理视图取得 workspace UUID，保留服务端搜索、分页、已选授权及同名重建隔离；不能用原生 Bank 列表的 bank_id 替换 UUID | 自研组件 |
+| `lib/contextdb-api.ts`、ContextDB 管理代理 | 增加小型 Bank 管理请求适配，识别 PUT/200/BankProfileResponse；保留只读元数据核对、两个条件头、request_id及unknown/conflict判断，不复用仅接受201/Workspace的旧校验 | 自研模块/既有插件接线 |
+| `src/app/api/banks/[bankId]/route.ts` | 按后端完成情况调整 ContextDB 模式下现有 PUT/DELETE 及 PATCH name 拦截；受保护地逐请求转发 If-None-Match / If-Match、状态和响应，原生模式保持当前行为 | 原生 UI 文件的必要条件分支修改 |
+| `components/bank-selector.tsx`、既有 Bank 创建/删除调用方 | 复用自研创建与确认逻辑；仅在实际调用链需要时调整接线，不额外复制一套原生管理 UI | 可能涉及最小原生 UI 接线，实施前逐项确认 |
+
+创建不能把 BankProfileResponse 强转 Workspace；原生200成功后，从管理 GET 取得 UUID/state 等所需信息。`respondWithSdk` 可能重塑错误体，代理需保留现有管理错误码、request_id和未知结果判断。条件头使用逐请求传递，不改共享 SDK 的全局 headers 或原生 `lib/api.ts` 通用删除 helper。删除确认先获取并保存身份 ETag，确认时携带同一条件。目录刷新、查询失败、弹窗焦点恢复、UUID 授权、主题和窄屏可达等既有修复继续保留。不能吞掉428/412，不能以查询失败伪装为空实例。
+
+后端预期不修改 `hindsight-api-slim/hindsight_api/`、原生 Store、迁移及生成 SDK；UI 则不能承诺零原生改动。原生 Python 或公共 Dialog 等非必要变更不纳入本方案。
+
+### 8.8 切换步骤与验收条件
+
+1. 按本节固定 REST 响应、错误码、条件创建/删除及 MCP 分期，先做隔离原型。UI实际切换前需确认描述产品取舍；尚未确认时保留原创建入口，不替换当前服务。
+2. 在独立 PG 和随机端口对照插件启用/未启用，验证 Admin SDK 无条件创建/更新、严格条件创建、列表及低层带条件删除；覆盖同名并发、创建失败保留failed、孤立schema，以及active目录存在而Bank缺失的PUT/PATCH拒绝。逐项比较原生参数/响应/错误/未知字段、HTTP指标追踪和适用审计，原生引擎只执行一次。
+3. 覆盖普通 read/read_write、all/selected、跨空间、吊销 Key 和禁用用户；新目标不能绕过 Admin 校验，隐式创建、客户端伪造上下文和内容清空不能误触发空间生命周期。
+4. 验证 creating/deleting/failed、孤立 schema、迁移失败、原生成功但收尾失败、断连/取消和同名重建；区分GET核对、failed条件清理及没有公开恢复入口的creating/deleting，形成维护处置依据。创建条件格式错误400、目标已登记412；删除缺失/错误/过期ETag分别428/400/412，不存在404。旧 selected 授权不继承，旧 Key 编辑快照失效。
+5. 迁移 UI、两套代理、管理脚本及其他已知调用方。短期旧入口如保留，必须复用同一协调器；盘点完成后下线 POST/DELETE，明确旧请求失败响应。只读目录/详情及现有 usage 路径保留，不因路径包含 workspaces 误删。
+6. MCP 单独完成条件获取与传递、工具字段/语义、零Bank、单/多Bank、发现/执行一致、当前消息身份和白名单验证；未完成时保留关闭，不能用REST测试代替。
+7. 运行插件 Python/UI、两种 Worker 系统故事、原生 Bank/租户/schema/MCP/chunk 回归、匹配生产 UI 和 Chrome 验收。对未启用插件的原生模式做对照；记录源码、命令、结果及未验项，而不是沿用本次静态分析为通过证据。
+8. 原型及调用方验证通过后再决定切换/回退版本；不要求重建现有空间、改 UUID、清空数据或重新发放凭据。保持已部署版本仍能读取现有元数据；旧入口下线带来的客户端回退要求必须明确记录。
+
+### 8.9 独立设计检视结论（2026-10-29）
+
+Hindsight、PG 和 API 三个只读专家视角分别核对当前设计及源码。结论：方向合理，以下技术合同已补齐，可进入 REST 隔离原型；没有发现必须修改原生 Python 的理由，但原型未运行，不能据此批准完整实施或上线切换。
+
+| 检视项 | 修订后的明确结论 |
+| --- | --- |
+| 外层挂接 | 必须验证路由和内层中间件被绕过后的完整HTTP合同，不只审计；不复制中间件，不增加管理断连取消器 |
+| active 更新 | PUT/PATCH均update-only，外部Admin上下文；Bank缺失不沿用旧UUID隐式重建，不扩张受信管理用途 |
+| UI严格创建 | Bank PUT支持If-None-Match:*和既有短事务原子预留；未来UI迁移时必传，本轮UI保留严格POST。无条件SDK PUT仍upsert，不把GET预查当并发保证 |
+| SDK/MCP | 明列当前客户端实际头能力；CLI/高层删除不直接兼容；MCP需先解决条件获取和传递，第一阶段关闭 |
+| 删除/恢复 | 保留身份条件；ETag不是内容版本；GET不等于恢复，creating/deleting缺少公开恢复入口须明确验收限制 |
+| 描述与UI | 本轮按授权保留描述及旧创建入口；新Bank入口无description不能作为删功能依据。后续统一写入口时另评描述及UI结果/错误合同 |
+| 简化边界 | UUID、只读管理视图及条件头有具体用途，不属于过度设计；不增加表、锁框架、调度器、删除屏障、通用CRUD/工具替换/观测框架 |
+
+本小节记录实施前设计检视，不是运行验收；本地REST原型的后续实现与验证见第8.10节。完整切换仍需明确描述能力的最终合同；MCP如纳入发布还须补齐专门合同与验收。本次授权仅为保留旧入口/描述的REST原型，不包括这两项切换。
+
+### 8.10 REST隔离原型实现与使用（2026-10-29）
+
+本次只实现附加REST管理入口，保留原workspace POST/DELETE/GET及其描述、UUID/ETag响应。旧UI代理与组件没有修改，仍走原入口；MCP的create/update/delete Bank仍隐藏并拒绝。没有新配置变量、表、依赖、原生Python或UI文件修改。
+
+| 文件 | 本轮实现 |
+| --- | --- |
+| `asgi.py`、`transport.py` | 插件启用时创建Bank适配应用，仅分派规范Bank根路径PUT/PATCH/DELETE；未启用插件仍由原生应用处理 |
+| `bank_rest.py` | 3个类型化REST处理器，Admin前置认证、条件头、active更新、错误映射、公共观测复用及插件模式OpenAPI补充 |
+| `bank_contract.py`、`models.py` | 新Bank配置的无副作用语义预校验；原生profile/删除计数到HTTP模型的边界转换，删除计数采用NativeDeletion类型并在最终清理前验证 |
+| `lifecycle.py`、`repository.py` | 新旧入口复用同一创建/删除流程，create_only在旧短事务内检查并预留，不改变描述与旧响应 |
+| `validator.py` | 将已有Bank展示属性更新明确归入Admin操作；业务Key及MCP生命周期限制保留 |
+
+最小调用示例（仅对已启用插件的原型服务；URL与Admin凭据由部署方提供）：
+
+```bash
+# 严格创建：存在返回412；成功200。无此条件则按管理目录执行创建或更新。
+curl -fsS -X PUT "$API_URL/v1/default/banks/example" \
+  -H "Authorization: Bearer $ADMIN_KEY" -H 'Content-Type: application/json' \
+  -H 'If-None-Match: *' --data '{"name":"Example"}'
+
+# 仅更新已存在Bank；不能通过更新重建缺失Bank。
+curl -fsS -X PATCH "$API_URL/v1/default/banks/example" \
+  -H "Authorization: Bearer $ADMIN_KEY" -H 'Content-Type: application/json' \
+  --data '{"name":"Example display"}'
+
+# 读取管理详情及ETag；将响应ETag原样保存为WORKSPACE_ETAG。
+curl -fsS -D - "$API_URL/ext/contextdb/v1/workspaces/example" \
+  -H "Authorization: Bearer $ADMIN_KEY"
+
+# 删除前停止访问并等待旧请求/后台工作结束；使用上一步确认的ETag。
+curl -fsS -X DELETE "$API_URL/v1/default/banks/example" \
+  -H "Authorization: Bearer $ADMIN_KEY" -H "If-Match: $WORKSPACE_ETAG"
+```
+
+没有生产部署或数据升级操作；已有表结构和凭据不变。测试全部使用独立PG、随机API/Worker端口和临时SDK构建目录，退出时清理进程。实际命令、独立检视及当前限制分别见[VALIDATION第28章](VALIDATION.md#bank-rest-prototype-validation)和[CODE-REVIEW第27章](CODE-REVIEW.md#bank-rest-prototype-review)。源码版本以本轮Git提交为准；验收基准与补丁指纹见VALIDATION第28章。
+
+<a id="bank-rest-creation-validation"></a>
+
+### 8.11 创建预校验与元数据故障分类
+
+新Bank请求先通过管理员认证及原生DTO校验，再在 `Lifecycle.create_bank()` 分配UUID/schema之前调用 `bank_contract.validate_creation_config()`。该函数复用当前引擎ConfigResolver的语义规则，以空Bank覆盖值或有效默认模板的标准化覆盖值作为显式投影，提前拒绝如 `retain_chunk_size=0` 的非法配置。非法输入不登记空间、不执行迁移；修正参数后可直接创建同名Bank。旧workspace创建与description路径保持不变。
+
+预校验仅检查原生规则，不创建第二套字段/范围规则。它通过 `memory._config_resolver` 复用原生校验器，不传目标上下文、不执行权限钩子或持久化；显式投影避免读取尚不存在的Bank。真正的 `update_bank` 仍执行既有权限及写时复核，预校验不授予权限，也不提前构造受信内部身份。当前ContextDB没有租户级配置覆盖；未来增加该能力或升级ConfigResolver时，须复核这一前提与默认模板投影。原生模板加载器拒绝的格式/语义错误沿用原生忽略行为，不借此改变模板政策。
+
+生命周期身份预留、归属检查、Bank存在性查询、创建激活及删除收尾的Repository调用使用窄范围 `metadata_errors`，将PG连接/接口及OSError映射为503、`code=metadata_unavailable`。active更新的目标认证采用相同边界。原生迁移、更新/删除引擎及响应计数校验不在此转换范围内，继续保留原生500或StoreWriteUnavailable的503/Retry-After合同；不因同样使用PG而把全部异常归为管理元数据故障。
+
+预留后的真正执行故障仍保留failed或结果未知状态；记录failed失败不能覆盖原始错误，取消语义不变。503不保证操作未发生，客户端仍须只读核对，不自动重放PUT/DELETE。无新增表、配置、依赖、恢复框架或原生内核修改；旧入口、描述能力及MCP管理关闭策略保留。运行证据与独立检视见VALIDATION第29章、CODE-REVIEW第28章。
+
+关联跟踪：[RSIXDB/hindsight#53](https://github.com/RSIXDB/hindsight/issues/53)。
+
+<a id="bank-rest-adapter-decision"></a>
+
+### 8.12 Bank REST接入方式的取舍
+
+当前保留插件ASGI精确分流和三个类型化HTTP处理器。原生文件没有新增修改，不等于运行链没有接管或上游耦合；插件需要维护HTTP边界，但没有另写Bank引擎或第二套空间生命周期。旧workspace入口和Bank入口调用同一Lifecycle，PUT/PATCH共享写入适配，底层仍调用原生引擎。
+
+| 方案 | 收益 | 维护责任与当前选择 |
+| --- | --- | --- |
+| 插件REST适配（当前） | 管理编排集中在插件；无需新增原生扩展合同；已有运行验收 | 跟踪请求/响应模型、profile及删除计数映射、错误合同、原生管线组件装配和插件OpenAPI；当前保留 |
+| 原生路由单次定义、可选插件委派 | 可能集中公共HTTP处理，减少外围适配与升级漂移 | 需定义可选执行合同，确认前置认证、别名/审计探测顺序、异常及响应归属；尚无原型证明净成本更低，不作为本PR必修 |
+
+委派若仅放在原生处理函数内，FastAPI请求体解析、UnknownParamsRoute的别名/Tenant探测和审计装饰器的逐Bank配置读取已经可能发生，不能自动保持当前Admin认证先于非法JSON解析的合同。别名/审计探测有异常忽略或回退，不能描述为必然创建失败或安全漏洞。替代方案可以保留插件transport完成前置认证，OpenAPI也可继续由插件补充，不要求新建通用认证或路由框架；实际收益及改动范围须用原型比较，不能预先认定一定更简单或一定大改。
+
+现有Validator是权限校验入口，没有完整的成功、失败及取消收尾，不承载空间创建/删除副作用。若将委派下沉到引擎，还会触及MCP、Worker或隐式创建，超出本次REST范围。创建预校验、元数据收尾与删除前排空约束也不会因路由集中而消失。
+
+出现实际HTTP升级漂移、接管范围持续扩大，或团队决定长期维护/向上游贡献正式扩展合同时，再评审替代方案。比较目标是减少完整HTTP职责和总耦合，不是消除三个装饰器；必须保留插件关闭时原生行为、插件启用时权限/schema/响应合同、旧描述能力及MCP管理关闭。当前静态交叉检视未发现必须通过架构替换解决的功能或安全缺陷，详见CODE-REVIEW第29章。

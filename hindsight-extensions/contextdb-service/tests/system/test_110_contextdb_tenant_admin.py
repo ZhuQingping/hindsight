@@ -206,9 +206,10 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                     # A 401 can terminate the client's session runner; FastMCP
                     # then rethrows that same denial at context-manager exit.
                     assert disabled_proved and error.response.status_code == 401
-                # Admin all access does not bypass lifecycle ownership.
+                # Admin Bank REST now shares the managed lifecycle. Deletion
+                # still requires the confirmed identity, not merely admin role.
                 async with httpx.AsyncClient(base_url=base, headers={"Authorization": "Bearer " + admin_key}) as raw:
-                    assert (await raw.delete(f"/v1/default/banks/{a}")).status_code == 403
+                    assert (await raw.delete(f"/v1/default/banks/{a}")).status_code == 428
                     config = await raw.patch(
                         f"/v1/default/banks/{b}/config",
                         json={"updates": {"reflect_mission": "Authorized administrator mission"}},
@@ -218,7 +219,11 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                     p2 = (await raw.get("/v1/default/banks", params={"limit": 1, "offset": 1})).json()
                     assert p1["total"] == p2["total"] and p1["total"] >= 3
                     assert p1["banks"][0]["bank_id"] != p2["banks"][0]["bank_id"]
-                    assert (await raw.put(f"/v1/default/banks/{a}", json={"name": "Renamed"})).status_code in {403, 405}
+                    before = (await management.get(f"/workspaces/{a}")).json()
+                    renamed = await raw.put(f"/v1/default/banks/{a}", json={"name": "Renamed"})
+                    assert renamed.status_code == 200 and renamed.json()["name"] == "Renamed"
+                    after = (await management.get(f"/workspaces/{a}")).json()
+                    assert after["workspace_id"] == before["workspace_id"] and after["bank_id"] == a
                     assert (
                         await raw.post(f"/v1/default/banks/{a}/clone", params={"target_bank_id": secrets.token_hex(16)})
                     ).status_code == 403
@@ -245,7 +250,8 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                     assert (await administrator.memory.list_memories(b, limit=100)).total > 0
                     assert (
                         await raw.delete(f"/v1/default/banks/{a}", headers={"X-ContextDB-Content-Clear": "true"})
-                    ).status_code == 403
+                    ).status_code == 428
+                    assert (await management.get(f"/workspaces/{a}")).json()["workspace_id"] == before["workspace_id"]
                 await administrator.aretain(bank_id=a, content="Alice builds SchemaSentinel.", retain_async=True)
                 await wait_until_settled(administrator, a)
                 admin_transport = StreamableHttpTransport(

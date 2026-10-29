@@ -188,6 +188,7 @@ class ContextDBOperationValidator(OperationValidatorExtension):
             )
             return await self._authorize(ctx.request_context, ctx.bank_id, scope)
         admin_operations = {
+            BankWriteOperation.UPDATE_BANK,
             BankWriteOperation.UPDATE_BANK_CONFIG,
             BankWriteOperation.UPDATE_BANK_DISPOSITION,
             BankWriteOperation.SET_BANK_MISSION,

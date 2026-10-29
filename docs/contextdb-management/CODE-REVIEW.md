@@ -1,6 +1,8 @@
 # ContextDB 团队分支集成代码检视
 
-本次修复PR基线为已合并团队main `1dc0ad37e`，不是原管理功能基线57bbfd2。Issue #19逐项判断见[第16章](#issue19-resolution)。第13～14章保留历史阶段，当时“未提交/不推送”描述不再代表当前发布请求。
+当前PR #57（2026-10-29）基于团队main `93640b6c1395423c1669048cef84c4e61a545002`；Bank REST实现及F1/F2修订见第27～28章，完整系统和架构交叉检视见[第29章](#bank-rest-full-review)。以下原管理功能的状态及基线仅用于历史追溯。
+
+管理功能历史修复PR基线为已合并团队main `1dc0ad37e`，不是原管理功能基线57bbfd2。Issue #19逐项判断见[第16章](#issue19-resolution)。第13～14章保留历史阶段，当时“未提交/不推送”描述不再代表当前发布请求。
 
 当前已落地项先查 [第15章：已落地优化索引](#implemented-optimization-index)。该索引区分已提交基线、工作区修复、已有等效修复、有意撤回及待办；第13～14章保留实施过程，不再从历史记录重复推导当前状态。
 
@@ -682,3 +684,63 @@ PG数据库专家及Agent/Hindsight专家独立只读检视完成，Must fix 0�
 独立检视指出最新权限全量结果此前来自含无关改动的集成树；现已在仅含48文件特性差异的独立候选复验，见VALIDATION第26章。源码、Python可编辑安装和子进程均指向该候选；文档修正不改变专家核对过的运行代码。没有新增原生Python或原生UI挂载差异，没有更改写入队列、表结构、MCP协议或依赖。
 
 统计仍为尽力而为：故障、溢出和异常退出可漏计；100条归档记忆最多读取100次Store，可能达到1秒预算返回503。远程容量、完整灾备及真实故障注入未验；本轮未重验Chrome，不以生产UI HTTP故事或组件测试代替浏览器验收。现有服务和用户数据库未操作。
+
+<a id="bank-rest-prototype-review"></a>
+
+## 27. Issue #53 Bank REST隔离原型独立检视（2026-10-29）
+
+检视时的范围为本地HEAD `9a5ba2c61` 加本轮插件实现与测试，未部署。Hindsight扩展、PG生命周期、API/SDK三个独立只读Agent检视后复核；原型保留旧workspace创建/描述/UI，MCP管理继续关闭。既有Embedding等原生脏修改属于其他任务，未纳入原型。
+
+| 发现 | 修正与复核结果 |
+| --- | --- |
+| 子应用仅处理管理错误，丢失原生异常合同 | 保留RequestValidationError/HTTPException及操作校验错误；AuthenticationError按原生文案401；复用_internal_error保留普通JSON500、直接/包装StoreWriteUnavailable503及Retry-After。新增create/update/delete故障测试及认证文案断言，复核闭环 |
+| metadata_errors包住整个原生执行，错误归属失真 | 仅包元数据认证/目录读取；原生PG/OSError按原生错误映射处理，补元数据503与原生错误区分，复核闭环 |
+| 原生Audit装饰器可能在目标schema存在前/删除后查询配置 | 遵守本版Audit必须关闭的既有策略，不执行该装饰器的逐Bank探测，Repository管理审计保留；单测禁止should_log调用，真实新库日志检查无public.banks配置读取错误，复核闭环 |
+| 删除返回object掩盖固定结构，收尾后才可能发现响应问题 | 用NativeDeletion类型承接并在最终清理事务前验证；协议边界按原生三项计数求和。两处既有测试替身改为返回真实计数合同，复核闭环 |
+| 新入口失败分支和客户端断言需补证 | 增加迁移失败→failed占名→条件清理、重复If-Match、TS首次/二次展示名、插件/原生OpenAPI、原生If-None-Match仍upsert测试 |
+| 存量系统故事仍把管理员Bank管理视为全部403 | test110改为无条件删除428、Admin更新200且UUID/bank_id不变；伪造内容清空header也不能替代删除条件。普通Key、clone/import/alias旁路及MCP管理拒绝断言保留 |
+
+复核结论：Must fix已闭环，无新增架构或权限阻断项，可作为REST隔离原型交付；实际通过数见[VALIDATION第28章](VALIDATION.md#bank-rest-prototype-validation)。这不是UI/MCP切换或生产发布批准。
+
+原生Python及UI无本轮修改；复用原生HTTP模型、路由/观测组件和_internal_error是显式上游耦合点，升级时运行合同测试。不新增配置、依赖、表、调度器、删除屏障或通用框架。描述能力与旧写入口按本轮授权保留，后续收敛另行评审。
+
+<a id="bank-rest-f1-f2-review"></a>
+
+## 28. Bank REST复用F1/F2修订检视（2026-10-29）
+
+检视基准为PR #57修订前提交 `8962cf537aaa4247f5e25c8adac5c94fc00ccf25` 及冻结的F1/F2修订补丁；修订后的源码以PR最新提交为准。此前第27章是该提交形成前的历史检视；本轮针对外部精确提交检视发现的两项P2补充修正，不把既有测试通过当作这些分支已覆盖。
+
+| 问题 | 修正及回归 |
+| --- | --- |
+| F1：可提前确定的配置错误在schema迁移后才被拒绝，留下failed空间 | 在创建登记前复用原生ConfigResolver，以空配置/默认模板显式投影预校验。单测禁止目标Bank读取和配置持久化，覆盖无模板、有效模板、无效模板回退及客户端覆盖；真实SDK故事检查400后管理404、schema不存在、修正参数同名创建成功，再读取实际配置并条件删除 |
+| F2：生命周期仓库异常落到通用500，丢失metadata_unavailable分类 | 将窄错误边界补到身份预留、归属/存在检查、激活/删除收尾与active目标认证。3类异常×8阶段注入覆盖503/code；另验证原生迁移及引擎PG/OSError保持500、既有StoreWriteUnavailable保持503/Retry-After |
+
+Hindsight、PG及测试三个独立只读检视核对冻结的实现/测试指纹，源码修改限定插件3个实现文件与2个测试文件。预校验不替代最终权限/写时检查；不提前构造内部身份或变更Tenant政策。元数据转换不包围原生执行，failed补记仍尽力而为，不能覆盖原错；503仍需只读结果核对。运行结果见[VALIDATION第29章](VALIDATION.md#bank-rest-f1-f2-validation)。
+
+新增上游耦合为 `memory._config_resolver` 的现有语义校验入口，显式记录在DESIGN第8.11节。无新增原生Python/UI修改、表、生产变量或依赖；旧创建入口与描述能力、MCP管理关闭、删除前停止访问/等待已接受工作结束的既有边界保持。
+
+<a id="bank-rest-full-review"></a>
+
+## 29. 完整系统、生产UI及架构交叉检视（2026-10-29）
+
+针对PR #57提交 `f05bedea631b8bbc796f28c61bba7c4e002427a8`，在干净归档重新执行完整ContextDB系统98项、UI801项、原生系统354项（另2项环境条件跳过），完成生产构建、manifest及双Worker生产UI门禁，并用Chrome验证关键管理及记忆/知识显示。未发现本PR新增功能阻断，无代码修订；旧创建入口和描述保留，MCP管理继续关闭。后续交付仅同步文档和截图，实现及测试与本验收提交相同；先前Hindsight、PG、测试独立检视见第28章。
+
+功能验收通过，仓库全门禁尚未通过：文档生成、原生Ruff、UI格式及knip存在已核对的相同基线失败，远程CI尚无结果。建议先修复这些门禁或取得committer明确豁免，再按项目规则合入；不能把本地功能通过写成无条件合入批准。命令、跳过原因、Chrome覆盖边界和清理证据见[VALIDATION第30章](VALIDATION.md#bank-rest-full-acceptance)。
+
+发布前main又合入PR #58/#59，组合版本UI全量835通过、1项术语失败；已在纯main复现，非本PR新增。组合生产构建、manifest及双Worker生产UI两项通过。此前801项全通过及Chrome属于原基线结果，不能冒称新main也全通过。该失败已明确接受为本次合并基线例外，仍保留后续修复责任；归属、日志及决策见VALIDATION第30.3节。
+
+最终main再合入PR #60至3216258a7，复跑组合UI为829通过、同一术语失败1项；纯main同样复现，已接受的例外不变。生产构建/manifest、双Worker生产UI门禁、TypeScript及ESLint再次通过。未发现本PR新增问题；分版计数与证据见VALIDATION第30.3节。
+
+### 29.1 接入方式独立及交叉检视
+
+Agent Memory/Hindsight生命周期与REST API两位检视者先各自只读审视源码和原设计，再交叉复核；主Agent核对执行顺序及结论。范围为当前插件适配与“原生路由只定义一次、可选委派插件”的候选设计，没有实现候选或重新执行测试。
+
+| 问题 | 交叉检视后的结论 |
+| --- | --- |
+| 是否重复实现完整Bank功能 | 否。存在三个HTTP入口、有限响应映射和装配职责重复；模型、原生组件、共享Lifecycle及引擎复用。不能将228行全部视为复制社区实现，也不能用“薄入口”隐去维护成本 |
+| 原设计是否遗漏接管代价 | 8.4与8.9已说明分流及原生HTTP管线补偿。不足是方案成本比较及“不复制端点”“复用接口”措辞不精确；已在8.4/8.12澄清 |
+| 新增原生hook是否确定更优 | 尚未证明。handler内委派可能晚于Body、alias/Tenant、Audit探测；仅有Validator不提供完整收尾。也不能夸大候选必然大改，前置认证/OpenAPI可继续复用插件 |
+| 提前alias/Audit是否必然导致失败或漏洞 | 否，两者有异常忽略/回退。应比较正确授权、目标schema、错误/日志及观测合同，而非冻结当前所有内部调用次数 |
+| 是否需要本PR立即重构 | 未发现必须通过架构替换解决的功能或安全缺陷；保留当前适配。未来有升级漂移、接管范围扩张或正式上游接口维护需求时，用隔离原型比较净收益 |
+
+候选方案保留为待验证选项；当前选择依据实现职责、执行顺序及验收证据，而非路由声明数量。两份原始报告及主Agent汇总由 `/tmp/contextdb-bank-architecture-review-path` 定位，分别为memory-review.md、rest-review.md、decision.md，包含行号和候选验证矩阵。

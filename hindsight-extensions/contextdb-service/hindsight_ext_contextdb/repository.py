@@ -164,13 +164,17 @@ class Repository:
             raise ServiceError(404, "not_found", "Workspace not found")
         return self._workspace_model(row)
 
-    async def create_workspace(self, principal: BusinessPrincipal, body: WorkspaceCreate, request_id: str) -> Workspace:
+    async def create_workspace(
+        self, principal: BusinessPrincipal, body: WorkspaceCreate, request_id: str, *, create_only: bool = False
+    ) -> Workspace:
         """Reserve a strict new identity; no connection is held across native DDL."""
         self._tenant(principal)
         name = workspace_name(body.name)
         async with self.pool.acquire() as conn, conn.transaction():
             await self._instance_lock(conn)
             if await conn.fetchval("SELECT 1 FROM ctxdb_meta.workspaces WHERE bank_id=$1", name):
+                if create_only:
+                    raise ServiceError(412, "precondition_failed", "Bank is already registered")
                 raise ServiceError(409, "name_conflict", "Workspace name already exists")
             if await conn.fetchval("SELECT to_regnamespace($1)", f"ctxdb_ws_{name}") is not None:
                 raise ServiceError(
