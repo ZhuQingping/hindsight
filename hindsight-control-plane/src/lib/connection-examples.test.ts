@@ -21,39 +21,35 @@ const connection: CustomerConnection = {
 };
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
 
-it.each(codingClients)("installs only $id and preserves shell arguments", ({ id }) => {
-  const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
-  const snippet = connectionExample(id, "bash", bank, connection, "question");
-  // Run the generated shell, recording argv without installing anything.
-  const output = execFileSync(
-    "bash",
-    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
-    { encoding: "utf8" }
-  )
-    .trim()
-    .split("\n");
-  expect(output).toEqual([
-    "--yes",
-    connection.codingAgentsNpm,
-    "install",
-    id,
-    "--api-url",
-    connection.apiUrl,
-    "--api-token",
-    "<API_KEY>",
-    "--bank-id",
-    bank,
-    "--project-path",
-    ".",
-  ]);
-  expect(connectionExample(id, "powershell", bank, connection, "question").install).toContain(
-    "'team''s bank $(exit 73) `exit 74` $HOME & 中文'"
-  );
-});
+it.each(codingClients)(
+  "installs only $id without passing connection or project fields",
+  ({ id }) => {
+    const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
+    const snippet = connectionExample(id, "bash", bank, connection, "question");
+    // Run the generated shell, recording argv without installing anything.
+    const output = execFileSync(
+      "bash",
+      ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
+      { encoding: "utf8" }
+    )
+      .trim()
+      .split("\n");
+    expect(output).toEqual([
+      "--yes",
+      connection.codingAgentsNpm,
+      "install",
+      id,
+      "--api-token",
+      "<API_KEY>",
+    ]);
+    expect(snippet.install).not.toMatch(/--api-url|--bank-id|--project-path/);
+    expect(snippet.install).not.toContain(bank);
+  }
+);
 
 it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
   const install = connectionExample("codex", terminal, "team", connection, "question").install!;
-  expect(install).toContain(" install codex --api-url ");
+  expect(install).toContain(" install codex --api-token ");
   expect(install).not.toContain("install claude-code");
   if (terminal === "bash") {
     expect(install).toContain("export CONTEXTBASE_API_TOKEN=");
@@ -69,11 +65,12 @@ it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
 });
 
 it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
-  "does not emit a CMD command with expandable data %s",
+  "does not interpolate bank data into CMD: %s",
   (bank) => {
-    expect(connectionExample("codex", "cmd", bank, connection, "question")).toEqual({
-      unavailable: "cmdUnavailable",
-    });
+    const result = connectionExample("codex", "cmd", bank, connection, "q");
+    expect(result.install).toContain("npx.cmd --yes");
+    expect(result.install).not.toMatch(/--api-url|--bank-id|--project-path/);
+    expect(result.install).not.toContain(bank);
   }
 );
 
@@ -199,46 +196,13 @@ it("handles missing API and MCP addresses independently", () => {
   ).toBe("mcpUnavailable");
 });
 
-it.each(codingClients)(
-  "runs $id through the configured npm version with a literal project path",
-  ({ id }) => {
-    const npmConnection = { ...connection, codingAgentsNpm: "contextbase-coding-agents@1.0.0" };
-    const path = "/home/customer/project's $(exit 73) `exit 74` $HOME & 中文";
-    const snippet = connectionExample(id, "bash", "team", npmConnection, "q", path);
-    const output = execFileSync(
-      "bash",
-      ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
-      {
-        encoding: "utf8",
-      }
-    )
-      .trim()
-      .split("\n");
-    expect(output).toEqual([
-      "--yes",
-      npmConnection.codingAgentsNpm,
-      "install",
-      id,
-      "--api-url",
-      connection.apiUrl,
-      "--api-token",
-      "<API_KEY>",
-      "--bank-id",
-      "team",
-      "--project-path",
-      path,
-    ]);
-    expect(snippet.downloadUrl).toBeUndefined();
-  }
-);
-
 it.each(terminals)("installs from npm without an archive URL in %s", (terminal) => {
   const config = {
     apiUrl: connection.apiUrl,
     codingAgentsNpm: "contextbase-coding-agents@1.0.0",
     packages: {},
   };
-  const snippet = connectionExample("codex", terminal, "team", config, "q", "customer project");
+  const snippet = connectionExample("codex", terminal, "team", config, "q");
   expect(snippet.unavailable).toBeUndefined();
   expect(snippet.install).toContain(terminal === "bash" ? "npx --yes" : "npx.cmd --yes");
   expect(snippet.install).toContain("contextbase-coding-agents@1.0.0");
@@ -246,17 +210,20 @@ it.each(terminals)("installs from npm without an archive URL in %s", (terminal) 
   expect(snippet.downloadUrl).toBeUndefined();
 });
 
-it.each(["", "  ", "line\nbreak", "null\0byte"])("requires a usable project path: %s", (path) => {
-  expect(connectionExample("codex", "bash", "team", connection, "q", path).unavailable).toBe(
-    "projectPathRequired"
-  );
-});
-
-it("does not generate a CMD command that expands the project path", () => {
-  expect(
-    connectionExample("codex", "cmd", "team", connection, "q", "%USERPROFILE%/project").unavailable
-  ).toBe("cmdUnavailable");
-});
+it.each(codingClients)(
+  "offers the $id installer before an API Endpoint is configured",
+  ({ id }) => {
+    const result = connectionExample(
+      id,
+      "bash",
+      "team",
+      { codingAgentsNpm: "contextbase-coding-agents@latest", packages: {} },
+      "q"
+    );
+    expect(result.install).toContain(`install ${id} --api-token`);
+    expect(result.install).not.toMatch(/--api-url|--bank-id|--project-path/);
+  }
+);
 
 it.each(["latest", "1.0.0"])(
   "preserves the configured npm selector %s in the generated command",

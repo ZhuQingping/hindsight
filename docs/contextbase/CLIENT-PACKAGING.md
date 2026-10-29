@@ -32,7 +32,7 @@ CONTEXTBASE_CP_NODE_SDK_PACKAGE_URL=https://downloads.example.com/contextbase-cl
 
 下载地址须指向客户可访问的 HTTPS 安装文件，可使用有效的签名 query，不得包含服务端管理凭据。缺少地址时仅对应客户端不可用。将配置写入实际加载的 `ui.env` 后重启控制台；修改示例文件不会更新运行中的服务。
 
-API 地址通过 `CONTEXTBASE_CP_PUBLIC_API_URL` 配置；远端 MCP 另设 `CONTEXTBASE_CP_PUBLIC_MCP_URL`，不从 API 地址推导。接入页保留业务 Key 占位符，并按用户选择的项目路径生成命令。
+API 地址通过 `CONTEXTBASE_CP_PUBLIC_API_URL` 配置；远端 MCP 另设 `CONTEXTBASE_CP_PUBLIC_MCP_URL`，不从 API 地址推导。接入页保留业务 Key 占位符，只生成选中客户端的安装命令。API Endpoint、Bank ID 和项目路径在命令后的文字中说明，安装命令不会自动绑定当前工作空间。
 
 使用 **Publish Contextbase Clients** 工作流发布其他客户端文件及校验文件；完整构建入口见[工作流](../../.github/workflows/release.yml)。
 

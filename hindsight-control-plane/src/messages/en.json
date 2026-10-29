@@ -2377,7 +2377,7 @@
     "terminalLabel": "Terminal",
     "credentials": "Replace '<API_KEY>' locally with a key authorized for this workspace. This page does not create or store keys.",
     "descriptions": {
-      "coding": "Install the ContextBase integration for this client and bind the current project to the selected workspace.",
+      "coding": "Install the ContextBase integration for the selected client. Connection settings and workspace bindings are resolved from local configuration.",
       "openclaw": "Install the ContextBase plugin and connect your OpenClaw Gateway to this workspace.",
       "hermes": "Install ContextBase as the memory provider for your current Hermes profile.",
       "python": "Install the Python SDK and run a read-only memory query.",
@@ -2399,7 +2399,6 @@
     "installTitle": "1. Install",
     "hermesInstallTitle": "1. Install in your Hermes profile",
     "downloadPackage": "Download installation package ↗",
-    "projectDirectory": "The command installs only the selected client and binds the project path above to this workspace. Other project mappings are preserved.",
     "hermesExtract": "Download and extract the plugin ZIP. Copy the complete hermes-plugin-contextbase folder, including sdk/, to plugins/contextbase under your active HERMES_HOME profile. Then enable it and open the setup wizard:",
     "configureTitle": "2. Configure",
     "mcpConfigTitle": "1. Configure remote MCP",
@@ -2414,7 +2413,7 @@
     "verifyAgent": "Restart the client in this project directory. Check the available ContextBase tools, then send this prompt:",
     "verifyMcpAgent": "Restart the client in this project directory. Check ContextBase under /mcp, approve hooks if prompted, then send this prompt:",
     "diagnosePrompt": "Call the currently loaded ContextBase diagnostic tool using its actual registered name. Return workspace, bank_id, harness and config.api_url from the tool result.",
-    "diagnoseExpected": "Expect this project directory, bank_id = {bankId}, harness = {harness}, and the API address shown above. This checks local configuration, not cloud permissions.",
+    "diagnoseExpected": "Check the project directory, harness = {harness}, and API address. To use this workspace, bank_id should be {bankId}; the command above does not create that binding. This checks local configuration, not cloud permissions.",
     "openCodeShared": "OpenCode and OpenCode 2 use the same host plugin entry. Choose the version you actually run.",
     "verify": {
       "sdk": "A successful recall response, including an empty result, confirms the request reached the service. Authentication or workspace errors must be resolved; a running script alone does not mean success.",
@@ -2425,12 +2424,10 @@
     },
     "installScopeTitle": "Installation scope",
     "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project.",
-    "endpointLabel": "API Endpoint",
-    "bankIdLabel": "Bank ID",
-    "projectPathLabel": "Project path",
-    "projectPathHelp": "Enter the path on your computer. A dot (.) means the directory where you run the command.",
-    "projectPathRequired": "Enter a project path without line breaks.",
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed."
+    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
+    "endpointHelp": "API Endpoint: {endpoint}. The installer reuses its saved address or CONTEXTBASE_API_URL; if neither is set, an interactive terminal prompts for it. The command above does not pass this address.",
+    "bankHelp": "This workspace has Bank ID {bankId}. The command does not bind it automatically; existing local mappings or the default Bank rule apply. Configure a binding separately to use this workspace.",
+    "projectHelp": "Run the installer from your project directory and restart the client there. Project-to-Bank mappings live in mapPathToBank in ~/.contextbase/coding-agent.json. You can also configure them with the installer options --bank-id and --project-path."
   }
 }
