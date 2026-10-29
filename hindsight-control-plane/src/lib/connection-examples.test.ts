@@ -204,3 +204,73 @@ it("handles missing API and MCP addresses independently", () => {
       .unavailable
   ).toBe("mcpUnavailable");
 });
+
+it.each(codingClients)(
+  "runs $id through the configured npm version with a literal project path",
+  ({ id }) => {
+    const npmConnection = { ...connection, codingAgentsNpm: "contextbase-coding-agents@1.0.0" };
+    const path = "/home/customer/project's $(exit 73) `exit 74` $HOME & 中文";
+    const snippet = connectionExample(id, "bash", "team", npmConnection, "q", path);
+    const output = execFileSync(
+      "bash",
+      ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
+      {
+        encoding: "utf8",
+      }
+    )
+      .trim()
+      .split("\n");
+    expect(output).toEqual([
+      "--yes",
+      npmConnection.codingAgentsNpm,
+      "install",
+      id,
+      "--api-url",
+      connection.apiUrl,
+      "--api-token",
+      "<API_KEY>",
+      "--bank-id",
+      "team",
+      "--project-path",
+      path,
+    ]);
+    expect(snippet.install).not.toContain(connection.packages.codingAgents);
+    expect(snippet.alternateInstall).toContain(connection.packages.codingAgents);
+  }
+);
+
+it.each(terminals)("installs from npm without an archive URL in %s", (terminal) => {
+  const config = {
+    apiUrl: connection.apiUrl,
+    codingAgentsNpm: "contextbase-coding-agents@1.0.0",
+    packages: {},
+  };
+  const snippet = connectionExample("codex", terminal, "team", config, "q", "customer project");
+  expect(snippet.unavailable).toBeUndefined();
+  expect(snippet.install).toContain(terminal === "bash" ? "npx --yes" : "npx.cmd --yes");
+  expect(snippet.install).toContain("contextbase-coding-agents@1.0.0");
+  expect(snippet.install).toContain(" install codex ");
+  expect(snippet.downloadUrl).toBeUndefined();
+  expect(snippet.alternateInstall).toBeUndefined();
+});
+
+it.each(["", "  ", "line\nbreak", "null\0byte"])("requires a usable project path: %s", (path) => {
+  expect(connectionExample("codex", "bash", "team", connection, "q", path).unavailable).toBe(
+    "projectPathRequired"
+  );
+});
+
+it("keeps signed archive URLs out of the main CMD npm command", () => {
+  const config = {
+    ...connection,
+    codingAgentsNpm: "contextbase-coding-agents@1.0.0",
+    packages: { codingAgents: "https://downloads.example.com/client.tgz?signature=a%2Fb" },
+  };
+  const snippet = connectionExample("codex", "cmd", "team", config, "q");
+  expect(snippet.install).toContain("npx.cmd --yes");
+  expect(snippet.alternateInstall).toBeUndefined();
+  expect(snippet.downloadUrl).toBe(config.packages.codingAgents);
+  expect(
+    connectionExample("codex", "cmd", "team", config, "q", "%USERPROFILE%/project").unavailable
+  ).toBe("cmdUnavailable");
+});

@@ -97,3 +97,37 @@ it("does not invent package download URLs when deployment settings are unset", (
   expect(production.packages.python).toBeUndefined();
   expect(production.packages.node).toBeUndefined();
 });
+
+it.each(["contextbase-coding-agents@1.0.0", "@contextbase/contextbase-coding-agents@2.1.0-rc.1"])(
+  "exposes a configured registry package pinned to a version: %s",
+  (spec) => {
+    vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
+    expect(customerConnection("bank").codingAgentsNpm).toBe(spec);
+  }
+);
+
+it.each([
+  "",
+  "contextbase-coding-agents@latest",
+  "contextbase-coding-agents",
+  "https://example.com/client.tgz",
+  "file:../client",
+  "pkg@npm:other@1.0.0",
+  "client@1.0.0\n--ignore-scripts",
+  "client@1.0.0;echo secret",
+])("does not expose an unpinned or non-registry npm reference: %s", (spec) => {
+  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
+  expect(customerConnection("bank").codingAgentsNpm).toBeUndefined();
+});
+
+it("can explicitly disable npm while keeping the archive fallback", () => {
+  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", "");
+  vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", "contextbase-coding-agents@1.0.0");
+  vi.stubEnv(
+    "CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL",
+    "https://downloads.example.com/client.tgz"
+  );
+  const config = customerConnection("bank");
+  expect(config.codingAgentsNpm).toBeUndefined();
+  expect(config.packages.codingAgents).toBe("https://downloads.example.com/client.tgz");
+});

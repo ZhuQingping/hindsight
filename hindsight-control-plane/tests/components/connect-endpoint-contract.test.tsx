@@ -34,6 +34,7 @@ it.each(["contextbase", "contextdb"])(
   "keeps public MCP independent and operator credentials private under %s",
   async (name) => {
     vi.stubEnv("contextdb_name", name);
+    vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", "contextbase-coding-agents@1.0.0");
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "https://api.example.com/customer-api");
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "https://mcp.example.com/banks/{bank_id}/mcp");
     vi.stubEnv(
@@ -45,7 +46,7 @@ it.each(["contextbase", "contextdb"])(
     const bank = "team/%-中文.json";
     await show(bank);
     expect(document.body.textContent).toContain("install claude-code --api-url");
-    expect(document.body.textContent).toContain("npm.cmd exec --yes");
+    expect(document.body.textContent).toContain("npx.cmd --yes");
     expect(document.body.textContent).toContain("--bank-id '" + bank + "'");
     expect(document.body.textContent).toContain("--project-path '.'");
     expect(document.body.textContent).not.toContain("install claude-code codex");
@@ -63,7 +64,9 @@ it.each(["contextbase", "contextdb"])(
       Authorization: "Bearer <API_KEY>",
       "X-Bank-Id": bank,
     });
-    expect(document.body.textContent).not.toMatch(/internal-service|operator-secret|npm.cmd exec/);
+    expect(document.body.textContent).not.toMatch(
+      /internal-service|operator-secret|npm.cmd exec|npx.cmd/
+    );
   }
 );
 

@@ -2360,7 +2360,7 @@
       "mcp": "Connect an HTTP MCP client to the remote ContextBase service. No local adapter is required for this option."
     },
     "requirements": {
-      "coding": "Requires the selected client and Node.js 24+.",
+      "coding": "Requires the selected client and Node.js 18+.",
       "python": "Requires Python 3.10+; use an activated virtual environment.",
       "node": "Requires Node.js 18+; run the commands in your application directory.",
       "openclaw": "Requires OpenClaw and Node.js 22+. Run in your Gateway environment.",
@@ -2373,7 +2373,7 @@
     "installTitle": "1. Install",
     "hermesInstallTitle": "1. Install in your Hermes profile",
     "downloadPackage": "Download installation package ↗",
-    "projectDirectory": "First open your project directory. The command installs only this client and maps the current directory (.) to the selected workspace; it preserves other project mappings.",
+    "projectDirectory": "The command installs only the selected client and binds the project path above to this workspace. Other project mappings are preserved.",
     "hermesExtract": "Download and extract the plugin ZIP. Copy the complete hermes-plugin-contextbase folder, including sdk/, to plugins/contextbase under your active HERMES_HOME profile. Then enable it and open the setup wizard:",
     "configureTitle": "2. Configure",
     "mcpConfigTitle": "1. Configure remote MCP",
@@ -2398,7 +2398,16 @@
       "hermes": "Restart Hermes and confirm ContextBase is the active memory provider. Ask the agent to call the loaded ContextBase recall tool for this workspace and inspect its actual result."
     },
     "installScopeTitle": "Installation scope",
-    "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project."
+    "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project.",
+    "endpointLabel": "API Endpoint",
+    "bankIdLabel": "Bank ID",
+    "projectPathLabel": "Project path",
+    "projectPathHelp": "Enter the path on your computer. A dot (.) means the directory where you run the command.",
+    "projectPathRequired": "Enter a project path without line breaks.",
+    "npmInstallTitle": "1. Connect with npx",
+    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
+    "archiveFallbackTitle": "Alternative: install from a downloaded package",
+    "archiveFallbackHelp": "If npm is unavailable, use the package and command below. This archive may have a different version from the npm package."
   },
   "settings": {
     "storage": {

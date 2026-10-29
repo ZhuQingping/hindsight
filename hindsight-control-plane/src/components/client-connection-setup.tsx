@@ -39,13 +39,21 @@ export function ClientConnectionSetup({
   const [group, setGroup] = useState<"agents" | "development">("agents");
   const [agentClient, setAgentClient] = useState<ConnectionClient>("claude-code");
   const [developerClient, setDeveloperClient] = useState<ConnectionClient>("python");
+  const [projectPath, setProjectPath] = useState(".");
   const [terminal, setTerminal] = useState<ConnectionTerminal>("powershell");
   const client = group === "agents" ? agentClient : developerClient;
   const clients = group === "agents" ? agentClients : developerClients;
   const name = clients.find((item) => item.id === client)!.name;
   const isCoding = codingClients.some((item) => item.id === client);
   const isSdk = client === "python" || client === "node";
-  const example = connectionExample(client, terminal, bankId, connection, t("exampleQuery"));
+  const example = connectionExample(
+    client,
+    terminal,
+    bankId,
+    connection,
+    t("exampleQuery"),
+    projectPath
+  );
   const stepClass = "min-w-0 space-y-2 border-t border-border pt-5";
   const choiceClass =
     "rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring";
@@ -133,6 +141,55 @@ export function ClientConnectionSetup({
           )}
         </div>
 
+        {isCoding && (
+          <div className="grid min-w-0 gap-4 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
+            <div className="min-w-0 sm:col-span-2">
+              <label htmlFor="connection-endpoint" className="mb-2 block text-sm font-medium">
+                {t("endpointLabel")}
+              </label>
+              <input
+                id="connection-endpoint"
+                readOnly
+                value={connection.apiUrl ?? ""}
+                placeholder={t("apiUnavailable")}
+                className="w-full rounded-md border border-input bg-muted/40 px-3 py-2 font-mono text-sm"
+              />
+            </div>
+            <div className="min-w-0">
+              <label htmlFor="connection-bank" className="mb-2 block text-sm font-medium">
+                {t("bankIdLabel")}
+              </label>
+              <input
+                id="connection-bank"
+                readOnly
+                value={bankId}
+                className="w-full rounded-md border border-input bg-muted/40 px-3 py-2 font-mono text-sm"
+              />
+            </div>
+            <div className="min-w-0">
+              <label htmlFor="connection-project" className="mb-2 block text-sm font-medium">
+                {t("projectPathLabel")}
+              </label>
+              <input
+                id="connection-project"
+                value={projectPath}
+                onChange={(event) => setProjectPath(event.target.value)}
+                aria-describedby="connection-project-help"
+                aria-invalid={example.unavailable === "projectPathRequired"}
+                autoComplete="off"
+                spellCheck={false}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <p
+                id="connection-project-help"
+                className="mt-2 text-xs leading-5 text-muted-foreground"
+              >
+                {t("projectPathHelp")}
+              </p>
+            </div>
+          </div>
+        )}
+
         {example.unavailable ? (
           <p
             role="status"
@@ -145,10 +202,19 @@ export function ClientConnectionSetup({
             {example.install && (
               <div className={stepClass}>
                 <h3 className="font-medium">
-                  {t(client === "hermes" ? "hermesInstallTitle" : "installTitle")}
+                  {t(
+                    client === "hermes"
+                      ? "hermesInstallTitle"
+                      : isCoding && connection.codingAgentsNpm
+                        ? "npmInstallTitle"
+                        : "installTitle"
+                  )}
                 </h3>
                 {isCoding && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("projectDirectory")}</p>
+                )}
+                {isCoding && connection.codingAgentsNpm && (
+                  <p className="text-sm leading-6 text-muted-foreground">{t("npmHelp")}</p>
                 )}
                 {isCoding && (
                   <details className="text-sm text-muted-foreground">
@@ -159,7 +225,7 @@ export function ClientConnectionSetup({
                 {client === "hermes" && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("hermesExtract")}</p>
                 )}
-                {example.downloadUrl && (
+                {example.downloadUrl && !(isCoding && connection.codingAgentsNpm) && (
                   <a
                     href={example.downloadUrl}
                     target="_blank"
@@ -170,6 +236,31 @@ export function ClientConnectionSetup({
                   </a>
                 )}
                 <ConnectionCode key={example.install} code={example.install} />
+                {isCoding && connection.codingAgentsNpm && example.downloadUrl && (
+                  <details className="mt-4 min-w-0 text-sm text-muted-foreground">
+                    <summary className="cursor-pointer font-medium">
+                      {t("archiveFallbackTitle")}
+                    </summary>
+                    <p className="mt-2 leading-6">{t("archiveFallbackHelp")}</p>
+                    <a
+                      href={example.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block font-medium text-primary hover:underline"
+                    >
+                      {t("downloadPackage")}
+                    </a>
+                    {example.alternateInstall && (
+                      <ConnectionCode
+                        key={example.alternateInstall}
+                        code={example.alternateInstall}
+                      />
+                    )}
+                    {!example.alternateInstall && (
+                      <p className="mt-2 leading-6">{t("cmdUnavailable")}</p>
+                    )}
+                  </details>
+                )}
               </div>
             )}
 

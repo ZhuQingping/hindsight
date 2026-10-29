@@ -15,6 +15,7 @@ afterEach(cleanup);
 const connection: CustomerConnection = {
   apiUrl: "https://api.example.com/customer-api",
   mcpUrl: "https://mcp.example.com/team/mcp",
+  codingAgentsNpm: "contextbase-coding-agents@1.0.0",
   packages: {
     codingAgents: "https://downloads.example.com/agents.tgz",
     openclaw: "https://downloads.example.com/openclaw.tgz",
@@ -44,10 +45,11 @@ it.each(codingClients)(
     expect(document.body.textContent).toContain("config.api_url");
     expect(document.body.textContent).toContain("not cloud permissions");
     expect(document.body.textContent).not.toMatch(/ContextBaseClient|from contextbase_client/);
-    const targets = Array.from(document.querySelectorAll("pre")).filter((pre) =>
-      pre.textContent?.includes("contextbase-coding-agents install")
+    const primary = Array.from(document.querySelectorAll("pre")).find((pre) =>
+      pre.textContent?.includes("npx.cmd --yes")
     );
-    expect(targets).toHaveLength(1);
+    expect(primary?.textContent).toContain(`contextbase-coding-agents@1.0.0' install ${id}`);
+    expect(primary?.textContent).not.toContain("downloads.example.com");
   }
 );
 
@@ -140,4 +142,54 @@ it("renders Chinese instructions and all dynamic translation paths without missi
     fireEvent.change(picker, { target: { value: id } });
   expect(errors).toEqual([]);
   expect(document.body.textContent).not.toMatch(/hindsight/i);
+});
+
+it("shows the public endpoint and bank and regenerates commands for the customer's path", () => {
+  show();
+  const endpoint = screen.getByLabelText("API Endpoint") as HTMLInputElement;
+  const bank = screen.getByLabelText("Bank ID") as HTMLInputElement;
+  expect(endpoint.value).toBe(connection.apiUrl);
+  expect(endpoint.readOnly).toBe(true);
+  expect(bank.value).toBe("team");
+  expect(bank.readOnly).toBe(true);
+  const path = "D:\\code\\客户项目";
+  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: path } });
+  expect(document.body.textContent).toContain(`--project-path '${path}'`);
+  fireEvent.click(screen.getByRole("button", { name: "CMD" }));
+  expect(document.body.textContent).toContain(`--project-path "${path}"`);
+});
+
+it("does not offer a copied install command for an empty project path", () => {
+  show();
+  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: "" } });
+  expect(screen.getByRole("status").textContent).toContain("Enter a project path");
+  expect(document.querySelectorAll("pre")).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: "." } });
+  expect(document.body.textContent).toContain("npx.cmd --yes");
+});
+
+it("keeps the archive as a collapsed alternative to the npm command", () => {
+  show();
+  const summary = screen.getByText("Alternative: install from a downloaded package");
+  expect(summary.closest("details")?.open).toBe(false);
+  fireEvent.click(summary);
+  expect(
+    screen.getByRole("link", { name: "Download installation package ↗" }).getAttribute("href")
+  ).toBe(connection.packages.codingAgents);
+});
+
+it("can connect through npm when no archive download is configured", () => {
+  show({ ...connection, packages: {} });
+  expect(document.body.textContent).toContain("npx.cmd --yes");
+  expect(screen.queryByRole("status")).toBeNull();
+  expect(screen.queryByText("Alternative: install from a downloaded package")).toBeNull();
+});
+
+it("uses the configured archive when npm distribution is disabled", () => {
+  show({ ...connection, codingAgentsNpm: undefined });
+  expect(document.body.textContent).toContain("npm.cmd exec --yes");
+  expect(document.body.textContent).not.toContain("npx.cmd");
+  expect(
+    screen.getByRole("link", { name: "Download installation package ↗" }).getAttribute("href")
+  ).toBe(connection.packages.codingAgents);
 });
