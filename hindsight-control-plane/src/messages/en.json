@@ -2426,7 +2426,7 @@
     "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project.",
     "npmInstallTitle": "1. Connect with npx",
     "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
-    "endpointHelp": "API Endpoint (--api-url): {endpoint}. If omitted, the installer reads saved settings or CONTEXTBASE_API_URL, or prompts in an interactive terminal.",
-    "projectHelp": "--project-path is optional: the current directory is bound to the Bank ID in the command by default. To bind another project, specify its local path, then restart the client in that project."
+    "endpointHelp": "--api-url: API Endpoint. If omitted, the installer reads saved settings or environment variables; on first use, follow the terminal prompt.",
+    "projectHelp": "--project-path is optional: defaults to the current directory. To connect another project, specify its local path."
   }
 }

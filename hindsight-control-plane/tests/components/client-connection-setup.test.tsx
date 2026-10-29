@@ -154,7 +154,9 @@ it("shows connection details after the command without a parameter form and with
   )!;
   expect(command.textContent).not.toMatch(/--api-url|--project-path/);
   const text = document.body.textContent!;
-  expect(text.indexOf(connection.apiUrl!)).toBeGreaterThan(text.indexOf(command.textContent!));
+  expect(text.indexOf(messages.connectionSetup.endpointHelp)).toBeGreaterThan(
+    text.indexOf(command.textContent!)
+  );
   expect(command.textContent).toContain("--bank-id 'team'");
   expect(text).toContain("--project-path is optional");
 });

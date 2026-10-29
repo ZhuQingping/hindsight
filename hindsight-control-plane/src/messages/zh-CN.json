@@ -2426,7 +2426,7 @@
     "installScope": "集成安装到当前用户。API 地址和密钥由各项目共享，更改后会影响其他项目；项目与工作空间的映射分别保留。",
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。",
-    "endpointHelp": "API Endpoint（--api-url）：{endpoint}。不填时读取已有配置或 CONTEXTBASE_API_URL；首次使用可按终端提示输入。",
-    "projectHelp": "--project-path：可选，默认将运行命令时的当前目录绑定到命令中的 Bank ID。接入其他项目时可指定其本机路径，然后在项目目录重启客户端。"
+    "endpointHelp": "--api-url：API Endpoint，不填时读取已有配置或环境变量；首次使用可按终端提示输入。",
+    "projectHelp": "--project-path：可选，默认绑定当前目录；接入其他项目时可指定其本机路径。"
   }
 }
