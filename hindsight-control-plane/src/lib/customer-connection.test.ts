@@ -98,24 +98,26 @@ it("does not invent package download URLs when deployment settings are unset", (
   expect(production.packages.node).toBeUndefined();
 });
 
-it.each(["contextbase-coding-agents@1.0.0", "@contextbase/contextbase-coding-agents@2.1.0-rc.1"])(
-  "exposes a configured registry package pinned to a version: %s",
-  (spec) => {
-    vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
-    expect(customerConnection("bank").codingAgentsNpm).toBe(spec);
-  }
-);
+it.each([
+  "contextbase-coding-agents@latest",
+  "@contextbase/contextbase-coding-agents@latest",
+  "contextbase-coding-agents@1.0.0",
+  "@contextbase/contextbase-coding-agents@2.1.0-rc.1",
+])("exposes a configured latest or fixed-version registry package: %s", (spec) => {
+  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
+  expect(customerConnection("bank").codingAgentsNpm).toBe(spec);
+});
 
 it.each([
   "",
-  "contextbase-coding-agents@latest",
+  "contextbase-coding-agents@beta",
   "contextbase-coding-agents",
   "https://example.com/client.tgz",
   "file:../client",
   "pkg@npm:other@1.0.0",
   "client@1.0.0\n--ignore-scripts",
   "client@1.0.0;echo secret",
-])("does not expose an unpinned or non-registry npm reference: %s", (spec) => {
+])("does not expose an unsupported npm reference: %s", (spec) => {
   vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
   expect(customerConnection("bank").codingAgentsNpm).toBeUndefined();
 });

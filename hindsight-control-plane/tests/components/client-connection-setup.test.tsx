@@ -15,7 +15,7 @@ afterEach(cleanup);
 const connection: CustomerConnection = {
   apiUrl: "https://api.example.com/customer-api",
   mcpUrl: "https://mcp.example.com/team/mcp",
-  codingAgentsNpm: "contextbase-coding-agents@1.0.0",
+  codingAgentsNpm: "contextbase-coding-agents@latest",
   packages: {
     codingAgents: "https://downloads.example.com/agents.tgz",
     openclaw: "https://downloads.example.com/openclaw.tgz",
@@ -48,7 +48,7 @@ it.each(codingClients)(
     const primary = Array.from(document.querySelectorAll("pre")).find((pre) =>
       pre.textContent?.includes("npx.cmd --yes")
     );
-    expect(primary?.textContent).toContain(`contextbase-coding-agents@1.0.0' install ${id}`);
+    expect(primary?.textContent).toContain(`contextbase-coding-agents@latest' install ${id}`);
     expect(primary?.textContent).not.toContain("downloads.example.com");
   }
 );

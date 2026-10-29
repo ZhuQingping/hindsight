@@ -46,10 +46,10 @@ function publicUrl(name: string, options: { bankId?: string; extension?: string 
 function publicNpmPackage(): string | undefined {
   const configured = controlPlaneEnv("CODING_AGENTS_NPM_PACKAGE")?.trim();
   // Keep the executable basename matched to the published Coding Agents package.
-  // Accept only a registry name pinned to a version. URLs, paths, tags and npm
+  // Accept latest or a fixed version. URLs, paths, other tags and npm
   // aliases must not silently turn the public install command into another source.
   return configured &&
-    /^(?:@[a-z0-9][a-z0-9._-]*\/)?contextbase-coding-agents@[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$/.test(
+    /^(?:@[a-z0-9][a-z0-9._-]*\/)?contextbase-coding-agents@(?:latest|[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$/.test(
       configured
     )
     ? configured

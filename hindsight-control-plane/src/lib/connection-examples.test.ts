@@ -274,3 +274,25 @@ it("keeps signed archive URLs out of the main CMD npm command", () => {
     connectionExample("codex", "cmd", "team", config, "q", "%USERPROFILE%/project").unavailable
   ).toBe("cmdUnavailable");
 });
+
+it.each(["latest", "1.0.0"])(
+  "preserves the configured npm selector %s in the generated command",
+  (selector) => {
+    const spec = `contextbase-coding-agents@${selector}`;
+    const snippet = connectionExample(
+      "codex",
+      "bash",
+      "team",
+      { apiUrl: connection.apiUrl, codingAgentsNpm: spec, packages: {} },
+      "q"
+    );
+    const output = execFileSync(
+      "bash",
+      ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
+      { encoding: "utf8" }
+    )
+      .trim()
+      .split("\n");
+    expect(output.slice(0, 4)).toEqual(["--yes", spec, "install", "codex"]);
+  }
+);
