@@ -1,5 +1,4 @@
 import { afterEach, expect, it, vi } from "vitest";
-import defaultPackages from "../../config/client-packages.json";
 import { customerConnection } from "./customer-connection";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -21,7 +20,7 @@ it("only exposes public addresses and independently configured packages", () => 
   expect(result.packages.codingAgents).toBe(
     "https://downloads.example.com/agents.tgz?sig=a&value=$HOME"
   );
-  expect(result.packages.openclaw).toBe(defaultPackages.openclaw);
+  expect(result.packages.openclaw).toBeUndefined();
   expect(JSON.stringify(result)).not.toMatch(/private-service|operator-secret/);
 });
 
@@ -81,20 +80,20 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
   expect(customerConnection("bank").mcpUrl).toBeUndefined();
 });
 
-it.each(["development", "production"])("uses release packages by default in %s", (mode) => {
-  vi.stubEnv("NODE_ENV", mode);
-  for (const [env] of downloads) {
-    vi.stubEnv(`CONTEXTBASE_CP_${env}`, "");
-  }
-  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "");
-  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "");
-  const result = customerConnection("bank");
-  expect(result.packages).toEqual(defaultPackages);
-  for (const [, field, extension] of downloads) {
-    const url = new URL(result.packages[field]!);
-    expect(url.protocol).toBe("https:");
-    expect(url.pathname.endsWith(extension)).toBe(true);
-  }
-  expect(result.apiUrl).toBeUndefined();
-  expect(result.mcpUrl).toBeUndefined();
+it("does not invent package download URLs when deployment settings are unset", () => {
+  vi.stubEnv("NODE_ENV", "development");
+  const development = customerConnection("bank");
+  expect(development.packages.codingAgents).toBeUndefined();
+  expect(development.packages.openclaw).toBeUndefined();
+  expect(development.packages.hermes).toBeUndefined();
+  expect(development.packages.python).toBeUndefined();
+  expect(development.packages.node).toBeUndefined();
+
+  vi.stubEnv("NODE_ENV", "production");
+  const production = customerConnection("bank");
+  expect(production.packages.codingAgents).toBeUndefined();
+  expect(production.packages.openclaw).toBeUndefined();
+  expect(production.packages.hermes).toBeUndefined();
+  expect(production.packages.python).toBeUndefined();
+  expect(production.packages.node).toBeUndefined();
 });

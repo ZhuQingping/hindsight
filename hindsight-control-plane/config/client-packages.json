@@ -1,7 +1,0 @@
-{
-  "codingAgents": "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz",
-  "openclaw": "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-openclaw-1.0.0.tgz",
-  "hermes": "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/hermes-plugin-contextbase-1.2.2.zip",
-  "python": "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase_client-1.0.0-py3-none-any.whl",
-  "node": "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-client-1.0.0.tgz"
-}

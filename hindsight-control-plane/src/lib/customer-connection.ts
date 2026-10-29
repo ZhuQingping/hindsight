@@ -1,5 +1,4 @@
 import "server-only";
-import defaultPackages from "../../config/client-packages.json";
 import { controlPlaneEnv } from "./control-plane-env";
 
 export interface CustomerConnection {
@@ -16,11 +15,8 @@ export interface CustomerConnection {
 
 // Only explicitly public settings cross the server/client boundary. Never fall
 // back to the console's internal dataplane address or operator credentials.
-function publicUrl(
-  name: string,
-  options: { bankId?: string; extension?: string; defaultUrl?: string } = {}
-) {
-  const configured = controlPlaneEnv(name)?.trim() || options.defaultUrl;
+function publicUrl(name: string, options: { bankId?: string; extension?: string } = {}) {
+  const configured = controlPlaneEnv(name)?.trim();
   if (
     !configured ||
     Array.from(configured).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
@@ -52,26 +48,11 @@ export function customerConnection(bankId: string): CustomerConnection {
     apiUrl: publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, ""),
     mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
     packages: {
-      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", {
-        extension: ".tgz",
-        defaultUrl: defaultPackages.codingAgents,
-      }),
-      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", {
-        extension: ".tgz",
-        defaultUrl: defaultPackages.openclaw,
-      }),
-      hermes: publicUrl("HERMES_PACKAGE_URL", {
-        extension: ".zip",
-        defaultUrl: defaultPackages.hermes,
-      }),
-      python: publicUrl("PYTHON_SDK_PACKAGE_URL", {
-        extension: ".whl",
-        defaultUrl: defaultPackages.python,
-      }),
-      node: publicUrl("NODE_SDK_PACKAGE_URL", {
-        extension: ".tgz",
-        defaultUrl: defaultPackages.node,
-      }),
+      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }),
+      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
+      hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
+      python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
+      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }),
     },
   };
 }
