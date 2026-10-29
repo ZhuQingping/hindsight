@@ -28,12 +28,7 @@ interface ConnectionExample {
   run?: string;
   configuration?: string;
   downloadUrl?: string;
-  unavailable?:
-    | "apiUnavailable"
-    | "packageUnavailable"
-    | "mcpUnavailable"
-    | "cmdUnavailable"
-    | "projectPathRequired";
+  unavailable?: "apiUnavailable" | "packageUnavailable" | "mcpUnavailable" | "cmdUnavailable";
 }
 
 function quote(value: string, terminal: ConnectionTerminal): string {
@@ -60,8 +55,7 @@ export function connectionExample(
   terminal: ConnectionTerminal,
   bankId: string,
   connection: CustomerConnection,
-  query: string,
-  projectPath = "."
+  query: string
 ): ConnectionExample {
   const { apiUrl, mcpUrl, packages } = connection;
   if (client === "mcp") {
@@ -82,7 +76,6 @@ export function connectionExample(
       ),
     };
   }
-  if (!apiUrl) return { unavailable: "apiUnavailable" };
   const q = (value: string) => quote(value, terminal);
   const npm = terminal === "bash" ? "npm" : "npm.cmd";
   const curl = terminal === "bash" ? "curl" : "curl.exe";
@@ -95,6 +88,14 @@ export function connectionExample(
       : terminal === "powershell"
         ? '"$env:CONTEXTBASE_API_TOKEN"'
         : '"$CONTEXTBASE_API_TOKEN"';
+  if (codingClients.some((entry) => entry.id === client)) {
+    if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
+    const npx = terminal === "bash" ? "npx" : "npx.cmd";
+    return {
+      install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument}`,
+    };
+  }
+  if (!apiUrl) return { unavailable: "apiUnavailable" };
   if (client === "rest") {
     const url = `${apiUrl}/v1/default/banks/${encodeURIComponent(bankId)}/stats`;
     if (cmdUnsafe([url], terminal)) return { unavailable: "cmdUnavailable" };
@@ -107,17 +108,6 @@ export function connectionExample(
     return {
       code: `${token}\n${curl} --fail --show-error -H "Authorization: Bearer ${variable}" ${q(url)}`,
     };
-  }
-  const isCoding = codingClients.some((entry) => entry.id === client);
-  if (isCoding) {
-    if (!projectPath.trim() || /[\0\r\n]/.test(projectPath))
-      return { unavailable: "projectPathRequired" };
-    if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
-    if (cmdUnsafe([apiUrl, bankId, projectPath], terminal))
-      return { unavailable: "cmdUnavailable" };
-    const args = `install ${client} --api-url ${q(apiUrl)} --api-token ${tokenArgument} --bank-id ${q(bankId)} --project-path ${q(projectPath)}`;
-    const npx = terminal === "bash" ? "npx" : "npx.cmd";
-    return { install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} ${args}` };
   }
   const packageUrl = packages[client as keyof typeof packages];
   if (!packageUrl) return { unavailable: "packageUnavailable" };

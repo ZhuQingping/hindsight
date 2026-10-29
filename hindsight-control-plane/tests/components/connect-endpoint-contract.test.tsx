@@ -41,10 +41,13 @@ it.each(["contextbase", "contextdb"])(
     vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_KEY", "operator-secret");
     const bank = "team/%-中文.json";
     await show(bank);
-    expect(document.body.textContent).toContain("install claude-code --api-url");
+    expect(document.body.textContent).toContain("install claude-code --api-token");
     expect(document.body.textContent).toContain("npx.cmd --yes");
-    expect(document.body.textContent).toContain("--bank-id '" + bank + "'");
-    expect(document.body.textContent).toContain("--project-path '.'");
+    expect(document.body.textContent).toContain(bank);
+    const command = Array.from(document.querySelectorAll("pre")).find((node) =>
+      node.textContent?.includes("npx.cmd")
+    )!;
+    expect(command.textContent).not.toMatch(/--api-url|--bank-id|--project-path/);
     expect(document.body.textContent).not.toContain("install claude-code codex");
     fireEvent.click(screen.getByRole("button", { name: "Application development" }));
     fireEvent.change(screen.getByLabelText("Client"), { target: { value: "mcp" } });
@@ -66,13 +69,16 @@ it.each(["contextbase", "contextdb"])(
   }
 );
 
-it("shows an unavailable state without inventing localhost or a registry install", async () => {
+it("offers the installer but requires a public endpoint for REST examples", async () => {
   for (const key of ["PUBLIC_API_URL", "PUBLIC_MCP_URL"]) {
     vi.stubEnv(`CONTEXTBASE_CP_${key}`, "");
     vi.stubEnv(`HINDSIGHT_CP_${key}`, "");
   }
   vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "http://private-api:8888");
   await show("bank");
+  expect(document.body.textContent).toContain("npx.cmd --yes");
+  fireEvent.click(screen.getByRole("button", { name: "Application development" }));
+  fireEvent.change(screen.getByLabelText("Client"), { target: { value: "rest" } });
   expect(screen.getByRole("status").textContent).toContain("API address is not available");
   expect(document.querySelectorAll("pre")).toHaveLength(0);
   expect(document.body.textContent).not.toMatch(/localhost|private-api/);

@@ -39,7 +39,7 @@ it.each(codingClients)(
   ({ id }) => {
     show();
     select(id);
-    expect(document.body.textContent).toContain(`install ${id} --api-url`);
+    expect(document.body.textContent).toContain(`install ${id} --api-token`);
     expect(document.body.textContent).toContain(`harness = ${id}`);
     expect(document.body.textContent).toContain("config.api_url");
     expect(document.body.textContent).toContain("not cloud permissions");
@@ -107,19 +107,22 @@ it("keeps clients selectable when one package is unavailable", () => {
   expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
   expect(document.querySelectorAll("pre")).toHaveLength(0);
   select("codex");
-  expect(document.body.textContent).toContain("install codex --api-url");
+  expect(document.body.textContent).toContain("install codex --api-token");
 });
 
-it("offers PowerShell when bank data cannot be safely copied into CMD", () => {
+it("keeps bank details as prose rather than interpolating them into CMD", () => {
   render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <ClientConnectionSetup bankId="team%secret%" connection={connection} />
     </NextIntlClientProvider>
   );
   fireEvent.click(screen.getByRole("button", { name: "CMD" }));
-  expect(screen.getByRole("status").textContent).toContain("Switch to PowerShell");
-  fireEvent.click(screen.getByRole("button", { name: "PowerShell" }));
-  expect(document.body.textContent).toContain("--bank-id 'team%secret%'");
+  expect(screen.queryByRole("status")).toBeNull();
+  const command = Array.from(document.querySelectorAll("pre")).find((node) =>
+    node.textContent?.includes("npx.cmd")
+  )!;
+  expect(command.textContent).not.toContain("team%secret%");
+  expect(document.body.textContent).toContain("team%secret%");
 });
 
 it("renders Chinese instructions and all dynamic translation paths without missing messages", () => {
@@ -143,28 +146,17 @@ it("renders Chinese instructions and all dynamic translation paths without missi
   expect(document.body.textContent).not.toMatch(/hindsight/i);
 });
 
-it("shows the public endpoint and bank and regenerates commands for the customer's path", () => {
+it("shows connection details after the command without a parameter form or automatic binding", () => {
   show();
-  const endpoint = screen.getByLabelText("API Endpoint") as HTMLInputElement;
-  const bank = screen.getByLabelText("Bank ID") as HTMLInputElement;
-  expect(endpoint.value).toBe(connection.apiUrl);
-  expect(endpoint.readOnly).toBe(true);
-  expect(bank.value).toBe("team");
-  expect(bank.readOnly).toBe(true);
-  const path = "D:\\code\\客户项目";
-  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: path } });
-  expect(document.body.textContent).toContain(`--project-path '${path}'`);
-  fireEvent.click(screen.getByRole("button", { name: "CMD" }));
-  expect(document.body.textContent).toContain(`--project-path "${path}"`);
-});
-
-it("does not offer a copied install command for an empty project path", () => {
-  show();
-  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: "" } });
-  expect(screen.getByRole("status").textContent).toContain("Enter a project path");
-  expect(document.querySelectorAll("pre")).toHaveLength(0);
-  fireEvent.change(screen.getByLabelText("Project path"), { target: { value: "." } });
-  expect(document.body.textContent).toContain("npx.cmd --yes");
+  expect(document.querySelectorAll("input")).toHaveLength(0);
+  const command = Array.from(document.querySelectorAll("pre")).find((node) =>
+    node.textContent?.includes("npx.cmd")
+  )!;
+  expect(command.textContent).not.toMatch(/--api-url|--bank-id|--project-path/);
+  const text = document.body.textContent!;
+  expect(text.indexOf(connection.apiUrl!)).toBeGreaterThan(text.indexOf(command.textContent!));
+  expect(text).toContain("The command does not bind it automatically");
+  expect(text).toContain("mapPathToBank");
 });
 
 it("connects through npm without a download link or archive installer", () => {
