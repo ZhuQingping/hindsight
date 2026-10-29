@@ -181,7 +181,6 @@ export function ClientConnectionSetup({
                     <p>
                       {t("endpointHelp", { endpoint: connection.apiUrl ?? t("apiUnavailable") })}
                     </p>
-                    <p>{t("bankHelp", { bankId })}</p>
                     <p>{t("projectHelp")}</p>
                   </div>
                 )}

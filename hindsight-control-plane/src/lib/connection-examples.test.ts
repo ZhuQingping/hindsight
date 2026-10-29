@@ -22,7 +22,7 @@ const connection: CustomerConnection = {
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
 
 it.each(codingClients)(
-  "installs only $id without passing connection or project fields",
+  "installs only $id with its Bank ID and without endpoint or project flags",
   ({ id }) => {
     const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
     const snippet = connectionExample(id, "bash", bank, connection, "question");
@@ -41,9 +41,11 @@ it.each(codingClients)(
       id,
       "--api-token",
       "<API_KEY>",
+      "--bank-id",
+      bank,
     ]);
-    expect(snippet.install).not.toMatch(/--api-url|--bank-id|--project-path/);
-    expect(snippet.install).not.toContain(bank);
+    expect(snippet.install).not.toMatch(/--api-url|--project-path/);
+    expect(snippet.install).toContain("--bank-id");
   }
 );
 
@@ -65,12 +67,14 @@ it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
 });
 
 it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
-  "does not interpolate bank data into CMD: %s",
+  "rejects Bank IDs that CMD would expand: %s",
   (bank) => {
-    const result = connectionExample("codex", "cmd", bank, connection, "q");
-    expect(result.install).toContain("npx.cmd --yes");
-    expect(result.install).not.toMatch(/--api-url|--bank-id|--project-path/);
-    expect(result.install).not.toContain(bank);
+    expect(connectionExample("codex", "cmd", bank, connection, "q").unavailable).toBe(
+      "cmdUnavailable"
+    );
+    expect(connectionExample("codex", "powershell", bank, connection, "q").install).toContain(
+      "--bank-id"
+    );
   }
 );
 
@@ -221,7 +225,7 @@ it.each(codingClients)(
       "q"
     );
     expect(result.install).toContain(`install ${id} --api-token`);
-    expect(result.install).not.toMatch(/--api-url|--bank-id|--project-path/);
+    expect(result.install).not.toMatch(/--api-url|--project-path/);
   }
 );
 

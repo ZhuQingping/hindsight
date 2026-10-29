@@ -110,19 +110,19 @@ it("keeps clients selectable when one package is unavailable", () => {
   expect(document.body.textContent).toContain("install codex --api-token");
 });
 
-it("keeps bank details as prose rather than interpolating them into CMD", () => {
+it("offers PowerShell for Bank IDs that CMD would expand", () => {
   render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <ClientConnectionSetup bankId="team%secret%" connection={connection} />
     </NextIntlClientProvider>
   );
   fireEvent.click(screen.getByRole("button", { name: "CMD" }));
-  expect(screen.queryByRole("status")).toBeNull();
+  expect(screen.getByRole("status").textContent).toContain("Switch to PowerShell");
+  fireEvent.click(screen.getByRole("button", { name: "PowerShell" }));
   const command = Array.from(document.querySelectorAll("pre")).find((node) =>
     node.textContent?.includes("npx.cmd")
   )!;
-  expect(command.textContent).not.toContain("team%secret%");
-  expect(document.body.textContent).toContain("team%secret%");
+  expect(command.textContent).toContain("--bank-id 'team%secret%'");
 });
 
 it("renders Chinese instructions and all dynamic translation paths without missing messages", () => {
@@ -146,17 +146,17 @@ it("renders Chinese instructions and all dynamic translation paths without missi
   expect(document.body.textContent).not.toMatch(/hindsight/i);
 });
 
-it("shows connection details after the command without a parameter form or automatic binding", () => {
+it("shows connection details after the command without a parameter form and with the selected Bank ID", () => {
   show();
   expect(document.querySelectorAll("input")).toHaveLength(0);
   const command = Array.from(document.querySelectorAll("pre")).find((node) =>
     node.textContent?.includes("npx.cmd")
   )!;
-  expect(command.textContent).not.toMatch(/--api-url|--bank-id|--project-path/);
+  expect(command.textContent).not.toMatch(/--api-url|--project-path/);
   const text = document.body.textContent!;
   expect(text.indexOf(connection.apiUrl!)).toBeGreaterThan(text.indexOf(command.textContent!));
-  expect(text).toContain("The command does not bind it automatically");
-  expect(text).toContain("mapPathToBank");
+  expect(command.textContent).toContain("--bank-id 'team'");
+  expect(text).toContain("--project-path is optional");
 });
 
 it("connects through npm without a download link or archive installer", () => {

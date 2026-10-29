@@ -47,7 +47,8 @@ it.each(["contextbase", "contextdb"])(
     const command = Array.from(document.querySelectorAll("pre")).find((node) =>
       node.textContent?.includes("npx.cmd")
     )!;
-    expect(command.textContent).not.toMatch(/--api-url|--bank-id|--project-path/);
+    expect(command.textContent).not.toMatch(/--api-url|--project-path/);
+    expect(command.textContent).toContain("--bank-id '" + bank + "'");
     expect(document.body.textContent).not.toContain("install claude-code codex");
     fireEvent.click(screen.getByRole("button", { name: "Application development" }));
     fireEvent.change(screen.getByLabelText("Client"), { target: { value: "mcp" } });
