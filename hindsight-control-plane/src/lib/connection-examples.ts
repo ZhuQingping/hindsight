@@ -90,9 +90,10 @@ export function connectionExample(
         : '"$CONTEXTBASE_API_TOKEN"';
   if (codingClients.some((entry) => entry.id === client)) {
     if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
+    if (cmdUnsafe([bankId], terminal)) return { unavailable: "cmdUnavailable" };
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
     return {
-      install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument}`,
+      install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument} --bank-id ${q(bankId)}`,
     };
   }
   if (!apiUrl) return { unavailable: "apiUnavailable" };

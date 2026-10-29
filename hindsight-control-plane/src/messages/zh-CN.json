@@ -2377,7 +2377,7 @@
     "terminalLabel": "终端",
     "credentials": "在本地将 '<API_KEY>' 替换为已获当前工作空间授权的密钥。本页面不创建或保存密钥。",
     "descriptions": {
-      "coding": "为所选客户端安装 ContextBase 集成，连接信息和工作空间绑定由本地配置决定。",
+      "coding": "为所选客户端安装 ContextBase 集成，并将项目绑定到当前工作空间。",
       "openclaw": "安装 ContextBase 插件，将 OpenClaw Gateway 连接到此工作空间。",
       "hermes": "为当前 Hermes profile 安装 ContextBase 记忆提供方。",
       "python": "安装 Python SDK，执行只读记忆查询。",
@@ -2413,7 +2413,7 @@
     "verifyAgent": "在当前项目目录重启客户端，检查已加载的 ContextBase 工具，然后发送以下提示：",
     "verifyMcpAgent": "在当前项目目录重启客户端，通过 /mcp 检查 ContextBase；如提示授权 Hook，按需确认，然后发送以下提示：",
     "diagnosePrompt": "请使用实际注册的完整名称，调用当前已加载的 ContextBase 诊断工具。返回工具结果中的 workspace、bank_id、harness 和 config.api_url。",
-    "diagnoseExpected": "请核对项目目录、harness = {harness} 和 API 地址。若要接入当前工作空间，bank_id 应为 {bankId}；上方安装命令本身不完成此绑定。此步骤检查本地配置，不代表已验证云端权限。",
+    "diagnoseExpected": "结果应为当前项目目录、bank_id = {bankId}、harness = {harness}，并核对 API 地址。此步骤检查本地配置，不代表已验证云端权限。",
     "openCodeShared": "OpenCode 与 OpenCode 2 共用宿主插件入口，请选择实际使用的版本。",
     "verify": {
       "sdk": "成功返回 recall 结果（可以为空）表示请求已完成。若返回鉴权或 工作空间 错误，需要先解决；脚本能启动不代表接入成功。",
@@ -2426,8 +2426,7 @@
     "installScope": "集成安装到当前用户。API 地址和密钥由各项目共享，更改后会影响其他项目；项目与工作空间的映射分别保留。",
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。",
-    "endpointHelp": "API Endpoint：{endpoint}。安装器会读取已保存的地址或 CONTEXTBASE_API_URL；都未配置时，在交互式终端中提示输入。上方命令不传入此地址。",
-    "bankHelp": "当前工作空间的 Bank ID 为 {bankId}。上方命令不会自动绑定此工作空间；未指定时使用本地已有映射或默认 Bank 规则。需要接入当前工作空间时，请另行配置绑定。",
-    "projectHelp": "请在项目目录执行安装，并在该目录重启客户端。项目与 Bank 的映射保存在 ~/.contextbase/coding-agent.json 的 mapPathToBank 中；也可按需使用安装器的 --bank-id 与 --project-path 参数配置。"
+    "endpointHelp": "--api-url：API Endpoint，不填时读取已有配置或环境变量；首次使用可按终端提示输入。",
+    "projectHelp": "--project-path：可选，默认绑定当前目录；接入其他项目时可指定其本机路径。"
   }
 }

@@ -178,10 +178,7 @@ export function ClientConnectionSetup({
                 <ConnectionCode key={example.install} code={example.install} />
                 {isCoding && (
                   <div className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
-                    <p>
-                      {t("endpointHelp", { endpoint: connection.apiUrl ?? t("apiUnavailable") })}
-                    </p>
-                    <p>{t("bankHelp", { bankId })}</p>
+                    <p>{t("endpointHelp")}</p>
                     <p>{t("projectHelp")}</p>
                   </div>
                 )}
