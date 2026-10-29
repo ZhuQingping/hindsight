@@ -2,20 +2,32 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const explicitRoots = process.argv.slice(2);
+const { values, positionals: explicitRoots } = parseArgs({
+  options: { "project-root": { type: "string" } },
+  allowPositionals: true,
+});
+const root = path.resolve(
+  values["project-root"] || path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
+);
 const roots = explicitRoots.length
   ? explicitRoots.map((value) => ({ directory: path.resolve(value), htmlOnly: false }))
   : [
       { directory: path.join(root, ".next/static"), htmlOnly: false },
       { directory: path.join(root, "public"), htmlOnly: false },
       { directory: path.join(root, ".next/server/app"), htmlOnly: true },
-      ...["standalone/.next/static", "standalone/public"]
-        .filter((value) => existsSync(path.join(root, value)))
-        .map((value) => ({ directory: path.join(root, value), htmlOnly: false })),
+      // Scan the packaged HTML/RSC that the standalone server actually serves.
+      // If packaging has started, missing output is a failure, not an exemption.
+      ...(existsSync(path.join(root, "standalone"))
+        ? [
+            { directory: path.join(root, "standalone/.next/static"), htmlOnly: false },
+            { directory: path.join(root, "standalone/public"), htmlOnly: false },
+            { directory: path.join(root, "standalone/.next/server/app"), htmlOnly: true },
+          ]
+        : []),
     ];
-const oldBrand = /hindsight|vectorize(?:-io|\.io)|retainai/i;
+const oldBrand = /hindsight|agentstratum|vectorize(?:-io|\.io)|retainai/i;
 // Raster images cannot be audited by searching decoded text. Reject the exact
 // retired upstream logo/icon too, including copies saved under another name.
 const retiredImages = new Set([

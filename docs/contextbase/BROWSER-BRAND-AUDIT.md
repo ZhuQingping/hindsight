@@ -14,10 +14,10 @@
   动态页面由服务端生成，另启动真实 standalone 服务检查返回的 HTML/RSC 和 HTTP 响应。
 - Docker 的 `cp-builder` 单独执行 Next 构建并复制上述目录，本次也在该构建路径加入扫描。
 - 仓库是私有仓库。本环境无法直接 git clone，使用 GitHub 连接按固定提交获取了完整控制台、
-  TypeScript SDK、UI 测试及所需构建/部署文件。远端提交直接以该 main 提交为父提交，
+  TypeScript SDK、UI 测试及所需构建/部署文件。远端分支始于该 main 提交，仅提交审计相关变更，
   未将本地检查快照中的其他文件作为新内容提交。
 - 未连接实际部署服务。生产 HTTP 验证使用本机 standalone 服务和受控的 stub 数据面，
-  不是线上浏览器验收；环境未提供可运行的 Chromium，也未执行真实浏览器端 JS 的端到端测试。
+  不是线上浏览器验收；尚未对 ContextBase 执行真实浏览器端 JS 的端到端测试。
 
 ## 发现与处理
 
@@ -29,7 +29,7 @@
 | 部分代理透传服务端故障 | 24 个 `src/app/api/**/route.ts` 文件，详见文件清单 | 原始 5xx JSON/HTML 可能含旧品牌、源码路径或内部诊断。直接代理的原始 JSON 统一通过 `publicUpstreamPayload`；管理代理返回固定服务错误并保留状态、ETag、请求 ID、禁止缓存头；retain 的 5xx details 置空。已有安全的 SDK/本地化错误路径继续保留。 |
 | 旧 ContextDB 展示文案 | `src/lib/contextdb.ts`、`src/app/api/contextdb/[...path]/route.ts` | 改为 ContextBase；未改 ContextDB 的路由、协议字段、类名或配置键。 |
 | 缺少公开资源回归检查 | `next.config.ts`、`package.json`、新增审计脚本 | 原生产构建没有发现公开 Source Map，Next 默认已关闭；现在显式设置 `productionBrowserSourceMaps: false`，并检查公开 map、源码引用、旧品牌、旧图片哈希及合成私有配置标记。 |
-| Docker 依赖清理表达式过期 | `docker/standalone/Dockerfile:114`、`:121` | 原表达式匹配 `@vectorize-io/contextbase-client`，实际依赖已是 `contextbase-client`，无法移除本地 file 依赖。修正匹配，并在 Next 构建后运行资源扫描。 |
+| Docker 依赖清理表达式过期 | `docker/standalone/Dockerfile:114`、`:121` | 原表达式匹配 `@vectorize-io/contextbase-client`，实际依赖已是 `contextbase-client`，无法移除本地 file 依赖。修正匹配，并在 standalone 打包复制完成后扫描最终资源。 |
 
 页面标题、登录及接入文案、现有产品图标、翻译资源中未发现需要继续替换的 Hindsight 展示文案。
 未新增公共 API 地址或凭证；客户接入信息仍仅取显式公开配置，不回退到控制台内部数据面地址。
@@ -48,16 +48,38 @@
 | 客户正文、文件、名称及 4xx 校验内容中的旧词 | 可能是客户真实数据，禁止全局替换。测试验证成功结果、下载字节和校验输入不被改写。 |
 | 第三方依赖与许可证 | 保留原标识和版权；没有为了品牌清理改写第三方代码。 |
 
+## 复核发现的四项问题及补修
+
+原版 PR 的“无阻断问题”结论经复核修正，已补齐以下内容：
+
+1. 默认扫描同时覆盖 `standalone/.next/server/app` 下的 HTML/RSC；存在 standalone 目录时，缺少关键打包目录会报错。增加独立打包 HTML、RSC 含旧品牌时失败的测试，且 Docker 将扫描移到最终复制完成之后。
+2. 源码和生产 HTTP 的检测规则加入仓库登记的历史名称 `agentstratum`；增加内容及资源文件名的拒绝用例。没有在当前正常产物中发现该历史名称，修复的是漏检能力。
+3. 依据根 `.prettierrc.json` 的 `trailingComma: es5` 规则修正新测试的逗号，根配置下的格式检查通过。
+4. HTTP 脚本串行启动普通模式和 ContextBase 管理模式；每种模式独立管理会话及 stub 后端。新增的 `Browser brand audit` 工作流在每次相关 PR 更新时自动运行该检查。
+
+## GitHub CI 的启动失败根因
+
+已通过 Actions 页面注释确认：[原 CI #53](https://github.com/RSIXDB/hindsight/actions/runs/40864127097)
+在启动前被仓库 Actions 允许名单拒绝，列出的依赖包括 `actions/cache@v5`、`astral-sh/setup-uv@v7`、
+`dorny/paths-filter@v4`、`jlumbroso/free-disk-space@main`、`docker/setup-buildx-action@v4` 等。
+这不是前端测试运行失败：该 run 没有启动任何 job。
+
+本次审计使用独立 `.github/workflows/browser-brand-audit.yml`，仅引用仓库已允许的
+`actions/checkout@v6`、`actions/setup-node@v6`，权限为 `contents: read`。
+工作流执行前端测试、根配置格式检查、合成私有配置标记构建、最终产物扫描及两种模式 HTTP 审计。
+原全量工作流及仓库安全设置未改动；全量 CI 的允许名单阻断仍需独立处理。
+新审计工作流的实际运行结果以 PR 的 `Browser brand audit` 检查为准。
+
 ## 验证结果
 
 | 检查 | 结果 |
 | --- | --- |
 | 生产构建 | SDK、Next 编译、TypeScript 类型检查及 standalone 复制成功。使用合成内部 URL、API Key、UI 密码进行构建。 |
-| 最终公开资源扫描 | 通过，扫描 113 个文件（包含 standalone 重复复制件），覆盖 25 个 Next 静态文件、25 个 public 文件及静态 HTML/RSC。旧品牌、旧资源名、公开 Source Map、公开源码引用和合成私有标记未命中。 |
-| 前端及扩展 UI 测试 | `TZ=UTC npm test --workspace=hindsight-control-plane -- --maxWorkers=2`；85 个测试文件、854 项全部通过。包含事件创建/刷新路径，以及新增的 5xx、4xx、成功响应、下载、扫描拒绝场景和管理请求关联测试。 |
-| 生产 HTTP 审计 | `npm run test:browser-brand --workspace=hindsight-control-plane`；66 项响应体/响应头检查、20 个加载资源通过。覆盖中英文登录 HTML、登录/退出、主要页面、PNG、Source Map 404、图与上传 503、正常 API 响应；数据面是本地 stub。 |
+| 最终公开资源扫描 | 通过，扫描 120 个文件（包含 standalone 重复复制件），覆盖 25 个 Next 静态文件、25 个 public 文件及静态 HTML/RSC。旧品牌、旧资源名、公开 Source Map、公开源码引用和合成私有标记未命中。 |
+| 前端及扩展 UI 测试 | `TZ=UTC npm test --workspace=hindsight-control-plane -- --maxWorkers=2`；85 个测试文件、860 项全部通过。包含事件创建/刷新路径，以及新增的 5xx、4xx、成功响应、下载、扫描拒绝场景和管理请求关联测试。 |
+| 生产 HTTP 审计 | `npm run test:browser-brand --workspace=hindsight-control-plane`；普通模式 67 项检查、20 个加载资源；管理模式 89 项检查、21 个加载资源，均通过。覆盖中英文登录、登录/退出、主要页面、用户创建、密钥仅创建时返回、密钥列表去除 secret/digest、工作区创建/读取/删除、管理 503、管理员权限撤销，以及 PNG、Source Map 404、图与上传错误；数据面是本地 stub。 |
 | 前端 ESLint | 0 errors，203 个现有 warnings；新增测试文件单独 ESLint 通过。 |
-| 格式与差异 | 变更 TypeScript、脚本经过 Prettier；`git diff --check` 通过。 |
+| 格式与差异 | 按仓库根 `.prettierrc.json` 检查变更 TypeScript 和脚本；`git diff --check` 通过。 |
 | 全仓 lint | 尝试 `bash scripts/hooks/lint.sh`，但该脚本先同步整个 Python monorepo；本地仅获取了前端及审计所需文件，没有根 Python 项目，无法执行。前端 lint 已单独运行。 |
 | i18n 检查 | 原 `tsx` CLI 在本环境创建 Unix socket 被拒绝；改用 `node --import tsx scripts/find-untranslated.ts` 执行，仍报告未修改的 `src/components/product-runtime.tsx:57` 已有英文提示。这不是本次新增问题。 |
 | Docker | 修正后的 sed 表达式用实际 package.json 验证，能移除正确依赖且输出有效 JSON；未执行 Docker 镜像构建。 |
@@ -93,7 +115,8 @@ npm run test:browser-brand --workspace=hindsight-control-plane
 
 | 文件 | 改动与原因 |
 | --- | --- |
-| `docker/standalone/Dockerfile` | 修正旧 SDK 依赖匹配，构建后扫描公开资源 |
+| `.github/workflows/browser-brand-audit.yml` | 使用仓库已允许的 Actions，自动运行格式、测试、构建扫描和两种模式 HTTP 验证 |
+| `docker/standalone/Dockerfile` | 修正旧 SDK 依赖匹配，standalone 打包完成后扫描最终公开资源 |
 | `docs/contextbase/BROWSER-BRAND-AUDIT.md` | 记录审计发现、保留项、验证证据和边界 |
 | `hindsight-control-plane/next.config.ts` | 显式关闭生产浏览器 Source Map |
 | `hindsight-control-plane/package.json` | 生产构建接入扫描，提供可重跑审计命令 |

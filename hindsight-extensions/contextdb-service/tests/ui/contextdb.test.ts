@@ -71,7 +71,7 @@ it("hides management server diagnostics while preserving status and request corr
         "X-Request-ID": "upstream-request-id",
         ETag: '"metadata-version"',
       },
-    }),
+    })
   );
   const response = await GET(await request("/users"), route("users"));
   expect(response.status).toBe(503);

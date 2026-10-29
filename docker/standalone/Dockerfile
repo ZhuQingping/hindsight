@@ -129,7 +129,7 @@ ARG NEXT_PUBLIC_BASE_PATH=""
 
 # Build Control Plane - run next build first, then custom standalone copy
 # (The build:standalone script expects a specific path structure that differs in Docker)
-RUN npm exec -- next build && npm run audit:browser
+RUN npm exec -- next build
 
 # Create standalone directory structure manually
 # Note: Must exclude node_modules from find to avoid wrong server.js from next/dist/experimental/testmode/
@@ -150,6 +150,9 @@ RUN STANDALONE_ROOT=$(dirname "$(find .next/standalone -path '*/node_modules' -p
     # Verify required files exist
     test -f standalone/server.js || (echo "ERROR: server.js missing!" && exit 1) && \
     test -f standalone/.next/BUILD_ID || (echo "ERROR: BUILD_ID missing!" && exit 1)
+
+# Audit the final packaged HTML/RSC and static resources, after every copy.
+RUN npm run audit:browser
 
 # =============================================================================
 # Stage: Final Image - API Only
