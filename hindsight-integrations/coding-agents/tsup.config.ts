@@ -77,6 +77,13 @@ export default defineConfig({
   clean: true,
   dts: { entry: "src/index.ts" },
   shims: false,
+  // Public bundles omit source paths, implementation comments and source maps.
+  minify: true,
+  sourcemap: false,
+  esbuildOptions(options) {
+    // Preserve bundled third-party copyright and license notices when minifying.
+    options.legalComments = "inline";
+  },
   // Each bin entry (claude-hook.js, cursor-hook.js, codex-hook.js, deepen.js, status.js, mcp-server.js,
   // contextbase-seed.js) must be a single self-contained file: hosts wire a hook by absolute path to
   // ONE dist file and never load the rest of the package, so shared code can't live in a separate
