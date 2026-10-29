@@ -62,7 +62,18 @@ try {
     assert(!legacy.test(decodeURIComponent(asset)), `${asset}: legacy resource name`);
     const response = await fetch(origin + asset, { signal: AbortSignal.timeout(30000) });
     assert.equal(response.status, 200, asset);
-    assert(!legacy.test(await response.text()), `${asset}: legacy branding in resource`);
+    let content = await response.text();
+    // Next devtools embeds __NEXT_DIST_DIR to locate its diagnostics. Keep that
+    // framework-owned value intact at runtime; only its exact generated path is
+    // excluded from this development-only assertion. Resource URLs and all app
+    // chunks remain strict. Production permits no such path exception.
+    if (/\/node_modules_next_dist_compiled_next-devtools_/.test(asset)) {
+      const diagnosticsPath = path.join(root, ".next", "dev");
+      content = content
+        .replaceAll(JSON.stringify(diagnosticsPath).slice(1, -1), "<development-output>")
+        .replaceAll(diagnosticsPath, "<development-output>");
+    }
+    assert(!legacy.test(content), `${asset}: legacy branding in resource`);
   }
   console.log(`Development browser brand audit passed: 2 pages, ${assets.size} resources`);
 } catch (error) {
