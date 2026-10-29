@@ -144,6 +144,18 @@ async function proxy(request: Request, context: RouteContext) {
     }
     if (upstream.status === 204)
       return new NextResponse(null, { status: 204, headers: responseHeaders });
+    if (upstream.status >= 500) {
+      const failedRequestId = responseHeaders.get("X-Request-ID") ?? requestId;
+      responseHeaders.set("X-Request-ID", failedRequestId);
+      return NextResponse.json(
+        {
+          code: "service_unavailable",
+          message: "ContextBase management service is unavailable",
+          request_id: failedRequestId,
+        },
+        { status: upstream.status, headers: responseHeaders }
+      );
+    }
     const data: unknown = await upstream.json();
     // Never relay secret/digest fields on metadata or error responses. The only
     // exception is successful creation, which displays the secret once in memory.
@@ -157,7 +169,7 @@ async function proxy(request: Request, context: RouteContext) {
     return NextResponse.json(safe, { status: upstream.status, headers: responseHeaders });
   } catch {
     // Fetch exceptions can include headers/URLs. Do not log them with admin keys.
-    return failure("service_unavailable", "ContextDB management service is unavailable", 503);
+    return failure("service_unavailable", "ContextBase management service is unavailable", 503);
   }
 }
 

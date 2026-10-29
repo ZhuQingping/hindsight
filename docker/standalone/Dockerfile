@@ -111,14 +111,14 @@ WORKDIR /app/memory-poc/hindsight-control-plane
 # correct platform-specific native bindings for lightningcss/tailwindcss
 COPY hindsight-control-plane/package.json ./
 # Remove the file: dependency on SDK (we'll copy it directly later)
-RUN sed -i '/"@vectorize-io\/contextbase-client":/d' package.json \
+RUN sed -i '/"contextbase-client":/d' package.json \
     && npm install
 
 # Copy Control Plane source (excluding node_modules via .dockerignore)
 COPY hindsight-control-plane/ ./
 # Remove package-lock.json to avoid conflicts with installed native bindings
 # Also remove the file: dependency from package.json (restored by COPY above)
-RUN rm -f package-lock.json && sed -i '/"@vectorize-io\/contextbase-client":/d' package.json
+RUN rm -f package-lock.json && sed -i '/"contextbase-client":/d' package.json
 
 # Copy built SDK directly into node_modules (more reliable than npm link in Docker)
 COPY --from=sdk-builder /app/hindsight-clients/typescript ./node_modules/contextbase-client
@@ -129,7 +129,7 @@ ARG NEXT_PUBLIC_BASE_PATH=""
 
 # Build Control Plane - run next build first, then custom standalone copy
 # (The build:standalone script expects a specific path structure that differs in Docker)
-RUN npm exec -- next build
+RUN npm exec -- next build && npm run audit:browser
 
 # Create standalone directory structure manually
 # Note: Must exclude node_modules from find to avoid wrong server.js from next/dist/experimental/testmode/

@@ -1,3 +1,4 @@
+import { publicUpstreamPayload } from "@/lib/public-upstream-payload";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/contextbase-client";
@@ -30,7 +31,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ bank
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
-      return NextResponse.json(error, { status: response.status });
+      return NextResponse.json(publicUpstreamPayload(error, response.status), {
+        status: response.status,
+      });
     }
 
     const data = await response.json();

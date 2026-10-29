@@ -1,3 +1,4 @@
+import { publicUpstreamPayload } from "@/lib/public-upstream-payload";
 import { NextRequest, NextResponse } from "next/server";
 import { DATAPLANE_URL, getDataplaneHeaders } from "@/lib/contextbase-client";
 
@@ -8,7 +9,9 @@ export async function GET() {
   });
   const data = await response.json();
   if (!response.ok) {
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json(publicUpstreamPayload(data, response.status), {
+      status: response.status,
+    });
   }
   return NextResponse.json(data, { status: 200 });
 }
@@ -30,7 +33,9 @@ export async function PUT(request: NextRequest) {
   });
   const data = await response.json();
   if (!response.ok) {
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json(publicUpstreamPayload(data, response.status), {
+      status: response.status,
+    });
   }
   return NextResponse.json(data, { status: 200 });
 }

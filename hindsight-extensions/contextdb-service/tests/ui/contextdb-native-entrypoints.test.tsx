@@ -152,7 +152,7 @@ describe("ContextDB native UI entry points", () => {
 
   it("creates from the native selector and navigates to canonical bank_id rather than operation UUID", async () => {
     render(<BankSelector />);
-    act(() => window.dispatchEvent(new Event("hindsight:create-bank")));
+    act(() => window.dispatchEvent(new Event("contextbase:create-bank")));
     const dialog = await screen.findByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("workspaceName"), {
       target: { value: "MySQL" },
@@ -172,7 +172,7 @@ describe("ContextDB native UI entry points", () => {
   });
   it("rejects hyphenated names in the selector and its Enter shortcut", async () => {
     render(<BankSelector />);
-    act(() => window.dispatchEvent(new Event("hindsight:create-bank")));
+    act(() => window.dispatchEvent(new Event("contextbase:create-bank")));
     const dialog = await screen.findByRole("dialog");
     const input = within(dialog).getByLabelText("workspaceName");
     fireEvent.change(input, { target: { value: "my-bank" } });
@@ -200,7 +200,7 @@ describe("ContextDB native UI entry points", () => {
     state.contextDB = false;
     const { client } = await import("@/lib/api");
     render(<BankSelector />);
-    act(() => window.dispatchEvent(new Event("hindsight:create-bank")));
+    act(() => window.dispatchEvent(new Event("contextbase:create-bank")));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).queryByLabelText("workspaceDescription")).toBeNull();
     fireEvent.change(within(dialog).getByLabelText("createBankIdPlaceholder"), {
@@ -221,7 +221,7 @@ it("does not navigate when a workspace creation succeeds after the selector unmo
       })
   );
   const view = render(<BankSelector />);
-  act(() => window.dispatchEvent(new Event("hindsight:create-bank")));
+  act(() => window.dispatchEvent(new Event("contextbase:create-bank")));
   const dialog = await screen.findByRole("dialog");
   fireEvent.change(within(dialog).getByLabelText("workspaceName"), { target: { value: "mysql" } });
   fireEvent.click(within(dialog).getByRole("button", { name: "createWorkspace" }));

@@ -254,8 +254,8 @@ function BankSelectorInner() {
     const openCreate = () => {
       setCreateDialogOpen(true);
     };
-    window.addEventListener("hindsight:create-bank", openCreate);
-    return () => window.removeEventListener("hindsight:create-bank", openCreate);
+    window.addEventListener("contextbase:create-bank", openCreate);
+    return () => window.removeEventListener("contextbase:create-bank", openCreate);
   }, []);
 
   const maxFactCount = React.useMemo(
@@ -494,7 +494,7 @@ function BankSelectorInner() {
       // Nudge the documents view to surface the new file_convert_retain
       // operations right away (it derives pending rows from the server).
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("hindsight:documents-refresh"));
+        window.dispatchEvent(new Event("contextbase:documents-refresh"));
       }
 
       // Navigate to documents view
