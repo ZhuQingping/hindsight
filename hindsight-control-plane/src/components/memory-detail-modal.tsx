@@ -1,5 +1,6 @@
 "use client";
 
+import { ContextDBRecallUsage } from "./contextdb/recall-usage";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { client } from "@/lib/api";
@@ -318,6 +319,11 @@ export function MemoryDetailModal({
                       />
                     </div>
 
+                    <ContextDBRecallUsage
+                      bankId={currentBank ?? ""}
+                      objectType="memory"
+                      objectId={memory.id}
+                    />
                     {/* Dates */}
                     {memory.occurred_start && (
                       <div>
@@ -629,6 +635,11 @@ export function MemoryDetailModal({
                           </div>
                         )}
 
+                        <ContextDBRecallUsage
+                          bankId={currentBank ?? ""}
+                          objectType="memory"
+                          objectId={memory.id}
+                        />
                         {/* Dates */}
                         {memory.occurred_start && (
                           <div>

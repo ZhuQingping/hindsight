@@ -54,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ContextDBUsageProvider, ContextDBUsageFields } from "./contextdb/recall-usage";
 import { MemoryDetailModal } from "./memory-detail-modal";
 import { convertHindsightGraphData, graphLinkCategory, GraphNode } from "./graph-data";
 import { Constellation } from "./constellation";
@@ -959,7 +960,13 @@ export function DataView({
                       const paginatedRows = filteredTableRows.slice(startIndex, endIndex);
 
                       return (
-                        <>
+                        <ContextDBUsageProvider
+                          bankId={currentBank ?? ""}
+                          objectType="memory"
+                          ids={paginatedRows.flatMap((row) =>
+                            "id" in row && typeof row.id === "string" ? [row.id] : []
+                          )}
+                        >
                           <p className="mb-1 text-xs text-muted-foreground md:hidden">
                             {t("tableScrollHint")}
                           </p>
@@ -1013,6 +1020,7 @@ export function DataView({
                                           {row.context}
                                         </div>
                                       )}
+                                      <ContextDBUsageFields objectId={row.id} />
                                     </TableCell>
                                     <TableCell className="py-2">
                                       {row.entities ? (
@@ -1126,7 +1134,7 @@ export function DataView({
                               </div>
                             </div>
                           )}
-                        </>
+                        </ContextDBUsageProvider>
                       );
                     })()
                   ) : (

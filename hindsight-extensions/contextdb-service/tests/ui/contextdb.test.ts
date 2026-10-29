@@ -644,3 +644,88 @@ describe("management proxy boundaries", () => {
     });
   });
 });
+
+describe("read-only recall usage proxy", () => {
+  it("reads the explicit admin capability once with the existing session and server key", async () => {
+    backend.mockResolvedValue(
+      new Response(JSON.stringify({ role: "admin", capabilities: { recall_usage: true } }))
+    );
+    const response = await GET(await request("/admin/identity"), route("admin", "identity"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ role: "admin", capabilities: { recall_usage: true } });
+    expect(backend).toHaveBeenCalledOnce();
+    expect(String(backend.mock.calls[0][0])).toBe(
+      "http://backend.local/ext/contextdb/v1/admin/identity"
+    );
+    expect(backend.mock.calls[0][1].cache).toBe("no-store");
+    expect(response.headers.get("cache-control")).toContain("no-store");
+  });
+  it("forwards a bounded repeated-ID batch with the server key and no cache", async () => {
+    const ids = ["page/a", "page%20b"];
+    const query = new URLSearchParams({ object_type: "knowledge_page" });
+    ids.forEach((id) => query.append("ids", id));
+    const response = await GET(
+      await request(`/workspaces/mysql/usage?${query}`),
+      route("workspaces", "mysql", "usage")
+    );
+    expect(response.status).toBe(200);
+    const call = backend.mock.calls.find(([url]) =>
+      String(url).includes("/workspaces/mysql/usage")
+    );
+    expect(call).toBeTruthy();
+    const target = new URL(String(call![0]));
+    expect(target.origin).toBe("http://backend.local");
+    expect(target.searchParams.getAll("ids")).toEqual(ids);
+    expect(target.searchParams.get("object_type")).toBe("knowledge_page");
+    expect(call![1].headers.get("Authorization")).toBe("Bearer ctx_live_server-only");
+    expect(call![1].cache).toBe("no-store");
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(await response.text()).not.toContain("ctx_live_server-only");
+  });
+  it.each([
+    "object_type=memory",
+    "object_type=invalid&ids=a",
+    "object_type=memory&object_type=memory&ids=a",
+    "object_type=knowledge_page&ids=",
+    "object_type=knowledge_page&ids=a&url=http://evil.local",
+    `object_type=memory&${Array.from({ length: 101 }, () => "ids=a").join("&")}`,
+  ])("rejects malformed queries before the data request: %s", async (query) => {
+    expect(
+      (
+        await GET(
+          await request(`/workspaces/mysql/usage?${query}`),
+          route("workspaces", "mysql", "usage")
+        )
+      ).status
+    ).toBe(400);
+    expect(backend.mock.calls.every(([url]) => String(url).endsWith("/admin/identity"))).toBe(true);
+  });
+  it("does not expose usage through anonymous requests or mutation methods", async () => {
+    const denied = await GET(
+      new Request("http://ui.local/api/contextdb/workspaces/mysql/usage?object_type=memory&ids=a"),
+      route("workspaces", "mysql", "usage")
+    );
+    expect(denied.status).toBe(401);
+    expect(backend).not.toHaveBeenCalled();
+    for (const method of [POST, PATCH, DELETE]) {
+      const r = await method(
+        await request(
+          "/workspaces/mysql/usage?object_type=memory&ids=a",
+          method === POST ? "POST" : method === PATCH ? "PATCH" : "DELETE"
+        ),
+        route("workspaces", "mysql", "usage")
+      );
+      expect(r.status).toBe(404);
+    }
+    expect(backend.mock.calls.every(([url]) => String(url).endsWith("/admin/identity"))).toBe(true);
+  });
+  it("rechecks configured admin authority for usage", async () => {
+    backend.mockResolvedValue(new Response('{"code":"admin_required"}', { status: 403 }));
+    const r = await GET(
+      await request("/workspaces/mysql/usage?object_type=knowledge_page&ids=a"),
+      route("workspaces", "mysql", "usage")
+    );
+    expect(r.status).toBe(403);
+    expect(backend).toHaveBeenCalledOnce();
+  });
+});

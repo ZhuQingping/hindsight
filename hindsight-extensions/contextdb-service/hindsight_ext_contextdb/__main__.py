@@ -70,7 +70,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="ContextDB deployment initialization")
     parser.add_argument(
         "command",
-        choices=["migrate", "generate-admin-key", "rotate-admin-key", "preflight", "prepare", "run", "build-ui"],
+        choices=[
+            "migrate",
+            "generate-admin-key",
+            "rotate-admin-key",
+            "preflight",
+            "prepare",
+            "run",
+            "build-ui",
+            "upgrade-usage",
+            "reset-usage",
+        ],
     )
     parser.add_argument(
         "--admin-key-file", type=Path, help="Private persisted administrator credential for initialization"
@@ -82,8 +92,23 @@ def main() -> None:
     parser.add_argument("--language", choices=["english", "chinese", "multilingual"], default="english")
     parser.add_argument("--directory", type=Path, help="Private persistent deployment directory")
     parser.add_argument("--component", choices=["api", "worker", "ui"], help="Foreground component for the node Agent")
+    parser.add_argument("--bank-id", help="Registered workspace for offline usage reset")
+    parser.add_argument("--offline", action="store_true", help="Confirm API/Worker access is stopped and drained")
     args = parser.parse_args()
-    if args.command == "build-ui":
+    if args.command in {"upgrade-usage", "reset-usage"}:
+        if not args.offline or args.admin_key_file is None or (args.command == "reset-usage" and not args.bank_id):
+            parser.error("usage maintenance requires --offline, --admin-key-file and --bank-id for reset")
+        if args.directory:
+            load_deployment_secrets(args.directory, "api")
+        from .models import ServiceError
+        from .usage_admin import maintain_usage
+
+        try:
+            count = asyncio.run(maintain_usage(args.command, args.admin_key_file, args.bank_id))
+        except (ServiceError, ValueError, asyncpg.PostgresError, OSError, TimeoutError):
+            parser.exit(2, "Usage maintenance failed; keep access stopped and check database/schema readiness\n")
+        print(f"Usage maintenance completed for {count} workspace(s)")
+    elif args.command == "build-ui":
         if args.source_root is None:
             parser.error("build-ui requires --source-root")
         from .artifacts import build_ui

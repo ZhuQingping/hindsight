@@ -1,4 +1,4 @@
-"""One operations administrator credential protects all management routes."""
+"""Administrator management routes and workspace-authorized usage reads."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ from .models import (
     KeyIssued,
     KeyMetadata,
     Page,
+    Scope,
     ServiceError,
     User,
     UserCreate,
@@ -36,6 +37,8 @@ from .models import (
 )
 from .security import bearer_credential
 from .tenant import ContextDBTenantExtension
+from .usage import UsageCollector, collector_for
+from .usage_repository import UsageItem, UsageRepository, UsageTarget
 from .validator import ContextDBOperationValidator
 
 if TYPE_CHECKING:
@@ -60,11 +63,22 @@ class WorkspaceResponse(BaseModel):
     created_at: datetime
 
 
+class ContextDBCapabilities(BaseModel):
+    recall_usage: bool
+
+
 class AdminIdentity(BaseModel):
     user_id: str
     role: Literal["admin"] = "admin"
     instance_id: str
     cloud_tenant_id: str
+    capabilities: ContextDBCapabilities
+
+
+class UsageReport(BaseModel):
+    bank_id: str
+    object_type: Literal["memory", "knowledge_page"]
+    items: list[UsageItem]
 
 
 class FieldError(BaseModel):
@@ -177,6 +191,16 @@ class ContextDBHttpExtension(HttpExtension):
             raise RuntimeError("ContextDB requires its tenant, validator and HTTP extensions")
         repository = await repository_for(self.memory, self.settings)
         await repository.verify_schema()
+        if self.settings.recall_usage_enabled and collector_for(self.memory) is None:
+            collector = UsageCollector(UsageRepository(repository.pool))
+            setattr(self.memory, "_contextdb_usage", collector)
+            collector.start()
+
+    async def on_shutdown(self) -> None:
+        collector = collector_for(self.memory) if self.memory is not None else None
+        if collector is not None:
+            await collector.close()
+            setattr(self.memory, "_contextdb_usage", None)
 
     def get_router(self, memory: MemoryEngine) -> APIRouter:
         self.memory = memory
@@ -197,10 +221,22 @@ class ContextDBHttpExtension(HttpExtension):
         ) -> None:
             pass
 
+        usage_bearer = HTTPBearer(scheme_name="WorkspaceReadKey", auto_error=False)
+
+        async def usage_headers(
+            _credential: HTTPAuthorizationCredentials | None = Security(usage_bearer),
+        ) -> None:
+            pass
+
         class ManagementRoute(APIRoute):
+            credential_headers = staticmethod(admin_headers)
+
+            async def authenticate(self, request: Request) -> BusinessPrincipal:
+                return await (await repository()).authenticate_admin(bearer_credential(request.scope["headers"]))
+
             def __init__(self, *args: Any, **kwargs: Any) -> None:
                 dependencies = list(kwargs.get("dependencies") or [])
-                dependencies.append(Depends(admin_headers))
+                dependencies.append(Depends(self.credential_headers))
                 kwargs["dependencies"] = dependencies
                 responses = dict(kwargs.get("responses") or {})
                 for status in (400, 401, 403, 404, 409, 412, 428, 503):
@@ -259,11 +295,9 @@ class ContextDBHttpExtension(HttpExtension):
                     request_id = secrets.token_hex(16)
                     request.state.contextdb_request_id = request_id
                     try:
-                        # Authenticate before request-body validation. Customer Keys
-                        # never become administrators, even with all-space access.
-                        request.state.contextdb_principal = await (await repository()).authenticate_admin(
-                            bearer_credential(request.scope["headers"])
-                        )
+                        # Apply the route's authority before validating inputs.
+                        # Management stays admin-only; usage has a separate read policy.
+                        request.state.contextdb_principal = await self.authenticate(request)
                         for name, value in request.path_params.items():
                             if (
                                 name.endswith("_id")
@@ -315,6 +349,16 @@ class ContextDBHttpExtension(HttpExtension):
 
                 return handle
 
+        class UsageReadRoute(ManagementRoute):
+            credential_headers = staticmethod(usage_headers)
+
+            async def authenticate(self, request: Request) -> BusinessPrincipal:
+                # Usage inherits content-read authority, not management authority.
+                # Keep this route separate so management methods stay admin-only.
+                return await (await repository()).authenticate(
+                    bearer_credential(request.scope["headers"]), request.path_params["bank_id"]
+                )
+
         router = APIRouter(
             prefix="/contextdb/v1",
             route_class=ManagementRoute,
@@ -331,6 +375,7 @@ class ContextDBHttpExtension(HttpExtension):
                     user_id=user_id,
                     instance_id=extension.settings.instance_id,
                     cloud_tenant_id=extension.settings.cloud_tenant_id,
+                    capabilities=ContextDBCapabilities(recall_usage=extension.settings.recall_usage_enabled),
                 )
             )
 
@@ -353,6 +398,39 @@ class ContextDBHttpExtension(HttpExtension):
             request: Request, bank_id: Annotated[str, Path(pattern=r"^[a-z0-9][a-z0-9_]{0,53}$")]
         ) -> Response:
             return _json(await (await repository()).get_workspace_by_name(_principal(request), bank_id))
+
+        async def read_usage(
+            request: Request,
+            bank_id: Annotated[str, Path(pattern=r"^[a-z0-9][a-z0-9_]{0,53}$")],
+            object_type: Literal["memory", "knowledge_page"],
+            ids: Annotated[list[str], Query(min_length=1, max_length=100)],
+        ) -> Response:
+            principal = _principal(request)
+            scope = Scope.MEMORY_READ if object_type == "memory" else Scope.KNOWLEDGE_READ
+            if scope not in principal.scopes:
+                raise ServiceError(403, "scope_forbidden", "Key lacks the required read scope")
+            if not extension.settings.recall_usage_enabled:
+                raise ServiceError(404, "usage_disabled", "Recall usage statistics are disabled")
+            repo = await repository()
+            assert principal.workspace_id is not None and principal.schema_name is not None
+            try:
+                items = await UsageRepository(repo.pool).read(
+                    UsageTarget(principal.workspace_id, bank_id, principal.schema_name), object_type, ids
+                )
+            except ValueError:
+                raise ServiceError(
+                    400, "invalid_usage_ids", "Use canonical object IDs, at most 100 per request"
+                ) from None
+            return _json(UsageReport(bank_id=bank_id, object_type=object_type, items=items))
+
+        router.add_api_route(
+            "/workspaces/{bank_id}/usage",
+            read_usage,
+            methods=["GET"],
+            response_model=UsageReport,
+            route_class_override=UsageReadRoute,
+            description="Read object usage with the same workspace read permission as memory or knowledge content.",
+        )
 
         @router.delete("/workspaces/{bank_id}", status_code=204)
         async def delete_workspace(

@@ -642,3 +642,306 @@ PG、API、Worker均由本轮自有fixture在随机端口创建/清理，模型�
 标准提交尝试返回1：generate-docs-skill缺少hindsight-docs/figures/what-contextbase-does.json（Issue #14），该次没有生成提交。钩子产生的160个范围外skills文档差异已完整保存并恢复，未纳入修复；持久core.hooksPath保持原值。独立lint、类型检查和回归不能替代文档生成门禁，不能声称全部门禁通过。 本次用户明确授权后，仅本次提交命令使用`git -c core.hooksPath=/dev/null commit`临时禁用钩子；不修改持久配置，PR保留上述失败记录。
 
 本轮证据目录由`/tmp/contextdb-31-32-publish-path`定位，包含迁入前分支状态、源指纹对照、本地JUnit/日志、独立检视、暂存补丁及提交消息；发布后追加GitHub回读。第17章原独立目录证据继续保留，不冒称为本地执行证据。
+
+
+## 19. Issue #38 召回统计验证
+
+2026-10-28，在 `integration/rsixdb-contextdb`、分支 `codex/embedding-request-pacing`、开始及结束 HEAD `edea57c6dfa9b7c27e526f244770eed6b6ebff26` 的未提交修改上执行。既有 Embedding 节流差异单独冻结并保持原样。本轮行为见 DESIGN 第7章，独立检视闭环见 CODE-REVIEW 第21章。
+
+### 19.1 实际执行结果
+
+所有测试使用任务自有临时 PG/数据库、随机端口 API 和模型替身；异步 retain 等待真实后台完成。没有停止、替换或重新部署现有服务，没有访问或清理用户业务数据库。测试无新增 skip/xfail。
+
+以下命令在仓库根执行；系统命令在插件目录执行，`PYTHON_DOTENV_DISABLED=1` 避免加载本机部署 `.env`。
+
+| 检查与命令 | 实际结果 | 日志（证据目录内） |
+| --- | --- | --- |
+| `PYTHON_DOTENV_DISABLED=1 PYTHONPATH=hindsight-extensions/contextdb-service .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/python -q` | 517通过，2条既有Swig警告；含非超级用户部署、重复init及public无业务表回归 | `plugin-python-delivery.log` |
+| `PYTHON_DOTENV_DISABLED=1 ../../hindsight-system-tests/.venv/bin/python -m pytest -c pytest-system.ini tests/system --ignore=tests/system/test_112_contextdb_ui_management.py -q` | 85通过，6条原生接口弃用警告；嵌入/独立Worker均执行，其中本轮新增5故事×2模式=10项 | `plugin-system-final.log` |
+| `PYTHON_DOTENV_DISABLED=1 HINDSIGHT_TEST_PRIVATE_DATABASE=1 .venv/bin/python -m pytest hindsight-api-slim/tests/test_chunk_ids.py hindsight-api-slim/tests/test_extension_context.py hindsight-api-slim/tests/test_mcp_error_payloads.py hindsight-api-slim/tests/test_extensions.py -q` | 91通过；chunk、扩展上下文、MCP错误、租户与扩展能力回归 | `native-regression.log` |
+| `PYTHON_DOTENV_DISABLED=1 .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/contracts/test_ui_key_contract.py -q` | 1通过 | `key-contract.log` |
+| 插件 `ruff check`、`ruff format --check`、`ty check hindsight_ext_contextdb`，`scripts/generate_openapi.py --check` | 通过；OpenAPI与14项管理操作一致（13项资源管理+1项统计读取） | `delivery-static.log` |
+| `git diff --check` | 通过 | `delivery-static.log` |
+| `UV_PROJECT_ENVIRONMENT=<独立环境> LINT_SERIAL=1 bash scripts/hooks/lint.sh` | 未通过：HEAD已有原生 `api/http.py:5846` 的F841；其他子任务通过。使用隔离快照，自动格式化未回写工作区 | `lint-hook.log` |
+| `npx --yes knip@5 --no-progress --include files,dependencies,unlisted` | 未通过：`contextbase-client` 未使用开发依赖；同HEAD无本轮UI修改的基线复跑结果相同 | `knip.log`、`knip-baseline.log` |
+
+新测试覆盖最终命中及每调用去重、REST/两种MCP、Admin/只读/读写及跨空间拒绝、知识搜索与详情/刷新区分、失效/恢复、同名空间重建、后台空间上下文、原子累计、RR快照、短锁超时、有限批次/容量、失败不重放、GC游标及损坏空间轮转、缺表503、重复离线升级与清零。系统故事以真实SDK/API/PG验证统计值，并核对内容时间水位没有被召回修改。单元故障替身不等同于真实网络提交确认丢失注入。
+
+恢复验证调用原生 `_backup/_restore` 的 COPY 与 manifest 路径，但限定 `backup_tables=["ctxdb_usage_stats"]`；证明插件表登记、往返、旧备份无文件时清空及离线reset，不宣称已完成整库、完整原生内容或跨实例恢复。UI源码未改，本轮未运行UI套件、生产UI、Chrome或视觉验收。
+
+### 19.2 本机性能对照
+
+关闭统计基线为同HEAD独立快照；启用组使用最终插件源码，树指纹 `12f4e4e8692fad75b4486dadcd1ac3252bc518f6739b9453a38608c79610dda7`。顺序运行，每组3轮，每轮20次预热、200次测量、并发4，单API进程、自有本机PG、模型替身、单个热点记忆和固定知识页。下表取三轮中位数，不能将运行噪声中的更快解释为统计带来的提速。
+
+| Worker / 操作 | QPS：关闭→启用 | P95 ms：关闭→启用 | P99 ms：关闭→启用 |
+| --- | --- | --- | --- |
+| 嵌入 / Recall，6知识页场景 | 288.35→313.43 | 15.99→13.63 | 17.85→15.41 |
+| 嵌入 / 知识搜索，6页 | 540.70→557.39 | 8.37→7.98 | 8.75→8.59 |
+| 独立 / Recall，1知识页场景 | 268.89→307.76 | 18.35→14.33 | 25.48→19.44 |
+| 独立 / 知识搜索，1页 | 478.25→559.86 | 9.66→7.91 | 9.99→8.12 |
+
+两个启用组的管理员查询均返回200，记忆次数660，等于3×(20预热+200测量)，不是以空值判断成功。6页知识结果的应用压缩基线为gzip 556 B，启用后identity 1622 B，线体积增加1066 B（191.73%）；1页277 B未达到压缩阈值。外部代理仍可压缩，此轮未验证代理压缩。
+
+本样例未观察到延迟/吞吐退化；不等于通过设计第7章的完整性能矩阵。未验：高基数分散结果、大结果、多API进程、慢/远程PG、生产MaaS、WAL/膨胀长期观测、真实进程强杀/网络故障以及生产环境99%事件5秒可见的分位验收。自动后台测试已覆盖静默2000对象及10空间小批次的调度，不能替代生产容量验证。
+
+### 19.3 证据与交付状态
+
+证据目录 `/tmp/contextdb-issue38-kzbjg8na/` 包含上述日志、`perf-delivery-*.json/.log`、源码指纹、最终任务补丁、未提交文件清单及独立检视记录。`unrelated-before.patch` 仅用于核对原有修改，不能作为本特性补丁应用。Issue #38已[追加进展评论](https://github.com/RSIXDB/hindsight/issues/38#issuecomment-6461559244)，回读确认原始描述不变；功能尚未提交/推送，没有创建本轮PR。自有临时API/Worker/PG已结束；现有服务和用户数据库保持原状。
+
+
+## 20. 召回统计UI验收（2026-10-28，未提交）
+
+本轮在同一HEAD `edea57c6dfa9b7c27e526f244770eed6b6ebff26` 的现有后台统计修改之上接入UI，未改后台存储或采集。原有Embedding修改和后台验收第19章均保留；后台部署升级是此前另行授权的操作，本轮没有替换8891/9991运行服务或迁移/清理现有数据库。
+
+### 20.1 实际结果
+
+| 检查 | 命令/范围 | 结果与证据 |
+| --- | --- | --- |
+| UI全量 | Control Plane目录 `TZ=UTC npx vitest run` | 81文件、783项通过，含本轮14组件+9代理用例；`ui-delivery.log`。UTC仅稳定原生相对日期测试，不改产品时区 |
+| TypeScript | 根目录 `npx tsc --noEmit -p hindsight-control-plane/tsconfig.json` | 通过，`typescript.log` |
+| ESLint/Prettier | 新组件/代理/测试及接入文件；仓库hook串行子任务 | 新增代码无错误；原页面已有any等警告保留，`eslint.log`、`format.log` |
+| Python故事格式 | root `.venv/bin/ruff check`及format检查修改的test_112 | 通过；本轮未改生产Python |
+| Key合同 | `PYTHON_DOTENV_DISABLED=1 .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/contracts/test_ui_key_contract.py -q` | 1通过，`key-contract.log` |
+| 独立生产UI构建 | ContextDB `build-ui --source-root <任务stage>` | 成功并核对manifest与目标UI源码一致；`build-ui-delivery.log`。未覆盖运行中的standalone |
+| 双Worker生产UI系统故事 | 插件目录 `PYTHON_DOTENV_DISABLED=1 CONTEXTDB_UI_SERVER=<stage>/hindsight-control-plane/standalone/server.js ../../hindsight-system-tests/.venv/bin/python -m pytest -c pytest-system.ini tests/system/test_112_contextdb_ui_management.py -q --junitxml=<证据>/production-ui-delivery.xml` | 2通过、零跳过；新增真实记忆/知识usage代理与非管理员拒绝断言，`production-ui-delivery.log` |
+| JUnit完整性门禁 | `python3 hindsight-extensions/contextdb-service/scripts/check_production_ui.py <证据>/production-ui-delivery.xml` | 通过，两个Worker案例均实际执行 |
+| 仓库lint | 隔离工作区 `UV_PROJECT_ENVIRONMENT=<独立venv> LINT_SERIAL=1 bash scripts/hooks/lint.sh` | 未通过：开始HEAD已有原生HTTP F841；其他子任务通过，`lint-hook.log`。自动格式化仅作用于隔离目录 |
+| CI knip | CP目录 `npx --yes knip@5 --no-progress --include files,dependencies,unlisted` | 未通过：开始前已有contextbase-client未使用开发依赖，`knip.log`；package.json未改，后台阶段同HEAD结果一致 |
+| 差异与范围 | `git diff --check`、开始快照比对 | 通过；没有新增原生Python差异、依赖或配置变量，未暂存/提交/推送 |
+
+生产UI故事由原fixture创建真实PG/API与嵌入/独立Worker，模型显式替身，等待后台完成；通过已发布SDK创建/召回记忆与生成/搜索知识页，统计各为1。UI仅使用自己的HttpOnly管理员会话，服务端加入配置Key，真实API匿名401/业务Key403。未从源码夹具或SQL伪造命中/计数。
+
+### 20.2 Chrome实际验证
+
+Chrome连接任务自有临时UI/API/PG，使用与目标源码匹配的生产构建和合成数据，未借用用户数据库。已验证：
+
+- 记忆表格和详情、知识页详情显示真实次数1及最后召回时间；浏览正文、刷新统计不增加计数。
+- 用Chrome CDP仅暂停该标签的usage Fetch请求，正文仍可见，统计独立显示加载中。知识页机器读取的可见性断言为true，暂停请求数为1；`chrome-loading-proof.json`及加载截图为证。
+- 暂停超过客户端10秒后显示“统计不可用”，正文保留；恢复网络后点击重试恢复真实值，未把失败显示为0。故障注入造成请求取消属于预期，不是原生内容读取失败。
+- 中英文标签和日期、浅/深色主题可读；日期保留浏览器时区。测试标签内的拦截已清除，语言恢复简体中文，未保留视口覆盖。
+
+Chrome网络记录中未拦截的单对象请求样例约11.1、12.3、12.8、19.6ms；135.7/369.9ms样例包含人为暂停，不混为正常性能。`chrome-network-statistics.json`保存请求URL与耗时。该结果只说明本机单对象开销和非阻塞行为，没有做100对象Chrome压力、原表/独立表A/B、远程PG或生产P95/P99验收；100对象一条HTTP请求由组件测试验证，不宣称所有负载均无首屏影响。
+
+![记忆表格召回统计](screenshots/recall-usage-memory.jpg)
+
+![知识页召回统计](screenshots/recall-usage-knowledge.jpg)
+
+### 20.3 证据与检视边界
+
+实现者按code-review流程复核，结果见CODE-REVIEW第22章；本轮没有新增独立专家检视，不借用后台阶段检视替代UI审阅。初次全量测试识别的纯原生模式Intl依赖已在自研组件内修复，783项复跑通过。首次隔离构建遗漏嵌套tsup依赖，补复制构建目录依赖后成功；未修改生产依赖或用户node_modules。
+
+证据目录 `/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-usage-ui-tcesu4lk`，可由 `/tmp/contextdb-usage-ui-path` 定位，包含源码/产物指纹、测试日志、Chrome截图、任务补丁及开始/结束状态。后台第19章的517/85/91等计数为原阶段结果，本轮未重跑并不重复报通过。Chrome未做窄屏设备矩阵、键盘全流程、真实MaaS或生产部署验收。临时服务/PG由本轮创建并清理。此开发验收阶段未替换现有UI；随后经用户授权完成9991部署，见第21章。
+
+
+## 21. 本机召回统计UI部署验收（2026-10-28 15:38，Asia/Shanghai）
+
+用户另行授权将第20章产物部署到现有9991，保留数据、密码及API Key。使用已通过双Worker测试的独立构建，源码指纹 `7d3957da2190c15f6631d700f5739ab5d155b7a152f24ec310675128a4da375c`；部署前核对源码、manifest和产物指纹一致。HEAD保持 `edea57c6dfa9b7c27e526f244770eed6b6ebff26`，包含未提交的后台和UI统计代码。
+
+现有combined监督进程绑定API与UI生命周期，因此短暂停止并重启8891/9991整组服务，只替换standalone UI产物；未执行init、迁移、清零或数据库恢复。数据库离线快照在产物替换前后完全相同，持久配置/秘密文件SHA256一致。旧UI保存于部署目录的 `rollback/usage-ui-upgrade-20261028/standalone`，受限runtime备份包含会话及秘密，不上传。
+
+| 验证 | 实际结果 |
+| --- | --- |
+| API就绪、UI登录页 | 均200 |
+| 原UI密码、重启前测试会话 | 均可继续访问 |
+| 已签发业务Key读取文档 | 200 |
+| 管理员UI统计代理与直接API | memory/knowledge_page均200，响应完全一致；抽查分别为13次/15次，均有最后召回时间 |
+| 权限 | 未登录UI统计401，业务Key直接查询统计403 |
+| Chrome | 观察记忆列表显示统计；知识页显示15次及北京时间2026/10/28 15:36:28，保留原有浏览器登录状态 |
+| 新API进程日志 | 验收时新增ERROR为0；重启时旧MCP长连接需重连 |
+
+抽查值是验收时刻值，后续真实召回可继续累计；浏览正文和读取统计不增加次数。本轮没有提交或推送。证据位于 `.git/deployments/rsixdb-local-20261027/evidence/upgrade-usage-ui-20261028/`，包含部署/验证脚本、前后数据库指纹、凭据文件指纹、受限runtime备份、结果、Chrome截图和日志。这里只完成本机部署验收，不替代远程PG、生产性能或设备矩阵验收。
+
+
+## 22. 统计开关与身份字段收敛验收（2026-10-28，未提交、未部署）
+
+基于同一HEAD `edea57c6dfa9b7c27e526f244770eed6b6ebff26` 加第19～21章之后的工作区；本轮前已冻结tracked补丁及13个untracked文件指纹/原文。只修改目标插件、相关UI接入/测试和文档，保留Embedding差异。当前9991仍为第21章此前部署版本；新开关、响应及表结构尚未升级到用户库。
+
+### 22.1 实际执行
+
+命令以仓库根为准，UI套件在Control Plane目录，系统命令在插件目录。全部PG/API/Worker是fixture自有临时资源，模型显式替身；真实SDK异步retain及知识页生成等待后台完成。
+
+| 检查 | 实际命令/范围 | 结果及证据文件 |
+| --- | --- | --- |
+| 插件Python全量 | `PYTHON_DOTENV_DISABLED=1 PYTHONPATH=hindsight-extensions/contextdb-service .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/python -q` | 540通过，2条既有Swig警告；python-delivery.log。含真实非超级用户部署、重复init、public无业务表和本轮开关/迁移 |
+| UI全量 | `TZ=UTC npx vitest run` | 82文件799通过；ui-delivery.log。UTC仅稳定原生日期测试，产品时区不变 |
+| ContextDB全部系统故事 | `PYTHON_DOTENV_DISABLED=1 CONTEXTDB_UI_SERVER=<stage>/hindsight-control-plane/standalone/server.js ../../hindsight-system-tests/.venv/bin/python -m pytest -c pytest-system.ini tests/system -q --junitxml=<证据>/system-full.xml` | 89通过，6条既有原生弃用警告；system-full.log/xml。包括2种Worker和其中生产UI2项，不重复累加 |
+| 生产UI专用门禁 | 同一产物单独运行test_112并生成production-ui-final.xml；`python3 hindsight-extensions/contextdb-service/scripts/check_production_ui.py <证据>/production-ui-final.xml` | 2通过、零跳过，JUnit门禁通过；production-ui-final.log/xml。门禁要求专用两例报告，不能直接传89例全套报告 |
+| 独立生产构建 | 插件build-ui，在任务stage执行；verify_ui_build及source_fingerprint比对 | 成功且与目标UI源码一致，build-ui.log；未覆盖运行中的standalone |
+| 原生相关回归 | `PYTHON_DOTENV_DISABLED=1 HINDSIGHT_TEST_PRIVATE_DATABASE=1 .venv/bin/python -m pytest hindsight-api-slim/tests/test_chunk_ids.py hindsight-api-slim/tests/test_extension_context.py hindsight-api-slim/tests/test_mcp_error_payloads.py hindsight-api-slim/tests/test_extensions.py -q` | 91通过，34条既有警告；native-regression.log |
+| Key合同 | 原test_ui_key_contract.py | 1通过，key-contract.log |
+| 静态检查 | TypeScript、从根显式使用CP ESLint配置检查本轮UI/测试、Prettier、插件Ruff/check及format、ty、OpenAPI --check、git diff --check | 通过；typescript.log、eslint.log、ty.log等。首次从CP运行ESLint忽略了外部测试目录，已改从根显式配置检查，未以忽略结果验收 |
+| 仓库lint | 隔离checkout执行`UV_PROJECT_ENVIRONMENT=<独立venv> LINT_SERIAL=1 bash scripts/hooks/lint.sh` | 未通过：原生api/http.py:5846 F841仍是开始HEAD已有问题；其他子任务通过。lint-hook.log。自动格式化仅在隔离目录 |
+| CI knip | CP目录`npx --yes knip@5 --no-progress --include files,dependencies,unlisted` | 未通过：开始前已有contextbase-client未使用开发依赖；knip.log。依赖及knip配置未修改，无新增孤立文件项 |
+
+### 22.2 关键合同与Chrome
+
+- 默认关闭、严格true/false和intent JSON布尔；render只有API权威开关，没有第二个UI参数。HTTP启动只有开启时创建唯一collector，关闭无统计任务/GC，知识观察绕过后保留原scope、编码协商和字节。关闭时授权管理员usage为404 usage_disabled，匿名401、业务Key403，存储read未调用。
+- 新系统故事对每种Worker经历真实开启→关闭→开启：保留原Key及记忆/知识页，关闭期间REST/MCP仍成功；重开后次数和最后时间等于关闭前，再召回后从1累计到2，关闭期间不补算。
+- 真实PG验证旧六列表迁移到五列表后次数/时间完全相同、重复升级、异代身份/Bank中止、非预期主键或半迁移结构拒绝。保留原生backup COPY/manifest旧列裁剪，旧版含workspace_id备份可恢复到新结构，随后插件reset清零；限定插件表，不宣称完整业务或整库灾备。
+- UI响应不再要求workspace_id；完整登录路由不探测能力，登录后进入私有页面只探测一次。测试覆盖en/zh-CN完整登录路径及合法banks/login反例、产品切换迟到结果、旧版缺字段/关闭时实际组件链无usage请求、100行单批与错误/零值分离。
+- Chrome以相同生产构建连接两个独立临时实例：开启时记忆与知识页各显示真实1次/时间；关闭时同类正文可读，无次数/时间/刷新按钮。chrome-off-proof.json的网络事件无截断，遍历记忆/知识时usage请求为0；截图见下。没有操作用户9991标签、配置或服务。
+
+![统计开启](screenshots/recall-usage-enabled.jpg)
+
+![统计关闭](screenshots/recall-usage-disabled.jpg)
+
+### 22.3 证据、检视与边界
+
+证据由`/tmp/contextdb-usage-switch-path`定位到`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-usage-switch-x7tudrnj`，包含开始快照、逐文件baseline、任务增量补丁、原始/最终测试日志、manifest及源码指纹、Chrome网络证明/截图和检视结果。最初新系统故事在async测试体内使用同步资源owner，触发asyncio.run嵌套；已将资源owner移到同步fixture，独立2项及完整89项复跑通过。首次浏览器辅助脚本临时文件名错误退出，资源owner已清理，修正后双实例完成验证；不是产品运行失败。
+
+独立只读检视见CODE-REVIEW第23章。未验：真实MaaS、远程PG、生产P95/P99/高基数容量、Node24/Linux或Docker、窄屏设备矩阵及完整跨实例恢复。能力是初始化快照，配置修改后须重启API/UI并刷新旧页面，不提供在线推送或轮询。
+
+
+## 23. 本机统计开关与表结构升级（2026-10-28 18:15，Asia/Shanghai）
+
+用户授权将第22章版本升级到8891/9991，保留历史数据、统计及凭据。基准HEAD仍为`edea57c6dfa9b7c27e526f244770eed6b6ebff26`加未提交差异，UI源码指纹`f79a355754ea40318746213c20523ae55620a52e7476020ddba62dc251f783e2`，沿用已通过同源码双Worker生产UI测试的隔离构建并核对manifest/产物；没有在运行中覆盖构建。
+
+### 23.1 备份与保全
+
+连接本地PG 127.0.0.1:5432，数据库contextbase_rsix_20261027、专用角色cb_rsix_20261027；不操作其他服务/数据库。先保存在线custom备份、runtime配置/秘密/会话及旧UI/源码，再定向停止组合监督进程，确认API/UI及其进程组退出、端口关闭、无活动查询，保存权威离线custom备份。两份备份均通过pg_restore --list可读性核对，未恢复用户库。旧UI及开始baseline恢复的源码指纹一致。
+
+旧consolidation任务因上游Embedding返回ModelArts.81011 403进入退避，停止前Worker无执行中任务，pending记录原样保留；没有取消、删除或清空队列。仅执行插件upgrade-usage --offline，7空间成功。升级前后业务表、目录及授权数据摘要一致（排除认证更新的Key last_used_at），114条统计记录、累计758次及每条last_recalled_at完全保留；只变更统计表冗余列、主键及注释。未运行init、reset、原生全量迁移或清理历史内容。
+
+仅在runtime/api.env新增CONTEXTDB_RECALL_USAGE_ENABLED=true，其他配置及全部秘密文件字节指纹不变，原UI密码、重启前会话和原业务Key验证通过。
+
+### 23.2 实际运行验收
+
+| 验证 | 实际结果 |
+| --- | --- |
+| 健康及插件能力 | API/UI就绪200，管理员identity和UI代理均recall_usage=true |
+| 真实REST/MCP写入 | 各新增1个明确标记的测试文档，两项retain后台状态completed；原文档未覆盖或删除 |
+| 记忆召回 | REST和root MCP各命中新记忆，2条记忆各0→1→2，时间前进；UI统计代理与API一致 |
+| 知识搜索/读取 | REST和MCP搜索返回5页，每次命中各加1；抽查ContextDB页34→35→36；详情GET不增加 |
+| 权限 | 管理员200，匿名API/UI统计401，原业务Key统计403 |
+| Chrome | 原会话刷新后有效；记忆表格两条测试记录各2次，知识详情36次/18:18:09；均为验收快照，后续真实调用继续累计 |
+| 日志 | 验收时统计错误0；保留1条既有上游Embedding 403 ERROR及2条相关WARNING，不归因于统计升级 |
+
+测试文档为usage-upgrade-20261028-181144-rest、usage-upgrade-20261028-181144-mcp，标签usage-upgrade-20261028-181144，保留供用户手工检索；查看正文或刷新统计不增加次数。首次辅助脚本使用知识节点type而非SDK的kind导致断言失败，改辅助脚本后续跑知识/权限通过，未重放写入，未改产品代码。verification-first-attempt.json及最终verification.json保留。
+
+### 23.3 配置、证据与回退
+
+部署目录`/Users/zhuqingping/Work/Database/Context/hindsight/.git/deployments/rsixdb-local-20261027`：API配置runtime/api.env，UI配置runtime/ui.env，实际UI密码由runtime/ui-secrets.json的password提供，管理员凭据runtime/admin-key.json；API数据库连接串含原密码，报告不明文输出。统一日志evidence/service.log。
+
+本轮完整证据`/Users/zhuqingping/Work/Database/Context/hindsight/.git/deployments/rsixdb-local-20261027/evidence/upgrade-usage-switch-20261028-181144`，由/tmp/contextdb-usage-switch-deploy-path定位；包含两份dump及TOC、runtime-before.tgz、快照和指纹、升级脚本/日志、验证结果、Chrome截图及README回退说明。旧产物/源码在`/Users/zhuqingping/Work/Database/Context/hindsight/.git/deployments/rsixdb-local-20261027/rollback/upgrade-usage-switch-20261028-181144`。离线dump SHA256为`3178729d5a30ecb5dd9328c2d296f22b077433f376ae94e1cf9562868cc026a8`。
+
+功能回退只将api.env开关改false，重启本组合服务并刷新页面；保留当前匹配UI及新统计表，不清零或恢复整库。旧UI需要旧响应身份字段，禁止仅替换旧UI搭配新开启API；完整旧版本回退须将插件、UI及旧表合同作为整体，并先备份升级后新增数据。本轮未执行完整回退或灾备恢复，不把开发验收的540/799等数量当作本次部署重跑。未提交、推送；当前仅确认本机真实模型、REST/MCP/UI链路，远程PG、容量和完整恢复等边界仍见第22章。
+
+
+## 24. 召回统计提交前候选验收（2026-10-28）
+
+PG和Agent/Hindsight完整独立检视均Must fix 0、Should fix 0，见CODE-REVIEW第24章。用户授权创建commit及PR。本次从团队main `edea57c6dfa9b7c27e526f244770eed6b6ebff26` 构造独立候选目录，仅复制47个召回统计相关文件，排除并保留6个Embedding相关本地差异；因此以下结果不是借用含其他未提交原生Python改动的工作区结果。
+
+| 检查 | 本次实际执行及结果 |
+| --- | --- |
+| 插件Python全量 | 候选根目录`PYTHON_DOTENV_DISABLED=1 PYTHONPATH=<candidate>/hindsight-extensions/contextdb-service:<candidate>/hindsight-api-slim <venv>/python -m pytest hindsight-extensions/contextdb-service/tests/python -q --junitxml=<evidence>/python.xml`，540通过，2条既有Swig警告 |
+| UI全量 | 候选Control Plane执行`TZ=UTC npx vitest run`，82文件799通过；UTC仅稳定原生日期测试 |
+| 系统全量 | 候选插件目录同一显式PYTHONPATH/禁用dotenv，`CONTEXTDB_UI_SERVER=<validated-stage>/hindsight-control-plane/standalone/server.js <system-venv>/python -m pytest -c pytest-system.ini tests/system -q --junitxml=<evidence>/system.xml`，89通过、6条既有弃用警告，包含双Worker及生产UI2项 |
+| 生产UI专用门禁 | 同一构建单独运行test_112生成production-ui.xml，2通过零跳过；`scripts/check_production_ui.py`完整性检查通过，不重复累计到89项之外 |
+| 原生相关回归 | 候选目录`HINDSIGHT_TEST_PRIVATE_DATABASE=1 <venv>/python -m pytest hindsight-api-slim/tests/test_chunk_ids.py hindsight-api-slim/tests/test_extension_context.py hindsight-api-slim/tests/test_mcp_error_payloads.py hindsight-api-slim/tests/test_extensions.py -q`，91通过 |
+| Key合同 | 候选目录`<venv>/python -m pytest hindsight-extensions/contextdb-service/tests/contracts/test_ui_key_contract.py -q`，1通过 |
+| UI构建身份 | 继续使用第22章独立生产产物；verify_ui_build核验manifest/bundle，候选UI源码指纹与产物完全一致，未在运行中重新构建或替换9991 |
+| 静态检查 | TypeScript、ESLint、Prettier、插件Ruff/check与format、ty及OpenAPI --check通过；ty第一次未指定解释器而误用系统site-packages，保留失败日志，显式--python测试venv后通过 |
+| 仓库lint | 独立lint工作树、独立UV_PROJECT_ENVIRONMENT运行`LINT_SERIAL=1 bash scripts/hooks/lint.sh`，仅既有原生HTTP:5846 F841未过，其他子任务通过；隔离格式化差异未复制回目标 |
+| CI knip | 候选CP执行`npx --yes knip@5 --no-progress --include files,dependencies,unlisted`，既有contextbase-client未使用开发依赖失败，无新增孤立文件 |
+| 文档生成门禁 | 独立工作树执行`scripts/hooks/generate-docs-skill.sh`，仍因缺失what-contextbase-does.json失败（Issue #14），没有把生成文件混入特性 |
+
+候选及lint检查仅使用fixture自有PG/API/Worker、随机端口和模型替身，没有操作现有8891/9991或用户数据库。最新真实模型/Chrome及保留历史数据的升级证据为第23章，不冒充本次重复运行。原生Python在特性范围内无差异；6个无关文件内容与开始哈希相同，暂存/提交按47文件白名单隔离，不包含env秘密、数据库备份、日志或任务脚本。
+
+证据由`/tmp/contextdb-usage-release-path`定位到`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-usage-release-y1_v0gje`，包含冻结范围/哈希、独立专家记录、候选命令和原始日志/JUnit、构建身份、静态检查和基线失败。生产性能、远程PG、完整灾备等边界见第22～23章；不据本机回归声称全部仓库门禁或远程CI通过。提交与PR以实际Git记录为准。
+
+## 25. 召回统计读取权限回归（集成工作区阶段记录）
+
+基于 `17ae1d3f57ca7baf12b68c4f75afe1fdf80da1d9`，最新合同见 DESIGN §7.2，代码自检见 CODE-REVIEW 第25章。修改仅在集成目录，未提交、推送或部署。开始时已有的5个Embedding相关已跟踪差异逐段比较保持一致，原有未跟踪Embedding测试保留；原生Python和原生UI挂载点没有新增修改。
+
+证据目录由 `/tmp/contextdb-usage-permissions-path` 定位；保存开始HEAD/status/diff、逐项原始日志/JUnit、隔离UI产物、范围检查和最终补丁。以下命令以代码仓根目录为默认工作目录；`<证据>` 表示该任务目录。
+
+| 检查 | 实际命令与结果 |
+| --- | --- |
+| 插件Python全量 | `PYTHON_DOTENV_DISABLED=1 PYTHONPATH=hindsight-extensions/contextdb-service .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/python -q --junitxml=<证据>/python.xml`：566通过，0失败/跳过，2条既有Swig警告；python.log/xml |
+| 权限覆盖 | 全量内含新增13项usage鉴权/刷新测试，以及管理HTTP套件50项；all/selected业务Key均不能调用13项管理方法。包括真实PG的只读/读写、memory/knowledge_page、跨空间、吊销、禁用用户、授权修改、空间失活/同名重建、缺scope、0/null/遗漏/503、参数上限；验证每个GET仅一次目标认证SQL及刷新不写次数/时间 |
+| UI全量 | Control Plane目录：`TZ=UTC ../node_modules/.bin/vitest run --maxWorkers 4`：82文件801通过，0跳过；ui.log/xml。UTC仅固定原生相对日期测试，不改变产品时区 |
+| 原生相关回归 | `PYTHON_DOTENV_DISABLED=1 HINDSIGHT_TEST_PRIVATE_DATABASE=1 .venv/bin/python -m pytest hindsight-api-slim/tests/test_chunk_ids.py hindsight-api-slim/tests/test_extension_context.py hindsight-api-slim/tests/test_mcp_error_payloads.py hindsight-api-slim/tests/test_extensions.py -q`：91通过，34条既有警告；native.log/xml。全部使用任务自有临时PG |
+| 跨语言Key合同 | `PYTHON_DOTENV_DISABLED=1 .venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/contracts/test_ui_key_contract.py -q`：1通过；contract.log/xml |
+| 生产UI构建 | `PYTHON_DOTENV_DISABLED=1 PYTHONPATH=hindsight-extensions/contextdb-service .venv/bin/python -m hindsight_ext_contextdb build-ui --source-root <证据>/ui-build`：成功；manifest、bundle及源码指纹与当前目标匹配，build-ui.log、manifest.log。依赖和产物均在隔离目录，未覆盖运行中的UI |
+| TypeScript/TS格式与lint | Control Plane目录 `../node_modules/.bin/tsc --noEmit --incremental false`通过；改动的能力组件和UI测试使用目标工具链ESLint、Prettier检查通过；tsc.log、eslint.log |
+| 插件静态检查/OpenAPI | 本轮7个Python实现/测试文件Ruff check及format --check通过，插件ty check通过；`scripts/generate_openapi.py --check`通过；ruff.log、ty.log、openapi.log |
+| 仓库lint钩子 | 在独立源码/依赖副本运行原样 `LINT_SERIAL=1 bash scripts/hooks/lint.sh`：失败，阻断项为原生 `api/http.py:5846` 的F841，HEAD已存在。钩子的自动整理仅作用于副本，未回灌工作区；lint-hook.log。未绕过提交钩子或修改Git持久配置 |
+| CI版本knip阻断项 | Control Plane目录 `npx --yes knip@5 --no-progress --include files,dependencies,unlisted`：失败，已有 `contextbase-client` 未使用开发依赖；无新增文件/依赖阻断项，knip.log |
+
+系统全量在插件目录执行：
+
+```bash
+PYTHON_DOTENV_DISABLED=1 \
+CONTEXTDB_UI_SERVER=<证据>/ui-build/hindsight-control-plane/standalone/server.js \
+../../hindsight-system-tests/.venv/bin/python -m pytest \
+  -c pytest-system.ini tests/system -q --junitxml=<证据>/system.xml
+```
+
+结果为89通过、0失败/错误/跳过，6条既有原生接口弃用警告，耗时465.54秒；system.log/xml。嵌入及独立Worker均执行，使用真实临时API/PG和显式模型替身，等待后台工作完成。覆盖REST/MCP采集、业务Key统计读取、开关重启、生命周期和团队已有系统故事。
+
+其中包含两条真实生产UI故事；从system.xml复制两条原始testcase节点（不改变结果、保留失败/跳过节点）生成production-ui.xml，再执行 `.venv/bin/python hindsight-extensions/contextdb-service/scripts/check_production_ui.py <证据>/production-ui.xml`，完整性门禁通过。此2项已包含在89项内，不重复累加；原始全量JUnit同时保留，不用组件测试或HTTP探针代替该故事。manifest.log证明所选产物与当前源码匹配。
+
+初次选择的20项系统回归为18通过、2失败，均因删除空间后的usage仍断言旧404；新的目标空间读取鉴权统一返回403，预期已按DESIGN §7.2更新，未删除断言或加入skip/xfail。原始结果保留为system-initial.log/xml。隔离构建首次缺少tsup、随后遇到Turbopack拒绝工作区外依赖软链接；改用任务自有依赖副本后原样build-ui成功，保留build-ui-initial.log和build-ui-symlink.log。
+
+本轮未重做Chrome浏览器视觉/交互、真实MaaS、生产容量、远程PG、完整灾备或远程CI验收；此前Chrome记录仅作为对应版本历史。全仓文档生成未重跑，已知Issue #14不在本轮修复范围。未操作现有8891/9991服务或用户PG数据库。usage仍为进程内尽力统计，异常重启不保证保留未提交增量，不适用于无损计费或审计。
+
+## 26. PR #54 排除无关差异后的候选验收（2026-10-29）
+
+团队基线 `edea57c6dfa9b7c27e526f244770eed6b6ebff26`；开始HEAD `17ae1d3f57ca7baf12b68c4f75afe1fdf80da1d9`。独立detached候选仅含48个召回统计相关文件，排除5个已跟踪及1个未跟踪的Embedding差异。原生Python与开始HEAD、团队基线均无特性差异；用户工作区中的六项原有改动保留。四专业独立检视及DOC-01闭环见CODE-REVIEW第26章。
+
+证据由 `/tmp/contextdb-usage-amend-path` 定位。下表中的 `<候选>` 为其 `candidate/`，`<证据>` 为该任务目录。私有Python环境采用依赖副本，可编辑安装路径全部重绑定到候选；即使子进程重设PYTHONPATH也加载候选源码。Node依赖同样独立，未覆盖正在运行的UI产物。
+
+| 检查 | 实际命令与结果 |
+| --- | --- |
+| 插件Python全量 | 候选根目录 `.venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/python -q --junitxml=<证据>/python.xml`：566通过，0失败/错误/跳过，65.68秒 |
+| UI全量 | Control Plane目录 `TZ=UTC ../node_modules/.bin/vitest run --maxWorkers 4 --reporter=dot --reporter=junit --outputFile=<证据>/ui.xml`：82文件801通过，0失败/错误/跳过；UTC仅稳定原生相对日期断言 |
+| ContextDB全部系统故事 | 插件目录 `../../hindsight-system-tests/.venv/bin/python -m pytest -c pytest-system.ini tests/system -q --junitxml=<证据>/system.xml`：89通过，0失败/错误/跳过，396.40秒。真实任务临时API/PG、显式模型替身、双Worker及后台完成等待均保留 |
+| 生产UI完整性门禁 | 上述89项含两种Worker的生产UI故事。两条原始testcase节点原样提取到production-ui.xml，与system.xml逐节点相等；`scripts/check_production_ui.py <证据>/production-ui.xml`通过。不重复累计2项 |
+| 原生相关回归 | 候选根目录 `.venv/bin/python -m pytest hindsight-api-slim/tests/test_chunk_ids.py hindsight-api-slim/tests/test_extension_context.py hindsight-api-slim/tests/test_mcp_error_payloads.py hindsight-api-slim/tests/test_extensions.py -n 2 -q --junitxml=<证据>/native.xml`：91通过，0失败/错误/跳过，56.34秒；使用任务临时PG |
+| 跨语言Key合同 | `.venv/bin/python -m pytest hindsight-extensions/contextdb-service/tests/contracts -q --junitxml=<证据>/contracts.xml`：1通过 |
+| 匹配生产UI | 复用第25章隔离build-ui的成功产物，没有声称本轮重新构建。`verify_ui_build`通过，`source_fingerprint`与候选完全相同；指纹及产物位置见manifest.log、verified-ui-root.txt |
+| 插件静态检查 | `.venv/bin/ruff check --config hindsight-extensions/contextdb-service/pyproject.toml hindsight-extensions/contextdb-service`及同范围format --check通过（114文件）；`.venv/bin/ty check --python .venv/bin/python hindsight-extensions/contextdb-service/hindsight_ext_contextdb`通过；generate_openapi.py --check通过 |
+| UI类型与lint | 先 `npm run build -w contextbase-client`，再在Control Plane执行 `../node_modules/.bin/tsc --noEmit`通过。全UI/插件UI测试ESLint为0错误、203条既有警告；改动文件格式单独核对 |
+| 特性文件格式 | 对候选48文件中的全部TypeScript/TSX运行目标锁定Prettier --check，通过；feature-prettier.log |
+| 全仓门禁 | 原样 `LINT_SERIAL=1 bash scripts/hooks/lint.sh`失败：原生api/http.py:5846的既有F841，以及隔离目录npx的ESLint/Prettier包加载失败；直接运行的ESLint与类型检查结果见上。自动整理只发生在候选，已恢复所有整理差异，不回灌用户工作区 |
+| 格式与死代码基线 | 全UI Prettier --check报storage-settings-view.tsx、customer-connection.ts两份未改文件；CI同命令 `npx --yes knip@5 --no-progress --include files,dependencies,unlisted`报既有contextbase-client开发依赖。上述文件与团队基线及开始HEAD逐字节相同，见baseline-failures-provenance.json |
+
+Python/系统命令统一设置 `PYTHON_DOTENV_DISABLED=1`、`PYTHONDONTWRITEBYTECODE=1`，并将PYTHONPATH限定为候选插件、原生API、系统测试及SDK；原生回归另设 `HINDSIGHT_TEST_PRIVATE_DATABASE=1`。系统UI路径由 `CONTEXTDB_UI_SERVER` 指向已核对的生产产物。全部原始日志/JUnit与范围、依赖路径证据保留，测试没有新增skip/xfail。
+
+本轮未重做Chrome、远程CI、真实MaaS、生产容量/远程PG或完整灾备；既有Chrome和本机升级记录仅适用于对应历史版本。未部署或操作现有服务、用户数据库。统计异常重启可能丢失未提交增量，边界不变。全仓文档生成的Issue #14与上述基线失败单独保留，不宣称全部仓库门禁通过；提交及推送身份以Git/PR为准。
+
+首次amend使用仓库本身的 `.githooks` 执行，文档生成仍因缺少 `hindsight-docs/figures/what-contextbase-does.json` 失败，该次未生成提交；原始堆栈见commit-attempt.log。失败生成器造成的160个生成文件差异已逐字节恢复，未纳入特性。用户随后明确授权本次仅在amend命令中临时禁用钩子，继续提交和发布；未修改持久Git配置，也未将失效的持久hooks路径视作检查通过。
+
+
+## 27. 直接召回与内部检索的统计口径补证（2026-10-29）
+
+本节统计口径验收对象为 `762072dc2b69f81653f01d712d7f382107f64ca5` 之后的四文件增量，仅补充 DESIGN §7.1、插件测试与本节；生产实现、原生内核、UI和统计表未修改。原设计已排除Reflect内部检索与后台刷新，此次明确列出consolidation，并将零值检查补强为已有非零统计的次数、时间均不变。
+
+| 场景 | 实际覆盖 |
+| --- | --- |
+| 完成钩子边界 | 新增7个参数用例：直接成功召回、有效父调用中的internal请求、非直接调用、过期上下文、失败和缺失结果；排除分支比较完整内存增量，不能仅保持次数而改变时间 |
+| 客户直接召回 | 保留真实SDK REST、单Bank/root MCP最终命中计数；只读、读写及管理员直接调用均按相同口径累计 |
+| Reflect内部检索 | 令模型检索实际存在的记忆，断言返回证据包含目标ID，之后跨越两个正常刷盘周期核对次数、时间不变 |
+| consolidation及自动知识页刷新 | 先为world、observation和知识页建立非零统计，再通过SDK异步Retain新事实；合并输入必须包含旧observation ID，自动刷新必须出现新完成操作；最后核对原统计全部不变 |
+| 手动触发的知识页后台刷新 | 确认last_refreshed_at变化，并核对知识页及被检索记忆的次数、时间不变；不能只检查知识页 |
+| 刷新真实命中 | 解析模型实际收到的工具结果，与当前空间已计数observation的唯一文本匹配。原生Reflect将UUID映射为短别名，不依赖提示词中的完整UUID，也不依赖可选的based_on.memories字段 |
+
+验证使用排除原有Embedding差异的独立源码候选；Python和子进程PYTHONPATH明确指向候选的插件、原生API、系统测试及SDK，统一设置 `PYTHON_DOTENV_DISABLED=1`、`PYTHONDONTWRITEBYTECODE=1`。PG、API和Worker均由既有fixture创建并清理，使用随机端口、独立数据目录和显式模型替身，等待后台工作完成；没有连接或变更现有服务、用户数据库。
+
+证据由 `/tmp/contextdb-usage-external-only-path` 定位，实际目录含源码补丁、JUnit、原始日志与检视记录。下列命令从候选根目录执行；系统命令从候选插件目录执行，`<plugin-python>`、`<system-python>`分别为目标工作区既有的 `.venv/bin/python`、`hindsight-system-tests/.venv/bin/python`，验证不修改它们的依赖。
+
+| 检查 | 命令与结果 |
+| --- | --- |
+| 插件Python全量 | `<plugin-python> -m pytest hindsight-extensions/contextdb-service/tests/python -q --junitxml=<证据>/python.xml`：573通过，0失败/错误/跳过，67.46秒；Python 3.11.15，2条既有Swig警告；python.log/xml |
+| 召回统计系统故事 | `<system-python> -m pytest -c pytest-system.ini tests/system/test_121_contextdb_usage.py -q --junitxml=<证据>/system-verified.xml`：12通过，0失败/错误/跳过，111.98秒；Python 3.12.13，包含嵌入/独立Worker；system-verified.log/xml |
+| 格式与静态检查 | 插件全目录 `ruff check --config pyproject.toml .`、`ruff format --check --config pyproject.toml .`通过，114文件格式正确；`git diff --check`通过 |
+| 仓库lint | 隔离候选执行 `LINT_SERIAL=1 ./scripts/hooks/lint.sh`，仍被原生 `api/http.py` 既有F841阻断；没有将自动格式化扩散到目标工作区。最终结果见lint-verified.log |
+
+补强中曾误将可选引用字段及提示词完整UUID作为命中依据；对应失败日志system-evidence.log/xml、system-final.log/xml保留，修正的是测试依据，最终完整12项已重新通过，未删除排除断言或新增skip/xfail。实现者按仓库code-review规范核对本次增量，无待修功能问题，不将自检称为新增独立专家检视。未重跑UI、其他系统故事或生产UI构建；本轮没有相应运行代码变化，既有完整验收仍见第26章。本次文档发布不重新部署服务。
+
+
+### 27.1 配套文档发布检查
+
+插件README补齐参数默认值/作用、原实例停服升级顺序、显式加载api.env、缺表和旧表处理、失败重跑与最小记忆/知识REST示例；设计及入口页补截图链接。资料仓专项设计同步空间读取权限、状态码及送审状态，并引用代码仓同版截图。
+
+文档命令通过Bash语法检查；使用离线curl替身与真实jq验证四次请求的路径、查询参数及ID提取，使用原生RecallRequest模型验证请求体；升级shell通过替身解释器核对加载配置和CLI参数，没有执行真实升级或访问数据库。链接与四张已跟踪截图存在性检查通过。两个测试文件的源码指纹与573/12项证据一致，本轮未重新运行这些长套件。发布证据由 `/tmp/contextdb-pr54-doc-publish-path` 定位。

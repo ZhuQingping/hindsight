@@ -14,6 +14,7 @@ from pathlib import Path
 import asyncpg
 import pytest
 from aiohttp import web
+
 from hindsight_ext_contextdb.bootstrap import UiSecrets, save_credential
 from hindsight_ext_contextdb.deployment import (
     DeploymentConfig,
@@ -70,6 +71,7 @@ def test_rendered_shell_preserves_secrets_without_execution(tmp_path: Path) -> N
     assert probe.stdout == (tmp_path / "maas").read_text().strip()
     assert not (tmp_path / "SHOULD_NOT_EXIST").exists()
     environment = (directory / "api.env").read_text()
+    assert "CONTEXTDB_RECALL_USAGE_ENABLED=false" in environment
     assert "HINDSIGHT_API_WORKER_ENABLED=true" in environment
     assert "HINDSIGHT_API_RUN_MIGRATIONS_ON_STARTUP=false" in environment
     assert "HINDSIGHT_API_LLM_TRACE_ENABLED=false" in environment
@@ -477,3 +479,17 @@ def test_render_rejects_insecure_or_linked_session_storage(tmp_path: Path) -> No
     sessions.symlink_to(target, target_is_directory=True)
     with pytest.raises(ValueError, match="session directory"):
         render(config, directory)
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_render_usage_switch_has_one_api_authority(tmp_path, enabled):
+    config = load_config(intent(tmp_path, recall_usage_enabled=enabled))
+    render(config, tmp_path / "usage")
+    assert f"CONTEXTDB_RECALL_USAGE_ENABLED={str(enabled).lower()}" in (tmp_path / "usage/api.env").read_text()
+    assert "RECALL_USAGE" not in (tmp_path / "usage/ui.env").read_text()
+
+
+@pytest.mark.parametrize("value", ["true", 1, "false", None])
+def test_deployment_usage_switch_requires_json_boolean(tmp_path, value):
+    with pytest.raises(ValueError):
+        load_config(intent(tmp_path, recall_usage_enabled=value))

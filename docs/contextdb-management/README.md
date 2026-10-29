@@ -1,5 +1,14 @@
 # ContextDB 工作空间、用户与 API Key
 
+召回统计提供记忆和知识页的次数及最后召回时间。默认关闭，通过 `CONTEXTDB_RECALL_USAGE_ENABLED=true` 启用；usage读取沿用空间及内容读取权限，已授权只读/读写业务Key可读，UI仍为管理员登录。当前实现由[PR #54](https://github.com/RSIXDB/hindsight/pull/54)送审，不代表已合入。
+
+- [配置、旧实例升级与最小使用示例](../../hindsight-extensions/contextdb-service/README.md#召回使用统计issue-38)。
+- [完整设计第7章](DESIGN.md#7-记忆与知识召回统计)：口径、采集、权限、异步写入、生命周期和性能边界。
+- [记忆/知识页截图](VALIDATION.md#202-chrome实际验证)、[开关截图](VALIDATION.md#222-关键合同与chrome)。
+- [完整检视](CODE-REVIEW.md#26-pr-54-完整独立检视与文档修正2026-10-29)、[验收](VALIDATION.md)：第26章为完整候选回归，第27章为内部检索排除补证；旧章节仅代表各自日期/版本。
+
+以下为此前管理功能和维护修复的追溯资料。
+
 当前维护修复（2026-10-27）基于main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复分支`codex/fix-contextdb-31-32-integration`；提交身份以同版Git/PR为准。Issue #31的MCP配置作用域、Issue #32的共享维护函数初始化均在插件内修复。走读[设计第5.5.4节](DESIGN.md)、[检视第20章](CODE-REVIEW.md)、[验证记录（第17章独立目录、第18章本地集成目录）](VALIDATION.md)。下列送审信息为原管理功能历史。
 
 **先查[已落地优化索引（CODE-REVIEW第15章）](CODE-REVIEW.md#implemented-optimization-index)**：逐项列出SEC-01、S16～S26、质量修复N-P001～006、独立检视BR-01、已有等效修复、有意撤回及未完成项。后续先核对索引，避免把已实现问题重新分析或重复移植。

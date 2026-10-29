@@ -17,6 +17,7 @@ class Settings(BaseModel):
     instance_id: str = Field(min_length=1, max_length=128)
     cloud_tenant_id: str = Field(min_length=1, max_length=128)
     pepper: str = Field(min_length=32, repr=False)
+    recall_usage_enabled: bool = False
     model_config = ConfigDict(extra="forbid")
 
     @classmethod
@@ -45,11 +46,15 @@ class Settings(BaseModel):
             and service_env("API_MCP_EXTENSION") != "hindsight_ext_contextdb.mcp:ContextDBMCPExtension"
         ):
             raise ValueError("ContextDB MCP requires hindsight_ext_contextdb.mcp:ContextDBMCPExtension")
+        usage = os.environ.get("CONTEXTDB_RECALL_USAGE_ENABLED", "false")
+        if usage not in {"true", "false"}:
+            raise ValueError("CONTEXTDB_RECALL_USAGE_ENABLED must be true or false")
         try:
             return cls(
                 instance_id=os.environ.get("CONTEXTDB_INSTANCE_ID", ""),
                 cloud_tenant_id=os.environ.get("CONTEXTDB_CLOUD_TENANT_ID", ""),
                 pepper=os.environ.get("CONTEXTDB_KEY_PEPPER", ""),
+                recall_usage_enabled=usage == "true",
             )
         except (ValueError, TypeError):
             # Pydantic errors may include the raw input. Never echo deployment
