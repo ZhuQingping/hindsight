@@ -1,4 +1,5 @@
 import "server-only";
+import defaultPackages from "../../config/client-packages.json";
 import { controlPlaneEnv } from "./control-plane-env";
 
 export interface CustomerConnection {
@@ -12,18 +13,6 @@ export interface CustomerConnection {
     node?: string;
   };
 }
-
-// Pin verified release artifacts so the guide works without package overrides.
-// Deployment settings still allow private mirrors or newer client releases.
-const releaseBase =
-  "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/";
-const defaultPackages = {
-  codingAgents: releaseBase + "contextbase-coding-agents-0.8.1.tgz",
-  openclaw: releaseBase + "contextbase-openclaw-1.0.0.tgz",
-  hermes: releaseBase + "hermes-plugin-contextbase-1.2.2.zip",
-  python: releaseBase + "contextbase_client-1.0.0-py3-none-any.whl",
-  node: releaseBase + "contextbase-client-1.0.0.tgz",
-};
 
 // Only explicitly public settings cross the server/client boundary. Never fall
 // back to the console's internal dataplane address or operator credentials.

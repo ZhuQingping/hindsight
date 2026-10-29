@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import defaultPackages from "../../config/client-packages.json";
 import { customerConnection } from "./customer-connection";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -20,7 +21,7 @@ it("only exposes public addresses and independently configured packages", () => 
   expect(result.packages.codingAgents).toBe(
     "https://downloads.example.com/agents.tgz?sig=a&value=$HOME"
   );
-  expect(result.packages.openclaw).toBe("https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-openclaw-1.0.0.tgz");
+  expect(result.packages.openclaw).toBe(defaultPackages.openclaw);
   expect(JSON.stringify(result)).not.toMatch(/private-service|operator-secret/);
 });
 
@@ -88,18 +89,12 @@ it.each(["development", "production"])("uses release packages by default in %s",
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "");
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "");
   const result = customerConnection("bank");
-  expect(result.packages).toEqual({
-    codingAgents:
-      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz",
-    openclaw:
-      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-openclaw-1.0.0.tgz",
-    hermes:
-      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/hermes-plugin-contextbase-1.2.2.zip",
-    python:
-      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase_client-1.0.0-py3-none-any.whl",
-    node:
-      "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-client-1.0.0.tgz",
-  });
+  expect(result.packages).toEqual(defaultPackages);
+  for (const [, field, extension] of downloads) {
+    const url = new URL(result.packages[field]!);
+    expect(url.protocol).toBe("https:");
+    expect(url.pathname.endsWith(extension)).toBe(true);
+  }
   expect(result.apiUrl).toBeUndefined();
   expect(result.mcpUrl).toBeUndefined();
 });
