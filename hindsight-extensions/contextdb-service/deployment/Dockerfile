@@ -20,7 +20,7 @@ COPY hindsight-clients/python/pyproject.toml hindsight-clients/python/README.md 
 COPY hindsight-embed/pyproject.toml hindsight-embed/README.md ./hindsight-embed/
 COPY hindsight-api-slim/pyproject.toml hindsight-api-slim/README.md ./hindsight-api-slim/
 COPY hindsight-clients/typescript/package.json ./hindsight-clients/typescript/
-COPY hindsight-control-plane/package.json ./hindsight-control-plane/
+COPY contextbase-control-plane/package.json ./contextbase-control-plane/
 COPY hindsight-docs/package.json ./hindsight-docs/
 COPY hindsight-all-npm/package.json ./hindsight-all-npm/
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # the local package only after its complete source tree has been copied.
 COPY hindsight-api-slim ./hindsight-api-slim/
 COPY hindsight-clients/typescript ./hindsight-clients/typescript/
-COPY hindsight-control-plane ./hindsight-control-plane/
+COPY contextbase-control-plane ./contextbase-control-plane/
 COPY hindsight-extensions/contextdb-service ./hindsight-extensions/contextdb-service/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package hindsight-api-slim --no-dev \
@@ -49,9 +49,9 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/hindsight-api-slim /app/hindsight-api-slim
 COPY --from=builder /app/hindsight-extensions/contextdb-service /app/hindsight-extensions/contextdb-service
-COPY --from=builder /app/hindsight-control-plane/src /app/hindsight-control-plane/src
-COPY --from=builder /app/hindsight-control-plane/standalone /app/hindsight-control-plane/standalone
-COPY --from=builder /app/hindsight-control-plane/package.json /app/hindsight-control-plane/next.config.ts /app/hindsight-control-plane/
+COPY --from=builder /app/contextbase-control-plane/src /app/contextbase-control-plane/src
+COPY --from=builder /app/contextbase-control-plane/standalone /app/contextbase-control-plane/standalone
+COPY --from=builder /app/contextbase-control-plane/package.json /app/contextbase-control-plane/next.config.ts /app/contextbase-control-plane/
 COPY --from=builder /app/hindsight-clients/typescript/src /app/hindsight-clients/typescript/src
 COPY --from=builder /app/hindsight-clients/typescript/package.json /app/hindsight-clients/typescript/
 COPY --from=builder /app/package-lock.json /app/uv.lock /app/

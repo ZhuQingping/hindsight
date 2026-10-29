@@ -46,7 +46,7 @@ async def nonempty_page(contextdb_clients: MemberClients, llm: LLMStub) -> Creat
 def contextdb_admin_ui(
     contextdb_deployment: ContextDBDeployment, tmp_path_factory: pytest.TempPathFactory
 ) -> Iterator[AdminUI]:
-    server = Path(os.environ.get("CONTEXTDB_UI_SERVER", ROOT / "hindsight-control-plane/standalone/server.js"))
+    server = Path(os.environ.get("CONTEXTDB_UI_SERVER", ROOT / "contextbase-control-plane/standalone/server.js"))
     node = os.environ.get("CONTEXTDB_TEST_NODE_BIN") or shutil.which("node")
     if not server.is_file() or not node:
         pytest.skip("Build the production UI and configure CONTEXTDB_UI_SERVER / CONTEXTDB_TEST_NODE_BIN")

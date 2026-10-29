@@ -33,7 +33,7 @@ def bundle_fingerprint(directory: Path) -> str:
 
 def source_fingerprint(root: Path) -> str:
     directories = [
-        "hindsight-control-plane/src",
+        "contextbase-control-plane/src",
         "hindsight-clients/typescript/src",
     ]
     files: set[Path] = set()
@@ -51,8 +51,8 @@ def source_fingerprint(root: Path) -> str:
         )
     for name in [
         "package-lock.json",
-        "hindsight-control-plane/next.config.ts",
-        "hindsight-control-plane/package.json",
+        "contextbase-control-plane/next.config.ts",
+        "contextbase-control-plane/package.json",
         "hindsight-clients/typescript/package.json",
     ]:
         path = root / name
@@ -73,13 +73,13 @@ def build_ui(root: Path) -> None:
     subprocess.run(["npm", "run", "build", "-w", "@vectorize-io/hindsight-control-plane"], cwd=root, check=True)
     if before != source_fingerprint(root):
         raise ValueError("Source changed during UI build; rebuild before deployment")
-    server = root / "hindsight-control-plane/standalone/server.js"
+    server = root / "contextbase-control-plane/standalone/server.js"
     manifest = UiBuild(source_sha256=before, bundle_sha256=bundle_fingerprint(server.parent))
     server.with_name("contextdb-release.json").write_text(manifest.model_dump_json(indent=2) + "\n")
 
 
 def verify_ui_build(root: Path) -> None:
-    server = root / "hindsight-control-plane/standalone/server.js"
+    server = root / "contextbase-control-plane/standalone/server.js"
     try:
         manifest = UiBuild.model_validate_json(server.with_name("contextdb-release.json").read_text())
         valid = (

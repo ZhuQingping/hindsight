@@ -40,8 +40,8 @@ uv run --frozen --group contextdb pytest -c ../hindsight-extensions/contextdb-se
 
 # 扩展专属UI测试由原Control Plane的同一Vitest配置收集
 cd ..
-npm test --workspace=hindsight-control-plane
-npm run lint --workspace=hindsight-control-plane
+npm test --workspace=contextbase-control-plane
+npm run lint --workspace=contextbase-control-plane
 ```
 
 `tests/python/support`保存合成身份、管理ASGI装配、生命周期double和PG资源owner；`tests/system/support`保存独立部署/客户端/UI进程owner。conftest仅提供pytest fixture包装，故障清理直接测试普通owner。原生词条、原生API和普通系统故事保留宿主位置；原生system conftest与插件系统配置只共用 `hindsight_system_tests.pytest_plugin` 中的模型替身、规则重置及未匹配/格式错误校验；原生服务器、客户端与Bank fixture保留原conftest，不复制测试框架。

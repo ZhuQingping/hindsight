@@ -51,8 +51,8 @@ else
 fi
 
 # Node/TypeScript tasks
-run_task "eslint" "$REPO_ROOT" "npx eslint --config hindsight-control-plane/eslint.config.mjs --fix hindsight-control-plane/src/**/*.{ts,tsx} hindsight-extensions/contextdb-service/tests/ui/**/*.{ts,tsx}"
-run_task "prettier" "$REPO_ROOT/hindsight-control-plane" "npx prettier --write src/**/*.{ts,tsx} ../hindsight-extensions/contextdb-service/tests/ui/**/*.{ts,tsx}"
+run_task "eslint" "$REPO_ROOT" "npx eslint --config contextbase-control-plane/eslint.config.mjs --fix contextbase-control-plane/src/**/*.{ts,tsx} hindsight-extensions/contextdb-service/tests/ui/**/*.{ts,tsx}"
+run_task "prettier" "$REPO_ROOT/contextbase-control-plane" "npx prettier --write src/**/*.{ts,tsx} ../hindsight-extensions/contextdb-service/tests/ui/**/*.{ts,tsx}"
 run_task "prettier-ts-client" "$REPO_ROOT/hindsight-clients/typescript" "npx --yes prettier --write --config $REPO_ROOT/.prettierrc.json --ignore-path $REPO_ROOT/.gitignore ."
 run_task "prettier-all-npm" "$REPO_ROOT/hindsight-all-npm" "npx --yes prettier --write --config $REPO_ROOT/.prettierrc.json --ignore-path $REPO_ROOT/.gitignore ."
 

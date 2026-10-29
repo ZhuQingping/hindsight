@@ -4,14 +4,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'hindsight-control-plane/**'
-      - 'hindsight-clients/typescript/**'
-      - 'hindsight-extensions/contextdb-service/tests/ui/**'
-      - 'docker/standalone/Dockerfile'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.prettierrc.json'
-      - '.github/workflows/browser-brand-audit.yml'
+      - "contextbase-control-plane/**"
+      - "hindsight-clients/typescript/**"
+      - "hindsight-extensions/contextdb-service/tests/ui/**"
+      - "docker/standalone/Dockerfile"
+      - "package.json"
+      - "package-lock.json"
+      - ".prettierrc.json"
+      - ".github/workflows/browser-brand-audit.yml"
   workflow_dispatch:
 
 permissions:
@@ -29,30 +29,33 @@ jobs:
     timeout-minutes: 15
     env:
       TZ: UTC
-      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
       - name: Install frontend and SDK dependencies
-        run: npm ci --workspace=hindsight-control-plane --workspace=hindsight-clients/typescript
+        run: npm ci --workspace=contextbase-control-plane --workspace=hindsight-clients/typescript
       - name: Check audit formatting with repository configuration
         run: >-
           npx --no-install prettier --check
-          hindsight-control-plane/scripts/audit-browser-artifacts.mjs
-          hindsight-control-plane/scripts/test-browser-brand.mjs
-          hindsight-control-plane/tests/lib/browser-artifacts.test.ts
+          contextbase-control-plane/scripts/audit-browser-artifacts.mjs
+          contextbase-control-plane/scripts/test-browser-brand.mjs
+          contextbase-control-plane/scripts/test-dev-browser-brand.mjs
+          contextbase-control-plane/tests/lib/browser-artifacts.test.ts
           hindsight-extensions/contextdb-service/tests/ui/contextdb.test.ts
       - name: Test frontend and management UI
-        run: npm test --workspace=hindsight-control-plane -- --maxWorkers=2
+        run: npm test --workspace=contextbase-control-plane -- --maxWorkers=2
       - name: Build and scan production package
         env:
           CONTEXTBASE_CP_DATAPLANE_API_URL: https://synthetic-private-api.invalid
           CONTEXTBASE_CP_DATAPLANE_API_KEY: synthetic-private-api-key
           CONTEXTBASE_CP_ACCESS_KEY: synthetic-private-password
           BROWSER_AUDIT_PRIVATE_MARKERS: synthetic-private-api.invalid,synthetic-private-api-key,synthetic-private-password
-        run: npm run build --workspace=hindsight-control-plane
+        run: npm run build --workspace=contextbase-control-plane
       - name: Audit HTTP responses in native and management modes
-        run: npm run test:browser-brand --workspace=hindsight-control-plane
+        run: npm run test:browser-brand --workspace=contextbase-control-plane
+      - name: Audit development resource names and content
+        run: npm run test:browser-brand:dev --workspace=contextbase-control-plane

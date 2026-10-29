@@ -45,7 +45,7 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
         os.environ.clear()
         os.environ.update(environment)
         load_deployment_secrets(directory, "ui")
-        server = source_root / "hindsight-control-plane" / "standalone" / "server.js"
+        server = source_root / "contextbase-control-plane" / "standalone" / "server.js"
         if not server.is_file():
             raise ValueError("Build the matching UI standalone artifact before starting it")
         os.environ["HOSTNAME"] = service_env("CP_HOST", "0.0.0.0")

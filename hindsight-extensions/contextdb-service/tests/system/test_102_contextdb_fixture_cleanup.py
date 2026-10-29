@@ -96,17 +96,17 @@ def test_external_ui_artifact_is_verified_against_selected_bundle_and_checkout(
     checkout, built = tmp_path / "api-checkout", tmp_path / "isolated-build"
     for root in (checkout, built):
         for relative in (
-            "hindsight-control-plane/src/page.tsx",
+            "contextbase-control-plane/src/page.tsx",
             "hindsight-clients/typescript/src/index.ts",
             "package-lock.json",
-            "hindsight-control-plane/next.config.ts",
-            "hindsight-control-plane/package.json",
+            "contextbase-control-plane/next.config.ts",
+            "contextbase-control-plane/package.json",
             "hindsight-clients/typescript/package.json",
         ):
             path = root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("synthetic-matching-source")
-    server = built / "hindsight-control-plane/standalone/server.js"
+    server = built / "contextbase-control-plane/standalone/server.js"
     server.parent.mkdir(parents=True)
     server.write_text("// synthetic compiled server")
     manifest = server.with_name("contextdb-release.json")
@@ -120,7 +120,7 @@ def test_external_ui_artifact_is_verified_against_selected_bundle_and_checkout(
     elif failure == "changed_bundle":
         server.write_text("// changed compiled server")
     elif failure == "other_source":
-        (checkout / "hindsight-control-plane/src/page.tsx").write_text("different-api-checkout-source")
+        (checkout / "contextbase-control-plane/src/page.tsx").write_text("different-api-checkout-source")
     elif failure == "wrong_layout":
         server = server.with_name("unrelated-server.js")
         server.write_text("// unrelated entrypoint")

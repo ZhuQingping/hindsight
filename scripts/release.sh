@@ -149,7 +149,7 @@ else
 fi
 
 # Update Control Plane package.json
-CONTROL_PLANE_PKG="hindsight-control-plane/package.json"
+CONTROL_PLANE_PKG="contextbase-control-plane/package.json"
 if [ -f "$CONTROL_PLANE_PKG" ]; then
     print_info "Updating $CONTROL_PLANE_PKG"
     sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" "$CONTROL_PLANE_PKG"
@@ -246,7 +246,7 @@ COMMIT_MSG="Release v$VERSION
 - TypeScript client: hindsight-clients/typescript
 - hindsight-all npm wrapper: hindsight-all-npm
 - Rust CLI: hindsight-cli
-- Control Plane: hindsight-control-plane
+- Control Plane: contextbase-control-plane
 - Helm chart"
 
 # Add docs update note

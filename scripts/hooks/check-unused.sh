@@ -39,8 +39,8 @@ for entry in \
 done
 
 # --- TypeScript: knip (unused files / exports / dependencies) -----------------
-section "knip: hindsight-control-plane"
-(cd "$REPO_ROOT/hindsight-control-plane" && npx --yes knip@5 --no-progress 2>&1) || true
+section "knip: contextbase-control-plane"
+(cd "$REPO_ROOT/contextbase-control-plane" && npx --yes knip@5 --no-progress 2>&1) || true
 
 printf '\n\033[2m(advisory — informational only, does not fail the build)\033[0m\n'
 exit 0

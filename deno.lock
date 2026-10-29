@@ -65,7 +65,7 @@
           ]
         }
       },
-      "hindsight-control-plane": {
+      "contextbase-control-plane": {
         "packageJson": {
           "dependencies": [
             "npm:@chenglou/pretext@^0.0.3",

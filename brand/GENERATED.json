@@ -7,7 +7,7 @@
       "sha256": "d4393386cc8e27286b2ca9bb9530e8cff7c037029dccad7874166a0fd796bb91"
     },
     {
-      "path": "hindsight-control-plane/src/lib/brand-defaults.ts",
+      "path": "contextbase-control-plane/src/lib/brand-defaults.ts",
       "sha256": "f3acc7e560f4d14f19721d7345b58ec823a4736a934ffb746c7ba02829b4e282"
     },
     {

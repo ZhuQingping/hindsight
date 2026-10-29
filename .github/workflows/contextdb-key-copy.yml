@@ -2,7 +2,7 @@ name: ContextDB key clipboard
 on:
   pull_request:
     paths:
-      - "hindsight-control-plane/src/components/contextdb/**"
+      - "contextbase-control-plane/src/components/contextdb/**"
       - "hindsight-extensions/contextdb-service/tests/browser/key-copy.cjs"
       - ".github/workflows/contextdb-key-copy.yml"
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Install locked UI dependencies
-        run: npm ci --script-shell=bash --workspace=hindsight-control-plane --workspace=hindsight-clients/typescript
+        run: npm ci --script-shell=bash --workspace=contextbase-control-plane --workspace=hindsight-clients/typescript
       - name: Install isolated browser driver (no application dependency changes)
         run: npm install --prefix "$RUNNER_TEMP/clipboard-test" --no-package-lock playwright@1.57.0
       - name: Check real Chrome copy and paste over HTTP and localhost

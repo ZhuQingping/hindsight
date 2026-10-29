@@ -40,7 +40,7 @@ def test_python_package_paths_match_their_manifests():
 
 
 def test_all_console_locales_offer_public_api_settings():
-    locales = list((ROOT / "hindsight-control-plane/src/messages").glob("*.json"))
+    locales = list((ROOT / "contextbase-control-plane/src/messages").glob("*.json"))
     assert len(locales) >= 10
     for path in locales:
         text = path.read_text()
