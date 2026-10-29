@@ -24,11 +24,11 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/package.json",
-      "sha256": "98793540365ac482607f7ec3dc0c6aacceefd36a6d3cb35a0f3a832447af1357"
+      "sha256": "b99f7c0423f43592faaa2340b357c198956051a373e8a7632072f14c4f397cca"
     },
     {
       "path": "hindsight-integrations/coding-agents/plugin.json",
-      "sha256": "708487f2bfa815b868b3b1560e7e665a1b776c66431d8a5160f490c8e583ac2c"
+      "sha256": "0de6ef1da68814eeb7276852e301eb8fc9c86994806f94ccb0c83a3879d83abf"
     },
     {
       "path": "hindsight-integrations/agent-plugin/plugin.json",

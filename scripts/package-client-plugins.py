@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import TypedDict, cast
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -46,7 +47,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    subprocess.run(["bash", str(ROOT / "scripts/sync-product-brand.sh"), "--check"], cwd=ROOT, check=True)
+    subprocess.run(
+        ["bash", str(ROOT / "scripts/sync-product-brand.sh"), "--check"],
+        cwd=ROOT,
+        check=True,
+    )
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     package_archive(
@@ -60,33 +65,29 @@ def main() -> None:
         "claude-code",
         "contextbase-claude-code",
         ".claude-plugin/plugin.json",
-        [".claude-plugin", ".mcp.json", "hooks", "scripts", "skills", "settings.json", "requirements.txt", "README.md"],
+        [
+            ".claude-plugin",
+            ".mcp.json",
+            "hooks",
+            "scripts",
+            "skills",
+            "settings.json",
+            "requirements.txt",
+            "README.md",
+        ],
         output,
     )
 
-    source = ROOT / "hindsight-integrations" / "coding-agents"
-    package = read_manifest(source / "package.json")
-    if package["name"] != "contextbase-coding-agents":
-        raise ValueError("Unexpected Coding Agents distribution identity")
-    if not (source / "dist" / "installer.js").is_file():
-        raise RuntimeError("Build Coding Agents before packaging")
-    if (source / "dist" / "daemon-start.js").exists():
-        raise RuntimeError("Local engine entrypoint must not be distributed")
-    destination = output / package["name"] / package["version"]
-    destination.mkdir(parents=True, exist_ok=True)
-    license_path = source / "LICENSE"
-    had_license = license_path.exists()
-    if not had_license:
-        license_path.write_bytes((ROOT / "LICENSE").read_bytes())
-    try:
-        subprocess.run(
-            ["npm", "pack", "--ignore-scripts", "--workspaces=false", "--pack-destination", str(destination)],
-            cwd=source,
-            check=True,
-        )
-    finally:
-        if not had_license:
-            license_path.unlink()
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/package-coding-agents.py"),
+            "--output",
+            str(output),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
 
     for directory in sorted(path for path in output.glob("*/*") if path.is_dir()):
         artifacts = sorted(path for path in directory.iterdir() if path.suffix in {".zip", ".tgz"})

@@ -1080,7 +1080,7 @@ function stageRuntime(c: InstallCtx): InstallCtx {
     // file here, the staged copy is a v1-only plugin and opencode2 logs "configured plugin
     // directory has no index entrypoint".
     // (All are listed in package.json#files, so they exist in a published install too.)
-    for (const resource of ["plugin.json", "hooks", "index.js"]) {
+    for (const resource of ["plugin.json", "hooks", "index.js", "LICENSE"]) {
       const source = join(c.pkgRoot, resource);
       if (existsSync(source)) cpSync(source, join(target, resource), { recursive: true });
     }

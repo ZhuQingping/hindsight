@@ -239,6 +239,9 @@ jobs:
           python hindsight-integrations/agent-plugin/validate.py
       - name: Package only approved plugins
         run: python scripts/package-client-plugins.py --output artifacts
+      - name: Verify the audited public npm tarball and installed MCP runtime
+        working-directory: hindsight-integrations/coding-agents
+        run: node scripts/test-customer-install.mjs ../../artifacts/contextbase-coding-agents/*/*.tgz
       - name: Verify npm installation from an HTTPS tarball URL
         run: |
           for tarball in artifacts/contextbase-coding-agents/*/*.tgz; do

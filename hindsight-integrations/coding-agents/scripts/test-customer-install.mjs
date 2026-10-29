@@ -2,7 +2,7 @@
 // Run after npm run build; no live service, LLM, or customer credentials are used.
 import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createServer } from "node:http";
@@ -45,13 +45,19 @@ const env = {
 };
 let client;
 try {
-  const packed = JSON.parse(
-    execFileSync("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", home], {
-      cwd: root,
-      encoding: "utf8",
-      maxBuffer: 1024 * 1024,
-    })
-  );
+  // Release checks pass the audited public tarball; local tests can still pack the checkout.
+  const tarball = process.argv[2]
+    ? resolve(process.argv[2])
+    : join(
+        home,
+        JSON.parse(
+          execFileSync("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", home], {
+            cwd: root,
+            encoding: "utf8",
+            maxBuffer: 1024 * 1024,
+          })
+        )[0].filename
+      );
   execFileSync(
     "npm",
     [
@@ -59,7 +65,7 @@ try {
       "--yes",
       "--cache",
       join(home, "npm-cache"),
-      "--package=" + join(home, packed[0].filename),
+      "--package=" + tarball,
       "--",
       "contextbase-coding-agents",
       "install",
@@ -84,6 +90,22 @@ try {
   const manifestText = readFileSync(join(dist, "..", "package.json"), "utf8");
   assert(!/hindsight|contextbase-local-engine/i.test(manifestText), "installed package metadata");
   const manifest = JSON.parse(manifestText);
+  if (process.argv[2]) {
+    const sourceManifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    assert.equal(manifest.version, sourceManifest.version);
+    for (const field of [
+      "private",
+      "repository",
+      "bugs",
+      "homepage",
+      "gitHead",
+      "scripts",
+      "devDependencies",
+    ]) {
+      assert(!(field in manifest), `public manifest must omit ${field}`);
+    }
+    assert(readFileSync(join(dist, "..", "LICENSE"), "utf8").includes("MIT License"));
+  }
   for (const field of [
     "dependencies",
     "devDependencies",
