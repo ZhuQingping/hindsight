@@ -24,8 +24,9 @@ def lifecycle_for(repository: Repository) -> Lifecycle:
     async def update(bank_id: str, *, name: str, request_context) -> None:
         await repository.pool.execute(f'INSERT INTO "ctxdb_ws_{bank_id}".banks VALUES($1)', bank_id)
 
-    async def delete(bank_id: str, *, request_context) -> None:
+    async def delete(bank_id: str, *, request_context) -> dict[str, int]:
         await repository.pool.execute(f'DELETE FROM "ctxdb_ws_{bank_id}".banks WHERE bank_id=$1', bank_id)
+        return {"memory_units_deleted": 0, "entities_deleted": 0, "documents_deleted": 0}
 
     context.run_migration = AsyncMock(side_effect=migrate)
     memory.update_bank = AsyncMock(side_effect=update)

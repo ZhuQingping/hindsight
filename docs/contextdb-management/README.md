@@ -1,6 +1,8 @@
 # ContextDB 工作空间、用户与 API Key
 
-召回统计提供记忆和知识页的次数及最后召回时间。默认关闭，通过 `CONTEXTDB_RECALL_USAGE_ENABLED=true` 启用；usage读取沿用空间及内容读取权限，已授权只读/读写业务Key可读，UI仍为管理员登录。当前实现由[PR #54](https://github.com/RSIXDB/hindsight/pull/54)送审，不代表已合入。
+> Bank REST复用原型（2026-10-29，Issue #53）：[完整设计第8章](DESIGN.md#bank-api-reuse-design) · [接入方式取舍8.12节](DESIGN.md#bank-rest-adapter-decision) · [最新完整验收第30章](VALIDATION.md#bank-rest-full-acceptance) · [完整系统及交叉检视第29章](CODE-REVIEW.md#bank-rest-full-review)。保留旧workspace创建、description和UI，MCP管理继续关闭。创建参数预校验及元数据故障分类见[设计8.11节](DESIGN.md#bank-rest-creation-validation)。
+
+召回统计提供记忆和知识页的次数及最后召回时间。默认关闭，通过 `CONTEXTDB_RECALL_USAGE_ENABLED=true` 启用；usage读取沿用空间及内容读取权限，已授权只读/读写业务Key可读，UI仍为管理员登录。召回统计已由[PR #54](https://github.com/RSIXDB/hindsight/pull/54)合入；Bank REST复用范围见上述专项章节。
 
 - [配置、旧实例升级与最小使用示例](../../hindsight-extensions/contextdb-service/README.md#召回使用统计issue-38)。
 - [完整设计第7章](DESIGN.md#7-记忆与知识召回统计)：口径、采集、权限、异步写入、生命周期和性能边界。

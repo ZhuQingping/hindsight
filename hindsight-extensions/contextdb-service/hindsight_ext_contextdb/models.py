@@ -233,6 +233,12 @@ class BusinessPrincipal:
     workspace_permissions: tuple[StoredWorkspaceGrant, ...] = ()
 
 
+class NativeDeletion(BaseModel):
+    memory_units_deleted: int = 0
+    entities_deleted: int = 0
+    documents_deleted: int = 0
+
+
 class ServiceError(Exception):
     """Sanitized domain failures, never database or credential diagnostics."""
 

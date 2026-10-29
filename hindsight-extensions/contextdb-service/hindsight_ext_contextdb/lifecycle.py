@@ -3,16 +3,26 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from hindsight_api.extensions.context import ExtensionContext
 
 from .authorization import workspace_management
-from .models import BusinessPrincipal, ServiceError, Workspace, WorkspaceCreate
+from .database_checks import metadata_errors
+from .models import BusinessPrincipal, NativeDeletion, ServiceError, Workspace, WorkspaceCreate
 from .repository import Repository
 
 if TYPE_CHECKING:
     from hindsight_api import MemoryEngine
+    from hindsight_api.api.http import BankProfileResponse, CreateBankRequest
+
+
+@dataclass
+class WorkspaceCreated:
+    workspace: Workspace
+    profile: BankProfileResponse | None = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,37 +42,93 @@ class Lifecycle:
             logger.warning("Unable to record failed workspace state: %s", workspace.workspace_id)
 
     async def create(self, principal: BusinessPrincipal, body: WorkspaceCreate, request_id: str) -> Workspace:
-        workspace = await self.repository.create_workspace(principal, body, request_id)
+        return (await self._create(principal, body, request_id)).workspace
+
+    async def create_bank(
+        self,
+        principal: BusinessPrincipal,
+        bank_id: str,
+        request: CreateBankRequest,
+        request_id: str,
+        *,
+        create_only: bool,
+    ) -> BankProfileResponse:
+        from .bank_contract import validate_creation_config
+
+        await validate_creation_config(self.memory, bank_id, request)
+        result = await self._create(
+            principal, WorkspaceCreate(name=bank_id), request_id, request=request, create_only=create_only
+        )
+        assert result.profile is not None
+        return result.profile
+
+    async def _create(
+        self,
+        principal: BusinessPrincipal,
+        body: WorkspaceCreate,
+        request_id: str,
+        *,
+        request: CreateBankRequest | None = None,
+        create_only: bool = False,
+    ) -> WorkspaceCreated:
+        with metadata_errors():
+            workspace = await self.repository.create_workspace(principal, body, request_id, create_only=create_only)
         try:
-            await self.repository.verify_workspace_schema(workspace.schema_name)
+            with metadata_errors():
+                await self.repository.verify_workspace_schema(workspace.schema_name)
             # Native migrations own their DDL connections. No metadata transaction
             # or shielded executor is held while awaiting their native behavior.
             with workspace_management(workspace, "create_workspace") as context:
                 await self.context.run_migration(workspace.schema_name)
-                await self.memory.update_bank(workspace.bank_id, name=workspace.name, request_context=context)
+                if request is None:
+                    profile = await self.memory.update_bank(
+                        workspace.bank_id, name=workspace.name, request_context=context
+                    )
+                else:
+                    profile = await self.memory.update_bank(
+                        workspace.bank_id,
+                        name=request.name,
+                        config_updates=request.get_config_updates() or None,
+                        request_context=context,
+                    )
                 if await self.memory.get_bank_profile(workspace.bank_id, request_context=context) is None:
                     raise ServiceError(503, "workspace_initialization_failed", "Workspace Bank initialization failed")
-            return await self.repository.finish_workspace_creation(workspace, principal, request_id)
+            # Validate the native result before activation. Legacy workspace
+            # callers keep their existing response and description contract.
+            from .bank_contract import profile_response
+
+            response = profile_response(workspace.bank_id, profile) if request is not None else None
+            with metadata_errors():
+                active = await self.repository.finish_workspace_creation(workspace, principal, request_id)
+            return WorkspaceCreated(active, response)
         except Exception:
             await self._failed(workspace)
             raise
 
     async def delete(
         self, principal: BusinessPrincipal, bank_id: str, request_id: str, *, expected_id: str, expected_version: int
-    ) -> None:
-        workspace = await self.repository.delete_workspace(
-            principal, bank_id, request_id, expected_id=expected_id, expected_version=expected_version
-        )
+    ) -> NativeDeletion:
+        with metadata_errors():
+            workspace = await self.repository.delete_workspace(
+                principal, bank_id, request_id, expected_id=expected_id, expected_version=expected_version
+            )
         try:
-            await self.repository.verify_workspace_schema(workspace.schema_name)
+            result = NativeDeletion()
+            with metadata_errors():
+                await self.repository.verify_workspace_schema(workspace.schema_name)
+                bank_exists = await self.repository.bank_exists(workspace)
             # A failed migration may have only part of the native schema. An
             # absent Bank requires no native cleanup; drop only verified residue.
-            if await self.repository.bank_exists(workspace):
+            if bank_exists:
                 with workspace_management(workspace, "delete_workspace") as context:
-                    await self.memory.delete_bank(workspace.bank_id, request_context=context)
+                    result = NativeDeletion.model_validate(
+                        await self.memory.delete_bank(workspace.bank_id, request_context=context)
+                    )
             # Native delete owns its best-effort file/index semantics. Do not add
             # a stricter second file deletion or wait for native background work.
-            await self.repository.finish_workspace_deletion(workspace, principal, request_id)
+            with metadata_errors():
+                await self.repository.finish_workspace_deletion(workspace, principal, request_id)
+            return result
         except Exception:
             await self._failed(workspace)
             raise

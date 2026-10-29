@@ -62,10 +62,11 @@ class WorkspaceAuthorizationMiddleware:
     transaction or waits for another executor to end.
     """
 
-    def __init__(self, app: ASGIApp, memory: MemoryEngine, settings: Settings) -> None:
+    def __init__(self, app: ASGIApp, memory: MemoryEngine, settings: Settings, bank_app: ASGIApp | None = None) -> None:
         self.app = app
         self.memory = memory
         self.settings = settings
+        self._bank_app = bank_app
 
     async def _project_json_response(
         self,
@@ -116,6 +117,17 @@ class WorkspaceAuthorizationMiddleware:
             await self.app(scope, receive, send)
             return
         path = scope["path"]
+        if scope["method"] in {"PUT", "PATCH", "DELETE"} and re.fullmatch(
+            r"/v1/default/banks/[a-z][a-z0-9_]{0,53}", path
+        ):
+            # Import after native HTTP has constructed its extension slots.
+            # This exact resource match cannot intercept content/config routes.
+            if self._bank_app is None:
+                from .bank_rest import create_bank_app
+
+                self._bank_app = create_bank_app(self.memory, self.settings)
+            await self._bank_app(scope, receive, send)
+            return
         if path == "/mcp" or path.startswith("/mcp/"):
             # MCP resolves the current message's credential and actual tool Bank
             # in its public middleware, never from the initialization session.
