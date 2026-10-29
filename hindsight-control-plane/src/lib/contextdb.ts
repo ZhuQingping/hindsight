@@ -15,17 +15,17 @@ export function contextDBEnabled(): boolean {
 
 export function contextDBConfigurationError(): string | null {
   if (!controlPlaneEnv("ACCESS_KEY") || !controlPlaneEnv("DATAPLANE_API_KEY")) {
-    return "ContextDB requires both a UI access password and a server admin API key";
+    return "ContextBase requires both a UI access password and a server admin API key";
   }
   const password = controlPlaneEnv("ACCESS_KEY")!;
   if (
     password === controlPlaneEnv("DATAPLANE_API_KEY") ||
     /^ctx_(live|ctrl|admin)_/.test(password)
   ) {
-    return "The UI password must be independent from ContextDB API keys";
+    return "The UI password must be independent from ContextBase API keys";
   }
   if (!authConfigured()) {
-    return "ContextDB requires local UI authentication, PUBLIC_ORIGIN and an absolute SESSION_DIR";
+    return "ContextBase requires local UI authentication, PUBLIC_ORIGIN and an absolute SESSION_DIR";
   }
   return null;
 }
@@ -141,7 +141,10 @@ export async function requireContextDBAdmin(
   verifyBackend = true
 ): Promise<NextResponse | null> {
   if (!contextDBEnabled())
-    return NextResponse.json({ error: "ContextDB administration is not enabled" }, { status: 404 });
+    return NextResponse.json(
+      { error: "ContextBase administration is not enabled" },
+      { status: 404 }
+    );
   const configurationError = contextDBConfigurationError();
   if (configurationError) return NextResponse.json({ error: configurationError }, { status: 503 });
   const cookieName = sessionCookieName();

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         localizeApiErrorPayload(request, {
           error: errorMessage,
-          details: errorDetails,
+          details: statusCode < 500 ? errorDetails : null,
           errorKey: "api.errors.memories.retain",
         }),
         { status: statusCode }

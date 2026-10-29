@@ -1,3 +1,4 @@
+import { publicUpstreamPayload } from "@/lib/public-upstream-payload";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { nativeFileDownloadPath } from "@/lib/file-download";
@@ -58,7 +59,9 @@ export async function GET(request: NextRequest) {
       const error = await submitResponse
         .json()
         .catch(() => ({ detail: submitResponse.statusText }));
-      return NextResponse.json(error, { status: submitResponse.status });
+      return NextResponse.json(publicUpstreamPayload(error, submitResponse.status), {
+        status: submitResponse.status,
+      });
     }
     const { operation_id: operationId } = await submitResponse.json();
 
@@ -74,7 +77,9 @@ export async function GET(request: NextRequest) {
         const error = await statusResponse
           .json()
           .catch(() => ({ detail: statusResponse.statusText }));
-        return NextResponse.json(error, { status: statusResponse.status });
+        return NextResponse.json(publicUpstreamPayload(error, statusResponse.status), {
+          status: statusResponse.status,
+        });
       }
       const status = await statusResponse.json();
       if (status.status === "completed") {
@@ -119,7 +124,9 @@ export async function GET(request: NextRequest) {
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
-      return NextResponse.json(error, { status: response.status });
+      return NextResponse.json(publicUpstreamPayload(error, response.status), {
+        status: response.status,
+      });
     }
 
     return new NextResponse(response.body, {
@@ -188,7 +195,9 @@ export async function POST(request: NextRequest) {
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: response.statusText }));
-      return NextResponse.json(error, { status: response.status });
+      return NextResponse.json(publicUpstreamPayload(error, response.status), {
+        status: response.status,
+      });
     }
 
     return NextResponse.json(await response.json(), { status: 200 });

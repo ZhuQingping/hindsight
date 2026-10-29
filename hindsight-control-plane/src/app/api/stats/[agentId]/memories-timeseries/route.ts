@@ -1,3 +1,4 @@
+import { publicUpstreamPayload } from "@/lib/public-upstream-payload";
 import { NextRequest, NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { dataplaneBankUrl, getDataplaneHeaders } from "@/lib/contextbase-client";
@@ -16,7 +17,7 @@ export async function GET(
     );
     const upstream = await fetch(url, { headers: getDataplaneHeaders() });
     const body = await upstream.json();
-    return NextResponse.json(body, {
+    return NextResponse.json(publicUpstreamPayload(body, upstream.status), {
       status: upstream.status,
     });
   } catch (error) {

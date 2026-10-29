@@ -241,7 +241,7 @@ function NativeBanksOverview() {
           </div>
           <h3 className="mb-3 text-2xl font-bold text-card-foreground">{t("welcomeTitle")}</h3>
           <p className="mb-6 text-muted-foreground">{t("welcomeBody")}</p>
-          <Button onClick={() => window.dispatchEvent(new CustomEvent("hindsight:create-bank"))}>
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("contextbase:create-bank"))}>
             <Plus className="mr-1.5 h-4 w-4" />
             {tNavBank("create")}
           </Button>
@@ -261,7 +261,7 @@ function NativeBanksOverview() {
           size="sm"
           // The create dialog (with its template import) lives in the header selector;
           // this asks that component to open it rather than shipping a second copy.
-          onClick={() => window.dispatchEvent(new CustomEvent("hindsight:create-bank"))}
+          onClick={() => window.dispatchEvent(new CustomEvent("contextbase:create-bank"))}
         >
           <Plus className="mr-1.5 h-4 w-4" />
           {tNavBank("create")}

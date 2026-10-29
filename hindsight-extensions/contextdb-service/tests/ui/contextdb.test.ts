@@ -63,6 +63,28 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
+it("hides management server diagnostics while preserving status and request correlation", async () => {
+  backend.mockResolvedValue(
+    new Response("Hindsight private server trace", {
+      status: 503,
+      headers: {
+        "X-Request-ID": "upstream-request-id",
+        ETag: '"metadata-version"',
+      },
+    })
+  );
+  const response = await GET(await request("/users"), route("users"));
+  expect(response.status).toBe(503);
+  expect(response.headers.get("X-Request-ID")).toBe("upstream-request-id");
+  expect(response.headers.get("ETag")).toBe('"metadata-version"');
+  expect(response.headers.get("Cache-Control")).toContain("no-store");
+  expect(await response.json()).toEqual({
+    code: "service_unavailable",
+    message: "ContextBase management service is unavailable",
+    request_id: "upstream-request-id",
+  });
+});
+
 describe("browser management contract", () => {
   it("sends the quoted If-Match required by the actual extension", async () => {
     backend.mockResolvedValue(new Response(JSON.stringify({ version: 2 })));

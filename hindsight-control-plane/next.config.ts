@@ -27,6 +27,9 @@ const maxUploadBodySize: SizeLimit = maxUploadEnv
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Public maps expose original source paths and comments. Keep production
+  // browser maps disabled even if the framework's default changes.
+  productionBrowserSourceMaps: false,
   // Preserve the original loopback host in next-intl rewrites. NextURL's default
   // 127.0.0.1 -> localhost normalization would otherwise turn an internal
   // rewrite into a new request rejected by the protected profile's Host guard.

@@ -108,7 +108,7 @@ const DOCUMENTS_AUTO_REFRESH_MS = 8000;
 // pending row for recently-completed operations so it stays on screen until
 // the real document row takes over (dedup by document_id) — no flicker.
 const PENDING_BRIDGE_MS = 30000;
-const DOCUMENTS_REFRESH_EVENT = "hindsight:documents-refresh";
+const DOCUMENTS_REFRESH_EVENT = "contextbase:documents-refresh";
 // Debounce between a filter edit (search text, tags) and the list request.
 const FILTER_DEBOUNCE_MS = 250;
 

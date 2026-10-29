@@ -111,14 +111,14 @@ WORKDIR /app/memory-poc/hindsight-control-plane
 # correct platform-specific native bindings for lightningcss/tailwindcss
 COPY hindsight-control-plane/package.json ./
 # Remove the file: dependency on SDK (we'll copy it directly later)
-RUN sed -i '/"@vectorize-io\/contextbase-client":/d' package.json \
+RUN sed -i '/"contextbase-client":/d' package.json \
     && npm install
 
 # Copy Control Plane source (excluding node_modules via .dockerignore)
 COPY hindsight-control-plane/ ./
 # Remove package-lock.json to avoid conflicts with installed native bindings
 # Also remove the file: dependency from package.json (restored by COPY above)
-RUN rm -f package-lock.json && sed -i '/"@vectorize-io\/contextbase-client":/d' package.json
+RUN rm -f package-lock.json && sed -i '/"contextbase-client":/d' package.json
 
 # Copy built SDK directly into node_modules (more reliable than npm link in Docker)
 COPY --from=sdk-builder /app/hindsight-clients/typescript ./node_modules/contextbase-client
@@ -150,6 +150,9 @@ RUN STANDALONE_ROOT=$(dirname "$(find .next/standalone -path '*/node_modules' -p
     # Verify required files exist
     test -f standalone/server.js || (echo "ERROR: server.js missing!" && exit 1) && \
     test -f standalone/.next/BUILD_ID || (echo "ERROR: BUILD_ID missing!" && exit 1)
+
+# Audit the final packaged HTML/RSC and static resources, after every copy.
+RUN npm run audit:browser
 
 # =============================================================================
 # Stage: Final Image - API Only
