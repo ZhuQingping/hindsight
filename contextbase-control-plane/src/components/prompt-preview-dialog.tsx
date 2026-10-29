@@ -86,7 +86,7 @@ type DryRunResult = { facts: Fact[]; chunks?: Chunk[]; usage?: Record<string, un
 
 /**
  * Colour is the point of this screen: a reader should tell at a glance which blocks
- * come from a setting they can change and which are Hindsight's own.
+ * come from a setting they can change and which are built in.
  *
  * Hue is keyed on the *config field*, not on position, so a setting keeps its colour
  * across operations and across re-renders — the mission is always amber, the language
@@ -1325,7 +1325,7 @@ export function PreviewPromptButton({
         size="sm"
         className={cn(
           "shrink-0",
-          // The emerald the Hindsight Cloud call-to-action uses in Memory Defense, so
+          // The emerald used by the Memory Defense call-to-action, so
           // the one prominent button on a config screen looks like the others.
           isLab && "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
         )}

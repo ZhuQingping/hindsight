@@ -56,7 +56,7 @@ import {
 } from "@/components/ui/select";
 import { ContextDBUsageProvider, ContextDBUsageFields } from "./contextdb/recall-usage";
 import { MemoryDetailModal } from "./memory-detail-modal";
-import { convertHindsightGraphData, graphLinkCategory, GraphNode } from "./graph-data";
+import { convertGraphData, graphLinkCategory, GraphNode } from "./graph-data";
 import { Constellation } from "./constellation";
 import { TagFilterInput } from "./tag-filter-input";
 import { ObservationScopeFilter, ObservationScope } from "./observation-scope-filter";
@@ -290,7 +290,7 @@ export function DataView({
   // Convert data for the constellation (graph data is already filtered server-side)
   const graph2DData = useMemo(() => {
     if (!data) return { nodes: [], links: [] };
-    const fullData = convertHindsightGraphData(data);
+    const fullData = convertGraphData(data);
 
     // Filter links based on visible link types
     const links = fullData.links.filter((link) => {

@@ -47,7 +47,22 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   const assets = new Set();
-  for (const page of ["/en/login", "/zh-CN/login"]) {
+  // Bank pages load the graph, entities and prompt-preview chunks that login
+  // pages never request. Include those entrypoints so branding cannot hide in
+  // a business-only bundle while the login audit stays green.
+  const pages = [
+    "/en/login",
+    "/zh-CN/login",
+    "/en",
+    "/zh-CN",
+    "/en/banks/browser_audit",
+    "/zh-CN/banks/browser_audit",
+    "/en/connect",
+    "/en/settings",
+    "/en/dashboard",
+    "/en/guide",
+  ];
+  for (const page of pages) {
     const response = await fetch(origin + page, { signal: AbortSignal.timeout(60000) });
     assert.equal(response.status, 200, page);
     const html = await response.text();
@@ -75,7 +90,9 @@ try {
     }
     assert(!legacy.test(content), `${asset}: legacy branding in resource`);
   }
-  console.log(`Development browser brand audit passed: 2 pages, ${assets.size} resources`);
+  console.log(
+    `Development browser brand audit passed: ${pages.length} pages, ${assets.size} resources`
+  );
 } catch (error) {
   console.error(logs.slice(-4000));
   throw error;

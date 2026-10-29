@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { escapeGraphHtml } from "@/components/constellation";
-import { convertHindsightGraphData, graphLinkCategory } from "@/components/graph-data";
+import { convertGraphData, graphLinkCategory } from "@/components/graph-data";
 
 describe("graph presentation boundaries", () => {
   it("does not invent a semantic type for an untyped edge", () => {
-    const graph = convertHindsightGraphData({
+    const graph = convertGraphData({
       nodes: [{ data: { id: "a" } }, { data: { id: "b" } }],
       edges: [{ data: { source: "a", target: "b", lineStyle: "solid" } }],
     });
