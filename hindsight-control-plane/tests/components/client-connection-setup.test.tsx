@@ -17,7 +17,6 @@ const connection: CustomerConnection = {
   mcpUrl: "https://mcp.example.com/team/mcp",
   codingAgentsNpm: "contextbase-coding-agents@latest",
   packages: {
-    codingAgents: "https://downloads.example.com/agents.tgz",
     openclaw: "https://downloads.example.com/openclaw.tgz",
     hermes: "https://downloads.example.com/hermes.zip",
     python: "https://downloads.example.com/contextbase_client-1.0.0-py3-none-any.whl",
@@ -168,28 +167,10 @@ it("does not offer a copied install command for an empty project path", () => {
   expect(document.body.textContent).toContain("npx.cmd --yes");
 });
 
-it("keeps the archive as a collapsed alternative to the npm command", () => {
-  show();
-  const summary = screen.getByText("Alternative: install from a downloaded package");
-  expect(summary.closest("details")?.open).toBe(false);
-  fireEvent.click(summary);
-  expect(
-    screen.getByRole("link", { name: "Download installation package ↗" }).getAttribute("href")
-  ).toBe(connection.packages.codingAgents);
-});
-
-it("can connect through npm when no archive download is configured", () => {
+it("connects through npm without a download link or archive installer", () => {
   show({ ...connection, packages: {} });
   expect(document.body.textContent).toContain("npx.cmd --yes");
   expect(screen.queryByRole("status")).toBeNull();
-  expect(screen.queryByText("Alternative: install from a downloaded package")).toBeNull();
-});
-
-it("uses the configured archive when npm distribution is disabled", () => {
-  show({ ...connection, codingAgentsNpm: undefined });
-  expect(document.body.textContent).toContain("npm.cmd exec --yes");
-  expect(document.body.textContent).not.toContain("npx.cmd");
-  expect(
-    screen.getByRole("link", { name: "Download installation package ↗" }).getAttribute("href")
-  ).toBe(connection.packages.codingAgents);
+  expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
+  expect(document.body.textContent).not.toContain("npm.cmd exec");
 });

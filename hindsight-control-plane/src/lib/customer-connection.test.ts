@@ -9,17 +9,11 @@ it("only exposes public addresses and independently configured packages", () => 
   vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "https://mcp.example.com/banks/{bank_id}/mcp");
   vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "http://private-service:8888");
   vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_KEY", "operator-secret");
-  vi.stubEnv(
-    "CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL",
-    "https://downloads.example.com/agents.tgz?sig=a&value=$HOME"
-  );
   const bank = "team/%-中文.json";
   const result = customerConnection(bank);
   expect(result.apiUrl).toBe("https://api.example.com/customer-api");
   expect(result.mcpUrl).toBe(`https://mcp.example.com/banks/${encodeURIComponent(bank)}/mcp`);
-  expect(result.packages.codingAgents).toBe(
-    "https://downloads.example.com/agents.tgz?sig=a&value=$HOME"
-  );
+  expect(result.codingAgentsNpm).toBe("contextbase-coding-agents@latest");
   expect(result.packages.openclaw).toBeUndefined();
   expect(JSON.stringify(result)).not.toMatch(/private-service|operator-secret/);
 });
@@ -45,7 +39,6 @@ it("allows http for the public API address in development, rejects it in product
 });
 
 const downloads = [
-  ["CODING_AGENTS_PACKAGE_URL", "codingAgents", ".tgz"],
   ["OPENCLAW_PACKAGE_URL", "openclaw", ".tgz"],
   ["HERMES_PACKAGE_URL", "hermes", ".zip"],
   ["PYTHON_SDK_PACKAGE_URL", "python", ".whl"],
@@ -83,7 +76,6 @@ it("never derives MCP from the REST endpoint or an internal address", () => {
 it("does not invent package download URLs when deployment settings are unset", () => {
   vi.stubEnv("NODE_ENV", "development");
   const development = customerConnection("bank");
-  expect(development.packages.codingAgents).toBeUndefined();
   expect(development.packages.openclaw).toBeUndefined();
   expect(development.packages.hermes).toBeUndefined();
   expect(development.packages.python).toBeUndefined();
@@ -91,7 +83,6 @@ it("does not invent package download URLs when deployment settings are unset", (
 
   vi.stubEnv("NODE_ENV", "production");
   const production = customerConnection("bank");
-  expect(production.packages.codingAgents).toBeUndefined();
   expect(production.packages.openclaw).toBeUndefined();
   expect(production.packages.hermes).toBeUndefined();
   expect(production.packages.python).toBeUndefined();
@@ -109,7 +100,6 @@ it.each([
 });
 
 it.each([
-  "",
   "contextbase-coding-agents@beta",
   "contextbase-coding-agents",
   "https://example.com/client.tgz",
@@ -122,14 +112,10 @@ it.each([
   expect(customerConnection("bank").codingAgentsNpm).toBeUndefined();
 });
 
-it("can explicitly disable npm while keeping the archive fallback", () => {
-  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", "");
-  vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", "contextbase-coding-agents@1.0.0");
-  vi.stubEnv(
-    "CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL",
-    "https://downloads.example.com/client.tgz"
-  );
+it.each([undefined, "", "  "])("defaults to latest when the npm setting is %s", (setting) => {
+  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", setting);
+  vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", undefined);
   const config = customerConnection("bank");
-  expect(config.codingAgentsNpm).toBeUndefined();
-  expect(config.packages.codingAgents).toBe("https://downloads.example.com/client.tgz");
+  expect(config.codingAgentsNpm).toBe("contextbase-coding-agents@latest");
+  expect(Object.keys(config.packages)).toEqual(["openclaw", "hermes", "python", "node"]);
 });

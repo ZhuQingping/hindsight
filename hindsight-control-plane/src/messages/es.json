@@ -2405,9 +2405,7 @@
     "projectPathHelp": "Enter the path on your computer. A dot (.) means the directory where you run the command.",
     "projectPathRequired": "Enter a project path without line breaks.",
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
-    "archiveFallbackTitle": "Alternative: install from a downloaded package",
-    "archiveFallbackHelp": "If npm is unavailable, use the package and command below. This archive may have a different version from the npm package."
+    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed."
   },
   "settings": {
     "storage": {

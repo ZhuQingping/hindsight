@@ -6,7 +6,6 @@ export interface CustomerConnection {
   mcpUrl?: string;
   codingAgentsNpm?: string;
   packages: {
-    codingAgents?: string;
     openclaw?: string;
     hermes?: string;
     python?: string;
@@ -44,7 +43,8 @@ function publicUrl(name: string, options: { bankId?: string; extension?: string 
 }
 
 function publicNpmPackage(): string | undefined {
-  const configured = controlPlaneEnv("CODING_AGENTS_NPM_PACKAGE")?.trim();
+  const configured =
+    controlPlaneEnv("CODING_AGENTS_NPM_PACKAGE")?.trim() || "contextbase-coding-agents@latest";
   // Keep the executable basename matched to the published Coding Agents package.
   // Accept latest or a fixed version. URLs, paths, other tags and npm
   // aliases must not silently turn the public install command into another source.
@@ -62,7 +62,6 @@ export function customerConnection(bankId: string): CustomerConnection {
     mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
     codingAgentsNpm: publicNpmPackage(),
     packages: {
-      codingAgents: publicUrl("CODING_AGENTS_PACKAGE_URL", { extension: ".tgz" }),
       openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
       hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
       python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),

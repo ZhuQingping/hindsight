@@ -205,7 +205,7 @@ export function ClientConnectionSetup({
                   {t(
                     client === "hermes"
                       ? "hermesInstallTitle"
-                      : isCoding && connection.codingAgentsNpm
+                      : isCoding
                         ? "npmInstallTitle"
                         : "installTitle"
                   )}
@@ -213,7 +213,7 @@ export function ClientConnectionSetup({
                 {isCoding && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("projectDirectory")}</p>
                 )}
-                {isCoding && connection.codingAgentsNpm && (
+                {isCoding && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("npmHelp")}</p>
                 )}
                 {isCoding && (
@@ -225,7 +225,7 @@ export function ClientConnectionSetup({
                 {client === "hermes" && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("hermesExtract")}</p>
                 )}
-                {example.downloadUrl && !(isCoding && connection.codingAgentsNpm) && (
+                {example.downloadUrl && (
                   <a
                     href={example.downloadUrl}
                     target="_blank"
@@ -236,31 +236,6 @@ export function ClientConnectionSetup({
                   </a>
                 )}
                 <ConnectionCode key={example.install} code={example.install} />
-                {isCoding && connection.codingAgentsNpm && example.downloadUrl && (
-                  <details className="mt-4 min-w-0 text-sm text-muted-foreground">
-                    <summary className="cursor-pointer font-medium">
-                      {t("archiveFallbackTitle")}
-                    </summary>
-                    <p className="mt-2 leading-6">{t("archiveFallbackHelp")}</p>
-                    <a
-                      href={example.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-block font-medium text-primary hover:underline"
-                    >
-                      {t("downloadPackage")}
-                    </a>
-                    {example.alternateInstall && (
-                      <ConnectionCode
-                        key={example.alternateInstall}
-                        code={example.alternateInstall}
-                      />
-                    )}
-                    {!example.alternateInstall && (
-                      <p className="mt-2 leading-6">{t("cmdUnavailable")}</p>
-                    )}
-                  </details>
-                )}
               </div>
             )}
 

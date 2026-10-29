@@ -3,26 +3,10 @@
 通过 ContextBase，多个 Agent 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证。
 只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
 
-## 1 下载和安装
+## 1 安装方式
 
-安装包适用于 Windows、Linux 和 macOS，需要 Node.js 24。
-
-- [打开 ContextBase Clients v0.1.0 发布页并查看所有客户端安装包](https://github.com/RSIXDB/hindsight/releases/tag/contextbase-clients-v0.1.0)
-- [直接下载 Coding Agents 安装包（0.8.1）](https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz)
-
-Windows PowerShell：
-
-```powershell
-npm.cmd install -g "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz"
-```
-
-Linux 或 macOS Bash：
-
-```bash
-npm install -g "https://github.com/RSIXDB/hindsight/releases/download/contextbase-clients-v0.1.0/contextbase-coding-agents-0.8.1.tgz"
-```
-
-无需下载或解压 Actions 构建产物 ZIP。其他客户端、Python/Node.js SDK 及校验文件可在发布页中按名称下载。
+需要已安装对应客户端和 Node.js 18 或以上版本。使用第 2 节的 `npx` 命令直接接入，无需下载 tgz、全局安装或登录 npm。
+`@latest` 使用 npm 上标记为 latest 的发布版本；需要固定版本时可替换为已发布的版本号。
 
 ## 2 配置连接和项目
 
@@ -33,7 +17,7 @@ Windows PowerShell：
 ```powershell
 cd D:\code\my-project
 $env:CONTEXTBASE_API_TOKEN = '你的业务API-Key'
-contextbase-coding-agents.cmd install claude-code codex --api-url 'https://实际API端点' --api-token "$env:CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
+npx.cmd -y contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$env:CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
 ```
 
 Linux 或 macOS Bash：
@@ -41,7 +25,7 @@ Linux 或 macOS Bash：
 ```bash
 cd /home/alice/work/my-project
 export CONTEXTBASE_API_TOKEN='你的业务API-Key'
-contextbase-coding-agents install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
+npx -y contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
 ```
 
 只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。
@@ -62,19 +46,19 @@ Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记�
 
 ```powershell
 cd D:\code\xiyan
-contextbase-coding-agents.cmd install claude-code codex --bank-id "test_cli" --project-path "."
+npx.cmd -y contextbase-coding-agents@latest install claude-code codex --bank-id "test_cli" --project-path "."
 ```
 
 也可以直接指定其他项目的绝对路径：
 
 ```powershell
-contextbase-coding-agents.cmd install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
+npx.cmd -y contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
 ```
 
 Linux 或 macOS Bash：
 
 ```bash
-contextbase-coding-agents install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
+npx -y contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
 ```
 
 只使用一个客户端时，保留对应的 `claude-code` 或 `codex`。这些命令会更新指定项目的绑定，保留其他项目的映射和已有 API 地址、Key。
@@ -205,55 +189,52 @@ bearer_token_env_var = "CONTEXTBASE_MCP_TOKEN"
 
 **更新**
 
-安装新版本 tgz，然后重新运行第 2 节的 install 命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `contextbase-coding-agents install claude-code codex`（PowerShell 使用 `.cmd`）。
+重新运行第 2 节的 npx 安装命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `npx -y contextbase-coding-agents@latest install claude-code codex`（PowerShell 使用 `.cmd`）。
 
 **卸载**
 
 PowerShell：
 
 ```powershell
-contextbase-coding-agents.cmd uninstall claude-code codex
-npm.cmd uninstall -g contextbase-coding-agents
+npx.cmd -y contextbase-coding-agents@latest uninstall claude-code codex
 ```
 
 Bash：
 
 ```bash
-contextbase-coding-agents uninstall claude-code codex
-npm uninstall -g contextbase-coding-agents
+npx -y contextbase-coding-agents@latest uninstall claude-code codex
 ```
 
 卸载不会删除远端记忆。若只配置了远端 MCP，使用宿主的 MCP 管理命令移除 contextbase-remote。
-
 
 ## 7 其他 Agent
 
 Coding Agents 安装包也支持以下宿主。第 2 节命令中的 `claude-code codex` 可替换为实际使用的安装目标；连接参数和项目 Bank 绑定方式相同。
 
-| 客户端 | 安装目标 | 接入方式 |
-| --- | --- | --- |
-| Claude Code | `claude-code` | Hooks + 本地 MCP |
-| Codex CLI | `codex` | Hooks + 本地 MCP |
-| Cursor CLI | `cursor-cli` | Hooks + 本地 MCP |
-| DSH / DeepSeek Harness | `dsh` | 原生插件 |
-| OpenCode | `opencode` | 原生插件 |
-| OpenCode 2 | `opencode2` | 原生插件 |
-| pi | `pi` | 原生扩展 |
-| WorkBuddy | `workbuddy` | Hooks + 本地 MCP |
+| 客户端                 | 安装目标      | 接入方式         |
+| ---------------------- | ------------- | ---------------- |
+| Claude Code            | `claude-code` | Hooks + 本地 MCP |
+| Codex CLI              | `codex`       | Hooks + 本地 MCP |
+| Cursor CLI             | `cursor-cli`  | Hooks + 本地 MCP |
+| DSH / DeepSeek Harness | `dsh`         | 原生插件         |
+| OpenCode               | `opencode`    | 原生插件         |
+| OpenCode 2             | `opencode2`   | 原生插件         |
+| pi                     | `pi`          | 原生扩展         |
+| WorkBuddy              | `workbuddy`   | Hooks + 本地 MCP |
 
 例如在 PowerShell 中配置 Cursor CLI：
 
 ```powershell
-contextbase-coding-agents.cmd install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
+npx.cmd -y contextbase-coding-agents@latest install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
 ```
 
 原生插件的工具出现在宿主自己的工具列表中；它们不需要另建一个 MCP 注册。重启宿主后，调用实际加载的 ContextBase 诊断工具，核对 `workspace`、`bank_id`、`harness`、`api_url`。DSH 安装项作用于全部配置档，请用新会话验证。
 
 OpenClaw 和 Hermes 使用各自的独立安装包，不能作为上述安装命令的目标：
 
-| 客户端 | 构建产物 | 操作指南 |
-| --- | --- | --- |
-| OpenClaw | `contextbase-openclaw-candidate`，内含 `.tgz` | [OpenClaw 使用指南](../../hindsight-integrations/openclaw/README.md) |
-| Hermes Agent | `contextbase-hermes-candidate`，内含插件 ZIP | [Hermes 使用指南](../../hindsight-integrations/hermes/README.md) |
+| 客户端       | 构建产物                                      | 操作指南                                                             |
+| ------------ | --------------------------------------------- | -------------------------------------------------------------------- |
+| OpenClaw     | `contextbase-openclaw-candidate`，内含 `.tgz` | [OpenClaw 使用指南](../../hindsight-integrations/openclaw/README.md) |
+| Hermes Agent | `contextbase-hermes-candidate`，内含插件 ZIP  | [Hermes 使用指南](../../hindsight-integrations/hermes/README.md)     |
 
-两个包都包含对应的 ContextBase SDK。下载仍使用第 1 节的构建页面，选择成功的构建。它们分别使用 OpenClaw 或 Hermes 的配置，不会自动读取 `coding-agent.json`；要共享记忆，请指定相同的 Endpoint 和 Bank，并分别配置有效凭据。
+两个包都包含对应的 ContextBase SDK。下载使用服务方配置的分发地址，或 [客户端发布页](https://github.com/RSIXDB/hindsight/releases)。它们分别使用 OpenClaw 或 Hermes 的配置，不会自动读取 `coding-agent.json`；要共享记忆，请指定相同的 Endpoint 和 Bank，并分别配置有效凭据。

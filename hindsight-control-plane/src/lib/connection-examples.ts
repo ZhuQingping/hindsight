@@ -28,7 +28,6 @@ interface ConnectionExample {
   run?: string;
   configuration?: string;
   downloadUrl?: string;
-  alternateInstall?: string;
   unavailable?:
     | "apiUnavailable"
     | "packageUnavailable"
@@ -110,29 +109,17 @@ export function connectionExample(
     };
   }
   const isCoding = codingClients.some((entry) => entry.id === client);
-  const packageUrl = isCoding ? packages.codingAgents : packages[client as keyof typeof packages];
   if (isCoding) {
     if (!projectPath.trim() || /[\0\r\n]/.test(projectPath))
       return { unavailable: "projectPathRequired" };
-    if (!connection.codingAgentsNpm && !packageUrl) return { unavailable: "packageUnavailable" };
+    if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
     if (cmdUnsafe([apiUrl, bankId, projectPath], terminal))
       return { unavailable: "cmdUnavailable" };
     const args = `install ${client} --api-url ${q(apiUrl)} --api-token ${tokenArgument} --bank-id ${q(bankId)} --project-path ${q(projectPath)}`;
-    const archiveInstall =
-      packageUrl && !cmdUnsafe([packageUrl], terminal)
-        ? `${token}\n${npm} exec --yes ${q(`--package=${packageUrl}`)} -- contextbase-coding-agents ${args}`
-        : undefined;
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
-    const install = connection.codingAgentsNpm
-      ? `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} ${args}`
-      : archiveInstall;
-    if (!install) return { unavailable: "cmdUnavailable" };
-    return {
-      downloadUrl: packageUrl,
-      install,
-      alternateInstall: connection.codingAgentsNpm ? archiveInstall : undefined,
-    };
+    return { install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} ${args}` };
   }
+  const packageUrl = packages[client as keyof typeof packages];
   if (!packageUrl) return { unavailable: "packageUnavailable" };
   if (client !== "hermes" && cmdUnsafe([packageUrl], terminal))
     return { unavailable: "cmdUnavailable" };

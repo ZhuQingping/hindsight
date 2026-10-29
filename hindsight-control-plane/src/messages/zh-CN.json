@@ -2431,8 +2431,6 @@
     "projectPathHelp": "填写你电脑上的项目路径。点号（.）表示运行命令时所在的目录。",
     "projectPathRequired": "请填写项目路径，且不要包含换行符。",
     "npmInstallTitle": "1. 使用 npx 接入",
-    "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。",
-    "archiveFallbackTitle": "备用方式：通过下载包安装",
-    "archiveFallbackHelp": "无法访问 npm 时，可使用下方安装包和命令。下载包版本可能与 npm 包不同。"
+    "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。"
   }
 }

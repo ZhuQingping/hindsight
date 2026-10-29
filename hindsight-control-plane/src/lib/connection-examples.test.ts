@@ -11,8 +11,8 @@ import {
 const connection: CustomerConnection = {
   apiUrl: "https://api.example.com/customer-api",
   mcpUrl: "https://mcp.example.com/team/mcp",
+  codingAgentsNpm: "contextbase-coding-agents@latest",
   packages: {
-    codingAgents: "https://downloads.example.com/agents.tgz?sig=a&value=$HOME",
     openclaw: "https://downloads.example.com/openclaw.tgz",
     hermes: "https://downloads.example.com/hermes.zip",
     python: "https://downloads.example.com/contextbase_client-1.0.0-py3-none-any.whl",
@@ -27,17 +27,14 @@ it.each(codingClients)("installs only $id and preserves shell arguments", ({ id 
   // Run the generated shell, recording argv without installing anything.
   const output = execFileSync(
     "bash",
-    ["-c", 'npm() { printf "%s\\n" "$@"; };\n' + snippet.install],
+    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
     { encoding: "utf8" }
   )
     .trim()
     .split("\n");
   expect(output).toEqual([
-    "exec",
     "--yes",
-    `--package=${connection.packages.codingAgents}`,
-    "--",
-    "contextbase-coding-agents",
+    connection.codingAgentsNpm,
     "install",
     id,
     "--api-url",
@@ -60,9 +57,9 @@ it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
   expect(install).not.toContain("install claude-code");
   if (terminal === "bash") {
     expect(install).toContain("export CONTEXTBASE_API_TOKEN=");
-    expect(install).toContain("npm exec");
+    expect(install).toContain("npx --yes");
   } else {
-    expect(install).toContain("npm.cmd exec");
+    expect(install).toContain("npx.cmd --yes");
     expect(install).toContain(
       terminal === "cmd"
         ? 'set "CONTEXTBASE_API_TOKEN=<API_KEY>"'
@@ -186,14 +183,11 @@ it.each([
   "hermes",
   "python",
   "node",
-] as ConnectionClient[])(
-  "does not invent a registry package when %s's download is missing",
-  (client) => {
-    expect(
-      connectionExample(client, "bash", "team", { apiUrl: connection.apiUrl, packages: {} }, "q")
-    ).toEqual({ unavailable: "packageUnavailable" });
-  }
-);
+] as ConnectionClient[])("does not invent an unconfigured package for %s", (client) => {
+  expect(
+    connectionExample(client, "bash", "team", { apiUrl: connection.apiUrl, packages: {} }, "q")
+  ).toEqual({ unavailable: "packageUnavailable" });
+});
 
 it("handles missing API and MCP addresses independently", () => {
   expect(connectionExample("rest", "bash", "team", { packages: {} }, "q").unavailable).toBe(
@@ -234,8 +228,7 @@ it.each(codingClients)(
       "--project-path",
       path,
     ]);
-    expect(snippet.install).not.toContain(connection.packages.codingAgents);
-    expect(snippet.alternateInstall).toContain(connection.packages.codingAgents);
+    expect(snippet.downloadUrl).toBeUndefined();
   }
 );
 
@@ -251,7 +244,6 @@ it.each(terminals)("installs from npm without an archive URL in %s", (terminal) 
   expect(snippet.install).toContain("contextbase-coding-agents@1.0.0");
   expect(snippet.install).toContain(" install codex ");
   expect(snippet.downloadUrl).toBeUndefined();
-  expect(snippet.alternateInstall).toBeUndefined();
 });
 
 it.each(["", "  ", "line\nbreak", "null\0byte"])("requires a usable project path: %s", (path) => {
@@ -260,18 +252,9 @@ it.each(["", "  ", "line\nbreak", "null\0byte"])("requires a usable project path
   );
 });
 
-it("keeps signed archive URLs out of the main CMD npm command", () => {
-  const config = {
-    ...connection,
-    codingAgentsNpm: "contextbase-coding-agents@1.0.0",
-    packages: { codingAgents: "https://downloads.example.com/client.tgz?signature=a%2Fb" },
-  };
-  const snippet = connectionExample("codex", "cmd", "team", config, "q");
-  expect(snippet.install).toContain("npx.cmd --yes");
-  expect(snippet.alternateInstall).toBeUndefined();
-  expect(snippet.downloadUrl).toBe(config.packages.codingAgents);
+it("does not generate a CMD command that expands the project path", () => {
   expect(
-    connectionExample("codex", "cmd", "team", config, "q", "%USERPROFILE%/project").unavailable
+    connectionExample("codex", "cmd", "team", connection, "q", "%USERPROFILE%/project").unavailable
   ).toBe("cmdUnavailable");
 });
 

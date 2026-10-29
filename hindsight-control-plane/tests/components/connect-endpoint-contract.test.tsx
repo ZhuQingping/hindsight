@@ -37,10 +37,6 @@ it.each(["contextbase", "contextdb"])(
     vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", "contextbase-coding-agents@1.0.0");
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "https://api.example.com/customer-api");
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "https://mcp.example.com/banks/{bank_id}/mcp");
-    vi.stubEnv(
-      "CONTEXTBASE_CP_CODING_AGENTS_PACKAGE_URL",
-      "https://downloads.example.com/agents.tgz"
-    );
     vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "http://internal-service:8888");
     vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_KEY", "operator-secret");
     const bank = "team/%-中文.json";
@@ -71,7 +67,7 @@ it.each(["contextbase", "contextdb"])(
 );
 
 it("shows an unavailable state without inventing localhost or a registry install", async () => {
-  for (const key of ["PUBLIC_API_URL", "PUBLIC_MCP_URL", "CODING_AGENTS_PACKAGE_URL"]) {
+  for (const key of ["PUBLIC_API_URL", "PUBLIC_MCP_URL"]) {
     vi.stubEnv(`CONTEXTBASE_CP_${key}`, "");
     vi.stubEnv(`HINDSIGHT_CP_${key}`, "");
   }
@@ -90,3 +86,13 @@ it.each([undefined, ["one", "two"]])(
     expect(screen.queryByLabelText("Client")).toBeNull();
   }
 );
+
+it("uses latest without npm or download settings when the public API is configured", async () => {
+  vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "https://api.example.com");
+  vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", undefined);
+  vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", undefined);
+  await show("team");
+  expect(document.body.textContent).toContain("contextbase-coding-agents@latest");
+  expect(document.body.textContent).toContain("npx.cmd --yes");
+  expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
+});
