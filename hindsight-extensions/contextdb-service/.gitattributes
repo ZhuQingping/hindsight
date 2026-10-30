@@ -1,0 +1,2 @@
+# Keep plugin UI formatting independent of Windows checkout defaults.
+tests/ui/** text eol=lf

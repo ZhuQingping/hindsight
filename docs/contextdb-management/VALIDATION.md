@@ -1362,3 +1362,73 @@ PORT="$AUDIT_PORT" npm run test:browser-brand:dev --workspace=contextbase-contro
 ```
 
 构建与开发审计使用任务自己的合成配置/后端地址，不读取用户部署配置；未修改已有服务或数据库。完整仓库lint再次在独立可修改候选执行，仍有原生F841基线失败；主CI的允许列表限制保持。最终远程状态以本PR对应提交的检查为准，不提前声明主CI或浏览器工作流通过。
+
+<a id="contextdb-ci-validation"></a>
+
+## 35. ContextDB CI 验收（2026-10-30）
+
+当前修订见35.1；下列为首轮发布 `9e9ddf409` 前的冻结记录，不代表当前测试编排。
+
+基准 main `f2f2fd94f752e384dbe7272857c63e92cba31ec6`，分支 `codex/contextdb-ci`，本章记录提交前冻结验收，交付提交与远程结果以Git/MR为准。候选来自该基准的干净归档加此次工作流/测试文件；工作区已有 Embedding 修改与旧 UI 输出未纳入。环境为 macOS arm64、Python 3.11.15、Node 24.21.0、uv 0.11.2；本轮重新执行 npm ci / uv sync，不复用用户部署目录或数据库。
+
+命令在任务临时副本执行；入口路径为 `hindsight-extensions/contextdb-service/scripts/run-ci.sh`，本地设置 `CONTEXTDB_CI_ISOLATED=1`。该历史入口已由下节修订；当前预检命令见[插件README](../../hindsight-extensions/contextdb-service/README.md#contextdb-service-extension-ci)。
+
+| 检查 | 实际结果 | 工件 |
+| --- | --- | --- |
+| `bash …/run-ci.sh python <报告目录>` | 插件678通过（原637及本轮41项门禁回归），0失败/错误/跳过；Ruff 0.14.9检查/格式、ty 0.0.84通过；原生边界133通过，0失败/错误/跳过 | `python-final.log`、`python-final/python.xml`、`python-final/native.xml` |
+| `bash …/run-ci.sh integration <报告目录>` | UI930通过，0跳过；插件组件/测试ESLint 0错误、1条既有未使用参数警告；Prettier及整体TypeScript通过 | `integration.log`、`integration-results/ui.xml` |
+| 同一 integration 入口的生产构建和审计 | build-ui及匹配manifest成功；产物120文件；HTTP原生67/插件95项；开发10页面68资源通过，使用随机PORT | `integration.log`、候选 `contextbase-control-plane/standalone/contextdb-release.json` |
+| 同一 integration 入口的合同与系统故事 | Key合同1通过；非UI系统98通过（528.81秒）；生产UI2通过（20.58秒、两种Worker、零跳过）；两部分总计100，不重复累计UI故事 | `integration-results/{contracts,system,production-ui}.xml` |
+| 严格报告检查 | `ci_gate.py reports`检查上述六份报告；既有`check_production_ui.py`确认专用报告恰好两种Worker；均通过 | `report-counts.json` |
+| `bash …/run-ci.sh clipboard <报告目录>` | 独立副本重新npm ci；真实Chrome156.0.8078.74，HTTP及localhost两场景实际粘贴一致，焦点/选区恢复正确，无页面错误 | `clipboard.log` |
+| 工作流与安全边界 | actionlint1.7.12检查新工作流、修改的test.yml和品牌工作流通过；`bash -n`通过；非隔离入口在执行任何安装/创建报告目录前拒绝；`git diff --check`通过 | `actionlint-final.log`、`non-isolated-refused.log` |
+| `LINT_SERIAL=1 bash scripts/hooks/lint.sh` | 在另一个独立可修改候选执行；原生`hindsight_api/api/http.py:5846`既有F841仍失败，其余任务通过。自动修复未带回工作区，不将全仓库lint记录为通过 | `lint-hook.log` |
+
+首次预检中，原生环境只安装 embedded-db 时出现102通过、31因缺少local-ml跳过。保留初始`python-results/native.xml`和日志，补齐锁定依赖后完整重跑python入口得到上表结果；新严格门禁已确认会拒绝原31 skip报告（`initial-skip-rejected.log`）。未缩小原生选择范围或修改skip规则。UI/生产构建/系统命令按同一入口顺序运行；随后补充的通用报告检查另行对其原始六份JUnit全部验证通过。
+
+工件根目录由 `/tmp/contextdb-ci-path` 定位，本轮实际为 `/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-ci-d2xaypnv`。`workflow-runs.json`、`startup-jobs.json`保存13个原工作流的远程状态及6个startup_failure均无Job的依据；CI说明只对已确认的主CI允许清单错误定性，不将其他启动失败推测为测试失败。
+
+截至该冻结验收，新工作流尚未发布，Linux Runner、Windows剪贴板及GitHub上的新汇总检查未验；本地macOS不代替这些结果。未修改现有API/UI服务或用户数据库；自己的PG/API/Worker/UI测试进程由既有fixture清理。未触发发布、部署、签名或修改Actions安全策略。
+
+提交前独立执行文档生成钩子，仍因Issue #14缺少`hindsight-docs/figures/what-contextbase-does.json`失败，日志为`doc-hook-publish.log`。本次已获用户明确授权，仅在提交命令中临时禁用钩子；不修改持久Git配置，不将文档生成门禁记录为通过。
+
+
+### 35.1 插件专属工作流修订
+
+基于PR #69的 `9e9ddf409`，恢复原有 `test.yml` 和 `browser-brand-audit.yml`，逐字核对与团队main基准 `f2f2fd94f` 一致。新工作流按Python、UI、集成三组只执行插件测试；剪贴板并入UI组内部步骤，两种操作系统均配置完整插件UI套件及浏览器脚本。不再额外运行133项原生Python选择集、539项原生UI测试或品牌HTTP/开发审计；生产构建保留宿主build的内建产物检查。
+
+本轮在独立临时副本按 `run-ci.sh python / ui / build / system / browser` 顺序预检。采用已隔离候选的依赖副本，并重新执行uv sync/npm ci；UI执行前删除该临时副本的SDK dist，保留SDK未构建时的测试覆盖。没有改动部署目录、运行服务或用户数据库。
+
+| 检查 | 当前实际结果 |
+| --- | --- |
+| 插件Python | 645通过、0失败/跳过；原637项用例名称逐项保持一致，另8项报告完整性测试。移除的是已废弃的筛选/汇总逻辑及其33项新增测试 |
+| 插件UI | 391通过、0失败/跳过；与首轮报告中的391项插件用例名称完全一致，未收集539项原生UI |
+| 生产UI | build-ui、源码匹配manifest及构建内建产物检查通过 |
+| 合同与系统 | Key合同1通过；非UI系统98通过（530.25秒）；生产UI2通过（20.01秒），两种Worker完整执行；合计100项系统故事，0失败/跳过 |
+| 真实Chrome剪贴板 | macOS实际运行HTTP与localhost两种场景，复制/粘贴一致、焦点和选区正确，零页面错误；脚本与原版本逐字一致 |
+| 静态检查 | 插件Ruff/格式/ty、UI Prettier、ESLint通过（1条既有未使用参数警告）；actionlint 1.7.12、bash -n、git diff --check通过 |
+| 全仓库lint | 独立可修改副本重跑仍因原生http.py:5845既有F841失败；自动格式修改未带回目标工作区 |
+
+本节记录amend前候选的本地验收，交付提交与远程结果以同版Git/PR为准。Windows完整插件UI是新平台组合，须由修订后的Runner验证；本机macOS结果不代替Linux/Windows验收。首轮发布版本 `9e9ddf409` 的远程运行全部成功（[运行记录](https://github.com/RSIXDB/hindsight/actions/runs/41046831929)），属于此前编排的证据，不能代替当前修订结果。
+
+工件由 `/tmp/contextdb-extension-ci-path` 定位；包含各步骤日志、JUnit、测试名称对比、原工作流字节核对、未涉及文件指纹及自检记录。原始证据和失败日志保留；本轮交付不修改持久Git配置。
+
+
+### 35.2 Windows格式失败与触发路径
+
+`3226ed029` 的远程Windows UI：15个文件391项全部通过；失败点为之后的Prettier，17个文件报格式差异。Chrome步骤未执行，不能将该作业记为剪贴板失败，也不能记为已验。完整日志为 `windows-failed-job.log`。
+
+任务临时Git仓使用原17个UI文件和仓库Prettier配置，命令级设置 `core.autocrlf=true` 并重新检出，复现与Windows日志完全一致的17个失败文件。加入插件局部 `tests/ui/** text eol=lf` 后按相同条件重新检出，Prettier通过，17个文件逐字节与原LF源码一致；未修改测试内容或持久Git配置。证据为 `windows-eol-{before,after}.log`、`windows-eol-result.json`。
+
+本轮只补插件局部换行属性、相关路径触发与说明；没有改测试命令或断言。PR/push路径清单须一致，覆盖插件、API/UI/SDK、系统fixture和共享构建/依赖输入，排除普通文档与其他集成/工作流；手动触发保持。actionlint、git diff --check通过；PR/push清单一致，14个应触发及6个不应触发路径样例检查通过，手动入口保留，证据为path-filter-check.json。修订后Windows完整Job仍需远程重跑。
+
+
+### 35.3 rebase至部署文档main后的验收
+
+目标main为 `4a44000dd0c9ff5013685296a58fd944382964e4`，原特性提交为 `47db0b383`。main新增内容限于文档和部署环境示例注释；唯一人工冲突在 `docs/contextdb-management/README.md`，保留新导航、历史折叠及插件CI链接。Git range-diff核对特性执行代码未变。
+
+在任务临时副本归档本轮已提交源文件，排除工作区既有Embedding修改，再运行 `run-ci.sh python` 和 `run-ci.sh ui`：Python645通过、插件UI391通过，零失败/跳过；Ruff/格式/ty及UI格式通过，ESLint零错误、一条既有警告。UI执行前清除的仅为任务副本SDK dist。actionlint、diff检查及README冲突标记/折叠检查通过。
+
+原 `47db0b383` 的[远程运行](https://github.com/RSIXDB/hindsight/actions/runs/41055252792)已全部成功，包括Linux Python、macOS/Windows UI及Chrome、完整集成组。该结果属于原提交；本轮未重复本地生产构建/系统套件，新提交的完整远程CI须另行确认。原生主CI既有启动限制不由插件全绿代替。
+
+备份和证据由 `/tmp/contextdb-ci-rebase-path` 定位，包含feature-before.bundle、补丁、range-diff、原有修改/旧UI产物指纹及python/ui日志和JUnit。原有6个修改文件及5350个旧UI文件逐字节保留，stash保留作恢复备份；未修改运行服务、数据库或持久Git配置。
