@@ -23,8 +23,5 @@
     "hermes_plugin": "hermes-plugin-contextbase",
     "hermes_provider": "contextbase"
   },
-  "historical_display_names": [
-    "agentstratum",
-    "ContextBase"
-  ]
+  "historical_display_names": ["ContextBase"]
 }

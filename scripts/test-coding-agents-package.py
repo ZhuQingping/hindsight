@@ -69,10 +69,33 @@ class PublicArchiveTests(unittest.TestCase):
             b"//# sourceURL=/private/index.js",
             b"https://github.com/RSIXDB/private",
             b"hindsight-integrations",
+            b'const names = ["ContextBase", "agentstratum"];',
+            b"Vectorize",
             b"/workspace/private",
         ):
             with self.subTest(content=content), self.assertRaises(ValueError):
                 self.files["package/dist/installer.js"] = content
+                self.audit()
+
+    def test_upstream_brand_is_only_allowed_in_the_license(self) -> None:
+        self.audit()
+        for name in ("package/README.md", "package/skill/SKILL.md"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.files[name] = b"Vectorize AI"
+                try:
+                    self.audit()
+                finally:
+                    self.files[name] = b"ContextBase client"
+
+    def test_stale_distribution_and_internal_skill_docs_are_rejected(self) -> None:
+        for content in (
+            b"Public distribution uses Huawei Cloud OBS + CDN.",
+            b"The OBS/CDN release does not use registry-based updates.",
+            b"The concrete download root is pending.",
+            b"Historical internal fields: daemonProfile, embedPackagePath",
+        ):
+            with self.subTest(content=content), self.assertRaises(ValueError):
+                self.files["package/skill/SKILL.md"] = content
                 self.audit()
 
     def test_repository_and_development_metadata_are_rejected(self) -> None:

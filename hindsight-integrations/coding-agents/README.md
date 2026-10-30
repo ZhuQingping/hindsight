@@ -45,23 +45,32 @@ with it.
 
 <!-- skill:begin title="Install / update" -->
 
+Run these commands from the project directory. Node.js 18 or later is required.
+Set `CONTEXTBASE_API_TOKEN` in your environment, then install the integration you use:
+
 ```bash
-contextbase-coding-agents install all          # every detected agent, wired natively
-contextbase-coding-agents install claude-code  # or just one
-contextbase-coding-agents uninstall all        # removes exactly what install added
-contextbase-coding-agents update               # re-stage the installed package, no rewiring
-contextbase-coding-agents stats                # how often each agent uses contextbase
+npx contextbase-coding-agents@latest install claude-code --bank-id <BANK_ID>
+npx contextbase-coding-agents@latest install codex --bank-id <BANK_ID>
+npx contextbase-coding-agents@latest install cursor-cli --bank-id <BANK_ID>
 ```
 
-`install` takes an explicit target — `all`, or one or more harness names. A bare
-`contextbase-coding-agents install` changes nothing and prints the choice, so wiring every agent on
-the machine is never something that happens by accident.
+`--api-url <API_ENDPOINT>` sets the service address; when omitted, the installer uses
+existing configuration or environment variables and prompts if the address is missing.
+In scripts or CI without an interactive terminal, provide the address explicitly or through configuration.
+`--project-path <PROJECT_PATH>` selects another project; it defaults to the current directory.
+Restart your agent after installation.
 
-For the public OBS/CDN distribution, first install the chosen release with
-`npm install -g <HTTPS tarball URL>`, then run `install <harness>` again to refresh the staged
-runtime and host registration. `update` only re-stages the package already installed on your
-machine; it does not download a newer tarball. Leave `CONTEXTBASE_CODING_AGENTS_PACKAGE` unset:
-this distribution does not use the optional registry-based background updater.
+To upgrade, re-run the same `npx contextbase-coding-agents@latest install <harness>` command.
+Use `@<version>` instead of `@latest` when you need a specific release. The `update` command
+only re-stages the package you invoke; it does not fetch a newer release itself.
+
+```bash
+npx contextbase-coding-agents@latest uninstall claude-code
+npx contextbase-coding-agents@latest --help
+```
+
+`install` requires an explicit target: one or more harness names, or `all` for every
+detected agent. Use `stats` to inspect memory usage.
 
 <!-- skill:end -->
 
@@ -499,13 +508,16 @@ The example host is a placeholder. Copy the real API Endpoint from your console;
 
 Use one default API connection across all harnesses, paths and banks. Configure `apiUrl` / `CONTEXTBASE_API_URL` and `apiToken` / `CONTEXTBASE_API_TOKEN`. Missing addresses produce configuration guidance; no localhost discovery or engine download occurs. Per-harness, per-path and per-bank connection overrides are ignored. CLI Profiles belong to the separate ContextBase CLI.
 
-`serverMode` / `CONTEXTBASE_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Historical internal fields `apiPort`, `daemonIdleTimeout`, `daemonProfile`, `embedVersion`, `embedPackage` and `embedPackagePath` have no supported customer runtime behavior. Their corresponding environment variables do not enable a local engine.
+`serverMode` / `CONTEXTBASE_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Both connect to your configured remote API; this package does not install or start a local server.
 
 <!-- skill:end -->
 
 <!-- skill:begin -->
 
-Public distribution uses Huawei Cloud OBS + CDN. The concrete download root is pending. Install a published version with `npm install -g <HTTPS tarball URL>`; no public npm package-name registration is required. For a source checkout, build this package and run `node dist/installer.js install <harness>`. For a downloaded, verified npm tarball, use `npm install -g ./contextbase-coding-agents-<version>.tgz`. Commands below assume this executable is on PATH. Keep `CONTEXTBASE_CODING_AGENTS_PACKAGE` unset for this distribution. To install a new version, use its explicit tarball URL and re-run the host installation to refresh the staged runtime; the OBS/CDN release does not use registry-based automatic updates.
+The public npm package is `contextbase-coding-agents`. Install and upgrade integrations with
+`npx contextbase-coding-agents@latest install <harness>`. The examples below use
+`contextbase-coding-agents` for brevity; prefix commands with `npx contextbase-coding-agents@latest`
+when the executable is not installed globally.
 
 ## Configuration
 
@@ -1058,6 +1070,12 @@ chronological (a later chat can amend an earlier one). Day-to-day, conversations
 the live session write-back — no export step.
 
 Use a configured remote test service for integration tests. Server deployment is managed separately from client distribution.
+
+### Source-only configuration compatibility
+
+The source configuration type retains `apiPort`, `daemonIdleTimeout`, `daemonProfile`,
+`embedVersion`, `embedPackage` and `embedPackagePath` for internal tests. The remote client
+ignores these fields. This contributor note is excluded from the published skill and docs page.
 
 ## Companion skill (generated)
 
