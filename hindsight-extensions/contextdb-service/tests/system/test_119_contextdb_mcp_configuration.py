@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from contextbase_client import ContextBase
+from contextbase_client_api.models.bank_config_update import BankConfigUpdate
 from fastmcp import Client
 
 from .support.clients import MemberClients
@@ -58,4 +59,17 @@ async def test_native_config_ceilings_and_concurrent_targets(
         assert "Failed to load bank config" not in logs
         assert "Audit config resolution failed" not in logs
     finally:
-        await admin.aclose()
+        try:
+            # These fresh Banks remain in the session deployment's directory.
+            # Later stories must not inherit this test's tool restrictions.
+            # The convenience method omits None; use the generated SDK to send
+            # an explicit null without resetting unrelated config fields.
+            restored = await asyncio.gather(
+                admin.banks.update_bank_config(clients.bank_id, BankConfigUpdate(updates={"mcp_enabled_tools": None})),
+                admin.banks.update_bank_config(
+                    clients.other_bank_id, BankConfigUpdate(updates={"mcp_enabled_tools": None})
+                ),
+            )
+            assert all(config.overrides.get("mcp_enabled_tools") is None for config in restored)
+        finally:
+            await admin.aclose()

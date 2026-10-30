@@ -10,6 +10,7 @@ from starlette.requests import Request
 
 from hindsight_ext_contextdb.config import Settings
 from hindsight_ext_contextdb.mcp import ContextDBMCPRouting
+from hindsight_ext_contextdb.models import MCPToolPolicy
 from hindsight_ext_contextdb.tenant import ContextDBTenantExtension
 
 from .support.identities import ADMIN, ADMIN_SECRET
@@ -137,6 +138,7 @@ async def test_native_tool_failure_is_not_rewritten_as_a_metadata_error(monkeypa
             return_value=Mock(
                 authenticate=AsyncMock(return_value=ADMIN),
                 visible_workspaces=AsyncMock(return_value=[Mock(bank_id="test")]),
+                bank_mcp_policy=AsyncMock(return_value=MCPToolPolicy()),
             )
         ),
     )
@@ -154,7 +156,8 @@ async def test_native_tool_failure_is_not_rewritten_as_a_metadata_error(monkeypa
     async def recall() -> str:
         raise OSError("synthetic-native-tool-failure")
 
-    ContextDBMCPRouting(Mock(tenant_extension=Mock(spec=ContextDBTenantExtension)), settings).install(server)
+    memory = Mock(tenant_extension=Mock(spec=ContextDBTenantExtension))
+    ContextDBMCPRouting(memory, settings).install(server)
     async with Client(server) as client:
         result = await client.call_tool("recall", {}, raise_on_error=False)
     assert result.is_error
@@ -174,6 +177,7 @@ async def test_native_bank_listing_failure_keeps_its_original_error(monkeypatch,
     repository = Mock(
         authenticate=AsyncMock(return_value=ADMIN),
         visible_workspaces=AsyncMock(return_value=[Mock(bank_id="test")]),
+        bank_mcp_policy=AsyncMock(return_value=MCPToolPolicy()),
     )
     memory = Mock(
         _get_backend=AsyncMock(return_value=Mock()),

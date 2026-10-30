@@ -84,6 +84,14 @@
 
 以下为接口、维护及测试参考；首次使用请先选择上方任务入口。
 
+## MCP 工具白名单（Issue #47）
+
+管理员设置的 Bank `mcp_enabled_tools` 同时约束 Admin、read 和 read_write Key 的工具发现和直接调用，并与服务端全局白名单、原有操作权限取交集。`null`／未设置继承服务端默认，`[]` 禁止全部工具；白名单不能赋予只读 Key 写权限。业务 Key 的 REST 配置响应仍保持原有空字段投影。
+
+单 Bank 端点按目标空间判断；root 端点发现允许工具的并集，调用时重新按实际目标校验。root `list_banks` 只返回可见且启用该工具的 Bank，`total` 和分页在过滤后计算；单 Bank 端点不提供该工具。工具策略每次从已认证 schema 严格读取，查询失败、缺少 Bank 或策略畸形时拒绝，不将错误解释为未设置白名单。
+
+这条窄适配复用插件 Repository 读取原生 `banks.config`，不通过会隐藏业务字段或吞掉查询故障的公开配置解析路径；只有 typed 工具策略进入 MCP 校验，不向客户返回原始配置。原生代码、表结构、SDK 和 REST 业务权限没有修改。
+
 ## Bank REST 管理工作空间（Issue #53）
 
 启用 ContextDB 插件后，空间创建、属性更新和删除统一使用原生 Bank 路径，由插件协调管理元数据与独立 schema。未启用插件时保持社区原生行为；只安装Python包不等于启用插件。完整字段、状态与兼容边界见[设计第8章](../../docs/contextdb-management/DESIGN.md#bank-api-reuse-design)。

@@ -74,6 +74,7 @@ async def bank_list(
     limit: int = 100,
     offset: int = 0,
     bank_id: str | None = None,
+    mcp_tool_bank_ids: frozenset[str] | None = None,
 ) -> BankListResponse:
     if limit < 0 or offset < 0 or limit > 1000:
         raise ServiceError(400, "invalid_pagination", "limit must be 0..1000 and offset nonnegative")
@@ -84,6 +85,10 @@ async def bank_list(
         spaces = await repository.visible_workspaces(principal)
     if bank_id is not None:
         spaces = [space for space in spaces if space.bank_id == bank_id]
+    if mcp_tool_bank_ids is not None:
+        # MCP's list_banks adapter has a per-Bank tool ceiling in addition to
+        # ordinary visibility. Apply it before catalog work, counts and paging.
+        spaces = [space for space in spaces if space.bank_id in mcp_tool_bank_ids]
     from hindsight_api.engine.retain import bank_utils
 
     catalog: list[BankListItem] = []
