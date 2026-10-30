@@ -4,6 +4,8 @@
 
 [文档任务导航](../../hindsight-extensions/contextdb-service/docs/README.md) · [完整检视记录](CODE-REVIEW.md) · [完整验收证据](VALIDATION.md)
 
+[ContextDB Service Extension CI](../../hindsight-extensions/contextdb-service/README.md#contextdb-service-extension-ci)：插件Python、UI、合同、系统及浏览器回归；原有工作流保持不变。验收见[第35章](VALIDATION.md#contextdb-ci-validation)。
+
 下面保留交付与检视记录的原始日期、版本和进展，不要求使用者辨认这些提交后才能开始操作。
 
 <details>

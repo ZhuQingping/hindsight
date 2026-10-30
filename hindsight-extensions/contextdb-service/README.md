@@ -147,7 +147,7 @@ uv run --frozen --group contextdb pytest -c ../hindsight-extensions/contextdb-se
 
 # 扩展专属UI测试由原Control Plane的同一Vitest配置收集
 cd ..
-npm test --workspace=contextbase-control-plane
+npm test --workspace=contextbase-control-plane -- ../hindsight-extensions/contextdb-service/tests/ui
 npm run lint --workspace=contextbase-control-plane
 ```
 
@@ -156,6 +156,41 @@ npm run lint --workspace=contextbase-control-plane
 生产UI故事需要同源码构建的standalone与ContextDB manifest。正式构建使用 `python -m hindsight_ext_contextdb build-ui --source-root <checkout>`；从system环境调用CLI时显式设置 `PYTHONPATH=<checkout>/hindsight-extensions/contextdb-service`。已有 `CONTEXTDB_UI_SERVER`/`CONTEXTDB_TEST_NODE_BIN`可选择隔离产物和Node。产物和源码一致性只在UI fixture启动前校验一次。普通本地无产物时仍可跳过；独立CI job直接运行112故事，再执行 `python scripts/check_production_ui.py <junit-report.xml>`，要求两个Worker参数项完整通过且零跳过；路径按当前工作目录调整。无需额外开关。
 
 CP的TypeScript配置、ESLint根目录调用、Prettier、knip和CI触发范围均包含插件UI测试；不维护第二个Node项目、Vitest配置或依赖锁。`tests/contracts`的跨语言合同检查需要Node，单独在有Node的CI步骤运行，不属于默认插件Python收集。
+
+
+### ContextDB Service Extension CI
+
+[工作流](../../.github/workflows/contextdb-ci.yml)在指向main的PR及main push命中相关路径时自动执行，也支持手动运行。按Python、UI、集成三组运行本插件的测试；不修改或接管原有 `test.yml`、`browser-brand-audit.yml` 的检查。
+
+触发范围包括插件目录、共享API/UI、Python与TypeScript SDK、系统fixture、构建脚本/品牌输入、依赖锁/格式配置及本工作流。共享依赖改动触发的仍是插件自身回归。仅改普通文档、其他集成或其他工作流不触发；插件README属于插件目录，仍触发。具体路径以YAML中PR/push两份相同清单为准；手动运行不受路径限制。
+
+路径过滤未触发时，GitHub不会创建这些Job。如果把它们配置为所有PR必需检查，需要结合路径适用范围设置分支规则，避免无关PR等待未创建的检查；本工作流不修改仓库合入规则。
+
+
+| 步骤 | 范围 |
+| --- | --- |
+| Python | `tests/python/` 全量，以及插件Ruff、格式和ty检查 |
+| UI | 仅 `tests/ui/`，使用宿主Vitest；插件组件和测试的ESLint、格式检查 |
+| 生产构建 | 同源码构建UI并生成匹配manifest，供插件系统验收使用 |
+| 合同与系统 | `tests/contracts/` 与 `tests/system/` 全量，包含两种Worker及两条生产UI故事 |
+| 浏览器 | `tests/browser/key-copy.cjs`，真实Chrome验证API Key复制、焦点/选区及实际粘贴；作为插件套件内的步骤，不单列clipboard Job |
+
+Python与集成组使用Linux Runner；UI组在macOS与Windows分别执行完整插件UI测试，并在同一个Job内执行真实剪贴板步骤。没有独立clipboard Job，两个平台的复制验证均保留。复制组件的Vitest用例与真实浏览器脚本是不同层次的检查，均执行。插件 `.gitattributes` 仅将 `tests/ui/**` 固定为LF，避免Windows检出换行转换导致Prettier误报；不修改全仓库Git配置或放宽格式检查。
+
+复用原pytest、Vitest、SDK、模型替身、临时PG及 `verify_integration.py`。UI测试在SDK构建之前运行；系统故事显式使用模型替身并等待后台完成。JUnit必须非空且无失败、错误或跳过；生产UI另由 `check_production_ui.py` 核对两种Worker完整执行。
+
+本地预检须使用任务自己的临时副本，避免安装依赖或生产构建影响运行中的服务。准备Python `.python-version`、Node 24、uv 0.11.2与Chrome，在该副本根目录执行：
+
+```bash
+export CONTEXTDB_CI_ISOLATED=1
+for suite in python ui build system browser; do
+  bash hindsight-extensions/contextdb-service/scripts/run-ci.sh "$suite" /tmp/contextdb-extension-results
+done
+```
+
+未提交修改须按允许文件带入临时副本，不要复制部署秘密或其他任务改动。入口清理继承的服务参数、禁用dotenv；独立PG和随机端口由fixture管理并清理。`TZ=UTC`只固定测试环境。完整日志及JUnit由Actions保存；本地结果不能代替远程工作流结果。
+
+独立的 `contextdb-key-copy.yml` 由本插件套件替代，原脚本与场景保留。其他工作流不变：品牌审计继续按其原有路径条件自动触发，原生CI继续执行自己的测试；已有接线造成的重叠不在本次重构。工作流文件不修改仓库Actions允许列表、Secrets或分支保护。
 
 
 ### Bank配置读取的字段权限
