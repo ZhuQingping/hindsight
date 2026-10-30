@@ -11,7 +11,7 @@ import {
 const connection: CustomerConnection = {
   apiUrl: "https://api.example.com/customer-api",
   mcpUrl: "https://mcp.example.com/team/mcp",
-  codingAgentsNpm: "contextbase-coding-agents@latest",
+  codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@latest",
   packages: {
     openclaw: "https://downloads.example.com/openclaw.tgz",
     hermes: "https://downloads.example.com/hermes.zip",
@@ -203,13 +203,13 @@ it("handles missing API and MCP addresses independently", () => {
 it.each(terminals)("installs from npm without an archive URL in %s", (terminal) => {
   const config = {
     apiUrl: connection.apiUrl,
-    codingAgentsNpm: "contextbase-coding-agents@1.0.0",
+    codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@1.0.0",
     packages: {},
   };
   const snippet = connectionExample("codex", terminal, "team", config, "q");
   expect(snippet.unavailable).toBeUndefined();
   expect(snippet.install).toContain(terminal === "bash" ? "npx --yes" : "npx.cmd --yes");
-  expect(snippet.install).toContain("contextbase-coding-agents@1.0.0");
+  expect(snippet.install).toContain("@huaweicloud/contextbase-coding-agents@1.0.0");
   expect(snippet.install).toContain(" install codex ");
   expect(snippet.downloadUrl).toBeUndefined();
 });
@@ -221,7 +221,7 @@ it.each(codingClients)(
       id,
       "bash",
       "team",
-      { codingAgentsNpm: "contextbase-coding-agents@latest", packages: {} },
+      { codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@latest", packages: {} },
       "q"
     );
     expect(result.install).toContain(`install ${id} --api-token`);
@@ -232,7 +232,7 @@ it.each(codingClients)(
 it.each(["latest", "1.0.0"])(
   "preserves the configured npm selector %s in the generated command",
   (selector) => {
-    const spec = `contextbase-coding-agents@${selector}`;
+    const spec = `@huaweicloud/contextbase-coding-agents@${selector}`;
     const snippet = connectionExample(
       "codex",
       "bash",

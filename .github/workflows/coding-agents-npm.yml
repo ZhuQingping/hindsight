@@ -46,11 +46,11 @@ jobs:
           python scripts/package-coding-agents.py --output artifacts
       - name: Test installation and MCP using the audited tarball
         working-directory: hindsight-integrations/coding-agents
-        run: node scripts/test-customer-install.mjs ../../artifacts/contextbase-coding-agents/*/*.tgz
+        run: node scripts/test-customer-install.mjs ../../artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz
       - uses: actions/upload-artifact@v4
         with:
           name: contextbase-coding-agents-npm
-          path: artifacts/contextbase-coding-agents/
+          path: artifacts/huaweicloud-contextbase-coding-agents/
           if-no-files-found: error
       # Token authentication is intentional: publishing from the source workflow with OIDC
       # provenance would link the private implementation repository in public npm metadata.
@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NODE_AUTH_TOKEN" || { echo 'Configure the NPM_TOKEN repository secret before publishing.' >&2; exit 1; }
-          tarballs=("$GITHUB_WORKSPACE"/artifacts/contextbase-coding-agents/*/*.tgz)
+          tarballs=("$GITHUB_WORKSPACE"/artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz)
           test "${#tarballs[@]}" -eq 1
           cd "$RUNNER_TEMP"
           npm publish "${tarballs[0]}" --access public --ignore-scripts --provenance=false

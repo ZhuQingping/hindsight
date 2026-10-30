@@ -5,7 +5,7 @@ description: How this machine's ContextBase coding-agent memory works — the pl
 
 # ContextBase Coding-Agent Memory
 
-This machine runs the `contextbase-coding-agents` plugin: long-term project memory for coding
+This machine runs the `@huaweicloud/contextbase-coding-agents` package: long-term project memory for coding
 sessions, backed by a ContextBase server. You (the agent) are already wired into it — this skill
 explains what happens automatically, which tools you have, and how to configure or debug it.
 

@@ -4,18 +4,22 @@
 
 ## Coding Agents：通过 npm 交付
 
-接入页默认使用 `contextbase-coding-agents@latest`，不需要配置下载地址或 npm 包名。
+接入页默认使用 `@huaweicloud/contextbase-coding-agents@latest`，不需要配置下载地址或 npm 包名。
 需要固定版本时，在控制台进程的环境配置（部署脚本方式为 `ui.env`）中设置并重启控制台：
 
 ```dotenv
-CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE=contextbase-coding-agents@1.0.0
+CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE=@huaweicloud/contextbase-coding-agents@1.0.0
 ```
 
 未设置或留空时使用 `@latest`。固定版本必须已发布到 npm。Coding Agents 不再读取 tgz 下载地址，也不在接入页展示备用下载命令。API Endpoint 仍由 `CONTEXTBASE_CP_PUBLIC_API_URL` 提供，业务 API Key 和已授权 Bank ID 由服务方交付；npm 包不携带这些客户配置。
 
 在 GitHub Actions 运行 **Build and publish Coding Agents npm package**。默认只构建、审计并测试；开启 `publish` 后使用仓库的 `NPM_TOKEN` 发布通过验证的同一份 tgz。客户不需要这个发布 Token。
 
-发布目录由[打包脚本](../../scripts/package-coding-agents.py)生成，仅包含远端客户端运行文件、Skill、Hook、公开说明和许可证。源码包保持私有；不要从源码目录直接执行 npm publish。构建产生的 tgz 是发布产物，不是控制台接入页所需的下载配置。
+发布目标为公开包 `@huaweicloud/contextbase-coding-agents`。`NPM_TOKEN` 必须有 `huaweicloud` 组织下该包的发布权限；客户安装时不需要加入组织或配置发布凭证。
+
+构建产物位于 `artifacts/huaweicloud-contextbase-coding-agents/<version>/huaweicloud-contextbase-coding-agents-<version>.tgz`，同目录提供 `SHA256SUMS`。npm 包名包含组织前缀，本机可执行命令仍为 `contextbase-coding-agents`。
+
+发布目录由[打包脚本](../../scripts/package-coding-agents.py)生成，仅包含远端客户端运行文件、Skill、Hook 和公开说明；当前候选包不附带仓库根目录的 LICENSE。源码包保持私有；不要从源码目录直接执行 npm publish。构建产生的 tgz 是发布产物，不是控制台接入页所需的下载配置。
 
 发布前使用最终包验证安装、MCP 工具和真实云端 Bank 权限。现有自动冒烟测试使用 HTTP 测试服务，不能替代真实服务验收。
 
@@ -67,6 +71,6 @@ python scripts/package-sdks.py node --output artifacts
 
 `assistant-openclaw`、`assistant-hermes` 两个任务分别执行源代码测试、SDK 构建、静态产物品牌扫描及源码目录外的实际安装和 HTTP 验证。HTTP 验证使用业务 Key、服务路径前缀和指定 Bank；测试故意包含旧品牌词的客户文本，以确认没有运行时过滤。
 
-其余 8 个宿主继续共用 `contextbase-coding-agents`。包安装验证覆盖 8 个 harness 的 MCP 诊断身份；原生插件生命周期使用仓库现有宿主协议测试。此验证不等价于所有真实宿主版本或 Windows 实机认证。
+其余 8 个宿主继续共用 `@huaweicloud/contextbase-coding-agents`。包安装验证覆盖 8 个 harness 的 MCP 诊断身份；原生插件生命周期使用仓库现有宿主协议测试。此验证不等价于所有真实宿主版本或 Windows 实机认证。
 
 客户操作见 [客户使用指南](CUSTOMER-GUIDE.md)。OpenClaw、Hermes 配置分别由宿主管理，不自动继承 Coding Agents 的连接文件。服务部署和 Bank 授权由服务方完成；客户端发行包不携带本地引擎。

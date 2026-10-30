@@ -29,9 +29,14 @@ class PublicArchiveTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.artifact = Path(self.temporary.name) / "client.tgz"
         self.files = {
-            "package/package.json": json.dumps({"name": "contextbase-coding-agents", "version": "1.0.0"}).encode(),
+            "package/package.json": json.dumps(
+                {
+                    "name": "@huaweicloud/contextbase-coding-agents",
+                    "version": "1.0.0",
+                    "bin": {"contextbase-coding-agents": "dist/installer.js"},
+                }
+            ).encode(),
             "package/README.md": b"ContextBase client",
-            "package/LICENSE": b"MIT License\nCopyright (c) 2025 Vectorize AI, Inc.",
             "package/dist/installer.js": b"console.log('install')",
             "package/dist/mcp-server.js": b"console.log('mcp')",
             "package/skill/SKILL.md": b"Client tools",
@@ -77,7 +82,7 @@ class PublicArchiveTests(unittest.TestCase):
                 self.files["package/dist/installer.js"] = content
                 self.audit()
 
-    def test_upstream_brand_is_only_allowed_in_the_license(self) -> None:
+    def test_upstream_brand_is_rejected(self) -> None:
         self.audit()
         for name in ("package/README.md", "package/skill/SKILL.md"):
             with self.subTest(name=name), self.assertRaises(ValueError):
@@ -105,12 +110,25 @@ class PublicArchiveTests(unittest.TestCase):
                 self.audit()
 
     def test_local_dependencies_are_rejected(self) -> None:
-        self.files["package/package.json"] = b'{"dependencies":{"client":"file:../../client"}}'
+        manifest = json.loads(self.files["package/package.json"])
+        manifest["dependencies"] = {"client": "file:../../client"}
+        self.files["package/package.json"] = json.dumps(manifest).encode()
         with self.assertRaises(ValueError):
             self.audit()
 
-    def test_missing_license_is_rejected(self) -> None:
-        del self.files["package/LICENSE"]
+    def test_scoped_name_and_stable_executable_are_required(self) -> None:
+        valid = json.loads(self.files["package/package.json"])
+        for override in (
+            {"name": "contextbase-coding-agents"},
+            {"name": "@another-org/contextbase-coding-agents"},
+            {"bin": {"@huaweicloud/contextbase-coding-agents": "dist/installer.js"}},
+        ):
+            with self.subTest(override=override), self.assertRaisesRegex(ValueError, "name or executable"):
+                self.files["package/package.json"] = json.dumps({**valid, **override}).encode()
+                self.audit()
+
+    def test_license_is_not_distributed(self) -> None:
+        self.files["package/LICENSE"] = b"MIT License"
         with self.assertRaises(ValueError):
             self.audit()
 

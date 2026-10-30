@@ -8,7 +8,7 @@ description: How this machine's ContextBase coding-agent memory works — the pl
 
 # ContextBase Coding-Agent Memory
 
-This machine runs the `contextbase-coding-agents` plugin: long-term project memory for coding
+This machine runs the `@huaweicloud/contextbase-coding-agents` package: long-term project memory for coding
 sessions, backed by a ContextBase server. You (the agent) are already wired into it — this skill
 explains what happens automatically, which tools you have, and how to configure or debug it.
 
@@ -69,9 +69,9 @@ Run these commands from the project directory. Node.js 18 or later is required.
 Set `CONTEXTBASE_API_TOKEN` in your environment, then install the integration you use:
 
 ```bash
-npx contextbase-coding-agents@latest install claude-code --bank-id <BANK_ID>
-npx contextbase-coding-agents@latest install codex --bank-id <BANK_ID>
-npx contextbase-coding-agents@latest install cursor-cli --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install claude-code --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install codex --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install cursor-cli --bank-id <BANK_ID>
 ```
 
 `--api-url <API_ENDPOINT>` sets the service address; when omitted, the installer uses
@@ -80,13 +80,13 @@ In scripts or CI without an interactive terminal, provide the address explicitly
 `--project-path <PROJECT_PATH>` selects another project; it defaults to the current directory.
 Restart your agent after installation.
 
-To upgrade, re-run the same `npx contextbase-coding-agents@latest install <harness>` command.
+To upgrade, re-run the same `npx @huaweicloud/contextbase-coding-agents@latest install <harness>` command.
 Use `@<version>` instead of `@latest` when you need a specific release. The `update` command
 only re-stages the package you invoke; it does not fetch a newer release itself.
 
 ```bash
-npx contextbase-coding-agents@latest uninstall claude-code
-npx contextbase-coding-agents@latest --help
+npx @huaweicloud/contextbase-coding-agents@latest uninstall claude-code
+npx @huaweicloud/contextbase-coding-agents@latest --help
 ```
 
 `install` requires an explicit target: one or more harness names, or `all` for every
@@ -98,9 +98,9 @@ Use one default API connection across all harnesses, paths and banks. Configure 
 
 `serverMode` / `CONTEXTBASE_SERVER_MODE` accepts `cloud` or `self-hosted` (default `cloud`). Both connect to your configured remote API; this package does not install or start a local server.
 
-The public npm package is `contextbase-coding-agents`. Install and upgrade integrations with
-`npx contextbase-coding-agents@latest install <harness>`. The examples below use
-`contextbase-coding-agents` for brevity; prefix commands with `npx contextbase-coding-agents@latest`
+The public npm package is `@huaweicloud/contextbase-coding-agents`. Install and upgrade integrations with
+`npx @huaweicloud/contextbase-coding-agents@latest install <harness>`. The examples below use
+`contextbase-coding-agents` for brevity; prefix commands with `npx @huaweicloud/contextbase-coding-agents@latest`
 when the executable is not installed globally.
 
 ## Configuration

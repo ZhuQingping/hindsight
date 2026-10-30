@@ -1866,7 +1866,7 @@ function dshHome(c: InstallCtx): string {
  * DeepSeek Harness — a native Cordis plugin, wired through the HOME-level patch layer
  * (`$DSH_HOME/cordis.patch.yml`), which every profile composes after its bundles.
  *
- * The alternative is `dsh plugin --profile <name> add contextbase-coding-agents`, which
+ * The alternative is `dsh plugin --profile <name> add @huaweicloud/contextbase-coding-agents`, which
  * pnpm-installs the package into ONE profile and picks up the `dsh.bundle.patch` this package
  * ships. That is the right route for a published install and is what the docs recommend, but it
  * needs pnpm, a network, and a repeat per profile — so the installer takes the path that always

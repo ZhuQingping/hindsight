@@ -73,12 +73,14 @@ describe("npmViewVersion", () => {
 
   it("asks npm for the version — the same resolver npx will install through", async () => {
     const spawn = npmSpawn(0, '"0.6.1"\n');
-    expect(await npmViewVersion("contextbase-coding-agents", asRealSpawn(spawn))).toBe("0.6.1");
+    expect(await npmViewVersion("@huaweicloud/contextbase-coding-agents", asRealSpawn(spawn))).toBe(
+      "0.6.1"
+    );
     const [bin, args, opts] = spawn.mock.calls[0];
     expect(bin).toBe("npm");
     // --json, so the version arrives as a quoted string on stdout rather than npm's human
     // output; a timeout bounds it (the NPM_VIEW_TIMEOUT_MS contract).
-    expect(args).toEqual(["view", "contextbase-coding-agents", "version", "--json"]);
+    expect(args).toEqual(["view", "@huaweicloud/contextbase-coding-agents", "version", "--json"]);
     expect(opts.timeout).toBe(5000);
   });
 
@@ -179,7 +181,9 @@ describe("npmViewVersion", () => {
 });
 
 describe("maybeAutoUpdate", () => {
-  beforeEach(() => vi.stubEnv("CONTEXTBASE_CODING_AGENTS_PACKAGE", "contextbase-coding-agents"));
+  beforeEach(() =>
+    vi.stubEnv("CONTEXTBASE_CODING_AGENTS_PACKAGE", "@huaweicloud/contextbase-coding-agents")
+  );
   afterEach(() => vi.unstubAllEnvs());
   const dirs: string[] = [];
   const tmp = () => {
@@ -253,7 +257,7 @@ describe("maybeAutoUpdate", () => {
     const [bin, args, spawnOpts] = spawn.mock.calls[0];
     expect(bin).toBe("npx");
     // Pinned to the version we resolved, and `update` — never `install`, which would rewire hosts.
-    expect(args).toEqual(["-y", "contextbase-coding-agents@0.4.3", "update"]);
+    expect(args).toEqual(["-y", "@huaweicloud/contextbase-coding-agents@0.4.3", "update"]);
     expect(args).not.toContain("install");
     expect(spawnOpts.detached).toBe(true);
   });

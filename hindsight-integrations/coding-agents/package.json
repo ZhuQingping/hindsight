@@ -1,5 +1,5 @@
 {
-  "name": "contextbase-coding-agents",
+  "name": "@huaweicloud/contextbase-coding-agents",
   "version": "1.0.0",
   "description": "ContextBase long-term memory for coding agents; remote connection required.",
   "type": "module",
