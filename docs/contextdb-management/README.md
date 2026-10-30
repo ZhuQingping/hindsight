@@ -1,5 +1,14 @@
 # ContextDB 工作空间、用户与 API Key
 
+首次使用从[插件 README](../../hindsight-extensions/contextdb-service/README.md)选择业务接入或管理员操作；运营者直接阅读[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)。开发者阅读[唯一 DESIGN](DESIGN.md#overview)，接口以[同版 OpenAPI](../../hindsight-extensions/contextdb-service/schemas/contextdb-control-plane.openapi.yaml)为准。
+
+[文档任务导航](../../hindsight-extensions/contextdb-service/docs/README.md) · [完整检视记录](CODE-REVIEW.md) · [完整验收证据](VALIDATION.md)
+
+下面保留交付与检视记录的原始日期、版本和进展，不要求使用者辨认这些提交后才能开始操作。
+
+<details>
+<summary>交付、检视与历史版本记录</summary>
+
 PR #65的CI测试依赖及100条授权用例稳定性修复已在本地验证，见[检视第30.5节](CODE-REVIEW.md#bank-rest-ci-test-review)、[验收第34章](VALIDATION.md#bank-rest-ci-test-validation)；修复随功能提交一并交付，远程结果以PR检查为准。
 
 > Issue #53 当前实现：[完整设计第8章](DESIGN.md#bank-api-reuse-design) · [检视第30章](CODE-REVIEW.md#bank-rest-completion-review) · [最新main组合验收第33章](VALIDATION.md#bank-rest-rebase-validation)。已rebase至团队main `9a58a706e`，UI源码使用 `contextbase-control-plane`；当前交付提交以Git/PR记录为准；第33章保留amend前基准`8a394a246`及冻结验收。两个UI创建入口和描述继续保留；旧workspace写接口退役，只读视图保留，MCP管理仅在插件模式下关闭。第31～32章及PR #57记录保留各自版本，不代表当前组合验收。
@@ -35,3 +44,5 @@ PR #65的CI测试依赖及100条授权用例稳定性修复已在本地验证，
 | 质量选择性适配 | c56c7ac17基准加独立worktree冻结补丁e2c14176…；第14章记录N-P修复和BR-01；该阶段验收见VALIDATION第12章；送审基线见第13章 |
 
 完整SHA、实现/测试位置和有意差异集中在[第15章](CODE-REVIEW.md#implemented-optimization-index)。PLAN.md已移除，不新增平行设计或第二份优化台账；Issue #14等无关原生问题单独跟踪。两张设计图及drawio源文件继续保留。
+
+</details>

@@ -2,6 +2,11 @@
 
 > 当前实现：Issue #53 已rebase至团队main `9a58a706e`，Bank代理错误处理及测试一并交付，提交身份以Git/PR为准；第33章保留amend前基准`8a394a246`及冻结验收。工作空间创建/删除统一使用 Bank REST，保留两个UI创建入口及description；只读目录、详情和usage保留，MCP Bank管理仅在插件模式下关闭。UI源码目录使用 `contextbase-control-plane`。合同见[第8章](#bank-api-reuse-design)，本次组合验收见VALIDATION第33章、检视见CODE-REVIEW 30.4；此前章节保留其日期及版本。
 
+本文是当前唯一业务与技术规格。首次使用从[客户接入与管理员操作](../../hindsight-extensions/contextdb-service/README.md)开始；运营者直接使用[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)。开发者从下方目录进入架构和实现，无需先阅读历史提交记录。
+
+<details>
+<summary>历史基线、送审与首版决策（保留来源，不作为当前操作入口）</summary>
+
 > 历史维护修复（2026-10-27）：基于 RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复 MCP 配置读取的空间作用域与离线初始化遗漏的共享维护函数。实现见第5.5.4节，检视见 CODE-REVIEW 第20章，验证见 VALIDATION 第17～18章。下列2026-10-21送审信息为管理功能历史基准。
 
 > **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留业务与技术正文，直接补齐团队适配；不按读者拆成多套设计。原功能基准a05b808、后续冻结修复及团队main的关系见第1.4节。目标三类AI独立检视已完成，尚无专家/committer批准；最新送审回归见 [VALIDATION.md](VALIDATION.md)第13章。
@@ -13,6 +18,8 @@
 > **管理功能历史差异基线：** 当时修复PR比较 RSIXDB main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`；57bbfd2仅为原功能历史比较点。原生Python运行目录对两基线均无本特性差异；须使用扩展ASGI入口，团队品牌、配置、日志和安全改造保留。
 
 方案来源（2026-10-19，官方 v1.0.0 首发方案；2026-10-20更新团队集成）：新空间对外统一使用可读 bank_id，对内保留 UUID；工作空间名称仅允许字母、数字、下划线，最长54字符，统一小写。新 schema 为 ctxdb_ws_<bank_id>；正常删除后允许同名重建，旧selected授权不继承；并发删除与业务访问不在支持范围，见第5.2节。本轮功能回归与原生v1.0.0部署证据见[验证摘要](VALIDATION.md)；目标ECS/RDS、镜像安全与生产性能仍须单独验收。
+
+</details>
 
 本文按总体设计、实例管理、UI 管理、应用访问、核心实现和本期边界组织。接口、数据结构、安全依据及异常恢复规则完整保留在本文，便于连续阅读和实现核对。 当前版本与检视入口见[代码检视指南](CODE-REVIEW.md)；历史手册中的配置和接口不作为本版本部署依据。
 
@@ -141,7 +148,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 
 数据库连接不强制 SSL：部署示例不附加 sslmode，PGADMIN_URL 与 HINDSIGHT_API_DATABASE_URL 均按调用方提供的 URL 连接。未开启 SSL 的 PG 可接入；需要证书校验时部署方再显式配置 sslmode 和 CA，不由服务自动升级或降级策略。MaaS HTTPS 和 UI/API 对外入口的 TLS 配置独立。
 
-管控具体输入、PG权限和命令以[人工部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)为入口；自动化严格按[Agent配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)及 JSON Schema 校验。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后初始化ctxdb_meta管理表、管理员身份、秘密文件及原生共享维护函数，再启动API/Worker、检查ready及实例身份，最后启动UI。原生业务表仅在创建空间时初始化到ctxdb_ws_<bank_id>。模型、插件和端口不依赖人工临时export。
+当前管控输入、PG权限和命令以[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)为入口；自动化以同版 `hindsight_ext_contextdb.deployment schema` 输出的 JSON Schema 和部署脚本为准。[原始 Agent 配置合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md)提供历史背景。PG数据库必须先存在；管控接收用户UI密码并提供秘密文件。节点渲染配置后初始化ctxdb_meta管理表、管理员身份、秘密文件及原生共享维护函数，再启动API/Worker、检查ready及实例身份，最后启动UI。原生业务表仅在创建空间时初始化到ctxdb_ws_<bank_id>。模型、插件和端口不依赖人工临时export。
 
 管控调用已有节点管理 Agent 完成部署。本期不新增“创建实例”的 Hindsight HTTP 接口，工作空间目录也不在 Console 维护。
 
@@ -153,7 +160,7 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 | 4. 启动服务 | 启动 API、Worker，检查 readiness，再启动 UI | 管理与业务接口可用 |
 | 5. 交付 | 提供 UI 地址和密码；管理员进入 UI 创建空间、用户与业务 Key | 应用可以接入 |
 
-自研实例的具体命令见[管控部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md)。原生联调指南不包含 ContextDB 初始化与管理接口，不能混用。已有 `service.sh` 用于部署和启动，由节点 Agent、systemd 或容器监督器管理前台进程。
+自研实例的具体命令见[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)。原生联调指南不包含 ContextDB 初始化与管理接口，不能混用。已有 `service.sh` 用于部署和启动，由节点 Agent、systemd 或容器监督器管理前台进程。
 
 ### 2.2 三种凭据及保存位置
 
@@ -202,6 +209,8 @@ export HINDSIGHT_CP_ACCESS_KEY="$(python3 -c 'import secrets; print(secrets.toke
 <a id="deployment"></a>
 
 ### 2.4 部署、启停与未来升级
+
+运行方式可选[Linux/macOS宿主进程](../../hindsight-extensions/contextdb-service/docs/deployment-native.md)或[Linux Docker Compose](../../hindsight-extensions/contextdb-service/docs/deployment-docker.md)。二者复用同版生成器、四个扩展、离线初始化和service.sh；API内置Worker与Node UI的merged逻辑不变。容器是交付形态，宿主进程使用实际部署账号及路径，不能套用容器UID或会话目录。操作与配置入口仍统一在[部署总览](../../hindsight-extensions/contextdb-service/docs/deployment.md)。文档目标平台与实际运行验收分开记录。
 
 离线顺序：准备专用 UTF8 PG 与扩展 → 私密目录保存配置和生成凭据 → 离线 migrate 导入管理员摘要 → 启动 API/Worker → readiness 通过后启动 UI。使用代码仓 `hindsight-extensions/contextdb-service/scripts/service.sh`，由已有节点 Agent/systemd/容器监督器管理前台进程；不引入新常驻管理服务。
 
@@ -258,6 +267,8 @@ Compose shell加载配置后显式将origin/port传给探测进程；source本�
 **本版部署/更新规则（S16）：** ContextDB托管部署不得再运行 `run-db-migration --schema public`，也不得在系统fixture中补建public业务表。扩展安装仍需预建专用数据库和vector等扩展，不能删除public schema。正常重启只加载既有秘密和核验格式；正式发布后各空间原生结构更新由已有受控升级入口处理，不额外迁移public业务表，不新增自动元数据迁移框架。对已有开发库不自动删除历史表或接管旧布局；本轮只验证全新独立测试库。纯原生过渡部署材料保留其原含义。
 
 ### 2.5 API 与 Worker 如何部署
+
+本节保留首版容器交付的选择及其边界；当前宿主进程和Docker两种执行路径见[第2.4节](#deployment)及[部署总览](../../hindsight-extensions/contextdb-service/docs/deployment.md)，均复用同一merged逻辑。下述容器资源与整体重启约束适用于容器交付，不排除宿主运行。
 
 2026-10-19 决策：**首版一个容器合并部署 API、Worker 和 UI**。外部 RDS PG 保存全部持久业务数据；LLM、Embedding、Rerank 均调用华为云 MaaS，节点不运行模型推理。
 
