@@ -1,16 +1,88 @@
 # ContextDB 独享实例服务
 
-基于 Hindsight v1.0.0，增加工作空间、用户和 API Key 管理。记忆操作继续使用原生 REST/MCP 与内置 Worker。
+基于 Hindsight 增加实例内的工作空间、用户和 API Key 管理，继续使用原生记忆 REST/MCP 与内置 Worker。它是服务端 Python 扩展，不是 PostgreSQL 扩展，也不提供新的记忆算法。当前 ContextBase 产品以托管服务交付，客户接入已有服务即可。
 
-**评审从[文档入口](docs/README.md)开始。** 当前团队完整设计见[DESIGN](../../docs/contextdb-management/DESIGN.md)，保留原始完整叙述并直接更新团队适配；资料仓维护来源背景和运维资料，版本关系见设计第1.4节。
+| 你要完成的任务 | 从这里开始 |
+| --- | --- |
+| 第一次部署插件并让 Agent 使用 | 按下面的[阅读顺序](#reading-order)完成部署、管理配置和业务验证 |
+| 应用或 Agent 连接已有服务 | [业务接入](#business-quickstart)：端点、业务 Key、bank_id 与客户端 |
+| 管理员创建空间、用户和 Key | [管理员操作](#admin-quickstart)：UI 登录及交付顺序 |
+| 运营者部署或更新实例 | [部署总览](docs/deployment.md)：选择宿主进程或 Docker，准备、配置、初始化与验证 |
+| 贡献者理解设计、检视或开发 | [设计与开发](#development)：唯一设计、扩展点、契约与测试 |
 
-实现位于 `hindsight_ext_contextdb/`，部署材料位于 `deployment/`，命令位于 `scripts/`，自研回归测试物理集中在 `tests/{python,system,ui}`；UI与系统故事继续复用宿主工程的运行环境，不复制SDK或服务桩。当前团队边界和TODO以同版完整设计为准。
+<a id="reading-order"></a>
 
-管理接口的机器可读定义保留在[schemas/](schemas/contextdb-control-plane.openapi.yaml)，由代码生成并由测试校验；变更接口时更新它。
+## 第一次使用：按什么顺序读
 
-扩展专用配置示例见 [contextdb.env.example](deployment/contextdb.env.example)；运行配置由部署脚本根据 `deployment/intent.example.json` 生成。
+如果你要把 `contextdb-service` 部署起来给自己的 Agent 使用，按下面四步走。你可以同时承担部署者和管理员，无需先判断自己属于哪类读者。
 
-API 由扩展自己的 `hindsight_ext_contextdb.asgi:create_app` 启动，外层准入保护同时覆盖原生 REST/MCP；部署脚本已使用此入口。直接运行原生 API 命令且配置本扩展时会拒绝启动，避免漏装保护层。原生应用仍负责初始化、内置 Worker 和关闭流程。
+| 顺序 | 阅读与操作 | 完成后应得到什么 |
+| --- | --- | --- |
+| 1 | 阅读本页下方的[支持范围与版本](#支持范围与版本)及三种凭据说明 | 知道插件提供什么，区分 UI 密码、Admin Key 和业务 Key |
+| 2 | 先读[部署总览](docs/deployment.md)，选择[宿主进程](docs/deployment-native.md)或[Docker](docs/deployment-docker.md)，按所选指南做到健康和身份检查 | API 和管理 UI 可访问，实例身份检查通过；此时还不算业务验证成功 |
+| 3 | 回到本页[管理员操作](#admin-quickstart)，登录 UI，创建空间、用户和业务 Key | 得到测试空间的 bank_id、对外端点和有读写权限的业务 Key |
+| 4 | 继续读[业务接入](#business-quickstart)，选择一种客户端，写入事实并召回 | 确认业务身份和模型调用可用，完成首次使用 |
+
+完成这四步即可开始使用，不必继续顺读接口参考、检视记录和历史资料。之后需要启停或更新时再看[对应部署方式和维护规则](docs/deployment.md#8-停止重启与版本更新)，想了解原理或参与开发时再读[设计与开发](#development)。
+
+如果服务已经由别人部署好：管理员从第 3 步开始；已经拿到端点、业务 Key 和 bank_id 的应用使用者直接从第 4 步开始。
+
+**English:** This server extension adds instance users, workspace-scoped API keys and schema isolation. Hosted customers use the [Coding Agents npm client](../../hindsight-integrations/coding-agents/README.public.md) or the existing SDKs. Operators use the [deployment guide](docs/deployment.md); contributors start with the [architecture](../../docs/contextdb-management/DESIGN.md#overview). `ContextBase` is the product name, `contextdb-service` the extension directory, `hindsight-ext-contextdb-service` the Python project name, and `hindsight_ext_contextdb` the import module. These names do not imply a standalone PyPI installation path.
+
+## 支持范围与版本
+
+本页及部署指南对应同一 checkout 的 API、扩展和 `contextbase-control-plane`，包括 Bank REST 管理工作空间的行为；不能把社区上游镜像或较早团队版本当作匹配产物。完整版本关系与能力边界见[唯一 DESIGN](../../docs/contextdb-management/DESIGN.md#overview)。历史 PR、基线与验收记录是开发证据，不是首次使用前置知识。
+
+一个实例使用一个 PG 数据库；Workspace 与 Bank 一对一，每空间独立 schema。用户与空间同属实例，权限配置在 Key 上；不同用户获授权访问同一空间时共享内容。对象关系见[设计 1.2](../../docs/contextdb-management/DESIGN.md#12-工作空间用户与-key)。
+
+| 凭据 | 使用者与用途 |
+| --- | --- |
+| UI 密码 | 管理员登录管理 UI，不用于 API 调用 |
+| Admin Key | UI 服务端和受控运维管理实例，不交给业务应用 |
+| 业务 Key | 应用/Agent 按授权访问 REST/MCP，不能登录管理 UI |
+
+凭据持久化与恢复规则见[设计 2.2](../../docs/contextdb-management/DESIGN.md#22-三种凭据及保存位置)。
+
+<a id="business-quickstart"></a>
+
+## 业务接入：已有服务的客户
+
+向服务提供者取得 API Endpoint、独立的 MCP Endpoint（使用 MCP 时）、业务 Key 和已授权的 `bank_id`。业务 Key 不会自动创建空间；只读 Key 可 Recall，但首次写入需要读写授权。无需准备 PG、读取 Admin Key 或部署 UI。
+
+- **Coding Agents**：按[客户安装指南](../../hindsight-integrations/coding-agents/README.public.md)使用 `npx @huaweicloud/contextbase-coding-agents@latest`，配置服务端点、业务 token 和 bank_id；安装后重启宿主 Agent。正式复现可固定具体版本。
+- **Python / Node.js**：使用提供者交付的 SDK 包，分别见 [Python](../../hindsight-clients/python/README.md)、[TypeScript](../../hindsight-clients/typescript/README.md)。这些 SDK 不会安装服务端或自动建 Bank。
+- **直接 REST / MCP**：连接与授权见[设计第 4 章](../../docs/contextdb-management/DESIGN.md#business)。MCP 地址由部署方明确提供，不从 REST 地址猜测；使用业务 Bearer Key 及相应 bank_id。
+
+首次验证按“写入一条可识别的事实 → 确认写入处理完成 → Recall 查询该事实”的顺序。Python SDK 的同步 Retain 示例默认等待写入处理；使用 `retain_async=True` 或 REST `async:true` 时，保存返回的 operation_id，使用同一业务 Key 调用 `GET /v1/default/banks/{bank_id}/operations/{operation_id}`，确认响应 `status` 为 `completed` 后再查询。为等待设置上限；任务失败或等待超时先诊断，不当作已完成，也不无限等待。开发者可参考[现有异步系统用例](tests/system/test_100_contextdb_service.py)，业务用户无需阅读测试代码。
+
+观察与知识页可能稍后生成，初始知识树为空合法；Reflect 和知识页属于后续使用内容。启用本插件不等于客户端自动执行“先查知识，再召回记忆”，这取决于 Agent 集成策略。
+
+<a id="admin-quickstart"></a>
+
+## 管理员操作：从登录到交付业务 Key
+
+1. 从运营方取得管理 UI 地址和 UI 密码并登录。业务成员没有个人 UI 登录账号。
+2. 在工作空间管理页创建空间，填写名称和可选描述，等待成功并确认可用；选择器中也有创建入口。
+3. 在“用户管理”创建用户，展开目标用户创建 Key，选择空间范围及只读/读写权限。
+4. 在创建结果中保存一次性明文，向应用交付业务 Key、bank_id 和对外端点。以后列表只能看到脱敏值。
+5. 使用业务身份按[业务接入](#business-quickstart)验证授权；不要用 Admin Key 代替业务验证。
+
+![管理员工作空间目录：创建后核对名称、描述及可用状态](../../docs/contextdb-management/screenshots/bank-rest-description.png)
+
+图为已有验收示例，空间名称是测试数据；右上角是目录创建入口。它展示创建后的结果，创建表单及用户/Key 操作规则见[设计第 3 章](../../docs/contextdb-management/DESIGN.md#ui)。删除及写入结果未知时的处理见下方 Bank REST 参考，不要自动重放。
+
+<a id="development"></a>
+
+## 设计与开发
+
+- [唯一完整设计](../../docs/contextdb-management/DESIGN.md#overview)：架构、对象关系、权限、生命周期及当前限制；[文档索引](docs/README.md)按任务导航。
+- 实现位于 [hindsight_ext_contextdb](hindsight_ext_contextdb/)，四个扩展槽及 ASGI 保护层见设计中的扩展说明。
+- [管理 OpenAPI](schemas/contextdb-control-plane.openapi.yaml)和[DDL](hindsight_ext_contextdb/schema.sql)提供机器契约；设计、示例不另行定义接口。
+- [测试入口](#测试入口)按 Python、系统、UI 环境执行；[检视记录](../../docs/contextdb-management/CODE-REVIEW.md)与[验收记录](../../docs/contextdb-management/VALIDATION.md)保留各自版本和未验边界。
+
+只安装 Python 模块不等于启用插件。API 必须由 `hindsight_ext_contextdb.asgi:create_app` 启动，配套扩展、离线初始化和匹配 UI；[插件配置与容器加载说明](docs/deployment.md#plugin-configuration)列出四个扩展变量，以及 render、挂载和启动脚本的具体作用。直接运行配置了本扩展的原生 API 命令会拒绝启动。原生应用仍负责内置 Worker 和关闭流程。
+
+以下为接口、维护及测试参考；首次使用请先选择上方任务入口。
 
 ## Bank REST 管理工作空间（Issue #53）
 
@@ -23,7 +95,7 @@ API 由扩展自己的 `hindsight_ext_contextdb.asgi:create_app` 启动，外层
 - 只读管理目录、详情、usage继续使用 `/ext/contextdb/v1/workspaces...`。旧workspace POST/DELETE已移除（API405、旧UI写代理404），不再支持旧写调用方。
 - 插件启用时，MCP的 `create_bank`、`update_bank`、`delete_bank` 隐藏且拒绝，包括Admin；内容工具保持既有权限。原生模式不受此策略影响。
 
-以下示例只使用部署方提供的环境变量，不在命令中写入真实凭据：
+以下 Admin REST 示例中，`API_URL` 是运营方提供的 API 地址，`ADMIN_KEY` 是受控运维保存的 Admin Key，不能使用 UI 密码或业务 Key；`WORKSPACE_ETAG` 来自管理员核对过的详情响应。首次交付优先使用上方 UI 流程。不要把真实凭据写入脚本或版本库：
 
 ```sh
 # 严格创建；响应头X-ContextDB-Workspace-ETag属于本次实际创建的对象。
@@ -49,7 +121,7 @@ UI创建先发严格PUT，再GET详情核对本次响应头与UUID/版本/描述
 
 ## PG 部署辅助脚本
 
-SQL 保留为可执行文件，README 说明用途；完整操作步骤见资料仓的[PG 准备与权限边界](https://github.com/ZhuQingping/ContextDB-Research/blob/main/hindsight/deployment/contextdb-service-integration-guide.md#pg-preparation)。不在 README 复制 SQL 正文。
+SQL 保留为可执行文件，README 说明用途；当前操作步骤见[同版本部署指南](docs/deployment.md#pg-preparation)。资料仓提供历史背景，不替代本 checkout 的部署依据。
 
 | 脚本 | 用途与执行时机 |
 | --- | --- |

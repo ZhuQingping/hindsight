@@ -36,4 +36,6 @@ For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents
 
 ## Development and attribution
 
+ContextDB service operators and contributors: start with the [extension guide](hindsight-extensions/contextdb-service/README.md#reading-order) for the reading order, deployment, administrator usage and design references.
+
 See [CLAUDE.md](CLAUDE.md) for repository development instructions. This project derives from Hindsight; upstream attribution and licensing remain in [LICENSE](LICENSE). Internal directory names remain repository implementation details. Python and Node.js SDK package names and public imports use ContextBase.
