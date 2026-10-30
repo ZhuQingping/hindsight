@@ -38,7 +38,13 @@ RUNTIME_ENTRIES = (
     "cordis.patch.yml",
     "plugin.json",
 )
-FORBIDDEN_CONTENT = re.compile(rb"hindsight|RSIXDB|/workspace/|/home/runner/work/", re.IGNORECASE)
+FORBIDDEN_CONTENT = re.compile(rb"hindsight|agentstratum|RSIXDB|/workspace/|/home/runner/work/", re.IGNORECASE)
+UPSTREAM_BRAND = re.compile(rb"vectorize", re.IGNORECASE)
+STALE_CUSTOMER_DOCS = re.compile(
+    rb"OBS/CDN|Huawei Cloud OBS|download root is pending|Historical internal fields|"
+    rb"daemonIdleTimeout|daemonProfile|embedVersion|embedPackage(?:Path)?",
+    re.IGNORECASE,
+)
 SOURCE_MAP_DIRECTIVE = re.compile(rb"(?m)^\s*(?://[#@]|/\*[#@])\s*(?:sourceMappingURL|sourceURL)\s*=")
 
 
@@ -85,6 +91,11 @@ def audit_tarball(artifact: Path) -> None:
             content = stream.read()
             if FORBIDDEN_CONTENT.search(member.name.encode() + b"\n" + content) or SOURCE_MAP_DIRECTIVE.search(content):
                 raise ValueError(f"Repository details or source map in {member.name}")
+            # The upstream MIT notice must remain intact; it is not product branding.
+            if relative != Path("LICENSE") and UPSTREAM_BRAND.search(member.name.encode() + b"\n" + content):
+                raise ValueError(f"Upstream brand outside the license in {member.name}")
+            if relative.suffix == ".md" and STALE_CUSTOMER_DOCS.search(content):
+                raise ValueError(f"Stale distribution or internal configuration docs in {member.name}")
             if relative.name == "package.json" and len(relative.parts) == 1:
                 manifest = json.loads(content)
                 if set(manifest) - (PUBLIC_FIELDS | {"license", "files"}):

@@ -12,7 +12,7 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/src/core/brand-defaults.ts",
-      "sha256": "23d04c0ae19bf86d8236e835d7587462a469f2ca948c04961165b67cac8aae74"
+      "sha256": "75af86640ed85a973df112066df24f38e490d4f97b29960db100d6872265e923"
     },
     {
       "path": "hindsight-integrations/claude-code/scripts/lib/brand_defaults.py",
@@ -52,7 +52,7 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/README.md",
-      "sha256": "4962303e9eec9774941b2d3cbb112d2ae5ddbc4abf7920328a4281da74e6b7d8"
+      "sha256": "0e9ff9ffe16c8ba97ae09da789d9895af46719ebb50cf203112461fc3699f79f"
     },
     {
       "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",
