@@ -46,7 +46,7 @@ export function graphLinkCategory(type?: string): GraphLinkCategory {
 // Utility Functions
 // ============================================================================
 
-export function convertHindsightGraphData(hindsightData: {
+export function convertGraphData(graphData: {
   nodes?: Array<{ data: { id: string; label?: string; color?: string } }>;
   edges?: Array<{
     data: {
@@ -62,8 +62,8 @@ export function convertHindsightGraphData(hindsightData: {
   }>;
   table_rows?: Array<{ id: string; text: string; entities?: string; context?: string }>;
 }): GraphData {
-  const tableRowsById = new Map((hindsightData.table_rows || []).map((row) => [row.id, row]));
-  const nodes: GraphNode[] = (hindsightData.nodes || []).map((n) => {
+  const tableRowsById = new Map((graphData.table_rows || []).map((row) => [row.id, row]));
+  const nodes: GraphNode[] = (graphData.nodes || []).map((n) => {
     const tableRow = tableRowsById.get(n.data.id);
     // Use memory text as label, truncated to ~40 chars
     let label = n.data.label;
@@ -81,7 +81,7 @@ export function convertHindsightGraphData(hindsightData: {
     };
   });
 
-  const links: GraphLink[] = (hindsightData.edges || []).map((e) => ({
+  const links: GraphLink[] = (graphData.edges || []).map((e) => ({
     source: e.data.source,
     target: e.data.target,
     color: e.data.color,

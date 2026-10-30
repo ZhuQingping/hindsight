@@ -200,7 +200,7 @@
   --sidebar-border: rgba(100, 160, 255, 0.07);
   --sidebar-ring: #a3aff7;
 
-  /* Hindsight design tokens (dark) — see the :root block above for rationale. */
+  /* ContextBase design tokens (dark) — see the :root block above for rationale. */
   --hs-surface-page: #111521;
   --hs-surface-card: #191f2d;
   --hs-surface-sidebar: #0a1020;
@@ -294,7 +294,7 @@
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 
-  /* Hindsight semantic utilities — generate bg-surface-*, text-fg-*, bg-success,
+  /* ContextBase semantic utilities — generate bg-surface-*, text-fg-*, bg-success,
      border-border-*, text-chart-* etc. from the --hs-* tokens above. */
   --color-surface-page: var(--hs-surface-page);
   --color-surface-card: var(--hs-surface-card);
@@ -423,7 +423,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   max-width: 70ch;
 }
 
-/* Branded loading spinner — the Hindsight mark doing a looping "tumble": a
+/* Branded loading spinner — the product mark doing a looping "tumble": a
    crouch, a hop with an in-plane 360° flip, then a squash on landing. It's pure
    2D squash-and-stretch (scale x/y + in-plane rotate, no 3D transforms) so the
    flat logo reads as a bouncy little character. The hop distance is a % of the

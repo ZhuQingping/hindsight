@@ -68,7 +68,7 @@ def main() -> int:
                     # Ordinary developer runs may skip an absent UI. Acceptance
                     # must fail before collection rather than silently lose it.
                     server = Path(
-                        environment.get("CONTEXTDB_UI_SERVER", root / "hindsight-control-plane/standalone/server.js")
+                        environment.get("CONTEXTDB_UI_SERVER", root / "contextbase-control-plane/standalone/server.js")
                     )
                     if not server.is_file():
                         raise RuntimeError("ContextDB system acceptance requires a matching production UI build")

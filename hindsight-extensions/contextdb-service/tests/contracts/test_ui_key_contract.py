@@ -14,7 +14,7 @@ def test_ui_key_projections_match_openapi() -> None:
     root = next(
         parent
         for parent in Path(__file__).resolve().parents
-        if (parent / "hindsight-control-plane/src/lib/contextdb-api.ts").is_file()
+        if (parent / "contextbase-control-plane/src/lib/contextdb-api.ts").is_file()
     )
     result = subprocess.run(
         ["node", str(Path(__file__).with_name("extract-ui-key-contract.cjs")), str(root)],

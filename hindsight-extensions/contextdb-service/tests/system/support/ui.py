@@ -30,8 +30,8 @@ def verify_ui_server(server: Path, source_root: Path) -> None:
     from hindsight_ext_contextdb.artifacts import source_fingerprint, verify_ui_build
 
     artifact_root = server.parents[2]
-    if server != artifact_root / "hindsight-control-plane/standalone/server.js":
-        raise ValueError("UI server must use the checkout's hindsight-control-plane/standalone/server.js layout")
+    if server != artifact_root / "contextbase-control-plane/standalone/server.js":
+        raise ValueError("UI server must use the checkout's contextbase-control-plane/standalone/server.js layout")
     verify_ui_build(artifact_root)
     # UI acceptance may use an isolated build without touching a running local UI.
     # Its own manifest is necessary but does not prove it matches this API tree.

@@ -3,10 +3,10 @@ const { readFileSync } = require("node:fs");
 const { resolve } = require("node:path");
 const { createRequire } = require("node:module");
 const root = resolve(process.argv[2]);
-const ts = createRequire(resolve(root, "hindsight-control-plane/package.json"))("typescript");
+const ts = createRequire(resolve(root, "contextbase-control-plane/package.json"))("typescript");
 const source = ts.createSourceFile(
   "contextdb-api.ts",
-  readFileSync(resolve(root, "hindsight-control-plane/src/lib/contextdb-api.ts"), "utf8"),
+  readFileSync(resolve(root, "contextbase-control-plane/src/lib/contextdb-api.ts"), "utf8"),
   ts.ScriptTarget.Latest,
   true
 );

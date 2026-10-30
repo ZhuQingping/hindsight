@@ -24,7 +24,13 @@ import { join } from "node:path";
 
 const REPO_ROOT = join(__dirname, "..", "..", "..");
 const ENGINE = join(REPO_ROOT, "hindsight-api-slim", "hindsight_api", "engine", "memory_engine.py");
-const VIEW = join(REPO_ROOT, "hindsight-control-plane", "src", "components", "bank-operations-view.tsx");
+const VIEW = join(
+  REPO_ROOT,
+  "contextbase-control-plane",
+  "src",
+  "components",
+  "bank-operations-view.tsx"
+);
 
 /**
  * Operation types the UI carries that the engine never emits from
@@ -48,7 +54,9 @@ function uiFilterValues(): Set<string> {
 
 function uiLabelledTypes(): Set<string> {
   const src = readFileSync(VIEW, "utf-8");
-  const block = src.match(/const operationTypeLabels: Record<string, string> = \{([\s\S]*?)\n {2}\}/);
+  const block = src.match(
+    /const operationTypeLabels: Record<string, string> = \{([\s\S]*?)\n {2}\}/
+  );
   expect(block, "operationTypeLabels not found — did the map get renamed?").toBeTruthy();
   return new Set([...block![1].matchAll(/^\s+([a-z_]+):/gm)].map((m) => m[1]));
 }
@@ -61,7 +69,7 @@ describe("operation-type parity between the engine and this UI", () => {
       missing,
       `Operation types ${JSON.stringify(missing)} are submitted by memory_engine.py but missing from ` +
         `OPERATION_TYPE_VALUES in bank-operations-view.tsx. Users cannot filter the operations list by them. ` +
-        `Add them there (and to operationTypeLabels + every src/messages/*.json).`,
+        `Add them there (and to operationTypeLabels + every src/messages/*.json).`
     ).toEqual([]);
   });
 
@@ -71,7 +79,7 @@ describe("operation-type parity between the engine and this UI", () => {
     expect(
       missing,
       `Operation types ${JSON.stringify(missing)} have no entry in operationTypeLabels, so they render as ` +
-        `raw snake_case in the operations list. Add a t("operationType.<camelCase>") entry.`,
+        `raw snake_case in the operations list. Add a t("operationType.<camelCase>") entry.`
     ).toEqual([]);
   });
 
@@ -85,11 +93,12 @@ describe("operation-type parity between the engine and this UI", () => {
     // Keeps the exemption list honest: an entry that the engine started
     // emitting, or that the UI dropped, should not sit here unnoticed.
     const unexplained = [...uiFilterValues()].filter(
-      (t) => !engineOperationTypes().has(t) && !UI_ONLY.has(t),
+      (t) => !engineOperationTypes().has(t) && !UI_ONLY.has(t)
     );
 
-    expect(unexplained, `UI carries operation types the engine never emits: ${JSON.stringify(unexplained)}`).toEqual(
-      [],
-    );
+    expect(
+      unexplained,
+      `UI carries operation types the engine never emits: ${JSON.stringify(unexplained)}`
+    ).toEqual([]);
   });
 });

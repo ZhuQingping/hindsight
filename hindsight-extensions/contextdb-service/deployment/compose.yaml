@@ -8,7 +8,7 @@ x-common: &common
   stop_grace_period: 45s
   tmpfs:
     - /tmp:mode=1777,size=256m
-    - /app/hindsight-control-plane/standalone/.next/cache:mode=1777,size=64m
+    - /app/contextbase-control-plane/standalone/.next/cache:mode=1777,size=64m
   environment:
     CONTEXTDB_DEPLOY_DIR: /var/lib/contextdb
     CONTEXTDB_COMBINED: "1"

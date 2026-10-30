@@ -53,7 +53,7 @@ async function main() {
       jsx: "automatic",
       platform: "browser",
       outfile: path.join(output, "bundle.js"),
-      alias: { "@": path.join(root, "hindsight-control-plane/src") },
+      alias: { "@": path.join(root, "contextbase-control-plane/src") },
       define: { "process.env.NODE_ENV": '"development"', "process.env": "{}" },
     });
     server = http.createServer((req, res) => {

@@ -103,19 +103,19 @@ RUN npm ci --ignore-scripts -w contextbase-client \
 FROM node:24-slim AS cp-builder
 
 # Create directory structure matching the monorepo layout
-# This is required because build:standalone script expects .next/standalone/memory-poc/hindsight-control-plane
-WORKDIR /app/memory-poc/hindsight-control-plane
+# This is required because build:standalone script expects .next/standalone/memory-poc/contextbase-control-plane
+WORKDIR /app/memory-poc/contextbase-control-plane
 
 # Install Control Plane dependencies
 # Only copy package.json (not package-lock.json) to ensure npm installs
 # correct platform-specific native bindings for lightningcss/tailwindcss
-COPY hindsight-control-plane/package.json ./
+COPY contextbase-control-plane/package.json ./
 # Remove the file: dependency on SDK (we'll copy it directly later)
 RUN sed -i '/"contextbase-client":/d' package.json \
     && npm install
 
 # Copy Control Plane source (excluding node_modules via .dockerignore)
-COPY hindsight-control-plane/ ./
+COPY contextbase-control-plane/ ./
 # Remove package-lock.json to avoid conflicts with installed native bindings
 # Also remove the file: dependency from package.json (restored by COPY above)
 RUN rm -f package-lock.json && sed -i '/"contextbase-client":/d' package.json
@@ -262,9 +262,9 @@ COPY --from=sdk-builder /app/hindsight-clients/typescript /app/sdk
 
 # Copy Control Plane standalone build
 WORKDIR /app/control-plane
-COPY --from=cp-builder /app/memory-poc/hindsight-control-plane/standalone ./
-COPY --from=cp-builder /app/memory-poc/hindsight-control-plane/.next/static ./.next/static
-COPY --from=cp-builder /app/memory-poc/hindsight-control-plane/public ./public
+COPY --from=cp-builder /app/memory-poc/contextbase-control-plane/standalone ./
+COPY --from=cp-builder /app/memory-poc/contextbase-control-plane/.next/static ./.next/static
+COPY --from=cp-builder /app/memory-poc/contextbase-control-plane/public ./public
 
 WORKDIR /app
 
@@ -360,9 +360,9 @@ COPY --chown=hindsight:hindsight --from=sdk-builder /app/hindsight-clients/types
 
 # Copy Control Plane standalone build
 WORKDIR /app/control-plane
-COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/hindsight-control-plane/standalone ./
-COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/hindsight-control-plane/.next/static ./.next/static
-COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/hindsight-control-plane/public ./public
+COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/contextbase-control-plane/standalone ./
+COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/contextbase-control-plane/.next/static ./.next/static
+COPY --chown=hindsight:hindsight --from=cp-builder /app/memory-poc/contextbase-control-plane/public ./public
 
 WORKDIR /app
 

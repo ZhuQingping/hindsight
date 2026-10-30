@@ -16,13 +16,14 @@
     "build": "NODE_ENV=production next build && npm run build:standalone && npm run audit:browser",
     "build:standalone": "rm -rf standalone && SERVER_JS=$(find .next/standalone -path '*/node_modules' -prune -o -name 'server.js' -print | head -1) && test -n \"$SERVER_JS\" || (echo 'Error: server.js not found in .next/standalone - standalone build failed' && exit 1) && STANDALONE_ROOT=$(dirname \"$SERVER_JS\") && cp -r \"$STANDALONE_ROOT\" standalone && cp -r .next/standalone/node_modules standalone/node_modules && mkdir -p standalone/.next && cp -r .next/static standalone/.next/static && mkdir -p standalone/public && (cp -r public/* standalone/public/ 2>/dev/null || true)",
     "start": "next start",
-    "lint": "cd .. && eslint --config hindsight-control-plane/eslint.config.mjs hindsight-control-plane/src hindsight-extensions/contextdb-service/tests/ui",
+    "lint": "cd .. && eslint --config contextbase-control-plane/eslint.config.mjs contextbase-control-plane/src hindsight-extensions/contextdb-service/tests/ui",
     "test": "vitest run",
     "test:watch": "vitest",
     "i18n:check": "tsx scripts/find-untranslated.ts",
     "prepublishOnly": "npm run build",
     "audit:browser": "node scripts/audit-browser-artifacts.mjs",
-    "test:browser-brand": "node scripts/test-browser-brand.mjs"
+    "test:browser-brand": "node scripts/test-browser-brand.mjs",
+    "test:browser-brand:dev": "node scripts/test-dev-browser-brand.mjs"
   },
   "keywords": [
     "hindsight",

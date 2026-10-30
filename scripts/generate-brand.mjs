@@ -122,7 +122,7 @@ outputs.set(
       .join("")
 );
 outputs.set(
-  "hindsight-control-plane/src/lib/brand-defaults.ts",
+  "contextbase-control-plane/src/lib/brand-defaults.ts",
   ts +
     `export const DISPLAY_NAME = ${quote(brand.display_name)};\nexport const DEPLOYMENT_SLUG = ${quote(brand.deployment_slug)};\n`
 );

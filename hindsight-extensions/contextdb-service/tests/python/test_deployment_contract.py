@@ -329,7 +329,7 @@ async def test_rendered_ui_ca_reaches_native_probe_and_survives_sanitizer(
 
     from hindsight_ext_contextdb import launch as launch_module
 
-    server = tmp_path / "hindsight-control-plane/standalone/server.js"
+    server = tmp_path / "contextbase-control-plane/standalone/server.js"
     server.parent.mkdir(parents=True)
     server.write_text("// isolated launch fixture")
     captured: dict[str, str] = {}

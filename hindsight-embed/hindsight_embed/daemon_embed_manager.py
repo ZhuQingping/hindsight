@@ -1157,7 +1157,7 @@ class DaemonEmbedManager(EmbedManager):
         import shutil
 
         # Check if we're in development mode (monorepo)
-        dev_cp_path = Path(__file__).parent.parent.parent / "hindsight-control-plane"
+        dev_cp_path = Path(__file__).parent.parent.parent / "contextbase-control-plane"
         cli_js = dev_cp_path / "bin" / "cli.js"
         if cli_js.exists():
             return ["node", str(cli_js)]

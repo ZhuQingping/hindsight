@@ -12,7 +12,7 @@ import { locales, defaultLocale } from "@/i18n/config";
  *      locale. Missing or extra keys fail the build.
  *   4. Every leaf value is a non-empty string.
  *
- * This runs in CI as part of `npm test --workspace=hindsight-control-plane`,
+ * This runs in CI as part of `npm test --workspace=contextbase-control-plane`,
  * so a missing translation or typoed key in any locale fails the build
  * before a release.
  */

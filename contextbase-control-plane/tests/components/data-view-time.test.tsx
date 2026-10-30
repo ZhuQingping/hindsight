@@ -22,7 +22,7 @@ vi.mock("@/lib/api", () => ({
 }));
 vi.mock("@/components/constellation", () => ({ Constellation: () => null }));
 vi.mock("@/components/graph-data", () => ({
-  convertHindsightGraphData: () => ({ nodes: [], links: [] }),
+  convertGraphData: () => ({ nodes: [], links: [] }),
 }));
 vi.mock("@/components/memory-detail-modal", () => ({ MemoryDetailModal: () => null }));
 vi.mock("@/components/tag-filter-input", () => ({ TagFilterInput: () => null }));

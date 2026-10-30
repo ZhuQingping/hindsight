@@ -11,7 +11,7 @@ def test_successful_build_is_verified_and_rejects_changed_source_or_bundle(tmp_p
     monkeypatch.setattr(artifacts, "source_fingerprint", lambda root: "a" * 64)
 
     def compile_ui(*args, **kwargs):
-        directory = tmp_path / "hindsight-control-plane/standalone"
+        directory = tmp_path / "contextbase-control-plane/standalone"
         (directory / ".next/static").mkdir(parents=True)
         (directory / "server.js").write_text("// built server")
         (directory / ".next/static/app.js").write_text("// built client")
@@ -21,7 +21,7 @@ def test_successful_build_is_verified_and_rejects_changed_source_or_bundle(tmp_p
     artifacts.build_ui(tmp_path)
     artifacts.verify_ui_build(tmp_path)
     build.assert_called_once()
-    chunk = tmp_path / "hindsight-control-plane/standalone/.next/static/app.js"
+    chunk = tmp_path / "contextbase-control-plane/standalone/.next/static/app.js"
     chunk.write_text("// old copied client")
     with pytest.raises(ValueError, match="mismatched"):
         artifacts.verify_ui_build(tmp_path)
@@ -41,7 +41,7 @@ def test_failed_or_changing_build_never_produces_stamp(tmp_path: Path, monkeypat
 
 
 def test_manifest_existence_does_not_bypass_source_or_bundle_validation(tmp_path: Path):
-    directory = tmp_path / "hindsight-control-plane/standalone"
+    directory = tmp_path / "contextbase-control-plane/standalone"
     directory.mkdir(parents=True)
     (directory / "server.js").write_text("// copied server without matching sources")
     (directory / "contextdb-release.json").write_text(

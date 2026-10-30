@@ -137,7 +137,7 @@ async def test_api_and_ui_launch_environments_are_separate(tmp_path, monkeypatch
 
     directory = tmp_path / "private"
     save_credential(directory / "ui-secrets.json", UiSecrets(password="ui-password", admin_key=ADMIN_SECRET))
-    server = tmp_path / "source" / "hindsight-control-plane" / "standalone" / "server.js"
+    server = tmp_path / "source" / "contextbase-control-plane" / "standalone" / "server.js"
     server.parent.mkdir(parents=True)
     server.write_text("// fixture")
     monkeypatch.setenv("CONTEXTDB_KEY_PEPPER", "must-not-reach-ui")

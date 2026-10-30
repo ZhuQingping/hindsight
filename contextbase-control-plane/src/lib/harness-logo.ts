@@ -1,7 +1,7 @@
 /**
  * Which coding agent wrote a document, resolved to a logo.
  *
- * The convention is set by the writers, not by this UI. `hindsight-coding-agents`
+ * The convention is set by the writers, not by this UI. the coding-agent integration
  * stamps the harness on every document it retains, twice:
  *
  *   document_metadata.harness = "claude-code"      (the authoritative field)
@@ -19,7 +19,7 @@
  * agents that cannot appear yet: an id nothing writes is a logo nothing renders.
  * When that integration gains a harness, add it here in the same change — drop
  * its icon in `public/img/harness/` (copied from
- * `hindsight-docs/static/img/icons/`, or taken from the agent's own brand assets
+ * the documentation site's `static/img/icons/`, or taken from the agent's own brand assets
  * when the docs site carries none; the docs site and the control plane are
  * separate packages and cannot share a static dir) and add one entry.
  *

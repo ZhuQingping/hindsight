@@ -43,13 +43,13 @@ cd hindsight-api-slim && uv run ty check hindsight_api/
 ```bash
 ./scripts/dev/start-control-plane.sh
 # Or manually:
-cd hindsight-control-plane && npm run dev
+cd contextbase-control-plane && npm run dev
 
 # Run frontend unit tests
-cd hindsight-control-plane && npm test
+cd contextbase-control-plane && npm test
 
 # Run frontend linter
-cd hindsight-control-plane && npm run lint
+cd contextbase-control-plane && npm run lint
 ```
 
 ### CLI Tool (Rust)
@@ -109,7 +109,7 @@ uv run run-amb --dataset longmemeval --split s -- --category single-session-user
 - **hindsight-api/**: Published distribution package providing `hindsight-api`, `hindsight-worker`, `hindsight-local-mcp`, and `hindsight-admin` CLI entrypoints
 - **hindsight-all/** & **hindsight-all-slim/**: Full and slim standalone distribution bundle packages
 - **hindsight-all-npm/**: Node.js lifecycle manager embedding local daemon (published as `@vectorize-io/hindsight-all`)
-- **hindsight-control-plane/**: Admin UI (Next.js, npm)
+- **contextbase-control-plane/**: Admin UI (Next.js, npm)
 - **hindsight-cli/**: CLI tool (Rust, cargo, uses progenitor for API client)
 - **hindsight-clients/**: Generated SDK clients (Python, TypeScript, Rust, Go)
 - **hindsight-docs/**: Docusaurus documentation site
@@ -324,13 +324,13 @@ Rules of thumb:
 
 When adding or modifying parameters in the dataplane API (hindsight-api), you must also update the control plane routes that proxy to it:
 
-1. **API Routes** (`hindsight-control-plane/src/app/api/`):
+1. **API Routes** (`contextbase-control-plane/src/app/api/`):
    - `recall/route.ts` - proxies to `/v1/default/banks/{bank_id}/memories/recall`
    - `reflect/route.ts` - proxies to `/v1/default/banks/{bank_id}/reflect`
    - `memories/retain/route.ts` - proxies to `/v1/default/banks/{bank_id}/memories/retain`
    - Other routes follow the same pattern
 
-2. **Client types** (`hindsight-control-plane/src/lib/api.ts`):
+2. **Client types** (`contextbase-control-plane/src/lib/api.ts`):
    - Update the TypeScript type definitions for `recall()`, `reflect()`, `retain()` etc.
 
 3. **Checklist when adding new API parameters**:
@@ -357,13 +357,13 @@ currently `antigravity-cli`, `claude-code`, `cline-cli`, `codebuddy`, `codex`,
 `prime-agent`, `qwen-code`, `traecode`, `workbuddy`, `zcode`.
 
 The control plane resolves the value in
-`hindsight-control-plane/src/lib/harness-logo.ts` (metadata wins over the tag) and
+`contextbase-control-plane/src/lib/harness-logo.ts` (metadata wins over the tag) and
 renders it with `components/ui/harness-logo.tsx` in the documents table and the
 document detail dialog. **Adding a harness to the integration means adding it to
 that registry in the same change**: copy its icon from
 `hindsight-docs/static/img/icons/` (or take it from the agent's own brand assets
 when the docs site carries none) into
-`hindsight-control-plane/public/img/harness/` and add one entry. Don't register
+`contextbase-control-plane/public/img/harness/` and add one entry. Don't register
 ids nothing writes — a test asserts the registry matches the emitted set, plus an
 explicit list of retired ids kept so already-retained documents keep their logo.
 An unregistered harness is not an error: it renders no logo and still shows as
