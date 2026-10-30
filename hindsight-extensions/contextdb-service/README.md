@@ -12,6 +12,41 @@
 
 API 由扩展自己的 `hindsight_ext_contextdb.asgi:create_app` 启动，外层准入保护同时覆盖原生 REST/MCP；部署脚本已使用此入口。直接运行原生 API 命令且配置本扩展时会拒绝启动，避免漏装保护层。原生应用仍负责初始化、内置 Worker 和关闭流程。
 
+## Bank REST 管理工作空间（Issue #53）
+
+启用 ContextDB 插件后，空间创建、属性更新和删除统一使用原生 Bank 路径，由插件协调管理元数据与独立 schema。未启用插件时保持社区原生行为；只安装Python包不等于启用插件。完整字段、状态与兼容边界见[设计第8章](../../docs/contextdb-management/DESIGN.md#bank-api-reuse-design)。
+
+- 创建：Admin 调用 `PUT /v1/default/banks/{bank_id}`。UI使用 `If-None-Match: *` 严格创建，任意状态已登记的同名目标返回412；不带条件时，active目标按原生属性更新。成功返回200原生profile。
+- 描述：新建时可选 `description`，最多512字符、默认空，保存为管理展示文字，独立于影响模型的mission。active目标的无条件PUT/PATCH显式传description返回400；不传保留原值；有效严格创建遇已登记目标仍412。UI两个创建入口均保留描述输入。
+- 更新：Admin `PATCH` 仅更新active对象；不存在返回404，不隐式建空间。沿用原生字段，不新增工作空间编辑协议。
+- 删除：先GET管理详情，保存确认时的身份ETag；停止新业务并等待已有请求/后台工作结束后，Admin通过Bank DELETE携原 `If-Match` 删除。缺失条件428、格式错误400、对象或版本不匹配412；成功200原生删除结果。
+- 只读管理目录、详情、usage继续使用 `/ext/contextdb/v1/workspaces...`。旧workspace POST/DELETE已移除（API405、旧UI写代理404），不再支持旧写调用方。
+- 插件启用时，MCP的 `create_bank`、`update_bank`、`delete_bank` 隐藏且拒绝，包括Admin；内容工具保持既有权限。原生模式不受此策略影响。
+
+以下示例只使用部署方提供的环境变量，不在命令中写入真实凭据：
+
+```sh
+# 严格创建；响应头X-ContextDB-Workspace-ETag属于本次实际创建的对象。
+curl -fsS -D - -X PUT "$API_URL/v1/default/banks/example" \
+  -H "Authorization: Bearer $ADMIN_KEY" -H 'Content-Type: application/json' \
+  -H 'If-None-Match: *' \
+  --data '{"name":"Example","description":"示例工作空间"}'
+
+# 管理详情含description/state/UUID/etag。不要假设Bank profile等于管理详情。
+curl -fsS -D - "$API_URL/ext/contextdb/v1/workspaces/example" \
+  -H "Authorization: Bearer $ADMIN_KEY"
+
+# 先按前述条件停止业务；WORKSPACE_ETAG为人工确认时保存的完整ETag。
+curl -fsS -X DELETE "$API_URL/v1/default/banks/example" \
+  -H "Authorization: Bearer $ADMIN_KEY" -H "If-Match: $WORKSPACE_ETAG"
+```
+
+Python/TypeScript高层SDK的Admin创建、更新、列表沿用原生调用；高层删除不提供逐请求条件时不能直接使用，应采用支持请求级头的底层SDK或REST。不要改共享SDK的全局headers来临时设置删除条件，也不要自动取得最新条件后重放旧删除。
+
+UI创建先发严格PUT，再GET详情核对本次响应头与UUID/版本/描述；同名新对象或GET失败均显示结果未知，不自动重放。接口503、超时或断连也不能证明写入回滚。
+
+本次不改元数据结构，不需数据迁移或重发UI密码/API Key。升级与回退均应使用匹配的API/UI版本；旧UI调用退役路径会失败。创建/删除中断后的核查及人工清理见[设计8.13节](../../docs/contextdb-management/DESIGN.md#bank-rest-interrupted-cleanup)，不可用改状态代替备份或数据恢复。
+
 ## PG 部署辅助脚本
 
 SQL 保留为可执行文件，README 说明用途；完整操作步骤见资料仓的[PG 准备与权限边界](https://github.com/ZhuQingping/ContextDB-Research/blob/main/hindsight/deployment/contextdb-service-integration-guide.md#pg-preparation)。不在 README 复制 SQL 正文。

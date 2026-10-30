@@ -16,6 +16,7 @@ from contextbase_client_api.exceptions import ForbiddenException
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.deployment import ContextDBDeployment
 
 pytestmark = pytest.mark.asyncio
@@ -29,8 +30,8 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
     async with httpx.AsyncClient(
         base_url=base + "/ext/contextdb/v1", headers=contextdb_deployment.headers, timeout=100
     ) as management:
-        created = await management.post("/workspaces", json={"name": name})
-        assert created.status_code == 201, created.text
+        created = await create_workspace(management, json={"name": name})
+        assert created.status_code == 200, created.text
         original = created.json()
         old = original["workspace_id"]
         detail = await management.get("/workspaces/" + quote(name, safe=""))
@@ -69,8 +70,8 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
             await member.aretain(bank_id=name, content="Alice builds RecreateSentinel.", retain_async=True)
             await wait_until_settled(member, name)
             assert (await member.arecall(bank_id=name, query="RecreateSentinel")).results
-            deletion = await management.delete("/workspaces/" + name, headers={"If-Match": old_etag})
-            assert deletion.status_code == 204, deletion.text
+            deletion = await management.delete(bank_url(management, name), headers={"If-Match": old_etag})
+            assert deletion.status_code == 200, deletion.text
             assert (await management.get("/workspaces/" + quote(name, safe=""))).status_code == 404
             listed = next(
                 item
@@ -85,8 +86,8 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
                 json={"name": "Stale edit"},
             )
             assert stale.status_code == 412
-            replacement = await management.post("/workspaces", json={"name": name})
-            assert replacement.status_code == 201, replacement.text
+            replacement = await create_workspace(management, json={"name": name})
+            assert replacement.status_code == 200, replacement.text
             new = replacement.json()["workspace_id"]
             assert new != old
             assert replacement.json()["bank_id"] == original["bank_id"] == name
@@ -97,13 +98,13 @@ async def test_same_name_recreation_has_new_identity_and_no_inherited_grants(
             current = await management.get("/workspaces/" + name)
             assert current.headers["etag"] != old_etag
             stale_delete = await management.delete(
-                "/workspaces/" + name,
+                bank_url(management, name),
                 headers={"If-Match": old_etag},
             )
             assert stale_delete.status_code == 412
             # Both an old delete retry and an explicit stale grant must fail;
             # the readable name now identifies a different object.
-            replay = await management.delete("/workspaces/" + name, headers={"If-Match": old_etag})
+            replay = await management.delete(bank_url(management, name), headers={"If-Match": old_etag})
             assert replay.status_code == 412
             stale_grant = await management.post(
                 f"/users/{user['user_id']}/keys",

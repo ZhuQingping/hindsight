@@ -68,19 +68,21 @@ export interface Page<T> {
   limit: number;
   offset: number;
 }
-function requestMessage(kind: "unknown" | "unavailable" | "conflict"): string {
+function requestMessage(kind: "unknown" | "unavailable" | "conflict" | "exists"): string {
   const chinese = typeof document !== "undefined" && document.documentElement.lang.startsWith("zh");
   const messages = chinese
     ? {
         unknown: "结果未知，请先刷新核对资源再重试。不要自动重复创建、删除或修改资源。",
         unavailable: "暂时无法连接管理服务，请刷新后重试。",
         conflict: "记录已被修改，请关闭编辑窗口，刷新后重新确认，不能直接覆盖。",
+        exists: "工作空间名称已存在，请使用其他名称。",
       }
     : {
         unknown:
           "Result unknown. Refresh and inspect the resource before retrying; do not automatically repeat a create, delete, or update request.",
         unavailable: "Unable to reach the management service. Refresh to retry.",
         conflict: "This record changed. Close the editor and refresh before retrying.",
+        exists: "A workspace with this name already exists. Choose another name.",
       };
   return messages[kind];
 }
@@ -91,6 +93,7 @@ interface RequestOptions {
   version?: number;
   etag?: string;
   signal?: AbortSignal;
+  createOnly?: boolean;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -104,13 +107,15 @@ export function contextDBRequest<T>(path: string, options: RequestOptions = {}):
 async function requestJSON<T>(
   path: string,
   options: RequestOptions,
-  validCreation?: (data: unknown, status: number) => boolean
+  validCreation?: (data: unknown, status: number, response: Response) => boolean,
+  prefix = "/api/contextdb"
 ): Promise<T> {
   const headers = new Headers();
   if (options.body !== undefined) headers.set("Content-Type", "application/json");
   if (options.etag !== undefined) headers.set("If-Match", options.etag);
   else if (options.version !== undefined) headers.set("If-Match", `"${options.version}"`);
-  const response = await productFetch(withBasePath(`/api/contextdb${path}`), {
+  if (options.createOnly) headers.set("If-None-Match", "*");
+  const response = await productFetch(withBasePath(`${prefix}${path}`), {
     method: options.method || "GET",
     headers,
     credentials: "same-origin",
@@ -139,7 +144,7 @@ async function requestJSON<T>(
             : `Request failed (${response.status})`;
     throw new ContextDBError(
       response.status === 412
-        ? requestMessage("conflict")
+        ? requestMessage(options.createOnly ? "exists" : "conflict")
         : response.status >= 500 && options.method && options.method !== "GET"
           ? `${message} ${requestMessage("unknown")}`
           : message,
@@ -151,7 +156,7 @@ async function requestJSON<T>(
   if (response.status === 204 && !validCreation) return undefined as T;
   try {
     const data: unknown = await response.json();
-    if (validCreation && !validCreation(data, response.status))
+    if (validCreation && !validCreation(data, response.status, response))
       throw new Error("Invalid creation response");
     return data as T;
   } catch {
@@ -165,40 +170,84 @@ async function requestJSON<T>(
   }
 }
 
-/** Never retry a write here; inspect the resource after an uncertain response. */
-export function workspaceMutation<Method extends "POST" | "DELETE">(
-  path: string,
-  method: Method,
-  body?: { name: string; description?: string },
-  signal?: AbortSignal,
-  etag?: string
-): Promise<Method extends "POST" ? ContextDBWorkspace : void> {
-  if (method === "DELETE" && !/^"[0-9a-f]{32}:[1-9][0-9]*"$/.test(etag ?? ""))
-    throw new Error("Workspace deletion requires the original identity-bound ETag.");
-  const bankId = body?.name.normalize("NFKC").trim().toLowerCase();
-  return requestJSON(
-    path,
-    { method, body, signal, etag },
-    method === "POST"
-      ? (data, status) => {
-          // A parseable JSON body used to be accepted as a resource. Verify the
-          // submitted target and its original identity before closing or navigating.
-          return (
-            status === 201 &&
-            isObject(data) &&
-            typeof data.workspace_id === "string" &&
-            /^[0-9a-f]{32}$/.test(data.workspace_id) &&
-            typeof data.bank_id === "string" &&
-            data.bank_id === bankId &&
-            data.state === "active" &&
-            typeof data.version === "number" &&
-            Number.isSafeInteger(data.version) &&
-            data.version > 0 &&
-            data.etag === `"${data.workspace_id}:${data.version}"`
-          );
-        }
-      : undefined
+/** The management view is read-only; writes use the protected Bank resource. */
+export async function createContextDBBank(
+  body: { name: string; description?: string },
+  signal?: AbortSignal
+): Promise<ContextDBWorkspace> {
+  const bankId = body.name.normalize("NFKC").trim().toLowerCase();
+  const description = body.description ?? "";
+  let originalEtag: string | null = null;
+  await requestJSON(
+    `/${encodeURIComponent(bankId)}`,
+    { method: "PUT", body: { name: bankId, description }, signal, createOnly: true },
+    (data, status, response) => {
+      originalEtag = response.headers.get("X-ContextDB-Workspace-ETag");
+      if (!isObject(data) || !isObject(data.disposition)) return false;
+      const traits = data.disposition;
+      return (
+        status === 200 &&
+        data.bank_id === bankId &&
+        typeof data.name === "string" &&
+        typeof data.mission === "string" &&
+        ["skepticism", "literalism", "empathy"].every(
+          (key) => typeof traits[key] === "number" && Number.isFinite(traits[key])
+        ) &&
+        /^"[0-9a-f]{32}:[1-9][0-9]*"$/.test(originalEtag ?? "")
+      );
+    },
+    "/api/banks"
   );
+  try {
+    const data: unknown = await contextDBRequest(`/workspaces/${encodeURIComponent(bankId)}`, {
+      signal,
+    });
+    if (
+      !isObject(data) ||
+      typeof data.workspace_id !== "string" ||
+      !/^[0-9a-f]{32}$/.test(data.workspace_id) ||
+      data.bank_id !== bankId ||
+      data.state !== "active" ||
+      typeof data.version !== "number" ||
+      !Number.isSafeInteger(data.version) ||
+      data.version <= 0 ||
+      data.etag !== `"${data.workspace_id}:${data.version}"` ||
+      data.etag !== originalEtag ||
+      data.description !== description ||
+      typeof data.name !== "string" ||
+      typeof data.created_at !== "string" ||
+      Number.isNaN(Date.parse(data.created_at))
+    )
+      throw new Error("Creation identity unavailable");
+    return data as unknown as ContextDBWorkspace;
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    // Even a successful same-name GET may observe a successor. Only the
+    // condition returned by THIS PUT can establish the original identity.
+    throw new ContextDBError(requestMessage("unknown"), 0, "response_unknown", null);
+  }
+}
+
+export function deleteContextDBBank(
+  bankId: string,
+  etag: string,
+  signal?: AbortSignal
+): Promise<void> {
+  if (!/^"[0-9a-f]{32}:[1-9][0-9]*"$/.test(etag))
+    throw new Error("Bank deletion requires the original identity-bound ETag.");
+  return requestJSON(
+    `/${encodeURIComponent(bankId)}`,
+    { method: "DELETE", signal, etag },
+    (data, status) =>
+      status === 200 &&
+      isObject(data) &&
+      data.success === true &&
+      typeof data.message === "string" &&
+      typeof data.deleted_count === "number" &&
+      Number.isSafeInteger(data.deleted_count) &&
+      data.deleted_count >= 0,
+    "/api/banks"
+  ).then(() => undefined);
 }
 
 /** Verify the created identity before closing the member form or reporting success. */

@@ -1,6 +1,6 @@
 # ContextDB 团队集成验证记录
 
-当前PR #57的完整系统、UI、生产UI及Chrome验收见[第30章](#bank-rest-full-acceptance)，运行基准为 `f05bedea631b8bbc796f28c61bba7c4e002427a8`。F1/F2专项及插件Python等结果见第29章；各章按日期/代码快照独立记录，不重复累计用例或将历史未提交状态当作当前状态。
+当前Issue #53描述与调用方收敛验收见[第31章](#bank-rest-completion-validation)，基于 `d7608b322` 加提交前冻结修改；当前提交身份以Git记录为准。PR #57原型及F1/F2历史验收保留在第28～30章；各章只代表对应代码快照，不重复累计用例。
 
 
 管理功能历史回归见第13章，Issue #19逐项状态见CODE-REVIEW第16章及后续整改章节。SEC-01插件修复见第10章；第8章为a05适配，第9章为首次PR提交检查。第1～7章保留此前0e283e923及文档恢复的历史证据和当时命令；其中旧测试路径/CONTEXTDB_REQUIRE_UI_TESTS不再是当前入口。
@@ -1127,3 +1127,238 @@ main增量未改原生API、Python SDK、插件运行代码及全部Python系统
 命令、完整JUnit、纯main反证及日志由 `/tmp/contextdb-pr57-sync-merge-path` 定位：merge-validation.json、merge-ui-all.xml、merge-production-ui.xml、merge-production-gate.log、latest-main-ui-failure.xml及new-main-comparison.json。生产UI故事的PG/API/Worker/UI由fixture清理；不操作现有服务及用户库。
 
 最终合并前main继续合入PR #60至 `3216258a79e5047a600efec75118f5bf0dadc930`，变化仍限连接指引等UI/资料，未改上述Python运行及测试路径。组合树 `7d9be8ca7440bd80c45f44b571f886a2e3f7da70` 再次补验：UI830项为829通过、1失败，仍是同一Bank ID术语问题，并在纯main321归档复现；沿用已明确接受的该项基线例外，不记作通过。全新生产构建、manifest、双Worker生产UI两项及JUnit门禁、TypeScript、ESLint均通过。该轮证据为main321-validation.json、main321-ui-all.xml、main321-production-ui.xml、latest-main321-failure.xml；旧836项结果仅对应前述6c6cb4971组合，当前不得混用。
+
+
+<a id="bank-rest-completion-validation"></a>
+
+## 31. Issue #53 描述与调用方收敛验收（2026-10-30）
+
+### 31.1 版本、隔离与结果
+
+基于本地 `codex/contextdb-bank-rest` 的 `d7608b322481372ea534018fdd6d8d4ac088354c` 加验收时冻结的本轮修改；当前交付身份以Git记录为准。冻结候选仅包含插件、自研UI、Bank路由必要接线及相关文档；排除六项Embedding已有差异并核对其SHA-256未变。工件定位文件为 `/tmp/contextdb-issue53-completion-path`，本轮目录为 `/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-issue53-completion-p57dcxba`；`final-manifest.json`记录基准、补丁及逐文件指纹，不虚构修复提交SHA。
+
+所有数据库、API、Worker与UI均为任务自有临时资源和随机端口。UI在独立candidate-final目录构建，不覆盖现有产物。Python3.11、macOS/Node24；ContextDB系统故事的模型调用显式替身，真实后台任务等待完成。验收期间未操作现有服务或用户数据库，当时尚未提交/推送。
+
+| 检查 | 实际结果 | 证据 |
+| --- | --- | --- |
+| 插件Python全量，含真实非超级用户service.sh重复init | 637通过，0失败/跳过 | python-complete.xml/log；admin URL仅指向任务自有PG |
+| UI完整套件 | 818通过，0失败/跳过 | ui-complete.xml/log；TZ=UTC固定原生相对日期测试，不改产品时区 |
+| ContextDB完整系统（两种Worker，包含生产UI） | 100通过，0失败/错误/跳过，283.14秒 | system-complete.xml/log；其中双Worker生产UI另外以专用2项报告通过门禁 |
+| 此前本轮非UI单次全量 | 98通过，0失败/跳过 | system-final.xml/log，不与上述全量重复累计 |
+| 生产构建、manifest、双Worker生产UI独立门禁 | build-ui、manifest通过；2项通过且零跳过，门禁通过 | build-ui-final.log、production-ui.xml、production-results.json；2项属于系统覆盖，不重复累计 |
+| 相关原生chunk/扩展上下文/MCP/schema回归 | 112通过 | native-unit.xml/log；原生PG fixture显式启用任务私有PG |
+| 原生完整系统 | 354通过、2项既有条件跳过，11 subtests通过 | native-system-final.xml/log；独立PG，UV_NO_SYNC=1 |
+| 跨语言Key合同 | 1通过 | key-contract.xml/log |
+| TypeScript、ESLint、插件Ruff/ty、变更文件格式、diff检查 | TSC通过、ESLint零错误（既有warning保留）、Ruff/ty通过；最终格式与diff见结果文件 | typescript-final.log、eslint-complete.log、ty-complete.log、format-final.log及git diff --check |
+| 中断人工清理SQL | 独立PG+真实API通过 | offline-cleanup-results.json、verify-offline-cleanup.py |
+| Chrome实际交互 | 双入口描述、严格同名提示、删除及浅/深色通过 | chrome-results.json及下图 |
+
+系统故事覆盖新Bank→签发业务Key→SDK异步retain→Worker完成→recall→条件删除→同名重建；并检查故事结束后public无业务表。插件启用/未启用、Admin与业务Key、非法配置无持久副作用、元数据故障分类、旧写接口405/UI404、描述/mission独立及原创建身份均继续覆盖。普通用户/Key的201/204不随Bank200合同改变。
+
+原生系统两项既有跳过分别缺少本地E5 ONNX模型和已构建Coding Agents tarball，不新增skip/xfail。失败首跑日志保留：原生服务启动时uv重新同步触发既有workspace来源冲突，随后使用已锁定依赖的UV_NO_SYNC=1重跑全套通过。最初系统fixture仍mock旧POST、用户DELETE状态码迁移误改、隔离目录缺SDK构建依赖等失败均保留日志并已修正；原生断言、故障注入和后台工作未删减。生产UI门禁误传100项全量报告时按设计拒绝选择，正确的专用2项报告通过，未放宽门禁。
+
+### 31.2 命令与处置补证
+
+候选通过显式PYTHONPATH指向自身插件/API/SDK/system目录，避免editable导入六项无关修改。主要入口：
+
+```sh
+# 插件目录：Python全量；部署admin URL必须属于测试自己的PG。
+python -m pytest tests/python -q
+# 同目录：完整两Worker系统，需先设置下述匹配的UI产物及Node路径。
+python -m pytest -c pytest-system.ini tests/system -n 2 -q --junitxml=system.xml
+# 专用门禁严格要求仅含下述两个Worker参数项，不能传全量100项报告。
+python -m pytest -c pytest-system.ini tests/system/test_112_contextdb_ui_management.py -n 2 -q --junitxml=production-ui.xml
+python scripts/check_production_ui.py production-ui.xml
+# 仓库根目录：生产UI必须通过受控构建和manifest校验。
+python -m hindsight_ext_contextdb build-ui --source-root "$CANDIDATE"
+# Control Plane目录：原有工具链。
+TZ=UTC node ../node_modules/vitest/vitest.mjs run --maxWorkers 4
+node ../node_modules/typescript/bin/tsc --noEmit
+```
+
+实际完整命令及参数见工件的system-complete-command.json、native-unit-command.json、run_python_complete.py等。生产UI使用 `CONTEXTDB_UI_SERVER=$CANDIDATE/hindsight-control-plane/standalone/server.js` 和任务Node24绝对路径；没有静默跳过产物缺失或用JSDOM代替Chrome。
+
+DESIGN 8.13的人工清理在独立嵌入Worker实例验证：先停止API/Worker并确认无对应PG连接，模拟creating的部分schema与deleting的完整Bank；错误UUID/版本/旧状态/active均更新0行；正确更新只改目标状态/版本/错误码，Bank、部分表、统计与授权不变。重启管理后旧ETag412、新ETag删除200，两个目标schema及selected授权清理，其他空间与授权保留、public无业务表。统计行是故障验证用合成数据，不算真实业务召回测量；完整真实记忆链由系统故事覆盖。
+
+### 31.3 Chrome及限制
+
+Chrome连接任务随机端口的生产UI，实际操作目录和选择器两个创建入口。中文多行描述保持，名称按约定小写；同名重试明确提示名称已存在且原描述不变；选择器创建后进入目标空间，目录可见其描述。删除显示目标和停止业务/等待后台工作的说明，完成后目录及API均404。证据来自真实Chrome，不是HTTP探针截图。
+
+![两个创建入口均保留描述](screenshots/bank-rest-description.png)
+
+![严格同名创建显示名称冲突](screenshots/bank-rest-name-conflict.png)
+
+本轮Chrome验证浅/深色及当前桌面尺寸；未重新穷尽窄屏/短屏、全部设备和故障注入。未部署现有8891/9991或其他服务，未验证Linux/Docker、远程CI、真实MaaS、性能和生产恢复。人工清理SQL是丢弃目标残留的维护步骤，不是业务数据恢复验收。
+
+仓库级lint.sh仍因未改动的原生http.py:5846 F841失败；knip同CI阻断类别仍报告既有contextbase-client devDependency；文档生成仍受Issue #14缺失what-contextbase-does.json阻断。完整lint在自有可修改快照中执行，未把自动修复差异带回目标，未修改持久Git配置或绕过钩子。MCP白名单问题仍独立跟踪Issue #47，本轮未修复。
+
+
+<a id="bank-proxy-error-validation"></a>
+
+## 32. Bank UI代理错误处理修复（2026-10-30）
+
+本节记录rebase前基于`0b07f61f80ed5728176d1e9c1c1c2be1048e7e76`的本地工作区修复，当时尚未提交、推送或部署；后续组合验收见第33章。本轮只修改自研Bank代理、插件目录内的UI测试及相关文档；未适配最新main的UI目录迁移，不以本轮结果宣称组合版本通过。
+
+| 检查 | 本轮实际结果 |
+| --- | --- |
+| 修复前回归 | 新增用例实际触发46项失败，证明JSON5xx正文转发、状态/关联信息及错误分类缺口；不是只检查修复后的实现 |
+| 修复后单文件 | `contextdb.test.ts`共126项通过，含新增53项 |
+| 完整UI套件 | 871项通过、0失败、0跳过；TZ=UTC，仅稳定既有相对日期测试，不改变产品时区 |
+| TypeScript | `tsc --noEmit --incremental false`通过，不改生成UI产物 |
+| 变更文件ESLint | 通过、0错误 |
+| 仓库lint.sh | 在任务自有候选与独立Python环境执行；因原生`hindsight_api/api/http.py:5846`既有F841失败，其余任务通过。自动修复差异只保留在临时候选，没有带回目标工作区 |
+
+覆盖PUT/PATCH/DELETE，JSON/文本/空正文的500、502、503、504；响应流失败仍保留已收到的状态。正文不返回后端诊断，`X-Request-ID`、`Retry-After`及no-store保留；上游ID缺失/为空时生成一致的本地ID。400/401/403/409/412/428/429业务错误保持，网络未取得响应时才使用连接失败503，4xx坏正文保留状态，2xx坏正文返回502 `response_unknown`。每项均检查仅发出一次后台请求，不增加身份查询或自动重放。
+
+命令使用目标现有Node24及依赖，无新增依赖或第二套框架：
+
+```sh
+# Control Plane目录
+TZ=UTC node ../node_modules/vitest/vitest.mjs run --maxWorkers 4
+node ../node_modules/typescript/bin/tsc --noEmit --incremental false
+# 仓库根目录
+node node_modules/eslint/bin/eslint.js --config hindsight-control-plane/eslint.config.mjs \
+  hindsight-control-plane/src/lib/contextdb-bank-proxy.ts \
+  hindsight-extensions/contextdb-service/tests/ui/contextdb.test.ts
+# 只在任务自己的可修改候选内执行，UV_PROJECT_ENVIRONMENT指向任务自有目录
+LINT_SERIAL=1 bash scripts/hooks/lint.sh
+```
+
+证据目录：`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-pr65-proxy-fix-haug9xw9`。`regression-before.json/log`、`regression-after.json/log`、`ui-complete.json/log`、`typescript.log`、`eslint.log`和`lint-hook.log`保留实际结果；格式与范围自检见同目录最终记录。
+
+本轮未重跑PG/API/Worker、生产UI构建、Chrome及完整系统套件；改动没有涉及后端、数据库或SDK。第31章完整验收仅对应当时版本，不能据此代替最新main组合回归。现有服务、数据库、原API Key/UI密码和无关Embedding修改均未操作；已知目录冲突及其他仓库门禁不由本轮局部修复消除。
+
+
+<a id="bank-rest-rebase-validation"></a>
+
+## 33. 最新团队main组合验收（2026-10-30）
+
+### 33.1 版本、保留范围与目录
+
+本轮从RSIXDB/hindsight的`team_repo/main`抓取`9a58a706e`，将原`0b07f61f8` rebase为`8a394a246`，main之上仍一个功能提交。本节验收发生于amend前，Bank代理F1/F2及资料当时仍在工作区；交付时一并归入同一提交，最终身份以Git/PR为准。
+
+新增代理已位于`contextbase-control-plane/src/lib/contextdb-bank-proxy.ts`；保留main目录、事件名、管理错误中性化、部署/fixture路径及npm分发更新。F1/F2代理迁移前后逐字节相同，6项无关修改逐文件SHA保持。两份env.example与main说明冲突时恢复原用户文件字节，其差异继续只留在工作区，不纳入干净候选。
+
+旧UI目录的本机`.next`/standalone等产物保留，未操作；新产物只在任务候选的`contextbase-control-plane`构建。验证候选由rebase后的HEAD加本轮修复组成，排除无关Embedding改动。没有使用、清理现有PG数据库或替换现有API/UI服务。
+
+### 33.2 实际结果
+
+| 检查 | 本轮结果 |
+| --- | --- |
+| 插件Python全量 | 637通过、0失败/错误/跳过，含任务自有PG下非超级用户及service.sh重复init |
+| 完整UI | 930通过、0失败/跳过；包含保留的F1/F2新增53项及main新增测试。TZ=UTC，不改变产品时区 |
+| 生产build-ui与manifest | 通过；使用新目录、Node24、匹配SDK构建；main浏览器产物审计120个文件通过 |
+| 全部ContextDB系统故事 | 单次100通过、0失败/错误/跳过，两Worker，真实SDK/API/独立PG，模型显式替身，等待后台完成 |
+| 生产UI专用报告 | 两Worker各1项，共2通过、0跳过；严格JUnit门禁通过，不与系统100重复累计 |
+| 跨语言Key合同 | 1通过 |
+| TypeScript、完整ESLint、变更格式、diff | 通过，ESLint既有warning保留 |
+| 仓库lint.sh | 独立可修改候选/独立Python环境运行，仍为原生http.py:5846 F841失败，其他任务通过；自动修复未复制回目标 |
+| CI同类knip5阻断检查 | 5.88.1执行files/dependencies/unlisted，既有contextbase-client未使用devDependency失败，另有旧ignoreDependencies提示；未混修 |
+
+本轮没有新增原生Python运行目录差异，Bank/生命周期/权限/usage等8个相关后端文件与rebase前提交逐字节一致。未重跑原生完整系统354项或Chrome；第31章的这些结果仍只代表原版本。文档生成未重跑，Issue #14等既有门禁不在此声明通过。
+
+### 33.3 命令与证据
+
+主要入口（候选根目录由`$CANDIDATE`指定，Python显式PYTHONPATH指向候选插件/API/SDK/system）:
+
+```sh
+# 只在独立候选构建，不覆盖工作区原有产物
+python -m hindsight_ext_contextdb build-ui --source-root "$CANDIDATE"
+# Control Plane目录
+cd "$CANDIDATE/contextbase-control-plane"
+TZ=UTC node ../node_modules/vitest/vitest.mjs run --maxWorkers 4
+node ../node_modules/typescript/bin/tsc --noEmit --incremental false
+# 插件目录
+cd "$CANDIDATE/hindsight-extensions/contextdb-service"
+python -m pytest tests/python -q
+python -m pytest -c pytest-system.ini tests/system -n 2 -q --junitxml=system.xml
+python -m pytest -c pytest-system.ini tests/system/test_112_contextdb_ui_management.py -n 2 -q --junitxml=production.xml
+python scripts/check_production_ui.py production.xml
+```
+
+Python全量的部署admin URL由任务自身postgres_owner创建，不接受用户5432作为重用目标；系统UI指向`$CANDIDATE/contextbase-control-plane/standalone/server.js`。实际完整命令、环境准备和日志见工件，不将上述简写当作已配置的用户部署命令。
+
+工件：`/var/folders/76/jvhrtkrx7wl0g1tf9jq6_9h00000gn/T/contextdb-pr65-rebase-6x0xf_re`，由`/tmp/contextdb-pr65-rebase-path`定位。包含before.bundle、原工作区备份/二进制补丁、stash身份、rebase/恢复日志、候选、源码manifest、测试JSON/JUnit及最终范围检查。首轮SDK构建因旧临时依赖缓存缺文件失败；之后在独立目录复用本机完整依赖并重建匹配SDK成功，保留失败日志，未安装新生产依赖或修改用户node_modules。
+
+本轮没有重跑Linux/Docker、远程CI、真实MaaS、性能及灾备恢复。现有数据、密码、API Key及服务未操作；任务自有PG/API/Worker/UI按fixture退出清理。上述是提交前验收记录；最终交付身份以Git/PR为准，验收通过不代替发布或合入批准。
+
+<a id="bank-rest-ci-test-validation"></a>
+
+## 34. PR #65 CI测试依赖与稳定性（2026-10-30）
+
+候选为提交`d6ad16f9353a7687980f36ea24d10626c888c425`加`contextdb.test.ts`局部SDK mock，排除无关Embedding工作。SDK的`dist`在测试前后均不存在；Node24.21.0、TZ=UTC、已有锁定依赖，在任务自己的干净归档执行，未安装新依赖或覆盖用户构建产物。
+
+[远程失败记录](https://github.com/RSIXDB/hindsight/actions/runs/41024391163/job/123958939903)：803项通过，但整个`contextdb.test.ts`收集失败，其127项未执行；后续生产构建、HTTP及dev浏览器审计均未执行。新增Bank路由导入要求未构建的SDK入口，是本PR测试依赖缺口；第33章先构建SDK后的930项通过不能覆盖这个条件。
+
+| 检查 | 实际结果 |
+| --- | --- |
+| 修复前对照 | 同一PR、无SDK dist时复现整文件收集失败；纯main `9a58a706e`同文件68项、完整UI860项通过。见前置复核工件 |
+| 修复后完整UI | 930通过、0失败、0跳过；包含目标文件127项、F1/F2新增53项，全部测试名称保持 |
+| 变更文件ESLint、Prettier | 均通过 |
+| 仓库lint.sh | 在另一独立可修改候选执行，仍因原生http.py:5846既有F841失败，其他任务通过；自动修复差异未带回工作区 |
+| git diff --check | 通过 |
+
+实际命令在候选根目录执行：
+
+```sh
+# 不预先构建SDK；测试前后检查hindsight-clients/typescript/dist不存在
+TZ=UTC npm test --workspace=contextbase-control-plane -- --maxWorkers=2
+node node_modules/eslint/bin/eslint.js --config contextbase-control-plane/eslint.config.mjs \
+  hindsight-extensions/contextdb-service/tests/ui/contextdb.test.ts
+node node_modules/prettier/bin/prettier.cjs --check \
+  hindsight-extensions/contextdb-service/tests/ui/contextdb.test.ts
+# 仓库lint含自动修复，仅在另一独立候选及任务自有Python环境执行
+LINT_SERIAL=1 bash scripts/hooks/lint.sh
+```
+
+工件由`/tmp/contextdb-pr65-ci-fix-path`定位，包含候选、完整命令、ui.json/log、ui-summary.json及静态检查结果；前置五类专家复核和纯main/PR对照由`/tmp/contextdb-pr65-final-review-path`定位。本轮只修改测试依赖及相关资料，没有删除断言、新增skip或更改生产行为。
+
+本节记录amend前本地验收，修复随功能提交合并交付，最终身份与远程流水线结果以Git/PR为准；本地结果不代替远程生产构建、HTTP/dev浏览器审计。本轮未重跑PG/API/Worker、Chrome或生产UI，没有操作现有服务或用户数据库。
+
+### 34.1 100条授权用例的CI超时
+
+[远程9e99b4a3f](https://github.com/RSIXDB/hindsight/actions/runs/41027589466/job/123969280998)已通过`contextdb.test.ts`全部127项；完整930项中，既有`contextdb-key-state.test.tsx`的100条授权用例超时。该用例前次4762ms通过，本次5378ms超过默认5000ms，并非断言不匹配。
+
+在独立候选分段计时中，首次渲染100个真实Radix控件是主要耗时；另有重复权限查询和保存回调轮询。修复复用查询结果、使用异步act等待真实保存完成，并只为该大数据量功能用例设置15秒预算。保留100条授权、实际权限选择与保存、完整PATCH内容/版本和零逐空间请求断言，不修改全局超时、不增加retry或skip。
+
+基于`9e99b4a3f`加该测试修复、Node24.21.0/TZ=UTC、SDK dist不存在：专项连续5次通过（约587～669ms，仅为本机观察，不是性能承诺）；完整UI连续两次各930通过、零失败/跳过，ESLint与格式通过。专项按测试名选择时另40项未选中，不把它计作完整套件零跳过；完整两轮均执行所有930项。
+
+工件由`/tmp/contextdb-pr65-ci-gates-path`定位，包含分段计时、五次专项JSON、两次全量JSON、静态检查和后续远程跟踪结果。发布后的生产构建及HTTP/dev审计以对应新提交的远程运行结果为准。
+
+独立的主CI尚在任务启动前被仓库Actions允许列表拦截，页面明确列出`astral-sh/setup-uv@v7`、`dorny/paths-filter@v4`、`actions/github-script@v9`等现有工作流引用不被允许；它不是本次测试断言失败。当前API无法读取该仓库设置，未擅自放宽允许列表或改写原生完整CI；主CI不能据此声明通过，需有相应权限的仓库管理员处理。
+
+### 34.2 完整Browser brand audit本地预检
+
+远程`a9ad1a62e`已通过全部UI测试及生产构建；HTTP审计因仍向已退役workspace POST写入而收到404（旧断言201）。脚本迁移到Bank PUT/DELETE的200合同，并独立核对创建身份头、只读管理详情及描述、删除条件、旧写404和Bank错误响应。没有删除原生模式或插件模式的审计，没有通过恢复旧接口解决测试失败。
+
+实际门禁入口和发现范围：
+
+| 配置 | 作用 |
+| --- | --- |
+| [browser-brand-audit.yml](../../.github/workflows/browser-brand-audit.yml) | 格式 → 完整UI → 生产构建/扫描 → HTTP审计 → 开发资源审计；包含插件UI，不运行插件Python/PG/Worker系统套件 |
+| [vitest.config.ts](../../contextbase-control-plane/vitest.config.ts) | 原生tests/src与插件tests/ui共同使用既有Vitest工具链 |
+| [test-browser-brand.mjs](../../contextbase-control-plane/scripts/test-browser-brand.mjs) | 启动独立standalone和本地替身，检查原生/插件两模式的HTTP响应与资源，不等同于Chrome视觉验收 |
+| [test-dev-browser-brand.mjs](../../contextbase-control-plane/scripts/test-dev-browser-brand.mjs) | 开发页面及资源审计；默认9999，本地通过既有PORT使用随机端口，诊断目录随Next配置匹配 |
+| [contextdb-key-copy.yml](../../.github/workflows/contextdb-key-copy.yml) | macOS/Windows独立Playwright/真实Chrome剪贴板检查，脚本为插件tests/browser/key-copy.cjs；不是上述930项的一部分 |
+
+本地在任务独立候选、Node24.21.0/TZ=UTC、既有锁定依赖上，按工作流顺序完整复跑，未覆盖用户UI产物：
+
+| 步骤 | 结果 |
+| --- | --- |
+| 工作流所列格式文件及本次变更文件 | 通过 |
+| UI测试（开始前SDK dist不存在） | 930通过、0失败/跳过 |
+| 生产构建及浏览器产物扫描 | 通过，120文件 |
+| 原生/插件HTTP审计 | 通过，分别67/95项响应或header检查，20/21个资源；这是本地替身验证，不是额外真实PG系统故事 |
+| 开发资源审计 | 通过，10页面、67资源；使用任务随机端口和独立目录 |
+
+本地复跑的命令/输出在`/tmp/contextdb-pr65-ci-gates-path`指向工件的`preflight/`。工作流使用workspace限定的npm ci；本机本轮复用已有锁定依赖，未宣称重新安装或模拟Linux。后续预检按工作流逐步执行，不能以UI或构建单项通过替代HTTP及开发资源检查；生产构建在独立候选执行，开发审计使用空闲PORT。实际命令如下，工作目录为独立候选根目录：
+
+```sh
+TZ=UTC npm test --workspace=contextbase-control-plane -- --maxWorkers=2
+npm run build --workspace=contextbase-control-plane
+npm run test:browser-brand --workspace=contextbase-control-plane
+# AUDIT_PORT由任务预留空闲端口后赋值
+PORT="$AUDIT_PORT" npm run test:browser-brand:dev --workspace=contextbase-control-plane
+```
+
+构建与开发审计使用任务自己的合成配置/后端地址，不读取用户部署配置；未修改已有服务或数据库。完整仓库lint再次在独立可修改候选执行，仍有原生F841基线失败；主CI的允许列表限制保持。最终远程状态以本PR对应提交的检查为准，不提前声明主CI或浏览器工作流通过。

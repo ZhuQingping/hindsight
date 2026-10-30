@@ -14,6 +14,7 @@ from fastmcp.client.transports import StreamableHttpTransport
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.clients import workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 
@@ -34,11 +35,8 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
             assert (await management.get("/admin/identity")).json()["role"] == "admin"
             banks = []
             for letter in "ABC":
-                created = await control.post(
-                    "/workspaces",
-                    json={"name": letter + secrets.token_hex(4)},
-                )
-                assert created.status_code == 201, created.text
+                created = await create_workspace(control, json={"name": letter + secrets.token_hex(4)})
+                assert created.status_code == 200, created.text
                 operation = created.json()
 
                 banks.append(operation["bank_id"])
@@ -268,10 +266,10 @@ async def test_multi_space_live_keys_admin_and_lifecycle(contextdb_deployment: C
                     assert a in {bank["bank_id"] for bank in (await raw.get("/v1/default/banks")).json()["banks"]}
                 assert (await administrator.memory.list_memories(b, limit=100)).total > 0
                 deleting = await control.delete(
-                    "/workspaces/" + a,
+                    bank_url(control, a),
                     headers=await workspace_condition_headers(control, "/workspaces/" + a),
                 )
-                assert deleting.status_code == 204, deleting.text
+                assert deleting.status_code == 200, deleting.text
 
                 with pytest.raises(ForbiddenException):
                     await administrator.arecall(bank_id=a, query="Deleted")

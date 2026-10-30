@@ -9,6 +9,7 @@ import pytest
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted
 
+from ..lifecycle_http import bank_url
 from .support.clients import MemberClients
 from .support.deployment import ContextDBDeployment
 
@@ -65,9 +66,9 @@ async def test_concurrent_appends_complete_before_administrator_deletes_workspac
         snapshot = await management.get("/workspaces/" + bank)
         assert snapshot.status_code == 200
         deletion = await management.delete(
-            "/workspaces/" + bank,
+            bank_url(management, bank),
             headers={"If-Match": snapshot.headers["etag"]},
         )
-        assert deletion.status_code == 204, deletion.text
+        assert deletion.status_code == 200, deletion.text
 
         assert (await management.get("/workspaces/" + bank)).status_code == 404

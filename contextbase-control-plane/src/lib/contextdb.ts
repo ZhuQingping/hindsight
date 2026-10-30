@@ -59,6 +59,11 @@ export function contextDBUrl(path: string): string {
   return `${base.replace(/\/$/, "")}/ext/contextdb/v1${path}`;
 }
 
+export function contextDBBankUrl(bankId: string): string {
+  const base = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";
+  return `${base.replace(/\/$/, "")}/v1/default/banks/${encodeURIComponent(bankId)}`;
+}
+
 interface AdminFailure {
   status: number;
   error: string;
@@ -173,6 +178,12 @@ export function contextDBLifecycleDenied(): NextResponse {
 export function isContextDBLifecycleRequest(path: string, method: string): boolean {
   if (method === "GET" || method === "HEAD") return false;
   if (path === "/api/banks") return true;
-  if (/^\/api\/banks\/[^/]+$/.test(path)) return method === "PUT" || method === "DELETE";
+  // Only the canonical Bank resource is delegated to the protected plugin
+  // proxy. Imports, aliases and noncanonical names retain their existing deny.
+  if (/^\/api\/banks\/[^/]+$/.test(path))
+    return (
+      !/^\/api\/banks\/[a-z][a-z0-9_]{0,53}$/.test(path) &&
+      (method === "PUT" || method === "DELETE")
+    );
   return /^\/api\/banks\/[^/]+\/(clone|restore|import|aliases)(\/|$)/.test(path);
 }

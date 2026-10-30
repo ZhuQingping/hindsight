@@ -5,9 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-// Use the normal dev port/distDir so Next does not rewrite tsconfig with a
-// port-specific types directory. Run this check with no other dev server active.
-const origin = "http://127.0.0.1:9999";
+// Honor the existing dev PORT so an isolated audit need not claim a user's port.
+// Next uses a matching port-scoped distDir outside the default 9999 port.
+const port = process.env.PORT || "9999";
+const origin = `http://127.0.0.1:${port}`;
 const legacy = /hindsight|agentstratum|vectorize(?:-io|\.io)|retainai/i;
 let logs = "";
 const server = spawn(
@@ -19,14 +20,14 @@ const server = spawn(
     "--hostname",
     "127.0.0.1",
     "--port",
-    "9999",
+    port,
   ],
   {
     cwd: root,
     env: {
       ...process.env,
       NODE_ENV: "development",
-      PORT: "9999",
+      PORT: port,
       NEXT_TELEMETRY_DISABLED: "1",
       CONTEXTBASE_CP_AUTH_MODE: "bootstrap",
       CONTEXTBASE_CP_CONTEXTDB_ENABLED: "false",
@@ -83,7 +84,7 @@ try {
     // excluded from this development-only assertion. Resource URLs and all app
     // chunks remain strict. Production permits no such path exception.
     if (/\/node_modules_next_dist_compiled_next-devtools_/.test(asset)) {
-      const diagnosticsPath = path.join(root, ".next", "dev");
+      const diagnosticsPath = path.join(root, port === "9999" ? ".next" : `.next-${port}`, "dev");
       content = content
         .replaceAll(JSON.stringify(diagnosticsPath).slice(1, -1), "<development-output>")
         .replaceAll(diagnosticsPath, "<development-output>");

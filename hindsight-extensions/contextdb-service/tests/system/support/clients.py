@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 import httpx
 from contextbase_client import ContextBase
 
+from ...lifecycle_http import create_workspace as create_bank_workspace
 from .deployment import ContextDBDeployment
 
 
@@ -46,11 +47,11 @@ async def clients_owner(contextdb_deployment: ContextDBDeployment) -> AsyncItera
     ):
 
         async def create_workspace(name: str) -> str:
-            response = await management.post(
-                "/workspaces",
+            response = await create_bank_workspace(
+                management,
                 json={"name": name.lower().replace(" ", "_") + "_" + secrets.token_hex(4)},
             )
-            assert response.status_code == 201, response.text
+            assert response.status_code == 200, response.text
             workspace = response.json()
             assert workspace["state"] == "active"
             assert "operation_id" not in workspace

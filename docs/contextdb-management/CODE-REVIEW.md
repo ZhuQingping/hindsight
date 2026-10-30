@@ -1,6 +1,6 @@
 # ContextDB 团队分支集成代码检视
 
-当前PR #57（2026-10-29）基于团队main `93640b6c1395423c1669048cef84c4e61a545002`；Bank REST实现及F1/F2修订见第27～28章，完整系统和架构交叉检视见[第29章](#bank-rest-full-review)。以下原管理功能的状态及基线仅用于历史追溯。
+当前Issue #53已rebase至团队main `9a58a706e`，包含Bank代理错误处理修复；当前交付提交以Git/PR为准，第33章保留amend前基准`8a394a246`的冻结验收。当前目录适配见30.4，组合验收见VALIDATION第33章；第30.1～30.3及第31～32章验收保留rebase前的版本边界。PR #57原型记录见第27～29章，其中旧写入口/UI未迁移不代表当前实现。
 
 管理功能历史修复PR基线为已合并团队main `1dc0ad37e`，不是原管理功能基线57bbfd2。Issue #19逐项判断见[第16章](#issue19-resolution)。第13～14章保留历史阶段，当时“未提交/不推送”描述不再代表当前发布请求。
 
@@ -744,3 +744,78 @@ Agent Memory/Hindsight生命周期与REST API两位检视者先各自只读审�
 | 是否需要本PR立即重构 | 未发现必须通过架构替换解决的功能或安全缺陷；保留当前适配。未来有升级漂移、接管范围扩张或正式上游接口维护需求时，用隔离原型比较净收益 |
 
 候选方案保留为待验证选项；当前选择依据实现职责、执行顺序及验收证据，而非路由声明数量。两份原始报告及主Agent汇总由 `/tmp/contextdb-bank-architecture-review-path` 定位，分别为memory-review.md、rest-review.md、decision.md，包含行号和候选验证矩阵。
+
+
+<a id="bank-rest-completion-review"></a>
+
+## 30. Issue #53 描述、UI与写入口收敛检视（2026-10-30）
+
+当前实现完成此前REST原型之外的调用方迁移，基于 `d7608b322481372ea534018fdd6d8d4ac088354c`；本章记录提交前候选的验收，当前交付身份以Git记录为准。代码与测试指纹、日志由 `/tmp/contextdb-issue53-completion-path` 定位，最新结果见VALIDATION第31章。六项无关Embedding修改逐文件SHA-256与任务开始相同，未纳入候选。
+
+| 问题或任务 | 当前实现与取舍 |
+| --- | --- |
+| Bank创建缺少管理描述 | 插件ManagedBankRequest继承原生输入，复用512字符约束；description只存既有管理字段，与mission分离。active目标的无条件PUT/PATCH显式修改描述返回400；有效严格创建遇已登记目标仍412。原生DTO/profile不变 |
+| UI仍走旧写接口 | 两个创建入口共用createContextDBBank；严格PUT后GET核对，删除使用deleteContextDBBank及确认时原条件。自研server proxy复用既有会话、Host/Origin、固定API/Admin配置，不引入通用代理框架 |
+| 创建后的GET可能看见同名新对象 | 生命周期返回本次实际激活的WorkspaceCreated；专用响应头传递原条件。UI要求管理详情与其完全相同；同名新UUID或新版本即使内部自洽也视为结果未知，不重放 |
+| 新旧写合同重复 | 删除workspace POST/DELETE、旧写代理及workspaceMutation；删除Lifecycle.create/_create双分支，仅保留单一create_bank。WorkspaceCreate仍是内部元数据验证输入，WorkspaceResponse仍用于只读视图，不能作为死代码误删 |
+| 原型测试仍模拟POST/201、DELETE/204 | fixture与故事迁移到真实PUT/profile/身份头+GET，Bank删除200；用户/Key的201/204保留。故障注入改到实际PUT/DELETE，旧写接口只保留拒绝负例，无兼容shim |
+| 中断操作无处置步骤 | DESIGN 8.13提供停全部执行者后，按原UUID/版本/状态转换failed并使用新ETag清理的人工步骤；独立PG/真实API已验。不是恢复数据，不新增恢复接口或框架 |
+
+### 30.1 独立检视发现及闭环
+
+Agent Memory/API、PG、Python、TypeScript、测试五个方向均只读检视。实施阶段发现并修正：
+
+- **C-TS-01：** 严格创建412误显示“记录已修改”。createOnly现显示名称已存在，保留状态码/code/request_id；真实helper与组件用例验证只发1次PUT，不GET、不重放。
+- **C-TS-02：** 旧后继身份反例本身UUID/ETag不一致，未独立证明原条件比较。补内部自洽的新UUID及同UUID新版本，均1PUT+1GET、结果未知且不重放。
+- **CT-01：** 测试迁移误将用户删除改为200。已恢复204，双Worker生产UI完整执行覆盖。另修正test102仍模拟旧POST的fixture，保留原客户端关闭断言。
+
+上述为实施阶段检视记录。报告为工件目录的 `completion-{agent-memory,pg,python,typescript,test}-review.md`。专家读取主代理测试证据，不重复累加为另一次测试执行；PR #65后续发现及修复见30.3。
+
+### 30.2 原生侵入与验收边界
+
+原生Python运行目录对开始HEAD和团队基线 `93640b6c1395423c1669048cef84c4e61a545002` 均无本轮差异。原生UI只修改 `src/app/api/banks/[bankId]/route.ts` 的三个插件委派分支；核心逻辑在contextdb自研模块。`bank-selector.tsx`、公共proxy.ts、Dialog、生成SDK及原生引擎均未新增修改。
+
+管理六表、权限/UUID、配置别名、productFetch/标签页身份、部署渲染、会话撤销、SEC-01和删除前停止业务/等待执行结束的约束均保留。插件模式的MCP create_bank/update_bank/delete_bank继续关闭，原生模式不变；MCP工具白名单缺陷由Issue #47独立跟踪，本轮未修复，也不据此宣称全部MCP问题已解决。
+
+完整仓库门禁仍有基线失败（原生F841、knip依赖声明、Issue #14缺失Figure），不在本轮混修；当前服务部署、Linux/Docker、真实MaaS、性能及生产恢复未验。实现与列举的本地验收完成不代替committer批准或这些目标环境门禁。
+
+### 30.3 PR #65 Bank代理错误处理复核（2026-10-30）
+
+本节记录基于`0b07f61f8`的工作区修复及独立复核；交付时一并amend，最终提交以Git/PR为准，后续rebase验收见30.4及VALIDATION第33章。
+
+| 检视发现 | 当前修复与回归 |
+| --- | --- |
+| F1：JSON 5xx详情直接转发，未保留原Bank响应器的友好错误处理 | 自研Bank代理在解析正文前统一处理5xx，不向浏览器返回诊断正文；保留状态、请求ID及Retry-After。覆盖PUT/PATCH/DELETE、JSON/文本/空正文及失败响应流 |
+| F2：非JSON错误被当成连接失败，状态及关联信息丢失 | fetch连接失败与收到响应后的解析失败分开。非JSON5xx保留原状态；4xx正常业务错误不变，4xx坏正文保留状态；2xx坏正文返回502 response_unknown。缺失/空请求ID生成一致的本地关联ID，所有用例断言只转发一次 |
+
+五类专家随后在该冻结候选上独立复核，确认F1/F2及对应53项测试缺口闭环，无新增阻断代码问题。测试专家在个人副本独立重跑完整UI871项通过；TypeScript另跑取消失败、断流、鉴权及正常身份头探针，Python核对原生错误语义，PG和Agent Memory确认生命周期/隔离及未知结果不重放保持。这些独立结果属于rebase前候选，不能替代第33章的新main组合回归。复核报告由`/tmp/contextdb-pr65-closure-review-path`定位。
+
+两项均在`lib/contextdb-bank-proxy.ts`局部修复，测试继续使用插件目录及原UI工具链。无原生引擎、数据库、SDK或公共UI文件新增修改。旧工作空间代理已有相似错误模式；本次修复限定新Bank代理，已有PATCH路径的原5xx处理回退得到修正。实际结果见VALIDATION第32章。
+
+本节记录rebase前的局部修复；其后目录迁移及组合验收见30.4和VALIDATION第33章。Issue #47及原有仓库门禁边界继续保留。
+
+
+### 30.4 最新main目录迁移适配（2026-10-30）
+
+团队main取自`team_repo`（RSIXDB/hindsight），本轮抓取为`9a58a706e`，不是社区origin/main。原功能提交`0b07f61f8` rebase后为`8a394a246`，团队main之上仍只有一个功能提交。本章记录amend前候选，F1/F2及资料在交付时一并归入同一提交；最终提交身份以Git/PR为准。
+
+- 确认新增Bank代理位于`contextbase-control-plane/src/lib/contextdb-bank-proxy.ts`，与main的UI目录、路由及构建入口一致。F1/F2修复迁移前后字节一致；不重写三个原生委派分支或增加新框架。
+- rebase后的提交与干净候选保留main自动合并的管理错误中性化、新事件名、fixture及产物路径、npm分发配置；工作区两份env.example继续保留用户原有脏改。后台Bank/生命周期/权限/usage等8个相关实现文件与rebase前逐字节一致；对最新main未增加原生Python运行代码差异。
+- rebase前已备份bundle、二进制补丁、12个脏文件与逐文件SHA。两份env.example恢复时与main说明冲突，按原文件字节保留用户未提交修改；这些修改和其余Embedding文件继续排除在验证候选及功能提交之外。
+- 旧`hindsight-control-plane`目录仅剩原有`.next`、standalone、next-env.d.ts及tsbuildinfo等本机构建产物，因main忽略路径调整而显示为未跟踪；没有新源码，未删除、迁移或提交，避免影响现有使用者。
+
+当前回归与剩余门禁见VALIDATION第33章。备份及试验工件由`/tmp/contextdb-pr65-rebase-path`定位；stash保留作恢复证据，不丢弃其他工作区修改，不修改持久Git钩子配置。
+
+<a id="bank-rest-ci-test-review"></a>
+
+### 30.5 PR #65 CI测试依赖与稳定性修复（2026-10-30）
+
+远程提交`d6ad16f93`的UI测试在收集`contextdb.test.ts`时失败：本轮新增Bank路由导入间接加载原生SDK，而工作流在SDK构建前执行测试。此前本地先构建SDK，未覆盖这个执行顺序；此项与本PR新增测试相关，不归为基线故障。
+
+在该插件测试文件局部mock未执行的`@/lib/contextbase-client`模块，沿用既有边界测试模式。真实Bank路由、ContextDB代理、会话/Host/Origin检查及fetch继续执行；未修改产品代码、SDK、工作流、测试断言或发现范围。误入原生分支时空SDK对象不能完成调用，不会伪造原生成功响应。
+
+基于`d6ad16f93`加本次测试修复，在独立干净候选中保留SDK `dist`缺失，按CI测试命令执行完整UI：930通过、0失败、0跳过，包含该文件127项及F1/F2新增53项；全部测试名称与复核候选一致。mock作用域仅限本文件，没有屏蔽其他测试中的原生SDK合同。验收及远程未重跑边界见VALIDATION第34章。
+
+远程`9e99b4a3f`已通过上述127项，另一个既有100条授权用例超过默认5秒预算（5378ms；前次4762ms）。该功能测试渲染100个真实Radix控件，不是5秒性能门禁。局部复用已找到的权限控件，用异步act等待保存完成，移除重复查询和保存回调轮询；仅此用例使用15秒预算。未减少授权数量、跳过真实控件或削弱UUID、版本、权限与零逐空间查询断言。独立候选连续5次专项通过、完整UI连续两次各930通过；没有修改生产组件或全局测试超时。
+
+后续远程`a9ad1a62e`通过UI和生产构建，HTTP审计暴露main新增脚本仍调用旧workspace写接口。这是本PR的测试迁移遗漏：将生产审计的上游替身和实际UI请求一起改为Bank PUT/DELETE，验证原生200、创建身份头与管理GET、描述、条件删除和旧写入口404；保留认证、品牌/配置裁剪，并增加Bank 503关联头检查。没有恢复旧接口或改产品响应。开发审计仅复用既有PORT选择独立端口，匹配Next端口目录，避免占用用户9999。修订后在独立目录按CI顺序完成全部本地步骤，结果见VALIDATION 34.2；这两份新增改动是测试接线，未增加原生运行代码侵入。

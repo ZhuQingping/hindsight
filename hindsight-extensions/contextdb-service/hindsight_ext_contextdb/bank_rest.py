@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from hindsight_api.api.http import BankProfileResponse, CreateBankRequest, DeleteResponse, _internal_error
+from hindsight_api.api.http import BankProfileResponse, DeleteResponse, _internal_error
 from hindsight_api.api.observability import HttpObservabilityMiddleware
 from hindsight_api.api.passthrough_headers import collect_passthrough_headers
 from hindsight_api.api.unknown_params import UnknownParamsRoute
@@ -24,12 +24,12 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.responses import JSONResponse, Response
 
 from .authorization import authenticated_request
-from .bank_contract import deletion_response, profile_response
+from .bank_contract import ManagedBankRequest, deletion_response, profile_response
 from .config import Settings, repository_for
 from .database_checks import metadata_errors
 from .http import _workspace_condition
 from .lifecycle import Lifecycle
-from .models import Role, ServiceError
+from .models import ServiceError
 from .routing import bank_target
 from .security import bearer_credential
 from .tenant import ContextDBTenantExtension
@@ -104,7 +104,13 @@ def create_bank_app(memory: MemoryEngine, settings: Settings) -> FastAPI:
     app.router.route_class = BankRoute
 
     async def write(
-        bank_id: str, body: CreateBankRequest, request: Request, context: RequestContext, *, put: bool
+        bank_id: str,
+        body: ManagedBankRequest,
+        request: Request,
+        response: Response,
+        context: RequestContext,
+        *,
+        put: bool,
     ) -> BankProfileResponse:
         repository = request.state.repository
         principal = request.state.principal
@@ -123,11 +129,23 @@ def create_bank_app(memory: MemoryEngine, settings: Settings) -> FastAPI:
         lifecycle = Lifecycle(repository, memory, tenant.context)
         try:
             if workspace is None or conditions:
-                return await lifecycle.create_bank(
-                    principal, bank_id, body, request.state.request_id, create_only=bool(conditions)
+                created = await lifecycle.create_bank(
+                    principal,
+                    bank_id,
+                    body,
+                    request.state.request_id,
+                    create_only=bool(conditions),
+                    description=body.description,
                 )
+                # Bind UI follow-up reads to THIS creation, not a same-name
+                # successor. This is not a version of the BankProfile body.
+                response.headers["X-ContextDB-Workspace-ETag"] = created.workspace.etag
+                response.headers["Cache-Control"] = "no-store"
+                return created.profile
             if workspace.state != "active":
                 raise ServiceError(409, "workspace_state", "Verify the existing workspace management request")
+            if "description" in body.model_fields_set:
+                raise ServiceError(400, "description_create_only", "Description can only be set when creating a Bank")
             credential = context.api_key
             assert credential is not None
             # Normal external authorization for updates, never trusted internal
@@ -173,15 +191,23 @@ def create_bank_app(memory: MemoryEngine, settings: Settings) -> FastAPI:
 
     @app.put(path, response_model=BankProfileResponse, openapi_extra=create_condition)
     async def create(
-        bank_id: str, body: CreateBankRequest, request: Request, request_context: RequestContext = Depends(admin)
+        bank_id: str,
+        body: ManagedBankRequest,
+        request: Request,
+        response: Response,
+        request_context: RequestContext = Depends(admin),
     ) -> BankProfileResponse:
-        return await write(bank_id, body, request, request_context, put=True)
+        return await write(bank_id, body, request, response, request_context, put=True)
 
     @app.patch(path, response_model=BankProfileResponse)
     async def update(
-        bank_id: str, body: CreateBankRequest, request: Request, request_context: RequestContext = Depends(admin)
+        bank_id: str,
+        body: ManagedBankRequest,
+        request: Request,
+        response: Response,
+        request_context: RequestContext = Depends(admin),
     ) -> BankProfileResponse:
-        return await write(bank_id, body, request, request_context, put=False)
+        return await write(bank_id, body, request, response, request_context, put=False)
 
     @app.delete(path, response_model=DeleteResponse, openapi_extra=delete_condition)
     async def delete(
@@ -210,8 +236,19 @@ def document_bank_contract(host: FastAPI, bank_app: FastAPI) -> None:
         # native generator (including its validation-schema patch) as authority.
         schema = original()
         path = "/v1/default/banks/{bank_id}"
-        for method, source in bank_app.openapi()["paths"][path].items():
+        plugin_schema = bank_app.openapi()
+        schema["components"]["schemas"]["ManagedBankRequest"] = plugin_schema["components"]["schemas"][
+            "ManagedBankRequest"
+        ]
+        for method, source in plugin_schema["paths"][path].items():
             operation = schema["paths"][path][method]
+            if "requestBody" in source:
+                operation["requestBody"] = source["requestBody"]
+            if method == "put":
+                operation["responses"]["200"].setdefault("headers", {})["X-ContextDB-Workspace-ETag"] = {
+                    "description": "Identity condition of the workspace actually created; not a BankProfile content version.",
+                    "schema": {"type": "string"},
+                }
             existing = operation.setdefault("parameters", [])
             for parameter in source.get("parameters", []):
                 if parameter["in"] == "header" and not any(

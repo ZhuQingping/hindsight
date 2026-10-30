@@ -54,13 +54,16 @@ class Permission(StrEnum):
     READ_WRITE = "read_write"
 
 
+WorkspaceDescription = Annotated[str, Field(max_length=512)]
+
+
 class WorkspaceCreate(Input):
     name: str = Field(
         min_length=1,
         max_length=54,
         description="Stable Bank ID: normalized to lowercase ASCII, starts with a letter; remaining characters are letters, digits or _. Maximum 54 characters.",
     )
-    description: str = Field(default="", max_length=512)
+    description: WorkspaceDescription = ""
 
     @field_validator("name", mode="after")
     @classmethod
