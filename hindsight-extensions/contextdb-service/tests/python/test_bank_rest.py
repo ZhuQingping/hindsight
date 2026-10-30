@@ -8,14 +8,13 @@ from types import SimpleNamespace
 from typing import cast
 from unittest.mock import AsyncMock, Mock, patch
 
-import httpx
 import asyncpg
+import httpx
 import pytest
 from fastapi import FastAPI
 from hindsight_api import MemoryEngine
-from hindsight_api.config_resolver import ConfigResolver
 from hindsight_api.api.http import BankTemplateManifest
-from pydantic import ValidationError
+from hindsight_api.config_resolver import ConfigResolver
 from hindsight_api.engine.memories.base import StoreWriteUnavailable
 from hindsight_api.extensions import AuthenticationError
 from opentelemetry import trace
@@ -23,12 +22,14 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+from pydantic import ValidationError
 
 from hindsight_ext_contextdb.bank_rest import create_bank_app
 from hindsight_ext_contextdb.models import ApiKeyCreate, UserCreate
 from hindsight_ext_contextdb.repository import Repository
 from hindsight_ext_contextdb.transport import WorkspaceAuthorizationMiddleware
 
+from ..lifecycle_http import create_workspace
 from .support.identities import ADMIN, ADMIN_SECRET
 
 PROFILE = {"name": "Display", "mission": "", "disposition": {"skepticism": 3, "literalism": 3, "empathy": 3}}
@@ -58,10 +59,10 @@ async def test_conditional_create_is_atomic_and_legacy_description_survives(bank
     assert management.memory.tenant_extension.context.run_migration.await_count == 1
     detail = await management.client.get("/workspaces/concurrent", headers=management.headers)
     assert detail.json()["state"] == "active"
-    old = await management.client.post(
-        "/workspaces", json={"name": "legacy", "description": "Keep this description"}, headers=management.headers
+    old = await create_workspace(
+        management.client, json={"name": "legacy", "description": "Keep this description"}, headers=management.headers
     )
-    assert old.status_code == 201 and old.json()["description"] == "Keep this description"
+    assert old.status_code == 200 and old.json()["description"] == "Keep this description"
     assert (await banks.put("/legacy", json={})).status_code == 200
     assert (await management.client.get("/workspaces/legacy", headers=management.headers)).json()[
         "description"
@@ -136,6 +137,7 @@ async def test_auth_validation_unknown_fields_and_no_secret_echo(banks, manageme
 
 async def test_dispatch_preserves_trace_metrics_gzip_unknown_fields_and_audit_off(management, configured, monkeypatch):
     from hindsight_api.api import observability
+
     from hindsight_ext_contextdb import bank_rest
 
     host = management.memory
@@ -344,3 +346,51 @@ async def test_native_database_fault_is_not_reclassified_as_metadata(banks, mana
     assert "synthetic native fault" not in response.text
     detail = await management.client.get("/workspaces/native_fault", headers=management.headers)
     assert detail.status_code == 200 and detail.json()["state"] == "failed"
+
+
+@pytest.mark.parametrize("description", ["", "普通空间描述", "界" * 512])
+async def test_bank_description_is_management_metadata_with_original_creation_condition(banks, management, description):
+    created = await banks.put(
+        "/described",
+        json={"name": "Label", "mission": "Model mission", "description": description},
+        headers={"If-None-Match": "*"},
+    )
+    assert created.status_code == 200, created.text
+    detail = await management.client.get("/workspaces/described", headers=management.headers)
+    assert detail.json()["description"] == description
+    assert created.headers["X-ContextDB-Workspace-ETag"] == detail.headers["etag"]
+    assert "description" not in created.json()  # Native profile response remains unchanged.
+    call = management.memory.update_bank.call_args.kwargs
+    assert call["config_updates"]["reflect_mission"] == "Model mission"
+    assert "description" not in call["config_updates"]
+    assert (
+        await banks.put("/described", json={"description": "other"}, headers={"If-None-Match": "*"})
+    ).status_code == 412
+    for method in (banks.put, banks.patch):
+        assert (await method("/described", json={"description": ""})).status_code == 400
+    assert (await management.client.get("/workspaces/described", headers=management.headers)).json()[
+        "description"
+    ] == description
+
+
+@pytest.mark.parametrize("description", [None, 3, [], "界" * 513])
+async def test_invalid_description_is_rejected_before_persistent_allocation(banks, management, repository, description):
+    rejected = await banks.put(
+        "/invalid_description", json={"description": description}, headers={"If-None-Match": "*"}
+    )
+    assert rejected.status_code == 422
+    assert (
+        await management.client.get("/workspaces/invalid_description", headers=management.headers)
+    ).status_code == 404
+    assert await repository.pool.fetchval("SELECT to_regnamespace('ctxdb_ws_invalid_description')") is None
+    management.memory.update_bank.assert_not_awaited()
+    management.memory.tenant_extension.context.run_migration.assert_not_awaited()
+
+
+async def test_retired_workspace_write_routes_have_no_persistent_effect(management, repository):
+    for method, path in (("POST", "/workspaces"), ("DELETE", "/workspaces/retired")):
+        response = await management.client.request(method, path, json={"name": "retired"}, headers=management.headers)
+        assert response.status_code == 405
+    assert (await repository.list_workspaces(ADMIN, 10, 0)).total == 0
+    management.memory.update_bank.assert_not_awaited()
+    management.memory.delete_bank.assert_not_awaited()

@@ -40,7 +40,7 @@ import { bankRoute } from "@/lib/bank-url";
 import {
   contextDBRequest,
   contextDBWriteOutcome,
-  workspaceMutation,
+  deleteContextDBBank,
   type ContextDBWorkspace,
   type Page,
 } from "@/lib/contextdb-api";
@@ -106,13 +106,7 @@ export function ContextDBWorkspacesView() {
     try {
       // Retain the identity shown at confirmation, even if the name is reused
       // while this request is waiting. A directory refresh never replays DELETE.
-      await workspaceMutation(
-        `/workspaces/${target.bank_id}`,
-        "DELETE",
-        undefined,
-        abort.signal,
-        target.etag
-      );
+      await deleteContextDBBank(target.bank_id, target.etag, abort.signal);
       await loadBanks();
     } catch (err) {
       if (!abort.signal.aborted) {

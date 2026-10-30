@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { ContextDBCreateWorkspaceDialog } from "@/components/contextdb/create-workspace-dialog";
 import { BankSelector } from "@/components/bank-selector";
 import BankPage from "@/app/[locale]/banks/[bankId]/page";
-import { contextDBRequest, workspaceMutation } from "@/lib/contextdb-api";
+import { contextDBRequest, createContextDBBank } from "@/lib/contextdb-api";
 const state = vi.hoisted(() => ({
   contextDB: true,
   pathname: "/banks/jiamu",
@@ -76,10 +76,10 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
 vi.mock("@/lib/contextdb-api", async (original) => ({
   ...(await original<typeof import("@/lib/contextdb-api")>()),
   contextDBRequest: vi.fn(),
-  workspaceMutation: vi.fn(),
+  createContextDBBank: vi.fn(),
 }));
 const api = vi.mocked(contextDBRequest);
-const mutation = vi.mocked(workspaceMutation);
+const mutation = vi.mocked(createContextDBBank);
 const etag = '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1"';
 beforeEach(() => {
   state.bankId = "jiamu";
@@ -164,8 +164,6 @@ describe("ContextDB native UI entry points", () => {
     await waitFor(() => expect(state.setCurrentBank).toHaveBeenCalledWith("mysql"));
     expect(state.push).toHaveBeenCalledWith("/banks/mysql?view=data");
     expect(mutation).toHaveBeenCalledWith(
-      "/workspaces",
-      "POST",
       { name: "MySQL", description: "Demo description" },
       expect.any(AbortSignal)
     );
@@ -213,7 +211,7 @@ describe("ContextDB native UI entry points", () => {
 });
 
 it("does not navigate when a workspace creation succeeds after the selector unmounts", async () => {
-  let finish!: (value: Awaited<ReturnType<typeof workspaceMutation<"POST">>>) => void;
+  let finish!: (value: Awaited<ReturnType<typeof createContextDBBank>>) => void;
   mutation.mockImplementationOnce(
     () =>
       new Promise((resolve) => {
@@ -225,7 +223,7 @@ it("does not navigate when a workspace creation succeeds after the selector unmo
   const dialog = await screen.findByRole("dialog");
   fireEvent.change(within(dialog).getByLabelText("workspaceName"), { target: { value: "mysql" } });
   fireEvent.click(within(dialog).getByRole("button", { name: "createWorkspace" }));
-  const signal = mutation.mock.calls[0][3]!;
+  const signal = mutation.mock.calls[0][1]!;
   view.unmount();
   expect(signal.aborted).toBe(true);
   await act(async () =>
@@ -245,7 +243,7 @@ it("does not navigate when a workspace creation succeeds after the selector unmo
 });
 
 it("invalidates a closed create attempt without losing a newer request's cancellation", async () => {
-  const finish: ((value: Awaited<ReturnType<typeof workspaceMutation<"POST">>>) => void)[] = [];
+  const finish: ((value: Awaited<ReturnType<typeof createContextDBBank>>) => void)[] = [];
   mutation.mockImplementation(() => new Promise((resolve) => finish.push(resolve)));
   const onCreated = vi.fn();
   const onOpenChange = vi.fn();
@@ -260,14 +258,14 @@ it("invalidates a closed create attempt without losing a newer request's cancell
   const view = render(ui(true));
   fireEvent.change(screen.getByLabelText("workspaceName"), { target: { value: "first" } });
   fireEvent.click(screen.getByRole("button", { name: "createWorkspace" }));
-  const first = mutation.mock.calls[0][3]!;
+  const first = mutation.mock.calls[0][1]!;
   view.rerender(ui(false));
   expect(first.aborted).toBe(true);
   view.rerender(ui(true));
   fireEvent.change(screen.getByLabelText("workspaceName"), { target: { value: "second" } });
   fireEvent.click(screen.getByRole("button", { name: "createWorkspace" }));
   expect(mutation).toHaveBeenCalledTimes(2);
-  const second = mutation.mock.calls[1][3]!;
+  const second = mutation.mock.calls[1][1]!;
   await act(async () =>
     finish[0]({
       workspace_id: "a".repeat(32),

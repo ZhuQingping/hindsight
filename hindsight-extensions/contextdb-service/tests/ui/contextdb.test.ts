@@ -15,8 +15,20 @@ import {
   verifyContextDBAdmin,
 } from "@/lib/contextdb";
 import { GET, POST, PATCH, DELETE } from "@/app/api/contextdb/[...path]/route";
+import {
+  PUT as bankPUT,
+  PATCH as bankPATCH,
+  DELETE as bankDELETE,
+} from "@/app/api/banks/[bankId]/route";
 import { POST as login } from "@/app/api/auth/login/route";
 import { contextDBRequest } from "@/lib/contextdb-api";
+
+// Exercise the real Bank route and ContextDB proxy without loading the unused
+// native branch's SDK, whose dist is not built before UI tests in CI.
+vi.mock("@/lib/contextbase-client", () => ({
+  sdk: {},
+  lowLevelClient: {},
+}));
 
 const USER = "11111111111141118111111111111111";
 const KEY = "22222222222242228222222222222222";
@@ -26,10 +38,11 @@ async function request(
   path: string,
   method = "GET",
   body?: unknown,
-  extra?: Record<string, string>
+  extra?: Record<string, string>,
+  prefix = "/api/contextdb"
 ) {
   const token = await createSessionToken("ui-password");
-  return new Request(`http://ui.local/api/contextdb${path}`, {
+  return new Request(`http://ui.local${prefix}${path}`, {
     method,
     headers: {
       host: "ui.local",
@@ -40,6 +53,13 @@ async function request(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
+const bankRoute = (bankId = "mysql") => ({ params: Promise.resolve({ bankId }) });
+const bankRequest = (
+  method: string,
+  body?: unknown,
+  extra?: Record<string, string>,
+  bankId = "mysql"
+) => request(`/${bankId}`, method, body, extra, "/api/banks");
 const route = (...path: string[]) => ({ params: Promise.resolve({ path }) });
 
 let sessionDirectory: string;
@@ -285,7 +305,7 @@ describe("ContextDB administrator authentication", () => {
 });
 
 describe("management proxy boundaries", () => {
-  it.each(["POST", "DELETE"])(
+  it.each(["PUT", "DELETE"])(
     "waits beyond the former 15 second workspace %s limit without an automatic retry",
     async (method) => {
       vi.useFakeTimers();
@@ -295,11 +315,13 @@ describe("management proxy boundaries", () => {
             const timer = setTimeout(
               () =>
                 resolve(
-                  method === "POST"
+                  method === "PUT"
                     ? new Response('{"workspace_id":"space","bank_id":"mysql","state":"active"}', {
-                        status: 201,
+                        status: 200,
                       })
-                    : new Response(null, { status: 204 })
+                    : new Response('{"success":true,"message":"Deleted","deleted_count":0}', {
+                        status: 200,
+                      })
                 ),
               16000
             );
@@ -310,17 +332,17 @@ describe("management proxy boundaries", () => {
           })
       );
       const result =
-        method === "POST"
-          ? POST(await request("/workspaces", "POST", { name: "mysql" }), route("workspaces"))
-          : DELETE(
-              await request("/workspaces/mysql", "DELETE", undefined, {
+        method === "PUT"
+          ? bankPUT(await bankRequest("PUT", { name: "mysql" }), bankRoute())
+          : bankDELETE(
+              await bankRequest("DELETE", undefined, {
                 "if-match": `"${USER}:1"`,
               }),
-              route("workspaces", "mysql")
+              bankRoute()
             );
       await vi.waitFor(() => expect(backend).toHaveBeenCalledTimes(1));
       await vi.advanceTimersByTimeAsync(16000);
-      expect((await result).status).toBe(method === "POST" ? 201 : 204);
+      expect((await result).status).toBe(200);
       expect(backend).toHaveBeenCalledTimes(1);
       expect(backend.mock.calls[0][1].signal).toBeUndefined();
     }
@@ -332,14 +354,16 @@ describe("management proxy boundaries", () => {
     await POST(await request("/users", "POST", { name: "Member" }), route("users"));
     expect(backend.mock.calls[1][1].signal).toBeInstanceOf(AbortSignal);
   });
-  it("passes synchronous deletion 204 without a body or management operation location", async () => {
-    backend.mockResolvedValueOnce(new Response(null, { status: 204 }));
-    const response = await DELETE(
-      await request("/workspaces/mysql", "DELETE", undefined, { "if-match": `"${USER}:1"` }),
-      route("workspaces", "mysql")
+  it("returns the native Bank deletion result without an operation location", async () => {
+    backend.mockResolvedValueOnce(
+      new Response('{"success":true,"message":"Deleted","deleted_count":0}', { status: 200 })
     );
-    expect(response.status).toBe(204);
-    expect(await response.text()).toBe("");
+    const response = await bankDELETE(
+      await bankRequest("DELETE", undefined, { "if-match": `"${USER}:1"` }),
+      bankRoute()
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ success: true });
     expect(response.headers.get("Location")).toBeNull();
   });
 
@@ -366,13 +390,12 @@ describe("management proxy boundaries", () => {
     );
   });
   it("requires an identity-bound delete precondition and forwards it unchanged", async () => {
-    const path = "/workspaces/jiamu";
     const etag = `"${USER}:1"`;
     expect(
       (
-        await DELETE(
-          await request(path, "DELETE", undefined, { "idempotency-key": "delete-old" }),
-          route("workspaces", "jiamu")
+        await bankDELETE(
+          await bankRequest("DELETE", undefined, { "idempotency-key": "delete-old" }),
+          bankRoute()
         )
       ).status
     ).toBe(428);
@@ -380,12 +403,12 @@ describe("management proxy boundaries", () => {
     backend.mockClear();
     expect(
       (
-        await DELETE(
-          await request(path, "DELETE", undefined, {
+        await bankDELETE(
+          await bankRequest("DELETE", undefined, {
             "idempotency-key": "delete-old",
             "if-match": '"1"',
           }),
-          route("workspaces", "jiamu")
+          bankRoute()
         )
       ).status
     ).toBe(400);
@@ -396,19 +419,17 @@ describe("management proxy boundaries", () => {
         status: 412,
       })
     );
-    const response = await DELETE(
-      await request(path, "DELETE", undefined, {
+    const response = await bankDELETE(
+      await bankRequest("DELETE", undefined, {
         "idempotency-key": "delete-old",
         "if-match": etag,
       }),
-      route("workspaces", "jiamu")
+      bankRoute()
     );
     expect(response.status).toBe(412);
     expect(backend.mock.calls[0][1].headers.get("if-match")).toBe(etag);
     expect(backend.mock.calls[0][1].headers.has("idempotency-key")).toBe(false);
-    expect(String(backend.mock.calls[0][0])).toBe(
-      "http://backend.local/ext/contextdb/v1/workspaces/jiamu"
-    );
+    expect(String(backend.mock.calls[0][0])).toBe("http://backend.local/v1/default/banks/mysql");
     expect(backend).toHaveBeenCalledTimes(1);
   });
   it("forwards pagination and filters using only the fixed server host and key", async () => {
@@ -553,22 +574,19 @@ describe("management proxy boundaries", () => {
   it("proxies synchronous workspace creation with only the configured admin key", async () => {
     backend.mockResolvedValueOnce(
       new Response(JSON.stringify({ workspace_id: USER, bank_id: "mysql", state: "active" }), {
-        status: 201,
+        status: 200,
       })
     );
-    const response = await POST(
-      await request(
-        "/workspaces",
-        "POST",
+    const response = await bankPUT(
+      await bankRequest(
+        "PUT",
         { name: "MySQL" },
         { "idempotency-key": "stable-uuid", authorization: "Bearer member" }
       ),
-      route("workspaces")
+      bankRoute()
     );
-    expect(response.status).toBe(201);
-    expect(String(backend.mock.calls[0][0])).toBe(
-      "http://backend.local/ext/contextdb/v1/workspaces"
-    );
+    expect(response.status).toBe(200);
+    expect(String(backend.mock.calls[0][0])).toBe("http://backend.local/v1/default/banks/mysql");
     expect(backend.mock.calls[0][1].headers.has("idempotency-key")).toBe(false);
     expect(backend.mock.calls[0][1].headers.get("authorization")).toBe(
       "Bearer ctx_live_server-only"
@@ -584,10 +602,7 @@ describe("management proxy boundaries", () => {
     );
   });
   it("delegates business fields to backend validation and preserves 204 revocation", async () => {
-    for (const [path, body] of [
-      ["workspaces", { unsupported: true }],
-      ["users", { name: "X", role: "admin" }],
-    ] as const) {
+    for (const [path, body] of [["users", { name: "X", role: "admin" }]] as const) {
       backend.mockResolvedValueOnce(
         new Response(JSON.stringify({ code: "validation_error", error: "Invalid request" }), {
           status: 400,
@@ -626,20 +641,19 @@ describe("management proxy boundaries", () => {
   it("forwards description and never forwards obsolete operation locations", async () => {
     backend.mockResolvedValueOnce(
       new Response(JSON.stringify({ workspace_id: USER, bank_id: "mysql", state: "active" }), {
-        status: 201,
+        status: 200,
         headers: { Location: `/ext/contextdb/v1/operations/${KEY}` },
       })
     );
-    const response = await POST(
-      await request(
-        "/workspaces",
-        "POST",
+    const response = await bankPUT(
+      await bankRequest(
+        "PUT",
         { name: "MySQL", description: "demo" },
         { "idempotency-key": "same-id" }
       ),
-      route("workspaces")
+      bankRoute()
     );
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(200);
     expect(JSON.parse(backend.mock.calls[0][1].body)).toEqual({
       name: "MySQL",
       description: "demo",
@@ -749,5 +763,228 @@ describe("read-only recall usage proxy", () => {
     );
     expect(r.status).toBe(403);
     expect(backend).toHaveBeenCalledOnce();
+  });
+});
+
+// Bank writes and management reads deliberately use different fixed proxies.
+describe("Bank proxy upstream failures", () => {
+  const handlers = { PUT: bankPUT, PATCH: bankPATCH, DELETE: bankDELETE };
+  const methods = ["PUT", "PATCH", "DELETE"] as const;
+  const condition = `"${USER}:2"`;
+  const cases = methods.flatMap((method) =>
+    [500, 502, 503, 504].flatMap((status) =>
+      ["json", "text", "empty"].map((format) => ({ method, status, format }))
+    )
+  );
+
+  it.each(cases)(
+    "preserves $method $status ($format) without exposing diagnostics",
+    async ({ method, status, format }) => {
+      const upstream = new Response(
+        format === "json"
+          ? JSON.stringify({
+              detail: "private store diagnostic",
+              nested: { message: "private server trace" },
+            })
+          : format === "text"
+            ? "<html>private gateway diagnostic</html>"
+            : null,
+        {
+          status,
+          headers: { "X-Request-ID": "upstream-id", "Retry-After": "30" },
+        }
+      );
+      const parse = vi.spyOn(upstream, "json");
+      backend.mockResolvedValueOnce(upstream);
+      const response = await handlers[method](
+        await bankRequest(method, method === "DELETE" ? undefined : {}, { "if-match": condition }),
+        bankRoute()
+      );
+      expect(response.status).toBe(status);
+      expect(response.headers.get("X-Request-ID")).toBe("upstream-id");
+      expect(response.headers.get("Retry-After")).toBe("30");
+      expect(response.headers.get("Cache-Control")).toContain("no-store");
+      expect(response.headers.get("Pragma")).toBe("no-cache");
+      expect(await response.json()).toEqual({
+        code: "service_unavailable",
+        message: "Bank service is temporarily unavailable",
+        request_id: "upstream-id",
+      });
+      expect(parse).not.toHaveBeenCalled();
+      expect(backend).toHaveBeenCalledOnce();
+    }
+  );
+
+  it("preserves a received 5xx even if its response stream fails", async () => {
+    backend.mockResolvedValueOnce(
+      new Response(
+        new ReadableStream({
+          start: (controller) => controller.error(new Error("private stream error")),
+        }),
+        {
+          status: 504,
+          headers: { "X-Request-ID": "stream-id", "Retry-After": "30" },
+        }
+      )
+    );
+    const response = await bankPATCH(await bankRequest("PATCH", {}), bankRoute());
+    expect(response.status).toBe(504);
+    expect(response.headers.get("Retry-After")).toBe("30");
+    expect(await response.json()).toMatchObject({
+      request_id: "stream-id",
+      code: "service_unavailable",
+    });
+    expect(backend).toHaveBeenCalledOnce();
+  });
+
+  it.each([null, ""])("generates a correlated ID when the upstream ID is %j", async (id) => {
+    const headers = new Headers({ "Retry-After": "Fri, 30 Oct 2026 12:00:00 GMT" });
+    if (id !== null) headers.set("X-Request-ID", id);
+    backend.mockResolvedValueOnce(new Response(null, { status: 503, headers }));
+    const response = await bankPUT(await bankRequest("PUT", {}), bankRoute());
+    const data = await response.json();
+    expect(response.status).toBe(503);
+    expect(data.request_id).toEqual(expect.any(String));
+    expect(data.request_id.length).toBeGreaterThan(0);
+    expect(response.headers.get("X-Request-ID")).toBe(data.request_id);
+    expect(response.headers.get("Retry-After")).toBe("Fri, 30 Oct 2026 12:00:00 GMT");
+    expect(backend).toHaveBeenCalledOnce();
+  });
+
+  it.each([400, 401, 403, 409, 412, 428, 429])(
+    "keeps %s business errors and correlation intact",
+    async (status) => {
+      const payload = {
+        code: "business_error",
+        detail: "Inspect the current condition",
+        request_id: "business-id",
+      };
+      backend.mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), {
+          status,
+          headers: { "X-Request-ID": "business-id", "Retry-After": "30" },
+        })
+      );
+      const response = await bankPATCH(await bankRequest("PATCH", {}), bankRoute());
+      expect(response.status).toBe(status);
+      expect(await response.json()).toEqual(payload);
+      expect(response.headers.get("X-Request-ID")).toBe("business-id");
+      expect(response.headers.get("Retry-After")).toBe("30");
+      expect(backend).toHaveBeenCalledOnce();
+    }
+  );
+
+  it.each(methods)(
+    "reports a local connection failure only when %s receives no response",
+    async (method) => {
+      backend.mockRejectedValueOnce(new TypeError("private connection diagnostic"));
+      const response = await handlers[method](
+        await bankRequest(method, method === "DELETE" ? undefined : {}, { "if-match": condition }),
+        bankRoute()
+      );
+      expect(response.status).toBe(503);
+      const data = await response.json();
+      expect(data).toEqual({
+        code: "service_unavailable",
+        message: "Unable to connect to the Bank service",
+        request_id: expect.any(String),
+      });
+      expect(response.headers.get("X-Request-ID")).toBe(data.request_id);
+      expect(response.headers.get("Retry-After")).toBeNull();
+      expect(backend).toHaveBeenCalledOnce();
+    }
+  );
+
+  it.each([200, 204, 400, 412])(
+    "does not mistake an unreadable %s response for a connection failure",
+    async (status) => {
+      backend.mockResolvedValueOnce(
+        new Response(status === 204 ? null : "not JSON", {
+          status,
+          headers: { "X-Request-ID": "unreadable-id", "Retry-After": "30" },
+        })
+      );
+      const response = await bankPATCH(await bankRequest("PATCH", {}), bankRoute());
+      expect(response.status).toBe(status < 300 ? 502 : status);
+      expect(response.headers.get("X-Request-ID")).toBe("unreadable-id");
+      expect(response.headers.get("Retry-After")).toBe("30");
+      expect(await response.json()).toEqual({
+        code: "response_unknown",
+        message: "Bank response could not be read; inspect the workspace before retrying",
+        request_id: "unreadable-id",
+      });
+      expect(backend).toHaveBeenCalledOnce();
+    }
+  );
+});
+
+describe("Bank migration boundaries", () => {
+  it.each(["POST", "DELETE"])(
+    "rejects the retired workspace %s without contacting the backend",
+    async (method) => {
+      const response =
+        method === "POST"
+          ? await POST(await request("/workspaces", "POST", { name: "mysql" }), route("workspaces"))
+          : await DELETE(
+              await request("/workspaces/mysql", "DELETE"),
+              route("workspaces", "mysql")
+            );
+      expect(response.status).toBe(404);
+      expect(backend).not.toHaveBeenCalled();
+    }
+  );
+  it("forwards strict creation, description and the original identity header with one backend request", async () => {
+    const condition = `"${USER}:2"`;
+    backend.mockResolvedValueOnce(
+      new Response(JSON.stringify({ bank_id: "mysql", name: "mysql", mission: "" }), {
+        headers: { "X-ContextDB-Workspace-ETag": condition, Location: "/obsolete" },
+      })
+    );
+    const response = await bankPUT(
+      await bankRequest(
+        "PUT",
+        { name: "mysql", description: "空间说明" },
+        {
+          "if-none-match": "*",
+          authorization: "Bearer browser-key",
+        }
+      ),
+      bankRoute()
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-ContextDB-Workspace-ETag")).toBe(condition);
+    expect(response.headers.get("ETag")).toBeNull();
+    expect(response.headers.get("Location")).toBeNull();
+    expect(backend).toHaveBeenCalledTimes(1);
+    expect(backend.mock.calls[0][1].headers.get("If-None-Match")).toBe("*");
+    expect(backend.mock.calls[0][1].headers.get("Authorization")).toBe(
+      "Bearer ctx_live_server-only"
+    );
+    expect(JSON.parse(backend.mock.calls[0][1].body)).toEqual({
+      name: "mysql",
+      description: "空间说明",
+    });
+  });
+  it.each(['"old"', "*, *"])(
+    "rejects unsupported creation conditions %s before a write",
+    async (condition) => {
+      const response = await bankPUT(
+        await bankRequest("PUT", {}, { "if-none-match": condition }),
+        bankRoute()
+      );
+      expect(response.status).toBe(400);
+      expect(backend).not.toHaveBeenCalled();
+    }
+  );
+  it("allows only canonical Bank roots while preserving unsupported lifecycle protection", () => {
+    for (const method of ["PUT", "DELETE"])
+      expect(isContextDBLifecycleRequest("/api/banks/mysql", method)).toBe(false);
+    for (const path of [
+      "/api/banks/MySQL",
+      "/api/banks/my-bank",
+      "/api/banks/mysql/clone",
+      "/api/banks/mysql/aliases",
+    ])
+      expect(isContextDBLifecycleRequest(path, "DELETE")).toBe(true);
   });
 });

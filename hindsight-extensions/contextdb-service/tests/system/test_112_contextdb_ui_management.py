@@ -19,6 +19,7 @@ from hindsight_system_tests import reflect_loop, wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from pydantic import BaseModel
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.clients import workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 from .support.ui import AdminUI
@@ -63,16 +64,16 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
 
         async def workspace(label: str) -> str:
             name = label.lower() + "_" + secrets.token_hex(4)
-            response = await ui.post(
-                "/api/contextdb/workspaces", json={"name": name, "description": "Created through authenticated UI"}
+            response = await create_workspace(
+                ui, ui=True, json={"name": name, "description": "Created through authenticated UI"}
             )
-            assert response.status_code == 201, response.text
+            assert response.status_code == 200, response.text
             resource = response.json()
             assert resource["bank_id"] == name and resource["state"] == "active"
             assert resource["description"] == "Created through authenticated UI"
             assert "operation_id" not in resource
-            duplicate = await ui.post("/api/contextdb/workspaces", json={"name": name})
-            assert duplicate.status_code == 409
+            duplicate = await create_workspace(ui, ui=True, json={"name": name})
+            assert duplicate.status_code == 412
             assert ui_settings.admin_key not in response.text
             return resource["bank_id"]
 
@@ -100,10 +101,10 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
         assert rejected.status_code == 400
         members = await ui.get("/api/contextdb/users", params={"q": invalid_member})
         assert members.status_code == 200 and members.json()["items"] == []
-        rejected = await ui.post(
-            "/api/contextdb/workspaces", json={"name": "invalid_" + secrets.token_hex(4), "unsupported": True}
+        rejected = await create_workspace(
+            ui, ui=True, json={"name": "invalid_" + secrets.token_hex(4), "description": None}
         )
-        assert rejected.status_code == 400
+        assert rejected.status_code == 422
         response = await ui.post("/api/contextdb/users", json={"name": "Application owner"})
         assert response.status_code == 201, response.text
         user = response.json()
@@ -146,10 +147,10 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
         # UI no longer probes each grant before editing. Even with a current
         # Key version, the backend must reject a replaced workspace's old UUID.
         original_c = (await ui.get(f"/api/contextdb/workspaces/{c}")).json()
-        removed = await ui.delete(f"/api/contextdb/workspaces/{c}", headers={"If-Match": original_c["etag"]})
-        assert removed.status_code == 204
-        recreated = await ui.post("/api/contextdb/workspaces", json={"name": c})
-        assert recreated.status_code == 201
+        removed = await ui.delete(bank_url(ui, c, ui=True), headers={"If-Match": original_c["etag"]})
+        assert removed.status_code == 200
+        recreated = await create_workspace(ui, ui=True, json={"name": c})
+        assert recreated.status_code == 200
         assert recreated.json()["workspace_id"] != original_c["workspace_id"]
         rejected = await ui.patch(
             f"/api/contextdb/users/{uid}/keys/{writer_key['key_id']}",
@@ -261,11 +262,11 @@ async def test_ui_workspace_user_key_and_native_permission_flow(
             with pytest.raises(UnauthorizedException):
                 await writer.arecall(bank_id=a, query="Lighthouse")
             deleted = await ui.delete(
-                "/api/contextdb/workspaces/" + b,
+                bank_url(ui, b, ui=True),
                 headers=await workspace_condition_headers(ui, "/api/contextdb/workspaces/" + b),
             )
-            assert deleted.status_code == 204, deleted.text
-            assert deleted.content == b""
+            assert deleted.status_code == 200, deleted.text
+            assert deleted.json()["success"] is True
             with pytest.raises(ForbiddenException):
                 await reader.arecall(bank_id=b, query="Lighthouse")
             assert (await reader.arecall(bank_id=a, query="Lighthouse")).results

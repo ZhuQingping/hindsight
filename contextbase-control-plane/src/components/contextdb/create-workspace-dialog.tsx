@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ContextDBError, workspaceMutation, type ContextDBWorkspace } from "@/lib/contextdb-api";
+import { ContextDBError, createContextDBBank, type ContextDBWorkspace } from "@/lib/contextdb-api";
 
 import { restoreDialogFocus } from "./dialog-focus";
 
@@ -61,12 +61,7 @@ export function ContextDBCreateWorkspaceDialog({
     setBusy(true);
     setError("");
     try {
-      const workspace = await workspaceMutation(
-        "/workspaces",
-        "POST",
-        { name, description },
-        abort.signal
-      );
+      const workspace = await createContextDBBank({ name, description }, abort.signal);
       // A closed/unmounted entry point must not navigate from a late success.
       if (abort.signal.aborted) return;
       onOpenChange(false);

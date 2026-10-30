@@ -7,9 +7,10 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/messages/en.json";
 import { BanksOverview } from "@/components/banks-overview";
-import { ContextDBError, contextDBRequest, workspaceMutation } from "@/lib/contextdb-api";
+import { ContextDBError, contextDBRequest } from "@/lib/contextdb-api";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/contextdb-mode", () => ({ useContextDBMode: () => true }));
+const mutation = vi.hoisted(() => vi.fn());
 const loadBanks = vi.hoisted(() => vi.fn());
 const setCurrentBank = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/bank-context", () => ({
@@ -17,11 +18,12 @@ vi.mock("@/lib/bank-context", () => ({
 }));
 vi.mock("@/lib/contextdb-api", async (original) => ({
   ...(await original<typeof import("@/lib/contextdb-api")>()),
-  workspaceMutation: vi.fn(),
+  createContextDBBank: mutation,
+  deleteContextDBBank: mutation,
   contextDBRequest: vi.fn(),
 }));
 const api = vi.mocked(contextDBRequest);
-const mutation = vi.mocked(workspaceMutation);
+
 const workspace = {
   workspace_id: "11111111111111111111111111111111",
   name: "MySQL",
@@ -93,7 +95,7 @@ describe("synchronous workspace management", () => {
   it("keeps an incomplete creation response in the result-check flow before success", async () => {
     const actual =
       await vi.importActual<typeof import("@/lib/contextdb-api")>("@/lib/contextdb-api");
-    mutation.mockImplementation(actual.workspaceMutation);
+    mutation.mockImplementation(actual.createContextDBBank);
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 201 }));
     vi.stubGlobal("fetch", fetchMock);
     mount();
@@ -143,8 +145,6 @@ describe("synchronous workspace management", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Create workspace" }));
     await waitFor(() =>
       expect(mutation).toHaveBeenCalledWith(
-        "/workspaces",
-        "POST",
         { name: "  MySQL  ", description: "Demo description" },
         expect.any(AbortSignal)
       )
@@ -181,10 +181,16 @@ describe("synchronous workspace management", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(loadBanks).toHaveBeenCalledTimes(1);
   });
-  it("clears failed form fields and error when cancelled and reopened", async () => {
-    mutation.mockRejectedValueOnce(
-      new ContextDBError("Name already exists", 409, "workspace_exists", null)
+  it("shows a strict creation conflict and clears it when cancelled and reopened", async () => {
+    const actual =
+      await vi.importActual<typeof import("@/lib/contextdb-api")>("@/lib/contextdb-api");
+    mutation.mockImplementation(actual.createContextDBBank);
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response('{"code":"precondition_failed","detail":"Bank is already registered"}', {
+        status: 412,
+      })
     );
+    vi.stubGlobal("fetch", fetchMock);
     mount();
     await screen.findByText("MySQL");
     fireEvent.click(screen.getByText("Create workspace"));
@@ -194,7 +200,9 @@ describe("synchronous workspace management", () => {
       target: { value: "A rejected description" },
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "Create workspace" }));
-    await screen.findByText("Name already exists");
+    await screen.findByText("A workspace with this name already exists. Choose another name.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][1].method).toBe("PUT");
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     fireEvent.click(screen.getByText("Create workspace"));
     dialog = screen.getByRole("dialog");
@@ -217,12 +225,7 @@ describe("synchronous workspace management", () => {
     });
     fireEvent.submit(dialog.querySelector("form")!);
     await waitFor(() =>
-      expect(mutation).toHaveBeenCalledWith(
-        "/workspaces",
-        "POST",
-        { name: "pg", description },
-        expect.any(AbortSignal)
-      )
+      expect(mutation).toHaveBeenCalledWith({ name: "pg", description }, expect.any(AbortSignal))
     );
   });
   it("deletes once after confirmation with the displayed resource identity", async () => {
@@ -233,13 +236,7 @@ describe("synchronous workspace management", () => {
     expect(screen.getByText(/wait for existing requests and background work/)).toBeTruthy();
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete" }));
     await waitFor(() =>
-      expect(mutation).toHaveBeenCalledWith(
-        "/workspaces/mysql",
-        "DELETE",
-        undefined,
-        expect.any(AbortSignal),
-        workspace.etag
-      )
+      expect(mutation).toHaveBeenCalledWith("mysql", workspace.etag, expect.any(AbortSignal))
     );
     expect(mutation).toHaveBeenCalledTimes(1);
   });

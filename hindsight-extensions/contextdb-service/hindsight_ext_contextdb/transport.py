@@ -160,7 +160,7 @@ class WorkspaceAuthorizationMiddleware:
             if path == "/v1/default/banks":
                 if scope["method"] != "GET":
                     raise ServiceError(
-                        403, "workspace_lifecycle", "Use the workspace management API for lifecycle operations"
+                        403, "workspace_lifecycle", "Use the administrator Bank REST endpoint for lifecycle operations"
                     )
                 try:
                     params = parse_qs(scope.get("query_string", b"").decode("ascii"))
@@ -219,7 +219,7 @@ class WorkspaceAuthorizationMiddleware:
                     and (suffix == "/aliases" or suffix.startswith("/aliases/"))
                 ):
                     raise ServiceError(
-                        403, "workspace_lifecycle", "Use the workspace management API for lifecycle operations"
+                        403, "workspace_lifecycle", "Use the administrator Bank REST endpoint for lifecycle operations"
                     )
                 payload_requested = (
                     scope["method"] == "GET"

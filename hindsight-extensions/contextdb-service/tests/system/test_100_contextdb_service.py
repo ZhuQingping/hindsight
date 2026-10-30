@@ -15,6 +15,7 @@ from hindsight_system_tests import reflect_loop
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from hindsight_system_tests.waiting import wait_until_settled
 
+from ..lifecycle_http import bank_url
 from .support.clients import MemberClients, workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 
@@ -113,11 +114,11 @@ async def test_workspace_deletion_revokes_access_without_touching_another_schema
         timeout=100,
     ) as management:
         response = await management.delete(
-            f"/workspaces/{clients.bank_id}",
+            bank_url(management, clients.bank_id),
             headers=await workspace_condition_headers(management, f"/workspaces/{clients.bank_id}"),
         )
-        assert response.status_code == 204, response.text
-        assert response.content == b""
+        assert response.status_code == 200, response.text
+        assert response.json()["success"] is True
         assert (await management.get(f"/workspaces/{clients.bank_id}")).status_code == 404
     with pytest.raises(ForbiddenException):
         await clients.own.arecall(bank_id=clients.bank_id, query="Lighthouse")

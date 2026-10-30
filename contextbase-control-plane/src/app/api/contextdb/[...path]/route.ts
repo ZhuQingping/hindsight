@@ -58,10 +58,8 @@ async function proxy(request: Request, context: RouteContext) {
     request.method === "GET";
   const workspaceRoute =
     path[0] === "workspaces" &&
-    ((path.length === 1 && ["GET", "POST"].includes(request.method)) ||
-      (path.length === 2 &&
-        ["GET", "DELETE"].includes(request.method) &&
-        /^[a-z0-9][a-z0-9_]{0,53}$/.test(path[1])));
+    request.method === "GET" &&
+    (path.length === 1 || (path.length === 2 && /^[a-z0-9][a-z0-9_]{0,53}$/.test(path[1])));
   if (!usersRoute && !workspaceRoute && !usageRoute && !identityRoute)
     return failure("not_found", "Unknown management route", 404);
   const target = new URL(contextDBUrl(`/${path.map(encodeURIComponent).join("/")}`));
@@ -100,17 +98,6 @@ async function proxy(request: Request, context: RouteContext) {
     }
     headers.set("If-Match", version);
   }
-  if (workspaceRoute && request.method === "DELETE") {
-    const etag = request.headers.get("if-match");
-    if (!etag) return failure("precondition_required", "If-Match is required", 428);
-    if (!/^"[0-9a-f]{32}:[1-9][0-9]*"$/.test(etag))
-      return failure(
-        "invalid_request",
-        "If-Match must identify the workspace generation and version",
-        400
-      );
-    headers.set("If-Match", etag);
-  }
   let body: string | undefined;
   if (request.method === "POST" || request.method === "PATCH") {
     try {
@@ -131,11 +118,7 @@ async function proxy(request: Request, context: RouteContext) {
       headers,
       body,
       cache: "no-store",
-      // Like native Bank management, synchronous workspace writes wait for the
-      // result. A proxy timeout must not masquerade as a rolled-back mutation.
-      ...(workspaceRoute && ["POST", "DELETE"].includes(request.method)
-        ? {}
-        : { signal: AbortSignal.timeout(15000) }),
+      signal: AbortSignal.timeout(15000),
     });
     const responseHeaders = new Headers(NO_STORE);
     for (const name of ["ETag", "X-Request-ID"]) {

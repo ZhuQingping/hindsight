@@ -58,6 +58,43 @@ async function auditMode(contextdb) {
         display_name: "ContextBase",
       });
     if (pathname.startsWith("/version")) return json({ version: "test", features: {} });
+    // Managed writes use Bank REST; workspace endpoints are read-only metadata.
+    if (contextdb && pathname === "/v1/default/banks/audit_workspace") {
+      if (request.headers.authorization !== `Bearer ${apiKey}` || !adminAllowed)
+        return json({ code: "admin_required", message: "Administrator access required" }, 403);
+      response.setHeader("X-Request-ID", "bank-audit-request");
+      if (managementFailed) {
+        response.setHeader("Retry-After", "30");
+        return json({ detail: "Hindsight private trace", secret: apiKey }, 503);
+      }
+      if (request.method === "PUT") {
+        assert.equal(request.headers["if-none-match"], "*");
+        if (workspace) return json({ code: "precondition_failed" }, 412);
+        let raw = "";
+        for await (const chunk of request) raw += chunk;
+        const input = JSON.parse(raw);
+        workspace = {
+          workspace_id: workspaceId,
+          bank_id: "audit_workspace",
+          name: "audit_workspace",
+          description: input.description,
+          state: "active",
+          version: 1,
+          created_at: "2026-01-01T00:00:00Z",
+          etag: `"${workspaceId}:1"`,
+        };
+        response.setHeader("X-ContextDB-Workspace-ETag", workspace.etag);
+        return json({ bank_id: workspace.bank_id, name: input.name, mission: "" });
+      }
+      if (request.method === "DELETE") {
+        if (!workspace) return json({ code: "not_found" }, 404);
+        if (request.headers["if-match"] !== workspace.etag)
+          return json({ code: "precondition_failed" }, 412);
+        workspace = undefined;
+        return json({ success: true, message: "Deleted", deleted_count: 0 });
+      }
+      return json({ code: "method_not_allowed" }, 405);
+    }
     if (pathname.startsWith("/ext/contextdb/v1/")) {
       if (request.headers.authorization !== `Bearer ${apiKey}` || !adminAllowed)
         return json({ code: "admin_required", message: "Administrator access required" }, 403);
@@ -82,32 +119,13 @@ async function auditMode(contextdb) {
         );
       }
       if (resource === "/workspaces") {
-        if (request.method === "POST") {
-          workspace = {
-            workspace_id: workspaceId,
-            bank_id: input.name,
-            name: input.name,
-            description: "",
-            state: "active",
-            version: 1,
-            created_at: "2026-01-01T00:00:00Z",
-            etag: `"${workspaceId}:1"`,
-          };
-          response.setHeader("ETag", workspace.etag);
-          return json(workspace, 201);
-        }
+        if (request.method !== "GET") return json({ code: "method_not_allowed" }, 405);
         return json(page(workspace ? [workspace] : []));
       }
       if (resource === "/workspaces/audit_workspace") {
+        if (request.method !== "GET") return json({ code: "method_not_allowed" }, 405);
         if (!workspace) return json({ code: "not_found", message: "Workspace not found" }, 404);
         response.setHeader("ETag", workspace.etag);
-        if (request.method === "DELETE") {
-          if (request.headers["if-match"] !== workspace.etag)
-            return json({ code: "precondition_failed" }, 412);
-          workspace = undefined;
-          response.statusCode = 204;
-          return response.end();
-        }
         return json(workspace);
       }
       return json({ code: "not_found", message: "Unknown management route" }, 404);
@@ -272,25 +290,54 @@ async function auditMode(contextdb) {
       assert(!keyMetadata.includes(issuedSecret));
       assert(!keyMetadata.includes("synthetic-private-digest"));
       inspect(keyMetadata, "key metadata without secrets");
-      const createWorkspace = await request("/api/contextdb/workspaces", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "audit_workspace" }),
+      const requestsBeforeRetiredWrites = backendRequests.length;
+      for (const [url, method] of [
+        ["/api/contextdb/workspaces", "POST"],
+        ["/api/contextdb/workspaces/audit_workspace", "DELETE"],
+      ])
+        assert.equal((await request(url, { method })).status, 404);
+      assert(
+        backendRequests.slice(requestsBeforeRetiredWrites).every((entry) => entry.method === "GET")
+      );
+      const createWorkspace = await request("/api/banks/audit_workspace", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "If-None-Match": "*" },
+        body: JSON.stringify({ name: "audit_workspace", description: "Audit workspace" }),
       });
-      assert.equal(createWorkspace.status, 201);
-      const createdWorkspace = await createWorkspace.json();
-      assert.equal(createWorkspace.headers.get("etag"), createdWorkspace.etag);
-      inspect(JSON.stringify(createdWorkspace), "created workspace");
+      assert.equal(createWorkspace.status, 200);
+      const createdBank = await createWorkspace.json();
+      assert.equal(createdBank.bank_id, "audit_workspace");
+      const createdIdentity = createWorkspace.headers.get("x-contextdb-workspace-etag");
+      assert.equal(createdIdentity, `"${workspaceId}:1"`);
+      inspect(JSON.stringify(createdBank), "created Bank");
       const readWorkspace = await request("/api/contextdb/workspaces/audit_workspace");
       assert.equal(readWorkspace.status, 200);
-      assert.deepEqual(await readWorkspace.json(), createdWorkspace);
-      const deleteWorkspace = await request("/api/contextdb/workspaces/audit_workspace", {
+      const createdWorkspace = await readWorkspace.json();
+      assert.equal(readWorkspace.headers.get("etag"), createdIdentity);
+      assert.equal(createdWorkspace.etag, createdIdentity);
+      assert.equal(createdWorkspace.workspace_id, workspaceId);
+      assert.equal(createdWorkspace.description, "Audit workspace");
+      inspect(JSON.stringify(createdWorkspace), "workspace metadata");
+      const deleteWorkspace = await request("/api/banks/audit_workspace", {
         method: "DELETE",
-        headers: { "If-Match": createdWorkspace.etag },
+        headers: { "If-Match": createdIdentity },
       });
-      assert.equal(deleteWorkspace.status, 204);
+      assert.equal(deleteWorkspace.status, 200);
+      const deletedBank = await deleteWorkspace.json();
+      assert.equal(deletedBank.success, true);
+      inspect(JSON.stringify(deletedBank), "deleted Bank");
       assert.equal((await request("/api/contextdb/workspaces/audit_workspace")).status, 404);
       managementFailed = true;
+      const bankFailure = await request("/api/banks/audit_workspace", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "If-None-Match": "*" },
+        body: JSON.stringify({ name: "audit_workspace" }),
+      });
+      assert.equal(bankFailure.status, 503);
+      assert.equal(bankFailure.headers.get("x-request-id"), "bank-audit-request");
+      assert.equal(bankFailure.headers.get("retry-after"), "30");
+      assert(bankFailure.headers.get("cache-control").includes("no-store"));
+      inspect(await bankFailure.text(), "Bank error");
       const failure = await request("/api/contextdb/users");
       assert.equal(failure.status, 503);
       assert.equal(failure.headers.get("x-request-id"), "management-audit-request");
@@ -304,7 +351,11 @@ async function auditMode(contextdb) {
       adminAllowed = true;
       assert(
         backendRequests
-          .filter((entry) => entry.url.startsWith("/ext/contextdb/"))
+          .filter(
+            (entry) =>
+              entry.url.startsWith("/ext/contextdb/") ||
+              entry.url === "/v1/default/banks/audit_workspace"
+          )
           .every((entry) => entry.authorization === `Bearer ${apiKey}`)
       );
     } else assert.equal((await request("/api/contextdb/users")).status, 404);

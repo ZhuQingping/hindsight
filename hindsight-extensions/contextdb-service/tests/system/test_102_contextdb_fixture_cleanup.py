@@ -62,10 +62,26 @@ async def test_client_provisioning_failure_closes_already_created_clients(monkey
     session = Mock()
     session.__aenter__ = AsyncMock(return_value=session)
     session.__aexit__ = AsyncMock(return_value=False)
+    session.base_url = httpx.URL("http://unused.invalid/ext/contextdb/v1")
+
+    async def create_bank(url: str, **kwargs: object) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"bank_id": httpx.URL(url).path.rsplit("/", 1)[-1]},
+            headers={"X-ContextDB-Workspace-ETag": '"' + "a" * 32 + ':1"'},
+        )
+
+    async def read_workspace(url: str, **kwargs: object) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"bank_id": httpx.URL(url).path.rsplit("/", 1)[-1], "state": "active"},
+            headers={"ETag": '"' + "a" * 32 + ':1"'},
+        )
+
+    session.put = AsyncMock(side_effect=create_bank)
+    session.get = AsyncMock(side_effect=read_workspace)
     session.post = AsyncMock(
         side_effect=[
-            httpx.Response(201, json={"bank_id": "first", "state": "active"}),
-            httpx.Response(201, json={"bank_id": "other", "state": "active"}),
             httpx.Response(201, json={"user_id": "first-user"}),
             httpx.Response(201, json={"secret": "synthetic-first-key"}),
             RuntimeError("synthetic second client provisioning failure"),
@@ -79,6 +95,8 @@ async def test_client_provisioning_failure_closes_already_created_clients(monkey
         async with module.clients_owner(deployment):
             pytest.fail("Failed provisioning must not yield clients")
     client.aclose.assert_awaited_once()
+    assert session.put.await_count == 2
+    assert session.get.await_count == 2
 
 
 @pytest.mark.parametrize("failure", [None, "missing_manifest", "changed_bundle", "other_source", "wrong_layout"])

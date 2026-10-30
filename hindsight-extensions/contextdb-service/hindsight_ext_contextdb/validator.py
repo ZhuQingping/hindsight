@@ -206,7 +206,7 @@ class ContextDBOperationValidator(OperationValidatorExtension):
         if ctx.operation in admin_operations:
             return await self._authorize(ctx.request_context, ctx.bank_id, None, admin=True)
         if ctx.operation not in _MEMORY_WRITES:
-            return ValidationResult.reject("Use the workspace management API for this lifecycle operation")
+            return ValidationResult.reject("Use the administrator Bank REST endpoint for this lifecycle operation")
         return await self._authorize(ctx.request_context, ctx.bank_id, Scope.MEMORY_WRITE)
 
     async def validate_create_bank(self, ctx: CreateBankContext) -> ValidationResult:

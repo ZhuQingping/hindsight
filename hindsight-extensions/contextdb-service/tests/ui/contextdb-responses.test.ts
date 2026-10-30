@@ -4,7 +4,7 @@ import {
   contextDBRequest,
   createContextDBKey,
   createContextDBUser,
-  workspaceMutation,
+  createContextDBBank,
 } from "@/lib/contextdb-api";
 const userId = "b".repeat(32);
 const workspaceId = "a".repeat(32);
@@ -45,9 +45,7 @@ describe("management response boundaries", () => {
     "keeps malformed 503 error as an uncertain write: %s",
     async (body) => {
       const fetchMock = respond(body, 503);
-      await expect(
-        contextDBRequest("/workspaces", { method: "POST", body: { name: "mysql" } })
-      ).rejects.toMatchObject({
+      await expect(createContextDBBank({ name: "mysql" })).rejects.toMatchObject({
         name: "ContextDBError",
         status: 503,
         code: "request_failed",
@@ -93,21 +91,50 @@ describe("management response boundaries", () => {
     { ...workspace, workspace_id: "invalid" },
     { ...workspace, etag: undefined },
     { ...workspace, etag: `"${"d".repeat(32)}:1"` },
+    { ...workspace, workspace_id: "d".repeat(32), etag: `"${"d".repeat(32)}:1"` },
     { ...workspace, version: 2 },
+    { ...workspace, version: 2, etag: `"${workspaceId}:2"` },
     { ...workspace, state: "creating" },
   ])("rejects workspace creation without submitted identity and active ETag: %j", async (body) => {
-    const fetchMock = respond(JSON.stringify(body), 201);
-    await expect(workspaceMutation("/workspaces", "POST", { name: "MySQL" })).rejects.toMatchObject(
-      { code: "response_unknown", status: 0, request_id: "from-header" }
-    );
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            bank_id: "mysql",
+            name: "mysql",
+            mission: "",
+            disposition: { skepticism: 3, literalism: 3, empathy: 3 },
+          }),
+          { headers: { "X-ContextDB-Workspace-ETag": workspace.etag } }
+        )
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify(body)));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(createContextDBBank({ name: "MySQL" })).rejects.toMatchObject({
+      code: "response_unknown",
+      status: 0,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
   it("accepts the normalized workspace target with the original identity-bound ETag", async () => {
-    const fetchMock = respond(JSON.stringify(workspace), 201);
-    expect(await workspaceMutation("/workspaces", "POST", { name: "  MySQL  " })).toEqual(
-      workspace
-    );
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            bank_id: "mysql",
+            name: "mysql",
+            mission: "",
+            disposition: { skepticism: 3, literalism: 3, empathy: 3 },
+          }),
+          { headers: { "X-ContextDB-Workspace-ETag": workspace.etag } }
+        )
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify(workspace)));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await createContextDBBank({ name: "  MySQL  " })).toEqual(workspace);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
   it("validates against the submitted workspace name, not a later draft mutation", async () => {
     let finish!: (response: Response) => void;
@@ -119,22 +146,34 @@ describe("management response boundaries", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
     const body = { name: "mysql" };
-    const pending = workspaceMutation("/workspaces", "POST", body);
+    const pending = createContextDBBank(body);
     body.name = "other";
-    finish(new Response(JSON.stringify(workspace), { status: 201 }));
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(workspace)));
+    finish(
+      new Response(
+        JSON.stringify({
+          bank_id: "mysql",
+          name: "mysql",
+          mission: "",
+          disposition: { skepticism: 3, literalism: 3, empathy: 3 },
+        }),
+        { headers: { "X-ContextDB-Workspace-ETag": workspace.etag } }
+      )
+    );
     expect(await pending).toEqual(workspace);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
-  it.each([200, 202, 204])("rejects another workspace success status (%s)", async (status) => {
+  it.each([201, 202, 204])("rejects another workspace success status (%s)", async (status) => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
         new Response(status === 204 ? null : JSON.stringify(workspace), { status })
       );
     vi.stubGlobal("fetch", fetchMock);
-    await expect(workspaceMutation("/workspaces", "POST", { name: "mysql" })).rejects.toMatchObject(
-      { code: "response_unknown", status: 0 }
-    );
+    await expect(createContextDBBank({ name: "mysql" })).rejects.toMatchObject({
+      code: "response_unknown",
+      status: 0,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
   it.each([

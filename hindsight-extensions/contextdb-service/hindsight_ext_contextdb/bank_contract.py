@@ -15,12 +15,19 @@ from hindsight_api.api.http import (
     DispositionTraits,
     load_default_bank_template_manifest,
 )
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
-from .models import NativeDeletion
+from .models import NativeDeletion, WorkspaceDescription
 
 if TYPE_CHECKING:
     from hindsight_api import MemoryEngine
+
+
+class ManagedBankRequest(CreateBankRequest):
+    # Management description is independent of the model's mission/config.
+    description: WorkspaceDescription = Field(
+        default="", description="Management description, accepted only for a new Bank; independent of mission."
+    )
 
 
 async def validate_creation_config(memory: MemoryEngine, bank_id: str, request: CreateBankRequest) -> None:

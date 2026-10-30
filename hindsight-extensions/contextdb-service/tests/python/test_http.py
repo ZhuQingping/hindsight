@@ -9,6 +9,7 @@ import pytest
 
 from hindsight_ext_contextdb.models import ApiKeyCreate
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.identities import (
     ADMIN_SECRET,
     admin_actor,
@@ -19,9 +20,9 @@ from .support.identities import (
 
 
 async def test_auth_precedes_body_validation_and_errors_hide_credentials(management):
-    response = await management.client.post("/workspaces", content="not-json")
+    response = await management.client.post("/users", content="not-json")
     assert response.status_code == 401 and response.json()["code"] == "invalid_key"
-    response = await management.client.post("/workspaces", content="not-json", headers=management.headers)
+    response = await management.client.post("/users", content="not-json", headers=management.headers)
     assert response.status_code == 400
     assert ADMIN_SECRET not in response.text
     assert response.headers["Cache-Control"] == "no-store"
@@ -30,18 +31,18 @@ async def test_auth_precedes_body_validation_and_errors_hide_credentials(managem
 
 async def test_workspace_lifecycle_is_sync_without_idempotency_or_operation_resource(repository, management):
     client, headers = management.client, management.headers
-    response = await client.post("/workspaces", json={"name": "Managed", "description": "Example"}, headers=headers)
-    assert response.status_code == 201, response.text
+    response = await create_workspace(client, json={"name": "Managed", "description": "Example"}, headers=headers)
+    assert response.status_code == 200, response.text
     workspace = response.json()
     assert workspace["state"] == "active" and workspace["description"] == "Example"
     assert workspace["bank_id"] == "managed"
     assert not {"operation_id", "latest_operation_id", "schema_name"} & workspace.keys()
     assert response.headers["ETag"] == workspace["etag"] and "Location" not in response.headers
-    assert (await client.post("/workspaces", json={"name": "managed"}, headers=headers)).status_code == 409
+    assert (await create_workspace(client, json={"name": "managed"}, headers=headers)).status_code == 412
     assert (await client.get("/operations/" + "a" * 32, headers=headers)).status_code == 404
     assert (await client.get("/workspaces?q=managed", headers=headers)).json()["total"] == 1
-    deletion = await client.delete("/workspaces/managed", headers={**headers, "If-Match": workspace["etag"]})
-    assert deletion.status_code == 204 and deletion.content == b""
+    deletion = await client.delete(bank_url(client, "managed"), headers={**headers, "If-Match": workspace["etag"]})
+    assert deletion.status_code == 200 and deletion.json()["success"] is True
     assert (await client.get("/workspaces/managed", headers=headers)).status_code == 404
 
 
@@ -102,9 +103,7 @@ async def test_user_key_crud_and_etag_without_user_authorization(repository, man
     [
         ("GET", "/admin/identity"),
         ("GET", "/workspaces"),
-        ("POST", "/workspaces"),
         ("GET", "/workspaces/" + "a" * 32),
-        ("DELETE", "/workspaces/" + "a" * 32),
         ("GET", "/users"),
         ("POST", "/users"),
         ("PATCH", "/users/" + "a" * 32),
@@ -139,8 +138,8 @@ async def test_removed_instance_interfaces_are_absent(management, path):
 
 async def test_missing_preconditions_and_legacy_fields_fail_safely(management):
     client, headers = management.client, management.headers
-    response = await client.post("/workspaces", json={"name": "A"}, headers=headers)
-    assert response.status_code == 201
+    response = await create_workspace(client, json={"name": "A"}, headers=headers)
+    assert response.status_code == 200
     response = await client.patch("/users/" + "a" * 32, json={"name": "A"}, headers=headers)
     assert response.status_code == 400 and response.json()["code"] == "invalid_version"
     response = await client.post("/users", json={"name": "A", "workspace_ids": []}, headers=headers)
@@ -152,7 +151,7 @@ async def test_missing_preconditions_and_legacy_fields_fail_safely(management):
 
 def test_management_openapi_declares_resource_operations_and_usage_lookup(management):
     spec = management.app.openapi()
-    assert sum(len(path) for path in spec["paths"].values()) == 14
+    assert sum(len(path) for path in spec["paths"].values()) == 12
     assert set(spec["paths"]["/ext/contextdb/v1/workspaces/{bank_id}/usage"]) == {"get"}
     assert set(spec["components"]["securitySchemes"]) == {"AdministratorKey", "WorkspaceReadKey"}
     for path, methods in spec["paths"].items():
@@ -166,8 +165,8 @@ def test_management_openapi_declares_resource_operations_and_usage_lookup(manage
 
 
 async def test_workspace_create_does_not_require_idempotency(management):
-    response = await management.client.post("/workspaces", json={"name": "no_header"}, headers=management.headers)
-    assert response.status_code == 201
+    response = await create_workspace(management.client, json={"name": "no_header"}, headers=management.headers)
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize("value", ['"0"', '"01"', '"-1"', '"١"', "*", "1", '"' + "1" * 23 + '"'])
@@ -267,7 +266,7 @@ async def test_creation_response_waits_for_native_migration_without_polling(mana
 
     management.memory.tenant_extension.context.run_migration = AsyncMock(side_effect=migrate)
     task = asyncio.create_task(
-        management.client.post("/workspaces", json={"name": "waiting"}, headers=management.headers)
+        create_workspace(management.client, json={"name": "waiting"}, headers=management.headers)
     )
     try:
         await asyncio.wait_for(entered.wait(), 5)
@@ -276,7 +275,7 @@ async def test_creation_response_waits_for_native_migration_without_polling(mana
         assert current.json()["state"] == "creating"
         release.set()
         result = await asyncio.wait_for(task, 5)
-        assert result.status_code == 201 and result.json()["state"] == "active"
+        assert result.status_code == 200 and result.json()["state"] == "active"
     finally:
         release.set()
         await task
@@ -284,19 +283,17 @@ async def test_creation_response_waits_for_native_migration_without_polling(mana
 
 async def test_native_creation_error_has_safe_response_and_failed_queryable_identity(management):
     management.memory.update_bank = AsyncMock(side_effect=RuntimeError("secret-native-error-sentinel"))
-    response = await management.client.post("/workspaces", json={"name": "failure"}, headers=management.headers)
+    response = await create_workspace(management.client, json={"name": "failure"}, headers=management.headers)
     assert response.status_code == 500
-    assert response.json()["code"] == "management_failed"
-    assert response.headers["Cache-Control"] == "no-store"
-    assert response.json()["request_id"] == response.headers["X-Request-ID"]
+    assert "detail" in response.json()  # Preserve the native Bank error model.
     assert "secret-native-error-sentinel" not in response.text
     failed = await management.client.get("/workspaces/failure", headers=management.headers)
     assert failed.status_code == 200 and failed.json()["state"] == "failed"
     assert (
-        await management.client.post("/workspaces", json={"name": "failure"}, headers=management.headers)
-    ).status_code == 409
+        await create_workspace(management.client, json={"name": "failure"}, headers=management.headers)
+    ).status_code == 412
     assert (
         await management.client.delete(
-            "/workspaces/failure", headers={**management.headers, "If-Match": failed.headers["ETag"]}
+            bank_url(management.client, "failure"), headers={**management.headers, "If-Match": failed.headers["ETag"]}
         )
-    ).status_code == 204
+    ).status_code == 200

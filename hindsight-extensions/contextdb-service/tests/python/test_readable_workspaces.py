@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 
 import pytest
+from pydantic import ValidationError
+
 from hindsight_ext_contextdb.models import (
     ApiKeyCreate,
     ApiKeyPatch,
@@ -13,8 +15,8 @@ from hindsight_ext_contextdb.models import (
     WorkspaceCreate,
 )
 from hindsight_ext_contextdb.repository import Repository
-from pydantic import ValidationError
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.identities import ADMIN, ready_workspace
 from .support.lifecycle import lifecycle_for
 
@@ -108,12 +110,14 @@ async def test_http_delete_requires_identity_etag_and_preserves_successor(reposi
     assert listed.json()["items"][0]["bank_id"] == "jiamu"
     assert listed.json()["items"][0]["etag"] == old.etag
     request_headers = {**headers, "Idempotency-Key": "delete-once"}
-    assert (await client.delete("/workspaces/jiamu", headers=request_headers)).status_code == 428
-    assert (await client.delete("/workspaces/jiamu", headers={**request_headers, "If-Match": '"2"'})).status_code == 400
-    response = await client.delete("/workspaces/jiamu", headers={**request_headers, "If-Match": old.etag})
-    assert response.status_code == 204
+    assert (await client.delete(bank_url(client, "jiamu"), headers=request_headers)).status_code == 428
+    assert (
+        await client.delete(bank_url(client, "jiamu"), headers={**request_headers, "If-Match": '"2"'})
+    ).status_code == 400
+    response = await client.delete(bank_url(client, "jiamu"), headers={**request_headers, "If-Match": old.etag})
+    assert response.status_code == 200
     await ready_workspace(repository, "jiamu")
-    stale = await client.delete("/workspaces/jiamu", headers={**headers, "If-Match": old.etag})
+    stale = await client.delete(bank_url(client, "jiamu"), headers={**headers, "If-Match": old.etag})
     assert stale.status_code == 412
     assert (await client.get("/workspaces/jiamu", headers=headers)).json()["state"] == "active"
 
@@ -166,8 +170,10 @@ async def test_grant_expectation_rejects_same_name_successor_for_new_and_existin
 
 
 async def test_http_rejects_hyphen_before_creating_unquoted_native_schema(repository, management) -> None:
-    response = await management.client.post(
-        "/workspaces", json={"name": "bad-hyphen"}, headers={**management.headers, "Idempotency-Key": "invalid-hyphen"}
+    response = await create_workspace(
+        management.client,
+        json={"name": "bad-hyphen"},
+        headers={**management.headers, "Idempotency-Key": "invalid-hyphen"},
     )
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert (await repository.list_workspaces(ADMIN, 10, 0)).total == 0

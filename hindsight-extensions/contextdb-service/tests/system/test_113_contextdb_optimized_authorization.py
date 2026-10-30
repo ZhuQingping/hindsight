@@ -17,6 +17,7 @@ from fastmcp import Client
 from hindsight_system_tests import wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.clients import workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 
@@ -33,11 +34,8 @@ async def test_mixed_workspace_authorization_editing_and_native_clients(
 
         async def workspace(label: str) -> str:
             name = label + secrets.token_hex(5)
-            response = await management.post(
-                "/workspaces",
-                json={"name": name},
-            )
-            assert response.status_code == 201, response.text
+            response = await create_workspace(management, json={"name": name})
+            assert response.status_code == 200, response.text
             resource = response.json()
 
             detail = await management.get("/workspaces/" + name)
@@ -131,10 +129,10 @@ async def test_mixed_workspace_authorization_editing_and_native_clients(
             # Deletion removes old grants and invalidates a stale editor. A fresh
             # name-only edit keeps the surviving grant and cannot resurrect it.
             deletion = await management.delete(
-                "/workspaces/" + a,
+                bank_url(management, a),
                 headers=await workspace_condition_headers(management, "/workspaces/" + a),
             )
-            assert deletion.status_code == 204, deletion.text
+            assert deletion.status_code == 200, deletion.text
 
             renamed = await management.patch(
                 path, headers={"If-Match": f'"{version}"'}, json={"name": "Name after space deletion"}

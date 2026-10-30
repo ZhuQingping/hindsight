@@ -17,6 +17,7 @@ from contextbase_client_api.exceptions import ForbiddenException, UnauthorizedEx
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
 
+from ..lifecycle_http import create_workspace
 from .support.deployment import ContextDBDeployment
 
 pytestmark = pytest.mark.asyncio
@@ -42,11 +43,8 @@ async def test_all_workspace_business_key_covers_future_spaces_without_managemen
         client = ContextBase(base_url=base, api_key=key["secret"])
         try:
             old_spaces = {bank.bank_id for bank in (await client.banks.list_banks(limit=1000)).banks}
-            created = await management.post(
-                "/workspaces",
-                json={"name": "future_" + secrets.token_hex(8)},
-            )
-            assert created.status_code == 201, created.text
+            created = await create_workspace(management, json={"name": "future_" + secrets.token_hex(8)})
+            assert created.status_code == 200, created.text
 
             bank = created.json()["bank_id"]
             assert bank not in old_spaces
@@ -58,12 +56,11 @@ async def test_all_workspace_business_key_covers_future_spaces_without_managemen
                 for path in ("/admin/identity", "/users", "/workspaces", "/workspaces/" + bank):
                     assert (await raw.get("/ext/contextdb/v1" + path)).status_code == 403
                 for path, body in (
-                    ("/workspaces", {"name": "Forbidden"}),
                     ("/users", {"name": "Forbidden"}),
                     (f"/users/{user['user_id']}/keys", {"name": "Forbidden", "access_mode": "all"}),
                 ):
                     assert (await raw.post("/ext/contextdb/v1" + path, json=body)).status_code == 403
-                assert (await raw.delete("/ext/contextdb/v1/workspaces/" + bank)).status_code == 403
+                assert (await raw.delete("/ext/contextdb/v1/workspaces/" + bank)).status_code == 405
                 assert (await raw.delete(f"/v1/default/banks/{bank}")).status_code == 403
                 # all expands data visibility, never operational credentials
                 # carried in native archives or webhook delivery configuration.
@@ -111,11 +108,8 @@ async def test_revoke_one_key_preserves_sibling_and_old_mcp_session_cannot_reuse
     async with httpx.AsyncClient(
         base_url=base + "/ext/contextdb/v1", headers=contextdb_deployment.headers, timeout=100
     ) as management:
-        created = await management.post(
-            "/workspaces",
-            json={"name": "key_rotation_" + secrets.token_hex(8)},
-        )
-        assert created.status_code == 201, created.text
+        created = await create_workspace(management, json={"name": "key_rotation_" + secrets.token_hex(8)})
+        assert created.status_code == 200, created.text
 
         bank = created.json()["bank_id"]
         user_response = await management.post("/users", json={"name": "Rotating application"})

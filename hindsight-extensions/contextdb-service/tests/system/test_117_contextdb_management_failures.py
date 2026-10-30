@@ -15,6 +15,7 @@ import pytest
 from contextbase_client import ContextBase
 from contextbase_client_api.exceptions import ForbiddenException
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.deployment import ContextDBDeployment
 
 pytestmark = pytest.mark.asyncio
@@ -51,8 +52,8 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
         selected_key = None
         original = None
         if phase == "delete_finalize":
-            created = await management.post("/workspaces", json={"name": bank})
-            assert created.status_code == 201
+            created = await create_workspace(management, json={"name": bank})
+            assert created.status_code == 200
             original = created.json()
             issued = await management.post(
                 f"/users/{user_id}/keys",
@@ -82,9 +83,9 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
                 f'CREATE TRIGGER "{trigger}" BEFORE {event} ON ctxdb_meta.{table} FOR EACH ROW WHEN ({condition}) EXECUTE FUNCTION ctxdb_meta."{trigger}"()'
             )
             if phase == "activate":
-                failed = await management.post("/workspaces", json={"name": bank})
+                failed = await create_workspace(management, json={"name": bank})
             else:
-                failed = await management.delete("/workspaces/" + bank, headers={"If-Match": original["etag"]})
+                failed = await management.delete(bank_url(management, bank), headers={"If-Match": original["etag"]})
             assert failed.status_code == 503, failed.text
             assert failed.json()["code"] == "metadata_unavailable"
             assert "synthetic-private-lifecycle-fault" not in failed.text
@@ -97,9 +98,9 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
                 assert failed_resource["workspace_id"] == original["workspace_id"]
                 assert detail.headers["etag"] != original["etag"]
                 assert (
-                    await management.delete("/workspaces/" + bank, headers={"If-Match": original["etag"]})
+                    await management.delete(bank_url(management, bank), headers={"If-Match": original["etag"]})
                 ).status_code == 412
-            assert (await management.post("/workspaces", json={"name": bank})).status_code == 409
+            assert (await create_workspace(management, json={"name": bank})).status_code == 412
             with pytest.raises(ForbiddenException):
                 await reader.arecall(bank, "A failed workspace is not accessible")
             if selected is not None:
@@ -114,11 +115,11 @@ async def test_partial_lifecycle_failure_is_observable_and_explicitly_recoverabl
             await connection.execute(f'DROP FUNCTION IF EXISTS ctxdb_meta."{trigger}"()')
         # Recovery is an explicit new request with the observed failed identity,
         # not automatic replay or a claim that earlier native work rolled back.
-        removed = await management.delete("/workspaces/" + bank, headers={"If-Match": detail.headers["etag"]})
-        assert removed.status_code == 204, removed.text
+        removed = await management.delete(bank_url(management, bank), headers={"If-Match": detail.headers["etag"]})
+        assert removed.status_code == 200, removed.text
         assert (await management.get("/workspaces/" + bank)).status_code == 404
-        replacement = await management.post("/workspaces", json={"name": bank})
-        assert replacement.status_code == 201, replacement.text
+        replacement = await create_workspace(management, json={"name": bank})
+        assert replacement.status_code == 200, replacement.text
         assert replacement.json()["workspace_id"] != failed_resource["workspace_id"]
         assert (await reader.arecall(bank, "All access includes a fresh empty successor")).results == []
         if selected_key is not None:

@@ -25,6 +25,7 @@ from hindsight_system_tests import LLMStub, reflect_loop, wait_until_settled
 from hindsight_system_tests.payloads import consolidation, extracted, fact
 from pydantic import BaseModel, Field
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.clients import MemberClients, workspace_condition_headers
 from .support.deployment import ContextDBDeployment
 from .support.knowledge import ANSWER, create_nonempty_page
@@ -385,14 +386,14 @@ async def test_recreated_workspace_does_not_inherit_old_usage(
         await _wait_for_count(management, bank, "memory", object_id, 1)
         original = (await management.get(f"/workspaces/{bank}")).json()
         deleted = await management.delete(
-            f"/workspaces/{bank}", headers=await workspace_condition_headers(management, f"/workspaces/{bank}")
+            bank_url(management, bank), headers=await workspace_condition_headers(management, f"/workspaces/{bank}")
         )
-        assert deleted.status_code == 204, deleted.text
+        assert deleted.status_code == 200, deleted.text
         assert (
             await management.get(f"/workspaces/{bank}/usage", params={"object_type": "memory", "ids": object_id})
         ).status_code == 403
-        replacement = await management.post("/workspaces", json={"name": bank})
-        assert replacement.status_code == 201, replacement.text
+        replacement = await create_workspace(management, json={"name": bank})
+        assert replacement.status_code == 200, replacement.text
         assert replacement.json()["workspace_id"] != original["workspace_id"]
         replaced = await _usage(management, bank, "memory", [object_id])
         assert replaced.items == []

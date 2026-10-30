@@ -6,9 +6,14 @@ from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 from hindsight_api import MemoryEngine
+from hindsight_api.api.http import CreateBankRequest
 from hindsight_api.extensions.context import ExtensionContext
+
 from hindsight_ext_contextdb.lifecycle import Lifecycle
+from hindsight_ext_contextdb.models import Workspace, WorkspaceCreate
 from hindsight_ext_contextdb.repository import Repository
+
+from .identities import ADMIN
 
 
 def lifecycle_for(repository: Repository) -> Lifecycle:
@@ -21,8 +26,9 @@ def lifecycle_for(repository: Repository) -> Lifecycle:
             f'CREATE SCHEMA "{schema}"; CREATE TABLE "{schema}".banks(bank_id text PRIMARY KEY)'
         )
 
-    async def update(bank_id: str, *, name: str, request_context) -> None:
+    async def update(bank_id: str, *, name: str, config_updates, request_context):
         await repository.pool.execute(f'INSERT INTO "ctxdb_ws_{bank_id}".banks VALUES($1)', bank_id)
+        return {"name": name or bank_id, "mission": "", "disposition": {"skepticism": 3, "literalism": 3, "empathy": 3}}
 
     async def delete(bank_id: str, *, request_context) -> dict[str, int]:
         await repository.pool.execute(f'DELETE FROM "ctxdb_ws_{bank_id}".banks WHERE bank_id=$1', bank_id)
@@ -33,3 +39,15 @@ def lifecycle_for(repository: Repository) -> Lifecycle:
     memory.get_bank_profile = AsyncMock(return_value=object())
     memory.delete_bank = AsyncMock(side_effect=delete)
     return Lifecycle(repository, cast(MemoryEngine, memory), cast(ExtensionContext, context))
+
+
+async def create_workspace(lifecycle: Lifecycle, body: WorkspaceCreate, request_id: str) -> Workspace:
+    result = await lifecycle.create_bank(
+        ADMIN,
+        body.name,
+        CreateBankRequest(name=body.name),
+        request_id,
+        create_only=False,
+        description=body.description,
+    )
+    return result.workspace

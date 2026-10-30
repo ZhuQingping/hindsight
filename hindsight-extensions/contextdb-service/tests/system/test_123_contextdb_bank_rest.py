@@ -18,6 +18,7 @@ from contextbase_client import ContextBase
 from contextbase_client_api.exceptions import ApiException
 from hindsight_system_tests.server import start_hindsight_server
 
+from ..lifecycle_http import create_workspace
 from ..paths import EXTENSION, ROOT
 from ..python.support.metadata import postgres_owner
 from .support.deployment import ContextDBDeployment
@@ -114,10 +115,8 @@ async def test_conditions_concurrency_description_and_missing_bank(contextdb_dep
         )
         assert sorted(r.status_code for r in results) == [200, 412]
         assert (await raw.patch(path, json={"name": "New display"})).json()["name"] == "New display"
-        legacy = await raw.post(
-            "/ext/contextdb/v1/workspaces", json={"name": "desc_" + bank, "description": "Keep existing ability"}
-        )
-        assert legacy.status_code == 201 and legacy.json()["description"] == "Keep existing ability"
+        legacy = await create_workspace(raw, json={"name": "desc_" + bank, "description": "Keep existing ability"})
+        assert legacy.status_code == 200 and legacy.json()["description"] == "Keep existing ability"
         assert (await raw.delete(path)).status_code == 428
         detail = await raw.get(f"/ext/contextdb/v1/workspaces/{bank}")
         # Deliberately corrupt only this fixture's Bank row to prove update-only
@@ -206,3 +205,33 @@ async def test_invalid_sdk_configuration_does_not_reserve_workspace(contextdb_de
             detail = await raw.get(f"/ext/contextdb/v1/workspaces/{bank}")
             removed = await raw.delete(f"/v1/default/banks/{bank}", headers={"If-Match": detail.headers["etag"]})
             assert removed.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_bank_description_and_creation_identity_survive_the_real_api(contextdb_deployment):
+    deployment = contextdb_deployment
+    bank = "description_" + secrets.token_hex(5)
+    async with httpx.AsyncClient(base_url=deployment.server.url, headers=deployment.headers, timeout=100) as raw:
+        path = f"/v1/default/banks/{bank}"
+        created = await raw.put(
+            path,
+            headers={"If-None-Match": "*"},
+            json={
+                "name": "Display label",
+                "description": "仅供管理查看的空间说明",
+                "mission": "Model instruction",
+            },
+        )
+        assert created.status_code == 200, created.text
+        assert created.json()["mission"] == "Model instruction" and "description" not in created.json()
+        detail = await raw.get(f"/ext/contextdb/v1/workspaces/{bank}")
+        assert detail.json()["description"] == "仅供管理查看的空间说明"
+        assert created.headers["X-ContextDB-Workspace-ETag"] == detail.headers["etag"]
+        assert (await raw.put(path, headers={"If-None-Match": "*"}, json={"description": ""})).status_code == 412
+        assert (await raw.patch(path, json={"description": ""})).status_code == 400
+        assert (await raw.delete(path, headers={"If-Match": detail.headers["etag"]})).status_code == 200
+        for method, old in (
+            ("POST", "/ext/contextdb/v1/workspaces"),
+            ("DELETE", f"/ext/contextdb/v1/workspaces/{bank}"),
+        ):
+            assert (await raw.request(method, old, json={"name": bank})).status_code == 405

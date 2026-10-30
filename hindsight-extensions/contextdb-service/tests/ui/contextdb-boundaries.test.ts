@@ -197,13 +197,13 @@ describe("actual middleware and bank handlers", () => {
     ).toBe("1");
     expect(backend).not.toHaveBeenCalled();
   });
-  it("rejects direct route invocation for create/delete/clone/import/alias/rename", async () => {
+  it("keeps unsupported lifecycle routes denied and delegates protected canonical Bank writes", async () => {
     expect((await createBank(await req("/api/banks", "POST", {}))).status).toBe(403);
-    expect((await PUT(await req("/api/banks/workspace", "PUT", {}), params)).status).toBe(403);
-    expect((await DELETE(await req("/api/banks/workspace", "DELETE"), params)).status).toBe(403);
+    expect((await PUT(await req("/api/banks/workspace", "PUT", {}), params)).status).toBe(200);
+    expect((await DELETE(await req("/api/banks/workspace", "DELETE"), params)).status).toBe(428);
     expect(
       (await PATCH(await req("/api/banks/workspace", "PATCH", { name: "Renamed" }), params)).status
-    ).toBe(403);
+    ).toBe(200);
     expect((await clone(await req("/api/banks/workspace/clone", "POST", {}), params)).status).toBe(
       403
     );
@@ -213,6 +213,7 @@ describe("actual middleware and bank handlers", () => {
     expect(
       (await createAlias(await req("/api/banks/workspace/aliases", "POST", {}), params)).status
     ).toBe(403);
-    expect(backend).not.toHaveBeenCalled();
+    expect(backend).toHaveBeenCalledTimes(2);
+    expect(backend.mock.calls[0][1].headers.get("authorization")).toBe("Bearer server-admin");
   });
 });

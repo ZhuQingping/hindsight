@@ -1,11 +1,12 @@
-import { contextDBEnabled, contextDBLifecycleDenied } from "@/lib/contextdb";
+import { contextDBEnabled } from "@/lib/contextdb";
+import { proxyContextDBBank } from "@/lib/contextdb-bank-proxy";
 import { NextResponse } from "next/server";
 import { localizeApiErrorPayload } from "@/lib/i18n/api-errors";
 import { sdk, lowLevelClient } from "@/lib/contextbase-client";
 import { respondWithSdk } from "@/lib/sdk-response";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
-  if (contextDBEnabled()) return contextDBLifecycleDenied();
+  if (contextDBEnabled()) return proxyContextDBBank(request, (await params).bankId);
   const { bankId } = await params;
   let body;
   try {
@@ -43,6 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ bank
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ bankId: string }> }) {
+  if (contextDBEnabled()) return proxyContextDBBank(request, (await params).bankId);
   const { bankId } = await params;
   let body;
   try {
@@ -56,8 +58,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ba
       { status: 400 }
     );
   }
-
-  if (contextDBEnabled() && Object.hasOwn(body, "name")) return contextDBLifecycleDenied();
 
   if (!bankId) {
     return NextResponse.json(
@@ -85,7 +85,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ bankId: string }> }
 ) {
-  if (contextDBEnabled()) return contextDBLifecycleDenied();
+  if (contextDBEnabled()) return proxyContextDBBank(request, (await params).bankId);
   const { bankId } = await params;
 
   if (!bankId) {

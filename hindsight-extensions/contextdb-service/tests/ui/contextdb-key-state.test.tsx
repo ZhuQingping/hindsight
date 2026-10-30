@@ -168,14 +168,16 @@ describe("member-local key state", () => {
         />
       )
     );
-    await screen.findByLabelText("Workspace 99 Permission");
+    const lastPermission = await screen.findByLabelText("Workspace 99 Permission");
     await waitFor(() =>
       expect(api.mock.calls.some(([path]) => path.startsWith("/workspaces?"))).toBe(true)
     );
     expect(api.mock.calls.filter(([path]) => path.startsWith("/workspaces/"))).toHaveLength(0);
-    selectOption(screen.getByLabelText("Workspace 99 Permission"), "read_write");
-    fireEvent.click(screen.getByRole("button", { name: /^(Save|Save changes|Create)$/ }));
-    await waitFor(() => expect(saved).toHaveBeenCalledOnce());
+    selectOption(lastPermission, "read_write");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^(Save|Save changes|Create)$/ }));
+    });
+    expect(saved).toHaveBeenCalledOnce();
     const write = api.mock.calls.find(([, options]) => options?.method === "PATCH")!;
     expect(write[1]?.version).toBe(key.version);
     expect(write[1]?.body).toMatchObject({
@@ -187,7 +189,9 @@ describe("member-local key state", () => {
         ],
       },
     });
-  });
+    // Rendering 100 real Radix controls is not a five-second performance contract.
+    // Keep all grants and assertions, with a local budget for shared CI runners.
+  }, 15_000);
 
   it.each(["visibilitychange", "pagehide"])(
     "allows a fresh issuance after returning from %s without restoring an older secret",

@@ -18,7 +18,6 @@ from hindsight_api.extensions.http import HttpExtension
 from pydantic import BaseModel, Field
 
 from .config import Settings, repository_for
-from .lifecycle import Lifecycle
 from .models import (
     ApiKeyCreate,
     ApiKeyPatch,
@@ -33,7 +32,6 @@ from .models import (
     UserCreate,
     UserPatch,
     Workspace,
-    WorkspaceCreate,
 )
 from .security import bearer_credential
 from .tenant import ContextDBTenantExtension
@@ -209,11 +207,6 @@ class ContextDBHttpExtension(HttpExtension):
         async def repository() -> Repository:
             return await repository_for(memory, extension.settings)
 
-        async def lifecycle() -> Lifecycle:
-            if not isinstance(memory.tenant_extension, ContextDBTenantExtension):
-                raise RuntimeError("ContextDB requires its tenant extension")
-            return Lifecycle(await repository(), memory, memory.tenant_extension.context)
-
         admin_bearer = HTTPBearer(scheme_name="AdministratorKey", auto_error=False)
 
         async def admin_headers(
@@ -257,19 +250,6 @@ class ContextDBHttpExtension(HttpExtension):
                                 "pattern": '^"[1-9][0-9]{0,21}"$',
                                 "maxLength": 24,
                                 "example": '"1"',
-                            },
-                        }
-                    )
-                if "/workspaces/{bank_id}" in self.path and "DELETE" in self.methods:
-                    parameters.append(
-                        {
-                            "name": "If-Match",
-                            "in": "header",
-                            "required": True,
-                            "schema": {
-                                "type": "string",
-                                "pattern": '^"[0-9a-f]{32}:[1-9][0-9]{0,21}"$',
-                                "example": '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:2"',
                             },
                         }
                     )
@@ -379,11 +359,6 @@ class ContextDBHttpExtension(HttpExtension):
                 )
             )
 
-        @router.post("/workspaces", status_code=201, response_model=WorkspaceResponse)
-        async def create_workspace(request: Request, body: WorkspaceCreate) -> Response:
-            workspace = await (await lifecycle()).create(_principal(request), body, request.state.contextdb_request_id)
-            return _json(workspace, 201)
-
         @router.get("/workspaces", response_model=Page[WorkspaceResponse])
         async def list_workspaces(
             request: Request,
@@ -431,20 +406,6 @@ class ContextDBHttpExtension(HttpExtension):
             route_class_override=UsageReadRoute,
             description="Read object usage with the same workspace read permission as memory or knowledge content.",
         )
-
-        @router.delete("/workspaces/{bank_id}", status_code=204)
-        async def delete_workspace(
-            request: Request, bank_id: Annotated[str, Path(pattern=r"^[a-z0-9][a-z0-9_]{0,53}$")]
-        ) -> Response:
-            condition = _workspace_condition(request)
-            await (await lifecycle()).delete(
-                _principal(request),
-                bank_id,
-                request.state.contextdb_request_id,
-                expected_id=condition.workspace_id,
-                expected_version=condition.version,
-            )
-            return Response(status_code=204)
 
         @router.get("/users", response_model=Page[User])
         async def list_users(

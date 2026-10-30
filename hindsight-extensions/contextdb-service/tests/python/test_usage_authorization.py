@@ -11,6 +11,7 @@ from hindsight_ext_contextdb.models import ApiKeyCreate, ApiKeyPatch, UserPatch
 from hindsight_ext_contextdb.repository import Repository
 from hindsight_ext_contextdb.usage_repository import UsageDelta, UsageRepository, UsageTarget, provision_usage_tables
 
+from ..lifecycle_http import bank_url, create_workspace
 from .support.identities import ADMIN, ready_workspace, space_user
 
 
@@ -129,11 +130,11 @@ async def test_wrong_space_inactive_recreated_and_missing_key_cannot_read_usage(
         "UPDATE ctxdb_meta.workspaces SET state='active' WHERE workspace_id=$1", space.workspace_id
     )
     deleted = await management.client.delete(
-        f"/workspaces/{space.bank_id}", headers={**management.headers, "If-Match": space.etag}
+        bank_url(management.client, space.bank_id), headers={**management.headers, "If-Match": space.etag}
     )
-    assert deleted.status_code == 204
-    created = await management.client.post("/workspaces", json={"name": space.bank_id}, headers=management.headers)
-    assert created.status_code == 201
+    assert deleted.status_code == 200
+    created = await create_workspace(management.client, json={"name": space.bank_id}, headers=management.headers)
+    assert created.status_code == 200
     assert created.json()["workspace_id"] != space.workspace_id
     assert (await management.client.get(path, headers=headers)).status_code == 403
 

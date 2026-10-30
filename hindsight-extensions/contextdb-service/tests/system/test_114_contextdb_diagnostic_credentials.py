@@ -15,6 +15,7 @@ from contextbase_client import ContextBase
 from contextbase_client_api.exceptions import ForbiddenException
 from fastmcp import Client
 
+from ..lifecycle_http import create_workspace
 from .support.clients import MemberClients
 from .support.deployment import ContextDBDeployment
 
@@ -35,11 +36,8 @@ async def sensitive_operation(contextdb_deployment: ContextDBDeployment) -> Diag
     async with httpx.AsyncClient(
         base_url=deployment.server.url + "/ext/contextdb/v1", headers=deployment.headers, timeout=100
     ) as management:
-        response = await management.post(
-            "/workspaces",
-            json={"name": "diagnostics_" + secrets.token_hex(5)},
-        )
-        assert response.status_code == 201, response.text
+        response = await create_workspace(management, json={"name": "diagnostics_" + secrets.token_hex(5)})
+        assert response.status_code == 200, response.text
 
         bank = response.json()["bank_id"]
         assert re.fullmatch(r"[a-z][a-z0-9_]{0,53}", bank)

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @dataclass
 class WorkspaceCreated:
     workspace: Workspace
-    profile: BankProfileResponse | None = None
+    profile: BankProfileResponse
 
 
 logger = logging.getLogger(__name__)
@@ -41,9 +41,6 @@ class Lifecycle:
         except Exception:
             logger.warning("Unable to record failed workspace state: %s", workspace.workspace_id)
 
-    async def create(self, principal: BusinessPrincipal, body: WorkspaceCreate, request_id: str) -> Workspace:
-        return (await self._create(principal, body, request_id)).workspace
-
     async def create_bank(
         self,
         principal: BusinessPrincipal,
@@ -52,25 +49,12 @@ class Lifecycle:
         request_id: str,
         *,
         create_only: bool,
-    ) -> BankProfileResponse:
+        description: str = "",
+    ) -> WorkspaceCreated:
         from .bank_contract import validate_creation_config
 
         await validate_creation_config(self.memory, bank_id, request)
-        result = await self._create(
-            principal, WorkspaceCreate(name=bank_id), request_id, request=request, create_only=create_only
-        )
-        assert result.profile is not None
-        return result.profile
-
-    async def _create(
-        self,
-        principal: BusinessPrincipal,
-        body: WorkspaceCreate,
-        request_id: str,
-        *,
-        request: CreateBankRequest | None = None,
-        create_only: bool = False,
-    ) -> WorkspaceCreated:
+        body = WorkspaceCreate(name=bank_id, description=description)
         with metadata_errors():
             workspace = await self.repository.create_workspace(principal, body, request_id, create_only=create_only)
         try:
@@ -80,24 +64,18 @@ class Lifecycle:
             # or shielded executor is held while awaiting their native behavior.
             with workspace_management(workspace, "create_workspace") as context:
                 await self.context.run_migration(workspace.schema_name)
-                if request is None:
-                    profile = await self.memory.update_bank(
-                        workspace.bank_id, name=workspace.name, request_context=context
-                    )
-                else:
-                    profile = await self.memory.update_bank(
-                        workspace.bank_id,
-                        name=request.name,
-                        config_updates=request.get_config_updates() or None,
-                        request_context=context,
-                    )
+                profile = await self.memory.update_bank(
+                    workspace.bank_id,
+                    name=request.name,
+                    config_updates=request.get_config_updates() or None,
+                    request_context=context,
+                )
                 if await self.memory.get_bank_profile(workspace.bank_id, request_context=context) is None:
                     raise ServiceError(503, "workspace_initialization_failed", "Workspace Bank initialization failed")
-            # Validate the native result before activation. Legacy workspace
-            # callers keep their existing response and description contract.
+            # Validate the native result before activating the registered identity.
             from .bank_contract import profile_response
 
-            response = profile_response(workspace.bank_id, profile) if request is not None else None
+            response = profile_response(workspace.bank_id, profile)
             with metadata_errors():
                 active = await self.repository.finish_workspace_creation(workspace, principal, request_id)
             return WorkspaceCreated(active, response)
