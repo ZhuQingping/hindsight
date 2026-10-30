@@ -56,7 +56,6 @@ def audit_tarball(artifact: Path) -> None:
         required = {
             "package/package.json",
             "package/README.md",
-            "package/LICENSE",
             "package/dist/installer.js",
             "package/dist/mcp-server.js",
             "package/skill/SKILL.md",
@@ -71,8 +70,7 @@ def audit_tarball(artifact: Path) -> None:
                 raise ValueError(f"Unsafe archive member: {member.name}")
             relative = path.relative_to("package")
             allowed = (
-                len(relative.parts) == 1
-                and relative.name in {"package.json", "README.md", "LICENSE", *RUNTIME_ENTRIES[3:]}
+                len(relative.parts) == 1 and relative.name in {"package.json", "README.md", *RUNTIME_ENTRIES[3:]}
             ) or (len(relative.parts) > 1 and relative.parts[0] in RUNTIME_ENTRIES[:3])
             if not allowed or relative.suffix not in {
                 ".json",
@@ -91,15 +89,19 @@ def audit_tarball(artifact: Path) -> None:
             content = stream.read()
             if FORBIDDEN_CONTENT.search(member.name.encode() + b"\n" + content) or SOURCE_MAP_DIRECTIVE.search(content):
                 raise ValueError(f"Repository details or source map in {member.name}")
-            # The upstream MIT notice must remain intact; it is not product branding.
-            if relative != Path("LICENSE") and UPSTREAM_BRAND.search(member.name.encode() + b"\n" + content):
-                raise ValueError(f"Upstream brand outside the license in {member.name}")
+            if UPSTREAM_BRAND.search(member.name.encode() + b"\n" + content):
+                raise ValueError(f"Upstream brand in {member.name}")
             if relative.suffix == ".md" and STALE_CUSTOMER_DOCS.search(content):
                 raise ValueError(f"Stale distribution or internal configuration docs in {member.name}")
             if relative.name == "package.json" and len(relative.parts) == 1:
                 manifest = json.loads(content)
                 if set(manifest) - (PUBLIC_FIELDS | {"license", "files"}):
                     raise ValueError("Unexpected public package metadata")
+                if (
+                    manifest.get("name") != "@huaweicloud/contextbase-coding-agents"
+                    or manifest.get("bin", {}).get("contextbase-coding-agents") != "dist/installer.js"
+                ):
+                    raise ValueError("Unexpected public package name or executable")
                 for field in (
                     "dependencies",
                     "optionalDependencies",
@@ -115,7 +117,7 @@ def audit_tarball(artifact: Path) -> None:
 def package_coding_agents(output: Path) -> Path:
     """Stage only the remote client and publishable metadata; never mutate source files."""
     manifest = json.loads((SOURCE / "package.json").read_text())
-    if manifest["name"] != "contextbase-coding-agents":
+    if manifest["name"] != "@huaweicloud/contextbase-coding-agents":
         raise ValueError("Unexpected Coding Agents distribution identity")
     version = manifest["version"]
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?", version):
@@ -125,7 +127,9 @@ def package_coding_agents(output: Path) -> Path:
         raise ValueError("Plugin and npm versions must match")
     if (SOURCE / "dist/daemon-start.js").exists():
         raise ValueError("Local engine entrypoint must not be distributed")
-    destination = output.resolve() / manifest["name"] / version
+    # npm flattens a scoped package name in its tarball filename.
+    package_slug = manifest["name"].removeprefix("@").replace("/", "-")
+    destination = output.resolve() / package_slug / version
     destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="contextbase-npm-") as temporary:
         stage = Path(temporary)
@@ -140,7 +144,6 @@ def package_coding_agents(output: Path) -> Path:
         public["files"] = list(RUNTIME_ENTRIES)
         (stage / "package.json").write_text(json.dumps(public, indent=2) + "\n")
         shutil.copy2(SOURCE / "README.public.md", stage / "README.md")
-        shutil.copy2(ROOT / "LICENSE", stage / "LICENSE")
         # Pack outside the checkout: npm cannot add its source gitHead to this manifest.
         subprocess.run(
             [
@@ -154,7 +157,7 @@ def package_coding_agents(output: Path) -> Path:
             cwd=stage,
             check=True,
         )
-    artifact = destination / f"{manifest['name']}-{version}.tgz"
+    artifact = destination / f"{package_slug}-{version}.tgz"
     try:
         audit_tarball(artifact)
     except Exception:

@@ -466,7 +466,7 @@ describe("ContextBaseClient credential refresh", () => {
     const { fetchMock } = server(() => undefined);
     await new ContextBaseClient({ apiUrl: "http://x", bank: "b" }).req("GET", "http://x/thing");
     const ua = new Headers(fetchMock.mock.calls[0][1].headers).get("User-Agent");
-    expect(ua).toMatch(/^contextbase-coding-agents\/\d+\.\d+\.\d+/);
+    expect(ua).toMatch(/^@huaweicloud\/contextbase-coding-agents\/\d+\.\d+\.\d+/);
   });
 
   it("recovers from a rotated credential without restarting the host", async () => {

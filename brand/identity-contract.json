@@ -2,6 +2,7 @@
   "legacy_slug": "contextbase",
   "cli": "contextbase",
   "coding_agents": "contextbase-coding-agents",
+  "coding_agents_package": "@huaweicloud/contextbase-coding-agents",
   "claude_plugin": "contextbase-memory",
   "agent_plugin": "contextbase",
   "config_directory": ".contextbase",

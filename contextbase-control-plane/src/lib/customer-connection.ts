@@ -44,7 +44,8 @@ function publicUrl(name: string, options: { bankId?: string; extension?: string 
 
 function publicNpmPackage(): string | undefined {
   const configured =
-    controlPlaneEnv("CODING_AGENTS_NPM_PACKAGE")?.trim() || "contextbase-coding-agents@latest";
+    controlPlaneEnv("CODING_AGENTS_NPM_PACKAGE")?.trim() ||
+    "@huaweicloud/contextbase-coding-agents@latest";
   // Keep the executable basename matched to the published Coding Agents package.
   // Accept latest or a fixed version. URLs, paths, other tags and npm
   // aliases must not silently turn the public install command into another source.

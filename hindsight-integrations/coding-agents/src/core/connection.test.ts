@@ -79,7 +79,9 @@ describe("remote connection contract", () => {
         ["/v1/default/banks/b Bearer key-0", "/v1/default/banks/b Bearer rejected"],
         ["/v1/default/banks/b Bearer key-1"],
       ]);
-      expect(userAgents).toEqual(Array(3).fill(`contextbase-coding-agents/${version}`));
+      expect(userAgents).toEqual(
+        Array(3).fill(`@huaweicloud/contextbase-coding-agents/${version}`)
+      );
     } finally {
       await Promise.all(
         servers.map((server) => new Promise<void>((resolve) => server.close(() => resolve())))

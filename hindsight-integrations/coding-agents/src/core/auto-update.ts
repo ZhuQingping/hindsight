@@ -8,7 +8,7 @@
  *
  * Once per `CHECK_INTERVAL_MS`, at session start, this asks npm for the published version and —
  * when it is newer than the staged one — spawns a DETACHED
- * `npx contextbase-coding-agents@<version> update`, which re-stages the runtime and
+ * `npx @huaweicloud/contextbase-coding-agents@<version> update`, which re-stages the runtime and
  * touches no host config (see the `update` branch in installer.ts). Fire-and-forget: the current
  * session keeps running the version it already loaded and the next one starts on the new code.
  *

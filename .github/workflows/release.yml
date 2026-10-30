@@ -241,10 +241,10 @@ jobs:
         run: python scripts/package-client-plugins.py --output artifacts
       - name: Verify the audited public npm tarball and installed MCP runtime
         working-directory: hindsight-integrations/coding-agents
-        run: node scripts/test-customer-install.mjs ../../artifacts/contextbase-coding-agents/*/*.tgz
+        run: node scripts/test-customer-install.mjs ../../artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz
       - name: Verify npm installation from an HTTPS tarball URL
         run: |
-          for tarball in artifacts/contextbase-coding-agents/*/*.tgz; do
+          for tarball in artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz; do
             CONTEXTBASE_TEST_NPM_TARBALL="$tarball" python hindsight-system-tests/tests/test_client_installation.py ClientInstallationStory.test_npm_installs_actual_tarball_by_https_url -v
           done
       - uses: actions/upload-artifact@v4

@@ -92,6 +92,9 @@ try {
   const manifest = JSON.parse(manifestText);
   if (process.argv[2]) {
     const sourceManifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    assert.equal(manifest.name, "@huaweicloud/contextbase-coding-agents");
+    assert.equal(manifest.name, sourceManifest.name);
+    assert.equal(manifest.bin["contextbase-coding-agents"], "dist/installer.js");
     assert.equal(manifest.version, sourceManifest.version);
     for (const field of [
       "private",
@@ -104,7 +107,7 @@ try {
     ]) {
       assert(!(field in manifest), `public manifest must omit ${field}`);
     }
-    assert(readFileSync(join(dist, "..", "LICENSE"), "utf8").includes("MIT License"));
+    assert(!readdirSync(join(dist, "..")).includes("LICENSE"));
   }
   for (const field of [
     "dependencies",

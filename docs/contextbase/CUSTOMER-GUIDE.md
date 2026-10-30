@@ -17,7 +17,7 @@ Windows PowerShell：
 ```powershell
 cd D:\code\my-project
 $env:CONTEXTBASE_API_TOKEN = '你的业务API-Key'
-npx.cmd -y contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$env:CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
+npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$env:CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
 ```
 
 Linux 或 macOS Bash：
@@ -25,7 +25,7 @@ Linux 或 macOS Bash：
 ```bash
 cd /home/alice/work/my-project
 export CONTEXTBASE_API_TOKEN='你的业务API-Key'
-npx -y contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
+npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
 ```
 
 只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。
@@ -46,19 +46,19 @@ Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记�
 
 ```powershell
 cd D:\code\xiyan
-npx.cmd -y contextbase-coding-agents@latest install claude-code codex --bank-id "test_cli" --project-path "."
+npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "test_cli" --project-path "."
 ```
 
 也可以直接指定其他项目的绝对路径：
 
 ```powershell
-npx.cmd -y contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
+npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
 ```
 
 Linux 或 macOS Bash：
 
 ```bash
-npx -y contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
+npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
 ```
 
 只使用一个客户端时，保留对应的 `claude-code` 或 `codex`。这些命令会更新指定项目的绑定，保留其他项目的映射和已有 API 地址、Key。
@@ -189,20 +189,20 @@ bearer_token_env_var = "CONTEXTBASE_MCP_TOKEN"
 
 **更新**
 
-重新运行第 2 节的 npx 安装命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `npx -y contextbase-coding-agents@latest install claude-code codex`（PowerShell 使用 `.cmd`）。
+重新运行第 2 节的 npx 安装命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex`（PowerShell 使用 `.cmd`）。
 
 **卸载**
 
 PowerShell：
 
 ```powershell
-npx.cmd -y contextbase-coding-agents@latest uninstall claude-code codex
+npx.cmd -y @huaweicloud/contextbase-coding-agents@latest uninstall claude-code codex
 ```
 
 Bash：
 
 ```bash
-npx -y contextbase-coding-agents@latest uninstall claude-code codex
+npx -y @huaweicloud/contextbase-coding-agents@latest uninstall claude-code codex
 ```
 
 卸载不会删除远端记忆。若只配置了远端 MCP，使用宿主的 MCP 管理命令移除 contextbase-remote。
@@ -225,7 +225,7 @@ Coding Agents 安装包也支持以下宿主。第 2 节命令中的 `claude-cod
 例如在 PowerShell 中配置 Cursor CLI：
 
 ```powershell
-npx.cmd -y contextbase-coding-agents@latest install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
+npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
 ```
 
 原生插件的工具出现在宿主自己的工具列表中；它们不需要另建一个 MCP 注册。重启宿主后，调用实际加载的 ContextBase 诊断工具，核对 `workspace`、`bank_id`、`harness`、`api_url`。DSH 安装项作用于全部配置档，请用新会话验证。

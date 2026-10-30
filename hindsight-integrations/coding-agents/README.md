@@ -1,4 +1,4 @@
-# contextbase-coding-agents
+# @huaweicloud/contextbase-coding-agents
 
 Long-term project memory for **coding agents**, backed by ContextBase.
 One package, several agents: a shared reflect-and-inject core with a thin entry point per agent
@@ -49,9 +49,9 @@ Run these commands from the project directory. Node.js 18 or later is required.
 Set `CONTEXTBASE_API_TOKEN` in your environment, then install the integration you use:
 
 ```bash
-npx contextbase-coding-agents@latest install claude-code --bank-id <BANK_ID>
-npx contextbase-coding-agents@latest install codex --bank-id <BANK_ID>
-npx contextbase-coding-agents@latest install cursor-cli --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install claude-code --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install codex --bank-id <BANK_ID>
+npx @huaweicloud/contextbase-coding-agents@latest install cursor-cli --bank-id <BANK_ID>
 ```
 
 `--api-url <API_ENDPOINT>` sets the service address; when omitted, the installer uses
@@ -60,13 +60,13 @@ In scripts or CI without an interactive terminal, provide the address explicitly
 `--project-path <PROJECT_PATH>` selects another project; it defaults to the current directory.
 Restart your agent after installation.
 
-To upgrade, re-run the same `npx contextbase-coding-agents@latest install <harness>` command.
+To upgrade, re-run the same `npx @huaweicloud/contextbase-coding-agents@latest install <harness>` command.
 Use `@<version>` instead of `@latest` when you need a specific release. The `update` command
 only re-stages the package you invoke; it does not fetch a newer release itself.
 
 ```bash
-npx contextbase-coding-agents@latest uninstall claude-code
-npx contextbase-coding-agents@latest --help
+npx @huaweicloud/contextbase-coding-agents@latest uninstall claude-code
+npx @huaweicloud/contextbase-coding-agents@latest --help
 ```
 
 `install` requires an explicit target: one or more harness names, or `all` for every
@@ -82,7 +82,7 @@ Run in the project directory with the API endpoint and a business API key from y
 
 ```bash
 export CONTEXTBASE_API_TOKEN='your-business-key'
-npm exec --yes --package='https://downloads.example.com/contextbase-coding-agents-VERSION.tgz' -- contextbase-coding-agents install claude-code codex --api-url 'https://api.example.com' --bank-id 'your-bank-id' --project-path '.'
+npm exec --yes --package=@huaweicloud/contextbase-coding-agents@latest -- contextbase-coding-agents install claude-code codex --api-url 'https://api.example.com' --bank-id 'your-bank-id' --project-path '.'
 ```
 
 Use the actual versioned HTTPS tarball URL. In PowerShell, set
@@ -355,7 +355,7 @@ An extension entry in `~/.pi/agent/settings.json`, plus the companion skill in
 `~/.pi/agent/skills` — native tools, no MCP needed.
 
 This command is the only supported route, for pi and for Prime Agent below. Installing us as a pi
-package (`pi install npm:contextbase-coding-agents`) is deliberately not wired: both
+package (`pi install npm:@huaweicloud/contextbase-coding-agents`) is deliberately not wired: both
 hosts read the same `pi` key of a package's `package.json`, and that key can only name one entry —
 whichever host it did not name would load the other's bundle and report itself as the wrong agent,
 taking that harness's config section and stamping every document it retains with it. So the package
@@ -514,9 +514,9 @@ Use one default API connection across all harnesses, paths and banks. Configure 
 
 <!-- skill:begin -->
 
-The public npm package is `contextbase-coding-agents`. Install and upgrade integrations with
-`npx contextbase-coding-agents@latest install <harness>`. The examples below use
-`contextbase-coding-agents` for brevity; prefix commands with `npx contextbase-coding-agents@latest`
+The public npm package is `@huaweicloud/contextbase-coding-agents`. Install and upgrade integrations with
+`npx @huaweicloud/contextbase-coding-agents@latest install <harness>`. The examples below use
+`contextbase-coding-agents` for brevity; prefix commands with `npx @huaweicloud/contextbase-coding-agents@latest`
 when the executable is not installed globally.
 
 ## Configuration

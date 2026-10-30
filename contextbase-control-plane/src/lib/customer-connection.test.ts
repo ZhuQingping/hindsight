@@ -13,7 +13,7 @@ it("only exposes public addresses and independently configured packages", () => 
   const result = customerConnection(bank);
   expect(result.apiUrl).toBe("https://api.example.com/customer-api");
   expect(result.mcpUrl).toBe(`https://mcp.example.com/banks/${encodeURIComponent(bank)}/mcp`);
-  expect(result.codingAgentsNpm).toBe("contextbase-coding-agents@latest");
+  expect(result.codingAgentsNpm).toBe("@huaweicloud/contextbase-coding-agents@latest");
   expect(result.packages.openclaw).toBeUndefined();
   expect(JSON.stringify(result)).not.toMatch(/private-service|operator-secret/);
 });
@@ -90,9 +90,9 @@ it("does not invent package download URLs when deployment settings are unset", (
 });
 
 it.each([
-  "contextbase-coding-agents@latest",
+  "@huaweicloud/contextbase-coding-agents@latest",
   "@contextbase/contextbase-coding-agents@latest",
-  "contextbase-coding-agents@1.0.0",
+  "@huaweicloud/contextbase-coding-agents@1.0.0",
   "@contextbase/contextbase-coding-agents@2.1.0-rc.1",
 ])("exposes a configured latest or fixed-version registry package: %s", (spec) => {
   vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", spec);
@@ -100,7 +100,7 @@ it.each([
 });
 
 it.each([
-  "contextbase-coding-agents@beta",
+  "@huaweicloud/contextbase-coding-agents@beta",
   "contextbase-coding-agents",
   "https://example.com/client.tgz",
   "file:../client",
@@ -116,6 +116,6 @@ it.each([undefined, "", "  "])("defaults to latest when the npm setting is %s", 
   vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", setting);
   vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", undefined);
   const config = customerConnection("bank");
-  expect(config.codingAgentsNpm).toBe("contextbase-coding-agents@latest");
+  expect(config.codingAgentsNpm).toBe("@huaweicloud/contextbase-coding-agents@latest");
   expect(Object.keys(config.packages)).toEqual(["openclaw", "hermes", "python", "node"]);
 });

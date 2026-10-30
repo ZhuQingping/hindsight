@@ -42,7 +42,7 @@ if (JSON.stringify(fixed) !== JSON.stringify(previous))
 // must never legitimize a manually renamed package or a different MCP ownership key.
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 for (const [path, expected] of [
-  ["hindsight-integrations/coding-agents/package.json", fixed.coding_agents],
+  ["hindsight-integrations/coding-agents/package.json", fixed.coding_agents_package],
   ["hindsight-integrations/coding-agents/plugin.json", fixed.coding_agents],
   ["hindsight-integrations/agent-plugin/plugin.json", fixed.agent_plugin],
   ["hindsight-integrations/claude-code/.claude-plugin/plugin.json", fixed.claude_plugin],
