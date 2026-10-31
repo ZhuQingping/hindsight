@@ -10,6 +10,7 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 from fastmcp.server.dependencies import get_http_request
 from fastmcp.tools.base import Tool, ToolResult
+from hindsight_api.config import _get_raw_config
 from hindsight_api.extensions.mcp import MCPExtension
 
 from .authorization import authenticated_request
@@ -35,8 +36,36 @@ class ContextDBMCPRouting:
     def __init__(self, memory: MemoryEngine, settings: Settings) -> None:
         self.memory = memory
         self.settings = settings
+        self._list_banks_registered = False
+
+    async def _enabled_tools(self, bank_id: str) -> frozenset[str] | None:
+        # The caller has authenticated this exact Bank and installed its schema.
+        # Public get_bank_config intentionally hides all fields from business
+        # Keys; using it for policy made a hidden whitelist look unrestricted.
+        # Keep this trusted read private, and refresh across API workers/requests.
+        try:
+            from hindsight_api.engine.memory_engine import get_current_schema
+
+            repository = await repository_for(self.memory, self.settings)
+            policy = await repository.bank_mcp_policy(bank_id, get_current_schema())
+            enabled = policy.mcp_enabled_tools
+            global_enabled = _get_raw_config().mcp_enabled_tools
+            ceiling = frozenset(global_enabled) if global_enabled is not None else None
+            if enabled is None:
+                return ceiling
+            return frozenset(enabled) if ceiling is None else frozenset(enabled) & ceiling
+        except Exception:
+            # Unlike the native validator's fail-open fallback, an unavailable
+            # policy cannot authorize a tool. Never expose config/PG diagnostics.
+            raise ToolError("MCP tool policy unavailable") from None
 
     def install(self, mcp: FastMCP) -> None:
+        from hindsight_api.api.mcp import _get_mcp_tools
+
+        # Root catalog calls must never resurrect a tool excluded at server
+        # registration. Reuse the host's FastMCP-version adapter instead of
+        # depending on provider internals here.
+        self._list_banks_registered = "list_banks" in _get_mcp_tools(mcp)
         # Native list_tools filters both the inner provider result and the final
         # middleware result. The authorization scope must surround that public
         # operation, not end when on_list_tools returns. Keep the native filter.
@@ -84,8 +113,15 @@ class ContextDBMCPRouting:
                 token = _current_bank_id.set(workspace.bank_id)
                 try:
                     with bank_target(workspace.bank_id, schema_name=workspace.schema_name), multi_bank_discovery(False):
+                        enabled = await self._enabled_tools(workspace.bank_id)
                         for tool in await call_next():
-                            tools.setdefault(tool.name, tool)
+                            # Native registration falls back to default tools
+                            # for an empty single-Bank/global intersection.
+                            # The catalog still belongs only to the root endpoint.
+                            if path_bank and tool.name == "list_banks":
+                                continue
+                            if enabled is None or tool.name in enabled:
+                                tools.setdefault(tool.name, tool)
                 finally:
                     _current_bank_id.reset(token)
             return list(tools.values())
@@ -107,6 +143,8 @@ class ContextDBMCPRouting:
             # Obtain the CURRENT message's credential, never the initialize
             # task's ContextVars. TenantExtension rechecks the HTTP credential.
             if name == "list_banks":
+                if not self._list_banks_registered:
+                    raise ToolError("Tool 'list_banks' is not available on this endpoint")
                 from pydantic import BaseModel, Field
 
                 class ListArguments(BaseModel):
@@ -115,6 +153,21 @@ class ContextDBMCPRouting:
                     offset: int = Field(default=0, ge=0)
 
                 pagination = ListArguments.model_validate(arguments)
+                with metadata_errors():
+                    principal = await repository.authenticate(credential, request.scope.get("contextdb.mcp_path_bank"))
+                    spaces = await repository.visible_workspaces(principal)
+                if request.scope.get("contextdb.mcp_path_bank"):
+                    # The catalog belongs to root even if native empty-set
+                    # registration falls back to the default tools.
+                    raise ToolError("Tool 'list_banks' is not available on a single-Bank endpoint")
+                permitted: set[str] = set()
+                for workspace in spaces:
+                    with bank_target(workspace.bank_id, schema_name=workspace.schema_name):
+                        enabled = await self._enabled_tools(workspace.bank_id)
+                    if enabled is None or name in enabled:
+                        permitted.add(workspace.bank_id)
+                if not permitted:
+                    raise ToolError("Tool 'list_banks' is not enabled for the requested Banks")
                 page = await bank_list(
                     self.memory,
                     repository,
@@ -123,6 +176,7 @@ class ContextDBMCPRouting:
                     limit=pagination.limit,
                     offset=pagination.offset,
                     bank_id=request.scope.get("contextdb.mcp_path_bank"),
+                    mcp_tool_bank_ids=frozenset(permitted),
                 )
                 serialized = page.model_dump_json()
                 # Native list_banks returns str: FastMCP 3 wraps its structured
@@ -163,6 +217,9 @@ class ContextDBMCPRouting:
             ):
                 bank_token = _current_bank_id.set(bank_id)
                 try:
+                    enabled = await self._enabled_tools(bank_id)
+                    if enabled is not None and name not in enabled:
+                        raise ToolError(f"Tool '{name}' is not enabled for this Bank")
                     result = await call_next()
                     if name == "search_knowledge_base" and isinstance(result, ToolResult):
                         payload = result.structured_content

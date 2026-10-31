@@ -9,7 +9,16 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Generic, Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, computed_field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictStr,
+    ValidationInfo,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 
 class Role(StrEnum):
@@ -240,6 +249,12 @@ class NativeDeletion(BaseModel):
     memory_units_deleted: int = 0
     entities_deleted: int = 0
     documents_deleted: int = 0
+
+
+class MCPToolPolicy(BaseModel):
+    """Only the trusted policy field; all other Bank config stays private."""
+
+    mcp_enabled_tools: list[StrictStr] | None = None
 
 
 class ServiceError(Exception):

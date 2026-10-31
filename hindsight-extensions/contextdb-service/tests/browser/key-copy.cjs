@@ -123,10 +123,19 @@ async function main() {
       ]);
       assert.equal(await page.evaluate(() => document.activeElement.textContent), "Copy API key");
       await page.getByRole("button", { name: "I saved it — close", exact: true }).click();
+      // Radix restores focus in a deferred unmount callback. Let it finish
+      // before focusing the paste target, so it cannot steal the shortcut.
+      await page.waitForFunction(() => document.activeElement?.textContent === "Create API key");
       const paste = page.locator("#paste-target");
       await paste.fill("old clipboard placeholder");
       await paste.selectText();
       await paste.press("ControlOrMeta+V");
+      // Sending the shortcut does not await native clipboard read/insertion.
+      // Wait for the actual pasted value; never retry copying or populate it here.
+      await page.waitForFunction(
+        (expected) => document.querySelector("#paste-target").value === expected,
+        secret
+      );
       assert.equal(await paste.inputValue(), secret, "actual OS clipboard paste must match");
       assert.deepEqual(errors, []);
       console.log(

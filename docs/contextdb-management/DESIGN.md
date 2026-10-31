@@ -1682,3 +1682,13 @@ RETURNING workspace_id, bank_id, schema_name, state, version;
 5. 确认该目录行、目标schema及selected授权清理完毕，其他空间和凭据未受影响，保存操作记录。确有需要时再明确创建同名新空间并重新授权。
 
 状态更新本身只改变该行状态、版本、更新时间和安全错误码，不清空业务或统计；真正清理由既有DELETE完成。该维护步骤不新增恢复API、调度器或自动重放，也不承诺修复原生事务外文件/索引残留。独立临时PG与真实API的条件及清理验证见VALIDATION第31章。
+
+### 8.14 业务 Key 的 MCP 工具策略（Issue #47）
+
+工具策略属于服务端授权输入，不能通过按客户字段可见性裁剪后的公开配置接口读取。ContextDB 的 MCP 适配器在验证当前消息 Key 和实际 Bank 后，以已认证 schema 和绑定的 bank_id，通过 Repository 严格读取原生 banks.config；只返回 MCPToolPolicy，复用原生配置键规范化，不返回其他配置。不使用原生 ConfigResolver 的宽容读取路径，因为其查询失败会回退为空覆盖，无法区分故障与未配置。缺行、畸形策略和 PG 故障均拒绝执行，诊断不回显。
+
+有效工具集合为原生注册集合、全局白名单、Bank 白名单与 Key 操作权限的交集。null/未设置继承全局；空列表拒绝全部。每次消息读取当前策略，不跨 Key、Bank 或 API Worker 缓存安全决定。原有 REST 业务配置投影及管理权限不变，白名单不赋予写权限。
+
+单 Bank 发现和调用均按该 Bank 判断；root 发现为各可见 Bank 允许集合的并集，执行按实际目标重新校验。自研 root list_banks 额外检查其确实已在原生工具注册表注册；只对启用该工具的可见 Bank 读取目录，total/分页在该集合内计算。单 Bank 原生不注册 list_banks，不通过适配器额外开放。MCP Bank 管理工具继续关闭。
+
+这是插件对原生 Bank 存储列及宿主工具注册适配函数的窄依赖，升级时须保留真实 Repository 查询故障、原生注册上限和公开 API/MCP 组合回归；没有修改原生代码、表结构、生成 SDK 或部署设置。检视与本轮验收见 CODE-REVIEW 第32章、VALIDATION 第36章。

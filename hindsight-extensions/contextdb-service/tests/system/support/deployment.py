@@ -33,6 +33,7 @@ class DeploymentOptions:
     default_template: str | None = None
     maintenance_probe: bool = False
     recall_usage_enabled: bool = True
+    mcp_enabled_tools: tuple[str, ...] | None = None
 
 
 @dataclass
@@ -125,6 +126,10 @@ def deployment_owner(options: DeploymentOptions, stub_url: str, root: Path) -> I
     template = options.default_template
     if template is not None:
         settings["HINDSIGHT_API_DEFAULT_BANK_TEMPLATE"] = template
+    if options.mcp_enabled_tools is not None:
+        # The native parser treats an empty env value as unset; a comma parses
+        # to an explicit empty list instead of accidentally enabling defaults.
+        settings["HINDSIGHT_API_MCP_ENABLED_TOOLS"] = ",".join(options.mcp_enabled_tools) or ","
     try:
         # Establish cleanup ownership before starting PG or running bootstrap.
         # A failed migration must not leave this test's database process running.

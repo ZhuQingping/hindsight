@@ -16,7 +16,7 @@ from starlette.requests import Request
 
 from hindsight_ext_contextdb.config import Settings
 from hindsight_ext_contextdb.mcp import ContextDBMCPExtension
-from hindsight_ext_contextdb.models import ApiKeyCreate, UserCreate, Workspace
+from hindsight_ext_contextdb.models import ApiKeyCreate, MCPToolPolicy, UserCreate, Workspace
 from hindsight_ext_contextdb.repository import Repository
 from hindsight_ext_contextdb.tenant import ContextDBTenantExtension
 from hindsight_ext_contextdb.validator import ContextDBOperationValidator
@@ -78,6 +78,13 @@ async def test_native_tool_filter_reads_the_authorized_schema(
             raise RuntimeError("synthetic-config-failure")
         return {"mcp_enabled_tools": ["recall"]}
 
+    async def read_policy(bank_id: str, schema_name: str) -> MCPToolPolicy:
+        assert schema_name == workspace.schema_name
+        config = await read_config(bank_id)
+        return MCPToolPolicy.model_validate(config)
+
+    monkeypatch.setattr(repository, "bank_mcp_policy", AsyncMock(side_effect=read_policy))
+
     memory = Mock(
         tenant_extension=Mock(spec=ContextDBTenantExtension),
         _operation_validator=validator,
@@ -102,7 +109,7 @@ async def test_native_tool_filter_reads_the_authorized_schema(
     async with Client(server) as client:
         if operation == "list":
             if failure:
-                with pytest.raises(McpError, match="synthetic-config-failure"):
+                with pytest.raises(McpError, match="MCP tool policy unavailable"):
                     await client.list_tools()
             else:
                 assert [tool.name for tool in await client.list_tools()] == ["recall"]
@@ -158,6 +165,13 @@ async def test_root_union_and_concurrent_requests_use_each_spaces_config_and_sco
         await asyncio.sleep(0)  # Deliberately interleave different target contexts.
         assert get_current_schema() == spaces[bank_id].schema_name
         return {"mcp_enabled_tools": ["retain" if bank_id == first.bank_id else "recall"]}
+
+    async def read_policy(bank_id: str, schema_name: str) -> MCPToolPolicy:
+        assert schema_name == spaces[bank_id].schema_name
+        config = await read_config(bank_id, RequestContext())
+        return MCPToolPolicy.model_validate(config)
+
+    monkeypatch.setattr(repository, "bank_mcp_policy", AsyncMock(side_effect=read_policy))
 
     memory = Mock(
         tenant_extension=Mock(spec=ContextDBTenantExtension),

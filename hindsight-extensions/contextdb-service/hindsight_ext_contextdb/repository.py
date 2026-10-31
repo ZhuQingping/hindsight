@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import hmac
+import json
 import secrets
 from dataclasses import replace
 
 import asyncpg
+from hindsight_api.config import normalize_config_dict
 from pydantic import TypeAdapter
 
 from . import METADATA_FORMAT_ID, METADATA_VERSION
@@ -21,6 +23,7 @@ from .models import (
     BusinessPrincipal,
     IssuedApiKey,
     KeyMetadata,
+    MCPToolPolicy,
     Page,
     Permission,
     Role,
@@ -604,6 +607,24 @@ class Repository:
                 raise ServiceError(409, "workspace_state", "Workspace deletion state changed")
             await self._destroy_workspace(conn, workspace.workspace_id)
             await self._audit(conn, principal, request_id, "delete_workspace", workspace_id=workspace.workspace_id)
+
+    async def bank_mcp_policy(self, bank_id: str, schema_name: str) -> MCPToolPolicy:
+        """Strict policy read after target auth; never turn PG failure into defaults.
+
+        The native config resolver intentionally swallows SELECT failures. This
+        narrow adapter, like bank_exists below, reads the native Bank table but
+        must propagate failures for security decisions. schema_name comes only
+        from the authenticated workspace mapping, never a client identifier.
+        """
+        schema = schema_name.replace('"', '""')
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(f'SELECT config FROM "{schema}".banks WHERE bank_id=$1', bank_id)
+        if row is None:
+            raise ServiceError(503, "policy_unavailable", "MCP tool policy unavailable")
+        stored = row["config"]
+        if isinstance(stored, str):
+            stored = json.loads(stored)
+        return MCPToolPolicy.model_validate(normalize_config_dict(stored if stored is not None else {}))
 
     async def bank_exists(self, workspace: Workspace) -> bool:
         async with self.pool.acquire() as conn:
