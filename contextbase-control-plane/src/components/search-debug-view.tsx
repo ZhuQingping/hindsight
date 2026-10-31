@@ -38,7 +38,7 @@ import { EntityChip, TagChip } from "@/components/ui/facet-chip";
 
 type Budget = "low" | "mid" | "high";
 type TagsMatch = "any" | "all" | "any_strict" | "all_strict" | "exact";
-type ViewMode = "results" | "trace" | "json";
+type ViewMode = "trace" | "json";
 
 // Significant digits, never a fixed number of decimals. This used to print the
 // raw value for a reason: fusion scores cluster around 0.001, where toFixed(3)
@@ -139,7 +139,8 @@ export function SearchDebugView() {
   const [observations, setObservations] = useState<any[] | null>(null);
   const [trace, setTrace] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("results");
+  const [viewMode, setViewMode] = useState<ViewMode>("trace");
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
@@ -241,7 +242,10 @@ export function SearchDebugView() {
         },
         ...(queryDate && { query_timestamp: queryDate }),
         ...(temporalWindow.value && { temporal_window: temporalWindow.value }),
-        ...(parsedTags.length > 0 && { tags: parsedTags, tags_match: tagsMatch }),
+        ...(parsedTags.length > 0 && {
+          tags: parsedTags,
+          tags_match: tagsMatch,
+        }),
       };
 
       const data: any = await client.recall(requestBody);
@@ -251,7 +255,8 @@ export function SearchDebugView() {
       setChunks(data.chunks || null);
       setObservations(data.observations || null);
       setTrace(data.trace || null);
-      setViewMode("results");
+      setViewMode("trace");
+      setDiagnosticsOpen(false);
     } catch (error) {
       // Error toast is shown automatically by the API client interceptor
     } finally {
@@ -485,785 +490,815 @@ export function SearchDebugView() {
               </div>
 
               <div className="flex-1" />
-
-              {/* View Mode Tabs */}
-              <div className="flex gap-1 bg-muted p-1 rounded-lg">
-                {(["results", "trace", "json"] as ViewMode[]).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      viewMode === mode
-                        ? "bg-background shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {mode === "results"
-                      ? t("viewResults")
-                      : mode === "trace"
-                        ? t("viewTrace")
-                        : t("viewJson")}
-                  </button>
-                ))}
-              </div>
             </div>
           )}
 
           {/* Results View */}
-          {viewMode === "results" && (
-            <div className="space-y-4">
-              {/* Observations Section */}
-              {observations && observations.length > 0 && (
-                <Card className="border-orange-500/30 bg-orange-500/5">
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Database className="h-4 w-4 text-orange-500" />
-                      <span>Observations</span>
-                      <span className="text-xs text-muted-foreground">({observations.length})</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-2">
-                    {observations.map((obs: any, idx: number) => (
-                      <div
-                        key={obs.id || idx}
-                        className="p-3 bg-background rounded-lg border border-orange-500/20"
-                      >
-                        <p className="text-sm text-foreground">{obs.text}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                          <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-600">
-                            Observation
-                          </span>
-                          <span>{t("proofCount", { count: obs.proof_count || 1 })}</span>
-                          <span>{t("relevance", { value: fmtScore(obs.relevance) })}</span>
-                        </div>
+          <div className="space-y-4">
+            {/* Observations Section */}
+            {observations && observations.length > 0 && (
+              <Card className="border-orange-500/30 bg-orange-500/5">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Database className="h-4 w-4 text-orange-500" />
+                    <span>Observations</span>
+                    <span className="text-xs text-muted-foreground">({observations.length})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-2">
+                  {observations.map((obs: any, idx: number) => (
+                    <div
+                      key={obs.id || idx}
+                      className="p-3 bg-background rounded-lg border border-orange-500/20"
+                    >
+                      <p className="text-sm text-foreground">{obs.text}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-600">
+                          Observation
+                        </span>
+                        <span>{t("proofCount", { count: obs.proof_count || 1 })}</span>
+                        <span>{t("relevance", { value: fmtScore(obs.relevance) })}</span>
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Memories Section */}
+            <div className="space-y-3">
+              {results.length === 0 && (!observations || observations.length === 0) ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">{t("noMemoriesFound")}</p>
                   </CardContent>
                 </Card>
-              )}
-
-              {/* Memories Section */}
-              <div className="space-y-3">
-                {results.length === 0 && (!observations || observations.length === 0) ? (
-                  <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
-                      <Search className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">{t("noMemoriesFound")}</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  results.map((result: any, idx: number) => {
-                    const visit = trace?.visits?.find((v: any) => v.node_id === result.id);
-                    const score = visit ? visit.weights.final_weight : result.scores?.final;
-
-                    return (
-                      <Card
-                        key={idx}
-                        className="cursor-pointer hover:border-primary/50 transition-colors"
-                        onClick={() => setSelectedMemoryId(result.id)}
-                      >
-                        <CardContent className="py-4">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-primary">{idx + 1}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-foreground">{result.text}</p>
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                                <span className="px-2 py-0.5 rounded bg-muted capitalize">
-                                  {result.type || "world"}
-                                </span>
-                                {result.context && (
-                                  <span className="truncate max-w-xs">{result.context}</span>
-                                )}
-                                {result.occurred_start && (
-                                  <span
-                                    className="inline-flex items-center gap-1 whitespace-nowrap"
-                                    title={result.occurred_start}
-                                  >
-                                    <Calendar className="h-3 w-3 shrink-0" />
-                                    {t("occurredLabel")}{" "}
-                                    {fmtWhenRange(result.occurred_start, result.occurred_end)}
-                                  </span>
-                                )}
-                                {result.mentioned_at && (
-                                  <span
-                                    className="inline-flex items-center gap-1 whitespace-nowrap"
-                                    title={result.mentioned_at}
-                                  >
-                                    <Clock className="h-3 w-3 shrink-0" />
-                                    {t("mentionedLabel")} {fmtWhen(result.mentioned_at)}
-                                  </span>
-                                )}
-                              </div>
-                              {/* Boolean, not a bare length: `0 && ...` renders a
-                                  literal "0" for a fact with empty arrays. */}
-                              {((result.entities?.length ?? 0) > 0 ||
-                                (result.tags?.length ?? 0) > 0) && (
-                                // Entities and tags, not the score breakdown:
-                                // what the fact is *about* is what a reader
-                                // scanning results needs. The per-signal scores
-                                // (semantic/keyword/reranker and the boosts they
-                                // feed) are a retrieval-debugging concern and
-                                // live in the Trace tab, which shows them per
-                                // stage rather than as a flat row here.
-                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                  {(result.entities ?? []).map((entity: string) => (
-                                    <EntityChip
-                                      key={`e-${entity}`}
-                                      entity={entity}
-                                      size="xs"
-                                      truncate
-                                      className="max-w-[220px]"
-                                    />
-                                  ))}
-                                  {(result.tags ?? []).map((tag: string) => (
-                                    <TagChip
-                                      key={`t-${tag}`}
-                                      tag={tag}
-                                      size="xs"
-                                      truncate
-                                      className="max-w-[220px]"
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                              {(() => {
-                                const attachments = attachmentsForResult(result);
-                                if (attachments.length === 0) return null;
-                                return (
-                                  // Each attachment is a link to its own bytes;
-                                  // without stopping the click here it would also
-                                  // bubble to the card and open the memory dialog
-                                  // on top of the image the reader just asked for.
-                                  <div
-                                    className="mt-3"
-                                    onClick={(e) => e.stopPropagation()}
-                                    role="presentation"
-                                  >
-                                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                      {t("factAttachments")}
-                                    </div>
-                                    <AttachmentStrip
-                                      bankId={currentBank}
-                                      attachments={attachments}
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                            <div className="flex-shrink-0 text-right">
-                              <div className="text-sm font-semibold" title={exactScore(score)}>
-                                {fmtScore(score)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">{t("scoreLabel")}</div>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Trace View */}
-          {viewMode === "trace" && trace && (
-            <div className="space-y-4">
-              {/* Parallel Retrieval Methods - Grouped by Fact Type */}
-              {trace.retrieval_results &&
-                trace.retrieval_results.length > 0 &&
-                (() => {
-                  // Group retrieval results by fact type
-                  const factTypeGroups: Record<string, any[]> = {};
-                  trace.retrieval_results.forEach((method: any) => {
-                    const ft = method.fact_type || "all";
-                    if (!factTypeGroups[ft]) factTypeGroups[ft] = [];
-                    factTypeGroups[ft].push(method);
-                  });
-                  const factTypes = Object.keys(factTypeGroups);
+              ) : (
+                results.map((result: any, idx: number) => {
+                  const visit = trace?.visits?.find((v: any) => v.node_id === result.id);
+                  const score = visit ? visit.weights.final_weight : result.scores?.final;
 
                   return (
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                        <div className="flex-1 h-px bg-border" />
-                        <span>{t("parallelRetrieval")}</span>
-                        <div className="flex-1 h-px bg-border" />
-                      </div>
-
-                      {/* Fact type lanes */}
-                      <div className="space-y-2">
-                        {factTypes.map((factType, ftIdx) => {
-                          const methods = factTypeGroups[factType];
-                          const laneKey = `lane-${factType}`;
-                          const isLaneExpanded = expandedSteps.has(laneKey);
-                          const totalResults = methods.reduce(
-                            (sum: number, m: any) => sum + (m.results?.length || 0),
-                            0
-                          );
-                          const totalDuration = Math.max(
-                            ...methods.map((m: any) => m.duration_seconds || 0)
-                          );
-
-                          // Color coding for fact types
-                          const ftColors: Record<
-                            string,
-                            { bg: string; text: string; border: string }
-                          > = {
-                            world: {
-                              bg: "bg-blue-500/10",
-                              text: "text-blue-500",
-                              border: "border-blue-500/30",
-                            },
-                            experience: {
-                              bg: "bg-green-500/10",
-                              text: "text-green-500",
-                              border: "border-green-500/30",
-                            },
-                            opinion: {
-                              bg: "bg-purple-500/10",
-                              text: "text-purple-500",
-                              border: "border-purple-500/30",
-                            },
-                            all: {
-                              bg: "bg-gray-500/10",
-                              text: "text-gray-500",
-                              border: "border-gray-500/30",
-                            },
-                          };
-                          const colors = ftColors[factType] || ftColors.all;
-
-                          return (
-                            <Card
-                              key={laneKey}
-                              className={`transition-colors ${isLaneExpanded ? "border-primary" : colors.border}`}
-                            >
-                              <CardContent className="py-3 px-4">
-                                {/* Lane Header */}
-                                <div
-                                  className="flex items-center gap-3 cursor-pointer"
-                                  onClick={() => toggleStep(laneKey)}
+                    <Card
+                      key={idx}
+                      className="cursor-pointer hover:border-primary/50 transition-colors"
+                      onClick={() => setSelectedMemoryId(result.id)}
+                    >
+                      <CardContent className="py-4">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-semibold text-primary">{idx + 1}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-foreground">{result.text}</p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                              <span className="px-2 py-0.5 rounded bg-muted capitalize">
+                                {result.type || "world"}
+                              </span>
+                              {result.context && (
+                                <span className="truncate max-w-xs">{result.context}</span>
+                              )}
+                              {result.occurred_start && (
+                                <span
+                                  className="inline-flex items-center gap-1 whitespace-nowrap"
+                                  title={result.occurred_start}
                                 >
-                                  <div
-                                    className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center`}
+                                  <Calendar className="h-3 w-3 shrink-0" />
+                                  {t("occurredLabel")}{" "}
+                                  {fmtWhenRange(result.occurred_start, result.occurred_end)}
+                                </span>
+                              )}
+                              {result.mentioned_at && (
+                                <span
+                                  className="inline-flex items-center gap-1 whitespace-nowrap"
+                                  title={result.mentioned_at}
+                                >
+                                  <Clock className="h-3 w-3 shrink-0" />
+                                  {t("mentionedLabel")} {fmtWhen(result.mentioned_at)}
+                                </span>
+                              )}
+                            </div>
+                            {/* Boolean, not a bare length: `0 && ...` renders a
+                                  literal "0" for a fact with empty arrays. */}
+                            {((result.entities?.length ?? 0) > 0 ||
+                              (result.tags?.length ?? 0) > 0) && (
+                              // Entities and tags, not the score breakdown:
+                              // what the fact is *about* is what a reader
+                              // scanning results needs. The per-signal scores
+                              // (semantic/keyword/reranker and the boosts they
+                              // feed) are a retrieval-debugging concern and
+                              // live in the Trace tab, which shows them per
+                              // stage rather than as a flat row here.
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {(result.entities ?? []).map((entity: string) => (
+                                  <EntityChip
+                                    key={`e-${entity}`}
+                                    entity={entity}
+                                    size="xs"
+                                    truncate
+                                    className="max-w-[220px]"
+                                  />
+                                ))}
+                                {(result.tags ?? []).map((tag: string) => (
+                                  <TagChip
+                                    key={`t-${tag}`}
+                                    tag={tag}
+                                    size="xs"
+                                    truncate
+                                    className="max-w-[220px]"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            {(() => {
+                              const attachments = attachmentsForResult(result);
+                              if (attachments.length === 0) return null;
+                              return (
+                                // Each attachment is a link to its own bytes;
+                                // without stopping the click here it would also
+                                // bubble to the card and open the memory dialog
+                                // on top of the image the reader just asked for.
+                                <div
+                                  className="mt-3"
+                                  onClick={(e) => e.stopPropagation()}
+                                  role="presentation"
+                                >
+                                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                    {t("factAttachments")}
+                                  </div>
+                                  <AttachmentStrip
+                                    bankId={currentBank}
+                                    attachments={attachments}
+                                    className="mt-1"
+                                  />
+                                </div>
+                              );
+                            })()}
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <div className="text-sm font-semibold" title={exactScore(score)}>
+                              {fmtScore(score)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{t("scoreLabel")}</div>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <details
+            className="rounded-lg border border-border p-4"
+            open={diagnosticsOpen}
+            onToggle={(event) => setDiagnosticsOpen(event.currentTarget.open)}
+          >
+            <summary className="cursor-pointer text-sm font-medium">{t("diagnostics")}</summary>
+            {diagnosticsOpen && (
+              <div className="mt-4 space-y-4">
+                <div className="flex gap-1" role="group" aria-label={t("diagnostics")}>
+                  {(["trace", "json"] as ViewMode[]).map((mode) => (
+                    <Button
+                      key={mode}
+                      type="button"
+                      size="sm"
+                      variant={viewMode === mode ? "secondary" : "ghost"}
+                      aria-pressed={viewMode === mode}
+                      onClick={() => setViewMode(mode)}
+                    >
+                      {mode === "trace" ? t("viewTrace") : t("viewJson")}
+                    </Button>
+                  ))}
+                </div>
+                {/* Trace View */}
+                {viewMode === "trace" && trace && (
+                  <div className="space-y-4">
+                    {/* Parallel Retrieval Methods - Grouped by Fact Type */}
+                    {trace.retrieval_results &&
+                      trace.retrieval_results.length > 0 &&
+                      (() => {
+                        // Group retrieval results by fact type
+                        const factTypeGroups: Record<string, any[]> = {};
+                        trace.retrieval_results.forEach((method: any) => {
+                          const ft = method.fact_type || "all";
+                          if (!factTypeGroups[ft]) factTypeGroups[ft] = [];
+                          factTypeGroups[ft].push(method);
+                        });
+                        const factTypes = Object.keys(factTypeGroups);
+
+                        return (
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                              <div className="flex-1 h-px bg-border" />
+                              <span>{t("parallelRetrieval")}</span>
+                              <div className="flex-1 h-px bg-border" />
+                            </div>
+
+                            {/* Fact type lanes */}
+                            <div className="space-y-2">
+                              {factTypes.map((factType, ftIdx) => {
+                                const methods = factTypeGroups[factType];
+                                const laneKey = `lane-${factType}`;
+                                const isLaneExpanded = expandedSteps.has(laneKey);
+                                const totalResults = methods.reduce(
+                                  (sum: number, m: any) => sum + (m.results?.length || 0),
+                                  0
+                                );
+                                const totalDuration = Math.max(
+                                  ...methods.map((m: any) => m.duration_seconds || 0)
+                                );
+
+                                // Color coding for fact types
+                                const ftColors: Record<
+                                  string,
+                                  { bg: string; text: string; border: string }
+                                > = {
+                                  world: {
+                                    bg: "bg-blue-500/10",
+                                    text: "text-blue-500",
+                                    border: "border-blue-500/30",
+                                  },
+                                  experience: {
+                                    bg: "bg-green-500/10",
+                                    text: "text-green-500",
+                                    border: "border-green-500/30",
+                                  },
+                                  opinion: {
+                                    bg: "bg-purple-500/10",
+                                    text: "text-purple-500",
+                                    border: "border-purple-500/30",
+                                  },
+                                  all: {
+                                    bg: "bg-gray-500/10",
+                                    text: "text-gray-500",
+                                    border: "border-gray-500/30",
+                                  },
+                                };
+                                const colors = ftColors[factType] || ftColors.all;
+
+                                return (
+                                  <Card
+                                    key={laneKey}
+                                    className={`transition-colors ${isLaneExpanded ? "border-primary" : colors.border}`}
                                   >
-                                    <span className={`text-sm font-bold ${colors.text} capitalize`}>
-                                      {factType.charAt(0).toUpperCase()}
-                                    </span>
+                                    <CardContent className="py-3 px-4">
+                                      {/* Lane Header */}
+                                      <div
+                                        className="flex items-center gap-3 cursor-pointer"
+                                        onClick={() => toggleStep(laneKey)}
+                                      >
+                                        <div
+                                          className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center`}
+                                        >
+                                          <span
+                                            className={`text-sm font-bold ${colors.text} capitalize`}
+                                          >
+                                            {factType.charAt(0).toUpperCase()}
+                                          </span>
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-foreground capitalize">
+                                              {factType}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {t("methodsCount", {
+                                                count: methods.length,
+                                              })}
+                                            </span>
+                                          </div>
+                                          {/* Method summary pills */}
+                                          <div className="flex gap-1.5 mt-1">
+                                            {methods.map((m: any, mIdx: number) => (
+                                              <span
+                                                key={mIdx}
+                                                className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize"
+                                              >
+                                                {m.method_name}: {m.results?.length || 0}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-2xl font-bold text-foreground">
+                                            {totalResults}
+                                          </div>
+                                          <div className="text-[10px] text-muted-foreground">
+                                            {totalDuration.toFixed(2)}s
+                                          </div>
+                                        </div>
+                                        {isLaneExpanded ? (
+                                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                        ) : (
+                                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                        )}
+                                      </div>
+
+                                      {/* Expanded: Show methods grid */}
+                                      {isLaneExpanded && (
+                                        <div className="mt-4 pt-4 border-t border-border">
+                                          <div
+                                            className={`grid gap-3 ${
+                                              methods.length === 1
+                                                ? "grid-cols-1"
+                                                : methods.length === 2
+                                                  ? "grid-cols-2"
+                                                  : methods.length === 3
+                                                    ? "grid-cols-3"
+                                                    : "grid-cols-4"
+                                            }`}
+                                          >
+                                            {methods.map((method: any, mIdx: number) => {
+                                              const methodKey = `${laneKey}-method-${mIdx}`;
+                                              const isMethodExpanded = expandedSteps.has(methodKey);
+                                              const methodResults = method.results || [];
+
+                                              return (
+                                                <div key={methodKey} className="flex flex-col">
+                                                  <div
+                                                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                                                      isMethodExpanded
+                                                        ? "bg-primary/10 border border-primary"
+                                                        : "bg-muted/50 hover:bg-muted"
+                                                    }`}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      toggleStep(methodKey);
+                                                    }}
+                                                  >
+                                                    <div className="flex items-center justify-between mb-1">
+                                                      <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-sm text-foreground capitalize">
+                                                          {method.method_name}
+                                                        </span>
+                                                        {/* Show temporal range inline */}
+                                                        {method.method_name === "temporal" &&
+                                                          method.metadata?.constraint && (
+                                                            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                                              <Calendar className="h-3 w-3" />
+                                                              {method.metadata.constraint.start
+                                                                ? new Date(
+                                                                    method.metadata.constraint.start
+                                                                  ).toLocaleDateString()
+                                                                : "any"}
+                                                              {" → "}
+                                                              {method.metadata.constraint.end
+                                                                ? new Date(
+                                                                    method.metadata.constraint.end
+                                                                  ).toLocaleDateString()
+                                                                : "any"}
+                                                            </span>
+                                                          )}
+                                                      </div>
+                                                      {isMethodExpanded ? (
+                                                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                                      ) : (
+                                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                                      )}
+                                                    </div>
+                                                    <div className="flex items-end justify-between">
+                                                      <div className="text-2xl font-bold text-foreground">
+                                                        {methodResults.length}
+                                                      </div>
+                                                      <div className="text-[10px] text-muted-foreground">
+                                                        {method.duration_seconds?.toFixed(2)}s
+                                                      </div>
+                                                    </div>
+                                                  </div>
+
+                                                  {/* Method Results */}
+                                                  {isMethodExpanded &&
+                                                    methodResults.length > 0 &&
+                                                    (() => {
+                                                      const resultsKey = `results-${methodKey}`;
+                                                      const showAll =
+                                                        expandedResults.has(resultsKey);
+                                                      const displayResults = showAll
+                                                        ? methodResults
+                                                        : methodResults.slice(
+                                                            0,
+                                                            INITIAL_RESULTS_COUNT
+                                                          );
+                                                      const hasMore =
+                                                        methodResults.length >
+                                                        INITIAL_RESULTS_COUNT;
+
+                                                      return (
+                                                        <div className="mt-2 space-y-1.5 max-h-[300px] overflow-y-auto">
+                                                          {displayResults.map(
+                                                            (r: any, rIdx: number) => (
+                                                              <div
+                                                                key={rIdx}
+                                                                className="p-2 bg-background rounded cursor-pointer hover:bg-muted/50 transition-colors border border-border"
+                                                                onClick={(e) => {
+                                                                  e.stopPropagation();
+                                                                  selectMemoryFromTrace(r);
+                                                                }}
+                                                              >
+                                                                <div className="flex items-start gap-2">
+                                                                  <span className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                                                                    {rIdx + 1}
+                                                                  </span>
+                                                                  <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs text-foreground line-clamp-2">
+                                                                      {r.text}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                      <span className="text-[10px] text-muted-foreground">
+                                                                        {fmtScore(
+                                                                          r.score ?? r.similarity
+                                                                        )}
+                                                                      </span>
+                                                                    </div>
+                                                                  </div>
+                                                                </div>
+                                                              </div>
+                                                            )
+                                                          )}
+                                                          {hasMore && (
+                                                            <button
+                                                              className="w-full text-[10px] text-primary hover:text-primary/80 py-1.5 hover:bg-muted/50 rounded transition-colors"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleExpandResults(resultsKey);
+                                                              }}
+                                                            >
+                                                              {showAll
+                                                                ? t("showLess")
+                                                                : t("viewAllResults", {
+                                                                    count: methodResults.length,
+                                                                  })}
+                                                            </button>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    })()}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </div>
+
+                            {/* Parallel indicator - vertical lines showing all run together */}
+                            <div className="flex justify-center py-2">
+                              <div className="flex items-center gap-2">
+                                {factTypes.map((ft, i) => {
+                                  const ftColors: Record<string, string> = {
+                                    world: "bg-blue-500",
+                                    experience: "bg-green-500",
+                                    opinion: "bg-purple-500",
+                                    all: "bg-gray-500",
+                                  };
+                                  return (
+                                    <div key={i} className="flex flex-col items-center">
+                                      <div
+                                        className={`w-1 h-4 ${ftColors[ft] || ftColors.all} rounded-full opacity-50`}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="flex justify-center">
+                              <ArrowDown className="h-5 w-5 text-muted-foreground/50" />
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                    {/* Step 2: RRF Merge */}
+                    {trace.rrf_merged &&
+                      (() => {
+                        const stepKey = "rrf-merge";
+                        const isExpanded = expandedSteps.has(stepKey);
+
+                        return (
+                          <div>
+                            <Card
+                              className={`cursor-pointer transition-colors ${isExpanded ? "border-primary" : "hover:border-primary/50"}`}
+                              onClick={() => toggleStep(stepKey)}
+                            >
+                              <CardContent className="py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                                    <span className="text-sm font-bold text-purple-500">∪</span>
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-foreground capitalize">
-                                        {factType}
+                                      <span className="font-semibold text-foreground">
+                                        {t("rrfFusion")}
                                       </span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {t("methodsCount", { count: methods.length })}
+                                      <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                        {t("rrfMerge")}
                                       </span>
                                     </div>
-                                    {/* Method summary pills */}
-                                    <div className="flex gap-1.5 mt-1">
-                                      {methods.map((m: any, mIdx: number) => (
-                                        <span
-                                          key={mIdx}
-                                          className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize"
-                                        >
-                                          {m.method_name}: {m.results?.length || 0}
-                                        </span>
-                                      ))}
+                                    <div className="text-sm text-muted-foreground mt-0.5">
+                                      {t("rrfDescription")}
                                     </div>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="text-2xl font-bold text-foreground">
-                                      {totalResults}
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground">
-                                      {totalDuration.toFixed(2)}s
-                                    </div>
+                                  <div className="text-2xl font-bold text-foreground">
+                                    {trace.rrf_merged.length}
                                   </div>
-                                  {isLaneExpanded ? (
+                                  {isExpanded ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                   ) : (
                                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                   )}
                                 </div>
-
-                                {/* Expanded: Show methods grid */}
-                                {isLaneExpanded && (
-                                  <div className="mt-4 pt-4 border-t border-border">
-                                    <div
-                                      className={`grid gap-3 ${
-                                        methods.length === 1
-                                          ? "grid-cols-1"
-                                          : methods.length === 2
-                                            ? "grid-cols-2"
-                                            : methods.length === 3
-                                              ? "grid-cols-3"
-                                              : "grid-cols-4"
-                                      }`}
-                                    >
-                                      {methods.map((method: any, mIdx: number) => {
-                                        const methodKey = `${laneKey}-method-${mIdx}`;
-                                        const isMethodExpanded = expandedSteps.has(methodKey);
-                                        const methodResults = method.results || [];
-
-                                        return (
-                                          <div key={methodKey} className="flex flex-col">
-                                            <div
-                                              className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                                                isMethodExpanded
-                                                  ? "bg-primary/10 border border-primary"
-                                                  : "bg-muted/50 hover:bg-muted"
-                                              }`}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleStep(methodKey);
-                                              }}
-                                            >
-                                              <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2">
-                                                  <span className="font-medium text-sm text-foreground capitalize">
-                                                    {method.method_name}
-                                                  </span>
-                                                  {/* Show temporal range inline */}
-                                                  {method.method_name === "temporal" &&
-                                                    method.metadata?.constraint && (
-                                                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                                        <Calendar className="h-3 w-3" />
-                                                        {method.metadata.constraint.start
-                                                          ? new Date(
-                                                              method.metadata.constraint.start
-                                                            ).toLocaleDateString()
-                                                          : "any"}
-                                                        {" → "}
-                                                        {method.metadata.constraint.end
-                                                          ? new Date(
-                                                              method.metadata.constraint.end
-                                                            ).toLocaleDateString()
-                                                          : "any"}
-                                                      </span>
-                                                    )}
-                                                </div>
-                                                {isMethodExpanded ? (
-                                                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                                                ) : (
-                                                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                                                )}
-                                              </div>
-                                              <div className="flex items-end justify-between">
-                                                <div className="text-2xl font-bold text-foreground">
-                                                  {methodResults.length}
-                                                </div>
-                                                <div className="text-[10px] text-muted-foreground">
-                                                  {method.duration_seconds?.toFixed(2)}s
-                                                </div>
-                                              </div>
-                                            </div>
-
-                                            {/* Method Results */}
-                                            {isMethodExpanded &&
-                                              methodResults.length > 0 &&
-                                              (() => {
-                                                const resultsKey = `results-${methodKey}`;
-                                                const showAll = expandedResults.has(resultsKey);
-                                                const displayResults = showAll
-                                                  ? methodResults
-                                                  : methodResults.slice(0, INITIAL_RESULTS_COUNT);
-                                                const hasMore =
-                                                  methodResults.length > INITIAL_RESULTS_COUNT;
-
-                                                return (
-                                                  <div className="mt-2 space-y-1.5 max-h-[300px] overflow-y-auto">
-                                                    {displayResults.map((r: any, rIdx: number) => (
-                                                      <div
-                                                        key={rIdx}
-                                                        className="p-2 bg-background rounded cursor-pointer hover:bg-muted/50 transition-colors border border-border"
-                                                        onClick={(e) => {
-                                                          e.stopPropagation();
-                                                          selectMemoryFromTrace(r);
-                                                        }}
-                                                      >
-                                                        <div className="flex items-start gap-2">
-                                                          <span className="text-[10px] font-mono text-muted-foreground mt-0.5">
-                                                            {rIdx + 1}
-                                                          </span>
-                                                          <div className="flex-1 min-w-0">
-                                                            <p className="text-xs text-foreground line-clamp-2">
-                                                              {r.text}
-                                                            </p>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                              <span className="text-[10px] text-muted-foreground">
-                                                                {fmtScore(r.score ?? r.similarity)}
-                                                              </span>
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      </div>
-                                                    ))}
-                                                    {hasMore && (
-                                                      <button
-                                                        className="w-full text-[10px] text-primary hover:text-primary/80 py-1.5 hover:bg-muted/50 rounded transition-colors"
-                                                        onClick={(e) => {
-                                                          e.stopPropagation();
-                                                          toggleExpandResults(resultsKey);
-                                                        }}
-                                                      >
-                                                        {showAll
-                                                          ? t("showLess")
-                                                          : t("viewAllResults", {
-                                                              count: methodResults.length,
-                                                            })}
-                                                      </button>
-                                                    )}
-                                                  </div>
-                                                );
-                                              })()}
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                )}
                               </CardContent>
                             </Card>
-                          );
-                        })}
-                      </div>
 
-                      {/* Parallel indicator - vertical lines showing all run together */}
-                      <div className="flex justify-center py-2">
-                        <div className="flex items-center gap-2">
-                          {factTypes.map((ft, i) => {
-                            const ftColors: Record<string, string> = {
-                              world: "bg-blue-500",
-                              experience: "bg-green-500",
-                              opinion: "bg-purple-500",
-                              all: "bg-gray-500",
-                            };
-                            return (
-                              <div key={i} className="flex flex-col items-center">
-                                <div
-                                  className={`w-1 h-4 ${ftColors[ft] || ftColors.all} rounded-full opacity-50`}
-                                />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="flex justify-center">
-                        <ArrowDown className="h-5 w-5 text-muted-foreground/50" />
-                      </div>
-                    </div>
-                  );
-                })()}
+                            {/* Expanded Results */}
+                            {isExpanded &&
+                              trace.rrf_merged.length > 0 &&
+                              (() => {
+                                const resultsKey = "results-rrf";
+                                const showAll = expandedResults.has(resultsKey);
+                                const displayResults = showAll
+                                  ? trace.rrf_merged
+                                  : trace.rrf_merged.slice(0, INITIAL_RESULTS_COUNT);
+                                const hasMore = trace.rrf_merged.length > INITIAL_RESULTS_COUNT;
 
-              {/* Step 2: RRF Merge */}
-              {trace.rrf_merged &&
-                (() => {
-                  const stepKey = "rrf-merge";
-                  const isExpanded = expandedSteps.has(stepKey);
-
-                  return (
-                    <div>
-                      <Card
-                        className={`cursor-pointer transition-colors ${isExpanded ? "border-primary" : "hover:border-primary/50"}`}
-                        onClick={() => toggleStep(stepKey)}
-                      >
-                        <CardContent className="py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                              <span className="text-sm font-bold text-purple-500">∪</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-foreground">
-                                  {t("rrfFusion")}
-                                </span>
-                                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                                  {t("rrfMerge")}
-                                </span>
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-0.5">
-                                {t("rrfDescription")}
-                              </div>
-                            </div>
-                            <div className="text-2xl font-bold text-foreground">
-                              {trace.rrf_merged.length}
-                            </div>
-                            {isExpanded ? (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                            ) : (
-                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Expanded Results */}
-                      {isExpanded &&
-                        trace.rrf_merged.length > 0 &&
-                        (() => {
-                          const resultsKey = "results-rrf";
-                          const showAll = expandedResults.has(resultsKey);
-                          const displayResults = showAll
-                            ? trace.rrf_merged
-                            : trace.rrf_merged.slice(0, INITIAL_RESULTS_COUNT);
-                          const hasMore = trace.rrf_merged.length > INITIAL_RESULTS_COUNT;
-
-                          return (
-                            <div className="ml-6 mt-2 space-y-2 border-l-2 border-muted pl-4 max-h-[400px] overflow-y-auto">
-                              {displayResults.map((r: any, rIdx: number) => (
-                                <div
-                                  key={rIdx}
-                                  className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    selectMemoryFromTrace(r);
-                                  }}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <span className="text-xs font-mono text-muted-foreground">
-                                      {rIdx + 1}
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm text-foreground line-clamp-2">
-                                        {r.text}
-                                      </p>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        {t("rrfScore")} {fmtScore(r.rrf_score ?? r.score)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                              {hasMore && (
-                                <button
-                                  className="w-full text-xs text-primary hover:text-primary/80 py-2 hover:bg-muted/50 rounded transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleExpandResults(resultsKey);
-                                  }}
-                                >
-                                  {showAll
-                                    ? t("showLess")
-                                    : t("viewAllResults", { count: trace.rrf_merged.length })}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })()}
-
-                      {/* Arrow */}
-                      <div className="flex justify-center py-2">
-                        <ArrowDown className="h-4 w-4 text-muted-foreground/50" />
-                      </div>
-                    </div>
-                  );
-                })()}
-
-              {/* Step 3: Combined Scoring */}
-              {trace.reranked &&
-                (() => {
-                  const stepKey = "reranking";
-                  const isExpanded = expandedSteps.has(stepKey);
-
-                  return (
-                    <div>
-                      <Card
-                        className={`cursor-pointer transition-colors ${isExpanded ? "border-primary" : "hover:border-primary/50"}`}
-                        onClick={() => toggleStep(stepKey)}
-                      >
-                        <CardContent className="py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                              <span className="text-sm font-bold text-amber-500">⚡</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-foreground">
-                                  {t("combinedScoring")}
-                                </span>
-                                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                                  {t("rerank")}
-                                </span>
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-0.5">
-                                <span className="font-mono text-xs">
-                                  reranker_score × recency_boost(±10%) × temporal_boost(±10%) ×
-                                  proof_boost(±5%)
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-2xl font-bold text-foreground">
-                              {trace.reranked.length}
-                            </div>
-                            {isExpanded ? (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                            ) : (
-                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Expanded Results */}
-                      {isExpanded &&
-                        trace.reranked.length > 0 &&
-                        (() => {
-                          const resultsKey = "results-rerank";
-                          const showAll = expandedResults.has(resultsKey);
-                          const displayResults = showAll
-                            ? trace.reranked
-                            : trace.reranked.slice(0, INITIAL_RESULTS_COUNT);
-                          const hasMore = trace.reranked.length > INITIAL_RESULTS_COUNT;
-
-                          return (
-                            <div className="ml-6 mt-2 space-y-2 border-l-2 border-muted pl-4 max-h-[400px] overflow-y-auto">
-                              {displayResults.map((r: any, rIdx: number) => {
-                                const sc = r.score_components || {};
-                                // The combined score is CE × multiplicative boosts, where each
-                                // boost = 1 + alpha·(signal − 0.5) (neutral 1.0 at signal 0.5).
-                                // The trace carries the raw 0–1 signals, so derive the actual
-                                // multipliers here — otherwise CE × "Rec 1.000" can't reproduce
-                                // the displayed total (e.g. 0.999 × recency-boost 1.100 ≈ 1.099).
-                                const boost = (signal: number, alpha: number) =>
-                                  1 + alpha * (signal - 0.5);
-                                const recBoost =
-                                  sc.recency !== undefined ? boost(sc.recency, 0.2) : undefined;
-                                const tmpBoost =
-                                  sc.temporal !== undefined ? boost(sc.temporal, 0.2) : undefined;
-                                const proofBoost =
-                                  sc.proof_norm !== undefined
-                                    ? boost(sc.proof_norm, 0.1)
-                                    : undefined;
                                 return (
-                                  <div
-                                    key={rIdx}
-                                    className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      selectMemoryFromTrace(r);
-                                    }}
-                                  >
-                                    <div className="flex items-start gap-3">
-                                      <span className="text-xs font-mono text-muted-foreground">
-                                        {rIdx + 1}
-                                      </span>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-foreground line-clamp-2">
-                                          {r.text}
-                                        </p>
-                                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-muted-foreground font-mono">
-                                          <span className="font-semibold text-foreground">
-                                            = {fmtScore(r.rerank_score ?? r.score)}
+                                  <div className="ml-6 mt-2 space-y-2 border-l-2 border-muted pl-4 max-h-[400px] overflow-y-auto">
+                                    {displayResults.map((r: any, rIdx: number) => (
+                                      <div
+                                        key={rIdx}
+                                        className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          selectMemoryFromTrace(r);
+                                        }}
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          <span className="text-xs font-mono text-muted-foreground">
+                                            {rIdx + 1}
                                           </span>
-                                          {sc.cross_encoder_score_normalized !== undefined && (
-                                            <span title={t("tooltipCrossEncoder")}>
-                                              reranker {fmtScore(sc.cross_encoder_score_normalized)}
-                                            </span>
-                                          )}
-                                          {recBoost !== undefined && (
-                                            <span
-                                              title={`${t("tooltipRecency")} — signal ${fmtScore(sc.recency)} → ×${fmtScore(recBoost)}`}
-                                            >
-                                              × rec {fmtScore(recBoost)}
-                                            </span>
-                                          )}
-                                          {tmpBoost !== undefined && sc.temporal !== 0.5 && (
-                                            <span
-                                              title={`${t("tooltipTemporal")} — signal ${fmtScore(sc.temporal)} → ×${fmtScore(tmpBoost)}`}
-                                            >
-                                              × tmp {fmtScore(tmpBoost)}
-                                            </span>
-                                          )}
-                                          {proofBoost !== undefined && sc.proof_norm !== 0.5 && (
-                                            <span
-                                              title={`Proof-count boost (±5%) — signal ${fmtScore(sc.proof_norm)} → ×${fmtScore(proofBoost)}`}
-                                            >
-                                              × proof {fmtScore(proofBoost)}
-                                            </span>
-                                          )}
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-foreground line-clamp-2">
+                                              {r.text}
+                                            </p>
+                                            <div className="text-xs text-muted-foreground mt-1">
+                                              {t("rrfScore")} {fmtScore(r.rrf_score ?? r.score)}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
+                                    ))}
+                                    {hasMore && (
+                                      <button
+                                        className="w-full text-xs text-primary hover:text-primary/80 py-2 hover:bg-muted/50 rounded transition-colors"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleExpandResults(resultsKey);
+                                        }}
+                                      >
+                                        {showAll
+                                          ? t("showLess")
+                                          : t("viewAllResults", {
+                                              count: trace.rrf_merged.length,
+                                            })}
+                                      </button>
+                                    )}
                                   </div>
                                 );
-                              })}
-                              {hasMore && (
-                                <button
-                                  className="w-full text-xs text-primary hover:text-primary/80 py-2 hover:bg-muted/50 rounded transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleExpandResults(resultsKey);
-                                  }}
-                                >
-                                  {showAll
-                                    ? t("showLess")
-                                    : t("viewAllResults", { count: trace.reranked.length })}
-                                </button>
-                              )}
+                              })()}
+
+                            {/* Arrow */}
+                            <div className="flex justify-center py-2">
+                              <ArrowDown className="h-4 w-4 text-muted-foreground/50" />
                             </div>
-                          );
-                        })()}
+                          </div>
+                        );
+                      })()}
 
-                      {/* Arrow */}
-                      <div className="flex justify-center py-2">
-                        <ArrowDown className="h-4 w-4 text-muted-foreground/50" />
-                      </div>
-                    </div>
-                  );
-                })()}
+                    {/* Step 3: Combined Scoring */}
+                    {trace.reranked &&
+                      (() => {
+                        const stepKey = "reranking";
+                        const isExpanded = expandedSteps.has(stepKey);
 
-              {/* Final: Results */}
-              <Card className="border-primary bg-primary/5">
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">✓</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-foreground">{t("finalResults")}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">
-                          {t("output")}
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-0.5">
-                        {t("finalResultsDescription")}
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-primary">{results?.length || 0}</div>
+                        return (
+                          <div>
+                            <Card
+                              className={`cursor-pointer transition-colors ${isExpanded ? "border-primary" : "hover:border-primary/50"}`}
+                              onClick={() => toggleStep(stepKey)}
+                            >
+                              <CardContent className="py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                    <span className="text-sm font-bold text-amber-500">⚡</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-semibold text-foreground">
+                                        {t("combinedScoring")}
+                                      </span>
+                                      <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                        {t("rerank")}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mt-0.5">
+                                      <span className="font-mono text-xs">
+                                        reranker_score × recency_boost(±10%) × temporal_boost(±10%)
+                                        × proof_boost(±5%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="text-2xl font-bold text-foreground">
+                                    {trace.reranked.length}
+                                  </div>
+                                  {isExpanded ? (
+                                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            {/* Expanded Results */}
+                            {isExpanded &&
+                              trace.reranked.length > 0 &&
+                              (() => {
+                                const resultsKey = "results-rerank";
+                                const showAll = expandedResults.has(resultsKey);
+                                const displayResults = showAll
+                                  ? trace.reranked
+                                  : trace.reranked.slice(0, INITIAL_RESULTS_COUNT);
+                                const hasMore = trace.reranked.length > INITIAL_RESULTS_COUNT;
+
+                                return (
+                                  <div className="ml-6 mt-2 space-y-2 border-l-2 border-muted pl-4 max-h-[400px] overflow-y-auto">
+                                    {displayResults.map((r: any, rIdx: number) => {
+                                      const sc = r.score_components || {};
+                                      // The combined score is CE × multiplicative boosts, where each
+                                      // boost = 1 + alpha·(signal − 0.5) (neutral 1.0 at signal 0.5).
+                                      // The trace carries the raw 0–1 signals, so derive the actual
+                                      // multipliers here — otherwise CE × "Rec 1.000" can't reproduce
+                                      // the displayed total (e.g. 0.999 × recency-boost 1.100 ≈ 1.099).
+                                      const boost = (signal: number, alpha: number) =>
+                                        1 + alpha * (signal - 0.5);
+                                      const recBoost =
+                                        sc.recency !== undefined
+                                          ? boost(sc.recency, 0.2)
+                                          : undefined;
+                                      const tmpBoost =
+                                        sc.temporal !== undefined
+                                          ? boost(sc.temporal, 0.2)
+                                          : undefined;
+                                      const proofBoost =
+                                        sc.proof_norm !== undefined
+                                          ? boost(sc.proof_norm, 0.1)
+                                          : undefined;
+                                      return (
+                                        <div
+                                          key={rIdx}
+                                          className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            selectMemoryFromTrace(r);
+                                          }}
+                                        >
+                                          <div className="flex items-start gap-3">
+                                            <span className="text-xs font-mono text-muted-foreground">
+                                              {rIdx + 1}
+                                            </span>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm text-foreground line-clamp-2">
+                                                {r.text}
+                                              </p>
+                                              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-muted-foreground font-mono">
+                                                <span className="font-semibold text-foreground">
+                                                  = {fmtScore(r.rerank_score ?? r.score)}
+                                                </span>
+                                                {sc.cross_encoder_score_normalized !==
+                                                  undefined && (
+                                                  <span title={t("tooltipCrossEncoder")}>
+                                                    reranker{" "}
+                                                    {fmtScore(sc.cross_encoder_score_normalized)}
+                                                  </span>
+                                                )}
+                                                {recBoost !== undefined && (
+                                                  <span
+                                                    title={`${t("tooltipRecency")} — signal ${fmtScore(sc.recency)} → ×${fmtScore(recBoost)}`}
+                                                  >
+                                                    × rec {fmtScore(recBoost)}
+                                                  </span>
+                                                )}
+                                                {tmpBoost !== undefined && sc.temporal !== 0.5 && (
+                                                  <span
+                                                    title={`${t("tooltipTemporal")} — signal ${fmtScore(sc.temporal)} → ×${fmtScore(tmpBoost)}`}
+                                                  >
+                                                    × tmp {fmtScore(tmpBoost)}
+                                                  </span>
+                                                )}
+                                                {proofBoost !== undefined &&
+                                                  sc.proof_norm !== 0.5 && (
+                                                    <span
+                                                      title={`Proof-count boost (±5%) — signal ${fmtScore(sc.proof_norm)} → ×${fmtScore(proofBoost)}`}
+                                                    >
+                                                      × proof {fmtScore(proofBoost)}
+                                                    </span>
+                                                  )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    {hasMore && (
+                                      <button
+                                        className="w-full text-xs text-primary hover:text-primary/80 py-2 hover:bg-muted/50 rounded transition-colors"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleExpandResults(resultsKey);
+                                        }}
+                                      >
+                                        {showAll
+                                          ? t("showLess")
+                                          : t("viewAllResults", {
+                                              count: trace.reranked.length,
+                                            })}
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {/* Arrow */}
+                            <div className="flex justify-center py-2">
+                              <ArrowDown className="h-4 w-4 text-muted-foreground/50" />
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                    {/* Final: Results */}
+                    <Card className="border-primary bg-primary/5">
+                      <CardContent className="py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <span className="text-sm font-bold text-primary">✓</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">
+                                {t("finalResults")}
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">
+                                {t("output")}
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-0.5">
+                              {t("finalResultsDescription")}
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-primary">
+                            {results?.length || 0}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                )}
 
-          {/* JSON View */}
-          {viewMode === "json" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t("rawResponse")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[600px]">
-                  <JsonView
-                    src={{
-                      results,
-                      ...(entities && { entities }),
-                      ...(chunks && { chunks }),
-                      ...(observations && { observations }),
-                      trace,
-                    }}
-                    collapsed={2}
-                    theme="default"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                {/* JSON View */}
+                {viewMode === "json" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{t("rawResponse")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[600px]">
+                        <JsonView
+                          src={{
+                            results,
+                            ...(entities && { entities }),
+                            ...(chunks && { chunks }),
+                            ...(observations && { observations }),
+                            trace,
+                          }}
+                          collapsed={2}
+                          theme="default"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </details>
         </div>
       )}
 

@@ -1,5 +1,5 @@
-import { StorageSettingsView } from "@/components/storage-settings-view";
+import { redirect } from "next/navigation";
 
 export default function SettingsPage() {
-  return <StorageSettingsView />;
+  redirect("/dashboard");
 }
