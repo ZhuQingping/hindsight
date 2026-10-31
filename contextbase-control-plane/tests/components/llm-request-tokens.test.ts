@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { totalTokens } from "@/components/llm-requests-view";
+import { totalTokens } from "@/components/llm-trace-dialog";
 import type { LLMRequestEntry } from "@/lib/api";
 
 /**

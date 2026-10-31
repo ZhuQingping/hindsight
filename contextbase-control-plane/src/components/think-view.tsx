@@ -41,7 +41,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 type TagsMatch = "any" | "all" | "any_strict" | "all_strict" | "exact";
-type ViewMode = "answer" | "trace" | "json";
+type ViewMode = "trace" | "json";
 type BasedOnTab = "directives" | "mental_models" | "observations" | "world" | "experience";
 
 // Stable component identity preserves the table's scroll position when controls change.
@@ -61,7 +61,8 @@ export function ThinkView() {
   const [maxTokens, setMaxTokens] = useState<number>(4096);
   const [includeFacts, setIncludeFacts] = useState(true);
   const [includeToolCalls, setIncludeToolCalls] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>("answer");
+  const [viewMode, setViewMode] = useState<ViewMode>("trace");
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [tags, setTags] = useState("");
@@ -153,7 +154,8 @@ export function ThinkView() {
     if (!currentBank || !query) return;
 
     setLoading(true);
-    setViewMode("answer");
+    setViewMode("trace");
+    setDiagnosticsOpen(false);
     try {
       // Parse tags from comma-separated string
       const parsedTags = tags
@@ -178,7 +180,10 @@ export function ThinkView() {
         max_tokens: maxTokens,
         include_facts: includeFacts,
         include_tool_calls: includeToolCalls,
-        ...(parsedTags.length > 0 && { tags: parsedTags, tags_match: tagsMatch }),
+        ...(parsedTags.length > 0 && {
+          tags: parsedTags,
+          tags_match: tagsMatch,
+        }),
         ...(factTypes.length > 0 && { fact_types: factTypes }),
         ...(excludeMentalModels && { exclude_mental_models: true }),
         ...(excludeIds.length > 0 && { exclude_mental_model_ids: excludeIds }),
@@ -372,7 +377,7 @@ export function ThinkView() {
       {/* Results */}
       {!loading && result && (
         <div className="space-y-4">
-          {/* Summary Stats & Tabs */}
+          {/* Summary Stats */}
           <div className="flex items-center gap-6 text-sm">
             {result.usage && (
               <>
@@ -417,568 +422,587 @@ export function ThinkView() {
             )}
 
             <div className="flex-1" />
-
-            {/* View Mode Tabs */}
-            <div className="flex gap-1 bg-muted p-1 rounded-lg">
-              {(["answer", "trace", "json"] as ViewMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    viewMode === mode
-                      ? "bg-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {mode === "answer"
-                    ? t("viewAnswer")
-                    : mode === "trace"
-                      ? t("viewTrace")
-                      : t("viewJson")}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Answer View */}
-          {viewMode === "answer" && (
-            <div className="space-y-6">
-              {/* Main Answer */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("answerTitle")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="reflect-answer prose prose-base max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{ table: ReflectMarkdownTable }}
-                    >
-                      {result.text}
-                    </ReactMarkdown>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Structured Output */}
-              {result.structured_output && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">{t("structuredOutputTitle")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[400px]">
-                      <JsonView src={result.structured_output} collapsed={2} theme="default" />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Directive */}
-              <Card className="border-blue-200 dark:border-blue-800">
-                <CardHeader className="py-4">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <MessageSquare className="w-4 h-4" />
-                    {t("addDirectiveTitle")}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {t("addDirectiveDescription")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {feedbackSubmitted ? (
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                      <span className="text-lg">&#10003;</span>
-                      <span className="text-sm font-medium">
-                        {t("directiveSaved", { name: FEEDBACK_DIRECTIVE_NAME })}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex gap-3">
-                      <Textarea
-                        value={feedback}
-                        onChange={(e) => setFeedback(e.target.value)}
-                        placeholder={t("directivePlaceholder")}
-                        className="flex-1 min-h-[60px] resize-none"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                            submitFeedback();
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={submitFeedback}
-                        disabled={feedbackSubmitting || !feedback.trim()}
-                        className="self-end"
-                      >
-                        {feedbackSubmitting ? t("savingDirective") : t("saveDirective")}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Trace View - Split Layout */}
-          {viewMode === "trace" && (
-            <div className="space-y-4">
-              {/* Observations Created */}
-              {result.observations_created && result.observations_created.length > 0 && (
-                <Card className="border-emerald-200 dark:border-emerald-800">
-                  <CardHeader className="bg-emerald-50 dark:bg-emerald-950 py-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Brain className="w-4 h-4 text-emerald-600" />
-                      {t("observationsCreatedTitle", { count: result.observations_created.length })}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {t("observationsCreatedDescription")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-2">
-                      {result.observations_created.map((obs: any, i: number) => (
-                        <div
-                          key={i}
-                          className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800"
-                        >
-                          <div className="font-medium text-sm text-emerald-900 dark:text-emerald-100">
-                            {obs.name}
-                          </div>
-                          <div className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
-                            {obs.description}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground mt-2 font-mono">
-                            ID: {obs.id}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Left: Execution Trace (LLM + Tool Calls) */}
-                <Card className="h-fit">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">{t("executionTraceTitle")}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {t("executionTraceDescription", {
-                        iterations: result.iterations || 0,
-                        iterationsPlural: (result.iterations || 0) !== 1 ? "s" : "",
-                        totalMs:
-                          (result.trace?.llm_calls?.reduce(
-                            (sum: number, lc: any) => sum + lc.duration_ms,
-                            0
-                          ) || 0) +
-                          (result.trace?.tool_calls?.reduce(
-                            (sum: number, tc: any) => sum + tc.duration_ms,
-                            0
-                          ) || 0),
-                      })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {!includeToolCalls ? (
-                      <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
-                        <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{t("notIncluded")}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("enableIncludeTools")}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (result.trace?.llm_calls && result.trace.llm_calls.length > 0) ||
-                      (result.trace?.tool_calls && result.trace.tool_calls.length > 0) ? (
-                      <div className="max-h-[500px] overflow-y-auto pr-2">
-                        {/* Build timeline: LLM -> Tools -> LLM -> Tools */}
-                        {(() => {
-                          const llmCalls = result.trace?.llm_calls || [];
-                          const toolCalls = result.trace?.tool_calls || [];
-
-                          // Build interleaved timeline
-                          const timeline: Array<{
-                            type: "llm" | "tools";
-                            llm?: any;
-                            tools?: any[];
-                            iteration: number;
-                            isFinal?: boolean;
-                          }> = [];
-
-                          llmCalls.forEach((lc: any, idx: number) => {
-                            // Add tools for this iteration (using iteration field from tool trace)
-                            const iterTools = toolCalls.filter(
-                              (tc: any) => tc.iteration === idx + 1
-                            );
-                            // Determine if this is the final LLM call:
-                            // - scope includes "final", OR
-                            // - it's the last LLM call AND no tools were called after it
-                            const isLastLLMCall = idx === llmCalls.length - 1;
-                            const isFinal =
-                              lc.scope.includes("final") ||
-                              (isLastLLMCall && iterTools.length === 0);
-                            const iterNum = isFinal ? llmCalls.length : idx + 1;
-
-                            // Add LLM call
-                            timeline.push({
-                              type: "llm",
-                              llm: lc,
-                              iteration: iterNum,
-                              isFinal,
-                            });
-
-                            if (iterTools.length > 0) {
-                              timeline.push({
-                                type: "tools",
-                                tools: iterTools,
-                                iteration: idx + 1,
-                              });
-                            }
-                          });
-
-                          return timeline.map((item, idx) => (
-                            <div key={idx} className="relative">
-                              {/* Timeline connector */}
-                              {idx < timeline.length - 1 && (
-                                <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-border" />
-                              )}
-
-                              {item.type === "llm" ? (
-                                // LLM Call
-                                <div className="flex items-start gap-3 pb-3">
-                                  <div
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                      item.isFinal
-                                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                                        : "bg-primary/10 text-primary"
-                                    }`}
-                                  >
-                                    {item.isFinal ? (
-                                      <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                    ) : (
-                                      <span className="text-[10px] font-semibold">
-                                        {item.iteration}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-medium text-sm">
-                                        {item.isFinal ? t("responseGenerated") : t("agentDecided")}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {item.llm.duration_ms}ms
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">
-                                      {item.isFinal ? t("finalAnswer") : t("calledToolsBelow")}
-                                    </span>
-                                  </div>
-                                </div>
-                              ) : (
-                                // Tool Calls
-                                <div className="flex items-start gap-3 pb-3">
-                                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-blue-500/15 text-blue-600 dark:text-blue-400 flex-shrink-0">
-                                    <Play className="w-3 h-3" fill="currentColor" />
-                                  </div>
-                                  <div className="flex-1 min-w-0 space-y-2">
-                                    <div className="text-xs text-muted-foreground">
-                                      {(item.tools?.length ?? 0) !== 1
-                                        ? t("executingToolsPlural", {
-                                            count: item.tools?.length ?? 0,
-                                          })
-                                        : t("executingTools", { count: item.tools?.length ?? 0 })}
-                                    </div>
-                                    {item.tools?.map((tc: any, tcIdx: number) => (
-                                      <div
-                                        key={tcIdx}
-                                        className="border border-border rounded-lg overflow-hidden"
-                                      >
-                                        <div className="flex items-center justify-between px-3 py-1.5 bg-muted/50">
-                                          <span className="font-medium text-sm text-foreground">
-                                            {tc.tool}
-                                          </span>
-                                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            {tc.duration_ms}ms
-                                          </span>
-                                        </div>
-                                        <div className="p-2 space-y-2">
-                                          <div>
-                                            <p className="text-[10px] font-semibold text-muted-foreground mb-1">
-                                              {t("toolInputLabel")}
-                                            </p>
-                                            <div className="bg-muted p-1.5 rounded text-xs overflow-auto max-h-32">
-                                              <JsonView
-                                                src={tc.input}
-                                                collapsed={1}
-                                                theme="default"
-                                              />
-                                            </div>
-                                          </div>
-                                          {tc.output && (
-                                            <div>
-                                              <p className="text-[10px] font-semibold text-muted-foreground mb-1">
-                                                {t("toolOutputLabel")}
-                                              </p>
-                                              <div className="bg-muted p-1.5 rounded text-xs overflow-auto max-h-32">
-                                                <JsonView
-                                                  src={tc.output}
-                                                  collapsed={1}
-                                                  theme="default"
-                                                />
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    ) : (
-                      <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
-                        <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{t("noOperations")}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("noOperationsDescription")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Right: Based On Facts */}
-                <Card className="h-fit">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">{t("basedOnTitle")}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {t("basedOnDescription", {
-                        count:
-                          (result.based_on?.memories?.length || 0) +
-                          (result.based_on?.observations?.filter(
-                            (o: any) => o.subtype !== "directive"
-                          )?.length || 0) +
-                          (result.based_on?.directives?.length || 0),
-                      })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {!includeFacts ? (
-                      <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
-                        <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm text-foreground">
-                            {t("notIncludedBasedOn")}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("enableIncludeSource")}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (result.based_on?.memories && result.based_on.memories.length > 0) ||
-                      (result.based_on?.mental_models &&
-                        result.based_on.mental_models.length > 0) ||
-                      (result.based_on?.directives && result.based_on.directives.length > 0) ||
-                      (result.based_on?.observations && result.based_on.observations.length > 0) ? (
-                      (() => {
-                        const memories = result.based_on?.memories || [];
-                        const worldFacts = memories.filter((f: any) => f.type === "world");
-                        const experienceFacts = memories.filter(
-                          (f: any) => f.type === "experience"
-                        );
-                        // Mental models are in based_on.mental_models
-                        const mentalModelFacts = result.based_on?.mental_models || [];
-                        const observations = (result.based_on?.observations || []).filter(
-                          (o: any) => o.subtype !== "directive"
-                        );
-                        // Directives are in based_on.directives
-                        const directives = result.based_on?.directives || [];
-
-                        // Build tabs array with all categories
-                        const tabs: { id: BasedOnTab; label: string; count: number }[] = [
-                          { id: "directives", label: t("tabDirectives"), count: directives.length },
-                          {
-                            id: "mental_models",
-                            label: t("tabMentalModels"),
-                            count: mentalModelFacts.length,
-                          },
-                          {
-                            id: "observations",
-                            label: t("tabObservations"),
-                            count: observations.length,
-                          },
-                          { id: "world", label: t("tabWorld"), count: worldFacts.length },
-                          {
-                            id: "experience",
-                            label: t("tabExperience"),
-                            count: experienceFacts.length,
-                          },
-                        ];
-
-                        const currentTab = activeBasedOnTab;
-
-                        const getCurrentFacts = () => {
-                          switch (currentTab) {
-                            case "directives":
-                              return directives;
-                            case "mental_models":
-                              return mentalModelFacts;
-                            case "observations":
-                              return observations;
-                            case "world":
-                              return worldFacts;
-                            case "experience":
-                              return experienceFacts;
-                            default:
-                              return [];
-                          }
-                        };
-
-                        const currentFacts = getCurrentFacts();
-
-                        return (
-                          <div>
-                            {/* Tabs */}
-                            <div className="flex items-center gap-1 bg-muted rounded-lg p-1 mb-4">
-                              {tabs.map((tab) => (
-                                <button
-                                  key={tab.id}
-                                  onClick={() => setActiveBasedOnTab(tab.id)}
-                                  className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                    currentTab === tab.id
-                                      ? "bg-background text-foreground shadow-sm"
-                                      : "text-muted-foreground hover:text-foreground"
-                                  }`}
-                                >
-                                  {tab.label} ({tab.count})
-                                </button>
-                              ))}
-                            </div>
-
-                            {/* Tab Content */}
-                            {currentFacts.length > 0 ? (
-                              <div className="max-h-[400px] overflow-y-auto pr-2 space-y-3">
-                                {currentFacts.map((item: any, i: number) => (
-                                  <div
-                                    key={item.id || i}
-                                    className={`p-4 bg-muted/50 rounded-lg border border-border/50 ${
-                                      currentTab !== "directives"
-                                        ? "cursor-pointer hover:bg-muted/80 transition-colors"
-                                        : ""
-                                    }`}
-                                    onClick={() => {
-                                      if (currentTab === "directives") return; // Not clickable
-                                      if (currentTab === "observations")
-                                        handleSelectObservation(item);
-                                      else if (currentTab === "mental_models")
-                                        setSelectedMentalModelId(item.id);
-                                      else setSelectedMemoryId(item.id);
-                                    }}
-                                  >
-                                    {currentTab === "directives" ? (
-                                      <>
-                                        <div className="font-medium text-sm">{item.name}</div>
-                                        {item.content && (
-                                          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                                            {item.content}
-                                          </p>
-                                        )}
-                                      </>
-                                    ) : currentTab === "observations" ? (
-                                      <div className="font-medium text-sm">{item.name}</div>
-                                    ) : currentTab === "mental_models" ? (
-                                      (() => {
-                                        const colonIdx = item.text?.indexOf(": ") ?? -1;
-                                        const name =
-                                          colonIdx > 0 ? item.text.slice(0, colonIdx) : item.id;
-                                        return (
-                                          <>
-                                            <div className="font-medium text-sm">{name}</div>
-                                            <code className="text-xs font-mono text-muted-foreground">
-                                              {item.id}
-                                            </code>
-                                          </>
-                                        );
-                                      })()
-                                    ) : (
-                                      <>
-                                        <p className="text-sm text-foreground leading-relaxed">
-                                          {item.text}
-                                        </p>
-                                        {item.context && (
-                                          <div className="text-xs text-muted-foreground mt-2">
-                                            {item.context}
-                                          </div>
-                                        )}
-                                        {item.attachments?.length > 0 && currentBank && (
-                                          // Each attachment links to its own bytes; stop the click
-                                          // so it does not also open the memory dialog.
-                                          <div
-                                            className="mt-2"
-                                            onClick={(e) => e.stopPropagation()}
-                                            role="presentation"
-                                          >
-                                            <AttachmentStrip
-                                              bankId={currentBank}
-                                              attachments={item.attachments}
-                                            />
-                                          </div>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground text-center py-4">
-                                {t("noTabItems", { tab: currentTab })}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })()
-                    ) : (
-                      <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-                        <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm text-amber-900 dark:text-amber-100">
-                            {t("noFactsFound")}
-                          </p>
-                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                            {t("noFactsFoundDescription")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* JSON View */}
-          {viewMode === "json" && (
+          <div className="space-y-6">
+            {/* Main Answer */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t("rawResponseTitle")}</CardTitle>
+                <CardTitle>{t("answerTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[600px]">
-                  <JsonView src={result} collapsed={2} theme="default" />
+                <div className="reflect-answer prose prose-base max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{ table: ReflectMarkdownTable }}
+                  >
+                    {result.text}
+                  </ReactMarkdown>
                 </div>
               </CardContent>
             </Card>
-          )}
+
+            {/* Structured Output */}
+            {result.structured_output && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">{t("structuredOutputTitle")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[400px]">
+                    <JsonView src={result.structured_output} collapsed={2} theme="default" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Directive */}
+            <Card className="border-blue-200 dark:border-blue-800">
+              <CardHeader className="py-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MessageSquare className="w-4 h-4" />
+                  {t("addDirectiveTitle")}
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  {t("addDirectiveDescription")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {feedbackSubmitted ? (
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <span className="text-lg">&#10003;</span>
+                    <span className="text-sm font-medium">
+                      {t("directiveSaved", { name: FEEDBACK_DIRECTIVE_NAME })}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Textarea
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      placeholder={t("directivePlaceholder")}
+                      className="flex-1 min-h-[60px] resize-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                          submitFeedback();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={submitFeedback}
+                      disabled={feedbackSubmitting || !feedback.trim()}
+                      className="self-end"
+                    >
+                      {feedbackSubmitting ? t("savingDirective") : t("saveDirective")}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Answer evidence remains visible when diagnostics are collapsed. */}
+          <Card className="h-fit">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{t("basedOnTitle")}</CardTitle>
+              <CardDescription className="text-xs">
+                {t("basedOnDescription", {
+                  count:
+                    (result.based_on?.memories?.length || 0) +
+                    (result.based_on?.observations?.filter((o: any) => o.subtype !== "directive")
+                      ?.length || 0) +
+                    (result.based_on?.directives?.length || 0),
+                })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!includeFacts ? (
+                <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
+                  <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm text-foreground">{t("notIncludedBasedOn")}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {t("enableIncludeSource")}
+                    </p>
+                  </div>
+                </div>
+              ) : (result.based_on?.memories && result.based_on.memories.length > 0) ||
+                (result.based_on?.mental_models && result.based_on.mental_models.length > 0) ||
+                (result.based_on?.directives && result.based_on.directives.length > 0) ||
+                (result.based_on?.observations && result.based_on.observations.length > 0) ? (
+                (() => {
+                  const memories = result.based_on?.memories || [];
+                  const worldFacts = memories.filter((f: any) => f.type === "world");
+                  const experienceFacts = memories.filter((f: any) => f.type === "experience");
+                  // Mental models are in based_on.mental_models
+                  const mentalModelFacts = result.based_on?.mental_models || [];
+                  const observations = (result.based_on?.observations || []).filter(
+                    (o: any) => o.subtype !== "directive"
+                  );
+                  // Directives are in based_on.directives
+                  const directives = result.based_on?.directives || [];
+
+                  // Build tabs array with all categories
+                  const tabs: {
+                    id: BasedOnTab;
+                    label: string;
+                    count: number;
+                  }[] = [
+                    {
+                      id: "directives",
+                      label: t("tabDirectives"),
+                      count: directives.length,
+                    },
+                    {
+                      id: "mental_models",
+                      label: t("tabMentalModels"),
+                      count: mentalModelFacts.length,
+                    },
+                    {
+                      id: "observations",
+                      label: t("tabObservations"),
+                      count: observations.length,
+                    },
+                    {
+                      id: "world",
+                      label: t("tabWorld"),
+                      count: worldFacts.length,
+                    },
+                    {
+                      id: "experience",
+                      label: t("tabExperience"),
+                      count: experienceFacts.length,
+                    },
+                  ];
+
+                  const currentTab = activeBasedOnTab;
+
+                  const getCurrentFacts = () => {
+                    switch (currentTab) {
+                      case "directives":
+                        return directives;
+                      case "mental_models":
+                        return mentalModelFacts;
+                      case "observations":
+                        return observations;
+                      case "world":
+                        return worldFacts;
+                      case "experience":
+                        return experienceFacts;
+                      default:
+                        return [];
+                    }
+                  };
+
+                  const currentFacts = getCurrentFacts();
+
+                  return (
+                    <div>
+                      {/* Tabs */}
+                      <div className="flex items-center gap-1 bg-muted rounded-lg p-1 mb-4">
+                        {tabs.map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveBasedOnTab(tab.id)}
+                            className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                              currentTab === tab.id
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {tab.label} ({tab.count})
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Tab Content */}
+                      {currentFacts.length > 0 ? (
+                        <div className="max-h-[400px] overflow-y-auto pr-2 space-y-3">
+                          {currentFacts.map((item: any, i: number) => (
+                            <div
+                              key={item.id || i}
+                              className={`p-4 bg-muted/50 rounded-lg border border-border/50 ${
+                                currentTab !== "directives"
+                                  ? "cursor-pointer hover:bg-muted/80 transition-colors"
+                                  : ""
+                              }`}
+                              onClick={() => {
+                                if (currentTab === "directives") return; // Not clickable
+                                if (currentTab === "observations") handleSelectObservation(item);
+                                else if (currentTab === "mental_models")
+                                  setSelectedMentalModelId(item.id);
+                                else setSelectedMemoryId(item.id);
+                              }}
+                            >
+                              {currentTab === "directives" ? (
+                                <>
+                                  <div className="font-medium text-sm">{item.name}</div>
+                                  {item.content && (
+                                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                                      {item.content}
+                                    </p>
+                                  )}
+                                </>
+                              ) : currentTab === "observations" ? (
+                                <div className="font-medium text-sm">{item.name}</div>
+                              ) : currentTab === "mental_models" ? (
+                                (() => {
+                                  const colonIdx = item.text?.indexOf(": ") ?? -1;
+                                  const name =
+                                    colonIdx > 0 ? item.text.slice(0, colonIdx) : item.id;
+                                  return (
+                                    <>
+                                      <div className="font-medium text-sm">{name}</div>
+                                      <code className="text-xs font-mono text-muted-foreground">
+                                        {item.id}
+                                      </code>
+                                    </>
+                                  );
+                                })()
+                              ) : (
+                                <>
+                                  <p className="text-sm text-foreground leading-relaxed">
+                                    {item.text}
+                                  </p>
+                                  {item.context && (
+                                    <div className="text-xs text-muted-foreground mt-2">
+                                      {item.context}
+                                    </div>
+                                  )}
+                                  {item.attachments?.length > 0 && currentBank && (
+                                    // Each attachment links to its own bytes; stop the click
+                                    // so it does not also open the memory dialog.
+                                    <div
+                                      className="mt-2"
+                                      onClick={(e) => e.stopPropagation()}
+                                      role="presentation"
+                                    >
+                                      <AttachmentStrip
+                                        bankId={currentBank}
+                                        attachments={item.attachments}
+                                      />
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          {t("noTabItems", { tab: currentTab })}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm text-amber-900 dark:text-amber-100">
+                      {t("noFactsFound")}
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                      {t("noFactsFoundDescription")}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <details
+            className="rounded-lg border border-border p-4"
+            open={diagnosticsOpen}
+            onToggle={(event) => setDiagnosticsOpen(event.currentTarget.open)}
+          >
+            <summary className="cursor-pointer text-sm font-medium">{t("diagnostics")}</summary>
+            {diagnosticsOpen && (
+              <div className="mt-4 space-y-4">
+                <div className="flex gap-1" role="group" aria-label={t("diagnostics")}>
+                  {(["trace", "json"] as ViewMode[]).map((mode) => (
+                    <Button
+                      key={mode}
+                      type="button"
+                      size="sm"
+                      variant={viewMode === mode ? "secondary" : "ghost"}
+                      aria-pressed={viewMode === mode}
+                      onClick={() => setViewMode(mode)}
+                    >
+                      {mode === "trace" ? t("viewTrace") : t("viewJson")}
+                    </Button>
+                  ))}
+                </div>
+                {/* Trace View */}
+                {viewMode === "trace" && (
+                  <div className="space-y-4">
+                    {/* Observations Created */}
+                    {result.observations_created && result.observations_created.length > 0 && (
+                      <Card className="border-emerald-200 dark:border-emerald-800">
+                        <CardHeader className="bg-emerald-50 dark:bg-emerald-950 py-3">
+                          <CardTitle className="flex items-center gap-2 text-base">
+                            <Brain className="w-4 h-4 text-emerald-600" />
+                            {t("observationsCreatedTitle", {
+                              count: result.observations_created.length,
+                            })}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            {t("observationsCreatedDescription")}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                          <div className="space-y-2">
+                            {result.observations_created.map((obs: any, i: number) => (
+                              <div
+                                key={i}
+                                className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800"
+                              >
+                                <div className="font-medium text-sm text-emerald-900 dark:text-emerald-100">
+                                  {obs.name}
+                                </div>
+                                <div className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+                                  {obs.description}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground mt-2 font-mono">
+                                  ID: {obs.id}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <div className="space-y-4">
+                      {/* Execution Trace (LLM + Tool Calls) */}
+                      <Card className="h-fit">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">{t("executionTraceTitle")}</CardTitle>
+                          <CardDescription className="text-xs">
+                            {t("executionTraceDescription", {
+                              iterations: result.iterations || 0,
+                              iterationsPlural: (result.iterations || 0) !== 1 ? "s" : "",
+                              totalMs:
+                                (result.trace?.llm_calls?.reduce(
+                                  (sum: number, lc: any) => sum + lc.duration_ms,
+                                  0
+                                ) || 0) +
+                                (result.trace?.tool_calls?.reduce(
+                                  (sum: number, tc: any) => sum + tc.duration_ms,
+                                  0
+                                ) || 0),
+                            })}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {!includeToolCalls ? (
+                            <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
+                              <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-sm text-foreground">
+                                  {t("notIncluded")}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {t("enableIncludeTools")}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (result.trace?.llm_calls && result.trace.llm_calls.length > 0) ||
+                            (result.trace?.tool_calls && result.trace.tool_calls.length > 0) ? (
+                            <div className="max-h-[500px] overflow-y-auto pr-2">
+                              {/* Build timeline: LLM -> Tools -> LLM -> Tools */}
+                              {(() => {
+                                const llmCalls = result.trace?.llm_calls || [];
+                                const toolCalls = result.trace?.tool_calls || [];
+
+                                // Build interleaved timeline
+                                const timeline: Array<{
+                                  type: "llm" | "tools";
+                                  llm?: any;
+                                  tools?: any[];
+                                  iteration: number;
+                                  isFinal?: boolean;
+                                }> = [];
+
+                                llmCalls.forEach((lc: any, idx: number) => {
+                                  // Add tools for this iteration (using iteration field from tool trace)
+                                  const iterTools = toolCalls.filter(
+                                    (tc: any) => tc.iteration === idx + 1
+                                  );
+                                  // Determine if this is the final LLM call:
+                                  // - scope includes "final", OR
+                                  // - it's the last LLM call AND no tools were called after it
+                                  const isLastLLMCall = idx === llmCalls.length - 1;
+                                  const isFinal =
+                                    lc.scope.includes("final") ||
+                                    (isLastLLMCall && iterTools.length === 0);
+                                  const iterNum = isFinal ? llmCalls.length : idx + 1;
+
+                                  // Add LLM call
+                                  timeline.push({
+                                    type: "llm",
+                                    llm: lc,
+                                    iteration: iterNum,
+                                    isFinal,
+                                  });
+
+                                  if (iterTools.length > 0) {
+                                    timeline.push({
+                                      type: "tools",
+                                      tools: iterTools,
+                                      iteration: idx + 1,
+                                    });
+                                  }
+                                });
+
+                                return timeline.map((item, idx) => (
+                                  <div key={idx} className="relative">
+                                    {/* Timeline connector */}
+                                    {idx < timeline.length - 1 && (
+                                      <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-border" />
+                                    )}
+
+                                    {item.type === "llm" ? (
+                                      // LLM Call
+                                      <div className="flex items-start gap-3 pb-3">
+                                        <div
+                                          className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                            item.isFinal
+                                              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                              : "bg-primary/10 text-primary"
+                                          }`}
+                                        >
+                                          {item.isFinal ? (
+                                            <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                                          ) : (
+                                            <span className="text-[10px] font-semibold">
+                                              {item.iteration}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center justify-between">
+                                            <span className="font-medium text-sm">
+                                              {item.isFinal
+                                                ? t("responseGenerated")
+                                                : t("agentDecided")}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                              <Clock className="w-3 h-3" />
+                                              {item.llm.duration_ms}ms
+                                            </span>
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">
+                                            {item.isFinal
+                                              ? t("finalAnswer")
+                                              : t("calledToolsBelow")}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      // Tool Calls
+                                      <div className="flex items-start gap-3 pb-3">
+                                        <div className="w-6 h-6 rounded-full flex items-center justify-center bg-blue-500/15 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                                          <Play className="w-3 h-3" fill="currentColor" />
+                                        </div>
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                          <div className="text-xs text-muted-foreground">
+                                            {(item.tools?.length ?? 0) !== 1
+                                              ? t("executingToolsPlural", {
+                                                  count: item.tools?.length ?? 0,
+                                                })
+                                              : t("executingTools", {
+                                                  count: item.tools?.length ?? 0,
+                                                })}
+                                          </div>
+                                          {item.tools?.map((tc: any, tcIdx: number) => (
+                                            <div
+                                              key={tcIdx}
+                                              className="border border-border rounded-lg overflow-hidden"
+                                            >
+                                              <div className="flex items-center justify-between px-3 py-1.5 bg-muted/50">
+                                                <span className="font-medium text-sm text-foreground">
+                                                  {tc.tool}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                  <Clock className="w-3 h-3" />
+                                                  {tc.duration_ms}ms
+                                                </span>
+                                              </div>
+                                              <div className="p-2 space-y-2">
+                                                <div>
+                                                  <p className="text-[10px] font-semibold text-muted-foreground mb-1">
+                                                    {t("toolInputLabel")}
+                                                  </p>
+                                                  <div className="bg-muted p-1.5 rounded text-xs overflow-auto max-h-32">
+                                                    <JsonView
+                                                      src={tc.input}
+                                                      collapsed={1}
+                                                      theme="default"
+                                                    />
+                                                  </div>
+                                                </div>
+                                                {tc.output && (
+                                                  <div>
+                                                    <p className="text-[10px] font-semibold text-muted-foreground mb-1">
+                                                      {t("toolOutputLabel")}
+                                                    </p>
+                                                    <div className="bg-muted p-1.5 rounded text-xs overflow-auto max-h-32">
+                                                      <JsonView
+                                                        src={tc.output}
+                                                        collapsed={1}
+                                                        theme="default"
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+                          ) : (
+                            <div className="flex items-start gap-3 p-3 bg-muted border border-border rounded-lg">
+                              <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-sm text-foreground">
+                                  {t("noOperations")}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {t("noOperationsDescription")}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* JSON View */}
+                {viewMode === "json" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{t("rawResponseTitle")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[600px]">
+                        <JsonView src={result} collapsed={2} theme="default" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </details>
         </div>
       )}
 

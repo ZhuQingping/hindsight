@@ -21,9 +21,7 @@ import { MemoryDefenseSection } from "@/components/memory-defense-section";
 import { BankStatsView } from "@/components/bank-stats-view";
 import { BankOperationsView } from "@/components/bank-operations-view";
 import { MentalModelsView } from "@/components/mental-models-view";
-import { WebhooksView } from "@/components/webhooks-view";
 import { AuditLogsView } from "@/components/audit-logs-view";
-import { LLMRequestsView } from "@/components/llm-requests-view";
 import { FeatureNotEnabled } from "@/components/feature-not-enabled";
 import { useFeatures } from "@/lib/features-context";
 import { useBank } from "@/lib/bank-context";
@@ -82,13 +80,7 @@ type NavItem =
   | "profile";
 type DataSubTab = "world" | "experience" | "observations";
 type KnowledgeTab = "pages" | "models";
-type BankConfigTab =
-  | "general"
-  | "memory-defense"
-  | "configuration"
-  | "webhooks"
-  | "audit-logs"
-  | "llm-requests";
+type BankConfigTab = "general" | "memory-defense" | "configuration" | "audit-logs";
 
 export default function BankPage() {
   const contextDB = useContextDBMode();
@@ -104,9 +96,15 @@ export default function BankPage() {
   const view = (searchParams.get("view") || "home") as NavItem;
   const subTab = (searchParams.get("subTab") || "world") as DataSubTab;
   const knowledgeTab = (searchParams.get("knowledgeTab") || "pages") as KnowledgeTab;
-  const bankConfigTab = (searchParams.get("bankConfigTab") || "general") as BankConfigTab;
+  const requestedConfigTab = searchParams.get("bankConfigTab");
+  // Retired and unknown tabs render the overview so bookmarked links remain usable.
+  const bankConfigTab: BankConfigTab =
+    requestedConfigTab === "memory-defense" ||
+    requestedConfigTab === "configuration" ||
+    requestedConfigTab === "audit-logs"
+      ? requestedConfigTab
+      : "general";
   const bankConfigEnabled = features?.bank_config_api ?? false;
-  const llmTraceEnabled = features?.llm_trace ?? false;
   const llmHealthEnabled = features?.bank_llm_health ?? false;
   // A clone is an export and an import back to back, so it needs both halves
   // enabled server-side — the endpoint answers 404 otherwise.
@@ -524,19 +522,6 @@ export default function BankPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleBankConfigTabChange("webhooks")}
-                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
-                          bankConfigTab === "webhooks"
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {t("webhooks")}
-                        {bankConfigTab === "webhooks" && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-gradient" />
-                        )}
-                      </button>
-                      <button
                         onClick={() => handleBankConfigTabChange("audit-logs")}
                         className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
                           bankConfigTab === "audit-logs"
@@ -551,24 +536,6 @@ export default function BankPage() {
                           </span>
                         )}
                         {bankConfigTab === "audit-logs" && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-gradient" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleBankConfigTabChange("llm-requests")}
-                        className={`px-3 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm transition-all relative ${
-                          bankConfigTab === "llm-requests"
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {t("llmRequests")}
-                        {!llmTraceEnabled && (
-                          <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            {t("disabledStatus")}
-                          </span>
-                        )}
-                        {bankConfigTab === "llm-requests" && (
                           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-gradient" />
                         )}
                       </button>
@@ -599,14 +566,6 @@ export default function BankPage() {
                         <BankConfigView />
                       </div>
                     )}
-                    {bankConfigTab === "webhooks" && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {t("webhooksDescription")}
-                        </p>
-                        <WebhooksView />
-                      </div>
-                    )}
                     {bankConfigTab === "audit-logs" &&
                       (auditLogEnabled ? (
                         <div>
@@ -622,26 +581,6 @@ export default function BankPage() {
                             envVar: () => (
                               <code className="px-1 py-0.5 bg-muted rounded text-xs">
                                 CONTEXTBASE_API_AUDIT_LOG_ENABLED=true
-                              </code>
-                            ),
-                          })}
-                        />
-                      ))}
-                    {bankConfigTab === "llm-requests" &&
-                      (llmTraceEnabled ? (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            {t("llmRequestsDescription")}
-                          </p>
-                          <LLMRequestsView />
-                        </div>
-                      ) : (
-                        <FeatureNotEnabled
-                          title={t("llmRequestsNotEnabled")}
-                          description={t.rich("llmRequestsDisabledMessage", {
-                            envVar: () => (
-                              <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                                CONTEXTBASE_API_LLM_TRACE_ENABLED=true
                               </code>
                             ),
                           })}

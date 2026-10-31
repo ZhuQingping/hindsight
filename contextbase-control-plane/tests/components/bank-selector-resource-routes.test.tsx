@@ -51,3 +51,8 @@ it.each(["", "/brand-ui"])(
     }
   }
 );
+
+it("does not offer global storage settings", () => {
+  render(<BankSelector />);
+  expect(screen.queryByRole("link", { name: "settings" })).toBeNull();
+});

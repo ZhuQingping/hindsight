@@ -12,7 +12,7 @@ import {
 import { useBank } from "@/lib/bank-context";
 import { useFeatures } from "@/lib/features-context";
 import { DataView } from "./data-view";
-import { TraceDialog } from "./llm-requests-view";
+import { TraceDialog } from "./llm-trace-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -2401,3 +2401,4 @@ export function DocumentsView() {
     </div>
   );
 }
+
