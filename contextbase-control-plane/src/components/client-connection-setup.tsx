@@ -120,7 +120,7 @@ export function ClientConnectionSetup({
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {t(`descriptions.${isCoding ? "coding" : client}`)}
           </p>
-          {client !== "mcp" && (
+          {client !== "mcp" && !isCoding && (
             <p className="mt-2 text-sm text-muted-foreground">{t("credentials")}</p>
           )}
           {(isCoding || isSdk) && (
@@ -178,10 +178,20 @@ export function ClientConnectionSetup({
                 <ConnectionCode key={example.install} code={example.install} />
                 {isCoding && (
                   <div className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
-                    <p>{t("endpointHelp")}</p>
+                    <h4 className="font-medium text-foreground">{t("parametersTitle")}</h4>
+                    <p>{t("endpointHelp", { apiUrl: connection.apiUrl ?? "<API_ENDPOINT>" })}</p>
+                    <p>{t("tokenHelp")}</p>
                     <p>{t("projectHelp")}</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {example.switchBank && (
+              <div className={stepClass}>
+                <h3 className="font-medium">{t("switchBankTitle")}</h3>
+                <p className="text-sm leading-6 text-muted-foreground">{t("switchBankHelp")}</p>
+                <ConnectionCode code={example.switchBank} />
               </div>
             )}
 
