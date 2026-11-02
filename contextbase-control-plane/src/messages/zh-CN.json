@@ -2267,11 +2267,13 @@
       "openclaw": "重启 Gateway，确认 ContextBase 已加载，再执行一次记忆检索。",
       "hermes": "重启 Hermes，确认使用 ContextBase，再调用 recall 验证访问。"
     },
-    "installScopeTitle": "工作空间选择规则与安装范围",
-    "installScope": "所有项目和客户端统一使用配置中指定的工作空间，不再按仓库或目录自动生成。请先创建工作空间并授权。集成、API 地址和密钥由当前用户共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
-    "npmHelp": "执行一次，将当前工作空间保存为所有项目和客户端共用的配置。已有配置时可省略 --bank-id；未指定工作空间时停止记忆接入。",
-    "endpointHelp": "CONTEXTBASE_API_URL：API 地址；如显示 '<API_ENDPOINT>'，请替换为服务地址。",
-    "projectHelp": "--bank-id：保存指定工作空间。切换无需重装：npx @huaweicloud/contextbase-coding-agents@latest bank use '<BANK_ID>'，随后重启客户端和 MCP 服务。--project-path 可选，仅用于指定项目级客户端注册目录，不影响工作空间选择。"
+    "npmHelp": "执行一次，保存当前 Bank，供所有项目和客户端使用。请先创建该 Bank 并授权。",
+    "endpointHelp": "--api-url：API 地址（{apiUrl}）；省略时读取已有配置或 CONTEXTBASE_API_URL，首次可按提示输入。覆盖已有地址时请显式指定。",
+    "parametersTitle": "其他安装参数",
+    "tokenHelp": "--api-token：业务密钥；省略时读取同一 API 地址的已有密钥或 CONTEXTBASE_API_TOKEN。首次使用需提供密钥，覆盖已有密钥时请显式指定。",
+    "switchBankTitle": "切换 Bank",
+    "switchBankHelp": "将 '<BANK_ID>' 替换为已创建且已授权的目标 Bank ID。执行后重启客户端，所有项目和客户端将使用该 Bank。",
+    "projectHelp": "--project-path：可选，默认当前目录；仅用于指定项目级客户端注册目录，不影响 Bank 选择。"
   }
 }

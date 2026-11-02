@@ -24,6 +24,7 @@ export type ConnectionTerminal = "powershell" | "cmd" | "bash";
 
 interface ConnectionExample {
   install?: string;
+  switchBank?: string;
   code?: string;
   run?: string;
   configuration?: string;
@@ -34,12 +35,6 @@ interface ConnectionExample {
 function quote(value: string, terminal: ConnectionTerminal): string {
   if (terminal === "cmd") return `"${value}"`;
   return "'" + value.replaceAll("'", terminal === "powershell" ? "''" : "'\"'\"'") + "'";
-}
-
-function endpointEnvironment(apiUrl: string, terminal: ConnectionTerminal): string {
-  if (terminal === "powershell") return `$env:CONTEXTBASE_API_URL = ${quote(apiUrl, terminal)}`;
-  if (terminal === "cmd") return `set "CONTEXTBASE_API_URL=${apiUrl}"`;
-  return `export CONTEXTBASE_API_URL=${quote(apiUrl, terminal)}`;
 }
 
 function tokenEnvironment(terminal: ConnectionTerminal): string {
@@ -86,28 +81,13 @@ export function connectionExample(
   const npm = terminal === "bash" ? "npm" : "npm.cmd";
   const curl = terminal === "bash" ? "curl" : "curl.exe";
   const token = tokenEnvironment(terminal);
-  // Pass the key explicitly: an existing installer config otherwise takes
-  // precedence over environment variables and could keep an older credential.
-  const tokenArgument =
-    terminal === "cmd"
-      ? '"%CONTEXTBASE_API_TOKEN%"'
-      : terminal === "powershell"
-        ? '"$env:CONTEXTBASE_API_TOKEN"'
-        : '"$CONTEXTBASE_API_TOKEN"';
   if (codingClients.some((entry) => entry.id === client)) {
     if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
-    const endpoint = apiUrl ?? "<API_ENDPOINT>";
-    if (cmdUnsafe([bankId, endpoint], terminal)) return { unavailable: "cmdUnavailable" };
-    // Forward the endpoint explicitly so saved installer settings cannot override this selection.
-    const endpointArgument =
-      terminal === "cmd"
-        ? '"%CONTEXTBASE_API_URL%"'
-        : terminal === "powershell"
-          ? '"$env:CONTEXTBASE_API_URL"'
-          : '"$CONTEXTBASE_API_URL"';
+    if (cmdUnsafe([bankId], terminal)) return { unavailable: "cmdUnavailable" };
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
     return {
-      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument} --api-url ${endpointArgument} --bank-id ${q(bankId)}`,
+      install: `${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)}`,
+      switchBank: `${npx} --yes ${q(connection.codingAgentsNpm)} bank use ${q("<BANK_ID>")}`,
     };
   }
   if (!apiUrl) return { unavailable: "apiUnavailable" };

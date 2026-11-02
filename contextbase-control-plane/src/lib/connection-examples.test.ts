@@ -21,55 +21,33 @@ const connection: CustomerConnection = {
 };
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
 
-it.each(codingClients)(
-  "installs only $id with its Bank ID and explicit endpoint from the environment",
-  ({ id }) => {
-    const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
-    const snippet = connectionExample(id, "bash", bank, connection, "question");
-    // Run the generated shell, recording argv without installing anything.
-    const output = execFileSync(
-      "bash",
-      ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
-      { encoding: "utf8" }
-    )
-      .trim()
-      .split("\n");
-    expect(output).toEqual([
-      "--yes",
-      connection.codingAgentsNpm,
-      "install",
-      id,
-      "--api-token",
-      "<API_KEY>",
-      "--api-url",
-      connection.apiUrl,
-      "--bank-id",
-      bank,
-    ]);
-    expect(snippet.install).not.toContain("--project-path");
-    expect(snippet.install!.indexOf("CONTEXTBASE_API_URL")).toBeLessThan(
-      snippet.install!.indexOf("CONTEXTBASE_API_TOKEN")
-    );
-    expect(snippet.install).toContain("--bank-id");
-  }
-);
+it.each(codingClients)("installs only $id with its Bank ID", ({ id }) => {
+  const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
+  const snippet = connectionExample(id, "bash", bank, connection, "question");
+  // Run the generated shell, recording argv without installing anything.
+  const output = execFileSync(
+    "bash",
+    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
+    { encoding: "utf8" }
+  )
+    .trim()
+    .split("\n");
+  expect(output).toEqual(["--yes", connection.codingAgentsNpm, "install", id, "--bank-id", bank]);
+  expect(snippet.install).not.toContain("--project-path");
+  expect(snippet.install).not.toContain("CONTEXTBASE_API_");
+  expect(snippet.install).not.toMatch(/--api-token|--api-url/);
+  expect(snippet.install).toContain("--bank-id");
+});
 
 it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
   const install = connectionExample("codex", terminal, "team", connection, "question").install!;
-  expect(install).toContain(" install codex --api-token ");
-  expect(install.split("\n")[0]).toContain("CONTEXTBASE_API_URL");
-  expect(install.split("\n")[1]).toContain("CONTEXTBASE_API_TOKEN");
+  expect(install).toContain(" install codex --bank-id ");
+  expect(install.split("\n")).toHaveLength(1);
   expect(install).not.toContain("install claude-code");
   if (terminal === "bash") {
-    expect(install).toContain("export CONTEXTBASE_API_TOKEN=");
     expect(install).toContain("npx --yes");
   } else {
     expect(install).toContain("npx.cmd --yes");
-    expect(install).toContain(
-      terminal === "cmd"
-        ? 'set "CONTEXTBASE_API_TOKEN=<API_KEY>"'
-        : "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'"
-    );
   }
 });
 
@@ -85,31 +63,24 @@ it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
   }
 );
 
-it("passes the literal endpoint even when an older address is inherited", () => {
-  const apiUrl = "https://api.example.com/team's/$(exit 73)/`exit 74`/$HOME";
-  const snippet = connectionExample("claude-code", "bash", "team", { ...connection, apiUrl }, "q");
-  const output = execFileSync(
-    "bash",
-    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
-    { encoding: "utf8", env: { ...process.env, CONTEXTBASE_API_URL: "https://old.example.com" } }
-  )
-    .trim()
-    .split("\n");
-  expect(output[output.indexOf("--api-url") + 1]).toBe(apiUrl);
+it("matches the minimal PowerShell installation command", () => {
+  expect(
+    connectionExample("claude-code", "powershell", "smoke-bank", connection, "q").install
+  ).toBe(
+    "npx.cmd --yes '@huaweicloud/contextbase-coding-agents@latest' install claude-code --bank-id 'smoke-bank'"
+  );
 });
 
-it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
-  "rejects API endpoints that CMD would expand: %s",
-  (value) => {
-    const configured = { ...connection, apiUrl: `https://api.example.com/${value}` };
-    expect(connectionExample("codex", "cmd", "team", configured, "q").unavailable).toBe(
-      "cmdUnavailable"
-    );
-    expect(connectionExample("codex", "powershell", "team", configured, "q").install).toContain(
-      "CONTEXTBASE_API_URL"
-    );
-  }
-);
+it.each(terminals)("offers a separate Bank switch command for %s", (terminal) => {
+  const snippet = connectionExample("claude-code", terminal, "smoke-bank", connection, "q");
+  expect(snippet.switchBank).toContain(" bank use ");
+  expect(snippet.switchBank).not.toContain(" install ");
+  expect(snippet.switchBank).toContain(terminal === "bash" ? "npx --yes" : "npx.cmd --yes");
+  expect(snippet.switchBank).toContain(terminal === "cmd" ? '"<BANK_ID>"' : "'<BANK_ID>'");
+  expect(
+    connectionExample("rest", terminal, "smoke-bank", connection, "q").switchBank
+  ).toBeUndefined();
+});
 
 it("rejects percent expansion in signed CMD URLs and REST paths without changing the URL", () => {
   const signed = {
@@ -257,8 +228,8 @@ it.each(codingClients)(
       { codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@latest", packages: {} },
       "q"
     );
-    expect(result.install).toContain(`install ${id} --api-token`);
-    expect(result.install).toContain("CONTEXTBASE_API_URL='<API_ENDPOINT>'");
+    expect(result.install).toContain(`install ${id} --bank-id 'team'`);
+    expect(result.install).not.toContain("<API_ENDPOINT>");
     expect(result.install).not.toContain("--project-path");
   }
 );
