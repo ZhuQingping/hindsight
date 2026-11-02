@@ -2270,7 +2270,7 @@
     "installScope": "Project mappings take precedence over a fixed workspace. If neither is configured, the repository name determines the Bank ID. Create and authorize that workspace first. The integration is installed for the current user; the API address and key are shared across projects.",
     "npmInstallTitle": "1. Connect with npx",
     "npmHelp": "Run in your project directory to bind this workspace. Future sessions in that project use it automatically.",
-    "endpointHelp": "--api-url: API address. Uses saved settings or environment variables; prompts if missing.",
+    "endpointHelp": "CONTEXTBASE_API_URL: API Endpoint. Replace '<API_ENDPOINT>' with your service address if shown.",
     "projectHelp": "--bank-id selects or switches the workspace; restart the client afterwards. --project-path is optional: defaults to the current directory."
   }
 }

@@ -22,7 +22,7 @@ const connection: CustomerConnection = {
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
 
 it.each(codingClients)(
-  "installs only $id with its Bank ID and without endpoint or project flags",
+  "installs only $id with its Bank ID and explicit endpoint from the environment",
   ({ id }) => {
     const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
     const snippet = connectionExample(id, "bash", bank, connection, "question");
@@ -41,10 +41,15 @@ it.each(codingClients)(
       id,
       "--api-token",
       "<API_KEY>",
+      "--api-url",
+      connection.apiUrl,
       "--bank-id",
       bank,
     ]);
-    expect(snippet.install).not.toMatch(/--api-url|--project-path/);
+    expect(snippet.install).not.toContain("--project-path");
+    expect(snippet.install!.indexOf("CONTEXTBASE_API_URL")).toBeLessThan(
+      snippet.install!.indexOf("CONTEXTBASE_API_TOKEN")
+    );
     expect(snippet.install).toContain("--bank-id");
   }
 );
@@ -52,6 +57,8 @@ it.each(codingClients)(
 it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
   const install = connectionExample("codex", terminal, "team", connection, "question").install!;
   expect(install).toContain(" install codex --api-token ");
+  expect(install.split("\n")[0]).toContain("CONTEXTBASE_API_URL");
+  expect(install.split("\n")[1]).toContain("CONTEXTBASE_API_TOKEN");
   expect(install).not.toContain("install claude-code");
   if (terminal === "bash") {
     expect(install).toContain("export CONTEXTBASE_API_TOKEN=");
@@ -74,6 +81,32 @@ it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
     );
     expect(connectionExample("codex", "powershell", bank, connection, "q").install).toContain(
       "--bank-id"
+    );
+  }
+);
+
+it("passes the literal endpoint even when an older address is inherited", () => {
+  const apiUrl = "https://api.example.com/team's/$(exit 73)/`exit 74`/$HOME";
+  const snippet = connectionExample("claude-code", "bash", "team", { ...connection, apiUrl }, "q");
+  const output = execFileSync(
+    "bash",
+    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
+    { encoding: "utf8", env: { ...process.env, CONTEXTBASE_API_URL: "https://old.example.com" } }
+  )
+    .trim()
+    .split("\n");
+  expect(output[output.indexOf("--api-url") + 1]).toBe(apiUrl);
+});
+
+it.each(["%PATH%", "!secret!", 'a"b', "line\nbreak", "null\0byte"])(
+  "rejects API endpoints that CMD would expand: %s",
+  (value) => {
+    const configured = { ...connection, apiUrl: `https://api.example.com/${value}` };
+    expect(connectionExample("codex", "cmd", "team", configured, "q").unavailable).toBe(
+      "cmdUnavailable"
+    );
+    expect(connectionExample("codex", "powershell", "team", configured, "q").install).toContain(
+      "CONTEXTBASE_API_URL"
     );
   }
 );
@@ -225,7 +258,8 @@ it.each(codingClients)(
       "q"
     );
     expect(result.install).toContain(`install ${id} --api-token`);
-    expect(result.install).not.toMatch(/--api-url|--project-path/);
+    expect(result.install).toContain("CONTEXTBASE_API_URL='<API_ENDPOINT>'");
+    expect(result.install).not.toContain("--project-path");
   }
 );
 

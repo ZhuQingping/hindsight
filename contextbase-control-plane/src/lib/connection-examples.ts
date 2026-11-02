@@ -36,6 +36,12 @@ function quote(value: string, terminal: ConnectionTerminal): string {
   return "'" + value.replaceAll("'", terminal === "powershell" ? "''" : "'\"'\"'") + "'";
 }
 
+function endpointEnvironment(apiUrl: string, terminal: ConnectionTerminal): string {
+  if (terminal === "powershell") return `$env:CONTEXTBASE_API_URL = ${quote(apiUrl, terminal)}`;
+  if (terminal === "cmd") return `set "CONTEXTBASE_API_URL=${apiUrl}"`;
+  return `export CONTEXTBASE_API_URL=${quote(apiUrl, terminal)}`;
+}
+
 function tokenEnvironment(terminal: ConnectionTerminal): string {
   if (terminal === "powershell") return "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'";
   if (terminal === "cmd") return 'set "CONTEXTBASE_API_TOKEN=<API_KEY>"';
@@ -90,10 +96,18 @@ export function connectionExample(
         : '"$CONTEXTBASE_API_TOKEN"';
   if (codingClients.some((entry) => entry.id === client)) {
     if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
-    if (cmdUnsafe([bankId], terminal)) return { unavailable: "cmdUnavailable" };
+    const endpoint = apiUrl ?? "<API_ENDPOINT>";
+    if (cmdUnsafe([bankId, endpoint], terminal)) return { unavailable: "cmdUnavailable" };
+    // Forward the endpoint explicitly so saved installer settings cannot override this selection.
+    const endpointArgument =
+      terminal === "cmd"
+        ? '"%CONTEXTBASE_API_URL%"'
+        : terminal === "powershell"
+          ? '"$env:CONTEXTBASE_API_URL"'
+          : '"$CONTEXTBASE_API_URL"';
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
     return {
-      install: `${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument} --bank-id ${q(bankId)}`,
+      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --api-token ${tokenArgument} --api-url ${endpointArgument} --bank-id ${q(bankId)}`,
     };
   }
   if (!apiUrl) return { unavailable: "apiUnavailable" };

@@ -2270,7 +2270,7 @@
     "installScope": "优先使用项目绑定，其次使用固定 Bank；均未配置时，按仓库名生成 Bank ID。对应 Bank 需已创建并授权。集成安装到当前用户，API 地址和密钥由各项目共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "在项目目录执行，绑定当前 Bank；后续进入该项目时自动使用。",
-    "endpointHelp": "--api-url：API 地址，默认读取已有配置或环境变量；缺失时按终端提示输入。",
+    "endpointHelp": "CONTEXTBASE_API_URL：API 地址；如显示 '<API_ENDPOINT>'，请替换为服务地址。",
     "projectHelp": "--bank-id：手动指定或切换 Bank，执行后重启客户端。--project-path：可选，默认当前目录。"
   }
 }
