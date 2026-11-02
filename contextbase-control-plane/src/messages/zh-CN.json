@@ -2267,8 +2267,6 @@
       "openclaw": "重启 Gateway，确认 ContextBase 已加载，再执行一次记忆检索。",
       "hermes": "重启 Hermes，确认使用 ContextBase，再调用 recall 验证访问。"
     },
-    "installScopeTitle": "工作空间选择规则与安装范围",
-    "installScope": "所有项目和客户端统一使用配置中指定的工作空间，不再按仓库或目录自动生成。请先创建工作空间并授权。集成、API 地址和密钥由当前用户共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "执行一次，保存当前 Bank，供所有项目和客户端使用。请先创建该 Bank 并授权。",
     "endpointHelp": "--api-url：API 地址（{apiUrl}）；省略时读取已有配置或 CONTEXTBASE_API_URL，首次可按提示输入。覆盖已有地址时请显式指定。",

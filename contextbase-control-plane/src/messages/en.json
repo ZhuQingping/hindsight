@@ -2267,8 +2267,6 @@
       "openclaw": "Restart the Gateway, check that ContextBase is loaded, then run a memory search.",
       "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
-    "installScopeTitle": "Workspace selection and installation scope",
-    "installScope": "All projects and agents use the explicitly configured workspace. No workspace ID is generated from a repository or directory. Create and authorize the workspace first. The integration, API address and key are shared by the current user.",
     "npmInstallTitle": "1. Connect with npx",
     "npmHelp": "Run once to save this Bank for all projects and clients. Create the Bank and authorize access first.",
     "endpointHelp": "--api-url: API address ({apiUrl}). Omit to use saved configuration or CONTEXTBASE_API_URL; the first installation can prompt for it. Pass explicitly to replace a saved address.",

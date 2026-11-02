@@ -156,12 +156,6 @@ export function ClientConnectionSetup({
                 {isCoding && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("npmHelp")}</p>
                 )}
-                {isCoding && (
-                  <details className="text-sm text-muted-foreground">
-                    <summary className="cursor-pointer">{t("installScopeTitle")}</summary>
-                    <p className="mt-2 leading-6">{t("installScope")}</p>
-                  </details>
-                )}
                 {client === "hermes" && (
                   <p className="text-sm leading-6 text-muted-foreground">{t("hermesExtract")}</p>
                 )}
