@@ -14,6 +14,7 @@
     "edit": "Bearbeiten",
     "copy": "Kopieren",
     "copied": "Kopiert!",
+    "copyFailed": "Automatisches Kopieren fehlgeschlagen. Markieren Sie den Text und kopieren Sie ihn manuell.",
     "search": "Suchen",
     "noResults": "Keine Ergebnisse gefunden",
     "required": "Erforderlich",
