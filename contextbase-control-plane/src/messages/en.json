@@ -2222,7 +2222,7 @@
     "terminalLabel": "Terminal",
     "credentials": "Replace '<API_KEY>' with a business key authorized for this workspace.",
     "descriptions": {
-      "coding": "Automatically recall project memories and save conversations.",
+      "coding": "Requires the selected client and Node.js 18+. Replace '<API_KEY>' with a business key authorized for this workspace.",
       "openclaw": "Install the ContextBase plugin and connect your OpenClaw Gateway to this workspace.",
       "hermes": "Install ContextBase as the memory provider for your current Hermes profile.",
       "python": "Install the Python SDK and run a read-only memory query.",
@@ -2231,7 +2231,6 @@
       "mcp": "Connect to ContextBase over HTTP MCP, without a local adapter."
     },
     "requirements": {
-      "coding": "Requires the selected client and Node.js 18+.",
       "python": "Requires Python 3.10+; use an activated virtual environment.",
       "node": "Requires Node.js 18+; run the commands in your application directory.",
       "openclaw": "Requires OpenClaw and Node.js 22+. Run in your Gateway environment.",

@@ -123,10 +123,8 @@ export function ClientConnectionSetup({
           {client !== "mcp" && !isCoding && (
             <p className="mt-2 text-sm text-muted-foreground">{t("credentials")}</p>
           )}
-          {(isCoding || isSdk) && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t(`requirements.${isCoding ? "coding" : client}`)}
-            </p>
+          {isSdk && (
+            <p className="mt-2 text-sm text-muted-foreground">{t(`requirements.${client}`)}</p>
           )}
           {(client === "openclaw" || client === "hermes") && (
             <p className="mt-2 text-sm text-muted-foreground">{t(`requirements.${client}`)}</p>

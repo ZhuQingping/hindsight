@@ -2222,7 +2222,7 @@
     "terminalLabel": "终端",
     "credentials": "将 '<API_KEY>' 替换为有权访问当前工作空间的业务密钥。",
     "descriptions": {
-      "coding": "自动检索项目记忆并保存对话。",
+      "coding": "需要已安装对应客户端和 Node.js 18+。将 '<API_KEY>' 替换为有权访问当前工作空间的业务密钥。",
       "openclaw": "安装 ContextBase 插件，将 OpenClaw Gateway 连接到此工作空间。",
       "hermes": "为当前 Hermes profile 安装 ContextBase 记忆提供方。",
       "python": "安装 Python SDK，执行只读记忆查询。",
@@ -2231,7 +2231,6 @@
       "mcp": "通过 HTTP MCP 连接 ContextBase，无需本地适配器。"
     },
     "requirements": {
-      "coding": "需要已安装对应客户端和 Node.js 18+。",
       "python": "需要 Python 3.10+，请先激活虚拟环境。",
       "node": "需要 Node.js 18+，请在应用目录执行命令。",
       "openclaw": "需要 OpenClaw 和 Node.js 22+，请在 Gateway 所在环境中操作。",

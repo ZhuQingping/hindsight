@@ -133,6 +133,28 @@ CONTEXTBASE_CP_SESSION_DIR=/home/hindsight/.cp-sessions   # Linux 路径（原�
 
 > `PUBLIC_ORIGIN` 必须等于浏览器实际访问的地址，否则登录 POST 会被同源校验拒绝（403 `Untrusted request origin`）。
 
+### 4.5 接入页面展示的对外 API 地址
+
+在 `/home/hindsight/.env` 中配置客户端可访问的 API 地址：
+
+```dotenv
+CONTEXTBASE_CP_PUBLIC_API_URL=https://api.example.com
+```
+
+将示例替换为实际对外地址。本开发机使用 `next dev`，可填写
+`http://29.7.104.118:8888`；生产模式的 UI 当前要求对外地址使用 HTTPS。
+
+接入页面会读取此配置，在安装参数说明中展示实际 API 地址。远程客户端不能使用
+`localhost` 或 `127.0.0.1`，因为它们指向客户端自己的机器。UI 与 API 可能使用不同的
+主机和端口，页面不会从浏览器地址推断 API 地址；未配置或地址无效时显示 `<API_ENDPOINT>`。
+
+此配置与以下两项分别设置：
+
+- `CONTEXTBASE_CP_DATAPLANE_API_URL`：UI 服务端访问后端 API 的地址。
+- `CONTEXTBASE_CP_PUBLIC_ORIGIN`：浏览器访问 UI 的地址，用于同源校验。
+
+修改后重启 UI（见第 6.2 节）；仅修改此项无需重启 API。
+
 ---
 
 ## 5. 安装过程的坑与解法
