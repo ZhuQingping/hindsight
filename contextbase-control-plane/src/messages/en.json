@@ -2268,10 +2268,10 @@
       "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
     "installScopeTitle": "Workspace selection and installation scope",
-    "installScope": "Project mappings take precedence over a fixed workspace. If neither is configured, the repository name determines the workspace ID. Create and authorize that workspace first. The integration is installed for the current user; the API address and key are shared across projects.",
+    "installScope": "All projects and agents use the explicitly configured workspace. No workspace ID is generated from a repository or directory. Create and authorize the workspace first. The integration, API address and key are shared by the current user.",
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "Run in your project directory to bind this workspace. Future sessions in that project use it automatically.",
+    "npmHelp": "Run once to save this workspace for all projects and agents. An existing configuration may omit --bank-id; a missing workspace ID disables memory.",
     "endpointHelp": "CONTEXTBASE_API_URL: API Endpoint. Replace '<API_ENDPOINT>' with your service address if shown.",
-    "projectHelp": "--bank-id selects or switches the workspace; restart the client afterwards. --project-path is optional: defaults to the current directory."
+    "projectHelp": "--bank-id saves the workspace. Switch without reinstalling: npx @huaweicloud/contextbase-coding-agents@latest bank use '<BANK_ID>', then restart the client and MCP server. --project-path is optional and only selects a directory for project-specific client registration; it does not select a workspace."
   }
 }

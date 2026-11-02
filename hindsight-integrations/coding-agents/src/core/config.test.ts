@@ -48,7 +48,7 @@ describe("loadConfig layering", () => {
         opencode: { disabled: true },
       },
     });
-    expect(loadConfig({ path: globalCfg, harness: "claude-code" }).bankId).toBe("claude-bank");
+    expect(loadConfig({ path: globalCfg, harness: "claude-code" }).bankId).toBe("shared");
     expect(loadConfig({ path: globalCfg, harness: "claude-code" }).apiUrl).toBe("http://x:1");
     expect(loadConfig({ path: globalCfg, harness: "opencode" }).disabled).toBe(true);
     expect(loadConfig({ path: globalCfg, harness: "opencode" }).bankId).toBe("shared");
@@ -208,8 +208,8 @@ describe("loadConfig — untrusted project-local layer is sanitized (security)",
 });
 
 describe("manageBankConfig (#3927)", () => {
-  it("defaults to true — a bank the plugin creates still gets the shape its ingestion needs", () => {
-    expect(resolveConfig({}).manageBankConfig).toBe(true);
+  it("defaults to false — existing Banks are left under their owner's control", () => {
+    expect(resolveConfig({}).manageBankConfig).toBe(false);
   });
 
   it("is settable per bank, which is where a shared global bank needs it", () => {
@@ -219,7 +219,7 @@ describe("manageBankConfig (#3927)", () => {
       banks: { "my-global-bank": { manageBankConfig: false } },
     });
     expect(applyBankConfig(cfg, "my-global-bank").cfg.manageBankConfig).toBe(false);
-    expect(applyBankConfig(cfg, "coding-agent::repo").cfg.manageBankConfig).toBe(true);
+    expect(applyBankConfig(cfg, "coding-agent::repo").cfg.manageBankConfig).toBe(false);
   });
 });
 
@@ -321,7 +321,6 @@ describe("banks.<bankId> overrides (per-repo opt-in/out, applied AFTER bank reso
     const out = applyBankConfig(cfg, "b1").cfg;
     expect(out.disabled).toBe(true);
     expect(out.bankId).toBe(cfg.bankId); // untouched
-    expect(out.mapPathToBank).toBe(cfg.mapPathToBank);
   });
 
   it("an override only changes the fields it names (defaults don't reset the rest)", () => {
@@ -332,27 +331,16 @@ describe("banks.<bankId> overrides (per-repo opt-in/out, applied AFTER bank reso
   });
 });
 
-describe("banks.<id>.bank — rename inside the banks tree", () => {
-  it("renames the destination bank; other fields still apply; unmatched ids unchanged", () => {
+describe("obsolete Bank aliases", () => {
+  it("cannot redirect the configured Bank through a banks section", () => {
     const cfg = resolveConfig({
-      banks: { "coding-agent::old": { bank: "team::shared", gitIngest: "full" } },
+      bankId: "fixed",
+      banks: { fixed: { bank: "other", gitIngest: "full" } as never },
     });
-    const r = applyBankConfig(cfg, "coding-agent::old");
-    expect(r.bankId).toBe("team::shared");
-    expect(r.cfg.gitIngest).toBe("full");
-    expect(applyBankConfig(cfg, "coding-agent::other").bankId).toBe("coding-agent::other");
-  });
-
-  it("single hop: the rename target's own section is NOT consulted (no chaining)", () => {
-    const cfg = resolveConfig({
-      banks: {
-        a: { bank: "b" },
-        b: { bank: "c", disabled: true }, // must not apply to the a->b hop
-      },
-    });
-    const r = applyBankConfig(cfg, "a");
-    expect(r.bankId).toBe("b"); // not "c"
-    expect(r.cfg.disabled).toBe(false);
+    const result = applyBankConfig(cfg, "fixed");
+    expect(result.bankId).toBe("fixed");
+    expect(result.cfg.bankId).toBe("fixed");
+    expect(result.cfg.gitIngest).toBe("full");
   });
 });
 

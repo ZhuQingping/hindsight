@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { deriveBankId, resolveProjectRoot } from "./bank";
+import { projectNameOf, resolveProjectRoot } from "./bank";
 import { probeGitLayout } from "./git-layout";
 
 /** Real git, real worktrees — the layout reader has to agree with the tool that wrote the layout. */
@@ -69,7 +69,7 @@ describe("git layout resolution", () => {
     const path = process.env.PATH;
     process.env.PATH = "";
     try {
-      expect(deriveBankId({}, worktree)).toBe(`coding-agent::${basename(realpathSync(repo))}`);
+      expect(projectNameOf(worktree)).toBe(basename(realpathSync(repo)));
     } finally {
       process.env.PATH = path;
     }

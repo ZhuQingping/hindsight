@@ -31,7 +31,7 @@ describe("companion skill", () => {
   it("carries the configuration reference, not a subset of it", () => {
     const skill = readFileSync(join(pkgRoot, "skill", "SKILL.md"), "utf8");
     // The keys that fix the failure mode #3735 reported: a bank shared across unrelated projects.
-    for (const key of ["bankIdTemplate", "dynamicBankId", "mapPathToBank", "disabled", "bank"]) {
+    for (const key of ["bankId", "disabled"]) {
       expect(skill).toContain(`\`${key}\``);
     }
   });
@@ -71,15 +71,17 @@ describe("configuration reference", () => {
     const src = readFileSync(join(pkgRoot, "src", "core", "config.ts"), "utf8");
     const block = /const ENV_KEYS = \{([\s\S]*?)\n\} as const/.exec(src);
     const fields = [...block![1].matchAll(/^\s*(\w+): "CONTEXTBASE_/gm)].map((m) => m[1]);
-    for (const fileOnly of ["mapPathToBank", "harnesses", "banks", "retainMetadata"]) {
+    for (const fileOnly of ["harnesses", "banks", "retainMetadata"]) {
       expect(fields).not.toContain(fileOnly);
     }
     expect(readme()).toContain("are file-only");
   });
 
-  it("documents the per-bank section's own `bank` rename field", () => {
+  it("documents explicit Bank selection and switching", () => {
     expect(readme()).toMatch(/`banks\.<bankId>`|`banks`/);
-    expect(readme()).toContain('"bank": "team::shared"');
+    expect(readme()).toContain("bank use <BANK_ID>");
+    for (const key of ["dynamicBankId", "bankIdTemplate", "mapPathToBank"])
+      expect(readme()).not.toContain(`\`${key}\``);
   });
 });
 

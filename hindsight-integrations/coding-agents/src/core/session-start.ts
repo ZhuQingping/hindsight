@@ -31,7 +31,7 @@ import { SURVEY_DOC_IDS, startCodebaseSurvey, type SurveyHarness } from "./surve
 import { applyBankConfig, loadConfig } from "./config";
 import { ensureRemoteConnection, RemoteConnectionError } from "./connection";
 import type { Config } from "./config";
-import { deriveBankIdOrSkip } from "./bank";
+import { configuredBankIdOrSkip } from "./bank";
 import { brandWord } from "./brand";
 import { diag, readHookEvent } from "./diag";
 import { setLogLevel } from "./log";
@@ -42,6 +42,7 @@ import { detectLegacyClaudePlugin, legacyClaudePluginWarning } from "./legacy";
 import { ContextBaseClient } from "./contextbase";
 import {
   sessionCacheFile,
+  sessionMemoryScope,
   sessionRootDir,
   stashPendingContext,
   writeSessionCache,
@@ -424,7 +425,7 @@ export async function runSessionStartHook(
     // Recorded HERE, on the session's first hook, so every later hook of this session resolves the
     // same bank however far the agent navigates (#3563).
     const sessionRoot = sessionRootDir(harness, sessionId, cwd);
-    const derived = deriveBankIdOrSkip(cfg, cwd, harness, sessionRoot);
+    const derived = configuredBankIdOrSkip(cfg, harness);
     if (derived === null) return; // repository unidentifiable: no bank, no seed, no injection
     const resolved = applyBankConfig(cfg, derived, cwd);
     cfg = resolved.cfg;
@@ -448,10 +449,13 @@ export async function runSessionStartHook(
     if (mcpHint)
       out.systemMessage = out.systemMessage ? `${out.systemMessage}\n${mcpHint}` : mcpHint;
     if (out.deferInitialReflect && sessionId) {
-      writeSessionCache(sessionCacheFile(harness, sessionId), { deferInitialReflect: true });
+      writeSessionCache(sessionCacheFile(harness, sessionId), {
+        scope: sessionMemoryScope(cfg),
+        deferInitialReflect: true,
+      });
     }
     if (spec.deferContextToToolHook && out.additionalContext && sessionId) {
-      stashPendingContext(harness, sessionId, out.additionalContext);
+      stashPendingContext(harness, sessionId, out.additionalContext, sessionMemoryScope(cfg));
       out.additionalContext = undefined;
     }
     // The lifecycle computes one host-neutral output; the registry owns each host's wire schema.

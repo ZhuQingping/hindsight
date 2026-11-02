@@ -18,7 +18,7 @@ import { SKILL_DIRS } from "./core/skill-dirs";
 import { parse as parseToml } from "smol-toml";
 import { HOOK_HARNESSES } from "./harness/hook-lifecycle";
 import { applyBankConfig, loadConfig } from "./core/config";
-import { deriveBankId } from "./core/bank";
+import { configuredBankId } from "./core/bank";
 
 /** The uninstall sweep and the hook seed both shell out to the system sqlite3 — absent on some
  *  runners, so the DB-backed tests gate on a probe instead of assuming. */
@@ -143,6 +143,7 @@ function writeJsonAt(path: string, value: unknown): void {
 // reader in core/history.ts honors DSH_HOME too.
 beforeEach(() => {
   vi.stubEnv("CONTEXTBASE_CONFIG", "");
+  vi.stubEnv("CONTEXTBASE_BANK_ID", "fixture-bank");
   vi.stubEnv("CONTEXTBASE_API_URL", "https://service.example");
   vi.stubEnv("CONTEXTBASE_API_TOKEN", "fixture-token");
   vi.stubEnv("CONTEXTBASE_API_KEY", "");
@@ -1000,14 +1001,11 @@ describe("traecode installer", () => {
     expect(readJson(sandboxPath(ctx)).filesystem.readWrite).toEqual([]);
   });
 
-  // The installer pre-seeds the per-repo registration and enable switch for mapPathToBank repos:
-  // the SessionStart hook's writes fail under Trae's sandbox (file creation denied in the
-  // workspace, storage rules dropped — see core/traecode-mcp.ts), so the unsandboxed installer
-  // is the path that actually lands them.
   const repoDir = (ctx: InstallCtx, name: string) => join(ctx.home, name);
   const repoMcp = (ctx: InstallCtx, name: string) => join(repoDir(ctx, name), ".trae", "mcp.json");
-  const writeMapConfig = (ctx: InstallCtx, map: Record<string, string>) =>
-    writeJsonAt(join(ctx.home, ".contextbase", "coding-agent.json"), { mapPathToBank: map });
+  const selectProject = (ctx: InstallCtx, repo: string) => {
+    ctx.args = ["--project-path", repo];
+  };
 
   /** makeCtx's dist is a synthetic /opt path the registration's `existsSync(dist/mcp-server.js)`
    *  guard rejects; the pre-seed needs a real dist file, laid out as `coding-agents/dist/` so the
@@ -1021,38 +1019,77 @@ describe("traecode installer", () => {
     return { ...makeCtx(), dist };
   };
 
-  it("pre-seeds the per-repo MCP registration for every existing mapPathToBank repo", () => {
+  it("registers the explicitly selected Trae workspace independently of the configured Bank", () => {
     const ctx = ctxWithRealDist();
-    const a = repoDir(ctx, "repo-a");
-    const b = repoDir(ctx, "repo-b");
-    const missing = repoDir(ctx, "gone-repo"); // never created: must not grow a .trae tree
-    mkdirSync(a, { recursive: true });
-    mkdirSync(b, { recursive: true });
-    writeMapConfig(ctx, { [b]: "Agent::B", [a]: "Agent::A", [missing]: "Agent::Gone" });
-    const logs: string[] = [];
-    expect(run(["install", "traecode"], { ...ctx, log: (m) => logs.push(m) })).toBe(0);
-    for (const [repo, dir] of [
-      [a, "repo-a"],
-      [b, "repo-b"],
-    ] as const) {
-      expect(readJson(repoMcp(ctx, dir)).mcpServers.contextbase).toEqual({
-        command: "node",
-        args: [join(ctx.dist, "mcp-server.js")],
-        env: { CONTEXTBASE_MCP_HARNESS: "traecode", CONTEXTBASE_MCP_PROJECT_CWD: repo },
-      });
+    const repo = repoDir(ctx, "repo-a");
+    mkdirSync(repo, { recursive: true });
+    expect(run(["install", "traecode", "--project-path", repo], ctx)).toBe(0);
+    expect(readJson(repoMcp(ctx, "repo-a")).mcpServers.contextbase).toEqual({
+      command: "node",
+      args: [join(ctx.dist, "mcp-server.js")],
+      env: { CONTEXTBASE_MCP_HARNESS: "traecode", CONTEXTBASE_MCP_PROJECT_CWD: repo },
+    });
+  });
+
+  it("uninstalls every registered Trae project from an unrelated directory, preserving foreign servers", () => {
+    const ctx = ctxWithRealDist();
+    const a = repoDir(ctx, "repo-a"),
+      b = repoDir(ctx, "repo-b");
+    for (const repo of [a, b]) {
+      mkdirSync(repo, { recursive: true });
+      expect(run(["install", "traecode", "--project-path", repo], ctx)).toBe(0);
     }
-    expect(existsSync(missing)).toBe(false);
-    expect(logs.join("\n")).toMatch(/2 written, 0 already current, 1 skipped/);
+    const bFile = repoMcp(ctx, "repo-b");
+    const bDoc = readJson(bFile);
+    bDoc.mcpServers.foreign = { command: "their-own-server" };
+    writeJsonAt(bFile, bDoc);
+    expect(run(["bank", "use", "other-bank"], ctx)).toBe(0);
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(repoMcp(ctx, "repo-a"))).toBe(false);
+    expect(readJson(bFile).mcpServers).toEqual({ foreign: { command: "their-own-server" } });
+  });
+
+  it("preserves uninstall bookkeeping when retiring an old path-to-Bank mapping", () => {
+    const ctx = ctxWithRealDist();
+    const repo = repoDir(ctx, "old-project");
+    writeJsonAt(join(repo, ".trae", "mcp.json"), {
+      mcpServers: { contextbase: { command: "node", args: [join(ctx.dist, "mcp-server.js")] } },
+    });
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    writeJsonAt(path, { mapPathToBank: { [repo]: "old" } });
+    expect(run(["bank", "use", "configured"], ctx)).toBe(0);
+    expect(readJson(path).mapPathToBank).toBeUndefined();
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(join(repo, ".trae", "mcp.json"))).toBe(false);
+    expect(existsSync(join(ctx.home, ".contextbase", "traecode-projects"))).toBe(false);
+  });
+
+  it("discovers older project registrations through Trae workspace storage", () => {
+    const ctx = ctxWithRealDist();
+    const repo = repoDir(ctx, "older-project");
+    mkdirSync(repo, { recursive: true });
+    expect(run(["install", "traecode", "--project-path", repo], ctx)).toBe(0);
+    rmSync(join(ctx.home, ".contextbase", "traecode-projects"), { recursive: true });
+    const storage = wsStorageDir(ctx, "older-window");
+    mkdirSync(storage, { recursive: true });
+    writeFileSync(
+      join(storage, "workspace.json"),
+      JSON.stringify({ folder: pathToFileURL(repo).href })
+    );
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(join(repo, ".trae", "mcp.json"))).toBe(false);
   });
 
   it("re-install leaves a current registration byte-identical and reports it", () => {
     const ctx = ctxWithRealDist();
     mkdirSync(repoDir(ctx, "repo-a"), { recursive: true });
-    writeMapConfig(ctx, { [repoDir(ctx, "repo-a")]: "Agent::A" });
-    expect(run(["install", "traecode"], ctx)).toBe(0);
+    selectProject(ctx, repoDir(ctx, "repo-a"));
+    expect(run(["install", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     const before = readFileSync(repoMcp(ctx, "repo-a"), "utf8");
     const logs: string[] = [];
-    expect(run(["install", "traecode"], { ...ctx, log: (m) => logs.push(m) })).toBe(0);
+    expect(
+      run(["install", "traecode", ...(ctx.args ?? [])], { ...ctx, log: (m) => logs.push(m) })
+    ).toBe(0);
     expect(readFileSync(repoMcp(ctx, "repo-a"), "utf8")).toBe(before);
     expect(logs.join("\n")).toMatch(/0 written, 1 already current/);
   });
@@ -1061,12 +1098,14 @@ describe("traecode installer", () => {
     const ctx = ctxWithRealDist();
     const repo = repoDir(ctx, "repo-a");
     mkdirSync(repo, { recursive: true });
-    writeMapConfig(ctx, { [repo]: "Agent::A" });
+    selectProject(ctx, repo);
     writeJsonAt(repoMcp(ctx, "repo-a"), {
       mcpServers: { contextbase: { command: "their-own-proxy", args: ["serve"] } },
     });
     const logs: string[] = [];
-    expect(run(["install", "traecode"], { ...ctx, log: (m) => logs.push(m) })).toBe(0);
+    expect(
+      run(["install", "traecode", ...(ctx.args ?? [])], { ...ctx, log: (m) => logs.push(m) })
+    ).toBe(0);
     expect(readJson(repoMcp(ctx, "repo-a")).mcpServers.contextbase).toEqual({
       command: "their-own-proxy",
       args: ["serve"],
@@ -1078,17 +1117,17 @@ describe("traecode installer", () => {
     const ctx = ctxWithRealDist();
     const repo = repoDir(ctx, "repo-a");
     mkdirSync(repo, { recursive: true });
-    writeMapConfig(ctx, { [repo]: "Agent::A" });
-    expect(run(["install", "traecode"], ctx)).toBe(0);
+    selectProject(ctx, repo);
+    expect(run(["install", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     expect(existsSync(repoMcp(ctx, "repo-a"))).toBe(true);
-    expect(run(["uninstall", "traecode"], ctx)).toBe(0);
+    expect(run(["uninstall", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     expect(existsSync(repoMcp(ctx, "repo-a"))).toBe(false);
 
     // A repo that also carries a foreign server keeps the file, minus only our entry.
     const foreign = repoDir(ctx, "repo-b");
     mkdirSync(foreign, { recursive: true });
-    writeMapConfig(ctx, { [repo]: "Agent::A", [foreign]: "Agent::B" });
-    expect(run(["install", "traecode"], ctx)).toBe(0);
+    selectProject(ctx, foreign);
+    expect(run(["install", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     writeJsonAt(repoMcp(ctx, "repo-b"), {
       mcpServers: {
         playwright: { command: "npx" },
@@ -1099,7 +1138,7 @@ describe("traecode installer", () => {
         },
       },
     });
-    expect(run(["uninstall", "traecode"], ctx)).toBe(0);
+    expect(run(["uninstall", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     const kept = readJson(repoMcp(ctx, "repo-b")).mcpServers;
     expect(kept.playwright).toEqual({ command: "npx" });
     expect(kept.contextbase).toBeUndefined();
@@ -1109,8 +1148,8 @@ describe("traecode installer", () => {
     const ctx = ctxWithRealDist();
     const repo = repoDir(ctx, "repo-a");
     mkdirSync(repo, { recursive: true });
-    writeMapConfig(ctx, { [repo]: "Agent::A" });
-    expect(run(["install", "traecode"], ctx)).toBe(0);
+    selectProject(ctx, repo);
+    expect(run(["install", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     writeJsonAt(repoMcp(ctx, "repo-a"), {
       mcpServers: {
         contextbase: {
@@ -1121,7 +1160,7 @@ describe("traecode installer", () => {
       },
       inputs: [{ type: "promptString", id: "commitMessage" }],
     });
-    expect(run(["uninstall", "traecode"], ctx)).toBe(0);
+    expect(run(["uninstall", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
     const kept = readJson(repoMcp(ctx, "repo-a"));
     expect(kept.inputs).toEqual([{ type: "promptString", id: "commitMessage" }]);
     expect(kept.mcpServers).toBeUndefined(); // the emptied husk goes with our entry
@@ -1133,7 +1172,7 @@ describe("traecode installer", () => {
       const ctx = ctxWithRealDist();
       const repo = repoDir(ctx, "repo-a");
       mkdirSync(repo, { recursive: true });
-      writeMapConfig(ctx, { [repo]: "Agent::A" });
+      selectProject(ctx, repo);
       const ws = wsStorageDir(ctx, "abc123");
       mkdirSync(ws, { recursive: true });
       writeFileSync(
@@ -1146,7 +1185,7 @@ describe("traecode installer", () => {
         "CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB);",
         "INSERT OR REPLACE INTO ItemTable (key, value) VALUES ('some.other.key', '1');",
       ]);
-      expect(run(["install", "traecode"], ctx)).toBe(0);
+      expect(run(["install", "traecode", ...(ctx.args ?? [])], ctx)).toBe(0);
       const value = (key: string) =>
         execFileSync("sqlite3", [db, `SELECT value FROM ItemTable WHERE key='${key}';`], {
           encoding: "utf8",
@@ -3370,7 +3409,7 @@ describe("customer Workspace setup", () => {
     expect(readJson(join(ctx.home, ".contextbase", "coding-agent.json")).optInOnly).toBeUndefined();
   });
 
-  it("binds only the project, shares its bank across clients, and preserves other mappings", () => {
+  it("sets one Bank for every project and client, replacing obsolete selection settings", () => {
     const ctx = makeCtx();
     const project = join(ctx.home, "project with spaces");
     mkdirSync(project);
@@ -3379,6 +3418,7 @@ describe("customer Workspace setup", () => {
       apiUrl: "https://service.example",
       mapPathToBank: { "/other": "other-bank" },
       optInOnly: true,
+      optInPaths: [project],
       banks: { "other-bank": { autoSeed: true } },
     });
     const args = [
@@ -3393,7 +3433,8 @@ describe("customer Workspace setup", () => {
     expect(run(args, ctx)).toBe(0);
     expect(run(args, ctx)).toBe(0);
     const cfg = readJson(path);
-    expect(cfg.mapPathToBank).toEqual({ "/other": "other-bank", [project]: "customer-bank" });
+    expect(cfg.mapPathToBank).toBeUndefined();
+    expect(cfg.bankId).toBe("customer-bank");
     expect(cfg.optInOnly).toBe(true);
     expect(cfg.banks["customer-bank"]).toEqual({
       manageBankConfig: false,
@@ -3403,7 +3444,7 @@ describe("customer Workspace setup", () => {
     expect(cfg.banks["other-bank"]).toEqual({ autoSeed: true });
     for (const harness of ["claude-code", "codex"]) {
       const loaded = loadConfig({ path, harness });
-      const bank = deriveBankId(loaded, project, harness);
+      const bank = configuredBankId(loaded);
       expect(bank).toBe("customer-bank");
       expect(applyBankConfig(loaded, bank, project).cfg).toMatchObject({
         autoSeed: false,
@@ -3421,7 +3462,6 @@ describe("customer Workspace setup", () => {
     ["--bank-id"],
     ["--bank-id", "--api-url", "https://service.example"],
     ["--bank-id="],
-    ["--project-path", "."],
     ["--bank-id", "bank", "--project-path", "/does-not-exist/contextbase"],
   ])("rejects incomplete binding %j before registering clients", (...args) => {
     const ctx = makeCtx();
@@ -3476,4 +3516,79 @@ it("treats a bank named codex as a flag value without losing the Codex target", 
   expect(run(["install", "codex", "--bank-id", "codex", "--project-path", ctx.home], ctx)).toBe(0);
   expect(readJson(path).banks.codex.bank).toBeUndefined();
   expect(existsSync(join(ctx.home, ".codex", "config.toml"))).toBe(true);
+});
+
+describe("bank use", () => {
+  it("switches only the shared configuration and preserves connection, behavior and host files", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    const settings = join(ctx.home, ".claude", "settings.json");
+    writeJsonAt(settings, { hooks: { foreign: [] } });
+    const before = readFileSync(settings, "utf8");
+    writeJsonAt(path, {
+      apiUrl: "https://service.example",
+      apiToken: "keep-token",
+      bankId: "old",
+      retainSessions: false,
+      dynamicBankId: true,
+      bankIdTemplate: "{project}",
+      mapPathToBank: { "/work": "legacy" },
+      banks: { old: { disabled: true }, next: { bank: "alias", retainSessions: true } },
+    });
+    expect(run(["bank", "use", "next"], ctx)).toBe(0);
+    const cfg = readJson(path);
+    expect(cfg).toMatchObject({
+      apiUrl: "https://service.example",
+      apiToken: "keep-token",
+      bankId: "next",
+      retainSessions: false,
+    });
+    expect(cfg.banks.old).toEqual({ disabled: true });
+    expect(cfg.banks.next).toEqual({
+      retainSessions: true,
+      manageBankConfig: false,
+      autoSeed: false,
+      codebaseSurvey: false,
+    });
+    for (const key of ["mapPathToBank", "bankIdTemplate", "dynamicBankId"])
+      expect(cfg[key]).toBeUndefined();
+    expect(readFileSync(settings, "utf8")).toBe(before);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    expect(existsSync(join(ctx.home, ".contextbase", "coding-agents"))).toBe(false);
+    for (const harness of ["claude-code", "codex", "opencode"])
+      expect(loadConfig({ path, harness }).bankId).toBe("next");
+  });
+  it("honors CONTEXTBASE_CONFIG", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, "custom", "config.json");
+    vi.stubEnv("CONTEXTBASE_CONFIG", path);
+    expect(run(["bank", "use", "configured"], ctx)).toBe(0);
+    expect(readJson(path).bankId).toBe("configured");
+    expect(existsSync(join(ctx.home, ".contextbase", "coding-agent.json"))).toBe(false);
+  });
+  it.each([
+    ["bank", "use"],
+    ["bank", "use", "  "],
+    ["bank", "use", "a", "b"],
+    ["bank", "list"],
+  ])("rejects invalid arguments without writing: %s", (...args) => {
+    const ctx = makeCtx();
+    expect(run(args, ctx)).toBe(1);
+    expect(existsSync(join(ctx.home, ".contextbase", "coding-agent.json"))).toBe(false);
+  });
+  it("preserves malformed configuration instead of replacing it", () => {
+    const ctx = makeCtx();
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "{invalid");
+    expect(run(["bank", "use", "next"], ctx)).toBe(1);
+    expect(readFileSync(path, "utf8")).toBe("{invalid");
+  });
+  it("requires an explicit Bank before installing any host", () => {
+    const ctx = makeCtx();
+    vi.stubEnv("CONTEXTBASE_BANK_ID", "");
+    expect(run(["install", "claude-code"], ctx)).toBe(1);
+    expect(ctx.claudeMcp).not.toHaveBeenCalled();
+    expect(existsSync(join(ctx.home, ".claude", "settings.json"))).toBe(false);
+  });
 });

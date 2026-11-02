@@ -3,8 +3,8 @@
  * Native TS MCP (stdio) server exposing the `contextbase_*` knowledge-page + recall + capture tools.
  *
  * Bank resolution MUST mirror the hooks exactly (`resolveHostMemory`, i.e. loadConfig +
- * deriveBankId + the banks section, harness from the REQUIRED CONTEXTBASE_MCP_HARNESS) so knowledge
- * pages, recall, and retain all land in ONE per-repo bank — this is
+ * configuredBankIdOrSkip + the banks section, harness from the REQUIRED CONTEXTBASE_MCP_HARNESS) so knowledge
+ * pages, recall, and retain all land in ONE configured bank — this is
  * why this is a native TS server and not a reuse of the Python MCP (whose bank derivation
  * differs). MCP servers usually launch with the project dir as cwd; `CONTEXTBASE_MCP_PROJECT_CWD`
  * is the survey's escape hatch when they do not. Cursor's Agents Window is the other case: it

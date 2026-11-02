@@ -484,7 +484,7 @@ describe("runSessionStartHook host MCP registration", () => {
   });
 
   it("registers for a live repo and shows the hint in the banner", async () => {
-    const { ensureMcpRegistration, out } = await run({});
+    const { ensureMcpRegistration, out } = await run({ bankId: "fixed" });
     expect(ensureMcpRegistration).toHaveBeenCalledWith(repo);
     expect(JSON.parse(out).systemMessage).toContain("enable workspace MCP");
   });

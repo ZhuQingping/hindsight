@@ -2268,10 +2268,10 @@
       "hermes": "重启 Hermes，确认使用 ContextBase，再调用 recall 验证访问。"
     },
     "installScopeTitle": "工作空间选择规则与安装范围",
-    "installScope": "优先使用项目绑定，其次使用固定工作空间；均未配置时，按仓库名生成工作空间 ID。对应工作空间需已创建并授权。集成安装到当前用户，API 地址和密钥由各项目共享。",
+    "installScope": "所有项目和客户端统一使用配置中指定的工作空间，不再按仓库或目录自动生成。请先创建工作空间并授权。集成、API 地址和密钥由当前用户共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
-    "npmHelp": "在项目目录执行，绑定当前工作空间；后续进入该项目时自动使用。",
+    "npmHelp": "执行一次，将当前工作空间保存为所有项目和客户端共用的配置。已有配置时可省略 --bank-id；未指定工作空间时停止记忆接入。",
     "endpointHelp": "CONTEXTBASE_API_URL：API 地址；如显示 '<API_ENDPOINT>'，请替换为服务地址。",
-    "projectHelp": "--bank-id：手动指定或切换工作空间，执行后重启客户端。--project-path：可选，默认当前目录。"
+    "projectHelp": "--bank-id：保存指定工作空间。切换无需重装：npx @huaweicloud/contextbase-coding-agents@latest bank use '<BANK_ID>'，随后重启客户端和 MCP 服务。--project-path 可选，仅用于指定项目级客户端注册目录，不影响工作空间选择。"
   }
 }

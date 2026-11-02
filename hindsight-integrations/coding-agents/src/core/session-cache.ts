@@ -1,4 +1,6 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import type { Config } from "./config";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { PageRef } from "./knowledge-injection";
@@ -9,6 +11,7 @@ import type { UsageCursorStore } from "./usage";
  * processes, so this temp-file handoff carries lifecycle decisions without writing user config or
  * bank state. */
 export interface SessionCache {
+  scope?: string; // API endpoint + explicit Bank; old/unscoped recall cannot be reused.
   turns?: number;
   reflectAnswer?: string; // present (even "") = reflect already resolved this session
   /** How many times auto-inject has been ATTEMPTED this session — every source, not just reflect.
@@ -19,6 +22,10 @@ export interface SessionCache {
   /** SessionStart saw a new/empty bank; consume this on prompt one, then allow reflect. */
   deferInitialReflect?: boolean;
   pages?: { atTurn: number; list: PageRef[] };
+}
+
+export function sessionMemoryScope(cfg: Pick<Config, "apiUrl" | "bankId">): string {
+  return JSON.stringify([cfg.apiUrl.replace(/\/+$/, ""), cfg.bankId?.trim() ?? ""]);
 }
 
 export function sessionCacheFile(harness: string, sessionId: string): string {
@@ -68,14 +75,20 @@ export function writeSessionCache(cacheFile: string, cache: SessionCache): void 
 
 /** Context a prompt hook could not deliver itself, waiting for the session's next tool hook (see
  *  HookSpec.toolHook). Its own file: `buildHookOutput` rewrites the session cache every turn. */
-function pendingContextFile(harness: string, sessionId: string): string {
-  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}.pending`);
+function pendingContextFile(harness: string, sessionId: string, scope?: string): string {
+  const suffix = scope === undefined ? "" : `.${createHash("sha256").update(scope).digest("hex")}`;
+  return join(tmpdir(), `contextbase-${harness}`, `${sessionId}${suffix}.pending`);
 }
 
 /** Add a block to the session's pending context. A block already waiting is not added again, so a
  *  session that goes several turns without a tool call is not handed the same roster N times. */
-export function stashPendingContext(harness: string, sessionId: string, context: string): void {
-  const path = pendingContextFile(harness, sessionId);
+export function stashPendingContext(
+  harness: string,
+  sessionId: string,
+  context: string,
+  scope?: string
+): void {
+  const path = pendingContextFile(harness, sessionId, scope);
   let existing = "";
   try {
     existing = readFileSync(path, "utf8");
@@ -92,8 +105,12 @@ export function stashPendingContext(harness: string, sessionId: string, context:
 
 /** Claim and clear the session's pending context. The rename is the claim: tool hooks can run in
  *  parallel, and only the one whose rename succeeds delivers the block. */
-export function takePendingContext(harness: string, sessionId: string): string | undefined {
-  const path = pendingContextFile(harness, sessionId);
+export function takePendingContext(
+  harness: string,
+  sessionId: string,
+  scope?: string
+): string | undefined {
+  const path = pendingContextFile(harness, sessionId, scope);
   const claimed = `${path}.${process.pid}.claim`;
   try {
     renameSync(path, claimed);

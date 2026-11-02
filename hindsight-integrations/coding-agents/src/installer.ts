@@ -47,6 +47,7 @@ import { parse as parseToml } from "smol-toml";
 import { HOOK_HARNESSES, type HookHarnessName } from "./harness/hook-lifecycle";
 import { importLocalHistory } from "./core/history";
 import { validateRemoteEndpoint } from "./core/connection";
+import { configuredBankId } from "./core/bank";
 import { isOurMcpEntry } from "./core/util";
 import { SKILL_DIRS, resolveSkillDirs, traecodeDotDirName } from "./core/skill-dirs";
 import {
@@ -55,6 +56,8 @@ import {
   ensureWorkspaceMcpEnabled,
   markWorkspaceMcpEnabled,
   registerTraecodeWorkspaceMcp,
+  registeredTraecodeProjects,
+  rememberTraecodeProject,
   removeTraecodeWorkspaceMcpEntry,
   traecodeUserDataDir,
   traecodeWorkspaceStorageDir,
@@ -1162,6 +1165,50 @@ function readLineSync(c: InstallCtx, prompt: string): string {
   }
 }
 
+/** Selecting a Bank never creates it or changes its service-owned configuration. */
+function withSelectedBank(
+  existing: Record<string, any>,
+  bankId: string,
+  home: string
+): Record<string, any> {
+  // Retiring a selector must not discard the project registrations needed by uninstall.
+  for (const cwd of Object.keys(existing.mapPathToBank ?? {})) rememberTraecodeProject(cwd, home);
+  const next: Record<string, any> = { ...existing, bankId };
+  delete next.dynamicBankId;
+  delete next.bankIdTemplate;
+  delete next.mapPathToBank;
+  const bankSettings = {
+    ...existing.banks?.[bankId],
+    manageBankConfig: false,
+    autoSeed: false,
+    codebaseSurvey: false,
+  };
+  delete bankSettings.bank;
+  next.banks = { ...existing.banks, [bankId]: bankSettings };
+  return next;
+}
+
+/** Update only Bank selection; no runtime staging, host rewiring or remote requests. */
+function useBank(c: InstallCtx, args: string[]): number {
+  if (args.length !== 2 || args[0] !== "use" || args[1].startsWith("--")) {
+    c.log?.("usage: contextbase-coding-agents bank use <BANK_ID>");
+    return 1;
+  }
+  const configPath = contextbaseConfigPath(c);
+  try {
+    const existing = existsSync(configPath) ? JSON.parse(readFileSync(configPath, "utf8")) : {};
+    if (!isPlainObject(existing)) throw new Error("configuration must be a JSON object");
+    const bankId = configuredBankId({ bankId: args[1] });
+    writeJson(configPath, withSelectedBank(existing, bankId, c.home));
+    c.log?.(`bank: ${existing.bankId ?? "(not configured)"} -> ${bankId}`);
+    c.log?.("bank: restart your coding agents so hooks and MCP use the selected Bank together.");
+    return 0;
+  } catch (error) {
+    c.log?.(`bank: ${(error as Error).message}`);
+    return 1;
+  }
+}
+
 /** Persist the single remote connection before changing any host registration. */
 function configureServer(c: InstallCtx, args: string[]): boolean {
   const explicit = flagValue(args, "server");
@@ -1180,20 +1227,19 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
     c.log?.(`server: invalid config at ${configPath}; fix it before installing`);
     return false;
   }
-  const bankId = flagValue(args, "bank-id");
-  const projectPath = flagValue(args, "project-path");
-  if (
-    (projectPath !== undefined && bankId === undefined) ||
-    (bankId !== undefined && !bankId.trim())
-  ) {
-    c.log?.("server: --project-path requires a non-empty --bank-id");
+  let bankId: string;
+  try {
+    bankId = configuredBankId({
+      bankId: flagValue(args, "bank-id") ?? existing.bankId ?? process.env.CONTEXTBASE_BANK_ID,
+    });
+  } catch (error) {
+    c.log?.(`server: ${(error as Error).message}`);
     return false;
   }
-  let project: string | undefined;
-  if (bankId !== undefined) {
+  const projectPath = flagValue(args, "project-path");
+  if (projectPath !== undefined) {
     try {
-      project = realpathSync(resolve(projectPath ?? process.cwd()));
-      if (!statSync(project).isDirectory()) throw new Error("not a directory");
+      if (!statSync(resolve(projectPath)).isDirectory()) throw new Error("not a directory");
     } catch {
       c.log?.("server: --project-path must name an existing project directory");
       return false;
@@ -1231,27 +1277,9 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
   // Credentials may be supplied later through the user's secret manager; never prompt with echo.
   if (!next.apiToken)
     c.log?.("server: configure apiToken or CONTEXTBASE_API_TOKEN before authenticated requests.");
-  if (bankId !== undefined && project) {
-    next.mapPathToBank = { ...existing.mapPathToBank, [project]: bankId.trim() };
-    // Bank binding must not change the user's global opt-in policy.
-    c.log?.(`server: optInOnly=${next.optInOnly ?? false} (unchanged)`);
-    // The service owns this pre-provisioned bank. Ordinary customer keys can retain
-    // and recall but cannot import bank configuration or create knowledge pages.
-    const bankSettings = {
-      ...existing.banks?.[bankId.trim()],
-      manageBankConfig: false,
-      autoSeed: false,
-      codebaseSurvey: false,
-    };
-    // An old bank alias must not redirect an explicitly selected Workspace.
-    delete bankSettings.bank;
-    next.banks = { ...existing.banks, [bankId.trim()]: bankSettings };
-    c.log?.(`server: project ${project} bound to bank ${bankId.trim()} (service-managed)`);
-    c.log?.(
-      "server: user-wide installation and API credentials; Bank routing is per project, existing project mappings preserved"
-    );
-  }
-  writeJson(configPath, next);
+  const selected = withSelectedBank(next, bankId, c.home);
+  c.log?.(`server: using configured Bank ${bankId} for all projects`);
+  writeJson(configPath, selected);
   c.log?.(`server: remote connection (${configPath})`);
   return true;
 }
@@ -2296,20 +2324,19 @@ const traecode: HarnessInstaller = {
     }
 
     // Pre-seed what the SessionStart hook would otherwise write per session: the per-repo MCP
-    // registration and the workspace enable switch for every repo in mapPathToBank. Trae's hook
+    // registration and the workspace enable switch for the selected project directory. Trae's hook
     // sandbox denies file creation in the workspace and (observed live 2026-09-21) drops
     // sandbox.json rules targeting Trae's own storage, so on stock installs both hook writes
     // fail — the installer runs unsandboxed and lands them. Because the hook checks before
     // writing, a pre-seeded repo turns every later session into a read-only no-op.
-    const config = readJson(contextbaseConfigPath(c));
-    const repos = Object.keys(config.mapPathToBank ?? {}).sort();
+    const repos = [resolve(flagValue([...(c.args ?? [])], "project-path") ?? process.cwd())];
     if (repos.length) {
       const written: string[] = [];
       const current: string[] = [];
       const skipped: string[] = [];
       let seeded = 0;
       for (const repo of repos) {
-        // A map entry whose directory is gone must not grow a phantom `.trae` tree via mkdir -p.
+        // A missing directory must not grow a phantom `.trae` tree via mkdir -p.
         if (!existsSync(repo)) {
           skipped.push(repo);
           continue;
@@ -2322,7 +2349,7 @@ const traecode: HarnessInstaller = {
       }
       c.log?.(
         `traecode: per-repo MCP registration — ${written.length} written, ${current.length} ` +
-          `already current, ${skipped.length} skipped across ${repos.length} opted-in repo(s); ` +
+          `already current, ${skipped.length} skipped across ${repos.length} project directory/directories; ` +
           `enable switch on for ${seeded}`
       );
       if (written.length) c.log?.(`  registered: ${written.join(", ")}`);
@@ -2361,11 +2388,15 @@ const traecode: HarnessInstaller = {
       c.log?.(`traecode: MCP entry removed from ${traecodeMcpPath(c)}`);
     }
     // The per-repo registrations the installer (or the hook) wrote: drop our entry from every
-    // opted-in repo's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
+    // registered project's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
     // servers and foreign "contextbase" entries are never touched — same ownership check as the
     // hook's. Missing repos skip silently; the storage sweep below still catches their switches.
-    const config = readJson(contextbaseConfigPath(c));
-    const repoEntries = Object.keys(config.mapPathToBank ?? {}).sort();
+    const repoEntries = [
+      ...new Set([
+        ...registeredTraecodeProjects(c.home),
+        resolve(flagValue([...(c.args ?? [])], "project-path") ?? process.cwd()),
+      ]),
+    ];
     const cleaned = repoEntries.filter((repo) =>
       removeTraecodeWorkspaceMcpEntry(repo, { home: c.home })
     );
@@ -2548,6 +2579,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   let ctx = ctxIn;
   const [command, ...rawArgs] = argv;
   ctx = { ...ctx, args: rawArgs };
+  if (command === "bank") return useBank(ctx, rawArgs);
   for (const name of ["server", "api-url", "api-token", "bank-id", "project-path"]) {
     const index = rawArgs.indexOf(`--${name}`);
     if (index >= 0 && (!rawArgs[index + 1] || rawArgs[index + 1].startsWith("--"))) {
@@ -2604,6 +2636,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
       `usage: contextbase-coding-agents <install|uninstall> <all|harness...>\n` +
         `       contextbase-coding-agents update\n` +
         `       contextbase-coding-agents stats\n` +
+        `       contextbase-coding-agents bank use <BANK_ID>\n` +
         `       [--server cloud|self-hosted] [--api-url <url>] [--api-token <token>]\n` +
         `       [--bank-id <id>] [--project-path <directory>]\n` +
         `       [--import-conversations] [--enable-workspace-mcp]\n` +
@@ -2709,7 +2742,7 @@ if (isMain || mainPath?.endsWith("installer.js")) {
     version,
     harnessNames: INSTALLERS.map((i) => i.name),
     // configureServer's messages render as their own "server" group, but don't count as an agent.
-    auxNames: ["server"],
+    auxNames: ["server", "bank"],
     configPath: process.env.CONTEXTBASE_CONFIG || undefined,
   });
   ui.intro();

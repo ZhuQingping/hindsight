@@ -12,7 +12,7 @@
  * managers join each folder's `.trae/mcp.json` under the `mcp.config.ws<n>.` scope key, parse the
  * SAME `mcpServers` top-level object as the user file, keep `{command, args, cwd, env}` for stdio
  * servers, and hot-reload the file with a 200ms debounce). So the SessionStart hook — which knows
- * the repo AND runs only where memory is actually live (the caller derives the bank and applies
+ * the repo AND runs only where memory is actually live (the caller loads the configured Bank and applies
  * opt-in first) — makes sure that file registers our server pinned to THIS repo:
  *   {"mcpServers":{"contextbase":{"command":"node","args":["<dist>/mcp-server.js"],
  *     "env":{"CONTEXTBASE_MCP_HARNESS":"traecode","CONTEXTBASE_MCP_PROJECT_CWD":"<repo>"}}}}
@@ -25,16 +25,25 @@
  * one is a bigger statement about the repo than a hook should make.
  *
  * The installer pre-writes the same registration (and seeds the workspace enable switch below) for
- * every repo in `mapPathToBank` — it runs unsandboxed, while Trae's hook sandbox denies file
+ * the selected project directory — it runs unsandboxed, while Trae's hook sandbox denies file
  * creation in the workspace and (observed live, 2026-09-21) drops sandbox.json rules aimed at
  * Trae's own storage. The hook stays as a best-effort top-up for repos opted in after the last
  * install; because both paths check before writing, whichever lands first leaves the other a
  * read-only no-op.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  rmdirSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { diag } from "./diag";
 import { isOurMcpEntry } from "./util";
@@ -229,6 +238,68 @@ export function ensureTraecodeWorkspaceMcp(
   return workspaceMcpHint(opts) ?? (seeded === "failed" ? workspaceEnableHint(opts) : undefined);
 }
 
+const projectsDir = (home: string) => join(home, ".contextbase", "traecode-projects");
+const projectRecord = (home: string, cwd: string) =>
+  join(projectsDir(home), createHash("sha256").update(cwd).digest("hex") + ".json");
+
+/** Keep uninstall bookkeeping separate from Bank routing. Only owned MCP entries are recorded. */
+export function rememberTraecodeProject(cwd: string, home: string): void {
+  try {
+    if (!isAbsolute(cwd) || cwd === home || dirname(cwd) === cwd) return;
+    const doc = JSON.parse(readFileSync(join(cwd, MCP_FILE_REL), "utf8"));
+    if (!isOurMcpEntry(doc.mcpServers?.[MCP_SERVER_NAME])) return;
+    const record = projectRecord(home, cwd);
+    if (existsSync(record)) return;
+    mkdirSync(projectsDir(home), { recursive: true });
+    writeFileSync(record, JSON.stringify(cwd) + "\n");
+  } catch {
+    /* Uninstall can also discover opened projects from Trae's workspace storage. */
+  }
+}
+
+/** All known project registrations, including projects opened before this bookkeeping existed. */
+export function registeredTraecodeProjects(home: string): string[] {
+  const projects = new Set<string>();
+  for (const [dir, storage] of [
+    [projectsDir(home), false],
+    [traecodeWorkspaceStorageDir(home), true],
+  ] as const) {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      try {
+        const value = JSON.parse(
+          readFileSync(storage ? join(dir, entry, "workspace.json") : join(dir, entry), "utf8")
+        );
+        const raw = storage ? value.folder : value;
+        if (typeof raw !== "string") continue;
+        const cwd = raw.startsWith("file:") ? fileURLToPath(raw) : raw;
+        if (isAbsolute(cwd) && cwd !== home && dirname(cwd) !== cwd) projects.add(cwd);
+      } catch {
+        /* Absent or non-folder workspace: leave it alone. */
+      }
+    }
+  }
+  return [...projects];
+}
+
+function forgetTraecodeProject(cwd: string, home: string): void {
+  try {
+    rmSync(projectRecord(home, cwd), { force: true });
+    try {
+      rmdirSync(projectsDir(home));
+    } catch {
+      /* Keep other or failed registrations. */
+    }
+  } catch {
+    /* Best effort. */
+  }
+}
+
 /** The registration itself — merge-not-clobber, foreign entries untouched, idempotent. Never
  *  throws, never rewrites anything but our own entry, and does nothing when already correct.
  *  Returns what happened: the installer reports it per opted-in repo; the hook ignores it. */
@@ -282,11 +353,15 @@ export function registerTraecodeWorkspaceMcp(
       diag("traecode", "workspace_mcp_foreign_entry", { cwd, file });
       return "skipped"; // a foreign "contextbase" server is the user's decision, not ours to overwrite
     }
-    if (existing !== undefined && canon(merged) === canon(existing)) return "current"; // already correct — idempotent no-op
+    if (existing !== undefined && canon(merged) === canon(existing)) {
+      rememberTraecodeProject(cwd, home);
+      return "current";
+    }
 
     servers[MCP_SERVER_NAME] = merged;
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, JSON.stringify(doc, null, 2) + "\n");
+    rememberTraecodeProject(cwd, home);
     if (!exists) ensureGitignored(cwd);
     diag("traecode", "workspace_mcp_registered", { cwd, file });
     return "registered";
@@ -316,16 +391,24 @@ export function removeTraecodeWorkspaceMcpEntry(
     try {
       doc = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
     } catch {
-      return false; // absent or unparseable: nothing of ours in it to remove
+      if (!existsSync(file)) forgetTraecodeProject(cwd, home);
+      return false; // Preserve unreadable entries for a later retry.
     }
     const servers = doc.mcpServers;
-    if (!servers || typeof servers !== "object" || Array.isArray(servers)) return false;
+    if (!servers || typeof servers !== "object" || Array.isArray(servers)) {
+      forgetTraecodeProject(cwd, home);
+      return false;
+    }
     const record = servers as Record<string, unknown>;
-    if (!isOurMcpEntry(record[MCP_SERVER_NAME])) return false; // foreign or absent: not ours to remove
+    if (!isOurMcpEntry(record[MCP_SERVER_NAME])) {
+      forgetTraecodeProject(cwd, home);
+      return false; // Never remove a foreign replacement.
+    }
     delete record[MCP_SERVER_NAME];
     if (Object.keys(record).length === 0) delete doc.mcpServers; // an empty husk carries no information
     if (Object.keys(doc).length === 0) rmSync(file);
     else writeFileSync(file, JSON.stringify(doc, null, 2) + "\n");
+    forgetTraecodeProject(cwd, home);
     return true;
   } catch {
     return false;

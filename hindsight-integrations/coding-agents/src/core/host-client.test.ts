@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,9 +15,9 @@ async function loadFactory() {
   return import("./host-client");
 }
 
-function writeConfig(value: unknown): void {
+function writeConfig(value: Record<string, unknown>): void {
   mkdirSync(join(cfgPath, ".."), { recursive: true });
-  writeFileSync(cfgPath, JSON.stringify(value));
+  writeFileSync(cfgPath, JSON.stringify({ bankId: "fixed", ...value }));
 }
 
 const ENV = { ...process.env };
@@ -46,21 +45,43 @@ describe("resolveHostMemory", () => {
     expect(client.maxParallelRetains).toBe(3);
   });
 
-  // #4490: the host client named no project, so an initiative captured in a repo-owned bank was
-  // scoped to the bank id; a shared bank must still name none (it gets the shared-bank clause).
-  it("names the repo as the page subject only when the bank is that repo's", async () => {
-    const repo = join(root, "my-repo");
-    mkdirSync(repo);
-    execFileSync("git", ["init", "-q", repo]);
-    writeConfig({});
-    let { resolveHostMemory } = await loadFactory();
-    const own = resolveHostMemory("dsh", repo);
-    expect(own.client.project).toBe("my-repo");
-    expect(own.bankId).toContain("my-repo");
+  it("shares the configured Bank across directories and harnesses, without a repository page subject", async () => {
+    writeConfig({ apiUrl: "http://server", bankId: "shared" });
+    const { resolveHostMemory } = await loadFactory();
+    for (const dir of [root, "/missing/repository", "/other/project"]) {
+      for (const host of ["dsh", "claude-code", "codex", "opencode"]) {
+        const result = resolveHostMemory(host, dir);
+        expect(result.bankId).toBe("shared");
+        expect(result.client.project).toBeUndefined();
+      }
+    }
+    writeConfig({ apiUrl: "http://server", bankId: "next" });
+    expect(resolveHostMemory("dsh", root).bankId).toBe("next");
+  });
 
-    writeConfig({ bankId: "shared-memory" });
-    ({ resolveHostMemory } = await loadFactory());
-    expect(resolveHostMemory("dsh", repo).client.project).toBeUndefined();
+  it.each([
+    "dsh",
+    "opencode",
+    "kilo",
+    "opencode2",
+    "cline-cli",
+    "pi",
+    "prime-agent",
+    "claude-code",
+    "codex",
+  ])("%s disables memory when no Bank is configured, without requests", async (host) => {
+    writeConfig({ bankId: undefined, apiUrl: "http://server" });
+    const { resolveHostMemory } = await loadFactory();
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    try {
+      const result = resolveHostMemory(host, root);
+      expect(result.cfg.disabled).toBe(true);
+      expect(result.bankId).toBe("");
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("enforces optInOnly for every host, not just the ones that remembered to pass a directory", async () => {

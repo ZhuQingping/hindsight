@@ -33,7 +33,7 @@ import { buildRetainStamp } from "./retain-stamp";
 import { buildSessionStartContext } from "./session-start";
 import { syncCompanionSkill } from "./skill-sync";
 import { buildHookOutput } from "./hook";
-import { sessionCacheFile, writeSessionCache } from "./session-cache";
+import { sessionCacheFile, sessionMemoryScope, writeSessionCache } from "./session-cache";
 
 const HARNESS = "opencode";
 /** How long `flush` holds a host's exit for in-flight write-backs: room for one retain request. */
@@ -184,7 +184,10 @@ export class RuntimeCore {
       // `seedIfCold` has no session id. Transfer its SessionStart decision to the first concrete
       // session here; `buildHookOutput` consumes it exactly once, like hook harnesses do.
       this.deferInitialReflect = false;
-      writeSessionCache(cacheFile, { deferInitialReflect: true });
+      writeSessionCache(cacheFile, {
+        scope: sessionMemoryScope(this.cfg),
+        deferInitialReflect: true,
+      });
     }
     const output = await buildHookOutput({
       harness: this.harness,

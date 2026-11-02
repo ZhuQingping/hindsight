@@ -15,7 +15,6 @@ describe("Antigravity status line", () => {
 
   it("uses workspace.current_dir when cwd is absent and hides disabled banks", () => {
     const cfg = resolveConfig({
-      dynamicBankId: false,
       bankId: "default",
       banks: { default: { disabled: true } },
     });

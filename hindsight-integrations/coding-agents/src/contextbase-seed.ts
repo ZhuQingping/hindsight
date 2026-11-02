@@ -7,12 +7,11 @@
  *
  * Claude-Code-only for now: the harness is hardcoded to "claude-code" below, since this CLI is only
  * ever invoked from the Claude Code SessionStart flow (Task 10b). If it's ever driven from another
- * harness's context — especially one with a non-default `bankIdTemplate` or a `harnesses.<name>`
- * override in the config — the hardcoded harness would resolve the wrong bank. Generalizing would
- * need a real `--harness` flag, not added here.
+ * harness's context, add a real `--harness` flag so behavioral overrides match that host.
+ * Bank selection is shared across all harnesses.
  */
 import { loadConfig } from "./core/config";
-import { deriveBankIdOrSkip } from "./core/bank";
+import { configuredBankIdOrSkip } from "./core/bank";
 import { seedControl } from "./core/seed";
 
 function arg(name: string): string | undefined {
@@ -23,7 +22,7 @@ function arg(name: string): string | undefined {
 const command = process.argv[2] || "";
 const repo = arg("repo") || process.cwd();
 const cfg = loadConfig({ harness: "claude-code" });
-const bankId = deriveBankIdOrSkip(cfg, repo, "claude-code");
+const bankId = configuredBankIdOrSkip(cfg, "claude-code");
 if (bankId === null) {
   console.error(
     `seed: cannot identify the repository at ${repo} — refusing to seed a guessed bank`

@@ -1,6 +1,6 @@
 ---
 name: contextbase-coding-agent
-description: How this machine's @DISPLAY_NAME@ coding-agent memory works — the plugin behind the 🧠 banner. Use when the user says "store/remember this in @DISPLAY_NAME@", asks what the memory/knowledge pages are, wants to configure per-repo memory (disable, rename banks, git depth), or something memory-related looks broken.
+description: How this machine's @DISPLAY_NAME@ coding-agent memory works — the plugin behind the 🧠 banner. Use when the user says "store/remember this in @DISPLAY_NAME@", asks what the memory/knowledge pages are, wants to configure workspace memory (select a workspace, disable memory, git depth), or something memory-related looks broken.
 ---
 
 # @DISPLAY_NAME@ Coding-Agent Memory
@@ -11,9 +11,8 @@ explains what happens automatically, which tools you have, and how to configure 
 
 ## What happens automatically (no action needed)
 
-- **Per-repo memory bank**: each repository resolves to a bank (shown in the session banner:
-  `↳ memory bank “coding-agent::<repo>”`). Worktrees share the main repo's bank.
-- **Ingestion builds itself**: on first open, the bank is seeded from recent commit messages and a
+- **Configured workspace**: every repository and agent uses the explicit `bankId` in the shared configuration. No workspace is derived from a directory or created automatically. Switch with `npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>`, then restart the agent and MCP server.
+- **Optional ingestion**: when explicitly enabled, the configured workspace is seeded from recent commit messages and a
   read-only codebase survey; every session start, a background engine tops it up (new commits, new
   conversations) and keeps 5 knowledge pages current. There is NO ingest command to run.
 - **Session synthesis**: by default, the first prompt of a session triggers one deep memory

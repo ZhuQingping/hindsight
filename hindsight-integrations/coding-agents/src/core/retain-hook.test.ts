@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deriveBankId } from "./bank";
 import type { TransportTurn } from "./chat";
 import { type RawConfig, resolveConfig } from "./config";
 import type { ContextBaseClient } from "./contextbase";
@@ -31,7 +30,8 @@ vi.mock("./config", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./config")>();
   return {
     ...actual,
-    loadConfig: () => actual.resolveConfig({ apiUrl: "https://service.example", ...rawConfig }),
+    loadConfig: () =>
+      actual.resolveConfig({ apiUrl: "https://service.example", bankId: "fixed", ...rawConfig }),
   };
 });
 
@@ -856,21 +856,25 @@ describe("runRetainHook honors retainSessions", () => {
   });
 
   it("a banks.<id> override opts one repo out while the global default still writes", async () => {
-    const bankId = deriveBankId(resolveConfig(), root, spec.harness, root);
-    rawConfig = { banks: { [bankId]: { retainSessions: false } } };
+    const bankId = "fixed";
+    rawConfig = { bankId: "fixed", banks: { [bankId]: { retainSessions: false } } };
     const optedOut = stubClient();
     await runRetainHook(spec, optedOut.makeClient);
     expect(optedOut.retain).not.toHaveBeenCalled();
 
-    rawConfig = { banks: { "some-other-bank": { retainSessions: false } } };
+    rawConfig = { bankId: "fixed", banks: { "some-other-bank": { retainSessions: false } } };
     const untouched = stubClient();
     await runRetainHook(spec, untouched.makeClient);
     expect(untouched.retain).toHaveBeenCalledTimes(1);
   });
 
   it("a banks.<id> override turns write-back back on under a global opt-out", async () => {
-    const bankId = deriveBankId(resolveConfig(), root, spec.harness, root);
-    rawConfig = { retainSessions: false, banks: { [bankId]: { retainSessions: true } } };
+    const bankId = "fixed";
+    rawConfig = {
+      bankId: "fixed",
+      retainSessions: false,
+      banks: { [bankId]: { retainSessions: true } },
+    };
     const { retain, makeClient } = stubClient();
     await runRetainHook(spec, makeClient);
     expect(retain).toHaveBeenCalledTimes(1);

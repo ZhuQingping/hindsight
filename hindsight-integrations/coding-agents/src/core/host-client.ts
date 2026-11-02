@@ -2,7 +2,7 @@
  * ONE place a long-lived host turns "which repo am I serving" into a configured client.
  *
  * Every persistent host (dsh, Cline, Kilo, Prime Agent, opencode and the other plugin entries, the
- * MCP server) used to carry its own copy of the same four steps — loadConfig, deriveBankId,
+ * MCP server) used to carry its own copy of the same four steps — loadConfig, configuredBankIdOrSkip,
  * applyBankConfig, `new ContextBaseClient({...})`. Five copies of a block is five chances to leave a
  * field out, and two already had: dsh and Prime Agent never passed `maxParallelRetains` (so both
  * silently ignored that setting), and dsh never passed the directory to `applyBankConfig` (so
@@ -15,7 +15,7 @@
  * can rotate under them.
  */
 import { applyBankConfig, loadConfig, resolveConfig, type Config } from "./config";
-import { bankProjectName, deriveBankIdOrSkip } from "./bank";
+import { configuredBankIdOrSkip } from "./bank";
 import { RemoteConnectionError } from "./connection";
 import { log } from "./log";
 import { ContextBaseClient } from "./contextbase";
@@ -29,11 +29,11 @@ export interface HostMemory {
 }
 
 /** Resolve config for one workspace: env + file + `harnesses.<name>`, then the `banks.<id>`
- *  section for the bank that directory maps to, with `optInOnly` enforced. */
+ *  behavioral section for the configured Bank, with `optInOnly` enforced. */
 export function resolveHostConfig(
   harness: string,
   directory: string
-): { cfg: Config; bankId: string; project?: string } {
+): { cfg: Config; bankId: string } {
   let cfg0: Config;
   try {
     cfg0 = loadConfig({ harness });
@@ -44,19 +44,15 @@ export function resolveHostConfig(
     log.warn(harness, `Memory integration disabled: ${error.message}`);
     return { cfg: resolveConfig({ disabled: true, harness }), bankId: "" };
   }
-  // A globally disabled plugin stops HERE, before bank derivation: `disabled` exists to be a
+  // A globally disabled plugin stops HERE, before Bank selection: `disabled` exists to be a
   // zero-overhead baseline — the same agent with no memory — not merely a silent one. Callers
   // return early on `cfg.disabled`, so the empty bank id never reaches a request.
   if (cfg0.disabled) return { cfg: cfg0, bankId: "" };
-  const bankId = deriveBankIdOrSkip(cfg0, directory, harness);
-  // An unidentifiable repository takes the same exit: no bank id is safer than a guessed one, and
-  // `disabled` is the signal every caller already handles (#3950).
+  const bankId = configuredBankIdOrSkip(cfg0, harness);
+  // Missing Bank configuration disables every persistent host through the same boundary.
   if (bankId === null) return { cfg: { ...cfg0, disabled: true }, bankId: "" };
   const resolved = applyBankConfig(cfg0, bankId, directory);
-  // The repository the bank is ABOUT, for page scoping — the same rule as deepen.ts: only a bank
-  // that is this repo's, not one a `banks.<id>.bank` rename points several repos at (#4490).
-  const project = resolved.bankId === bankId ? bankProjectName(resolved.cfg, directory) : undefined;
-  return { ...resolved, project };
+  return resolved;
 }
 
 /**
@@ -68,7 +64,7 @@ export function resolveHostConfig(
  * sent until a caller asks for something.
  */
 export function resolveHostMemory(harness: string, directory: string): HostMemory {
-  const { cfg, bankId, project } = resolveHostConfig(harness, directory);
+  const { cfg, bankId } = resolveHostConfig(harness, directory);
   return {
     cfg,
     bankId,
@@ -76,8 +72,6 @@ export function resolveHostMemory(harness: string, directory: string): HostMemor
       apiUrl: cfg.apiUrl,
       apiToken: cfg.apiToken,
       bank: bankId,
-      // Names the repo in the initiative pages this host captures, as the seeded pages do.
-      project,
       maxParallelRetains: cfg.maxParallelRetains,
       observationScopes: cfg.observationScopes,
       pageSearchLimit: cfg.pageSearchLimit,

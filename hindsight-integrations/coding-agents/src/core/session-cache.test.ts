@@ -130,3 +130,12 @@ describe("sessionRootDir", () => {
     expect(sessionRootDir(HARNESS, "", "/work/one")).toBe("/work/one");
   });
 });
+
+it("keeps deferred tool-hook context isolated by Bank and endpoint", () => {
+  const a = "endpoint/bank-a",
+    b = "endpoint/bank-b";
+  stashPendingContext(HARNESS, "s1", "A-only context", a);
+  expect(takePendingContext(HARNESS, "s1", b)).toBeUndefined();
+  expect(takePendingContext(HARNESS, "s1", a)).toBe("A-only context");
+  expect(takePendingContext(HARNESS, "s1", a)).toBeUndefined();
+});

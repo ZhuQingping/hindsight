@@ -80,7 +80,8 @@ try {
     { env, cwd: project, stdio: "pipe", timeout: 60000 }
   );
   const cfg = JSON.parse(readFileSync(env.CONTEXTBASE_CONFIG));
-  assert.equal(cfg.mapPathToBank[project], "customer-bank");
+  assert.equal(cfg.bankId, "customer-bank");
+  assert.equal(cfg.mapPathToBank, undefined);
   assert.equal(cfg.banks["customer-bank"].autoSeed, false);
   // Inspect the customer's installed runtime, not just source files: bundling preserves class
   // names and source-path comments that are otherwise easy to miss during a brand rename.
@@ -177,6 +178,18 @@ try {
     ["/v1/default/banks/customer-bank/memories", "/v1/default/banks/customer-bank/reflect"]
   );
   assert(received.every((r) => r.auth === "Bearer customer-key"));
+  const switched = execFileSync(
+    process.execPath,
+    [join(dist, "installer.js"), "bank", "use", "next-workspace"],
+    { env, cwd: home, encoding: "utf8" }
+  );
+  assert.match(switched, /next-workspace/);
+  const switchedConfig = JSON.parse(readFileSync(env.CONTEXTBASE_CONFIG, "utf8"));
+  assert.equal(switchedConfig.bankId, "next-workspace");
+  assert.equal(switchedConfig.apiUrl, cfg.apiUrl);
+  assert.equal(switchedConfig.apiToken, cfg.apiToken);
+  assert.equal(received.length, 2, "switching must not call workspace administration APIs");
+
   // Exercise the installed hook's logger without issuing another memory request.
   const disabledConfig = join(home, "disabled-hook.json");
   writeFileSync(disabledConfig, JSON.stringify({ ...cfg, disabled: true, logLevel: "debug" }));

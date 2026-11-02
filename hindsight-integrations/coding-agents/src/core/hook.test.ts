@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { sessionMemoryScope } from "./session-cache";
 import { resolveConfig } from "./config";
 import { buildHookOutput, runHook } from "./hook";
 import { diagFilePath } from "./diag";
@@ -106,7 +107,10 @@ describe("buildHookOutput", () => {
 
   it("defers the first automatic reflect for a new bank, then reflects on prompt two", async () => {
     mkdirSync(join(root, "cache"), { recursive: true });
-    writeFileSync(cacheFile, JSON.stringify({ deferInitialReflect: true }));
+    writeFileSync(
+      cacheFile,
+      JSON.stringify({ scope: sessionMemoryScope(resolveConfig({})), deferInitialReflect: true })
+    );
     const cfg = resolveConfig({});
     const client = makeClient();
 
@@ -809,6 +813,7 @@ describe("buildHookOutput", () => {
       cacheFile,
       JSON.stringify({
         turns: 1,
+        scope: sessionMemoryScope(cfg),
         reflectAnswer: "CACHED",
         pages: { atTurn: 1, list: [{ id: "p1", title: "Uploader guide", content: PAGE_CONTENT }] },
       })
@@ -850,5 +855,59 @@ describe("runHook anti-recursion guard", () => {
     // alone without calling makeClient) proves the guard fired first.
     await runHook({ harness: "claude-code", parse: () => ({}), emit: (c) => ({ c }) }, makeClient);
     expect(makeClient).not.toHaveBeenCalled();
+  });
+});
+
+describe("resumed session connection changes", () => {
+  it.each([
+    { apiUrl: "http://service", bankId: "b" },
+    { apiUrl: "http://other-service", bankId: "a" },
+  ])("re-fetches memory after switching to %j with the same cache file", async (nextConnection) => {
+    const first = makeClient({ reflect: vi.fn(async () => "Bank A memory") });
+    await buildHookOutput({
+      harness: "claude-code",
+      prompt: "before switch",
+      cfg: resolveConfig({ apiUrl: "http://service", bankId: "a" }),
+      client: first,
+      cacheFile,
+    });
+    const second = makeClient({ reflect: vi.fn(async () => "New connection memory") });
+    const out = await buildHookOutput({
+      harness: "claude-code",
+      prompt: "after switch",
+      cfg: resolveConfig(nextConnection),
+      client: second,
+      cacheFile,
+    });
+    expect(second.reflect).toHaveBeenCalledTimes(1);
+    expect(second.listPages).toHaveBeenCalledTimes(1);
+    expect(out.context).toContain("New connection memory");
+    expect(out.context).not.toContain("Bank A memory");
+  });
+  it("does not reuse the previous Bank's page roster if the new Bank is unreachable", async () => {
+    const first = makeClient({
+      listPages: vi.fn(async () => ({ items: [{ id: "private-a", name: "Bank A private page" }] })),
+    });
+    await buildHookOutput({
+      harness: "claude-code",
+      prompt: "before",
+      cfg: resolveConfig({ bankId: "a" }),
+      client: first,
+      cacheFile,
+    });
+    const second = makeClient({
+      listPages: vi.fn(async () => {
+        throw new Error("unavailable");
+      }),
+    });
+    const out = await buildHookOutput({
+      harness: "claude-code",
+      prompt: "after",
+      cfg: resolveConfig({ bankId: "b" }),
+      client: second,
+      cacheFile,
+    });
+    expect(out.pages).toEqual([]);
+    expect(out.context).not.toContain("Bank A private page");
   });
 });

@@ -279,8 +279,6 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
         join(PACKAGE_ROOT, "dist", "deepen.js"),
         "--repo",
         workDir,
-        "--bank",
-        bankId,
         "--config",
         hostConfigPath,
         "--git-ingest",

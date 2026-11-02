@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { buildKnowledgeTools } from "./knowledge-tools";
 import { DEFAULT_REFLECT_TOOL_TIMEOUT_MS } from "./config";
-import type { ContextBaseClient } from "./contextbase";
+import { ContextBaseClient } from "./contextbase";
 
 /** Minimal stub of the ContextBaseClient surface the tools call — no SDK, no network. */
 function stubClient(overrides: Partial<Record<string, ReturnType<typeof vi.fn>>> = {}) {
@@ -481,5 +481,56 @@ describe("buildKnowledgeTools", () => {
       expect(result.isError).toBe(true);
       expect(JSON.parse(result.content[0].text)).toEqual({ error: "boom: not found" });
     });
+  }
+});
+
+it.each([401, 403, 404])(
+  "MCP ingestion reports HTTP %s as an error, never a successful save",
+  async (status) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({ detail: status === 404 ? "Bank not found" : "Access denied" }),
+            { status }
+          )
+      )
+    );
+    try {
+      const client = new ContextBaseClient({
+        apiUrl: "http://fixture.invalid",
+        bank: "configured",
+      });
+      const result = await findTool(
+        buildKnowledgeTools(client, "configured"),
+        "contextbase_ingest_document"
+      ).handler({ title: "Decision", content: "Keep this" });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(String(status));
+      expect(result.content[0].text).not.toContain('"ok":true');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }
+);
+
+it("MCP ingestion reports an unreachable endpoint as an error", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    })
+  );
+  try {
+    const client = new ContextBaseClient({ apiUrl: "http://fixture.invalid", bank: "configured" });
+    const result = await findTool(
+      buildKnowledgeTools(client, "configured"),
+      "contextbase_ingest_document"
+    ).handler({ title: "Decision", content: "Keep this" });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("fetch failed");
+  } finally {
+    vi.unstubAllGlobals();
   }
 });
