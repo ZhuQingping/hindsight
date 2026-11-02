@@ -89,5 +89,18 @@ jobs:
           cp "${tarballs[@]}" "$stage/"
           cd "$stage"
           for tarball in *.tgz; do
-            npm publish "./$tarball" --access public --ignore-scripts --provenance=false
+            # A partial release can be resumed only when the existing package is byte-identical.
+            package=$(tar -xOf "$tarball" package/package.json | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')
+            version=$(tar -xOf "$tarball" package/package.json | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')
+            status=$(curl --silent --show-error --retry 3 --max-time 60 --output metadata.json --write-out '%{http_code}' "https://registry.npmjs.org/$package/$version")
+            case "$status" in
+              200)
+                published=$(node -pe 'JSON.parse(require("fs").readFileSync("metadata.json", "utf8")).dist.integrity')
+                expected="sha512-$(openssl dgst -sha512 -binary "$tarball" | openssl base64 -A)"
+                test "$published" = "$expected" || { echo "Published bytes differ for $package@$version" >&2; exit 1; }
+                echo "Already published and verified: $package@$version"
+                ;;
+              404) npm publish "./$tarball" --access public --ignore-scripts --provenance=false ;;
+              *) echo "Registry lookup failed for $package@$version: HTTP $status" >&2; exit 1 ;;
+            esac
           done

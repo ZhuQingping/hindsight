@@ -1,6 +1,6 @@
 {
   "name": "contextbase-client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TypeScript client for ContextBase - Semantic memory system with personality-driven thinking",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
