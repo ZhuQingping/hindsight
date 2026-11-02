@@ -2181,9 +2181,9 @@
     "guideConnectTitle": "Connect an agent or application",
     "guideConnectBody": "Connection instructions are on a separate page for the selected Workspace.",
     "connectTitle": "Connect",
-    "connectIntro": "Choose a workspace and client, then copy its commands or code. The bank_id in each example is the selected workspace ID.",
+    "connectIntro": "Choose a workspace and client, then copy the commands or code. bank_id is the workspace ID.",
     "chooseBank": "Choose a Workspace",
-    "chooseBankDescription": "Connection details are scoped to one Workspace. Search for the Workspace you want to connect.",
+    "chooseBankDescription": "Search for the workspace you want to connect.",
     "searchBanks": "Search Workspaces",
     "noBanks": "No matching Workspaces.",
     "selectedBank": "Selected Workspace",
@@ -2219,15 +2219,15 @@
     "development": "Application development",
     "clientLabel": "Client",
     "terminalLabel": "Terminal",
-    "credentials": "Replace '<API_KEY>' locally with a key authorized for this workspace. This page does not create or store keys.",
+    "credentials": "Replace '<API_KEY>' with a business key authorized for this workspace.",
     "descriptions": {
-      "coding": "Install the ContextBase integration for the selected client and bind your project to this workspace.",
+      "coding": "Automatically recall project memories and save conversations.",
       "openclaw": "Install the ContextBase plugin and connect your OpenClaw Gateway to this workspace.",
       "hermes": "Install ContextBase as the memory provider for your current Hermes profile.",
       "python": "Install the Python SDK and run a read-only memory query.",
       "node": "Install the Node.js SDK and run a read-only memory query.",
       "rest": "Check access to this workspace with a read-only statistics request.",
-      "mcp": "Connect an HTTP MCP client to the remote ContextBase service. No local adapter is required for this option."
+      "mcp": "Connect to ContextBase over HTTP MCP, without a local adapter."
     },
     "requirements": {
       "coding": "Requires the selected client and Node.js 18+.",
@@ -2254,23 +2254,23 @@
     "saveExample": "Save as {filename}, then run it in the same terminal:",
     "exampleQuery": "What conventions does this project follow?",
     "verifyTitle": "Verify the connection",
-    "verifyAgent": "Restart the client in this project directory. Check the available ContextBase tools, then send this prompt:",
-    "verifyMcpAgent": "Restart the client in this project directory. Check ContextBase under /mcp, approve hooks if prompted, then send this prompt:",
+    "verifyAgent": "Restart the client in your project directory, check the ContextBase tools, then send:",
+    "verifyMcpAgent": "Restart the client in your project directory, check ContextBase under /mcp, enable hooks if prompted, then send:",
     "diagnosePrompt": "Call the currently loaded ContextBase diagnostic tool using its actual registered name. Return workspace, bank_id, harness and config.api_url from the tool result.",
-    "diagnoseExpected": "Expect the project directory, bank_id = {bankId}, and harness = {harness}; also check the API address. This checks local configuration, not cloud permissions.",
+    "diagnoseExpected": "Check the project directory, bank_id = {bankId}, harness = {harness}, and API address. This checks local configuration, not cloud permissions.",
     "openCodeShared": "OpenCode and OpenCode 2 use the same host plugin entry. Choose the version you actually run.",
     "verify": {
-      "sdk": "A successful recall response, including an empty result, confirms the request reached the service. Authentication or workspace errors must be resolved; a running script alone does not mean success.",
-      "rest": "Expect HTTP 200 with workspace statistics. Resolve HTTP 401/403/404 before using the service.",
-      "mcp": "Reconnect your MCP client and check the returned tool list. Make a read-only recall request for this workspace to verify service access.",
-      "openclaw": "After restarting, check that the plugin log reports remote API mode and this workspace. Use OpenClaw memory search and inspect its actual result. Plugin loading alone does not confirm cloud access.",
-      "hermes": "Restart Hermes and confirm ContextBase is the active memory provider. Ask the agent to call the loaded ContextBase recall tool for this workspace and inspect its actual result."
+      "sdk": "A successful recall response, including an empty result, confirms access.",
+      "rest": "HTTP 200 with workspace statistics confirms access.",
+      "mcp": "Reconnect, check the loaded tools, then call recall to verify access.",
+      "openclaw": "Restart the Gateway, check that ContextBase is loaded, then run a memory search.",
+      "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
-    "installScopeTitle": "Installation scope",
-    "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project.",
+    "installScopeTitle": "Workspace selection and installation scope",
+    "installScope": "Project mappings take precedence over a fixed workspace. If neither is configured, the repository name determines the workspace ID. Create and authorize that workspace first. The integration is installed for the current user; the API address and key are shared across projects.",
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
-    "endpointHelp": "--api-url: API Endpoint. If omitted, the installer reads saved settings or environment variables; on first use, follow the terminal prompt.",
-    "projectHelp": "--project-path is optional: defaults to the current directory. To connect another project, specify its local path."
+    "npmHelp": "Run in your project directory to bind this workspace. Future sessions in that project use it automatically.",
+    "endpointHelp": "CONTEXTBASE_API_URL: API Endpoint. Replace '<API_ENDPOINT>' with your service address if shown.",
+    "projectHelp": "--bank-id selects or switches the workspace; restart the client afterwards. --project-path is optional: defaults to the current directory."
   }
 }

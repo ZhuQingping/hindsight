@@ -9,8 +9,8 @@ it("names workspaces consistently while documenting the SDK bank mapping", () =>
   for (const messages of [en, zh]) {
     const display = { ...messages, resourcePages: { ...messages.resourcePages, connectIntro: "" } };
     for (const value of values(display)) {
-      // ICU placeholders and rich-text identifiers are protocol names, not visible copy.
-      const text = value.replace(/\{[^}]*\}|<[^>]*>/g, "");
+      // ICU placeholders, rich-text identifiers and CLI flags retain their protocol names.
+      const text = value.replace(/\{[^}]*\}|<[^>]*>|--bank-id\b/g, "");
       expect(text).not.toMatch(/记忆库|\b(?:memory banks?|banks?)\b/i);
     }
     expect(messages.resourcePages.connectIntro).toContain("bank_id");

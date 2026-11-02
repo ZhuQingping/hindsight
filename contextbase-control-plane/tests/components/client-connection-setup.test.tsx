@@ -152,11 +152,14 @@ it("shows connection details after the command without a parameter form and with
   const command = Array.from(document.querySelectorAll("pre")).find((node) =>
     node.textContent?.includes("npx.cmd")
   )!;
-  expect(command.textContent).not.toMatch(/--api-url|--project-path/);
-  const text = document.body.textContent!;
-  expect(text.indexOf(messages.connectionSetup.endpointHelp)).toBeGreaterThan(
-    text.indexOf(command.textContent!)
+  expect(command.textContent).not.toContain("--project-path");
+  expect(command.textContent).toContain(`$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`);
+  expect(command.textContent!.indexOf("CONTEXTBASE_API_URL")).toBeLessThan(
+    command.textContent!.indexOf("CONTEXTBASE_API_TOKEN")
   );
+  const text = document.body.textContent!;
+  const endpointHelp = screen.getByText(/^CONTEXTBASE_API_URL: API Endpoint\./);
+  expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
   expect(command.textContent).toContain("--bank-id 'team'");
   expect(text).toContain("--project-path is optional");
 });

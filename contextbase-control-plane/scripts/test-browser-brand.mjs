@@ -217,11 +217,17 @@ async function auditMode(contextdb) {
     });
     assert.equal(login.status, 200);
     cookie = login.headers.get("set-cookie").split(";")[0];
+    // Settings now redirects to the dashboard; audit that response explicitly.
+    const settings = await request("/settings");
+    assert.equal(settings.status, 307, "/settings redirect status");
+    const settingsLocation = settings.headers.get("location");
+    assert(settingsLocation, "/settings redirect location");
+    assert.equal(new URL(settingsLocation, origin).href, `${origin}/dashboard`);
+    inspect(await settings.text(), "/settings redirect body");
     const assets = new Set(["/product-icon.svg"]);
     for (const page of [
       "/dashboard",
       "/connect",
-      "/settings",
       "/banks/audit_bank",
       ...(contextdb ? ["/users"] : []),
     ]) {
