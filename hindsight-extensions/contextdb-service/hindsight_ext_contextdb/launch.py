@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import Literal
@@ -14,7 +15,10 @@ from .environment import service_env
 
 def launch(component: Literal["api", "worker", "ui"], directory: Path, source_root: Path) -> None:
     if component == "ui":
-        verify_ui_build(source_root)
+        development = os.environ.get("CONTEXTDB_UI_DEV") == "1"
+        local_port = os.environ.get("CONTEXTDB_LOCAL_UI_PORT") if development else None
+        if not development:
+            verify_ui_build(source_root)
         # Build/server processes receive UI-only configuration, never PG/model
         # credentials or the HMAC pepper from a shared operator shell.
         system_keys = {
@@ -45,6 +49,37 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
         os.environ.clear()
         os.environ.update(environment)
         load_deployment_secrets(directory, "ui")
+        if development:
+            if local_port is not None:
+                if not local_port.isdecimal() or not 1024 <= int(local_port) <= 65535:
+                    raise ValueError("UI port must be within 1024..65535")
+                previous_port = service_env("CP_PORT", "9999")
+                origin = service_env("CP_PUBLIC_ORIGIN")
+                # Adjust auto-generated loopback origins; an operator's external
+                # proxy origin stays authoritative even if the dev port changes.
+                for host in ("localhost", "127.0.0.1"):
+                    if origin == f"http://{host}:{previous_port}":
+                        for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
+                            os.environ[prefix + "PUBLIC_ORIGIN"] = f"http://{host}:{local_port}"
+                for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
+                    os.environ[prefix + "PORT"] = local_port
+            os.chdir(source_root)
+            os.environ["HOSTNAME"] = service_env("CP_HOST", "127.0.0.1")
+            os.environ["PORT"] = service_env("CP_PORT", "9999")
+            subprocess.run(["npm", "run", "build", "-w", "contextbase-client"], check=True)
+            os.execvp(
+                "npm",
+                [
+                    "npm",
+                    "run",
+                    "dev",
+                    "-w",
+                    "@vectorize-io/hindsight-control-plane",
+                    "--",
+                    "--hostname",
+                    os.environ["HOSTNAME"],
+                ],
+            )
         server = source_root / "contextbase-control-plane" / "standalone" / "server.js"
         if not server.is_file():
             raise ValueError("Build the matching UI standalone artifact before starting it")

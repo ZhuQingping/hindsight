@@ -22,3 +22,6 @@
 [CODE-REVIEW](../../../docs/contextdb-management/CODE-REVIEW.md)保存检视发现与实现位置，[VALIDATION](../../../docs/contextdb-management/VALIDATION.md)保存实际验证结果和未验边界，均保留对应日期和版本。二者是支撑记录，不替代当前操作指南。
 
 原始设计来源固定于 [ContextDB-Research@5f9993c2](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-release-design.md)。其部署和运维材料是历史背景；当前行为应核对同一 checkout 的设计、部署指南和代码，不把历史 SHA 或旧评审中的“最新”当作当前状态。
+
+
+Local development with authentication and persistent embedded PG: [deployment-local.md](deployment-local.md).

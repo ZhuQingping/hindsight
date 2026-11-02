@@ -1,20 +1,8 @@
 #!/bin/bash
-set -e
-
-cd "$(dirname "$0")/../.."
-
-ENV_FILE=".env"
-if [ ! -f "$ENV_FILE" ]; then
-  echo "Error: Environment file $ENV_FILE not found at project root."
-  exit 1
-fi
-
-echo "Loading environment from $ENV_FILE"
-echo ""
-
-# Export all variables from env file
-set -a
-source "$ENV_FILE"
-set +a
-
-uv run hindsight-api "$@"
+# Local ContextBase always uses persisted deployment authentication.
+set -euo pipefail
+umask 077
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+export PYTHONPATH="$ROOT_DIR/hindsight-extensions/contextdb-service:$ROOT_DIR/hindsight-api-slim${PYTHONPATH:+:$PYTHONPATH}"
+cd "$ROOT_DIR"
+exec uv run --package hindsight-api-slim --extra embedded-db --inexact python -m hindsight_ext_contextdb.local --component api "$@"

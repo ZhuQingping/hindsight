@@ -170,6 +170,7 @@ install_python_deps() {
     # Installs the pinned interpreter (.python-version) if needed plus every
     # workspace member's deps into .venv. Populates uv's cache for offline use.
     uv sync
+    uv sync --package hindsight-api-slim --extra embedded-db --inexact
     ok "Python workspace synced (.venv ready)"
     SUMMARY+=("python deps: synced")
 }
@@ -342,3 +343,4 @@ The local embedding/reranker models are cached, so the API can run fully
 offline (default local providers). Re-run with --skip-models to skip that
 step. The tokenizer needs no cache: its vocabularies ship in the wheel.
 EOF
+
