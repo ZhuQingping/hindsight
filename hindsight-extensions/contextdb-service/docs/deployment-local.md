@@ -8,7 +8,11 @@ requires its independent login password. Initialization errors stop startup.
 `bash scripts/dev/start-api.sh` runs the authenticated API with its Worker.
 `bash scripts/dev/start-control-plane.sh` connects the development UI to an already
 initialized local deployment. `--port`, `--ui-port` and `--random-port` are supported
-by the local launcher. API/UI hosts respect their `API_HOST` / `CP_HOST` settings.
+by the local launcher. For UI-only startup, use `--ui-port` or `--random-port`;
+these override the saved UI port for this run without rewriting deployment files.
+The default loopback login origin follows the new port; explicit external proxy
+origins and the backend API address are preserved.
+API/UI hosts respect their `API_HOST` / `CP_HOST` settings.
 For remote UI access, configure `CONTEXTBASE_CP_PUBLIC_ORIGIN` to its browser origin.
 
 When `CONTEXTBASE_API_DATABASE_URL` (or the internal `HINDSIGHT_API_DATABASE_URL`)

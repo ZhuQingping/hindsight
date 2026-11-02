@@ -7,8 +7,10 @@ import asyncio
 import fcntl
 import os
 import signal
+import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import asyncpg
@@ -92,27 +94,47 @@ def configure(directory: Path, url: str, api_port: int, ui_port: int) -> None:
     os.environ.update(api)
 
 
-def serve(command: list[str], environment: dict[str, str]) -> int:
+def serve(command: list[str], environment: dict[str, str], *, stop_timeout: float = 40) -> int:
     process = subprocess.Popen(command, env=environment, start_new_session=True)
+    stopping = False
 
-    def stop(signum: int, _frame: object) -> None:
+    def send_signal(signum: int) -> None:
         try:
             os.killpg(process.pid, signum)
         except ProcessLookupError:
             pass
 
+    def stop(signum: int, _frame: object) -> None:
+        nonlocal stopping
+        stopping = True
+        send_signal(signum)
+
     previous = {sig: signal.signal(sig, stop) for sig in (signal.SIGINT, signal.SIGTERM)}
     try:
-        return process.wait()
+        while not stopping:
+            try:
+                return process.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                pass
     finally:
-        stop(signal.SIGTERM, None)
+        # Signals must leave the normal wait loop before starting the deadline.
+        # Track the whole group: npm/bash can exit before their descendants do.
+        send_signal(signal.SIGTERM)
+        deadline = time.monotonic() + stop_timeout
         try:
-            process.wait(timeout=40)
-        except subprocess.TimeoutExpired:
-            stop(signal.SIGKILL, None)
+            while time.monotonic() < deadline:
+                process.poll()
+                try:
+                    os.killpg(process.pid, 0)
+                except ProcessLookupError:
+                    break
+                time.sleep(0.05)
+        finally:
+            send_signal(signal.SIGKILL)
             process.wait()
-        for sig, handler in previous.items():
-            signal.signal(sig, handler)
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
+    return process.wait()
 
 
 def main() -> None:
@@ -141,6 +163,19 @@ def main() -> None:
     }
     service = root / "hindsight-extensions/contextdb-service/scripts/service.sh"
     if args.component == "ui":
+        if args.port is not None:
+            parser.error("Use --ui-port when starting only the UI")
+        ui_port = args.ui_port
+        if args.random_port:
+            with socket.socket() as reserved:
+                reserved.bind(("127.0.0.1", 0))
+                ui_port = reserved.getsockname()[1]
+        if ui_port is not None:
+            if not 1024 <= ui_port <= 65535:
+                parser.error("UI port must be within 1024..65535")
+            # Apply after service.sh sources ui.env without rewriting shared state
+            # or changing the API origin of an already running deployment.
+            environment["CONTEXTDB_LOCAL_UI_PORT"] = str(ui_port)
         raise SystemExit(serve(["bash", str(service), "ui"], environment))
     # Hold ownership for initialization and the complete API/Worker/UI lifetime.
     with (directory / "local.lock").open("a") as lock:
@@ -164,8 +199,6 @@ def main() -> None:
             api_port = args.port if args.port is not None else int(service_env("API_PORT", "8888"))
             ui_port = args.ui_port if args.ui_port is not None else int(service_env("CP_PORT", "9999"))
             if args.random_port:
-                import socket
-
                 with socket.socket() as api_socket, socket.socket() as ui_socket:
                     api_socket.bind(("127.0.0.1", 0))
                     ui_socket.bind(("127.0.0.1", 0))

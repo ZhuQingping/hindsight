@@ -162,3 +162,56 @@ def test_ui_uses_persisted_password_over_ambient_aliases(tmp_path: Path, monkeyp
     load_deployment_secrets(tmp_path, "ui")
     assert os.environ["CONTEXTBASE_CP_ACCESS_KEY"] == "saved-password"
     assert os.environ["HINDSIGHT_CP_DATAPLANE_API_KEY"] == "saved-admin"
+
+
+@pytest.mark.parametrize("arguments", [["--ui-port", "10001"], ["--random-port"]])
+def test_ui_only_port_override_reaches_service_without_rewriting_state(
+    local_environment: Path, monkeypatch: pytest.MonkeyPatch, arguments: list[str]
+) -> None:
+    local.configure(local_environment, "postgresql://synthetic", 8888, 9999)
+    before = (local_environment / "ui.env").read_bytes()
+    monkeypatch.setattr(sys, "argv", ["local", "--component", "ui", *arguments])
+    serve = Mock(return_value=0)
+    monkeypatch.setattr(local, "serve", serve)
+    with pytest.raises(SystemExit) as result:
+        local.main()
+    assert result.value.code == 0
+    port = int(serve.call_args.args[1]["CONTEXTDB_LOCAL_UI_PORT"])
+    assert 1024 <= port <= 65535
+    if arguments[0] == "--ui-port":
+        assert port == 10001
+    assert (local_environment / "ui.env").read_bytes() == before
+
+
+@pytest.mark.parametrize("origin", ["http://localhost:9999", "https://memory.example.com"])
+def test_ui_launch_applies_override_after_persisted_configuration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
+    from hindsight_ext_contextdb.launch import launch
+
+    monkeypatch.setattr(
+        os,
+        "environ",
+        {
+            **os.environ,
+            "CONTEXTDB_UI_DEV": "1",
+            "CONTEXTDB_LOCAL_UI_PORT": "10001",
+            "CONTEXTBASE_CP_PORT": "9999",
+            "CONTEXTBASE_CP_PUBLIC_ORIGIN": origin,
+            "CONTEXTBASE_CP_DATAPLANE_API_URL": "http://127.0.0.1:8888",
+        },
+    )
+    path = tmp_path / "ui-secrets.json"
+    path.write_text(json.dumps({"password": "saved-password", "admin_key": "saved-admin"}))
+    path.chmod(0o600)
+    monkeypatch.setattr(os, "chdir", Mock())
+    monkeypatch.setattr(subprocess, "run", Mock())
+    monkeypatch.setattr(os, "execvp", Mock(side_effect=RuntimeError("exec intercepted")))
+    with pytest.raises(RuntimeError, match="exec intercepted"):
+        launch("ui", tmp_path, tmp_path)
+    assert os.environ["PORT"] == "10001"
+    assert os.environ["CONTEXTBASE_CP_PORT"] == os.environ["HINDSIGHT_CP_PORT"] == "10001"
+    expected = "http://localhost:10001" if origin.startswith("http://localhost:") else origin
+    assert os.environ["CONTEXTBASE_CP_PUBLIC_ORIGIN"] == expected
+    assert os.environ["CONTEXTBASE_CP_DATAPLANE_API_URL"] == "http://127.0.0.1:8888"
+    assert os.environ["CONTEXTBASE_CP_ACCESS_KEY"] == "saved-password"
