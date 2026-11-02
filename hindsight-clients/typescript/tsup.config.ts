@@ -7,7 +7,11 @@ export default defineConfig({
   dts: true,
   outDir: "dist",
   clean: true,
-  sourcemap: true,
+  sourcemap: false,
+  minify: true,
+  esbuildOptions(options) {
+    options.legalComments = "inline";
+  },
   // Bundle all relative imports (src + generated) into the output
   bundle: true,
   // Substitute __CLIENT_VERSION__ with package.json's version at build time so

@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import subprocess
-import sys
 import tempfile
 import threading
 import venv
@@ -37,7 +36,13 @@ class FixtureHandler(BaseHTTPRequestHandler):
         elif not self.headers.get("User-Agent", "").startswith("contextbase-client-"):
             status, body = 400, {"detail": "SDK user agent missing"}
         else:
-            status, body = 200, {"api_version": CUSTOMER_TEXT, "features": dict.fromkeys(FEATURES, False)}
+            status, body = (
+                200,
+                {
+                    "api_version": CUSTOMER_TEXT,
+                    "features": dict.fromkeys(FEATURES, False),
+                },
+            )
         payload = json.dumps(body).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -91,6 +96,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("language", choices=["python", "node"])
     parser.add_argument("directory", type=Path)
+    parser.add_argument("--package-name", default="contextbase-client")
     args = parser.parse_args()
     directory = args.directory.resolve()
     server = ThreadingHTTPServer(("127.0.0.1", 0), FixtureHandler)
@@ -112,22 +118,36 @@ def main() -> None:
                     environment = work / str(number)
                     venv.EnvBuilder(with_pip=True).create(environment)
                     python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-                    subprocess.run([str(python), "-m", "pip", "install", str(artifact)], cwd=work, env=env, check=True)
+                    subprocess.run(
+                        [str(python), "-m", "pip", "install", str(artifact)],
+                        cwd=work,
+                        env=env,
+                        check=True,
+                    )
                     subprocess.run([str(python), "-c", PYTHON_CHECK], cwd=work, env=env, check=True)
             else:
                 (artifact,) = directory.glob("*.tgz")
                 (work / "package.json").write_text('{"private":true}')
                 subprocess.run(
-                    ["npm", "install", "--ignore-scripts", "--workspaces=false", str(artifact)],
+                    [
+                        "npm",
+                        "install",
+                        "--ignore-scripts",
+                        "--workspaces=false",
+                        str(artifact),
+                    ],
                     cwd=work,
                     env=env,
                     check=True,
                 )
                 for name, code in (
-                    ("verify.mjs", 'import {ContextBaseClient} from "contextbase-client";\n' + NODE_CHECK),
+                    (
+                        "verify.mjs",
+                        f"import {{ContextBaseClient}} from {json.dumps(args.package_name)};\n" + NODE_CHECK,
+                    ),
                     (
                         "verify.cjs",
-                        'const {ContextBaseClient} = require("contextbase-client");\n(async () => {\n'
+                        f"const {{ContextBaseClient}} = require({json.dumps(args.package_name)});\n(async () => {{\n"
                         + NODE_CHECK
                         + "\n})().catch(error => {console.error(error); process.exit(1);});",
                     ),
