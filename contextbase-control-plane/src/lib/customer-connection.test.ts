@@ -42,7 +42,6 @@ const downloads = [
   ["OPENCLAW_PACKAGE_URL", "openclaw", ".tgz"],
   ["HERMES_PACKAGE_URL", "hermes", ".zip"],
   ["PYTHON_SDK_PACKAGE_URL", "python", ".whl"],
-  ["NODE_SDK_PACKAGE_URL", "node", ".tgz"],
 ] as const;
 
 it.each(downloads)(
@@ -79,14 +78,12 @@ it("does not invent package download URLs when deployment settings are unset", (
   expect(development.packages.openclaw).toBeUndefined();
   expect(development.packages.hermes).toBeUndefined();
   expect(development.packages.python).toBeUndefined();
-  expect(development.packages.node).toBeUndefined();
 
   vi.stubEnv("NODE_ENV", "production");
   const production = customerConnection("bank");
   expect(production.packages.openclaw).toBeUndefined();
   expect(production.packages.hermes).toBeUndefined();
   expect(production.packages.python).toBeUndefined();
-  expect(production.packages.node).toBeUndefined();
 });
 
 it.each([
@@ -117,5 +114,5 @@ it.each([undefined, "", "  "])("defaults to latest when the npm setting is %s", 
   vi.stubEnv("HINDSIGHT_CP_CODING_AGENTS_NPM_PACKAGE", undefined);
   const config = customerConnection("bank");
   expect(config.codingAgentsNpm).toBe("@huaweicloud/contextbase-coding-agents@latest");
-  expect(Object.keys(config.packages)).toEqual(["openclaw", "hermes", "python", "node"]);
+  expect(Object.keys(config.packages)).toEqual(["openclaw", "hermes", "python"]);
 });

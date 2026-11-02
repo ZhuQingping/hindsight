@@ -9,7 +9,6 @@ export interface CustomerConnection {
     openclaw?: string;
     hermes?: string;
     python?: string;
-    node?: string;
   };
 }
 
@@ -66,7 +65,6 @@ export function customerConnection(bankId: string): CustomerConnection {
       openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
       hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
       python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
-      node: publicUrl("NODE_SDK_PACKAGE_URL", { extension: ".tgz" }),
     },
   };
 }

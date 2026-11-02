@@ -16,7 +16,6 @@ const connection: CustomerConnection = {
     openclaw: "https://downloads.example.com/openclaw.tgz",
     hermes: "https://downloads.example.com/hermes.zip",
     python: "https://downloads.example.com/contextbase_client-1.0.0-py3-none-any.whl",
-    node: "https://downloads.example.com/contextbase-client-1.0.0.tgz",
   },
 };
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
@@ -137,27 +136,24 @@ it.each(["openclaw", "hermes"] as const)(
   }
 );
 
-it.each(["python", "node"] as const)(
-  "generates branded, read-only %s SDK code using the configured download",
-  (client) => {
-    const { install, code } = connectionExample(
-      client,
-      "powershell",
-      'team"/中文',
-      connection,
-      'question "quoted"'
-    );
-    expect(install).toContain(connection.packages[client]);
-    expect(install).not.toMatch(
-      /pip install contextbase-client|npm.cmd install contextbase-client$/
-    );
-    expect(code).toContain(connection.apiUrl);
-    expect(code).toContain('team\\"/中文');
-    expect(code).toContain("CONTEXTBASE_API_TOKEN");
-    expect(code).not.toMatch(/hindsight|\.retain\(/i);
-    expect(code).toContain(client === "python" ? "base_url=" : "baseUrl:");
-  }
-);
+it.each(["python", "node"] as const)("generates branded, read-only %s SDK code", (client) => {
+  const { install, code } = connectionExample(
+    client,
+    "powershell",
+    'team"/中文',
+    connection,
+    'question "quoted"'
+  );
+  expect(install).toContain(
+    client === "python" ? connection.packages.python : "@huaweicloud/contextbase-client@latest"
+  );
+  expect(install).not.toMatch(/pip install contextbase-client|npm.cmd install contextbase-client$/);
+  expect(code).toContain(connection.apiUrl);
+  expect(code).toContain('team\\"/中文');
+  expect(code).toContain("CONTEXTBASE_API_TOKEN");
+  expect(code).not.toMatch(/hindsight|\.retain\(/i);
+  expect(code).toContain(client === "python" ? "base_url=" : "baseUrl:");
+});
 
 it("keeps remote MCP independent from the API and supplies only placeholder credentials", () => {
   const result = connectionExample(
@@ -187,7 +183,6 @@ it.each([
   "openclaw",
   "hermes",
   "python",
-  "node",
 ] as ConnectionClient[])("does not invent an unconfigured package for %s", (client) => {
   expect(
     connectionExample(client, "bash", "team", { apiUrl: connection.apiUrl, packages: {} }, "q")
@@ -207,13 +202,13 @@ it("handles missing API and MCP addresses independently", () => {
 it.each(terminals)("installs from npm without an archive URL in %s", (terminal) => {
   const config = {
     apiUrl: connection.apiUrl,
-    codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@1.0.0",
+    codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@1.1.0",
     packages: {},
   };
   const snippet = connectionExample("codex", terminal, "team", config, "q");
   expect(snippet.unavailable).toBeUndefined();
   expect(snippet.install).toContain(terminal === "bash" ? "npx --yes" : "npx.cmd --yes");
-  expect(snippet.install).toContain("@huaweicloud/contextbase-coding-agents@1.0.0");
+  expect(snippet.install).toContain("@huaweicloud/contextbase-coding-agents@1.1.0");
   expect(snippet.install).toContain(" install codex ");
   expect(snippet.downloadUrl).toBeUndefined();
 });
@@ -234,7 +229,7 @@ it.each(codingClients)(
   }
 );
 
-it.each(["latest", "1.0.0"])(
+it.each(["latest", "1.1.0"])(
   "preserves the configured npm selector %s in the generated command",
   (selector) => {
     const spec = `@huaweicloud/contextbase-coding-agents@${selector}`;
@@ -255,3 +250,19 @@ it.each(["latest", "1.0.0"])(
     expect(output.slice(0, 4)).toEqual(["--yes", spec, "install", "codex"]);
   }
 );
+
+it.each(terminals)("installs the public Node SDK without a download URL in %s", (terminal) => {
+  const result = connectionExample(
+    "node",
+    terminal,
+    "team",
+    { apiUrl: connection.apiUrl, packages: {} },
+    "q"
+  );
+  expect(result.unavailable).toBeUndefined();
+  expect(result.install).toContain(`${terminal === "bash" ? "npm" : "npm.cmd"} install `);
+  expect(result.install).toContain("@huaweicloud/contextbase-client@latest");
+  expect(result.code).toContain('from "@huaweicloud/contextbase-client"');
+  expect(result.code).toContain(connection.apiUrl);
+  expect(result.downloadUrl).toBeUndefined();
+});
