@@ -45,3 +45,26 @@ Stopping the local launcher stops its API/Worker/UI and then its embedded PG. It
 does not delete data. An explicit external PostgreSQL server is never stopped.
 Only one launcher can own a deployment directory at a time. The existing
 `deployment-native.md` and `deployment-docker.md` flows remain the production entrypoints.
+
+## API address shown on the connection page
+
+Set the public API address in the checkout's `.env`:
+
+```dotenv
+CONTEXTBASE_CP_PUBLIC_API_URL=https://api.example.com
+```
+
+Replace the example with the actual API address reachable from client machines.
+The connection page reads this setting to display the API address in its installation
+parameter instructions. For remote clients, do not use `localhost` or `127.0.0.1`;
+those refer to each client's own machine. The UI and API may use different hosts or
+ports, so the page does not infer the API address from the browser URL. If this setting
+is absent or invalid, it displays `<API_ENDPOINT>` for Coding Agent instructions.
+
+This setting is separate from `CONTEXTBASE_CP_DATAPLANE_API_URL` (the UI server's
+backend connection) and `CONTEXTBASE_CP_PUBLIC_ORIGIN` (the UI's browser origin).
+Development mode accepts HTTP API addresses; the production UI currently requires
+HTTPS for public addresses.
+
+After changing `.env`, restart the running dev UI. If using the combined stack,
+stop and rerun `bash scripts/dev/start.sh`.
