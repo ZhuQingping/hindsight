@@ -47,7 +47,12 @@ it.each(["contextbase", "contextdb"])(
     const command = Array.from(document.querySelectorAll("pre")).find((node) =>
       node.textContent?.includes("npx.cmd")
     )!;
-    expect(command.textContent).not.toMatch(/--api-url|--project-path/);
+    expect(command.textContent).not.toContain("--project-path");
+    expect(command.textContent).toContain(
+      "$env:CONTEXTBASE_API_URL = 'https://api.example.com/customer-api'"
+    );
+    expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
+    expect(command.textContent).not.toMatch(/internal-service|operator-secret/);
     expect(command.textContent).toContain("--bank-id '" + bank + "'");
     expect(document.body.textContent).not.toContain("install claude-code codex");
     fireEvent.click(screen.getByRole("button", { name: "Application development" }));

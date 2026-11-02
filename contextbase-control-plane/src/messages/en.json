@@ -2181,7 +2181,7 @@
     "guideConnectTitle": "Connect an agent or application",
     "guideConnectBody": "Connection instructions are on a separate page for the selected Workspace.",
     "connectTitle": "Connect",
-    "connectIntro": "Choose a workspace and client, then copy the commands or code to connect.",
+    "connectIntro": "Choose a workspace and client, then copy the commands or code. bank_id is the workspace ID.",
     "chooseBank": "Choose a Workspace",
     "chooseBankDescription": "Search for the workspace you want to connect.",
     "searchBanks": "Search Workspaces",
@@ -2267,7 +2267,7 @@
       "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
     "installScopeTitle": "Workspace selection and installation scope",
-    "installScope": "Project mappings take precedence over a fixed workspace. If neither is configured, the repository name determines the Bank ID. Create and authorize that workspace first. The integration is installed for the current user; the API address and key are shared across projects.",
+    "installScope": "Project mappings take precedence over a fixed workspace. If neither is configured, the repository name determines the workspace ID. Create and authorize that workspace first. The integration is installed for the current user; the API address and key are shared across projects.",
     "npmInstallTitle": "1. Connect with npx",
     "npmHelp": "Run in your project directory to bind this workspace. Future sessions in that project use it automatically.",
     "endpointHelp": "CONTEXTBASE_API_URL: API Endpoint. Replace '<API_ENDPOINT>' with your service address if shown.",

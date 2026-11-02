@@ -2181,7 +2181,7 @@
     "guideConnectTitle": "接入智能体或应用",
     "guideConnectBody": "当前工作空间的接入说明放在独立页面。",
     "connectTitle": "接入方式",
-    "connectIntro": "选择工作空间和客户端，复制命令或代码即可接入。",
+    "connectIntro": "选择工作空间和客户端，复制命令或代码即可接入。bank_id 即工作空间 ID。",
     "chooseBank": "选择工作空间",
     "chooseBankDescription": "搜索并选择要接入的工作空间。",
     "searchBanks": "搜索工作空间",
@@ -2266,11 +2266,11 @@
       "openclaw": "重启 Gateway，确认 ContextBase 已加载，再执行一次记忆检索。",
       "hermes": "重启 Hermes，确认使用 ContextBase，再调用 recall 验证访问。"
     },
-    "installScopeTitle": "Bank 选择规则与安装范围",
-    "installScope": "优先使用项目绑定，其次使用固定 Bank；均未配置时，按仓库名生成 Bank ID。对应 Bank 需已创建并授权。集成安装到当前用户，API 地址和密钥由各项目共享。",
+    "installScopeTitle": "工作空间选择规则与安装范围",
+    "installScope": "优先使用项目绑定，其次使用固定工作空间；均未配置时，按仓库名生成工作空间 ID。对应工作空间需已创建并授权。集成安装到当前用户，API 地址和密钥由各项目共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
-    "npmHelp": "在项目目录执行，绑定当前 Bank；后续进入该项目时自动使用。",
+    "npmHelp": "在项目目录执行，绑定当前工作空间；后续进入该项目时自动使用。",
     "endpointHelp": "CONTEXTBASE_API_URL：API 地址；如显示 '<API_ENDPOINT>'，请替换为服务地址。",
-    "projectHelp": "--bank-id：手动指定或切换 Bank，执行后重启客户端。--project-path：可选，默认当前目录。"
+    "projectHelp": "--bank-id：手动指定或切换工作空间，执行后重启客户端。--project-path：可选，默认当前目录。"
   }
 }

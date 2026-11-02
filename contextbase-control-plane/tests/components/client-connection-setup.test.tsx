@@ -158,9 +158,8 @@ it("shows connection details after the command without a parameter form and with
     command.textContent!.indexOf("CONTEXTBASE_API_TOKEN")
   );
   const text = document.body.textContent!;
-  expect(text.indexOf(messages.connectionSetup.endpointHelp)).toBeGreaterThan(
-    text.indexOf(command.textContent!)
-  );
+  const endpointHelp = screen.getByText(/^CONTEXTBASE_API_URL: API Endpoint\./);
+  expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
   expect(command.textContent).toContain("--bank-id 'team'");
   expect(text).toContain("--project-path is optional");
 });
