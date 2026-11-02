@@ -184,8 +184,8 @@ export class KnowledgePagesUnavailableError extends Error {
  * Does this 404 mean the server has no knowledge-base API, rather than "that bank does not exist yet"?
  *
  * The two are indistinguishable by status, and conflating them latched the knowledge-page capability
- * off for the whole process on the FIRST session in a new bank — the bank is minted by the first
- * retain, so a session-start page read always precedes it (#4607).
+ * off for the whole process when a Bank was missing (#4607). Bank existence is separate from
+ * whether this server implements knowledge pages.
  *
  * It matches the ENDPOINT-missing shape (FastAPI answers an unrouted path with exactly
  * `{"detail":"Not Found"}`), deliberately NOT the bank-missing wording. Matching the bank error
@@ -459,7 +459,7 @@ export class ContextBaseClient {
     return `${this.apiUrl}/v1/default/banks/${encodeURIComponent(this.bank)}${suffix}`;
   }
 
-  /** `tolerate` adds statuses that are returned to the caller instead of thrown (404 always is). */
+  /** `tolerate` explicitly names statuses a caller handles; every other failure is thrown. */
   async req(
     method: string,
     url: string,
@@ -486,7 +486,7 @@ export class ContextBaseClient {
       await sleep(wait);
       waited += wait;
     }
-    if (!r.ok && r.status !== 404 && !tolerate.includes(r.status))
+    if (!r.ok && !tolerate.includes(r.status))
       throw new Error(
         `${method} ${url} -> ${r.status} ${await r.text()}${this.authHint(r.status)}`
       );
@@ -625,11 +625,10 @@ export class ContextBaseClient {
     }
   }
 
-  /** Whether the bank holds any document at all — a one-row listing. A bank that does not exist
-   *  yet (404) holds none; any other failure throws, so a caller can tell "empty" from "unknown". */
+  /** Whether an existing Bank holds any documents. Every failed request throws, so a caller
+   *  cannot mistake an inaccessible or missing Bank for an empty one. */
   async hasDocuments(): Promise<boolean> {
     const r = await this.req("GET", this.bankUrl("/documents?limit=1"));
-    if (r.status === 404) return false;
     const j = (await r.json()) as { items?: unknown[]; total?: number };
     return (j.total ?? j.items?.length ?? 0) > 0;
   }
@@ -665,7 +664,7 @@ export class ContextBaseClient {
       this.log(`[bank] manageBankConfig: false — leaving ${this.bank}'s configuration alone`);
       return;
     } else {
-      const existing = await this.req("GET", this.bankUrl());
+      const existing = await this.req("GET", this.bankUrl(), undefined, [404]);
       if (!existing.ok)
         throw new Error(
           `Configured Bank ${this.bank} is unavailable; create it in the control plane before use.`
@@ -711,7 +710,12 @@ export class ContextBaseClient {
   /** Explicitly delete one document (and its cascaded memory units/links). Background sync must
    *  never use this as a cleanup primitive: a document id alone does not prove repository ownership. */
   async deleteDocument(documentId: string): Promise<void> {
-    await this.req("DELETE", this.bankUrl(`/documents/${encodeURIComponent(documentId)}`));
+    await this.req(
+      "DELETE",
+      this.bankUrl(`/documents/${encodeURIComponent(documentId)}`),
+      undefined,
+      [404]
+    );
   }
 
   /** Count of operations still ACTIVE on this bank — the list includes terminal ops (completed/
@@ -852,7 +856,6 @@ export class ContextBaseClient {
       [],
       opts.timeoutMs
     );
-    if (r.status === 404) return [];
     const j = (await r.json()) as { results?: { text?: string }[] };
     return (j.results ?? []).map((x) => (x.text ?? "").trim()).filter(Boolean);
   }
@@ -860,7 +863,7 @@ export class ContextBaseClient {
   /**
    * Latch `knowledgePagesSupported = false` iff this response really means the endpoint is absent.
    * Returns whether it latched. A bank-not-found 404 is NOT a capability verdict — it is the
-   * expected answer before the bank's first retain — so it must never cache a negative (#4607).
+   * an existence failure rather than a capability verdict — so it must not cache a negative (#4607).
    *
    * Only 404 is tested: `req` throws on every other non-ok status it was not told to tolerate, so
    * the 405/501 this used to check for never reach a caller in the first place.
@@ -877,11 +880,12 @@ export class ContextBaseClient {
    */
   async tree(): Promise<KnowledgeNode[]> {
     if (this.knowledgePagesSupported === false) throw new KnowledgePagesUnavailableError();
-    const r = await this.req("GET", this.bankUrl("/knowledge-base/tree"));
+    const r = await this.req("GET", this.bankUrl("/knowledge-base/tree"), undefined, [404]);
     if (await this.pagesUnsupported(r)) throw new KnowledgePagesUnavailableError();
-    // Bank not created yet: it genuinely has no pages, and the capability stays UNKNOWN so the
-    // next call (after the first retain mints the bank) asks again instead of short-circuiting.
-    if (r.status === 404) return [];
+    if (r.status === 404)
+      throw new Error(
+        `Configured Bank "${this.bank}" was not found (HTTP 404). Check bankId and the API Endpoint.`
+      );
     this.knowledgePagesSupported = true;
     try {
       return ((await r.json()) as { roots?: KnowledgeNode[] }).roots ?? [];
@@ -929,7 +933,9 @@ export class ContextBaseClient {
     if (this.knowledgePagesSupported === false) throw new KnowledgePagesUnavailableError();
     const r = await this.req(
       "GET",
-      this.bankUrl(`/knowledge-base/pages/${encodeURIComponent(pageId)}`)
+      this.bankUrl(`/knowledge-base/pages/${encodeURIComponent(pageId)}`),
+      undefined,
+      [404]
     );
     if (r.status === 404) throw new Error(`knowledge page not found: ${pageId}`);
     return shapePage(await r.json());
@@ -950,14 +956,17 @@ export class ContextBaseClient {
       "GET",
       this.bankUrl(`/knowledge-base/search${q}`),
       undefined,
-      [],
+      [404],
       opts.timeoutMs
     );
     // Routed through the same check as every other page endpoint. Without it a server with no
     // knowledge-base API parsed its own 404 body into zero hits and reported "nothing matched"
     // forever, which reads as an empty bank rather than a missing feature.
     if (await this.pagesUnsupported(r)) throw new KnowledgePagesUnavailableError();
-    if (r.status === 404) return []; // bank not created yet — no pages to match
+    if (r.status === 404)
+      throw new Error(
+        `Configured Bank "${this.bank}" was not found (HTTP 404). Check bankId and the API Endpoint.`
+      );
     const j = (await r.json()) as {
       results?: {
         id: string;
@@ -1026,7 +1035,7 @@ export class ContextBaseClient {
       if (!hit) {
         // 409 = another deepen run seeded this name between our tree read and this POST. That is
         // the outcome we wanted anyway, so tolerate it rather than failing the whole run.
-        const r = await this.req("POST", this.bankUrl("/knowledge-base/pages"), body, [409]);
+        const r = await this.req("POST", this.bankUrl("/knowledge-base/pages"), body, [409, 404]);
         if (await this.pagesUnsupported(r)) {
           this.log(
             `[bank] knowledge pages unavailable on ${this.apiUrl}; continuing without pages`
@@ -1034,8 +1043,9 @@ export class ContextBaseClient {
           return;
         }
         if (r.status === 404) {
-          this.log(`[bank] ${this.bank} does not exist yet; pages seed on the next session`);
-          return;
+          throw new Error(
+            `Configured Bank "${this.bank}" was not found (HTTP 404). Check bankId and the API Endpoint.`
+          );
         }
         if (r.status !== 409) created++;
       } else {
@@ -1070,7 +1080,8 @@ export class ContextBaseClient {
         const r = await this.req(
           "PATCH",
           this.bankUrl(`/knowledge-base/nodes/${encodeURIComponent(hit.id)}`),
-          patch
+          patch,
+          [404]
         );
         if (await this.pagesUnsupported(r)) {
           this.log(
@@ -1135,7 +1146,8 @@ export class ContextBaseClient {
       const r = await this.req(
         "PATCH",
         this.bankUrl(`/knowledge-base/nodes/${encodeURIComponent(page.id)}`),
-        patch
+        patch,
+        [404]
       );
       // 404 only: `req` throws on every other non-ok status it was not told to tolerate, so the
       // 405/501 this used to test for never arrive (see `pagesUnsupported`). No latch here — a

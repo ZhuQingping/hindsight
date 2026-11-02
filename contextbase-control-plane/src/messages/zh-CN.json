@@ -2272,6 +2272,6 @@
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "执行一次，将当前工作空间保存为所有项目和客户端共用的配置。已有配置时可省略 --bank-id；未指定工作空间时停止记忆接入。",
     "endpointHelp": "CONTEXTBASE_API_URL：API 地址；如显示 '<API_ENDPOINT>'，请替换为服务地址。",
-    "projectHelp": "--bank-id：保存指定工作空间。切换无需重装：npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>，随后重启客户端和 MCP 服务。--project-path 仅用于指定项目级客户端注册目录，不影响工作空间选择。"
+    "projectHelp": "--bank-id：保存指定工作空间。切换无需重装：npx @huaweicloud/contextbase-coding-agents@latest bank use '<BANK_ID>'，随后重启客户端和 MCP 服务。--project-path 可选，仅用于指定项目级客户端注册目录，不影响工作空间选择。"
   }
 }

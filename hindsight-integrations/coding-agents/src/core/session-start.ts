@@ -42,6 +42,7 @@ import { detectLegacyClaudePlugin, legacyClaudePluginWarning } from "./legacy";
 import { ContextBaseClient } from "./contextbase";
 import {
   sessionCacheFile,
+  sessionMemoryScope,
   sessionRootDir,
   stashPendingContext,
   writeSessionCache,
@@ -448,10 +449,13 @@ export async function runSessionStartHook(
     if (mcpHint)
       out.systemMessage = out.systemMessage ? `${out.systemMessage}\n${mcpHint}` : mcpHint;
     if (out.deferInitialReflect && sessionId) {
-      writeSessionCache(sessionCacheFile(harness, sessionId), { deferInitialReflect: true });
+      writeSessionCache(sessionCacheFile(harness, sessionId), {
+        scope: sessionMemoryScope(cfg),
+        deferInitialReflect: true,
+      });
     }
     if (spec.deferContextToToolHook && out.additionalContext && sessionId) {
-      stashPendingContext(harness, sessionId, out.additionalContext);
+      stashPendingContext(harness, sessionId, out.additionalContext, sessionMemoryScope(cfg));
       out.additionalContext = undefined;
     }
     // The lifecycle computes one host-neutral output; the registry owns each host's wire schema.

@@ -1031,6 +1031,55 @@ describe("traecode installer", () => {
     });
   });
 
+  it("uninstalls every registered Trae project from an unrelated directory, preserving foreign servers", () => {
+    const ctx = ctxWithRealDist();
+    const a = repoDir(ctx, "repo-a"),
+      b = repoDir(ctx, "repo-b");
+    for (const repo of [a, b]) {
+      mkdirSync(repo, { recursive: true });
+      expect(run(["install", "traecode", "--project-path", repo], ctx)).toBe(0);
+    }
+    const bFile = repoMcp(ctx, "repo-b");
+    const bDoc = readJson(bFile);
+    bDoc.mcpServers.foreign = { command: "their-own-server" };
+    writeJsonAt(bFile, bDoc);
+    expect(run(["bank", "use", "other-bank"], ctx)).toBe(0);
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(repoMcp(ctx, "repo-a"))).toBe(false);
+    expect(readJson(bFile).mcpServers).toEqual({ foreign: { command: "their-own-server" } });
+  });
+
+  it("preserves uninstall bookkeeping when retiring an old path-to-Bank mapping", () => {
+    const ctx = ctxWithRealDist();
+    const repo = repoDir(ctx, "old-project");
+    writeJsonAt(join(repo, ".trae", "mcp.json"), {
+      mcpServers: { contextbase: { command: "node", args: [join(ctx.dist, "mcp-server.js")] } },
+    });
+    const path = join(ctx.home, ".contextbase", "coding-agent.json");
+    writeJsonAt(path, { mapPathToBank: { [repo]: "old" } });
+    expect(run(["bank", "use", "configured"], ctx)).toBe(0);
+    expect(readJson(path).mapPathToBank).toBeUndefined();
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(join(repo, ".trae", "mcp.json"))).toBe(false);
+    expect(existsSync(join(ctx.home, ".contextbase", "traecode-projects"))).toBe(false);
+  });
+
+  it("discovers older project registrations through Trae workspace storage", () => {
+    const ctx = ctxWithRealDist();
+    const repo = repoDir(ctx, "older-project");
+    mkdirSync(repo, { recursive: true });
+    expect(run(["install", "traecode", "--project-path", repo], ctx)).toBe(0);
+    rmSync(join(ctx.home, ".contextbase", "traecode-projects"), { recursive: true });
+    const storage = wsStorageDir(ctx, "older-window");
+    mkdirSync(storage, { recursive: true });
+    writeFileSync(
+      join(storage, "workspace.json"),
+      JSON.stringify({ folder: pathToFileURL(repo).href })
+    );
+    expect(run(["uninstall", "traecode", "--project-path", ctx.home], ctx)).toBe(0);
+    expect(existsSync(join(repo, ".trae", "mcp.json"))).toBe(false);
+  });
+
   it("re-install leaves a current registration byte-identical and reports it", () => {
     const ctx = ctxWithRealDist();
     mkdirSync(repoDir(ctx, "repo-a"), { recursive: true });

@@ -44,6 +44,7 @@ import { buildRosterRefresh, parsePageList } from "./knowledge-injection";
 import {
   readSessionCache,
   sessionCacheFile,
+  sessionMemoryScope,
   sessionRootDir,
   stashPendingContext,
   takePendingContext,
@@ -238,7 +239,9 @@ export async function buildHookOutput(args: {
 }): Promise<HookOutput> {
   const { harness, prompt, cfg, client, cacheFile } = args;
 
-  const cached = readSessionCache(cacheFile);
+  const scope = sessionMemoryScope(cfg);
+  const saved = readSessionCache(cacheFile);
+  const cached = saved.scope === scope ? saved : {};
   const turns = (cached.turns ?? 0) + 1;
 
   // ── auto-inject: once per session, on the first prompt ────────────────────────
@@ -367,6 +370,7 @@ export async function buildHookOutput(args: {
   }
 
   writeSessionCache(cacheFile, {
+    scope,
     turns,
     reflectAnswer,
     reflectAttempts,
@@ -438,7 +442,11 @@ export async function runHook(
   const { prompt: rawPrompt, cwd: rawCwd, sessionId } = spec.parse(ev);
   if (spec.toolHook?.accept(ev)) {
     // Runs on every tool call, so it does nothing but hand over what a prompt hook stashed.
-    const pending = sessionId ? takePendingContext(spec.harness, sessionId) : undefined;
+    const cfg = loadConfig({ harness: spec.harness });
+    if (cfg.disabled || configuredBankIdOrSkip(cfg, spec.harness) === null) return;
+    const pending = sessionId
+      ? takePendingContext(spec.harness, sessionId, sessionMemoryScope(cfg))
+      : undefined;
     if (pending) process.stdout.write(JSON.stringify(spec.toolHook.emit(pending)));
     return;
   }
@@ -507,7 +515,7 @@ export async function runHook(
   }
   let context = output.context;
   if (context && spec.toolHook && sessionId) {
-    stashPendingContext(spec.harness, sessionId, context);
+    stashPendingContext(spec.harness, sessionId, context, sessionMemoryScope(cfg));
     context = undefined;
   }
   if (context || output.notice) out(context, output.notice);

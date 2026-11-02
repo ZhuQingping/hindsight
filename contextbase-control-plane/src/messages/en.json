@@ -2272,6 +2272,6 @@
     "npmInstallTitle": "1. Connect with npx",
     "npmHelp": "Run once to save this workspace for all projects and agents. An existing configuration may omit --bank-id; a missing workspace ID disables memory.",
     "endpointHelp": "CONTEXTBASE_API_URL: API Endpoint. Replace '<API_ENDPOINT>' with your service address if shown.",
-    "projectHelp": "--bank-id saves the workspace. Switch without reinstalling: npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>, then restart the client and MCP server. --project-path only selects a directory for project-specific client registration; it does not select a workspace."
+    "projectHelp": "--bank-id saves the workspace. Switch without reinstalling: npx @huaweicloud/contextbase-coding-agents@latest bank use '<BANK_ID>', then restart the client and MCP server. --project-path is optional and only selects a directory for project-specific client registration; it does not select a workspace."
   }
 }

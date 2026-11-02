@@ -146,9 +146,8 @@ describe("ContextBaseClient knowledge-page reads", () => {
     });
   });
 
-  it("a bank-not-found 404 is NOT a missing endpoint: no pages, no latched capability", async () => {
-    // The bank is minted by the first retain, so the first session in a new bank ALWAYS reads
-    // pages before it exists. Latching there disabled knowledge pages for the whole process (#4607).
+  it("reports a missing Bank without disabling a supported pages API", async () => {
+    // A missing Bank is a request failure, not proof that the pages API is unavailable.
     let status = 404;
     let detail = "Bank 'repo-a' not found";
     vi.stubGlobal(
@@ -164,18 +163,18 @@ describe("ContextBaseClient knowledge-page reads", () => {
       ) as any
     );
     const c = new ContextBaseClient({ apiUrl: "http://x", bank: "repo-a" });
-    expect(await c.listPages()).toEqual({ items: [] });
+    await expect(c.listPages()).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
 
     // The latch keys on the ENDPOINT-missing body, not the bank error's wording, so rephrasing
     // that message cannot quietly reinstate the bug.
     detail = "No bank named repo-a";
-    expect(await c.listPages()).toEqual({ items: [] });
+    await expect(c.listPages()).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
 
-    // Search goes through the same check, so it too reports "no pages yet" without latching.
+    // Search reports the same missing-Bank failure without disabling the pages API.
     detail = "Bank 'repo-a' not found";
-    expect(await c.searchKnowledgePages("architecture")).toEqual([]);
+    await expect(c.searchKnowledgePages("architecture")).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
 
     // Once the bank exists, the very same client sees its pages — no restart needed.
@@ -215,13 +214,13 @@ describe("ContextBaseClient knowledge-page reads", () => {
       })) as any
     );
     const c = new ContextBaseClient({ apiUrl: "http://x", bank: "repo-a" });
-    expect(await c.listPages()).toEqual({ items: [] });
+    await expect(c.listPages()).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
-    expect(await c.searchKnowledgePages("architecture")).toEqual([]);
+    await expect(c.searchKnowledgePages("architecture")).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
   });
 
-  it("seedPages: a bank that does not exist yet writes nothing and does not latch", async () => {
+  it("seedPages rejects a missing Bank before attempting any writes", async () => {
     const calls: any[] = [];
     vi.stubGlobal(
       "fetch",
@@ -234,10 +233,9 @@ describe("ContextBaseClient knowledge-page reads", () => {
       }) as any
     );
     const c = new ContextBaseClient({ apiUrl: "http://x", bank: "repo-a" });
-    await expect(c.seedPages()).resolves.toBeUndefined();
+    await expect(c.seedPages()).rejects.toThrow(/Configured Bank.*404/);
     expect(c.knowledgePagesSupported).toBeUndefined();
-    // It stops at the first create rather than 404ing once per page.
-    expect(calls.filter((x) => x.method === "POST").length).toBe(1);
+    expect(calls.filter((x) => x.method === "POST")).toHaveLength(0);
   });
 
   it("seedPages: a page deleted under us is skipped, not the rest of the sync", async () => {

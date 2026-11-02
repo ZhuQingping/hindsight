@@ -56,6 +56,8 @@ import {
   ensureWorkspaceMcpEnabled,
   markWorkspaceMcpEnabled,
   registerTraecodeWorkspaceMcp,
+  registeredTraecodeProjects,
+  rememberTraecodeProject,
   removeTraecodeWorkspaceMcpEntry,
   traecodeUserDataDir,
   traecodeWorkspaceStorageDir,
@@ -1164,7 +1166,13 @@ function readLineSync(c: InstallCtx, prompt: string): string {
 }
 
 /** Selecting a Bank never creates it or changes its service-owned configuration. */
-function withSelectedBank(existing: Record<string, any>, bankId: string): Record<string, any> {
+function withSelectedBank(
+  existing: Record<string, any>,
+  bankId: string,
+  home: string
+): Record<string, any> {
+  // Retiring a selector must not discard the project registrations needed by uninstall.
+  for (const cwd of Object.keys(existing.mapPathToBank ?? {})) rememberTraecodeProject(cwd, home);
   const next: Record<string, any> = { ...existing, bankId };
   delete next.dynamicBankId;
   delete next.bankIdTemplate;
@@ -1191,7 +1199,7 @@ function useBank(c: InstallCtx, args: string[]): number {
     const existing = existsSync(configPath) ? JSON.parse(readFileSync(configPath, "utf8")) : {};
     if (!isPlainObject(existing)) throw new Error("configuration must be a JSON object");
     const bankId = configuredBankId({ bankId: args[1] });
-    writeJson(configPath, withSelectedBank(existing, bankId));
+    writeJson(configPath, withSelectedBank(existing, bankId, c.home));
     c.log?.(`bank: ${existing.bankId ?? "(not configured)"} -> ${bankId}`);
     c.log?.("bank: restart your coding agents so hooks and MCP use the selected Bank together.");
     return 0;
@@ -1269,7 +1277,7 @@ function configureServer(c: InstallCtx, args: string[]): boolean {
   // Credentials may be supplied later through the user's secret manager; never prompt with echo.
   if (!next.apiToken)
     c.log?.("server: configure apiToken or CONTEXTBASE_API_TOKEN before authenticated requests.");
-  const selected = withSelectedBank(next, bankId);
+  const selected = withSelectedBank(next, bankId, c.home);
   c.log?.(`server: using configured Bank ${bankId} for all projects`);
   writeJson(configPath, selected);
   c.log?.(`server: remote connection (${configPath})`);
@@ -2380,10 +2388,15 @@ const traecode: HarnessInstaller = {
       c.log?.(`traecode: MCP entry removed from ${traecodeMcpPath(c)}`);
     }
     // The per-repo registrations the installer (or the hook) wrote: drop our entry from every
-    // opted-in repo's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
+    // registered project's .trae/mcp.json, deleting the file when nothing remains in it. Foreign
     // servers and foreign "contextbase" entries are never touched — same ownership check as the
     // hook's. Missing repos skip silently; the storage sweep below still catches their switches.
-    const repoEntries = [resolve(flagValue([...(c.args ?? [])], "project-path") ?? process.cwd())];
+    const repoEntries = [
+      ...new Set([
+        ...registeredTraecodeProjects(c.home),
+        resolve(flagValue([...(c.args ?? [])], "project-path") ?? process.cwd()),
+      ]),
+    ];
     const cleaned = repoEntries.filter((repo) =>
       removeTraecodeWorkspaceMcpEntry(repo, { home: c.home })
     );

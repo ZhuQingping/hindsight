@@ -123,7 +123,6 @@ describe("ContextBaseClient.hasDocuments", () => {
   it.each([
     [200, { items: [{ id: "a" }], total: 7 }, true],
     [200, { items: [], total: 0 }, false],
-    [404, { detail: "Bank not found" }, false],
   ])("status %s %j -> %s", async (status, body, expected) => {
     const client = new ContextBaseClient({ apiUrl: "http://x", bank: "b" });
     const fetchMock = vi.fn(async () => jsonResponse(status, body));
@@ -878,4 +877,24 @@ describe("ContextBaseClient rate-limit patience", () => {
     expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
     expect(fetchMock.mock.calls.length).toBeLessThan(6);
   });
+});
+
+describe("missing configured Bank", () => {
+  it.each(["retain", "recall", "hasDocuments"])(
+    "rejects %s on HTTP 404 instead of reporting success or an empty Bank",
+    async (operation) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => jsonResponse(404, { detail: "Bank not found" }))
+      );
+      const c = new ContextBaseClient({ apiUrl: "http://x", bank: "missing" });
+      const request =
+        operation === "retain"
+          ? c.retain("content", "context", "doc", [], "conversation")
+          : operation === "recall"
+            ? c.recallObservations("question", { timeoutMs: 1000 })
+            : c.hasDocuments();
+      await expect(request).rejects.toThrow(/404.*Bank not found/);
+    }
+  );
 });

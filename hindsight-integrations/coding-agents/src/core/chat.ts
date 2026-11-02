@@ -150,7 +150,7 @@ async function settleOps(
           "GET",
           client.bankUrl(`/operations/${encodeURIComponent(id)}`),
           undefined,
-          [],
+          [404],
           OP_CHECK_TIMEOUT_MS
         );
         if (r.status === 404) return "not_found"; // pruned: nothing left to learn
