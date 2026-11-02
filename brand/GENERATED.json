@@ -52,11 +52,11 @@
     },
     {
       "path": "hindsight-integrations/coding-agents/README.md",
-      "sha256": "cafece656b8048322cf8c9b0d1faf125553e16ef5a61d9844a15408707d90e35"
+      "sha256": "373815dbad8d97fbe4ac289343b437448aca44eff5906c592a838bcc89dbbefb"
     },
     {
       "path": "hindsight-integrations/coding-agents/skill-src/preamble.md",
-      "sha256": "7c100994c34b63c2de4c591b2a454ae56b3c37ea389f85877985286844757894"
+      "sha256": "66cceb34dbeba77caa91de5d5a5014bc20fe1b3e8c4cbe3d7c45f19bf9ba1021"
     },
     {
       "path": "hindsight-integrations/agent-plugin/README.md",

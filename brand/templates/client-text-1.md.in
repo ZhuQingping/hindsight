@@ -3,8 +3,7 @@
 Long-term project memory for **coding agents**, backed by @DISPLAY_NAME@.
 One package, several agents: a shared reflect-and-inject core with a thin entry point per agent
 (**Claude Code**, **Codex CLI**, **DeepAgents Dcode**, **opencode**, **opencode 2**, **Kilo CLI**, **Cursor CLI**, **GitHub Copilot CLI**, **Grok Build**, **Qwen Code**, **Kimi Code**, **Factory Droid**, **ZCode**, **TraeCode**, **Antigravity CLI**, **Devin CLI**, **Cline CLI**, **pi**, **Prime Agent**, **DeepSeek Harness**, **WorkBuddy**, **CodeBuddy**). Ingestion is fully
-automatic — there is no setup command: a repo's git history and conversations flow into its memory
-bank in the background as you work.
+automatic after you configure an existing workspace: conversations flow into that workspace as you work.
 
 The premise: most of a real fix is derivable from the code, but the _last mile_ often hinges on a
 project-specific decision that isn't in the code at all — a rounding rule, a retry allowlist, a
@@ -59,7 +58,16 @@ npx @huaweicloud/contextbase-coding-agents@latest install cursor-cli --bank-id <
 `--api-url <API_ENDPOINT>` sets the service address; when omitted, the installer uses
 existing configuration or environment variables and prompts if the address is missing.
 In scripts or CI without an interactive terminal, provide the address explicitly or through configuration.
-`--project-path <PROJECT_PATH>` selects another project; it defaults to the current directory.
+`--bank-id <BANK_ID>` saves one existing workspace for every project and agent. Later installs may omit it when `bankId` is already configured (or supplied by `CONTEXTBASE_BANK_ID`). Missing `bankId` stops installation and disables memory at runtime; no workspace ID is generated or inferred from a directory.
+
+Switch the configured workspace without reinstalling:
+
+```bash
+npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>
+```
+
+The command preserves the endpoint and token. Restart your agent and its MCP server after switching.
+`--project-path <PROJECT_PATH>` selects the directory for project-specific client registration, such as TraeCode; it does not select a workspace and defaults to the current directory.
 Restart your agent after installation.
 
 To upgrade, re-run the same `npx @huaweicloud/contextbase-coding-agents@latest install <harness>` command.
@@ -293,8 +301,7 @@ recall and injection work exactly as they do there; the event map lives under th
 
 MCP is registered per repo, never at the user level: Trae launches user-level servers with the
 Electron process's cwd (your home directory), where a @DISPLAY_NAME@ entry either self-disables under
-`optInOnly` (zero tools) or resolves the home bank instead of the repo's. So the installer
-pre-seeds the per-repo registration for every repo opted in via `mapPathToBank` — a
+`optInOnly` (zero tools). The installer registers a
 `mcpServers.contextbase` stdio server in `<repo>/.trae/mcp.json`, pinned to that repo via
 `CONTEXTBASE_MCP_PROJECT_CWD` — migrates any stale user-level entry back out of
 `<userData>/User/mcp.json`, and seeds the per-workspace enable switch directly. The SessionStart
@@ -308,10 +315,7 @@ Trae only reads that per-repo file once the global `trae.mcp.enableWorkspaceMcp`
 (default off), so the installer handles the gate: an interactive run asks, a non-interactive run
 takes `--enable-workspace-mcp`, and either way the setting is written and Trae windows must be
 restarted to pick it up (declining, or a settings file with comments, prints the manual step).
-Registrations and enable switches take effect on the NEXT window, so the MCP tools appear when
-you reload after the first session; repos opted into `mapPathToBank` after install need one more
-`install traecode` run, and if a repo's server still shows disabled in the MCP panel, flip it on
-once there.
+Registrations and enable switches take effect after restarting the Trae window. Run `install traecode --project-path <PROJECT_PATH>` for another project. If its server still shows disabled in the MCP panel, enable it there.
 
 > One manual step remains after install (UI state the installer cannot write): enable the hooks
 > under TraeCode Settings > Hooks. If you declined the workspace-MCP prompt, enable it later in
@@ -532,14 +536,13 @@ Configuration is **one JSON file**: `~/.contextbase/coding-agent.json`. Layering
 4. its `harnesses.<name>` section — per-agent override
 5. its `paths.<prefix>` section — per-directory override, applied after the bank is resolved
    (see [Per-directory overrides](#per-directory-overrides--pathsprefix))
-6. its `banks.<resolvedBankId>` section — per-repo override, applied after the bank is resolved
-   (see [Per-repo opt-in/out](#per-repo-opt-inout--banksbankid))
+6. its `banks.<bankId>` section — behavioral overrides for the configured workspace
 
 Environment variables are a **fallback**: the file wins wherever it sets a value, so adding env to
 an existing setup changes nothing. The two list-valued settings, `retainTags` and `optInPaths`, take
 a comma-separated value (`CONTEXTBASE_RETAIN_TAGS="project:{gitProject},env:work"`); entries are
 trimmed and blanks dropped.
-The map-valued settings (`mapPathToBank`, `harnesses`, `paths`, `banks`, `retainMetadata`) are file-only —
+The map-valued settings (`harnesses`, `paths`, `banks`, `retainMetadata`) are file-only —
 per-key branching doesn't survive flattening into one variable. `maxParallelRetains` is available
 as `CONTEXTBASE_MAX_PARALLEL_RETAINS` for containers and CI.
 
@@ -570,7 +573,7 @@ client is actually using.
 
 ### Opt-in only
 
-By default every project gets memory — that is what makes the plugin zero-setup. If you would
+After a workspace is configured, every project may use it by default. If you would
 rather nothing be remembered until you say so, turn memory off everywhere and name the projects
 that may use it:
 
@@ -581,21 +584,10 @@ that may use it:
 }
 ```
 
-Anything outside those paths is **inert**: no bank is created, nothing is retained, no seed runs,
-and the agent behaves exactly as it would without the plugin. Approving costs nothing else —
-`optInPaths` says _which projects_, not _which bank_, so an approved repo keeps its usual
-`coding-agent::{gitProject}` name. Paths are prefixes, so approving `~/work` approves every repo
-under it while each still gets its own bank.
-
-A `mapPathToBank` entry counts as opted in too, since routing a path to a named bank already
-declares that project. A bare `bankId` does not: it names a bank rather than a project, so it
-cannot say which work may be remembered, and a privacy switch has to fail closed.
-
-There is no per-repo opt-in file, for the same reason there is no repo-carried config at all: a
-cloned repository must not be able to turn memory on.
-
-There is deliberately no repo-carried config file — per-repo bank routing is `mapPathToBank`,
-per-agent differences are `harnesses.<name>`.
+Anything outside those paths is **inert**: nothing is retained and no seed runs.
+`optInPaths` controls which projects may use memory; every approved project uses the same configured `bankId`. Paths are prefixes, so approving `~/work` approves the projects beneath it.
+A configured workspace does not itself approve a path when `optInOnly` is enabled.
+There is no repository-local configuration file: a cloned repository cannot change the endpoint, token, workspace or approval policy. `harnesses.<name>` customizes behavior per agent.
 
 Each entry point knows which harness it _is_ (the opencode plugin is loaded by opencode, the codex
 hook by Codex...), so one shared config serves several agents side by side:
@@ -616,19 +608,16 @@ hook by Codex...), so one shared config serves several agents side by side:
 | ----------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apiUrl`                | required                       | API Endpoint copied from the console; no default                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `apiToken`              | —                              | bearer token (@DISPLAY_NAME@ Cloud). Picked up without restarting the agent: a long-lived host re-reads it after a rejected request, so enabling auth or rotating the key mid-session recovers on the next call                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `bankId`                | —                              | **explicit static bank**; unset ⇒ per-repo dynamic resolution (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `dynamicBankId`         | dynamic iff no `bankId`        | force dynamic (`true`) or static (`false`) resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `bankIdTemplate`        | `"coding-agent::{gitProject}"` | dynamic bank id format; the default makes every agent share one bank per repo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `mapPathToBank`         | —                              | absolute path → bank; **longest prefix wins**; linked worktrees inherit their main checkout's mapping; overrides everything                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `bankId` | required | Existing workspace ID shared by every directory and agent. Set with `--bank-id` during installation or `bank use <BANK_ID>` afterwards. No automatic selection or creation. |
 | `optInOnly`             | `false`                        | run memory ONLY in opted-in projects — everything else is inert, with no bank created; see [Opt-in only](#opt-in-only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `optInPaths`            | —                              | directories opted in, matched as prefixes with `~` expanded; each repo beneath and its linked worktrees are approved while keeping their own dynamic bank                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `resolveWorktrees`      | `true`                         | linked worktrees inherit the main checkout's bank identity, path approval, and mapping                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `retainTags`            | —                              | extra tags on every document written by the integration, e.g. `["project:{gitProject}"]` — see **Recording where a memory came from** below                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `retainMetadata`        | —                              | extra metadata on every document written by the integration, e.g. `{"repo": "{gitProject}"}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `retainContext`         | see description                | the `context` sent with every session write-back. Extraction reads it to decide whose claim a sentence is, so the default names both speakers, and asks for an agent's own "fixed" or "passes" to be stored as its claim rather than as fact. Accepts the same `{placeholder}` templates as `retainTags`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `manageBankConfig`      | `true`                         | let the plugin shape the bank's own configuration — the retain strategies it writes under, the `knowledge` entity-label group, and, on a bank that has none, the missions. Writing is **additive**: it adds what the bank does not define and never overwrites what is there, so your control-plane edits survive — the one exception is the extraction mode of its own strategies, which follows `retainExtractionMode`. Set `false` to keep it out of the bank config entirely — see **A bank you shape yourself** below                                                                                                                                                                                                                                                                                                                                                                                      |
+| `manageBankConfig` | `false` | Leave workspace configuration and knowledge pages under the owner’s control. Set `true` explicitly to apply coding settings and seed pages on an existing workspace. |
 | `retainExtractionMode`  | `"concise"`                    | how the server extracts memories from sessions, commits and documents: `"concise"`, `"verbose"`, `"verbatim"` or `"chunks"` (store the text, no extraction). Every Stop writes the session back, so this is what each turn costs — `"verbose"` pulls more detail for several times the tokens. Kept in sync on the plugin's own retain strategies every session, so a change reaches existing banks too (not with `manageBankConfig: false`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `defaultBankConfig`     | —                              | bank-config fields of your own for the banks the plugin shapes, e.g. `{"enable_observations": false, "enable_auto_consolidation": false, "mental_model_min_refresh_interval_seconds": 21600}`. Keys are the bank-config API's own field names. Written under the same additive rule as the rest: only where the bank does not define the field, so a bank the plugin creates is born with these instead of the server's defaults and a value you set in the control plane is never overwritten. Wins over the template on a key both name (`enable_observations`); `retain_strategies`, `entity_labels` and `retain_extraction_mode` are refused, since the plugin governs them itself. Ignored with `manageBankConfig: false` — see **A bank you shape yourself** below. File-only, like `recallOptions`; in a `banks.<id>` section it replaces the global map rather than merging into it                     |
+| `defaultBankConfig`     | —                              | bank-config fields of your own for the banks the plugin shapes, e.g. `{"enable_observations": false, "enable_auto_consolidation": false, "mental_model_min_refresh_interval_seconds": 21600}`. Keys are the bank-config API's own field names. Written under the same additive rule as the rest: only where the bank does not define the field, so an existing workspace receives these where it has no override and a value you set in the control plane is never overwritten. Wins over the template on a key both name (`enable_observations`); `retain_strategies`, `entity_labels` and `retain_extraction_mode` are refused, since the plugin governs them itself. Ignored with `manageBankConfig: false` — see **A bank you shape yourself** below. File-only, like `recallOptions`; in a `banks.<id>` section it replaces the global map rather than merging into it                     |
 | `observationScopes`     | `"shared"`                     | how consolidation groups observations: `"shared"` (default) = ONE global scope per bank, so every agent on a repo builds one set of beliefs; also `"combined"` (the server default), `"per_tag"`, `"all_combinations"`, `[["t"]]`; `"per_source"` adds a scope per `source:` kind alongside the global one, so commit knowledge and conversation knowledge consolidate apart                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `disabled`              | `false`                        | hard off-switch (inert plugin/hook — a no-memory baseline)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `reflectTimeoutMs`      | `20000`                        | **automatic** session-reflect timeout; on hook harnesses the installer registers a 30s prompt-hook timeout, so going above ~20s also means raising that hook's `timeout` in the host's config, or the host kills the hook mid-reflect; on timeout or a 5xx the hook falls back to knowledge-page search, then to a raw recall of observations (recorded)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -823,7 +812,7 @@ it: the seed pass only visits the pages it is configured to own.
 
 ### A bank you shape yourself — `manageBankConfig`
 
-Pointed at a bank, this plugin gives it the shape its ingestion needs: retain strategies for the
+When `manageBankConfig: true` is explicitly enabled, the plugin applies the coding settings its ingestion uses: retain strategies for the
 kinds of document it writes (`git`, `gitlog`, `conversation`, `document`, `survey`), a `knowledge`
 entity-label group that routes facts to the knowledge pages, and — on a bank that has no missions of
 its own — the coding missions.
@@ -841,12 +830,7 @@ One field is the exception: the extraction mode of the plugin's own four strateg
 if it drifts — the same way a seeded page's query is. Change it in `coding-agent.json`, not in the
 control plane. The strategies' other fields, and your own strategies, are still left alone.
 
-**Your own defaults for new banks — `defaultBankConfig`.** Everything the template does not name, a
-bank the plugin creates gets from the server: auto-consolidation on, observations on, a 60s floor
-between mental-model refreshes. With one bank per repo those are the settings that cost money, and
-a new repo an agent touches spawns a new bank with all of them switched on — while every bank you had
-hand-tuned in the control plane sits at a cheaper baseline. `defaultBankConfig` names the baseline
-once, in the plugin's config, and it travels in the same import that creates the bank:
+**Your own defaults — `defaultBankConfig`.** With configuration management explicitly enabled, these fields are added to the configured workspace wherever it has no override:
 
 ```json
 {
@@ -868,71 +852,23 @@ default in). On a key the template also names, your default wins. The three fiel
 governs itself — `retain_strategies`, `entity_labels` and `retain_extraction_mode` — are refused
 with a warning: the first two are merged entry by entry, the last is `retainExtractionMode`'s.
 
-Set `manageBankConfig: false` to keep the plugin out of the bank's configuration altogether,
-`defaultBankConfig` included — the right setting for a bank you share with non-coding work, or one
-you configure yourself. That bank should then define the five strategies above itself. Note that the
-miss is **silent**: the server does not reject a retain naming a strategy the bank lacks, it logs a
-warning and extracts with the bank's own configuration — so a commit diff, a session transcript and
-a survey marker would all get the same generic treatment instead of the extraction each needs.
-Knowledge pages are seeded either way; `pageTriggerType` governs what they cost.
+`manageBankConfig` defaults to `false`. Installation and `bank use` also disable automatic configuration, seeding and codebase surveys for the selected workspace. They never create a workspace. Create it in the control plane first.
+Set `manageBankConfig: true` explicitly if you want the integration to apply coding settings and seed knowledge pages to an existing workspace. Workspace deletion and recreation are unsupported.
 
-Like every field here it can be set per bank, which is usually where it belongs:
+### Workspace behavior — `banks.<bankId>`
 
-```json
-{
-  "bankId": "my-global-bank",
-  "banks": { "my-global-bank": { "manageBankConfig": false } }
-}
-```
-
-### Per-repo opt-in/out — `banks.<bankId>`
-
-Per-repo control lives in the SAME file, keyed by the **resolved bank id** (shown in the session
-banner) and applied AFTER bank resolution — so it works regardless of where the repo lives, and
-survives directory moves:
+Optional behavior overrides are keyed by the configured workspace ID:
 
 ```jsonc
 {
+  "bankId": "team_workspace",
   "banks": {
-    "coding-agent::secret-client": { "disabled": true }, // blacklist: no memory at all
-    "coding-agent::old-name": { "bank": "team::shared" }, // rename / converge banks
-    "coding-agent::big-mono": { "gitIngest": "full", "retainSessions": false },
+    "team_workspace": { "gitIngest": "none", "retainSessions": true },
   },
 }
 ```
 
-Any behavioral field can be overridden per bank, and `bank` **renames the destination** (single
-hop: the section is selected by the resolved id, the target is literal — several ids may converge
-on one shared bank, and the target's own section is not consulted). Other bank-resolution fields
-are ignored inside a bank section.
-
-#### Recipe: two repos, one shared bank
-
-Two ways, by what the natural key is:
-
-**By resolved id** — you know the repo names; works wherever the repos live (and keeps working if
-they move). Both ids converge on one literal target:
-
-```jsonc
-{
-  "banks": {
-    "coding-agent::backend": { "bank": "team::product" },
-    "coding-agent::frontend": { "bank": "team::product" },
-  },
-}
-```
-
-**By path prefix** — the repos live under one directory; a single `mapPathToBank` entry covers
-every repo (present and future) beneath it:
-
-```jsonc
-{
-  "mapPathToBank": { "/Users/me/work/client-x": "client-x-memory" },
-}
-```
-
-Rule of thumb: converge by **id** for a hand-picked set of repos; map by **path** when a folder is
-the boundary ("everything I clone under `work/client-x` shares memory").
+These sections cannot rename or select a workspace. Endpoint, token, and `bankId` come from the shared top-level configuration (with environment fallback), even when a harness or path section supplies behavior overrides.
 
 ### Per-directory overrides — `paths.<prefix>`
 
@@ -949,32 +885,18 @@ Use directory overrides to customize memory behavior while sharing the default c
 
 The longest matching prefix wins. Linked worktrees use the main checkout's entry. Bank overrides apply afterwards. Endpoint, credential, local-engine, bank-resolution and approval fields cannot be overridden here. The same connection restriction applies to `banks` and `harnesses` sections.
 
-### Bank resolution
+### Bank selection
 
-Coding memory is **per repository**. Resolution order for the working directory:
+Only the configured `bankId` is used. All repositories, worktrees, directories and agents share it.
+The file’s top-level `bankId` takes precedence over the `CONTEXTBASE_BANK_ID` environment fallback.
+There is no repository naming template, path mapping, default workspace, alias or automatic creation.
+If no ID is configured, memory is disabled with a diagnostic explaining how to set it.
 
-1. `mapPathToBank` — longest matching absolute-path prefix (mapping a repo root covers every
-   subdirectory; deeper mappings win; overrides even an explicit `bankId`).
-2. Static — `bankId` set (or `dynamicBankId: false`).
-3. Dynamic — `bankIdTemplate` with placeholders:
-   - `{gitProject}` — worktree-aware repo name: `git rev-parse --git-common-dir` resolves every
-     linked worktree to the **main** worktree's basename, so all worktrees of a repo share one bank
-     (bare repos use the bare dir name). **Outside a repo** there is nothing for git to resolve, so
-     it falls back to the basename of the directory the **session started in** — an agent that
-     `cd`s into a subdirectory keeps writing to one bank, and a subdirectory gets its own bank only
-     when you deliberately start a session there
-   - `{project}` — plain working-directory basename
-   - `{harness}` — the entry point asking (`opencode`, `claude-code`, `codex`, `antigravity-cli`, `cursor-cli`, `copilot-cli`)
-   - `{channel}` / `{user}` — `$CONTEXTBASE_CHANNEL_ID` / `$CONTEXTBASE_USER_ID`
-
-The default `"coding-agent::{gitProject}"` is **harness-neutral**, so opencode, Claude Code, and Codex
-all share one memory per repo — use `"{harness}-{gitProject}"` to split per agent instead.
+Use `npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>` to change the shared selection, then restart the agent and MCP server. The command changes only the shared configuration; it does not reinstall clients or call workspace creation APIs.
 
 ### Recording where a memory came from
 
-With a bank per repo, the bank _is_ the answer to "where did this come from". On a deliberately
-**shared** bank — one bank holding cross-project knowledge so facts recall everywhere — it isn't:
-every memory looks alike. `retainTags` and `retainMetadata` stamp that provenance onto conversations,
+A shared workspace holds cross-project knowledge. Record repository provenance so each memory retains its origin. `retainTags` and `retainMetadata` stamp that provenance onto conversations,
 git history and diffs, survey lifecycle documents, initiative markers, and documents saved through
 `contextbase_ingest_document`:
 
@@ -986,9 +908,7 @@ git history and diffs, survey lifecycle documents, initiative markers, and docum
 }
 ```
 
-Recalls can then filter by `project:<repo>`, and every document shows which repository it came out
-of. Both accept the same placeholders as `bankIdTemplate` — `{gitProject}`, `{project}`,
-`{harness}`, `{channel}`, `{user}` — plus `{bankId}`, `{sessionId}` and `{timestamp}`.
+Recalls can filter by `project:<repo>`. Supported placeholders are `{gitProject}`, `{project}`, `{harness}`, `{channel}`, `{user}`, `{bankId}`, `{sessionId}` and `{timestamp}`.
 `{gitProject}` is worktree-aware here too, so every linked worktree of a repo stamps one name.
 `{sessionId}` resolves to `unknown` for documents that do not originate from an agent session.
 
@@ -1009,13 +929,13 @@ merge, each blind to the other, at double the consolidation cost. Which agent ha
 does not change whether a convention or a decision is true.
 
 So the integration retains with `observationScopes: "shared"`: one global, untagged observation
-scope per bank, which is what a bank already is — one project's memory. Set the field to change it:
+scope per configured workspace. Set the field to change it:
 
 ```jsonc
 {
   "observationScopes": "combined", // one observation set per distinct tag set (server default)
   "banks": {
-    "coding-agent::mono": { "observationScopes": "per_tag" }, // per-repo, like any behavioral field
+    "coding-agent::mono": { "observationScopes": "per_tag" }, // per workspace, like any behavioral field
   },
 }
 ```

@@ -12,7 +12,7 @@
  * managers join each folder's `.trae/mcp.json` under the `mcp.config.ws<n>.` scope key, parse the
  * SAME `mcpServers` top-level object as the user file, keep `{command, args, cwd, env}` for stdio
  * servers, and hot-reload the file with a 200ms debounce). So the SessionStart hook — which knows
- * the repo AND runs only where memory is actually live (the caller derives the bank and applies
+ * the repo AND runs only where memory is actually live (the caller loads the configured Bank and applies
  * opt-in first) — makes sure that file registers our server pinned to THIS repo:
  *   {"mcpServers":{"contextbase":{"command":"node","args":["<dist>/mcp-server.js"],
  *     "env":{"CONTEXTBASE_MCP_HARNESS":"traecode","CONTEXTBASE_MCP_PROJECT_CWD":"<repo>"}}}}
@@ -25,7 +25,7 @@
  * one is a bigger statement about the repo than a hook should make.
  *
  * The installer pre-writes the same registration (and seeds the workspace enable switch below) for
- * every repo in `mapPathToBank` — it runs unsandboxed, while Trae's hook sandbox denies file
+ * the selected project directory — it runs unsandboxed, while Trae's hook sandbox denies file
  * creation in the workspace and (observed live, 2026-09-21) drops sandbox.json rules aimed at
  * Trae's own storage. The hook stays as a best-effort top-up for repos opted in after the last
  * install; because both paths check before writing, whichever lands first leaves the other a

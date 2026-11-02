@@ -327,8 +327,7 @@ export type CustomPagesConfig = Record<string, CustomPage>;
  *
  * A pure function of its arguments, so the query text is STABLE for a given subject and
  * `seedPages()` PATCHes once (on the upgrade that introduces the clause) rather than on every
- * deepen run — which holds only while the caller's `project` is itself stable per bank (see
- * `bankProjectName`), and while `pages` itself is stable.
+ * deepen run. Shared configured Banks name no single project, and `pages` must remain stable.
  *
  * `pageScopeRule` is appended to a CUSTOM query too — a page from `customPages` included. It is
  * what stops the synthesizer presenting a dependency's decisions as this project's own (#3476), a

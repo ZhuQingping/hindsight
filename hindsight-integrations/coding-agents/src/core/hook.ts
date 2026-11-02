@@ -22,7 +22,7 @@
  * without stdin/stdout; `runHook` is thin plumbing around it, with a `makeClient` seam for tests.
  */
 import { existsSync } from "node:fs";
-import { deriveBankIdOrSkip } from "./bank";
+import { configuredBankIdOrSkip } from "./bank";
 import type { Config } from "./config";
 import { applyBankConfig, loadConfig } from "./config";
 import { diag, diagFilePath, readHookEvent } from "./diag";
@@ -466,7 +466,7 @@ export async function runHook(
     process.stdout.write(JSON.stringify(spec.emit(context ?? "", notice, ev)));
 
   const sessionRoot = sessionRootDir(spec.harness, sessionId, cwd);
-  const derived = deriveBankIdOrSkip(cfg, cwd, spec.harness, sessionRoot);
+  const derived = configuredBankIdOrSkip(cfg, spec.harness);
   if (derived === null) return; // repository unidentifiable: stay silent rather than invent a bank
   const resolved = applyBankConfig(cfg, derived, cwd);
   cfg = resolved.cfg;

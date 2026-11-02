@@ -13,7 +13,7 @@
  * without stdin; `runRetainHook` is thin plumbing around it, mirroring `runHook`/`buildHookOutput`
  * in core/hook.ts.
  */
-import { deriveBankIdOrSkip } from "./bank";
+import { configuredBankIdOrSkip } from "./bank";
 import { retainLiveSession } from "./chat";
 import { applyBankConfig, loadConfig } from "./config";
 import { ensureRemoteConnection } from "./connection";
@@ -219,7 +219,7 @@ export async function runRetainHook(
   if (!transcriptPath) return;
 
   const sessionRoot = sessionRootDir(spec.harness, sessionId, cwd);
-  const derived = deriveBankIdOrSkip(cfg, cwd, spec.harness, sessionRoot);
+  const derived = configuredBankIdOrSkip(cfg, spec.harness);
   // Skipping the write-back loses this session; retaining it into a guessed bank loses it AND
   // pollutes the server with a bank nothing ever reads back (#3950).
   if (derived === null) return;

@@ -8,8 +8,7 @@
  *   4. its `harnesses.<name>` section for the asking harness
  *
  * There is deliberately NO project-local config: a second, repo-carried file was both a security
- * surface (untrusted repos influencing memory behavior) and a second place to look. Per-repo bank
- * routing is `mapPathToBank`; per-agent differences are `harnesses.<name>`.
+ * surface (untrusted repos influencing memory behavior) and a second place to look. The Bank is explicitly configured once; per-agent differences are `harnesses.<name>`.
  */
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -73,19 +72,14 @@ export interface RawConfig {
   embedPackage?: string;
   /** Daemon mode: local `contextbase-embed` checkout to run instead of a published release (dev). */
   embedPackagePath?: string;
-  bankId?: string; // EXPLICIT memory bank id — set = static bank; unset = per-repo dynamic (core/bank.ts)
-  dynamicBankId?: boolean; // force dynamic resolution even when bankId is set (default: dynamic iff no bankId)
-  bankIdTemplate?: string; // dynamic bank id format (default "coding-agent::{gitProject}" — harness-neutral) —
-  //   placeholders: {gitProject} {project} {harness} {channel} {user} (see core/bank.ts)
-  mapPathToBank?: Record<string, string>; // absolute path -> bank; longest prefix wins; overrides everything
+  bankId?: string; // Required explicit Bank ID; shared by all hosts and directories.
   resolveWorktrees?: boolean; // {gitProject}: worktrees share the main repo's bank (default true)
   /** Run memory ONLY in projects that were opted in (default false: every project gets memory,
    *  which is what makes the plugin zero-setup). With it on, an unlisted project is inert — no
    *  bank is created, nothing is retained, no seed runs — so unrelated work leaves no trace. */
   optInOnly?: boolean;
   /** Directories opted in, matched as PREFIXES with `~` expanded: approving a directory approves
-   *  the repos beneath it, and each still gets its own dynamic bank. A `mapPathToBank` entry counts
-   *  as opted in too, since routing a path to a named bank already declares that project. */
+   *  repositories beneath it. This changes approval only; every directory uses the configured Bank. */
   optInPaths?: string[];
   harness?: string; // runtime adapter (default "opencode")
   disabled?: boolean; // hard off-switch — inert plugin, for a no-memory baseline (default false)
@@ -234,7 +228,7 @@ export interface RawConfig {
    *  retainTags. Extraction reads this to decide WHOSE claim a sentence is. */
   retainContext?: string;
   /** Let the plugin shape the bank's own configuration — the retain strategies it writes under,
-   *  the `knowledge` entity-label group, and (on a bank that has none) the missions (default true).
+   *  the `knowledge` entity-label group, and (on an existing bank that has none) the missions (default false).
    *
    *  Writing is ADDITIVE: the plugin adds what the bank does not already define and never
    *  overwrites an existing value, so an edit made in the control plane survives (#3927) — except
@@ -244,7 +238,7 @@ export interface RawConfig {
    *  (`git`, `gitlog`, `conversation`, `document`, `survey`): the server does not reject a retain
    *  naming a strategy the bank lacks, it logs a warning and extracts with the bank's own config
    *  instead — so a diff, a transcript and a survey marker all get the same generic treatment.
-   *  Knowledge pages are seeded either way (see `pageTriggerType`). */
+   *  Knowledge pages are seeded only when this is enabled (see `pageTriggerType`). */
   manageBankConfig?: boolean;
   /** How the server extracts memories from what this plugin retains — sessions, commits, documents
    *  (default "concise"). One of "concise", "verbose", "verbatim", "chunks" (store the text with no
@@ -258,8 +252,8 @@ export interface RawConfig {
    *     "mental_model_min_refresh_interval_seconds": 21600}
    *  Keys are the bank-config API's own field names, passed straight through, so anything the
    *  bank-config accepts is settable here. Written under the same rule as the rest of the
-   *  template — only where the bank does not already define the field — so a bank the plugin
-   *  creates is born with these instead of the server's defaults, while a value you set in the
+   *  template — only where the bank does not already define the field — so an existing bank
+   *  receives these only where it has no override, while a value you set in the
    *  control plane is never overwritten (#4725). Wins over the template on a key both name
    *  (`enable_observations`). The fields the plugin governs itself (`retain_strategies`,
    *  `entity_labels`, `retain_extraction_mode`) are refused with a warning: the first two are
@@ -276,17 +270,11 @@ export interface RawConfig {
    *  scopes literally. Anything else falls back to the default. */
   observationScopes?: ObservationScopes;
   /** Per-harness overrides of any of the fields above, keyed by harness name ("opencode",
-   *  "claude-code", ...). Lets one config file give each agent its own bank/settings. */
+   *  "claude-code", ...). Lets one config file give each agent its own behavior settings; connection and bankId stay shared. */
   harnesses?: Record<string, Omit<RawConfig, "harnesses">>;
-  /** Per-BANK overrides, applied AFTER bank resolution — the per-repo opt-in/out surface, keyed
-   *  by the RESOLVED bank id (run a session once or check the banner to see it). Any behavioral
-   *  field, plus `bank` to RENAME the destination (single hop: the section is selected by the
-   *  resolved id, the rename is literal — several ids may converge on one shared bank).
-   *  Bank-resolution fields (bankId/template/map/...) are ignored here. Example:
-   *    "banks": { "coding-agent::secret-client": { "disabled": true },
-   *               "coding-agent::old-name": { "bank": "team::shared" },
-   *               "coding-agent::big-mono": { "gitIngest": "full", "retainSessions": false } } */
-  banks?: Record<string, Omit<RawConfig, "banks" | "harnesses"> & { bank?: string }>;
+  /** Behavioral overrides for the explicitly configured Bank, keyed by bankId. These sections
+   *  cannot change the connection, select another Bank, or override the approval policy. */
+  banks?: Record<string, Omit<RawConfig, "banks" | "harnesses">>;
   /** Per-DIRECTORY overrides, keyed by absolute path prefix (`~` allowed; longest prefix wins;
    *  a linked worktree uses its main checkout's entry). Applied after bank resolution and before
    *  the `banks.<id>` section, so one entry can customize memory behavior for every repo under a directory.
@@ -310,10 +298,7 @@ export interface Config {
   embedVersion?: string;
   embedPackage?: string;
   embedPackagePath?: string;
-  bankId?: string; // resolved per-directory via deriveBankIdOrSkip — see core/bank.ts
-  dynamicBankId?: boolean;
-  bankIdTemplate?: string;
-  mapPathToBank?: Record<string, string>;
+  bankId?: string; // Explicit Bank ID from the single configuration file or environment.
   resolveWorktrees?: boolean;
   optInOnly: boolean;
   optInPaths: string[];
@@ -348,7 +333,7 @@ export interface Config {
   retainExtractionMode: RetainExtractionMode;
   defaultBankConfig: Record<string, unknown>;
   observationScopes: ObservationScopes;
-  banks: Record<string, Omit<RawConfig, "banks" | "harnesses"> & { bank?: string }>;
+  banks: Record<string, Omit<RawConfig, "banks" | "harnesses">>;
   paths: Record<string, Omit<RawConfig, "banks" | "harnesses" | "paths">>;
   logLevel: "debug" | "info" | "warn" | "error";
   autoUpdate: boolean;
@@ -603,9 +588,6 @@ export function resolveConfig(raw: RawConfig = {}): Config {
     embedPackage: raw.embedPackage || undefined,
     embedPackagePath: raw.embedPackagePath || undefined,
     bankId: raw.bankId,
-    dynamicBankId: raw.dynamicBankId,
-    bankIdTemplate: raw.bankIdTemplate,
-    mapPathToBank: raw.mapPathToBank,
     resolveWorktrees: raw.resolveWorktrees,
     optInOnly: raw.optInOnly ?? false,
     // Same shape as retainTags: a config typo must not become a path that silently approves nothing.
@@ -615,7 +597,7 @@ export function resolveConfig(raw: RawConfig = {}): Config {
     harness: raw.harness ?? "opencode",
     disabled: raw.disabled ?? false,
     retainSessions: raw.retainSessions ?? true, // write sessions back by default, every harness
-    manageBankConfig: raw.manageBankConfig ?? true,
+    manageBankConfig: raw.manageBankConfig ?? false,
     retainExtractionMode: RETAIN_EXTRACTION_MODES.includes(raw.retainExtractionMode!)
       ? raw.retainExtractionMode!
       : DEFAULT_RETAIN_EXTRACTION_MODE,
@@ -714,13 +696,7 @@ function mergeRaw(a: RawConfig, b: RawConfig): RawConfig {
   };
 }
 
-/**
- * Keys a PROJECT-LOCAL (untrusted, repo-supplied) config may NOT set. These control where the user's
- * credential + prompts/transcripts are sent (`apiUrl`, `apiToken`) or remap banks globally
- * (`mapPathToBank`, which "overrides everything"). A repo can still set its own per-repo bank via
- * `bankId`/`bankIdTemplate` — just not the network endpoint, token, or global path→bank map. The
- * user-global config is trusted and unrestricted.
- */
+/** Load the single trusted user configuration. */
 export interface LoadOptions {
   /** Which harness is asking ("opencode", "claude-code", ...) — applies its `harnesses.<name>` overrides. */
   harness?: string;
@@ -749,7 +725,7 @@ function applyLayer(raw: RawConfig, layer: RawConfig, harness?: string): RawConf
  * containers, CI, and secret managers that inject `CONTEXTBASE_API_TOKEN` rather than writing a
  * credential to disk.
  *
- * The map-valued settings (mapPathToBank, harnesses, banks, retainMetadata, recallOptions, pages,
+ * The map-valued settings (harnesses, banks, retainMetadata, recallOptions, pages,
  * customPages, defaultBankConfig) are deliberately
  * absent: they are structures whose whole point is per-repo/per-harness/per-key branching, which
  * does not survive flattening into one env var. They stay file-only.
@@ -767,8 +743,6 @@ const ENV_KEYS = {
   embedPackagePath: "CONTEXTBASE_EMBED_PACKAGE_PATH",
   daemonProfile: "CONTEXTBASE_DAEMON_PROFILE",
   bankId: "CONTEXTBASE_BANK_ID",
-  dynamicBankId: "CONTEXTBASE_DYNAMIC_BANK_ID",
-  bankIdTemplate: "CONTEXTBASE_BANK_ID_TEMPLATE",
   resolveWorktrees: "CONTEXTBASE_RESOLVE_WORKTREES",
   optInOnly: "CONTEXTBASE_OPT_IN_ONLY",
   optInPaths: "CONTEXTBASE_OPT_IN_PATHS",
@@ -808,7 +782,6 @@ const ENV_KEYS = {
 
 /** Fields parsed as booleans/numbers/comma-separated lists; everything else is taken as a string. */
 const ENV_BOOLEANS = new Set<keyof RawConfig>([
-  "dynamicBankId",
   "resolveWorktrees",
   "optInOnly",
   "disabled",
@@ -888,6 +861,7 @@ export function loadConfig(opts: LoadOptions | string = {}): Config {
 /** Bank-resolution fields are meaningless inside a `banks.<id>` section (they can't change the id
  *  that selected it) — strip them so a typo there can't silently re-route memory. */
 const CONNECTION_KEYS = [
+  "bankId",
   "apiUrl",
   "apiToken",
   "serverMode",
@@ -899,10 +873,6 @@ const CONNECTION_KEYS = [
 
 const BANK_OVERRIDE_EXCLUDED = [
   ...CONNECTION_KEYS,
-  "bankId",
-  "bankIdTemplate",
-  "mapPathToBank",
-  "dynamicBankId",
   "resolveWorktrees",
   // Approval is decided BEFORE the bank is resolved, so a `banks.<id>` section naming these could
   // only ever arrive too late to matter — strip them rather than let them read as effective.
@@ -913,14 +883,13 @@ const BANK_OVERRIDE_EXCLUDED = [
 
 /**
  * Apply the `banks.<bankId>` override section (if any) to an already-resolved config — the step
- * that runs AFTER bank resolution, giving per-repo opt-in/out (disable, retainSessions, gitIngest,
+ * that runs AFTER explicit Bank selection, giving behavioral overrides (disable, retainSessions, gitIngest,
  * survey settings, ...) from the ONE global config file.
  */
 export function applyBankConfig(
   cfg: Config,
   resolvedId: string,
-  /** The directory the bank was resolved FROM. Supplying it enforces `optInOnly`; every entry
-   *  point already has it to hand, having just passed it to bank resolution. */
+  /** The active directory, used only for behavior overrides and `optInOnly` approval. */
   directory?: string
 ): { cfg: Config; bankId: string } {
   // Rides the `disabled` gate every entry point already checks after bank resolution, rather than
@@ -930,24 +899,20 @@ export function applyBankConfig(
     return { cfg: { ...cfg, disabled: true }, bankId: resolvedId };
   const byPath = directory === undefined ? undefined : pathSection(cfg, cfg.paths, directory);
   if (byPath) {
-    // A path entry never renames the bank: only `banks.<id>` may, below.
-    const { bank: _rename, ...rest } = overrideFields(byPath);
+    const rest = overrideFields(byPath);
     cfg = { ...cfg, ...resolvePartial(rest as RawConfig) };
   }
   const section = cfg.banks[resolvedId];
   if (!section) return { cfg, bankId: resolvedId };
   const safe = overrideFields(section);
-  // `bank` renames the destination — single hop, selected by the ORIGINAL resolved id (the
-  // target's own banks section, if any, is deliberately NOT consulted: no chaining).
-  const bankId = typeof safe.bank === "string" && safe.bank ? (safe.bank as string) : resolvedId;
-  delete safe.bank;
-  return { cfg: { ...cfg, ...resolvePartial(safe as RawConfig) }, bankId };
+  return { cfg: { ...cfg, ...resolvePartial(safe as RawConfig) }, bankId: resolvedId };
 }
 
 /** An override section minus what it may not set: the resolution/approval fields and the nested
  *  maps (a section cannot carry sections of its own). */
 function overrideFields(section: object): Record<string, unknown> {
   const safe: Record<string, unknown> = { ...section };
+  delete safe.bank;
   for (const k of BANK_OVERRIDE_EXCLUDED) delete safe[k];
   delete safe.banks;
   delete safe.paths;

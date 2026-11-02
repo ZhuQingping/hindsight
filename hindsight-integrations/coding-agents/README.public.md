@@ -11,7 +11,16 @@ npx @huaweicloud/contextbase-coding-agents@latest install codex --api-url <API_E
 npx @huaweicloud/contextbase-coding-agents@latest install cursor-cli --api-url <API_ENDPOINT> --bank-id <BANK_ID> --project-path <PROJECT_PATH>
 ```
 
-Restart your agent after installation. For additional clients and options, run:
+The installer saves `bankId` as one workspace shared by all projects and agents. It never derives a workspace from the directory or creates one automatically. Missing `bankId` disables memory.
+
+Switch without reinstalling:
+
+```bash
+npx @huaweicloud/contextbase-coding-agents@latest bank use <BANK_ID>
+```
+
+This preserves the API endpoint and token. `--project-path` only selects a directory for project-specific client registration.
+Restart your agent and MCP server after installation or switching. For additional clients and options, run:
 
 ```bash
 npx @huaweicloud/contextbase-coding-agents@latest --help

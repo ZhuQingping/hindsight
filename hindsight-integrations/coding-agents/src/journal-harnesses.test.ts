@@ -36,7 +36,8 @@ vi.mock("./core/config", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./core/config")>();
   return {
     ...actual,
-    loadConfig: () => actual.resolveConfig({ apiUrl: "https://service.example", ...rawConfig }),
+    loadConfig: () =>
+      actual.resolveConfig({ apiUrl: "https://service.example", bankId: "fixed", ...rawConfig }),
   };
 });
 

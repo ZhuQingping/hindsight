@@ -103,7 +103,7 @@ export interface ClientOpts {
    *  (`pageScopeRule`). Undefined when no single repository is (a shared static bank, a path map, a
    *  bank several repos are renamed onto) — the query then gets the shared-bank clause, which
    *  names no project (#4490). Must be a property of the bank and never of the calling session's
-   *  cwd: see `bankProjectName` (#4146). */
+   *  cwd. A configured Bank can be shared across repositories. */
   project?: string;
   log?: (msg: string) => void;
   /** Cap on concurrent retain-related requests (drain op polls, deepen pools). Default 10. */
@@ -638,7 +638,7 @@ export class ContextBaseClient {
    *  entity labels), then seed knowledge pages when the server supports them. Both halves are
    *  idempotent and ADDITIVE — nothing the bank already says is overwritten (#3927), bar the
    *  extraction mode of the plugin's own strategies, which follows its config (#4560) — so
-   *  the deepen engine can re-run this every pass. Creates the bank if missing; legacy servers
+   *  the deepen engine can re-run this every pass. Requires an existing bank; legacy servers
    *  continue with the template-only path.
    *
    *  `manage: false` skips the config half entirely, for a bank whose owner shapes it themselves.
@@ -660,19 +660,22 @@ export class ContextBaseClient {
       defaults?: Record<string, unknown>;
     } = {}
   ): Promise<void> {
-    if (opts.reset) {
-      await this.req("DELETE", this.bankUrl());
-      this.log(`[bank] reset ${this.bank}`);
-    }
+    if (opts.reset) throw new Error("Bank reset is unsupported; select an existing Bank instead.");
     if (opts.manage === false) {
       this.log(`[bank] manageBankConfig: false — leaving ${this.bank}'s configuration alone`);
+      return;
     } else {
+      const existing = await this.req("GET", this.bankUrl());
+      if (!existing.ok)
+        throw new Error(
+          `Configured Bank ${this.bank} is unavailable; create it in the control plane before use.`
+        );
       // What the bank ALREADY overrides decides what is left to write: the missions are seeded once
       // and then belong to whoever set them (#2492), and every other field is added only where the
       // bank is silent (#3927) — bar the extraction mode of the plugin's own strategies, which is
-      // re-synced to `extractionMode` (#4560). A reset just deleted the bank, so there is nothing to read.
+      // re-synced to `extractionMode` (#4560). Only an existing Bank may receive these settings.
       const manifest = codingBankManifest(
-        opts.reset ? undefined : await this.readBankOverrides(),
+        await this.readBankOverrides(),
         opts.extractionMode,
         opts.defaults
       );

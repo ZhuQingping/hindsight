@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { deriveBankId } from "./bank";
+import { configuredBankId } from "./bank";
 import { applyBankConfig, resolveConfig } from "./config";
 
 /** `paths.<prefix>`: entries customize behavior while sharing one connection. */
@@ -25,8 +25,8 @@ describe("paths.<prefix> overrides", () => {
   afterEach(() => rmSync(root, { recursive: true, force: true }));
 
   const resolve = (raw: Parameters<typeof resolveConfig>[0], directory: string) => {
-    const cfg = resolveConfig(raw);
-    return applyBankConfig(cfg, deriveBankId(cfg, directory, "codex"), directory);
+    const cfg = resolveConfig({ bankId: "fixed", ...raw });
+    return applyBankConfig(cfg, configuredBankId(cfg), directory);
   };
 
   it("applies the entry covering the directory and leaves every other directory alone", () => {
@@ -38,7 +38,7 @@ describe("paths.<prefix> overrides", () => {
     const client = resolve(raw, join(clientRepo, "src"));
     expect(client.cfg.retainSessions).toBe(false);
     expect(client.cfg.apiToken).toBe("default-key");
-    expect(client.bankId).toBe("coding-agent::client-x");
+    expect(client.bankId).toBe("fixed");
     expect(resolve(raw, otherRepo).cfg.apiToken).toBe("default-key");
   });
 
@@ -75,7 +75,7 @@ describe("paths.<prefix> overrides", () => {
     const raw = {
       apiToken: "default-key",
       paths: { [join(root, "work")]: { apiToken: "work-key", retainSessions: false } },
-      banks: { "coding-agent::client-x": { apiToken: "bank-key" } },
+      banks: { fixed: { apiToken: "bank-key" } },
     };
     const { cfg } = resolve(raw, clientRepo);
     expect(cfg.apiToken).toBe("default-key");
@@ -97,14 +97,14 @@ describe("paths.<prefix> overrides", () => {
       },
     };
     const client = resolve(raw, clientRepo);
-    expect(client.bankId).toBe("coding-agent::client-x");
+    expect(client.bankId).toBe("fixed");
     expect(client.cfg.apiToken).toBeUndefined();
     expect(resolve(raw, otherRepo).cfg.disabled).toBe(true);
   });
 
   it("applies nothing without a directory", () => {
     const cfg = resolveConfig({ apiToken: "default-key", paths: { [root]: { apiToken: "k" } } });
-    expect(applyBankConfig(cfg, "coding-agent::client-x").cfg.apiToken).toBe("default-key");
+    expect(applyBankConfig(cfg, "fixed").cfg.apiToken).toBe("default-key");
   });
 
   it("gives a linked worktree outside the tree its checkout's entry", () => {

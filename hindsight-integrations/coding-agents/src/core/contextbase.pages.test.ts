@@ -1369,18 +1369,14 @@ describe("ContextBaseClient.configureBank template import", () => {
     ).toHaveLength(PAGES.length);
   });
 
-  it("configureBank({reset: true}) DELETEs the bank before the import POST", async () => {
+  it("rejects Bank deletion and recreation", async () => {
     const calls: any[] = [];
     stubFetchRouted(calls, [
       { match: (m, u) => m === "GET" && u.endsWith("/knowledge-base/tree"), json: { roots: [] } },
     ]);
     const c = new ContextBaseClient({ apiUrl: "http://x", bank: "repo-a" });
-    await c.configureBank({ reset: true });
-
-    expect(calls[0].method).toBe("DELETE");
-    expect(calls[0].url.endsWith("/import")).toBe(false);
-    expect(calls[1].method).toBe("POST");
-    expect(calls[1].url.endsWith("/import")).toBe(true);
+    await expect(c.configureBank({ reset: true })).rejects.toThrow(/unsupported/);
+    expect(calls).toHaveLength(0);
   });
 });
 
@@ -1490,7 +1486,7 @@ describe("ContextBaseClient.configureBank — missions are seeded once (#2492)",
     expect(calls.some((k) => k.url.endsWith("/import"))).toBe(false);
     // Not even the probe: the bank's configuration is none of this plugin's business.
     expect(calls.some((k) => k.url.endsWith("/config"))).toBe(false);
-    expect(calls.some((k) => k.url.includes("/knowledge-base/"))).toBe(true);
+    expect(calls).toHaveLength(0);
   });
 
   it("writes defaultBankConfig into the import where the bank is silent (#4725)", async () => {
@@ -1519,25 +1515,16 @@ describe("ContextBaseClient.configureBank — missions are seeded once (#2492)",
     expect(body.bank).not.toHaveProperty("enable_auto_consolidation");
   });
 
-  it("re-seeds the missions after an explicit reset", async () => {
-    const calls: any[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string, init: any) => {
-        calls.push({
-          url,
-          method: init?.method,
-          body: init?.body ? JSON.parse(init.body) : undefined,
-        });
-        return { ok: true, status: 200, json: async () => ({ roots: [] }) } as any;
-      })
+  it("never imports or creates an unavailable configured Bank", async () => {
+    const fetch = vi.fn(
+      async (_url: string, _init: any) =>
+        ({ ok: false, status: 404, json: async () => ({}) }) as any
     );
-    await new ContextBaseClient({ apiUrl: "http://x", bank: "repo-a" }).configureBank({
-      reset: true,
-    });
-    const body = calls.find((k) => k.method === "POST" && k.url.endsWith("/import")).body;
-    expect(typeof body.bank.reflect_mission).toBe("string");
-    // reset deletes the bank, so there is nothing to probe
-    expect(calls.some((k) => k.method === "GET" && k.url.endsWith("/config"))).toBe(false);
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      new ContextBaseClient({ apiUrl: "http://x", bank: "missing" }).configureBank({ manage: true })
+    ).rejects.toThrow(/Configured Bank missing is unavailable/);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe("GET");
   });
 });
