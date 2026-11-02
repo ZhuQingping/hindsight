@@ -14,6 +14,7 @@
     "edit": "編輯",
     "copy": "複製",
     "copied": "已複製！",
+    "copyFailed": "無法自動複製，請選取文字後手動複製。",
     "search": "搜尋",
     "noResults": "找不到結果",
     "required": "必填",
