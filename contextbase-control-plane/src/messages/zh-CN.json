@@ -2181,9 +2181,9 @@
     "guideConnectTitle": "接入智能体或应用",
     "guideConnectBody": "当前工作空间的接入说明放在独立页面。",
     "connectTitle": "接入方式",
-    "connectIntro": "选择工作空间和客户端，复制对应命令或代码。示例中的 bank_id 使用当前工作空间 ID。",
+    "connectIntro": "选择工作空间和客户端，复制命令或代码即可接入。",
     "chooseBank": "选择工作空间",
-    "chooseBankDescription": "接入信息按工作空间展示。请搜索并选择要接入的工作空间。",
+    "chooseBankDescription": "搜索并选择要接入的工作空间。",
     "searchBanks": "搜索工作空间",
     "noBanks": "没有匹配的工作空间。",
     "selectedBank": "当前工作空间",
@@ -2219,15 +2219,15 @@
     "development": "应用开发",
     "clientLabel": "客户端",
     "terminalLabel": "终端",
-    "credentials": "在本地将 '<API_KEY>' 替换为已获当前工作空间授权的密钥。本页面不创建或保存密钥。",
+    "credentials": "将 '<API_KEY>' 替换为有权访问当前工作空间的业务密钥。",
     "descriptions": {
-      "coding": "为所选客户端安装 ContextBase 集成，并将项目绑定到当前工作空间。",
+      "coding": "自动检索项目记忆并保存对话。",
       "openclaw": "安装 ContextBase 插件，将 OpenClaw Gateway 连接到此工作空间。",
       "hermes": "为当前 Hermes profile 安装 ContextBase 记忆提供方。",
       "python": "安装 Python SDK，执行只读记忆查询。",
       "node": "安装 Node.js SDK，执行只读记忆查询。",
       "rest": "通过只读统计请求，验证当前工作空间的访问权限。",
-      "mcp": "通过 HTTP MCP 客户端连接远端 ContextBase 服务。此方式无需安装本地适配器。"
+      "mcp": "通过 HTTP MCP 连接 ContextBase，无需本地适配器。"
     },
     "requirements": {
       "coding": "需要已安装对应客户端和 Node.js 18+。",
@@ -2254,23 +2254,23 @@
     "saveExample": "保存为 {filename}，然后在同一终端运行：",
     "exampleQuery": "这个项目有哪些约定？",
     "verifyTitle": "验证接入",
-    "verifyAgent": "在当前项目目录重启客户端，检查已加载的 ContextBase 工具，然后发送以下提示：",
-    "verifyMcpAgent": "在当前项目目录重启客户端，通过 /mcp 检查 ContextBase；如提示授权 Hook，按需确认，然后发送以下提示：",
+    "verifyAgent": "在项目目录重启客户端，检查 ContextBase 工具并发送：",
+    "verifyMcpAgent": "在项目目录重启客户端，通过 /mcp 检查 ContextBase；如提示，确认启用 Hook，然后发送：",
     "diagnosePrompt": "请使用实际注册的完整名称，调用当前已加载的 ContextBase 诊断工具。返回工具结果中的 workspace、bank_id、harness 和 config.api_url。",
-    "diagnoseExpected": "结果应为当前项目目录、bank_id = {bankId}、harness = {harness}，并核对 API 地址。此步骤检查本地配置，不代表已验证云端权限。",
+    "diagnoseExpected": "核对项目目录、bank_id = {bankId}、harness = {harness} 和 API 地址。此诊断仅检查本地配置。",
     "openCodeShared": "OpenCode 与 OpenCode 2 共用宿主插件入口，请选择实际使用的版本。",
     "verify": {
-      "sdk": "成功返回 recall 结果（可以为空）表示请求已完成。若返回鉴权或 工作空间 错误，需要先解决；脚本能启动不代表接入成功。",
-      "rest": "应返回 HTTP 200 和工作空间统计。若返回 401、403 或 404，请先检查密钥、工作空间 授权和地址。",
-      "mcp": "重新连接 MCP 客户端，检查实际返回的工具列表，再对当前 工作空间 发起只读 recall 请求以验证服务访问。",
-      "openclaw": "重启后，确认插件日志显示 remote API 模式和当前 工作空间。通过 OpenClaw 的记忆检索入口查询，并检查实际返回结果；插件加载成功不代表已验证云端权限。",
-      "hermes": "重启 Hermes，确认当前记忆提供方为 ContextBase，再要求 Agent 对当前 工作空间 调用已加载的 ContextBase recall 工具，并检查实际结果。"
+      "sdk": "recall 成功返回结果（可以为空）即表示接入成功。",
+      "rest": "返回 HTTP 200 和工作空间统计即表示接入成功。",
+      "mcp": "重新连接客户端，确认工具已加载，再调用 recall 验证访问。",
+      "openclaw": "重启 Gateway，确认 ContextBase 已加载，再执行一次记忆检索。",
+      "hermes": "重启 Hermes，确认使用 ContextBase，再调用 recall 验证访问。"
     },
-    "installScopeTitle": "安装范围",
-    "installScope": "集成安装到当前用户。API 地址和密钥由各项目共享，更改后会影响其他项目；项目与工作空间的映射分别保留。",
+    "installScopeTitle": "Bank 选择规则与安装范围",
+    "installScope": "优先使用项目绑定，其次使用固定 Bank；均未配置时，按仓库名生成 Bank ID。对应 Bank 需已创建并授权。集成安装到当前用户，API 地址和密钥由各项目共享。",
     "npmInstallTitle": "1. 使用 npx 接入",
-    "npmHelp": "npx 会运行安装器，无需全局安装或登录 npm。将 '<API_KEY>' 替换为 ContextBase 业务 API Key，不需要 npm 发布 Token。",
-    "endpointHelp": "--api-url：API Endpoint，不填时读取已有配置或环境变量；首次使用可按终端提示输入。",
-    "projectHelp": "--project-path：可选，默认绑定当前目录；接入其他项目时可指定其本机路径。"
+    "npmHelp": "在项目目录执行，绑定当前 Bank；后续进入该项目时自动使用。",
+    "endpointHelp": "--api-url：API 地址，默认读取已有配置或环境变量；缺失时按终端提示输入。",
+    "projectHelp": "--bank-id：手动指定或切换 Bank，执行后重启客户端。--project-path：可选，默认当前目录。"
   }
 }
