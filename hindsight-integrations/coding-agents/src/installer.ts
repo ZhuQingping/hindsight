@@ -2556,18 +2556,27 @@ function codeartsInstaller(name: "codearts-agent" | "codearts-cli"): HarnessInst
         return remove;
       }
       if (remove && entry === undefined) return true;
+      // Reinstallation updates our script and harness identity, while credentials, proxy/CA,
+      // timeouts and the user's enable/disable choice must survive alongside extra arguments.
+      const previous = isPlainObject(entry) ? entry : {};
       const registration =
         name === "codearts-cli"
           ? {
-              type: "local",
-              command: ["node", join(c.dist, "mcp-server.js")],
-              environment: { CONTEXTBASE_MCP_HARNESS: name },
               enabled: true,
+              ...previous,
+              type: "local",
+              command: [
+                "node",
+                join(c.dist, "mcp-server.js"),
+                ...(previous.command?.slice(2) ?? []),
+              ],
+              environment: { ...previous.environment, CONTEXTBASE_MCP_HARNESS: name },
             }
           : {
+              ...previous,
               command: "node",
-              args: [join(c.dist, "mcp-server.js")],
-              env: { CONTEXTBASE_MCP_HARNESS: name },
+              args: [join(c.dist, "mcp-server.js"), ...(previous.args?.slice(1) ?? [])],
+              env: { ...previous.env, CONTEXTBASE_MCP_HARNESS: name },
             };
       const next = applyEdits(
         text,

@@ -3269,6 +3269,59 @@ describe("shared MCP registration ownership", () => {
 
 describe("CodeArts MCP configuration", () => {
   it.each(["codearts-agent", "codearts-cli"])(
+    "preserves credentials and host settings when reinstalling %s",
+    (harness) => {
+      const ctx = makeCtx();
+      const cli = harness === "codearts-cli";
+      const path = join(ctx.home, "mcp_settings.json");
+      const key = cli ? "mcp" : "mcpServers";
+      const environment = {
+        CONTEXTBASE_MCP_HARNESS: "stale-harness",
+        CONTEXTBASE_API_TOKEN: "fixture-token",
+        NODE_EXTRA_CA_CERTS: "C:\\Corp CA\\root.pem",
+        HTTPS_PROXY: "http://proxy.example:8080",
+      };
+      const script = "C:\\Users\\A\\.contextbase\\coding-agents\\dist\\mcp-server.js";
+      const original = cli
+        ? {
+            type: "local",
+            command: ["node", script, "user-argument"],
+            environment,
+            enabled: false,
+            timeout: 600000,
+          }
+        : {
+            command: "node",
+            args: [script, "user-argument"],
+            env: environment,
+            disabled: true,
+            timeout: 600000,
+          };
+      writeJsonAt(path, { [key]: { contextbase: original } });
+      const args = [harness, "--mcp-config", path];
+      expect(run(["install", ...args], ctx)).toBe(0);
+      expect(run(["install", ...args], ctx)).toBe(0);
+      const entry = readJson(path)[key].contextbase;
+      const updatedEnvironment = { ...environment, CONTEXTBASE_MCP_HARNESS: harness };
+      expect(entry).toEqual(
+        cli
+          ? {
+              ...original,
+              command: ["node", join(ctx.dist, "mcp-server.js"), "user-argument"],
+              environment: updatedEnvironment,
+            }
+          : {
+              ...original,
+              args: [join(ctx.dist, "mcp-server.js"), "user-argument"],
+              env: updatedEnvironment,
+            }
+      );
+      expect(run(["uninstall", ...args], ctx)).toBe(0);
+      expect(readJson(path)[key].contextbase).toBeUndefined();
+    }
+  );
+
+  it.each(["codearts-agent", "codearts-cli"])(
     "installs, refreshes and uninstalls %s while preserving other config",
     (harness) => {
       const ctx = makeCtx();

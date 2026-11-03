@@ -2277,7 +2277,7 @@
     "projectHelp": "--project-path：可选，默认当前目录。",
     "codeartsIdeHelp": "需要已安装 CodeArts Agent IDE 或插件和 Node.js 18+。在“设置 > MCP 工具 > 配置 MCP”中打开 mcp_settings.json，复制完整文件路径并替换命令中的 {mcpConfigPath}。安装器会将 contextbase 服务合并到此文件。",
     "codeartsCliHelp": "需要已安装码道 CLI 和 Node.js 18+。安装器更新当前用户的 ~/.codeartsdoer/codearts_cli.jsonc（或已有的 .json 文件）。配置到项目时，可增加 --mcp-config，指定该项目 .codeartsdoer/codearts_cli.jsonc 的完整路径。",
-    "codeartsVerifyHelp": "安装或切换 Bank 后重启码道。IDE 中在“MCP 工具”启用 contextbase 并切换到智能体模式；CLI 中执行 /mcps 确认已启用，再让智能体调用 contextbase_diagnose。"
+    "codeartsVerifyHelp": "安装或切换工作空间后重启码道。IDE 中在“MCP 工具”启用 contextbase 并切换到智能体模式；CLI 中执行 /mcps 确认已启用，再让智能体调用 contextbase_diagnose。"
   },
   "productRuntime": {
     "localeNotice": "当前产品的主要功能完整支持英语和简体中文。此语言将显示英语。"
