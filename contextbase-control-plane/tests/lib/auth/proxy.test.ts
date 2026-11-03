@@ -14,6 +14,7 @@ vi.mock("next-intl/middleware", () => ({ default: () => () => new Response(null)
 let directory: string;
 const origin = "http://127.0.0.1:28901";
 beforeEach(async () => {
+  vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "false");
   vi.stubEnv("contextdb_name", undefined);
   vi.stubEnv("product_display_name", undefined);
   vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify({ product_config_version: 2, contextdb_name: "contextbase", display_name: "ContextBase" }), { status: 200 })));
