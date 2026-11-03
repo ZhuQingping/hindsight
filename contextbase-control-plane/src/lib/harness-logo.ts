@@ -44,6 +44,13 @@ export interface HarnessLogoEntry {
 
 /** Exported for the test that checks every entry's asset is actually shipped. */
 export const HARNESS_LOGO_REGISTRY: Record<string, HarnessLogoEntry> = {
+  // A neutral text badge until an approved CodeArts brand asset is supplied.
+  "codearts-agent": {
+    id: "codearts-agent",
+    label: "CodeArts Agent",
+    src: "/img/harness/codearts.svg",
+  },
+  "codearts-cli": { id: "codearts-cli", label: "CodeArts CLI", src: "/img/harness/codearts.svg" },
   "antigravity-cli": {
     id: "antigravity-cli",
     label: "Antigravity CLI",

@@ -2598,6 +2598,8 @@ describe("run() CLI behavior", () => {
 
   it("exposes the supported harnesses", () => {
     expect(INSTALLERS.map((i) => i.name)).toEqual([
+      "codearts-agent",
+      "codearts-cli",
       "opencode",
       "opencode2",
       "kilo",
@@ -2662,7 +2664,9 @@ describe("MCP registrations name the calling harness", () => {
 
   it.each(MCP_HOSTS)("%s", (harness) => {
     const ctx = makeCtx();
-    expect(run(["install", harness], ctx)).toBe(0);
+    const args =
+      harness === "codearts-agent" ? ["--mcp-config", join(ctx.home, "mcp_settings.json")] : [];
+    expect(run(["install", harness, ...args], ctx)).toBe(0);
     const registrations = [
       ...filesUnder(ctx.home)
         .map((f) => readFileSync(f, "utf8"))
@@ -3183,7 +3187,16 @@ describe("every installed companion skill is kept current by the session-start s
    *  fails here instead of passing as "nothing to check". opencode (both major versions) and its
    *  Kilo fork have no skills mechanism; Devin and Dcode read no user-level skills directory
    *  either. */
-  const NO_SKILL_MECHANISM = ["dcode", "devin-cli", "kilo", "opencode", "opencode2"];
+  // CodeArts currently exposes MCP tools without installing lifecycle skills.
+  const NO_SKILL_MECHANISM = [
+    "codearts-agent",
+    "codearts-cli",
+    "dcode",
+    "devin-cli",
+    "kilo",
+    "opencode",
+    "opencode2",
+  ];
 
   it("lands in the mapped directory and is refreshed there, for every host that has one", async () => {
     const { syncCompanionSkill } = await import("./core/skill-sync");
@@ -3251,6 +3264,92 @@ describe("shared MCP registration ownership", () => {
       installer.uninstall(ctx);
       expect(JSON.parse(readFileSync(file, "utf8")).mcpServers.contextbase).toEqual(foreign);
     }
+  });
+});
+
+describe("CodeArts MCP configuration", () => {
+  it.each(["codearts-agent", "codearts-cli"])(
+    "installs, refreshes and uninstalls %s while preserving other config",
+    (harness) => {
+      const ctx = makeCtx();
+      const path = join(
+        ctx.home,
+        "custom path",
+        harness === "codearts-agent" ? "mcp_settings.json" : "codearts_cli.jsonc"
+      );
+      const key = harness === "codearts-cli" ? "mcp" : "mcpServers";
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(
+        path,
+        `{\n  // keep user settings\n  "theme": "dark",\n  "${key}": {\n    // keep other server\n    "other": {"url": "https://other.example.com"}\n  }\n}`
+      );
+      const original = readFileSync(path, "utf8");
+      const args = [harness, "--mcp-config", path];
+      expect(run(["install", ...args], ctx)).toBe(0);
+      expect(run(["install", ...args], ctx)).toBe(0);
+      const installed = parseJsonc(readFileSync(path, "utf8"))!;
+      const entry = installed[key].contextbase;
+      expect(Object.keys(installed[key]).sort()).toEqual(["contextbase", "other"]);
+      if (harness === "codearts-cli") {
+        expect(entry).toMatchObject({
+          type: "local",
+          enabled: true,
+          command: ["node", join(ctx.dist, "mcp-server.js")],
+          environment: { CONTEXTBASE_MCP_HARNESS: harness },
+        });
+      } else {
+        expect(entry).toMatchObject({
+          command: "node",
+          args: [join(ctx.dist, "mcp-server.js")],
+          env: { CONTEXTBASE_MCP_HARNESS: harness },
+        });
+      }
+      expect(run(["uninstall", ...args], ctx)).toBe(0);
+      const after = readFileSync(path, "utf8");
+      expect(after).toContain("// keep user settings");
+      expect(after).toContain("// keep other server");
+      expect(parseJsonc(after)).toEqual({
+        theme: "dark",
+        [key]: { other: { url: "https://other.example.com" } },
+      });
+      expect(readFileSync(`${path}.contextbase-backup`, "utf8")).toBe(original);
+    }
+  );
+
+  it("uses the CLI's existing JSONC file and the IDE's existing mcp map", () => {
+    const ctx = makeCtx();
+    const cli = join(ctx.home, ".codeartsdoer", "codearts_cli.jsonc");
+    mkdirSync(dirname(cli), { recursive: true });
+    writeFileSync(cli, '{"mcp": {}}');
+    expect(run(["install", "codearts-cli"], ctx)).toBe(0);
+    expect(parseJsonc(readFileSync(cli, "utf8"))!.mcp.contextbase.type).toBe("local");
+    expect(existsSync(join(dirname(cli), "codearts_cli.json"))).toBe(false);
+    const ide = join(ctx.home, "mcp_settings.json");
+    writeFileSync(ide, '{"mcp": {}}');
+    expect(run(["install", "codearts-agent", "--mcp-config", ide], ctx)).toBe(0);
+    const config = parseJsonc(readFileSync(ide, "utf8"))!;
+    expect(config.mcp.contextbase.command).toBe("node");
+    expect(config.mcpServers).toBeUndefined();
+  });
+
+  it("requires one explicit IDE path and preserves invalid or externally managed configuration", () => {
+    const ctx = makeCtx();
+    expect(run(["install", "codearts-agent"], ctx)).toBe(1);
+    expect(run(["install", "codearts-agent", "--mcp-config"], ctx)).toBe(1);
+    const path = join(ctx.home, "mcp_settings.json");
+    for (const content of [
+      "{broken",
+      "[]",
+      '{"mcpServers": []}',
+      '{"mcp": {}, "mcpServers": {}}',
+      '{"mcpServers":{"contextbase":{"url":"https://external.example.com"}}}',
+    ]) {
+      writeFileSync(path, content);
+      expect(run(["install", "codearts-agent", "--mcp-config", path], ctx)).toBe(1);
+      run(["uninstall", "codearts-agent", "--mcp-config", path], ctx);
+      expect(readFileSync(path, "utf8")).toBe(content);
+    }
+    expect(run(["install", "codearts-agent", "codearts-cli", "--mcp-config", path], ctx)).toBe(1);
   });
 });
 

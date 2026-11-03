@@ -79,6 +79,24 @@ try {
     ],
     { env, cwd: project, stdio: "pipe", timeout: 60000 }
   );
+  // Exercise the registrations the installer writes, including the CLI's different schema.
+  const codeartsIdePath = join(home, "CodeArts settings", "mcp_settings.json");
+  for (const harness of ["codearts-agent", "codearts-cli"]) {
+    execFileSync(
+      process.execPath,
+      [
+        join(home, ".contextbase", "coding-agents", "dist", "installer.js"),
+        "install",
+        harness,
+        "--api-url",
+        `http://127.0.0.1:${server.address().port}`,
+        "--bank-id",
+        "customer-bank",
+        ...(harness === "codearts-agent" ? ["--mcp-config", codeartsIdePath] : []),
+      ],
+      { env, cwd: project, stdio: "pipe", timeout: 60000 }
+    );
+  }
   const cfg = JSON.parse(readFileSync(env.CONTEXTBASE_CONFIG));
   assert.equal(cfg.bankId, "customer-bank");
   assert.equal(cfg.mapPathToBank, undefined);
@@ -138,12 +156,32 @@ try {
     "opencode2",
     "pi",
     "workbuddy",
+    "codearts-agent",
+    "codearts-cli",
   ]) {
     client = new Client({ name: "customer-smoke", version: "1.0" });
+    let registration;
+    if (harness === "codearts-agent") {
+      registration = JSON.parse(readFileSync(codeartsIdePath, "utf8")).mcpServers.contextbase;
+    } else if (harness === "codearts-cli") {
+      const entry = JSON.parse(
+        readFileSync(join(home, ".codeartsdoer", "codearts_cli.jsonc"), "utf8")
+      ).mcp.contextbase;
+      assert.equal(entry.type, "local");
+      registration = {
+        command: entry.command[0],
+        args: entry.command.slice(1),
+        env: entry.environment,
+      };
+    }
     const transport = new StdioClientTransport({
-      command: process.execPath,
-      args: [join(home, ".contextbase", "coding-agents", "dist", "mcp-server.js")],
-      env: { ...env, CONTEXTBASE_MCP_HARNESS: harness },
+      command: registration?.command ?? process.execPath,
+      args: registration?.args ?? [
+        join(home, ".contextbase", "coding-agents", "dist", "mcp-server.js"),
+      ],
+      env: registration
+        ? { ...env, ...registration.env }
+        : { ...env, CONTEXTBASE_MCP_HARNESS: harness },
       cwd: project,
       stderr: "pipe",
     });
@@ -156,13 +194,13 @@ try {
     assert.equal(diagnosis.bank_id, "customer-bank");
     assert.equal(diagnosis.harness, harness);
     assert.equal(diagnosis.workspace, project);
-    if (harness === "claude-code") {
+    if (harness === "claude-code" || harness === "codearts-agent") {
       const ingested = await client.callTool({
         name: "contextbase_ingest_document",
         arguments: { title: "Customer decision", content: "CB-SMOKE-7429: keep rollback scripts" },
       });
       assert(!ingested.isError);
-    } else if (harness === "codex") {
+    } else if (harness === "codex" || harness === "codearts-cli") {
       const answer = await client.callTool({
         name: "contextbase_reflect",
         arguments: { query: "What was the decision?" },
@@ -175,7 +213,12 @@ try {
   }
   assert.deepEqual(
     received.map((r) => r.url),
-    ["/v1/default/banks/customer-bank/memories", "/v1/default/banks/customer-bank/reflect"]
+    [
+      "/v1/default/banks/customer-bank/memories",
+      "/v1/default/banks/customer-bank/reflect",
+      "/v1/default/banks/customer-bank/memories",
+      "/v1/default/banks/customer-bank/reflect",
+    ]
   );
   assert(received.every((r) => r.auth === "Bearer customer-key"));
   const switched = execFileSync(
@@ -188,7 +231,7 @@ try {
   assert.equal(switchedConfig.bankId, "next-workspace");
   assert.equal(switchedConfig.apiUrl, cfg.apiUrl);
   assert.equal(switchedConfig.apiToken, cfg.apiToken);
-  assert.equal(received.length, 2, "switching must not call workspace administration APIs");
+  assert.equal(received.length, 4, "switching must not call workspace administration APIs");
 
   // Exercise the installed hook's logger without issuing another memory request.
   const disabledConfig = join(home, "disabled-hook.json");
@@ -204,7 +247,7 @@ try {
   assert(lines.length > 0);
   assert(lines.every((line) => /\[contextbase\] \[/.test(line)));
   console.log(
-    "PASS: packed tgz install -> branded runtime/logs -> MCP diagnosis -> Claude write -> Codex reflect; only business-key memory endpoints called (HTTP fixture, no real model)."
+    "PASS: packed tgz install -> branded runtime/logs -> MCP diagnosis -> Claude/CodeArts IDE write -> Codex/CodeArts CLI reflect; only business-key memory endpoints called (HTTP fixture, no real model)."
   );
 } finally {
   await client?.close();

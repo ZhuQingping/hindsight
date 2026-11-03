@@ -38,7 +38,11 @@ const noRuntimeAdapter = (name: string, hint: string): HarnessAdapter => ({
   },
 });
 
+// MCP-only hosts deliberately install neither hooks nor a persistent plugin.
+export const MCP_ONLY_HARNESSES = ["codearts-agent", "codearts-cli"];
+
 export const HARNESS_NAMES = [
+  ...MCP_ONLY_HARNESSES,
   "opencode",
   // opencode v2 (binary `opencode2`) — a ground-up rewrite of the plugin API, loaded from the
   // package's root index.js (src/opencode2.ts). Like opencode it has NO hook binary.
@@ -119,6 +123,12 @@ export async function getHarness(name: string): Promise<HarnessAdapter> {
   // The persistent-plugin harnesses: their runtime is built by their own plugin entrypoint (which
   // owns the @opencode-ai/plugin dependency this file must stay free of), never via this registry.
   // Backfill still resolves them here for the chatReader.
+  if (MCP_ONLY_HARNESSES.includes(name)) {
+    return noRuntimeAdapter(
+      name,
+      `${name} exposes MCP tools only; automatic session capture is not installed`
+    );
+  }
   const entry = PLUGIN_ENTRYPOINTS[name];
   if (entry) {
     return noRuntimeAdapter(

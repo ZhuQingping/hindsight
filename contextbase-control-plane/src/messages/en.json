@@ -2228,7 +2228,8 @@
       "python": "Install the Python SDK and run a read-only memory query.",
       "node": "Install the Node.js SDK and run a read-only memory query.",
       "rest": "Check access to this workspace with a read-only statistics request.",
-      "mcp": "Connect to ContextBase over HTTP MCP, without a local adapter."
+      "mcp": "Connect to ContextBase over HTTP MCP, without a local adapter.",
+      "codearts": "Connect Huawei Cloud CodeArts to ContextBase through local MCP tools to recall, reflect and save memories on request. Automatic conversation recall and session capture are not installed."
     },
     "requirements": {
       "python": "Requires Python 3.10+; use an activated virtual environment.",
@@ -2273,7 +2274,10 @@
     "tokenHelp": "--api-token: business key. Omit to use the saved key for the same API address or CONTEXTBASE_API_TOKEN. Supply a key for the first installation; pass explicitly to replace a saved key.",
     "switchBankTitle": "Switch workspace",
     "switchBankHelp": "Replace '<BANK_ID>' with the ID of a workspace that exists and grants you access. Run the command, then restart the client. All projects and clients will use that workspace.",
-    "projectHelp": "--project-path: optional, defaults to the current directory."
+    "projectHelp": "--project-path: optional, defaults to the current directory.",
+    "codeartsIdeHelp": "Install CodeArts Agent IDE or its plugin and Node.js 18+. Open Settings > MCP tools > Configure MCP, copy the full path of mcp_settings.json, and replace {mcpConfigPath} in the command. The installer merges the contextbase server into this file.",
+    "codeartsCliHelp": "Install CodeArts CLI and Node.js 18+. The installer updates ~/.codeartsdoer/codearts_cli.jsonc (or the existing .json file) for the current user. For a project configuration, add --mcp-config with the full path of that project’s .codeartsdoer/codearts_cli.jsonc file.",
+    "codeartsVerifyHelp": "Restart CodeArts after installation or switching Bank. In the IDE, enable contextbase in MCP tools and switch to Agent mode; in the CLI, run /mcps to check it is enabled. Then ask the agent to call contextbase_diagnose."
   },
   "productRuntime": {
     "localeNotice": "This product currently provides complete main flows in English and Simplified Chinese. English is shown for this language."
