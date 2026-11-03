@@ -41,7 +41,7 @@ interface ParsedArgs {
   json: boolean;
   resume: boolean;
   checkpointPath: string;
-  bankStrategy: "mirror-config" | "agent" | "fixed";
+  bankStrategy: "mirror-config" | "fixed";
   fixedBank?: string;
   apiUrl?: string;
   apiToken?: string;
@@ -77,7 +77,7 @@ function usage(): string {
     "  --json                        Print final summary as JSON",
     "  --resume                      Skip entries already marked completed in the checkpoint",
     "  --checkpoint <path>           Path to checkpoint JSON",
-    "  --bank-strategy <mode>        mirror-config | agent | fixed",
+    "  --bank-strategy <mode>        mirror-config | fixed",
     "  --fixed-bank <id>             Required when bank strategy is fixed",
     "  --api-url <url>               ContextBase API base URL override",
     "  --api-token <token>           ContextBase API bearer token override",
@@ -144,7 +144,7 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--bank-strategy": {
         const value = next();
-        if (value !== "mirror-config" && value !== "agent" && value !== "fixed") {
+        if (value !== "mirror-config" && value !== "fixed") {
           throw new Error(`invalid bank strategy: ${value}`);
         }
         args.bankStrategy = value;
@@ -460,8 +460,12 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
         bankRuntimes.set(entry.bankId, bankRuntime);
       }
 
-      if (!bankRuntime.missionApplied && pluginConfig.bankMission) {
-        await client.createBank(entry.bankId, { reflectMission: pluginConfig.bankMission });
+      if (!bankRuntime.missionApplied) {
+        await client.getBankConfig(entry.bankId);
+        if (pluginConfig.bankMission) {
+          await client.updateBankConfig(entry.bankId, { reflectMission: pluginConfig.bankMission });
+        }
+        bankRuntime.missionApplied = true;
       }
 
       if (typeof args.maxPendingOperations === "number" && args.maxPendingOperations >= 0) {
@@ -498,10 +502,6 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
           updatedAt: new Date().toISOString(),
         };
         bankRuntime.touchedEntryKeys.push(checkpointKey(entry));
-        if (!bankRuntime.missionApplied && pluginConfig.bankMission) {
-          await client.createBank(entry.bankId, { reflectMission: pluginConfig.bankMission });
-          bankRuntime.missionApplied = true;
-        }
         saveCheckpoint(args.checkpointPath, checkpoint);
         console.log(`${entry.agentId}\t${entry.bankId}\t${entry.sessionId}\tenqueued`);
         imported += 1;

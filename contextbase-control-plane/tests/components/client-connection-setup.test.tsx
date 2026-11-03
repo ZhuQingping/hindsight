@@ -79,7 +79,7 @@ it.each(["openclaw", "hermes"])(
       expect(document.body.textContent).toContain("hermes memory setup");
     } else {
       expect(document.body.textContent).toContain("Gateway process environment");
-      expect(document.body.textContent).toContain('"dynamicBankId": false');
+      expect(document.body.textContent).not.toContain("dynamicBankId");
     }
   }
 );

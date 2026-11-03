@@ -248,18 +248,6 @@ def test_session_switch_starts_a_new_document(provider):
     assert [call["document_id"] for call in fake.retains] == ["session-1", "session-2"]
 
 
-def test_session_switch_follows_a_session_bank_template(provider):
-    """#4824: a {session} bank template names one bank per session, so a switch moves
-    writes to the new session's bank."""
-    instance, fake = provider({"bank_id_template": "hermes-{session}"})
-    instance.sync_turn("one", "1")
-    instance.on_session_switch("session-2")
-    instance.sync_turn("two", "2")
-    instance.shutdown()
-
-    assert [call["bank_id"] for call in fake.retains] == ["hermes-session-1", "hermes-session-2"]
-
-
 def test_a_session_named_as_its_own_parent_gets_no_parent_tag(provider):
     """#5422: in-place compaction reports the session as its own parent; tagging it would
     flip the document's tag set and re-consolidate it from scratch."""

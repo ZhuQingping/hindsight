@@ -8,7 +8,6 @@ from contextbase_hermes.settings import (
     _normalize_observation_scopes,
     _normalize_string_list,
     _parse_int_setting,
-    _resolve_bank_id_template,
 )
 
 
@@ -24,14 +23,6 @@ def test_parse_int_setting_falls_back_on_garbage():
     assert _parse_int_setting("", 120) == 120
     assert _parse_int_setting("nope", 120) == 120
     assert _parse_int_setting(0, 120) == 0
-
-
-def test_bank_id_template_sanitizes_and_collapses_empty_placeholders():
-    assert _resolve_bank_id_template("hermes-{profile}", "hermes", profile="My Bot") == "hermes-My-Bot"
-    assert _resolve_bank_id_template("hermes-{user}", "hermes", user="") == "hermes"
-    assert _resolve_bank_id_template("", "hermes", user="x") == "hermes"
-    # An unknown placeholder must not blow up the session — fall back to the static bank.
-    assert _resolve_bank_id_template("hermes-{nope}", "hermes") == "hermes"
 
 
 def test_observation_scopes_normalization():

@@ -47,7 +47,6 @@ describe("remote service connection", () => {
               config: {
                 contextbaseApiUrl: "https://api.example.com",
                 bankId: "team",
-                dynamicBankId: false,
                 retainQueuePath: join(dir, "queue.db"),
                 logLevel: "off",
               },

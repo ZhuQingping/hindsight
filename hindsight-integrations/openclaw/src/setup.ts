@@ -80,7 +80,8 @@ export async function runNonInteractive(args: ParsedCliArgs): Promise<void> {
   else applyApiMode(pc, input);
   if (!args.token && !args.tokenEnv && !args.noToken && previous) pc.contextbaseApiToken = previous;
   pc.bankId = bankId;
-  pc.dynamicBankId = false;
+  for (const key of ["dynamicBankId", "bankIdPrefix", "agentBankMap", "dynamicBankGranularity"])
+    delete pc[key];
   await saveConfig(path, cfg);
 }
 async function main(): Promise<void> {

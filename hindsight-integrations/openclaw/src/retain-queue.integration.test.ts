@@ -41,7 +41,6 @@ function makeApi(
               contextbaseApiUrl: "https://hindsight.test",
               retainQueuePath: queuePath,
               retainQueueFlushIntervalMs: flushIntervalMs,
-              dynamicBankId: false,
               bankId: "integration-bank",
               autoRecall: false,
               autoRetain: true,
@@ -481,72 +480,55 @@ describe("session_end flushes the un-retained tail (#4341)", () => {
   });
 });
 
-// The bank id lives in the retain URL, so these pin the routing itself rather than
-// deriveBankId's return value — what would break is a call site reaching the client
-// without consulting the map. (#3890)
-describe("agentBankMap routes retains to the mapped bank", () => {
-  const ctxFor = (agentId: string, session: string) =>
-    ({
-      agentId,
-      sessionKey: `agent:${agentId}:discord:direct:${session}`,
-      messageProvider: "discord",
-      channelId: `direct:${session}`,
-      senderId: `user-${session}`,
-    }) as PluginHookAgentContext;
-
-  const oneTurn = (text: string) => ({
-    success: true,
-    messages: [
-      { role: "user", content: text },
-      { role: "assistant", content: "Noted." },
-    ],
-  });
-
-  it("sends mapped agents to one shared bank and leaves an unmapped one derived", async () => {
-    const queuePath = makeQueuePath();
+// Exercise actual retain destinations across different agent and session identities.
+describe("configured Bank routing", () => {
+  it("writes every agent to the configured Bank even with old routing settings", async () => {
     const server = installFakeServer("supported");
-    const api = makeApi(queuePath, 1_000, {
+    const api = makeApi(makeQueuePath(), 1_000, {
+      bankId: "team",
       dynamicBankId: true,
-      bankId: undefined,
-      dynamicBankGranularity: ["agent", "channel", "user"],
-      agentBankMap: { inbound: "ps-technology", outbound: "ps-technology" },
+      bankIdPrefix: "prod",
+      agentBankMap: { first: "other" },
+      dynamicBankGranularity: ["agent", "user"],
     });
     const service = api.service();
-    await service.start();
-
-    await api.agentEnd()(oneTurn("Postgres 16 in production."), ctxFor("inbound", "s1"));
-    await api.agentEnd()(oneTurn("Campaigns ship on Tuesday."), ctxFor("outbound", "s2"));
-    await api.agentEnd()(oneTurn("This agent is not in the map."), ctxFor("stranger", "s3"));
-
-    expect(server.retainUrls).toHaveLength(3);
-    // Two different agents, one named bank.
-    expect(server.retainUrls[0]).toContain("/banks/ps-technology/");
-    expect(server.retainUrls[1]).toContain("/banks/ps-technology/");
-    // The unmapped agent keeps the bank it would have derived anyway.
-    expect(server.retainUrls[2]).toContain("stranger");
-    expect(server.retainUrls[2]).not.toContain("ps-technology");
-
-    await service.stop();
+    try {
+      await service.start();
+      for (const agentId of ["first", "second"]) {
+        await api.agentEnd()(
+          {
+            success: true,
+            messages: [
+              { role: "user", content: `Remember ${agentId}.` },
+              { role: "assistant", content: "Noted." },
+            ],
+          },
+          {
+            agentId,
+            sessionKey: `agent:${agentId}:discord:direct:${agentId}`,
+            messageProvider: "discord",
+            channelId: `direct:${agentId}`,
+            senderId: agentId,
+          }
+        );
+      }
+      expect(server.retainUrls).toHaveLength(2);
+      expect(server.retainUrls.every((url) => url.includes("/banks/team/"))).toBe(true);
+    } finally {
+      await service.stop();
+    }
   });
 
-  it("overrides a static bank for mapped agents only", async () => {
-    const queuePath = makeQueuePath();
-    const server = installFakeServer("supported");
-    // The harness config is dynamicBankId:false — without the map every agent
-    // would share `integration-bank`.
-    const api = makeApi(queuePath, 1_000, {
-      agentBankMap: { limpieza: "ps-limpieza" },
-    });
+  it("rejects startup without a Bank before making requests", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    const api = makeApi(makeQueuePath(), 1_000, { bankId: undefined });
     const service = api.service();
-    await service.start();
-
-    await api.agentEnd()(oneTurn("The crew starts at 06:00."), ctxFor("limpieza", "s1"));
-    await api.agentEnd()(oneTurn("Anything else."), ctxFor("other", "s2"));
-
-    expect(server.retainUrls).toHaveLength(2);
-    expect(server.retainUrls[0]).toContain("/banks/ps-limpieza/");
-    expect(server.retainUrls[1]).toContain("/banks/integration-bank/");
-
-    await service.stop();
+    try {
+      await expect(service.start()).rejects.toThrow("Bank ID is required");
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      await service.stop();
+    }
   });
 });

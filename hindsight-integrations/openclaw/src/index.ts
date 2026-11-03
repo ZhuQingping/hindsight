@@ -90,7 +90,7 @@ export type AsyncRetainOperationIdCapability = "supported" | "unsupported" | "un
 let asyncRetainOperationIdCapability: AsyncRetainOperationIdCapability = "unknown";
 const MIN_VERSION_FOR_ASYNC_RETAIN_OPERATION_ID = "0.8.6";
 
-// Store the current plugin config for bank ID derivation
+// Store the current plugin config for explicit Bank selection
 let currentPluginConfig: PluginConfig | null = null;
 let serviceGeneration = 0;
 let serviceAbortController: AbortController | null = null;
@@ -227,12 +227,9 @@ export function scopeClient(c: ContextBaseClient, bankId: string): BankScopedCli
       }
     },
     async setMissions(opts) {
-      // createBank upserts each mission column the request explicitly sets;
-      // unset fields are left untouched (server's get_config_updates() skips
-      // None values). This means a per-bank mission previously written via
-      // PATCH /banks/{id} survives unless the plugin is configured with the
-      // matching bank* / retain* / observations* mission.
-      await c.createBank(bankId, {
+      // Updating settings must not create a missing Bank.
+      await c.getBankConfig(bankId);
+      await c.updateBankConfig(bankId, {
         reflectMission: opts.reflectMission,
         retainMission: opts.retainMission,
         observationsMission: opts.observationsMission,
@@ -602,6 +599,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
 
   debug("[ContextBase] Attempting lazy re-initialization...");
   try {
+    deriveBankId(undefined, config);
     await checkExternalApiHealth(externalApi.apiUrl, externalApi.apiToken);
     await detectAppendCapability(externalApi.apiUrl, externalApi.apiToken);
 
@@ -609,9 +607,7 @@ async function lazyReinit(configOverride?: PluginConfig): Promise<void> {
     banksWithDefaultsApplied.clear();
     client = new ContextBaseClient(clientOptions);
 
-    if (usesStaticBank(config)) {
-      await ensureBankDefaultsApplied(getStaticBankId(config), config);
-    }
+    await ensureBankDefaultsApplied(deriveBankId(undefined, config), config);
 
     isInitialized = true;
     // A copy that was never started has no retain queue, so a failed retain
@@ -670,17 +666,13 @@ if (typeof global !== "undefined") {
     },
     /**
      * Get a bank-scoped client handle for a specific agent context.
-     * Derives the bank ID from the context for per-channel isolation and
-     * ensures the bank mission is set on first use.
+     * Uses the configured Bank and applies its explicitly configured defaults.
      */
     getClientForContext: async (
       ctx: PluginHookAgentContext | undefined
     ): Promise<BankScopedClient | null> => {
       if (!client) return null;
       const config = currentPluginConfig || {};
-      // deriveBankId already returns the static bank when dynamicBankId is false,
-      // so the branch that used to stand here was redundant — and it routed around
-      // the agentBankMap lookup for static configs. (#3890)
       const bankId = deriveBankId(ctx, config);
       const scoped = scopeClient(client, bankId);
 
@@ -692,18 +684,6 @@ if (typeof global !== "undefined") {
     getPluginConfig: () => currentPluginConfig,
   };
 }
-
-// Default bank name (fallback when channel context not available)
-const DEFAULT_BANK_NAME = "openclaw";
-
-// Default granularity fields used by deriveBankId when not explicitly configured.
-// This constant is shared between getPluginConfig (normalisation) and deriveBankId
-// (fallback) so the skip-reason check and the bank-routing logic always agree.
-const DEFAULT_DYNAMIC_BANK_GRANULARITY: Array<"agent" | "provider" | "channel" | "user"> = [
-  "agent",
-  "channel",
-  "user",
-];
 
 // Throttle set: log an info-level skip message at most once per (sessionKey) per
 // process lifetime so operators can discover silent retention/recall skips without
@@ -719,21 +699,9 @@ function getConfiguredBankId(pluginConfig: PluginConfig): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-/**
- * The bank an agent's memory lives in when it depends on the agent alone: an
- * `agentBankMap` entry, a static bank, or agent-only dynamic banking. Undefined
- * when the bank is keyed by user, channel or provider, which an agent id can't
- * pick.
- */
-export function agentOnlyBankId(agentId: string, pluginConfig: PluginConfig): string | undefined {
-  const ctx: PluginHookAgentContext = { agentId };
-  const mapped = mappedBankIdForAgent(ctx, pluginConfig);
-  if (mapped) return mapped;
-  if (usesStaticBank(pluginConfig)) return getStaticBankId(pluginConfig);
-  const fields = pluginConfig.dynamicBankGranularity?.length
-    ? pluginConfig.dynamicBankGranularity
-    : DEFAULT_DYNAMIC_BANK_GRANULARITY;
-  return fields.every((field) => field === "agent") ? deriveBankId(ctx, pluginConfig) : undefined;
+/** All agents use the explicitly configured Bank. */
+export function agentOnlyBankId(_agentId: string, pluginConfig: PluginConfig): string {
+  return deriveBankId(undefined, pluginConfig);
 }
 
 /** The initialized client and its options, initializing lazily like the hooks do. */
@@ -747,89 +715,6 @@ async function readyClient(): Promise<{
 
 function authHeaders(options: ContextBaseClientOptions): Record<string, string> {
   return options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {};
-}
-
-function usesStaticBank(pluginConfig: PluginConfig): boolean {
-  return pluginConfig.dynamicBankId === false;
-}
-
-/**
- * Normalise the optional `agentBankMap` (agentId -> bankId).
- *
- * The value comes from user-edited config, so an entry whose bank is not a
- * non-empty string is dropped rather than trusted — an empty one would otherwise
- * route that agent to a bank literally named "". A map left with no usable entry
- * is treated as unset. (#3890)
- */
-export function normalizeAgentBankMap(input: unknown): Record<string, string> | undefined {
-  if (!input || typeof input !== "object" || Array.isArray(input)) return undefined;
-
-  const normalized: Record<string, string> = {};
-  const dropped: string[] = [];
-  for (const [agentId, bankId] of Object.entries(input as Record<string, unknown>)) {
-    const trimmedAgentId = agentId.trim();
-    const trimmedBank = typeof bankId === "string" ? bankId.trim() : "";
-    if (!trimmedAgentId || !trimmedBank) {
-      dropped.push(agentId);
-      continue;
-    }
-    // Key on the trimmed id. Storing the raw key would keep an entry that can
-    // never match a resolved agent id — inert rather than wrong, and silent.
-    normalized[trimmedAgentId] = trimmedBank;
-  }
-
-  // Silently dropped config keys have bitten this plugin before (#1443), so say so.
-  if (dropped.length > 0) {
-    log.warn(
-      `agentBankMap: ignoring ${dropped.length} entr${dropped.length === 1 ? "y" : "ies"} with a missing or blank bank id (${dropped.join(", ")})`
-    );
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : undefined;
-}
-
-/**
- * The bank an agent is explicitly mapped to, if any.
- *
- * `agentBankMap` exists so one gateway can mix topologies: several agents share a
- * named bank while the rest keep their derived per-agent/channel/user banks
- * (#3890). The mapped name is used exactly as configured — `bankIdPrefix` is
- * deliberately not applied, because the operator named this bank themselves.
- */
-function mappedBankIdForAgent(
-  ctx: PluginHookAgentContext | undefined,
-  pluginConfig: PluginConfig
-): string | undefined {
-  const map = pluginConfig.agentBankMap;
-  if (!map || !ctx) return undefined;
-
-  const resolvedCtx = resolveSessionIdentity(ctx);
-  const agentId =
-    resolvedCtx?.agentId ||
-    (resolvedCtx?.sessionKey ? parseSessionKey(resolvedCtx.sessionKey).agentId : undefined);
-  // Object.hasOwn, not a plain lookup: an agent literally called "toString" or
-  // "constructor" would otherwise inherit a function from the prototype, which is
-  // truthy and is not a bank id.
-  if (!agentId || !Object.hasOwn(map, agentId)) return undefined;
-
-  // Re-check the value instead of trusting the caller to have normalised it: the
-  // backfill CLI builds its PluginConfig straight from openclaw.json and never
-  // passes through normalizeAgentBankMap, so it would otherwise back-fill into a
-  // differently-trimmed bank than the live gateway writes to.
-  const mapped = map[agentId];
-  return typeof mapped === "string" && mapped.trim().length > 0 ? mapped.trim() : undefined;
-}
-
-function getDefaultBankId(pluginConfig: PluginConfig): string {
-  return pluginConfig.bankIdPrefix
-    ? `${pluginConfig.bankIdPrefix}-${DEFAULT_BANK_NAME}`
-    : DEFAULT_BANK_NAME;
-}
-
-function getStaticBankId(pluginConfig: PluginConfig): string {
-  const configuredBankId = getConfiguredBankId(pluginConfig);
-  const baseBankId = configuredBankId || DEFAULT_BANK_NAME;
-  return pluginConfig.bankIdPrefix ? `${pluginConfig.bankIdPrefix}-${baseBankId}` : baseBankId;
 }
 
 /**
@@ -1295,7 +1180,7 @@ export function parseSessionKey(sessionKey: string): ParsedSessionKey {
   }
   // OpenClaw's Control UI creates `agent:<id>:dashboard:<opaque-id>` keys.
   // Recover only the agent identity: "dashboard" is a session namespace, not
-  // the live message provider used for dynamic bank routing.
+  // the live message provider used for session metadata.
   if (parts.length === 4 && parts[2] === "dashboard") {
     return {
       agentId: parts[1],
@@ -1376,11 +1261,7 @@ function logSkipOnce(
   const cacheKey = `${operation}:${sessionKey}`;
   if (loggedSkipSessions.has(cacheKey)) return;
   loggedSkipSessions.add(cacheKey);
-  const hint =
-    reason.kind === "final"
-      ? ". If unexpected, set dynamicBankGranularity to ['agent','channel','user'] or use static banking (dynamicBankId: false + bankId: '<name>')"
-      : "";
-  log.info(`Skipping ${operation} on session '${sessionKey}': ${reason.detail}${hint}`);
+  log.info(`Skipping ${operation} on session '${sessionKey}': ${reason.detail}`);
 }
 
 function cacheSessionIdentity(
@@ -1402,7 +1283,6 @@ export interface ResolveAndCacheIdentityOptions {
   ctx?: PluginHookAgentContext;
   senderIdHint?: string;
   dispatchChannel?: string;
-  pluginConfig?: PluginConfig;
 }
 
 export function resolveAndCacheIdentity(options: ResolveAndCacheIdentityOptions): {
@@ -1446,52 +1326,7 @@ export function resolveAndCacheIdentity(options: ResolveAndCacheIdentityOptions)
       : undefined
   );
 
-  // The dispatch-surface gate guards against retaining a turn into a bank
-  // keyed by the *wrong* channel when the user has explicitly opted into
-  // channel-scoped routing. Only fire when:
-  //   - The session key carries a real (non-synthetic) provider.
-  //   - The live dispatch surface actually differs from it.
-  //   - Bank routing depends on the dispatch surface (granularity includes
-  //     "channel" or "provider") AND the user has not pinned a static bank.
-  // Without these guards, default `agent:<id>:main` sessions dispatched via
-  // a real surface (telegram, webchat, …) and statically-banked setups were
-  // silently skipped on every turn. (#1541)
-  const granularity =
-    options.pluginConfig?.dynamicBankGranularity ?? DEFAULT_DYNAMIC_BANK_GRANULARITY;
-  const bankRoutingDependsOnSurface =
-    granularity.includes("channel") || granularity.includes("provider");
-  const staticBanking =
-    options.pluginConfig?.dynamicBankId === false &&
-    typeof options.pluginConfig?.bankId === "string" &&
-    options.pluginConfig.bankId.length > 0;
-  // A mapped agent is pinned the same way a static bank is: its bank comes from
-  // the map, not from the dispatch surface, so a surface mismatch cannot route
-  // the turn into the wrong bank and must not skip it. (#3890)
-  const mappedBanking =
-    options.pluginConfig !== undefined &&
-    mappedBankIdForAgent(resolvedCtx ?? effectiveCtx, options.pluginConfig) !== undefined;
-
-  if (
-    sessionProvider &&
-    options.dispatchChannel &&
-    sessionProvider !== options.dispatchChannel &&
-    bankRoutingDependsOnSurface &&
-    !staticBanking &&
-    !mappedBanking
-  ) {
-    const skipReason = finalSkipReason(
-      `dispatch surface ${options.dispatchChannel} does not match session provider ${sessionProvider}`
-    );
-    if (sessionKey) {
-      setCappedMapValue(skipContextBaseTurnBySession, sessionKey, skipReason);
-    }
-    return { effectiveCtx, resolvedCtx, skipReason };
-  }
-
-  const { resolvedCtx: identityCtx, reason: skipReason } = getIdentitySkipReason(
-    resolvedCtx,
-    options.pluginConfig
-  );
+  const { resolvedCtx: identityCtx, reason: skipReason } = getIdentitySkipReason(resolvedCtx);
   cacheSessionIdentity(sessionKey, identityCtx);
   if (sessionKey) {
     if (skipReason) {
@@ -1504,48 +1339,22 @@ export function resolveAndCacheIdentity(options: ResolveAndCacheIdentityOptions)
   return { effectiveCtx, resolvedCtx: identityCtx, skipReason };
 }
 
-export function getIdentitySkipReason(
-  ctx: PluginHookAgentContext | undefined,
-  pluginConfig?: PluginConfig
-): { resolvedCtx: PluginHookAgentContext | undefined; reason?: IdentitySkipReason } {
+export function getIdentitySkipReason(ctx: PluginHookAgentContext | undefined): {
+  resolvedCtx: PluginHookAgentContext | undefined;
+  reason?: IdentitySkipReason;
+} {
   const resolvedCtx = resolveSessionIdentity(ctx);
   const sessionKey = resolvedCtx?.sessionKey;
-  // The "internal main" / "operational provider main" / "anonymous sender" filters
-  // exist to keep the default multi-tenant bank from being polluted by CLI/main
-  // sessions that lack a stable identity. They should NOT fire when the user has
-  // explicitly opted into a routing scheme that expects those sessions:
-  //   - dynamicBankGranularity includes 'agent' (the default) → each agent
-  //     (including 'main') gets its own bank
-  //   - dynamicBankId === false with a configured bankId → user pinned a single
-  //     named bank and wants every session retained into it
-  // When dynamicBankGranularity is unset, the default is ["agent","channel","user"]
-  // which includes "agent", so agentBanking defaults to true to match deriveBankId.
-  const agentBanking = pluginConfig?.dynamicBankGranularity?.includes("agent") ?? true;
-  const staticBanking =
-    pluginConfig?.dynamicBankId === false &&
-    typeof pluginConfig?.bankId === "string" &&
-    pluginConfig.bankId.length > 0;
-  //   - the agent has an explicit agentBankMap entry → the operator named that
-  //     bank for this agent, so its sessions belong there too (#3890)
-  const mappedBanking =
-    pluginConfig !== undefined && mappedBankIdForAgent(resolvedCtx, pluginConfig) !== undefined;
-  const allowCliSessions = agentBanking || staticBanking || mappedBanking;
-
   if (typeof sessionKey === "string") {
     if (/^agent:[^:]+:(cron|heartbeat|subagent):/.test(sessionKey)) {
       return { resolvedCtx, reason: finalSkipReason(`operational session ${sessionKey}`) };
-    }
-    if (!allowCliSessions && /^agent:[^:]+:main$/.test(sessionKey)) {
-      return { resolvedCtx, reason: finalSkipReason(`internal main session ${sessionKey}`) };
     }
     if (/^temp:/.test(sessionKey)) {
       return { resolvedCtx, reason: finalSkipReason(`ephemeral temp session ${sessionKey}`) };
     }
   }
 
-  const operationalProviders = allowCliSessions
-    ? ["cron", "heartbeat", "subagent"]
-    : ["cron", "heartbeat", "subagent", "main"];
+  const operationalProviders = ["cron", "heartbeat", "subagent"];
   if (resolvedCtx?.messageProvider && operationalProviders.includes(resolvedCtx.messageProvider)) {
     return {
       resolvedCtx,
@@ -1556,7 +1365,7 @@ export function getIdentitySkipReason(
     return { resolvedCtx, reason: retryableSkipReason("missing stable message provider") };
   }
   if (!resolvedCtx?.senderId || resolvedCtx.senderId === "anonymous") {
-    if (allowCliSessions && resolvedCtx?.agentId) {
+    if (resolvedCtx?.agentId) {
       resolvedCtx.senderId = `agent-user:${resolvedCtx.agentId}`;
     } else {
       return { resolvedCtx, reason: retryableSkipReason("missing stable sender identity") };
@@ -1607,74 +1416,18 @@ function setCappedMapValue<K, V>(map: Map<K, V>, key: K, value: V): void {
   }
 }
 
-/**
- * Derive a bank ID from the agent context.
- * Uses configurable dynamicBankGranularity to determine bank segmentation.
- * Falls back to default bank when context is unavailable.
- */
+/** Use the configured Bank verbatim; session identity never selects or creates a Bank. */
 export function deriveBankId(
-  ctx: PluginHookAgentContext | undefined,
+  _ctx: PluginHookAgentContext | undefined,
   pluginConfig: PluginConfig
 ): string {
-  // An explicit agent -> bank mapping wins over both the static bank and dynamic
-  // derivation, so a gateway can give one group of agents a shared bank while the
-  // rest keep derived ones (#3890). Resolved only when a map is configured, so the
-  // common path is untouched.
-  const mappedBankId = mappedBankIdForAgent(ctx, pluginConfig);
-  if (mappedBankId) {
-    return mappedBankId;
-  }
-
-  if (pluginConfig.dynamicBankId === false) {
-    return getStaticBankId(pluginConfig);
-  }
-
-  // When no context is available, fall back to the static default bank.
-  if (!ctx) {
-    return getDefaultBankId(pluginConfig);
-  }
-
-  const resolvedCtx = resolveSessionIdentity(ctx);
-  const fields = pluginConfig.dynamicBankGranularity?.length
-    ? pluginConfig.dynamicBankGranularity
-    : DEFAULT_DYNAMIC_BANK_GRANULARITY;
-
-  // Validate field names at runtime — typos silently produce 'unknown' segments
-  const validFields = new Set(["agent", "channel", "user", "provider"]);
-  for (const f of fields) {
-    if (!validFields.has(f)) {
-      log.warn(
-        `unknown dynamicBankGranularity field "${f}" — will resolve to "unknown". Valid: agent, channel, user, provider`
-      );
-    }
-  }
-
-  // Parse sessionKey as fallback when direct context fields are missing
-  const sessionParsed = resolvedCtx?.sessionKey ? parseSessionKey(resolvedCtx.sessionKey) : {};
-
-  // Warn when 'user' is in active fields but senderId is missing — bank ID will contain "anonymous"
-  if (fields.includes("user") && resolvedCtx && !resolvedCtx.senderId) {
-    debug(
-      '[ContextBase] senderId not available in context — bank ID will use "anonymous". Ensure your OpenClaw provider passes senderId.'
+  const bankId = getConfiguredBankId(pluginConfig);
+  if (!bankId) {
+    throw new Error(
+      "ContextBase Bank ID is required; configure bankId with an existing authorized Bank."
     );
   }
-
-  const fieldMap: Record<string, string> = {
-    agent: resolvedCtx?.agentId || sessionParsed.agentId || "default",
-    channel:
-      sanitizeChannelId(
-        resolvedCtx?.channelId,
-        resolvedCtx?.messageProvider || sessionParsed.provider
-      ) ||
-      sessionParsed.channel ||
-      "unknown",
-    user: resolvedCtx?.senderId || "anonymous",
-    provider: resolvedCtx?.messageProvider || sessionParsed.provider || "unknown",
-  };
-
-  const baseBankId = fields.map((f) => encodeURIComponent(fieldMap[f] || "unknown")).join("::");
-
-  return pluginConfig.bankIdPrefix ? `${pluginConfig.bankIdPrefix}-${baseBankId}` : baseBankId;
+  return bankId;
 }
 
 /**
@@ -2063,14 +1816,10 @@ export function getPluginConfig(api: MoltbotPluginAPI): PluginConfig {
     entityLabels: normalizeEntityLabels(config.entityLabels),
     contextbaseApiUrl: config.contextbaseApiUrl,
     contextbaseApiToken: config.contextbaseApiToken,
-    // Dynamic bank ID options (default: enabled)
-    dynamicBankId: config.dynamicBankId !== false,
     bankId:
       typeof config.bankId === "string" && config.bankId.trim().length > 0
         ? config.bankId.trim()
         : undefined,
-    bankIdPrefix: config.bankIdPrefix,
-    agentBankMap: normalizeAgentBankMap(config.agentBankMap),
     retainTags: normalizeRetainTags(config.retainTags),
     retainSource:
       typeof config.retainSource === "string" && config.retainSource.trim().length > 0
@@ -2091,9 +1840,6 @@ export function getPluginConfig(api: MoltbotPluginAPI): PluginConfig {
         )
       : ["heartbeat"],
     autoRecall: config.autoRecall !== false, // Default: true (on) — backward compatible
-    dynamicBankGranularity: Array.isArray(config.dynamicBankGranularity)
-      ? config.dynamicBankGranularity
-      : DEFAULT_DYNAMIC_BANK_GRANULARITY,
     autoRetain: config.autoRetain !== false, // Default: true
     retainRoles: Array.isArray(config.retainRoles) ? config.retainRoles : undefined,
     retainFormat: config.retainFormat === "text" ? "text" : "json",
@@ -2200,7 +1946,7 @@ export default function (api: MoltbotPluginAPI) {
       logSummaryIntervalMs: pluginConfig.logSummaryIntervalMs,
     });
 
-    // Store config globally for bank ID derivation in hooks
+    // Store config globally for explicit Bank selection in hooks
     currentPluginConfig = pluginConfig;
 
     debug("[ContextBase] Plugin loaded successfully (deferred heavy init to gateway start)");
@@ -2223,6 +1969,7 @@ export default function (api: MoltbotPluginAPI) {
         log.info("service.start invoked");
         debug("[ContextBase] Service start called - beginning heavy initialization...");
 
+        deriveBankId(undefined, pluginConfig);
         const externalApi = detectExternalApi(pluginConfig);
         // Validate before starting timers or making any request; never discover or start an engine.
         client = null;
@@ -2238,7 +1985,7 @@ export default function (api: MoltbotPluginAPI) {
           banksWithDefaultsApplied.clear();
           client = new ContextBaseClient(options);
           const bankId = deriveBankId(undefined, pluginConfig);
-          if (usesStaticBank(pluginConfig)) await ensureBankDefaultsApplied(bankId, pluginConfig);
+          await ensureBankDefaultsApplied(bankId, pluginConfig);
           if (serviceController.signal.aborted || startGeneration !== serviceGeneration) return;
           isInitialized = true;
           log.info(
@@ -2340,7 +2087,6 @@ export default function (api: MoltbotPluginAPI) {
               (typeof event?.senderId === "string" ? event.senderId : undefined) || ctx?.senderId,
           },
           dispatchChannel,
-          pluginConfig,
         });
 
         if (skipReason) {
@@ -2441,7 +2187,6 @@ export default function (api: MoltbotPluginAPI) {
             sessionKey: sessionKeyForCache,
             ctx,
             senderIdHint: senderIdFromPrompt,
-            pluginConfig,
           });
         if (identitySkipReason) {
           debug(
@@ -2738,7 +2483,6 @@ ${memoriesFormatted}
         } = resolveAndCacheIdentity({
           sessionKey: sessionKeyForLookup,
           ctx: effectiveCtx,
-          pluginConfig,
         });
 
         if (identitySkipReason) {

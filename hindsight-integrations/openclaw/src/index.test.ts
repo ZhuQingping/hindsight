@@ -4,7 +4,6 @@ import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import {
-  normalizeAgentBankMap,
   stripMemoryTags,
   extractRecallQuery,
   formatCurrentTimeForRecall,
@@ -754,7 +753,7 @@ describe("stripInlineTimestampPrefix", () => {
 
 describe("prepareRetentionTranscript", () => {
   const baseConfig: PluginConfig = {
-    dynamicBankId: true,
+    bankId: "team",
     retainRoles: ["user", "assistant"],
   };
 
@@ -1312,8 +1311,7 @@ describe("truncateRecallQuery", () => {
 
 describe("session identity helpers", () => {
   const baseConfig: PluginConfig = {
-    dynamicBankId: true,
-    dynamicBankGranularity: ["agent", "channel", "user"],
+    bankId: "team",
   };
 
   it("parses main sessions", () => {
@@ -1371,7 +1369,7 @@ describe("session identity helpers", () => {
     });
   });
 
-  it("derives bank ids from resolved telegram direct identity", () => {
+  it("keeps the configured Bank for telegram direct sessions", () => {
     const bankId = deriveBankId(
       {
         agentId: "main",
@@ -1380,10 +1378,10 @@ describe("session identity helpers", () => {
       baseConfig
     );
 
-    expect(bankId).toBe("main::direct%3A12345::12345");
+    expect(bankId).toBe("team");
   });
 
-  it("allows agent:*:main sessions by default (default granularity includes 'agent')", () => {
+  it("allows agent:*:main sessions with fixed banking", () => {
     const result = getIdentitySkipReason({ sessionKey: "agent:main:main" });
     expect(result.reason).toBeUndefined();
     expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
@@ -1439,121 +1437,10 @@ describe("session identity helpers", () => {
     });
   });
 
-  it("allows agent:*:main sessions through when agent banking is enabled", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:project-alpha:main" },
-      { dynamicBankGranularity: ["agent"] }
-    );
-    expect(result.reason).toBeUndefined();
-    expect(result.resolvedCtx?.agentId).toBe("project-alpha");
-    expect(result.resolvedCtx?.senderId).toBe("agent-user:project-alpha");
-  });
-
-  it("allows provider main when agent banking is enabled", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:main" },
-      { dynamicBankGranularity: ["agent"] }
-    );
-    expect(result.reason).toBeUndefined();
-  });
-
-  it("still skips cron/heartbeat/subagent providers when agent banking is enabled", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:cron:nightly:cleanup" },
-      { dynamicBankGranularity: ["agent"] }
-    );
-    expect(result.reason).toEqual({
-      kind: "final",
-      detail: "operational session agent:main:cron:nightly:cleanup",
-    });
-  });
-
-  it("synthesizes sender identity for anonymous CLI sessions when agent banking is enabled", () => {
-    const result = getIdentitySkipReason(
-      { agentId: "project-beta", messageProvider: "cli", senderId: "anonymous" },
-      { dynamicBankGranularity: ["agent"] }
-    );
-    expect(result.reason).toBeUndefined();
-    expect(result.resolvedCtx?.senderId).toBe("agent-user:project-beta");
-  });
-
-  it("allows agent:*:main sessions through when a static bankId is configured", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:main" },
-      { dynamicBankId: false, bankId: "shared-bank" }
-    );
-    expect(result.reason).toBeUndefined();
-    expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
-  });
-
-  it("allows Dashboard sessions through when a static bankId is configured", () => {
-    const result = resolveAndCacheIdentity({
-      sessionKey: "agent:main:dashboard:12345678-90ab-cdef-1234-567890abcdef",
-      ctx: { sessionKey: "agent:main:dashboard:12345678-90ab-cdef-1234-567890abcdef" },
-      dispatchChannel: "webchat",
-      pluginConfig: { dynamicBankId: false, bankId: "shared-bank" },
-    });
-
-    expect(result.skipReason).toBeUndefined();
-    expect(result.resolvedCtx).toEqual({
-      sessionKey: "agent:main:dashboard:12345678-90ab-cdef-1234-567890abcdef",
-      agentId: "main",
-      messageProvider: "webchat",
-      channelId: undefined,
-      senderId: "agent-user:main",
-    });
-  });
-
-  it("does not synthesize a Dashboard sender when agent and static banking are disabled", () => {
-    const result = resolveAndCacheIdentity({
-      sessionKey: "agent:main:dashboard:12345678-90ab-cdef-1234-567890abcdee",
-      ctx: { sessionKey: "agent:main:dashboard:12345678-90ab-cdef-1234-567890abcdee" },
-      dispatchChannel: "webchat",
-      pluginConfig: { dynamicBankGranularity: ["channel", "user"] },
-    });
-
-    expect(result.skipReason).toEqual({
-      kind: "retryable",
-      detail: "missing stable sender identity",
-    });
-  });
-
-  it("allows agent:*:main when dynamicBankId is false but bankId is missing (default granularity includes 'agent')", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:main" },
-      { dynamicBankId: false }
-    );
-    // Default agentBanking is true (default granularity includes 'agent'),
-    // so the session is allowed even without an explicit bankId.
-    expect(result.reason).toBeUndefined();
-  });
-
-  it("does not broaden the carve-out when granularity excludes 'agent' and bankId is missing", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:main" },
-      { dynamicBankId: false, dynamicBankGranularity: ["channel", "user"] }
-    );
-    expect(result.reason).toEqual({
-      kind: "final",
-      detail: "internal main session agent:main:main",
-    });
-  });
-
   it("allows agent:*:main sessions with empty config (default granularity includes 'agent')", () => {
-    const result = getIdentitySkipReason({ sessionKey: "agent:main:main" }, {});
+    const result = getIdentitySkipReason({ sessionKey: "agent:main:main" });
     expect(result.reason).toBeUndefined();
     expect(result.resolvedCtx?.senderId).toBe("agent-user:main");
-  });
-
-  it("skips agent:*:main sessions when granularity explicitly excludes 'agent'", () => {
-    const result = getIdentitySkipReason(
-      { sessionKey: "agent:main:main" },
-      { dynamicBankGranularity: ["channel", "user"] }
-    );
-    expect(result.reason).toEqual({
-      kind: "final",
-      detail: "internal main session agent:main:main",
-    });
   });
 
   it("detects ephemeral operational text with or without transcript wrappers", () => {
@@ -1562,141 +1449,6 @@ describe("session identity helpers", () => {
       isEphemeralOperationalText("[role: user]\nA new session was started via /new.\n[user:end]")
     ).toBe(true);
     expect(isEphemeralOperationalText("Tell me what I said about dark mode.")).toBe(false);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// resolveAndCacheIdentity — dispatch-surface gate (#1541)
-// ---------------------------------------------------------------------------
-
-describe("resolveAndCacheIdentity dispatch-surface gate (#1541)", () => {
-  it("does not skip when session provider is synthetic 'main' (telegram dispatch)", () => {
-    const { resolvedCtx, skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:bug1541-tg:main",
-      ctx: { sessionKey: "agent:bug1541-tg:main" },
-      dispatchChannel: "telegram",
-    });
-
-    expect(skipReason).toBeUndefined();
-    expect(resolvedCtx?.messageProvider).toBe("telegram");
-  });
-
-  it("does not skip when session provider is synthetic 'main' (webchat dispatch)", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:bug1541-wc:main",
-      ctx: { sessionKey: "agent:bug1541-wc:main" },
-      dispatchChannel: "webchat",
-    });
-
-    expect(skipReason).toBeUndefined();
-  });
-
-  it("does not skip when a static bankId is configured (feishu session via webchat)", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:main:feishu:direct:user-1541-static",
-      ctx: {
-        sessionKey: "agent:main:feishu:direct:user-1541-static",
-        senderId: "user-1541-static",
-      },
-      dispatchChannel: "webchat",
-      pluginConfig: { dynamicBankId: false, bankId: "shared-bank" },
-    });
-
-    expect(skipReason).toBeUndefined();
-  });
-
-  it("does not skip when granularity excludes channel and provider (qqbot via webchat)", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:main:qqbot:direct:user-1541-agentonly",
-      ctx: {
-        sessionKey: "agent:main:qqbot:direct:user-1541-agentonly",
-        senderId: "user-1541-agentonly",
-      },
-      dispatchChannel: "webchat",
-      pluginConfig: { dynamicBankGranularity: ["agent", "user"] },
-    });
-
-    expect(skipReason).toBeUndefined();
-  });
-
-  it("still skips real-provider mismatch with default granularity (qqbot via webchat)", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:main:qqbot:direct:user-1541-default",
-      ctx: {
-        sessionKey: "agent:main:qqbot:direct:user-1541-default",
-        senderId: "user-1541-default",
-      },
-      dispatchChannel: "webchat",
-    });
-
-    expect(skipReason).toEqual({
-      kind: "final",
-      detail: "dispatch surface webchat does not match session provider qqbot",
-    });
-  });
-
-  it("does not skip when dispatch surface matches session provider (qqbot via qqbot)", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:main:qqbot:direct:user-1541-match",
-      ctx: {
-        sessionKey: "agent:main:qqbot:direct:user-1541-match",
-        senderId: "user-1541-match",
-      },
-      dispatchChannel: "qqbot",
-    });
-
-    expect(skipReason).toBeUndefined();
-  });
-
-  // A mapped agent is pinned like a static bank: the surface cannot route its
-  // turn into the wrong bank, so the mismatch must not skip it. The skip is
-  // cached as final, so getting this wrong loses the session for the whole
-  // process. (#3890)
-  it("does not skip a mapped agent whose dispatch surface differs", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:inbound:telegram:direct:user-3890",
-      ctx: {
-        sessionKey: "agent:inbound:telegram:direct:user-3890",
-        agentId: "inbound",
-        senderId: "user-3890",
-      },
-      dispatchChannel: "webchat",
-      pluginConfig: { agentBankMap: { inbound: "ps-technology" } },
-    });
-
-    expect(skipReason).toBeUndefined();
-  });
-
-  it("still skips an unmapped agent on the same mismatch", () => {
-    const { skipReason } = resolveAndCacheIdentity({
-      sessionKey: "agent:stranger:telegram:direct:user-3890b",
-      ctx: {
-        sessionKey: "agent:stranger:telegram:direct:user-3890b",
-        agentId: "stranger",
-        senderId: "user-3890b",
-      },
-      dispatchChannel: "webchat",
-      pluginConfig: { agentBankMap: { inbound: "ps-technology" } },
-    });
-
-    expect(skipReason).toEqual({
-      kind: "final",
-      detail: "dispatch surface webchat does not match session provider telegram",
-    });
-  });
-
-  it("still skips operational sessions for a mapped agent", () => {
-    // The map widens allowCliSessions; cron/heartbeat/subagent and temp:
-    // sessions return before that is consulted and must stay skipped.
-    for (const sessionKey of ["agent:inbound:cron:job-1", "temp:inbound:scratch"]) {
-      const { skipReason } = resolveAndCacheIdentity({
-        sessionKey,
-        ctx: { sessionKey, agentId: "inbound" },
-        pluginConfig: { agentBankMap: { inbound: "ps-technology" } },
-      });
-
-      expect(skipReason?.kind).toBe("final");
-    }
   });
 });
 
@@ -2065,48 +1817,6 @@ describe("getPluginConfig — mission semantics (#1270, #1353)", () => {
   });
 });
 
-describe("getPluginConfig — dynamic bank defaults", () => {
-  it("leaves bank default fields unset when not configured", () => {
-    const cfg = getPluginConfig(makeApi({}));
-    expect(cfg.retainExtractionMode).toBeUndefined();
-    expect(cfg.enableObservations).toBeUndefined();
-    expect(cfg.enableAutoConsolidation).toBeUndefined();
-    expect(cfg.dispositionSkepticism).toBeUndefined();
-    expect(cfg.entityLabels).toBeUndefined();
-  });
-
-  it("normalizes configured bank default fields", () => {
-    const labels = [{ name: "person", description: "Human" }];
-    const cfg = getPluginConfig(
-      makeApi({
-        retainExtractionMode: "VERBOSE",
-        enableObservations: true,
-        enableAutoConsolidation: false,
-        dispositionSkepticism: 4,
-        dispositionLiteralism: 2,
-        dispositionEmpathy: 5,
-        entityLabels: labels,
-      })
-    );
-    expect(cfg.retainExtractionMode).toBe("verbose");
-    expect(cfg.enableObservations).toBe(true);
-    expect(cfg.enableAutoConsolidation).toBe(false);
-    expect(cfg.dispositionSkepticism).toBe(4);
-    expect(cfg.entityLabels).toEqual(labels);
-  });
-
-  it("rejects invalid retainExtractionMode and disposition values", () => {
-    const cfg = getPluginConfig(
-      makeApi({
-        retainExtractionMode: "not-a-mode",
-        dispositionSkepticism: 9,
-      })
-    );
-    expect(cfg.retainExtractionMode).toBeUndefined();
-    expect(cfg.dispositionSkepticism).toBeUndefined();
-  });
-});
-
 describe("getPluginConfig — retainContext", () => {
   it("defaults retainContext to the built-in OpenClaw transcript guidance", () => {
     const cfg = getPluginConfig(makeApi({}));
@@ -2136,46 +1846,6 @@ describe("getPluginConfig — retainContext", () => {
     expect(openclawManifest.configSchema?.properties?.retainContext?.default).toBe(
       DEFAULT_RETAIN_CONTEXT
     );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// normalizeAgentBankMap — config comes from hand-edited JSON (#3890)
-// ---------------------------------------------------------------------------
-
-describe("normalizeAgentBankMap", () => {
-  it("keeps valid entries and trims the bank name", () => {
-    expect(normalizeAgentBankMap({ inbound: " ps-technology ", limpieza: "ps-limpieza" })).toEqual({
-      inbound: "ps-technology",
-      limpieza: "ps-limpieza",
-    });
-  });
-
-  it("drops entries whose bank is blank or not a string", () => {
-    // A blank value would otherwise route that agent to a bank named "".
-    expect(normalizeAgentBankMap({ a: "bank-a", b: "   ", c: 42, d: null })).toEqual({
-      a: "bank-a",
-    });
-  });
-
-  it("treats a map with no usable entry as unset", () => {
-    expect(normalizeAgentBankMap({ a: "", b: "  " })).toBeUndefined();
-    expect(normalizeAgentBankMap({})).toBeUndefined();
-  });
-
-  it("ignores shapes that are not a plain object", () => {
-    expect(normalizeAgentBankMap(undefined)).toBeUndefined();
-    expect(normalizeAgentBankMap(null)).toBeUndefined();
-    expect(normalizeAgentBankMap("inbound=ps-technology")).toBeUndefined();
-    expect(normalizeAgentBankMap([["inbound", "ps-technology"]])).toBeUndefined();
-  });
-
-  it("trims the agent id too, so a padded key is not silently inert", () => {
-    // Keying on the raw " inbound" would keep an entry that can never match a
-    // resolved agent id — and it would not show up in the dropped-entry warning.
-    expect(normalizeAgentBankMap({ " inbound ": "ps-technology" })).toEqual({
-      inbound: "ps-technology",
-    });
   });
 });
 
@@ -2277,25 +1947,6 @@ describe("senderPrefixPattern display-name stripping (#3070)", () => {
     // the pre-fix behaviour this option exists to opt out of.
     configureSenderPrefixStripping(undefined);
     expect(extractRecallQuery(raw, undefined)).toBe("UserName: today weather?");
-  });
-
-  it("strips the display name out of the retained transcript", () => {
-    configureSenderPrefixStripping("UserName");
-    const messages = [
-      { role: "user", content: "UserName: today weather?" },
-      { role: "assistant", content: "Sunny all day." },
-    ];
-    const config: PluginConfig = {
-      dynamicBankId: true,
-      retainRoles: ["user", "assistant"],
-      retainToolCalls: false,
-    };
-    const result = prepareRetentionTranscript(messages, config);
-    expect(result).not.toBeNull();
-    expect(JSON.parse(result!.transcript)).toEqual([
-      { role: "user", content: "today weather?" },
-      { role: "assistant", content: "Sunny all day." },
-    ]);
   });
 
   it("is armed by getPluginConfig and ignores blank or invalid values", () => {

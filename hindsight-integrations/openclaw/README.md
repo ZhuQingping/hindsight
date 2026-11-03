@@ -33,7 +33,6 @@ Alternatively use OpenClaw's settings UI to configure the plugin `contextbase-op
   "contextbaseApiUrl": "https://api.example.com",
   "contextbaseApiToken": {"source": "env", "provider": "default", "id": "CONTEXTBASE_API_TOKEN"},
   "bankId": "my-bank",
-  "dynamicBankId": false,
   "autoRecall": true,
   "autoRetain": true
 }
@@ -41,7 +40,11 @@ Alternatively use OpenClaw's settings UI to configure the plugin `contextbase-op
 
 Setup preserves other plugins and existing conversation-access opt-outs. Automatic retention requires OpenClaw to allow this plugin to access conversation hooks. Restart the gateway after changing configuration.
 
-API paths may include a service prefix. The endpoint and credentials are shared by this plugin's recall, retention and backfill operations. The setup command binds a static Bank; it does not create a Bank. Dynamic routing and `agentBankMap` remain available for deployments whose credentials authorize the selected Banks.
+API paths may include a service prefix. The endpoint and credentials are shared by this plugin's recall, retention and backfill operations. Only the configured `bankId` is used, regardless of agent, channel or session. A missing Bank ID is a configuration error. The plugin does not create Banks.
+
+## Switch Bank
+
+Run `contextbase-openclaw-setup --mode cloud --bank-id "another-bank"`, then restart OpenClaw. Existing endpoint and credentials are reused. Setup removes retired dynamic-routing options from older configurations. Historical backfill uses the configured Bank, or an explicitly supplied `--bank-strategy fixed --fixed-bank "another-bank"`.
 
 ## Verify
 
@@ -52,3 +55,4 @@ A 401/403 requires checking the Endpoint, API Key and Bank authorization. Config
 ## Update or remove
 
 Install the new `.tgz` through OpenClaw's plugin manager and restart the gateway. Use that manager to remove `contextbase-openclaw`. Configuration and remote memories are separate; removing the plugin does not delete the Bank.
+

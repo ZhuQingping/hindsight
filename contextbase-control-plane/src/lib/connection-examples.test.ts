@@ -127,7 +127,7 @@ it.each(["openclaw", "hermes"] as const)(
       expect(example.install).toContain("openclaw plugins install ./contextbase-openclaw.tgz");
       const config = JSON.parse(example.configuration!);
       expect(config.bankId).toBe("team");
-      expect(config.dynamicBankId).toBe(false);
+      expect(config).not.toHaveProperty("dynamicBankId");
       expect(config.contextbaseApiToken.id).toBe("CONTEXTBASE_API_TOKEN");
     } else {
       expect(example.install).toBe("hermes plugins enable contextbase\nhermes memory setup");

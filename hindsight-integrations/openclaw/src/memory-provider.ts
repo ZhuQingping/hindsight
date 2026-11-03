@@ -10,10 +10,8 @@
  * candidates (Active Memory would duplicate the auto-recall hook) and no
  * pre-compaction flush (every turn is already retained).
  *
- * Access rule: an agent-only bank holds every conversation of that agent, so
- * only callers allowed to see all of it may read it: an operator, or the
- * agent owner's own private session. A bank keyed by user or channel can't be
- * picked from an agent id alone, so search is refused there instead of guessed.
+ * Access rule: only operators and the agent owner's private sessions may read
+ * the configured Bank. Conversation callers retain the same access restrictions.
  * Health answers every caller and reveals no content.
  */
 
@@ -105,9 +103,7 @@ export function createMemoryProviderRuntime(deps: MemoryProviderDeps): MemoryPro
       const readableBank = (): string => {
         if (!readable) throw new Error("ContextBase memory is not readable by this caller");
         if (!bankId) {
-          throw new Error(
-            "ContextBase banks here are keyed by user or channel; search them from a conversation"
-          );
+          throw new Error("ContextBase Bank ID is required; configure an existing authorized Bank");
         }
         return bankId;
       };

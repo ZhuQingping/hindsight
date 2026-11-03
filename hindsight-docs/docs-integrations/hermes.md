@@ -40,7 +40,11 @@ CONTEXTBASE_BANK_ID=my-bank
 
 An explicit key/endpoint in `contextbase/config.json` takes precedence over the corresponding variable. An explicit `CONTEXTBASE_BANK_ID` takes precedence over the static Bank in that file. Restart Hermes after changes.
 
-For a shared workspace Bank, the existing trusted-project mapping and Bank templates remain available. Additional writable or recall-only Banks must each be authorized by the service. A new session does not create a new Bank automatically.
+Bank ID is required. The provider never derives it from a repository, directory, profile or session, and never falls back to a default Bank. Additional writable or recall-only Banks remain explicit opt-ins and must each be authorized.
+
+## Switch Bank
+
+Change `bank_id` in the active profile's `contextbase/config.json`, or change `CONTEXTBASE_BANK_ID` if it is set, then restart Hermes. The environment variable takes precedence. The setup wizard removes retired Bank-template and trusted-project settings.
 
 ## Verify
 

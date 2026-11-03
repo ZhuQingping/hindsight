@@ -72,7 +72,7 @@ export type PluginHookEndedTranscript =
 export interface PluginConfig {
   /**
    * Mission for the Reflect operation. Stamped onto the bank's `reflect_mission`
-   * field via createBank() on first use. Has no effect on retain or recall.
+   * field via updateBankConfig() on first use. Has no effect on retain or recall.
    * Leave unset (or empty) to manage missions out-of-band via the API.
    */
   bankMission?: string;
@@ -110,16 +110,12 @@ export interface PluginConfig {
   enableKnowledgeTools?: boolean;
   contextbaseApiUrl?: string; // ContextBase API Endpoint (required)
   contextbaseApiToken?: string; // API token for external ContextBase API. Configure via SecretRef.
-  dynamicBankId?: boolean; // Enable per-channel memory banks (default: true)
-  bankId?: string; // Static bank ID used when dynamicBankId is false.
-  bankIdPrefix?: string; // Prefix for bank IDs (e.g. 'prod' -> 'prod-slack-C123')
-  agentBankMap?: Record<string, string>; // Explicit agentId -> bankId routing, checked before static/dynamic derivation. Lets a group of agents share one named bank while others keep derived banks. Mapped names are used exactly as given (bankIdPrefix is not applied).
+  bankId?: string; // Required existing Bank; shared across agents, sessions and channels.
   retainTags?: string[]; // Tags applied to all retained documents after trimming and deduplication; auto-retain merges these with inline per-message retain-tag directives (e.g. ['source_system:openclaw', 'agent:agentname'])
   retainSource?: string; // Source written into retained document metadata (default: 'openclaw')
   retainContext?: string; // Interpretation guidance sent via the retain API context field. Defaults to built-in OpenClaw transcript/routing metadata guidance.
   excludeProviders?: string[]; // Message providers to exclude from recall/retain (e.g. ['telegram', 'discord'])
   autoRecall?: boolean; // Auto-recall memories on every prompt (default: true). Set to false when agent has its own recall tool.
-  dynamicBankGranularity?: Array<"agent" | "provider" | "channel" | "user">; // Fields for bank ID derivation. Default: ['agent', 'channel', 'user']
   autoRetain?: boolean; // Default: true
   retainRoles?: Array<"user" | "assistant" | "system" | "tool">; // Roles to include in retained transcript. Default: ['user', 'assistant']
   retainFormat?: "json" | "text"; // Serialization format for retained conversation content. Default: 'json' (structured array of {role, content}); 'text' emits legacy '[role: x] ... [x:end]' markers.

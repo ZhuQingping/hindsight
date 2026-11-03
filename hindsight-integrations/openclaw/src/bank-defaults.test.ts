@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type { ContextBaseClient } from "contextbase-client";
+import { ContextBaseClient } from "contextbase-client";
 import { readFileSync } from "fs";
 import type { PluginConfig } from "./types.js";
 import {
   applyConfiguredBankDefaults,
   buildBankConfigApiUpdates,
-  buildCreateBankDefaults,
+  buildBankDefaults,
   hasConfiguredBankDefaults,
   normalizeDispositionTrait,
   normalizeEntityLabels,
@@ -29,7 +29,7 @@ describe("manifest schema defaults", () => {
         .filter(([, prop]) => "default" in prop)
         .map(([key, prop]) => [key, prop.default])
     );
-    expect(buildCreateBankDefaults(defaults as PluginConfig)).toEqual({});
+    expect(buildBankDefaults(defaults as PluginConfig)).toEqual({});
     expect(buildBankConfigApiUpdates(defaults as PluginConfig)).toEqual({});
   });
 });
@@ -52,7 +52,7 @@ describe("hasConfiguredBankDefaults", () => {
   });
 });
 
-describe("buildCreateBankDefaults", () => {
+describe("buildBankDefaults", () => {
   it("includes only explicitly set fields", () => {
     const config: PluginConfig = {
       retainExtractionMode: "verbose",
@@ -61,7 +61,7 @@ describe("buildCreateBankDefaults", () => {
       dispositionLiteralism: 2,
       dispositionEmpathy: 5,
     };
-    expect(buildCreateBankDefaults(config)).toEqual({
+    expect(buildBankDefaults(config)).toEqual({
       retainExtractionMode: "verbose",
       enableObservations: true,
       dispositionSkepticism: 4,
@@ -77,7 +77,7 @@ describe("buildCreateBankDefaults", () => {
       observationsMission: "Observations mission.",
       retainExtractionMode: "verbose",
     };
-    expect(buildCreateBankDefaults(config)).toEqual({
+    expect(buildBankDefaults(config)).toEqual({
       reflectMission: "Reflect mission.",
       retainMission: "Retain mission.",
       observationsMission: "Observations mission.",
@@ -149,18 +149,24 @@ describe("applyConfiguredBankDefaults", () => {
   });
 
   it("is a no-op when no defaults are configured", async () => {
-    const createBank = vi.fn();
-    const client = { createBank } as unknown as ContextBaseClient;
+    const updateBankConfig = vi.fn();
+    const client = {
+      updateBankConfig,
+      getBankConfig: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", {}, clientOpts);
 
-    expect(createBank).not.toHaveBeenCalled();
+    expect(updateBankConfig).not.toHaveBeenCalled();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("sends createBank and config patch for a derived dynamic bank", async () => {
-    const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as ContextBaseClient;
+  it("sends updateBankConfig and config patch for an existing configured bank", async () => {
+    const updateBankConfig = vi.fn().mockResolvedValue({});
+    const client = {
+      updateBankConfig,
+      getBankConfig: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
     vi.mocked(global.fetch).mockResolvedValue(new Response("{}", { status: 200 }));
 
     const config: PluginConfig = {
@@ -173,7 +179,7 @@ describe("applyConfiguredBankDefaults", () => {
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", config, clientOpts);
 
-    expect(createBank).toHaveBeenCalledWith("agent-slack-U123", {
+    expect(updateBankConfig).toHaveBeenCalledWith("agent-slack-U123", {
       retainMission: "Keep architectural decisions.",
       retainExtractionMode: "verbose",
       enableObservations: true,
@@ -192,9 +198,12 @@ describe("applyConfiguredBankDefaults", () => {
     );
   });
 
-  it("applies missions via createBank without config patch when only missions are set", async () => {
-    const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as ContextBaseClient;
+  it("applies missions via updateBankConfig without config patch when only missions are set", async () => {
+    const updateBankConfig = vi.fn().mockResolvedValue({});
+    const client = {
+      updateBankConfig,
+      getBankConfig: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(
       client,
@@ -203,13 +212,53 @@ describe("applyConfiguredBankDefaults", () => {
       clientOpts
     );
 
-    expect(createBank).toHaveBeenCalledWith("openclaw", {
+    expect(updateBankConfig).toHaveBeenCalledWith("openclaw", {
       reflectMission: "Reflect.",
       retainMission: "Retain.",
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });
+
+it.each([200, 404])(
+  "checks Bank existence through the supported config API (%s)",
+  async (status) => {
+    const requests: string[] = [];
+    const fetch = vi.spyOn(global, "fetch").mockImplementation(async (input, init) => {
+      const request = new Request(input, init);
+      const path = new URL(request.url).pathname;
+      requests.push(`${request.method} ${path}`);
+      expect(request.headers.get("Authorization")).toBe("Bearer test-token");
+      // The service's retired /profile route returns 410, even for existing Banks.
+      if (path.endsWith("/profile")) return Response.json({ detail: "Retired" }, { status: 410 });
+      if (path !== "/customer/v1/default/banks/team/config")
+        throw new Error(`Unexpected request: ${path}`);
+      if (status === 404) return Response.json({ detail: "Bank not found" }, { status });
+      return Response.json({ bank_id: "team", config: {}, overrides: {} });
+    });
+    try {
+      const options = { ...clientOpts, baseUrl: "http://localhost:8888/customer" };
+      const result = applyConfiguredBankDefaults(
+        new ContextBaseClient(options),
+        "team",
+        { bankMission: "Reflect." },
+        options
+      );
+      if (status === 404) await expect(result).rejects.toThrow("Bank not found");
+      else await result;
+      expect(requests).toEqual(
+        status === 404
+          ? ["GET /customer/v1/default/banks/team/config"]
+          : [
+              "GET /customer/v1/default/banks/team/config",
+              "PATCH /customer/v1/default/banks/team/config",
+            ]
+      );
+    } finally {
+      fetch.mockRestore();
+    }
+  }
+);
 
 describe("patchBankConfig", () => {
   const originalFetch = global.fetch;

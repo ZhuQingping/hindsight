@@ -124,7 +124,6 @@ export function connectionExample(
           contextbaseApiUrl: apiUrl,
           contextbaseApiToken: { source: "env", provider: "default", id: "CONTEXTBASE_API_TOKEN" },
           bankId,
-          dynamicBankId: false,
           autoRecall: true,
           autoRetain: true,
         },

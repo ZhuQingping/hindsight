@@ -39,11 +39,13 @@ def _write_env(env_path: Path, env_writes: dict[str, str]) -> None:
 def run_setup(provider: Any, hermes_home: str, config: dict[str, Any]) -> None:
     """Merge connection settings; never download or start a server."""
     from hermes_cli.config import save_config
+    from utils import atomic_json_write, read_json_or_empty
 
     from . import _load_config
 
     existing = provider._config if isinstance(provider._config, dict) else _load_config()
-    values = dict(existing)
+    config_path = Path(hermes_home) / "contextbase" / "config.json"
+    values = {**read_json_or_empty(config_path), **existing}
     current_url = values.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
     api_url = input(f"ContextBase API Endpoint [{current_url}]: ").strip() or current_url
     api_url = validate_api_url(api_url)
@@ -68,12 +70,15 @@ def run_setup(provider: Any, hermes_home: str, config: dict[str, Any]) -> None:
         "profile",
     ):
         values.pop(key, None)
+    for key in ("bank_id_template", "trusted_project_dirs", "mirror_to_own_bank"):
+        values.pop(key, None)
     values.update(mode="cloud", api_url=api_url.rstrip("/"), bank_id=bank)
     if token:
         values.pop("apiKey", None)
         values.pop("api_key", None)
         _write_env(Path(hermes_home) / ".env", {"CONTEXTBASE_API_TOKEN": token})
-    provider.save_config(values, hermes_home)
+    # This is the complete cleaned configuration. Merging again would restore deleted keys.
+    atomic_json_write(config_path, values, mode=0o600)
     config.setdefault("memory", {})["provider"] = "contextbase"
     save_config(config)
     print("ContextBase configured. Start a new Hermes session to activate.")

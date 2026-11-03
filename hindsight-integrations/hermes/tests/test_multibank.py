@@ -1,14 +1,12 @@
-"""Tests for per-project bank walk-up and multi-bank fan-out."""
+"""Tests for explicitly configured additional Banks."""
 
 import asyncio
 import logging
-from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import contextbase_hermes as plugin
 import pytest
-from contextbase_hermes.settings import _discover_cwd_bank_id, _repository_root
 
 ContextBaseMemoryProvider = plugin.ContextBaseMemoryProvider
 
@@ -36,126 +34,6 @@ def _fake_recall(provider, answers: dict, queried: list | None = None) -> None:
             return SimpleNamespace(results=[SimpleNamespace(text=t) for t in answer])
 
     provider._run_contextbase_operation = lambda op: asyncio.run(op(_Client()))
-
-
-def _discover(start: Path, trusted: list) -> str | None:
-    return _discover_cwd_bank_id(str(start), _repository_root(str(start)), trusted)
-
-
-def _repo_with_config(root: Path, bank: str) -> Path:
-    (root / ".git").mkdir(parents=True)
-    (root / ".contextbase").mkdir()
-    (root / ".contextbase" / "config.toml").write_text(f'bank_id = "{bank}"\n', encoding="utf-8")
-    sub = root / "src" / "deep"
-    sub.mkdir(parents=True)
-    return sub
-
-
-def test_trusted_repository_config_sets_the_bank(tmp_path: Path):
-    sub = _repo_with_config(tmp_path / "work" / "my_project", "project-bank-alpha")
-    assert _discover(sub, [str(tmp_path / "work")]) == "project-bank-alpha"
-
-
-def test_repository_config_is_ignored_unless_its_folder_is_trusted(tmp_path: Path):
-    sub = _repo_with_config(tmp_path / "downloads" / "cloned", "attacker-bank")
-    assert _discover(sub, []) is None
-    assert _discover(sub, [str(tmp_path / "work")]) is None
-
-
-def test_repository_config_is_never_read_above_the_repository_root(tmp_path: Path):
-    outer = tmp_path / "work"
-    (outer / ".contextbase").mkdir(parents=True)
-    (outer / ".contextbase" / "config.toml").write_text('bank_id = "outer"\n', encoding="utf-8")
-    repo = outer / "repo"
-    (repo / ".git").mkdir(parents=True)
-
-    assert _discover(repo, [str(outer)]) is None
-
-
-def test_repository_config_outside_a_repository_is_ignored(tmp_path: Path):
-    folder = tmp_path / "work" / "notes"
-    (folder / ".contextbase").mkdir(parents=True)
-    (folder / ".contextbase" / "config.toml").write_text('bank_id = "notes"\n', encoding="utf-8")
-
-    assert _discover(folder, [str(tmp_path / "work")]) is None
-
-
-def test_provider_uses_trusted_repository_config_over_the_template(tmp_path: Path):
-    sub = _repo_with_config(tmp_path / "work" / "project_x", "project-x-bank")
-    config = {
-        "bank_id": "hermes",
-        "bank_id_template": "hermes-{project}",
-        "trusted_project_dirs": str(tmp_path / "work"),
-    }
-    provider = ContextBaseMemoryProvider()
-    with patch.object(plugin, "_load_config", return_value=config):
-        provider.initialize(session_id="s1", cwd=str(sub))
-    assert provider._bank_id == "project-x-bank"
-
-
-def _bank_for(cwd: str, template: str, **session) -> str:
-    provider = ContextBaseMemoryProvider()
-    with patch.object(plugin, "_load_config", return_value={"bank_id": "hermes", "bank_id_template": template}):
-        provider.initialize(session_id="s", cwd=cwd, **session)
-    return provider._bank_id
-
-
-def test_project_placeholder_is_the_git_repository_name(tmp_path: Path):
-    repo = tmp_path / "my-awesome-repo"
-    (repo / ".git").mkdir(parents=True)
-    sub = repo / "pkg" / "sub"
-    sub.mkdir(parents=True)
-
-    assert _bank_for(str(sub), "{project}") == "my-awesome-repo"
-    assert _bank_for(str(sub), "hermes-{project}") == "hermes-my-awesome-repo"
-
-
-def test_project_placeholder_resolves_a_linked_worktree_to_its_main_repository(tmp_path: Path):
-    main = tmp_path / "main-repo"
-    worktree_git = main / ".git" / "worktrees" / "feature-x"
-    worktree_git.mkdir(parents=True)
-    (worktree_git / "commondir").write_text("../..\n", encoding="utf-8")
-    worktree = tmp_path / "main-repo-feature-x"
-    worktree.mkdir()
-    (worktree / ".git").write_text(f"gitdir: {worktree_git}\n", encoding="utf-8")
-
-    assert _bank_for(str(worktree), "{project}") == "main-repo"
-
-
-def test_project_placeholder_is_empty_outside_a_repository(tmp_path: Path):
-    scratch = tmp_path / "scratch"
-    scratch.mkdir()
-
-    assert _bank_for(str(scratch), "{project}") == "hermes"
-    assert _bank_for(str(scratch), "hermes-{project}") == "hermes"
-    assert _bank_for(str(Path.home()), "{project}") == "hermes"
-
-
-def test_workspace_placeholder_keeps_its_upstream_meaning(tmp_path: Path):
-    repo = tmp_path / "some-repo"
-    (repo / ".git").mkdir(parents=True)
-
-    assert _bank_for(str(repo), "hermes-{workspace}", agent_workspace="hermes") == "hermes-hermes"
-    assert _bank_for(str(repo), "{workspace}", agent_workspace="team-a") == "team-a"
-
-
-def test_provider_multibank_write_and_recall_order():
-    provider = ContextBaseMemoryProvider()
-    provider._config = {"bank_id": "default-bank"}
-    provider._apply_connection_settings(
-        {
-            "bank_id": "default-bank",
-            "mirror_to_own_bank": True,
-            "additional_banks": ["shared-knowledge", "global-bank"],
-        }
-    )
-    # Primary is default-bank, mirror is identical, so deduped:
-    assert provider._write_bank_ids == ["default-bank", "shared-knowledge", "global-bank"]
-
-    # When primary changes (e.g. from template/workspace):
-    provider._bank_id = "project-bank"
-    provider._write_bank_ids = provider._build_write_bank_ids()
-    assert provider._write_bank_ids == ["project-bank", "default-bank", "shared-knowledge", "global-bank"]
 
 
 def test_provider_recall_dedupes_across_banks():
@@ -373,40 +251,6 @@ def test_retain_tool_reports_failure_when_the_primary_fails():
     assert "Failed to store memory: primary unavailable" in result
 
 
-def test_mirror_uses_the_nested_bank_id_form_like_the_fallback(tmp_path: Path):
-    repo = tmp_path / "repo"
-    (repo / ".git").mkdir(parents=True)
-    config = {"banks": {"hermes": {"bankId": "personal"}}, "bank_id_template": "{project}", "mirror_to_own_bank": True}
-    provider = ContextBaseMemoryProvider()
-    with patch.object(plugin, "_load_config", return_value=config):
-        provider.initialize(session_id="s1", cwd=str(repo))
-
-    assert provider._bank_id == "repo"
-    assert provider._write_bank_ids == ["repo", "personal"]
-
-
-def test_relative_trusted_folders_are_ignored(tmp_path: Path, monkeypatch):
-    sub = _repo_with_config(tmp_path / "cloned", "attacker-bank")
-    monkeypatch.chdir(tmp_path)
-    assert _discover(sub, [".", "cloned"]) is None
-
-
-def test_project_placeholder_is_found_with_a_format_spec(tmp_path: Path):
-    repo = tmp_path / "long-repository-name"
-    (repo / ".git").mkdir(parents=True)
-    assert _bank_for(str(repo), "{project:.4}") == "long"
-
-
-def test_empty_nested_bank_id_never_puts_an_empty_bank_in_the_write_set(tmp_path: Path):
-    repo = tmp_path / "repo"
-    (repo / ".git").mkdir(parents=True)
-    config = {"banks": {"hermes": {"bankId": ""}}, "bank_id_template": "{project}", "mirror_to_own_bank": True}
-    provider = ContextBaseMemoryProvider()
-    with patch.object(plugin, "_load_config", return_value=config):
-        provider.initialize(session_id="s1", cwd=str(repo))
-    assert provider._write_bank_ids == ["repo", "hermes"]
-
-
 def test_a_hung_extra_bank_cannot_cost_the_primary_its_results():
     """Runs through the real _run_sync deadline, so it fails if the extra bank's own
     deadline were ever allowed past the operation's."""
@@ -421,36 +265,6 @@ def test_a_hung_extra_bank_cannot_cost_the_primary_its_results():
 
     provider._get_client = lambda: _Client()
     assert [r.text for r in provider._recall("q")] == ["from primary"]
-
-
-def _worktree(tmp_path: Path, main_parent: str, worktree_parent: str) -> Path:
-    worktree_git = tmp_path / main_parent / "app" / ".git" / "worktrees" / "wt"
-    worktree_git.mkdir(parents=True)
-    (worktree_git / "commondir").write_text("../..\n", encoding="utf-8")
-    worktree = tmp_path / worktree_parent / "app-wt"
-    (worktree / ".contextbase").mkdir(parents=True)
-    (worktree / ".git").write_text(f"gitdir: {worktree_git}\n", encoding="utf-8")
-    (worktree / ".contextbase" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
-    return worktree
-
-
-def test_worktree_trust_is_decided_by_its_own_location(tmp_path: Path):
-    worktree = _worktree(tmp_path, "work", "elsewhere")
-    assert _discover(worktree, [str(tmp_path / "work")]) is None
-    assert _discover(worktree, [str(tmp_path / "elsewhere")]) == "acme"
-    assert _bank_for(str(worktree), "{project}") == "app"
-
-
-def test_a_forged_commondir_cannot_claim_a_trusted_location(tmp_path: Path):
-    folder = tmp_path / "downloads" / "tarball"
-    fake = folder / "fake"
-    fake.mkdir(parents=True)
-    (fake / "commondir").write_text(str(tmp_path / "work" / "anything" / ".git") + "\n", encoding="utf-8")
-    (folder / ".git").write_text("gitdir: fake\n", encoding="utf-8")
-    (folder / ".contextbase").mkdir()
-    (folder / ".contextbase" / "config.toml").write_text('bank_id = "attacker"\n', encoding="utf-8")
-
-    assert _discover(folder, [str(tmp_path / "work")]) is None
 
 
 def test_a_failing_extra_bank_is_skipped_for_the_cooldown_and_warns_once(caplog):
@@ -485,46 +299,6 @@ def test_writes_skip_an_extra_bank_while_it_cools_down():
     assert written == ["primary", "broken", "shared", "primary", "shared"]
 
 
-def test_a_malformed_template_falls_back_instead_of_crashing(tmp_path: Path):
-    repo = tmp_path / "repo"
-    (repo / ".git").mkdir(parents=True)
-    assert _bank_for(str(repo), "hermes-{project") == "hermes"
-    assert _bank_for(str(repo), "{project:d}") == "hermes"
-
-
-def test_an_unreadable_git_file_falls_back_to_the_static_bank(tmp_path: Path):
-    folder = tmp_path / "broken"
-    folder.mkdir()
-    (folder / ".git").write_bytes(b"\xff\xfe not utf-8")
-    assert _bank_for(str(folder), "{project}") == "hermes"
-
-
-def test_a_working_tree_named_like_a_bare_repository_keeps_its_name(tmp_path: Path):
-    repo = tmp_path / "mirror.git"
-    (repo / ".git").mkdir(parents=True)
-    assert _bank_for(str(repo), "{project}") == "mirror-git"
-
-
-def test_attribute_and_index_templates_fall_back_instead_of_crashing(tmp_path: Path):
-    repo = tmp_path / "repo"
-    (repo / ".git").mkdir(parents=True)
-    assert _bank_for(str(repo), "{project.name}") == "hermes"
-    assert _bank_for(str(repo), "{project[a]}") == "hermes"
-
-
-def test_worktrees_of_a_checkout_named_like_a_bare_repository_share_its_name(tmp_path: Path):
-    main = tmp_path / "app.git"
-    worktree_git = main / ".git" / "worktrees" / "wt"
-    worktree_git.mkdir(parents=True)
-    (worktree_git / "commondir").write_text("../..\n", encoding="utf-8")
-    worktree = tmp_path / "wt"
-    worktree.mkdir()
-    (worktree / ".git").write_text(f"gitdir: {worktree_git}\n", encoding="utf-8")
-
-    assert _bank_for(str(main), "{project}") == "app-git"
-    assert _bank_for(str(worktree), "{project}") == "app-git"
-
-
 def test_a_failed_recall_does_not_stop_writes_to_the_same_bank():
     provider = _provider_with({"bank_id": "primary", "additional_banks": ["team"]})
     _fake_recall(provider, {"primary": ["from primary"], "team": RuntimeError("slow search")})
@@ -534,22 +308,6 @@ def test_a_failed_recall_does_not_stop_writes_to_the_same_bank():
     provider.handle_tool_call("contextbase_retain", {"content": "a fact"})
 
     assert written == ["primary", "team"]
-
-
-def test_trusted_config_survives_an_unreadable_git_file(tmp_path: Path):
-    repo = tmp_path / "work" / "repo"
-    (repo / ".contextbase").mkdir(parents=True)
-    (repo / ".git").write_bytes(b"\xff\xfe not utf-8")
-    (repo / ".contextbase" / "config.toml").write_text('bank_id = "acme"\n', encoding="utf-8")
-    config = {
-        "bank_id": "hermes",
-        "bank_id_template": "hermes-{project}",
-        "trusted_project_dirs": str(tmp_path / "work"),
-    }
-    provider = ContextBaseMemoryProvider()
-    with patch.object(plugin, "_load_config", return_value=config):
-        provider.initialize(session_id="s1", cwd=str(repo))
-    assert provider._bank_id == "acme"
 
 
 def test_single_bank_recall_returns_the_server_response_unchanged():

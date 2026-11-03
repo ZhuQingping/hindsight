@@ -171,7 +171,7 @@ beforeAll(async () => {
   // credentials are needed in the plugin config — the daemon handles them.
   const handle = createMockApi({
     contextbaseApiUrl: CONTEXTBASE_API_URL,
-    dynamicBankId: true,
+    bankId: "hooks-integration-bank",
     excludeProviders: ["slack"],
     retainEveryNTurns: 1, // retain every turn so individual tests aren't affected by chunking
     recallContextTurns: 3,
@@ -715,7 +715,7 @@ describe("session_end hook (#1726)", () => {
     const mod = await import("../src/index.js");
     const handle = createMockApi({
       contextbaseApiUrl: CONTEXTBASE_API_URL,
-      dynamicBankId: true,
+      bankId: "hooks-integration-bank",
       retainEveryNTurns: 5,
       retainOverlapTurns: 0,
     });

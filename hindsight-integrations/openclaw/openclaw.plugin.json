@@ -33,7 +33,7 @@
       },
       "retainExtractionMode": {
         "type": "string",
-        "description": "Fact extraction mode stamped onto each bank on first use (dynamic or static). Options: concise, verbose, custom, verbatim, chunks. Leave unset to keep the ContextBase server default for new banks.",
+        "description": "Extraction mode applied to the configured Bank on first use. Leave unset to preserve its existing configuration.",
         "enum": ["concise", "verbose", "custom", "verbatim", "chunks"]
       },
       "enableObservations": {
@@ -73,25 +73,10 @@
         "type": ["string", "object"],
         "description": "API token for external ContextBase API authentication. Required if the external API has authentication enabled."
       },
-      "dynamicBankId": {
-        "type": "boolean",
-        "description": "Enable per-user memory banks. When true, memories are isolated by user per channel (e.g., slack-U123, telegram-456789). When false, all users share a single 'openclaw' bank.",
-        "default": true
-      },
       "bankId": {
         "type": "string",
-        "description": "Static bank ID used when dynamicBankId is false."
-      },
-      "bankIdPrefix": {
-        "type": "string",
-        "description": "Optional prefix for bank IDs (e.g., 'prod' results in 'prod-slack-U123'). Useful for separating environments."
-      },
-      "agentBankMap": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "string"
-        },
-        "description": "Explicit agentId -> bankId routing, checked before static/dynamic derivation. Lets a group of agents share one named bank while other agents keep their derived banks. Mapped names are used exactly as given (bankIdPrefix is not applied)."
+        "description": "Existing authorized Bank ID used by every agent and session.",
+        "minLength": 1
       },
       "retainTags": {
         "type": "array",
@@ -122,15 +107,6 @@
         },
         "description": "Message providers to exclude from recall and retain (e.g. ['heartbeat', 'telegram', 'discord'])",
         "default": ["heartbeat"]
-      },
-      "dynamicBankGranularity": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "enum": ["agent", "channel", "user", "provider"]
-        },
-        "description": "Fields used to derive bank ID. Controls memory isolation granularity. Default: ['agent', 'channel', 'user'].",
-        "default": ["agent", "channel", "user"]
       },
       "autoRetain": {
         "type": "boolean",
@@ -326,7 +302,7 @@
       }
     },
     "additionalProperties": false,
-    "required": ["contextbaseApiUrl"]
+    "required": ["contextbaseApiUrl", "bankId"]
   },
   "uiHints": {
     "bankMission": {
@@ -378,21 +354,9 @@
       "placeholder": "API token if external API requires authentication",
       "sensitive": true
     },
-    "dynamicBankId": {
-      "label": "Dynamic Bank IDs",
-      "placeholder": "true (isolate memories per channel)"
-    },
     "bankId": {
-      "label": "Static Bank ID",
-      "placeholder": "e.g. openclaw, shared-bank (used when dynamicBankId is false)"
-    },
-    "bankIdPrefix": {
-      "label": "Bank ID Prefix",
-      "placeholder": "e.g., prod, staging (optional)"
-    },
-    "agentBankMap": {
-      "label": "Agent Bank Map",
-      "placeholder": "e.g. {\"inbound\": \"ps-technology\", \"limpieza\": \"ps-limpieza\"}"
+      "label": "Bank ID",
+      "placeholder": "Existing authorized Bank ID"
     },
     "retainTags": {
       "label": "Retain Tags",
@@ -413,10 +377,6 @@
     "excludeProviders": {
       "label": "Excluded Providers",
       "placeholder": "e.g. heartbeat, telegram, discord"
-    },
-    "dynamicBankGranularity": {
-      "label": "Bank Granularity",
-      "placeholder": "e.g. ['agent', 'channel', 'user']"
     },
     "autoRetain": {
       "label": "Auto-Retain",

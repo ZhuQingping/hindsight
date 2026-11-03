@@ -45,7 +45,7 @@ async function loadCopy(): Promise<PluginCopy> {
           "contextbase-openclaw": {
             config: {
               contextbaseApiUrl: "http://localhost:8888",
-              dynamicBankGranularity: ["agent"],
+              bankId: "integration-bank",
               autoRecall: false,
               autoRetain: true,
               retainQueuePath: join(directory, "queue.jsonl"),

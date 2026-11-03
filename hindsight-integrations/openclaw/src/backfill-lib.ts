@@ -2,7 +2,7 @@ import { homedir } from "os";
 import { dirname, join, resolve } from "path";
 import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync } from "fs";
 import { deriveBankId, prepareRetentionTranscript } from "./index.js";
-import type { PluginConfig, PluginHookAgentContext } from "./types.js";
+import type { PluginConfig } from "./types.js";
 import { parseSessionFile } from "./session-file.js";
 import type { ParsedSessionFile, SessionMessage } from "./session-file.js";
 
@@ -15,7 +15,7 @@ export interface BackfillCliOptions {
   includeArchive: boolean;
   selectedAgents?: Set<string>;
   limit?: number;
-  bankStrategy: "mirror-config" | "agent" | "fixed";
+  bankStrategy: "mirror-config" | "fixed";
   fixedBank?: string;
 }
 
@@ -59,7 +59,6 @@ interface SessionDirectory {
 }
 
 const DEFAULT_PLUGIN_CONFIG: PluginConfig = {
-  dynamicBankId: true,
   retainRoles: ["user", "assistant"],
 };
 
@@ -124,31 +123,6 @@ export function discoverSessionFiles(
   );
 }
 
-function backfillContextForSession(session: ParsedSessionFile): PluginHookAgentContext {
-  return {
-    agentId: session.agentId,
-    sessionKey: session.sessionKey,
-  };
-}
-
-function deriveTargetBank(
-  session: ParsedSessionFile,
-  pluginConfig: PluginConfig,
-  bankStrategy: BackfillCliOptions["bankStrategy"],
-  fixedBank?: string
-): string {
-  if (bankStrategy === "agent") {
-    return session.agentId;
-  }
-  if (bankStrategy === "fixed") {
-    if (!fixedBank) {
-      throw new Error("fixed bank strategy requires --fixed-bank");
-    }
-    return fixedBank;
-  }
-  return deriveBankId(backfillContextForSession(session), pluginConfig);
-}
-
 export function stableDocumentId(session: ParsedSessionFile, bankId: string): string {
   return `backfill::${bankId}::${session.agentId}::${session.sessionId}`;
 }
@@ -157,6 +131,10 @@ export function buildBackfillPlan(
   pluginConfig: PluginConfig,
   opts: BackfillCliOptions
 ): { entries: BackfillPlanEntry[]; discoveredSessions: number; skippedEmpty: number } {
+  const bankId = deriveBankId(
+    undefined,
+    opts.bankStrategy === "fixed" ? { bankId: opts.fixedBank } : pluginConfig
+  );
   const entries: BackfillPlanEntry[] = [];
   let discoveredSessions = 0;
   let skippedEmpty = 0;
@@ -172,7 +150,6 @@ export function buildBackfillPlan(
       skippedEmpty += 1;
       continue;
     }
-    const bankId = deriveTargetBank(parsed, pluginConfig, opts.bankStrategy, opts.fixedBank);
     entries.push({
       filePath: parsed.filePath,
       agentId: parsed.agentId,

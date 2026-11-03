@@ -70,9 +70,9 @@ describe("native memory provider (#4916)", () => {
     ).rejects.toThrow(/not readable/);
   });
 
-  it("refuses search when the bank is keyed by user or channel", async () => {
+  it("refuses search without a configured Bank", async () => {
     const provider = await open(deps({ agentBank: () => undefined }), operator);
-    await expect(provider.search({ query: "x" })).rejects.toThrow(/user or channel/);
+    await expect(provider.search({ query: "x" })).rejects.toThrow(/Bank ID is required/);
   });
 
   it("reports health to every caller, even ones that can't read", async () => {
@@ -102,25 +102,11 @@ describe("native memory provider (#4916)", () => {
 });
 
 describe("agentOnlyBankId", () => {
-  it("resolves banks that depend on the agent alone", () => {
-    expect(agentOnlyBankId("main", { dynamicBankGranularity: ["agent"] })).toBe("main");
-    expect(agentOnlyBankId("main", { dynamicBankGranularity: ["agent"], bankIdPrefix: "p" })).toBe(
-      "p-main"
-    );
-    expect(agentOnlyBankId("main", { dynamicBankId: false, bankId: "shared" })).toBe("shared");
-    expect(
-      agentOnlyBankId("ops", {
-        dynamicBankGranularity: ["agent", "user"],
-        agentBankMap: { ops: "ops-bank" },
-      })
-    ).toBe("ops-bank");
+  it("uses the configured Bank for every agent", () => {
+    expect(agentOnlyBankId("main", { bankId: "team" })).toBe("team");
+    expect(agentOnlyBankId("other", { bankId: "team" })).toBe("team");
   });
-
-  it("returns nothing when the bank is keyed by user, channel or provider", () => {
-    expect(agentOnlyBankId("main", {})).toBeUndefined(); // default: agent, channel, user
-    expect(agentOnlyBankId("main", { dynamicBankGranularity: ["agent", "user"] })).toBeUndefined();
-    expect(
-      agentOnlyBankId("main", { dynamicBankGranularity: ["agent", "provider"] })
-    ).toBeUndefined();
+  it("requires an explicit Bank", () => {
+    expect(() => agentOnlyBankId("main", {})).toThrow("Bank ID is required");
   });
 });
