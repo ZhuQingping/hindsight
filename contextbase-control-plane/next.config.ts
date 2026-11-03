@@ -1,4 +1,3 @@
-import { controlPlaneEnv } from "./src/lib/control-plane-env";
 import type { NextConfig } from "next";
 import path from "path";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -18,7 +17,9 @@ const distDir =
 // dataplane's HINDSIGHT_API_FILE_CONVERSION_MAX_BATCH_SIZE_MB default; accepts a
 // human-readable size string ('100mb', '1gb') or a number of bytes.
 type SizeLimit = NonNullable<NonNullable<NextConfig["experimental"]>["proxyClientMaxBodySize"]>;
-const maxUploadEnv = controlPlaneEnv("MAX_UPLOAD_SIZE");
+// Keep config loading independent of local TS imports in Next's Windows worker.
+const maxUploadEnv =
+  process.env.CONTEXTBASE_CP_MAX_UPLOAD_SIZE ?? process.env.HINDSIGHT_CP_MAX_UPLOAD_SIZE;
 const maxUploadBodySize: SizeLimit = maxUploadEnv
   ? /^\d+$/.test(maxUploadEnv)
     ? Number(maxUploadEnv)

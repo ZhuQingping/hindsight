@@ -85,8 +85,6 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
                 _run_windows(
                     [
                         "node",
-                        "--import",
-                        "tsx",
                         str(next_cli),
                         "dev",
                         str(source_root / "contextbase-control-plane"),
