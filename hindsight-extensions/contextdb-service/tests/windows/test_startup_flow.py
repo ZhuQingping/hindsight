@@ -95,12 +95,13 @@ async def test_powershell_start_auth_management_and_restart(tmp_path: Path) -> N
                 saved = json.loads((state / "ui-secrets.json").read_text(encoding="utf-8"))
                 admin = json.loads((state / "admin-key.json").read_text(encoding="utf-8"))["secret"]
                 # Native Bank calls go through the published SDK; no engine or SQL.
-                denied = ContextBase(base_url=api, api_key="invalid")
-                try:
-                    with pytest.raises(UnauthorizedException):
-                        await denied.banks.list_banks()
-                finally:
-                    await denied.aclose()
+                for key in (None, "invalid"):
+                    denied = ContextBase(base_url=api, api_key=key)
+                    try:
+                        with pytest.raises(UnauthorizedException):
+                            await denied.banks.list_banks()
+                    finally:
+                        await denied.aclose()
                 authenticated = ContextBase(base_url=api, api_key=admin)
                 try:
                     assert (await authenticated.banks.list_banks()).banks == []
@@ -126,6 +127,10 @@ async def test_powershell_start_auth_management_and_restart(tmp_path: Path) -> N
                 if restart:
                     assert current == before
                 before = current
+            except BaseException:
+                log.flush()
+                print((tmp_path / f"windows-{restart}.log").read_text(encoding="utf-8", errors="replace"))
+                raise
             finally:
                 if process.poll() is None:
                     process.send_signal(signal.CTRL_BREAK_EVENT)

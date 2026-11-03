@@ -15,6 +15,9 @@ def windows_acl(path: Path, *, protect: bool = False) -> None:
     # Mode bits on Windows do not express access control; validate the real DACL.
     script = r"""
 $ErrorActionPreference = 'Stop'
+# A pwsh 7 parent can export .NET Core module paths. Windows PowerShell must
+# resolve Get-Acl/Set-Acl from its own built-in Desktop modules.
+$env:PSModulePath = [IO.Path]::Combine($PSHOME, 'Modules')
 $stage = 'path'
 try {
 $p = $env:CONTEXTBASE_PRIVATE_PATH
