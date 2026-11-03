@@ -25,6 +25,10 @@ class DatabaseConnection(BaseModel):
     uri: str = Field(repr=False)
 
 
+class EmbeddedDatabaseError(ValueError):
+    """A pg0 diagnostic with this instance's database password removed."""
+
+
 def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
     from pg0 import Pg0
 
@@ -55,9 +59,14 @@ def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection
         if not info.uri or Path(info.data_dir or "").resolve() != data_dir.resolve():
             raise ValueError("Embedded database directory does not match local state")
         return DatabaseConnection(uri=info.uri)
-    except BaseException:
+    except BaseException as error:
         # A pg0 failure after spawning postgres must not orphan this owned instance.
-        pg.stop()
+        try:
+            pg.stop()
+        except Exception:
+            pass  # Preserve the original startup failure, including when no PG was started.
+        if isinstance(error, Exception):
+            raise EmbeddedDatabaseError(str(error).replace(secret.password, "<redacted>")[:500]) from None
         raise
 
 
@@ -81,8 +90,9 @@ def main() -> None:
         if result is not None:
             # Internal captured pipe to the launcher; never emit this to its console.
             print(result.model_dump_json())
-    except Exception:
-        parser.exit(2, "Embedded PostgreSQL failed; check pg0 installation, private data directory and saved secrets\n")
+    except Exception as error:
+        detail = str(error) if isinstance(error, EmbeddedDatabaseError) else type(error).__name__
+        parser.exit(2, "Embedded PostgreSQL failed: " + detail + "\n")
 
 
 if __name__ == "__main__":

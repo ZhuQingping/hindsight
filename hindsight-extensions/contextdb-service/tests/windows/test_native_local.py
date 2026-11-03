@@ -7,15 +7,16 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from dotenv import dotenv_values
 from filelock import FileLock, Timeout
 
-from hindsight_ext_contextdb import local
+from hindsight_ext_contextdb import embedded, local
 from hindsight_ext_contextdb.bootstrap import UiSecrets, load_deployment_secrets, save_credential
 from hindsight_ext_contextdb.deployment import write_environment
-from hindsight_ext_contextdb.private_paths import private_directory, private_file
+from hindsight_ext_contextdb.private_paths import private_directory, private_file, protect_file
 from hindsight_ext_contextdb.windows import load_environment
 
 
@@ -68,8 +69,7 @@ def test_windows_environment_preserves_literal_values(tmp_path: Path, monkeypatc
     path.write_text(
         "".join(f"{key}={json.dumps(value, ensure_ascii=False)}\n" for key, value in values.items()), encoding="utf-8"
     )
-    if sys.platform != "win32":
-        path.chmod(0o600)
+    protect_file(path)
     load_environment(directory, "ui")
     assert all(os.environ[key] == value for key, value in values.items())
     write_environment(path, values, replace=True)
@@ -93,6 +93,31 @@ def test_local_lock_excludes_a_second_process(tmp_path: Path) -> None:
         assert result.returncode == 7
     with FileLock(str(lock), timeout=0):
         pass
+
+
+def test_pg_failure_preserves_redacted_primary_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    directory = tmp_path / "private-state"
+
+    class FailedPostgres:
+        def __init__(self, **_kwargs: object) -> None:
+            pass
+
+        def info(self) -> None:
+            return None
+
+        def start(self) -> None:
+            secret = embedded.DatabaseSecret.model_validate_json(
+                (directory / "pg-secrets.json").read_text(encoding="utf-8")
+            )
+            raise RuntimeError(f"postgresql://contextbase:{secret.password}@localhost startup-failed")
+
+        def stop(self) -> None:
+            raise RuntimeError("not-running")
+
+    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=FailedPostgres))
+    with pytest.raises(embedded.EmbeddedDatabaseError) as failure:
+        embedded.control("start", directory, directory / "pgdata")
+    assert str(failure.value) == "postgresql://contextbase:<redacted>@localhost startup-failed"
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Requires real Windows NTFS access control")

@@ -40,6 +40,10 @@ def pg_control(command: str, directory: Path, data_dir: Path) -> DatabaseConnect
         check=False,
     )
     if result.returncode:
+        # The embedded helper emits only its redacted, bounded diagnostic here.
+        for line in result.stderr.splitlines():
+            if line.startswith("Embedded PostgreSQL failed:"):
+                print(line, file=sys.stderr)
         raise ValueError("Embedded PostgreSQL control failed; check pg0-embedded and the private state directory")
     return DatabaseConnection.model_validate_json(result.stdout) if command == "start" else None
 

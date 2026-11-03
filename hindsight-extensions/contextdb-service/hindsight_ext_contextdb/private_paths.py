@@ -83,8 +83,11 @@ foreach ($rule in $acl.GetAccessRules($true, $true, [Security.Principal.Security
 
 
 def private_directory(path: Path) -> None:
-    created = not path.exists()
-    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    try:
+        path.mkdir(mode=0o700, parents=True)
+        created = True
+    except FileExistsError:
+        created = False
     mode = path.lstat()
     if not stat.S_ISDIR(mode.st_mode) or path.is_symlink():
         raise ValueError("Local state directories must be private (0700 or private NTFS ACL)")
