@@ -1,41 +1,54 @@
-# contextbase
+# ContextBase
 
-Agent memory delivered as a hosted service. Each customer connects using their own API Endpoint, MCP Endpoint and credential from the console.
+ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召回、推理及知识整理。
+服务按工作空间组织内容，通过业务 API Key 授权 REST、MCP 和 SDK 访问。
 
-## Client distribution
+## 从这里开始
 
-| Client             | Distribution identity                                          | Connection                                                               |
-| ------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| CLI                | `contextbase` executable                                       | API Endpoint; named Profiles supported                                   |
-| Coding Agents      | `contextbase-coding-agents` npm tarball                        | One default API connection for hooks, native tools and local MCP adapter |
-| Agent Plugin       | `contextbase` plugin                                           | One default remote MCP connection                                        |
-| Claude Code plugin | `contextbase-memory` plugin; `contextbase-claude-code` archive | One default API connection for hooks and local MCP adapter               |
+| 任务 | 文档 |
+| --- | --- |
+| Claude Code、Codex 和其他 Agent 接入已有服务 | [客户使用指南](docs/contextbase/CUSTOMER-GUIDE.md) |
+| 管理工作空间、用户和 API Key | [管理员操作](hindsight-extensions/contextdb-service/README.md#admin-quickstart) |
+| 本地开发启动（Linux x86_64） | [本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md) |
+| 部署、配置及维护服务 | [部署总览](hindsight-extensions/contextdb-service/docs/deployment.md) |
+| 了解权限、生命周期和实现 | [管理功能设计](docs/contextdb-management/DESIGN.md#overview) |
+| 构建和发布客户端 | [客户端发布与交付](docs/contextbase/CLIENT-PACKAGING.md) |
 
-Python (`contextbase-client`, import `contextbase_client`) and Node.js (`contextbase-client`, `ContextBaseClient`) SDKs are also built as downloadable artifacts. See the [Python SDK](hindsight-clients/python/README.md) and [Node.js SDK](hindsight-clients/typescript/README.md). Server packages/images, local engines, local Web console packages, Go/Rust SDKs and Helm Charts are excluded. The operator deploys the hosted service separately; its source remains in this repository.
+## 客户端
 
-Public distribution uses Huawei Cloud OBS + CDN; Coding Agents installs from an explicit `.tgz` URL with npm. The actual resources and production download domain are pending. The release workflow builds reviewable client artifacts only; it does not publish to npm, PyPI, container registries or a customer download host.
+| 客户端 | 交付方式 | 使用说明 |
+| --- | --- | --- |
+| Coding Agents | npm：`@huaweicloud/contextbase-coding-agents` | [安装及项目绑定](docs/contextbase/CUSTOMER-GUIDE.md) |
+| Node.js SDK | npm：`@huaweicloud/contextbase-client` | [Node.js SDK](hindsight-clients/typescript/README.md) |
+| Python SDK | wheel / 源码包 | [Python SDK](hindsight-clients/python/README.md) |
+| CLI | `contextbase` 可执行文件 | [CLI 安装器](scripts/install-contextbase.sh) |
+| OpenClaw、Hermes | 各自的插件安装包 | [其他 Agent](docs/contextbase/CUSTOMER-GUIDE.md#7-其他-agent) |
+| Agent Plugin、Claude Code 插件 | 对应宿主的插件归档 | [Agent Plugin](hindsight-integrations/agent-plugin/README.md)、[Claude Code](hindsight-integrations/claude-code/README.md) |
 
-## Connect
+客户端连接需要服务方提供的 API Endpoint、业务 Key 和已授权的 Bank ID。
+使用远端 MCP 时，单独取得完整 MCP Endpoint，不从 REST 地址推导。
 
-Install the approved client artifact, then copy your own endpoint and credential from the console. Download addresses and service addresses are separate. Packages contain neither customer endpoints nor credentials.
+Coding Agents 安装前需要对应宿主和 Node.js 18+。
+安装命令、Bank 切换、更新和卸载统一见客户使用指南。
+服务地址、下载地址和访问凭据分别配置；客户端发行包不携带客户凭据。
 
-For the CLI:
+## 服务部署
 
-```bash
-contextbase profile create work --api-url "$CONTEXTBASE_API_URL" --api-key "$CONTEXTBASE_API_KEY"
-contextbase -p work bank list
-```
+API、ContextDB 扩展和管理 UI 使用同一源码版本。
+首次部署完成初始化后，由管理员创建空间、用户及业务 Key，
+再用业务身份完成“写入 → 确认处理完成 → Recall”验证。
 
-The standalone CLI installer is [scripts/install-contextbase.sh](scripts/install-contextbase.sh). Supply the approved HTTPS download root and an explicit version; it verifies SHA-256 before replacing the binary. There is no implicit localhost endpoint or local Web installer. Missing endpoint configuration produces an actionable error.
+本地启动、宿主进程和 Docker 各自使用对应部署指南。
+配置、秘密保存、更新与恢复规则见部署总览。
+云平台外部条件及目标环境验证见[云环境交付待办](docs/contextbase/CLOUD-READINESS.md)。
 
-For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents/README.md), [Agent Plugin](hindsight-integrations/agent-plugin/README.md) and [Claude Code](hindsight-integrations/claude-code/README.md). Standard Agent Plugin supplies Skills and MCP; automatic lifecycle hooks are provided by the other integrations where supported by the host.
+## 开发与验证
 
-## Delivery status
+开发约定见 [CLAUDE.md](CLAUDE.md)。
+当前检查和验证边界见[验证入口](docs/contextdb-management/VALIDATION.md)；
+浏览器品牌检查见[品牌审计指南](docs/contextbase/BROWSER-BRAND-AUDIT.md)。
+构建与发布结果应绑定实际源码和产物，不能由历史记录推断。
 
-[Client distribution contract](docs/hosted-single-tenant/module-delivery/M2/CLIENT-DISTRIBUTION.md) records artifact paths, installation, validation and remaining publication decisions. [Issue #2](https://github.com/RSIXDB/hindsight/issues/2) and [PR #3](https://github.com/RSIXDB/hindsight/pull/3) track implementation and acceptance. A prepared artifact is not a published or production-validated release.
+## 来源与许可
 
-## Development and attribution
-
-ContextDB service operators and contributors: start with the [extension guide](hindsight-extensions/contextdb-service/README.md#reading-order) for the reading order, deployment, administrator usage and design references.
-
-See [CLAUDE.md](CLAUDE.md) for repository development instructions. This project derives from Hindsight; upstream attribution and licensing remain in [LICENSE](LICENSE). Internal directory names remain repository implementation details. Python and Node.js SDK package names and public imports use ContextBase.
+项目派生自 Hindsight，来源归属与许可见 [LICENSE](LICENSE)。
