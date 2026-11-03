@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import hashlib
 import os
 import platform
@@ -29,11 +30,40 @@ class EmbeddedDatabaseError(ValueError):
     """A pg0 diagnostic with this instance's database password removed."""
 
 
+def postgres_directory(path: Path) -> Path:
+    """Use a Windows short name when PostgreSQL cannot encode a Unicode path."""
+    if sys.platform != "win32":
+        return path
+    try:
+        str(path).encode("mbcs")
+        return path
+    except UnicodeEncodeError:
+        pass
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetShortPathNameW.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32]
+    kernel.GetShortPathNameW.restype = ctypes.c_uint32
+    size = kernel.GetShortPathNameW(str(path), None, 0)
+    if size:
+        buffer = ctypes.create_unicode_buffer(size)
+        length = kernel.GetShortPathNameW(str(path), buffer, size)
+        if 0 < length < size:
+            try:
+                buffer.value.encode("mbcs")
+                return Path(buffer.value)
+            except UnicodeEncodeError:
+                pass
+    raise EmbeddedDatabaseError(
+        "PostgreSQL cannot encode this Windows path and no compatible NTFS short name is available. "
+        "Set CONTEXTDB_DEPLOY_DIR and CONTEXTDB_PG_DATA_DIR to ASCII-only paths, then restart."
+    )
+
+
 def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
     from pg0 import Pg0
 
     private_directory(directory)
     private_directory(data_dir)
+    data_dir = postgres_directory(data_dir)
     secret_path = directory / "pg-secrets.json"
     if not secret_path.exists():
         if (data_dir / "PG_VERSION").exists():
@@ -86,6 +116,12 @@ def main() -> None:
                 parser.exit(2, "Embedded PostgreSQL requires glibc 2.35 or later\n")
             if os.geteuid() == 0:
                 parser.exit(2, "Embedded PostgreSQL must run as a non-root user\n")
+        else:
+            # pg0 extracts PostgreSQL under its private registry. Its binaries,
+            # like initdb's data path, must be representable in the Windows ACP.
+            for key in ("HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA"):
+                if os.environ.get(key):
+                    os.environ[key] = str(postgres_directory(Path(os.environ[key])))
         result = control(args.command, args.directory, args.data_dir)
         if result is not None:
             # Internal captured pipe to the launcher; never emit this to its console.

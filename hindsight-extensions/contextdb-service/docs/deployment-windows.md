@@ -38,6 +38,10 @@ CONTEXTDB_DEPLOY_DIR=D:/ContextBase/local
 
 模型名称、地址、维度和密钥按服务实际值填写。`rrf` 不调用独立重排模型；需要模型重排时按提供方配置。
 省略 `CONTEXTDB_DEPLOY_DIR` 时使用当前用户的 `~/.contextbase/local`。
+建议像示例一样使用只含英文、数字的路径（允许空格）。内置 PostgreSQL 受 Windows
+系统代码页限制：启动器会尝试兼容的 NTFS 短路径；如果磁盘禁用短文件名且路径无法编码，
+会明确提示改用 ASCII 路径。此时同时检查 `CONTEXTDB_DEPLOY_DIR` 和 `CONTEXTDB_PG_DATA_DIR`，
+不要删除已有数据或凭据。外部 PostgreSQL 不受此内置数据库路径限制。
 省略数据库 URL 时使用 Windows x64 的 pg0；数据默认位于持久化目录下的 `pgdata`，
 可用 `CONTEXTDB_PG_DATA_DIR` 指定。外部 PG 可设置 `CONTEXTBASE_API_DATABASE_URL`，
 必须预先安装 `vector`、`pg_trgm`、`btree_gin`；连接失败不会自动改用嵌入式 PG。

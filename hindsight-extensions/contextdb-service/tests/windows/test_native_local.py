@@ -121,6 +121,20 @@ def test_pg_failure_preserves_redacted_primary_error(tmp_path: Path, monkeypatch
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Requires real Windows NTFS access control")
+def test_windows_postgres_unicode_path_is_compatible_or_actionable(tmp_path: Path) -> None:
+    directory = tmp_path / "中文 本地 state"
+    private_directory(directory)
+    try:
+        compatible = embedded.postgres_directory(directory)
+    except embedded.EmbeddedDatabaseError as error:
+        assert "CONTEXTDB_DEPLOY_DIR" in str(error)
+        assert "ASCII-only paths" in str(error)
+    else:
+        str(compatible).encode("mbcs")
+        assert compatible.resolve() == directory.resolve()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Requires real Windows NTFS access control")
 def test_windows_rejects_a_public_acl(tmp_path: Path) -> None:
     directory = tmp_path / "private-state"
     private_directory(directory)

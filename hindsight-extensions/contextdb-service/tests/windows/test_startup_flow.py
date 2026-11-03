@@ -46,7 +46,7 @@ async def test_powershell_start_auth_management_and_restart(tmp_path: Path) -> N
     api_port, ui_port = free_port(), free_port()
     while ui_port == api_port:
         ui_port = free_port()
-    state = tmp_path / "Windows 本地 state"
+    state = tmp_path / "Windows local state"
     environment = {
         key: value
         for key, value in os.environ.items()
