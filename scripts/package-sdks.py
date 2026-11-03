@@ -1,8 +1,7 @@
-"""Build and inspect downloadable ContextBase SDK packages."""
+"""Build and inspect downloadable ContextBase Python SDK packages."""
 
 import argparse
 import hashlib
-import json
 import re
 import subprocess
 import sys
@@ -20,19 +19,16 @@ def check_member(name: str, content: bytes) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("language", choices=["python", "node"])
+    parser.add_argument("language", choices=["python"])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    source = ROOT / "hindsight-clients" / ("python" if args.language == "python" else "typescript")
+    source = ROOT / "hindsight-clients/python"
     # The repository stages canonical licenses rather than tracking a copy in every Python package.
     if not (source / "LICENSE").exists():
         (source / "LICENSE").write_bytes((ROOT / "LICENSE").read_bytes())
-    if args.language == "python":
-        import tomllib
+    import tomllib
 
-        project = tomllib.loads((source / "pyproject.toml").read_text())["project"]
-    else:
-        project = json.loads((source / "package.json").read_text())
+    project = tomllib.loads((source / "pyproject.toml").read_text())["project"]
     if project["name"] != "contextbase-client":
         raise ValueError("Unexpected SDK distribution name")
     version = project["version"]
@@ -40,21 +36,10 @@ def main() -> None:
         raise ValueError("Invalid SDK version")
     destination = args.output.resolve() / f"contextbase-{args.language}-sdk" / version
     destination.mkdir(parents=True, exist_ok=True)
-    if args.language == "python":
-        subprocess.run([sys.executable, "-m", "build", str(source), "--outdir", str(destination)], check=True)
-        artifacts = list(destination.glob("*.whl")) + list(destination.glob("*.tar.gz"))
-        if len(artifacts) != 2:
-            raise ValueError("Expected one Python wheel and one source archive")
-    else:
-        subprocess.run(["npm", "run", "build", "--workspaces=false"], cwd=source, check=True)
-        subprocess.run(
-            ["npm", "pack", "--ignore-scripts", "--workspaces=false", "--pack-destination", str(destination)],
-            cwd=source,
-            check=True,
-        )
-        artifacts = list(destination.glob("*.tgz"))
-        if len(artifacts) != 1:
-            raise ValueError("Expected one npm tarball")
+    subprocess.run([sys.executable, "-m", "build", str(source), "--outdir", str(destination)], check=True)
+    artifacts = list(destination.glob("*.whl")) + list(destination.glob("*.tar.gz"))
+    if len(artifacts) != 2:
+        raise ValueError("Expected one Python wheel and one source archive")
     for artifact in artifacts:
         check_member(artifact.name, b"")
         if artifact.suffix == ".whl":

@@ -1,4 +1,4 @@
-"""Build standalone ContextBase assistant plugins with their unregistered SDK dependency included."""
+"""Build standalone ContextBase assistant plugins with their SDK dependency included."""
 
 import argparse
 import hashlib
@@ -51,12 +51,14 @@ def package_openclaw(sdk: Path, output: Path) -> Path:
         with tarfile.open(sdk) as archive:
             archive.extractall(unpacked, filter="data")
         dependency = json.loads((unpacked / "package/package.json").read_text())
-        if dependency["name"] != "contextbase-client":
+        if dependency["name"] != "@huaweicloud/contextbase-client":
             raise ValueError("Unexpected Node SDK")
         modules = stage / "node_modules"
         modules.mkdir()
         shutil.move(str(unpacked / "package"), modules / "contextbase-client")
-        manifest["dependencies"]["contextbase-client"] = dependency["version"]
+        # Keep the plugin's existing import name while bundling the same scoped,
+        # audited SDK shipped to npm; do not repack the workspace SDK sources.
+        manifest["dependencies"]["contextbase-client"] = f"npm:{dependency['name']}@{dependency['version']}"
         manifest["bundleDependencies"] = ["contextbase-client"]
         manifest["files"].append("LICENSE")
         for field in ("devDependencies", "overrides", "scripts"):

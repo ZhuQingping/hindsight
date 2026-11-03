@@ -66,17 +66,20 @@ jobs:
         run: npm test -- --runInBand --testPathIgnorePatterns=main_operations.test.ts
       - name: Verify real Node generation and data preservation
         run: python scripts/test-sdk-generation.py node
-      - name: Build npm tarball and inspect brand names
-        run: python scripts/package-sdks.py node --output artifacts
+      - name: Build and audit the public Node SDK used by npm
+        run: |
+          npm --prefix hindsight-clients/typescript run build --workspaces=false
+          python scripts/test-node-sdk-package.py
+          python scripts/package-node-sdk.py --output artifacts
       - name: Verify ESM and CommonJS installation
         run: |
-          for directory in artifacts/contextbase-node-sdk/*; do
-            python scripts/test-sdk-installation.py node "$directory"
+          for directory in artifacts/huaweicloud-contextbase-client/*; do
+            python scripts/test-sdk-installation.py node "$directory" --package-name @huaweicloud/contextbase-client
           done
       - uses: actions/upload-artifact@v4
         with:
           name: contextbase-node-sdk-candidate
-          path: artifacts/contextbase-node-sdk/
+          path: artifacts/huaweicloud-contextbase-client/
           if-no-files-found: error
 
   assistant-openclaw:
@@ -93,7 +96,8 @@ jobs:
       - name: Build the bundled Node SDK
         run: |
           npm --prefix hindsight-clients/typescript ci --ignore-scripts --workspaces=false
-          python scripts/package-sdks.py node --output sdk-build
+          npm --prefix hindsight-clients/typescript run build --workspaces=false
+          python scripts/package-node-sdk.py --output sdk-build
       - name: Build and test OpenClaw remote integration
         working-directory: hindsight-integrations/openclaw
         run: |
@@ -102,7 +106,7 @@ jobs:
           npm test -- --maxWorkers=2
       - name: Package and install the real plugin outside the checkout
         run: |
-          python scripts/package-agent-assistants.py openclaw --sdk-artifact sdk-build/contextbase-node-sdk/*/*.tgz --output artifacts
+          python scripts/package-agent-assistants.py openclaw --sdk-artifact sdk-build/huaweicloud-contextbase-client/*/*.tgz --output artifacts
           python scripts/test-agent-assistants.py openclaw artifacts/contextbase-openclaw/*/*.tgz
       - uses: actions/upload-artifact@v4
         with:
