@@ -9,14 +9,11 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-# Use repository-owned scripts and approved Actions. Optional cross-job caches
-# are omitted because actions/cache is outside the organization allowlist.
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
       pull-requests: read
     outputs:
       core: ${{ steps.filter.outputs.core }}
@@ -100,19 +97,225 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - uses: actions/setup-node@v6
-      with:
-        node-version: '24'
-    - name: Install change detection dependencies
-      run: npm ci --prefix .github/ci --ignore-scripts
-    - name: Test CI helpers
-      run: node --test .github/ci/*.test.mjs
-    - name: Detect changed paths
+    - uses: dorny/paths-filter@v4
       id: filter
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: node .github/ci/detect-changes.mjs
+      with:
+        filters: |
+          core:
+            - 'hindsight-api-slim/**'
+            - 'hindsight-api/**'
+            - 'scripts/**'
+            - '.python-version'
+            - '.env.example'
+            # The workspace lockfile and root manifest determine which versions
+            # the API actually runs against, so a change to either can break it
+            # without touching a line of source. Both are deliberately bare
+            # patterns: they match only the files at the repository root. A
+            # glob such as '**/uv.lock' would pull every integration lockfile
+            # into the core suite.
+            - 'uv.lock'
+            - 'pyproject.toml'
+          clients-ts:
+            - 'hindsight-clients/typescript/**'
+            - 'package.json'
+            - 'package-lock.json'
+          clients-python:
+            - 'hindsight-clients/python/**'
+          clients-rust:
+            - 'hindsight-clients/rust/**'
+            # The Rust client is not committed source — build.rs regenerates it with
+            # progenitor from this spec, and progenitor emits query params POSITIONALLY
+            # in alphabetical order. So adding one query param to any endpoint shifts
+            # every later argument and breaks the call sites, with nothing under
+            # hindsight-clients/rust/ changed to trigger this job (#4509).
+            - 'hindsight-docs/static/openapi.json'
+          clients-go:
+            - 'hindsight-clients/go/**'
+          control-plane:
+            - 'contextbase-control-plane/**'
+            - 'hindsight-extensions/contextdb-service/tests/ui/**'
+            - 'package.json'
+            - 'package-lock.json'
+          cli:
+            - 'hindsight-cli/**'
+            # Same reason as clients-rust above: the CLI compiles against the
+            # progenitor-generated client, so an OpenAPI change alone can break it.
+            - 'hindsight-docs/static/openapi.json'
+          figures:
+            - 'hindsight-docs/figures/**'
+            - 'scripts/docs_skill_figures.py'
+            # The Giotto pin lives here: a new Giotto can stop a figure from drawing.
+            - 'hindsight-docs/package.json'
+          docker:
+            - 'docker/**'
+          helm:
+            - 'helm/**'
+          # The RUNNABLE samples only. This replaces a broad `docs` filter that also
+          # matched 'hindsight-docs/**', '*.md' and 'hindsight-integrations/**' — the
+          # last of those so an integration rename would be caught by the docs build's
+          # integrations check, except that build (build-docs) has no `if:` and runs
+          # unconditionally anyway. test-doc-examples was the filter's only consumer,
+          # and it executes every sample against a live LLM-backed server, so every
+          # integration and prose-only PR paid for four provider-credentialed runs that
+          # none of those files can affect.
+          doc-examples:
+            - 'hindsight-docs/examples/**'
+            - 'scripts/test-doc-examples.sh'
+          embed:
+            - 'hindsight-embed/**'
+          all-npm:
+            - 'hindsight-all-npm/**'
+            - 'package.json'
+            - 'package-lock.json'
+          hindsight-all:
+            - 'hindsight-all/**'
+          integration-tests:
+            - 'hindsight-integration-tests/**'
+          system-tests:
+            - 'hindsight-system-tests/**'
+          # True when the PR touches anything *other* than the system-test
+          # package. The two unconditional-by-design jobs (build-docs and
+          # verify-generated-files) hang off this rather than off a positive
+          # filter, so they keep running for every change in the repo and only
+          # step aside for a PR confined to hindsight-system-tests/ — a package
+          # nothing generates from and the docs site never reads. Iterating on
+          # that suite otherwise costs ~6 minutes of unrelated CI against a
+          # 36-second test.
+          outside-system-tests:
+            # A lone negation, deliberately. paths-filter builds one matcher per
+            # pattern and ORs them, so adding '**' alongside would make every
+            # file match and the filter always true — a change that looks right
+            # and silently does nothing.
+            - '!hindsight-system-tests/**'
+          integrations-openclaw:
+            - 'hindsight-integrations/openclaw/**'
+          integrations-ai-sdk:
+            - 'hindsight-integrations/ai-sdk/**'
+          integrations-eliza:
+            - 'hindsight-integrations/eliza/**'
+          integrations-agent-framework:
+            - 'hindsight-integrations/agent-framework/**'
+          integrations-composio:
+            - 'hindsight-integrations/composio/**'
+          integrations-chat:
+            - 'hindsight-integrations/chat/**'
+          integrations-claude-code:
+            - 'hindsight-integrations/claude-code/**'
+          integrations-coding-agents:
+            - 'hindsight-integrations/coding-agents/**'
+          integrations-cline:
+            - 'hindsight-integrations/cline/**'
+          integrations-codex:
+            - 'hindsight-integrations/codex/**'
+          integrations-github-copilot:
+            - 'hindsight-integrations/github-copilot/**'
+          integrations-continue:
+            - 'hindsight-integrations/continue/**'
+          integrations-cursor-cli:
+            - 'hindsight-integrations/cursor-cli/**'
+          integrations-copilot-cli:
+            - 'hindsight-integrations/copilot-cli/**'
+          extensions-supabase-tenant:
+            - 'hindsight-extensions/supabase-tenant/**'
+          extensions-static-keys-tenant:
+            - 'hindsight-extensions/static-keys-tenant/**'
+          extensions-contextdb-service:
+            - 'hindsight-extensions/contextdb-service/**'
+          integrations-crewai:
+            - 'hindsight-integrations/crewai/**'
+          integrations-litellm:
+            - 'hindsight-integrations/litellm/**'
+          integrations-pydantic-ai:
+            - 'hindsight-integrations/pydantic-ai/**'
+          integrations-hermes:
+            - 'hindsight-integrations/hermes/**'
+          integrations-ag2:
+            - 'hindsight-integrations/ag2/**'
+          integrations-autogen:
+            - 'hindsight-integrations/autogen/**'
+          integrations-aider:
+            - 'hindsight-integrations/aider/**'
+          integrations-langgraph:
+            - 'hindsight-integrations/langgraph/**'
+          integrations-llamaindex:
+            - 'hindsight-integrations/llamaindex/**'
+          integrations-haystack:
+            - 'hindsight-integrations/haystack/**'
+          integrations-paperclip:
+            - 'hindsight-integrations/paperclip/**'
+          integrations-opencode:
+            - 'hindsight-integrations/opencode/**'
+          integrations-eve:
+            - 'hindsight-integrations/eve/**'
+          integrations-cursor:
+            - 'hindsight-integrations/cursor/**'
+          integrations-zed:
+            - 'hindsight-integrations/zed/**'
+          integrations-zcode:
+            - 'hindsight-integrations/zcode/**'
+          integrations-agent-plugin:
+            - 'hindsight-integrations/agent-plugin/**'
+          integrations-n8n:
+            - 'hindsight-integrations/n8n/**'
+          integrations-zapier:
+            - 'hindsight-integrations/zapier/**'
+          integrations-cloudflare-oauth-proxy:
+            - 'hindsight-integrations/cloudflare-oauth-proxy/**'
+          integrations-superagent:
+            - 'hindsight-integrations/superagent/**'
+          integrations-lockfiles:
+            - 'hindsight-integrations/*/package-lock.json'
+            - 'hindsight-integrations/*/package.json'
+            - 'scripts/check-integration-lockfiles.sh'
+          integrations-openai-agents:
+            - 'hindsight-integrations/openai-agents/**'
+          integrations-openhands:
+            - 'hindsight-integrations/openhands/**'
+          integrations-devin-desktop:
+            - 'hindsight-integrations/devin-desktop/**'
+          integrations-pipecat:
+            - 'hindsight-integrations/pipecat/**'
+          integrations-agentcore:
+            - 'hindsight-integrations/agentcore/**'
+          integrations-smolagents:
+            - 'hindsight-integrations/smolagents/**'
+          integrations-claude-agent-sdk:
+            - 'hindsight-integrations/claude-agent-sdk/**'
+          integrations-dify:
+            - 'hindsight-integrations/dify/**'
+          integrations-gemini-spark:
+            - 'hindsight-integrations/gemini-spark/**'
+          integrations-meta-muse:
+            - 'hindsight-integrations/meta-muse/**'
+          integrations-grok-bot:
+            - 'hindsight-integrations/grok-bot/**'
+            - '.cursor-plugin/**'
+            - 'hindsight-api-slim/hindsight_api/mcp_tools.py'
+          integrations-vapi:
+            - 'hindsight-integrations/vapi/**'
+          integrations-flowise:
+            - 'hindsight-integrations/flowise/**'
+          integrations-google-adk:
+            - 'hindsight-integrations/google-adk/**'
+          integrations-obsidian:
+            - 'hindsight-integrations/obsidian/**'
+          integrations-omo:
+            - 'hindsight-integrations/omo/**'
+          integrations-roo-code:
+            - 'hindsight-integrations/roo-code/**'
+          dev:
+            - 'hindsight-dev/**'
+            - 'scripts/dev/**'
+          ci:
+            - '.github/**'
 
+  # Fail fast if any hindsight-integrations/*/package-lock.json was regenerated
+  # from the monorepo root and ended up symlinked at a workspace path instead
+  # of the npm registry. That bit us on the 0.6.0 openclaw release — tsc in
+  # the release workflow couldn't find `contextbase-client`
+  # because its `resolved` url pointed at a workspace dir whose `dist/` was
+  # gitignored and unbuilt. Catching this at PR time means the release CI
+  # never hits that class of failure.
   check-integration-lockfiles:
     needs: [detect-changes]
     if: >-
@@ -151,8 +354,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -189,8 +394,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
@@ -530,8 +737,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -564,8 +774,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -626,8 +839,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -660,8 +876,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -748,8 +967,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install Deno 2
-      run: npm install --global deno@2
+    - name: Set up Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
 
     - name: Set up Node.js
       uses: actions/setup-node@v6
@@ -1029,8 +1250,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1063,8 +1287,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1097,8 +1324,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1127,8 +1357,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1185,8 +1418,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1374,6 +1610,15 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-cli/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Install cargo-about
       uses: taiki-e/install-action@v2
       with:
@@ -1407,14 +1652,17 @@ jobs:
       run: cargo build --release
 
     - name: Upload CLI artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: hindsight-cli
         path: hindsight-cli/target/release/contextbase
         retention-days: 1
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1428,6 +1676,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -1492,14 +1748,9 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
     - name: Install Helm
-      run: |
-        mkdir -p "$RUNNER_TEMP/ci-helm"
-        cd "$RUNNER_TEMP/ci-helm"
-        curl --fail --silent --show-error --location --retry 3 -O https://get.helm.sh/helm-v3.18.6-linux-amd64.tar.gz
-        curl --fail --silent --show-error --location --retry 3 -O https://get.helm.sh/helm-v3.18.6-linux-amd64.tar.gz.sha256sum
-        sha256sum --check helm-v3.18.6-linux-amd64.tar.gz.sha256sum
-        tar -xzf helm-v3.18.6-linux-amd64.tar.gz
-        echo "$PWD/linux-amd64" >> "$GITHUB_PATH"
+      uses: azure/setup-helm@v5
+      with:
+        version: 'latest'
 
     - name: Lint Helm chart
       run: helm lint helm/hindsight
@@ -1577,33 +1828,37 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Free runner disk space
-      run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
-        sudo swapoff -a
-        sudo rm -f /mnt/swapfile
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        docker image prune --all --force
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
 
     - name: Set up Docker Buildx
-      run: |
-        docker buildx create --name ci-builder --driver docker-container --use
-        docker buildx inspect --bootstrap
+      uses: docker/setup-buildx-action@v4
 
     - name: Build ${{ matrix.name }} image (${{ matrix.variant }})
-      env:
-        IMAGE_NAME: ${{ matrix.name }}
-        IMAGE_TARGET: ${{ matrix.target }}
-        BUILD_ARGS: ${{ matrix.build_args }}
-        LOAD_IMAGE: ${{ matrix.smoke }}
-      run: |
-        args=(--file docker/standalone/Dockerfile --target "$IMAGE_TARGET" --tag "hindsight-$IMAGE_NAME:test")
-        while IFS= read -r arg; do
-          if [[ -n "$arg" ]]; then args+=(--build-arg "$arg"); fi
-        done <<< "$BUILD_ARGS"
-        if [[ "$LOAD_IMAGE" == "true" ]]; then args+=(--load); fi
-        docker buildx build "${args[@]}" .
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        file: docker/standalone/Dockerfile
+        target: ${{ matrix.target }}
+        build-args: ${{ matrix.build_args }}
+        push: false
+        load: ${{ matrix.smoke }}
+        tags: hindsight-${{ matrix.name }}:test
+        # Removed GitHub Actions cache (type=gha) - it frequently returns 502 errors
+        # causing buildx to fail with "failed to parse error response 502"
+        # Build will be slower but more reliable
 
+    # Slim variants require external embedding providers; cp-only needs no
+    # credentials at all, so the credential step stays gated on the variant
+    # while the smoke test itself is gated on `smoke`.
     - name: Setup GCP credentials for smoke test
       if: matrix.variant == 'slim' && matrix.smoke
       run: |
@@ -1666,8 +1921,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1678,9 +1936,29 @@ jobs:
       working-directory: ./hindsight-api-slim
       run: uv build
 
+    - name: Cache hindsight-api-slim/.venv
+      # Keyed on the workspace lockfile, the API package's pyproject, and the
+      # pinned Python version — the only inputs that change the resolved env.
+      # `uv sync --frozen` still runs after restore but is a near-instant link
+      # check when the venv already matches the lock.
+      uses: actions/cache@v5
+      with:
+        path: hindsight-api-slim/.venv
+        key: ${{ runner.os }}-venv-test-api-${{ hashFiles('uv.lock', 'hindsight-api-slim/pyproject.toml', '.python-version') }}
+        restore-keys: |
+          ${{ runner.os }}-venv-test-api-
+
     - name: Install dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -1719,7 +1997,7 @@ jobs:
 
     - name: Upload Postgres server log on failure
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pg-server-log-shard-${{ matrix.shard }}
         path: pg-server-log/
@@ -1770,8 +2048,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1781,6 +2062,14 @@ jobs:
     - name: Install dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -1862,8 +2151,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -1873,6 +2165,14 @@ jobs:
     - name: Install dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -1952,11 +2252,16 @@ jobs:
     #     then has to re-download, making the job slower, not faster;
     #   - docker-images is pointless here (the Oracle service container is already
     #     running, so its image is in use and cannot be pruned anyway).
-    - name: Free runner disk space
-      run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
-        sudo swapoff -a
-        sudo rm -f /mnt/swapfile
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: false
+        docker-images: false
+        swap-storage: true
 
     - name: Setup Oracle test user
       # The SYSTEM tablespace uses manual segment space management which
@@ -1993,8 +2298,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2008,6 +2316,14 @@ jobs:
     - name: Install dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2056,8 +2372,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2079,6 +2398,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2157,8 +2484,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2185,6 +2515,14 @@ jobs:
     - name: Build TypeScript client
       working-directory: ./hindsight-clients/typescript
       run: npm run build
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2295,11 +2633,16 @@ jobs:
     #     then has to re-download, making the job slower, not faster;
     #   - docker-images is pointless here (the Oracle service container is already
     #     running, so its image is in use and cannot be pruned anyway).
-    - name: Free runner disk space
-      run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
-        sudo swapoff -a
-        sudo rm -f /mnt/swapfile
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: false
+        docker-images: false
+        swap-storage: true
 
     - name: Setup Oracle test user
       run: |
@@ -2333,8 +2676,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2356,6 +2702,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2460,11 +2814,16 @@ jobs:
     #     then has to re-download, making the job slower, not faster;
     #   - docker-images is pointless here (the Oracle service container is already
     #     running, so its image is in use and cannot be pruned anyway).
-    - name: Free runner disk space
-      run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
-        sudo swapoff -a
-        sudo rm -f /mnt/swapfile
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: false
+        docker-images: false
+        swap-storage: true
 
     - name: Setup Oracle test user
       run: |
@@ -2498,8 +2857,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2526,6 +2888,14 @@ jobs:
     - name: Build TypeScript client
       working-directory: ./hindsight-clients/typescript
       run: npm run build
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2605,8 +2975,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2620,8 +2993,10 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
 
-    - name: Install Deno 2
-      run: npm install --global deno@2
+    - name: Set up Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
 
     - name: Build API
       working-directory: ./hindsight-api-slim
@@ -2638,6 +3013,14 @@ jobs:
     - name: Build TypeScript client
       working-directory: ./hindsight-clients/typescript
       run: npm run build
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2706,6 +3089,15 @@ jobs:
       with:
         targets: aarch64-unknown-linux-gnu
 
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-cli/target
+        key: linux-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Build CLI
       working-directory: hindsight-cli
       run: cargo build --release --target aarch64-unknown-linux-gnu
@@ -2739,8 +3131,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2750,6 +3145,15 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-clients/rust/target
+        key: ${{ runner.os }}-cargo-client-${{ hashFiles('hindsight-clients/rust/Cargo.lock') }}
+
     - name: Build API
       working-directory: ./hindsight-api-slim
       run: uv build
@@ -2757,6 +3161,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2835,24 +3247,22 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version-file: ".python-version"
 
-    - name: Install Go 1.23
-      run: |
-        mkdir -p "$RUNNER_TEMP/ci-go"
-        cd "$RUNNER_TEMP/ci-go"
-        curl --fail --silent --show-error --location --retry 3 'https://go.dev/dl/?mode=json&include=all' -o releases.json
-        checksum=$(jq -er '.[] | select(.version == "go1.23.12") | .files[] | select(.filename == "go1.23.12.linux-amd64.tar.gz") | .sha256' releases.json)
-        curl --fail --silent --show-error --location --retry 3 -O https://go.dev/dl/go1.23.12.linux-amd64.tar.gz
-        printf '%s  %s\n' "$checksum" go1.23.12.linux-amd64.tar.gz | sha256sum --check
-        tar -xzf go1.23.12.linux-amd64.tar.gz
-        echo "$PWD/go/bin" >> "$GITHUB_PATH"
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.23'
+        cache-dependency-path: hindsight-clients/go/go.sum
 
     - name: Build API
       working-directory: ./hindsight-api-slim
@@ -2861,6 +3271,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -2944,8 +3362,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -2968,6 +3389,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -3056,8 +3485,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3075,6 +3507,14 @@ jobs:
     - name: Install API dependencies
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -3146,8 +3586,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3198,9 +3641,7 @@ jobs:
     - uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
-
+    - uses: astral-sh/setup-uv@v7
     - uses: actions/setup-python@v6
       with:
         python-version-file: .python-version
@@ -3252,8 +3693,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3286,8 +3730,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3322,8 +3769,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3358,8 +3808,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3398,8 +3851,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3434,8 +3890,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3469,8 +3928,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3572,8 +4034,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3612,8 +4077,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3645,9 +4113,7 @@ jobs:
     - uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
-
+    - uses: astral-sh/setup-uv@v7
     - uses: actions/setup-python@v6
       with:
         python-version-file: ".python-version"
@@ -3682,8 +4148,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3726,8 +4195,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3773,8 +4245,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3808,8 +4283,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3842,8 +4320,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3878,8 +4359,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3914,8 +4398,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3948,8 +4435,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -3978,8 +4468,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4014,8 +4507,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4050,8 +4546,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4086,8 +4585,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4122,8 +4624,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4158,8 +4663,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4193,8 +4701,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4229,8 +4740,11 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4277,8 +4791,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4385,8 +4902,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "CONTEXTBASE_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4400,6 +4920,15 @@ jobs:
     - name: Install API dependencies (with local-ml and embedded-db for smoke test)
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-embed-${{ hashFiles('hindsight-embed/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-embed-
+          ${{ runner.os }}-huggingface-
 
     - name: Run unit and integration tests
       working-directory: ./hindsight-embed
@@ -4460,8 +4989,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' gcp-credentials.json)
         echo "CONTEXTBASE_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4476,6 +5008,15 @@ jobs:
       working-directory: ./hindsight-api-slim
       run: uv sync --frozen --all-extras --index-strategy unsafe-best-match
 
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-embed-${{ hashFiles('hindsight-embed/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-embed-
+          ${{ runner.os }}-huggingface-
+
     - name: Run unit and integration tests
       working-directory: ./hindsight-embed
       run: uv run pytest tests/ -v
@@ -4487,6 +5028,18 @@ jobs:
     # drop it into ~/.local/bin where find_cli_binary() looks first.
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo build
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-cli/target
+        key: ${{ runner.os }}-cargo-embed-smoke-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-embed-smoke-
+          ${{ runner.os }}-cargo-
 
     - name: Build hindsight CLI
       working-directory: ./hindsight-cli
@@ -4625,8 +5178,22 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    # hindsight-all pulls the local-ml extra, so the embedded daemon can load
+    # sentence-transformers models. Cache them like the test-embed job does.
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-hermes-compat-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-hermes-compat-
+          ${{ runner.os }}-huggingface-
 
     - name: Run Hermes compatibility test
       env:
@@ -4677,8 +5244,11 @@ jobs:
         PROJECT_ID=$(jq -r '.project_id' /tmp/gcp-credentials.json)
         echo "HINDSIGHT_API_LLM_VERTEXAI_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4720,6 +5290,15 @@ jobs:
     - name: Install dependencies
       working-directory: ./hindsight-all
       run: uv sync --frozen --extra test --index-strategy unsafe-best-match
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-all-${{ hashFiles('hindsight-all/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-all-
+          ${{ runner.os }}-huggingface-
 
     - name: Run unit tests
       working-directory: ./hindsight-all
@@ -4766,6 +5345,16 @@ jobs:
       if: matrix.language == 'cli'
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Cache cargo
+      if: matrix.language == 'cli'
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          hindsight-cli/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Build CLI
       if: matrix.language == 'cli'
       working-directory: hindsight-cli
@@ -4773,8 +5362,11 @@ jobs:
         cargo build --release
         cp target/release/contextbase /usr/local/bin/contextbase
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -4805,6 +5397,14 @@ jobs:
       run: |
         npm ci --workspace=hindsight-clients/typescript
         npm run build --workspace=hindsight-clients/typescript
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Pre-download models
       working-directory: ./hindsight-api-slim
@@ -4888,13 +5488,24 @@ jobs:
     - name: Fetch tags
       run: git fetch --tags
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
 
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version-file: ".python-version"
+
+    - name: Cache HuggingFace models
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-${{ hashFiles('hindsight-api-slim/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
 
     - name: Install hindsight-dev dependencies
       working-directory: ./hindsight-dev
@@ -4956,8 +5567,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Node.js
       uses: actions/setup-node@v6
@@ -4999,8 +5612,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -5016,6 +5631,14 @@ jobs:
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+        key: ${{ runner.os }}-cargo-gen-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Install Node dependencies
       run: npm ci
@@ -5079,8 +5702,10 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha || '' }}
         fetch-depth: 0  # Fetch full git history to access base branch
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -5143,8 +5768,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -5182,8 +5809,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -5219,8 +5848,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
 
-    - name: Install pinned uv
-      run: python -m pip install uv==0.11.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -5234,3 +5865,185 @@ jobs:
     - name: Run hindsight-dev tests
       working-directory: hindsight-dev
       run: uv run pytest tests/ -v
+
+  # Report CI status back to the PR for pull_request_review events.
+  # GitHub does not automatically link pull_request_review check runs to the PR,
+  # so we create a commit status on the PR head SHA and post a comment.
+  report-pr-status:
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved' && always()
+    needs:
+      - detect-changes
+      - check-integration-lockfiles
+      - build-api-python-versions
+      - build-typescript-client
+      - build-openclaw-integration
+      - smoke-openclaw-install
+      - test-claude-code-integration
+      - test-cursor-integration
+      - test-cline-integration
+      - test-github-copilot-integration
+      - test-codex-integration
+      - test-cursor-cli-integration
+      - test-zcode-integration
+      - test-agent-plugin-integration
+      - build-ai-sdk-integration
+      - test-ai-sdk-integration-deno
+      - test-opencode-integration
+      - test-eve-integration
+      - test-omo-integration
+      - test-cloudflare-oauth-proxy-integration
+      - build-chat-integration
+      - test-paperclip-integration
+      - test-pipecat-integration
+      - test-gemini-spark-integration
+      - test-meta-muse-integration
+      - test-grok-bot-integration
+      - test-vapi-integration
+      - test-google-adk-integration
+      - test-roo-code-integration
+      - build-control-plane
+      - test-figures
+      - build-docs
+      - test-rust-cli
+      - lint-helm-chart
+      - test-standalone-start-script
+      - build-docker-images
+      - test-api
+      - test-api-oracle
+      - test-python-client
+      - test-python-client-oracle
+      - test-typescript-client
+      - test-typescript-client-oracle
+      - test-typescript-client-deno
+      - build-rust-cli-arm64
+      - test-rust-client
+      - test-go-client
+      - test-openclaw-integration
+      - test-integration
+      - test-ag2-integration
+      - test-aider-integration
+      - test-autogen-integration
+      - test-continue-integration
+      - test-smolagents-integration
+      - test-dify-integration
+      - test-flowise-integration
+      - test-obsidian-integration
+      - test-agent-framework-integration
+      - test-extension-supabase-tenant
+      - test-extension-static-keys-tenant
+      - test-extension-contextdb-service
+      - test-crewai-integration
+      - test-langgraph-integration
+      - test-superagent-integration
+      - test-litellm-integration
+      - test-pydantic-ai-integration
+      - test-hermes-integration
+      - test-llamaindex-integration
+      - test-openai-agents-integration
+      - test-openhands-integration
+      - test-devin-desktop-integration
+      - test-agentcore-integration
+      - test-haystack-integration
+      - test-pip-slim
+      - test-embed
+      - test-embed-windows
+      - verify-embed-control-center-bundle
+      - test-hermes-compat
+      - test-hindsight-all
+      - test-claude-agent-sdk-integration
+      - test-doc-examples
+      - test-upgrade
+      - verify-generated-files
+      - check-openapi-compatibility
+      - check-cli-coverage
+      - check-client-coverage
+      - test-system
+      - test-contextdb-system-ui
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      statuses: write
+      pull-requests: write
+    steps:
+      - name: Determine overall result
+        id: result
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const needs = ${{ toJSON(needs) }};
+            const entries = Object.entries(needs);
+            const failed = entries.filter(([name, v]) =>
+              v.result === 'failure' ||
+              (name === 'test-contextdb-system-ui' && v.result === 'cancelled')
+            );
+            const skipped = entries.filter(([, v]) => v.result === 'skipped');
+            const succeeded = entries.filter(([, v]) => v.result === 'success');
+            const overall = failed.length > 0 ? 'failure' : 'success';
+            const icon = overall === 'success' ? '✅' : '❌';
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let body = `## ${icon} CI results\n\n`;
+            body += `| Status | Count |\n|--------|-------|\n`;
+            body += `| ✅ Passed | ${succeeded.length} |\n`;
+            if (failed.length > 0) body += `| ❌ Failed | ${failed.length} |\n`;
+            if (skipped.length > 0) body += `| ⏭️ Skipped | ${skipped.length} |\n`;
+
+            if (failed.length > 0) {
+              body += `\n### Failed jobs\n`;
+              for (const [name] of failed) {
+                body += `- \`${name}\`\n`;
+              }
+            }
+
+            body += `\n[View full run](${runUrl})`;
+
+            core.setOutput('state', overall);
+            core.setOutput('description', failed.length > 0 ? 'Some CI checks failed' : 'All CI checks passed');
+            core.setOutput('body', body);
+            core.setOutput('run_url', runUrl);
+
+      - name: Report status to PR
+        uses: actions/github-script@v9
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: '${{ steps.result.outputs.state }}',
+              context: 'CI / full-tests',
+              description: '${{ steps.result.outputs.description }}',
+              target_url: '${{ steps.result.outputs.run_url }}'
+            });
+
+      - name: Comment on PR
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const marker = '<!-- ci-full-test-report -->';
+            const body = `${marker}\n${{ steps.result.outputs.body }}`;
+
+            // Update existing comment if present, otherwise create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
