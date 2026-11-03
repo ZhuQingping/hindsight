@@ -20,56 +20,59 @@ const connection: CustomerConnection = {
 };
 const terminals: ConnectionTerminal[] = ["bash", "powershell", "cmd"];
 
-it.each(codingClients)("installs only $id with its Bank ID and explicit credentials", ({ id }) => {
-  const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
-  const apiUrl = "https://api.example.com/team's/$(exit 73)/`exit 74`/$HOME";
-  const snippet = connectionExample(id, "bash", bank, { ...connection, apiUrl }, "question");
-  // Run the generated shell, recording argv without installing anything.
-  const output = execFileSync(
-    "bash",
-    ["-c", 'npx() { printf "%s\\n" "$@"; };\n' + snippet.install],
-    {
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        CONTEXTBASE_API_URL: "https://old.example.com",
-        CONTEXTBASE_API_TOKEN: "old-key",
-      },
-    }
-  )
-    .trim()
-    .split("\n");
-  expect(output).toEqual([
-    "--yes",
-    connection.codingAgentsNpm,
-    "install",
-    id,
-    "--bank-id",
-    bank,
-    "--api-url",
-    apiUrl,
-    "--api-token",
-    "<API_KEY>",
-  ]);
-  expect(snippet.install).not.toContain("--project-path");
-  expect(snippet.install!.split("\n")[0]).toContain("CONTEXTBASE_API_URL");
-  expect(snippet.install!.split("\n")[1]).toBe("export CONTEXTBASE_API_TOKEN='<API_KEY>'");
-  expect(snippet.install).toContain("--bank-id");
-});
+it.each(codingClients)(
+  "installs only $id with its Bank ID and environment credentials",
+  ({ id }) => {
+    const bank = "team's bank $(exit 73) `exit 74` $HOME & 中文";
+    const apiUrl = "https://api.example.com/team's/$(exit 73)/`exit 74`/$HOME";
+    const snippet = connectionExample(id, "bash", bank, { ...connection, apiUrl }, "question");
+    // Run the generated shell, recording argv without installing anything.
+    const output = execFileSync(
+      "bash",
+      [
+        "-c",
+        'npx() { printf "%s\\n" "$CONTEXTBASE_API_URL" "$CONTEXTBASE_API_TOKEN" "$@"; };\n' +
+          snippet.install,
+      ],
+      {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          CONTEXTBASE_API_URL: "https://old.example.com",
+          CONTEXTBASE_API_TOKEN: "old-key",
+        },
+      }
+    )
+      .trim()
+      .split("\n");
+    expect(output).toEqual([
+      apiUrl,
+      "<API_KEY>",
+      "--yes",
+      connection.codingAgentsNpm,
+      "install",
+      id,
+      "--bank-id",
+      bank,
+    ]);
+    expect(snippet.install).not.toContain("--project-path");
+    expect(snippet.install!.split("\n")[0]).toContain("CONTEXTBASE_API_URL");
+    expect(snippet.install!.split("\n")[1]).toBe("export CONTEXTBASE_API_TOKEN='<API_KEY>'");
+    expect(snippet.install).toContain("--bank-id");
+  }
+);
 
 it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
   const install = connectionExample("codex", terminal, "team", connection, "question").install!;
   expect(install).toContain(" install codex --bank-id ");
   expect(install.split("\n")).toHaveLength(3);
   expect(install).not.toContain("install claude-code");
+  expect(install).not.toMatch(/--api-url|--api-token/);
   if (terminal === "bash") {
     expect(install.split("\n").slice(0, 2)).toEqual([
       `export CONTEXTBASE_API_URL='${connection.apiUrl}'`,
       "export CONTEXTBASE_API_TOKEN='<API_KEY>'",
     ]);
-    expect(install).toContain(
-      '--api-url "$CONTEXTBASE_API_URL" --api-token "$CONTEXTBASE_API_TOKEN"'
-    );
     expect(install).toContain("npx --yes");
   } else {
     if (terminal === "cmd") {
@@ -77,9 +80,6 @@ it.each(terminals)("uses the correct terminal syntax for %s", (terminal) => {
         `set "CONTEXTBASE_API_URL=${connection.apiUrl}"`,
         'set "CONTEXTBASE_API_TOKEN=<API_KEY>"',
       ]);
-      expect(install).toContain(
-        '--api-url "%CONTEXTBASE_API_URL%" --api-token "%CONTEXTBASE_API_TOKEN%"'
-      );
     }
     expect(install).toContain("npx.cmd --yes");
   }
@@ -111,7 +111,7 @@ it("matches the complete PowerShell installation command", () => {
     [
       `$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`,
       "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
-      "npx.cmd --yes '@huaweicloud/contextbase-coding-agents@latest' install claude-code --bank-id 'smoke-bank' --api-url \"$env:CONTEXTBASE_API_URL\" --api-token \"$env:CONTEXTBASE_API_TOKEN\"",
+      "npx.cmd --yes '@huaweicloud/contextbase-coding-agents@latest' install claude-code --bank-id 'smoke-bank'",
     ].join("\n")
   );
 });

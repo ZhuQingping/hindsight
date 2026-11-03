@@ -56,8 +56,7 @@ it.each(["contextbase", "contextdb"])(
       "$env:CONTEXTBASE_API_URL = 'https://api.example.com/customer-api'",
       "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
     ]);
-    expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
-    expect(command.textContent).toContain('--api-token "$env:CONTEXTBASE_API_TOKEN"');
+    expect(command.textContent).not.toMatch(/--api-url|--api-token/);
     expect(screen.getByText(/^--api-url: Omit/).textContent).not.toContain(
       "https://api.example.com/customer-api"
     );

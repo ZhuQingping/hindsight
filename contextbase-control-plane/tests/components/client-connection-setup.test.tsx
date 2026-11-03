@@ -165,8 +165,7 @@ it("shows connection details after the command without a parameter form and with
     `$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`,
     "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
   ]);
-  expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
-  expect(command.textContent).toContain('--api-token "$env:CONTEXTBASE_API_TOKEN"');
+  expect(command.textContent).not.toMatch(/--api-url|--api-token/);
   const text = document.body.textContent!;
   const endpointHelp = screen.getByText(/^--api-url: Omit/);
   expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(
