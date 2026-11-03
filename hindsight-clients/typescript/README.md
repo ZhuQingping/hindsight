@@ -1,15 +1,15 @@
 # ContextBase Node.js SDK
 
-Install the downloaded package (Node.js 18+):
+Install the npm package (Node.js 18+):
 
 ```sh
-npm install ./contextbase-client-1.0.0.tgz
+npm install @huaweicloud/contextbase-client
 ```
 
 Set `CONTEXTBASE_API_URL`, `CONTEXTBASE_API_TOKEN` and `CONTEXTBASE_BANK_ID` to the values supplied by your service provider, then use:
 
 ```typescript
-import { ContextBaseClient } from "contextbase-client";
+import { ContextBaseClient } from "@huaweicloud/contextbase-client";
 
 const client = new ContextBaseClient({
   baseUrl: process.env.CONTEXTBASE_API_URL!,
@@ -24,7 +24,7 @@ console.log(result);
 CommonJS is also supported:
 
 ```javascript
-const { ContextBaseClient, ContextBaseError } = require("contextbase-client");
+const { ContextBaseClient, ContextBaseError } = require("@huaweicloud/contextbase-client");
 ```
 
 The package includes TypeScript declarations. Pass the API Endpoint including any service path prefix. The SDK connects to your configured service; it does not install a server or create your Bank automatically.

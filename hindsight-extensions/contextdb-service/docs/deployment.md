@@ -201,6 +201,6 @@ readiness、UI probe 和 status 都不证明模型或 Worker 实际执行成功�
 
 ## 9. 开发与排障入口
 
-- [唯一 DESIGN](../../../docs/contextdb-management/DESIGN.md#overview)、[生成器模型](../hindsight_ext_contextdb/deployment.py)、[测试入口](../README.md#测试入口)、[检视](../../../docs/contextdb-management/CODE-REVIEW.md)、[验收](../../../docs/contextdb-management/VALIDATION.md)。
+- [唯一 DESIGN](../../../docs/contextdb-management/DESIGN.md#overview)、[生成器模型](../hindsight_ext_contextdb/deployment.py)、[测试入口](../README.md#测试入口)、[验证入口与边界](../../../docs/contextdb-management/VALIDATION.md)、[云环境交付待办](../../../docs/contextbase/CLOUD-READINESS.md)。
 - 预检区分依赖、源码路径、PG 扩展和权限；业务失败区分网络、Key 授权、后台任务和模型调用。
 - 本页保留原部署链接的重要锚点；原 Docker 操作已移至 Docker 指南，宿主用户按宿主指南执行，不把两个执行环境的命令混用。
