@@ -140,6 +140,11 @@ it("renders Chinese instructions and all dynamic translation paths without missi
     </NextIntlClientProvider>
   );
   const picker = screen.getByLabelText("客户端");
+  expect(screen.getByRole("heading", { name: "可选参数" })).toBeTruthy();
+  expect(document.body.textContent).not.toMatch(
+    /首次可按提示输入|覆盖已有地址时请显式指定|仅用于指定项目级客户端注册目录/
+  );
+  expect(document.body.textContent).toContain("--project-path：可选，默认当前目录。");
   for (const id of [...codingClients.map((client) => client.id), "openclaw", "hermes"])
     fireEvent.change(picker, { target: { value: id } });
   fireEvent.click(screen.getByRole("button", { name: "应用开发" }));
@@ -156,7 +161,12 @@ it("shows connection details after the command without a parameter form and with
     node.textContent?.includes("npx.cmd")
   )!;
   expect(command.textContent).not.toContain("--project-path");
-  expect(command.textContent).not.toContain("CONTEXTBASE_API_");
+  expect(command.textContent!.split("\n").slice(0, 2)).toEqual([
+    `$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`,
+    "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
+  ]);
+  expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
+  expect(command.textContent).toContain('--api-token "$env:CONTEXTBASE_API_TOKEN"');
   const text = document.body.textContent!;
   const endpointHelp = screen.getByText(/^--api-url: API address/);
   expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(
@@ -164,6 +174,10 @@ it("shows connection details after the command without a parameter form and with
   );
   expect(command.textContent).toContain("--bank-id 'team'");
   expect(text).toContain("--project-path: optional");
+  expect(screen.getByRole("heading", { name: "Optional parameters" })).toBeTruthy();
+  expect(text).not.toMatch(
+    /first installation can prompt|replace a saved address|project-specific client registration directory/
+  );
   expect(text).toContain("CONTEXTBASE_API_URL");
   expect(text).toContain("CONTEXTBASE_API_TOKEN");
   expect(screen.getByRole("heading", { name: "Switch workspace" })).toBeTruthy();

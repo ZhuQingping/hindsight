@@ -37,6 +37,12 @@ function quote(value: string, terminal: ConnectionTerminal): string {
   return "'" + value.replaceAll("'", terminal === "powershell" ? "''" : "'\"'\"'") + "'";
 }
 
+function endpointEnvironment(apiUrl: string, terminal: ConnectionTerminal): string {
+  if (terminal === "powershell") return `$env:CONTEXTBASE_API_URL = ${quote(apiUrl, terminal)}`;
+  if (terminal === "cmd") return `set "CONTEXTBASE_API_URL=${apiUrl}"`;
+  return `export CONTEXTBASE_API_URL=${quote(apiUrl, terminal)}`;
+}
+
 function tokenEnvironment(terminal: ConnectionTerminal): string {
   if (terminal === "powershell") return "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'";
   if (terminal === "cmd") return 'set "CONTEXTBASE_API_TOKEN=<API_KEY>"';
@@ -83,10 +89,24 @@ export function connectionExample(
   const token = tokenEnvironment(terminal);
   if (codingClients.some((entry) => entry.id === client)) {
     if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
-    if (cmdUnsafe([bankId], terminal)) return { unavailable: "cmdUnavailable" };
+    const endpoint = apiUrl ?? "<API_ENDPOINT>";
+    if (cmdUnsafe([bankId, endpoint], terminal)) return { unavailable: "cmdUnavailable" };
+    // Pass both variables explicitly so saved installer settings cannot override this setup.
+    const endpointArgument =
+      terminal === "cmd"
+        ? '"%CONTEXTBASE_API_URL%"'
+        : terminal === "powershell"
+          ? '"$env:CONTEXTBASE_API_URL"'
+          : '"$CONTEXTBASE_API_URL"';
+    const tokenArgument =
+      terminal === "cmd"
+        ? '"%CONTEXTBASE_API_TOKEN%"'
+        : terminal === "powershell"
+          ? '"$env:CONTEXTBASE_API_TOKEN"'
+          : '"$CONTEXTBASE_API_TOKEN"';
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
     return {
-      install: `${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)}`,
+      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)} --api-url ${endpointArgument} --api-token ${tokenArgument}`,
       switchBank: `${npx} --yes ${q(connection.codingAgentsNpm)} bank use ${q("<BANK_ID>")}`,
     };
   }

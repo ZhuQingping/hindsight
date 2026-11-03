@@ -51,9 +51,13 @@ it.each(["contextbase", "contextdb"])(
       node.textContent?.includes("npx.cmd")
     )!;
     expect(command.textContent).toContain("'@huaweicloud/contextbase-coding-agents@1.1.0'");
-    expect(command.textContent).not.toMatch(
-      /--project-path|--api-url|--api-token|CONTEXTBASE_API_/
-    );
+    expect(command.textContent).not.toContain("--project-path");
+    expect(command.textContent!.split("\n").slice(0, 2)).toEqual([
+      "$env:CONTEXTBASE_API_URL = 'https://api.example.com/customer-api'",
+      "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
+    ]);
+    expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
+    expect(command.textContent).toContain('--api-token "$env:CONTEXTBASE_API_TOKEN"');
     expect(screen.getByText(/^--api-url: API address/).textContent).toContain(
       "https://api.example.com/customer-api"
     );
