@@ -11,7 +11,7 @@ const RETAIN_EXTRACTION_MODES = new Set<RetainExtractionMode>([
   "chunks",
 ]);
 
-export interface CreateBankDefaults {
+export interface BankDefaults {
   reflectMission?: string;
   retainMission?: string;
   observationsMission?: string;
@@ -62,11 +62,11 @@ function missionFromConfig(value: unknown): string | undefined {
 }
 
 /**
- * Build createBank() payload from plugin config. Only includes explicitly set
+ * Build updateBankConfig() payload from plugin config. Only includes explicitly set
  * fields so unset options preserve server/bank defaults (backwards compatible).
  */
-export function buildCreateBankDefaults(config: PluginConfig): CreateBankDefaults {
-  const out: CreateBankDefaults = {};
+export function buildBankDefaults(config: PluginConfig): BankDefaults {
+  const out: BankDefaults = {};
 
   const reflectMission = missionFromConfig(config.bankMission);
   if (reflectMission) out.reflectMission = reflectMission;
@@ -98,7 +98,7 @@ export function buildCreateBankDefaults(config: PluginConfig): CreateBankDefault
 }
 
 /**
- * Fields applied via PATCH /banks/{id}/config because createBank does not
+ * Fields applied via PATCH /banks/{id}/config because the wrapper does not
  * accept them in the generated client wrapper.
  */
 export function buildBankConfigApiUpdates(config: PluginConfig): BankConfigApiUpdates {
@@ -115,7 +115,7 @@ export function buildBankConfigApiUpdates(config: PluginConfig): BankConfigApiUp
 }
 
 export function hasConfiguredBankDefaults(config: PluginConfig): boolean {
-  const createPayload = buildCreateBankDefaults(config);
+  const createPayload = buildBankDefaults(config);
   const configUpdates = buildBankConfigApiUpdates(config);
   return Object.keys(createPayload).length > 0 || Object.keys(configUpdates).length > 0;
 }
@@ -156,15 +156,17 @@ export async function applyConfiguredBankDefaults(
   config: PluginConfig,
   clientOpts: ContextBaseClientOptions
 ): Promise<void> {
-  const createPayload = buildCreateBankDefaults(config);
+  const createPayload = buildBankDefaults(config);
   const configUpdates = buildBankConfigApiUpdates(config);
 
   if (Object.keys(createPayload).length === 0 && Object.keys(configUpdates).length === 0) {
     return;
   }
 
+  await client.getBankProfile(bankId);
+
   if (Object.keys(createPayload).length > 0) {
-    await client.createBank(bankId, createPayload);
+    await client.updateBankConfig(bankId, createPayload);
   }
 
   if (Object.keys(configUpdates).length > 0) {

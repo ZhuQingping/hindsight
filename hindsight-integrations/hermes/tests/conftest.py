@@ -216,7 +216,15 @@ def provider(hermes_env, monkeypatch):
         config_path = hermes_env / "contextbase" / "config.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(
-            json.dumps({"mode": "cloud", "api_url": "http://localhost:8888", "apiKey": "test-key", **(config or {})})
+            json.dumps(
+                {
+                    "mode": "cloud",
+                    "api_url": "http://localhost:8888",
+                    "apiKey": "test-key",
+                    "bank_id": "hermes",
+                    **(config or {}),
+                }
+            )
         )
         fake = client or FakeClient()
         instance = plugin.ContextBaseMemoryProvider()

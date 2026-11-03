@@ -53,7 +53,6 @@ describe("automatic recall service lifecycle", () => {
               config: {
                 contextbaseApiUrl: "http://localhost:8888",
                 bankId: "test-bank",
-                dynamicBankId: false,
                 autoRecall: true,
                 autoRetain: false,
                 recallTimeoutMs: 1000,

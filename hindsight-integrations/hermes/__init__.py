@@ -17,7 +17,6 @@ import json
 import logging
 import os
 import queue
-import sys
 import threading
 import time
 from datetime import datetime, timezone
@@ -42,18 +41,25 @@ from .settings import (
     _MIN_VERSION_FOR_UPDATE_MODE_APPEND,
     _VALID_BUDGETS,
     _clears_min_scores,
-    _discover_cwd_bank_id,
     _normalize_min_scores,
     _normalize_observation_scopes,
     _normalize_string_list,
     _parse_float_setting,
     _parse_int_setting,
-    _project_name,
-    _repository_root,
-    _resolve_bank_id_template,
-    _template_fields,
     validate_api_url,
 )
+
+
+def _configured_bank_id(cfg: Dict[str, Any]) -> str:
+    """Require an explicit Bank; the profile variable overrides its saved configuration."""
+    banks = cfg_get(cfg, "banks", "hermes", default={})
+    bank = get_secret("CONTEXTBASE_BANK_ID", "") or cfg.get("bank_id") or banks.get("bankId")
+    if not isinstance(bank, str) or not bank.strip():
+        raise ValueError(
+            "ContextBase Bank ID is required; set bank_id or CONTEXTBASE_BANK_ID to an existing authorized Bank."
+        )
+    return bank.strip()
+
 
 logger = logging.getLogger(__name__)
 
@@ -385,7 +391,7 @@ def _load_config() -> dict:
         "recall_sync": _scoped_flag("CONTEXTBASE_RECALL_SYNC", False),
         "banks": {
             "hermes": {
-                "bankId": get_secret("CONTEXTBASE_BANK_ID", "") or "hermes",
+                "bankId": get_secret("CONTEXTBASE_BANK_ID", ""),
                 "budget": os.environ.get("CONTEXTBASE_BUDGET", "mid"),
                 "enabled": True,
             }
@@ -470,15 +476,12 @@ class ContextBaseMemoryProvider(MemoryProvider):
         self._client_lock = threading.Lock()
         self._api_url, self._mode = _DEFAULT_API_URL, "cloud"
         self._timeout = _DEFAULT_TIMEOUT
-        self._bank_id, self._budget, self._bank_id_template = "hermes", "mid", ""
+        self._bank_id, self._budget = "", "mid"
         self._bank_mission, self._bank_retain_mission = "", None
-        self._mirror_to_own_bank = False
-        self._static_bank_id = "hermes"
-        self._project, self._bank_source = "", "bank_id"
         self._extra_bank_down_until: dict[tuple[str, str], float] = {}
         self._additional_bank_ids: list[str] = []
         self._recall_additional_bank_ids: list[str] = []
-        self._write_bank_ids: list[str] = ["hermes"]
+        self._write_bank_ids: list[str] = []
         self._memory_mode = "hybrid"  # "context", "tools", or "hybrid"
         self._prefetch_method = "recall"  # "recall" or "reflect"
         for name in _SESSION_KWARGS:
@@ -531,6 +534,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
     def is_available(self) -> bool:
         try:
             cfg = _load_config()
+            _configured_bank_id(cfg)
             return cfg.get("mode", "cloud") in {"cloud", "self-hosted"} and bool(
                 cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "")
             )
@@ -539,7 +543,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
             return False
 
     def unavailable_reason(self) -> str:
-        return "Configure the ContextBase API URL and credentials; only cloud or self-hosted remote APIs are supported."
+        return "Configure the ContextBase API URL, credentials and an existing Bank ID; only cloud or self-hosted remote APIs are supported."
 
     def save_config(self, values, hermes_home):
         """Merge *values* into $HERMES_HOME/contextbase/config.json."""
@@ -574,15 +578,9 @@ class ContextBaseMemoryProvider(MemoryProvider):
                 "secret": True,
                 "env_var": "CONTEXTBASE_API_TOKEN",
             },
-            # Local external mode
             {
                 "key": "bank_id",
-                "description": "Memory bank name (static fallback when bank_id_template is unset)",
-                "default": "hermes",
-            },
-            {
-                "key": "bank_id_template",
-                "description": "Optional template to derive bank_id dynamically. Placeholders: {profile}, {workspace}, {project}, {platform}, {user}, {session}. {project} is the git repository name (shared across worktrees, empty outside a repository). Example: hermes-{project}",
+                "description": "Existing authorized Bank ID (required)",
                 "default": "",
             },
             {"key": "bank_mission", "description": "Mission/purpose description for the memory bank"},
@@ -967,19 +965,6 @@ class ContextBaseMemoryProvider(MemoryProvider):
             self._prefetch_method,
             client_version,
         )
-        if self._bank_id_template or self._bank_source == "repository config":
-            logger.debug(
-                "ContextBase bank %s from %s (template %r: profile=%s workspace=%s project=%s platform=%s user=%s, cwd=%s)",
-                self._bank_id,
-                self._bank_source,
-                self._bank_id_template,
-                self._agent_identity,
-                self._agent_workspace,
-                self._project,
-                self._platform,
-                self._user_id,
-                self._cwd,
-            )
         logger.debug(
             "ContextBase config: auto_retain=%s, auto_recall=%s, retain_every_n=%d, "
             "retain_async=%s, retain_context=%s, recall_max_tokens=%d, recall_max_input_chars=%d, tags=%s, recall_tags=%s",
@@ -998,13 +983,10 @@ class ContextBaseMemoryProvider(MemoryProvider):
         """The deduped, ordered set of banks this provider writes to (and
         recalls from, primary-first).
 
-        Order: primary ``_bank_id`` → own static bank when ``mirror_to_own_bank``
-        and different → each ``additional_banks`` entry. Deduped throughout.
+        Order: primary ``_bank_id`` → each explicitly configured ``additional_banks`` entry.
         With no multi-bank config this is exactly ``[_bank_id]``.
         """
         ordered: list[str] = [self._bank_id]
-        if self._mirror_to_own_bank and self._static_bank_id not in ordered:
-            ordered.append(self._static_bank_id)
         for bank in self._additional_bank_ids:
             if bank not in ordered:
                 ordered.append(bank)
@@ -1065,57 +1047,14 @@ class ContextBaseMemoryProvider(MemoryProvider):
                 ordered.append(bank)
         return ordered
 
-    def _resolve_template_bank(self) -> str:
-        return _resolve_bank_id_template(
-            self._bank_id_template,
-            fallback=self._static_bank_id,
-            profile=self._agent_identity,
-            workspace=self._agent_workspace,
-            project=self._project,
-            platform=self._platform,
-            user=self._user_id,
-            session=self._session_id,
-        )
-
     def _apply_connection_settings(self, cfg: dict) -> None:
         """Endpoint, bank and mode selectors from *cfg* (env fallbacks where documented)."""
         self._api_key = _cloud_api_key(cfg)
         self._api_url = cfg.get("api_url") or get_secret("CONTEXTBASE_API_URL", "") or _DEFAULT_API_URL
         self._api_url = validate_api_url(self._api_url)
 
-        banks = cfg_get(cfg, "banks", "hermes", default={})
-        self._bank_id_template = cfg.get("bank_id_template", "") or ""
-        # The static bank: the template's fallback and the mirror target, from one place.
-        # A non-empty CONTEXTBASE_BANK_ID wins over config.json's bank, as documented (#5171); without
-        # config.json, _load_config already builds the bank from it.
-        self._static_bank_id = (
-            get_secret("CONTEXTBASE_BANK_ID", "") or cfg.get("bank_id") or banks.get("bankId") or "hermes"
-        )
-        # Precedence: closest .contextbase/config.toml in a trusted repository → template → static bank_id.
-        # The repository is only looked up when something needs it, and only once.
-        trusted_dirs = _normalize_string_list(cfg.get("trusted_project_dirs"))
-        uses_project = "project" in _template_fields(self._bank_id_template)
-        root, cwd_bank, self._project = None, None, ""
-        if self._cwd and (trusted_dirs or uses_project):
-            try:
-                root = _repository_root(self._cwd)
-            except Exception as exc:
-                logger.warning("contextbase: repository lookup for %s failed: %r", self._cwd, exc)
-        if root is not None and trusted_dirs:
-            cwd_bank = _discover_cwd_bank_id(self._cwd, root, trusted_dirs)
-        if root is not None and uses_project:
-            try:
-                self._project = _project_name(root)
-            except Exception as exc:
-                logger.warning("contextbase: cannot name the project at %s: %r — {project} is empty", root, exc)
-        if cwd_bank:
-            self._bank_id, self._bank_source = cwd_bank, "repository config"
-        else:
-            self._bank_id = self._resolve_template_bank()
-            self._bank_source = "template" if self._bank_id_template else "bank_id"
-        # Multi-bank write/recall (optional, default off): the deduped ordered
-        # set used for write fan-out and prioritized recall merge.
-        self._mirror_to_own_bank = bool(cfg.get("mirror_to_own_bank", False))
+        self._bank_id = _configured_bank_id(cfg)
+        # Additional banks are explicit opt-ins, never selected from the repository or session.
         self._additional_bank_ids = _normalize_string_list(cfg.get("additional_banks"))
         self._write_bank_ids = self._build_write_bank_ids()
         # Recall-only banks (optional, default off): searched after the write
@@ -1124,6 +1063,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         self._recall_additional_bank_ids = _normalize_string_list(
             cfg.get("recall_additional_banks") or cfg.get("recallAdditionalBanks")
         )
+        banks = cfg_get(cfg, "banks", "hermes", default={})
         budget = cfg.get("recall_budget") or cfg.get("budget") or banks.get("budget", "mid")
         self._budget = budget if budget in _VALID_BUDGETS else "mid"
         memory_mode = cfg.get("memory_mode", "hybrid")
@@ -1713,10 +1653,7 @@ class ContextBaseMemoryProvider(MemoryProvider):
         if parent_session_id:
             self._parent_session_id = str(parent_session_id).strip()
         self._session_id, self._document_id = new_id, _mint_document_id(new_id)
-        # A {session} bank template names a bank per session: follow the switch.
-        if self._bank_source == "template" and "session" in _template_fields(self._bank_id_template):
-            self._bank_id = self._resolve_template_bank()
-            self._write_bank_ids = self._build_write_bank_ids()
+        # Session changes only rotate documents; the configured Bank stays fixed.
         self._session_turns = []
         self._turn_counter = self._turn_index = self._last_retained_turn_count = 0
         logger.debug(

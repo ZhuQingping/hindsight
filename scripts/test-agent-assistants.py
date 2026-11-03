@@ -73,7 +73,7 @@ import plugin from 'contextbase-openclaw';
 const hooks = new Map(); const services = [];
 const config = {plugins:{entries:{'contextbase-openclaw':{config:{
   contextbaseApiUrl:process.env.TEST_API_URL, contextbaseApiToken:'customer-key',
-  dynamicBankId:false, bankId:'team', logLevel:'off'
+  bankId:'team', logLevel:'off'
 }}}}};
 plugin({config, logger:{info(){},warn(){},error(){}}, on(name,fn){hooks.set(name,fn)}, registerService(service){services.push(service)}});
 try {

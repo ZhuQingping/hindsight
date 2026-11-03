@@ -68,6 +68,8 @@ def run_setup(provider: Any, hermes_home: str, config: dict[str, Any]) -> None:
         "profile",
     ):
         values.pop(key, None)
+    for key in ("bank_id_template", "trusted_project_dirs", "mirror_to_own_bank"):
+        values.pop(key, None)
     values.update(mode="cloud", api_url=api_url.rstrip("/"), bank_id=bank)
     if token:
         values.pop("apiKey", None)

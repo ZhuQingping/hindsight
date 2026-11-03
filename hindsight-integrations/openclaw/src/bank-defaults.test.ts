@@ -5,7 +5,7 @@ import type { PluginConfig } from "./types.js";
 import {
   applyConfiguredBankDefaults,
   buildBankConfigApiUpdates,
-  buildCreateBankDefaults,
+  buildBankDefaults,
   hasConfiguredBankDefaults,
   normalizeDispositionTrait,
   normalizeEntityLabels,
@@ -29,7 +29,7 @@ describe("manifest schema defaults", () => {
         .filter(([, prop]) => "default" in prop)
         .map(([key, prop]) => [key, prop.default])
     );
-    expect(buildCreateBankDefaults(defaults as PluginConfig)).toEqual({});
+    expect(buildBankDefaults(defaults as PluginConfig)).toEqual({});
     expect(buildBankConfigApiUpdates(defaults as PluginConfig)).toEqual({});
   });
 });
@@ -52,7 +52,7 @@ describe("hasConfiguredBankDefaults", () => {
   });
 });
 
-describe("buildCreateBankDefaults", () => {
+describe("buildBankDefaults", () => {
   it("includes only explicitly set fields", () => {
     const config: PluginConfig = {
       retainExtractionMode: "verbose",
@@ -61,7 +61,7 @@ describe("buildCreateBankDefaults", () => {
       dispositionLiteralism: 2,
       dispositionEmpathy: 5,
     };
-    expect(buildCreateBankDefaults(config)).toEqual({
+    expect(buildBankDefaults(config)).toEqual({
       retainExtractionMode: "verbose",
       enableObservations: true,
       dispositionSkepticism: 4,
@@ -77,7 +77,7 @@ describe("buildCreateBankDefaults", () => {
       observationsMission: "Observations mission.",
       retainExtractionMode: "verbose",
     };
-    expect(buildCreateBankDefaults(config)).toEqual({
+    expect(buildBankDefaults(config)).toEqual({
       reflectMission: "Reflect mission.",
       retainMission: "Retain mission.",
       observationsMission: "Observations mission.",
@@ -149,18 +149,24 @@ describe("applyConfiguredBankDefaults", () => {
   });
 
   it("is a no-op when no defaults are configured", async () => {
-    const createBank = vi.fn();
-    const client = { createBank } as unknown as ContextBaseClient;
+    const updateBankConfig = vi.fn();
+    const client = {
+      updateBankConfig,
+      getBankProfile: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", {}, clientOpts);
 
-    expect(createBank).not.toHaveBeenCalled();
+    expect(updateBankConfig).not.toHaveBeenCalled();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("sends createBank and config patch for a derived dynamic bank", async () => {
-    const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as ContextBaseClient;
+  it("sends updateBankConfig and config patch for an existing configured bank", async () => {
+    const updateBankConfig = vi.fn().mockResolvedValue({});
+    const client = {
+      updateBankConfig,
+      getBankProfile: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
     vi.mocked(global.fetch).mockResolvedValue(new Response("{}", { status: 200 }));
 
     const config: PluginConfig = {
@@ -173,7 +179,7 @@ describe("applyConfiguredBankDefaults", () => {
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", config, clientOpts);
 
-    expect(createBank).toHaveBeenCalledWith("agent-slack-U123", {
+    expect(updateBankConfig).toHaveBeenCalledWith("agent-slack-U123", {
       retainMission: "Keep architectural decisions.",
       retainExtractionMode: "verbose",
       enableObservations: true,
@@ -192,9 +198,12 @@ describe("applyConfiguredBankDefaults", () => {
     );
   });
 
-  it("applies missions via createBank without config patch when only missions are set", async () => {
-    const createBank = vi.fn().mockResolvedValue({});
-    const client = { createBank } as unknown as ContextBaseClient;
+  it("applies missions via updateBankConfig without config patch when only missions are set", async () => {
+    const updateBankConfig = vi.fn().mockResolvedValue({});
+    const client = {
+      updateBankConfig,
+      getBankProfile: vi.fn().mockResolvedValue({}),
+    } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(
       client,
@@ -203,12 +212,27 @@ describe("applyConfiguredBankDefaults", () => {
       clientOpts
     );
 
-    expect(createBank).toHaveBeenCalledWith("openclaw", {
+    expect(updateBankConfig).toHaveBeenCalledWith("openclaw", {
       reflectMission: "Reflect.",
       retainMission: "Retain.",
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
+});
+
+it("does not create or configure a missing Bank", async () => {
+  const updateBankConfig = vi.fn();
+  const createBank = vi.fn();
+  const client = {
+    getBankProfile: vi.fn().mockRejectedValue(new Error("404 Bank not found")),
+    updateBankConfig,
+    createBank,
+  } as unknown as ContextBaseClient;
+  await expect(
+    applyConfiguredBankDefaults(client, "missing", { bankMission: "Reflect." }, clientOpts)
+  ).rejects.toThrow("404");
+  expect(updateBankConfig).not.toHaveBeenCalled();
+  expect(createBank).not.toHaveBeenCalled();
 });
 
 describe("patchBankConfig", () => {

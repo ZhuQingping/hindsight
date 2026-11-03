@@ -64,7 +64,6 @@ beforeEach(async () => {
             config: {
               contextbaseApiUrl: baseUrl,
               bankId: "test-bank",
-              dynamicBankId: false,
               autoRecall: true,
               autoRetain: false,
               // 1000 is the floor: getPluginConfig drops anything lower, and the

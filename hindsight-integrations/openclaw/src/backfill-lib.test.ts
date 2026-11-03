@@ -48,8 +48,7 @@ describe("backfill planning", () => {
         entries: {
           "contextbase-openclaw": {
             config: {
-              dynamicBankId: true,
-              dynamicBankGranularity: ["agent", "provider", "channel"],
+              bankId: "team",
             },
           },
         },
@@ -70,7 +69,7 @@ describe("backfill planning", () => {
 
     expect(result.discoveredSessions).toBe(1);
     expect(result.entries).toHaveLength(1);
-    expect(result.entries[0].bankId).toBe("proj-run::discord::channel%3A123");
+    expect(result.entries[0].bankId).toBe("team");
     expect(result.entries[0].documentId).toBe(
       stableDocumentId(
         {
@@ -85,9 +84,11 @@ describe("backfill planning", () => {
     );
   });
 
-  it("supports migration overrides for agent-only banks", () => {
+  it("supports an explicitly configured backfill destination", () => {
     const root = makeTempRoot();
-    writeOpenClawConfig(root, { plugins: { entries: { "contextbase-openclaw": { config: {} } } } });
+    writeOpenClawConfig(root, {
+      plugins: { entries: { "contextbase-openclaw": { config: { bankId: "team" } } } },
+    });
     writeSession(root, "proj-debug", "two.jsonl", [
       { type: "session", id: "session-2", sessionKey: "agent:proj-debug:discord:group:abc" },
       { type: "message", message: { role: "user", content: "hello" } },
@@ -98,16 +99,19 @@ describe("backfill planning", () => {
     const result = buildBackfillPlan(config, {
       openclawRoot: root,
       includeArchive: true,
-      bankStrategy: "agent",
+      bankStrategy: "fixed",
+      fixedBank: "archive-bank",
     });
 
     expect(result.entries).toHaveLength(1);
-    expect(result.entries[0].bankId).toBe("proj-debug");
+    expect(result.entries[0].bankId).toBe("archive-bank");
   });
 
   it("can exclude archive sessions", () => {
     const root = makeTempRoot();
-    writeOpenClawConfig(root, { plugins: { entries: { "contextbase-openclaw": { config: {} } } } });
+    writeOpenClawConfig(root, {
+      plugins: { entries: { "contextbase-openclaw": { config: { bankId: "team" } } } },
+    });
     writeSession(root, "main", "live.jsonl", [
       { type: "session", id: "live" },
       { type: "message", message: { role: "user", content: "live" } },

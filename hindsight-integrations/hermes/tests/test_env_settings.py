@@ -11,6 +11,7 @@ def _provider_from_env(monkeypatch, **env) -> plugin.ContextBaseMemoryProvider:
             "CONTEXTBASE_API_URL": "https://api.example.com",
             "CONTEXTBASE_MODE": "cloud",
             "CONTEXTBASE_API_KEY": "test-key",
+            "CONTEXTBASE_BANK_ID": "hermes",
             **env,
         }
     )

@@ -66,7 +66,6 @@ describe("remote setup", () => {
       contextbaseApiUrl: "https://api.example.com/prefix",
       contextbaseApiToken: { source: "env", id: "CONTEXTBASE_API_TOKEN" },
       bankId: "team",
-      dynamicBankId: false,
     });
   });
   it("keeps an existing credential and explicit conversation-access opt-out", async () => {
@@ -82,6 +81,10 @@ describe("remote setup", () => {
                 contextbaseApiUrl: "https://api.example.com",
                 contextbaseApiToken: "existing",
                 bankId: "old",
+                dynamicBankId: true,
+                bankIdPrefix: "prod",
+                agentBankMap: { main: "other" },
+                dynamicBankGranularity: ["agent"],
               },
             },
           },
@@ -94,6 +97,8 @@ describe("remote setup", () => {
     const entry = JSON.parse(await readFile(path, "utf8")).plugins.entries["contextbase-openclaw"];
     expect(entry.config.contextbaseApiToken).toBe("existing");
     expect(entry.config.bankId).toBe("new");
+    for (const key of ["dynamicBankId", "bankIdPrefix", "agentBankMap", "dynamicBankGranularity"])
+      expect(entry.config).not.toHaveProperty(key);
     expect(entry.hooks.allowConversationAccess).toBe(false);
   });
 });
