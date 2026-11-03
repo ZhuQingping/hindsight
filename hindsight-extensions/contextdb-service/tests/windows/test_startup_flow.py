@@ -58,6 +58,7 @@ async def test_powershell_start_auth_management_and_restart(tmp_path: Path) -> N
         CONTEXTBASE_API_LLM_PROVIDER="openai",
         CONTEXTBASE_API_LLM_MODEL="native-startup-test",
         CONTEXTBASE_API_LLM_API_KEY="synthetic-test-model-key",
+        CONTEXTBASE_API_SKIP_LLM_VERIFICATION="true",
         CONTEXTBASE_API_EMBEDDINGS_PROVIDER="openai",
         CONTEXTBASE_API_EMBEDDINGS_OPENAI_API_KEY="synthetic-test-embedding-key",
         CONTEXTBASE_API_EMBEDDINGS_OPENAI_DIMENSIONS="8",

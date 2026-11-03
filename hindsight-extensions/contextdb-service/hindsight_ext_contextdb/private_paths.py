@@ -70,7 +70,8 @@ foreach ($rule in $acl.GetAccessRules($true, $true, [Security.Principal.Security
         env={
             **os.environ,
             "CONTEXTBASE_SET_PRIVATE_ACL": "1" if protect else "0",
-            "CONTEXTBASE_PRIVATE_PATH": str(path.resolve()),
+            # Preserve the leaf so Get-Item can reject junctions/reparse points.
+            "CONTEXTBASE_PRIVATE_PATH": str(path.absolute()),
         },
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,

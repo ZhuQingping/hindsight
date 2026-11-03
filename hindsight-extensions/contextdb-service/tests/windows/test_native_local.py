@@ -144,3 +144,13 @@ def test_windows_rejects_a_public_acl(tmp_path: Path) -> None:
     assert result.returncode == 0
     with pytest.raises(ValueError, match="private NTFS ACL"):
         private_file(secret)
+    junction = tmp_path / "state-junction"
+    result = subprocess.run(
+        ["cmd.exe", "/c", "mklink", "/J", str(junction), str(directory)], capture_output=True, check=False
+    )
+    assert result.returncode == 0
+    try:
+        with pytest.raises(ValueError, match="private NTFS ACL|private .*directories"):
+            private_directory(junction)
+    finally:
+        junction.rmdir()
