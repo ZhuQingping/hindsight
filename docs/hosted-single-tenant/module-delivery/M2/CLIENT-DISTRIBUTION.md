@@ -1,6 +1,6 @@
 # agentstratum 客户端发行合同
 
-> 来源说明：本文件保留同事PR #3的发行合同及当时验证记录。当前整合验证不继承下文历史PASS，见[整合结果](../../../agentstratum-integration/RESULT.md)与[冲突处理](../../../agentstratum-integration/CONFLICT-RESOLUTION.md)。
+> 历史记录：本文件保留同事 PR #3 的发行合同及当时验证结果，不代表当前发布与验收状态。当前交付方式见[客户端发布与交付](../../../contextbase/CLIENT-PACKAGING.md)。
 
 2026-10-15：按 Issue #2 的 D1–D9 及“只发行客户端”补充确认实施。公开下载采用华为云 OBS + CDN，Coding Agents 接受 `npm install <下载地址.tgz>`；本轮不建设公共 npm registry，也不要求按包名 `npx`。候选构建不等于公开发布或生产验收。
 

@@ -33,4 +33,5 @@ variables, tool names, outbound product identifiers and protocol headers use the
 The public identity switch is explicit: there are no old-name installation aliases or automatic
 configuration migration. Python and Node.js SDK package/import names are part of the public identity contract.
 Resource IDs and customer content are unchanged.
-Help and descriptions use the generated display name. See `docs/contextbase-naming/NAMING-MAP.md`.
+Help and descriptions use the generated display name. Public identities are defined in
+[definition.json](definition.json) and checked against [identity-contract.json](identity-contract.json).
