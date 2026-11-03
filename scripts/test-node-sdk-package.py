@@ -20,6 +20,8 @@ class NodeSdkPackageAudit(unittest.TestCase):
             ("dist/index.js", b"Hindsight"),
             ("dist/index.d.ts", b"AGENTSTRATUM"),
             ("README.md", b"Vectorize"),
+            ("README.md", b"RSIXDB"),
+            ("dist/index.js", b"/workspace/private/project"),
             ("dist/index.mjs", b"/home/runner/work/private/project"),
             (
                 "dist/index.js",
@@ -28,6 +30,8 @@ class NodeSdkPackageAudit(unittest.TestCase):
             ("dist/index.js.map", b"{}"),
             ("src/index.ts", b"source"),
             ("Vectorize.txt", b"notice"),
+            ("LICENSE", b"notice"),
+            ("package.json", b'{"name":"contextbase-client","version":"1.1.0"}'),
             (
                 "package.json",
                 json.dumps({"name": package.PUBLIC_NAME, "gitHead": "private-commit"}).encode(),
