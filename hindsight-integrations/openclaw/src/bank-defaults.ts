@@ -163,7 +163,7 @@ export async function applyConfiguredBankDefaults(
     return;
   }
 
-  await client.getBankProfile(bankId);
+  await client.getBankConfig(bankId);
 
   if (Object.keys(createPayload).length > 0) {
     await client.updateBankConfig(bankId, createPayload);

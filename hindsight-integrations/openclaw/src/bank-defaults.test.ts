@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type { ContextBaseClient } from "contextbase-client";
+import { ContextBaseClient } from "contextbase-client";
 import { readFileSync } from "fs";
 import type { PluginConfig } from "./types.js";
 import {
@@ -152,7 +152,7 @@ describe("applyConfiguredBankDefaults", () => {
     const updateBankConfig = vi.fn();
     const client = {
       updateBankConfig,
-      getBankProfile: vi.fn().mockResolvedValue({}),
+      getBankConfig: vi.fn().mockResolvedValue({}),
     } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(client, "agent-slack-U123", {}, clientOpts);
@@ -165,7 +165,7 @@ describe("applyConfiguredBankDefaults", () => {
     const updateBankConfig = vi.fn().mockResolvedValue({});
     const client = {
       updateBankConfig,
-      getBankProfile: vi.fn().mockResolvedValue({}),
+      getBankConfig: vi.fn().mockResolvedValue({}),
     } as unknown as ContextBaseClient;
     vi.mocked(global.fetch).mockResolvedValue(new Response("{}", { status: 200 }));
 
@@ -202,7 +202,7 @@ describe("applyConfiguredBankDefaults", () => {
     const updateBankConfig = vi.fn().mockResolvedValue({});
     const client = {
       updateBankConfig,
-      getBankProfile: vi.fn().mockResolvedValue({}),
+      getBankConfig: vi.fn().mockResolvedValue({}),
     } as unknown as ContextBaseClient;
 
     await applyConfiguredBankDefaults(
@@ -220,20 +220,45 @@ describe("applyConfiguredBankDefaults", () => {
   });
 });
 
-it("does not create or configure a missing Bank", async () => {
-  const updateBankConfig = vi.fn();
-  const createBank = vi.fn();
-  const client = {
-    getBankProfile: vi.fn().mockRejectedValue(new Error("404 Bank not found")),
-    updateBankConfig,
-    createBank,
-  } as unknown as ContextBaseClient;
-  await expect(
-    applyConfiguredBankDefaults(client, "missing", { bankMission: "Reflect." }, clientOpts)
-  ).rejects.toThrow("404");
-  expect(updateBankConfig).not.toHaveBeenCalled();
-  expect(createBank).not.toHaveBeenCalled();
-});
+it.each([200, 404])(
+  "checks Bank existence through the supported config API (%s)",
+  async (status) => {
+    const requests: string[] = [];
+    const fetch = vi.spyOn(global, "fetch").mockImplementation(async (input, init) => {
+      const request = new Request(input, init);
+      const path = new URL(request.url).pathname;
+      requests.push(`${request.method} ${path}`);
+      expect(request.headers.get("Authorization")).toBe("Bearer test-token");
+      // The service's retired /profile route returns 410, even for existing Banks.
+      if (path.endsWith("/profile")) return Response.json({ detail: "Retired" }, { status: 410 });
+      if (path !== "/customer/v1/default/banks/team/config")
+        throw new Error(`Unexpected request: ${path}`);
+      if (status === 404) return Response.json({ detail: "Bank not found" }, { status });
+      return Response.json({ bank_id: "team", config: {}, overrides: {} });
+    });
+    try {
+      const options = { ...clientOpts, baseUrl: "http://localhost:8888/customer" };
+      const result = applyConfiguredBankDefaults(
+        new ContextBaseClient(options),
+        "team",
+        { bankMission: "Reflect." },
+        options
+      );
+      if (status === 404) await expect(result).rejects.toThrow("Bank not found");
+      else await result;
+      expect(requests).toEqual(
+        status === 404
+          ? ["GET /customer/v1/default/banks/team/config"]
+          : [
+              "GET /customer/v1/default/banks/team/config",
+              "PATCH /customer/v1/default/banks/team/config",
+            ]
+      );
+    } finally {
+      fetch.mockRestore();
+    }
+  }
+);
 
 describe("patchBankConfig", () => {
   const originalFetch = global.fetch;

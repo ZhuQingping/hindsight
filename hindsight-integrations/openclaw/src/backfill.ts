@@ -461,7 +461,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
       }
 
       if (!bankRuntime.missionApplied) {
-        await client.getBankProfile(entry.bankId);
+        await client.getBankConfig(entry.bankId);
         if (pluginConfig.bankMission) {
           await client.updateBankConfig(entry.bankId, { reflectMission: pluginConfig.bankMission });
         }

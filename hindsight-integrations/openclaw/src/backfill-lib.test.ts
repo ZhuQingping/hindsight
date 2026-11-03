@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
+import { runCli } from "./backfill.js";
 import {
   buildBackfillPlan,
   loadPluginConfigFromOpenClawRoot,
@@ -140,4 +141,59 @@ describe("backfill planning", () => {
     expect(result.entries).toHaveLength(1);
     expect(result.entries[0].sessionId).toBe("live");
   });
+});
+
+it.each([200, 404])("backfill checks the configured Bank before retaining (%s)", async (status) => {
+  const root = makeTempRoot();
+  writeOpenClawConfig(root, {
+    plugins: {
+      entries: {
+        "contextbase-openclaw": {
+          config: {
+            contextbaseApiUrl: "http://localhost:8888/customer",
+            bankId: "team",
+            bankMission: "Reflect.",
+          },
+        },
+      },
+    },
+  });
+  writeSession(root, "agent", "one.jsonl", [
+    { type: "session", id: "session-1" },
+    { type: "message", message: { role: "user", content: "Remember this." } },
+  ]);
+  const requests: string[] = [];
+  const fetch = vi.spyOn(global, "fetch").mockImplementation(async (input, init) => {
+    const request = new Request(input, init);
+    const path = new URL(request.url).pathname;
+    requests.push(`${request.method} ${path}`);
+    if (path.endsWith("/profile")) return Response.json({ detail: "Retired" }, { status: 410 });
+    if (path.endsWith("/config"))
+      return status === 404
+        ? Response.json({ detail: "Bank not found" }, { status })
+        : Response.json({ bank_id: "team", config: {}, overrides: {} });
+    if (path.endsWith("/stats"))
+      return Response.json({ pending_operations: 0, failed_operations: 0 });
+    if (path.endsWith("/memories")) return Response.json({ success: true, operation_id: "op-1" });
+    throw new Error(`Unexpected request: ${path}`);
+  });
+  const log = vi.spyOn(console, "log").mockImplementation(() => {});
+  try {
+    const result = runCli(["--openclaw-root", root, "--checkpoint", join(root, "checkpoint.json")]);
+    if (status === 404) await expect(result).rejects.toThrow("Bank not found");
+    else await result;
+    const writes = requests.filter((request) => !request.startsWith("GET "));
+    expect(writes).toEqual(
+      status === 404
+        ? []
+        : [
+            "PATCH /customer/v1/default/banks/team/config",
+            "POST /customer/v1/default/banks/team/memories",
+          ]
+    );
+    expect(requests).toContain("GET /customer/v1/default/banks/team/config");
+  } finally {
+    fetch.mockRestore();
+    log.mockRestore();
+  }
 });

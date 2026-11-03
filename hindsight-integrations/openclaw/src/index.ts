@@ -228,7 +228,7 @@ export function scopeClient(c: ContextBaseClient, bankId: string): BankScopedCli
     },
     async setMissions(opts) {
       // Updating settings must not create a missing Bank.
-      await c.getBankProfile(bankId);
+      await c.getBankConfig(bankId);
       await c.updateBankConfig(bankId, {
         reflectMission: opts.reflectMission,
         retainMission: opts.retainMission,
