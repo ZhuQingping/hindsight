@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { getHarness, HARNESS_NAMES, PLUGIN_ENTRYPOINTS } from "./registry";
+import { getHarness, HARNESS_NAMES, MCP_ONLY_HARNESSES, PLUGIN_ENTRYPOINTS } from "./registry";
 import { ALL_HARNESS_SETUPS } from "../e2e/harnesses";
 
 describe("HARNESS_NAMES", () => {
@@ -33,7 +33,7 @@ describe("HARNESS_NAMES", () => {
         "codebuddy",
       ])
     );
-    expect(HARNESS_NAMES).toHaveLength(22);
+    expect(HARNESS_NAMES).toHaveLength(24);
   });
 
   // Family guard: a new harness that lands without a Docker E2E setup is never driven through its
@@ -47,7 +47,14 @@ describe("HARNESS_NAMES", () => {
     // WorkBuddy ships inside Tencent's desktop app — same story as TraeCode: no documented
     // headless mode a container could drive. CodeBuddy Code has a CLI, but driving it needs a
     // Tencent account. Both are covered by installer.test.ts and their transcript-reader tests.
-    const exempt = new Set(["antigravity-cli", "traecode", "workbuddy", "codebuddy"]);
+    // MCP-only CodeArts adapters are exercised by installer lifecycle tests.
+    const exempt = new Set([
+      ...MCP_ONLY_HARNESSES,
+      "antigravity-cli",
+      "traecode",
+      "workbuddy",
+      "codebuddy",
+    ]);
     const root = fileURLToPath(new URL("../..", import.meta.url));
     const setups = new Set(ALL_HARNESS_SETUPS.map((setup) => setup.name));
     for (const name of HARNESS_NAMES.filter((n) => !exempt.has(n))) {

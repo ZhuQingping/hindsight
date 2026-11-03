@@ -40,6 +40,8 @@ describe("resolveHarnessLogo", () => {
   // opencode2, kilo, cline-cli, pi, prime-agent). The registry must cover these
   // and nothing speculative.
   const EMITTED_HARNESSES = [
+    "codearts-agent",
+    "codearts-cli",
     "antigravity-cli",
     "claude-code",
     "cline-cli",

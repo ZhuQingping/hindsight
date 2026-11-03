@@ -1,6 +1,8 @@
 import type { CustomerConnection } from "./customer-connection";
 
 export const codingClients = [
+  { id: "codearts-agent", name: "CodeArts Agent (IDE / Plugin)" },
+  { id: "codearts-cli", name: "CodeArts CLI" },
   { id: "claude-code", name: "Claude Code" },
   { id: "codex", name: "Codex CLI" },
   { id: "cursor-cli", name: "Cursor CLI" },
@@ -13,13 +15,7 @@ export const codingClients = [
 
 export type CodingClient = (typeof codingClients)[number]["id"];
 export type ConnectionClient =
-  | CodingClient
-  | "openclaw"
-  | "hermes"
-  | "python"
-  | "node"
-  | "rest"
-  | "mcp";
+  CodingClient | "openclaw" | "hermes" | "python" | "node" | "rest" | "mcp";
 export type ConnectionTerminal = "powershell" | "cmd" | "bash";
 
 interface ConnectionExample {
@@ -105,8 +101,9 @@ export function connectionExample(
           ? '"$env:CONTEXTBASE_API_TOKEN"'
           : '"$CONTEXTBASE_API_TOKEN"';
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
+    const mcpConfig = client === "codearts-agent" ? ` --mcp-config ${q("<MCP_CONFIG_PATH>")}` : "";
     return {
-      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)} --api-url ${endpointArgument} --api-token ${tokenArgument}`,
+      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)} --api-url ${endpointArgument} --api-token ${tokenArgument}${mcpConfig}`,
       switchBank: `${npx} --yes ${q(connection.codingAgentsNpm)} bank use ${q("<BANK_ID>")}`,
     };
   }

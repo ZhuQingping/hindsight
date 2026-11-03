@@ -13,8 +13,9 @@ import CodingAgentsChart from '@site/src/components/CodingAgentsChart';
 
 Long-term project memory for **coding agents**, backed by ContextBase.
 One package, several agents: a shared reflect-and-inject core with a thin entry point per agent
-(**Claude Code**, **Codex CLI**, **DeepAgents Dcode**, **opencode**, **opencode 2**, **Kilo CLI**, **Cursor CLI**, **GitHub Copilot CLI**, **Grok Build**, **Qwen Code**, **Kimi Code**, **Factory Droid**, **ZCode**, **TraeCode**, **Antigravity CLI**, **Devin CLI**, **Cline CLI**, **pi**, **Prime Agent**, **DeepSeek Harness**, **WorkBuddy**, **CodeBuddy**). Ingestion is fully
-automatic after you configure an existing workspace: conversations flow into that workspace as you work.
+(**Claude Code**, **Codex CLI**, **DeepAgents Dcode**, **opencode**, **opencode 2**, **Kilo CLI**, **Cursor CLI**, **GitHub Copilot CLI**, **Grok Build**, **Qwen Code**, **Kimi Code**, **Factory Droid**, **ZCode**, **TraeCode**, **Antigravity CLI**, **Devin CLI**, **Cline CLI**, **pi**, **Prime Agent**, **DeepSeek Harness**, **WorkBuddy**, **CodeBuddy**, **CodeArts Agent**, **CodeArts CLI**). Ingestion is fully
+automatic after you configure an existing workspace, except for the MCP-only CodeArts integrations,
+where memory tools are invoked on request.
 
 The premise: most of a real fix is derivable from the code, but the _last mile_ often hinges on a
 project-specific decision that isn't in the code at all — a rounding rule, a retry allowlist, a
@@ -401,6 +402,38 @@ recalled memory, the knowledge preamble, the `contextbase_*` tools — is unaffe
 built CLI shown above. A registry package name has not been selected; only use the host plugin
 manager with a distribution explicitly supplied by your service administrator. The package
 includes its profile patch layer and installs the companion skill on the first session.
+
+#### CodeArts Agent
+
+Install CodeArts Agent (IDE/plugin) or CodeArts CLI first, together with Node.js 18+.
+Both integrations expose the shared local stdio MCP memory tools. They do not install
+hooks for automatic conversation recall or session capture.
+
+For the IDE/plugin, open **Settings > MCP tools > Configure MCP**, copy the full path
+of `mcp_settings.json`, and use it below:
+
+```bash
+npx --yes @huaweicloud/contextbase-coding-agents@latest install codearts-agent --api-url <API_ENDPOINT> --bank-id <BANK_ID> --mcp-config "<MCP_CONFIG_PATH>"
+```
+
+#### CodeArts CLI
+
+```bash
+npx --yes @huaweicloud/contextbase-coding-agents@latest install codearts-cli --api-url <API_ENDPOINT> --bank-id <BANK_ID>
+```
+
+CLI registration uses `~/.codeartsdoer/codearts_cli.jsonc`, or the existing `.json` file.
+To use a project configuration, pass `--mcp-config` with the full path of the project's
+`.codeartsdoer/codearts_cli.jsonc`. Uninstall with the same client name and config path.
+Other settings and MCP servers are preserved; an existing user-managed `contextbase`
+server is not overwritten.
+
+Restart CodeArts after installing or switching Bank. Enable `contextbase` in the IDE's
+MCP tools and switch to Agent mode, or check `/mcps` in the CLI. Ask the agent to call
+`contextbase_diagnose`, then recall or save a memory explicitly.
+
+Configuration references: [IDE MCP](https://support.huaweicloud.com/usermanual-codeartsagent/codeartsagent_ug_0010.html),
+[CLI MCP](https://support.huaweicloud.com/usermanual-cli/codeartsagent_cli_0035.html).
 
 #### WorkBuddy
 

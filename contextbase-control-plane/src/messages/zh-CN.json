@@ -2228,7 +2228,8 @@
       "python": "安装 Python SDK，执行只读记忆查询。",
       "node": "安装 Node.js SDK，执行只读记忆查询。",
       "rest": "通过只读统计请求，验证当前工作空间的访问权限。",
-      "mcp": "通过 HTTP MCP 连接 ContextBase，无需本地适配器。"
+      "mcp": "通过 HTTP MCP 连接 ContextBase，无需本地适配器。",
+      "codearts": "通过本地 MCP 工具将华为云码道连接到 ContextBase，按需检索、反思和保存记忆。本次接入不包含对话自动召回及会话自动保存。"
     },
     "requirements": {
       "python": "需要 Python 3.10+，请先激活虚拟环境。",
@@ -2273,7 +2274,10 @@
     "tokenHelp": "--api-token：业务密钥；省略时读取同一 API 地址的已有密钥或 CONTEXTBASE_API_TOKEN。首次使用需提供密钥，覆盖已有密钥时请显式指定。",
     "switchBankTitle": "切换工作空间",
     "switchBankHelp": "将 '<BANK_ID>' 替换为已创建且已授权的目标工作空间 ID。执行后重启客户端，所有项目和客户端将使用该工作空间。",
-    "projectHelp": "--project-path：可选，默认当前目录。"
+    "projectHelp": "--project-path：可选，默认当前目录。",
+    "codeartsIdeHelp": "需要已安装 CodeArts Agent IDE 或插件和 Node.js 18+。在“设置 > MCP 工具 > 配置 MCP”中打开 mcp_settings.json，复制完整文件路径并替换命令中的 {mcpConfigPath}。安装器会将 contextbase 服务合并到此文件。",
+    "codeartsCliHelp": "需要已安装码道 CLI 和 Node.js 18+。安装器更新当前用户的 ~/.codeartsdoer/codearts_cli.jsonc（或已有的 .json 文件）。配置到项目时，可增加 --mcp-config，指定该项目 .codeartsdoer/codearts_cli.jsonc 的完整路径。",
+    "codeartsVerifyHelp": "安装或切换工作空间后重启码道。IDE 中在“MCP 工具”启用 contextbase 并切换到智能体模式；CLI 中执行 /mcps 确认已启用，再让智能体调用 contextbase_diagnose。"
   },
   "productRuntime": {
     "localeNotice": "当前产品的主要功能完整支持英语和简体中文。此语言将显示英语。"

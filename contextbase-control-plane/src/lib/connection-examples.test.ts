@@ -50,6 +50,7 @@ it.each(codingClients)("installs only $id with its Bank ID and explicit credenti
     apiUrl,
     "--api-token",
     "<API_KEY>",
+    ...(id === "codearts-agent" ? ["--mcp-config", "<MCP_CONFIG_PATH>"] : []),
   ]);
   expect(snippet.install).not.toContain("--project-path");
   expect(snippet.install!.split("\n")[0]).toContain("CONTEXTBASE_API_URL");

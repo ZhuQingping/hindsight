@@ -65,6 +65,25 @@ it("switches terminal syntax without showing other terminal commands", () => {
   expect(document.body.textContent).not.toContain("npm.cmd");
 });
 
+it.each(["codearts-agent", "codearts-cli"])(
+  "explains %s setup and its MCP-only scope",
+  (client) => {
+    show();
+    select(client);
+    expect(document.body.textContent).toContain(
+      "Automatic conversation recall and session capture are not installed"
+    );
+    expect(document.body.textContent).toContain("contextbase_diagnose");
+    if (client === "codearts-agent") {
+      expect(document.body.textContent).toContain("--mcp-config");
+      expect(document.body.textContent).toContain("mcp_settings.json");
+    } else {
+      expect(document.body.textContent).toContain("codearts_cli.jsonc");
+      expect(document.body.textContent).toContain("/mcps");
+    }
+  }
+);
+
 it.each(["openclaw", "hermes"])(
   "shows the independent %s plugin and configured download",
   (client) => {
