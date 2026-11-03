@@ -1,5 +1,7 @@
 # Local ContextBase (Linux x86_64)
 
+Windows x64 PowerShell users: see [native Windows local startup](deployment-windows.md).
+
 Prepare dependencies with `bash scripts/dev/setup.sh`, configure model providers in
 `.env`, then run `bash scripts/dev/start.sh`. Local startup always initializes and
 uses ContextBase authentication: API/MCP clients need a scoped API Key, and the UI

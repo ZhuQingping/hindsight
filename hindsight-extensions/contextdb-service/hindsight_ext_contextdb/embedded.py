@@ -7,12 +7,14 @@ import hashlib
 import os
 import platform
 import secrets
+import sys
 from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 from .bootstrap import save_credential
 from .deployment import read_secret
+from .private_paths import private_directory
 
 
 class DatabaseSecret(BaseModel):
@@ -21,12 +23,6 @@ class DatabaseSecret(BaseModel):
 
 class DatabaseConnection(BaseModel):
     uri: str = Field(repr=False)
-
-
-def private_directory(directory: Path) -> None:
-    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if directory.is_symlink() or not directory.is_dir() or directory.stat().st_mode & 0o077:
-        raise ValueError("Local state directories must be private (0700)")
 
 
 def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
@@ -72,13 +68,15 @@ def main() -> None:
     parser.add_argument("data_dir", type=Path)
     args = parser.parse_args()
     try:
-        if platform.system() != "Linux" or platform.machine() != "x86_64":
-            raise ValueError("Embedded local deployment supports Linux x86_64")
-        libc, version = platform.libc_ver()
-        if libc != "glibc" or tuple(int(part) for part in version.split(".")[:2]) < (2, 35):
-            parser.exit(2, "Embedded PostgreSQL requires glibc 2.35 or later\n")
-        if os.geteuid() == 0:
-            parser.exit(2, "Embedded PostgreSQL must run as a non-root user\n")
+        system = platform.system()
+        if system not in {"Linux", "Windows"} or platform.machine().lower() not in {"x86_64", "amd64"}:
+            raise ValueError("Embedded local deployment supports Linux and Windows x86_64")
+        if sys.platform != "win32":
+            libc, version = platform.libc_ver()
+            if libc != "glibc" or tuple(int(part) for part in version.split(".")[:2]) < (2, 35):
+                parser.exit(2, "Embedded PostgreSQL requires glibc 2.35 or later\n")
+            if os.geteuid() == 0:
+                parser.exit(2, "Embedded PostgreSQL must run as a non-root user\n")
         result = control(args.command, args.directory, args.data_dir)
         if result is not None:
             # Internal captured pipe to the launcher; never emit this to its console.

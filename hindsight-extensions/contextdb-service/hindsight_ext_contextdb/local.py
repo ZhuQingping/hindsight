@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import fcntl
 import os
 import signal
 import socket
@@ -15,6 +14,7 @@ from pathlib import Path
 
 import asyncpg
 from dotenv import load_dotenv
+from filelock import FileLock, Timeout
 
 from .bootstrap import prepare_deployment
 from .deployment import write_environment
@@ -27,17 +27,20 @@ EXTENSIONS = ("vector", "pg_trgm", "btree_gin")
 def pg_control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
     registry = directory / "pg0-home"
     private_directory(registry)
+    pg_environment = {**os.environ, "HOME": str(registry)}
+    if sys.platform == "win32":
+        pg_environment.update(USERPROFILE=str(registry), LOCALAPPDATA=str(registry), APPDATA=str(registry))
     result = subprocess.run(
         [sys.executable, "-m", "hindsight_ext_contextdb.embedded", command, str(directory), str(data_dir)],
         # pg0 keeps passwords in its instance registry. Isolate both that registry
         # and its extracted binaries; only this short control subprocess changes HOME.
-        env={**os.environ, "HOME": str(registry)},
+        env=pg_environment,
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode:
-        raise ValueError("Embedded PostgreSQL control failed; use a non-root Linux x86_64 user and pg0-embedded")
+        raise ValueError("Embedded PostgreSQL control failed; check pg0-embedded and the private state directory")
     return DatabaseConnection.model_validate_json(result.stdout) if command == "start" else None
 
 
@@ -95,6 +98,10 @@ def configure(directory: Path, url: str, api_port: int, ui_port: int) -> None:
 
 
 def serve(command: list[str], environment: dict[str, str], *, stop_timeout: float = 40) -> int:
+    if sys.platform == "win32":
+        from .windows import serve_windows
+
+        return serve_windows(command, environment, stop_timeout=stop_timeout)
     process = subprocess.Popen(command, env=environment, start_new_session=True)
     stopping = False
 
@@ -149,6 +156,11 @@ def main() -> None:
         raise KeyboardInterrupt
 
     signal.signal(signal.SIGTERM, interrupted)
+    if sys.platform == "win32":
+        from .windows import own_process_tree
+
+        own_process_tree()
+        signal.signal(signal.SIGBREAK, interrupted)
     root = Path(__file__).resolve().parents[3]
     load_dotenv(root / ".env", override=True)
     directory = (
@@ -162,6 +174,9 @@ def main() -> None:
         "CONTEXTDB_UI_DEV": "1",
     }
     service = root / "hindsight-extensions/contextdb-service/scripts/service.sh"
+    service_command = (
+        [sys.executable, "-m", "hindsight_ext_contextdb.windows"] if sys.platform == "win32" else ["bash", str(service)]
+    )
     if args.component == "ui":
         if args.port is not None:
             parser.error("Use --ui-port when starting only the UI")
@@ -176,13 +191,14 @@ def main() -> None:
             # Apply after service.sh sources ui.env without rewriting shared state
             # or changing the API origin of an already running deployment.
             environment["CONTEXTDB_LOCAL_UI_PORT"] = str(ui_port)
-        raise SystemExit(serve(["bash", str(service), "ui"], environment))
+        raise SystemExit(serve([*service_command, "ui"], environment))
     # Hold ownership for initialization and the complete API/Worker/UI lifetime.
-    with (directory / "local.lock").open("a") as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            parser.exit(2, "This local deployment is already running\n")
+    lock = FileLock(str(directory / "local.lock"), timeout=0)
+    try:
+        ownership = lock.acquire()
+    except Timeout:
+        parser.exit(2, "This local deployment is already running\n")
+    with ownership:
         url = service_env("API_DATABASE_URL", "pg0") or "pg0"
         embedded = url == "pg0" or url.startswith("pg0://")
         data_dir = Path(os.environ.get("CONTEXTDB_PG_DATA_DIR", str(directory / "pgdata"))).expanduser().resolve()
@@ -214,10 +230,10 @@ def main() -> None:
                 CONTEXTDB_DEPLOY_DIR=str(directory), CONTEXTDB_PYTHON=sys.executable, CONTEXTDB_UI_DEV="1"
             )
             environment["PYTHON_DOTENV_DISABLED"] = "1"
-            subprocess.run(["bash", str(service), "init"], env=environment, check=True)
+            subprocess.run([*service_command, "init"], env=environment, check=True)
             print(f"ContextBase API: http://localhost:{api_port}; UI: http://localhost:{ui_port}", flush=True)
             print(f"Private login credentials: {directory / 'ui-secrets.json'}", flush=True)
-            raise SystemExit(serve(["bash", str(service), args.component], environment))
+            raise SystemExit(serve([*service_command, args.component], environment))
         except KeyboardInterrupt:
             raise SystemExit(130) from None
         except (ValueError, OSError, asyncpg.PostgresError, subprocess.CalledProcessError):

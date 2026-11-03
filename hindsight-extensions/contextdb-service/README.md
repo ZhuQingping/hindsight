@@ -29,6 +29,8 @@
 
 **English:** This server extension adds instance users, workspace-scoped API keys and schema isolation. Hosted customers use the [Coding Agents npm client](../../hindsight-integrations/coding-agents/README.public.md) or the existing SDKs. Operators use the [deployment guide](docs/deployment.md); contributors start with the [architecture](../../docs/contextdb-management/DESIGN.md#overview). `ContextBase` is the product name, `contextdb-service` the extension directory, `hindsight-ext-contextdb-service` the Python project name, and `hindsight_ext_contextdb` the import module. These names do not imply a standalone PyPI installation path.
 
+Windows 原生本地启动见 [PowerShell 启动指南](docs/deployment-windows.md)，默认开启 API 鉴权、UI 登录鉴权与用户管理。
+
 ## 支持范围与版本
 
 本页及部署指南对应同一 checkout 的 API、扩展和 `contextbase-control-plane`，包括 Bank REST 管理工作空间的行为；不能把社区上游镜像或较早团队版本当作匹配产物。完整版本关系与能力边界见[唯一 DESIGN](../../docs/contextdb-management/DESIGN.md#overview)。历史 PR、基线与验收记录是开发证据，不是首次使用前置知识。

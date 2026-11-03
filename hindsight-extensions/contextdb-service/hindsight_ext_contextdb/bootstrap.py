@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import os
 import secrets
-import stat
+import sys
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -14,6 +14,7 @@ from typing import Literal
 import asyncpg
 from pydantic import BaseModel, ConfigDict, Field
 
+from .private_paths import private_directory, private_file, protect_file
 from .security import credential_key_id, key_digest
 
 SYSTEM_ADMIN_NAME = "System administrator"
@@ -37,11 +38,9 @@ class UiSecrets(BaseModel):
 
 
 def read_credential(path: Path) -> AdministratorCredential:
-    mode = path.lstat().st_mode
-    if not stat.S_ISREG(mode) or mode & 0o077:
-        raise ValueError("Administrator credential must be a private regular file (0600)")
+    private_file(path)
     try:
-        credential = AdministratorCredential.model_validate_json(path.read_text())
+        credential = AdministratorCredential.model_validate_json(path.read_text(encoding="utf-8"))
         if not credential.secret.startswith("ctx_admin_") or credential_key_id(credential.secret) != credential.key_id:
             raise ValueError("Credential format does not match")
         if credential.sha256 and not hmac.compare_digest(
@@ -55,22 +54,25 @@ def read_credential(path: Path) -> AdministratorCredential:
 
 def save_credential(path: Path, credential: BaseModel) -> None:
     """Publish a fully flushed file atomically; an existing secret is never replaced."""
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    private_directory(path.parent)
     temporary: str | None = None
     try:
-        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, prefix=".admin-", delete=False) as stream:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=path.parent, prefix=".admin-", delete=False
+        ) as stream:
             temporary = stream.name
-            os.chmod(temporary, 0o600)
+            protect_file(Path(temporary))
             stream.write(credential.model_dump_json() + "\n")
             stream.flush()
             os.fsync(stream.fileno())
-        # link() is an atomic no-replace operation on both supported POSIX hosts.
+        # link() is atomic and never replaces an existing secret, including on NTFS.
         os.link(temporary, path)
-        parent = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-        try:
-            os.fsync(parent)
-        finally:
-            os.close(parent)
+        if sys.platform != "win32":
+            parent = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+            try:
+                os.fsync(parent)
+            finally:
+                os.close(parent)
     finally:
         if temporary is not None:
             Path(temporary).unlink(missing_ok=True)
@@ -80,9 +82,7 @@ async def prepare_deployment(directory: Path, database_url: str, password: str |
     """Persist all initial secrets before touching metadata; restart never regenerates."""
     from .security import issue_admin_key
 
-    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if directory.is_symlink() or directory.stat().st_mode & 0o077:
-        raise ValueError("Deployment directory must be private (0700)")
+    private_directory(directory)
     connection = await asyncpg.connect(database_url, timeout=10)
     try:
         initialized = bool(await connection.fetchval("SELECT to_regnamespace('ctxdb_meta')"))
@@ -93,9 +93,7 @@ async def prepare_deployment(directory: Path, database_url: str, password: str |
         raise ValueError("Existing deployment secrets are missing; restore them instead of generating replacements")
     for path in files:
         if path.exists():
-            mode = path.lstat().st_mode
-            if not stat.S_ISREG(mode) or mode & 0o077:
-                raise ValueError("Existing secret files must be private regular files (0600)")
+            private_file(path)
     if not files[0].exists():
         issued = issue_admin_key()
         save_credential(
@@ -111,8 +109,8 @@ async def prepare_deployment(directory: Path, database_url: str, password: str |
         save_credential(files[2], UiSecrets(password=ui_password, admin_key=credential.secret))
     # Invalid partial files are never silently replaced, even before first boot.
     try:
-        ApiSecrets.model_validate_json(files[1].read_text())
-        ui = UiSecrets.model_validate_json(files[2].read_text())
+        ApiSecrets.model_validate_json(files[1].read_text(encoding="utf-8"))
+        ui = UiSecrets.model_validate_json(files[2].read_text(encoding="utf-8"))
         if (
             ui.admin_key != credential.secret
             or ui.password == credential.secret
@@ -126,15 +124,13 @@ async def prepare_deployment(directory: Path, database_url: str, password: str |
 def load_deployment_secrets(directory: Path, component: Literal["api", "ui"]) -> None:
     """Only the UI receives its password/admin secret; only the API receives pepper."""
     path = directory / ("api-secrets.json" if component == "api" else "ui-secrets.json")
-    mode = path.lstat().st_mode
-    if not stat.S_ISREG(mode) or mode & 0o077:
-        raise ValueError("Deployment secret file must be private (0600)")
+    private_file(path)
     try:
         if component == "api":
-            value = ApiSecrets.model_validate_json(path.read_text())
+            value = ApiSecrets.model_validate_json(path.read_text(encoding="utf-8"))
             os.environ["CONTEXTDB_KEY_PEPPER"] = value.pepper
         else:
-            ui = UiSecrets.model_validate_json(path.read_text())
+            ui = UiSecrets.model_validate_json(path.read_text(encoding="utf-8"))
             # Persisted secrets are authoritative under either public namespace.
             os.environ["CONTEXTBASE_CP_ACCESS_KEY"] = ui.password
             os.environ["CONTEXTBASE_CP_DATAPLANE_API_KEY"] = ui.admin_key

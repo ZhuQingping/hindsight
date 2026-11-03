@@ -25,3 +25,4 @@
 
 
 Local development with authentication and persistent embedded PG: [deployment-local.md](deployment-local.md).
+Windows x64 PowerShell local startup with API/UI authentication and user management: [deployment-windows.md](deployment-windows.md).
