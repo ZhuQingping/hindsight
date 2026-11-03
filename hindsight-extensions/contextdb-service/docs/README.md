@@ -17,9 +17,9 @@
 
 完整架构、对象关系、权限和生命周期只在 [DESIGN.md](../../../docs/contextdb-management/DESIGN.md)维护。教程给操作步骤并引用规格，不复制第二套设计。机器契约在代码仓：[管理 OpenAPI](../schemas/contextdb-control-plane.openapi.yaml)、[完整 DDL](../hindsight_ext_contextdb/schema.sql)；生成器支持的输入见[意图示例](../deployment/intent.example.json)，[env 示例](../deployment/contextdb.env.example)只是补充参考，不自动加载。
 
-## 检视、验收与历史来源
+## 验证与来源
 
-[CODE-REVIEW](../../../docs/contextdb-management/CODE-REVIEW.md)保存检视发现与实现位置，[VALIDATION](../../../docs/contextdb-management/VALIDATION.md)保存实际验证结果和未验边界，均保留对应日期和版本。二者是支撑记录，不替代当前操作指南。
+[验证入口](../../../docs/contextdb-management/VALIDATION.md)说明当前自动化检查、运行方法和边界；实际结果查看对应提交的 CI 与执行报告。[云环境交付待办](../../../docs/contextbase/CLOUD-READINESS.md)列出外部条件和目标环境验证事项。历史实现与审查过程通过 Git/PR 追溯。
 
 原始设计来源固定于 [ContextDB-Research@5f9993c2](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-release-design.md)。其部署和运维材料是历史背景；当前行为应核对同一 checkout 的设计、部署指南和代码，不把历史 SHA 或旧评审中的“最新”当作当前状态。
 

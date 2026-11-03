@@ -1,27 +1,11 @@
 # ContextDB 首发设计：工作空间、用户与 API Key（RSIXDB 团队集成）
 
-> 当前实现：Issue #53 已rebase至团队main `9a58a706e`，Bank代理错误处理及测试一并交付，提交身份以Git/PR为准；第33章保留amend前基准`8a394a246`及冻结验收。工作空间创建/删除统一使用 Bank REST，保留两个UI创建入口及description；只读目录、详情和usage保留，MCP Bank管理仅在插件模式下关闭。UI源码目录使用 `contextbase-control-plane`。合同见[第8章](#bank-api-reuse-design)，本次组合验收见VALIDATION第33章、检视见CODE-REVIEW 30.4；此前章节保留其日期及版本。
+> 工作空间创建/删除统一使用 Bank REST，保留两个 UI 创建入口及 description；只读目录、详情和 usage 保留，MCP Bank 管理仅在插件模式下关闭。UI 源码目录为 `contextbase-control-plane`。合同见[第8章](#bank-api-reuse-design)，测试方式和边界见[验证入口](VALIDATION.md)。
 
 本文是当前唯一业务与技术规格。首次使用从[客户接入与管理员操作](../../hindsight-extensions/contextdb-service/README.md)开始；运营者直接使用[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)。开发者从下方目录进入架构和实现，无需先阅读历史提交记录。
 
-<details>
-<summary>历史基线、送审与首版决策（保留来源，不作为当前操作入口）</summary>
 
-> 历史维护修复（2026-10-27）：基于 RSIXDB main `fe96754356f4ee46d6413852d76b9562f7dc890c`，修复 MCP 配置读取的空间作用域与离线初始化遗漏的共享维护函数。实现见第5.5.4节，检视见 CODE-REVIEW 第20章，验证见 VALIDATION 第17～18章。下列2026-10-21送审信息为管理功能历史基准。
-
-> **文档定位：原始完整设计的团队集成修订版。** 以资料仓 `23fc841dd8cff0d4efce9b3d4f5b3375f27ea24c` 的完整设计为底稿，保留业务与技术正文，直接补齐团队适配；不按读者拆成多套设计。原功能基准a05b808、后续冻结修复及团队main的关系见第1.4节。目标三类AI独立检视已完成，尚无专家/committer批准；最新送审回归见 [VALIDATION.md](VALIDATION.md)第13章。
-
-> **历史送审（2026-10-21）：** S16～S26及质量修复已选择性落地，保留原生内核零侵入和团队安全能力；当时基线为main `1dc0ad37e`，旧eb工作树阶段的来源指纹及过程保留在第1.4节和检视记录第13～15章。Issue #19的F1已修复、F2保留已有修复；当时UI意见未全部验收，逐项判断见CODE-REVIEW第16章，后续整改见第19章。
-
-> **首版决策（2026-10-19）：工作空间创建、删除同步返回201/204；同名schema、bank_id复用接受原生Bank并发边界。** 删除前由管理员停止访问、等待已有工作结束；没有全局执行排空、代次或持久故障屏障。当前管理API为13项，管理表为6张。
-
-> **管理功能历史差异基线：** 当时修复PR比较 RSIXDB main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`；57bbfd2仅为原功能历史比较点。原生Python运行目录对两基线均无本特性差异；须使用扩展ASGI入口，团队品牌、配置、日志和安全改造保留。
-
-方案来源（2026-10-19，官方 v1.0.0 首发方案；2026-10-20更新团队集成）：新空间对外统一使用可读 bank_id，对内保留 UUID；工作空间名称仅允许字母、数字、下划线，最长54字符，统一小写。新 schema 为 ctxdb_ws_<bank_id>；正常删除后允许同名重建，旧selected授权不继承；并发删除与业务访问不在支持范围，见第5.2节。本轮功能回归与原生v1.0.0部署证据见[验证摘要](VALIDATION.md)；目标ECS/RDS、镜像安全与生产性能仍须单独验收。
-
-</details>
-
-本文按总体设计、实例管理、UI 管理、应用访问、核心实现和本期边界组织。接口、数据结构、安全依据及异常恢复规则完整保留在本文，便于连续阅读和实现核对。 当前版本与检视入口见[代码检视指南](CODE-REVIEW.md)；历史手册中的配置和接口不作为本版本部署依据。
+本文按总体设计、实例管理、UI 管理、应用访问、核心实现和本期边界组织。接口、数据结构、安全依据及异常恢复规则完整保留在本文，便于连续阅读和实现核对。验证方法见[验证入口](VALIDATION.md)；历史实现与评审通过 Git/PR 记录追溯。
 
 [管控部署指南](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md) · [Agent部署合同](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-deployment-contract.md) · [运维手册](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/operations/contextdb-operations-runbook.md) · [原生v1.0.0对接](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/native-v1.0.0/contextdb-service-integration-guide.md) · [API curl 验证手册](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/api/contextdb-management-api-curl-guide.md) · [同版管理OpenAPI](../../hindsight-extensions/contextdb-service/schemas/contextdb-control-plane.openapi.yaml)
 
@@ -113,30 +97,13 @@ MCP 扩展复用原生工具，不新增工作空间、用户或 Key 的管理 M
 
 **设计选择：保留这些接入入口，集中复用公共逻辑。** 减少扩展类数量本身不会减少必须完成的检查；强行统一加载入口会扩大 Hindsight 内核改动。本版优先在外围实现管理和隔离，继续复用原生记忆算法。扩展、API、UI和启动脚本仍须同版交付；本轮没有新增或保留原生执行保护钩子。
 
-### 1.4 实现版本与变更说明
+### 1.4 版本与验证依据
 
-当前团队分支 `feature/contextdb-management`，在独立目录 `integration/rsixdb-contextdb` 完成移植。必须区分来源与当前代码的比较对象：
-
-| 项目 | 固定版本及含义 |
-| --- | --- |
-| 原管理功能基线 | `57bbfd2d39685091ce65a4742e43c6efbcb4c78e`；用于历史功能移植对照，不是本次修复PR基线 |
-| 本次修复PR基线 | 团队main `1dc0ad37e9d814826199a3bf7e07dc24fb68adbe`，已包含原PR #15及后续别名、UI安全提示和管理日志 |
-| 来源公开功能基准（修复前） | `a05b80885883b36f879abdb2ce8a9c8f63b0922c`；S16～S26位于该基准上的冻结未提交补丁，不在该提交内 |
-| 团队集成状态 | `feature/contextdb-management`；先在eb055aff3工作树完成适配，再快进对齐上述main并保留修复；本次送审快照以本文所在提交及PR diff为准，历史阶段见CODE-REVIEW第13～16章 |
-| 完整设计依据 | 以23fc841d完整设计为底稿；本轮核对 `ContextDB-Research@5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd` 的同一完整设计，将a05b808变化直接补入对应章节 |
-| 来源功能的官方基线 | `39c65ffe2f140d0c84cee58566cad8900c5b9908`，仅解释来源及原生行为 |
-
-2026-10-21原工作树阶段收敛修改范围：撤回自研插件`launch.py`和`ui_probe.py`本轮改用`service_env`的等价重构，沿用开始HEAD的内联双前缀读取；CONTEXTBASE优先、显式空值和默认值语义不变。其他位置必要的配置别名修复与`environment.py`保留。社区UI文件`bank-selector.tsx`仍保留完整管理路由识别、管理导航选中态和隐藏空间内容操作三项接入；Python扩展无法控制宿主React工具栏，不为此新增前端插件框架。S16～S26及SEC-01行为不变，范围核对与回归见CODE-REVIEW第13.4节、VALIDATION第11.5节。
-
-后续质量适配来源为`c56c7ac17ff438228d257be42072a12c7f72e7c5`加独立质量worktree的冻结未提交补丁（SHA-256 `e2c14176b562a174346e8d9bc5aadc1ff2dc8287e40c68f60b5216f50191cd7a`）。来源主目录并不包含该未提交增量；这些增量最初在eb055aff3上适配，后按送审要求对齐团队main。S16～S26保留；launch/ui_probe不作为本次PR改动，沿用main中已有的helper实现及相同配置语义，不为恢复旧内联代码再制造反向重构。选择性差异及独立检视见CODE-REVIEW第14章；对齐main后的最新验收见VALIDATION第13章，Issue #19逐项结论见CODE-REVIEW第16章。
-
-本文保留原设计业务与技术细节，团队适配直接补入相关章节；不另设面向专家、committer或AI的设计版本。代码阅读、适配发现见 [CODE-REVIEW.md](CODE-REVIEW.md)，实际运行命令/结果见 [VALIDATION.md](VALIDATION.md)，二者是支撑记录，不取代本文。公开管理API仍为 `/ext/contextdb/v1`；元数据结构版本1、API v1和资源version各自独立。
-
-原设计中的官方v1.0.0源码分析、小样本MaaS/全文试验与历史检视，属于对应来源版本的证据；不能作为团队集成版本已重新验证或独立批准的证明。当前配置响应在自研插件内统一过滤，见第5.1.1节；团队基线文档生成失败由Issue #14单独跟踪，未在此分支修复。
-
-本次统一管理员与业务 Key 认证，落实成员名唯一、删除空间的物理清理、按名称查询详情、同步管理和部署脚本。[优化前完整设计](https://github.com/ZhuQingping/hindsight/blob/07028c3561bd6601dd72af137ea5d96658210ae9/hindsight-extensions/contextdb-service/docs/archive/2026-10-16-before-release-hardening/design-research.md)保留作对照。本轮统一 GET/DELETE、授权输入及原生 REST/MCP 使用可读 bank_id；授权存储及管理条件绑定内部UUID；原生记忆任务继续沿用原生上下文和schema机制，不增加全程执行代次。首发从当前完整结构的版本1开始；不提供开发期旧结构的自动升级，新空间使用可读标识。历史设计保留在Git历史，不能用历史测试代替本轮验收。
-
-[API curl 验证手册](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/api/contextdb-management-api-curl-guide.md) · [部署与升级](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/deployment/contextdb-service-integration-guide.md) · [同版管理OpenAPI](../../hindsight-extensions/contextdb-service/schemas/contextdb-control-plane.openapi.yaml) · [优化前设计](https://github.com/ZhuQingping/hindsight/blob/07028c3561bd6601dd72af137ea5d96658210ae9/hindsight-extensions/contextdb-service/docs/contextdb-first-release-design.md)
+本文描述同一 checkout 的业务与技术规格；接口以[同版管理 OpenAPI](../../hindsight-extensions/contextdb-service/schemas/contextdb-control-plane.openapi.yaml)为准。
+公开管理 API 使用 `/ext/contextdb/v1`；元数据结构版本1、API v1和资源 version 各自独立。
+部署步骤见[同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md)，测试方法和证据边界见[验证入口](VALIDATION.md)。
+设计来源为 [ContextDB-Research@5f9993c2](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-release-design.md)；
+历史移植、修复与评审记录通过 Git/PR 追溯，不作为当前版本已验证的依据。
 
 <a id="instance"></a>
 
@@ -401,11 +368,11 @@ Key 明文只在本次创建结果中展示和复制，不写入 localStorage/se
 - 用户管理入口有当前页状态，管理页不显示添加文档。沿用团队basePath及本地化路由，以完整管理路径判断；`/banks/users`及其本地化路径仍是内容页，保留上次空间便于返回。
 - 授权选择器向现有API发送q、limit、offset，搜索变化中止旧请求并从0开始。已选草稿独立按workspace_id保存，不随搜索/分页丢失，不升级原只读授权，也不按同名新UUID换绑。
 - 用户和实际展开Key面板的日期使用当前UI locale，不改变时区。管理列表复用现有Table/Select和主题token、轻量目录分页；统一间距、搜索提示、危险操作和创建/编辑动词，用户行只有一个展开入口，完整ID和时间仍可查看。
-- 窄屏宽度仅通过管理Dialog局部class调整，公共Dialog不改；保留原最大宽度、纵向滚动和底部动作。真实浏览器视觉、焦点和剪贴板验收状态见VALIDATION，不把JSDOM或生产HTTP故事当成视觉验收。
+- 窄屏宽度仅通过管理Dialog局部class调整，公共Dialog不改；保留原最大宽度、纵向滚动和底部动作。视觉、焦点和剪贴板须通过真实浏览器检查，不把JSDOM或生产HTTP故事当成视觉验收；验证边界见[验证入口](VALIDATION.md#验证边界)。
 
-管理弹窗关闭返回实际触发按钮，目标移除/禁用时尝试同页备用入口；编辑窗切换Secret窗时保留新窗焦点，离页不延迟抢焦点。空间下拉创建返回稳定选择按钮。仅自研调用点接线，不修改公共Dialog；空间行头按真实名称显示，不继承列标题的大写样式。焦点及名称修复的历史依据见CODE-REVIEW第18章。
+管理弹窗关闭返回实际触发按钮，目标移除/禁用时尝试同页备用入口；编辑窗切换Secret窗时保留新窗焦点，离页不延迟抢焦点。空间下拉创建返回稳定选择按钮。仅自研调用点接线，不修改公共Dialog；空间行头按真实名称显示，不继承列标题的大写样式。
 
-当前U4/U5/U9/U10管理呈现规则：主目录继续使用公共Table；Key子详情用一套语义列表响应桌面/窄屏，突出名称、脱敏值、空间权限及编辑/更多。危险动作统一进入更多菜单并二次确认；空/单页不重复子表头与页脚计数，多页仍服务端分页。完整Key ID与时间在可键盘展开的详情中保留，summary用16px Chevron且不显示原生marker。窄屏父表采用自动布局，日期列收起、状态放到名称下，主要Key动作不依赖横向寻找；390×600允许弹窗内部纵向滚动，底部动作及焦点可达。日期继续使用UI locale；不修改公共Dialog、Table或建立两套移动/桌面状态。对应历史验收见CODE-REVIEW第19章、VALIDATION第16章。
+当前U4/U5/U9/U10管理呈现规则：主目录继续使用公共Table；Key子详情用一套语义列表响应桌面/窄屏，突出名称、脱敏值、空间权限及编辑/更多。危险动作统一进入更多菜单并二次确认；空/单页不重复子表头与页脚计数，多页仍服务端分页。完整Key ID与时间在可键盘展开的详情中保留，summary用16px Chevron且不显示原生marker。窄屏父表采用自动布局，日期列收起、状态放到名称下，主要Key动作不依赖横向寻找；390×600允许弹窗内部纵向滚动，底部动作及焦点可达。日期继续使用UI locale；不修改公共Dialog、Table或建立两套移动/桌面状态。
 
 ### 3.2.1 团队页面、认证与会话适配
 
@@ -494,7 +461,7 @@ Key 明文只在本次创建结果中展示和复制，不写入 localStorage/se
 
 管理层负责认证、授权与路由，记忆算法和原生接口请求、返回结构沿用 Hindsight。多空间 Key 允许切换目标空间，不代表一次 Recall 联合查询多个空间。
 
-原生分块详情是特殊路径 `GET /v1/default/chunks/{chunk_id:path}`，URL不单独携带bank_id。扩展transport使用原生parse_chunk_id，并以build_chunk_id回编码检查canonical形式；合法ID中的Bank进入与其他业务请求相同的认证和schema上下文。歧义、非canonical、负数/非法索引安全拒绝，不简单按下划线切分、不重复URL解码、不遍历schema或猜默认空间。原生REST、SDK、Tenant无目标拒绝和引擎后续文档/Bank权限检查均保留；SEC-01配置响应投影复用现有路径，不新增认证SQL或重复权限钩子。S20验收经发布SDK异步写入、后台完成、recall include_chunks、list/get_chunk闭环，详见CODE-REVIEW和VALIDATION。
+原生分块详情是特殊路径 `GET /v1/default/chunks/{chunk_id:path}`，URL不单独携带bank_id。扩展transport使用原生parse_chunk_id，并以build_chunk_id回编码检查canonical形式；合法ID中的Bank进入与其他业务请求相同的认证和schema上下文。歧义、非canonical、负数/非法索引安全拒绝，不简单按下划线切分、不重复URL解码、不遍历schema或猜默认空间。原生REST、SDK、Tenant无目标拒绝和引擎后续文档/Bank权限检查均保留；SEC-01配置响应投影复用现有路径，不新增认证SQL或重复权限钩子。验证时覆盖发布SDK异步写入、后台完成、recall include_chunks及list/get_chunk闭环，入口见[验证入口](VALIDATION.md)。
 
 ### 4.2 不同 Key 能做什么
 
@@ -588,7 +555,7 @@ pepper 在实例首次部署时生成并持久保存，正常重启、扩容和�
 
 **决定：在自研插件内统一过滤配置响应，不修改原生引擎，不把GET改成管理员专属。** `get_allowed_config_fields`继续定义可见配置字段；业务Key仍可调用配置查询并返回200，当前member字段集合为空时，config和overrides都为空对象。Admin保留允许配置的读取、更新和重置；未来允许部分字段时，两部分同步使用相同可见字段集合。
 
-**实现状态：原仓插件实现及全量测试通过后，同步到团队目录；本轮验证见VALIDATION第10章。** 当前原生运行目录与各自基线一致，先前尝试的MemoryEngine修改和新增原生测试已全部撤回。只改插件transport.py及插件自己的测试；没有原生方法替换、monkey patch、路由移除或改写。
+当前原生运行目录与各自基线一致，先前尝试的MemoryEngine修改和新增原生测试已全部撤回。只改插件transport.py及插件自己的测试；没有原生方法替换、monkey patch、路由移除或改写。
 
 需区分公开schema、功能位和实际配置读取：
 
@@ -637,7 +604,7 @@ pepper 在实例首次部署时生成并持久保存，正常重启、扩容和�
 
 本决策替代此前“必须证明全部执行者退出，才能允许删除/同名重建”“忙时409加完整执行屏障”“补齐原生所有并发缺口”的设计要求。原生存在同样的并发现象，本期聚焦工作空间、用户和 Key 管理，不为解决这一原生边界扩大内核修改。
 
-同步流程及六表结构保持；当前扩展管理/usage共12项，Bank写入口另见第8章。`Lifecycle.create_bank/delete`直接调用原生迁移和Bank方法，没有后台管理调度。当前团队分支的实际组合回归见VALIDATION第33章、检视见CODE-REVIEW第30章；独立专家的rebase前复核保留对应版本。原生依据、约束和失败处理如下。
+同步流程及六表结构保持；当前扩展管理/usage共12项，Bank写入口另见第8章。`Lifecycle.create_bank/delete`直接调用原生迁移和Bank方法，没有后台管理调度。验证方法见[验证入口](VALIDATION.md)，实际结果以对应提交和产物为准。原生依据、约束和失败处理如下。
 
 #### 5.2.1 原生 Bank 语义与验证结论
 
@@ -940,7 +907,7 @@ If-Match: "object-A-v1"
 
 UUID 不承担凭据认证职责；安全访问仍依赖 Key 认证、角色/空间授权及对象状态检查。本方案保护原对象关联、生命周期操作及重试；不承诺所有携带可读地址的陈旧业务请求都能被自动识别。
 
-**评审状态：** 已完成目标后端、UI/TS及测试完整性三类只读独立检视并关闭BR-01；来源历史复核不代替目标检视。自动化验证及未验视觉/部署边界见VALIDATION第12～13章，Issue #19未完成项见CODE-REVIEW第16章。
+**评审与验证依据：** 当前变更须按仓库代码检视要求核对后端、UI/TS及测试完整性；自动化、视觉和部署验证的范围见[验证入口](VALIDATION.md#验证边界)。结果绑定实际提交、环境和产物。
 
 <a id="api"></a>
 
@@ -1097,7 +1064,7 @@ TypeScript与Python分别对齐KeyEditable（编辑快照）、KeyMetadata（列
 
 组件集中 `components/contextdb/`。users-view只管理成员，展开状态仅保存user_id并使用当前目录行，不另存完整User对象；user-keys-panel以user_id为React key持有该成员Key目录、一次性secret及吊销状态；key-editor-dialog持有编辑快照/草稿/原version；use-key-workspaces仅分页加载选项，旧grant不自动换成同名继任UUID，name-only编辑不重发authorization。workspace-result-check只GET核对原bank_id/UUID/ETag，不使用新ETag重放旧DELETE，不将观察结果当作执行结束证明。
 
-lib/contextdb.ts加server-only，Vitest只在测试环境映射为空模块；生产构建保留服务端边界。Secret在内存中保持到用户明确关闭；不再因60秒超时或单纯标签页隐藏而清除。真正离页/pagehide、卸载、切换用户仍清理，迟到签发不得恢复旧Secret，旧复制回调不得影响新Secret；剪贴板不可用时保留可手工保存的明文。这些行为由状态/响应测试及生产UI故事验证；当前提交Chrome已补正常复制/原生粘贴、日期、目录状态及指定尺寸视觉验证，关闭焦点已通过本地修复补验，负面复制竞态不冒称都做浏览器复验，见CODE-REVIEW第18章和VALIDATION第15章。
+lib/contextdb.ts加server-only，Vitest只在测试环境映射为空模块；生产构建保留服务端边界。Secret在内存中保持到用户明确关闭；不再因60秒超时或单纯标签页隐藏而清除。真正离页/pagehide、卸载、切换用户仍清理，迟到签发不得恢复旧Secret，旧复制回调不得影响新Secret；剪贴板不可用时保留可手工保存的明文。验证时覆盖状态/响应测试、生产UI故事，以及真实浏览器的复制/粘贴、日期、目录状态、指定尺寸和关闭焦点；负面复制竞态须单独记录是否执行，见[验证边界](VALIDATION.md#验证边界)。
 
 #### 5.5.3 测试位置、运行环境和CI门禁
 
@@ -1114,7 +1081,7 @@ python/support提供合成身份、管理ASGI装配及PG资源owner；system/sup
 
 CI普通system job分别运行原生及插件故事。独立test-contextdb-system-ui job从同一源码正式build-ui，直接运行双Worker生产UI故事并输出JUnit；check_production_ui.py要求两个明确参数项各出现一次且无skip/failure/error。缺报告、缺用例或跳过均失败，并进入汇总门禁；普通本地运行可沿用无构建时的skip，不以此声称生产UI验收完成。旧CONTEXTDB_REQUIRE_UI_TESTS不再作为门禁机制，不新增生产严格模式参数。
 
-集成验收包装器 `scripts/verify_integration.py`分api、system、contextdb-system、extension、contracts五个入口，用临时PG隔离各测试；system不再隐含插件故事，contextdb-system必须显式运行，并要求生产UI存在。具体命令和当前结果见VALIDATION。
+集成验收包装器 `scripts/verify_integration.py`分api、system、contextdb-system、extension、contracts五个入口，用临时PG隔离各测试；system不再隐含插件故事，contextdb-system必须显式运行，并要求生产UI存在。当前运行入口见[验证入口](VALIDATION.md)，结果以对应提交的报告为准。
 
 #### 5.5.4 MCP配置作用域与共享维护函数（Issue #31、#32）
 
@@ -1235,9 +1202,9 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 
 ## 本轮实现收敛与 TODO
 
-本次已应用a05b808的共享检查、MCP目录查询、UI状态/响应及测试归组变化，技术细节见第5.5节。来源自检不等于当前团队分支独立批准；本次实际回归另见VALIDATION。
+本次已应用a05b808的共享检查、MCP目录查询、UI状态/响应及测试归组变化，技术细节见第5.5节。来源自检不等于当前版本批准，验证须绑定实际提交和环境。
 
-实施范围与逐项状态见[简化实施清单](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-simplification-plan.md)，R01～R07最新核对入口见[第7.8节](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-simplification-plan.md#r01-r07-review-plan)。下列条目记录来源方案及团队集成保留的实现；团队分支回归与独立检视见最新VALIDATION/CODE-REVIEW章节，不继承来源版本的历史接受结论。
+实施范围与逐项状态见[简化实施清单](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-simplification-plan.md)，R01～R07最新核对入口见[第7.8节](https://github.com/ZhuQingping/ContextDB-Research/blob/5f9993c2c1d9eb68a83decdb99590f4dfe7d76dd/hindsight/design/contextdb-simplification-plan.md#r01-r07-review-plan)。下列条目记录来源方案及团队集成保留的实现；当前验证方式见[验证入口](VALIDATION.md)，不继承来源版本的历史接受结论。
 
 已实施：
 
@@ -1263,7 +1230,7 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 - **生产验收。** 目标ECS原样镜像、RDS插件/权限/备份PITR、依赖与镜像安全、混合负载及管理并发、资源规格和HA尚须独立验收。
 - **管理错误日志进一步收敛。** 团队main的6993b3a0e已增加带request_id的logger.exception服务端诊断，本次保留；客户500/503响应仍为安全消息。它不是仅记录异常类别的安全日志方案，后续若要求限制内部日志内容，应单独评估原始异常/凭据脱敏，不能继续写成“日志尚未增加”或声称该风险已关闭。
 
-当前团队分支已完成实现者自检、三类独立检视及所列本机回归，结果与环境边界见[验证摘要](VALIDATION.md)第12～13章。不据此声称原生全部可选后端、默认捕获CI或目标生产环境已验收。
+目标生产环境、原生可选后端、模型质量和性能须有对应环境的验证证据；本地检查不自动构成这些范围的验收。验证方法与结果记录要求见[验证入口](VALIDATION.md)。
 
 ### 认证与授权复用评审（2026-10-19，本地已实施）
 
@@ -1288,7 +1255,7 @@ UI删除说明、API调用说明和部署/运维手册须采用同一规格：�
 
 ## 7. 记忆与知识召回统计
 
-Issue [#38](https://github.com/RSIXDB/hindsight/issues/38) 的功能基准为 `edea57c6dfa9b7c27e526f244770eed6b6ebff26`，本节描述当前送审实现。专项设计来源为资料仓 `hindsight/design/contextdb-recall-usage-design.md`；当前代码的权限、接口和运维合同以本节为准，完整特性回归见 VALIDATION 第26章，直接召回与内部检索的口径补证见第27章；第25章保留集成工作区阶段结果。
+Issue [#38](https://github.com/RSIXDB/hindsight/issues/38) 定义记忆与知识页召回统计。当前代码的权限、接口和运维合同以本节为准；系统故事须分别验证直接召回计数与内部检索排除，测试入口见[验证入口](VALIDATION.md)。
 
 ### 7.1 口径与实现位置
 
@@ -1397,7 +1364,7 @@ python -m hindsight_ext_contextdb reset-usage --offline \
 | 有效零值/删除对象 | 存在且无记录才显示0/暂无记录；响应遗漏的对象显示不可用，不伪造零值 |
 | 更新策略 | 不轮询；点击刷新仅重新GET，不增加次数或强制刷盘。展示是读取时快照，不保证搜索后立刻可见；时间随当前locale、沿用浏览器时区 |
 
-界面示例：[记忆与知识页](VALIDATION.md#202-chrome实际验证)、[开启与关闭](VALIDATION.md#222-关键合同与chrome)。截图保留相应版本的Chrome验收来源。
+界面示例：[记忆表格](screenshots/recall-usage-memory.jpg)、[知识页](screenshots/recall-usage-knowledge.jpg)、[统计开启](screenshots/recall-usage-enabled.jpg)、[统计关闭](screenshots/recall-usage-disabled.jpg)。截图用于说明页面，不代表当前提交重新执行了浏览器验收。
 
 这会增加HTTP、认证、对象存在性核对和PG读取开销；独立表不等于零成本。原生列表/正文请求不增加统计SQL，也不等待统计响应，因此不会串入完整的统计等待时间。网络慢时统计晚出现，额外负载仍可能间接影响整体性能；客户端10秒取消等待，不能把客户端超时解释为服务端执行已停止。
 
@@ -1406,7 +1373,7 @@ python -m hindsight_ext_contextdb reset-usage --offline \
 
 ### 7.6 插件统计开关与能力识别（2026-10-28）
 
-`CONTEXTDB_RECALL_USAGE_ENABLED`是唯一运行开关，严格接受小写true/false，默认false；修改后重启API和UI，并刷新已打开页面，使初始化能力快照更新。节点Agent的部署intent支持严格JSON布尔`recall_usage_enabled`（默认false），render仅在api.env写入这个参数，不增加独立UI开关。已启用部署升级时需显式设置true，先在维护窗口备份/排空并运行upgrade-usage，再发布匹配UI。开发验收和本机授权升级分开记录，实际部署的数据保全、配置及回退见VALIDATION第23章。
+`CONTEXTDB_RECALL_USAGE_ENABLED`是唯一运行开关，严格接受小写true/false，默认false；修改后重启API和UI，并刷新已打开页面，使初始化能力快照更新。节点Agent的部署intent支持严格JSON布尔`recall_usage_enabled`（默认false），render仅在api.env写入这个参数，不增加独立UI开关。已启用部署升级时需显式设置true，先在维护窗口备份/排空并运行upgrade-usage，再发布匹配UI。开发测试与实际部署分别记录；数据保全、配置及回退按[部署更新规则](../../hindsight-extensions/contextdb-service/docs/deployment.md#8-停止重启与版本更新)执行。
 
 插件`GET /ext/contextdb/v1/admin/identity`返回`capabilities.recall_usage`。UI在既有ContextDB模式下、离开完整登录路由后，通过现有管理代理读取一次身份能力；旧服务缺字段、false或失败均隐藏统计。自研能力Provider只依据明确的capabilities.recall_usage=true启用展示，不额外判断admin角色；实际对象访问权由后端usage逐请求校验。现有管理员身份接口和UI登录合同不放开。Provider按标签页产品身份隔离、取消旧请求；不轮询、不在每行/每次usage查询额外认证。最少增加locale layout Provider挂载；原生Python、REST/SDK/MCP结果保持不变。
 
@@ -1418,7 +1385,7 @@ usage请求和响应均不要求workspace_id；UI同步删除格式检查。空�
 
 ## 8. 复用 Bank 接口管理空间：设计方案（Issue #53）
 
-当前实现统一 REST 与 UI 写入口：Bank PUT 接收创建描述，UI 两个创建入口均经严格 PUT 和身份核对，删除携带确认时的身份条件；旧workspace POST/DELETE已移除。当前基于团队main `9a58a706e`，包含Bank代理错误处理修复，提交身份以Git/PR为准；候选指纹和组合验证见VALIDATION第33章。第31章保留原`d7608b322`候选的验收。描述与已有数据结构保留，不部署现有服务；MCP管理继续关闭。第8.9节及既有验收章节记录此前原型的历史范围。
+当前实现统一 REST 与 UI 写入口：Bank PUT 接收创建描述，UI 两个创建入口均经严格 PUT 和身份核对，删除携带确认时的身份条件；旧workspace POST/DELETE已移除。描述与已有数据结构保留，MCP管理继续关闭；当前测试入口见[验证入口](VALIDATION.md)。第8.9节说明客户端调用方式。
 
 ### 8.1 目标与取舍
 
@@ -1462,7 +1429,7 @@ usage请求和响应均不要求workspace_id；UI同步删除格式检查。空�
 | 当前客户端 | 已核对的条件头能力 | 插件模式下的使用方式 |
 | --- | --- | --- |
 | Python 高层 `delete_bank/adelete_bank` | 方法只接 bank_id，不暴露逐请求头 | 默认删除不兼容必填条件；使用生成底层或独立 REST 请求 |
-| Python 生成 `BanksApi.delete_bank` | 支持逐请求 `_headers` | 从管理详情读取 ETag 后传入 `If-Match`；运行证据见VALIDATION第31章 |
+| Python 生成 `BanksApi.delete_bank` | 支持逐请求 `_headers` | 从管理详情读取 ETag 后传入 `If-Match`；通过 SDK 系统故事验证 |
 | TypeScript 高层 `deleteBank` | 方法仅有 signal；构造时 headers 属于实例全局 | 默认删除不兼容；使用请求级低层适配，不能修改共享实例全局条件头 |
 | 现成 CLI Bank 删除 | 命令只有 bank_id/yes，没有 If-Match 参数 | 第一阶段使用 REST 替代，不宣称直接兼容，不为原型修改 CLI |
 | MCP 管理工具 | 缺少删除条件参数，现有工具结果也不提供空间 ETag | 本版保持关闭，不作为本Issue待开放项 |
@@ -1505,7 +1472,7 @@ REST原型已验证无新增原生Python修改；以下约束仍适用于后续�
 
 原型用插件内三个FastAPI处理器复用原生请求/响应模型、UnknownParamsRoute、HttpObservabilityMiddleware及GzipMiddleware；这里复用的是协议、模型和引擎，不是原生HTTP处理函数。插件重新承担管理认证、条件头、部分响应映射及HTTP装配职责。原生外层FastAPI instrumentation继续包围分派，追踪不重复安装。异常映射复用原生_internal_error，包括包装的StoreWriteUnavailable→503/Retry-After、稳定JSON500，以及原生AuthenticationError→401。该内部辅助函数是明确的上游耦合点，升级时由故障合同测试约束，不修改其原生源码。
 
-本版Settings及Bank配置策略要求原生Audit关闭；原型不执行原生审计装饰器的逐Bank配置探测，避免新建schema前或删除schema后查询错误目标。Repository的管理审计继续保留。观测/故障单测和真实新库日志补证见VALIDATION第28章，不把Mock审计调用一次等同真实Audit可用。原生断连取消不针对Bank PUT/PATCH/DELETE，不新增管理断连取消器。不复制完整原生处理器、引擎业务或中间件实现，不建立第二套观测框架；插件HTTP适配本身仍有升级维护成本，取舍见8.12节。原型未保留的重要合同须先报告，不顺带扩大内核修改。
+本版Settings及Bank配置策略要求原生Audit关闭；原型不执行原生审计装饰器的逐Bank配置探测，避免新建schema前或删除schema后查询错误目标。Repository的管理审计继续保留。验证时覆盖观测/故障单测和真实新库日志，不把Mock审计调用一次等同真实Audit可用。原生断连取消不针对Bank PUT/PATCH/DELETE，不新增管理断连取消器。不复制完整原生处理器、引擎业务或中间件实现，不建立第二套观测框架；插件HTTP适配本身仍有升级维护成本，取舍见8.12节。原型未保留的重要合同须先报告，不顺带扩大内核修改。
 
 ### 8.5 生命周期与失败处理
 
@@ -1608,7 +1575,7 @@ curl -fsS -X DELETE "$API_URL/v1/default/banks/example" \
   -H "Authorization: Bearer $ADMIN_KEY" -H "If-Match: $WORKSPACE_ETAG"
 ```
 
-没有生产部署或数据升级操作；已有表结构和凭据不变。测试全部使用独立PG、随机API/Worker端口和临时SDK构建目录，退出时清理进程。当前命令、组合验收及限制见[VALIDATION第33章](VALIDATION.md#bank-rest-rebase-validation)和[CODE-REVIEW第30章](CODE-REVIEW.md#bank-rest-completion-review)。各次独立检视按对应候选版本阅读；第31～32章记录rebase前验收，第28章及CODE-REVIEW第27章记录旧原型。
+测试使用独立PG、随机API/Worker端口和同源码SDK、UI产物，退出时清理进程。当前运行方式及报告要求见[验证入口](VALIDATION.md)。生产部署、数据升级和已有凭据的变更须按对应部署任务单独验证。
 
 <a id="bank-rest-creation-validation"></a>
 
@@ -1620,7 +1587,7 @@ curl -fsS -X DELETE "$API_URL/v1/default/banks/example" \
 
 生命周期身份预留、归属检查、Bank存在性查询、创建激活及删除收尾的Repository调用使用窄范围 `metadata_errors`，将PG连接/接口及OSError映射为503、`code=metadata_unavailable`。active更新的目标认证采用相同边界。原生迁移、更新/删除引擎及响应计数校验不在此转换范围内，继续保留原生500或StoreWriteUnavailable的503/Retry-After合同；不因同样使用PG而把全部异常归为管理元数据故障。
 
-预留后的真正执行故障仍保留failed或结果未知状态；记录failed失败不能覆盖原始错误，取消语义不变。503不保证操作未发生，客户端仍须只读核对，不自动重放PUT/DELETE。无新增表、配置、依赖、恢复框架或原生内核修改；旧UI创建入口、描述能力及MCP管理关闭策略保留。运行证据与独立检视见VALIDATION第29章、CODE-REVIEW第28章。
+预留后的真正执行故障仍保留failed或结果未知状态；记录failed失败不能覆盖原始错误，取消语义不变。503不保证操作未发生，客户端仍须只读核对，不自动重放PUT/DELETE。无新增表、配置、依赖、恢复框架或原生内核修改；旧UI创建入口、描述能力及MCP管理关闭策略保留。验证时检查真实初始化故障、失败状态与条件请求，入口见[验证入口](VALIDATION.md)。
 
 关联跟踪：[RSIXDB/hindsight#53](https://github.com/RSIXDB/hindsight/issues/53)。
 
@@ -1639,7 +1606,7 @@ curl -fsS -X DELETE "$API_URL/v1/default/banks/example" \
 
 现有Validator是权限校验入口，没有完整的成功、失败及取消收尾，不承载空间创建/删除副作用。若将委派下沉到引擎，还会触及MCP、Worker或隐式创建，超出本次REST范围。创建预校验、元数据收尾与删除前排空约束也不会因路由集中而消失。
 
-出现实际HTTP升级漂移、接管范围持续扩大，或团队决定长期维护/向上游贡献正式扩展合同时，再评审替代方案。比较目标是减少完整HTTP职责和总耦合，不是消除三个装饰器；必须保留插件关闭时原生行为、插件启用时权限/schema/响应合同、旧描述能力及MCP管理关闭。当前静态交叉检视未发现必须通过架构替换解决的功能或安全缺陷，详见CODE-REVIEW第29章。
+出现实际HTTP升级漂移、接管范围持续扩大，或团队决定长期维护/向上游贡献正式扩展合同时，再评审替代方案。比较目标是减少完整HTTP职责和总耦合，不是消除三个装饰器；必须保留插件关闭时原生行为、插件启用时权限/schema/响应合同、旧描述能力及MCP管理关闭。架构替换须基于实际升级漂移、功能和安全检查结果评审。
 
 
 <a id="bank-rest-interrupted-cleanup"></a>
@@ -1681,7 +1648,7 @@ RETURNING workspace_id, bank_id, schema_name, state, version;
 4. 提交后仅恢复受限管理访问，重新GET管理详情并确认同一workspace_id、failed状态及新版本。使用**本次更新后的当前ETag**进行Bank DELETE；转换前的旧ETag必失效，不能据旧版本重试。不要向其他业务开放部分初始化或删除的空间。
 5. 确认该目录行、目标schema及selected授权清理完毕，其他空间和凭据未受影响，保存操作记录。确有需要时再明确创建同名新空间并重新授权。
 
-状态更新本身只改变该行状态、版本、更新时间和安全错误码，不清空业务或统计；真正清理由既有DELETE完成。该维护步骤不新增恢复API、调度器或自动重放，也不承诺修复原生事务外文件/索引残留。独立临时PG与真实API的条件及清理验证见VALIDATION第31章。
+状态更新本身只改变该行状态、版本、更新时间和安全错误码，不清空业务或统计；真正清理由既有DELETE完成。该维护步骤不新增恢复API、调度器或自动重放，也不承诺修复原生事务外文件/索引残留。验证时通过独立临时PG与真实API检查条件请求及清理结果。
 
 ### 8.14 业务 Key 的 MCP 工具策略（Issue #47）
 
@@ -1691,4 +1658,4 @@ RETURNING workspace_id, bank_id, schema_name, state, version;
 
 单 Bank 发现和调用均按该 Bank 判断；root 发现为各可见 Bank 允许集合的并集，执行按实际目标重新校验。自研 root list_banks 额外检查其确实已在原生工具注册表注册；只对启用该工具的可见 Bank 读取目录，total/分页在该集合内计算。单 Bank 原生不注册 list_banks，不通过适配器额外开放。MCP Bank 管理工具继续关闭。
 
-这是插件对原生 Bank 存储列及宿主工具注册适配函数的窄依赖，升级时须保留真实 Repository 查询故障、原生注册上限和公开 API/MCP 组合回归；没有修改原生代码、表结构、生成 SDK 或部署设置。检视与本轮验收见 CODE-REVIEW 第32章、VALIDATION 第36章。
+这是插件对原生 Bank 存储列及宿主工具注册适配函数的窄依赖，升级时须保留真实 Repository 查询故障、原生注册上限和公开 API/MCP 组合回归；没有修改原生代码、表结构、生成 SDK 或部署设置。验证时覆盖策略查询故障、服务端工具上限以及REST/MCP组合行为，入口见[验证入口](VALIDATION.md)。

@@ -69,7 +69,7 @@
 
 ![管理员工作空间目录：创建后核对名称、描述及可用状态](../../docs/contextdb-management/screenshots/bank-rest-description.png)
 
-图为已有验收示例，空间名称是测试数据；右上角是目录创建入口。它展示创建后的结果，创建表单及用户/Key 操作规则见[设计第 3 章](../../docs/contextdb-management/DESIGN.md#ui)。删除及写入结果未知时的处理见下方 Bank REST 参考，不要自动重放。
+图为已有页面示例，空间名称是测试数据；右上角是目录创建入口。[同名冲突示例](../../docs/contextdb-management/screenshots/bank-rest-name-conflict.png)展示严格创建的错误反馈。截图不代表当前提交重新执行了浏览器验收；创建表单及用户/Key 操作规则见[设计第 3 章](../../docs/contextdb-management/DESIGN.md#ui)。删除及写入结果未知时的处理见下方 Bank REST 参考，不要自动重放。
 
 <a id="development"></a>
 
@@ -78,7 +78,7 @@
 - [唯一完整设计](../../docs/contextdb-management/DESIGN.md#overview)：架构、对象关系、权限、生命周期及当前限制；[文档索引](docs/README.md)按任务导航。
 - 实现位于 [hindsight_ext_contextdb](hindsight_ext_contextdb/)，四个扩展槽及 ASGI 保护层见设计中的扩展说明。
 - [管理 OpenAPI](schemas/contextdb-control-plane.openapi.yaml)和[DDL](hindsight_ext_contextdb/schema.sql)提供机器契约；设计、示例不另行定义接口。
-- [测试入口](#测试入口)按 Python、系统、UI 环境执行；[检视记录](../../docs/contextdb-management/CODE-REVIEW.md)与[验收记录](../../docs/contextdb-management/VALIDATION.md)保留各自版本和未验边界。
+- [测试入口](#测试入口)按 Python、系统、UI 环境执行；[验证入口](../../docs/contextdb-management/VALIDATION.md)说明自动化检查和验证边界，实际结果以对应提交的 CI 与执行报告为准。
 
 只安装 Python 模块不等于启用插件。API 必须由 `hindsight_ext_contextdb.asgi:create_app` 启动，配套扩展、离线初始化和匹配 UI；[插件配置与容器加载说明](docs/deployment.md#plugin-configuration)列出四个扩展变量，以及 render、挂载和启动脚本的具体作用。直接运行配置了本扩展的原生 API 命令会拒绝启动。原生应用仍负责内置 Worker 和关闭流程。
 
@@ -215,14 +215,14 @@ done
 
 chunk详情由扩展transport使用原生codec解析Bank并进入现有授权上下文；原生接口与SDK不变。管理UI补齐GET错误状态、空间q搜索及UUID草稿保持、当前语言日期与管理导航；Secret保留到用户明确关闭，离页/卸载/切换用户仍清理，不持久化或自动重签，复制反馈防迟到。
 
-团队ProductRuntime、productFetch、proxy、Host/Origin及磁盘会话不变。公共配置使用CONTEXTBASE优先、HINDSIGHT兼容的既有合同，显式空值也具有优先级。目标旧HEAD遗漏的49d727664配置读取/健康探测修复在本轮补齐；SEC-01已有投影不重复实现。逐项适配、实际测试和未验收范围统一见[完整设计](../../docs/contextdb-management/DESIGN.md)、[检视记录](../../docs/contextdb-management/CODE-REVIEW.md)与[验证记录](../../docs/contextdb-management/VALIDATION.md)。
+团队ProductRuntime、productFetch、proxy、Host/Origin及磁盘会话继续沿用现有实现。公共配置使用CONTEXTBASE优先、HINDSIGHT兼容的既有合同，显式空值也具有优先级。配置读取、健康探测和SEC-01投影规则见[完整设计](../../docs/contextdb-management/DESIGN.md)，验证方式见[验证入口](../../docs/contextdb-management/VALIDATION.md)。
 
 
 ## MCP与共享维护函数（2026-10-27）
 
 MCP适配器先认证当前消息的目标空间，将其登记schema用于原生工具筛选、审计配置读取和执行；root工具目录按每个可见空间的原生配置与权限筛选后求并集。没有跨请求身份缓存，未改变业务Key配置字段投影。
 
-`service.sh init`复用原生revision `c8b4e2a71f95`安装四个共享维护函数，不补建public业务表。函数默认位于public，也可使用事先创建的配置schema；离线CLI与API/Worker保持CONTEXTBASE优先、HINDSIGHT兼容及显式空值规则，不加载父`.env`。已声明外部接管的函数不覆盖，须满足原生签名、返回列及EXECUTE权限。已有部署在维护窗口保留配置/秘密文件重复init即可补齐；本轮未操作现有部署。完整部署与错误边界见[设计§5.5.4](../../docs/contextdb-management/DESIGN.md)，实际测试与限制见[验证第17章](../../docs/contextdb-management/VALIDATION.md)。
+`service.sh init`复用原生revision `c8b4e2a71f95`安装四个共享维护函数，不补建public业务表。函数默认位于public，也可使用事先创建的配置schema；离线CLI与API/Worker保持CONTEXTBASE优先、HINDSIGHT兼容及显式空值规则，不加载父`.env`。已声明外部接管的函数不覆盖，须满足原生签名、返回列及EXECUTE权限。已有部署在维护窗口保留配置/秘密文件重复init即可补齐；本轮未操作现有部署。完整部署与错误边界见[设计§5.5.4](../../docs/contextdb-management/DESIGN.md)，测试方式与限制见[验证入口](../../docs/contextdb-management/VALIDATION.md)。
 
 ## 召回使用统计（Issue #38）
 
@@ -321,6 +321,6 @@ MCP的 `recall` / `search_knowledge_base` 使用同一统计口径，没有新�
 
 ### UI示例与验证依据
 
-- [记忆表格与知识页截图](../../docs/contextdb-management/VALIDATION.md#202-chrome实际验证)。
-- [统计开启与关闭截图](../../docs/contextdb-management/VALIDATION.md#222-关键合同与chrome)。
-- [完整特性回归](../../docs/contextdb-management/VALIDATION.md)；内部检索排除补证见同文第27章。截图为对应验收版本记录，不代表本次文档发布重新部署。
+- 页面示例：[记忆表格](../../docs/contextdb-management/screenshots/recall-usage-memory.jpg)、[知识页](../../docs/contextdb-management/screenshots/recall-usage-knowledge.jpg)。
+- 开关示例：[统计开启](../../docs/contextdb-management/screenshots/recall-usage-enabled.jpg)、[统计关闭](../../docs/contextdb-management/screenshots/recall-usage-disabled.jpg)。
+- [验证入口](../../docs/contextdb-management/VALIDATION.md)说明当前测试方式；系统故事需要覆盖直接召回计数与内部检索排除。截图为页面示例，不代表当前提交重新执行了浏览器验收。

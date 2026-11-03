@@ -32,7 +32,7 @@ For agent integrations, see [Coding Agents](hindsight-integrations/coding-agents
 
 ## Delivery status
 
-[Client distribution contract](docs/hosted-single-tenant/module-delivery/M2/CLIENT-DISTRIBUTION.md) records artifact paths, installation, validation and remaining publication decisions. [Issue #2](https://github.com/RSIXDB/hindsight/issues/2) and [PR #3](https://github.com/RSIXDB/hindsight/pull/3) track implementation and acceptance. A prepared artifact is not a published or production-validated release.
+[Client packaging and delivery](docs/contextbase/CLIENT-PACKAGING.md) describes the current build and distribution process. [Cloud readiness](docs/contextbase/CLOUD-READINESS.md) lists the remaining platform conditions and target-environment checks. Release and validation results belong to the corresponding artifact and commit.
 
 ## Development and attribution
 
