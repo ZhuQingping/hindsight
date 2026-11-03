@@ -48,7 +48,7 @@
     },
     {
       "path": "scripts/install-contextbase.sh",
-      "sha256": "0c8a695b417be1ca2a75815d08ee5f7d08a8ff331e3d87dfdcbc32d64a28deba"
+      "sha256": "31e65a1d91ce13667e21d35a92671d716ef4375f12d1fbc6bfc30dbe76efd5a0"
     },
     {
       "path": "hindsight-integrations/coding-agents/README.md",
