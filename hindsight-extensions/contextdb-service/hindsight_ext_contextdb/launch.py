@@ -13,6 +13,8 @@ from typing import Literal
 from .artifacts import verify_ui_build
 from .bootstrap import load_deployment_secrets
 from .environment import service_env
+from .ui_gateway import enabled as dynamic_ui_enabled
+from .ui_gateway import run as run_ui_gateway
 
 
 def launch(component: Literal["api", "worker", "ui"], directory: Path, source_root: Path) -> None:
@@ -72,6 +74,12 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
                             os.environ[prefix + "PUBLIC_ORIGIN"] = f"http://{host}:{local_port}"
                 for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
                     os.environ[prefix + "PORT"] = local_port
+            if dynamic_ui_enabled():
+                npm = shutil.which("npm.cmd") if sys.platform == "win32" else "npm"
+                if npm is None:
+                    raise ValueError("Install Node.js 24 and npm before starting the UI")
+                subprocess.run([npm, "run", "build", "-w", "contextbase-client"], cwd=source_root, check=True)
+                run_ui_gateway(source_root, development=True)
             os.chdir(source_root)
             os.environ["HOSTNAME"] = service_env("CP_HOST", "127.0.0.1")
             os.environ["PORT"] = service_env("CP_PORT", "9999")
@@ -114,6 +122,8 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
         server = source_root / "contextbase-control-plane" / "standalone" / "server.js"
         if not server.is_file():
             raise ValueError("Build the matching UI standalone artifact before starting it")
+        if dynamic_ui_enabled():
+            run_ui_gateway(source_root)
         os.environ["HOSTNAME"] = service_env("CP_HOST", "0.0.0.0")
         os.environ["PORT"] = service_env("CP_PORT", "9999")
         if sys.platform == "win32":

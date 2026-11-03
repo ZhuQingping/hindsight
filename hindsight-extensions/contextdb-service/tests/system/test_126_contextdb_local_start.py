@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import platform
+import secrets
 import subprocess
 import sys
 import time
@@ -15,13 +17,25 @@ from contextbase_client import ContextBase
 from contextbase_client_api.exceptions import UnauthorizedException
 from hindsight_system_tests.server import StubServer, free_port, stub_environment
 
+from hindsight_ext_contextdb.bootstrap import save_credential
+from hindsight_ext_contextdb.embedded import DatabaseSecret, private_directory
+
 from ..lifecycle_http import create_workspace
 from ..paths import ROOT
+from .support.startup_diagnostics import startup_diagnostics
 
 
+@pytest.mark.skipif(
+    platform.system() not in {"Linux", "Windows"} or platform.machine().lower() not in {"x86_64", "amd64"},
+    reason="The embedded local launcher supports Linux and Windows x86_64 only",
+)
 @pytest.mark.asyncio
 async def test_local_launcher_auth_and_persistence(stub_server: StubServer, tmp_path: Path) -> None:
     directory = tmp_path / "local-state"
+    private_directory(directory)
+    # Make the formerly random pg0 CLI parsing failure deterministic: the
+    # persisted password must survive startup and restart even with a leading '-'.
+    save_credential(directory / "pg-secrets.json", DatabaseSecret(password="-" + secrets.token_urlsafe(48)))
     port = free_port()
     environment = {
         key: value
@@ -49,8 +63,10 @@ async def test_local_launcher_auth_and_persistence(stub_server: StubServer, tmp_
             try:
                 deadline = time.monotonic() + 100
                 while True:
-                    assert process.poll() is None, f"Local startup failed: {log.name}"
-                    assert time.monotonic() < deadline
+                    assert process.poll() is None, f"Local startup failed:\n{startup_diagnostics(Path(log.name))}"
+                    assert time.monotonic() < deadline, (
+                        f"Local startup readiness timed out:\n{startup_diagnostics(Path(log.name))}"
+                    )
                     try:
                         if httpx.get(f"http://127.0.0.1:{port}/health/ready", timeout=1).status_code == 200:
                             break

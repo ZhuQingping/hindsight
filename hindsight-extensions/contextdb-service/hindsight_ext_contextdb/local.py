@@ -90,12 +90,15 @@ def configure(directory: Path, url: str, api_port: int, ui_port: int) -> None:
         "CONTEXTDB_ENABLED": "true",
         "HOST": service_env("CP_HOST", "0.0.0.0"),
         "PORT": str(ui_port),
-        "PUBLIC_ORIGIN": service_env("CP_PUBLIC_ORIGIN", f"http://localhost:{ui_port}"),
         "SESSION_DIR": str(sessions),
         "DATAPLANE_API_URL": f"http://127.0.0.1:{api_port}",
     }.items():
         for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
             ui[prefix + key] = value
+    origin = service_env("CP_PUBLIC_ORIGIN")
+    if origin:
+        for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
+            ui[prefix + "PUBLIC_ORIGIN"] = origin
     write_environment(directory / "api.env", api, replace=True)
     write_environment(directory / "ui.env", ui, replace=True)
     os.environ.update(api)
@@ -207,15 +210,19 @@ def main() -> None:
         embedded = url == "pg0" or url.startswith("pg0://")
         data_dir = Path(os.environ.get("CONTEXTDB_PG_DATA_DIR", str(directory / "pgdata"))).expanduser().resolve()
         started = False
+        stage = "database selection"
         try:
             if embedded:
                 if url != "pg0":
                     raise ValueError("Use pg0 with CONTEXTDB_PG_DATA_DIR, or an external PostgreSQL URL")
+                stage = "embedded database startup"
                 info = pg_control("start", directory, data_dir)
                 assert info is not None
                 started = True
                 url = info.uri
+                stage = "extension initialization"
                 asyncio.run(enable_extensions(url))
+            stage = "configuration"
             api_port = args.port if args.port is not None else int(service_env("API_PORT", "8888"))
             ui_port = args.ui_port if args.ui_port is not None else int(service_env("CP_PORT", "9999"))
             if args.random_port:
@@ -228,22 +235,35 @@ def main() -> None:
             configure(directory, url, api_port, ui_port)
             # Persist credentials before the metadata migration. Existing deployments
             # must restore missing credentials rather than silently rotating them.
+            stage = "credential bootstrap"
             asyncio.run(prepare_deployment(directory, url, service_env("CP_ACCESS_KEY") or None))
             environment.update(os.environ)
             environment.update(
                 CONTEXTDB_DEPLOY_DIR=str(directory), CONTEXTDB_PYTHON=sys.executable, CONTEXTDB_UI_DEV="1"
             )
             environment["PYTHON_DOTENV_DISABLED"] = "1"
+            stage = "deployment initialization"
             subprocess.run([*service_command, "init"], env=environment, check=True)
             print(f"ContextBase API: http://localhost:{api_port}; UI: http://localhost:{ui_port}", flush=True)
             print(f"Private login credentials: {directory / 'ui-secrets.json'}", flush=True)
+            stage = "service launch"
             raise SystemExit(serve([*service_command, args.component], environment))
         except KeyboardInterrupt:
             raise SystemExit(130) from None
-        except (ValueError, OSError, asyncpg.PostgresError, subprocess.CalledProcessError):
+        except (ValueError, OSError, asyncpg.PostgresError, subprocess.CalledProcessError) as error:
+            # Exit 2 used to hide the failing stage from both operators and CI.
+            # Preserve code provenance, never exception text: it may contain a
+            # database URI, provider password or child command's credentials.
+            frame = error.__traceback__
+            while frame is not None and frame.tb_next is not None:
+                frame = frame.tb_next
+            location = (
+                f"{Path(frame.tb_frame.f_code.co_filename).name}:{frame.tb_lineno}" if frame is not None else "unknown"
+            )
             parser.exit(
                 2,
-                "Local initialization failed; check database/extensions, private state and configuration. Authentication remains required.\n",
+                f"Local initialization failed during {stage} ({type(error).__name__} at {location}); "
+                "check database/extensions, private state and configuration. Authentication remains required.\n",
             )
         finally:
             if started:

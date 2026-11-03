@@ -50,7 +50,7 @@ async def test_probe_uses_local_socket_and_configured_public_host(
         await runner.cleanup()
 
 
-@pytest.mark.parametrize("origin", ["", "file:///tmp/ui", "https://user:secret@example.test", "https://ui.test/path"])
+@pytest.mark.parametrize("origin", ["file:///tmp/ui", "https://user:secret@example.test", "https://ui.test/path"])
 async def test_probe_rejects_invalid_public_origin(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
     monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_ORIGIN", origin)
     assert await healthy() is False
@@ -63,7 +63,8 @@ async def test_compose_health_command_exports_ui_authority(tmp_path: Path, prefi
 
     async def health(request: web.Request) -> web.Response:
         seen.append(request.host)
-        if request.path == "/api/health" and request.host != "admin.example.test":
+        expected = f"127.0.0.1:{request.url.port}" if prefix == "public-empty" else "admin.example.test"
+        if request.path == "/api/health" and request.host != expected:
             return web.Response(status=421)
         return web.json_response({"status": "healthy", "database": "connected"})
 
@@ -124,13 +125,36 @@ async def test_compose_health_command_exports_ui_authority(tmp_path: Path, prefi
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=15)
-        assert process.returncode == (1 if prefix == "public-empty" else 0), (stdout, stderr)
+        assert process.returncode == 0, (stdout, stderr)
         expected_hosts = [f"127.0.0.1:{port}"]
-        if prefix != "public-empty":
-            expected_hosts.append("admin.example.test")
+        expected_hosts.append(f"127.0.0.1:{port}" if prefix == "public-empty" else "admin.example.test")
         assert seen == expected_hosts
     finally:
         if process is not None and process.returncode is None:
             process.kill()
             await process.wait()
+        await runner.cleanup()
+
+
+async def test_probe_without_origin_uses_loopback_host(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[str] = []
+
+    async def health(request: web.Request) -> web.Response:
+        seen.append(request.host)
+        return web.Response(status=200)
+
+    app = web.Application()
+    app.router.add_get("/api/health", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    try:
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        port = runner.addresses[0][1]
+        monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_ORIGIN", "")
+        monkeypatch.setenv("HINDSIGHT_CP_PUBLIC_ORIGIN", "https://stale.example")
+        monkeypatch.setenv("CONTEXTBASE_CP_PORT", str(port))
+        assert await healthy() is True
+        assert seen == [f"127.0.0.1:{port}"]
+    finally:
         await runner.cleanup()

@@ -35,7 +35,7 @@ class DeploymentConfig(BaseModel):
     ui_password_file: Path
     api_port: int = Field(default=8888, ge=1024, le=65535)
     ui_port: int = Field(default=9999, ge=1024, le=65535)
-    ui_public_origin: str
+    ui_public_origin: str | None = None
     ui_session_dir: Path = Path("/var/lib/contextdb/ui-sessions")
     ui_api_url: str
     language: Literal["english"] = "english"
@@ -53,7 +53,7 @@ class DeploymentConfig(BaseModel):
             raise ValueError("Use an absolute file path")
         return value
 
-    @field_validator("ui_api_url", "ui_public_origin")
+    @field_validator("ui_api_url")
     @classmethod
     def api_url(cls, value: str) -> str:
         parsed = urlsplit(value)
@@ -64,6 +64,11 @@ class DeploymentConfig(BaseModel):
         if parsed.port is not None and not 1 <= parsed.port <= 65535:
             raise ValueError("Invalid API port")
         return value.rstrip("/")
+
+    @field_validator("ui_public_origin")
+    @classmethod
+    def public_origin(cls, value: str | None) -> str | None:
+        return None if value is None else cls.api_url(value)
 
     @model_validator(mode="after")
     def consistent(self) -> DeploymentConfig:
@@ -217,7 +222,6 @@ def render(config: DeploymentConfig, directory: Path, *, replace: bool = False) 
         raise ValueError("UI session directory must be private (0700)")
     ui = {
         "HINDSIGHT_CP_AUTH_MODE": "local",
-        "HINDSIGHT_CP_PUBLIC_ORIGIN": config.ui_public_origin,
         "HINDSIGHT_CP_SESSION_DIR": str(config.ui_session_dir),
         "HINDSIGHT_CP_CONTEXTDB_ENABLED": "true",
         "HINDSIGHT_CP_HOST": "0.0.0.0",
@@ -225,6 +229,8 @@ def render(config: DeploymentConfig, directory: Path, *, replace: bool = False) 
         "HINDSIGHT_CP_DATAPLANE_API_URL": config.ui_api_url,
         "HINDSIGHT_CP_ACCESS_KEY": password,
     }
+    if config.ui_public_origin is not None:
+        ui["HINDSIGHT_CP_PUBLIC_ORIGIN"] = config.ui_public_origin
     if config.ca_bundle_file:
         api["SSL_CERT_FILE"] = str(config.ca_bundle_file)
         ui["SSL_CERT_FILE"] = str(config.ca_bundle_file)

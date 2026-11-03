@@ -84,7 +84,7 @@ API/UI/扩展都来自同一源码版本。Node 23 不在当前 UI 构建预检�
 | `database_url_file` / `maas_api_key_file` / `ui_password_file` | 上述三个输入文件的绝对路径 |
 | `api_port` / `ui_port` | 默认 8888/9999，彼此不同；Docker 发布端口须一致 |
 | `ui_api_url` | UI 服务端访问 API 的内部 origin，如 `http://127.0.0.1:8888` |
-| `ui_public_origin` | 浏览器实际访问 UI 的 origin，含端口；远程部署不要照抄 localhost，公网使用 TLS 入口 |
+| `ui_public_origin` | 可选。固定入口（尤其 HTTPS 网关）填写浏览器实际 origin，含端口；省略或设为 `null` 使用直连 HTTP 动态 Host 模式，适用于 EIP 变更 |
 | `ui_session_dir` | UI 私有可写会话目录，宿主与容器路径按相应指南设置 |
 | `worker_id` | 本实例 Worker 标识 |
 | `db_pool_max` | 每个相关连接池上限，不是实例总连接数 |
@@ -206,3 +206,17 @@ readiness、UI probe 和 status 都不证明模型或 Worker 实际执行成功�
 - [唯一 DESIGN](../../../docs/contextdb-management/DESIGN.md#overview)、[生成器模型](../hindsight_ext_contextdb/deployment.py)、[测试入口](../README.md#测试入口)、[验证入口与边界](../../../docs/contextdb-management/VALIDATION.md)、[云环境交付待办](../../../docs/contextbase/CLOUD-READINESS.md)。
 - 预检区分依赖、源码路径、PG 扩展和权限；业务失败区分网络、Key 授权、后台任务和模型调用。
 - 本页保留原部署链接的重要锚点；原 Docker 操作已移至 Docker 指南，宿主用户按宿主指南执行，不把两个执行环境的命令混用。
+
+### UI 公网地址与 EIP 变更
+
+本适配由 `contextdb-service` 启动器提供，仅当有效 `CP_CONTEXTDB_ENABLED` 精确为 `true`、且公网 origin 未配置或为空时启用。未启用插件或配置了非空 origin 时，启动器仍直接启动原有 Node UI，不启动动态入口；不修改社区 UI 源码、默认认证或路由行为。直接运行原有 Node UI 不会自动获得本适配。
+
+配置 `ui_public_origin` 时，继续按该固定 origin 校验 Host、CSRF，并生成重定向与 Secure Cookie。非空非法 URL 会被拒绝，不会转为动态模式。HTTPS 反向代理/TLS 终止部署应保留此配置；不要依赖客户端可伪造的 `X-Forwarded-*` 头选择协议或取得信任。
+
+必须直接通过可变 EIP 使用 HTTP 时，在 intent 中省略 `ui_public_origin` 或设置为 `null`，重新 render 并重启 UI。生成的 `ui.env` 不再写入 PUBLIC_ORIGIN。直接设置运行环境时，同时检查容器级环境和 `ui.env`：`CONTEXTBASE_CP_PUBLIC_ORIGIN` 优先于 `HINDSIGHT_CP_PUBLIC_ORIGIN`，显式空值表示动态模式；两者都未设置也可使用动态模式。
+
+动态模式下，插件在原有 UI 端口提供 HTTP 入口，Node UI 仅监听随机 loopback 端口。插件为 Node 注入稳定、按外部端口隔离的内部 origin，在验证浏览器写请求 Origin 与外部 Host 一致后才转换内部 Host/Origin，并将内部重定向还原为浏览器地址。转发不会保存浏览器 Cookie，不读取 forwarded 头授予信任，上传、压缩内容、SSE 与 WebSocket 保持流式传输。Node 仍要求独立 UI 密码、绝对路径持久会话目录及有效后台管理员 Key。
+
+动态入口不提供固定 Host 白名单；入口访问控制由部署方负责。非法/缺失 Host 会被拒绝，非法非空 origin 配置仍失败关闭。入口与 Node 由同一插件进程拥有并共同退出；仅内部 origin 与子进程端口被适配，不改变部署文件中的公网地址配置。
+
+切换 EIP 后可以直接访问新地址，无须再修改 UI 配置或重启 UI。浏览器 Cookie 不跨 IP/主机传递，因此新地址需要重新登录；从固定模式切换到动态模式也允许一次重新登录。原有 Cookie 名和 token 签名使用稳定内部 origin，隔离不同外部端口；原有到期、退出撤销与服务端会话文件校验保留。HTTPS 网关继续使用固定公开 origin；可以使用稳定域名时，配置域名可避免 EIP 与浏览器地址绑定。

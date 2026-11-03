@@ -105,16 +105,16 @@ def test_pg_failure_preserves_redacted_primary_error(tmp_path: Path, monkeypatch
         def info(self) -> None:
             return None
 
-        def start(self) -> None:
-            secret = embedded.DatabaseSecret.model_validate_json(
-                (directory / "pg-secrets.json").read_text(encoding="utf-8")
-            )
-            raise RuntimeError(f"postgresql://contextbase:{secret.password}@localhost startup-failed")
-
         def stop(self) -> None:
             raise RuntimeError("not-running")
 
-    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=FailedPostgres))
+    def failed_start(*_args: str) -> None:
+        secret = embedded.DatabaseSecret.model_validate_json(
+            (directory / "pg-secrets.json").read_text(encoding="utf-8")
+        )
+        raise RuntimeError(f"postgresql://contextbase:{secret.password}@localhost startup-failed")
+
+    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=FailedPostgres, _run_pg0=failed_start))
     with pytest.raises(embedded.EmbeddedDatabaseError) as failure:
         embedded.control("start", directory, directory / "pgdata")
     assert str(failure.value) == "postgresql://contextbase:<redacted>@localhost startup-failed"
