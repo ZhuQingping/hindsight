@@ -1330,7 +1330,7 @@ Issue [#38](https://github.com/RSIXDB/hindsight/issues/38) 定义记忆与知识
 
 已有ContextDB实例支持离线升级：无统计表时补建，早期含workspace_id的表在归属校验后调整结构并保留次数/时间，当前结构可重复执行。原记忆、知识、管理数据和凭据不因统计升级而重建；启用前的历史召回不补算。升级按空间分别提交，中途失败保持停服、处理后重跑。
 
-部署顺序为备份数据库/配置/秘密及旧产物 → 停止新访问并等待已接受工作及统计结束 → 停止相关服务 → 准备同版原生schema → 显式加载原api.env并执行upgrade-usage → 配置true并发布匹配API/UI → 验证原数据、原凭据和统计。`--directory`只加载pepper等秘密，不加载PG URL和实例身份；不能仅传目录而省略原环境。可直接执行的[升级步骤、参数表与最小示例](../../hindsight-extensions/contextdb-service/README.md#已有实例升级)集中在插件README。
+部署顺序为备份数据库/配置/秘密及旧产物 → 停止新访问并等待已接受工作及统计结束 → 停止相关服务 → 准备同版原生schema → 显式加载原api.env并执行upgrade-usage → 配置true并发布匹配API/UI → 验证原数据、原凭据和统计。`--directory`只加载pepper等秘密，不加载PG URL和实例身份；不能仅传目录而省略原环境。可直接执行的[升级步骤、参数表与最小示例](../../hindsight-extensions/contextdb-service/docs/recall-usage.md#已有实例升级)集中在召回统计运维指南。
 
 先停止业务入口、排空 API/Worker 和统计任务，并保留现有部署配置与秘密文件。以下在已加载原api.env并设置CONTEXTDB_DEPLOY_DIR的shell中执行；reset示例另需设置BANK_ID。只使用已登记空间，不运行默认public业务迁移：
 

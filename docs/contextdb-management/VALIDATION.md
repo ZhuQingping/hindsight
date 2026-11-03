@@ -18,10 +18,36 @@
 完整范围和平台矩阵以
 [插件工作流](../../.github/workflows/contextdb-ci.yml)为准。
 
-按需运行单类测试的命令见
-[插件测试入口](../../hindsight-extensions/contextdb-service/README.md#测试入口)；
-生产构建、报告和门禁说明见
-[插件 CI](../../hindsight-extensions/contextdb-service/README.md#contextdb-service-extension-ci)。
+按需运行单类测试的命令见下文。生产 UI 使用同源码的 standalone 和 manifest，
+报告要求与完整预检见[本地预检](#本地预检)和[验证边界](#验证边界)。
+
+## 单类测试
+
+先在仓库根目录准备依赖，各套件使用对应的 Python 或 Node 环境：
+
+```bash
+(
+  set -eu
+  cd hindsight-extensions/contextdb-service
+  uv run pytest tests/python -v
+  cd ../../hindsight-system-tests
+  uv run --frozen --group contextdb pytest \
+    -c ../hindsight-extensions/contextdb-service/pytest-system.ini \
+    ../hindsight-extensions/contextdb-service/tests/system -v
+  cd ..
+  npm test --workspace=contextbase-control-plane -- \
+    ../hindsight-extensions/contextdb-service/tests/ui
+  npm run lint --workspace=contextbase-control-plane
+)
+```
+
+只运行一类时，选择对应目录和命令；插件 pytest 默认只收集 `tests/python`。
+跨语言合同检查需要 Node，由 `run-ci.sh system` 运行。
+
+生产 UI 故事须先用同版 `hindsight_ext_contextdb build-ui --source-root <checkout>` 构建，
+从 system 环境调用时显式设置 `PYTHONPATH=<checkout>/hindsight-extensions/contextdb-service`。
+`CONTEXTDB_UI_SERVER` 和 `CONTEXTDB_TEST_NODE_BIN` 可指定隔离的产物和 Node。
+完整预检的 `build`/`system` 入口负责构建匹配产物并检查专用报告；手动运行跳过故事不等于验收通过。
 
 ## 本地预检
 
