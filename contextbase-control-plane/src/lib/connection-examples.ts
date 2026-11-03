@@ -15,7 +15,13 @@ export const codingClients = [
 
 export type CodingClient = (typeof codingClients)[number]["id"];
 export type ConnectionClient =
-  CodingClient | "openclaw" | "hermes" | "python" | "node" | "rest" | "mcp";
+  | CodingClient
+  | "openclaw"
+  | "hermes"
+  | "python"
+  | "node"
+  | "rest"
+  | "mcp";
 export type ConnectionTerminal = "powershell" | "cmd" | "bash";
 
 interface ConnectionExample {
@@ -87,23 +93,10 @@ export function connectionExample(
     if (!connection.codingAgentsNpm) return { unavailable: "packageUnavailable" };
     const endpoint = apiUrl ?? "<API_ENDPOINT>";
     if (cmdUnsafe([bankId, endpoint], terminal)) return { unavailable: "cmdUnavailable" };
-    // Pass both variables explicitly so saved installer settings cannot override this setup.
-    const endpointArgument =
-      terminal === "cmd"
-        ? '"%CONTEXTBASE_API_URL%"'
-        : terminal === "powershell"
-          ? '"$env:CONTEXTBASE_API_URL"'
-          : '"$CONTEXTBASE_API_URL"';
-    const tokenArgument =
-      terminal === "cmd"
-        ? '"%CONTEXTBASE_API_TOKEN%"'
-        : terminal === "powershell"
-          ? '"$env:CONTEXTBASE_API_TOKEN"'
-          : '"$CONTEXTBASE_API_TOKEN"';
     const npx = terminal === "bash" ? "npx" : "npx.cmd";
     const mcpConfig = client === "codearts-agent" ? ` --mcp-config ${q("<MCP_CONFIG_PATH>")}` : "";
     return {
-      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)} --api-url ${endpointArgument} --api-token ${tokenArgument}${mcpConfig}`,
+      install: `${endpointEnvironment(endpoint, terminal)}\n${token}\n${npx} --yes ${q(connection.codingAgentsNpm)} install ${client} --bank-id ${q(bankId)}${mcpConfig}`,
       switchBank: `${npx} --yes ${q(connection.codingAgentsNpm)} bank use ${q("<BANK_ID>")}`,
     };
   }

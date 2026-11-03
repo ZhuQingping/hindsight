@@ -161,7 +161,7 @@ it("renders Chinese instructions and all dynamic translation paths without missi
   const picker = screen.getByLabelText("客户端");
   expect(screen.getByRole("heading", { name: "可选参数" })).toBeTruthy();
   expect(document.body.textContent).not.toMatch(
-    /首次可按提示输入|覆盖已有地址时请显式指定|仅用于指定项目级客户端注册目录/
+    /首次可按提示输入|覆盖已有地址时请显式指定|仅用于指定项目级客户端注册目录|首次使用需提供密钥|覆盖已有密钥时请显式指定|API 地址（/
   );
   expect(document.body.textContent).toContain("--project-path：可选，默认当前目录。");
   for (const id of [...codingClients.map((client) => client.id), "openclaw", "hermes"])
@@ -184,10 +184,9 @@ it("shows connection details after the command without a parameter form and with
     `$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`,
     "$env:CONTEXTBASE_API_TOKEN = '<API_KEY>'",
   ]);
-  expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
-  expect(command.textContent).toContain('--api-token "$env:CONTEXTBASE_API_TOKEN"');
+  expect(command.textContent).not.toMatch(/--api-url|--api-token/);
   const text = document.body.textContent!;
-  const endpointHelp = screen.getByText(/^--api-url: API address/);
+  const endpointHelp = screen.getByText(/^--api-url: Omit/);
   expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(
     0
   );
@@ -195,7 +194,7 @@ it("shows connection details after the command without a parameter form and with
   expect(text).toContain("--project-path: optional");
   expect(screen.getByRole("heading", { name: "Optional parameters" })).toBeTruthy();
   expect(text).not.toMatch(
-    /first installation can prompt|replace a saved address|project-specific client registration directory/
+    /first installation can prompt|replace a saved address|project-specific client registration directory|Supply a key for the first installation|pass explicitly to replace a saved key|API address \(/
   );
   expect(text).toContain("CONTEXTBASE_API_URL");
   expect(text).toContain("CONTEXTBASE_API_TOKEN");

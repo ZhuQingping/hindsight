@@ -179,7 +179,7 @@ export function ClientConnectionSetup({
                 {isCoding && (
                   <div className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
                     <h4 className="font-medium text-foreground">{t("parametersTitle")}</h4>
-                    <p>{t("endpointHelp", { apiUrl: connection.apiUrl ?? "<API_ENDPOINT>" })}</p>
+                    <p>{t("endpointHelp")}</p>
                     <p>{t("tokenHelp")}</p>
                     <p>{t("projectHelp")}</p>
                   </div>
