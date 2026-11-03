@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createContextBaseTools, type HindsightClient } from "./index.js";
+import { createContextBaseTools, type ContextBaseClient } from "./index.js";
 
 describe("createContextBaseTools", () => {
-  let mockClient: HindsightClient;
+  let mockClient: ContextBaseClient;
 
   beforeEach(() => {
     mockClient = {

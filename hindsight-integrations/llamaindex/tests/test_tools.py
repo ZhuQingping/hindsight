@@ -9,7 +9,7 @@ from contextbase_llamaindex import (
     create_contextbase_tools,
     reset_config,
 )
-from contextbase_llamaindex.errors import HindsightError
+from contextbase_llamaindex.errors import ContextBaseError
 
 
 def _mock_client():
@@ -138,14 +138,14 @@ class TestCreateContextBaseTools:
     def test_reads_api_key_from_env_without_config(self, monkeypatch):
         """CONTEXTBASE_API_KEY is honoured even when configure() was never called."""
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(contextbase_api_url="http://localhost:8888", bank_id="test")
             assert mock_cls.call_args.kwargs["api_key"] == "sk-from-env"
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -155,7 +155,7 @@ class TestCreateContextBaseTools:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once()
@@ -442,7 +442,7 @@ class TestBankMission:
             contextbase_api_url="http://localhost:8888",
             mission="config mission",
         )
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.retain.return_value = _mock_retain_response()
@@ -535,7 +535,7 @@ class TestConfigFallback:
 
     def test_budget_falls_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
@@ -551,7 +551,7 @@ class TestConfigFallback:
 
     def test_explicit_budget_overrides_config(self):
         configure(contextbase_api_url="http://localhost:8888", budget="high")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
@@ -563,7 +563,7 @@ class TestConfigFallback:
 
     def test_tags_fall_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config:tag"])
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.retain.return_value = _mock_retain_response()
@@ -575,7 +575,7 @@ class TestConfigFallback:
 
     def test_context_falls_back_to_config(self):
         configure(contextbase_api_url="http://localhost:8888", context="my-app")
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_cls.return_value = mock_instance
             mock_instance.retain.return_value = _mock_retain_response()

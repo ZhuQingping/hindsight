@@ -11,7 +11,7 @@ from contextbase_ag2 import (
     register_contextbase_tools,
     reset_config,
 )
-from contextbase_ag2.errors import HindsightError
+from contextbase_ag2.errors import ContextBaseError
 
 
 def _mock_client():
@@ -44,7 +44,7 @@ class TestImports:
     def test_imports(self):
         from contextbase_ag2 import (  # noqa: F401
             ContextBaseAG2Config,
-            HindsightError,
+            ContextBaseError,
             configure,
             create_contextbase_tools,
             get_config,
@@ -126,12 +126,12 @@ class TestCreateContextBaseTools:
             assert len(fn.__doc__) > 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             create_contextbase_tools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_ag2._client.Hindsight") as mock_cls:
+        with patch("contextbase_ag2._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -141,7 +141,7 @@ class TestCreateContextBaseTools:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_ag2._client.Hindsight") as mock_cls:
+        with patch("contextbase_ag2._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once()
@@ -210,7 +210,7 @@ class TestRetainTool:
             include_recall=False,
             include_reflect=False,
         )
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             tools[0]("content")
 
 
@@ -309,7 +309,7 @@ class TestRecallTool:
             include_retain=False,
             include_reflect=False,
         )
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             tools[0]("query")
 
 
@@ -410,7 +410,7 @@ class TestReflectTool:
             include_retain=False,
             include_recall=False,
         )
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             tools[0]("query")
 
 
@@ -542,7 +542,7 @@ class TestConfigDefaults:
 
     def test_config_budget_used_when_no_explicit(self):
         configure(contextbase_api_url="http://localhost:8888", budget="low")
-        with patch("contextbase_ag2._client.Hindsight") as mock_cls:
+        with patch("contextbase_ag2._client.ContextBase") as mock_cls:
             mock_client = _mock_client()
             mock_client.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_client
@@ -557,7 +557,7 @@ class TestConfigDefaults:
 
     def test_explicit_budget_overrides_config(self):
         configure(contextbase_api_url="http://localhost:8888", budget="low")
-        with patch("contextbase_ag2._client.Hindsight") as mock_cls:
+        with patch("contextbase_ag2._client.ContextBase") as mock_cls:
             mock_client = _mock_client()
             mock_client.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_client

@@ -47,7 +47,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .hooks import MemoryHookConfig, create_memory_hooks
 from .tools import create_contextbase_server, create_contextbase_tools
 
@@ -57,7 +57,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseClaudeAgentSDKConfig",
-    "HindsightError",
+    "ContextBaseError",
     "create_contextbase_server",
     "create_contextbase_tools",
     "create_memory_hooks",

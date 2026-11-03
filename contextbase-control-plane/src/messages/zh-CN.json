@@ -2274,5 +2274,8 @@
     "switchBankTitle": "切换工作空间",
     "switchBankHelp": "将 '<BANK_ID>' 替换为已创建且已授权的目标工作空间 ID。执行后重启客户端，所有项目和客户端将使用该工作空间。",
     "projectHelp": "--project-path：可选，默认当前目录；仅用于指定项目级客户端注册目录，不影响工作空间选择。"
+  },
+  "productRuntime": {
+    "localeNotice": "当前产品的主要功能完整支持英语和简体中文。此语言将显示英语。"
   }
 }

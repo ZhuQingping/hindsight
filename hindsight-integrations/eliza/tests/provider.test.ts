@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createContextBaseProvider } from "../src/index.js";
-import type { HindsightClient } from "../src/index.js";
+import type { ContextBaseClient } from "../src/index.js";
 import { USER_ID, mockClient, runtime, userMessage } from "./helpers.js";
 
 describe("createContextBaseProvider", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
     client = mockClient();

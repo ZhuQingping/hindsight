@@ -57,7 +57,7 @@ def _contextbase_enable_active() -> bool:
 logger = logging.getLogger(__name__)
 
 
-class HindsightError(Exception):
+class ContextBaseError(Exception):
     """Exception raised when a ContextBase operation fails.
 
     This is raised when inject_memories=True and recall fails,
@@ -198,7 +198,7 @@ class ContextBaseCallback(CustomLogger):
         """Make a synchronous HTTP POST request (sync hooks only).
 
         Raises:
-            HindsightError: If the request fails for any reason.
+            ContextBaseError: If the request fails for any reason.
         """
         try:
             response = self._get_http_session().post(
@@ -209,7 +209,7 @@ class ContextBaseCallback(CustomLogger):
         except Exception as e:
             if config.verbose:
                 logger.error(f"HTTP POST failed: {e}")
-            raise HindsightError(f"ContextBase API request failed: {e}") from e
+            raise ContextBaseError(f"ContextBase API request failed: {e}") from e
 
     def _http_get(self, url: str, config: ContextBaseConfig) -> Optional[dict]:
         """Make a synchronous HTTP GET request (sync hooks only).
@@ -218,7 +218,7 @@ class ContextBaseCallback(CustomLogger):
             Response JSON dict, or None if 404 (not found).
 
         Raises:
-            HindsightError: If the request fails for reasons other than 404.
+            ContextBaseError: If the request fails for reasons other than 404.
         """
         try:
             response = self._get_http_session().get(
@@ -231,13 +231,13 @@ class ContextBaseCallback(CustomLogger):
         except Exception as e:
             if config.verbose:
                 logger.error(f"HTTP GET failed: {e}")
-            raise HindsightError(f"ContextBase API request failed: {e}") from e
+            raise ContextBaseError(f"ContextBase API request failed: {e}") from e
 
     async def _ahttp_post(self, url: str, json_data: dict, config: ContextBaseConfig) -> dict:
         """Async HTTP POST on the running loop.
 
         Raises:
-            HindsightError: If the request fails for any reason.
+            ContextBaseError: If the request fails for any reason.
         """
         try:
             async with self._get_aiohttp_session().post(
@@ -248,7 +248,7 @@ class ContextBaseCallback(CustomLogger):
         except Exception as e:
             if config.verbose:
                 logger.error(f"HTTP POST failed: {e}")
-            raise HindsightError(f"ContextBase API request failed: {e}") from e
+            raise ContextBaseError(f"ContextBase API request failed: {e}") from e
 
     async def _ahttp_get(self, url: str, config: ContextBaseConfig) -> Optional[dict]:
         """Async HTTP GET on the running loop.
@@ -257,7 +257,7 @@ class ContextBaseCallback(CustomLogger):
             Response JSON dict, or None if 404 (not found).
 
         Raises:
-            HindsightError: If the request fails for reasons other than 404.
+            ContextBaseError: If the request fails for reasons other than 404.
         """
         try:
             async with self._get_aiohttp_session().get(url, headers=self._headers(config, json_body=False)) as response:
@@ -268,7 +268,7 @@ class ContextBaseCallback(CustomLogger):
         except Exception as e:
             if config.verbose:
                 logger.error(f"HTTP GET failed: {e}")
-            raise HindsightError(f"ContextBase API request failed: {e}") from e
+            raise ContextBaseError(f"ContextBase API request failed: {e}") from e
 
     def _should_skip_model(self, model: str, config: ContextBaseConfig) -> bool:
         """Check if this model should be excluded from interception."""
@@ -406,7 +406,7 @@ class ContextBaseCallback(CustomLogger):
     def _require_bank_id(settings: ContextBaseDefaults) -> str:
         bank_id = settings.bank_id
         if not bank_id:
-            raise HindsightError(
+            raise ContextBaseError(
                 "No bank_id configured. Call set_defaults(bank_id=...) "
                 "or pass contextbase_bank_id=... to the completion call."
             )
@@ -415,7 +415,7 @@ class ContextBaseCallback(CustomLogger):
     def _recall_request(
         self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig
     ) -> _ContextBaseRequest:
-        """Build the recall call. Raises HindsightError when no bank_id is configured."""
+        """Build the recall call. Raises ContextBaseError when no bank_id is configured."""
         bank_id = self._require_bank_id(settings)
 
         request_data: Dict[str, Any] = {
@@ -458,15 +458,15 @@ class ContextBaseCallback(CustomLogger):
         """Recall relevant memories from Hindsight (sync) using direct HTTP.
 
         Raises:
-            HindsightError: If inject_memories=True and recall fails.
+            ContextBaseError: If inject_memories=True and recall fails.
         """
         request = self._recall_request(query, settings, config)
         try:
             response = self._http_post(request.url, request.body, config)
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to recall memories: {e}")
-            raise HindsightError(f"Memory recall failed: {e}") from e
+            raise ContextBaseError(f"Memory recall failed: {e}") from e
         return self._recall_results(response)
 
     async def _recall_memories_async(
@@ -475,21 +475,21 @@ class ContextBaseCallback(CustomLogger):
         """Recall relevant memories from Hindsight (async, aiohttp on the running loop).
 
         Raises:
-            HindsightError: If inject_memories=True and recall fails.
+            ContextBaseError: If inject_memories=True and recall fails.
         """
         request = self._recall_request(query, settings, config)
         try:
             response = await self._ahttp_post(request.url, request.body, config)
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to recall memories: {e}")
-            raise HindsightError(f"Memory recall failed: {e}") from e
+            raise ContextBaseError(f"Memory recall failed: {e}") from e
         return self._recall_results(response)
 
     def _reflect_request(
         self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig
     ) -> _ContextBaseRequest:
-        """Build the reflect call. Raises HindsightError when no bank_id is configured."""
+        """Build the reflect call. Raises ContextBaseError when no bank_id is configured."""
         bank_id = self._require_bank_id(settings)
 
         request_data: Dict[str, Any] = {
@@ -540,15 +540,15 @@ class ContextBaseCallback(CustomLogger):
             The reflect response text, or None if no response.
 
         Raises:
-            HindsightError: If inject_memories=True and reflect fails.
+            ContextBaseError: If inject_memories=True and reflect fails.
         """
         request = self._reflect_request(query, settings, config)
         try:
             response = self._http_post(request.url, request.body, config)
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to reflect: {e}")
-            raise HindsightError(f"Reflect failed: {e}") from e
+            raise ContextBaseError(f"Reflect failed: {e}") from e
         return self._reflect_text(response, settings)
 
     async def _reflect_async(
@@ -560,15 +560,15 @@ class ContextBaseCallback(CustomLogger):
             The reflect response text, or None if no response.
 
         Raises:
-            HindsightError: If inject_memories=True and reflect fails.
+            ContextBaseError: If inject_memories=True and reflect fails.
         """
         request = self._reflect_request(query, settings, config)
         try:
             response = await self._ahttp_post(request.url, request.body, config)
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to reflect: {e}")
-            raise HindsightError(f"Reflect failed: {e}") from e
+            raise ContextBaseError(f"Reflect failed: {e}") from e
         return self._reflect_text(response, settings)
 
     def _plan_store(
@@ -602,7 +602,7 @@ class ContextBaseCallback(CustomLogger):
         the complete conversation for ContextBase to process.
 
         Raises:
-            HindsightError: If no bank_id is configured.
+            ContextBaseError: If no bank_id is configured.
         """
         bank_id = self._require_bank_id(settings)
 
@@ -759,7 +759,7 @@ class ContextBaseCallback(CustomLogger):
         """Store the conversation to Hindsight (sync) using direct HTTP. See ``_plan_store``.
 
         Raises:
-            HindsightError: If store_conversations=True and store fails.
+            ContextBaseError: If store_conversations=True and store fails.
         """
         plan = self._plan_store(messages, response, model, settings, config)
         if plan is None:
@@ -780,10 +780,10 @@ class ContextBaseCallback(CustomLogger):
             self._http_post(request.url, request.body, config)
             if config.verbose:
                 logger.info(f"Stored conversation to ContextBase bank: {plan.bank_id}")
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to store conversation: {e}")
-            raise HindsightError(f"Memory storage failed: {e}") from e
+            raise ContextBaseError(f"Memory storage failed: {e}") from e
 
     async def _store_conversation_async(
         self,
@@ -796,7 +796,7 @@ class ContextBaseCallback(CustomLogger):
         """Store the conversation to Hindsight (async, aiohttp on the running loop). See ``_plan_store``.
 
         Raises:
-            HindsightError: If store_conversations=True and store fails.
+            ContextBaseError: If store_conversations=True and store fails.
         """
         plan = self._plan_store(messages, response, model, settings, config)
         if plan is None:
@@ -815,10 +815,10 @@ class ContextBaseCallback(CustomLogger):
             await self._ahttp_post(request.url, request.body, config)
             if config.verbose:
                 logger.info(f"Stored conversation to ContextBase bank: {plan.bank_id}")
-        except HindsightError as e:
+        except ContextBaseError as e:
             if config.verbose:
                 logger.error(f"Failed to store conversation: {e}")
-            raise HindsightError(f"Memory storage failed: {e}") from e
+            raise ContextBaseError(f"Memory storage failed: {e}") from e
 
     # ========== LiteLLM CustomLogger Interface ==========
 
@@ -842,7 +842,7 @@ class ContextBaseCallback(CustomLogger):
         # Get effective settings (kwargs override defaults)
         settings = self._get_effective_settings(kwargs)
         if not settings.bank_id:
-            raise HindsightError(
+            raise ContextBaseError(
                 "No bank_id configured. Either call set_defaults(bank_id=...) "
                 "or pass contextbase_bank_id=... to the completion call."
             )
@@ -904,7 +904,7 @@ class ContextBaseCallback(CustomLogger):
         # Get effective settings (kwargs override defaults)
         settings = self._get_effective_settings(kwargs)
         if not settings.bank_id:
-            raise HindsightError(
+            raise ContextBaseError(
                 "No bank_id configured. Either call set_defaults(bank_id=...) "
                 "or pass contextbase_bank_id=... to the completion call."
             )

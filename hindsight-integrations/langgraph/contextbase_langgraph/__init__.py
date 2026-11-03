@@ -50,7 +50,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import create_contextbase_tools, memory_instructions
 
 
@@ -80,7 +80,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseLangGraphConfig",
-    "HindsightError",
+    "ContextBaseError",
     "create_contextbase_tools",
     "memory_instructions",
 ]

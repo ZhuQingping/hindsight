@@ -9,7 +9,7 @@ from contextbase_claude_agent_sdk import (
     create_memory_hooks,
     reset_config,
 )
-from contextbase_claude_agent_sdk.errors import HindsightError
+from contextbase_claude_agent_sdk.errors import ContextBaseError
 
 
 def _mock_client():
@@ -110,7 +110,7 @@ class TestCreateMemoryHooks:
     def test_reads_api_key_from_env_without_config(self, monkeypatch):
         """create_memory_hooks honours CONTEXTBASE_API_KEY even without configure()."""
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_claude_agent_sdk._client.Hindsight") as mock_cls:
+        with patch("contextbase_claude_agent_sdk._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_memory_hooks(contextbase_api_url="http://localhost:8888", bank_id="test")
             assert mock_cls.call_args.kwargs["api_key"] == "sk-from-env"

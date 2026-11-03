@@ -7,6 +7,7 @@ description: "Add long-term memory to Hermes Agent with ContextBase. Install the
 {/* GENERATED from hindsight-integrations/hermes/README.md — edit that file, then run
     node hindsight-docs/scripts/sync-hermes-doc.mjs */}
 
+[View Changelog →](/changelog/integrations/hermes)
 
 The ContextBase Memory Provider adds automatic recall, conversation retention and the `contextbase_retain`, `contextbase_recall`, `contextbase_reflect` tools. It connects to an explicit API Endpoint. Python 3.11+ and a Hermes build supporting external Memory Providers are required.
 

@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from contextbase_cursor.cli import (
     _PLUGIN_FILES,
     _hook_interpreter,
@@ -106,7 +105,7 @@ class TestInit:
                 _Args(
                     project=str(project),
                     force=False,
-                    api_url="https://api.hindsight.vectorize.io",
+                    api_url="https://api.example.com",
                     api_token="tok_123",
                     bank_id="my-bank",
                     no_mcp=False,
@@ -115,7 +114,7 @@ class TestInit:
 
         assert config_file.exists()
         cfg = json.loads(config_file.read_text())
-        assert cfg["contextbaseApiUrl"] == ""
+        assert cfg["contextbaseApiUrl"] == "https://api.example.com"
         assert cfg["contextbaseApiToken"] == "tok_123"
         assert cfg["bankId"] == "my-bank"
 
@@ -165,7 +164,7 @@ class TestInit:
                 _Args(
                     project=str(project),
                     force=False,
-                    api_url="https://api.hindsight.vectorize.io",
+                    api_url="https://api.example.com",
                     api_token="tok_123",
                     bank_id="my-bank",
                     no_mcp=False,
@@ -176,7 +175,7 @@ class TestInit:
         assert mcp_file.exists()
         mcp = json.loads(mcp_file.read_text())
         assert "contextbase" in mcp["mcpServers"]
-        assert mcp["mcpServers"]["contextbase"]["url"] == "https://api.hindsight.vectorize.io/mcp/my-bank/"
+        assert mcp["mcpServers"]["contextbase"]["url"] == "https://api.example.com/mcp/my-bank/"
         assert mcp["mcpServers"]["contextbase"]["headers"]["Authorization"] == "Bearer tok_123"
 
     def test_skips_mcp_without_api_url(self, tmp_path, fake_plugin_data):
@@ -200,7 +199,7 @@ class TestInit:
                 _Args(
                     project=str(project),
                     force=False,
-                    api_url="https://api.hindsight.vectorize.io",
+                    api_url="https://api.example.com",
                     api_token=None,
                     bank_id="cursor",
                     no_mcp=True,

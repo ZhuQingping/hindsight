@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from llama_index.core.llms import ChatMessage, MessageRole
 from contextbase_llamaindex import ContextBaseMemory
+from llama_index.core.llms import ChatMessage, MessageRole
 
 
 def _mock_client():
@@ -57,14 +57,16 @@ class TestContextBaseMemoryCreation:
         assert memory.tags == ["source:chat"]
 
     def test_from_url(self):
-        with patch("contextbase_llamaindex.memory.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex.memory.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             memory = ContextBaseMemory.from_url(
                 contextbase_api_url="http://localhost:8888",
                 bank_id="test-bank",
             )
             assert memory.bank_id == "test-bank"
-            mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent="contextbase-llamaindex")
+            mock_cls.assert_called_once_with(
+                base_url="http://localhost:8888", timeout=30.0, user_agent="contextbase-llamaindex"
+            )
 
     def test_from_defaults_requires_explicit_endpoint_when_nothing_supplied(self):
         """A missing URL must fail before the SDK can select an endpoint."""
@@ -73,7 +75,7 @@ class TestContextBaseMemoryCreation:
 
     def test_from_defaults_threads_api_key_into_constructed_client(self):
         """When api_key is provided, resolve_client must include it."""
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             ContextBaseMemory.from_defaults(
                 contextbase_api_url="http://localhost:8888",
@@ -86,7 +88,7 @@ class TestContextBaseMemoryCreation:
     def test_from_defaults_explicit_client_wins(self):
         """When client is given, no new ContextBase is constructed."""
         client = _mock_client()
-        with patch("contextbase_llamaindex._client.Hindsight") as mock_cls:
+        with patch("contextbase_llamaindex._client.ContextBase") as mock_cls:
             memory = ContextBaseMemory.from_defaults(bank_id="test-bank", client=client)
             assert memory.bank_id == "test-bank"
             mock_cls.assert_not_called()

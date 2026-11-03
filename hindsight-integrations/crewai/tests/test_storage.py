@@ -2,10 +2,9 @@
 
 from unittest.mock import MagicMock, patch
 
-from contextbase_crewai import ContextBaseStorage, configure, reset_config
-from contextbase_crewai.errors import HindsightError
-
 import pytest
+from contextbase_crewai import ContextBaseStorage, configure, reset_config
+from contextbase_crewai.errors import ContextBaseError
 
 
 def _passthrough(fn, *args, **kwargs):
@@ -82,7 +81,7 @@ class TestContextBaseStorage:
         storage, mock_client = self._make_storage()
         mock_client.retain.side_effect = RuntimeError("connection refused")
 
-        with pytest.raises(HindsightError, match="Failed to store memory"):
+        with pytest.raises(ContextBaseError, match="Failed to store memory"):
             storage.save("text")
 
     @patch("contextbase_crewai.storage.call_sync", side_effect=_passthrough)
@@ -176,7 +175,7 @@ class TestContextBaseStorage:
         storage, mock_client = self._make_storage()
         mock_client.recall.side_effect = RuntimeError("timeout")
 
-        with pytest.raises(HindsightError, match="Failed to search memories"):
+        with pytest.raises(ContextBaseError, match="Failed to search memories"):
             storage.search("test")
 
     @patch("contextbase_crewai.storage.call_sync", side_effect=_passthrough)
@@ -219,7 +218,9 @@ class TestContextBaseStorage:
         assert storage._resolve_bank_id(None) == "crew"
 
     def test_custom_bank_resolver(self):
-        resolver = lambda base, agent: f"custom-{agent}" if agent else base
+        def resolver(base: str, agent: str | None) -> str:
+            return f"custom-{agent}" if agent else base
+
         storage = ContextBaseStorage(bank_id="crew", bank_resolver=resolver)
         assert storage._resolve_bank_id("Alice") == "custom-Alice"
         assert storage._resolve_bank_id(None) == "crew"

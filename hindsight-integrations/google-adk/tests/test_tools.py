@@ -6,9 +6,8 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from contextbase_google_adk import (
-    HindsightError,
+    ContextBaseError,
     configure,
     create_contextbase_tools,
     reset_config,
@@ -32,7 +31,7 @@ def _mock_client() -> MagicMock:
 
 class TestFactory:
     def test_requires_client_or_config(self):
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             create_contextbase_tools(bank_id="bank-1")
 
     def test_returns_three_tools_by_default(self):
@@ -84,7 +83,7 @@ class TestRetainTool:
         client.aretain.side_effect = RuntimeError("api down")
         tools = create_contextbase_tools(bank_id="bank-1", client=client)
         retain = _tool_by_name(tools, "contextbase_retain")
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             await retain.func(content="x")
 
 

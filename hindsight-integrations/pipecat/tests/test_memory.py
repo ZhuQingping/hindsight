@@ -9,7 +9,6 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from contextbase_pipecat import (
     ContextBaseMemoryService,
     ContextBasePipecatError,
@@ -17,7 +16,6 @@ from contextbase_pipecat import (
     reset_config,
 )
 from contextbase_pipecat.memory import _MEMORY_MARKER, _resolve_client
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -84,7 +82,7 @@ class TestResolveClient:
         assert _resolve_client(client, None, None) is client
 
     def test_creates_client_from_url(self) -> None:
-        with patch("contextbase_pipecat.memory.Hindsight") as MockContextBase:
+        with patch("contextbase_pipecat.memory.ContextBase") as MockContextBase:
             _resolve_client(None, "http://localhost:8888", None)
             MockContextBase.assert_called_once()
             assert MockContextBase.call_args.kwargs["user_agent"].startswith("contextbase-pipecat/")
@@ -95,7 +93,7 @@ class TestResolveClient:
 
     def test_uses_global_config_url(self) -> None:
         configure(contextbase_api_url="http://config-host:8888")
-        with patch("contextbase_pipecat.memory.Hindsight") as MockContextBase:
+        with patch("contextbase_pipecat.memory.ContextBase") as MockContextBase:
             _resolve_client(None, None, None)
             MockContextBase.assert_called_once()
 

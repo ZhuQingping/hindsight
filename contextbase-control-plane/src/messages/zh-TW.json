@@ -2274,5 +2274,8 @@
     "switchBankTitle": "Switch workspace",
     "switchBankHelp": "Replace '<BANK_ID>' with the ID of a workspace that exists and grants you access. Run the command, then restart the client. All projects and clients will use that workspace.",
     "projectHelp": "--project-path: optional, defaults to the current directory. Selects the project-specific client registration directory; it does not select a workspace."
+  },
+  "productRuntime": {
+    "localeNotice": "This product currently provides complete main flows in English and Simplified Chinese. English is shown for this language."
   }
 }

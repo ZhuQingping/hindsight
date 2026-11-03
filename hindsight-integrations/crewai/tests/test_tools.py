@@ -2,10 +2,9 @@
 
 from unittest.mock import MagicMock, patch
 
-from contextbase_crewai import ContextBaseReflectTool, configure, reset_config
-from contextbase_crewai.errors import HindsightError
-
 import pytest
+from contextbase_crewai import ContextBaseReflectTool, configure, reset_config
+from contextbase_crewai.errors import ContextBaseError
 
 
 def _passthrough(fn, *args, **kwargs):
@@ -87,7 +86,7 @@ class TestReflectTool:
         mock_client.reflect.side_effect = RuntimeError("timeout")
         tool._local.client = mock_client
 
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             tool._run("query")
 
     def test_tool_metadata(self):

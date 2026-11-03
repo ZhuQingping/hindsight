@@ -1,6 +1,7 @@
 """The integration's SDK identity must survive an actual recall request."""
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib.metadata import version
 from threading import Thread
 
 from agno.run.base import RunContext
@@ -36,7 +37,7 @@ def test_integration_identity_reaches_sdk_request() -> None:
         tools = ContextBaseTools(bank_id="test", contextbase_api_url=f"http://127.0.0.1:{server.server_port}")
         context = RunContext(run_id="run", session_id="session", user_id="user")
         assert tools.recall_memory(context, "preferences") == "No relevant memories found."
-        assert user_agents == [_USER_AGENT]
+        assert user_agents == [f"{_USER_AGENT} contextbase-client-python/{version('contextbase-client')}"]
         assert paths == ["/v1/default/banks/test/memories/recall"]
     finally:
         if tools is not None:

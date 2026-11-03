@@ -5,8 +5,8 @@ const { baseUrl, DEFAULT_API_URL } = require("./utils");
 /**
  * Custom API-key authentication.
  *
- * Mirrors the n8n `contextbaseApi` credential: an API key plus an optional base
- * URL (ContextBase Cloud by default, overridable for self-hosted). The key is
+ * Mirrors the n8n `contextbaseApi` credential: an API key plus an explicit base
+ * URL for the deployment. The key is
  * sent as a Bearer token by the shared `beforeRequest` middleware; the `test`
  * call below exercises the credential against a real authenticated endpoint.
  */
@@ -44,10 +44,8 @@ module.exports = {
       key: "apiUrl",
       label: "API URL",
       type: "string",
-      required: false,
-      default: DEFAULT_API_URL,
-      helpText:
-        "ContextBase API base URL. Defaults to ContextBase Cloud; change it for a self-hosted instance (e.g. http://localhost:8888).",
+      required: true,
+      helpText: "Your ContextBase API base URL (e.g. https://api.example.com).",
     },
   ],
 };

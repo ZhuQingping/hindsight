@@ -28,7 +28,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import (
     ContextBaseRecallTool,
     ContextBaseReflectTool,
@@ -44,7 +44,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseSmolAgentsConfig",
-    "HindsightError",
+    "ContextBaseError",
     "ContextBaseRetainTool",
     "ContextBaseRecallTool",
     "ContextBaseReflectTool",

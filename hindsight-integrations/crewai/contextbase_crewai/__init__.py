@@ -36,7 +36,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .storage import ContextBaseStorage
 from .tools import ContextBaseReflectTool
 
@@ -49,5 +49,5 @@ __all__ = [
     "ContextBaseCrewAIConfig",
     "ContextBaseStorage",
     "ContextBaseReflectTool",
-    "HindsightError",
+    "ContextBaseError",
 ]

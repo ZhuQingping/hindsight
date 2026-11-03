@@ -1,7 +1,7 @@
 """ContextBase-Claude-Agent-SDK error types."""
 
 
-class HindsightError(Exception):
+class ContextBaseError(Exception):
     """Exception raised when a ContextBase memory operation fails."""
 
     pass

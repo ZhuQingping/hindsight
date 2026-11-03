@@ -13,7 +13,7 @@ from contextbase_composio import (
     register_contextbase_tools,
     reset_config,
 )
-from contextbase_composio.errors import HindsightError
+from contextbase_composio.errors import ContextBaseError
 from contextbase_composio.tools import _USER_AGENT, _resolve_client
 
 try:
@@ -100,13 +100,13 @@ class TestResolveClient:
         assert _resolve_client(client, None, None) is client
 
     def test_creates_client_from_url(self):
-        with patch("contextbase_composio.tools.Hindsight") as mock_cls:
+        with patch("contextbase_composio.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_creates_client_with_api_key(self):
-        with patch("contextbase_composio.tools.Hindsight") as mock_cls:
+        with patch("contextbase_composio.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "my-key")
             mock_cls.assert_called_once_with(
@@ -115,20 +115,20 @@ class TestResolveClient:
 
     def test_falls_back_to_global_config_url(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_composio.tools.Hindsight") as mock_cls:
+        with patch("contextbase_composio.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(base_url="http://config:8888", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_composio.tools.Hindsight") as mock_cls:
+        with patch("contextbase_composio.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://explicit:9999", None)
             mock_cls.assert_called_once_with(base_url="http://explicit:9999", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
 
@@ -170,7 +170,7 @@ class TestRegister:
         assert tools == []
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             register_contextbase_tools(FakeComposio())
 
 
@@ -218,7 +218,7 @@ class TestBankResolution:
     def test_raises_when_no_user_id_and_no_default(self):
         client = _mock_client()
         tools = _tools_by_name(FakeComposio(), client=client)
-        with pytest.raises(HindsightError, match="No ContextBase bank"):
+        with pytest.raises(ContextBaseError, match="No ContextBase bank"):
             tools["contextbase_retain"](RetainInput(content="hi"), FakeCtx(user_id=None))
 
     def test_bank_created_only_once_per_bank(self):
@@ -265,14 +265,14 @@ class TestRetain:
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         tools = _tools_by_name(FakeComposio(), client=client)
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             tools["contextbase_retain"](RetainInput(content="c"), FakeCtx(user_id="alice"))
 
     def test_retain_failure_logs_error(self, caplog):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         tools = _tools_by_name(FakeComposio(), client=client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             tools["contextbase_retain"](RetainInput(content="c"), FakeCtx(user_id="alice"))
         assert "Retain failed" in caplog.text
 
@@ -355,7 +355,7 @@ class TestRecall:
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         tools = _tools_by_name(FakeComposio(), client=client)
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             tools["contextbase_recall"](RecallInput(query="q"), FakeCtx(user_id="alice"))
 
 
@@ -396,7 +396,7 @@ class TestReflect:
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         tools = _tools_by_name(FakeComposio(), client=client)
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             tools["contextbase_reflect"](ReflectInput(query="q"), FakeCtx(user_id="alice"))
 
 
@@ -483,5 +483,5 @@ class TestMemoryInstructions:
         assert "tags" not in kwargs
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             memory_instructions(bank_id="b")

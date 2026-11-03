@@ -9,7 +9,7 @@ export type {
   BankResolver,
 } from "./options.js";
 export type {
-  HindsightClient,
+  ContextBaseClient,
   RecallResult,
   RecallResponse,
   RetainResponse,

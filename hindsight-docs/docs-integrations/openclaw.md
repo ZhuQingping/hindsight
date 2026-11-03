@@ -57,3 +57,5 @@ A 401/403 requires checking the Endpoint, API Key and Bank authorization. Config
 ## Update or remove
 
 Install the new `.tgz` through OpenClaw's plugin manager and restart the gateway. Use that manager to remove `contextbase-openclaw`. Configuration and remote memories are separate; removing the plugin does not delete the Bank.
+
+[View Changelog →](/changelog/integrations/openclaw)

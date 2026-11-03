@@ -22,7 +22,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .provider import ContextItem, build_context_items, serialize
 from .server import build_server, make_handler, run
 
@@ -33,7 +33,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseContinueConfig",
-    "HindsightError",
+    "ContextBaseError",
     "ContextItem",
     "build_context_items",
     "serialize",

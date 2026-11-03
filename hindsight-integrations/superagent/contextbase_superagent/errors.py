@@ -1,11 +1,11 @@
 """ContextBase-Superagent error types."""
 
 
-class HindsightError(Exception):
+class ContextBaseError(Exception):
     """Exception raised when a ContextBase memory operation fails."""
 
 
-class GuardBlockedError(HindsightError):
+class GuardBlockedError(ContextBaseError):
     """Exception raised when Superagent Guard blocks an input.
 
     Attributes:
