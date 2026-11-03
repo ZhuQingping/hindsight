@@ -30,6 +30,8 @@ export interface CodingAgentHarness {
 
 /** Presentation order, matching the per-agent sections of the plugin's README. */
 export const CODING_AGENT_HARNESSES: CodingAgentHarness[] = [
+  {id: 'codearts-agent', label: 'CodeArts Agent', file: 'codearts.svg'},
+  {id: 'codearts-cli', label: 'CodeArts CLI', file: 'codearts.svg'},
   {id: 'claude-code', label: 'Claude Code', file: 'claude-code.png'},
   {id: 'codex', label: 'Codex CLI', file: 'codex.svg'},
   {id: 'dcode', label: 'DeepAgents Dcode', file: 'dcode.svg'},
@@ -68,3 +70,4 @@ export const harnessIconPath = (harness: CodingAgentHarness): string =>
  */
 export const harnessDocLink = (harness: CodingAgentHarness): string =>
   `/sdks/integrations/coding-agents#-${harness.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+

@@ -44,6 +44,7 @@ export function ClientConnectionSetup({
   const clients = group === "agents" ? agentClients : developerClients;
   const name = clients.find((item) => item.id === client)!.name;
   const isCoding = codingClients.some((item) => item.id === client);
+  const isCodeArts = client === "codearts-agent" || client === "codearts-cli";
   const isSdk = client === "python" || client === "node";
   const example = connectionExample(client, terminal, bankId, connection, t("exampleQuery"));
   const stepClass = "min-w-0 space-y-2 border-t border-border pt-5";
@@ -118,10 +119,17 @@ export function ClientConnectionSetup({
         <div>
           <h2 className="text-xl font-semibold">{name}</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {t(`descriptions.${isCoding ? "coding" : client}`)}
+            {t(`descriptions.${isCodeArts ? "codearts" : isCoding ? "coding" : client}`)}
           </p>
           {client !== "mcp" && !isCoding && (
             <p className="mt-2 text-sm text-muted-foreground">{t("credentials")}</p>
+          )}
+          {isCodeArts && (
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {t(client === "codearts-agent" ? "codeartsIdeHelp" : "codeartsCliHelp", {
+                mcpConfigPath: "<MCP_CONFIG_PATH>",
+              })}
+            </p>
           )}
           {isSdk && (
             <p className="mt-2 text-sm text-muted-foreground">{t(`requirements.${client}`)}</p>
@@ -227,9 +235,11 @@ export function ClientConnectionSetup({
                 <>
                   <p className="text-sm leading-6 text-muted-foreground">
                     {t(
-                      client === "claude-code" || client === "codex"
-                        ? "verifyMcpAgent"
-                        : "verifyAgent"
+                      isCodeArts
+                        ? "codeartsVerifyHelp"
+                        : client === "claude-code" || client === "codex"
+                          ? "verifyMcpAgent"
+                          : "verifyAgent"
                     )}
                   </p>
                   <ConnectionCode code={t("diagnosePrompt")} />

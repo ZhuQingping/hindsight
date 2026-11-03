@@ -54,6 +54,7 @@ it.each(codingClients)(
       id,
       "--bank-id",
       bank,
+      ...(id === "codearts-agent" ? ["--mcp-config", "<MCP_CONFIG_PATH>"] : []),
     ]);
     expect(snippet.install).not.toContain("--project-path");
     expect(snippet.install!.split("\n")[0]).toContain("CONTEXTBASE_API_URL");

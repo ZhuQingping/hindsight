@@ -2500,7 +2500,121 @@ const codebuddy = genieInstaller("codebuddy", ".codebuddy", (home) => [
   join(home, ".codebuddy.json"),
 ]);
 
+/** IDE paths vary by platform/edition; use the file opened by Settings > MCP tools > Configure MCP.
+ * CLI paths and its distinct `mcp`/argv/environment schema are documented by CodeArts. These
+ * adapters expose MCP tools only: CodeArts hooks do not share our Claude-shaped lifecycle. */
+function codeartsInstaller(name: "codearts-agent" | "codearts-cli"): HarnessInstaller {
+  const configPath = (c: InstallCtx): string | undefined => {
+    const explicit = flagValue([...(c.args ?? [])], "mcp-config");
+    if (explicit) return resolve(explicit);
+    if (name === "codearts-agent") return undefined;
+    const directory = join(c.home, ".codeartsdoer");
+    return (
+      ["codearts_cli.jsonc", "codearts_cli.json"]
+        .map((file) => join(directory, file))
+        .find(existsSync) ?? join(directory, "codearts_cli.jsonc")
+    );
+  };
+  const readConfig = (c: InstallCtx) => {
+    const path = configPath(c);
+    if (!path)
+      throw new Error(
+        "open Settings > MCP tools > Configure MCP and pass its file path with --mcp-config <path>"
+      );
+    const text = existsSync(path) ? readFileSync(path, "utf8") : "{}";
+    const config = parseJsonc(text);
+    if (!isPlainObject(config))
+      throw new Error(`${path}: invalid configuration; original preserved`);
+    // Both keys appear in IDE documentation. Respect the existing file's format instead of
+    // creating a second map that could hide servers registered through the IDE's UI.
+    if (name === "codearts-agent" && config.mcp !== undefined && config.mcpServers !== undefined)
+      throw new Error(`${path}: both mcp and mcpServers exist; select one map before installing`);
+    const key = name === "codearts-cli" || config.mcp !== undefined ? "mcp" : "mcpServers";
+    if (config[key] !== undefined && !isPlainObject(config[key]))
+      throw new Error(`${path}: ${key} must be an object; original preserved`);
+    return { path, text, key, entry: config[key]?.contextbase as unknown };
+  };
+  const owned = (entry: unknown): boolean => {
+    if (name === "codearts-agent") return isOurMcpEntry(entry);
+    if (!isPlainObject(entry) || !Array.isArray(entry.command)) return false;
+    return isOurMcpEntry({ command: entry.command[0], args: entry.command.slice(1) });
+  };
+  const problem = (c: InstallCtx): string | undefined => {
+    try {
+      const { entry } = readConfig(c);
+      if (entry !== undefined && !owned(entry))
+        return 'a user-managed MCP server named "contextbase" already exists; original preserved';
+    } catch (error) {
+      return String(error);
+    }
+  };
+  const update = (c: InstallCtx, remove: boolean): boolean => {
+    try {
+      const { path, text, key, entry } = readConfig(c);
+      if (entry !== undefined && !owned(entry)) {
+        c.log?.(`${name}: user-managed contextbase MCP server preserved`);
+        return remove;
+      }
+      if (remove && entry === undefined) return true;
+      // Reinstallation updates our script and harness identity, while credentials, proxy/CA,
+      // timeouts and the user's enable/disable choice must survive alongside extra arguments.
+      const previous = isPlainObject(entry) ? entry : {};
+      const registration =
+        name === "codearts-cli"
+          ? {
+              enabled: true,
+              ...previous,
+              type: "local",
+              command: [
+                "node",
+                join(c.dist, "mcp-server.js"),
+                ...(previous.command?.slice(2) ?? []),
+              ],
+              environment: { ...previous.environment, CONTEXTBASE_MCP_HARNESS: name },
+            }
+          : {
+              ...previous,
+              command: "node",
+              args: [join(c.dist, "mcp-server.js"), ...(previous.args?.slice(1) ?? [])],
+              env: { ...previous.env, CONTEXTBASE_MCP_HARNESS: name },
+            };
+      const next = applyEdits(
+        text,
+        modify(text, [key, "contextbase"], remove ? undefined : registration, {
+          formattingOptions: {
+            tabSize: 2,
+            insertSpaces: true,
+            eol: text.includes("\r\n") ? "\r\n" : "\n",
+          },
+        })
+      );
+      mkdirSync(dirname(path), { recursive: true });
+      backupOnce(path);
+      writeFileSync(path, next.endsWith("\n") ? next : `${next}\n`);
+      c.log?.(
+        `${name}: MCP ${remove ? "removed from" : "registered in"} ${path}; restart CodeArts and check the contextbase tools. Automatic session capture is not installed.`
+      );
+      return true;
+    } catch (error) {
+      c.log?.(`${name}: ${String(error)}`);
+      return false;
+    }
+  };
+  return {
+    name,
+    detect: (c) =>
+      name === "codearts-cli"
+        ? onPath("codearts") || existsSync(join(c.home, ".codeartsdoer"))
+        : Boolean(flagValue([...(c.args ?? [])], "mcp-config")),
+    preflight: problem,
+    install: (c) => update(c, false),
+    uninstall: (c) => update(c, true),
+  };
+}
+
 export const INSTALLERS: HarnessInstaller[] = [
+  codeartsInstaller("codearts-agent"),
+  codeartsInstaller("codearts-cli"),
   opencode,
   opencode2,
   kilo,
@@ -2580,7 +2694,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   const [command, ...rawArgs] = argv;
   ctx = { ...ctx, args: rawArgs };
   if (command === "bank") return useBank(ctx, rawArgs);
-  for (const name of ["server", "api-url", "api-token", "bank-id", "project-path"]) {
+  for (const name of ["server", "api-url", "api-token", "bank-id", "project-path", "mcp-config"]) {
     const index = rawArgs.indexOf(`--${name}`);
     if (index >= 0 && (!rawArgs[index + 1] || rawArgs[index + 1].startsWith("--"))) {
       ctx.log?.(`--${name} requires a value`);
@@ -2599,6 +2713,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
     "--api-token",
     "--bank-id",
     "--project-path",
+    "--mcp-config",
   ]);
   const names = rawArgs.filter(
     (a, index) => !a.startsWith("--") && !(index > 0 && valueFlags.has(rawArgs[index - 1]))
@@ -2639,6 +2754,7 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
         `       contextbase-coding-agents bank use <BANK_ID>\n` +
         `       [--server cloud|self-hosted] [--api-url <url>] [--api-token <token>]\n` +
         `       [--bank-id <id>] [--project-path <directory>]\n` +
+        `       [--mcp-config <path>] (CodeArts IDE requires its MCP settings path)\n` +
         `       [--import-conversations] [--enable-workspace-mcp]\n` +
         `  all      every agent detected on this machine\n` +
         `  harness  ${INSTALLERS.map((i) => i.name).join(", ")} (agy aliases antigravity-cli)\n` +
@@ -2682,6 +2798,13 @@ export function run(argv: string[], ctxIn: InstallCtx): number {
   // Preflight runs before server or host config is written. It only blocks the harness that failed:
   // on `install all` the other agents are still worth wiring. The non-zero exit keeps the failure
   // visible to whatever script invoked this.
+  if (
+    flagValue(rawArgs, "mcp-config") &&
+    targets.filter((t) => t.name.startsWith("codearts-")).length > 1
+  ) {
+    ctx.log?.("--mcp-config selects one CodeArts client; install IDE and CLI separately");
+    return 1;
+  }
   const blocked = new Set<string>();
   if (command === "install") {
     for (const t of targets) {
