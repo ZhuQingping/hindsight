@@ -4,11 +4,10 @@
 
 | 任务 | 入口 |
 | --- | --- |
-| Linux x86_64 本地开发启动 | [本地启动](deployment-local.md) |
-| Windows x64 原生本地启动 | [PowerShell 安装、启动与鉴权](deployment-windows.md) |
+| Windows 原生 / Linux x86_64 本地启动 | [统一启动指南：依赖、配置、鉴权、启停](deployment-local.md) |
 | 宿主进程部署 | [宿主进程](deployment-native.md) |
 | Linux 容器部署 | [Docker Compose](deployment-docker.md) |
-| 共同前提、配置、初始化与维护 | [部署总览](deployment.md) |
+| 宿主/容器的共同前提、配置、初始化与维护 | [部署总览](deployment.md) |
 | 召回统计配置、升级与内容恢复 | [统计运维](recall-usage.md) |
 | 当前测试方法和验证边界 | [验证入口](../../../docs/contextdb-management/VALIDATION.md) |
 | 云平台外部条件与目标环境验证 | [云环境交付待办](../../../docs/contextbase/CLOUD-READINESS.md) |

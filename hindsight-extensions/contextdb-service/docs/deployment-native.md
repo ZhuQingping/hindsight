@@ -1,6 +1,6 @@
-# ContextDB 宿主进程部署（非 Docker）
+# ContextBase 宿主进程部署（Linux/macOS）
 
-面向 Linux/macOS 的服务运营者及贡献者，复用已有 Bash/Python 脚本直接启动 Python API（含内置 Worker）和 Node UI。首先阅读[部署总览与共用配置](deployment.md)，本页给出同一源码版本的完整前台执行路径。Windows 本地启动使用[PowerShell 专用流程](deployment-windows.md)；本页的生产宿主部署命令不适用于 Windows。
+面向 Linux/macOS 的服务运营者及贡献者，复用已有 Bash/Python 脚本直接启动 Python API（含内置 Worker）和 Node UI。首先阅读[部署总览与共用配置](deployment.md)，本页给出同一源码版本的完整前台执行路径。Windows/Linux 本地运行使用[统一本地启动指南](deployment-local.md)；本页说明外部 PG 与生产 UI 产物的宿主部署流程。
 
 本页不会要求固定 `/srv`、`/var/lib` 或 UID 10001。源码目录、私密输入、实例运行目录均可由部署账号选择；下面的用户目录只是示例。首次部署使用独立 PG、目录与端口。已有实例只需启停时，直接看[停止与恢复](#native-stop)，不要重复准备新实例。
 

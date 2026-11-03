@@ -3,7 +3,7 @@
 | 任务 | 入口 |
 | --- | --- |
 | 业务接入与管理员操作 | [插件 README](../../hindsight-extensions/contextdb-service/README.md) |
-| 本地开发启动（Linux x86_64） | [本地启动指南](../../hindsight-extensions/contextdb-service/docs/deployment-local.md) |
+| 本地启动（Windows 原生 / Linux x86_64） | [本地启动指南](../../hindsight-extensions/contextdb-service/docs/deployment-local.md) |
 | 安装、配置、初始化与维护 | [同版本部署指南](../../hindsight-extensions/contextdb-service/docs/deployment.md) |
 | 架构、权限、生命周期及恢复边界 | [完整设计](DESIGN.md#overview) |
 | 管理接口与数据结构 | [OpenAPI](../../hindsight-extensions/contextdb-service/schemas/contextdb-control-plane.openapi.yaml)、[DDL](../../hindsight-extensions/contextdb-service/hindsight_ext_contextdb/schema.sql) |

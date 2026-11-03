@@ -12,6 +12,7 @@
 | 同源码生产 UI 和 manifest | `scripts/run-ci.sh build` |
 | Key 合同、系统及生产 UI 故事 | `scripts/run-ci.sh system` |
 | 真实浏览器 API Key 复制与粘贴 | `scripts/run-ci.sh browser` |
+| Windows 原生本地启动、鉴权与重启 | 工作流 `native-windows`，收集插件 `tests/windows/` |
 
 以上脚本位于
 [hindsight-extensions/contextdb-service/scripts](../../hindsight-extensions/contextdb-service/scripts/)。
@@ -20,6 +21,11 @@
 
 按需运行单类测试的命令见下文。生产 UI 使用同源码的 standalone 和 manifest，
 报告要求与完整预检见[本地预检](#本地预检)和[验证边界](#验证边界)。
+
+日常启动服务使用[统一本地启动指南（Windows / Linux）](../../hindsight-extensions/contextdb-service/docs/deployment-local.md)。
+本页说明隔离测试与报告，不作为另一套服务启动教程。
+
+`native-windows` 从 PowerShell 安装依赖并启动真实 pg0/API/Worker/UI，验证 API 拒绝无效凭据、UI 登录/退出、用户创建、重启保留和 NTFS 权限。测试不证明真实外部模型的可用性；结果仍须绑定本次提交。
 
 ## 单类测试
 
