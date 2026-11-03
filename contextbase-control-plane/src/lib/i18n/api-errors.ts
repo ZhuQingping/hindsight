@@ -1,4 +1,4 @@
-import { controlPlaneEnv } from "@/lib/control-plane-env";
+import { contextDBEnabled } from "@/lib/contextdb";
 import { contextdbWorkspaceMessages } from "@/i18n/contextdb-messages";
 import { NextResponse } from "next/server";
 import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
@@ -151,7 +151,7 @@ function getTranslationValue(locale: Locale, key: string): string | undefined {
   }
 
   if (typeof current !== "string") return undefined;
-  return controlPlaneEnv("CONTEXTDB_ENABLED") === "true"
+  return contextDBEnabled()
     ? contextdbWorkspaceMessages({ message: current }, locale).message
     : current;
 }

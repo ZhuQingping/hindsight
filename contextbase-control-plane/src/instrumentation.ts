@@ -6,8 +6,8 @@ import { controlPlaneEnv } from "@/lib/control-plane-env";
 export async function register() {
   const { localProductConfig } = await import("@/lib/product-config-server");
   localProductConfig();
-  if (controlPlaneEnv("CONTEXTDB_ENABLED") === "true") {
-    const { waitForContextDBAdmin } = await import("@/lib/contextdb");
+  const { contextDBEnabled, waitForContextDBAdmin } = await import("@/lib/contextdb");
+  if (contextDBEnabled()) {
     await waitForContextDBAdmin();
   }
   const dataplaneUrl = controlPlaneEnv("DATAPLANE_API_URL") || "http://localhost:8888";

@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { register } from "@/instrumentation";
+import * as contextDB from "@/lib/contextdb";
 import { createSessionToken, revokeSessionToken, sessionCookieName } from "@/lib/auth/session";
 import {
   contextDBHeaders,
@@ -81,6 +83,7 @@ afterEach(async () => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 it("hides management server diagnostics while preserving status and request correlation", async () => {
@@ -129,6 +132,44 @@ describe("browser management contract", () => {
 });
 
 describe("ContextDB administrator authentication", () => {
+  it("enables management by default and still requires a UI session and admin key", async () => {
+    vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", undefined);
+    vi.stubEnv("HINDSIGHT_CP_CONTEXTDB_ENABLED", undefined);
+    expect(contextDBEnabled()).toBe(true);
+    expect(
+      (await GET(new Request("http://ui.local/api/contextdb/users"), route("users"))).status
+    ).toBe(401);
+    expect(backend).not.toHaveBeenCalled();
+    expect((await GET(await request("/users"), route("users"))).status).toBe(200);
+    backend.mockClear();
+    vi.stubEnv("HINDSIGHT_CP_DATAPLANE_API_KEY", "");
+    expect((await GET(await request("/users"), route("users"))).status).toBe(503);
+    expect(backend).not.toHaveBeenCalled();
+  });
+  it("allows the public setting to disable management over a legacy true setting", async () => {
+    vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "false");
+    expect(contextDBEnabled()).toBe(false);
+    expect((await GET(await request("/users"), route("users"))).status).toBe(404);
+    expect(backend).not.toHaveBeenCalled();
+  });
+  it.each([undefined, "true", "false"])(
+    "applies management startup checks for setting %s",
+    async (setting) => {
+      vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", setting);
+      vi.stubEnv("HINDSIGHT_CP_CONTEXTDB_ENABLED", undefined);
+      vi.spyOn(console, "log").mockImplementation(() => {});
+      const wait = vi.spyOn(contextDB, "waitForContextDBAdmin").mockResolvedValue();
+      await register();
+      expect(wait).toHaveBeenCalledTimes(setting === "false" ? 0 : 1);
+    }
+  );
+  it("rejects startup with an invalid administrator key when management defaults on", async () => {
+    vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", undefined);
+    vi.stubEnv("HINDSIGHT_CP_CONTEXTDB_ENABLED", undefined);
+    backend.mockResolvedValue(new Response("{}", { status: 401 }));
+    await expect(register()).rejects.toThrow("invalid");
+    expect(backend).toHaveBeenCalledOnce();
+  });
   it.each([500, 503])("returns a neutral backend error for status %s", async (status) => {
     backend.mockResolvedValue(new Response("private upstream body", { status }));
     const response = await verifyContextDBAdmin();
@@ -232,7 +273,7 @@ describe("ContextDB administrator authentication", () => {
     await expect(waitForContextDBAdmin(5000)).rejects.toThrow("invalid");
     expect(backend).toHaveBeenCalledTimes(1);
   });
-  it("requires explicit true and independent credentials", () => {
+  it("rejects unsupported flag values and requires independent credentials", () => {
     vi.stubEnv("HINDSIGHT_CP_CONTEXTDB_ENABLED", "1");
     expect(contextDBEnabled()).toBe(false);
     vi.stubEnv("HINDSIGHT_CP_ACCESS_KEY", "");

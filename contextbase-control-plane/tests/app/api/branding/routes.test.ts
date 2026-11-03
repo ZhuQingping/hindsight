@@ -12,10 +12,14 @@ import { GET as timeseries } from "@/app/api/stats/[agentId]/memories-timeseries
 import { POST as retainFile } from "@/app/api/files/retain/route";
 const upstream = vi.fn();
 beforeEach(() => {
+  vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "false");
   upstream.mockReset();
   vi.stubGlobal("fetch", upstream);
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 const bank = { params: Promise.resolve({ bankId: "customer-hindsight" }) };
 const routes = [
   {

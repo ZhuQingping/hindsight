@@ -10,7 +10,7 @@ import {
 import { controlPlaneEnv } from "@/lib/control-plane-env";
 
 export function contextDBEnabled(): boolean {
-  return controlPlaneEnv("CONTEXTDB_ENABLED") === "true";
+  return (controlPlaneEnv("CONTEXTDB_ENABLED") ?? "true") === "true";
 }
 
 export function contextDBConfigurationError(): string | null {

@@ -8,6 +8,7 @@ import { proxy } from "@/proxy";
 
 let directory: string;
 beforeEach(async () => {
+  vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "false");
   directory = await mkdtemp(path.join(os.tmpdir(), "m2-i18n-"));
   vi.stubEnv("HINDSIGHT_CP_SESSION_DIR", directory);
   vi.stubEnv("HINDSIGHT_CP_ACCESS_KEY", "test-login-password");

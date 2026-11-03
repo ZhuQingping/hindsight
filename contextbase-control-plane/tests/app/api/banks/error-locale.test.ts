@@ -9,13 +9,17 @@ vi.mock("@/lib/contextbase-client", () => ({
 import { POST } from "@/app/api/banks/route";
 
 beforeEach(() => {
+  vi.stubEnv("CONTEXTBASE_CP_CONTEXTDB_ENABLED", "false");
   vi.spyOn(console, "error").mockImplementation(() => {});
   createOrUpdateBank.mockResolvedValue({
     error: { detail: "synthetic denied" },
     response: new Response(null, { status: 403 }),
   });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 it.each(["zh-TW", "yue-Hant", "de", "ja", "en"])(
   "uses the same English fallback for %s page copy and a real BFF error",

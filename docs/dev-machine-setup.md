@@ -124,6 +124,11 @@ HINDSIGHT_API_RERANKER_PROVIDER=rrf   # 透传，不下载模型
 
 ### 4.4 控制面 UI 登录
 
+UI 默认开启用户、API Key 和工作空间管理，需要配套的 ContextBase 管理后端，
+且 `CONTEXTBASE_CP_DATAPLANE_API_KEY` 必须是有效的管理员密钥。
+如果按照本文使用普通 API Key 鉴权启动原生开发后端，需显式设置
+`CONTEXTBASE_CP_CONTEXTDB_ENABLED=false`；仅修改 UI 开关不会启用后端管理服务。
+
 ```bash
 CONTEXTBASE_CP_AUTH_MODE=local
 CONTEXTBASE_CP_ACCESS_KEY=hindsight-local-ui-2026         # UI 登录密码（独立于 dataplane key）
