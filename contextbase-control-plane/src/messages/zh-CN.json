@@ -2268,9 +2268,9 @@
     },
     "npmInstallTitle": "1. 使用 npx 接入",
     "npmHelp": "执行一次，保存当前工作空间，供所有项目和客户端使用。请先创建该工作空间并授权。",
-    "endpointHelp": "--api-url：API 地址（{apiUrl}）；省略时读取已有配置或 CONTEXTBASE_API_URL。",
+    "endpointHelp": "--api-url：省略时读取已有配置或 CONTEXTBASE_API_URL。",
     "parametersTitle": "可选参数",
-    "tokenHelp": "--api-token：业务密钥；省略时读取同一 API 地址的已有密钥或 CONTEXTBASE_API_TOKEN。首次使用需提供密钥，覆盖已有密钥时请显式指定。",
+    "tokenHelp": "--api-token：业务密钥；省略时读取同一 API 地址的已有密钥或 CONTEXTBASE_API_TOKEN。",
     "switchBankTitle": "切换工作空间",
     "switchBankHelp": "将 '<BANK_ID>' 替换为已创建且已授权的目标工作空间 ID。执行后重启客户端，所有项目和客户端将使用该工作空间。",
     "projectHelp": "--project-path：可选，默认当前目录。"
