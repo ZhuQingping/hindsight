@@ -11,17 +11,18 @@ Hindsight is an agent memory system that provides long-term memory for AI agents
 
 ## Development Commands
 
-### Local Development (API + UI)
-```bash
-# Start both API server and control plane UI
-./scripts/dev/start.sh
-```
+### Local ContextBase Development (API + Worker + UI)
+
+Follow the [single local startup guide](hindsight-extensions/contextdb-service/docs/deployment-local.md).
+Choose its native Windows PowerShell or Linux Bash section, prepare dependencies
+and `.env`, then use the corresponding authenticated launcher. The guide owns
+startup commands, login, credentials, ports, and restart instructions.
+
+Package-level native engine/embedded SDK examples serve different use cases.
+ContextBase needs its deployment initialization and matching API/extension/UI.
 
 ### API Server (Python/FastAPI)
 ```bash
-# Start API server only (loads .env automatically)
-./scripts/dev/start-api.sh
-
 # Run all tests (parallelized with pytest-xdist)
 cd hindsight-api-slim && uv run pytest tests/
 
@@ -40,11 +41,11 @@ cd hindsight-api-slim && uv run ty check hindsight_api/
 ```
 
 ### Control Plane (Next.js)
-```bash
-./scripts/dev/start-control-plane.sh
-# Or manually:
-cd contextbase-control-plane && npm run dev
 
+For UI-only startup, use the component instructions in the local startup guide;
+they load persisted authentication and the existing API connection.
+
+```bash
 # Run frontend unit tests
 cd contextbase-control-plane && npm test
 

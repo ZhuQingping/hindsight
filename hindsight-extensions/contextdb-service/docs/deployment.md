@@ -1,6 +1,7 @@
-# ContextDB 同版本部署指南
+# ContextBase 部署总览（宿主进程 / Docker）
 
-面向服务运营者及贡献者。插件可以由宿主进程或 Docker 运行，两种方式共用同一套配置、离线初始化、权限与业务接口；API 使用 Python，UI 使用 Node.js，API 内置 Worker。已有服务的应用用户直接看[业务接入](../README.md#business-quickstart)，管理员看[UI 操作](../README.md#admin-quickstart)。
+本地运行 API、内置 Worker 和管理 UI，使用[本地启动指南（Windows / Linux）](deployment-local.md)，其中统一说明依赖、.env、自动初始化及鉴权。
+以下内容面向使用外部 PG、intent 配置及生产 UI 产物的服务运营者与贡献者。插件可以由宿主进程或 Docker 运行，两种方式共用同一套配置、离线初始化、权限与业务接口；API 使用 Python，UI 使用 Node.js，API 内置 Worker。已有服务的应用用户直接看[业务接入](../README.md#business-quickstart)，管理员看[UI 操作](../README.md#admin-quickstart)。
 
 所有运行组件使用同一份源码版本；设计与生命周期以[唯一 DESIGN](../../../docs/contextdb-management/DESIGN.md#overview)为准，接口以[同版 OpenAPI](../schemas/contextdb-control-plane.openapi.yaml)为准。原生上游镜像或另一版本的 UI 不保证匹配。资料仓的旧指南仅提供背景。
 
@@ -10,13 +11,14 @@
 
 | 场景 | 阅读路径 |
 | --- | --- |
-| Linux/macOS 开发联调，或不使用容器的服务器 | [宿主进程部署](deployment-native.md)，复用现有 Bash/Python 启动脚本 |
+| Windows 原生 / Linux 本地运行 | [统一本地启动指南](deployment-local.md)，配置 .env 后自动初始化 |
+| Linux/macOS 宿主服务、外部 PG 与生产 UI 产物 | [宿主进程部署](deployment-native.md)，复用现有 Bash/Python 启动脚本 |
 | Linux 容器交付 | [Docker Compose 部署](deployment-docker.md)，从同一源码构建镜像 |
 | 已经部署，只需启停或更新 | 对应指南的启停章节，以及本页[更新与恢复边界](#8-停止重启与版本更新) |
 
-首次部署的阅读顺序：本页了解共同前提和配置 → 选择一种部署指南完成服务检查 → [管理员创建空间和业务 Key](../README.md#admin-quickstart) → [业务写入与召回](../README.md#business-quickstart)。无需把两种部署方式都执行一遍。
+宿主进程或 Docker 首次部署的阅读顺序：本页了解共同前提和配置 → 选择一种部署指南完成服务检查 → [管理员创建空间和业务 Key](../README.md#admin-quickstart) → [业务写入与召回](../README.md#business-quickstart)。无需把两种部署方式都执行一遍。
 
-宿主进程流程面向 Linux/macOS 的 POSIX 环境，Windows 原生不在本轮范围，WSL2 需按 Linux 路径另行验证。macOS 可通过已有 Colima 等 Linux 虚拟机使用 Docker，但 Linux Docker 示例的宿主路径、UID/GID、共享目录和 PG 地址需适配，不能原样照搬。
+宿主进程流程面向 Linux/macOS 的 POSIX 环境；Windows 原生本地运行按[本地指南的 PowerShell 章节](deployment-local.md#windows)执行，无需 WSL。macOS 可通过已有 Colima 等 Linux 虚拟机使用 Docker，但 Linux Docker 示例的宿主路径、UID/GID、共享目录和 PG 地址需适配，不能原样照搬。
 
 > 验证状态：文档、命令语法和临时虚构输入的配置生成可独立检查；完整安装、UI 构建、服务启停、PG/MaaS 及业务调用需在隔离环境执行并分别记录。本轮不启停现有服务，未运行的环节不标为通过。两种流程的目标平台不等于所有系统版本和架构都已实测。
 

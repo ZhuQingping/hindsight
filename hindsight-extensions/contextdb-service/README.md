@@ -9,6 +9,7 @@
 | 第一次部署并使用 | [阅读顺序](#reading-order) |
 | 应用或 Agent 连接已有服务 | [业务接入](#business-quickstart) |
 | 管理员创建空间和 Key | [管理员操作](#admin-quickstart) |
+| 本地运行 API、Worker 和管理 UI | [Windows / Linux 本地启动](docs/deployment-local.md) |
 | 部署、配置、初始化和维护 | [部署总览](docs/deployment.md) |
 | 统计配置、升级和内容恢复 | [召回统计运维](docs/recall-usage.md) |
 | 了解实现或参与开发 | [设计与开发](#development) |
@@ -18,8 +19,8 @@
 ## 第一次使用
 
 1. 阅读下面的凭据说明。
-2. 按[部署总览](docs/deployment.md)选择[宿主进程](docs/deployment-native.md)或[Docker](docs/deployment-docker.md)，
-   或使用[Linux 本地启动](docs/deployment-local.md)，完成配置、初始化、健康和实例身份检查。
+2. 本地运行按[本地启动指南（Windows / Linux）](docs/deployment-local.md)完成配置、启动和登录；
+   宿主进程或容器部署按[部署总览](docs/deployment.md)选择对应流程。
 3. 按[管理员操作](#admin-quickstart)创建空间、用户及业务 Key。
 4. 按[业务接入](#business-quickstart)完成一次写入和召回。
 

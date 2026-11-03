@@ -9,6 +9,7 @@ import os
 import shlex
 import ssl
 import stat
+import sys
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -18,6 +19,7 @@ import aiohttp
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .bootstrap import ApiSecrets, UiSecrets, read_credential
+from .private_paths import private_file, protect_file
 
 
 class DeploymentConfig(BaseModel):
@@ -95,17 +97,15 @@ class DeploymentResult(BaseModel):
 
 
 def read_secret(path: Path) -> str:
-    mode = path.lstat().st_mode
-    if not stat.S_ISREG(mode) or mode & 0o077:
-        raise ValueError("Secret input must be a private regular file (0600)")
-    value = path.read_text().removesuffix("\n")
+    private_file(path)
+    value = path.read_text(encoding="utf-8").removesuffix("\n")
     if not value or "\n" in value or "\r" in value or "\x00" in value:
         raise ValueError("Secret input must contain one non-empty line")
     return value
 
 
 def load_config(path: Path) -> DeploymentConfig:
-    config = DeploymentConfig.model_validate_json(path.read_text())
+    config = DeploymentConfig.model_validate_json(path.read_text(encoding="utf-8"))
     url = read_secret(config.database_url_file)
     parsed = urlsplit(url)
     if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname or not parsed.path.strip("/"):
@@ -123,27 +123,33 @@ def load_config(path: Path) -> DeploymentConfig:
 
 
 def write_environment(path: Path, values: dict[str, str], replace: bool) -> None:
-    content = "".join(f"{name}={shlex.quote(value)}\n" for name, value in sorted(values.items()))
+    # Windows reads these files with dotenv, without shell expansion. Keep the
+    # existing shell format for POSIX service.sh deployments.
+    quote = (lambda value: json.dumps(value, ensure_ascii=False)) if sys.platform == "win32" else shlex.quote
+    content = "".join(f"{name}={quote(value)}\n" for name, value in sorted(values.items()))
     if path.exists() or path.is_symlink():
-        mode = path.lstat().st_mode
-        if not stat.S_ISREG(mode) or mode & 0o077:
-            raise ValueError("Existing configuration must be a private regular file (0600)")
-        if path.read_text() == content:
+        private_file(path)
+        if path.read_text(encoding="utf-8") == content:
             return
         if not replace:
             raise ValueError("Configuration differs; use --replace after stopping the affected components")
-    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, prefix=".config-", delete=False) as stream:
-        temporary = Path(stream.name)
-        try:
-            os.chmod(temporary, 0o600)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=path.parent, prefix=".config-", delete=False
+        ) as stream:
+            temporary = Path(stream.name)
+            protect_file(temporary)
             stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
-            if replace:
-                os.replace(temporary, path)
-            else:
-                os.link(temporary, path)
-        finally:
+        # Windows cannot rename an open NamedTemporaryFile.
+        if replace:
+            os.replace(temporary, path)
+        else:
+            os.link(temporary, path)
+    finally:
+        if temporary is not None:
             temporary.unlink(missing_ok=True)
 
 
@@ -159,7 +165,7 @@ def render(config: DeploymentConfig, directory: Path, *, replace: bool = False) 
             raise ValueError("Persisted UI secrets must be a private regular file (0600)")
         # JSON secrets may be pretty-printed; the single-line input-password
         # contract does not apply to an already persisted typed JSON document.
-        if UiSecrets.model_validate_json(persisted.read_text()).password != password:
+        if UiSecrets.model_validate_json(persisted.read_text(encoding="utf-8")).password != password:
             raise ValueError("UI password differs from persisted secrets; ordinary render cannot rotate it")
     maas_key = read_secret(config.maas_api_key_file)
     api = {
@@ -240,8 +246,8 @@ async def status(
             mode = (directory / name).lstat().st_mode
             if not stat.S_ISREG(mode) or mode & 0o077:
                 raise ValueError("Private deployment secrets required")
-        ApiSecrets.model_validate_json((directory / "api-secrets.json").read_text())
-        ui = UiSecrets.model_validate_json((directory / "ui-secrets.json").read_text())
+        ApiSecrets.model_validate_json((directory / "api-secrets.json").read_text(encoding="utf-8"))
+        ui = UiSecrets.model_validate_json((directory / "ui-secrets.json").read_text(encoding="utf-8"))
         present = ui.admin_key == credential.secret
     except (OSError, ValueError):
         credential = None
@@ -301,7 +307,7 @@ def main() -> None:
         parser.error("--config is required; render/status also require --directory")
     try:
         config = (
-            DeploymentConfig.model_validate_json(args.config.read_text())
+            DeploymentConfig.model_validate_json(args.config.read_text(encoding="utf-8"))
             if args.command == "status"
             else load_config(args.config)
         )

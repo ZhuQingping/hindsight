@@ -9,7 +9,7 @@ ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召�
 | --- | --- |
 | Claude Code、Codex 和其他 Agent 接入已有服务 | [客户使用指南](docs/contextbase/CUSTOMER-GUIDE.md) |
 | 管理工作空间、用户和 API Key | [管理员操作](hindsight-extensions/contextdb-service/README.md#admin-quickstart) |
-| 本地开发启动（Linux x86_64） | [本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md) |
+| 本地启动（Windows 原生 / Linux x86_64） | [本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md) |
 | 部署、配置及维护服务 | [部署总览](hindsight-extensions/contextdb-service/docs/deployment.md) |
 | 了解权限、生命周期和实现 | [管理功能设计](docs/contextdb-management/DESIGN.md#overview) |
 | 构建和发布客户端 | [客户端发布与交付](docs/contextbase/CLIENT-PACKAGING.md) |
@@ -38,7 +38,8 @@ API、ContextDB 扩展和管理 UI 使用同一源码版本。
 首次部署完成初始化后，由管理员创建空间、用户及业务 Key，
 再用业务身份完成“写入 → 确认处理完成 → Recall”验证。
 
-本地启动、宿主进程和 Docker 各自使用对应部署指南。
+本地运行 API、内置 Worker 和管理 UI，统一按[本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md)选择 Windows PowerShell 或 Linux Bash。
+宿主进程与 Docker 使用各自的部署指南。
 配置、秘密保存、更新与恢复规则见部署总览。
 云平台外部条件及目标环境验证见[云环境交付待办](docs/contextbase/CLOUD-READINESS.md)。
 

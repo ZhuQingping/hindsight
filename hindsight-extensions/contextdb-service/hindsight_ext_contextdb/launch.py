@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +42,13 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
             "NO_PROXY",
             "contextdb_name",
             "product_display_name",
+            "SystemRoot",
+            "SYSTEMROOT",
+            "COMSPEC",
+            "PATHEXT",
+            "USERPROFILE",
+            "LOCALAPPDATA",
+            "APPDATA",
         }
         environment = {
             key: value
@@ -66,6 +75,28 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
             os.chdir(source_root)
             os.environ["HOSTNAME"] = service_env("CP_HOST", "127.0.0.1")
             os.environ["PORT"] = service_env("CP_PORT", "9999")
+            if sys.platform == "win32":
+                npm = shutil.which("npm.cmd")
+                if npm is None:
+                    raise ValueError("Install Node.js 24 and npm before starting the UI")
+                subprocess.run([npm, "run", "build", "-w", "contextbase-client"], check=True)
+                # Avoid npm's POSIX-only ${PORT:-9999} script on Windows.
+                next_cli = source_root / "node_modules/next/dist/bin/next"
+                # Match npm workspace execution: next-intl resolves its request
+                # configuration relative to the control-plane working directory.
+                os.chdir(source_root / "contextbase-control-plane")
+                _run_windows(
+                    [
+                        "node",
+                        str(next_cli),
+                        "dev",
+                        str(source_root / "contextbase-control-plane"),
+                        "--hostname",
+                        os.environ["HOSTNAME"],
+                        "--port",
+                        os.environ["PORT"],
+                    ]
+                )
             subprocess.run(["npm", "run", "build", "-w", "contextbase-client"], check=True)
             os.execvp(
                 "npm",
@@ -85,6 +116,8 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
             raise ValueError("Build the matching UI standalone artifact before starting it")
         os.environ["HOSTNAME"] = service_env("CP_HOST", "0.0.0.0")
         os.environ["PORT"] = service_env("CP_PORT", "9999")
+        if sys.platform == "win32":
+            _run_windows(["node", str(server)])
         os.execvp("node", ["node", str(server)])
     load_deployment_secrets(directory, "api")
     # API/Worker never need the UI login password or its backend Admin Key.
@@ -128,4 +161,16 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
             "--timeout-graceful-shutdown",
             "5",
         ]
+    if sys.platform == "win32":
+        _run_windows(arguments)
     os.execv(sys.executable, arguments)
+
+
+def _run_windows(arguments: list[str]) -> None:
+    if sys.platform != "win32":
+        raise RuntimeError("Windows launch requires Windows")
+    # The supervisor broadcasts CTRL_BREAK to the group. Keep this wrapper alive
+    # while uvicorn/Node shuts down; its Job Object owns all remaining children.
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGBREAK, signal.SIG_IGN)
+    raise SystemExit(subprocess.run(arguments, check=False).returncode)
