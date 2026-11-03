@@ -166,7 +166,7 @@ it("shows connection details after the command without a parameter form and with
   expect(text).toContain("--project-path: optional");
   expect(text).toContain("CONTEXTBASE_API_URL");
   expect(text).toContain("CONTEXTBASE_API_TOKEN");
-  expect(screen.getByRole("heading", { name: "Switch Bank" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Switch workspace" })).toBeTruthy();
   expect(text).toContain("bank use '<BANK_ID>'");
 });
 

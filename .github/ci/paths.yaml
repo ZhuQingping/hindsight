@@ -1,0 +1,207 @@
+core:
+  - 'hindsight-api-slim/**'
+  - 'hindsight-api/**'
+  - 'scripts/**'
+  - '.python-version'
+  - '.env.example'
+  # The workspace lockfile and root manifest determine which versions
+  # the API actually runs against, so a change to either can break it
+  # without touching a line of source. Both are deliberately bare
+  # patterns: they match only the files at the repository root. A
+  # glob such as '**/uv.lock' would pull every integration lockfile
+  # into the core suite.
+  - 'uv.lock'
+  - 'pyproject.toml'
+clients-ts:
+  - 'hindsight-clients/typescript/**'
+  - 'package.json'
+  - 'package-lock.json'
+clients-python:
+  - 'hindsight-clients/python/**'
+clients-rust:
+  - 'hindsight-clients/rust/**'
+  # The Rust client is not committed source — build.rs regenerates it with
+  # progenitor from this spec, and progenitor emits query params POSITIONALLY
+  # in alphabetical order. So adding one query param to any endpoint shifts
+  # every later argument and breaks the call sites, with nothing under
+  # hindsight-clients/rust/ changed to trigger this job (#4509).
+  - 'hindsight-docs/static/openapi.json'
+clients-go:
+  - 'hindsight-clients/go/**'
+control-plane:
+  - 'contextbase-control-plane/**'
+  - 'hindsight-extensions/contextdb-service/tests/ui/**'
+  - 'package.json'
+  - 'package-lock.json'
+cli:
+  - 'hindsight-cli/**'
+  # Same reason as clients-rust above: the CLI compiles against the
+  # progenitor-generated client, so an OpenAPI change alone can break it.
+  - 'hindsight-docs/static/openapi.json'
+figures:
+  - 'hindsight-docs/figures/**'
+  - 'scripts/docs_skill_figures.py'
+  # The Giotto pin lives here: a new Giotto can stop a figure from drawing.
+  - 'hindsight-docs/package.json'
+docker:
+  - 'docker/**'
+helm:
+  - 'helm/**'
+# The RUNNABLE samples only. This replaces a broad `docs` filter that also
+# matched 'hindsight-docs/**', '*.md' and 'hindsight-integrations/**' — the
+# last of those so an integration rename would be caught by the docs build's
+# integrations check, except that build (build-docs) has no `if:` and runs
+# unconditionally anyway. test-doc-examples was the filter's only consumer,
+# and it executes every sample against a live LLM-backed server, so every
+# integration and prose-only PR paid for four provider-credentialed runs that
+# none of those files can affect.
+doc-examples:
+  - 'hindsight-docs/examples/**'
+  - 'scripts/test-doc-examples.sh'
+embed:
+  - 'hindsight-embed/**'
+all-npm:
+  - 'hindsight-all-npm/**'
+  - 'package.json'
+  - 'package-lock.json'
+hindsight-all:
+  - 'hindsight-all/**'
+integration-tests:
+  - 'hindsight-integration-tests/**'
+system-tests:
+  - 'hindsight-system-tests/**'
+# True when the PR touches anything *other* than the system-test
+# package. The two unconditional-by-design jobs (build-docs and
+# verify-generated-files) hang off this rather than off a positive
+# filter, so they keep running for every change in the repo and only
+# step aside for a PR confined to hindsight-system-tests/ — a package
+# nothing generates from and the docs site never reads. Iterating on
+# that suite otherwise costs ~6 minutes of unrelated CI against a
+# 36-second test.
+outside-system-tests:
+  # A lone negation, deliberately. paths-filter builds one matcher per
+  # pattern and ORs them, so adding '**' alongside would make every
+  # file match and the filter always true — a change that looks right
+  # and silently does nothing.
+  - '!hindsight-system-tests/**'
+integrations-openclaw:
+  - 'hindsight-integrations/openclaw/**'
+integrations-ai-sdk:
+  - 'hindsight-integrations/ai-sdk/**'
+integrations-eliza:
+  - 'hindsight-integrations/eliza/**'
+integrations-agent-framework:
+  - 'hindsight-integrations/agent-framework/**'
+integrations-composio:
+  - 'hindsight-integrations/composio/**'
+integrations-chat:
+  - 'hindsight-integrations/chat/**'
+integrations-claude-code:
+  - 'hindsight-integrations/claude-code/**'
+integrations-coding-agents:
+  - 'hindsight-integrations/coding-agents/**'
+integrations-cline:
+  - 'hindsight-integrations/cline/**'
+integrations-codex:
+  - 'hindsight-integrations/codex/**'
+integrations-github-copilot:
+  - 'hindsight-integrations/github-copilot/**'
+integrations-continue:
+  - 'hindsight-integrations/continue/**'
+integrations-cursor-cli:
+  - 'hindsight-integrations/cursor-cli/**'
+integrations-copilot-cli:
+  - 'hindsight-integrations/copilot-cli/**'
+extensions-supabase-tenant:
+  - 'hindsight-extensions/supabase-tenant/**'
+extensions-static-keys-tenant:
+  - 'hindsight-extensions/static-keys-tenant/**'
+extensions-contextdb-service:
+  - 'hindsight-extensions/contextdb-service/**'
+integrations-crewai:
+  - 'hindsight-integrations/crewai/**'
+integrations-litellm:
+  - 'hindsight-integrations/litellm/**'
+integrations-pydantic-ai:
+  - 'hindsight-integrations/pydantic-ai/**'
+integrations-hermes:
+  - 'hindsight-integrations/hermes/**'
+integrations-ag2:
+  - 'hindsight-integrations/ag2/**'
+integrations-autogen:
+  - 'hindsight-integrations/autogen/**'
+integrations-aider:
+  - 'hindsight-integrations/aider/**'
+integrations-langgraph:
+  - 'hindsight-integrations/langgraph/**'
+integrations-llamaindex:
+  - 'hindsight-integrations/llamaindex/**'
+integrations-haystack:
+  - 'hindsight-integrations/haystack/**'
+integrations-paperclip:
+  - 'hindsight-integrations/paperclip/**'
+integrations-opencode:
+  - 'hindsight-integrations/opencode/**'
+integrations-eve:
+  - 'hindsight-integrations/eve/**'
+integrations-cursor:
+  - 'hindsight-integrations/cursor/**'
+integrations-zed:
+  - 'hindsight-integrations/zed/**'
+integrations-zcode:
+  - 'hindsight-integrations/zcode/**'
+integrations-agent-plugin:
+  - 'hindsight-integrations/agent-plugin/**'
+integrations-n8n:
+  - 'hindsight-integrations/n8n/**'
+integrations-zapier:
+  - 'hindsight-integrations/zapier/**'
+integrations-cloudflare-oauth-proxy:
+  - 'hindsight-integrations/cloudflare-oauth-proxy/**'
+integrations-superagent:
+  - 'hindsight-integrations/superagent/**'
+integrations-lockfiles:
+  - 'hindsight-integrations/*/package-lock.json'
+  - 'hindsight-integrations/*/package.json'
+  - 'scripts/check-integration-lockfiles.sh'
+integrations-openai-agents:
+  - 'hindsight-integrations/openai-agents/**'
+integrations-openhands:
+  - 'hindsight-integrations/openhands/**'
+integrations-devin-desktop:
+  - 'hindsight-integrations/devin-desktop/**'
+integrations-pipecat:
+  - 'hindsight-integrations/pipecat/**'
+integrations-agentcore:
+  - 'hindsight-integrations/agentcore/**'
+integrations-smolagents:
+  - 'hindsight-integrations/smolagents/**'
+integrations-claude-agent-sdk:
+  - 'hindsight-integrations/claude-agent-sdk/**'
+integrations-dify:
+  - 'hindsight-integrations/dify/**'
+integrations-gemini-spark:
+  - 'hindsight-integrations/gemini-spark/**'
+integrations-meta-muse:
+  - 'hindsight-integrations/meta-muse/**'
+integrations-grok-bot:
+  - 'hindsight-integrations/grok-bot/**'
+  - '.cursor-plugin/**'
+  - 'hindsight-api-slim/hindsight_api/mcp_tools.py'
+integrations-vapi:
+  - 'hindsight-integrations/vapi/**'
+integrations-flowise:
+  - 'hindsight-integrations/flowise/**'
+integrations-google-adk:
+  - 'hindsight-integrations/google-adk/**'
+integrations-obsidian:
+  - 'hindsight-integrations/obsidian/**'
+integrations-omo:
+  - 'hindsight-integrations/omo/**'
+integrations-roo-code:
+  - 'hindsight-integrations/roo-code/**'
+dev:
+  - 'hindsight-dev/**'
+  - 'scripts/dev/**'
+ci:
+  - '.github/**'

@@ -23,8 +23,7 @@ concurrency:
 
 jobs:
   browser-brand-audit:
-    # The existing full CI references Actions outside the repository allowlist.
-    # Keep this focused check runnable with only the already-allowed Actions.
+    # Keep the browser production and HTTP audits independent of the full CI.
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

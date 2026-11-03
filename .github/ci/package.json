@@ -1,0 +1,9 @@
+{
+  "name": "contextbase-ci-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "picomatch": "4.0.4",
+    "yaml": "2.8.1"
+  }
+}
