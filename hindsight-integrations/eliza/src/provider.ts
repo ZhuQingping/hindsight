@@ -1,5 +1,5 @@
 import type { Provider } from "@elizaos/core";
-import type { HindsightClient, RecallResult } from "./client.js";
+import type { ContextBaseClient, RecallResult } from "./client.js";
 import { type BankResolver, type RecallOptions, resolveBank } from "./options.js";
 
 const DEFAULT_HEADING = "# Relevant long-term memories";
@@ -21,7 +21,7 @@ function formatMemories(results: RecallResult[], heading: string): string {
  * never blocks the agent from responding.
  */
 export function createContextBaseProvider(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bank: BankResolver | undefined,
   options: RecallOptions = {}
 ): Provider {

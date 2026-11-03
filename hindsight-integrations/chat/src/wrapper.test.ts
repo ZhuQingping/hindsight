@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { withContextBaseChat } from "./wrapper.js";
-import type { HindsightClient, ChatThread, ChatMessage, ContextBaseChatContext } from "./types.js";
+import type {
+  ContextBaseClient,
+  ChatThread,
+  ChatMessage,
+  ContextBaseChatContext,
+} from "./types.js";
 
 // --- Mocks ---
 
-function mockClient(overrides?: Partial<HindsightClient>): HindsightClient {
+function mockClient(overrides?: Partial<ContextBaseClient>): ContextBaseClient {
   return {
     retain: vi.fn().mockResolvedValue({
       success: true,
@@ -52,7 +57,7 @@ function mockMessage(overrides?: Partial<ChatMessage>): ChatMessage {
 }
 
 describe("withContextBaseChat", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
   let thread: ChatThread;
   let message: ChatMessage;
 

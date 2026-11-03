@@ -1,5 +1,5 @@
 import type { Evaluator, IAgentRuntime, Memory } from "@elizaos/core";
-import type { HindsightClient } from "./client.js";
+import type { ContextBaseClient } from "./client.js";
 import { type BankResolver, type RetainOptions, resolveBank } from "./options.js";
 
 /**
@@ -10,7 +10,7 @@ import { type BankResolver, type RetainOptions, resolveBank } from "./options.js
  * latency to the conversation.
  */
 export function createContextBaseEvaluator(
-  client: HindsightClient,
+  client: ContextBaseClient,
   bank: BankResolver | undefined,
   options: RetainOptions = {}
 ): Evaluator {

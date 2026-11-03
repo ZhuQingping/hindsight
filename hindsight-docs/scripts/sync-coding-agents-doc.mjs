@@ -118,7 +118,7 @@ function build() {
     .filter((f) => body.includes(f.jsx))
     .flatMap((f) => f.imports)
     .join('\n');
-  return `${FRONTMATTER}\n${imports ? `${imports}\n\n` : ''}${body}\n`;
+  return `${FRONTMATTER}\n${imports ? `${imports}\n\n` : ''}${body}\n\n[View Changelog →](/changelog/integrations/coding-agents)\n`;
 }
 
 const generated = build();

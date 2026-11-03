@@ -4,16 +4,14 @@ import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from contextbase_strands import (
     configure,
     create_contextbase_tools,
     memory_instructions,
     reset_config,
 )
-from contextbase_strands.errors import HindsightError
+from contextbase_strands.errors import ContextBaseError
 from contextbase_strands.tools import _USER_AGENT, _resolve_client
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -83,7 +81,7 @@ class TestResolveClient:
         assert owns_client is False
 
     def test_creates_client_from_url(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://localhost:8888", None)
             assert owns_client is True
@@ -94,7 +92,7 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_creates_client_with_api_key(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://localhost:8888", "my-key")
             assert owns_client is True
@@ -107,7 +105,7 @@ class TestResolveClient:
 
     def test_falls_back_to_global_config_url(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, None)
             assert owns_client is True
@@ -119,7 +117,7 @@ class TestResolveClient:
 
     def test_falls_back_to_global_config_api_key(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, None)
             assert owns_client is True
@@ -132,7 +130,7 @@ class TestResolveClient:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, "http://explicit:9999", None)
             assert owns_client is True
@@ -144,7 +142,7 @@ class TestResolveClient:
 
     def test_explicit_api_key_overrides_config(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _, owns_client = _resolve_client(None, None, "explicit-key")
             assert owns_client is True
@@ -156,16 +154,13 @@ class TestResolveClient:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_raises_with_empty_config_no_url(self):
-        # Config exists but has default URL, so this should NOT raise
         configure()
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
-            mock_cls.return_value = _mock_client()
+        with pytest.raises(ValueError, match="Configure the ContextBase API URL explicitly"):
             _resolve_client(None, None, None)
-            mock_cls.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -239,12 +234,12 @@ class TestCreateContextBaseTools:
         assert len(tools) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             create_contextbase_tools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -255,7 +250,7 @@ class TestCreateContextBaseTools:
             assert kwargs["user_agent"] == _USER_AGENT
 
     def test_api_key_passed_to_client(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(
                 bank_id="test",
@@ -277,7 +272,7 @@ class TestCreateContextBaseTools:
         assert hasattr(tools, "aclose")
 
     def test_close_closes_internally_owned_client(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             internal_client = _mock_client()
             mock_cls.return_value = internal_client
             tools = create_contextbase_tools(
@@ -294,7 +289,7 @@ class TestCreateContextBaseTools:
         external_client.close.assert_not_called()
 
     def test_aclose_closes_internally_owned_client(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             internal_client = _mock_client()
             mock_cls.return_value = internal_client
             tools = create_contextbase_tools(
@@ -344,7 +339,7 @@ class TestRetainTool:
 
     def test_retain_config_tags(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test", enable_recall=False, enable_reflect=False)
         client = mock_cls.return_value
@@ -353,7 +348,7 @@ class TestRetainTool:
 
     def test_retain_explicit_tags_override_config(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(
                 bank_id="test",
@@ -389,21 +384,21 @@ class TestRetainTool:
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         t = self._retain_tool(client)
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             _call_tool(t, content="content")
 
     def test_retain_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.retain.side_effect = HindsightError("original error")
+        client.retain.side_effect = ContextBaseError("original error")
         t = self._retain_tool(client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             _call_tool(t, content="content")
 
     def test_retain_failure_logs_error(self, caplog):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         t = self._retain_tool(client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             _call_tool(t, content="content")
         assert "Retain failed" in caplog.text
 
@@ -491,21 +486,21 @@ class TestRecallTool:
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         t = self._recall_tool(client)
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             _call_tool(t, query="query")
 
     def test_recall_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.recall.side_effect = HindsightError("original error")
+        client.recall.side_effect = ContextBaseError("original error")
         t = self._recall_tool(client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             _call_tool(t, query="query")
 
     def test_recall_failure_logs_error(self, caplog):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         t = self._recall_tool(client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             _call_tool(t, query="query")
         assert "Recall failed" in caplog.text
 
@@ -571,21 +566,21 @@ class TestReflectTool:
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         t = self._reflect_tool(client)
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             _call_tool(t, query="query")
 
     def test_reflect_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.reflect.side_effect = HindsightError("original error")
+        client.reflect.side_effect = ContextBaseError("original error")
         t = self._reflect_tool(client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             _call_tool(t, query="query")
 
     def test_reflect_failure_logs_error(self, caplog):
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         t = self._reflect_tool(client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             _call_tool(t, query="query")
         assert "Reflect failed" in caplog.text
 
@@ -657,12 +652,12 @@ class TestMemoryInstructions:
         assert result == ""
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_instance
@@ -670,7 +665,7 @@ class TestMemoryInstructions:
             assert "fact" in result
 
     def test_closes_internally_created_client_on_success(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_instance
@@ -682,7 +677,7 @@ class TestMemoryInstructions:
             mock_instance.close.assert_called_once()
 
     def test_closes_internally_created_client_on_exception(self):
-        with patch("contextbase_strands.tools.Hindsight") as mock_cls:
+        with patch("contextbase_strands.tools.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.side_effect = RuntimeError("network error")
             mock_cls.return_value = mock_instance

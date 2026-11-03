@@ -1,17 +1,21 @@
-name: Build and publish Coding Agents npm package
+name: Build and publish ContextBase npm packages
 
 on:
   pull_request:
     paths:
       - "hindsight-integrations/coding-agents/**"
+      - "hindsight-clients/typescript/**"
       - "scripts/package-coding-agents.py"
       - "scripts/test-coding-agents-package.py"
+      - "scripts/package-node-sdk.py"
+      - "scripts/test-node-sdk-package.py"
+      - "scripts/test-sdk-installation.py"
       - ".github/workflows/coding-agents-npm.yml"
       - "LICENSE"
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish the verified tarball to npm (requires NPM_TOKEN)"
+        description: "Publish both audited packages to npm (requires NPM_TOKEN)"
         type: boolean
         default: false
 
@@ -47,14 +51,29 @@ jobs:
       - name: Test installation and MCP using the audited tarball
         working-directory: hindsight-integrations/coding-agents
         run: node scripts/test-customer-install.mjs ../../artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz
+      - name: Install Node SDK build dependencies
+        working-directory: hindsight-clients/typescript
+        run: npm ci --ignore-scripts --workspaces=false
+      - name: Test and build Node SDK
+        working-directory: hindsight-clients/typescript
+        run: |
+          npm test -- --runInBand --testPathIgnorePatterns=main_operations.test.ts
+          npm run build
+      - name: Audit the public Node SDK and test installed ESM and CommonJS
+        run: |
+          python scripts/test-node-sdk-package.py
+          python scripts/package-node-sdk.py --output artifacts
+          for directory in artifacts/huaweicloud-contextbase-client/*; do
+            python scripts/test-sdk-installation.py node "$directory" --package-name @huaweicloud/contextbase-client
+          done
       - uses: actions/upload-artifact@v4
         with:
-          name: contextbase-coding-agents-npm
-          path: artifacts/huaweicloud-contextbase-coding-agents/
+          name: contextbase-npm-packages
+          path: artifacts/
           if-no-files-found: error
       # Token authentication is intentional: publishing from the source workflow with OIDC
       # provenance would link the private implementation repository in public npm metadata.
-      - name: Publish the exact verified tarball
+      - name: Publish the exact verified tarballs
         if: github.event_name == 'workflow_dispatch' && inputs.publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -62,7 +81,26 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NODE_AUTH_TOKEN" || { echo 'Configure the NPM_TOKEN repository secret before publishing.' >&2; exit 1; }
-          tarballs=("$GITHUB_WORKSPACE"/artifacts/huaweicloud-contextbase-coding-agents/*/*.tgz)
-          test "${#tarballs[@]}" -eq 1
-          cd "$RUNNER_TEMP"
-          npm publish "${tarballs[0]}" --access public --ignore-scripts --provenance=false
+          tarballs=("$GITHUB_WORKSPACE"/artifacts/huaweicloud-contextbase-*/*/*.tgz)
+          test "${#tarballs[@]}" -eq 2
+          # Publish outside the checkout so npm's automatic metadata contains no private repository path.
+          stage=$(mktemp -d /tmp/contextbase-publish-XXXXXX)
+          trap 'rm -rf "$stage"' EXIT
+          cp "${tarballs[@]}" "$stage/"
+          cd "$stage"
+          for tarball in *.tgz; do
+            # A partial release can be resumed only when the existing package is byte-identical.
+            package=$(tar -xOf "$tarball" package/package.json | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')
+            version=$(tar -xOf "$tarball" package/package.json | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')
+            status=$(curl --silent --show-error --retry 3 --max-time 60 --output metadata.json --write-out '%{http_code}' "https://registry.npmjs.org/$package/$version")
+            case "$status" in
+              200)
+                published=$(node -pe 'JSON.parse(require("fs").readFileSync("metadata.json", "utf8")).dist.integrity')
+                expected="sha512-$(openssl dgst -sha512 -binary "$tarball" | openssl base64 -A)"
+                test "$published" = "$expected" || { echo "Published bytes differ for $package@$version" >&2; exit 1; }
+                echo "Already published and verified: $package@$version"
+                ;;
+              404) npm publish "./$tarball" --access public --ignore-scripts --provenance=false ;;
+              *) echo "Registry lookup failed for $package@$version: HTTP $status" >&2; exit 1 ;;
+            esac
+          done

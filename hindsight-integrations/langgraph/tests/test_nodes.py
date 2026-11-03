@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from contextbase_langgraph import create_recall_node, create_retain_node
-from contextbase_langgraph.errors import HindsightError
+from contextbase_langgraph.errors import ContextBaseError
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 
@@ -109,7 +109,7 @@ class TestRecallNode:
         node = create_recall_node(bank_id="test-bank", client=client)
 
         state = {"messages": [HumanMessage(content="hello")]}
-        with pytest.raises(HindsightError, match="Recall node failed"):
+        with pytest.raises(ContextBaseError, match="Recall node failed"):
             await node(state)
 
     @pytest.mark.asyncio
@@ -164,7 +164,7 @@ class TestRecallNodeOutputKey:
         node = create_recall_node(bank_id="test-bank", client=client, output_key="memory_context")
 
         state = {"messages": [HumanMessage(content="hello")]}
-        with pytest.raises(HindsightError, match="Recall node failed"):
+        with pytest.raises(ContextBaseError, match="Recall node failed"):
             await node(state)
 
 
@@ -245,7 +245,7 @@ class TestRetainNode:
         node = create_retain_node(bank_id="test-bank", client=client)
 
         state = {"messages": [HumanMessage(content="hello")]}
-        with pytest.raises(HindsightError, match="Retain node failed"):
+        with pytest.raises(ContextBaseError, match="Retain node failed"):
             await node(state)
 
     @pytest.mark.asyncio

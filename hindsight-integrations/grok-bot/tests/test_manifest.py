@@ -107,7 +107,7 @@ def test_mcp_server_is_remote_and_uses_oauth() -> None:
     # registration. So the plugin carries no credential, header or ${VAR} to configure.
     servers = _mcp().mcp_servers
     assert list(servers) == ["contextbase"]
-    assert servers["contextbase"].url == "http://localhost:8888/mcp"
+    assert servers["contextbase"].url == "https://memory.example.com/mcp"
     assert servers["contextbase"].headers is None
     assert "${" not in MCP_JSON.read_text()
 

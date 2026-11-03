@@ -14,10 +14,12 @@ export function useProductName() {
 export function ProductRuntime({
   name,
   locale,
+  localeNotice,
   children,
 }: {
   name: string;
   locale: string;
+  localeNotice: string;
   children: React.ReactNode;
 }) {
   const [problem, setProblem] = useState<"changed" | "unavailable" | null>(null);
@@ -54,8 +56,7 @@ export function ProductRuntime({
     <ProductNameContext.Provider value={name}>
       {locale !== "en" && !zh && (
         <p role="status" className="border-b bg-muted px-4 py-2 text-sm">
-          This product currently provides complete main flows in English and Simplified Chinese.
-          English is shown for this language.
+          {localeNotice}
         </p>
       )}
       {problem && (

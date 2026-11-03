@@ -1056,3 +1056,5 @@ memoryless turn and is recorded in the logs. "No memory" is therefore a log ques
 diag file for whether `session_start` and `deepen_started` ever fired for that bank. A session that
 was already running when the plugin was installed has no SessionStart behind it; its first prompt
 after the install self-heals.
+
+[View Changelog →](/changelog/integrations/coding-agents)

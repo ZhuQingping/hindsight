@@ -2267,12 +2267,15 @@
       "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "Run once to save this Bank for all projects and clients. Create the Bank and authorize access first.",
+    "npmHelp": "Run once to save this workspace for all projects and clients. Create the workspace and authorize access first.",
     "endpointHelp": "--api-url: API address ({apiUrl}). Omit to use saved configuration or CONTEXTBASE_API_URL; the first installation can prompt for it. Pass explicitly to replace a saved address.",
     "parametersTitle": "Other installation parameters",
     "tokenHelp": "--api-token: business key. Omit to use the saved key for the same API address or CONTEXTBASE_API_TOKEN. Supply a key for the first installation; pass explicitly to replace a saved key.",
-    "switchBankTitle": "Switch Bank",
-    "switchBankHelp": "Replace '<BANK_ID>' with a Bank that exists and grants you access. Run the command, then restart the client. All projects and clients will use that Bank.",
-    "projectHelp": "--project-path: optional, defaults to the current directory. Selects the project-specific client registration directory; it does not select a Bank."
+    "switchBankTitle": "Switch workspace",
+    "switchBankHelp": "Replace '<BANK_ID>' with the ID of a workspace that exists and grants you access. Run the command, then restart the client. All projects and clients will use that workspace.",
+    "projectHelp": "--project-path: optional, defaults to the current directory. Selects the project-specific client registration directory; it does not select a workspace."
+  },
+  "productRuntime": {
+    "localeNotice": "This product currently provides complete main flows in English and Simplified Chinese. English is shown for this language."
   }
 }

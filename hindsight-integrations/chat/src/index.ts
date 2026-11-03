@@ -9,7 +9,7 @@ export type {
   ReflectFact,
   ReflectResponse,
   RetainResponse,
-  HindsightClient,
+  ContextBaseClient,
   BankIdResolver,
   ChatMessage,
   ChatThread,

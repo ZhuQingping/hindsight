@@ -45,7 +45,7 @@ const DROP_SECTIONS = ['Development'];
  * plugin directory (the Desktop app is a different surface, and the old pip plugin is a docs-era
  * migration note pointing at a guide that only exists on the site).
  */
-const SITE_ONLY_INTRO = "";
+const SITE_ONLY_INTRO = '[View Changelog →](/changelog/integrations/hermes)';
 
 function build() {
   const src = readFileSync(readme, 'utf8');
@@ -75,7 +75,7 @@ function build() {
     .replace(/https:\/\/contextbase\.vectorize\.io\/([^\s"')]+)/g, '/$1')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
-  return `${FRONTMATTER}\n${SITE_ONLY_INTRO}\n${body}\n`;
+  return `${FRONTMATTER}\n${SITE_ONLY_INTRO}\n\n${body}\n`;
 }
 
 const generated = build();

@@ -13,9 +13,8 @@ from typing import Any
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
-
 from contextbase_litellm import cleanup, configure, reset_config, set_defaults
-from contextbase_litellm.callbacks import ContextBaseCallback, HindsightError
+from contextbase_litellm.callbacks import ContextBaseCallback, ContextBaseError
 
 BANK = "bank-a"
 RECALL = ("POST", f"/v1/default/banks/{BANK}/memories/recall")
@@ -113,7 +112,7 @@ class TestAsyncPreCall:
         contextbase.routes[RECALL] = (500, {"detail": "boom"})
         messages = [{"role": "user", "content": "What does Alice like?"}]
 
-        with pytest.raises(HindsightError, match="Memory recall failed"):
+        with pytest.raises(ContextBaseError, match="Memory recall failed"):
             await callback.async_log_pre_api_call("gpt-4o-mini", messages, {})
         assert messages == [{"role": "user", "content": "What does Alice like?"}]
 
@@ -151,7 +150,7 @@ class TestAsyncSuccessEvent:
     async def test_store_failure_raises(self, contextbase, callback):
         contextbase.routes[RETAIN] = (503, {"detail": "unavailable"})
 
-        with pytest.raises(HindsightError, match="Memory storage failed"):
+        with pytest.raises(ContextBaseError, match="Memory storage failed"):
             await callback.async_log_success_event(self._kwargs(), _llm_response("Hi there"), 0.0, 1.0)
 
     async def test_duplicate_is_stored_once(self, contextbase, callback):

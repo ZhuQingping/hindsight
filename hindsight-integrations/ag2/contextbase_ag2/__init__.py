@@ -32,7 +32,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import create_contextbase_tools, register_contextbase_tools
 
 __version__ = "0.1.0"
@@ -42,7 +42,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseAG2Config",
-    "HindsightError",
+    "ContextBaseError",
     "create_contextbase_tools",
     "register_contextbase_tools",
 ]

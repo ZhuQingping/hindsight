@@ -1,13 +1,13 @@
 import type { IAgentRuntime, Memory } from "@elizaos/core";
 import { vi } from "vitest";
-import type { HindsightClient, RecallResponse, RetainResponse } from "../src/index.js";
+import type { ContextBaseClient, RecallResponse, RetainResponse } from "../src/index.js";
 
 export const AGENT_ID = "00000000-0000-0000-0000-0000000000a9" as const;
 export const USER_ID = "00000000-0000-0000-0000-0000000000u5" as const;
 export const ROOM_ID = "00000000-0000-0000-0000-0000000000r1" as const;
 
 /** A mock client whose recall/retain can be overridden per call via vi.fn helpers. */
-export function mockClient(recall?: RecallResponse): HindsightClient {
+export function mockClient(recall?: RecallResponse): ContextBaseClient {
   return {
     recall: vi.fn(
       async (): Promise<RecallResponse> =>

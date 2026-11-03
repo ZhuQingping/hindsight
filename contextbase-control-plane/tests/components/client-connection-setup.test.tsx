@@ -15,12 +15,11 @@ afterEach(cleanup);
 const connection: CustomerConnection = {
   apiUrl: "https://api.example.com/customer-api",
   mcpUrl: "https://mcp.example.com/team/mcp",
-  codingAgentsNpm: "contextbase-coding-agents@latest",
+  codingAgentsNpm: "@huaweicloud/contextbase-coding-agents@latest",
   packages: {
     openclaw: "https://downloads.example.com/openclaw.tgz",
     hermes: "https://downloads.example.com/hermes.zip",
     python: "https://downloads.example.com/contextbase_client-1.0.0-py3-none-any.whl",
-    node: "https://downloads.example.com/contextbase-client-1.0.0.tgz",
   },
 };
 function show(config = connection) {
@@ -39,7 +38,7 @@ it.each(codingClients)(
   ({ id }) => {
     show();
     select(id);
-    expect(document.body.textContent).toContain(`install ${id} --api-token`);
+    expect(document.body.textContent).toContain(`install ${id} --bank-id`);
     expect(document.body.textContent).toContain(`harness = ${id}`);
     expect(document.body.textContent).toContain("config.api_url");
     expect(document.body.textContent).toContain("not cloud permissions");
@@ -55,10 +54,14 @@ it.each(codingClients)(
 it("switches terminal syntax without showing other terminal commands", () => {
   show();
   fireEvent.click(screen.getByRole("button", { name: "CMD" }));
-  expect(document.body.textContent).toContain('set "CONTEXTBASE_API_TOKEN=<API_KEY>"');
+  expect(document.body.textContent).toContain(
+    'npx.cmd --yes "@huaweicloud/contextbase-coding-agents@latest"'
+  );
   expect(document.body.textContent).not.toContain("$env:");
   fireEvent.click(screen.getByRole("button", { name: "macOS / Linux" }));
-  expect(document.body.textContent).toContain("export CONTEXTBASE_API_TOKEN=");
+  expect(document.body.textContent).toContain(
+    "npx --yes '@huaweicloud/contextbase-coding-agents@latest'"
+  );
   expect(document.body.textContent).not.toContain("npm.cmd");
 });
 
@@ -107,7 +110,7 @@ it("keeps clients selectable when one package is unavailable", () => {
   expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
   expect(document.querySelectorAll("pre")).toHaveLength(0);
   select("codex");
-  expect(document.body.textContent).toContain("install codex --api-token");
+  expect(document.body.textContent).toContain("install codex --bank-id");
 });
 
 it("offers PowerShell for Bank IDs that CMD would expand", () => {
@@ -153,15 +156,18 @@ it("shows connection details after the command without a parameter form and with
     node.textContent?.includes("npx.cmd")
   )!;
   expect(command.textContent).not.toContain("--project-path");
-  expect(command.textContent).toContain(`$env:CONTEXTBASE_API_URL = '${connection.apiUrl}'`);
-  expect(command.textContent!.indexOf("CONTEXTBASE_API_URL")).toBeLessThan(
-    command.textContent!.indexOf("CONTEXTBASE_API_TOKEN")
-  );
+  expect(command.textContent).not.toContain("CONTEXTBASE_API_");
   const text = document.body.textContent!;
-  const endpointHelp = screen.getByText(/^CONTEXTBASE_API_URL: API Endpoint\./);
-  expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  const endpointHelp = screen.getByText(/^--api-url: API address/);
+  expect(command.compareDocumentPosition(endpointHelp) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(
+    0
+  );
   expect(command.textContent).toContain("--bank-id 'team'");
-  expect(text).toContain("--project-path is optional");
+  expect(text).toContain("--project-path: optional");
+  expect(text).toContain("CONTEXTBASE_API_URL");
+  expect(text).toContain("CONTEXTBASE_API_TOKEN");
+  expect(screen.getByRole("heading", { name: "Switch workspace" })).toBeTruthy();
+  expect(text).toContain("bank use '<BANK_ID>'");
 });
 
 it("connects through npm without a download link or archive installer", () => {
@@ -170,4 +176,16 @@ it("connects through npm without a download link or archive installer", () => {
   expect(screen.queryByRole("status")).toBeNull();
   expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
   expect(document.body.textContent).not.toContain("npm.cmd exec");
+});
+
+it("shows the public Node SDK install and import without archive settings", () => {
+  show({ ...connection, packages: {} });
+  fireEvent.click(screen.getByRole("button", { name: "Application development" }));
+  select("node");
+  expect(document.body.textContent).toContain(
+    "npm.cmd install '@huaweicloud/contextbase-client@latest'"
+  );
+  expect(document.body.textContent).toContain('from "@huaweicloud/contextbase-client"');
+  expect(screen.queryByRole("status")).toBeNull();
+  expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
 });

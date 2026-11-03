@@ -4,16 +4,14 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from contextbase_agno import (
     ContextBaseTools,
     configure,
     memory_instructions,
     reset_config,
 )
-from contextbase_agno.errors import HindsightError
+from contextbase_agno.errors import ContextBaseError
 from contextbase_agno.tools import _TOOL_INSTRUCTIONS, _USER_AGENT, _resolve_client
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -79,13 +77,13 @@ class TestResolveClient:
         assert result is client
 
     def test_creates_client_from_url(self):
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://localhost:8888", timeout=30.0)
 
     def test_creates_client_with_api_key(self):
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "my-key")
             mock_cls.assert_called_once_with(
@@ -94,14 +92,14 @@ class TestResolveClient:
 
     def test_falls_back_to_global_config_url(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://config:8888", timeout=30.0)
 
     def test_falls_back_to_global_config_api_key(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(
@@ -110,14 +108,14 @@ class TestResolveClient:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://explicit:9999", None)
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://explicit:9999", timeout=30.0)
 
     def test_explicit_api_key_overrides_config(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, "explicit-key")
             mock_cls.assert_called_once_with(
@@ -125,17 +123,13 @@ class TestResolveClient:
             )
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_raises_with_empty_config_no_url(self):
-        # Config exists but has no url override and default is set,
-        # so this should NOT raise since default URL exists in config
         configure()
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
-            mock_cls.return_value = _mock_client()
+        with pytest.raises(ValueError, match="Configure the ContextBase API URL explicitly"):
             _resolve_client(None, None, None)
-            mock_cls.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -222,12 +216,12 @@ class TestContextBaseToolsInit:
         assert len(toolkit.functions) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             ContextBaseTools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             toolkit = ContextBaseTools(bank_id="test")
             assert "retain_memory" in toolkit.functions
@@ -235,7 +229,7 @@ class TestContextBaseToolsInit:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             ContextBaseTools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once_with(user_agent=_USER_AGENT, base_url="http://explicit:9999", timeout=30.0)
@@ -257,7 +251,7 @@ class TestContextBaseToolsInit:
         """Constructor default budget='mid' is truthy, so config budget is not used.
         This matches pydantic-ai integration behavior — pass budget explicitly to override."""
         configure(contextbase_api_url="http://localhost:8888", budget="low")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             toolkit = ContextBaseTools(bank_id="test")
         client = mock_cls.return_value
@@ -269,7 +263,7 @@ class TestContextBaseToolsInit:
 
     def test_explicit_budget_overrides_default(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             toolkit = ContextBaseTools(bank_id="test", budget="low")
         client = mock_cls.return_value
@@ -285,7 +279,7 @@ class TestContextBaseToolsInit:
             tags=["config-tag"],
             recall_tags=["config-recall"],
         )
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             toolkit = ContextBaseTools(bank_id="test")
         client = mock_cls.return_value
@@ -305,7 +299,7 @@ class TestContextBaseToolsInit:
             tags=["config-tag"],
             recall_tags=["config-recall"],
         )
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             toolkit = ContextBaseTools(
                 bank_id="test",
@@ -324,7 +318,7 @@ class TestContextBaseToolsInit:
         assert client.recall.call_args[1]["tags"] == ["explicit-recall"]
 
     def test_api_key_passed_to_client(self):
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             ContextBaseTools(
                 bank_id="test",
@@ -407,7 +401,7 @@ class TestBankIdResolution:
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.recall_memory(ctx, "query")
 
     def test_missing_bank_id_no_user_id_attr(self):
@@ -415,7 +409,7 @@ class TestBankIdResolution:
         toolkit = ContextBaseTools(client=client)
         ctx = MagicMock(spec=[])  # No attributes at all
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.recall_memory(ctx, "query")
 
     def test_bank_resolver_error_propagates(self):
@@ -427,7 +421,7 @@ class TestBankIdResolution:
         toolkit = ContextBaseTools(bank_resolver=bad_resolver, client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="resolver broke"):
+        with pytest.raises(ContextBaseError, match="resolver broke"):
             toolkit.retain_memory(ctx, "content")
 
     def test_bank_id_consistent_across_tools(self):
@@ -587,16 +581,16 @@ class TestRetainTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             toolkit.retain_memory(ctx, "content")
 
     def test_retain_preserves_contextbase_error(self):
-        """HindsightError from bank resolution is not double-wrapped."""
+        """ContextBaseError from bank resolution is not double-wrapped."""
         client = _mock_client()
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()  # No user_id, no bank_id
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.retain_memory(ctx, "content")
 
     def test_retain_error_chains_original_exception(self):
@@ -606,7 +600,7 @@ class TestRetainTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError) as exc_info:
+        with pytest.raises(ContextBaseError) as exc_info:
             toolkit.retain_memory(ctx, "content")
 
         assert exc_info.value.__cause__ is original
@@ -742,7 +736,7 @@ class TestRecallTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             toolkit.recall_memory(ctx, "query")
 
     def test_recall_preserves_contextbase_error(self):
@@ -750,7 +744,7 @@ class TestRecallTool:
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.recall_memory(ctx, "query")
 
     def test_recall_error_chains_original_exception(self):
@@ -760,7 +754,7 @@ class TestRecallTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError) as exc_info:
+        with pytest.raises(ContextBaseError) as exc_info:
             toolkit.recall_memory(ctx, "query")
 
         assert exc_info.value.__cause__ is original
@@ -863,7 +857,7 @@ class TestReflectTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             toolkit.reflect_on_memory(ctx, "query")
 
     def test_reflect_preserves_contextbase_error(self):
@@ -871,7 +865,7 @@ class TestReflectTool:
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.reflect_on_memory(ctx, "query")
 
     def test_reflect_error_chains_original_exception(self):
@@ -881,7 +875,7 @@ class TestReflectTool:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError) as exc_info:
+        with pytest.raises(ContextBaseError) as exc_info:
             toolkit.reflect_on_memory(ctx, "query")
 
         assert exc_info.value.__cause__ is original
@@ -1041,12 +1035,12 @@ class TestMemoryInstructions:
         assert "tags_match" not in call_kwargs
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_uses_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_client = _mock_client()
             mock_client.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_client
@@ -1086,9 +1080,9 @@ class TestExports:
         assert contextbase_agno.__version__ == "0.1.0"
 
     def test_contextbase_error_importable_from_top_level(self):
-        from contextbase_agno import HindsightError
+        from contextbase_agno import ContextBaseError
 
-        assert issubclass(HindsightError, Exception)
+        assert issubclass(ContextBaseError, Exception)
 
     def test_config_class_importable(self):
         from contextbase_agno import ContextBaseAgnoConfig
@@ -1104,14 +1098,14 @@ class TestExports:
 
 class TestContextBaseError:
     def test_is_exception(self):
-        assert issubclass(HindsightError, Exception)
+        assert issubclass(ContextBaseError, Exception)
 
     def test_can_be_raised_and_caught(self):
-        with pytest.raises(HindsightError, match="test error"):
-            raise HindsightError("test error")
+        with pytest.raises(ContextBaseError, match="test error"):
+            raise ContextBaseError("test error")
 
     def test_str_representation(self):
-        err = HindsightError("something went wrong")
+        err = ContextBaseError("something went wrong")
         assert str(err) == "something went wrong"
 
 
@@ -1165,7 +1159,7 @@ class TestLogging:
         ctx = _mock_run_context()
 
         with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
-            with pytest.raises(HindsightError):
+            with pytest.raises(ContextBaseError):
                 toolkit.retain_memory(ctx, "content")
 
         assert "Retain failed: boom" in caplog.text
@@ -1177,7 +1171,7 @@ class TestLogging:
         ctx = _mock_run_context()
 
         with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
-            with pytest.raises(HindsightError):
+            with pytest.raises(ContextBaseError):
                 toolkit.recall_memory(ctx, "query")
 
         assert "Recall failed: timeout" in caplog.text
@@ -1189,19 +1183,19 @@ class TestLogging:
         ctx = _mock_run_context()
 
         with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
-            with pytest.raises(HindsightError):
+            with pytest.raises(ContextBaseError):
                 toolkit.reflect_on_memory(ctx, "query")
 
         assert "Reflect failed: service down" in caplog.text
 
     def test_contextbase_error_not_logged(self, caplog):
-        """HindsightError (e.g. missing bank_id) should not log — it's re-raised directly."""
+        """ContextBaseError (e.g. missing bank_id) should not log — it's re-raised directly."""
         client = _mock_client()
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context()  # No user_id
 
         with caplog.at_level(logging.ERROR, logger="contextbase_agno.tools"):
-            with pytest.raises(HindsightError, match="No bank_id"):
+            with pytest.raises(ContextBaseError, match="No bank_id"):
                 toolkit.retain_memory(ctx, "content")
 
         assert "Retain failed" not in caplog.text
@@ -1231,7 +1225,7 @@ class TestEdgeCases:
         toolkit = ContextBaseTools(client=client)
         ctx = _mock_run_context(user_id="")
 
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             toolkit.recall_memory(ctx, "query")
 
     def test_unicode_content_in_retain(self):
@@ -1353,7 +1347,7 @@ class TestErrorTypes:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Retain failed.*bad type"):
+        with pytest.raises(ContextBaseError, match="Retain failed.*bad type"):
             toolkit.retain_memory(ctx, "content")
 
     def test_recall_wraps_key_error(self):
@@ -1362,7 +1356,7 @@ class TestErrorTypes:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             toolkit.recall_memory(ctx, "query")
 
     def test_reflect_wraps_os_error(self):
@@ -1371,7 +1365,7 @@ class TestErrorTypes:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Reflect failed.*disk full"):
+        with pytest.raises(ContextBaseError, match="Reflect failed.*disk full"):
             toolkit.reflect_on_memory(ctx, "query")
 
     def test_retain_wraps_value_error(self):
@@ -1380,7 +1374,7 @@ class TestErrorTypes:
         toolkit = ContextBaseTools(bank_id="test", client=client)
         ctx = _mock_run_context()
 
-        with pytest.raises(HindsightError, match="Retain failed.*invalid input"):
+        with pytest.raises(ContextBaseError, match="Retain failed.*invalid input"):
             toolkit.retain_memory(ctx, "content")
 
 
@@ -1563,7 +1557,7 @@ class TestMemoryInstructionsEdgeCases:
 
     def test_client_resolution_error_propagates(self):
         """_resolve_client error during memory_instructions IS raised (not swallowed)."""
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_recall_error_swallowed_not_raised(self):
@@ -1590,14 +1584,14 @@ class TestResolveClientEdgeCases:
 
     def test_empty_string_api_key_not_passed(self):
         """api_key='' is falsy, so it should not be passed to ContextBase."""
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "")
             call_kwargs = mock_cls.call_args[1]
             assert "api_key" not in call_kwargs
 
     def test_none_api_key_not_passed(self):
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             call_kwargs = mock_cls.call_args[1]
@@ -1605,7 +1599,7 @@ class TestResolveClientEdgeCases:
 
     def test_whitespace_api_key_is_passed(self):
         """Non-empty whitespace string IS truthy, so it gets passed."""
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "  ")
             call_kwargs = mock_cls.call_args[1]
@@ -1613,14 +1607,14 @@ class TestResolveClientEdgeCases:
 
     def test_config_api_key_used_when_no_explicit(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             assert mock_cls.call_args[1]["api_key"] == "config-key"
 
     def test_config_none_api_key_not_passed(self):
         configure(contextbase_api_url="http://config:8888", api_key=None)
-        with patch("contextbase_agno.tools.Hindsight") as mock_cls:
+        with patch("contextbase_agno.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             assert "api_key" not in mock_cls.call_args[1]

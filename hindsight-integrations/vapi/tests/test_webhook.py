@@ -7,7 +7,6 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from contextbase_vapi import ContextBaseVapiWebhook, configure, reset_config
 from contextbase_vapi.errors import ContextBaseVapiError
 from contextbase_vapi.webhook import _resolve_client
@@ -60,7 +59,7 @@ class TestResolveClient:
         assert result is client
 
     def test_creates_client_from_url(self) -> None:
-        with patch("contextbase_vapi.webhook.Hindsight") as mock_cls:
+        with patch("contextbase_vapi.webhook.ContextBase") as mock_cls:
             _resolve_client(None, "http://localhost:8888", None)
             mock_cls.assert_called_once()
             assert mock_cls.call_args.kwargs["user_agent"].startswith("contextbase-vapi/")
@@ -71,7 +70,7 @@ class TestResolveClient:
 
     def test_uses_global_config_url(self) -> None:
         configure(contextbase_api_url="http://configured:8888")
-        with patch("contextbase_vapi.webhook.Hindsight") as mock_cls:
+        with patch("contextbase_vapi.webhook.ContextBase") as mock_cls:
             _resolve_client(None, None, None)
             mock_cls.assert_called_once()
         reset_config()

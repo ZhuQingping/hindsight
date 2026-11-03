@@ -7,7 +7,7 @@ import { contextDBEnabled } from "@/lib/contextdb";
 import { ContextDBUsageCapabilities } from "@/components/contextdb/usage-capabilities";
 import { ContextDBModeProvider } from "@/lib/contextdb-mode";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { BankProvider } from "@/lib/bank-context";
@@ -66,6 +66,9 @@ export default async function LocaleLayout({
   }
 
   setRequestLocale(locale);
+  // ProductRuntime wraps the client translation provider, so translate its
+  // language notice on the server and pass only the rendered text.
+  const t = await getTranslations("productRuntime");
 
   return (
     <html
@@ -75,7 +78,7 @@ export default async function LocaleLayout({
     >
       <body className="bg-background text-foreground">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <ProductRuntime name={name} locale={locale}>
+        <ProductRuntime name={name} locale={locale} localeNotice={t("localeNotice")}>
           <ContextDBModeProvider enabled={contextDBEnabled()}>
             <ContextDBUsageCapabilities>
               <ThemeProvider>

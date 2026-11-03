@@ -9,7 +9,7 @@ from contextbase_langgraph import (
     memory_instructions,
     reset_config,
 )
-from contextbase_langgraph.errors import HindsightError
+from contextbase_langgraph.errors import ContextBaseError
 
 
 def _mock_client():
@@ -111,7 +111,7 @@ class TestCreateContextBaseTools:
     def test_reads_api_key_from_env_without_config(self, monkeypatch):
         """CONTEXTBASE_API_KEY is honoured even when configure() was never called."""
         monkeypatch.setenv("CONTEXTBASE_API_KEY", "sk-from-env")
-        with patch("contextbase_langgraph._client.Hindsight") as mock_cls:
+        with patch("contextbase_langgraph._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(contextbase_api_url="http://localhost:8888", bank_id="test")
             call_kwargs = mock_cls.call_args[1]
@@ -119,7 +119,7 @@ class TestCreateContextBaseTools:
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_langgraph._client.Hindsight") as mock_cls:
+        with patch("contextbase_langgraph._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -130,7 +130,7 @@ class TestCreateContextBaseTools:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_langgraph._client.Hindsight") as mock_cls:
+        with patch("contextbase_langgraph._client.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             call_kwargs = mock_cls.call_args[1]
@@ -213,7 +213,7 @@ class TestRetainTool:
             include_recall=False,
             include_reflect=False,
         )
-        with pytest.raises(HindsightError, match="No bank_id available"):
+        with pytest.raises(ContextBaseError, match="No bank_id available"):
             await tools[0].ainvoke({"content": "orphan memory"})
         client.aretain.assert_not_called()
 
@@ -227,7 +227,7 @@ class TestRetainTool:
             include_recall=False,
             include_reflect=False,
         )
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             await tools[0].ainvoke("content")
 
 

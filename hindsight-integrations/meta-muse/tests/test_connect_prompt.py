@@ -11,10 +11,12 @@ INTEGRATION_DIR = Path(__file__).resolve().parent.parent
 PROMPT = (INTEGRATION_DIR / "connect-prompt.md").read_text()
 
 
-def test_prompt_uses_the_root_cloud_url() -> None:
+def test_prompt_uses_a_public_https_placeholder() -> None:
     # The root URL is multi-bank: Muse keeps its own `muse` bank and reads the others.
     # A bank-scoped URL (/mcp/<bank>/) would hand it exactly one, which is the fallback, not the default.
-    assert "http://localhost:8888/mcp\n" in PROMPT
+    assert "https://memory.example.com/mcp\n" in PROMPT
+    assert "replace `https://memory.example.com`" in PROMPT
+    assert "localhost" not in PROMPT
     assert "/mcp/" not in PROMPT
 
 

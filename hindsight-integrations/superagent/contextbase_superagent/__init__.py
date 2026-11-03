@@ -27,7 +27,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import GuardBlockedError, HindsightError
+from .errors import ContextBaseError, GuardBlockedError
 from .middleware import SafeContextBase
 
 try:
@@ -42,7 +42,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseSuperagentConfig",
-    "HindsightError",
+    "ContextBaseError",
     "GuardBlockedError",
     "SafeContextBase",
 ]

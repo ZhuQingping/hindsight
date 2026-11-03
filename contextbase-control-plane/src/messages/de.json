@@ -2220,18 +2220,17 @@
     "development": "Application development",
     "clientLabel": "Client",
     "terminalLabel": "Terminal",
-    "credentials": "Replace '<API_KEY>' locally with a key authorized for this workspace. This page does not create or store keys.",
+    "credentials": "Replace '<API_KEY>' with a business key authorized for this workspace.",
     "descriptions": {
-      "coding": "Install the ContextBase integration for the selected client and bind your project to this workspace.",
+      "coding": "Requires the selected client and Node.js 18+. Replace '<API_KEY>' with a business key authorized for this workspace.",
       "openclaw": "Install the ContextBase plugin and connect your OpenClaw Gateway to this workspace.",
       "hermes": "Install ContextBase as the memory provider for your current Hermes profile.",
       "python": "Install the Python SDK and run a read-only memory query.",
       "node": "Install the Node.js SDK and run a read-only memory query.",
       "rest": "Check access to this workspace with a read-only statistics request.",
-      "mcp": "Connect an HTTP MCP client to the remote ContextBase service. No local adapter is required for this option."
+      "mcp": "Connect to ContextBase over HTTP MCP, without a local adapter."
     },
     "requirements": {
-      "coding": "Requires the selected client and Node.js 18+.",
       "python": "Requires Python 3.10+; use an activated virtual environment.",
       "node": "Requires Node.js 18+; run the commands in your application directory.",
       "openclaw": "Requires OpenClaw and Node.js 22+. Run in your Gateway environment.",
@@ -2255,23 +2254,28 @@
     "saveExample": "Save as {filename}, then run it in the same terminal:",
     "exampleQuery": "What conventions does this project follow?",
     "verifyTitle": "Verify the connection",
-    "verifyAgent": "Restart the client in this project directory. Check the available ContextBase tools, then send this prompt:",
-    "verifyMcpAgent": "Restart the client in this project directory. Check ContextBase under /mcp, approve hooks if prompted, then send this prompt:",
+    "verifyAgent": "Restart the client in your project directory, check the ContextBase tools, then send:",
+    "verifyMcpAgent": "Restart the client in your project directory, check ContextBase under /mcp, enable hooks if prompted, then send:",
     "diagnosePrompt": "Call the currently loaded ContextBase diagnostic tool using its actual registered name. Return workspace, bank_id, harness and config.api_url from the tool result.",
-    "diagnoseExpected": "Expect the project directory, bank_id = {bankId}, and harness = {harness}; also check the API address. This checks local configuration, not cloud permissions.",
+    "diagnoseExpected": "Check the project directory, bank_id = {bankId}, harness = {harness}, and API address. This checks local configuration, not cloud permissions.",
     "openCodeShared": "OpenCode and OpenCode 2 use the same host plugin entry. Choose the version you actually run.",
     "verify": {
-      "sdk": "A successful recall response, including an empty result, confirms the request reached the service. Authentication or workspace errors must be resolved; a running script alone does not mean success.",
-      "rest": "Expect HTTP 200 with workspace statistics. Resolve HTTP 401/403/404 before using the service.",
-      "mcp": "Reconnect your MCP client and check the returned tool list. Make a read-only recall request for this workspace to verify service access.",
-      "openclaw": "After restarting, check that the plugin log reports remote API mode and this workspace. Use OpenClaw memory search and inspect its actual result. Plugin loading alone does not confirm cloud access.",
-      "hermes": "Restart Hermes and confirm ContextBase is the active memory provider. Ask the agent to call the loaded ContextBase recall tool for this workspace and inspect its actual result."
+      "sdk": "A successful recall response, including an empty result, confirms access.",
+      "rest": "HTTP 200 with workspace statistics confirms access.",
+      "mcp": "Reconnect, check the loaded tools, then call recall to verify access.",
+      "openclaw": "Restart the Gateway, check that ContextBase is loaded, then run a memory search.",
+      "hermes": "Restart Hermes, confirm ContextBase is selected, then call recall to verify access."
     },
-    "installScopeTitle": "Installation scope",
-    "installScope": "The integration is installed for the current user. API address and key are shared across projects, so changing them affects other projects; workspace mappings are kept per project.",
     "npmInstallTitle": "1. Connect with npx",
-    "npmHelp": "npx runs the installer without a global installation or npm login. Replace '<API_KEY>' with your ContextBase business API key; an npm publishing token is not needed.",
-    "endpointHelp": "--api-url: API Endpoint. If omitted, the installer reads saved settings or environment variables; on first use, follow the terminal prompt.",
-    "projectHelp": "--project-path is optional: defaults to the current directory. To connect another project, specify its local path."
+    "npmHelp": "Run once to save this workspace for all projects and clients. Create the workspace and authorize access first.",
+    "endpointHelp": "--api-url: API address ({apiUrl}). Omit to use saved configuration or CONTEXTBASE_API_URL; the first installation can prompt for it. Pass explicitly to replace a saved address.",
+    "parametersTitle": "Other installation parameters",
+    "tokenHelp": "--api-token: business key. Omit to use the saved key for the same API address or CONTEXTBASE_API_TOKEN. Supply a key for the first installation; pass explicitly to replace a saved key.",
+    "switchBankTitle": "Switch workspace",
+    "switchBankHelp": "Replace '<BANK_ID>' with the ID of a workspace that exists and grants you access. Run the command, then restart the client. All projects and clients will use that workspace.",
+    "projectHelp": "--project-path: optional, defaults to the current directory. Selects the project-specific client registration directory; it does not select a workspace."
+  },
+  "productRuntime": {
+    "localeNotice": "This product currently provides complete main flows in English and Simplified Chinese. English is shown for this language."
   }
 }

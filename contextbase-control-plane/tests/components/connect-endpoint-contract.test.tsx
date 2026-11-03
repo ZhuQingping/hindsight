@@ -34,25 +34,30 @@ it.each(["contextbase", "contextdb"])(
   "keeps public MCP independent and operator credentials private under %s",
   async (name) => {
     vi.stubEnv("contextdb_name", name);
-    vi.stubEnv("CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE", "contextbase-coding-agents@1.0.0");
+    vi.stubEnv(
+      "CONTEXTBASE_CP_CODING_AGENTS_NPM_PACKAGE",
+      "@huaweicloud/contextbase-coding-agents@1.1.0"
+    );
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", "https://api.example.com/customer-api");
     vi.stubEnv("CONTEXTBASE_CP_PUBLIC_MCP_URL", "https://mcp.example.com/banks/{bank_id}/mcp");
     vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_URL", "http://internal-service:8888");
     vi.stubEnv("CONTEXTBASE_CP_DATAPLANE_API_KEY", "operator-secret");
     const bank = "team/%-中文.json";
     await show(bank);
-    expect(document.body.textContent).toContain("install claude-code --api-token");
+    expect(document.body.textContent).toContain("install claude-code --bank-id");
     expect(document.body.textContent).toContain("npx.cmd --yes");
     expect(document.body.textContent).toContain(bank);
     const command = Array.from(document.querySelectorAll("pre")).find((node) =>
       node.textContent?.includes("npx.cmd")
     )!;
-    expect(command.textContent).not.toContain("--project-path");
-    expect(command.textContent).toContain(
-      "$env:CONTEXTBASE_API_URL = 'https://api.example.com/customer-api'"
+    expect(command.textContent).toContain("'@huaweicloud/contextbase-coding-agents@1.1.0'");
+    expect(command.textContent).not.toMatch(
+      /--project-path|--api-url|--api-token|CONTEXTBASE_API_/
     );
-    expect(command.textContent).toContain('--api-url "$env:CONTEXTBASE_API_URL"');
-    expect(command.textContent).not.toMatch(/internal-service|operator-secret/);
+    expect(screen.getByText(/^--api-url: API address/).textContent).toContain(
+      "https://api.example.com/customer-api"
+    );
+    expect(document.body.textContent).not.toMatch(/internal-service|operator-secret/);
     expect(command.textContent).toContain("--bank-id '" + bank + "'");
     expect(document.body.textContent).not.toContain("install claude-code codex");
     fireEvent.click(screen.getByRole("button", { name: "Application development" }));

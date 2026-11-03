@@ -1,6 +1,6 @@
 {
   "name": "contextbase-coding-agents",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ContextBase long-term project memory for coding agents",
   "skills": "./skill",
   "hooks": "./hooks/hooks.json",

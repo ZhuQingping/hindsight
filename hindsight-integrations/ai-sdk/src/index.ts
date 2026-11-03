@@ -2,7 +2,7 @@ export {
   createContextBaseTools,
   BudgetSchema,
   type Budget,
-  type HindsightClient,
+  type ContextBaseClient,
   type ContextBaseTools,
   type ContextBaseToolsOptions,
   type RecallResult,

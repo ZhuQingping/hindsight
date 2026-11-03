@@ -22,7 +22,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .provider import ContextBaseProvider
 
 __version__ = "0.1.0"
@@ -32,6 +32,6 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseAgentFrameworkConfig",
-    "HindsightError",
+    "ContextBaseError",
     "ContextBaseProvider",
 ]

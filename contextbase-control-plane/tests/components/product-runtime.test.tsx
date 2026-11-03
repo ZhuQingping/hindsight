@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { ProductRuntime } from "@/components/product-runtime";
 import { Brand } from "@/components/brand";
 import { productFetch } from "@/lib/product-fetch";
+import messages from "@/messages/en.json";
 
 afterEach(() => {
   cleanup();
@@ -17,7 +18,11 @@ it("keeps the old tab input without resubmitting when the running product change
   );
   vi.stubGlobal("fetch", fetch);
   render(
-    <ProductRuntime name="contextbase" locale="en">
+    <ProductRuntime
+      name="contextbase"
+      locale="en"
+      localeNotice={messages.productRuntime.localeNotice}
+    >
       <Brand />
       <form onSubmit={send}>
         <input aria-label="draft" defaultValue="original operation body" />
@@ -56,7 +61,11 @@ it("explains the English fallback for retained locale choices", () => {
     vi.fn(async () => Response.json({ product_config_version: 1, contextdb_name: "contextdb" }))
   );
   render(
-    <ProductRuntime name="contextdb" locale="fr">
+    <ProductRuntime
+      name="contextdb"
+      locale="fr"
+      localeNotice={messages.productRuntime.localeNotice}
+    >
       <Brand />
     </ProductRuntime>
   );

@@ -3967,6 +3967,12 @@ jobs:
       with:
         node-version: '22'
 
+    # The integration links the local SDK, whose dist directory is not committed.
+    - name: Build local TypeScript SDK
+      run: |
+        npm ci --workspace=hindsight-clients/typescript
+        npm run build --workspace=contextbase-client
+
     - name: Install dependencies
       working-directory: ./hindsight-integrations/flowise
       run: npm install --no-audit --no-fund
@@ -4229,6 +4235,10 @@ jobs:
       needs.detect-changes.outputs.ci == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    # CrewAI otherwise sends install analytics while importing the adapter.
+    env:
+      CREWAI_DISABLE_TELEMETRY: "true"
 
     steps:
     - uses: actions/checkout@v6

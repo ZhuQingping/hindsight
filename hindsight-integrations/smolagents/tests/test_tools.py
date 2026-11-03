@@ -4,7 +4,6 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from contextbase_smolagents import (
     ContextBaseRecallTool,
     ContextBaseReflectTool,
@@ -14,9 +13,8 @@ from contextbase_smolagents import (
     memory_instructions,
     reset_config,
 )
-from contextbase_smolagents.errors import HindsightError
+from contextbase_smolagents.errors import ContextBaseError
 from contextbase_smolagents.tools import _USER_AGENT, _resolve_client
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -74,13 +72,13 @@ class TestResolveClient:
         assert result is client
 
     def test_creates_client_from_url(self):
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", None)
             mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_creates_client_with_api_key(self):
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://localhost:8888", "my-key")
             mock_cls.assert_called_once_with(
@@ -89,14 +87,14 @@ class TestResolveClient:
 
     def test_falls_back_to_global_config_url(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(base_url="http://config:8888", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_falls_back_to_global_config_api_key(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, None)
             mock_cls.assert_called_once_with(
@@ -105,14 +103,14 @@ class TestResolveClient:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, "http://explicit:9999", None)
             mock_cls.assert_called_once_with(base_url="http://explicit:9999", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_explicit_api_key_overrides_config(self):
         configure(contextbase_api_url="http://config:8888", api_key="config-key")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             _resolve_client(None, None, "explicit-key")
             mock_cls.assert_called_once_with(
@@ -120,16 +118,13 @@ class TestResolveClient:
             )
 
     def test_raises_without_url_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             _resolve_client(None, None, None)
 
     def test_raises_with_empty_config_no_url(self):
-        # Config exists but has default URL, so this should NOT raise
         configure()
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
-            mock_cls.return_value = _mock_client()
+        with pytest.raises(ValueError, match="Configure the ContextBase API URL explicitly"):
             _resolve_client(None, None, None)
-            mock_cls.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -169,19 +164,19 @@ class TestToolConstruction:
         assert tool.output_type == "string"
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             ContextBaseRetainTool(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tool = ContextBaseRetainTool(bank_id="test")
             assert tool.name == "contextbase_retain"
             mock_cls.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent=_USER_AGENT)
 
     def test_api_key_passed_to_client(self):
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             ContextBaseRetainTool(
                 bank_id="test",
@@ -217,7 +212,7 @@ class TestRetainTool:
 
     def test_retain_config_tags(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tool = ContextBaseRetainTool(bank_id="test")
         client = mock_cls.return_value
@@ -226,7 +221,7 @@ class TestRetainTool:
 
     def test_retain_explicit_tags_override_config(self):
         configure(contextbase_api_url="http://localhost:8888", tags=["config-tag"])
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tool = ContextBaseRetainTool(bank_id="test", tags=["explicit-tag"])
         client = mock_cls.return_value
@@ -257,21 +252,21 @@ class TestRetainTool:
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         tool = ContextBaseRetainTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             tool.forward("content")
 
     def test_retain_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.retain.side_effect = HindsightError("original error")
+        client.retain.side_effect = ContextBaseError("original error")
         tool = ContextBaseRetainTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             tool.forward("content")
 
     def test_retain_failure_logs_error(self, caplog):
         client = _mock_client()
         client.retain.side_effect = RuntimeError("network error")
         tool = ContextBaseRetainTool(bank_id="my-bank", client=client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             tool.forward("content")
         assert "Retain failed" in caplog.text
 
@@ -348,21 +343,21 @@ class TestRecallTool:
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         tool = ContextBaseRecallTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             tool.forward("query")
 
     def test_recall_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.recall.side_effect = HindsightError("original error")
+        client.recall.side_effect = ContextBaseError("original error")
         tool = ContextBaseRecallTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             tool.forward("query")
 
     def test_recall_failure_logs_error(self, caplog):
         client = _mock_client()
         client.recall.side_effect = RuntimeError("network error")
         tool = ContextBaseRecallTool(bank_id="my-bank", client=client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             tool.forward("query")
         assert "Recall failed" in caplog.text
 
@@ -412,21 +407,21 @@ class TestReflectTool:
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         tool = ContextBaseReflectTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             tool.forward("query")
 
     def test_reflect_contextbase_error_not_wrapped(self):
         client = _mock_client()
-        client.reflect.side_effect = HindsightError("original error")
+        client.reflect.side_effect = ContextBaseError("original error")
         tool = ContextBaseReflectTool(bank_id="my-bank", client=client)
-        with pytest.raises(HindsightError, match="original error"):
+        with pytest.raises(ContextBaseError, match="original error"):
             tool.forward("query")
 
     def test_reflect_failure_logs_error(self, caplog):
         client = _mock_client()
         client.reflect.side_effect = RuntimeError("network error")
         tool = ContextBaseReflectTool(bank_id="my-bank", client=client)
-        with caplog.at_level(logging.ERROR), pytest.raises(HindsightError):
+        with caplog.at_level(logging.ERROR), pytest.raises(ContextBaseError):
             tool.forward("query")
         assert "Reflect failed" in caplog.text
 
@@ -498,7 +493,7 @@ class TestCreateContextBaseTools:
         assert len(tools) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             create_contextbase_tools(bank_id="test")
 
     def test_shares_client_across_tools(self):
@@ -598,12 +593,12 @@ class TestMemoryInstructions:
         assert result == ""
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_smolagents.tools.Hindsight") as mock_cls:
+        with patch("contextbase_smolagents.tools.ContextBase") as mock_cls:
             mock_instance = _mock_client()
             mock_instance.recall.return_value = _mock_recall_response(["fact"])
             mock_cls.return_value = mock_instance

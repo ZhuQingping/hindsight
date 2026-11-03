@@ -30,7 +30,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .tools import ContextBaseTools, memory_instructions
 
 __version__ = "0.1.0"
@@ -40,7 +40,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseAgnoConfig",
-    "HindsightError",
+    "ContextBaseError",
     "ContextBaseTools",
     "memory_instructions",
 ]

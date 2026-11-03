@@ -6,14 +6,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from google.adk.memory.memory_entry import MemoryEntry
-from google.genai import types
-
 from contextbase_google_adk import (
-    HindsightError,
+    ContextBaseError,
     ContextBaseMemoryService,
     reset_config,
 )
+from google.adk.memory.memory_entry import MemoryEntry
+from google.genai import types
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +56,7 @@ class TestCreation:
         assert svc._bank_id_template == "{app_name}::{user_id}"
 
     def test_init_requires_client(self):
-        with pytest.raises(HindsightError):
+        with pytest.raises(ContextBaseError):
             ContextBaseMemoryService()
 
     def test_bank_id_default_template(self):

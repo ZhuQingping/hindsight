@@ -3,14 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from contextbase_pydantic_ai import (
     configure,
     create_contextbase_tools,
     memory_instructions,
     reset_config,
 )
-from contextbase_pydantic_ai.errors import HindsightError
+from contextbase_pydantic_ai.errors import ContextBaseError
 
 
 def _mock_client():
@@ -110,12 +109,12 @@ class TestCreateContextBaseTools:
         assert len(tools) == 0
 
     def test_raises_without_client_or_config(self):
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             create_contextbase_tools(bank_id="test")
 
     def test_falls_back_to_global_config(self):
         configure(contextbase_api_url="http://localhost:8888")
-        with patch("contextbase_pydantic_ai.tools.Hindsight") as mock_cls:
+        with patch("contextbase_pydantic_ai.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             tools = create_contextbase_tools(bank_id="test")
             assert len(tools) == 3
@@ -125,7 +124,7 @@ class TestCreateContextBaseTools:
 
     def test_explicit_url_overrides_config(self):
         configure(contextbase_api_url="http://config:8888")
-        with patch("contextbase_pydantic_ai.tools.Hindsight") as mock_cls:
+        with patch("contextbase_pydantic_ai.tools.ContextBase") as mock_cls:
             mock_cls.return_value = _mock_client()
             create_contextbase_tools(bank_id="test", contextbase_api_url="http://explicit:9999")
             mock_cls.assert_called_once()
@@ -181,7 +180,7 @@ class TestRetainTool:
         )
         tool_fn = tools[0].function
 
-        with pytest.raises(HindsightError, match="Retain failed"):
+        with pytest.raises(ContextBaseError, match="Retain failed"):
             await tool_fn("content")
 
 
@@ -272,7 +271,7 @@ class TestRecallTool:
         )
         tool_fn = tools[0].function
 
-        with pytest.raises(HindsightError, match="Recall failed"):
+        with pytest.raises(ContextBaseError, match="Recall failed"):
             await tool_fn("query")
 
 
@@ -342,7 +341,7 @@ class TestReflectTool:
         )
         tool_fn = tools[0].function
 
-        with pytest.raises(HindsightError, match="Reflect failed"):
+        with pytest.raises(ContextBaseError, match="Reflect failed"):
             await tool_fn("query")
 
 
@@ -446,5 +445,5 @@ class TestMemoryInstructions:
 
     def test_raises_without_client_or_config(self):
         reset_config()
-        with pytest.raises(HindsightError, match="No ContextBase API URL"):
+        with pytest.raises(ContextBaseError, match="No ContextBase API URL"):
             memory_instructions(bank_id="test")

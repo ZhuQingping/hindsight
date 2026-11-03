@@ -22,7 +22,7 @@ from .config import (
     get_config,
     reset_config,
 )
-from .errors import HindsightError
+from .errors import ContextBaseError
 from .memory import ContextBaseMemoryService
 from .tools import create_contextbase_tools
 
@@ -33,7 +33,7 @@ __all__ = [
     "get_config",
     "reset_config",
     "ContextBaseAdkConfig",
-    "HindsightError",
+    "ContextBaseError",
     "ContextBaseMemoryService",
     "create_contextbase_tools",
 ]

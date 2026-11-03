@@ -2,7 +2,7 @@ import type { IAgentRuntime, Memory, Provider, Evaluator } from "@elizaos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createContextBasePlugin,
-  type HindsightClient,
+  type ContextBaseClient,
   type RecallResponse,
   type RetainResponse,
 } from "../src/index.js";
@@ -10,7 +10,7 @@ import {
 const AGENT_ID = "00000000-0000-0000-0000-0000000000a9" as const;
 const USER_ID = "00000000-0000-0000-0000-0000000000u5" as const;
 
-function mockClient(): HindsightClient {
+function mockClient(): ContextBaseClient {
   return {
     recall: vi.fn(
       async (): Promise<RecallResponse> => ({
@@ -55,7 +55,7 @@ function getEvaluator(plugin: ReturnType<typeof createContextBasePlugin>): Evalu
 }
 
 describe("createContextBasePlugin", () => {
-  let client: HindsightClient;
+  let client: ContextBaseClient;
 
   beforeEach(() => {
     client = mockClient();

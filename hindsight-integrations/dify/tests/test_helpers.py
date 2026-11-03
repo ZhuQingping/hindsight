@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-
 from tools._client import USER_AGENT, build_client, parse_tags
 
 
@@ -28,7 +27,7 @@ class TestParseTags:
 
 class TestBuildClient:
     def test_with_api_key(self):
-        with patch("tools._client.Hindsight") as mock_h:
+        with patch("tools._client.ContextBase") as mock_h:
             build_client({"api_url": "https://api.example.com", "api_key": "hsk_x"})
             mock_h.assert_called_once_with(
                 base_url="https://api.example.com",
@@ -38,17 +37,17 @@ class TestBuildClient:
             )
 
     def test_without_api_key(self):
-        with patch("tools._client.Hindsight") as mock_h:
+        with patch("tools._client.ContextBase") as mock_h:
             build_client({"api_url": "http://localhost:8888"})
             mock_h.assert_called_once_with(base_url="http://localhost:8888", timeout=30.0, user_agent=USER_AGENT)
 
     def test_strips_trailing_slash(self):
-        with patch("tools._client.Hindsight") as mock_h:
+        with patch("tools._client.ContextBase") as mock_h:
             build_client({"api_url": "https://api.example.com/"})
             assert mock_h.call_args.kwargs["base_url"] == "https://api.example.com"
 
     def test_empty_key_treated_as_missing(self):
-        with patch("tools._client.Hindsight") as mock_h:
+        with patch("tools._client.ContextBase") as mock_h:
             build_client({"api_url": "http://localhost:8888", "api_key": ""})
             assert "api_key" not in mock_h.call_args.kwargs
 

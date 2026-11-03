@@ -104,6 +104,13 @@ export function connectionExample(
       code: `${token}\n${curl} --fail --show-error -H "Authorization: Bearer ${variable}" ${q(url)}`,
     };
   }
+  if (client === "node") {
+    return {
+      install: `${npm} install ${q("@huaweicloud/contextbase-client@latest")}\n${token}`,
+      code: `import { ContextBaseClient } from "@huaweicloud/contextbase-client";\n\nconst client = new ContextBaseClient({\n  baseUrl: ${JSON.stringify(apiUrl)},\n  apiKey: process.env.CONTEXTBASE_API_TOKEN,\n});\nconst result = await client.recall(\n  ${JSON.stringify(bankId)},\n  ${JSON.stringify(query)},\n);\nconsole.log(result);`,
+      run: "node contextbase-example.mjs",
+    };
+  }
   const packageUrl = packages[client as keyof typeof packages];
   if (!packageUrl) return { unavailable: "packageUnavailable" };
   if (client !== "hermes" && cmdUnsafe([packageUrl], terminal))
@@ -133,18 +140,10 @@ export function connectionExample(
       configuration: `API Endpoint: ${apiUrl}\nAPI Key: <API_KEY>\nBank ID: ${bankId}`,
     };
   }
-  if (client === "python") {
-    return {
-      downloadUrl: packageUrl,
-      install: `python -m pip install ${q(packageUrl)}\n${token}`,
-      code: `import os\nfrom contextbase_client import ContextBase\n\nwith ContextBase(\n    base_url=${JSON.stringify(apiUrl)},\n    api_key=os.environ["CONTEXTBASE_API_TOKEN"],\n) as client:\n    result = client.recall(\n        bank_id=${JSON.stringify(bankId)},\n        query=${JSON.stringify(query)},\n    )\n    print(result)`,
-      run: "python contextbase-example.py",
-    };
-  }
   return {
     downloadUrl: packageUrl,
-    install: `${npm} install ${q(packageUrl)}\n${token}`,
-    code: `import { ContextBaseClient } from "contextbase-client";\n\nconst client = new ContextBaseClient({\n  baseUrl: ${JSON.stringify(apiUrl)},\n  apiKey: process.env.CONTEXTBASE_API_TOKEN,\n});\nconst result = await client.recall(\n  ${JSON.stringify(bankId)},\n  ${JSON.stringify(query)},\n);\nconsole.log(result);`,
-    run: "node contextbase-example.mjs",
+    install: `python -m pip install ${q(packageUrl)}\n${token}`,
+    code: `import os\nfrom contextbase_client import ContextBase\n\nwith ContextBase(\n    base_url=${JSON.stringify(apiUrl)},\n    api_key=os.environ["CONTEXTBASE_API_TOKEN"],\n) as client:\n    result = client.recall(\n        bank_id=${JSON.stringify(bankId)},\n        query=${JSON.stringify(query)},\n    )\n    print(result)`,
+    run: "python contextbase-example.py",
   };
 }

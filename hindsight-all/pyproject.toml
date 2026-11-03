@@ -17,7 +17,7 @@ dependencies = [
 
 [tool.uv.sources]
 hindsight-api-slim = { workspace = true }
-contextbase-client = { path = "../hindsight-clients/python", editable = true }
+contextbase-client = { workspace = true }
 hindsight-embed = { workspace = true }
 
 [project.optional-dependencies]

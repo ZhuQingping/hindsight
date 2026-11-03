@@ -28,8 +28,10 @@ REQUIRED = (
 )
 
 
-def test_prompt_uses_the_root_cloud_url() -> None:
-    assert "http://localhost:8888/mcp\n" in PROMPT
+def test_prompt_uses_a_public_https_placeholder() -> None:
+    assert "https://memory.example.com/mcp\n" in PROMPT
+    assert "replace `https://memory.example.com`" in PROMPT
+    assert "localhost" not in PROMPT
     assert "/mcp/" not in PROMPT
 
 
