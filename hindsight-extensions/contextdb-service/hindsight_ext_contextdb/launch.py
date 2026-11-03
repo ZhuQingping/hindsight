@@ -82,6 +82,9 @@ def launch(component: Literal["api", "worker", "ui"], directory: Path, source_ro
                 subprocess.run([npm, "run", "build", "-w", "contextbase-client"], check=True)
                 # Avoid npm's POSIX-only ${PORT:-9999} script on Windows.
                 next_cli = source_root / "node_modules/next/dist/bin/next"
+                # Match npm workspace execution: next-intl resolves its request
+                # configuration relative to the control-plane working directory.
+                os.chdir(source_root / "contextbase-control-plane")
                 _run_windows(
                     [
                         "node",
