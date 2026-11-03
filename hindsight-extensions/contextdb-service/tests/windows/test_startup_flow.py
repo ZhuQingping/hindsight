@@ -115,7 +115,8 @@ async def test_powershell_start_auth_management_and_restart(tmp_path: Path) -> N
                     assert browser.post("/api/auth/login", json={"key": saved["password"]}).status_code == 200
                     assert browser.get("/users").status_code == 200
                     users = browser.get("/api/contextdb/users")
-                    assert users.status_code == 200 and users.json()["total"] >= 1
+                    # The bootstrap administrator is separate from business users.
+                    assert users.status_code == 200 and users.json()["total"] == int(restart)
                     if not restart:
                         created = browser.post("/api/contextdb/users", json={"name": "Windows local user"})
                         assert created.status_code in {200, 201}
