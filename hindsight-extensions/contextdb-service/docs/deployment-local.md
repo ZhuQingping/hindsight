@@ -50,6 +50,12 @@ npm run build -w contextbase-client
 在仓库根目录创建 UTF-8 编码的 `.env`。使用远程模型时，按实际服务填写：
 
 ```dotenv
+# 本机服务端口与接入页面展示的 API 地址
+CONTEXTBASE_API_PORT=8888
+CONTEXTBASE_CP_PORT=9999
+CONTEXTBASE_CP_PUBLIC_API_URL=http://localhost:8888
+
+# 模型提供方地址，与上面的 ContextBase 服务 API 地址不同
 CONTEXTBASE_API_LLM_PROVIDER=openai
 CONTEXTBASE_API_LLM_BASE_URL=https://your-model-service.example/v1
 CONTEXTBASE_API_LLM_MODEL=your-model
@@ -126,7 +132,11 @@ UI 密码、Admin Key 和业务 Key 各自独立。健康检查允许匿名访�
 UI 单独启动需要已初始化并正在运行的 API。UI 单独启动时用 `-UiPort` / `--ui-port` 或随机端口参数调整本次 UI 端口，不改写持久配置中的 API 地址。
 
 API/UI 监听地址分别使用 `CONTEXTBASE_API_HOST` / `CONTEXTBASE_CP_HOST`。默认本机 UI 登录 origin 跟随端口调整；通过其他主机名或代理访问时，在 `.env` 中设置 `CONTEXTBASE_CP_PUBLIC_ORIGIN` 为浏览器实际 origin。
-接入页面展示的对外 API 地址使用 `CONTEXTBASE_CP_PUBLIC_API_URL`，它与 UI 服务端访问 API 的内部地址分开配置。
+同机本地启动时，启动器自动将 UI 服务端访问 API 的 `CONTEXTBASE_CP_DATAPLANE_API_URL` 设置为 `http://127.0.0.1:<本次 API 端口>`，无需手工填写。
+
+接入页面展示给应用/Agent 的地址使用 `CONTEXTBASE_CP_PUBLIC_API_URL`，需要在 `.env` 中明确配置；缺失时接入页不展示 API 地址，不回退到内部地址。
+上面的 `http://localhost:8888` 适用于本机客户端。其他机器访问时，填写客户端可达的主机地址或域名；生产入口使用 HTTPS。
+修改 API 端口（含命令行 `-Port` / `--port`）时，同步调整这个对外地址。接入页需要稳定地址时使用固定端口或固定代理入口；随机端口适合临时验证，按终端显示的实际地址配置客户端。
 
 ## 5. 停止、重启与恢复
 
