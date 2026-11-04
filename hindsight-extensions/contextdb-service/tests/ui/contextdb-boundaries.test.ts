@@ -81,7 +81,7 @@ describe("actual middleware and bank handlers", () => {
       expect(backend).not.toHaveBeenCalled();
     }
   );
-  it.each(["en", "zh-CN", "zh-TW"])(
+  it.each(["en", "zh-CN"])(
     "keeps the internally localized %s login page public",
     async (locale) => {
       const response = await middleware(await req(`/${locale}/login`, "GET", undefined, false));

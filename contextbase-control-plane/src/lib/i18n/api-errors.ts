@@ -1,7 +1,7 @@
 import { contextDBEnabled } from "@/lib/contextdb";
 import { contextdbWorkspaceMessages } from "@/i18n/contextdb-messages";
 import { NextResponse } from "next/server";
-import { defaultLocale, locales, messageLocale, type Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 import en from "@/messages/en.json";
 import zhCN from "@/messages/zh-CN.json";
@@ -21,28 +21,11 @@ type ApiErrorPayload = Record<string, unknown> & {
 const resources = {
   en,
   "zh-CN": zhCN,
-} satisfies Record<ReturnType<typeof messageLocale>, Record<string, unknown>>;
+} satisfies Record<Locale, Record<string, unknown>>;
 
 const localeSet = new Set<string>(locales);
 const localizedErrorFields = ["error", "message", "detail", "details"] as const;
 const localeCookieNames = ["NEXT_LOCALE", "contextbase_cp_locale"] as const;
-
-const localeAliases: Partial<Record<string, Locale>> = {
-  "zh-Hans": "zh-CN",
-  "zh-Hans-CN": "zh-CN",
-  "zh-SG": "zh-CN",
-  "zh-Hant": "zh-TW",
-  "zh-Hant-TW": "zh-TW",
-  yue: "yue-Hant",
-  "yue-Hant-HK": "yue-Hant",
-  "yue-Hant-MO": "yue-Hant",
-  "yue-HK": "yue-Hant",
-  "yue-MO": "yue-Hant",
-  "zh-HK": "yue-Hant",
-  "zh-Hant-HK": "yue-Hant",
-  "zh-MO": "yue-Hant",
-  "zh-Hant-MO": "yue-Hant",
-} satisfies Record<string, Locale>;
 
 function parseCookieHeader(cookieHeader: string | null | undefined): Map<string, string> {
   const cookies = new Map<string, string>();
@@ -107,30 +90,21 @@ function resolveLocaleTag(value: string | undefined): Locale | undefined {
   if (!value) return undefined;
   if (localeSet.has(value)) return value as Locale;
 
-  const alias = localeAliases[value];
-  if (alias) return alias;
-
   const normalized = value.toLowerCase();
   const exact = locales.find((locale) => locale.toLowerCase() === normalized);
   if (exact) return exact;
 
-  const normalizedAlias = Object.entries(localeAliases).find(
-    ([aliasValue]) => aliasValue.toLowerCase() === normalized
-  )?.[1];
-  if (normalizedAlias) return normalizedAlias;
-
-  const language = value.split("-")[0];
-  if (language === "yue") return "yue-Hant";
-  if (language === "zh") return "zh-CN";
-
+  const language = normalized.split("-")[0];
   return locales.find((locale) => locale.split("-")[0] === language);
 }
 
 export function resolveApiErrorLocale(request?: RequestLike): Locale {
-  const candidates = [
-    getCookieLocale(request),
-    ...parseAcceptLanguage(request?.headers?.get("accept-language")),
-  ];
+  // Match page routing: retired locale cookies are ignored before negotiating
+  // Accept-Language, so a previous selection cannot override the current UI.
+  const cookieLocale = getCookieLocale(request);
+  if (cookieLocale && localeSet.has(cookieLocale)) return cookieLocale as Locale;
+
+  const candidates = parseAcceptLanguage(request?.headers?.get("accept-language"));
 
   for (const candidate of candidates) {
     const locale = resolveLocaleTag(candidate);
@@ -141,7 +115,7 @@ export function resolveApiErrorLocale(request?: RequestLike): Locale {
 }
 
 function getTranslationValue(locale: Locale, key: string): string | undefined {
-  let current: unknown = resources[messageLocale(locale)];
+  let current: unknown = resources[locale];
 
   for (const part of key.split(".")) {
     if (!current || typeof current !== "object" || !(part in current)) {

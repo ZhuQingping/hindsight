@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { messageLocale } from "@/i18n/config";
+import { resolveApiErrorLocale } from "@/lib/i18n/api-errors";
 
 const { createOrUpdateBank } = vi.hoisted(() => ({ createOrUpdateBank: vi.fn() }));
 vi.mock("@/lib/contextbase-client", () => ({
@@ -24,7 +24,9 @@ afterEach(() => {
 it.each(["zh-TW", "yue-Hant", "de", "ja", "en"])(
   "uses the same English fallback for %s page copy and a real BFF error",
   async (locale) => {
-    expect(messageLocale(locale)).toBe("en");
+    expect(
+      resolveApiErrorLocale({ headers: new Headers({ Cookie: `NEXT_LOCALE=${locale}` }) })
+    ).toBe("en");
     const response = await POST(
       new Request("http://localhost/api/banks", {
         method: "POST",
@@ -37,7 +39,6 @@ it.each(["zh-TW", "yue-Hant", "de", "ja", "en"])(
   }
 );
 it("keeps Simplified Chinese workspace errors", async () => {
-  expect(messageLocale("zh-CN")).toBe("zh-CN");
   const response = await POST(
     new Request("http://localhost/api/banks", {
       method: "POST",
