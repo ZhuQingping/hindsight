@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { locales, defaultLocale } from "@/i18n/config";
+import { locales, defaultLocale, localeNames } from "@/i18n/config";
+import contextdbCatalogs from "@/i18n/contextdb-catalogs.json";
 
 /**
  * Static guard for locale catalog parity:
@@ -50,6 +51,12 @@ function getLeaf(obj: unknown, path: string): unknown {
 }
 
 describe("locale catalog parity", () => {
+  it("supports only English and Simplified Chinese across all catalogs and menu labels", () => {
+    expect([...locales].sort()).toEqual(["en", "zh-CN"]);
+    expect(Object.keys(localeNames).sort()).toEqual([...locales].sort());
+    expect(Object.keys(contextdbCatalogs).sort()).toEqual([...locales].sort());
+  });
+
   it("every declared locale has a JSON file and no JSON files are undeclared", () => {
     const filesOnDisk = readdirSync(MESSAGES_DIR)
       .filter((f) => f.endsWith(".json"))

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { translateApiError } from "@/lib/i18n/api-errors";
 import en from "@/messages/en.json";
 import catalogs from "@/i18n/contextdb-catalogs.json";
+import { locales } from "@/i18n/config";
 import zh from "@/messages/zh-CN.json";
 import { contextdbWorkspaceMessages, withContextdbMessages } from "@/i18n/contextdb-messages";
 
@@ -55,11 +56,6 @@ describe("ContextDB workspace terminology", () => {
       "Workspace MySQL (bank_id): workspaces"
     );
   });
-
-  it("retains unsupported locale catalogs for their native translators", () => {
-    const messages = { label: "Banques" };
-    expect(contextdbWorkspaceMessages(messages, "fr")).toBe(messages);
-  });
 });
 
 describe("ContextDB catalog fallback", () => {
@@ -70,22 +66,17 @@ describe("ContextDB catalog fallback", () => {
       createTranslator({ locale: "en", messages: merged })("contextDB.workspaceNameHelp")
     ).toBe(catalogs.en.workspaceNameHelp);
   });
-  it.each(["de", "es", "fr", "ja", "ko", "pt"])(
-    "keeps %s overrides and supplies complete management labels",
-    async (locale) => {
-      const catalog = (await import(`@/messages/${locale}.json`)).default;
-      const original = JSON.stringify(catalog);
-      const merged = withContextdbMessages(catalog, locale);
-      expect(Object.keys(merged.contextDB).sort()).toEqual(Object.keys(catalogs.en).sort());
-      expect(merged.contextDB.workspaceNameHelp).toBe(
-        catalogs[locale as keyof typeof catalogs].workspaceNameHelp
-      );
+  it.each(locales)("keeps %s overrides and supplies complete management labels", (locale) => {
+    const catalog = locale === "en" ? en : zh;
+    const original = JSON.stringify(catalog);
+    const merged = withContextdbMessages(catalog, locale);
+    expect(Object.keys(merged.contextDB).sort()).toEqual(Object.keys(catalogs.en).sort());
+    expect(merged.contextDB.workspaceNameHelp).toBe(catalogs[locale].workspaceNameHelp);
+    if (locale !== "en") {
       expect(merged.contextDB.workspaceNameHelp).not.toBe(catalogs.en.workspaceNameHelp);
-      expect(JSON.stringify(catalog)).toBe(original);
-      const t = createTranslator({ locale, messages: merged });
-      expect(t("contextDB.workspaceNameHelp")).toBe(
-        catalogs[locale as keyof typeof catalogs].workspaceNameHelp
-      );
     }
-  );
+    expect(JSON.stringify(catalog)).toBe(original);
+    const t = createTranslator({ locale, messages: merged });
+    expect(t("contextDB.workspaceNameHelp")).toBe(catalogs[locale].workspaceNameHelp);
+  });
 });
