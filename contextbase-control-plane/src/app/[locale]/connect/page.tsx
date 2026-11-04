@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { BankClientSettings } from "@/components/bank-config-view";
 import { ConnectBankChooser } from "@/components/connect-bank-chooser";
 import { ClientConnectionSetup } from "@/components/client-connection-setup";
 import { ResourcePageShell } from "@/components/resource-page-shell";
@@ -44,6 +45,7 @@ export default async function ConnectPage({
           </section>
 
           <ClientConnectionSetup key={bankId} bankId={bankId} connection={connection} />
+          <BankClientSettings key={`settings-${bankId}`} bankId={bankId} />
         </>
       )}
 

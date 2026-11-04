@@ -124,7 +124,12 @@
     "usageUnavailable": "Recall statistics unavailable. Content is still available.",
     "usageHint": "Workspace-wide totals since statistics began; updated asynchronously.",
     "usageRetry": "Retry statistics",
-    "usageRefresh": "Refresh statistics"
+    "usageRefresh": "Refresh statistics",
+    "memoryGoalLabel": "What should be remembered",
+    "reflectGoalLabel": "Answer requirements",
+    "advancedClientSettings": "Advanced client settings",
+    "settingsLoadFailed": "Unable to load workspace settings. Refresh to retry.",
+    "defenseRules": "Protection rules"
   },
   "zh-CN": {
     "title": "用户管理",
@@ -251,7 +256,12 @@
     "usageUnavailable": "召回统计暂不可用，内容仍可正常查看。",
     "usageHint": "工作空间内自统计启用以来的累计值，异步更新。",
     "usageRetry": "重试统计",
-    "usageRefresh": "刷新统计"
+    "usageRefresh": "刷新统计",
+    "memoryGoalLabel": "希望记住什么",
+    "reflectGoalLabel": "回答要求",
+    "advancedClientSettings": "高级接入配置",
+    "settingsLoadFailed": "无法加载工作空间设置，请刷新重试。",
+    "defenseRules": "防护规则"
   },
   "zh-TW": {
     "title": "User management",

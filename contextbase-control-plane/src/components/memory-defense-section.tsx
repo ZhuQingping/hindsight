@@ -90,6 +90,7 @@ interface MemoryDefenseSectionProps {
 
 export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
   const t = useTranslations("bankConfig");
+  const tw = useTranslations("contextDB");
 
   const [loading, setLoading] = useState(true);
   const [baseConfig, setBaseConfig] = useState<Record<string, any>>({});
@@ -206,26 +207,29 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
         </div>
       </div>
 
-      <div
-        className={
-          masterEnabled ? "space-y-6" : "space-y-6 opacity-40 pointer-events-none select-none"
-        }
-        aria-disabled={!masterEnabled}
-      >
-        <div className="space-y-3">
-          <Card className="bg-muted/20 border-border/40">
-            <DetectorCard
-              title={t("memoryDefenseSecretLeakTitle")}
-              description={t("memoryDefenseSecretLeakDescription")}
-              rule={sensitiveData}
-              actions={["redact", "block", "allow"]}
-              onToggle={toggleSensitiveData}
-              onActionChange={setSensitiveDataAction}
-              masterEnabled={masterEnabled}
-            />
-          </Card>
+      <details className="rounded-lg border border-border p-4">
+        <summary className="cursor-pointer text-sm font-medium">{tw("defenseRules")}</summary>
+        <div
+          className={
+            masterEnabled ? "space-y-6" : "space-y-6 opacity-40 pointer-events-none select-none"
+          }
+          aria-disabled={!masterEnabled}
+        >
+          <div className="space-y-3">
+            <Card className="bg-muted/20 border-border/40">
+              <DetectorCard
+                title={t("memoryDefenseSecretLeakTitle")}
+                description={t("memoryDefenseSecretLeakDescription")}
+                rule={sensitiveData}
+                actions={["redact", "block", "allow"]}
+                onToggle={toggleSensitiveData}
+                onActionChange={setSensitiveDataAction}
+                masterEnabled={masterEnabled}
+              />
+            </Card>
+          </div>
         </div>
-      </div>
+      </details>
 
       {saving && (
         <div className="flex justify-end items-center gap-2 text-xs text-muted-foreground">
