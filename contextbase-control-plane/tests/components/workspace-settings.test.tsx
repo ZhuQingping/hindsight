@@ -4,7 +4,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { NextIntlClientProvider } from "next-intl";
 import messages from "@/messages/en.json";
 import { withContextdbMessages } from "@/i18n/contextdb-messages";
-import { BankConfigView, BankClientSettings } from "@/components/bank-config-view";
+import { BankConfigView } from "@/components/bank-config-view";
+import { SettingsVisibilityProvider } from "@/lib/settings-visibility";
 import { MemoryDefenseSection } from "@/components/memory-defense-section";
 
 const state = vi.hoisted(() => ({
@@ -12,6 +13,7 @@ const state = vi.hoisted(() => ({
   enabled: true,
   getBankConfig: vi.fn(),
   updateBankConfig: vi.fn(),
+  previewConsolidationStrategies: vi.fn(),
 }));
 vi.mock("@/lib/api", () => ({ client: state }));
 vi.mock("@/lib/contextdb-mode", () => ({ useContextDBMode: () => true }));
@@ -36,9 +38,9 @@ const config = {
   store_document_text: true,
 };
 const response = () => ({ bank_id: state.bankId, config: { ...config }, overrides: {} });
-const provider = (children: React.ReactNode) => (
+const provider = (children: React.ReactNode, showAdvanced = false) => (
   <NextIntlClientProvider locale="en" messages={withContextdbMessages(messages, "en")}>
-    {children}
+    <SettingsVisibilityProvider showAdvanced={showAdvanced}>{children}</SettingsVisibilityProvider>
   </NextIntlClientProvider>
 );
 const section = (id: string) => {
@@ -56,6 +58,11 @@ beforeEach(() => {
     config: { ...config, ...updates },
     overrides: updates,
   }));
+  state.previewConsolidationStrategies.mockResolvedValue({
+    default: { match_count: 0, samples: [] },
+    strategies: [],
+    complete: true,
+  });
   Element.prototype.scrollIntoView = vi.fn();
 });
 afterEach(() => {
@@ -73,6 +80,8 @@ it("shows business settings and only patches changed goals, preserving hidden cu
   expect(screen.queryByText("Preview prompt")).toBeNull();
   expect(screen.queryByText("Default strategy")).toBeNull();
   expect(screen.queryByText("Skepticism")).toBeNull();
+  expect(screen.queryByText("Restrict tools")).toBeNull();
+  expect(screen.queryByText("Advanced client settings")).toBeNull();
   expect(state.updateBankConfig).not.toHaveBeenCalled();
   fireEvent.change(goal, { target: { value: "Remember API contracts" } });
   fireEvent.click(section("retain").getByRole("button", { name: "Save changes" }));
@@ -202,26 +211,34 @@ it("offers no form after a failed read or when config writes are disabled", asyn
   expect(state.updateBankConfig).not.toHaveBeenCalled();
 });
 
-it("loads client tools on demand and targets the workspace passed by the connection page", async () => {
-  render(provider(<BankClientSettings bankId="selected_workspace" />));
-  expect(state.getBankConfig).not.toHaveBeenCalled();
-  const disclosure = screen.getByText("Advanced client settings").closest("details")!;
-  disclosure.open = true;
-  fireEvent(disclosure, new Event("toggle"));
-  await screen.findByText("Restrict tools");
-  expect(state.getBankConfig).toHaveBeenCalledWith("selected_workspace");
-  expect(screen.queryByRole("textbox")).toBeNull();
+it("restores complete settings directly when the display configuration is enabled", async () => {
+  render(provider(<BankConfigView />, true));
+  await screen.findByDisplayValue(7000);
+  expect(screen.getByText("Restrict tools")).toBeTruthy();
+  expect(document.getElementById("bank-config-recall")).toBeTruthy();
+  expect(document.getElementById("bank-config-models")).toBeTruthy();
+  expect(screen.queryByText("Advanced client settings")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "retain" }));
-  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  fireEvent.click(section("clients").getByRole("button", { name: "Save changes" }));
   await waitFor(() =>
-    expect(state.updateBankConfig).toHaveBeenCalledExactlyOnceWith("selected_workspace", {
+    expect(state.updateBankConfig).toHaveBeenCalledExactlyOnceWith("workspace_a", {
       mcp_enabled_tools: ["retain", "recall"],
     })
   );
 });
 
-it("keeps protection rules collapsed without changing the policy on load", async () => {
+it("does not render detailed defense controls or a disclosure entry when hidden", async () => {
   render(provider(<MemoryDefenseSection bankId="workspace_a" />));
-  expect((await screen.findByText("Protection rules")).closest("details")?.open).toBe(false);
+  await screen.findByText(messages.bankConfig.memoryDefenseTitle);
+  expect(screen.getAllByRole("switch")).toHaveLength(1);
+  expect(screen.queryByText(messages.bankConfig.memoryDefenseSecretLeakTitle)).toBeNull();
+  expect(document.querySelector("details")).toBeNull();
+  expect(state.updateBankConfig).not.toHaveBeenCalled();
+});
+
+it("renders defense rules directly when the display configuration is enabled", async () => {
+  render(provider(<MemoryDefenseSection bankId="workspace_a" />, true));
+  await screen.findByText(messages.bankConfig.memoryDefenseSecretLeakTitle);
+  expect(document.querySelector("details")).toBeNull();
   expect(state.updateBankConfig).not.toHaveBeenCalled();
 });

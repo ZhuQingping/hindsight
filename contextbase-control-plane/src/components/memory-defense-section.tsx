@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { useAdvancedSettings } from "@/lib/settings-visibility";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -90,7 +91,7 @@ interface MemoryDefenseSectionProps {
 
 export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
   const t = useTranslations("bankConfig");
-  const tw = useTranslations("contextDB");
+  const showAdvanced = useAdvancedSettings();
 
   const [loading, setLoading] = useState(true);
   const [baseConfig, setBaseConfig] = useState<Record<string, any>>({});
@@ -207,8 +208,7 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
         </div>
       </div>
 
-      <details className="rounded-lg border border-border p-4">
-        <summary className="cursor-pointer text-sm font-medium">{tw("defenseRules")}</summary>
+      {showAdvanced && (
         <div
           className={
             masterEnabled ? "space-y-6" : "space-y-6 opacity-40 pointer-events-none select-none"
@@ -229,7 +229,7 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
             </Card>
           </div>
         </div>
-      </details>
+      )}
 
       {saving && (
         <div className="flex justify-end items-center gap-2 text-xs text-muted-foreground">

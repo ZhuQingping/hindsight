@@ -89,6 +89,12 @@ CONTEXTBASE_API_RERANKER_PROVIDER=rrf
 
 启动器根据本次配置生成 `api.env` / `ui.env`。本地设置写入仓库根目录的 `.env`，修改后重启；生成的运行文件不作为手工配置入口。
 
+### 设置界面显示范围
+
+`CONTEXTBASE_CP_SHOW_ADVANCED_SETTINGS` 默认 `false`，仅显示常用设置：记忆提取目标、回答要求、审计和原文保存。技术参数、MCP 工具配置及详细防护规则不渲染，也没有折叠入口；记忆防护总开关仍保留。
+
+需要展示完整设置时，在仓库根目录 `.env` 中设置 `CONTEXTBASE_CP_SHOW_ADVANCED_SETTINGS=true`，重启 UI 并刷新页面。设回 `false` 后重新隐藏。独立部署时将该变量注入 UI 进程环境，重启后生效，无需重新构建。展示开关不修改已有工作空间配置、服务端默认值或 API 权限。
+
 ## 3. 启动与登录
 
 依赖与 `.env` 准备完成后，在仓库根目录执行所属系统的一条命令：
@@ -149,3 +155,4 @@ API/UI 监听地址分别使用 `CONTEXTBASE_API_HOST` / `CONTEXTBASE_CP_HOST`�
 ### 从其他地址访问本地 UI
 
 本地插件启动器显式启用 ContextDB。未设置 `CONTEXTBASE_CP_PUBLIC_ORIGIN` / `HINDSIGHT_CP_PUBLIC_ORIGIN` 时，不再写死 localhost，由插件入口适配直连 HTTP 的动态 Host；更换访问 IP 无须重启 UI，新主机地址需要重新登录。插件未启用时保留原有 Node UI 行为。通过 HTTPS 网关访问时显式设置公开 origin，例如 `CONTEXTBASE_CP_PUBLIC_ORIGIN=https://memory.example.test`。配置的非空非法 URL 不会自动降级；密码、会话目录、API/MCP 鉴权均不因此关闭。完整语义见[UI 公网地址与 EIP 变更](deployment.md#ui-公网地址与-eip-变更)。
+

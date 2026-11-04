@@ -1,6 +1,7 @@
 "use client";
 
 import { useContextDBMode } from "@/lib/contextdb-mode";
+import { useAdvancedSettings } from "@/lib/settings-visibility";
 
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -441,37 +442,14 @@ const DEFAULT_PROFILE: ProfileData = {
 // ─── BankConfigView ───────────────────────────────────────────────────────────
 
 export function BankConfigView() {
-  const contextDB = useContextDBMode();
+  const showAdvanced = useAdvancedSettings();
   const { currentBank: bankId } = useBank();
-  // Remount on a workspace change so pending reads and edits cannot populate
-  // another workspace's form. Technical settings remain available in native mode.
-  return contextDB ? (
-    <WorkspaceConfigView key={bankId} bankId={bankId} />
+  // The server's display setting selects the form. Remount on a workspace
+  // change so pending reads and edits cannot populate another workspace's form.
+  return showAdvanced ? (
+    <EngineBankConfigView key={bankId} bankId={bankId} />
   ) : (
-    <EngineBankConfigView key={bankId} bankId={bankId} clientsOnly={false} />
-  );
-}
-
-/** Keep the tool editor on the connection page, loaded only when first opened. */
-export function BankClientSettings({ bankId }: { bankId: string }) {
-  const t = useTranslations("contextDB");
-  const [opened, setOpened] = useState(false);
-  return (
-    <details
-      className="rounded-xl border border-border bg-card p-5 md:p-6"
-      onToggle={(event) => {
-        if (event.currentTarget.open) setOpened(true);
-      }}
-    >
-      <summary className="cursor-pointer text-sm font-medium">
-        {t("advancedClientSettings")}
-      </summary>
-      {opened && (
-        <div className="mt-6">
-          <EngineBankConfigView key={bankId} bankId={bankId} clientsOnly />
-        </div>
-      )}
-    </details>
+    <WorkspaceConfigView key={bankId} bankId={bankId} />
   );
 }
 
@@ -691,13 +669,7 @@ function WorkspaceConfigView({ bankId }: { bankId: string | null }) {
   );
 }
 
-function EngineBankConfigView({
-  bankId,
-  clientsOnly,
-}: {
-  bankId: string | null;
-  clientsOnly: boolean;
-}) {
+function EngineBankConfigView({ bankId }: { bankId: string | null }) {
   const contextDB = useContextDBMode();
   const t = useTranslations("bankConfig");
   const tMentalModels = useTranslations("mentalModels");
@@ -1101,42 +1073,6 @@ function EngineBankConfigView({
         <AlertDescription>{loadError}</AlertDescription>
       </Alert>
     );
-
-  const clientsSection = (
-    <ConfigSection
-      id="bank-config-clients"
-      title={t("clientsTitle")}
-      description={t("clientsDescription")}
-      error={mcpError}
-      dirty={mcpDirty}
-      saving={mcpSaving}
-      onSave={saveMCP}
-    >
-      {!contextDB && <BankAliasRows bankId={bankId} />}
-      <FieldRow label={t("restrictToolsLabel")} description={t("restrictToolsDescription")}>
-        <div className="flex items-center gap-2 justify-end">
-          <Switch
-            checked={mcpEdits.mcp_enabled_tools !== null}
-            onCheckedChange={(restricted) =>
-              setMcpEdits({
-                mcp_enabled_tools: restricted ? [...ALL_TOOLS] : null,
-              })
-            }
-          />
-          <Label className="text-xs text-muted-foreground">
-            {mcpEdits.mcp_enabled_tools !== null ? t("enabled") : t("disabled")}
-          </Label>
-        </div>
-      </FieldRow>
-      {mcpEdits.mcp_enabled_tools !== null && (
-        <ToolSelector
-          selected={mcpEdits.mcp_enabled_tools}
-          onChange={(tools) => setMcpEdits({ mcp_enabled_tools: tools })}
-        />
-      )}
-    </ConfigSection>
-  );
-  if (clientsOnly) return clientsSection;
 
   return (
     <>
@@ -1570,7 +1506,39 @@ function EngineBankConfigView({
           </Dialog>
         </ConfigSection>
 
-        {clientsSection}
+        {/* MCP Tools Section */}
+        <ConfigSection
+          id="bank-config-clients"
+          title={t("clientsTitle")}
+          description={t("clientsDescription")}
+          error={mcpError}
+          dirty={mcpDirty}
+          saving={mcpSaving}
+          onSave={saveMCP}
+        >
+          {!contextDB && <BankAliasRows bankId={bankId} />}
+          <FieldRow label={t("restrictToolsLabel")} description={t("restrictToolsDescription")}>
+            <div className="flex items-center gap-2 justify-end">
+              <Switch
+                checked={mcpEdits.mcp_enabled_tools !== null}
+                onCheckedChange={(restricted) =>
+                  setMcpEdits({
+                    mcp_enabled_tools: restricted ? [...ALL_TOOLS] : null,
+                  })
+                }
+              />
+              <Label className="text-xs text-muted-foreground">
+                {mcpEdits.mcp_enabled_tools !== null ? t("enabled") : t("disabled")}
+              </Label>
+            </div>
+          </FieldRow>
+          {mcpEdits.mcp_enabled_tools !== null && (
+            <ToolSelector
+              selected={mcpEdits.mcp_enabled_tools}
+              onChange={(tools) => setMcpEdits({ mcp_enabled_tools: tools })}
+            />
+          )}
+        </ConfigSection>
 
         {/* Security & Privacy Section — audit logging + document-text storage */}
         <ConfigSection
