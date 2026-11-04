@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
+import { resolveApiErrorLocale } from "@/lib/i18n/api-errors";
 
 let directory: string;
 beforeEach(async () => {
@@ -48,4 +49,50 @@ it("keeps the selected bank when login follows a direct connection link", async 
 });
 it("still rejects an alternate external Host before language routing", async () => {
   expect((await proxy(request("/login", "localhost:28901"))).status).toBe(421);
+});
+
+it.each([
+  ["en", "zh-CN", "en"],
+  ["zh-CN", "en-US", "zh-CN"],
+  ["ja", "zh-CN, en;q=0.8", "zh-CN"],
+  ["zh-TW", "en-US", "en"],
+  ["yue-Hant", "ja", "en"],
+  ["", "zh-SG", "zh-CN"],
+  ["", "de, en-GB;q=0.8", "en"],
+  ["", "ja", "en"],
+  ["", "yue-Hant", "zh-CN"],
+  ["", "yue-HK", "zh-CN"],
+  ["", "zh-TW", "zh-CN"],
+  ["", "zh-TW,en;q=0.8", "en"],
+  ["", "zh-CN;q=0,en-US;q=0", "en"],
+  ["", "invalid_tag,zh-CN;q=0.8", "en"],
+])(
+  "negotiates the same supported page and API locale for cookie %s and header %s",
+  async (cookie, language, expected) => {
+    const req = new NextRequest("http://127.0.0.1:28901/login", {
+      headers: {
+        host: "127.0.0.1:28901",
+        cookie: `NEXT_LOCALE=${cookie}`,
+        "accept-language": language,
+      },
+    });
+    const response = await proxy(req);
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      `http://127.0.0.1:28901/${expected}/login`
+    );
+    expect(resolveApiErrorLocale(req)).toBe(expected);
+  }
+);
+
+it("ignores obsolete cookie names that page routing does not read", async () => {
+  const req = new NextRequest("http://127.0.0.1:28901/login", {
+    headers: {
+      host: "127.0.0.1:28901",
+      cookie: "contextbase_cp_locale=zh-CN",
+      "accept-language": "en",
+    },
+  });
+  const response = await proxy(req);
+  expect(response.headers.get("x-middleware-rewrite")).toBe("http://127.0.0.1:28901/en/login");
+  expect(resolveApiErrorLocale(req)).toBe("en");
 });

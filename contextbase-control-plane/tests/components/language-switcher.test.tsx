@@ -28,17 +28,17 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-it.each([
-  "/banks/A?view=profile&bankConfigTab=general&tag=x&tag=y#security",
-  "/banks/A",
-])("changes the locale while refreshing the exact current URL %s", (url) => {
-  window.history.replaceState(null, "", url);
-  render(<LanguageSwitcher />);
-  fireEvent.click(screen.getByRole("button", { name: "English" }));
-  expect(document.cookie).toContain("NEXT_LOCALE=en");
-  expect(navigation.refresh).toHaveBeenCalledOnce();
-  expect(window.location.pathname + window.location.search + window.location.hash).toBe(url);
-});
+it.each(["/banks/A?view=profile&bankConfigTab=general&tag=x&tag=y#security", "/banks/A"])(
+  "changes the locale while refreshing the exact current URL %s",
+  (url) => {
+    window.history.replaceState(null, "", url);
+    render(<LanguageSwitcher />);
+    fireEvent.click(screen.getByRole("button", { name: "English" }));
+    expect(document.cookie).toContain("NEXT_LOCALE=en");
+    expect(navigation.refresh).toHaveBeenCalledOnce();
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe(url);
+  }
+);
 
 it("scopes the locale cookie to the UI base path without changing encoded IDs or fragments", () => {
   vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/brand-ui");
@@ -51,4 +51,16 @@ it("scopes the locale cookie to the UI base path without changing encoded IDs or
   expect(navigation.refresh).toHaveBeenCalledOnce();
   window.history.replaceState(null, "", "/another-instance");
   expect(document.cookie).not.toContain("NEXT_LOCALE");
+});
+
+it("offers only English and Simplified Chinese and can select Chinese", () => {
+  render(<LanguageSwitcher />);
+  const labels = screen
+    .getAllByRole("button")
+    .map((button) => button.textContent)
+    .filter(Boolean);
+  expect(labels).toEqual(["English", "简体中文"]);
+  fireEvent.click(screen.getByRole("button", { name: "简体中文" }));
+  expect(document.cookie).toContain("NEXT_LOCALE=zh-CN");
+  expect(navigation.refresh).toHaveBeenCalledOnce();
 });
