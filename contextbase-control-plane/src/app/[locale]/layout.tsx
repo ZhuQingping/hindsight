@@ -6,6 +6,8 @@ import { withBasePath } from "@/lib/base-path";
 import { contextDBEnabled } from "@/lib/contextdb";
 import { ContextDBUsageCapabilities } from "@/components/contextdb/usage-capabilities";
 import { ContextDBModeProvider } from "@/lib/contextdb-mode";
+import { controlPlaneEnv } from "@/lib/control-plane-env";
+import { SettingsVisibilityProvider } from "@/lib/settings-visibility";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -84,7 +86,11 @@ export default async function LocaleLayout({
               <ThemeProvider>
                 <FeaturesProvider>
                   <BankProvider>
-                    <NextIntlClientProvider>{children}</NextIntlClientProvider>
+                    <SettingsVisibilityProvider
+                      showAdvanced={controlPlaneEnv("SHOW_ADVANCED_SETTINGS") === "true"}
+                    >
+                      <NextIntlClientProvider>{children}</NextIntlClientProvider>
+                    </SettingsVisibilityProvider>
                   </BankProvider>
                 </FeaturesProvider>
               </ThemeProvider>

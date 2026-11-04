@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { useAdvancedSettings } from "@/lib/settings-visibility";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,7 @@ function coerceAction(raw: unknown): Action {
 }
 
 interface PolicyRule {
-  on: Detector;
+  on: string;
   action: Action;
 }
 
@@ -53,9 +54,9 @@ function readPolicy(config: Record<string, any>): MemoryDefensePolicy {
     enabled: Boolean(raw.enabled),
     rules: Array.isArray(raw.rules)
       ? raw.rules
-          .filter((r: any) => r && typeof r.on === "string" && r.on === DETECTORS.SENSITIVE_DATA)
+          .filter((r: any) => r && typeof r.on === "string" && r.on.length > 0)
           .map((r: any) => ({
-            on: r.on as Detector,
+            on: r.on,
             action: coerceAction(r.action ?? "redact"),
           }))
       : [],
@@ -90,6 +91,7 @@ interface MemoryDefenseSectionProps {
 
 export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
   const t = useTranslations("bankConfig");
+  const showAdvanced = useAdvancedSettings();
 
   const [loading, setLoading] = useState(true);
   const [baseConfig, setBaseConfig] = useState<Record<string, any>>({});
@@ -126,8 +128,20 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
     };
   }, [bankId, t]);
 
-  const masterEnabled = edits.enabled;
-  const setMaster = (v: boolean) => setEdits((p) => ({ ...p, enabled: v }));
+  // An enabled policy with no rules does not run any detector. Show it as off
+  // in the simplified form; turning it on repairs that previously empty policy.
+  const masterEnabled = edits.enabled && (showAdvanced || edits.rules.length > 0);
+  const setMaster = (enabled: boolean) =>
+    setEdits((policy) => ({
+      ...policy,
+      enabled,
+      // With detailed controls hidden, a new workspace needs an effective
+      // default. Existing rules, including custom detectors/actions, stay intact.
+      rules:
+        enabled && !showAdvanced && policy.rules.length === 0
+          ? [{ on: DETECTORS.SENSITIVE_DATA, action: "redact" }]
+          : policy.rules,
+    }));
 
   const toggleSensitiveData = (enabled: boolean) =>
     setEdits((p) => {
@@ -199,33 +213,37 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
       <div className="flex items-start justify-between gap-6">
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{t("memoryDefenseTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("memoryDefenseDescription")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t(showAdvanced ? "memoryDefenseDescription" : "memoryDefenseSimpleDescription")}
+          </p>
         </div>
         <div className="shrink-0 pt-1 scale-125 origin-right">
           <Switch checked={masterEnabled} onCheckedChange={setMaster} />
         </div>
       </div>
 
-      <div
-        className={
-          masterEnabled ? "space-y-6" : "space-y-6 opacity-40 pointer-events-none select-none"
-        }
-        aria-disabled={!masterEnabled}
-      >
-        <div className="space-y-3">
-          <Card className="bg-muted/20 border-border/40">
-            <DetectorCard
-              title={t("memoryDefenseSecretLeakTitle")}
-              description={t("memoryDefenseSecretLeakDescription")}
-              rule={sensitiveData}
-              actions={["redact", "block", "allow"]}
-              onToggle={toggleSensitiveData}
-              onActionChange={setSensitiveDataAction}
-              masterEnabled={masterEnabled}
-            />
-          </Card>
+      {showAdvanced && (
+        <div
+          className={
+            masterEnabled ? "space-y-6" : "space-y-6 opacity-40 pointer-events-none select-none"
+          }
+          aria-disabled={!masterEnabled}
+        >
+          <div className="space-y-3">
+            <Card className="bg-muted/20 border-border/40">
+              <DetectorCard
+                title={t("memoryDefenseSecretLeakTitle")}
+                description={t("memoryDefenseSecretLeakDescription")}
+                rule={sensitiveData}
+                actions={["redact", "block", "allow"]}
+                onToggle={toggleSensitiveData}
+                onActionChange={setSensitiveDataAction}
+                masterEnabled={masterEnabled}
+              />
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
 
       {saving && (
         <div className="flex justify-end items-center gap-2 text-xs text-muted-foreground">

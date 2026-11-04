@@ -568,6 +568,7 @@
     "noValuesYet": "No values yet.",
     "memoryDefenseTitle": "Memory Defense",
     "memoryDefenseDescription": "Inspect content during retain and decide what to do with secrets and other security concerns before they reach memory.",
+    "memoryDefenseSimpleDescription": "Use configured protection rules. If none are configured, enabling protection adds default secret and sensitive data redaction.",
     "memoryDefenseFailedToSave": "Failed to save Memory Defense settings",
     "memoryDefenseSavedToast": "Memory Defense saved",
     "memoryDefenseActionLabel": "Action",

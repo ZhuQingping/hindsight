@@ -1,6 +1,7 @@
 "use client";
 
 import { useContextDBMode } from "@/lib/contextdb-mode";
+import { useAdvancedSettings } from "@/lib/settings-visibility";
 
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -29,12 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  EntityLabelsEditor,
-  type LabelGroup,
-  type LabelValue,
-  type MapField,
-} from "@/components/entity-labels-editor";
+import { EntityLabelsEditor, type LabelGroup } from "@/components/entity-labels-editor";
 import {
   deserializeRetainStrategies,
   serializeRetainStrategies,
@@ -78,9 +74,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Plus, Trash2, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { IdChip } from "@/components/ui/facet-chip";
 import { Spinner } from "@/components/ui/spinner";
 import { Card } from "@/components/ui/card";
@@ -447,13 +442,241 @@ const DEFAULT_PROFILE: ProfileData = {
 // ─── BankConfigView ───────────────────────────────────────────────────────────
 
 export function BankConfigView() {
+  const showAdvanced = useAdvancedSettings();
+  const { currentBank: bankId } = useBank();
+  // The server's display setting selects the form. Remount on a workspace
+  // change so pending reads and edits cannot populate another workspace's form.
+  return showAdvanced ? (
+    <EngineBankConfigView key={bankId} bankId={bankId} />
+  ) : (
+    <WorkspaceConfigView key={bankId} bankId={bankId} />
+  );
+}
+
+type WorkspaceSettings = {
+  retain_mission: string | null;
+  reflect_mission: string | null;
+  audit_log_enabled: boolean | null;
+  store_document_text: boolean | null;
+};
+
+function WorkspaceConfigView({ bankId }: { bankId: string | null }) {
+  const t = useTranslations("bankConfig");
+  const tw = useTranslations("contextDB");
+  const { features } = useFeatures();
+  const enabled = features?.bank_config_api ?? true;
+  const [base, setBase] = useState<WorkspaceSettings | null>(null);
+  const [edits, setEdits] = useState<WorkspaceSettings | null>(null);
+  const [inherited, setInherited] = useState({
+    audit_log_enabled: false,
+    store_document_text: true,
+  });
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<{ section: string; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!bankId || !enabled) return;
+    let active = true;
+    client
+      .getBankConfig(bankId)
+      .then((response) => {
+        if (!active) return;
+        const values: WorkspaceSettings = {
+          retain_mission: response.config.retain_mission ?? null,
+          reflect_mission: response.config.reflect_mission ?? null,
+          // Read overrides, not resolved values: null means keep inheriting.
+          audit_log_enabled: response.overrides?.audit_log_enabled ?? null,
+          store_document_text: response.overrides?.store_document_text ?? null,
+        };
+        setBase(values);
+        setEdits(values);
+        setInherited({
+          audit_log_enabled: response.config.audit_log_enabled ?? false,
+          store_document_text: response.config.store_document_text ?? true,
+        });
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : tw("settingsLoadFailed"));
+      });
+    return () => {
+      active = false;
+    };
+  }, [bankId, enabled, tw]);
+
+  if (!bankId) return <p className="text-muted-foreground">{t("noBankSelected")}</p>;
+  if (!enabled) return <p className="text-muted-foreground">{t("apiDisabledTitle")}</p>;
+  if (loadError)
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{loadError}</AlertDescription>
+      </Alert>
+    );
+  if (!base || !edits) return <Spinner size="lg" variant="jump" />;
+
+  const sections = [
+    {
+      id: "retain",
+      title: t("retainTitle"),
+      description: t("retainDescription"),
+      fields: ["retain_mission"],
+    },
+    {
+      id: "reflect",
+      title: t("reflectTitle"),
+      description: t("reflectDescription"),
+      fields: ["reflect_mission"],
+    },
+    {
+      id: "security",
+      title: t("securityPrivacyTitle"),
+      description: t("securityPrivacyDescription"),
+      fields: ["audit_log_enabled", "store_document_text"],
+    },
+  ] satisfies {
+    id: string;
+    title: string;
+    description: string;
+    fields: (keyof WorkspaceSettings)[];
+  }[];
+
+  const save = async (section: (typeof sections)[number]) => {
+    // Only submit changed, visible fields. Copying the resolved configuration
+    // would pin inherited defaults and overwrite hidden engine customizations.
+    const updates = Object.fromEntries(
+      section.fields.filter((key) => edits[key] !== base[key]).map((key) => [key, edits[key]])
+    );
+    setSaving(section.id);
+    setSaveError(null);
+    try {
+      const response = await client.updateBankConfig(bankId, updates);
+      const accepted = { ...updates };
+      for (const field of ["retain_mission", "reflect_mission"] as const) {
+        if (field in updates) accepted[field] = response.config[field] ?? null;
+      }
+      setBase((current) => current && { ...current, ...accepted });
+      setEdits((current) => {
+        if (!current) return current;
+        const next = { ...current };
+        // Keep typing performed while the save was in flight.
+        for (const field of section.fields) {
+          if (field in updates && current[field] === updates[field]) {
+            Object.assign(next, { [field]: accepted[field] });
+          }
+        }
+        return next;
+      });
+      setInherited((current) => ({
+        audit_log_enabled: response.config.audit_log_enabled ?? current.audit_log_enabled,
+        store_document_text: response.config.store_document_text ?? current.store_document_text,
+      }));
+    } catch (error: unknown) {
+      setSaveError({
+        section: section.id,
+        message:
+          error instanceof Error
+            ? error.message
+            : t(
+                section.id === "retain"
+                  ? "retainFailedToSave"
+                  : section.id === "reflect"
+                    ? "reflectFailedToSave"
+                    : "securityPrivacyFailedToSave"
+              ),
+      });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {sections.map((section) => (
+        <ConfigSection
+          key={section.id}
+          id={`bank-config-${section.id}`}
+          title={section.title}
+          description={section.description}
+          error={saveError?.section === section.id ? saveError.message : null}
+          dirty={saving === null && section.fields.some((key) => edits[key] !== base[key])}
+          saving={saving === section.id}
+          onSave={() => void save(section)}
+        >
+          {section.id === "retain" && (
+            <TextareaRow
+              label={tw("memoryGoalLabel")}
+              description={t("retainMissionDescription")}
+              value={edits.retain_mission ?? ""}
+              onChange={(value) =>
+                setEdits((current) => current && { ...current, retain_mission: value || null })
+              }
+              placeholder={t("retainMissionPlaceholder")}
+              rows={3}
+            />
+          )}
+          {section.id === "reflect" && (
+            <TextareaRow
+              label={tw("reflectGoalLabel")}
+              description={t("reflectMissionDescription")}
+              value={edits.reflect_mission ?? ""}
+              onChange={(value) =>
+                setEdits((current) => current && { ...current, reflect_mission: value || null })
+              }
+              placeholder={t("reflectMissionPlaceholder")}
+              rows={3}
+            />
+          )}
+          {section.id === "security" &&
+            (
+              [
+                ["audit_log_enabled", "auditEnabledLabel", "auditEnabledDescription"],
+                ["store_document_text", "docStorageEnabledLabel", "docStorageEnabledDescription"],
+              ] as const
+            ).map(([field, label, description]) => (
+              <FieldRow key={field} label={t(label)} description={t(description)}>
+                <Select
+                  value={edits[field] === null ? INHERIT_SENTINEL : String(edits[field])}
+                  onValueChange={(value) =>
+                    setEdits(
+                      (current) =>
+                        current && {
+                          ...current,
+                          [field]: value === INHERIT_SENTINEL ? null : value === "true",
+                        }
+                    )
+                  }
+                >
+                  <SelectTrigger aria-label={t(label)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={INHERIT_SENTINEL}>
+                      {edits[field] === null && base[field] === null
+                        ? t("auditServerDefault", {
+                            state: inherited[field] ? t("enabled") : t("disabled"),
+                          })
+                        : t("serverDefault")}
+                    </SelectItem>
+                    <SelectItem value="true">{t("enabled")}</SelectItem>
+                    <SelectItem value="false">{t("disabled")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FieldRow>
+            ))}
+        </ConfigSection>
+      ))}
+    </div>
+  );
+}
+
+function EngineBankConfigView({ bankId }: { bankId: string | null }) {
   const contextDB = useContextDBMode();
   const t = useTranslations("bankConfig");
   const tMentalModels = useTranslations("mentalModels");
-  const { currentBank: bankId } = useBank();
   const { features } = useFeatures();
   const bankConfigEnabled = features?.bank_config_api ?? true; // optimistic default while loading
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Source of truth
   const [baseConfig, setBaseConfig] = useState<Record<string, any>>({});
@@ -560,6 +783,7 @@ export function BankConfigView() {
   const loadAll = async () => {
     if (!bankId) return;
     setLoading(true);
+    setLoadError(null);
     try {
       const configResp = await client.getBankConfig(bankId);
       const cfg = configResp.config;
@@ -587,7 +811,7 @@ export function BankConfigView() {
       setRecallEdits(recallSlice(overrides));
       setMentalModelsEdits(mentalModelsSlice(overrides));
     } catch (err) {
-      console.error("Failed to load bank data:", err);
+      setLoadError(err instanceof Error ? err.message : t("apiDisabledTitle"));
     } finally {
       setLoading(false);
     }
@@ -842,6 +1066,13 @@ export function BankConfigView() {
       </div>
     );
   }
+
+  if (loadError)
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{loadError}</AlertDescription>
+      </Alert>
+    );
 
   return (
     <>
@@ -2214,6 +2445,7 @@ function TextareaRow({
           {action}
         </div>
         <Textarea
+          aria-label={label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
@@ -2623,7 +2855,6 @@ function ConsolidationStrategiesPanel({
     setSelected("default");
   };
 
-  const globalLabel = t("consolidationStrategiesGlobalScope");
   const andWord = t("consolidationStrategiesAnd");
   const orWord = t("consolidationStrategiesOr");
   // Referenced with its priority number: two strategies can share a label (both
