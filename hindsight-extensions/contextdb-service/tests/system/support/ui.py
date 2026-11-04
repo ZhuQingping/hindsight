@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import secrets
 import subprocess
+import sys
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -40,44 +41,70 @@ def verify_ui_server(server: Path, source_root: Path) -> None:
 
 
 @contextmanager
-def ui_owner(contextdb_deployment: ContextDBDeployment, server: Path, node: str, root: Path) -> Iterator[AdminUI]:
+def ui_owner(
+    contextdb_deployment: ContextDBDeployment,
+    server: Path,
+    node: str,
+    root: Path,
+    *,
+    fixed_origin: bool = True,
+    plugin_enabled: bool = True,
+    ready_status: int = 200,
+    port: int | None = None,
+    password: str | None = None,
+) -> Iterator[AdminUI]:
     server = server.resolve()
     verify_ui_server(server, ROOT)
     authorization = contextdb_deployment.headers["Authorization"]
     assert authorization.startswith("Bearer ")
     admin_key = authorization.removeprefix("Bearer ")
-    password = "synthetic-ui-" + secrets.token_urlsafe(24)
-    port = free_port()
+    password = password or "synthetic-ui-" + secrets.token_urlsafe(24)
+    port = port or free_port()
     env = {"PATH": os.environ.get("PATH", ""), "HOME": os.environ.get("HOME", str(root))}
     env.update(
         {
             "NODE_ENV": "production",
             "HOSTNAME": "127.0.0.1",
             "PORT": str(port),
+            "HINDSIGHT_CP_PORT": str(port),
+            "HINDSIGHT_CP_HOST": "127.0.0.1",
             "HINDSIGHT_CP_AUTH_MODE": "local",
-            "HINDSIGHT_CP_PUBLIC_ORIGIN": f"http://127.0.0.1:{port}",
             "HINDSIGHT_CP_SESSION_DIR": str(root / "sessions"),
-            "HINDSIGHT_CP_CONTEXTDB_ENABLED": "true",
+            "HINDSIGHT_CP_CONTEXTDB_ENABLED": str(plugin_enabled).lower(),
             "HINDSIGHT_CP_ACCESS_KEY": password,
             "HINDSIGHT_CP_DATAPLANE_API_KEY": admin_key,
             "HINDSIGHT_CP_DATAPLANE_API_URL": contextdb_deployment.server.url,
         }
     )
+    if fixed_origin:
+        env["HINDSIGHT_CP_PUBLIC_ORIGIN"] = f"http://127.0.0.1:{port}"
+    command = [node, str(server)]
+    if plugin_enabled and not fixed_origin:
+        env["PYTHONPATH"] = str(ROOT / "hindsight-extensions/contextdb-service")
+        command = [
+            sys.executable,
+            "-c",
+            "from pathlib import Path; import sys; from hindsight_ext_contextdb.ui_gateway import run; run(Path(sys.argv[1]))",
+            str(server.parents[2]),
+        ]
     url = f"http://127.0.0.1:{port}"
     with (root / "ui.log").open("w") as log:
-        process = subprocess.Popen([node, str(server)], cwd=server.parent, env=env, stdout=log, stderr=log)
+        process = subprocess.Popen(command, cwd=server.parent, env=env, stdout=log, stderr=log)
         try:
             deadline = time.monotonic() + 60
+            last_response = "no HTTP response"
             while time.monotonic() < deadline:
                 assert process.poll() is None, f"UI startup failed; log: {root / 'ui.log'}"
                 try:
-                    if httpx.get(url + "/login", timeout=1).status_code == 200:
+                    response = httpx.get(url + "/login", timeout=1)
+                    last_response = f"HTTP {response.status_code}, Location={response.headers.get('location')}"
+                    if response.status_code == ready_status:
                         break
                 except httpx.HTTPError:
                     pass
                 time.sleep(0.1)
             else:
-                raise AssertionError(f"UI readiness timed out; log: {root / 'ui.log'}")
+                raise AssertionError(f"UI readiness timed out ({last_response}); log: {root / 'ui.log'}")
             yield AdminUI(url, password, admin_key)
         finally:
             process.terminate()

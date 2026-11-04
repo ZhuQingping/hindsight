@@ -59,7 +59,7 @@ def postgres_directory(path: Path) -> Path:
 
 
 def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
-    from pg0 import Pg0
+    from pg0 import Pg0, _run_pg0
 
     private_directory(directory)
     private_directory(data_dir)
@@ -85,7 +85,24 @@ def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection
         except (ValueError, FileNotFoundError):
             info = None
         if info is None or not info.running:
-            info = pg.start()
+            # token_urlsafe can start with '-'. Pg0.start passes the password as
+            # a separate argv entry, which pg0's parser treats as an option.
+            # Attach the value to its flag without changing persisted secrets.
+            # Reuse the locked SDK runner to retain its Windows stdio handling
+            # and binary lookup; never patch the dependency or its global state.
+            _run_pg0(
+                "start",
+                "--name",
+                name,
+                "--username",
+                "contextbase",
+                f"--password={secret.password}",
+                "--database",
+                "contextbase",
+                "--data-dir",
+                str(data_dir),
+            )
+            info = pg.info()
         if not info.uri or Path(info.data_dir or "").resolve() != data_dir.resolve():
             raise ValueError("Embedded database directory does not match local state")
         return DatabaseConnection(uri=info.uri)

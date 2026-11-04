@@ -145,3 +145,7 @@ API/UI 监听地址分别使用 `CONTEXTBASE_API_HOST` / `CONTEXTBASE_CP_HOST`�
 重启执行同一条 `start.ps1` 或 `start.sh`，沿用原持久化目录、用户、数据、Key、UI 密码与会话目录。同一目录只允许一个启动器运行。
 
 备份包含完整数据库及匹配的运行配置和凭据，不只保存 `pgdata`。已有数据库对应的秘密文件丢失时恢复一致备份；启动器不会通过重新生成密钥覆盖旧身份。更换数据目录会选择另一份状态，不能用它恢复原实例。
+
+### 从其他地址访问本地 UI
+
+本地插件启动器显式启用 ContextDB。未设置 `CONTEXTBASE_CP_PUBLIC_ORIGIN` / `HINDSIGHT_CP_PUBLIC_ORIGIN` 时，不再写死 localhost，由插件入口适配直连 HTTP 的动态 Host；更换访问 IP 无须重启 UI，新主机地址需要重新登录。插件未启用时保留原有 Node UI 行为。通过 HTTPS 网关访问时显式设置公开 origin，例如 `CONTEXTBASE_CP_PUBLIC_ORIGIN=https://memory.example.test`。配置的非空非法 URL 不会自动降级；密码、会话目录、API/MCP 鉴权均不因此关闭。完整语义见[UI 公网地址与 EIP 变更](deployment.md#ui-公网地址与-eip-变更)。

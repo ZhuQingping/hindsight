@@ -493,3 +493,19 @@ def test_render_usage_switch_has_one_api_authority(tmp_path, enabled):
 def test_deployment_usage_switch_requires_json_boolean(tmp_path, value):
     with pytest.raises(ValueError):
         load_config(intent(tmp_path, recall_usage_enabled=value))
+
+
+@pytest.mark.parametrize("omit", [True, False])
+def test_public_origin_is_optional_and_render_omits_it(tmp_path: Path, omit: bool) -> None:
+    path = intent(tmp_path, ui_public_origin=None)
+    if omit:
+        document = json.loads(path.read_text())
+        document.pop("ui_public_origin")
+        path.write_text(json.dumps(document))
+    config = load_config(path)
+    assert config.ui_public_origin is None
+    render(config, tmp_path / "dynamic")
+    ui = (tmp_path / "dynamic/ui.env").read_text()
+    assert "PUBLIC_ORIGIN" not in ui
+    assert "HINDSIGHT_CP_AUTH_MODE=local" in ui
+    assert "HINDSIGHT_CP_SESSION_DIR=" in ui

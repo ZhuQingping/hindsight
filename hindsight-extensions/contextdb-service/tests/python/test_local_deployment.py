@@ -7,13 +7,14 @@ import os
 import signal
 import subprocess
 import sys
-from pathlib import Path
 from collections.abc import Iterator
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from dotenv import dotenv_values
+
 from hindsight_ext_contextdb import embedded, local
 from hindsight_ext_contextdb.bootstrap import load_deployment_secrets
 from hindsight_ext_contextdb.embedded import DatabaseConnection, private_directory
@@ -50,21 +51,27 @@ def test_local_config_overrides_auth_bypass_aliases(local_environment: Path, mon
         assert ui[prefix + "AUTH_MODE"] == "local"
         assert ui[prefix + "CONTEXTDB_ENABLED"] == "true"
         assert ui[prefix + "SESSION_DIR"] == str(local_environment / "ui-sessions")
+        assert prefix + "PUBLIC_ORIGIN" not in ui
     for filename in ("api.env", "ui.env"):
         assert (local_environment / filename).stat().st_mode & 0o777 == 0o600
     assert "synthetic-provider-key" not in (local_environment / "ui.env").read_text()
 
 
-@pytest.mark.parametrize("failure", ["extensions", "credentials", "migration", None])
+@pytest.mark.parametrize(
+    "failure", ["database", "extensions", "configuration", "credentials", "migration", "serve", None]
+)
 def test_local_start_initializes_before_serving_and_stops_pg(
-    local_environment: Path, monkeypatch: pytest.MonkeyPatch, failure: str | None
+    local_environment: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], failure: str | None
 ) -> None:
     events: list[str] = []
+    configure = local.configure
 
     def control(command: str, directory: Path, data_dir: Path) -> DatabaseConnection | None:
         assert directory == local_environment
         assert data_dir == directory / "pgdata"
         events.append(command)
+        if command == "start" and failure == "database":
+            raise ValueError("synthetic secret must not escape")
         return DatabaseConnection(uri="postgresql://synthetic") if command == "start" else None
 
     async def extensions(url: str) -> None:
@@ -77,32 +84,63 @@ def test_local_start_initializes_before_serving_and_stops_pg(
         if failure == "credentials":
             raise ValueError("synthetic secret must not escape")
 
+    def configuration(directory: Path, url: str, api_port: int, ui_port: int) -> None:
+        events.append("configuration")
+        if failure == "configuration":
+            raise ValueError("synthetic secret must not escape")
+        configure(directory, url, api_port, ui_port)
+
     def migrate(*args: object, **kwargs: object) -> None:
         events.append("migration")
         if failure == "migration":
-            raise subprocess.CalledProcessError(2, "init")
+            raise subprocess.CalledProcessError(2, ["init", "synthetic secret must not escape"])
 
     def serve(*args: object) -> int:
         events.append("serve")
+        if failure == "serve":
+            raise OSError("synthetic secret must not escape")
         return 0
 
     monkeypatch.setattr(local, "pg_control", control)
     monkeypatch.setattr(local, "enable_extensions", extensions)
+    monkeypatch.setattr(local, "configure", configuration)
     monkeypatch.setattr(local, "prepare_deployment", credentials)
     monkeypatch.setattr(local.subprocess, "run", migrate)
     monkeypatch.setattr(local, "serve", serve)
     with pytest.raises(SystemExit) as result:
         local.main()
     assert result.value.code == (2 if failure else 0)
-    expected = ["start", "extensions", "credentials", "migration", "serve"]
+    expected = ["start", "extensions", "configuration", "credentials", "migration", "serve"]
     if failure:
         expected = expected[
             : expected.index(
-                {"extensions": "extensions", "credentials": "credentials", "migration": "migration"}[failure]
+                {
+                    "database": "start",
+                    "extensions": "extensions",
+                    "configuration": "configuration",
+                    "credentials": "credentials",
+                    "migration": "migration",
+                    "serve": "serve",
+                }[failure]
             )
             + 1
         ]
-    assert events == expected + ["stop"]
+    assert events == expected + ([] if failure == "database" else ["stop"])
+    diagnostic = capsys.readouterr().err
+    assert "synthetic secret must not escape" not in diagnostic
+    if failure:
+        stage = {
+            "database": "embedded database startup",
+            "extensions": "extension initialization",
+            "configuration": "configuration",
+            "credentials": "credential bootstrap",
+            "migration": "deployment initialization",
+            "serve": "service launch",
+        }[failure]
+        assert f"Local initialization failed during {stage}" in diagnostic
+        assert "test_local_deployment.py:" in diagnostic
+        exception = {"migration": "CalledProcessError", "serve": "OSError"}.get(failure, "ValueError")
+        assert exception in diagnostic
 
 
 def test_external_database_never_starts_or_stops_pg(local_environment: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -137,10 +175,12 @@ def test_pg_secret_is_preserved_and_missing_existing_secret_is_rejected(
     private_directory(directory)
     private_directory(data_dir)
     fake = Mock()
-    fake.info.return_value = SimpleNamespace(running=False)
-    fake.start.return_value = SimpleNamespace(uri="postgresql://synthetic", data_dir=str(data_dir))
+    stopped = SimpleNamespace(running=False)
+    running = SimpleNamespace(running=True, uri="postgresql://synthetic", data_dir=str(data_dir))
+    fake.info.side_effect = [stopped, running, stopped, running]
     constructor = Mock(return_value=fake)
-    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=constructor))
+    runner = Mock()
+    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=constructor, _run_pg0=runner))
     embedded.control("start", directory, data_dir)
     before = (directory / "pg-secrets.json").read_bytes()
     embedded.control("start", directory, data_dir)
@@ -150,6 +190,34 @@ def test_pg_secret_is_preserved_and_missing_existing_secret_is_rejected(
     (data_dir / "PG_VERSION").write_text("18")
     with pytest.raises(ValueError, match="Restore"):
         embedded.control("start", directory, data_dir)
+
+
+@pytest.mark.parametrize("prefix", ["-a", "--", "_a", "aa"])
+def test_pg_password_is_one_literal_cli_value_and_never_rotated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, prefix: str
+) -> None:
+    directory = tmp_path / "runtime"
+    data_dir = directory / "pgdata"
+    private_directory(directory)
+    secret = embedded.DatabaseSecret(password=prefix + "synthetic-password-" * 4)
+    embedded.save_credential(directory / "pg-secrets.json", secret)
+    before = (directory / "pg-secrets.json").read_bytes()
+    fake = Mock()
+    fake.info.side_effect = [None, SimpleNamespace(running=True, uri="postgresql://synthetic", data_dir=str(data_dir))]
+    fake.start.side_effect = AssertionError("The SDK's split password argv is unsafe")
+    runner = Mock()
+    monkeypatch.setitem(sys.modules, "pg0", SimpleNamespace(Pg0=Mock(return_value=fake), _run_pg0=runner))
+    assert embedded.control("start", directory, data_dir).uri == "postgresql://synthetic"
+    assert runner.call_args.args.count("--password=" + secret.password) == 1
+    assert "--password" not in runner.call_args.args
+    assert (directory / "pg-secrets.json").read_bytes() == before
+
+
+def test_pg0_cli_accepts_a_leading_dash_password_as_a_literal() -> None:
+    from pg0 import _run_pg0
+
+    # --help exercises the real parser on every platform without starting PG.
+    assert _run_pg0("start", "--password=-synthetic-password", "--help").returncode == 0
 
 
 def test_ui_uses_persisted_password_over_ambient_aliases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
