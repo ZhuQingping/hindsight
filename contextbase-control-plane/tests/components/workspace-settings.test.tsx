@@ -242,3 +242,57 @@ it("renders defense rules directly when the display configuration is enabled", a
   expect(document.querySelector("details")).toBeNull();
   expect(state.updateBankConfig).not.toHaveBeenCalled();
 });
+
+it.each([false, true])(
+  "enables default redaction for an empty policy previously enabled=%s",
+  async (previouslyEnabled) => {
+    state.getBankConfig.mockResolvedValueOnce({
+      ...response(),
+      config: { ...config, memory_defense: { enabled: previouslyEnabled, rules: [] } },
+    });
+    render(provider(<MemoryDefenseSection bankId="workspace_a" />));
+    await screen.findByText(messages.bankConfig.memoryDefenseTitle);
+    const toggle = screen.getByRole("switch");
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(state.updateBankConfig).not.toHaveBeenCalled();
+    fireEvent.click(toggle);
+    await waitFor(
+      () =>
+        expect(state.updateBankConfig).toHaveBeenCalledExactlyOnceWith("workspace_a", {
+          memory_defense: { enabled: true, rules: [{ on: "sensitive_data", action: "redact" }] },
+        }),
+      { timeout: 2000 }
+    );
+    expect(screen.queryByText(messages.bankConfig.memoryDefenseSecretLeakTitle)).toBeNull();
+  }
+);
+
+it("preserves custom detectors and their actions when switching protection on and off", async () => {
+  const rules = [
+    { on: "sensitive_data", action: "block" },
+    { on: "custom_detector", action: "allow" },
+  ];
+  state.getBankConfig.mockResolvedValueOnce({
+    ...response(),
+    config: { ...config, memory_defense: { enabled: false, rules } },
+  });
+  render(provider(<MemoryDefenseSection bankId="workspace_a" />));
+  await screen.findByText(messages.bankConfig.memoryDefenseTitle);
+  fireEvent.click(screen.getByRole("switch"));
+  await waitFor(
+    () =>
+      expect(state.updateBankConfig).toHaveBeenCalledExactlyOnceWith("workspace_a", {
+        memory_defense: { enabled: true, rules },
+      }),
+    { timeout: 2000 }
+  );
+  fireEvent.click(screen.getByRole("switch"));
+  await waitFor(
+    () =>
+      expect(state.updateBankConfig).toHaveBeenLastCalledWith("workspace_a", {
+        memory_defense: { enabled: false, rules },
+      }),
+    { timeout: 2000 }
+  );
+  expect(state.updateBankConfig).toHaveBeenCalledTimes(2);
+});

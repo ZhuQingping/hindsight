@@ -91,7 +91,7 @@ CONTEXTBASE_API_RERANKER_PROVIDER=rrf
 
 ### 设置界面显示范围
 
-`CONTEXTBASE_CP_SHOW_ADVANCED_SETTINGS` 默认 `false`，仅显示常用设置：记忆提取目标、回答要求、审计和原文保存。技术参数、MCP 工具配置及详细防护规则不渲染，也没有折叠入口；记忆防护总开关仍保留。
+`CONTEXTBASE_CP_SHOW_ADVANCED_SETTINGS` 默认 `false`，仅显示常用设置：记忆提取目标、回答要求、审计和原文保存。技术参数、MCP 工具配置及详细防护规则不渲染，也没有折叠入口；记忆防护总开关仍保留。简化模式中，开启防护且没有规则时会补入默认敏感信息脱敏规则；已有规则及其处理动作保持不变。
 
 需要展示完整设置时，在仓库根目录 `.env` 中设置 `CONTEXTBASE_CP_SHOW_ADVANCED_SETTINGS=true`，重启 UI 并刷新页面。设回 `false` 后重新隐藏。独立部署时将该变量注入 UI 进程环境，重启后生效，无需重新构建。展示开关不修改已有工作空间配置、服务端默认值或 API 权限。
 

@@ -568,6 +568,7 @@
     "noValuesYet": "尚无值。",
     "memoryDefenseTitle": "记忆防护",
     "memoryDefenseDescription": "在保留过程中检查内容,并决定在密钥及其他安全问题进入记忆之前如何处理。",
+    "memoryDefenseSimpleDescription": "使用已配置的防护规则；没有规则时，开启后默认对密钥及敏感信息脱敏。",
     "memoryDefenseFailedToSave": "保存记忆防护设置失败",
     "memoryDefenseSavedToast": "记忆防护已保存",
     "memoryDefenseActionLabel": "操作",

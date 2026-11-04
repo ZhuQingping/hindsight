@@ -31,7 +31,7 @@ function coerceAction(raw: unknown): Action {
 }
 
 interface PolicyRule {
-  on: Detector;
+  on: string;
   action: Action;
 }
 
@@ -54,9 +54,9 @@ function readPolicy(config: Record<string, any>): MemoryDefensePolicy {
     enabled: Boolean(raw.enabled),
     rules: Array.isArray(raw.rules)
       ? raw.rules
-          .filter((r: any) => r && typeof r.on === "string" && r.on === DETECTORS.SENSITIVE_DATA)
+          .filter((r: any) => r && typeof r.on === "string" && r.on.length > 0)
           .map((r: any) => ({
-            on: r.on as Detector,
+            on: r.on,
             action: coerceAction(r.action ?? "redact"),
           }))
       : [],
@@ -128,8 +128,20 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
     };
   }, [bankId, t]);
 
-  const masterEnabled = edits.enabled;
-  const setMaster = (v: boolean) => setEdits((p) => ({ ...p, enabled: v }));
+  // An enabled policy with no rules does not run any detector. Show it as off
+  // in the simplified form; turning it on repairs that previously empty policy.
+  const masterEnabled = edits.enabled && (showAdvanced || edits.rules.length > 0);
+  const setMaster = (enabled: boolean) =>
+    setEdits((policy) => ({
+      ...policy,
+      enabled,
+      // With detailed controls hidden, a new workspace needs an effective
+      // default. Existing rules, including custom detectors/actions, stay intact.
+      rules:
+        enabled && !showAdvanced && policy.rules.length === 0
+          ? [{ on: DETECTORS.SENSITIVE_DATA, action: "redact" }]
+          : policy.rules,
+    }));
 
   const toggleSensitiveData = (enabled: boolean) =>
     setEdits((p) => {
@@ -201,7 +213,9 @@ export function MemoryDefenseSection({ bankId }: MemoryDefenseSectionProps) {
       <div className="flex items-start justify-between gap-6">
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{t("memoryDefenseTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("memoryDefenseDescription")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t(showAdvanced ? "memoryDefenseDescription" : "memoryDefenseSimpleDescription")}
+          </p>
         </div>
         <div className="shrink-0 pt-1 scale-125 origin-right">
           <Switch checked={masterEnabled} onCheckedChange={setMaster} />
