@@ -60,6 +60,12 @@ it.each([
   ["", "zh-SG", "zh-CN"],
   ["", "de, en-GB;q=0.8", "en"],
   ["", "ja", "en"],
+  ["", "yue-Hant", "zh-CN"],
+  ["", "yue-HK", "zh-CN"],
+  ["", "zh-TW", "zh-CN"],
+  ["", "zh-TW,en;q=0.8", "en"],
+  ["", "zh-CN;q=0,en-US;q=0", "en"],
+  ["", "invalid_tag,zh-CN;q=0.8", "en"],
 ])(
   "negotiates the same supported page and API locale for cookie %s and header %s",
   async (cookie, language, expected) => {
@@ -77,3 +83,16 @@ it.each([
     expect(resolveApiErrorLocale(req)).toBe(expected);
   }
 );
+
+it("ignores obsolete cookie names that page routing does not read", async () => {
+  const req = new NextRequest("http://127.0.0.1:28901/login", {
+    headers: {
+      host: "127.0.0.1:28901",
+      cookie: "contextbase_cp_locale=zh-CN",
+      "accept-language": "en",
+    },
+  });
+  const response = await proxy(req);
+  expect(response.headers.get("x-middleware-rewrite")).toBe("http://127.0.0.1:28901/en/login");
+  expect(resolveApiErrorLocale(req)).toBe("en");
+});

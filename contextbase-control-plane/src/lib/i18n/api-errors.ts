@@ -1,6 +1,8 @@
 import { contextDBEnabled } from "@/lib/contextdb";
 import { contextdbWorkspaceMessages } from "@/i18n/contextdb-messages";
 import { NextResponse } from "next/server";
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 import en from "@/messages/en.json";
@@ -25,7 +27,6 @@ const resources = {
 
 const localeSet = new Set<string>(locales);
 const localizedErrorFields = ["error", "message", "detail", "details"] as const;
-const localeCookieNames = ["NEXT_LOCALE", "contextbase_cp_locale"] as const;
 
 function parseCookieHeader(cookieHeader: string | null | undefined): Map<string, string> {
   const cookies = new Map<string, string>();
@@ -50,52 +51,11 @@ function parseCookieHeader(cookieHeader: string | null | undefined): Map<string,
 }
 
 function getCookieLocale(request: RequestLike | undefined): string | undefined {
-  const parsedCookies = parseCookieHeader(request?.headers?.get("cookie"));
-
-  for (const cookieName of localeCookieNames) {
-    const cookieValue = request?.cookies?.get(cookieName);
-    if (typeof cookieValue === "string") return cookieValue;
-    if (cookieValue?.value) return cookieValue.value;
-
-    const parsedValue = parsedCookies.get(cookieName);
-    if (parsedValue) return parsedValue;
-  }
-
-  return undefined;
-}
-
-function parseAcceptLanguage(header: string | null | undefined): string[] {
-  if (!header) return [];
-
-  return header
-    .split(",")
-    .map((entry) => {
-      const [tag, ...parameters] = entry.trim().split(";");
-      const quality = parameters
-        .map((parameter) => parameter.trim())
-        .find((parameter) => parameter.startsWith("q="));
-      const parsedQuality = quality ? Number.parseFloat(quality.slice(2)) : 1;
-
-      return {
-        tag,
-        quality: Number.isFinite(parsedQuality) ? parsedQuality : 0,
-      };
-    })
-    .filter(({ tag }) => tag.length > 0)
-    .sort((a, b) => b.quality - a.quality)
-    .map(({ tag }) => tag);
-}
-
-function resolveLocaleTag(value: string | undefined): Locale | undefined {
-  if (!value) return undefined;
-  if (localeSet.has(value)) return value as Locale;
-
-  const normalized = value.toLowerCase();
-  const exact = locales.find((locale) => locale.toLowerCase() === normalized);
-  if (exact) return exact;
-
-  const language = normalized.split("-")[0];
-  return locales.find((locale) => locale.split("-")[0] === language);
+  // Page routing reads NEXT_LOCALE; obsolete cookie names must not override it.
+  const cookieValue = request?.cookies?.get("NEXT_LOCALE");
+  if (typeof cookieValue === "string") return cookieValue;
+  if (cookieValue?.value) return cookieValue.value;
+  return parseCookieHeader(request?.headers?.get("cookie")).get("NEXT_LOCALE");
 }
 
 export function resolveApiErrorLocale(request?: RequestLike): Locale {
@@ -104,14 +64,21 @@ export function resolveApiErrorLocale(request?: RequestLike): Locale {
   const cookieLocale = getCookieLocale(request);
   if (cookieLocale && localeSet.has(cookieLocale)) return cookieLocale as Locale;
 
-  const candidates = parseAcceptLanguage(request?.headers?.get("accept-language"));
-
-  for (const candidate of candidates) {
-    const locale = resolveLocaleTag(candidate);
-    if (locale) return locale;
+  // Use the same parser, best-fit matcher and locale order as next-intl.
+  // Prefix matching disagreed for Cantonese and script/region preferences.
+  const languages = new Negotiator({
+    headers: { "accept-language": request?.headers?.get("accept-language") || undefined },
+  }).languages();
+  try {
+    const orderedLocales = [...locales].sort((a, b) => b.length - a.length);
+    const matched = match(languages, orderedLocales, defaultLocale);
+    return (
+      locales.find((locale) => locale.toLowerCase() === matched.toLowerCase()) ?? defaultLocale
+    );
+  } catch {
+    // next-intl also falls back to the default for invalid language tags.
+    return defaultLocale;
   }
-
-  return defaultLocale;
 }
 
 function getTranslationValue(locale: Locale, key: string): string | undefined {
