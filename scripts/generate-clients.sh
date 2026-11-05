@@ -452,8 +452,6 @@ if os.path.exists(content_file):
         raise SystemExit("Could not find expected to_dict in content.py")
 PATCH_CONTENT_SCRIPT
 
-python3 "$SCRIPT_DIR/brand-sdk-generated.py" python
-
 echo "✓ Python client generated at $PYTHON_CLIENT_DIR"
 echo ""
 

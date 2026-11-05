@@ -18,8 +18,7 @@
     "generate": "npx @hey-api/openapi-ts",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "test:deno": "deno test --no-check --allow-env --allow-net --unstable-sloppy-imports --preload=tests/deno_setup.ts tests/main_operations.test.ts",
-    "postgenerate": "python3 ../../scripts/brand-sdk-generated.py node"
+    "test:deno": "deno test --no-check --allow-env --allow-net --unstable-sloppy-imports --preload=tests/deno_setup.ts tests/main_operations.test.ts"
   },
   "keywords": [
     "contextbase",
