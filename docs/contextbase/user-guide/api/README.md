@@ -43,6 +43,8 @@ JSON 请求还需设置 `Content-Type: application/json`。文件上传使用 `m
 | POST | `/memories/recall` | 检索相关记忆 |
 | POST | `/reflect` | 基于记忆生成回答 |
 | POST | `/files/retain` | 上传文件并异步处理 |
+| POST | `/knowledge-base/folders` | 创建知识文件夹 |
+| POST | `/knowledge-base/pages` | 创建主题知识页 |
 | GET | `/documents` | 分页查询文档 |
 | GET | `/documents/{document_id}` | 读取文档详情 |
 | GET | `/documents/{document_id}/chunks` | 分页读取分块 |
@@ -52,8 +54,22 @@ JSON 请求还需设置 `Content-Type: application/json`。文件上传使用 `m
 | GET | `/knowledge-base/tree` | 读取知识目录 |
 | GET | `/knowledge-base/search` | 搜索知识页 |
 | GET | `/knowledge-base/pages/{page_id}` | 读取知识页 |
+| PATCH | `/knowledge-base/nodes/{node_id}` | 更新知识目录节点或页面选项 |
 
 示例只展示理解接口所需的字段。响应还可能包含用量、时间或来源等信息，应用应按实际字段读取，不依赖示例中的虚构 ID、文字或数量。
+
+## 先选业务流程，再查接口
+
+| 任务 | 调用顺序 |
+| --- | --- |
+| 首次导入资料并验证 | Retain → 等待主要处理完成 → Recall → 按需读取来源 |
+| 在自己的模型流程中补充记忆 | Recall → 应用组织上下文和来源映射 → 应用模型 |
+| 直接取得综合回答 | Reflect，并请求回答依据 |
+| 更新现行规范 | 相同文档 ID 的 Retain 替换 → 核对文档 → 查询验证 |
+| 上传普通文件 | 文件写入 → 保存全部任务 ID → 等待完成 → 查询验证 |
+| 建立主题材料 | 创建文件夹和知识页 → 确认生成 → 读取和后续刷新 |
+
+可运行的业务案例见[项目助手教程](../project-assistant.md)，Python 与 Node.js 代码分别位于对应 SDK 指南。日常内容维护也可以通过[控制台](../console.md)完成。
 
 ## SDK 参数对照
 
