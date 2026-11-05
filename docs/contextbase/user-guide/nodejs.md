@@ -133,6 +133,8 @@ await client.retain(
 
 `replace` 提交完整的新内容；`append` 将新内容拼接到旧正文后重新处理。
 
+`append` 需要启用原文保存，并依赖已保存的旧正文。`store_document_text=false` 时不支持追加，同步写入会返回 HTTP 400。无法使用追加时，由应用合并完整正文后用 `replace` 提交，或将独立片段保存为不同文档。详见[更新已有文档](api/memories.md#更新已有文档)。
+
 ## 参数命名
 
 单条 `retain` 调用选项使用 `documentId`、`updateMode` 等驼峰名称。`retainBatch` 接收的条目使用 `document_id`、`update_mode` 等字段，不能直接照搬单条调用选项的命名。

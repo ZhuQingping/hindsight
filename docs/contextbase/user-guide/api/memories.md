@@ -33,7 +33,7 @@
 | `items[].timestamp` | 否 | 内容发生时间，支持 ISO 8601 时间字符串 |
 | `items[].metadata` | 否 | 自定义元数据，键和值均为字符串 |
 | `items[].tags` | 否 | 用于后续检索筛选的标签 |
-| `items[].update_mode` | 否 | `replace` 或 `append`，默认 `replace` |
+| `items[].update_mode` | 否 | `replace` 或 `append`，默认 `replace`；`append` 需要启用原文保存 |
 | `async` | 否 | 是否后台处理，默认 `false` |
 | `operation_id` | 否 | 异步写入的客户端 UUID，用于重试时复用任务身份 |
 
@@ -66,6 +66,10 @@
 | `append` | 将新内容拼接到旧正文后重新处理 | 本次需要追加的正文 |
 
 `replace` 不会保留本次未提交的旧正文。`append` 也不意味着只处理新增部分，两种方式都可能改变提取的记忆。
+
+`append` 依赖服务端保存的原文。关闭原文保存（`store_document_text=false`）时，服务不支持追加写入，同步 Retain 请求会返回 HTTP 400。使用前请向服务提供方确认保存配置；已有来源还需确认旧正文已经保存，之后开启原文保存不会补回历史正文。
+
+不能使用追加时，由应用保留完整正文，合并新内容后以 `replace` 提交；需要分别管理的会话片段或事件，也可以使用不同的文档 ID 保存。
 
 ## Recall：检索记忆
 

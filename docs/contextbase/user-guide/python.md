@@ -143,6 +143,8 @@ client.retain(
 
 `replace` 提交完整的新内容；`append` 将新内容拼接到旧正文后重新处理。两种方式都可能改变提取的记忆。
 
+`append` 需要启用原文保存，并依赖已保存的旧正文。`store_document_text=false` 时不支持追加，同步写入会返回 HTTP 400。无法使用追加时，由应用合并完整正文后用 `replace` 提交，或将独立片段保存为不同文档。详见[更新已有文档](api/memories.md#更新已有文档)。
+
 参数和重试规则见[记忆 API](api/memories.md)，后台任务的完成条件见[异步任务](api/operations.md)。
 
 ## 完整案例：项目助手

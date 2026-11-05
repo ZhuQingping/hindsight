@@ -46,7 +46,7 @@ npx @huaweicloud/contextbase-coding-agents@latest bank use "新的Bank-ID"
 
 切换会保留 API 地址和凭据。完全重启相关 Agent 和 MCP 进程后，新请求使用新的 Bank；旧 Bank 的记忆不会迁移。
 
-修改环境变量后仍使用旧地址或凭据时，应检查已经保存的配置。安装后的配置可能优先于环境变量。
+重新安装时，同一 API 地址下的 Key 选择顺序为：`--api-token` 参数、已保存的 `apiToken`、`CONTEXTBASE_API_TOKEN` 环境变量、`CONTEXTBASE_API_KEY` 环境变量。只修改环境变量不会覆盖已保存的 Key，更换步骤见[更换适配器的 API Key](#更换适配器的-api-key)。
 
 ### Claude Code 与 Codex
 
@@ -142,6 +142,28 @@ claude mcp add --scope user --transport http contextbase-remote "服务方提供
 将前面安装命令的目标替换为对应名称。原生插件的工具由宿主加载，不必另建重复的 MCP 注册。完整目标和选项以安装器 `--help` 为准。
 
 OpenClaw 与 Hermes 使用各自的独立安装包和宿主配置，不能作为上述命令的安装目标，也不会自动读取 `coding-agent.json`。具体见 [OpenClaw 指南](../../../hindsight-integrations/openclaw/README.md)和 [Hermes 指南](../../../hindsight-integrations/hermes/README.md)。
+
+## 更换适配器的 API Key
+
+先按[成员与 Key 管理](administration.md#更换-api-key)签发新 Key，并确认它具有目标 Bank 所需的权限。将当前终端的 `CONTEXTBASE_API_TOKEN` 设置为非空的新 Key，再通过 `--api-token` 明确覆盖已保存的凭据。
+
+Bash 示例：
+
+```bash
+npx @huaweicloud/contextbase-coding-agents@latest install claude-code --api-url "你的API地址" --bank-id "你的Bank-ID" --project-path "." --api-token "$CONTEXTBASE_API_TOKEN"
+```
+
+PowerShell 示例：
+
+```powershell
+npx.cmd @huaweicloud/contextbase-coding-agents@latest install claude-code --api-url "你的API地址" --bank-id "你的Bank-ID" --project-path "." --api-token "$env:CONTEXTBASE_API_TOKEN"
+```
+
+将 `claude-code` 替换为实际宿主。保留原安装使用的 `--project-path` 或 `--mcp-config`；使用 `CONTEXTBASE_CONFIG` 时，也要指向原配置文件。
+
+确认生效配置中的 `apiToken` 已更新为新 Key，再完全退出并重新启动相关宿主、插件和 MCP 进程。按[验证接入](#验证接入)执行实际的保存和检索请求，确认权限符合预期后吊销旧 Key，再验证一次。仅看到 MCP 已连接，不能确认请求已经使用新凭据。
+
+这一流程用于本地编程工具适配器。远端 MCP 的凭据应在相应宿主配置或 `bearer_token_env_var` 指定的环境变量中更新，再重启并验证。
 
 ## 更新、卸载与排查
 
