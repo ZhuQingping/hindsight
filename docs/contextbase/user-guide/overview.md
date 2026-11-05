@@ -6,8 +6,6 @@ ContextBase 将对话、文档与任务记录转化为可检索、可关联、�
 
 从记住一项用户偏好，到理解一段项目历史，再到复用一次已经验证的故障处理经验，ContextBase 为应用连接过去的记录与当前的问题。开发者可以将它接入现有模型与 Agent 工作流，也可以直接基于记忆生成回答。
 
-![Agent 与 ContextBase 的协作：Agent 按需取回相关记忆或基于记忆生成的回答，并将有价值的任务记录写回长期记忆。](assets/contextbase-overview.svg)
-
 Agent 负责当前任务的理解、规划与执行，ContextBase 为它提供长期记忆。应用按需调用 Recall 或 Reflect，并通过 Retain 保存值得保留的记录，供后续任务使用。
 
 ## 让业务背景持续可用
