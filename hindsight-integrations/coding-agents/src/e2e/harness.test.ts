@@ -63,7 +63,7 @@ it("creates host-owned, owner-only diagnostics before Docker starts and collects
     const { runHarnessE2e } = await import("./harness");
     const result = await runHarnessE2e({
       name: "test",
-      hindsightHarness: "test",
+      contextbaseHarness: "test",
       installCommand: "contextbase-coding-agents install test",
       command: () => ["test"],
     });

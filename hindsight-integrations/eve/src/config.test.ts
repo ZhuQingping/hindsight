@@ -14,7 +14,10 @@ const EMPTY_ENV = {} as NodeJS.ProcessEnv;
 
 describe("resolveAutoMemory", () => {
   it("uses the explicit service and default broad recall query", () => {
-    const r = resolveAutoMemory({ apiUrl: "https://memory.example.com", apiKey: "hsk_k" }, EMPTY_ENV);
+    const r = resolveAutoMemory(
+      { apiUrl: "https://memory.example.com", apiKey: "hsk_k" },
+      EMPTY_ENV
+    );
     expect(r.apiUrl).toBe("https://memory.example.com");
     expect(r.bankId).toBe("default");
     expect(r.recallQuery).toBe(DEFAULT_RECALL_QUERY);
@@ -97,5 +100,24 @@ describe("turn pairing buffer", () => {
     expect(content).toContain("what's for dinner?");
     expect(content).toContain("How about pasta?");
     expect(content).not.toContain("user is vegan");
+  });
+});
+
+describe("configured Cloud endpoint", () => {
+  it("matches only the deployment's explicit origin", async () => {
+    const { isContextBaseCloudUrl, resolveConnection } = await import("./config.js");
+    expect(isContextBaseCloudUrl("https://service.example/api", "https://service.example")).toBe(
+      true
+    );
+    expect(isContextBaseCloudUrl("https://other.example", "https://service.example")).toBe(false);
+    expect(isContextBaseCloudUrl("https://service.example", "")).toBe(false);
+    expect(() =>
+      resolveConnection(
+        { apiUrl: "https://service.example" },
+        {
+          CONTEXTBASE_CLOUD_API_URL: "https://service.example",
+        }
+      )
+    ).toThrow("requires an API key");
   });
 });

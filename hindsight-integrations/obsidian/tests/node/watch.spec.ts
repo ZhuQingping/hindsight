@@ -10,7 +10,7 @@ import { once } from "node:events";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { HindsightClient } from "../../src/client";
+import type { ContextBaseClient } from "../../src/client";
 import { type CliOptions, watchVault } from "../../src/node/cli";
 import { FsVault } from "../../src/node/fs-vault";
 import { SyncEngine } from "../../src/sync";
@@ -70,7 +70,7 @@ describe("watchVault (real chokidar)", () => {
     const client = fakeClient();
     const vault = new FsVault(root);
     const engine = new SyncEngine(
-      client as unknown as HindsightClient,
+      client as unknown as ContextBaseClient,
       vault,
       { bankId: "b", includeFolders: [], excludeFolders: [], vaultName: "V", prefixDocId: false },
       {},

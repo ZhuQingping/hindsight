@@ -1,9 +1,9 @@
 # ContextBase for Eve
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [Vercel Eve](https://eve.dev) agents, powered by
-[ContextBase](https://github.com/RSIXDB/hindsight). A memory provider for Eve's
+[ContextBase](.). A memory provider for Eve's
 [memory slots](https://eve.dev/docs/memory): relevant memory is recalled on the live user
 message before every turn, each exchange is captured after, and every scope (user, tenant,
 channel) gets its own isolated ContextBase bank — **without the model ever choosing to call a
@@ -57,7 +57,7 @@ That's it. The provider reads its connection from the environment:
 
 ### ContextBase remote service
 
-Set `CONTEXTBASE_API_KEY` to a key from your [ContextBase remote service](https://github.com/RSIXDB/hindsight)
+Set `CONTEXTBASE_API_KEY` to a key from your [ContextBase remote service](.)
 dashboard. `CONTEXTBASE_API_URL` defaults to `http://localhost:8888`, so no URL is
 needed.
 
@@ -149,6 +149,6 @@ slot-attributed message rather than system instructions.
 
 ## Links
 
-- [ContextBase docs](https://github.com/RSIXDB/hindsight)
+- [ContextBase docs](.)
 - [Eve memory](https://eve.dev/docs/memory) ·
   [Build a memory provider](https://github.com/vercel/eve/blob/main/docs/memory/custom-provider.md)

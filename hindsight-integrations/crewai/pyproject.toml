@@ -5,9 +5,7 @@ description = "CrewAI memory integration via ContextBase - persistent memory for
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" }
-]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = [
     "ai",
     "memory",
@@ -41,11 +39,6 @@ dev = [
     "pytest>=7.0.0",
     "pytest-mock>=3.10.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/crewai"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,5 +1,5 @@
 /**
- * HTTP transport seam for {@link HindsightClient}.
+ * HTTP transport seam for {@link ContextBaseClient}.
  *
  * The plugin runs inside Obsidian's renderer and must use `requestUrl` to escape
  * the CORS sandbox; a headless CLI runs in Node and uses `fetch`. Keeping the

@@ -7,12 +7,12 @@
  * vault note. The tests assert this guarantee explicitly.
  */
 
-import type { HindsightClient } from "./client";
+import type { ContextBaseClient } from "./client";
 import { retrievedNotes } from "./reflect-util";
 import type { Budget, ObservationScopes, ReflectResponse, TagGroup } from "./types";
 
 export interface ChatTurnDeps {
-  client: HindsightClient;
+  client: ContextBaseClient;
   bankId: string;
   budget: Budget;
   rememberConversations: boolean;

@@ -2,7 +2,7 @@
 
 Port of: detectLLMConfig() in index.js
 
-When running hindsight-embed locally (daemon mode), it needs an LLM to
+When running contextbase-embed locally (daemon mode), it needs an LLM to
 extract facts from retained conversations. This module detects the LLM
 config using the same priority chain as Openclaw:
 
@@ -117,7 +117,7 @@ def detect_llm_config(config: dict) -> dict:
         }
 
     raise RuntimeError(
-        "No LLM configuration found for Hindsight.\n\n"
+        "No LLM configuration found for ContextBase.\n\n"
         "Option 1: Set a standard provider API key (auto-detect):\n"
         "  export OPENAI_API_KEY=sk-your-key\n"
         "  export ANTHROPIC_API_KEY=your-key\n\n"
@@ -131,7 +131,7 @@ def detect_llm_config(config: dict) -> dict:
 
 
 def get_llm_env_vars(llm_config: dict) -> dict:
-    """Build environment variables for hindsight-embed daemon from LLM config.
+    """Build environment variables for contextbase-embed daemon from LLM config.
 
     These are passed to the daemon subprocess so it knows which LLM to use
     for fact extraction.

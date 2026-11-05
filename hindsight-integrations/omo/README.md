@@ -1,8 +1,8 @@
 # ContextBase × OMO (oh-my-openagent)
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Long-term memory for [OMO](https://github.com/code-yeongyu/oh-my-openagent) agents via [ContextBase](https://github.com/RSIXDB/hindsight). Automatically recalls relevant context before each prompt and retains session learnings for future use.
+Long-term memory for [OMO](https://github.com/code-yeongyu/oh-my-openagent) agents via [ContextBase](.). Automatically recalls relevant context before each prompt and retains session learnings for future use.
 
 ## Setup
 

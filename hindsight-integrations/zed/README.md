@@ -1,9 +1,9 @@
 # contextbase-zed
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for the [Zed](https://zed.dev) editor's AI assistant, powered by
-[ContextBase](https://github.com/RSIXDB/hindsight).
+[ContextBase](.).
 
 `contextbase-zed init` wires Zed's Agent Panel to the ContextBase **MCP server** and
 adds a rule telling the agent to use it — so it recalls relevant memory at the
@@ -45,7 +45,7 @@ contextbase-zed init --api-token YOUR_CONTEXTBASE_API_KEY --bank-id my-memory
 recall/retain rule to `~/.config/zed/AGENTS.md`. Restart Zed, open the Agent
 Panel, and the `contextbase` server should show a green dot.
 
-Use a [ContextBase remote service](https://github.com/RSIXDB/hindsight) key, or point at a
+Use a [ContextBase remote service](.) key, or point at a
 self-hosted server with `--api-url http://localhost:8888` (no token needed for an
 open local server).
 

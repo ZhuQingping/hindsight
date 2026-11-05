@@ -1,8 +1,8 @@
 # contextbase-superagent
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Safety middleware for [ContextBase](https://github.com/RSIXDB/hindsight) memory operations using [Superagent](https://www.superagent.sh). Guards memory against prompt injection and redacts PII before storage.
+Safety middleware for [ContextBase](.) memory operations using [Superagent](https://www.superagent.sh). Guards memory against prompt injection and redacts PII before storage.
 
 ## Features
 

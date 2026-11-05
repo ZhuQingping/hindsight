@@ -6,10 +6,9 @@
 #   1. The plugin tarball installs cleanly via `openclaw plugins install`
 #      WITHOUT --dangerously-force-unsafe-install (install scanner reports
 #      zero findings).
-#   2. Workspace deps (@vectorize-io/hindsight-all, contextbase-client) resolve
-#      from the npm registry into the extracted extension's node_modules.
+#   2. The audited SDK is bundled in the tarball; no local engine is downloaded.
 #   3. The non-interactive `contextbase-openclaw-setup` wizard writes a valid
-#      openclaw.json plugin config for each of the three modes.
+#      openclaw.json plugin config for both remote connection modes.
 #   4. `openclaw config validate` + `openclaw plugins doctor` pass after each
 #      setup run.
 #   5. The wizard rejects invalid flag combinations with a non-zero exit code.
@@ -33,7 +32,7 @@
 #   ./scripts/smoke-test.sh                # packs a fresh tarball
 #   ./scripts/smoke-test.sh <tarball-path> # uses an existing tarball
 #
-# Requirements: openclaw CLI on PATH, node, npm.
+# Requirements: openclaw CLI on PATH, node, npm, Python 3.11+.
 #
 
 set -euo pipefail
@@ -82,7 +81,7 @@ cleanup() {
   fi
 
   # Clean up the tarball only if we packed it ourselves.
-  if [[ -n "$TARBALL" && "$TARBALL" == "$PLUGIN_DIR"/vectorize-io-contextbase-openclaw-*.tgz ]]; then
+  if [[ -n "$TARBALL" && "$TARBALL" == "$PLUGIN_DIR"/contextbase-openclaw-*.tgz ]]; then
     rm -f "$TARBALL"
   fi
   exit "$rc"
@@ -213,9 +212,15 @@ main() {
       cd "$PLUGIN_DIR"
       npm run clean --silent
       npm run build --silent
-      npm pack --silent >/dev/null
+      local_artifacts=$(mktemp -d)
+      npm --prefix "$PLUGIN_DIR/../../hindsight-clients/typescript" run build --workspaces=false --silent
+      python3 "$PLUGIN_DIR/../../scripts/package-node-sdk.py" --output "$local_artifacts"
+      python3 "$PLUGIN_DIR/../../scripts/package-agent-assistants.py" openclaw \
+        --sdk-artifact "$local_artifacts"/huaweicloud-contextbase-client/*/*.tgz --output "$local_artifacts"
+      cp "$local_artifacts"/contextbase-openclaw/*/contextbase-openclaw-*.tgz "$PLUGIN_DIR/"
+      rm -rf "$local_artifacts"
     )
-    TARBALL="$(ls -t "$PLUGIN_DIR"/vectorize-io-contextbase-openclaw-*.tgz | head -1)"
+    TARBALL="$(ls -t "$PLUGIN_DIR"/contextbase-openclaw-*.tgz | head -1)"
     log "packed: $TARBALL"
   fi
 
@@ -240,27 +245,22 @@ main() {
   rm -f "$install_log"
   log "✓ scanner-clean install succeeded"
 
-  # Confirm deps resolved from npm.
-  if [[ ! -d "$EXT_DIR/node_modules/@vectorize-io/hindsight-all" ]]; then
-    fail "expected @vectorize-io/hindsight-all in installed extension"
-  fi
-  if [[ ! -d "$EXT_DIR/node_modules/contextbase-client" ]]; then
-    fail "expected contextbase-client in installed extension"
-  fi
-  log "✓ workspace deps resolved from registry"
+  # The exact audited SDK ships inside the plugin; no engine dependency is expected.
+  [[ -d "$EXT_DIR/node_modules/contextbase-client" ]] || fail "bundled SDK missing"
+  log "✓ bundled SDK installed"
 
   [[ -f "$EXT_DIR/dist/setup.js" ]] || fail "setup.js missing in installed extension"
 
   # -------------------------------------------------------------------------
   # Phase 2 — non-interactive setup for each mode
   # -------------------------------------------------------------------------
-  run_setup_mode "cloud (default URL, SecretRef)" \
-    --mode cloud --token-env CONTEXTBASE_CLOUD_TOKEN
-  [[ "$(get_config_value plugins.entries.contextbase-openclaw.config.contextbaseApiUrl)" == "" ]] \
-    || fail "cloud mode: contextbaseApiUrl not set to the default URL"
+  run_setup_mode "cloud (explicit URL, SecretRef)" \
+    --mode cloud --api-url "$CONTEXTBASE_API_URL" --token-env CONTEXTBASE_CLOUD_TOKEN
+  [[ "$(get_config_value plugins.entries.contextbase-openclaw.config.contextbaseApiUrl)" == "$CONTEXTBASE_API_URL" ]] \
+    || fail "cloud mode: explicit contextbaseApiUrl did not roundtrip"
 
   run_setup_mode "cloud (inline --token)" \
-    --mode cloud --token hsk_smoke_test_inline_value
+    --mode cloud --api-url "$CONTEXTBASE_API_URL" --token hsk_smoke_test_inline_value
   # Read the raw file — `openclaw config get` redacts sensitive fields.
   [[ "$(get_raw_config_value plugins.entries.contextbase-openclaw.config.contextbaseApiToken)" == "hsk_smoke_test_inline_value" ]] \
     || fail "cloud mode: --token did not roundtrip as inline string"
@@ -275,21 +275,6 @@ main() {
   [[ "$(get_raw_config_value plugins.entries.contextbase-openclaw.config.contextbaseApiToken)" == "api_smoke_test_inline" ]] \
     || fail "api mode: --token did not roundtrip as inline string"
 
-  run_setup_mode "embedded (openai --api-key-env + model override)" \
-    --mode embedded --provider openai --api-key-env OPENAI_API_KEY --model gpt-4o-mini
-  [[ "$(get_config_value plugins.entries.contextbase-openclaw.config.llmProvider)" == "openai" ]] \
-    || fail "embedded mode: llmProvider not set to openai"
-  [[ "$(get_config_value plugins.entries.contextbase-openclaw.config.llmModel)" == "gpt-4o-mini" ]] \
-    || fail "embedded mode: llmModel not set to gpt-4o-mini"
-
-  run_setup_mode "embedded (openai --api-key inline)" \
-    --mode embedded --provider openai --api-key sk-smoke-test-inline
-  [[ "$(get_raw_config_value plugins.entries.contextbase-openclaw.config.llmApiKey)" == "sk-smoke-test-inline" ]] \
-    || fail "embedded mode: --api-key did not roundtrip as inline string"
-
-  run_setup_mode "embedded (claude-code, no key)" \
-    --mode embedded --provider claude-code
-
   # -------------------------------------------------------------------------
   # Phase 3 — negative tests: bad CLI args must fail fast
   # -------------------------------------------------------------------------
@@ -303,11 +288,8 @@ main() {
   if node "$EXT_DIR/dist/setup.js" --config-path "$CONFIG_PATH" --mode api --api-url "$CONTEXTBASE_API_URL" --token-env TOK --no-token 2>/dev/null; then
     fail "--token-env + --no-token together should have failed"
   fi
-  if node "$EXT_DIR/dist/setup.js" --config-path "$CONFIG_PATH" --mode embedded --provider openai 2>/dev/null; then
-    fail "openai without --api-key or --api-key-env should have failed"
-  fi
-  if node "$EXT_DIR/dist/setup.js" --config-path "$CONFIG_PATH" --mode embedded --provider openai --api-key sk-x --api-key-env OPENAI_API_KEY 2>/dev/null; then
-    fail "embedded with both --api-key and --api-key-env should have failed"
+  if node "$EXT_DIR/dist/setup.js" --config-path "$CONFIG_PATH" --mode embedded 2>/dev/null; then
+    fail "unsupported embedded mode should have failed"
   fi
   log "✓ bad args rejected"
 

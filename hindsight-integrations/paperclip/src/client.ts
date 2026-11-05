@@ -28,7 +28,7 @@ export interface RecallResponse {
 
 export const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 
-export class HindsightClient {
+export class ContextBaseClient {
   private readonly baseUrl: string;
   private readonly token: string | undefined;
   private readonly timeoutMs: number;

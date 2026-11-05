@@ -19,7 +19,7 @@
 
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
 import type { EnvSecretRefBinding, PluginContext, ToolRunContext } from "@paperclipai/plugin-sdk";
-import { HindsightClient, formatMemories } from "./client.js";
+import { ContextBaseClient, formatMemories } from "./client.js";
 import { deriveBankId, extractUserFromIssue } from "./bank.js";
 
 interface PluginConfig {
@@ -135,7 +135,7 @@ const plugin = definePlugin({
 
       try {
         const apiKey = await resolveApiKey(ctx, config, companyId);
-        const client = new HindsightClient(
+        const client = new ContextBaseClient(
           config.contextbaseApiUrl,
           apiKey,
           config.requestTimeoutMs
@@ -245,7 +245,7 @@ const plugin = definePlugin({
 
       try {
         const apiKey = await resolveApiKey(ctx, config, companyId);
-        const client = new HindsightClient(
+        const client = new ContextBaseClient(
           config.contextbaseApiUrl,
           apiKey,
           config.requestTimeoutMs
@@ -353,7 +353,7 @@ const plugin = definePlugin({
         // Live recall fallback
         try {
           const apiKey = await resolveApiKey(ctx, config, runCtx.companyId);
-          const client = new HindsightClient(
+          const client = new ContextBaseClient(
             config.contextbaseApiUrl,
             apiKey,
             config.requestTimeoutMs
@@ -415,7 +415,7 @@ const plugin = definePlugin({
 
         try {
           const apiKey = await resolveApiKey(ctx, config, runCtx.companyId);
-          const client = new HindsightClient(
+          const client = new ContextBaseClient(
             config.contextbaseApiUrl,
             apiKey,
             config.requestTimeoutMs
@@ -446,7 +446,7 @@ const plugin = definePlugin({
     }
 
     try {
-      const client = new HindsightClient(c.contextbaseApiUrl, undefined, c.requestTimeoutMs);
+      const client = new ContextBaseClient(c.contextbaseApiUrl, undefined, c.requestTimeoutMs);
       const healthy = await client.health();
       if (!healthy) {
         return {

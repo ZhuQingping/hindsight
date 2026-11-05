@@ -1,6 +1,6 @@
 # contextbase-crewai
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Persistent memory for AI agent crews via ContextBase. Give your CrewAI crews long-term memory with fact extraction, entity tracking, and temporal awareness.
 
@@ -62,7 +62,7 @@ If you're running ContextBase locally with `./scripts/dev/start-api.sh`, point a
 configure(contextbase_api_url="http://localhost:8888")
 ```
 
-See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
+See the [ContextBase installation guide](../../docs/contextbase/CUSTOMER-GUIDE.md) for self-hosting setup.
 
 ## Per-Agent Memory Banks
 
@@ -152,7 +152,7 @@ storage = ContextBaseStorage(
 
 ## Examples
 
-See the [CrewAI memory example](https://github.com/vectorize-io/hindsight-cookbook/tree/main/applications/crewai-memory) in the ContextBase Cookbook for a complete working demo with a Researcher + Writer crew.
+See the [CrewAI memory example](../../docs/contextbase/CUSTOMER-GUIDE.md) in the ContextBase Cookbook for a complete working demo with a Researcher + Writer crew.
 
 ## Configuration Reference
 

@@ -14,7 +14,7 @@ The ContextBase Dify plugin sends data to a ContextBase API instance (ContextBas
 
 ## Where data goes
 
-- **an explicitly configured service URL**: data is processed and stored by Vectorize, Inc. See [https://github.com/RSIXDB/hindsight/privacy](https://github.com/RSIXDB/hindsight/privacy).
+- **an explicitly configured service URL**: data is processed and stored by the service provider See the privacy terms supplied by your service provider.
 - **Self-hosted ContextBase**: data stays inside your own infrastructure.
 
 ## Credentials

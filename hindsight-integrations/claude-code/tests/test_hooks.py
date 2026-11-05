@@ -336,7 +336,7 @@ class TestRecallHook:
 
 
 class TestRetainHook:
-    def test_posts_transcript_to_hindsight(self, monkeypatch, tmp_path):
+    def test_posts_transcript_to_contextbase(self, monkeypatch, tmp_path):
         messages = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]
         transcript = make_transcript_file(tmp_path, messages)
 

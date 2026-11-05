@@ -5,9 +5,7 @@ description = "LangGraph integration for ContextBase - persistent memory tools, 
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" }
-]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = [
     "ai",
     "memory",
@@ -42,11 +40,6 @@ langgraph = [
 all = [
     "langgraph>=0.3.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/langgraph"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

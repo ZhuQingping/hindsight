@@ -5,7 +5,7 @@ const manifest: PaperclipPluginManifestV1 = {
   apiVersion: 1,
   version: "0.4.2",
   displayName: "ContextBase Memory",
-  author: "Vectorize <support@vectorize.io>",
+  author: "ContextBase Team",
   description:
     "Persistent long-term memory for Paperclip agents. Automatically recalls relevant context before each run and retains agent output after — so every agent gets smarter over time.",
   categories: ["automation"],

@@ -24,7 +24,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check client artifact branding and nested SDK archives
-        run: python scripts/test-client-artifact-audit.py
+        run: |
+          python scripts/test-client-artifact-audit.py
+          python scripts/test-client-source-branding.py
       - name: Install SDK build and test dependencies
         run: python -m pip install build twine pytest-timeout pytest-xdist './hindsight-clients/python[test]'
       - name: Test Python SDK without a live service

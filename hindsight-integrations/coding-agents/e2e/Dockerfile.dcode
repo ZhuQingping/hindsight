@@ -1,4 +1,4 @@
-FROM hindsight-coding-agents-e2e-base
+FROM contextbase-coding-agents-e2e-base
 ARG VERSION=latest
 # Dcode ships as a uv tool, not an npm package, so it is installed through its own script rather
 # than `npm install --global` like the other harnesses. The script provisions uv (and the Python it

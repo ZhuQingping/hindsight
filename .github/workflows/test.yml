@@ -3116,7 +3116,7 @@ jobs:
       HINDSIGHT_API_LLM_PROVIDER: vertexai
       HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
       HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
-      HINDSIGHT_API_URL: http://localhost:8888
+      CONTEXTBASE_API_URL: http://localhost:8888
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Prefer CPU-only PyTorch in CI (but keep PyPI for everything else)
 
@@ -3232,7 +3232,7 @@ jobs:
       HINDSIGHT_API_LLM_PROVIDER: vertexai
       HINDSIGHT_API_LLM_VERTEXAI_SERVICE_ACCOUNT_KEY: /tmp/gcp-credentials.json
       HINDSIGHT_API_LLM_MODEL: google/gemini-2.5-flash-lite
-      HINDSIGHT_API_URL: http://localhost:8888
+      CONTEXTBASE_API_URL: http://localhost:8888
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Prefer CPU-only PyTorch in CI (but keep PyPI for everything else)
 
@@ -5647,7 +5647,9 @@ jobs:
       run: bash scripts/sync-product-brand.sh --check
 
     - name: Check client artifact branding and nested SDK archives
-      run: python scripts/test-client-artifact-audit.py
+      run: |
+        python scripts/test-client-artifact-audit.py
+        python scripts/test-client-source-branding.py
 
     - name: Install Python dependencies
       run: |

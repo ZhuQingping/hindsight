@@ -134,9 +134,9 @@ def run_hook_script(module_name, hook_input, tmp_dir):
 
 def check_server():
     """Check if ContextBase server is running."""
-    from lib.client import HindsightClient
+    from lib.client import ContextBaseClient
 
-    client = HindsightClient(API_URL)
+    client = ContextBaseClient(API_URL)
     return client.health_check(timeout=3)
 
 

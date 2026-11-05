@@ -28,7 +28,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.daemon import get_api_url, prestart_daemon_background
 from lib.hook_io import field as hook_field
@@ -65,9 +65,9 @@ def main():
         return
 
     try:
-        client = HindsightClient(api_url, config.get("contextbaseApiToken"))
+        client = ContextBaseClient(api_url, config.get("contextbaseApiToken"))
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[ContextBase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     debug_log(config, f"ContextBase server reachable at {api_url}")
@@ -93,5 +93,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionStart error: {e}", file=sys.stderr)
+        print(f"[ContextBase] SessionStart error: {e}", file=sys.stderr)
         sys.exit(0)

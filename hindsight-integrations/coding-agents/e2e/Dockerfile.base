@@ -10,7 +10,7 @@ RUN apt-get update \
 # Vendor install scripts drop binaries here.
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY run-harness.sh /usr/local/bin/hindsight-e2e-runner
-RUN chmod 755 /usr/local/bin/hindsight-e2e-runner
+COPY run-harness.sh /usr/local/bin/contextbase-e2e-runner
+RUN chmod 755 /usr/local/bin/contextbase-e2e-runner
 
-ENTRYPOINT ["/usr/local/bin/hindsight-e2e-runner"]
+ENTRYPOINT ["/usr/local/bin/contextbase-e2e-runner"]

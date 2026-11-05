@@ -38,7 +38,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.content import prepare_retention_transcript, read_transcript
 from lib.daemon import get_api_url
@@ -132,7 +132,7 @@ def run_retain(hook_input: dict) -> None:
 
     api_token = config.get("apiToken")
     try:
-        client = HindsightClient(api_url, api_token)
+        client = ContextBaseClient(api_url, api_token)
     except ValueError as e:
         print(f"[contextbase] Invalid API URL: {e}", file=sys.stderr)
         return

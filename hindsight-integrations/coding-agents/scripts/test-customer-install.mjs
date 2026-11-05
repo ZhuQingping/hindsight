@@ -107,7 +107,7 @@ try {
   // package.json is copied alongside dist into the customer's runtime, including devDependencies.
   // A build-only file: reference can therefore leak repository internals even when npm omits it.
   const manifestText = readFileSync(join(dist, "..", "package.json"), "utf8");
-  assert(!/hindsight|contextbase-local-engine/i.test(manifestText), "installed package metadata");
+  assert(!/contextbase|contextbase-local-engine/i.test(manifestText), "installed package metadata");
   const manifest = JSON.parse(manifestText);
   if (process.argv[2]) {
     const sourceManifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
@@ -144,7 +144,7 @@ try {
   assert(!readdirSync(dist).some((file) => file.startsWith("daemon-start")));
   for (const file of readdirSync(dist)) {
     if (file.endsWith(".js") || file.endsWith(".d.ts")) {
-      assert(!/hindsight/i.test(readFileSync(join(dist, file), "utf8")), file);
+      assert(!/contextbase/i.test(readFileSync(join(dist, file), "utf8")), file);
     }
   }
   for (const harness of [

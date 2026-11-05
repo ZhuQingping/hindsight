@@ -23,7 +23,7 @@ function encodeDocPath(documentId: string): string {
   return documentId.split("/").map(encodeURIComponent).join("/");
 }
 
-export class HindsightClient {
+export class ContextBaseClient {
   private readonly baseUrl: string;
   private readonly token: string | undefined;
   private readonly transport: Transport;

@@ -10,7 +10,7 @@ import { mkdir, rm, mkdtemp, rename, utimes, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { HindsightClient } from "../../src/client";
+import type { ContextBaseClient } from "../../src/client";
 import { FsVault } from "../../src/node/fs-vault";
 import { type IndexIdentity, loadIndex, makePersist } from "../../src/node/json-index";
 import {
@@ -73,7 +73,7 @@ async function makeEngine(config: Partial<SyncConfig> = {}) {
   };
   const index = await loadIndex(indexPath, identity);
   const engine = new SyncEngine(
-    client as unknown as HindsightClient,
+    client as unknown as ContextBaseClient,
     new FsVault(root),
     cfg,
     index,
@@ -268,7 +268,7 @@ describe("dual-ingester parity", () => {
     const fsClient = fakeClient();
     const fsIndex: SyncIndex = {};
     await new SyncEngine(
-      fsClient as unknown as HindsightClient,
+      fsClient as unknown as ContextBaseClient,
       new FsVault(root),
       config,
       fsIndex,
@@ -279,7 +279,7 @@ describe("dual-ingester parity", () => {
     // Plugin-style in-memory frontend, same files/mtimes/config.
     const memClient = fakeClient();
     await new SyncEngine(
-      memClient as unknown as HindsightClient,
+      memClient as unknown as ContextBaseClient,
       memoryVault({
         "Work/a.md": { content: noteA, mtime: fixed.getTime(), ctime: fixed.getTime() },
         "b.md": { content: noteB, mtime: fixed.getTime(), ctime: fixed.getTime() },

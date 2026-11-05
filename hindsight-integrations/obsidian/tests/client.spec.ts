@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { HindsightClient } from "../src/client";
+import { ContextBaseClient } from "../src/client";
 import type { Transport, TransportRequest } from "../src/transport";
 
 function ok(json: unknown = {}) {
@@ -16,14 +16,14 @@ function lastCall(): TransportRequest {
   return call[0];
 }
 
-describe("HindsightClient", () => {
+describe("ContextBaseClient", () => {
   beforeEach(() => {
     mock.mockReset();
     mock.mockResolvedValue(ok());
   });
 
   it("retain posts an upsert item with document_id and replace mode", async () => {
-    const client = new HindsightClient("https://api.example.com/", "secret", mock);
+    const client = new ContextBaseClient("https://api.example.com/", "secret", mock);
     await client.retain("bank x", "Folder/Note.md", "body text", { tags: ["t1"] });
 
     const params = lastCall();
@@ -41,7 +41,7 @@ describe("HindsightClient", () => {
   });
 
   it("deleteDocument encodes segments but preserves path slashes", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.deleteDocument("b", "Folder/My Note.md");
     const params = lastCall();
     expect(params.method).toBe("DELETE");
@@ -52,7 +52,7 @@ describe("HindsightClient", () => {
 
   it("reflect requests citations + trace when asked", async () => {
     mock.mockResolvedValue(ok({ text: "answer", based_on: { memories: [] } }));
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     const res = await client.reflect("b", "what?", { budget: "high", includeCitations: true });
 
     const body = JSON.parse(lastCall().body ?? "{}");
@@ -62,25 +62,25 @@ describe("HindsightClient", () => {
   });
 
   it("omits the Authorization header when no token is set", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.reflect("b", "q");
     expect(lastCall().headers?.Authorization).toBeUndefined();
   });
 
   it("throws a useful error on non-2xx", async () => {
     mock.mockResolvedValue({ status: 500, text: "boom", json: {} });
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await expect(client.reflect("b", "q")).rejects.toThrow(/HTTP 500: boom/);
   });
 
   it("propagates a transport rejection (network/timeout)", async () => {
     mock.mockRejectedValue(new Error("net::ERR_CONNECTION_REFUSED"));
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await expect(client.reflect("b", "q")).rejects.toThrow(/ERR_CONNECTION_REFUSED/);
   });
 
   it("reflect sends tag_groups when provided", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.reflect("b", "q", {
       tagGroups: [{ tags: ["vault:notes"], match: "all_strict" }],
       tags: ["ignored"],
@@ -91,7 +91,7 @@ describe("HindsightClient", () => {
   });
 
   it("reflect falls back to tags when only tags are given", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.reflect("b", "q", { tags: ["work"] });
     const body = JSON.parse(lastCall().body ?? "{}");
     expect(body.tags).toEqual(["work"]);
@@ -99,7 +99,7 @@ describe("HindsightClient", () => {
   });
 
   it("reflect sends neither tags nor tag_groups when both are empty", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.reflect("b", "q", { tags: [], tagGroups: [] });
     const body = JSON.parse(lastCall().body ?? "{}");
     expect(body.tags).toBeUndefined();
@@ -107,7 +107,7 @@ describe("HindsightClient", () => {
   });
 
   it("retain sends a named observation scope beside existing tags", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.retain("b", "Note.md", "body", {
       tags: ["vault:Notes", "topic:planning"],
       observationScopes: "shared",
@@ -120,7 +120,7 @@ describe("HindsightClient", () => {
   });
 
   it("retain omits optional tags and observation scopes when unset", async () => {
-    const client = new HindsightClient("https://api.example.com", undefined, mock);
+    const client = new ContextBaseClient("https://api.example.com", undefined, mock);
     await client.retain("b", "Note.md", "body");
     const body = JSON.parse(lastCall().body ?? "{}");
     expect(body.items[0].tags).toBeUndefined();

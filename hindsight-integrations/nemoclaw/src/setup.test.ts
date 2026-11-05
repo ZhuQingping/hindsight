@@ -23,7 +23,7 @@ vi.mock("fs/promises", () => ({
 
 const BASE_ARGS: CliArgs = {
   sandbox: "my-assistant",
-  apiUrl: "https://api.hindsight.vectorize.io",
+  apiUrl: "https://service.example",
   apiToken: "hsk_test123",
   bankPrefix: "my-sandbox",
   skipPolicy: false,

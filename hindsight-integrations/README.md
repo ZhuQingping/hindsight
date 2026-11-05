@@ -1,8 +1,8 @@
 # ContextBase Integrations
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-First-party integrations that give popular AI agents, frameworks, and CLIs persistent long-term memory via [ContextBase](https://github.com/RSIXDB/hindsight).
+First-party integrations that give popular AI agents, frameworks, and CLIs persistent long-term memory via [ContextBase](.).
 
 Each integration lives in its own subdirectory with its own README, configuration, and tests. Pick the one that matches the agent or framework you're using.
 
@@ -11,8 +11,8 @@ Each integration lives in its own subdirectory with its own README, configuratio
 | Integration | What it does | Install |
 | --- | --- | --- |
 | [**Claude Code**](./claude-code) | Hooks-based memory for Anthropic's Claude Code. Auto-retains every session, recalls context on each prompt. | `npx contextbase-cc` |
-| [**OpenCode**](./opencode) | TypeScript plugin with retain/recall/reflect tools, auto-retain on idle, memory injection on session start, compaction preservation. | Add `@vectorize-io/opencode-contextbase` to `opencode.json` |
-| [**Codex CLI**](./codex) | Python hook scripts for OpenAI's Codex CLI. Auto-recall on `UserPromptSubmit`, auto-retain on `Stop`. | `curl -fsSL https://github.com/RSIXDB/hindsight/get-codex \| bash` |
+| [**OpenCode**](./opencode) | TypeScript plugin with retain/recall/reflect tools, auto-retain on idle, memory injection on session start, compaction preservation. | Add `@huaweicloud/opencode-contextbase` to `opencode.json` |
+| [**Codex CLI**](./codex) | Python hook scripts for OpenAI's Codex CLI. Auto-recall on `UserPromptSubmit`, auto-retain on `Stop`. | `curl -fsSL ../get-codex \| bash` |
 | [**Cursor CLI**](./cursor-cli) | Python hook scripts for Cursor CLI. Auto-recall on `beforeSubmitPrompt`, auto-retain on `stop`, final flush on `sessionEnd`. | `./scripts/install.sh` |
 | [**Copilot CLI**](./copilot-cli) | Python hook scripts for GitHub Copilot CLI. Auto-recall on `sessionStart`/`subagentStart`, auto-retain on `agentStop`, final flush on `sessionEnd`. | `pip install contextbase-copilot-cli && contextbase-copilot-cli install` |
 | [**Continue.dev**](./continue) | HTTP context provider for precise `@contextbase` recall in chat, plus optional MCP-server + rules for automatic recall/retain in agent mode. | `pip install contextbase-continue` |

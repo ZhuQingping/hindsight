@@ -10,7 +10,7 @@ binding = "OAUTH_KV"
 id = "your-kv-namespace-id"
 
 [vars]
-CONTEXTBASE_ORIGIN = "https://your-hindsight-origin.example.com"
+CONTEXTBASE_ORIGIN = "https://your-contextbase-origin.example.com"
 
 [[routes]]
 pattern = "contextbase.yourdomain.com/*"

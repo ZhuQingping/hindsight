@@ -1,8 +1,8 @@
 # contextbase-haystack
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Haystack integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+Haystack integration for [ContextBase](.) — persistent long-term memory for AI agents.
 
 Provides Haystack `Tool` instances that give any Haystack `Agent` persistent memory via ContextBase's retain/recall/reflect APIs.
 
@@ -105,6 +105,6 @@ tools = create_contextbase_tools(bank_id="user-123")
 
 ## Documentation
 
-- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
-- [ContextBase API docs](https://docs.hindsight.vectorize.io)
+- [Integration docs](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [ContextBase API docs](../../docs/contextbase/CUSTOMER-GUIDE.md)
 

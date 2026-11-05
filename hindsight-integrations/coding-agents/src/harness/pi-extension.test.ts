@@ -197,7 +197,7 @@ describe("pi extension factory", () => {
       flush: vi.fn(async () => {}),
       toolSpecs: (): ToolSpec[] => [
         {
-          name: "hindsight_reflect",
+          name: "contextbase_reflect",
           description: "reflect",
           inputSchema: { query: z.string() },
           annotations: {
@@ -244,7 +244,7 @@ describe("pi extension factory", () => {
     expect(pi.tools).toHaveLength(0);
 
     pi.handlers.session_start({}, ctx("/repo-a", "s-a"));
-    expect(pi.tools.map((t) => t.name)).toEqual(["hindsight_reflect"]);
+    expect(pi.tools.map((t) => t.name)).toEqual(["contextbase_reflect"]);
 
     await pi.handlers.before_agent_start(
       { prompt: "hello a", systemPrompt: "sys" },
@@ -274,6 +274,6 @@ describe("pi extension factory", () => {
   it("registers the launch directory's tools at load, as the CLI always has", () => {
     const pi = fakePi();
     createPiExtension("pi", (_h, dir) => fakeCore(dir) as never)(pi.api as never);
-    expect(pi.tools.map((t) => t.name)).toEqual(["hindsight_reflect"]);
+    expect(pi.tools.map((t) => t.name)).toEqual(["contextbase_reflect"]);
   });
 });

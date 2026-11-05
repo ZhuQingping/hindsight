@@ -17,7 +17,7 @@ is fully verified end-to-end.
 
 Required env:
     GOOGLE_API_KEY        — Gemini API key (aistudio.google.com/apikey)
-    CONTEXTBASE_API_URL     — defaults to https://api.dev.hindsight.vectorize.io
+    CONTEXTBASE_API_URL     — required service API endpoint
     CONTEXTBASE_API_KEY     — ContextBase Cloud bearer token
 """
 
@@ -34,7 +34,7 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.tools.load_memory_tool import load_memory_tool
 from google.genai import types
 
-CONTEXTBASE_API_URL = os.environ.get("CONTEXTBASE_API_URL", "https://api.dev.hindsight.vectorize.io")
+CONTEXTBASE_API_URL = os.environ["CONTEXTBASE_API_URL"]
 CONTEXTBASE_API_KEY = os.environ.get("CONTEXTBASE_API_KEY")
 
 APP_NAME = "contextbase-adk-smoke"

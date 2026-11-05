@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestHarness } from "@paperclipai/plugin-sdk";
 import manifest from "../src/manifest.js";
 import plugin from "../src/worker.js";
-import { DEFAULT_REQUEST_TIMEOUT_MS, HindsightClient } from "../src/client.js";
+import { DEFAULT_REQUEST_TIMEOUT_MS, ContextBaseClient } from "../src/client.js";
 
 // ---------------------------------------------------------------------------
 // Fetch mock helpers
@@ -587,7 +587,7 @@ describe("contextbase_recall tool", () => {
   });
 });
 
-describe("HindsightClient timeout", () => {
+describe("ContextBaseClient timeout", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -596,7 +596,7 @@ describe("HindsightClient timeout", () => {
   async function timeoutUsed(timeoutMs?: number): Promise<number | undefined> {
     vi.stubGlobal("fetch", mockFetch([{ url: /recall/, body: { results: [] } }]));
     const spy = vi.spyOn(globalThis, "setTimeout");
-    await new HindsightClient("http://localhost:8888", undefined, timeoutMs).recall("b", "q");
+    await new ContextBaseClient("http://localhost:8888", undefined, timeoutMs).recall("b", "q");
     return spy.mock.calls[0]?.[1];
   }
 

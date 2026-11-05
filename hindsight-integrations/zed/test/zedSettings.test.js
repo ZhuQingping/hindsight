@@ -19,17 +19,17 @@ function tmpPath(name = "settings.json") {
 
 test("mcpEndpointUrl builds a bank-scoped MCP path", () => {
   assert.equal(
-    mcpEndpointUrl("https://api.hindsight.vectorize.io", "zed"),
-    "https://api.hindsight.vectorize.io/mcp/zed/"
+    mcpEndpointUrl("https://service.example", "zed"),
+    "https://service.example/mcp/zed/"
   );
   // Trailing slash on the base URL is normalized.
   assert.equal(mcpEndpointUrl("http://localhost:8888/", "proj"), "http://localhost:8888/mcp/proj/");
 });
 
 test("buildContextServer uses Zed's native url form, with a header only when a token is set", () => {
-  const withToken = buildContextServer("https://api.hindsight.vectorize.io", "secret", "zed");
+  const withToken = buildContextServer("https://service.example", "secret", "zed");
   assert.deepEqual(withToken, {
-    url: "https://api.hindsight.vectorize.io/mcp/zed/",
+    url: "https://service.example/mcp/zed/",
     headers: { Authorization: "Bearer secret" },
   });
 
@@ -46,7 +46,7 @@ test("apply replaces an old mcp-remote bridge entry with the native form", () =>
       args: [
         "-y",
         "mcp-remote",
-        "https://api.hindsight.vectorize.io/mcp/zed/",
+        "https://service.example/mcp/zed/",
         "--header",
         "Authorization: Bearer tok",
       ],
@@ -55,7 +55,7 @@ test("apply replaces an old mcp-remote bridge entry with the native form", () =>
       p,
       JSON.stringify({ theme: "dark", context_servers: { [SERVER_NAME]: legacy } }, null, 2)
     );
-    const server = buildContextServer("https://api.hindsight.vectorize.io", "tok", "zed");
+    const server = buildContextServer("https://service.example", "tok", "zed");
     assert.equal(applyToSettings(p, server).action, "merged");
     const data = JSON.parse(readFileSync(p, "utf-8"));
     assert.deepEqual(data.context_servers[SERVER_NAME], server);
@@ -68,7 +68,7 @@ test("apply replaces an old mcp-remote bridge entry with the native form", () =>
 test("apply creates, then reports unchanged, then merges", () => {
   const p = tmpPath();
   try {
-    const server = buildContextServer("https://api.hindsight.vectorize.io", "tok", "zed");
+    const server = buildContextServer("https://service.example", "tok", "zed");
 
     const created = applyToSettings(p, server);
     assert.equal(created.action, "created");
@@ -77,14 +77,11 @@ test("apply creates, then reports unchanged, then merges", () => {
     const again = applyToSettings(p, server);
     assert.equal(again.action, "unchanged");
 
-    const server2 = buildContextServer("https://api.hindsight.vectorize.io", "tok", "other-bank");
+    const server2 = buildContextServer("https://service.example", "tok", "other-bank");
     const merged = applyToSettings(p, server2);
     assert.equal(merged.action, "merged");
     const data = JSON.parse(readFileSync(p, "utf-8"));
-    assert.equal(
-      data.context_servers[SERVER_NAME].url,
-      "https://api.hindsight.vectorize.io/mcp/other-bank/"
-    );
+    assert.equal(data.context_servers[SERVER_NAME].url, "https://service.example/mcp/other-bank/");
   } finally {
     rmSync(join(p, ".."), { recursive: true, force: true });
   }
@@ -97,7 +94,7 @@ test("apply merges into existing settings without clobbering other keys", () => 
       p,
       JSON.stringify({ theme: "dark", context_servers: { other: { command: "x" } } }, null, 2)
     );
-    const server = buildContextServer("https://api.hindsight.vectorize.io", "tok", "zed");
+    const server = buildContextServer("https://service.example", "tok", "zed");
     const res = applyToSettings(p, server);
     assert.equal(res.action, "merged");
     const data = JSON.parse(readFileSync(p, "utf-8"));
@@ -113,10 +110,10 @@ test("JSONC (comments) settings are never rewritten — manual snippet returned"
   const p = tmpPath();
   try {
     writeFileSync(p, '{\n  // user comment\n  "theme": "dark",\n}\n');
-    const server = buildContextServer("https://api.hindsight.vectorize.io", "tok", "zed");
+    const server = buildContextServer("https://service.example", "tok", "zed");
     const res = applyToSettings(p, server);
     assert.equal(res.action, "manual");
-    assert.ok(res.snippet.includes('"url": "https://api.hindsight.vectorize.io/mcp/zed/"'));
+    assert.ok(res.snippet.includes('"url": "https://service.example/mcp/zed/"'));
     // File is untouched.
     assert.ok(readFileSync(p, "utf-8").includes("// user comment"));
   } finally {
@@ -127,7 +124,7 @@ test("JSONC (comments) settings are never rewritten — manual snippet returned"
 test("remove deletes our entry and drops an empty context_servers", () => {
   const p = tmpPath();
   try {
-    const server = buildContextServer("https://api.hindsight.vectorize.io", "tok", "zed");
+    const server = buildContextServer("https://service.example", "tok", "zed");
     applyToSettings(p, server);
     const res = removeFromSettings(p);
     assert.equal(res.action, "removed");

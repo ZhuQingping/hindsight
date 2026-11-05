@@ -27,7 +27,7 @@ class TestBuildInstall:
     def test_wires_both_agents(self, tmp_path):
         paths = _paths(tmp_path)
         resolved = Resolved(
-            api_url="https://api.hindsight.vectorize.io",
+            api_url="https://service.example",
             api_token="k",
             global_bank="devin-desktop",
             project_bank="devin-desktop-acme-web",
@@ -39,7 +39,7 @@ class TestBuildInstall:
         assert [r.action for r in outcome.mcp] == ["created", "created"]
         for mcp in paths.mcp:
             server = json.loads(mcp.read_text())["mcpServers"][SERVER_NAME]
-            assert server["serverUrl"] == "https://api.hindsight.vectorize.io/mcp/"
+            assert server["serverUrl"] == "https://service.example/mcp/"
             assert server["headers"]["X-Bank-Id"] == "devin-desktop"
         # Cascade rules + visibility banner
         assert "devin-desktop-acme-web" in paths.rules.read_text()
@@ -51,7 +51,7 @@ class TestBuildInstall:
         assert outcome.devin_config.action == "created"
         dl = json.loads(paths.devin_config.read_text())
         dserver = dl["mcpServers"][SERVER_NAME]
-        assert dserver["url"] == "https://api.hindsight.vectorize.io/mcp/"
+        assert dserver["url"] == "https://service.example/mcp/"
         assert dserver["transport"] == "http"
         assert dserver["headers"]["Authorization"] == "Bearer k"
         assert dserver["headers"]["X-Bank-Id"] == "devin-desktop"

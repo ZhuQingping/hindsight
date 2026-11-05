@@ -25,8 +25,8 @@ from contextbase_devin_desktop.devin_local import (
 
 class TestBuildServer:
     def test_uses_url_transport_and_headers(self):
-        s = build_http_server("https://api.hindsight.vectorize.io", "hsk_x", "devin-desktop")
-        assert s["url"] == "https://api.hindsight.vectorize.io/mcp/"
+        s = build_http_server("https://service.example", "hsk_x", "devin-desktop")
+        assert s["url"] == "https://service.example/mcp/"
         assert s["transport"] == "http"
         assert s["headers"]["Authorization"] == "Bearer hsk_x"
         assert s["headers"]["X-Bank-Id"] == "devin-desktop"

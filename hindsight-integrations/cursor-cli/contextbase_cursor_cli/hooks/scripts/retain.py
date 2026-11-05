@@ -31,7 +31,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.content import (
     prepare_retention_transcript,
@@ -113,14 +113,14 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[ContextBase] {e}", file=sys.stderr)
         return
 
     api_token = config.get("contextbaseApiToken")
     try:
-        client = HindsightClient(api_url, api_token)
+        client = ContextBaseClient(api_url, api_token)
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[ContextBase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     # Derive bank ID and ensure mission
@@ -177,7 +177,7 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         )
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
-        print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        print(f"[ContextBase] Retain failed: {e}", file=sys.stderr)
 
 
 def main():
@@ -185,7 +185,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[ContextBase] Failed to read hook input", file=sys.stderr)
         return
 
     run_retain(hook_input, force=False)
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in retain: {e}", file=sys.stderr)
+        print(f"[ContextBase] Unexpected error in retain: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

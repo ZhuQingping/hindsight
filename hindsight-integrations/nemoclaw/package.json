@@ -17,13 +17,7 @@
     "openshell",
     "nvidia"
   ],
-  "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/nemoclaw"
-  },
   "files": [
     "dist",
     "README.md"

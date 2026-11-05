@@ -25,11 +25,11 @@ import type { HarnessDockerSetup } from "./harness";
  */
 export const factoryDroidDockerSetup: HarnessDockerSetup = {
   name: "factory-droid",
-  hindsightHarness: "factory-droid",
+  contextbaseHarness: "factory-droid",
   installCommand: "contextbase-coding-agents install factory-droid",
   stubModelEnv: (baseUrl) => ({
     CONTEXTBASE_STUB_BASE_URL: `${baseUrl}/v1`,
   }),
   injectsIntoModel: false,
-  command: (prompt) => ["hindsight-droid-e2e-exec", prompt],
+  command: (prompt) => ["contextbase-droid-e2e-exec", prompt],
 };

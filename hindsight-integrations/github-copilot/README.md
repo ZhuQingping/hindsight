@@ -1,8 +1,8 @@
 # contextbase-copilot
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Long-term memory for **GitHub Copilot** in VS Code, powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+Long-term memory for **GitHub Copilot** in VS Code, powered by [ContextBase](.).
 
 `contextbase-copilot init` wires the ContextBase **MCP server** into VS Code's
 `.vscode/mcp.json` and adds a recall/retain rule to `.github/copilot-instructions.md`.
@@ -44,7 +44,7 @@ contextbase-copilot init --api-token YOUR_CONTEXTBASE_API_KEY --bank-id my-proje
 into `./.github/copilot-instructions.md`. Reload VS Code, open Copilot Chat in
 **agent mode**, and start the `contextbase` MCP server from the chat's tools menu.
 
-Use a [ContextBase remote service](https://github.com/RSIXDB/hindsight) key, or a self-hosted
+Use a [ContextBase remote service](.) key, or a self-hosted
 server with `--api-url http://localhost:8888` (no token needed for an open local
 server). If `mcp.json` has comments, `init` prints the snippet to paste instead
 of touching the file — or run `contextbase-copilot init --print-only` anytime.

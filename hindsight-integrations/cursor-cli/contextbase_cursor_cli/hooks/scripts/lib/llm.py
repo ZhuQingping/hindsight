@@ -1,10 +1,10 @@
 """LLM provider detection for ContextBase's fact extraction.
 
 Port of `hindsight-integrations/codex/scripts/lib/llm.py`. Used by the
-daemon lifecycle so the local `hindsight-embed` subprocess knows which LLM
+daemon lifecycle so the local `contextbase-embed` subprocess knows which LLM
 to use for fact extraction.
 
-When running hindsight-embed locally (daemon mode), it needs an LLM to
+When running contextbase-embed locally (daemon mode), it needs an LLM to
 extract facts from retained conversations. Detection priority:
 
   1. CONTEXTBASE_API_LLM_* environment variables (highest priority)
@@ -115,7 +115,7 @@ def detect_llm_config(config):
         }
 
     raise RuntimeError(
-        "No LLM configuration found for Hindsight.\n\n"
+        "No LLM configuration found for ContextBase.\n\n"
         "Option 1: Set a standard provider API key (auto-detect):\n"
         "  export OPENAI_API_KEY=sk-your-key\n"
         "  export ANTHROPIC_API_KEY=your-key\n\n"
@@ -130,7 +130,7 @@ def detect_llm_config(config):
 
 
 def get_llm_env_vars(llm_config):
-    """Build environment variables for the hindsight-embed daemon."""
+    """Build environment variables for the contextbase-embed daemon."""
     env = {}
     if llm_config.get("provider"):
         env["HINDSIGHT_API_LLM_PROVIDER"] = llm_config["provider"]

@@ -15,7 +15,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.daemon import get_api_url, prestart_daemon_background
 
@@ -43,7 +43,7 @@ def main():
 
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=False)
-        HindsightClient(api_url, config.get("contextbaseApiToken"))
+        ContextBaseClient(api_url, config.get("contextbaseApiToken"))
         debug_log(config, f"ContextBase server reachable at {api_url}")
     except (RuntimeError, ValueError) as e:
         debug_log(config, f"ContextBase not running, initiating background pre-start: {e}")
@@ -55,5 +55,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionStart error: {e}", file=sys.stderr)
+        print(f"[ContextBase] SessionStart error: {e}", file=sys.stderr)
         sys.exit(0)

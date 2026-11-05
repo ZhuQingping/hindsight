@@ -1,6 +1,6 @@
 """Content processing utilities for the ZCode integration.
 
-Adapts `contextbase-integrations/codex/scripts/lib/content.py` for ZCode's
+Adapts `hindsight-integrations/codex/scripts/lib/content.py` for ZCode's
 on-disk transcript format.
 
 ZCode transcript formats (JSONL):

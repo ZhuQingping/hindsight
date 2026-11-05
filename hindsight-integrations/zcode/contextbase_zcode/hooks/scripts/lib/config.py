@@ -1,6 +1,6 @@
 """Configuration management for the contextbase ZCode integration.
 
-Mirrors `contextbase-integrations/cursor-cli/contextbase_cursor_cli/hooks/scripts/lib/config.py`
+Mirrors `hindsight-integrations/cursor-cli/contextbase_cursor_cli/hooks/scripts/lib/config.py`
 with the agent name and a couple of defaults rebranded for the ZCode (Z.ai GLM
 coding agent) audience.
 

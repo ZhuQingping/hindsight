@@ -1,5 +1,5 @@
 {
-  "name": "@vectorize-io/opencode-contextbase",
+  "name": "@huaweicloud/opencode-contextbase",
   "version": "0.2.9",
   "description": "ContextBase memory plugin for OpenCode - Give your AI coding agent persistent long-term memory",
   "main": "dist/index.js",
@@ -21,13 +21,7 @@
     "long-term-memory",
     "coding-agent"
   ],
-  "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/opencode"
-  },
   "files": [
     "dist",
     "README.md"

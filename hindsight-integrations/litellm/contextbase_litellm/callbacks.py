@@ -455,7 +455,7 @@ class ContextBaseCallback(CustomLogger):
     def _recall_memories_sync(
         self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig
     ) -> List[Dict[str, Any]]:
-        """Recall relevant memories from Hindsight (sync) using direct HTTP.
+        """Recall relevant memories from ContextBase (sync) using direct HTTP.
 
         Raises:
             ContextBaseError: If inject_memories=True and recall fails.
@@ -472,7 +472,7 @@ class ContextBaseCallback(CustomLogger):
     async def _recall_memories_async(
         self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig
     ) -> List[Dict[str, Any]]:
-        """Recall relevant memories from Hindsight (async, aiohttp on the running loop).
+        """Recall relevant memories from ContextBase (async, aiohttp on the running loop).
 
         Raises:
             ContextBaseError: If inject_memories=True and recall fails.
@@ -534,7 +534,7 @@ class ContextBaseCallback(CustomLogger):
         return response.get("text", "")
 
     def _reflect_sync(self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig) -> Optional[str]:
-        """Generate a reflection response from Hindsight (sync) using direct HTTP.
+        """Generate a reflection response from ContextBase (sync) using direct HTTP.
 
         Returns:
             The reflect response text, or None if no response.
@@ -554,7 +554,7 @@ class ContextBaseCallback(CustomLogger):
     async def _reflect_async(
         self, query: str, settings: ContextBaseDefaults, config: ContextBaseConfig
     ) -> Optional[str]:
-        """Generate a reflection response from Hindsight (async, aiohttp on the running loop).
+        """Generate a reflection response from ContextBase (async, aiohttp on the running loop).
 
         Returns:
             The reflect response text, or None if no response.
@@ -756,7 +756,7 @@ class ContextBaseCallback(CustomLogger):
         settings: ContextBaseDefaults,
         config: ContextBaseConfig,
     ) -> None:
-        """Store the conversation to Hindsight (sync) using direct HTTP. See ``_plan_store``.
+        """Store the conversation to ContextBase (sync) using direct HTTP. See ``_plan_store``.
 
         Raises:
             ContextBaseError: If store_conversations=True and store fails.
@@ -793,7 +793,7 @@ class ContextBaseCallback(CustomLogger):
         settings: ContextBaseDefaults,
         config: ContextBaseConfig,
     ) -> None:
-        """Store the conversation to Hindsight (async, aiohttp on the running loop). See ``_plan_store``.
+        """Store the conversation to ContextBase (async, aiohttp on the running loop). See ``_plan_store``.
 
         Raises:
             ContextBaseError: If store_conversations=True and store fails.

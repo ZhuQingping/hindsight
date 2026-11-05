@@ -11,12 +11,10 @@ import importlib
 import io
 import json
 import os
+import sys
 from unittest.mock import patch
 
 import pytest
-
-import sys
-import os
 
 # Ensure conftest helpers are importable when run from parent dir
 _tests_dir = os.path.dirname(os.path.abspath(__file__))
@@ -137,8 +135,8 @@ class TestRecallHook:
 
         assert captured_headers.get("auth") == "Bearer hsk_mykey"
 
-    def test_skips_cloud_without_token(self, monkeypatch, tmp_path):
-        """Cloud URL without API token should silently skip recall."""
+    def test_does_not_classify_configured_service_by_hostname(self, monkeypatch, tmp_path):
+        """The configured service, rather than a vendor hostname, owns authentication."""
         called = {}
 
         def should_not_be_called(*a, **kw):
@@ -153,12 +151,12 @@ class TestRecallHook:
             tmp_path,
             urlopen_side_effect=should_not_be_called,
             extra_settings={
-                "contextbaseApiUrl": "https://api.hindsight.vectorize.io",
+                "contextbaseApiUrl": "https://service.example",
                 "contextbaseApiToken": None,
             },
         )
 
-        assert "yes" not in called
+        assert "yes" in called
 
 
 class TestRetainHook:

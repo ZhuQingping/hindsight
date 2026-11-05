@@ -4,23 +4,23 @@
 #
 # dsh selects its model through composition, not environment, so the route is declared here and the
 # ONE value that cannot be known at build time — the stub's ephemeral port — is read from the
-# environment the runner passes in. `hindsight-stub` is a hand-declared route: pi-ai ships no such
+# environment the runner passes in. `contextbase-stub` is a hand-declared route: pi-ai ships no such
 # provider, so the profile supplies its whole definition.
 - id: llm-pi-ai
   config:
     providers:
-      hindsight-stub:
-        displayName: Hindsight E2E stub
+      contextbase-stub:
+        displayName: ContextBase E2E stub
         apiKeyEnv: CONTEXTBASE_STUB_KEY
         api: openai-completions
         baseURL: !!js process.env.CONTEXTBASE_STUB_BASE_URL
         models:
           - id: stub-model
-            name: Hindsight E2E stub
+            name: ContextBase E2E stub
             contextWindow: 65536
             maxTokens: 4096
 
 - id: agent-default-model
   config:
-    provider: hindsight-stub
+    provider: contextbase-stub
     model: stub-model

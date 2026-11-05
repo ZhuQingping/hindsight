@@ -1,6 +1,6 @@
 # contextbase-strands
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Persistent memory tools for [Strands Agents SDK](https://github.com/strands-agents/sdk-python) agents via ContextBase. Give your agents long-term memory with retain, recall, and reflect — using Strands' native `@tool` pattern.
 
@@ -54,7 +54,7 @@ tools = create_contextbase_tools(
 )
 ```
 
-See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
+See the [ContextBase installation guide](../../docs/contextbase/CUSTOMER-GUIDE.md) for self-hosting setup.
 
 ## With Memory Instructions
 

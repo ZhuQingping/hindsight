@@ -14,7 +14,6 @@ import type {
 export class ContextBaseApi implements ICredentialType {
   name = "contextbaseApi";
   displayName = "ContextBase API";
-  documentationUrl = "https://hindsight.vectorize.io/developer/api/quickstart";
   properties: INodeProperties[] = [
     {
       displayName: "API URL",

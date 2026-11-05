@@ -58,7 +58,7 @@ def main():
 
             run_retain(forced_input, force=True)
         except Exception as e:
-            print(f"[Hindsight] sessionEnd final retain error: {e}", file=sys.stderr)
+            print(f"[ContextBase] sessionEnd final retain error: {e}", file=sys.stderr)
     finally:
         # Always clear the cache entry for this session, regardless of
         # whether autoRetain was disabled, no cache existed, or retain
@@ -70,5 +70,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] sessionEnd error: {e}", file=sys.stderr)
+        print(f"[ContextBase] sessionEnd error: {e}", file=sys.stderr)
         sys.exit(0)

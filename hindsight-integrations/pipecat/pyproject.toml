@@ -4,9 +4,7 @@ version = "0.1.2"
 description = "Pipecat integration for ContextBase - persistent memory for voice AI pipelines"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" }
-]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = [
     "ai",
     "memory",
@@ -29,11 +27,6 @@ dependencies = [
     "pipecat-ai>=1.4.0,<2.0",  # 1.x universal LLMContext; 1.4.0 clears the file-read CVE advisories
     "contextbase-client>=1.0.0,<2",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/pipecat"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

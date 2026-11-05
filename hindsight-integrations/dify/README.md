@@ -1,14 +1,14 @@
 # ContextBase for Dify
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Dify](https://dify.ai) workflows via [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent long-term memory for [Dify](https://dify.ai) workflows via [ContextBase](.).
 
 Three tools — **Retain**, **Recall**, **Reflect** — drop into any Dify workflow alongside your other nodes.
 
-- **Author**: Vectorize, Inc.
-- **Repository**: <https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/dify>
-- **Contact**: support@vectorize.io · [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
+- **Author**: the service provider
+- **Repository**: <.>
+- **Contact**:  · [GitHub Issues](../../docs/contextbase/CUSTOMER-GUIDE.md)
 
 ## Setup
 
@@ -60,5 +60,5 @@ Get an LLM-synthesized answer over the bank. Returns a `text` field.
 
 ## Source
 
-- GitHub: [`RSIXDB/hindsight`](https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/dify)
-- Docs: [hindsight.vectorize.io/sdks/integrations/dify](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
+- GitHub: the approved distribution repository
+- Docs: [service documentation](../../docs/contextbase/CUSTOMER-GUIDE.md)

@@ -1,8 +1,8 @@
 # Cloudflare OAuth Proxy for Self-Hosted ContextBase
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-An [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) proxy that connects cloud-based MCP clients (such as [claude.ai](https://claude.ai), [Claude Code](../claude-code/), and [Codex](../codex/)) to a self-hosted [ContextBase](https://github.com/RSIXDB/hindsight) instance. Built on [Cloudflare Workers](https://developers.cloudflare.com/workers/) using the [`@cloudflare/workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider) library.
+An [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) proxy that connects cloud-based MCP clients (such as [claude.ai](https://claude.ai), [Claude Code](../claude-code/), and [Codex](../codex/)) to a self-hosted [ContextBase](.) instance. Built on [Cloudflare Workers](https://developers.cloudflare.com/workers/) using the [`@cloudflare/workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider) library.
 
 ## Why
 
@@ -23,13 +23,13 @@ Cloudflare Worker (this proxy)
         |
         | HTTPS + Cloudflare Tunnel
         v
-Self-hosted Hindsight (Docker)
+Self-hosted ContextBase (Docker)
 ```
 
 ## Prerequisites
 
 - A [Cloudflare](https://www.cloudflare.com/) account with a domain
-- A running self-hosted ContextBase instance (see [self-hosting quickstart](https://github.com/RSIXDB/hindsight/quickstart/self-hosting))
+- A running self-hosted ContextBase instance (see [self-hosting quickstart](../../hindsight-extensions/contextdb-service/docs/deployment-local.md))
 - A [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) exposing your ContextBase instance
 - [Node.js](https://nodejs.org/) (v18+)
 
@@ -46,7 +46,7 @@ npm install
 
 Copy the included `wrangler.toml` and update the placeholder values:
 
-- `CONTEXTBASE_ORIGIN`: Your Cloudflare Tunnel origin URL (e.g., `https://hindsight-origin.yourdomain.com`)
+- `CONTEXTBASE_ORIGIN`: Your Cloudflare Tunnel origin URL (e.g., `https://contextbase-origin.yourdomain.com`)
 - `kv_namespaces.id`: Create a KV namespace via `npx wrangler kv namespace create OAUTH_KV` and paste the returned ID
 - `routes.pattern` / `routes.zone_name`: Your public-facing domain for the proxy
 
@@ -73,8 +73,8 @@ Add a WAF rule on your Cloudflare Tunnel origin hostname to block requests that 
 
 Once deployed, add the Worker URL as a remote MCP server in your client:
 
-- **claude.ai**: Settings > MCP Servers > Add > enter `https://hindsight.yourdomain.com/mcp`
-- **Claude Code**: `claude mcp add contextbase-remote https://hindsight.yourdomain.com/mcp --transport http`
+- **claude.ai**: Settings > MCP Servers > Add > enter `https://contextbase.yourdomain.com/mcp`
+- **Claude Code**: `claude mcp add contextbase-remote https://contextbase.yourdomain.com/mcp --transport http`
 - **Codex**: Configure via the MCP settings with the same URL
 
 On first connection, you'll be redirected to a login page. Enter the `SESSION_SECRET` password to authorize. This only needs to happen once per OAuth session.

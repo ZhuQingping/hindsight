@@ -44,7 +44,7 @@ describe("syncCompanionSkill", () => {
   });
 
   it("installs where nothing is installed when the caller asks (plugin-manager route)", () => {
-    // `dsh plugin add @vectorize-io/…` / `cline plugin install` wire the plugin without ever
+    // `dsh plugin add @huaweicloud/…` / `cline plugin install` wire the plugin without ever
     // running our installer, so the persistent-plugin hosts pass `install` at seed time (#4406).
     const { home, src } = setup(undefined);
     syncCompanionSkill("dsh", { home, srcDir: src, install: true });

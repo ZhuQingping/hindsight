@@ -1,8 +1,8 @@
 # contextbase-continue
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-[Continue.dev](https://continue.dev) integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for your coding assistant.
+[Continue.dev](https://continue.dev) integration for [ContextBase](.) — persistent long-term memory for your coding assistant.
 
 Continue has no plugin hook that runs before a message is sent, but it does
 support two native extension points that this integration uses:
@@ -17,7 +17,7 @@ support two native extension points that this integration uses:
 
 ## Prerequisites
 
-- A running ContextBase instance ([self-hosted via Docker](https://github.com/RSIXDB/hindsight#quick-start) or [ContextBase remote service](http://localhost:9999))
+- A running ContextBase instance ([self-hosted via Docker](.) or [ContextBase remote service](http://localhost:9999))
 - Continue (VS Code or JetBrains extension)
 - Python 3.10+
 

@@ -1,6 +1,6 @@
-# @vectorize-io/opencode-contextbase
+# @huaweicloud/opencode-contextbase
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 ContextBase memory plugin for [OpenCode](https://opencode.ai) — give your AI coding agent persistent long-term memory across sessions.
 
@@ -22,7 +22,7 @@ Add to your `opencode.json` (project) or `~/.config/opencode/opencode.json` (glo
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@vectorize-io/opencode-contextbase"]
+  "plugin": ["@huaweicloud/opencode-contextbase"]
 }
 ```
 
@@ -56,7 +56,7 @@ Or configure inline in `opencode.json`:
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
     [
-      "@vectorize-io/opencode-contextbase",
+      "@huaweicloud/opencode-contextbase",
       {
         "contextbaseApiUrl": "http://localhost:8888"
       }
@@ -75,7 +75,7 @@ Pass options directly in `opencode.json`:
 {
   "plugin": [
     [
-      "@vectorize-io/opencode-contextbase",
+      "@huaweicloud/opencode-contextbase",
       {
         "contextbaseApiUrl": "http://localhost:8888",
         "bankId": "my-project",

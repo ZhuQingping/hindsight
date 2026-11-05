@@ -1,6 +1,6 @@
 """contextbase-embed daemon lifecycle management.
 
-Port of: HindsightServer in contextbase-local-engine, adapted for Python
+Port of: ContextBaseServer in contextbase-local-engine, adapted for Python
 subprocess calls from ephemeral hook processes.
 
 Manages three connection modes (same as Openclaw):
@@ -28,15 +28,11 @@ DAEMON_STATE_FILE = "daemon.json"
 PROFILE_NAME = "claude-code"
 
 
-def _get_embed_command(config: dict) -> list:
-    """Get the command to run contextbase-embed.
-
-    Port of: getEmbedCommand() in contextbase-local-engine
-    """
+def _get_embed_command(config: dict) -> list[str]:
+    """Use the configured engine distribution and its ContextBase executable."""
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return ["uv", "run", "--directory", embed_path, "contextbase-embed"]
-
     package = config.get("embedPackage") or os.environ.get("CONTEXTBASE_EMBED_PACKAGE")
     if not package:
         raise RuntimeError("Set CONTEXTBASE_EMBED_PACKAGE or embedPackagePath for local engine mode.")
@@ -150,7 +146,7 @@ def get_api_url(config: dict, debug_fn=None, allow_daemon_start: bool = False) -
 def _ensure_daemon_running(config: dict, port: int, debug_fn=None):
     """Start the contextbase-embed daemon if not already running.
 
-    Port of: HindsightServer.start() in contextbase-local-engine
+    Port of: ContextBaseServer.start() in contextbase-local-engine
     """
     # Fast-fail if contextbase-embed toolchain is not available
     if not _is_embed_available(config):

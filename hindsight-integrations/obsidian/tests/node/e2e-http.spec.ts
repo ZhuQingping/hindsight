@@ -1,7 +1,7 @@
 /**
  * End-to-end test against a REAL HTTP server. Runs the CLI's `runCli` over a
  * temp vault pointed at a throwaway node:http server, so the whole stack —
- * FsVault → SyncEngine → HindsightClient → fetch → sockets → server — runs
+ * FsVault → SyncEngine → ContextBaseClient → fetch → sockets → server — runs
  * for real, with nothing mocked. This is the closest thing to hitting a live
  * ContextBase server that can run in CI.
  */

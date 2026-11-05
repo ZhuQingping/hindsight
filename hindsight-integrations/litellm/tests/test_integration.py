@@ -653,7 +653,7 @@ class TestSetDefaults:
 class TestStreamingResponseHandling:
     """Tests for streaming response handling in monkeypatch wrappers and callbacks.
 
-    Regression tests for https://github.com/vectorize-io/hindsight/issues/1221
+    Regression tests for ../../../issues/1221
     CustomStreamWrapper objects don't have .choices and crash _format_conversation_for_storage.
     """
 
@@ -1450,7 +1450,7 @@ class TestInjectionPathPassesApiKey:
         from contextbase_litellm import _inject_memories
 
         configure(
-            contextbase_api_url="https://api.hindsight.vectorize.io",
+            contextbase_api_url="https://service.example",
             api_key="hsk_test_key_for_cloud_auth_regression_pin",
         )
         set_defaults(bank_id="test")
@@ -1468,7 +1468,7 @@ class TestInjectionPathPassesApiKey:
         # Tolerate positional or keyword forms — both end up at the same callsite.
         url = call_args.kwargs.get("api_url") or (call_args.args[0] if call_args.args else None)
         key = call_args.kwargs.get("api_key") or (call_args.args[1] if len(call_args.args) > 1 else None)
-        assert url == "https://api.hindsight.vectorize.io", (
+        assert url == "https://service.example", (
             f"inject path did not forward configured URL to _get_client: got url={url!r}"
         )
         assert key == "hsk_test_key_for_cloud_auth_regression_pin", (

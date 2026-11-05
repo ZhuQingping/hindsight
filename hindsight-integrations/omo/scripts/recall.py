@@ -16,7 +16,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.content import (
     compose_recall_query,
@@ -63,7 +63,7 @@ def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[ContextBase] Failed to read hook input", file=sys.stderr)
         return
 
     debug_log(config, f"Hook input keys: {list(hook_input.keys())}")
@@ -79,17 +79,15 @@ def main():
         return
 
     api_token = config.get("contextbaseApiToken")
-    if not api_token and "api.hindsight.vectorize.io" in api_url:
-        return  # Cloud mode without token — silently skip
 
     try:
-        client = HindsightClient(
+        client = ContextBaseClient(
             api_url,
             api_token,
             request_timeout_override=config.get("requestTimeoutSeconds"),
         )
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[ContextBase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     bank_id = derive_bank_id(hook_input, config)
@@ -122,7 +120,7 @@ def main():
             timeout=10,
         )
     except Exception as e:
-        print(f"[Hindsight] Recall failed: {e}", file=sys.stderr)
+        print(f"[ContextBase] Recall failed: {e}", file=sys.stderr)
         return
 
     results = response.get("results", [])
@@ -185,7 +183,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in recall: {e}", file=sys.stderr)
+        print(f"[ContextBase] Unexpected error in recall: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

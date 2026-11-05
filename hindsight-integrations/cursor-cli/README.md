@@ -1,6 +1,6 @@
 # ContextBase for Cursor CLI
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [Cursor CLI](https://cursor.com/docs/cli) — remembers your projects, preferences, and past sessions across every conversation.
 
@@ -19,7 +19,7 @@ Four Cursor CLI hooks keep memory in sync automatically:
 
 - **Cursor CLI** v0.45+ with hooks support
 - **Python 3.9+** (for hook scripts; stdlib only — no pip install required)
-- **ContextBase**: [ContextBase remote service](https://github.com/RSIXDB/hindsight) or local `hindsight-embed`
+- **ContextBase**: [ContextBase remote service](.) or local `contextbase-embed`
 
 ## Installation
 
@@ -35,7 +35,7 @@ Then run the installer once:
 # ContextBase remote service
 contextbase-cursor-cli install --api-url http://localhost:8888 --api-token your-api-key
 
-# Local daemon (hindsight-embed) — omit the flags
+# Local daemon (contextbase-embed) — omit the flags
 contextbase-cursor-cli install
 ```
 
@@ -150,3 +150,7 @@ The tests mock the HTTP client, the stdin/stdout pipe, and the file-based state.
 ## License
 
 MIT
+
+## Local engine distribution
+
+For local engine mode, set `CONTEXTBASE_EMBED_PACKAGE` to the administrator-approved Python distribution specification, or set `embedPackagePath` to an engine checkout. The executable is `contextbase-embed`. Remote service connections use the configured API URL and token.

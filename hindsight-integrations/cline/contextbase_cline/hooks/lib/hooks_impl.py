@@ -10,7 +10,7 @@ import os
 from collections.abc import Callable
 
 from . import bank, cline_io, content
-from .client import HindsightClient
+from .client import ContextBaseClient
 from .cline_io import RECALL_MIN_CHARS, HookInput
 from .config import ContextBaseClineConfig, debug_log, load_config
 
@@ -36,7 +36,7 @@ def _recall_context(hook: HookInput, config: ContextBaseClineConfig, query: str)
     api_url = cline_io.resolve_api_url(config)
     if not api_url:
         return ""
-    client = HindsightClient(api_url, config.contextbase_api_token)
+    client = ContextBaseClient(api_url, config.contextbase_api_token)
     bank_id = bank.derive_bank_id(hook, config)
     bank.ensure_bank_mission(client, bank_id, config, debug_fn=lambda *a: debug_log(config, *a))
     resp = client.recall(
@@ -99,7 +99,7 @@ def handle_retain(hook: HookInput, config: ContextBaseClineConfig, status: str) 
     api_url = cline_io.resolve_api_url(config)
     if not api_url:
         return
-    client = HindsightClient(api_url, config.contextbase_api_token)
+    client = ContextBaseClient(api_url, config.contextbase_api_token)
     bank_id = bank.derive_bank_id(hook, config)
     bank.ensure_bank_mission(client, bank_id, config, debug_fn=lambda *a: debug_log(config, *a))
 

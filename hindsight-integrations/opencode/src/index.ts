@@ -10,10 +10,10 @@
  * @example
  * ```json
  * // opencode.json
- * { "plugin": ["@vectorize-io/opencode-contextbase"] }
+ * { "plugin": ["@huaweicloud/opencode-contextbase"] }
  *
  * // With options:
- * { "plugin": [["@vectorize-io/opencode-contextbase", { "bankId": "my-bank" }]] }
+ * { "plugin": [["@huaweicloud/opencode-contextbase", { "bankId": "my-bank" }]] }
  * ```
  */
 

@@ -15,11 +15,11 @@ import type { HarnessDockerSetup } from "./harness";
  */
 export const dcodeDockerSetup: HarnessDockerSetup = {
   name: "dcode",
-  hindsightHarness: "dcode",
+  contextbaseHarness: "dcode",
   installCommand: "contextbase-coding-agents install dcode",
   stubModelEnv: (baseUrl) => ({
     OPENAI_BASE_URL: `${baseUrl}/v1`,
-    OPENAI_API_KEY: "hindsight-e2e",
+    OPENAI_API_KEY: "contextbase-e2e",
   }),
-  command: (prompt) => ["dcode", "-n", prompt, "-M", "openai:hindsight-e2e-stub"],
+  command: (prompt) => ["dcode", "-n", prompt, "-M", "openai:contextbase-e2e-stub"],
 };

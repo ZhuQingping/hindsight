@@ -48,7 +48,7 @@ def derive_bank_id(hook_input: dict, config: dict) -> str:
     for f in fields:
         if f not in VALID_FIELDS:
             print(
-                f'[Hindsight] Unknown dynamicBankGranularity field "{f}" -- '
+                f'[ContextBase] Unknown dynamicBankGranularity field "{f}" -- '
                 f"valid for Cursor: {', '.join(sorted(VALID_FIELDS))}",
                 file=sys.stderr,
             )

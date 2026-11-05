@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 from conftest import FakeHTTPResponse
-from lib.client import USER_AGENT, HindsightClient
+from lib.client import USER_AGENT, ContextBaseClient
 
 
 class TestUserAgentHeader:
@@ -14,7 +14,7 @@ class TestUserAgentHeader:
     """
 
     def test_recall_sends_user_agent(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -33,20 +33,20 @@ class TestURLValidation:
         import pytest
 
         with pytest.raises(ValueError):
-            HindsightClient("ftp://example.com")
+            ContextBaseClient("ftp://example.com")
 
     def test_rejects_missing_hostname(self):
         import pytest
 
         with pytest.raises(ValueError):
-            HindsightClient("http://")
+            ContextBaseClient("http://")
 
 
 class TestRetainEncoding:
     def test_retain_posts_async_true(self):
         import json
 
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):

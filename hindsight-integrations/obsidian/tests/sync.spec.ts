@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { HindsightClient } from "../src/client";
+import type { ContextBaseClient } from "../src/client";
 import { SyncEngine, type SyncConfig, type SyncIndex, type SyncVault } from "../src/sync";
 
 interface FileSpec {
@@ -42,7 +42,7 @@ function makeEngine(
   const client = fakeClient();
   const persist = vi.fn(async () => {});
   const engine = new SyncEngine(
-    client as unknown as HindsightClient,
+    client as unknown as ContextBaseClient,
     fakeVault(files),
     { ...BASE_CONFIG, ...config },
     index,
@@ -162,7 +162,7 @@ describe("SyncEngine", () => {
     const filesV2 = { "a.md": { content: "v2 changed", mtime: 2, ctime: 0 } };
     const client = fakeClient();
     const engine = new SyncEngine(
-      client as unknown as HindsightClient,
+      client as unknown as ContextBaseClient,
       fakeVault(filesV2),
       BASE_CONFIG,
       index,
@@ -183,7 +183,7 @@ describe("SyncEngine", () => {
     const v2 = { "a.md": { content: "same", mtime: 999, ctime: 0 } };
     const client = fakeClient();
     const engine = new SyncEngine(
-      client as unknown as HindsightClient,
+      client as unknown as ContextBaseClient,
       fakeVault(v2),
       BASE_CONFIG,
       index,

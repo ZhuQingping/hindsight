@@ -15,8 +15,7 @@ Deliberately duplicated in the claude-code plugin rather than shared: the two sh
 packages with no common module path.
 """
 
-DOCS_URL = "https://hindsight.vectorize.io/sdks/integrations/coding-agents"
-MIGRATION_URL = f"{DOCS_URL}#migrating-from-the-per-agent-plugins"
+INSTALL_COMMAND = "npx @huaweicloud/contextbase-coding-agents@latest install codex"
 
 NOTICE = (
     "The current ContextBase Codex plugin is DEPRECATED, replaced by the Coding Agents "
@@ -27,7 +26,7 @@ NOTICE = (
     "Devin and Cline, and they all share a single memory per repository, leveraging the ContextBase "
     "Knowledge Page (v0.9.x and onwards).\n"
     "\n"
-    f"See the migration guide: {MIGRATION_URL}\n"
+    f"Install the current plugin: {INSTALL_COMMAND}\n"
     "Your ContextBase server and token carry over automatically; past conversations are re-imported "
     "from\n"
     'local transcripts. Silence this with "upgradeNotice": false in '

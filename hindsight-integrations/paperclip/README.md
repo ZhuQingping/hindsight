@@ -1,8 +1,8 @@
 # contextbase-paperclip
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for Paperclip agents via [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent long-term memory for Paperclip agents via [ContextBase](.).
 
 Install once. Every agent in your Paperclip instance gets memory that persists across runs and restarts.
 
@@ -11,7 +11,7 @@ Whether that memory also persists across companies is a configuration choice, no
 ## What It Does
 
 - **Before each run** — fetches the run's issue and recalls relevant memories on its title + description, caches them for the agent
-- **After each comment** — retains the full comment body to Hindsight (durable record of both user and agent output)
+- **After each comment** — retains the full comment body to ContextBase (durable record of both user and agent output)
 - **Agent tools** — `contextbase_recall` and `contextbase_retain` tools for agents to query and store memory mid-run
 
 ## Installation
@@ -31,9 +31,9 @@ Requires Paperclip **2026.720.0 or newer**. Upgrading from an older plugin versi
 **Self-hosting alternative** — run ContextBase locally:
 
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
-hindsight-api
+contextbase-api
 ```
 
 ## Configuration

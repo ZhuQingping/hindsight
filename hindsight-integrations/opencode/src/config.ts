@@ -154,7 +154,7 @@ export function loadConfig(pluginOptions?: Record<string, unknown>): ContextBase
     }
   }
 
-  // 3. Plugin options (from opencode.json: ["@vectorize-io/opencode-contextbase", { ... }])
+  // 3. Plugin options (from opencode.json: ["@huaweicloud/opencode-contextbase", { ... }])
   if (pluginOptions) {
     for (const [key, value] of Object.entries(pluginOptions)) {
       if (value !== null && value !== undefined) {

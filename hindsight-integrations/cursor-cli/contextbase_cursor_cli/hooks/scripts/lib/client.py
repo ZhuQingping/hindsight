@@ -38,7 +38,7 @@ def _validate_api_url(url):
     return url.rstrip("/")
 
 
-class HindsightClient:
+class ContextBaseClient:
     """HTTP client for the ContextBase API."""
 
     def __init__(self, api_url, api_token=None):

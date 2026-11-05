@@ -1,8 +1,8 @@
 # contextbase-cline
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Cline](https://github.com/cline/cline) via [ContextBase](https://github.com/RSIXDB/hindsight) — **no MCP required**.
+Persistent long-term memory for [Cline](https://github.com/cline/cline) via [ContextBase](.) — **no MCP required**.
 
 Cline's [lifecycle hooks](https://docs.cline.bot/customization/hooks) run small scripts at key moments. This integration installs hooks that automatically **recall** relevant memories before Cline works and **retain** what happened when a task ends. Memory persists across sessions, so Cline builds on past context instead of starting cold.
 
@@ -19,9 +19,9 @@ Cline's [lifecycle hooks](https://docs.cline.bot/customization/hooks) run small 
 **Self-hosting alternative:**
 
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
-hindsight-api  # starts on http://localhost:8888
+contextbase-api  # starts on http://localhost:8888
 ```
 
 > **Platform:** Cline hooks run on **macOS and Linux only** (no Windows). Hooks need Python 3.
@@ -85,7 +85,7 @@ Every key can also be set via `CONTEXTBASE_*` environment variables (e.g. `CONTE
 
 ## Verifying Setup
 
-1. Start Hindsight (`hindsight-api` or ContextBase remote service) and run `contextbase-cline install` with your URL/key.
+1. Start ContextBase (`contextbase-api` or ContextBase remote service) and run `contextbase-cline install` with your URL/key.
 2. Enable hooks in Cline (Settings → Features → Hooks).
 3. Start a task — recalled memories appear in context as a `<contextbase_memories>` block.
 4. Complete a task, then check the `cline` bank (via the API or dashboard) — a memory should appear.

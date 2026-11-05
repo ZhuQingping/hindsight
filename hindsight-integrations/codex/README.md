@@ -1,6 +1,6 @@
 # ContextBase for OpenAI Codex CLI
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [OpenAI Codex CLI](https://github.com/openai/codex) — remembers your projects, preferences, and past sessions across every conversation.
 
@@ -18,14 +18,14 @@ Three Codex hooks keep memory in sync automatically:
 
 - **OpenAI Codex CLI** v0.116.0 or later (hooks support)
 - **Python 3.9+** (for hook scripts)
-- **ContextBase**: [ContextBase remote service](https://github.com/RSIXDB/hindsight) or local `hindsight-embed`
+- **ContextBase**: [ContextBase remote service](.) or local `contextbase-embed`
 
 ## Installation
 
 > ✨ **Recommended: [ContextBase remote service](http://localhost:9999)** — free tier, no self-hosting required. Skip the local daemon entirely.
 
 ```bash
-curl -fsSL https://github.com/RSIXDB/hindsight/get-codex | bash
+curl -fsSL ../../get-codex | bash
 ```
 
 The installer:
@@ -36,7 +36,7 @@ The installer:
 ### Uninstall
 
 ```bash
-curl -fsSL https://github.com/RSIXDB/hindsight/get-codex | bash -s -- --uninstall
+curl -fsSL ../../get-codex | bash -s -- --uninstall
 ```
 
 ## Configuration
@@ -64,7 +64,7 @@ For personal overrides (stable across updates), create `~/.contextbase/codex.jso
 }
 ```
 
-### Self-hosting: local daemon (`hindsight-embed`)
+### Self-hosting: local daemon (`contextbase-embed`)
 
 If you'd rather run ContextBase locally, leave `contextbaseApiUrl` empty and set an LLM API key — ContextBase will start the local server automatically:
 
@@ -132,3 +132,7 @@ This creates banks like `codex::my-project` automatically, using the working dir
 **Server not starting**: Set `contextbaseApiUrl` to use an external server, or ensure `uvx` is on PATH for local daemon mode.
 
 **Hooks not firing**: Check that `~/.codex/config.toml` contains `codex_hooks = true` under `[features]`, and that your Codex CLI version supports hooks (v0.116.0+).
+
+## Local engine distribution
+
+For local engine mode, set `CONTEXTBASE_EMBED_PACKAGE` to the administrator-approved Python distribution specification, or set `embedPackagePath` to an engine checkout. The executable is `contextbase-embed`. Remote service connections use the configured API URL and token.

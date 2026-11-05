@@ -36,7 +36,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config, read_hook_input
 from lib.content import (
     prepare_retention_transcript,
@@ -167,7 +167,7 @@ def main():
     try:
         hook_input = read_hook_input()
     except ValueError:
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[ContextBase] Failed to read hook input", file=sys.stderr)
         return
 
     debug_log(config, f"Stop hook input keys: {list(hook_input.keys())}")
@@ -251,15 +251,15 @@ def main():
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[ContextBase] {e}", file=sys.stderr)
         _write_retain_status("error", reason=f"api_url: {e}"[:200])
         return
 
     api_token = config.get("contextbaseApiToken")
     try:
-        client = HindsightClient(api_url, api_token)
+        client = ContextBaseClient(api_url, api_token)
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[ContextBase] Invalid API URL: {e}", file=sys.stderr)
         _write_retain_status("error", reason=f"invalid_url: {e}"[:200])
         return
 
@@ -327,7 +327,7 @@ def main():
             transcript_chars=len(transcript),
         )
     except Exception as e:
-        print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        print(f"[ContextBase] Retain failed: {e}", file=sys.stderr)
         _write_retain_status("error", reason=str(e)[:200], bank_id=bank_id)
 
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in retain: {e}", file=sys.stderr)
+        print(f"[ContextBase] Unexpected error in retain: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

@@ -156,7 +156,7 @@ def load_config() -> dict:
 def debug_log(config: dict, *args):
     """Log to stderr if debug mode is enabled."""
     if config.get("debug"):
-        print("[Hindsight]", *args, file=sys.stderr)
+        print("[ContextBase]", *args, file=sys.stderr)
 
 
 def read_hook_input() -> dict:

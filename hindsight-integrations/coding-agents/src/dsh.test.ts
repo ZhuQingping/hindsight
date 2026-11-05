@@ -62,7 +62,7 @@ describe("dsh pre-step injection", () => {
   it("does not re-append a block identical to the one already injected this session", async () => {
     // dsh keeps every injected message in the history it sends, so the same roster appended on
     // every turn stacked up as N identical copies (#5026).
-    let block = "<hindsight_knowledge_refresh>roster</hindsight_knowledge_refresh>";
+    let block = "<contextbase_knowledge_refresh>roster</contextbase_knowledge_refresh>";
     const core = {
       onPrompt: vi.fn(async () => {}),
       getInjection: vi.fn(() => block),
@@ -79,7 +79,7 @@ describe("dsh pre-step injection", () => {
     expect((await step("s-1", "second")).messages).toHaveLength(1);
     // Another session gets its own copy, and a changed block is injected again.
     expect((await step("s-2", "first")).messages).toHaveLength(2);
-    block = "<hindsight_knowledge_refresh>new page</hindsight_knowledge_refresh>";
+    block = "<contextbase_knowledge_refresh>new page</contextbase_knowledge_refresh>";
     expect((await step("s-1", "third")).messages).toHaveLength(2);
   });
 

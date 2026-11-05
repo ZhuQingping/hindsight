@@ -2,7 +2,7 @@
 set -eu
 
 : "${CONTEXTBASE_E2E_INSTALL_COMMAND:?missing harness install command}"
-: "${CONTEXTBASE_CONFIG:?missing Hindsight config path}"
+: "${CONTEXTBASE_CONFIG:?missing ContextBase config path}"
 
 # The tarball is produced from the checkout under test. Installing it here, instead of bind-mounting
 # its source, verifies the published-package surface: bins, bundled hooks, MCP server, and skill.
@@ -14,9 +14,9 @@ npm install --global /plugin/*.tgz
 # a single file (codex, cursor, grok) but others keep a whole directory with live SQLite session
 # stores (copilot, cline) that the CLI opens read-write — a read-only mount there fails at startup.
 # Copying also guarantees a test run can never modify the host's real subscription credentials.
-if [ -n "${CONTEXTBASE_E2E_CREDENTIAL_TARGET:-}" ] && [ -e /hindsight-credentials/source ]; then
+if [ -n "${CONTEXTBASE_E2E_CREDENTIAL_TARGET:-}" ] && [ -e /contextbase-credentials/source ]; then
   mkdir -p "$(dirname "$CONTEXTBASE_E2E_CREDENTIAL_TARGET")"
-  cp -a /hindsight-credentials/source "$CONTEXTBASE_E2E_CREDENTIAL_TARGET"
+  cp -a /contextbase-credentials/source "$CONTEXTBASE_E2E_CREDENTIAL_TARGET"
 fi
 
 # Each adapter owns this small, static command. It is intentionally an environment value so this

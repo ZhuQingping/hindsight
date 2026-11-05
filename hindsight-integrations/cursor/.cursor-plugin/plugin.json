@@ -3,14 +3,14 @@
   "displayName": "ContextBase Memory",
   "version": "0.2.0",
   "description": "Automatic long-term memory for Cursor via ContextBase. Recalls relevant memories before each prompt and retains conversation transcripts after each response.",
-  "author": { "name": "Vectorize", "url": "https://github.com/RSIXDB/hindsight" },
-  "homepage": "https://github.com/RSIXDB/hindsight",
-  "repository": "https://github.com/RSIXDB/hindsight",
   "license": "MIT",
   "keywords": ["memory", "contextbase", "recall", "retain", "long-term-memory"],
   "category": "developer-tools",
   "tags": ["automation", "memory", "transcripts"],
   "hooks": "./hooks/hooks.json",
   "skills": "./skills/",
-  "rules": "./rules/"
+  "rules": "./rules/",
+  "author": {
+    "name": "ContextBase Team"
+  }
 }

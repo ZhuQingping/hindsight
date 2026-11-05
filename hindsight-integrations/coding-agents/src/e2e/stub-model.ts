@@ -3,7 +3,7 @@
  * container (Cursor, Copilot, Claude Code, Kilo keep them in a keyring or an account-bound session).
  *
  * It ECHOES back the text it was sent. That is the whole trick: the E2E seeds a decision that only
- * reaches the model through Hindsight's injection, so if the echoed reply contains the seeded
+ * reaches the model through ContextBase's injection, so if the echoed reply contains the seeded
  * statuses, the memory demonstrably arrived in the model request. The existing assertion therefore
  * works unchanged — and for a sharper reason than with a real model, since a live model could in
  * principle guess "429" from general knowledge, whereas an echo can only repeat what was injected.
@@ -42,7 +42,7 @@ function collectText(body: unknown): string {
   return out.join("\n");
 }
 
-const STUB_MODEL = "hindsight-e2e-stub";
+const STUB_MODEL = "contextbase-e2e-stub";
 
 /** OpenAI Responses-API body — the shape Cursor expects even when posting to /chat/completions. */
 function responsesBody(text: string): Record<string, unknown> {
@@ -97,7 +97,7 @@ export async function startStubModel(): Promise<StubModel> {
       if (req.method === "GET" && url.includes("/models")) {
         json(200, {
           object: "list",
-          data: [{ id: STUB_MODEL, object: "model", owned_by: "hindsight" }],
+          data: [{ id: STUB_MODEL, object: "model", owned_by: "contextbase" }],
         });
         return;
       }
@@ -189,7 +189,7 @@ export async function startStubModel(): Promise<StubModel> {
       if (wantsAnthropic) {
         // Anthropic shape (Claude Code).
         json(200, {
-          id: "msg_hindsight_e2e_stub",
+          id: "msg_contextbase_e2e_stub",
           type: "message",
           role: "assistant",
           model: STUB_MODEL,
@@ -202,7 +202,7 @@ export async function startStubModel(): Promise<StubModel> {
 
       // OpenAI chat-completions shape (everything else).
       json(200, {
-        id: "chatcmpl-hindsight-e2e-stub",
+        id: "chatcmpl-contextbase-e2e-stub",
         object: "chat.completion",
         created: Math.floor(Date.now() / 1000),
         model: STUB_MODEL,

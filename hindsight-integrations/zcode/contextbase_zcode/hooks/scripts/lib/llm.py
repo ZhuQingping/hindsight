@@ -1,6 +1,6 @@
 """LLM provider detection for contextbase's fact extraction.
 
-Port of `contextbase-integrations/codex/scripts/lib/llm.py`. Used by the
+Port of `hindsight-integrations/codex/scripts/lib/llm.py`. Used by the
 daemon lifecycle so the local `contextbase-embed` subprocess knows which LLM
 to use for fact extraction.
 

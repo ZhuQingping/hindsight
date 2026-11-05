@@ -31,12 +31,12 @@ def main():
 
             run_retain(hook_input, force=True)
         except Exception as e:
-            print(f"[Hindsight] SessionEnd final retain error: {e}", file=sys.stderr)
+            print(f"[ContextBase] SessionEnd final retain error: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] SessionEnd error: {e}", file=sys.stderr)
+        print(f"[ContextBase] SessionEnd error: {e}", file=sys.stderr)
         sys.exit(0)
