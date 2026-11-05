@@ -10,6 +10,7 @@ ContextBase 为 AI 应用和 Agent 提供长期记忆服务。你可以保存对
   - [产品介绍与用途](user-guide/overview.md)
   - [核心概念与数据关系](user-guide/concepts.md)
 - **快速接入**
+  - [获取 API 地址、API Key 和 Bank ID](user-guide/quickstart.md#准备连接信息)
   - [快速开始](user-guide/quickstart.md)
   - [Python SDK](user-guide/python.md)
   - [Node.js SDK](user-guide/nodejs.md)
