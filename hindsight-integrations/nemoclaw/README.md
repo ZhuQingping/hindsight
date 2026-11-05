@@ -1,8 +1,8 @@
 # contextbase-nemoclaw
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-One-command setup for [ContextBase](https://github.com/RSIXDB/hindsight) persistent memory on [NemoClaw](https://nemoclaw.ai) sandboxes.
+One-command setup for [ContextBase](.) persistent memory on [NemoClaw](https://nemoclaw.ai) sandboxes.
 
 NemoClaw runs [OpenClaw](https://openclaw.ai) inside an OpenShell sandbox with strict network egress policies. This package automates the full setup: installing the `contextbase-openclaw` plugin, configuring external API mode, merging the ContextBase egress rule into your sandbox policy, and restarting the gateway.
 
@@ -21,7 +21,7 @@ npx contextbase-nemoclaw setup \
 
 Full setup guide, pitfalls, and troubleshooting:
 
-**[NemoClaw Integration Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)**
+**[NemoClaw Integration Documentation](../../docs/contextbase/CUSTOMER-GUIDE.md)**
 
 Or see [NEMOCLAW.md](./NEMOCLAW.md) in this directory for a step-by-step walkthrough.
 
@@ -51,10 +51,10 @@ Options:
 
 ## Links
 
-- [ContextBase Documentation](https://github.com/RSIXDB/hindsight)
+- [ContextBase Documentation](.)
 - [NemoClaw](https://nemoclaw.ai)
 - [OpenClaw](https://openclaw.ai)
-- [GitHub Repository](https://github.com/RSIXDB/hindsight)
+- [GitHub Repository](.)
 
 ## License
 

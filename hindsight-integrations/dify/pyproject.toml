@@ -4,18 +4,12 @@ version = "0.1.2"
 description = "Persistent long-term memory for Dify workflows via ContextBase."
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" },
-]
+maintainers = [{ name = "ContextBase Team" }]
 dependencies = [
     "dify_plugin>=0.6.0",
     "contextbase-client>=1.0.0,<2",
     "requests>=2.31.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [dependency-groups]
 dev = [

@@ -1,8 +1,8 @@
 # ContextBase Memory Plugin for Cursor
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Biomimetic long-term memory for [Cursor](https://cursor.com) using [ContextBase](https://github.com/RSIXDB/hindsight). Automatically recalls relevant context at session start and retains conversation transcripts for future use.
+Biomimetic long-term memory for [Cursor](https://cursor.com) using [ContextBase](.). Automatically recalls relevant context at session start and retains conversation transcripts for future use.
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ docker build -f docker/standalone/Dockerfile -t contextbase:local .
 docker run --rm -it -p 8888:8888 \
   -e CONTEXTBASE_API_LLM_API_KEY=$OPENAI_API_KEY \
   -e CONTEXTBASE_API_LLM_MODEL=gpt-4o-mini \
-  -v $HOME/.contextbase-docker:/home/hindsight/.pg0 \
+  -v $HOME/.contextbase-docker:/home/contextbase/.pg0 \
   contextbase:local
 ```
 
@@ -62,7 +62,7 @@ After installing, **fully quit and reopen Cursor**. The plugin activates automat
 - **Auto-retain** — after every task, extracts and retains conversation content to ContextBase for long-term storage
 - **On-demand MCP tools** — use `recall`, `retain`, and `reflect` tools from the ContextBase MCP server for explicit memory operations during a session
 - **On-demand recall skill** — use the `contextbase-recall` skill for explicit memory lookups
-- **Daemon management** — can auto-start/stop `hindsight-embed` locally or connect to an external ContextBase server
+- **Daemon management** — can auto-start/stop `contextbase-embed` locally or connect to an external ContextBase server
 - **Dynamic bank IDs** — supports per-agent, per-project, or per-session memory isolation
 - **Zero runtime dependencies** — plugin scripts use pure Python stdlib only
 
@@ -119,7 +119,7 @@ The agent can use these tools mid-session when it needs memory beyond what was i
 |--------|---------|
 | `lib/client.py` | ContextBase REST API client (stdlib `urllib`) |
 | `lib/config.py` | Configuration loader (settings.json + env overrides) |
-| `lib/daemon.py` | `hindsight-embed` daemon lifecycle (start/stop/health) |
+| `lib/daemon.py` | `contextbase-embed` daemon lifecycle (start/stop/health) |
 | `lib/bank.py` | Bank ID derivation + mission management |
 | `lib/content.py` | Content processing (transcript parsing, memory formatting, tag stripping) |
 | `lib/state.py` | File-based state persistence with `fcntl` locking |
@@ -134,14 +134,14 @@ Connect to a running ContextBase server (cloud or self-hosted).
 
 ```json
 {
-  "contextbaseApiUrl": "https://your-hindsight-server.com",
+  "contextbaseApiUrl": "https://your-contextbase-server.com",
   "contextbaseApiToken": "your-token"
 }
 ```
 
 ### 2. Local Daemon (auto-managed)
 
-The plugin automatically starts and stops `hindsight-embed` via `uvx`. Requires an LLM provider API key.
+The plugin automatically starts and stops `contextbase-embed` via `uvx`. Requires an LLM provider API key.
 
 ```json
 {
@@ -152,7 +152,7 @@ The plugin automatically starts and stops `hindsight-embed` via `uvx`. Requires 
 
 ### 3. Existing Local Server
 
-If you already have `hindsight-embed` running, leave `contextbaseApiUrl` empty and set `apiPort` to match your server's port.
+If you already have `contextbase-embed` running, leave `contextbaseApiUrl` empty and set `apiPort` to match your server's port.
 
 ## Configuration
 
@@ -170,9 +170,9 @@ All settings live in `~/.contextbase/cursor.json`. Every setting can also be ove
 |---------|---------|---------|-------------|
 | `contextbaseApiUrl` | `CONTEXTBASE_API_URL` | `""` | URL of an external ContextBase API server |
 | `contextbaseApiToken` | `CONTEXTBASE_API_TOKEN` | `null` | Authentication token for the external API |
-| `apiPort` | `CONTEXTBASE_API_PORT` | `9077` | Port for the local `hindsight-embed` daemon |
-| `embedVersion` | `CONTEXTBASE_EMBED_VERSION` | `"latest"` | Version of `hindsight-embed` to install |
-| `embedPackagePath` | `CONTEXTBASE_EMBED_PACKAGE_PATH` | `null` | Local path to `hindsight-embed` package (dev override) |
+| `apiPort` | `CONTEXTBASE_API_PORT` | `9077` | Port for the local `contextbase-embed` daemon |
+| `embedPackage` | `CONTEXTBASE_EMBED_PACKAGE` | unset | Administrator-approved Python engine distribution specification |
+| `embedPackagePath` | `CONTEXTBASE_EMBED_PACKAGE_PATH` | `null` | Local path to `contextbase-embed` package (dev override) |
 
 ### Memory Bank
 
@@ -236,11 +236,15 @@ python -m pytest tests/ -v
 
 ## Links
 
-- [ContextBase Documentation](https://github.com/RSIXDB/hindsight)
+- [ContextBase Documentation](.)
 - [Cursor Documentation](https://docs.cursor.com)
-- [GitHub Repository](https://github.com/RSIXDB/hindsight)
+- [GitHub Repository](.)
 
 ## License
 
 MIT
 
+
+## Local engine distribution
+
+For local engine mode, set `CONTEXTBASE_EMBED_PACKAGE` to the administrator-approved Python distribution specification, or set `embedPackagePath` to an engine checkout. The executable is `contextbase-embed`. Remote service connections use the configured API URL and token.

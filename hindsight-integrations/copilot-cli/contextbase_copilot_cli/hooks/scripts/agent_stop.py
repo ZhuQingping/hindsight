@@ -24,7 +24,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib.bank import derive_bank_id, ensure_bank_mission
-from lib.client import HindsightClient
+from lib.client import ContextBaseClient
 from lib.config import debug_log, load_config
 from lib.content import prepare_retention_transcript, read_transcript, slice_last_turns_by_user_boundary
 from lib.daemon import get_api_url
@@ -97,13 +97,13 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
     try:
         api_url = get_api_url(config, debug_fn=_dbg, allow_daemon_start=True)
     except RuntimeError as e:
-        print(f"[Hindsight] {e}", file=sys.stderr)
+        print(f"[ContextBase] {e}", file=sys.stderr)
         return
 
     try:
-        client = HindsightClient(api_url, config.get("contextbaseApiToken"))
+        client = ContextBaseClient(api_url, config.get("contextbaseApiToken"))
     except ValueError as e:
-        print(f"[Hindsight] Invalid API URL: {e}", file=sys.stderr)
+        print(f"[ContextBase] Invalid API URL: {e}", file=sys.stderr)
         return
 
     bank_id = derive_bank_id(hook_input, config)
@@ -154,14 +154,14 @@ def run_retain(hook_input: dict, force: bool = False) -> None:
         )
         debug_log(config, f"Retain response: {json.dumps(response)[:200]}")
     except Exception as e:
-        print(f"[Hindsight] Retain failed: {e}", file=sys.stderr)
+        print(f"[ContextBase] Retain failed: {e}", file=sys.stderr)
 
 
 def main():
     try:
         hook_input = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
-        print("[Hindsight] Failed to read hook input", file=sys.stderr)
+        print("[ContextBase] Failed to read hook input", file=sys.stderr)
         return
 
     session_id = hook_field(hook_input, "sessionId", default="unknown")
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"[Hindsight] Unexpected error in agentStop: {e}", file=sys.stderr)
+        print(f"[ContextBase] Unexpected error in agentStop: {e}", file=sys.stderr)
         try:
             from lib.config import load_config
 

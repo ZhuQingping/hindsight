@@ -5,9 +5,7 @@ description = "Roo Code integration for ContextBase - persistent long-term memor
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" }
-]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = [
     "ai",
     "memory",
@@ -32,11 +30,6 @@ dependencies = []
 
 [project.scripts]
 contextbase-roo-code = "contextbase_roo_code.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/roo-code"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

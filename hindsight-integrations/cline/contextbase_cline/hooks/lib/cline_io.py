@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from .client import HindsightClient
+from .client import ContextBaseClient
 from .config import ContextBaseClineConfig
 
 RECALL_MIN_CHARS = 5
@@ -92,7 +92,7 @@ def resolve_api_url(config: ContextBaseClineConfig) -> Optional[str]:
     port = config.api_port
     local = f"http://localhost:{port}"
     try:
-        if HindsightClient(local).health_check(timeout=2):
+        if ContextBaseClient(local).health_check(timeout=2):
             return local
     except Exception:
         pass

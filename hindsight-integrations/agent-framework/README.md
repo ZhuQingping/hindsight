@@ -1,8 +1,8 @@
 # contextbase-agent-framework
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) via [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent long-term memory for [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) via [ContextBase](.).
 
 Microsoft Agent Framework is the successor to Semantic Kernel. This integration plugs ContextBase in as a **context provider**, so every agent run automatically **recalls** relevant memories into the agent's context and **retains** the conversation afterward — no MCP, and no tools the model has to remember to call.
 
@@ -35,9 +35,9 @@ await agent.run("Suggest a recipe.", session=session)  # recalls the preference
 Set your API key once via the `CONTEXTBASE_API_KEY` environment variable, or pass `api_key=`/`contextbase_api_url=` to `ContextBaseProvider`. For self-hosting:
 
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
-hindsight-api  # http://localhost:8888
+contextbase-api  # http://localhost:8888
 ```
 
 ```python

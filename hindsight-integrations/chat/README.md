@@ -1,6 +1,6 @@
 # contextbase-chat
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Give your [Vercel Chat SDK](https://github.com/vercel/chat) bots persistent, per-user memory with a single handler wrapper. Works with Slack, Discord, Teams, Google Chat, GitHub, and Linear.
 
@@ -8,7 +8,7 @@ Give your [Vercel Chat SDK](https://github.com/vercel/chat) bots persistent, per
 
 > Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 >
-> Self-hosting alternative: [installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs).
+> Self-hosting alternative: [installation guide](../../docs/contextbase/CUSTOMER-GUIDE.md).
 
 ## Quick Start
 

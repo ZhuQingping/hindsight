@@ -1,6 +1,6 @@
 //go:build integration
 
-package hindsight
+package contextbase
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 func apiURL(t *testing.T) string {
 	t.Helper()
-	u := os.Getenv("HINDSIGHT_API_URL")
+	u := os.Getenv("CONTEXTBASE_API_URL")
 	if u == "" {
 		u = "http://localhost:8888"
 	}

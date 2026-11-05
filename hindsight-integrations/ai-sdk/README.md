@@ -1,8 +1,8 @@
 # ContextBase Memory Integration for Vercel AI SDK
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Give your AI agents persistent, human-like memory using [ContextBase](https://github.com/RSIXDB/hindsight) with the [Vercel AI SDK](https://ai-sdk.dev).
+Give your AI agents persistent, human-like memory using [ContextBase](.) with the [Vercel AI SDK](https://ai-sdk.dev).
 
 ## Quick Start
 
@@ -48,7 +48,7 @@ console.log(result.text);
 
 ## Documentation
 
-📖 **[Full Documentation](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)**
+📖 **[Full Documentation](../../docs/contextbase/CUSTOMER-GUIDE.md)**
 
 The complete documentation includes:
 
@@ -62,20 +62,19 @@ The complete documentation includes:
 
 ```bash
 # Install and run with embedded mode (no setup required)
-uvx hindsight-embed@latest -p myapp daemon start
+uvx contextbase-embed@latest -p myapp daemon start
 
 # The API will be available at http://localhost:8000
 ```
 
 ## Examples
 
-Full examples are available in the [GitHub repository](https://github.com/vectorize-io/hindsight/tree/main/examples/ai-sdk).
+Full examples are available in the [GitHub repository](../../docs/contextbase/CUSTOMER-GUIDE.md).
 
 ## Support
 
-- [Documentation](https://github.com/RSIXDB/hindsight)
-- [GitHub Issues](https://github.com/vectorize-io/hindsight/issues)
-- Email: support@vectorize.io
+- [Documentation](.)
+- [GitHub Issues](../../docs/contextbase/CUSTOMER-GUIDE.md)
 
 ## License
 

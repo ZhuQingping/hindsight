@@ -1,15 +1,15 @@
 # contextbase-eliza
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Long-term memory for [elizaOS](https://github.com/elizaOS/eliza) agents, backed by [Hindsight](https://github.com/RSIXDB/hindsight).
+Long-term memory for [elizaOS](https://github.com/elizaOS/eliza) agents, backed by [ContextBase](.).
 
 The plugin registers two components on your agent:
 
 - **`CONTEXTBASE_MEMORY` provider** — recalls relevant memories and injects them into the prompt before each model call.
-- **`CONTEXTBASE_RETAIN` evaluator** — retains conversation messages to Hindsight after each turn.
+- **`CONTEXTBASE_RETAIN` evaluator** — retains conversation messages to ContextBase after each turn.
 
-Both are enabled by default, layer on top of elizaOS's existing memory, and fail safe — a Hindsight outage never blocks the agent from responding.
+Both are enabled by default, layer on top of elizaOS's existing memory, and fail safe — a ContextBase outage never blocks the agent from responding.
 
 ## Installation
 
@@ -44,7 +44,7 @@ By default memories are stored per user (keyed by the message `entityId`). Pass 
 
 | Option                        | Description                                 | Default                         |
 | ----------------------------- | ------------------------------------------- | ------------------------------- |
-| `client`                      | A Hindsight client instance                 | required                        |
+| `client`                      | A ContextBase client instance                 | required                        |
 | `bank`                        | Fixed bank string, or `(message) => string` | `message.entityId`              |
 | `recall.enabled`              | Enable the recall provider                  | `true`                          |
 | `recall.budget`               | `"low" \| "mid" \| "high"`                  | `"mid"`                         |

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HindsightClient } from "../../src/client";
+import { ContextBaseClient } from "../../src/client";
 import { fetchTransport } from "../../src/node/fetch-transport";
 import type { Transport, TransportRequest } from "../../src/transport";
 
@@ -56,13 +56,13 @@ describe("fetchTransport", () => {
   });
 });
 
-describe("HindsightClient over fetchTransport (full stack)", () => {
+describe("ContextBaseClient over fetchTransport (full stack)", () => {
   beforeEach(() => vi.unstubAllGlobals());
   afterEach(() => vi.unstubAllGlobals());
 
   it("surfaces a useful error on a non-2xx response", async () => {
     vi.stubGlobal("fetch", fetchReturning(503, "upstream down"));
-    const client = new HindsightClient("https://h", "tok", fetchTransport);
+    const client = new ContextBaseClient("https://h", "tok", fetchTransport);
     await expect(client.reflect("b", "q")).rejects.toThrow(/HTTP 503: upstream down/);
   });
 
@@ -71,10 +71,12 @@ describe("HindsightClient over fetchTransport (full stack)", () => {
       "fetch",
       vi.fn(async () => Promise.reject(new Error("down")))
     );
-    expect(await new HindsightClient("https://h", undefined, fetchTransport).health()).toBe(false);
+    expect(await new ContextBaseClient("https://h", undefined, fetchTransport).health()).toBe(
+      false
+    );
 
     vi.stubGlobal("fetch", fetchReturning(200, "{}"));
-    expect(await new HindsightClient("https://h", undefined, fetchTransport).health()).toBe(true);
+    expect(await new ContextBaseClient("https://h", undefined, fetchTransport).health()).toBe(true);
   });
 });
 
@@ -99,11 +101,11 @@ describe("cross-transport request parity", () => {
   it("retain builds the same request under two different transports", async () => {
     const a = recorder();
     const b = recorder();
-    await new HindsightClient("https://h/", "tok", a.transport).retain("bank", "F/n.md", "body", {
+    await new ContextBaseClient("https://h/", "tok", a.transport).retain("bank", "F/n.md", "body", {
       tags: ["t"],
       metadata: { path: "F/n.md" },
     });
-    await new HindsightClient("https://h/", "tok", b.transport).retain("bank", "F/n.md", "body", {
+    await new ContextBaseClient("https://h/", "tok", b.transport).retain("bank", "F/n.md", "body", {
       tags: ["t"],
       metadata: { path: "F/n.md" },
     });

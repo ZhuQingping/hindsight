@@ -173,7 +173,7 @@ describe("plugin default export", () => {
     // silently breaking session behavior.
     //
     // The fix is to NOT re-export utilities from the entry; consumers that
-    // need them import from "@vectorize-io/opencode-contextbase/dist/config.js"
+    // need them import from "@huaweicloud/opencode-contextbase/dist/config.js"
     // or rely on the plugin itself using them internally.
     const mod = await import("./index.js");
     const functionValues = Object.values(mod).filter((v) => typeof v === "function");

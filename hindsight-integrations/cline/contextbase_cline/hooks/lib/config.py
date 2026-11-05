@@ -168,4 +168,4 @@ def load_config() -> ContextBaseClineConfig:
 def debug_log(config: ContextBaseClineConfig, *args: Any) -> None:
     """Log to stderr if debug mode is enabled."""
     if config.debug:
-        print("[Hindsight]", *args, file=sys.stderr)
+        print("[ContextBase]", *args, file=sys.stderr)

@@ -26,13 +26,6 @@
     "contextbase",
     "coding"
   ],
-  "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
-  "homepage": "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/zed",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/zed"
-  },
   "dependencies": {}
 }

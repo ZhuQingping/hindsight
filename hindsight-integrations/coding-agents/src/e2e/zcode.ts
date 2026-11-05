@@ -19,8 +19,8 @@ import type { HarnessDockerSetup } from "./harness";
  */
 export const zcodeDockerSetup: HarnessDockerSetup = {
   name: "zcode",
-  hindsightHarness: "zcode",
+  contextbaseHarness: "zcode",
   installCommand: "contextbase-coding-agents install zcode",
   stubModelEnv: (baseUrl) => ({ CONTEXTBASE_STUB_BASE_URL: baseUrl }),
-  command: (prompt) => ["hindsight-zcode-e2e-exec", prompt],
+  command: (prompt) => ["contextbase-zcode-e2e-exec", prompt],
 };

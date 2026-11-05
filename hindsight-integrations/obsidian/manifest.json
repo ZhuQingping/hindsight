@@ -4,7 +4,6 @@
   "version": "0.3.0",
   "minAppVersion": "1.7.2",
   "description": "Sync your notes into a ContextBase memory bank and chat with an AI agent that answers from your vault and cites the source notes. Your vault stays the single source of truth.",
-  "author": "Vectorize",
-  "authorUrl": "https://hindsight.vectorize.io",
-  "isDesktopOnly": true
+  "isDesktopOnly": true,
+  "author": "ContextBase Team"
 }

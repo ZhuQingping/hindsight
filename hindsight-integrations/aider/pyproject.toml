@@ -5,7 +5,7 @@ description = "Aider integration for ContextBase - persistent long-term memory a
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Vectorize", email = "support@vectorize.io" }]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = ["ai", "memory", "aider", "pair-programming", "agents", "contextbase"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,11 +21,6 @@ dependencies = ["contextbase-client>=1.0.0,<2"]
 
 [project.scripts]
 contextbase-aider = "contextbase_aider.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://github.com/RSIXDB/hindsight/tree/main/hindsight-integrations/aider"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

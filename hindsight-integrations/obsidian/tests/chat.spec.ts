@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { HindsightClient } from "../src/client";
+import type { ContextBaseClient } from "../src/client";
 import { runChatTurn } from "../src/chat";
 import type { ReflectResponse } from "../src/types";
 
@@ -20,7 +20,7 @@ describe("runChatTurn", () => {
     const client = fakeClient(ANSWER);
     const res = await runChatTurn(
       {
-        client: client as unknown as HindsightClient,
+        client: client as unknown as ContextBaseClient,
         bankId: "bank",
         budget: "low",
         rememberConversations: false,
@@ -43,7 +43,7 @@ describe("runChatTurn", () => {
     const tagGroups = [{ tags: ["vault:Personal"], match: "all_strict" as const }];
     await runChatTurn(
       {
-        client: client as unknown as HindsightClient,
+        client: client as unknown as ContextBaseClient,
         bankId: "bank",
         budget: "low",
         rememberConversations: false,
@@ -64,7 +64,7 @@ describe("runChatTurn", () => {
     let n = 0;
     await runChatTurn(
       {
-        client: client as unknown as HindsightClient,
+        client: client as unknown as ContextBaseClient,
         bankId: "bank",
         budget: "low",
         rememberConversations: true,

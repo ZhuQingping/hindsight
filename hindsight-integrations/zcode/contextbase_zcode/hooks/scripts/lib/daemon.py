@@ -26,12 +26,11 @@ DAEMON_STATE_FILE = "daemon.json"
 PROFILE_NAME = "zcode"
 
 
-def _get_embed_command(config):
-    """Get the command to run contextbase-embed."""
+def _get_embed_command(config: dict) -> list[str]:
+    """Use the configured engine distribution and its ContextBase executable."""
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return ["uv", "run", "--directory", embed_path, "contextbase-embed"]
-
     package = config.get("embedPackage") or os.environ.get("CONTEXTBASE_EMBED_PACKAGE")
     if not package:
         raise RuntimeError("Set CONTEXTBASE_EMBED_PACKAGE or embedPackagePath for local engine mode.")

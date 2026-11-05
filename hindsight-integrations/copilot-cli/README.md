@@ -1,6 +1,6 @@
 # ContextBase for GitHub Copilot CLI
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [GitHub Copilot CLI](https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-copilot-cli) — remembers your projects, preferences, and past sessions across every conversation, and gives subagents (`explore`, `task`, `research`, `code-review`, `rubber-duck`, `security-review`, custom agents) baseline project memory too.
 
@@ -27,7 +27,7 @@ The built-in `general-purpose` subagent does not emit `subagentStart`/`subagentS
 
 - **GitHub Copilot CLI** with [hooks support](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks)
 - **Python 3.9+** (for hook scripts; stdlib only — no pip install required)
-- **ContextBase**: [ContextBase remote service](https://github.com/RSIXDB/hindsight) or local `hindsight-embed`
+- **ContextBase**: [ContextBase remote service](.) or local `contextbase-embed`
 
 ## Installation
 
@@ -43,7 +43,7 @@ Then run the installer once:
 # ContextBase remote service
 contextbase-copilot-cli install --api-url http://localhost:8888 --api-token your-api-key
 
-# Local daemon (hindsight-embed) — omit the flags
+# Local daemon (contextbase-embed) — omit the flags
 contextbase-copilot-cli install
 ```
 
@@ -165,3 +165,7 @@ The tests mock the HTTP client, the stdin/stdout pipe, and the file-based state.
 ## License
 
 MIT
+
+## Local engine distribution
+
+For local engine mode, set `CONTEXTBASE_EMBED_PACKAGE` to the administrator-approved Python distribution specification, or set `embedPackagePath` to an engine checkout. The executable is `contextbase-embed`. Remote service connections use the configured API URL and token.

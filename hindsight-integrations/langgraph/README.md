@@ -1,8 +1,8 @@
 # contextbase-langgraph
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-LangGraph and LangChain integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+LangGraph and LangChain integration for [ContextBase](.) — persistent long-term memory for AI agents.
 
 Provides three integration patterns:
 - **Tools** — retain/recall/reflect as LangChain `@tool` functions for agent-driven memory. Works with **both LangChain and LangGraph**.
@@ -11,7 +11,7 @@ Provides three integration patterns:
 
 ## Prerequisites
 
-- A [ContextBase remote service](http://localhost:9999) account or a [self-hosted](https://github.com/RSIXDB/hindsight#quick-start) ContextBase instance
+- A [ContextBase remote service](http://localhost:9999) account or a [self-hosted](.) ContextBase instance
 - Python 3.10+
 
 ## Installation
@@ -173,6 +173,6 @@ All factory functions accept `client`, `contextbase_api_url`, and `api_key` to o
 
 ## Documentation
 
-- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
-- [Cookbook: ReAct agent with memory](https://docs.hindsight.vectorize.io/cookbook/recipes/langgraph-react-agent)
-- [ContextBase API docs](https://docs.hindsight.vectorize.io)
+- [Integration docs](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [Cookbook: ReAct agent with memory](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [ContextBase API docs](../../docs/contextbase/CUSTOMER-GUIDE.md)

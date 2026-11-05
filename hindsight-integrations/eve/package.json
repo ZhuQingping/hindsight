@@ -21,13 +21,7 @@
     "llm",
     "long-term-memory"
   ],
-  "author": "Vectorize <support@vectorize.io>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/eve"
-  },
   "files": [
     "dist",
     "README.md"

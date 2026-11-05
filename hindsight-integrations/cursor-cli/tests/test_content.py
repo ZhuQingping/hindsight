@@ -119,7 +119,7 @@ class TestReadTranscript:
     def test_reads_cursor3_role_nested_agent_transcript(self, tmp_path):
         """Regression: Cursor 3.x agent-transcripts use role-nested block content.
 
-        See vectorize-io/hindsight#1975 review (Should fix #4) and the fix in
+        See the original extraction review review (Should fix #4) and the fix in
         hindsight-integrations/cursor/tests/test_hooks.py.
         """
         f = tmp_path / "cursor3.jsonl"

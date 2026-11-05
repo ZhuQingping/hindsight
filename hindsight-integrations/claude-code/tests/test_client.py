@@ -291,7 +291,7 @@ class TestContextBaseClientSetBankMission:
         assert captured["body"]["updates"]["retain_mission"] == "Extract facts"
 
 
-@pytest.mark.parametrize("bank", ["hindsight-review", "Hindsight-review", "HINDSIGHT-review"])
+@pytest.mark.parametrize("bank", ["contextbase-review", "ContextBase-review", "CONTEXTBASE-review"])
 def test_http_rejection_preserves_service_message(bank: str) -> None:
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     from threading import Thread

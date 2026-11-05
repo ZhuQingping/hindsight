@@ -4,14 +4,12 @@ import json
 from pathlib import Path
 
 import pytest
-
 from contextbase_roo_code.install import (
     build_mcp_entry,
     get_roo_dir,
     install_mcp,
     install_rules,
 )
-
 
 # ---------------------------------------------------------------------------
 # build_mcp_entry
@@ -115,10 +113,10 @@ def test_merge_does_not_duplicate(project_with_existing_mcp: Path, contextbase_u
 
 def test_custom_api_url_written_to_mcp(tmp_project: Path) -> None:
     roo_dir = tmp_project / ".roo"
-    install_mcp(roo_dir, "https://my-hindsight.example.com")
+    install_mcp(roo_dir, "https://my-contextbase.example.com")
 
     data = json.loads((roo_dir / "mcp.json").read_text())
-    assert data["mcpServers"]["contextbase"]["url"] == "https://my-hindsight.example.com/mcp"
+    assert data["mcpServers"]["contextbase"]["url"] == "https://my-contextbase.example.com/mcp"
 
 
 # ---------------------------------------------------------------------------

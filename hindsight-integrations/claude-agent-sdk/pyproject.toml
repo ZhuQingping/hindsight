@@ -5,9 +5,7 @@ description = "Claude Agent SDK integration for ContextBase - persistent memory 
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [
-    { name = "Vectorize", email = "support@vectorize.io" }
-]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = [
     "ai",
     "memory",
@@ -32,11 +30,6 @@ dependencies = [
     "claude-agent-sdk>=0.1.50",
     "contextbase-client>=1.0.0,<2",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://hindsight.vectorize.io/sdks/integrations/claude-agent-sdk"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

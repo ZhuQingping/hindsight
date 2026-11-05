@@ -130,7 +130,7 @@ describe("ensureTraecodeWorkspaceMcp", () => {
   it("never touches a foreign contextbase entry", () => {
     const { repo: r, dist, home } = repo();
     mkdirSync(join(r, ".trae"), { recursive: true });
-    const foreign = { command: "python", args: ["-m", "my_hindsight"] };
+    const foreign = { command: "python", args: ["-m", "my_contextbase"] };
     writeFileSync(mcpFile(r), JSON.stringify({ mcpServers: { contextbase: foreign } }));
     ensureTraecodeWorkspaceMcp(r, { dist, home, stateFile: STATE });
     expect(readJson(r).mcpServers.contextbase).toEqual(foreign);

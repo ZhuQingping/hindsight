@@ -1,8 +1,8 @@
 # contextbase-agentcore
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent memory for [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) agents using [ContextBase](.).
 
 AgentCore Runtime sessions are explicitly ephemeral — they terminate on inactivity and reprovision fresh environments. This package adds durable cross-session memory so agents remember users, decisions, and learned patterns across any number of Runtime sessions.
 
@@ -18,7 +18,7 @@ AgentCore Runtime invocation
   Agent executes          ← Prompt enriched with prior context
         │
         ▼
-   after_turn()          ← Retain output to Hindsight (async)
+   after_turn()          ← Retain output to ContextBase (async)
 ```
 
 Memory is keyed to stable user identity — **not** the `runtimeSessionId`. Banks survive session churn.

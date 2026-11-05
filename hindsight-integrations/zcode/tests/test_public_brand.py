@@ -41,7 +41,7 @@ def test_client_preserves_public_service_error(monkeypatch: pytest.MonkeyPatch, 
     import io
     import urllib.error
 
-    from lib.client import HindsightClient
+    from lib.client import ContextBaseClient
 
     message = f"Access denied to bank {bank}"
     upstream = urllib.error.HTTPError("https://service.example", 403, "Forbidden", {}, io.BytesIO(message.encode()))
@@ -51,7 +51,7 @@ def test_client_preserves_public_service_error(monkeypatch: pytest.MonkeyPatch, 
 
     monkeypatch.setattr("urllib.request.urlopen", fail)
     with pytest.raises(RuntimeError) as error:
-        HindsightClient("https://service.example")._request("GET", f"/v1/default/banks/{bank}")
+        ContextBaseClient("https://service.example")._request("GET", f"/v1/default/banks/{bank}")
     assert "HTTP 403" in str(error.value)
     assert message in str(error.value)
     assert error.value.__cause__ is upstream

@@ -1,8 +1,8 @@
 # contextbase-roo-code
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Roo Code](https://github.com/RooVetGit/Roo-Code) via [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent long-term memory for [Roo Code](https://github.com/RooVetGit/Roo-Code) via [ContextBase](.).
 
 Run the installer once and every Roo Code session automatically recalls past context before tasks and retains learnings after.
 
@@ -19,9 +19,9 @@ Run the installer once and every Roo Code session automatically recalls past con
 **Self-hosting alternative** — run ContextBase locally:
 
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
-hindsight-api  # starts on http://localhost:8888
+contextbase-api  # starts on http://localhost:8888
 ```
 
 ## Installation
@@ -39,7 +39,7 @@ contextbase-roo-code install
 Or with a custom API URL:
 
 ```bash
-contextbase-roo-code install --api-url https://my-hindsight.example.com
+contextbase-roo-code install --api-url https://my-contextbase.example.com
 ```
 
 Install globally (applies to all projects):
@@ -94,7 +94,7 @@ contextbase-roo-code install --api-url https://new-url.example.com
 
 ## Verifying Setup
 
-1. Start Hindsight (`hindsight-api` or ContextBase remote service)
+1. Start ContextBase (`contextbase-api` or ContextBase remote service)
 2. Open Roo Code in your project
 3. Check **Settings → MCP Servers** — `contextbase` should show as connected
 4. Start a task — you should see `recall` called automatically

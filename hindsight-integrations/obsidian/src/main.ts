@@ -1,7 +1,7 @@
 import { type Debouncer, Notice, Plugin, TFile, addIcon, debounce, setIcon } from "obsidian";
 import { CONTEXTBASE_ICON_ID, CONTEXTBASE_ICON_SVG, CONTEXTBASE_MARK_DATA_URI } from "./branding";
 import { ChatView, VIEW_TYPE_CHAT } from "./chat-view";
-import { HindsightClient } from "./client";
+import { ContextBaseClient } from "./client";
 import { obsidianTransport } from "./obsidian-transport";
 import { DEFAULT_SETTINGS, type ContextBaseSettings, ContextBaseSettingTab } from "./settings";
 import { SyncEngine, type SyncConfig, type SyncIndex, type SyncVault } from "./sync";
@@ -16,7 +16,7 @@ interface PluginData {
 export default class ContextBasePlugin extends Plugin {
   settings: ContextBaseSettings = { ...DEFAULT_SETTINGS };
   private syncIndex: SyncIndex = {};
-  private client: HindsightClient | null = null;
+  private client: ContextBaseClient | null = null;
   private engine: SyncEngine | null = null;
   private dirty = new Set<string>();
   private scheduleFlush!: Debouncer<[], void>;
@@ -143,7 +143,7 @@ export default class ContextBasePlugin extends Plugin {
 
   // ── Public accessors used by views ──────────────────────────────────────
 
-  getClient(): HindsightClient | null {
+  getClient(): ContextBaseClient | null {
     return this.client;
   }
 
@@ -267,7 +267,7 @@ export default class ContextBasePlugin extends Plugin {
   private rebuildClient(): void {
     try {
       this.client = this.settings.apiUrl.trim()
-        ? new HindsightClient(this.settings.apiUrl, this.settings.apiKey, obsidianTransport)
+        ? new ContextBaseClient(this.settings.apiUrl, this.settings.apiKey, obsidianTransport)
         : null;
     } catch {
       this.client = null;

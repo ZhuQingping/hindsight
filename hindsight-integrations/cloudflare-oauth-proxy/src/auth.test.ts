@@ -37,7 +37,7 @@ function createEnv(overrides: Partial<Env> = {}): Env {
   return {
     OAUTH_KV: createMockKv(),
     OAUTH_PROVIDER: createMockProvider(),
-    CONTEXTBASE_ORIGIN: "https://hindsight-origin.example.com",
+    CONTEXTBASE_ORIGIN: "https://contextbase-origin.example.com",
     ALLOWED_EMAIL: "test@example.com",
     SESSION_SECRET: "correct-horse-battery-staple",
     PROXY_SECRET: "proxy-secret",
@@ -76,7 +76,7 @@ describe("handleDefaultRequest", () => {
   describe("/health", () => {
     it("returns { status: 'ok' }", async () => {
       const response = await handleDefaultRequest(
-        new Request("https://hindsight.mydomain.com/health"),
+        new Request("https://contextbase.mydomain.com/health"),
         env
       );
       expect(response.status).toBe(200);
@@ -87,7 +87,7 @@ describe("handleDefaultRequest", () => {
   describe("/ (service root)", () => {
     it("returns the service identifier", async () => {
       const response = await handleDefaultRequest(
-        new Request("https://hindsight.mydomain.com/"),
+        new Request("https://contextbase.mydomain.com/"),
         env
       );
       expect(response.status).toBe(200);
@@ -98,7 +98,7 @@ describe("handleDefaultRequest", () => {
   describe("unknown paths", () => {
     it("returns 404", async () => {
       const response = await handleDefaultRequest(
-        new Request("https://hindsight.mydomain.com/nope"),
+        new Request("https://contextbase.mydomain.com/nope"),
         env
       );
       expect(response.status).toBe(404);
@@ -108,7 +108,7 @@ describe("handleDefaultRequest", () => {
   describe("GET /authorize", () => {
     it("stores OAuth state in KV and renders the login page", async () => {
       const response = await handleDefaultRequest(
-        new Request("https://hindsight.mydomain.com/authorize?client_id=x"),
+        new Request("https://contextbase.mydomain.com/authorize?client_id=x"),
         env
       );
 
@@ -136,7 +136,7 @@ describe("handleDefaultRequest", () => {
     async function postForm(form: Record<string, string>, e: Env = env): Promise<Response> {
       const body = new URLSearchParams(form);
       return handleDefaultRequest(
-        new Request("https://hindsight.mydomain.com/authorize", {
+        new Request("https://contextbase.mydomain.com/authorize", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body,

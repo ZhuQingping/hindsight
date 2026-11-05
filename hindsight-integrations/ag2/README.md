@@ -1,15 +1,15 @@
 # contextbase-ag2
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-AG2 integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+AG2 integration for [ContextBase](.) — persistent long-term memory for AI agents.
 
 Provides ContextBase-backed tool functions that give [AG2](https://ag2.ai) agents long-term memory across conversations via retain/recall/reflect operations.
 
 ## Prerequisites
 
 - Python 3.10+
-- Running ContextBase instance ([quickstart](https://github.com/RSIXDB/hindsight#quick-start))
+- Running ContextBase instance ([quickstart](.))
 
 ## Installation
 
@@ -141,6 +141,6 @@ manager = GroupChatManager(groupchat=group_chat)
 
 ## Documentation
 
-- [ContextBase Documentation](https://hindsight.docs.vectorize.io)
+- [ContextBase Documentation](../../docs/contextbase/CUSTOMER-GUIDE.md)
 - [AG2 Documentation](https://docs.ag2.ai)
-- [API Reference](https://hindsight.docs.vectorize.io/api)
+- [API Reference](../../docs/contextbase/CUSTOMER-GUIDE.md)

@@ -6,7 +6,7 @@ use crate::api::ApiClient;
 use crate::output::{self, OutputFormat};
 use crate::ui;
 
-use hindsight_client::types;
+use contextbase_client::types;
 
 /// List directives for a bank
 pub fn list(

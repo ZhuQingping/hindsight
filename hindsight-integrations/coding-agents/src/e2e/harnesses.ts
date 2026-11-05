@@ -2,7 +2,7 @@
  * Docker E2E setups for every supported CLI harness.
  *
  * Each entry is small and declarative: where the host keeps that CLI's SUBSCRIPTION credentials,
- * where the CLI expects them inside the container, how to wire Hindsight into it, and how to drive
+ * where the CLI expects them inside the container, how to wire ContextBase into it, and how to drive
  * it non-interactively. Everything else — the seeded bank, the git fixture, the assertions — is
  * shared in ./harness.
  *
@@ -37,7 +37,7 @@ const authPath = (envVar: string, ...parts: string[]) => process.env[envVar] || 
  */
 export const opencodeDockerSetup: HarnessDockerSetup = {
   name: "opencode",
-  hindsightHarness: "opencode",
+  contextbaseHarness: "opencode",
   credentialPath: () =>
     authPath("OPENCODE_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/opencode/auth.json",
@@ -54,7 +54,7 @@ export const opencodeDockerSetup: HarnessDockerSetup = {
  */
 export const opencode2DockerSetup: HarnessDockerSetup = {
   name: "opencode2",
-  hindsightHarness: "opencode2",
+  contextbaseHarness: "opencode2",
   credentialPath: () =>
     authPath("OPENCODE_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/opencode/auth.json",
@@ -72,7 +72,7 @@ export const opencode2DockerSetup: HarnessDockerSetup = {
  */
 export const kiloDockerSetup: HarnessDockerSetup = {
   name: "kilo",
-  hindsightHarness: "kilo",
+  contextbaseHarness: "kilo",
   credentialPath: () => authPath("KILO_E2E_AUTH_PATH", ".local", "share", "opencode", "auth.json"),
   credentialTarget: "/root/.local/share/kilo/auth.json",
   installCommand: "contextbase-coding-agents install kilo",
@@ -92,7 +92,7 @@ export const kiloDockerSetup: HarnessDockerSetup = {
  */
 export const claudeCodeDockerSetup: HarnessDockerSetup = {
   name: "claude-code",
-  hindsightHarness: "claude-code",
+  contextbaseHarness: "claude-code",
   unsupported:
     "hangs to the timeout with the stub serving 0 requests: ANTHROPIC_BASE_URL alone does not get " +
     "it to the model, and it stalls before the first request — apparently waiting on login / " +
@@ -102,7 +102,7 @@ export const claudeCodeDockerSetup: HarnessDockerSetup = {
   installCommand: "contextbase-coding-agents install claude-code",
   stubModelEnv: (baseUrl) => ({
     ANTHROPIC_BASE_URL: baseUrl,
-    ANTHROPIC_API_KEY: "hindsight-e2e",
+    ANTHROPIC_API_KEY: "contextbase-e2e",
   }),
   command: (prompt) => ["claude", "--print", prompt],
 };
@@ -117,7 +117,7 @@ export const claudeCodeDockerSetup: HarnessDockerSetup = {
  */
 export const cursorDockerSetup: HarnessDockerSetup = {
   name: "cursor-cli",
-  hindsightHarness: "cursor-cli",
+  contextbaseHarness: "cursor-cli",
   installCommand: "contextbase-coding-agents install cursor-cli",
   unsupported:
     "cursor-agent never contacts a custom endpoint — the stub served 0 requests via both " +
@@ -125,12 +125,12 @@ export const cursorDockerSetup: HarnessDockerSetup = {
     "instead. It appears to authenticate against Cursor's own service before any model call. " +
     "Its account session is also machine-bound, so mounting cli-config.json yields " +
     '"Authentication required". Re-enable by clearing this field once either path works.',
-  stubModelEnv: (baseUrl) => ({ CURSOR_API_ENDPOINT: baseUrl, CURSOR_API_KEY: "hindsight-e2e" }),
+  stubModelEnv: (baseUrl) => ({ CURSOR_API_ENDPOINT: baseUrl, CURSOR_API_KEY: "contextbase-e2e" }),
   command: (prompt, { stubUrl }) => [
     "cursor-agent",
     "-p",
     "--force",
-    ...(stubUrl ? ["--endpoint", stubUrl, "--api-key", "hindsight-e2e"] : []),
+    ...(stubUrl ? ["--endpoint", stubUrl, "--api-key", "contextbase-e2e"] : []),
     prompt,
   ],
 };
@@ -145,7 +145,7 @@ export const cursorDockerSetup: HarnessDockerSetup = {
  */
 export const copilotDockerSetup: HarnessDockerSetup = {
   name: "copilot-cli",
-  hindsightHarness: "copilot-cli",
+  contextbaseHarness: "copilot-cli",
   unsupported:
     "hangs to the timeout without ever calling the model — the stub served 0 requests despite the " +
     "documented BYOK variables (COPILOT_PROVIDER_BASE_URL/TYPE/API_KEY + COPILOT_MODEL), which are " +
@@ -156,8 +156,8 @@ export const copilotDockerSetup: HarnessDockerSetup = {
   stubModelEnv: (baseUrl) => ({
     COPILOT_PROVIDER_BASE_URL: `${baseUrl}/v1`,
     COPILOT_PROVIDER_TYPE: "openai",
-    COPILOT_PROVIDER_API_KEY: "hindsight-e2e",
-    COPILOT_MODEL: "hindsight-e2e-stub",
+    COPILOT_PROVIDER_API_KEY: "contextbase-e2e",
+    COPILOT_MODEL: "contextbase-e2e-stub",
   }),
   command: (prompt) => ["copilot", "-p", prompt, "--allow-all-tools"],
 };
@@ -171,7 +171,7 @@ export const copilotDockerSetup: HarnessDockerSetup = {
  */
 export const grokDockerSetup: HarnessDockerSetup = {
   name: "grok-build",
-  hindsightHarness: "grok-build",
+  contextbaseHarness: "grok-build",
   credentialPath: () => authPath("GROK_E2E_AUTH_PATH", ".grok", "auth.json"),
   credentialTarget: "/root/.grok/auth.json",
   installCommand: "contextbase-coding-agents install grok-build",
@@ -203,12 +203,12 @@ export const grokDockerSetup: HarnessDockerSetup = {
  */
 export const qwenDockerSetup: HarnessDockerSetup = {
   name: "qwen-code",
-  hindsightHarness: "qwen-code",
+  contextbaseHarness: "qwen-code",
   installCommand: "contextbase-coding-agents install qwen-code",
   stubModelEnv: (baseUrl) => ({
     OPENAI_BASE_URL: `${baseUrl}/v1`,
-    OPENAI_API_KEY: "hindsight-e2e",
-    OPENAI_MODEL: "hindsight-e2e-stub",
+    OPENAI_API_KEY: "contextbase-e2e",
+    OPENAI_MODEL: "contextbase-e2e-stub",
     APPROVAL_MODE: "yolo",
   }),
   injectsIntoModel: false,
@@ -228,11 +228,11 @@ export const qwenDockerSetup: HarnessDockerSetup = {
  */
 export const kimiDockerSetup: HarnessDockerSetup = {
   name: "kimi-code",
-  hindsightHarness: "kimi-code",
+  contextbaseHarness: "kimi-code",
   installCommand: "contextbase-coding-agents install kimi-code",
   stubModelEnv: (baseUrl) => ({
-    KIMI_MODEL_NAME: "hindsight-e2e-stub",
-    KIMI_MODEL_API_KEY: "hindsight-e2e",
+    KIMI_MODEL_NAME: "contextbase-e2e-stub",
+    KIMI_MODEL_API_KEY: "contextbase-e2e",
     KIMI_MODEL_PROVIDER_TYPE: "openai",
     KIMI_MODEL_BASE_URL: `${baseUrl}/v1`,
   }),
@@ -247,7 +247,7 @@ export const kimiDockerSetup: HarnessDockerSetup = {
  */
 export const devinDockerSetup: HarnessDockerSetup = {
   name: "devin-cli",
-  hindsightHarness: "devin-cli",
+  contextbaseHarness: "devin-cli",
   unsupported:
     "authenticates and runs cleanly (✓ Organization, no trust error) but its reply never reaches " +
     "us: the captured stdout holds only the runner's npm output, and it writes no " +
@@ -268,7 +268,7 @@ export const devinDockerSetup: HarnessDockerSetup = {
  */
 export const clineDockerSetup: HarnessDockerSetup = {
   name: "cline-cli",
-  hindsightHarness: "cline-cli",
+  contextbaseHarness: "cline-cli",
   credentialPath: () => authPath("CLINE_E2E_AUTH_PATH", ".cline"),
   credentialTarget: "/root/.cline",
   installCommand: "contextbase-coding-agents install cline-cli",
@@ -282,7 +282,7 @@ export const clineDockerSetup: HarnessDockerSetup = {
  */
 export const piDockerSetup: HarnessDockerSetup = {
   name: "pi",
-  hindsightHarness: "pi",
+  contextbaseHarness: "pi",
   credentialPath: () => authPath("PI_E2E_AUTH_PATH", ".pi", "agent", "auth.json"),
   credentialTarget: "/root/.pi/agent/auth.json",
   installCommand: "contextbase-coding-agents install pi",
@@ -296,7 +296,7 @@ export const piDockerSetup: HarnessDockerSetup = {
  */
 export const primeAgentDockerSetup: HarnessDockerSetup = {
   name: "prime-agent",
-  hindsightHarness: "prime-agent",
+  contextbaseHarness: "prime-agent",
   credentialPath: () => authPath("PRIME_AGENT_E2E_AUTH_PATH", ".prime", "agent", "auth.json"),
   credentialTarget: "/root/.prime/agent/auth.json",
   installCommand: "contextbase-coding-agents install prime-agent",
@@ -315,11 +315,11 @@ export const primeAgentDockerSetup: HarnessDockerSetup = {
  */
 export const dshDockerSetup: HarnessDockerSetup = {
   name: "dsh",
-  hindsightHarness: "dsh",
+  contextbaseHarness: "dsh",
   installCommand: "contextbase-coding-agents install dsh",
   stubModelEnv: (baseUrl) => ({
     CONTEXTBASE_STUB_BASE_URL: `${baseUrl}/v1`,
-    CONTEXTBASE_STUB_KEY: "hindsight-e2e",
+    CONTEXTBASE_STUB_KEY: "contextbase-e2e",
   }),
   command: (prompt) => [
     "dsh",

@@ -14,7 +14,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 DEFAULT_CONTEXTBASE_API_URL = ""
 CONTEXTBASE_API_KEY_ENV = "CONTEXTBASE_API_KEY"
@@ -28,7 +28,7 @@ DEFAULT_MEMORY_FILENAME = ".aider.contextbase-memory.md"
 # Aider's default chat-history file (we read it to retain the session).
 DEFAULT_CHAT_HISTORY_FILE = ".aider.chat.history.md"
 DEFAULT_RECALL_QUERY = "relevant context, decisions, and conventions for this project"
-DEFAULT_RECALL_PREAMBLE = "Long-term project memory recalled from Hindsight (use what's relevant, ignore the rest):"
+DEFAULT_RECALL_PREAMBLE = "Long-term project memory recalled from ContextBase (use what's relevant, ignore the rest):"
 
 
 @dataclass
@@ -36,11 +36,11 @@ class AiderConfig:
     """Resolved configuration for the Aider wrapper."""
 
     contextbase_api_url: str = DEFAULT_CONTEXTBASE_API_URL
-    contextbase_api_token: Optional[str] = None
+    contextbase_api_token: str | None = None
 
     # Bank scoping. By default the bank is the git repo name (one bank per repo),
     # so memory follows the project; ``bank_id`` pins an explicit bank.
-    bank_id: Optional[str] = None
+    bank_id: str | None = None
 
     auto_recall: bool = True
     auto_retain: bool = True
@@ -99,7 +99,7 @@ def _cast(value: object, typ: type) -> object | None:
         return None
 
 
-def load_config(config_file: Optional[Path] = None, env: Optional[dict] = None) -> AiderConfig:
+def load_config(config_file: Path | None = None, env: dict | None = None) -> AiderConfig:
     """Load and resolve configuration from file then environment."""
     cfg = AiderConfig()
     env = os.environ if env is None else env

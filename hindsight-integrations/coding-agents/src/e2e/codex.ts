@@ -4,7 +4,7 @@ import type { HarnessDockerSetup } from "./harness";
 
 export const codexDockerSetup: HarnessDockerSetup = {
   name: "codex",
-  hindsightHarness: "codex",
+  contextbaseHarness: "codex",
   credentialPath: () => process.env.CODEX_E2E_AUTH_PATH || join(homedir(), ".codex", "auth.json"),
   credentialTarget: "/root/.codex/auth.json",
   installCommand: "contextbase-coding-agents install codex",

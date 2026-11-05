@@ -589,7 +589,7 @@ describe("selfUpdatable", () => {
       false
     );
     expect(
-      selfUpdatable(withOrigin("/home/u/dev/hindsight/hindsight-integrations/coding-agents"))
+      selfUpdatable(withOrigin("/home/u/dev/contextbase/hindsight-integrations/coding-agents"))
     ).toBe(false);
   });
 

@@ -7,7 +7,7 @@ import { startStubModel, type StubModel } from "./stub-model";
 
 export interface HarnessDockerSetup {
   name: string;
-  hindsightHarness: string;
+  contextbaseHarness: string;
   installCommand: string;
   /**
    * Where the host keeps this CLI's subscription credentials, and where the CLI expects them in the
@@ -22,7 +22,7 @@ export interface HarnessDockerSetup {
    */
   stubModelEnv?(baseUrl: string): Record<string, string>;
   /**
-   * False when the host cannot put Hindsight's context in front of the model, so the E2E asserts
+   * False when the host cannot put ContextBase's context in front of the model, so the E2E asserts
    * retention only. Grok Build is the case: its prompt hook is passive — Grok ignores hook stdout,
    * so the memory block never reaches the conversation no matter what we do. Everything else about
    * the integration (bank setup, session write-back, MCP tools) still works and is still asserted.
@@ -55,12 +55,12 @@ export interface E2eRun {
 }
 
 // The symptom deliberately omits the answer. A passing harness can only produce these literals if
-// its real hook lifecycle receives Hindsight's semantic context from the seeded bank.
+// its real hook lifecycle receives ContextBase's semantic context from the seeded bank.
 export const seededDecisionStatuses = ["429", "408"];
 
 const E2E = process.env.CONTEXTBASE_HARNESS_E2E === "1";
 const PACKAGE_ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const IMAGE = "hindsight-coding-agents-e2e";
+const IMAGE = "contextbase-coding-agents-e2e";
 const RUN_MARKER = "CONTEXTBASE_E2E_HARNESS_PROMPT";
 
 function required(value: string | undefined, message: string): string {
@@ -113,18 +113,18 @@ function runDocker(
   });
 }
 
-function loadHindsightConfig(): RawConfig {
+function loadContextBaseConfig(): RawConfig {
   const path =
     process.env.CONTEXTBASE_E2E_CONFIG || join(homedir(), ".contextbase", "coding-agent.json");
   if (!existsSync(path)) {
     throw new Error(
-      `Hindsight config not found at ${path}; set CONTEXTBASE_E2E_CONFIG to a local config file`
+      `ContextBase config not found at ${path}; set CONTEXTBASE_E2E_CONFIG to a local config file`
     );
   }
   try {
     return JSON.parse(readFileSync(path, "utf8")) as RawConfig;
   } catch {
-    throw new Error(`Hindsight config at ${path} is not valid JSON`);
+    throw new Error(`ContextBase config at ${path} is not valid JSON`);
   }
 }
 
@@ -147,10 +147,10 @@ function makeTestConfig(bankId: string): {
     gitIngest: "none";
   };
 } {
-  const source = loadHindsightConfig();
+  const source = loadContextBaseConfig();
   const hostApiUrl = required(
     process.env.CONTEXTBASE_E2E_API_URL || source.apiUrl,
-    "Hindsight apiUrl is required"
+    "ContextBase apiUrl is required"
   );
   const apiToken = process.env.CONTEXTBASE_E2E_API_TOKEN || source.apiToken;
   return {
@@ -230,12 +230,12 @@ export function harnessCredentialStatus(harness: HarnessDockerSetup): {
 
 export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun> {
   assertPrerequisites(harness);
-  const root = mkdtempSync(join(tmpdir(), `hindsight-e2e-${harness.name}-`));
+  const root = mkdtempSync(join(tmpdir(), `contextbase-e2e-${harness.name}-`));
   const packageDir = join(root, "package");
   const workDir = join(root, "workspace");
   const resultDir = join(root, "results");
   const diagnosticsPath = join(resultDir, "diagnostics.jsonl");
-  const configPath = join(root, "hindsight-config.json");
+  const configPath = join(root, "contextbase-config.json");
   const bankId = `e2e-${harness.name}-${basename(root)}`.replace(/[^a-zA-Z0-9:_-]/g, "-");
   let stub: StubModel | undefined;
 
@@ -244,7 +244,7 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
     writeFileSync(diagnosticsPath, "", { mode: 0o600 });
     const tarball = packageTarball(packageDir);
     run("git", ["init", "-q"], { cwd: workDir });
-    writeFileSync(join(workDir, "README.md"), "# Hindsight harness E2E fixture\n");
+    writeFileSync(join(workDir, "README.md"), "# ContextBase harness E2E fixture\n");
     run("git", ["add", "README.md"], { cwd: workDir });
     run(
       "git",
@@ -266,7 +266,7 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
 
     const config = makeTestConfig(bankId);
     writeFileSync(configPath, JSON.stringify(config.containerConfig));
-    const hostConfigPath = join(root, "hindsight-host-config.json");
+    const hostConfigPath = join(root, "contextbase-host-config.json");
     writeFileSync(
       hostConfigPath,
       JSON.stringify({ ...config.containerConfig, apiUrl: config.hostApiUrl, gitIngest: "full" })
@@ -313,20 +313,20 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
         ...(credentials && harness.credentialTarget
           ? [
               "--mount",
-              `type=bind,src=${credentials},dst=/hindsight-credentials/source,readonly`,
+              `type=bind,src=${credentials},dst=/contextbase-credentials/source,readonly`,
               "--env",
               `CONTEXTBASE_E2E_CREDENTIAL_TARGET=${harness.credentialTarget}`,
             ]
           : []),
         ...Object.entries(stubEnv).flatMap(([key, value]) => ["--env", `${key}=${value}`]),
         "--mount",
-        `type=bind,src=${configPath},dst=/hindsight/config.json,readonly`,
+        `type=bind,src=${configPath},dst=/contextbase/config.json,readonly`,
         "--mount",
         `type=bind,src=${workDir},dst=/workspace`,
         "--mount",
         `type=bind,src=${resultDir},dst=/results`,
         "--env",
-        `CONTEXTBASE_CONFIG=/hindsight/config.json`,
+        `CONTEXTBASE_CONFIG=/contextbase/config.json`,
         "--env",
         "CONTEXTBASE_DIAG_FILE=/results/diagnostics.jsonl",
         "--env",
@@ -351,7 +351,7 @@ export async function runHarnessE2e(harness: HarnessDockerSetup): Promise<E2eRun
     const output = existsSync(outputPath) ? readFileSync(outputPath, "utf8") : result.stdout;
     const diagnostics = existsSync(diagnosticsPath) ? readFileSync(diagnosticsPath, "utf8") : "";
     return {
-      harness: harness.hindsightHarness,
+      harness: harness.contextbaseHarness,
       bankId,
       apiUrl: config.hostApiUrl,
       apiToken: config.apiToken,
@@ -399,7 +399,7 @@ export async function getRetainedDocument(run: E2eRun): Promise<unknown> {
     // server that was unreachable throughout reads as a retention bug in the harness.
     const cause = lastError ? `\nLast error reaching the API: ${String(lastError)}` : "";
     throw new Error(
-      `${run.harness} did not retain a conversation document in the Hindsight bank.${cause}\nDiagnostics:\n${diagnostics}`
+      `${run.harness} did not retain a conversation document in the ContextBase bank.${cause}\nDiagnostics:\n${diagnostics}`
     );
   }
   const document = await fetch(`${bankUrl}/documents/${encodeURIComponent(id)}`, { headers });

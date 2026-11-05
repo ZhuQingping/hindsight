@@ -11,7 +11,7 @@ use crate::api::{ApiClient, KnowledgeTagFilter};
 use crate::output::{self, OutputFormat};
 use crate::ui;
 
-use hindsight_client::types;
+use contextbase_client::types;
 
 /// Parse a --fact-types value into the generated enum, rejecting unknown values
 /// so a typo fails loudly instead of silently widening what a page reads.

@@ -24,9 +24,9 @@ afterEach(() => {
 
 it("keeps pending hook context beside the session cache and delivers it only once", () => {
   const file = sessionCacheFile(HARNESS, "s1").replace(/\.json$/, ".pending");
-  stashPendingContext(HARNESS, "s1", "customer text: hindsight-review");
-  expect(readFileSync(file, "utf8")).toBe("customer text: hindsight-review");
-  expect(takePendingContext(HARNESS, "s1")).toBe("customer text: hindsight-review");
+  stashPendingContext(HARNESS, "s1", "customer text: contextbase-review");
+  expect(readFileSync(file, "utf8")).toBe("customer text: contextbase-review");
+  expect(takePendingContext(HARNESS, "s1")).toBe("customer text: contextbase-review");
   expect(takePendingContext(HARNESS, "s1")).toBeUndefined();
   expect(existsSync(file)).toBe(false);
 });

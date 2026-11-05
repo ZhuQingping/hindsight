@@ -1,8 +1,8 @@
 # ContextBase Vapi Integration
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Vapi](https://vapi.ai) voice AI calls via [ContextBase](https://github.com/RSIXDB/hindsight). A single webhook handler recalls relevant memories at call start (injected as `assistantOverrides`) and retains the full transcript when the call ends.
+Persistent long-term memory for [Vapi](https://vapi.ai) voice AI calls via [ContextBase](.). A single webhook handler recalls relevant memories at call start (injected as `assistantOverrides`) and retains the full transcript when the call ends.
 
 ## Quick Start
 
@@ -58,7 +58,7 @@ Memory accumulates across calls. By the second or third call with the same calle
 There is no `assistant-request` webhook for outbound calls. Use `build_assistant_overrides()` at call-creation time:
 
 ```python
-overrides = await memory.build_assistant_overrides("Ben from Vectorize")
+overrides = await memory.build_assistant_overrides("Ben from ExampleCorp")
 vapi.calls.create(
     assistant_id="...",
     assistant_overrides=overrides,
@@ -72,9 +72,9 @@ A running ContextBase instance:
 
 **Self-hosted:**
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-api-key
-hindsight-api  # starts on http://localhost:8888
+contextbase-api  # starts on http://localhost:8888
 ```
 
 Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.

@@ -3,16 +3,6 @@
   "version": "0.1.4",
   "description": "n8n community nodes for ContextBase - persistent memory for any n8n workflow",
   "license": "MIT",
-  "homepage": "https://hindsight.vectorize.io",
-  "author": {
-    "name": "Vectorize",
-    "email": "support@vectorize.io"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RSIXDB/hindsight.git",
-    "directory": "hindsight-integrations/n8n"
-  },
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run copy-icons",

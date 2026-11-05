@@ -1,6 +1,6 @@
 """contextbase REST API client (stdlib HTTP).
 
-Mirrors `contextbase-integrations/codex/scripts/lib/client.py` with the
+Mirrors `hindsight-integrations/codex/scripts/lib/client.py` with the
 User-Agent string rebranded for the ZCode integration.
 """
 
@@ -38,7 +38,7 @@ def _validate_api_url(url):
     return url.rstrip("/")
 
 
-class HindsightClient:
+class ContextBaseClient:
     """HTTP client for the contextbase API."""
 
     def __init__(self, api_url, api_token=None):

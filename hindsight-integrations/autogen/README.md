@@ -1,14 +1,14 @@
 # contextbase-autogen
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-AutoGen integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+AutoGen integration for [ContextBase](.) — persistent long-term memory for AI agents.
 
 Provides `FunctionTool` instances that give [AutoGen](https://microsoft.github.io/autogen/) agents the ability to store, search, and synthesize memories across conversations.
 
 ## Prerequisites
 
-- A running ContextBase instance ([self-hosted via Docker](https://github.com/RSIXDB/hindsight#quick-start) or [ContextBase remote service](http://localhost:9999))
+- A running ContextBase instance ([self-hosted via Docker](.) or [ContextBase remote service](http://localhost:9999))
 - Python 3.10+
 
 ## Installation
@@ -154,6 +154,6 @@ tools = create_contextbase_tools(
 
 ## Documentation
 
-- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
-- [Cookbook: AutoGen assistant with memory](https://docs.hindsight.vectorize.io/cookbook/recipes/autogen-assistant-agent)
-- [ContextBase API docs](https://docs.hindsight.vectorize.io)
+- [Integration docs](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [Cookbook: AutoGen assistant with memory](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [ContextBase API docs](../../docs/contextbase/CUSTOMER-GUIDE.md)

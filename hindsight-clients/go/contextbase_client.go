@@ -1,4 +1,4 @@
-package hindsight
+package contextbase
 
 import (
 	"net/http"
@@ -14,13 +14,13 @@ func defaultUserAgent() string {
 	version := "devel"
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, dep := range info.Deps {
-			if dep.Path == "github.com/vectorize-io/hindsight/hindsight-clients/go" {
+			if dep.Path == "contextbase-client-go" {
 				version = dep.Version
 				break
 			}
 		}
 	}
-	return "hindsight-client-go/" + version
+	return "contextbase-client-go/" + version
 }
 
 // DefaultUserAgent is the User-Agent string sent on every request unless the
@@ -34,7 +34,7 @@ var DefaultUserAgent = defaultUserAgent()
 //
 // Example:
 //
-//	client := hindsight.NewAPIClientWithToken("https://api.example.com", "your-api-token")
+//	client := contextbase.NewAPIClientWithToken("https://api.example.com", "your-api-token")
 //	resp, _, err := client.MemoryAPI.RetainMemories(ctx, bankID).RetainRequest(req).Execute()
 func NewAPIClientWithToken(baseURL, token string) *APIClient {
 	cfg := NewConfiguration()
@@ -51,7 +51,7 @@ func NewAPIClientWithToken(baseURL, token string) *APIClient {
 //
 // Example:
 //
-//	client := hindsight.NewAPIClientWithTimeout("https://api.example.com", "your-api-token", 30*time.Second)
+//	client := contextbase.NewAPIClientWithTimeout("https://api.example.com", "your-api-token", 30*time.Second)
 //	resp, _, err := client.MemoryAPI.RetainMemories(ctx, bankID).RetainRequest(req).Execute()
 func NewAPIClientWithTimeout(baseURL, token string, timeout time.Duration) *APIClient {
 	cfg := NewConfiguration()
@@ -71,7 +71,7 @@ func NewAPIClientWithTimeout(baseURL, token string, timeout time.Duration) *APIC
 // is a poor trade for the overwhelmingly common case — a caller retaining text
 // should not have to take the address of a temporary — so this restores it:
 //
-//	Items: []MemoryItem{{Content: hindsight.TextContent("Alice joined Google")}}
+//	Items: []MemoryItem{{Content: contextbase.TextContent("Alice joined Google")}}
 //
 // Use the ArrayOfContentAnyOfInner field directly to interleave attachments.
 func TextContent(text string) Content {

@@ -9,7 +9,7 @@
  */
 
 import { createHash } from "node:crypto";
-import type { HindsightClient } from "./client";
+import type { ContextBaseClient } from "./client";
 import { normalizeNote } from "./frontmatter";
 import type { ObservationScopes } from "./types";
 
@@ -103,7 +103,7 @@ async function mapLimit<T>(
 
 export class SyncEngine {
   constructor(
-    private readonly client: HindsightClient,
+    private readonly client: ContextBaseClient,
     private readonly vault: SyncVault,
     private config: SyncConfig,
     private index: SyncIndex,

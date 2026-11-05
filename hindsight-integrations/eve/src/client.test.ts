@@ -27,13 +27,13 @@ describe("ContextBaseRestClient.recall", () => {
     const fetchFn = mockFetchOnce(200, {
       results: [{ id: "1", text: "likes tabs", type: "world" }],
     });
-    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io", "hsk_k");
+    const client = new ContextBaseRestClient("https://service.example", "hsk_k");
 
     const res = await client.recall("bank-1", "preferences", { budget: "low", maxTokens: 512 });
 
     expect(res.results[0].text).toBe("likes tabs");
     const [url, init] = fetchFn.mock.calls[0];
-    expect(url).toBe("https://api.hindsight.vectorize.io/v1/default/banks/bank-1/memories/recall");
+    expect(url).toBe("https://service.example/v1/default/banks/bank-1/memories/recall");
     expect(init.method).toBe("POST");
     expect(init.headers["Authorization"]).toBe("Bearer hsk_k");
     expect(init.headers["User-Agent"]).toMatch(/^contextbase-eve\/\d+\.\d+\.\d+$/);
@@ -53,11 +53,11 @@ describe("ContextBaseRestClient.recall", () => {
 describe("ContextBaseRestClient.retain", () => {
   it("POSTs items with async=true to the memories path", async () => {
     const fetchFn = mockFetchOnce(200, { success: true });
-    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io/", "hsk_k");
+    const client = new ContextBaseRestClient("https://service.example/", "hsk_k");
     await client.retain("my bank", [{ content: "fact", context: "eve" }]);
     const [url, init] = fetchFn.mock.calls[0];
     // trailing slash on baseUrl is normalized; bank is URL-encoded
-    expect(url).toBe("https://api.hindsight.vectorize.io/v1/default/banks/my%20bank/memories");
+    expect(url).toBe("https://service.example/v1/default/banks/my%20bank/memories");
     expect(JSON.parse(init.body)).toEqual({
       items: [{ content: "fact", context: "eve" }],
       async: true,
@@ -97,7 +97,7 @@ describe("ContextBaseRestClient.reflect", () => {
 describe("ContextBaseRestClient error handling", () => {
   it("throws on a non-2xx response", async () => {
     mockFetchOnce(401, { detail: "unauthorized" });
-    const client = new ContextBaseRestClient("https://api.hindsight.vectorize.io", "bad");
+    const client = new ContextBaseRestClient("https://service.example", "bad");
     await expect(client.recall("b", "q")).rejects.toThrow(/HTTP 401/);
   });
 

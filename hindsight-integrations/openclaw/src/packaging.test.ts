@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -45,5 +47,35 @@ describe("published manifest", () => {
       "@clack/prompts",
       "contextbase-client",
     ]);
+  });
+});
+
+describe.skipIf(process.platform === "win32")("smoke-test archive cleanup", () => {
+  it.each([false, true])("preserves caller archives with temporary build=%s", (ownBuild) => {
+    const work = mkdtempSync(resolve(tmpdir(), "contextbase-smoke-cleanup-"));
+    try {
+      const tarball = resolve(work, "contextbase-openclaw-1.0.0.tgz");
+      writeFileSync(tarball, "caller archive");
+      const packDir = ownBuild ? resolve(work, "temporary build") : "";
+      if (packDir) mkdirSync(packDir);
+      const script = readFileSync(resolve(packageDir, "scripts/smoke-test.sh"), "utf8");
+      const cleanup = script.match(/^cleanup\(\) \{[\s\S]*?^\}/m)?.[0];
+      if (!cleanup) throw new Error("Could not locate smoke-test cleanup");
+      execFileSync("bash", ["-c", `openclaw() { :; }; log() { :; }; ${cleanup}\ncleanup`], {
+        env: {
+          ...process.env,
+          PLUGIN_DIR: work,
+          TARBALL: tarball,
+          PACK_DIR: packDir,
+          EXT_DIR: resolve(work, "extension"),
+          CONFIG_BACKUP: "",
+          EXT_BACKUP: "",
+        },
+      });
+      expect(readFileSync(tarball, "utf8")).toBe("caller archive");
+      if (packDir) expect(existsSync(packDir)).toBe(false);
+    } finally {
+      rmSync(work, { recursive: true, force: true });
+    }
   });
 });

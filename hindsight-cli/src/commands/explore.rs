@@ -5,7 +5,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use hindsight_client::types::{BankListItem, Budget, EntityListItem, RecallResult, TagsMatch};
+use contextbase_client::types::{BankListItem, Budget, EntityListItem, RecallResult, TagsMatch};
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     layout::{Alignment, Constraint, Direction, Layout, Rect},

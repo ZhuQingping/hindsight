@@ -17,12 +17,12 @@ from contextbase_devin_desktop.mcp_config import (
 class TestBuildServer:
     def test_endpoint_url_is_multibank(self):
         # Multi-bank mode: the endpoint ends at /mcp/ with no bank pinned.
-        assert mcp_endpoint_url("https://api.hindsight.vectorize.io") == "https://api.hindsight.vectorize.io/mcp/"
+        assert mcp_endpoint_url("https://service.example") == "https://service.example/mcp/"
         assert mcp_endpoint_url("http://localhost:8888/") == "http://localhost:8888/mcp/"
 
     def test_cloud_server_uses_serverurl_with_auth_and_default_bank(self):
-        s = build_http_server("https://api.hindsight.vectorize.io", "hsk_abc", "devin-desktop")
-        assert s["serverUrl"] == "https://api.hindsight.vectorize.io/mcp/"
+        s = build_http_server("https://service.example", "hsk_abc", "devin-desktop")
+        assert s["serverUrl"] == "https://service.example/mcp/"
         assert s["headers"]["Authorization"] == "Bearer hsk_abc"
         assert s["headers"]["X-Bank-Id"] == "devin-desktop"  # fallback bank
         assert "type" not in s and "url" not in s
@@ -49,7 +49,7 @@ class TestBuildServer:
 class TestApply:
     def test_creates_file(self, tmp_path):
         path = tmp_path / "mcp_config.json"
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         result = apply_to_mcp(path, s)
         assert result.action == "created"
         assert json.loads(path.read_text())["mcpServers"][SERVER_NAME] == s
@@ -57,7 +57,7 @@ class TestApply:
     def test_merges_preserves_other_servers(self, tmp_path):
         path = tmp_path / "mcp_config.json"
         path.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}}))
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         result = apply_to_mcp(path, s)
         assert result.action == "merged"
         data = json.loads(path.read_text())
@@ -66,7 +66,7 @@ class TestApply:
 
     def test_unchanged_when_identical(self, tmp_path):
         path = tmp_path / "mcp_config.json"
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         apply_to_mcp(path, s)
         assert apply_to_mcp(path, s).action == "unchanged"
 
@@ -74,7 +74,7 @@ class TestApply:
         path = tmp_path / "mcp_config.json"
         original = "{ not json at all"
         path.write_text(original)
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         result = apply_to_mcp(path, s)
         assert result.action == "manual"
         assert result.snippet and SERVER_NAME in result.snippet
@@ -99,11 +99,11 @@ class TestRemoveAndStatus:
 
     def test_is_installed(self, tmp_path):
         path = tmp_path / "mcp_config.json"
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         assert is_installed(path) is False
         apply_to_mcp(path, s)
         assert is_installed(path) is True
 
     def test_render_snippet_valid_json(self):
-        s = build_http_server("https://api.hindsight.vectorize.io", "k", "b")
+        s = build_http_server("https://service.example", "k", "b")
         assert json.loads(render_snippet(s))["mcpServers"][SERVER_NAME] == s

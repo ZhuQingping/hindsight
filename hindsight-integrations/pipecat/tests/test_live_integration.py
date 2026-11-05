@@ -3,7 +3,7 @@
 Runs conversation turns through the FrameProcessor against a real ContextBase
 instance (default: http://localhost:8888) and verifies:
 
-  1. Retain — turns get stored in Hindsight (verified via REST)
+  1. Retain — turns get stored in ContextBase (verified via REST)
   2. Recall — subsequent turns surface stored memories
   3. Inject — <contextbase_memories> system message appears in forwarded frame
   4. Idempotency — memory block is replaced on re-injection (no duplication)
@@ -28,7 +28,6 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-
 from contextbase_pipecat import ContextBaseMemoryService
 from contextbase_pipecat.memory import _MEMORY_MARKER
 
@@ -82,7 +81,7 @@ def _print(label: str, value: Any = "") -> None:
 
 
 async def run_live_test() -> bool:
-    print(f"\n=== ContextBase Pipecat Live Integration Test ===")
+    print("\n=== ContextBase Pipecat Live Integration Test ===")
     print(f"URL:  {LIVE_URL}")
     print(f"Bank: {UNIQUE_BANK}")
     print()

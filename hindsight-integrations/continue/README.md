@@ -1,8 +1,8 @@
 # contextbase-continue
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-[Continue.dev](https://continue.dev) integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for your coding assistant.
+[Continue.dev](https://continue.dev) integration for [ContextBase](.) — persistent long-term memory for your coding assistant.
 
 Continue has no plugin hook that runs before a message is sent, but it does
 support two native extension points that this integration uses:
@@ -17,7 +17,7 @@ support two native extension points that this integration uses:
 
 ## Prerequisites
 
-- A running ContextBase instance ([self-hosted via Docker](https://github.com/RSIXDB/hindsight#quick-start) or [ContextBase remote service](http://localhost:9999))
+- A running ContextBase instance ([self-hosted via Docker](.) or [ContextBase remote service](http://localhost:9999))
 - Continue (VS Code or JetBrains extension)
 - Python 3.10+
 
@@ -32,8 +32,8 @@ pip install contextbase-continue
 **1. Run the adapter**, pointing it at your ContextBase instance and bank:
 
 ```bash
-export CONTEXTBASE_API_KEY=hsk_...            # omit for a local self-hosted server
-export CONTEXTBASE_API_URL=http://localhost:8888   # defaults to ContextBase remote service
+export CONTEXTBASE_API_KEY=hsk_...            # omit only if your server permits no-auth access
+export CONTEXTBASE_API_URL=http://localhost:8888   # required service endpoint; no bundled default
 export CONTEXTBASE_CONTINUE_BANK_ID=my-project
 
 contextbase-continue            # serves on 127.0.0.1:8123

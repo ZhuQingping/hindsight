@@ -1,11 +1,11 @@
 //! API client wrapper
 //!
-//! This module provides a thin wrapper around the auto-generated hindsight-client
+//! This module provides a thin wrapper around the auto-generated contextbase-client
 //! to bridge from the CLI's synchronous code to the async API client.
 
 use anyhow::Result;
-pub use hindsight_client::types;
-use hindsight_client::{Client as AsyncClient, Error as ClientError};
+pub use contextbase_client::types;
+use contextbase_client::{Client as AsyncClient, Error as ClientError};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;

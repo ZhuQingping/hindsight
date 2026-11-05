@@ -1,9 +1,9 @@
 generatorName: go
 outputDir: ./
 inputSpec: ../../hindsight-docs/static/openapi.json
-packageName: hindsight
-gitUserId: vectorize-io
-gitRepoId: hindsight/hindsight-clients/go
+packageName: contextbase
+gitUserId: huaweicloud
+gitRepoId: contextbase-client-go
 isGoSubmodule: true
 enumClassPrefix: true
 structPrefix: true

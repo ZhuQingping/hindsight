@@ -1,6 +1,6 @@
-# @vectorize-io/opencode-contextbase
+# @huaweicloud/opencode-contextbase
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 ContextBase memory plugin for [OpenCode](https://opencode.ai) — give your AI coding agent persistent long-term memory across sessions.
 
@@ -13,7 +13,7 @@ ContextBase memory plugin for [OpenCode](https://opencode.ai) — give your AI c
 
 ## Quick Start
 
-The plugin defaults to **ContextBase remote service** (`http://localhost:8888`). Just enable it and provide your API key.
+Configure your ContextBase service URL and API key before starting OpenCode.
 
 ### 1. Enable the plugin
 
@@ -22,28 +22,29 @@ Add to your `opencode.json` (project) or `~/.config/opencode/opencode.json` (glo
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@vectorize-io/opencode-contextbase"]
+  "plugin": ["@huaweicloud/opencode-contextbase"]
 }
 ```
 
 OpenCode auto-installs plugins listed here on startup — no `npm install` required.
 
-### 2. Provide your ContextBase remote service API key
+### 2. Configure your ContextBase connection
 
-Get an API key at [console.example.com/connect](http://localhost:9999), then:
+Use the endpoint and API key supplied by your service administrator:
 
 ```bash
 export CONTEXTBASE_API_TOKEN="your-api-key"
+export CONTEXTBASE_API_URL="https://memory.example.com"
 
 # Optional: override the memory bank ID (defaults to "opencode")
 export CONTEXTBASE_BANK_ID="my-project"
 ```
 
-That's it — the plugin now reads/writes against your Cloud bank.
+The plugin now reads and writes against your configured bank.
 
 ### Using a self-hosted ContextBase instance
 
-Point `CONTEXTBASE_API_URL` at your server (the API key is then optional):
+Point `CONTEXTBASE_API_URL` at your server. An API key is optional only if the server allows unauthenticated access:
 
 ```bash
 export CONTEXTBASE_API_URL="http://localhost:8888"
@@ -56,7 +57,7 @@ Or configure inline in `opencode.json`:
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
     [
-      "@vectorize-io/opencode-contextbase",
+      "@huaweicloud/opencode-contextbase",
       {
         "contextbaseApiUrl": "http://localhost:8888"
       }
@@ -75,7 +76,7 @@ Pass options directly in `opencode.json`:
 {
   "plugin": [
     [
-      "@vectorize-io/opencode-contextbase",
+      "@huaweicloud/opencode-contextbase",
       {
         "contextbaseApiUrl": "http://localhost:8888",
         "bankId": "my-project",

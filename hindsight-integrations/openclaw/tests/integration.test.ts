@@ -2,12 +2,12 @@
  * Integration tests for the ContextBase OpenClaw integration.
  *
  * Exercises both HTTP mode (direct API calls) and Embed mode (local daemon
- * spawned via HindsightServer), talking to ContextBase through
+ * spawned via ContextBaseServer), talking to ContextBase through
  * `contextbase-client`.
  *
  * Requirements:
  *   HTTP mode:  Running ContextBase API at CONTEXTBASE_API_URL (default: http://localhost:8888)
- *   Embed mode: hindsight-embed package at CONTEXTBASE_EMBED_PACKAGE_PATH
+ *   Embed mode: contextbase-embed package at CONTEXTBASE_EMBED_PACKAGE_PATH
  *               + LLM credentials (CONTEXTBASE_API_LLM_PROVIDER / CONTEXTBASE_API_LLM_API_KEY)
  *
  * Run:
@@ -17,7 +17,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { HindsightServer } from "@vectorize-io/hindsight-all";
+import { ContextBaseServer } from "contextbase-local-engine";
 import { ContextBaseClient } from "contextbase-client";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,10 +32,10 @@ const LLM_PROVIDER = process.env.CONTEXTBASE_API_LLM_PROVIDER || "";
 const LLM_API_KEY = process.env.CONTEXTBASE_API_LLM_API_KEY || "";
 const LLM_MODEL = process.env.CONTEXTBASE_API_LLM_MODEL || "";
 
-// Embed package path – defaults to the sibling hindsight-embed directory in the repo
+// Embed package path – defaults to the sibling contextbase-embed directory in the repo
 const EMBED_PACKAGE_PATH =
   process.env.CONTEXTBASE_EMBED_PACKAGE_PATH ||
-  join(__dirname, "..", "..", "..", "hindsight-embed");
+  join(__dirname, "..", "..", "..", "contextbase-embed");
 
 // Port for the test embed daemon (different from production default 9077 to avoid conflicts)
 const EMBED_TEST_PORT = 19077;
@@ -178,12 +178,12 @@ describe("openclaw integration — HTTP mode", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Embed Mode Tests (local daemon spawned by HindsightServer)
+// Embed Mode Tests (local daemon spawned by ContextBaseServer)
 // ---------------------------------------------------------------------------
 
 describe("openclaw integration — embed mode", () => {
   let client: ContextBaseClient;
-  let server: HindsightServer;
+  let server: ContextBaseServer;
 
   const hasEmbedCredentials = Boolean(LLM_PROVIDER && LLM_API_KEY);
 
@@ -196,7 +196,7 @@ describe("openclaw integration — embed mode", () => {
       return;
     }
 
-    server = new HindsightServer({
+    server = new ContextBaseServer({
       profile: "openclaw-test",
       port: EMBED_TEST_PORT,
       embedVersion: "latest",

@@ -1,2 +1,2 @@
-FROM hindsight-coding-agents-e2e-base
+FROM contextbase-coding-agents-e2e-base
 RUN curl -fsSL https://x.ai/cli/install.sh | bash && command -v grok

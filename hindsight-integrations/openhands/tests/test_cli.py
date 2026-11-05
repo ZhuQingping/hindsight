@@ -1,24 +1,22 @@
 """Tests for the CLI (init/status/uninstall over config.toml + AGENTS.md)."""
 
 import tomlkit
-
 from contextbase_openhands.cli import build_install, main
 from contextbase_openhands.config import OpenHandsConfig
-from contextbase_openhands.openhands_config import build_shttp_server, is_installed as server_installed
+from contextbase_openhands.openhands_config import build_shttp_server
+from contextbase_openhands.openhands_config import is_installed as server_installed
 
 
 class TestBuildInstall:
     def test_writes_config_and_rule(self, tmp_path):
         config = tmp_path / "config.toml"
         agents = tmp_path / "AGENTS.md"
-        cfg = OpenHandsConfig(
-            contextbase_api_url="https://api.hindsight.vectorize.io", contextbase_api_token="k", bank_id="proj"
-        )
+        cfg = OpenHandsConfig(contextbase_api_url="https://service.example", contextbase_api_token="k", bank_id="proj")
         outcome = build_install(cfg, config, agents)
         assert outcome.config.action == "created"
         doc = tomlkit.parse(config.read_text())
         entry = doc["mcp"]["shttp_servers"][0]
-        assert entry["url"] == "https://api.hindsight.vectorize.io/mcp/proj/"
+        assert entry["url"] == "https://service.example/mcp/proj/"
         assert entry["api_key"] == "k"
         assert "CONTEXTBASE:BEGIN" in agents.read_text()
 

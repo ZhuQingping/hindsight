@@ -1,8 +1,8 @@
 # n8n-nodes-contextbase
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-[ContextBase](https://github.com/RSIXDB/hindsight) memory nodes for [n8n](https://n8n.io) — give any n8n workflow persistent long-term memory with **retain**, **recall**, and **reflect** operations.
+[ContextBase](.) memory nodes for [n8n](https://n8n.io) — give any n8n workflow persistent long-term memory with **retain**, **recall**, and **reflect** operations.
 
 Drop a ContextBase node anywhere in a workflow to:
 
@@ -31,7 +31,7 @@ Restart n8n and the **ContextBase** node appears in the node panel.
 
 > Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
-1. **Create a ContextBase account** at [ContextBase remote service](http://localhost:9999) (free tier available) — or self-host with the [ContextBase installer](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
+1. **Create a ContextBase account** at [ContextBase remote service](http://localhost:9999) (free tier available) — or self-host with the [ContextBase installer](../../docs/contextbase/CUSTOMER-GUIDE.md)
 2. **Get an API key** from the ContextBase dashboard
 3. **In n8n**, create a new **ContextBase API** credential:
    - **API URL**: `http://localhost:8888` (or your self-hosted URL)

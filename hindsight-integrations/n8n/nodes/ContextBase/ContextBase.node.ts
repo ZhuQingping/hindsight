@@ -237,7 +237,7 @@ export class ContextBase implements INodeType {
           const tags = parseTags(tagsRaw);
 
           // Retain: POST /v1/default/banks/{bank_id}/memories
-          // Body matches HindsightClient.retain() shape: { items: [{ content, tags? }] }
+          // Body matches ContextBaseClient.retain() shape: { items: [{ content, tags? }] }
           const item: IDataObject = { content };
           if (tags.length) {
             item.tags = tags;
@@ -262,7 +262,7 @@ export class ContextBase implements INodeType {
           const tags = parseTags(tagsRaw);
 
           // Recall: POST /v1/default/banks/{bank_id}/memories/recall
-          // Body matches HindsightClient.recall() shape
+          // Body matches ContextBaseClient.recall() shape
           const body: IDataObject = {
             query,
             max_tokens: maxTokens,
@@ -288,7 +288,7 @@ export class ContextBase implements INodeType {
           const budget = this.getNodeParameter("reflectBudget", i, "mid") as Budget;
 
           // Reflect: POST /v1/default/banks/{bank_id}/reflect
-          // Body matches HindsightClient.reflect() shape
+          // Body matches ContextBaseClient.reflect() shape
           const body: IDataObject = {
             query,
             budget,

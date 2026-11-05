@@ -1,8 +1,8 @@
 # contextbase-devin-desktop
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Long-term memory for **Devin Desktop** (the editor formerly known as Windsurf / Codeium), powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+Long-term memory for **Devin Desktop** (the editor formerly known as Windsurf / Codeium), powered by [ContextBase](.).
 
 `contextbase-devin-desktop init` wires the ContextBase **MCP server** into Devin
 Desktop and adds always-on recall/retain rules, so the agent has `recall` /
@@ -115,7 +115,7 @@ Start a session and you'll *see* memory is on — nothing is silent:
 - `contextbase-devin-desktop status` lists every component as installed for both
   agents, and the banks it resolved.
 
-Use a [ContextBase remote service](https://github.com/RSIXDB/hindsight) key, or a self-hosted
+Use a [ContextBase remote service](.) key, or a self-hosted
 server with `--api-url http://localhost:8888` (no token needed for an open local
 server). Pass `--bank-id <id>` to set the project bank explicitly, or
 `--global-bank <id>` to change the cross-project bank. Run

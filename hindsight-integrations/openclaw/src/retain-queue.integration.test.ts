@@ -38,7 +38,7 @@ function makeApi(
         entries: {
           "contextbase-openclaw": {
             config: {
-              contextbaseApiUrl: "https://hindsight.test",
+              contextbaseApiUrl: "https://contextbase.test",
               retainQueuePath: queuePath,
               retainQueueFlushIntervalMs: flushIntervalMs,
               bankId: "integration-bank",

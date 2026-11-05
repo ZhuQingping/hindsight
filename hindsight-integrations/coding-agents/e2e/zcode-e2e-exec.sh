@@ -25,12 +25,12 @@ const config = fs.existsSync(path) ? JSON.parse(fs.readFileSync(path, "utf8")) :
 config.provider = {
   zai: {
     kind: "anthropic",
-    name: "Hindsight E2E stub",
-    options: { baseURL, apiKey: "hindsight-e2e", apiKeyRequired: true },
-    models: { "hindsight-e2e-stub": { name: "Hindsight E2E stub" } },
+    name: "ContextBase E2E stub",
+    options: { baseURL, apiKey: "contextbase-e2e", apiKeyRequired: true },
+    models: { "contextbase-e2e-stub": { name: "ContextBase E2E stub" } },
   },
 };
-config.model = { main: "zai/hindsight-e2e-stub", lite: "zai/hindsight-e2e-stub" };
+config.model = { main: "zai/contextbase-e2e-stub", lite: "zai/contextbase-e2e-stub" };
 fs.writeFileSync(path, JSON.stringify(config, null, 2));
 ' "$CONFIG" "$CONTEXTBASE_STUB_BASE_URL"
 

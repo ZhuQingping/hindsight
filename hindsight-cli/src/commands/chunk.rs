@@ -53,7 +53,7 @@ pub fn get(
 
 #[cfg(test)]
 mod tests {
-    use hindsight_client::types::ChunkResponse;
+    use contextbase_client::types::ChunkResponse;
 
     #[test]
     fn test_chunk_response_deserialization() {

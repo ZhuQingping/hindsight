@@ -209,7 +209,7 @@ describe("startCodebaseSurvey", () => {
   });
 
   // #5084: npm @opencode/cli (v2) also installs an `opencode` bin, and v2 cannot define our agent —
-  // `opencode run --agent hindsight-survey` there fails with "agent not found". Skip that runner.
+  // `opencode run --agent contextbase-survey` there fails with "agent not found". Skip that runner.
   it("skips an `opencode` bin that cannot define the survey agent (opencode v2)", async () => {
     const spawn = fakeSpawn();
     const ok = await startCodebaseSurvey("/repo", {

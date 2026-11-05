@@ -1,11 +1,11 @@
 identity:
-  author: vectorize
+  author: contextbase
   name: contextbase
   label:
     en_US: ContextBase
   description:
     en_US: Persistent long-term memory for AI agents and workflows.
-  icon: icon.png
+  icon: icon.svg
   tags:
     - utilities
 credentials_for_provider:

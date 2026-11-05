@@ -1,8 +1,8 @@
 # contextbase-claude-agent-sdk
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent memory tools and hooks for the [Claude Agent SDK](https://pypi.org/project/claude-agent-sdk/), powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent memory tools and hooks for the [Claude Agent SDK](https://pypi.org/project/claude-agent-sdk/), powered by [ContextBase](.).
 
 ## Installation
 

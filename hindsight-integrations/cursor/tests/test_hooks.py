@@ -50,7 +50,7 @@ class TestSessionStartHook:
 
         with (
             patch.object(session_start, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(session_start, "HindsightClient", return_value=mock_client),
+            patch.object(session_start, "ContextBaseClient", return_value=mock_client),
             patch.object(session_start, "ensure_bank_mission"),
             patch.object(session_start, "write_state"),
         ):
@@ -77,7 +77,7 @@ class TestSessionStartHook:
 
         with (
             patch.object(session_start, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(session_start, "HindsightClient", return_value=mock_client),
+            patch.object(session_start, "ContextBaseClient", return_value=mock_client),
             patch.object(session_start, "ensure_bank_mission"),
         ):
             session_start.main()
@@ -100,7 +100,7 @@ class TestSessionStartHook:
 
         with (
             patch.object(session_start, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(session_start, "HindsightClient", return_value=mock_client),
+            patch.object(session_start, "ContextBaseClient", return_value=mock_client),
             patch.object(session_start, "ensure_bank_mission"),
             patch.object(session_start, "write_state"),
         ):
@@ -127,7 +127,7 @@ class TestSessionStartHook:
         mock_get_url = MagicMock(return_value="http://localhost:9077")
         with (
             patch.object(session_start, "get_api_url", mock_get_url),
-            patch.object(session_start, "HindsightClient", return_value=mock_client),
+            patch.object(session_start, "ContextBaseClient", return_value=mock_client),
             patch.object(session_start, "ensure_bank_mission"),
         ):
             session_start.main()
@@ -172,7 +172,7 @@ class TestRetainHook:
         importlib.reload(retain)
         with (
             patch.object(retain, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(retain, "HindsightClient", return_value=mock_client),
+            patch.object(retain, "ContextBaseClient", return_value=mock_client),
             patch.object(retain, "ensure_bank_mission"),
         ):
             retain.main()
@@ -276,7 +276,7 @@ class TestRetainHook:
 
         with (
             patch.object(retain, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(retain, "HindsightClient", return_value=mock_client),
+            patch.object(retain, "ContextBaseClient", return_value=mock_client),
             patch.object(retain, "ensure_bank_mission"),
         ):
             retain.main()
@@ -314,7 +314,7 @@ class TestRetainTriggers:
         importlib.reload(retain)
         with (
             patch.object(retain, "get_api_url", return_value="http://localhost:8888"),
-            patch.object(retain, "HindsightClient", return_value=mock_client),
+            patch.object(retain, "ContextBaseClient", return_value=mock_client),
             patch.object(retain, "ensure_bank_mission"),
         ):
             retain.main()

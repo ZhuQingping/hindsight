@@ -10,7 +10,7 @@ use crate::output::{self, OutputFormat};
 use crate::ui;
 
 // Import types from generated client
-use hindsight_client::types::{
+use contextbase_client::types::{
     Budget, ChunkIncludeOptions, FactsIncludeOptions, IncludeOptions, ReflectIncludeOptions,
     TagsMatch, TemporalWindow,
 };
@@ -436,9 +436,9 @@ pub fn reflect(
         types
             .iter()
             .filter_map(|t| match t.to_lowercase().as_str() {
-                "world" => Some(hindsight_client::types::FactTypesItem::World),
-                "experience" => Some(hindsight_client::types::FactTypesItem::Experience),
-                "observation" => Some(hindsight_client::types::FactTypesItem::Observation),
+                "world" => Some(contextbase_client::types::FactTypesItem::World),
+                "experience" => Some(contextbase_client::types::FactTypesItem::Experience),
+                "observation" => Some(contextbase_client::types::FactTypesItem::Observation),
                 _ => None,
             })
             .collect::<Vec<_>>()
@@ -507,7 +507,7 @@ pub fn retain(
     let item = MemoryItem {
         // `content` is now `string | ContentBlock[]` so retain can take inline
         // images. The CLI only ever sends text, which is the string variant.
-        content: hindsight_client::types::Content::Variant0(content.clone()),
+        content: contextbase_client::types::Content::Variant0(content.clone()),
         context,
         metadata: None,
         timestamp,

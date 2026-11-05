@@ -15,7 +15,7 @@
 import type { FSWatcher } from "chokidar";
 import { basename, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
-import { HindsightClient } from "../client";
+import { ContextBaseClient } from "../client";
 import { SyncEngine, type ReconcileSummary, type SyncConfig } from "../sync";
 import type { Transport } from "../transport";
 import { OBSERVATION_SCOPES, type ObservationScopes } from "../types";
@@ -155,14 +155,14 @@ export function buildConfig(opts: CliOptions): SyncConfig {
 
 /**
  * Assemble the engine from options. `transport` is injectable so tests can drive
- * the full stack (FsVault → SyncEngine → HindsightClient) without real network.
+ * the full stack (FsVault → SyncEngine → ContextBaseClient) without real network.
  */
 export async function buildEngine(
   opts: CliOptions,
   transport: Transport = fetchTransport
 ): Promise<{ engine: SyncEngine; vault: FsVault }> {
   const vault = new FsVault(opts.vault);
-  const client = new HindsightClient(opts.apiUrl, opts.apiToken, transport);
+  const client = new ContextBaseClient(opts.apiUrl, opts.apiToken, transport);
   const index = await loadIndex(opts.indexPath, opts.identity);
   const engine = new SyncEngine(
     client,

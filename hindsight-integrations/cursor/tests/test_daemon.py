@@ -40,7 +40,7 @@ class TestGetApiUrlResolution:
             patch("lib.daemon._check_health", return_value=False),
             patch(
                 "lib.daemon._ensure_daemon_running",
-                side_effect=RuntimeError("hindsight-embed not found"),
+                side_effect=RuntimeError("contextbase-embed not found"),
             ),
         ):
             with pytest.raises(RuntimeError, match="local daemon could not start"):
@@ -72,7 +72,7 @@ class TestDocumentIdIsUniquePerRetain:
 
 
 def test_client_sends_plugin_user_agent():
-    from lib.client import USER_AGENT, HindsightClient
+    from lib.client import USER_AGENT, ContextBaseClient
 
     assert USER_AGENT != "contextbase-cursor/0.0.0"
-    assert HindsightClient("http://hs.test")._headers()["User-Agent"] == USER_AGENT
+    assert ContextBaseClient("http://hs.test")._headers()["User-Agent"] == USER_AGENT

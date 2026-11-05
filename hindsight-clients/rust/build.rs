@@ -299,7 +299,7 @@ fn main() {
 
     // Write to the output directory
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let dest_path = out_dir.join("hindsight_client_generated.rs");
+    let dest_path = out_dir.join("contextbase_client_generated.rs");
 
     let syntax_tree = syn::parse2(tokens).expect("Failed to parse generated tokens");
     let mut formatted = prettyplease::unparse(&syntax_tree);

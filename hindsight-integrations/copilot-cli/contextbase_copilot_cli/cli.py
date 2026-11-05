@@ -51,7 +51,7 @@ def _add_install_parser(subparsers: argparse._SubParsersAction) -> None:
         help=(
             "ContextBase API base URL written to ~/.contextbase/copilot-cli.json. "
             f"For ContextBase Cloud use {DEFAULT_API_URL}. "
-            "Omit to connect to a local hindsight-embed daemon."
+            "Omit to connect to a local contextbase-embed daemon."
         ),
     )
     install.add_argument(

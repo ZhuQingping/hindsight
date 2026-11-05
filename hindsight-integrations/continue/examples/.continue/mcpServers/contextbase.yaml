@@ -12,8 +12,8 @@ mcpServers:
         Authorization: "Bearer YOUR_CONTEXTBASE_API_KEY"
 
   # Self-hosted / local alternative. Start a local ContextBase first:
-  #   CONTEXTBASE_API_LLM_API_KEY=sk-... uvx --from hindsight-api contextbase-local-mcp
+  #   CONTEXTBASE_API_LLM_API_KEY=sk-... uvx --from contextbase-api contextbase-local-mcp
   # then point Continue at its open MCP endpoint (no auth needed by default):
-  # - name: Hindsight (local)
+  # - name: ContextBase (local)
   #   type: streamable-http
   #   url: http://localhost:8888/mcp/my-project/

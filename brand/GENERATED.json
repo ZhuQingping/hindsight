@@ -44,7 +44,7 @@
     },
     {
       "path": "hindsight-cli/Cargo.toml",
-      "sha256": "7b90569d76ad1cfdce403febd21f3495c5e04e8e49836364830e0f4a0b757d42"
+      "sha256": "a6591a682585be567d1e0dc5710d5ba9dd077e467b8a916949bc51b774496b1e"
     },
     {
       "path": "scripts/install-contextbase.sh",

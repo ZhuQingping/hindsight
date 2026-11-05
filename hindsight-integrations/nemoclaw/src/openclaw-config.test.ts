@@ -3,7 +3,7 @@ import { mergePluginConfig } from "./openclaw-config.js";
 import type { OpenClawConfig, ContextBasePluginConfig } from "./openclaw-config.js";
 
 const PLUGIN_CONFIG: ContextBasePluginConfig = {
-  contextbaseApiUrl: "https://api.hindsight.vectorize.io",
+  contextbaseApiUrl: "https://service.example",
   contextbaseApiToken: "hsk_test123",
   llmProvider: "claude-code",
   dynamicBankId: false,
@@ -38,7 +38,7 @@ describe("mergePluginConfig", () => {
   it("writes the full plugin config", () => {
     const result = mergePluginConfig(BASE_CONFIG, PLUGIN_CONFIG);
     const config = result.plugins?.entries?.["contextbase-openclaw"]?.config;
-    expect(config?.contextbaseApiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(config?.contextbaseApiUrl).toBe("https://service.example");
     expect(config?.contextbaseApiToken).toBe("hsk_test123");
     expect(config?.llmProvider).toBe("claude-code");
     expect(config?.dynamicBankId).toBe(false);
@@ -73,7 +73,7 @@ describe("mergePluginConfig", () => {
     const result = mergePluginConfig(configWithExisting, PLUGIN_CONFIG);
     const config = result.plugins?.entries?.["contextbase-openclaw"]?.config;
     // New fields written
-    expect(config?.contextbaseApiUrl).toBe("https://api.hindsight.vectorize.io");
+    expect(config?.contextbaseApiUrl).toBe("https://service.example");
     // Existing custom field preserved
     expect(config?.embedPackagePath).toBe("/some/local/path");
   });

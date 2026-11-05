@@ -5,7 +5,7 @@ description = "Persistent memory for Amazon Bedrock AgentCore Runtime agents usi
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Vectorize", email = "support@vectorize.io" }]
+maintainers = [{ name = "ContextBase Team" }]
 keywords = ["aws", "agentcore", "bedrock", "contextbase", "memory", "agents", "ai"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -27,11 +27,6 @@ dev = [
     "pytest>=9.0.0",
     "pytest-asyncio>=0.23.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/RSIXDB/hindsight"
-Documentation = "https://hindsight.vectorize.io/sdks/integrations/agentcore"
-Repository = "https://github.com/RSIXDB/hindsight"
 
 [build-system]
 requires = ["hatchling"]

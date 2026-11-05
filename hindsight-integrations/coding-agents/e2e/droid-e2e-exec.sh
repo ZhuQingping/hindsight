@@ -20,10 +20,10 @@ cat > /root/.factory/settings.json <<EOF
 {
   "customModels": [
     {
-      "model": "hindsight-e2e-stub",
-      "displayName": "Hindsight E2E stub",
+      "model": "contextbase-e2e-stub",
+      "displayName": "ContextBase E2E stub",
       "baseUrl": "${CONTEXTBASE_STUB_BASE_URL}",
-      "apiKey": "hindsight-e2e",
+      "apiKey": "contextbase-e2e",
       "provider": "generic-chat-completion-api",
       "maxOutputTokens": 8192
     }
@@ -34,4 +34,4 @@ cat > /root/.factory/settings.json <<EOF
 }
 EOF
 
-exec droid exec --model hindsight-e2e-stub --cwd /workspace "$@"
+exec droid exec --model contextbase-e2e-stub --cwd /workspace "$@"

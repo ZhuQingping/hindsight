@@ -6,7 +6,7 @@ connection modes:
 
   1. External API — user provides contextbaseApiUrl (skip daemon entirely)
   2. Existing local server — user already has contextbase running
-  3. Auto-managed daemon — integration starts/stops hindsight-embed
+  3. Auto-managed daemon — integration starts/stops contextbase-embed
 
 Daemon state is tracked via files in ~/.contextbase/copilot-cli/state/.
 """
@@ -26,19 +26,19 @@ DAEMON_STATE_FILE = "daemon.json"
 PROFILE_NAME = "copilot-cli"
 
 
-def _get_embed_command(config):
-    """Get the command to run hindsight-embed."""
+def _get_embed_command(config: dict) -> list[str]:
+    """Use the configured engine distribution and its ContextBase executable."""
     embed_path = config.get("embedPackagePath")
     if embed_path:
-        return ["uv", "run", "--directory", embed_path, "hindsight-embed"]
-
-    version = config.get("embedVersion", "latest")
-    package = f"hindsight-embed@{version}" if version else "hindsight-embed@latest"
-    return ["uvx", package]
+        return ["uv", "run", "--directory", embed_path, "contextbase-embed"]
+    package = config.get("embedPackage") or os.environ.get("CONTEXTBASE_EMBED_PACKAGE")
+    if not package:
+        raise RuntimeError("Set CONTEXTBASE_EMBED_PACKAGE or embedPackagePath for local engine mode.")
+    return ["uvx", "--quiet", "--from", package, "contextbase-embed"]
 
 
 def _run_embed(config, args, env=None, timeout=10):
-    """Run a hindsight-embed command and return the result."""
+    """Run a contextbase-embed command and return the result."""
     cmd = _get_embed_command(config) + args
     run_env = dict(os.environ)
     if env:
@@ -53,13 +53,13 @@ def _run_embed(config, args, env=None, timeout=10):
 
 
 def _is_embed_available(config):
-    """Quick check if hindsight-embed is available on PATH."""
+    """Quick check if contextbase-embed is available on PATH."""
     import shutil
 
     embed_path = config.get("embedPackagePath")
     if embed_path:
         return os.path.isdir(embed_path)
-    return shutil.which("uvx") is not None or shutil.which("hindsight-embed") is not None
+    return shutil.which("uvx") is not None or shutil.which("contextbase-embed") is not None
 
 
 def _check_health(base_url, timeout=2):
@@ -98,7 +98,7 @@ def get_api_url(config, debug_fn=None, allow_daemon_start=False):
     if not allow_daemon_start:
         raise RuntimeError(
             f"No ContextBase server on port {port}. Set contextbaseApiUrl for external "
-            "API, start hindsight-embed manually, or wait for the retain hook to "
+            "API, start contextbase-embed manually, or wait for the retain hook to "
             "auto-start the daemon."
         )
 
@@ -112,18 +112,18 @@ def get_api_url(config, debug_fn=None, allow_daemon_start=False):
             debug_fn(f"Daemon start failed: {e}")
         raise RuntimeError(
             "No ContextBase server available. Set contextbaseApiUrl for external API, "
-            "or ensure hindsight-embed is installed for local daemon mode."
+            "or ensure contextbase-embed is installed for local daemon mode."
         ) from e
 
     return base_url
 
 
 def _ensure_daemon_running(config, port, debug_fn=None):
-    """Start the hindsight-embed daemon if not already running."""
+    """Start the contextbase-embed daemon if not already running."""
     if not _is_embed_available(config):
         raise RuntimeError(
-            "hindsight-embed not found (uvx not on PATH). "
-            "Install with: pip install hindsight-embed, or set contextbaseApiUrl."
+            "contextbase-embed not found (uvx not on PATH). "
+            "Install with: pip install contextbase-embed, or set contextbaseApiUrl."
         )
 
     base_url = f"http://127.0.0.1:{port}"
@@ -170,7 +170,7 @@ def _ensure_daemon_running(config, port, debug_fn=None):
         raise RuntimeError("Profile create timed out")
     except FileNotFoundError:
         raise RuntimeError(
-            "hindsight-embed not found. Install with: pip install hindsight-embed "
+            "contextbase-embed not found. Install with: pip install contextbase-embed "
             "or set contextbaseApiUrl for external API mode."
         )
 
@@ -230,7 +230,7 @@ def prestart_daemon_background(config, debug_fn=None):
 
     if not _is_embed_available(config):
         if debug_fn:
-            debug_fn("hindsight-embed not available, skipping pre-start")
+            debug_fn("contextbase-embed not available, skipping pre-start")
         return
 
     try:

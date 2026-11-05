@@ -5,7 +5,7 @@
  */
 import { stripSentinelBlocks, type RecallBudget } from "./client.js";
 
-/** ContextBase Cloud REST base, used when no API URL is configured. */
+/** No bundled Cloud address; callers must configure their service URL. */
 export const CONTEXTBASE_CLOUD_API_URL = "";
 
 /** Default broad recall query — surfaces the user's ambient profile/context. */
@@ -60,15 +60,14 @@ function firstNonEmpty(...values: Array<string | null | undefined>): string | nu
   return null;
 }
 
-/**
- * Whether a URL points at ContextBase Cloud, matched on host (so a trailing slash
- * or regional subdomain still triggers the missing-key guard). The dot boundary
- * avoids matching look-alikes like `nothindsight.vectorize.io`.
- */
-export function isContextBaseCloudUrl(url: string): boolean {
+/** Match only the Cloud endpoint explicitly configured by the deployment. */
+export function isContextBaseCloudUrl(
+  url: string,
+  cloudApiUrl = process.env.CONTEXTBASE_CLOUD_API_URL ?? ""
+): boolean {
+  if (!cloudApiUrl) return false;
   try {
-    const host = new URL(url).hostname;
-    return host === "hindsight.vectorize.io" || host.endsWith(".hindsight.vectorize.io");
+    return new URL(url).origin === new URL(cloudApiUrl).origin;
   } catch {
     return false;
   }
@@ -76,7 +75,7 @@ export function isContextBaseCloudUrl(url: string): boolean {
 
 /** How to reach a ContextBase server; shared by every entrypoint in this package. */
 export interface ConnectionOptions {
-  /** ContextBase REST base URL. Defaults to `CONTEXTBASE_API_URL`, then Cloud. */
+  /** ContextBase REST base URL. Required here or through `CONTEXTBASE_API_URL`. */
   apiUrl?: string;
   /**
    * API key sent as `Authorization: Bearer <key>`. Defaults to `CONTEXTBASE_API_KEY`.
@@ -104,7 +103,7 @@ export function resolveConnection(
   const apiKey =
     options.apiKey === undefined ? firstNonEmpty(env.CONTEXTBASE_API_KEY) : options.apiKey;
 
-  if (isContextBaseCloudUrl(apiUrl) && !apiKey) {
+  if (isContextBaseCloudUrl(apiUrl, env.CONTEXTBASE_CLOUD_API_URL ?? "") && !apiKey) {
     throw new Error(
       "ContextBase Cloud requires an API key. Set CONTEXTBASE_API_KEY, pass `apiKey`, or point " +
         "`apiUrl`/CONTEXTBASE_API_URL at a self-hosted server (use `apiKey: null` for a no-auth server)."

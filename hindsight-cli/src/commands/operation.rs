@@ -120,7 +120,7 @@ pub fn get(
             if output_format == OutputFormat::Pretty {
                 ui::print_section_header(&format!("Operation: {}", operation_id));
 
-                use hindsight_client::types::Status;
+                use contextbase_client::types::Status;
                 let status_str = match &result.status {
                     Status::Completed => ui::gradient_start("completed"),
                     Status::Pending => ui::gradient_mid("pending"),

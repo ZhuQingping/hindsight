@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { proxyRequest } from "./proxy";
 
 const baseEnv = {
-  CONTEXTBASE_ORIGIN: "https://hindsight-origin.example.com",
+  CONTEXTBASE_ORIGIN: "https://contextbase-origin.example.com",
   PROXY_SECRET: "proxy-secret-value",
   CONTEXTBASE_API_TOKEN: "server-api-token",
 };
@@ -14,7 +14,7 @@ describe("proxyRequest", () => {
       calledUrl = url.toString();
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "POST",
       body: JSON.stringify({ jsonrpc: "2.0", method: "ping" }),
       headers: { "Content-Type": "application/json" },
@@ -23,7 +23,7 @@ describe("proxyRequest", () => {
     await proxyRequest(request, baseEnv, { fetchImpl });
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(calledUrl).toBe("https://hindsight-origin.example.com/mcp");
+    expect(calledUrl).toBe("https://contextbase-origin.example.com/mcp");
   });
 
   it("strips client Authorization and injects the server bearer token", async () => {
@@ -32,7 +32,7 @@ describe("proxyRequest", () => {
       expect(headers.get("Authorization")).toBe("Bearer server-api-token");
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "POST",
       headers: { Authorization: "Bearer client-leaked-token" },
       body: "{}",
@@ -48,7 +48,7 @@ describe("proxyRequest", () => {
       expect(headers.get("X-Proxy-Secret")).toBe("proxy-secret-value");
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "POST",
       headers: { "X-Proxy-Secret": "client-forged-value" },
       body: "{}",
@@ -63,7 +63,7 @@ describe("proxyRequest", () => {
       expect(init?.body).toBeNull();
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "GET",
     });
 
@@ -78,7 +78,7 @@ describe("proxyRequest", () => {
       expect(new TextDecoder().decode(body as ArrayBuffer)).toBe('{"hello":"world"}');
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "POST",
       body: '{"hello":"world"}',
       headers: { "Content-Type": "application/json" },
@@ -100,7 +100,7 @@ describe("proxyRequest", () => {
           },
         })
     );
-    const request = new Request("https://hindsight.mydomain.com/mcp", { method: "GET" });
+    const request = new Request("https://contextbase.mydomain.com/mcp", { method: "GET" });
 
     const response = await proxyRequest(request, baseEnv, { fetchImpl });
     expect(response.headers.get("Content-Type")).toBe("application/json");
@@ -112,7 +112,7 @@ describe("proxyRequest", () => {
 
   it("forwards the upstream status code", async () => {
     const fetchImpl = vi.fn<typeof fetch>(async () => new Response("nope", { status: 418 }));
-    const request = new Request("https://hindsight.mydomain.com/mcp", { method: "GET" });
+    const request = new Request("https://contextbase.mydomain.com/mcp", { method: "GET" });
 
     const response = await proxyRequest(request, baseEnv, { fetchImpl });
     expect(response.status).toBe(418);
@@ -123,7 +123,7 @@ describe("proxyRequest", () => {
     const fetchImpl = vi.fn<typeof fetch>(async () => {
       throw new Error("ECONNREFUSED");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", { method: "GET" });
+    const request = new Request("https://contextbase.mydomain.com/mcp", { method: "GET" });
 
     const response = await proxyRequest(request, baseEnv, { fetchImpl });
     expect(response.status).toBe(502);
@@ -142,7 +142,7 @@ describe("proxyRequest", () => {
       expect(headers.get("host")).toBeNull();
       return new Response("ok");
     });
-    const request = new Request("https://hindsight.mydomain.com/mcp", {
+    const request = new Request("https://contextbase.mydomain.com/mcp", {
       method: "GET",
       headers: { Host: "contextbase.mydomain.com" },
     });

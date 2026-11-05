@@ -1,11 +1,11 @@
 # ContextBase × Gemini Spark
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [Gemini Spark](https://blog.google/products/gemini/gemini-spark/),
 Google's always-on agentic assistant, via MCP.
 
-> **Recommended:** Use [ContextBase remote service](https://github.com/RSIXDB/hindsight/) for the
+> **Recommended:** Use [ContextBase remote service](./) for the
 > fastest setup — no infrastructure to manage. The setup below works with both
 > Cloud and self-hosted ContextBase.
 
@@ -46,14 +46,14 @@ Cloudflare Worker — hindsight-integrations/cloudflare-oauth-proxy
         |
         | HTTPS + Cloudflare Tunnel
         v
-Self-hosted ContextBase + hindsight-embed (MCP server)
+Self-hosted ContextBase + contextbase-embed (MCP server)
 ```
 
 ## Setup
 
 ### Option 1: ContextBase remote service (recommended)
 
-1. Deploy [ContextBase](https://github.com/RSIXDB/hindsight/) and obtain credentials from your deployment administrator and
+1. Deploy [ContextBase](./) and obtain credentials from your deployment administrator and
    create a memory bank
 2. Copy your API key from the dashboard
 3. Register ContextBase in Spark's MCP config (see below)
@@ -61,8 +61,8 @@ Self-hosted ContextBase + hindsight-embed (MCP server)
 ### Option 2: Self-hosted
 
 1. Deploy a ContextBase instance — see the
-   [self-hosting quickstart](https://github.com/RSIXDB/hindsight/docs/quickstart/self-hosting)
-2. Run the `hindsight-embed` MCP server pointed at your instance, exposed on
+   [self-hosting quickstart](../../hindsight-extensions/contextdb-service/docs/deployment-local.md)
+2. Run the `contextbase-embed` MCP server pointed at your instance, exposed on
    a public HTTPS endpoint
 3. Deploy the [`cloudflare-oauth-proxy`](../cloudflare-oauth-proxy/) (Spark
    only speaks OAuth 2.1 to MCP servers)

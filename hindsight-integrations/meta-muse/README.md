@@ -1,6 +1,6 @@
 # ContextBase × Meta Muse
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Bring the memory from your other AI tools into [Meta Muse](https://muse.ai), Meta's
 personal AI agent. Muse connects to your ContextBase memory banks over MCP, so what you
@@ -43,7 +43,7 @@ ContextBase remote service  memory.example.com/mcp
 
 ## Setup
 
-1. Deploy [ContextBase](https://github.com/RSIXDB/hindsight/) and obtain credentials from your deployment administrator.
+1. Deploy [ContextBase](./) and obtain credentials from your deployment administrator.
 2. Open Muse and paste the contents of [`connect-prompt.md`](./connect-prompt.md).
 3. Muse shows a **Connect** button for ContextBase. Click it and approve access on
    ContextBase's sign-in page.

@@ -1,11 +1,11 @@
-//! Hindsight API Client
+//! ContextBase API Client
 //!
-//! A Rust client library for the Hindsight semantic memory system API.
+//! A Rust client library for the ContextBase semantic memory system API.
 //!
 //! # Example
 //!
 //! ```rust,no_run
-//! use hindsight_client::Client;
+//! use contextbase_client::Client;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,17 +20,17 @@
 //! ```
 
 // Include the generated client code (which already exports Error and ResponseValue)
-include!(concat!(env!("OUT_DIR"), "/hindsight_client_generated.rs"));
+include!(concat!(env!("OUT_DIR"), "/contextbase_client_generated.rs"));
 
 /// Semantic version of this Rust client, kept in sync with the other language
 /// wrappers when a coordinated release is cut.
 pub const CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Default `User-Agent` header sent on every request unless overridden.
-pub const DEFAULT_USER_AGENT: &str = concat!("hindsight-client-rust/", env!("CARGO_PKG_VERSION"));
+pub const DEFAULT_USER_AGENT: &str = concat!("contextbase-client-rust/", env!("CARGO_PKG_VERSION"));
 
 /// Build a [`reqwest::Client`] whose `User-Agent` is `user_agent` followed by
-/// [`DEFAULT_USER_AGENT`] (e.g. `"hindsight-cli/0.6.2 hindsight-client-rust/0.6.2"`).
+/// [`DEFAULT_USER_AGENT`] (e.g. `"contextbase-cli/0.6.2 contextbase-client-rust/0.6.2"`).
 ///
 /// Integrations should use this to identify themselves, so self-hosted
 /// deployments behind Cloudflare or other UA-based filters accept the traffic
@@ -60,7 +60,7 @@ fn prefixed_user_agent(user_agent: &str) -> String {
     format!("{user_agent} {DEFAULT_USER_AGENT}")
 }
 
-/// Construct a [`Client`] with the default Hindsight `User-Agent`.
+/// Construct a [`Client`] with the default ContextBase `User-Agent`.
 ///
 /// Prefer this over `Client::new` — the bare `Client::new` uses reqwest's
 /// default UA which is blocked by some reverse proxies (e.g. Cloudflare).
@@ -76,8 +76,8 @@ mod tests {
     #[test]
     fn test_caller_user_agent_keeps_client_version() {
         assert_eq!(
-            prefixed_user_agent("hindsight-test/1.2.3"),
-            format!("hindsight-test/1.2.3 {DEFAULT_USER_AGENT}")
+            prefixed_user_agent("contextbase-test/1.2.3"),
+            format!("contextbase-test/1.2.3 {DEFAULT_USER_AGENT}")
         );
     }
 
@@ -90,14 +90,14 @@ mod tests {
 
     #[test]
     fn test_product_display_name_deserialization_validates_native_schema() {
-        for name in ["agentstratum", "contextdb"] {
+        for name in ["contextbase", "contextdb"] {
             let value: types::ContextdbName =
                 serde_json::from_value(serde_json::json!(name)).unwrap();
             assert_eq!(value.to_string(), name);
         }
         for name in [
             "",
-            "AgentStratum",
+            "ContextBase",
             "bad_name",
             "../api",
             "中文",
@@ -131,7 +131,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_memory_lifecycle() {
-        let api_url = std::env::var("HINDSIGHT_API_URL")
+        let api_url = std::env::var("CONTEXTBASE_API_URL")
             .unwrap_or_else(|_| "http://localhost:8888".to_string());
 
         // Use a custom reqwest client with longer timeout for LLM operations

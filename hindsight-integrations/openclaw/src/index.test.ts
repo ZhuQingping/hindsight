@@ -386,9 +386,11 @@ describe("formatMemories", () => {
 
   it("renders an open-ended window when only one bound is present", () => {
     const startOnly = formatMemories([
-      makeMemoryResult({ text: "Started at Vectorize", occurred_start: "2026-02-01T00:00:00Z" }),
+      makeMemoryResult({ text: "Started at ExampleCorp", occurred_start: "2026-02-01T00:00:00Z" }),
     ]);
-    expect(startOnly).toBe("- Started at Vectorize [world] [occurred from: 2026-02-01T00:00:00Z]");
+    expect(startOnly).toBe(
+      "- Started at ExampleCorp [world] [occurred from: 2026-02-01T00:00:00Z]"
+    );
 
     const endOnly = formatMemories([
       makeMemoryResult({ text: "Left the old team", occurred_end: "2026-02-01T00:00:00Z" }),

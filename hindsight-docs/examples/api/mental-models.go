@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	contextbase "github.com/vectorize-io/hindsight/hindsight-clients/go"
+	contextbase "contextbase-client-go"
 )
 
 const mmBankID = "mental-models-demo-bank"

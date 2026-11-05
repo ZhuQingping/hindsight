@@ -220,7 +220,7 @@ it.each(["contextbase", "ContextBase"])(
   "recognizes %s attribution without changing the transcript",
   (name) => {
     const turns = [
-      { role: "user", content: "Customer ID contextbase/contextbase/hindsight" },
+      { role: "user", content: "Customer ID contextbase/contextbase/contextbase" },
       { role: "action", content: "contextbase_reflect why" },
       { role: "assistant", content: `> 🧠 **From ${name} memory** — customer evidence` },
     ];

@@ -1,8 +1,8 @@
 # ContextBase for Zapier
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-A [Zapier](https://zapier.com) app that brings [ContextBase](https://github.com/RSIXDB/hindsight) long-term memory into your Zaps — store content, search memories, get grounded answers, and start Zaps from memory events.
+A [Zapier](https://zapier.com) app that brings [ContextBase](.) long-term memory into your Zaps — store content, search memories, get grounded answers, and start Zaps from memory events.
 
 Built with the [Zapier Platform CLI](https://platform.zapier.com/). The source lives in the ContextBase monorepo for versioning and CI; the app itself is published to Zapier's platform with `zapier-platform push` / `zapier-platform promote` (see [Publishing](#publishing)).
 

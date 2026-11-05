@@ -12,18 +12,18 @@ Create a thin `api.rs` wrapper that uses `tokio::runtime::Runtime` to bridge syn
 
 ```rust
 pub struct ApiClient {
-    client: hindsight_client::Client,
+    client: contextbase_client::Client,
     runtime: tokio::runtime::Runtime,
 }
 
 impl ApiClient {
     pub fn new(base_url: String) -> Result<Self> {
         let runtime = tokio::runtime::Runtime::new()?;
-        let client = hindsight_client::Client::new(&base_url);
+        let client = contextbase_client::Client::new(&base_url);
         Ok(ApiClient { client, runtime })
     }
 
-    pub fn list_agents(&self) -> Result<Vec<hindsight_client::types::AgentListItem>> {
+    pub fn list_agents(&self) -> Result<Vec<contextbase_client::types::AgentListItem>> {
         self.runtime.block_on(async {
             self.client.list_agents().await
         })
@@ -40,7 +40,7 @@ Make the CLI fully async using `#[tokio::main]`:
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let client = hindsight_client::Client::new(&config.api_url);
+    let client = contextbase_client::Client::new(&config.api_url);
 
     match cli.command {
         Commands::Agent(AgentCommands::List) => {
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
 
 ## Type Mapping
 
-The generated types are in `hindsight_client::types::*`. Here's the mapping:
+The generated types are in `contextbase_client::types::*`. Here's the mapping:
 
 | CLI Expected | Generated Type |
 |-------------|----------------|

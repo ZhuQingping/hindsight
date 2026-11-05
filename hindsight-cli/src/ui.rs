@@ -1,6 +1,6 @@
 use crate::api::{BankProfileResponse, RecallResponse, RecallResult, ReflectResponse};
 use colored::*;
-use hindsight_client::types::ChunkData;
+use contextbase_client::types::ChunkData;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{self, Write};
 

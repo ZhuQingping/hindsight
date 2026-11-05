@@ -12,7 +12,7 @@ import sys
 from collections.abc import Callable
 from typing import Optional
 
-from .client import HindsightClient
+from .client import ContextBaseClient
 from .cline_io import HookInput
 from .config import ContextBaseClineConfig
 from .state import read_state, write_state
@@ -40,7 +40,7 @@ def derive_bank_id(hook: HookInput, config: ContextBaseClineConfig) -> str:
     for f in fields:
         if f not in VALID_FIELDS:
             print(
-                f'[Hindsight] Unknown dynamicBankGranularity field "{f}" — '
+                f'[ContextBase] Unknown dynamicBankGranularity field "{f}" — '
                 f"valid for Cline: {', '.join(sorted(VALID_FIELDS))}",
                 file=sys.stderr,
             )
@@ -62,7 +62,7 @@ def derive_bank_id(hook: HookInput, config: ContextBaseClineConfig) -> str:
 
 
 def ensure_bank_mission(
-    client: HindsightClient,
+    client: ContextBaseClient,
     bank_id: str,
     config: ContextBaseClineConfig,
     debug_fn: Optional[Callable[..., None]] = None,

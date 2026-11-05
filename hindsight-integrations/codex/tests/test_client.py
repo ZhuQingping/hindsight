@@ -3,8 +3,7 @@
 from unittest.mock import patch
 
 from conftest import FakeHTTPResponse
-
-from lib.client import USER_AGENT, HindsightClient
+from lib.client import USER_AGENT, ContextBaseClient
 
 
 class TestUserAgentHeader:
@@ -15,7 +14,7 @@ class TestUserAgentHeader:
     """
 
     def test_recall_sends_user_agent(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):

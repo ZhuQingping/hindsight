@@ -1,6 +1,6 @@
 # ContextBase for Grok Bot
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
 Long-term memory for [Grok Bot](https://x.ai) and Cursor, shared across your Bots and
 your other AI tools.
@@ -32,7 +32,7 @@ asked for a name before setup continues.
 Copy this directory into Cursor's local plugin folder, then reload:
 
 ```bash
-git clone https://github.com/RSIXDB/hindsight
+git clone .
 mkdir -p ~/.cursor/plugins/local
 cp -r contextbase/hindsight-integrations/grok-bot ~/.cursor/plugins/local/contextbase
 ```

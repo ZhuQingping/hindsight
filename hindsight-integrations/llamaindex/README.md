@@ -1,8 +1,8 @@
 # contextbase-llamaindex
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-LlamaIndex integration for [ContextBase](https://github.com/RSIXDB/hindsight) — persistent long-term memory for AI agents.
+LlamaIndex integration for [ContextBase](.) — persistent long-term memory for AI agents.
 
 Provides two complementary patterns:
 
@@ -82,5 +82,5 @@ configure(
 
 ## Documentation
 
-- [Integration docs](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs)
-- [ContextBase API docs](https://docs.hindsight.vectorize.io)
+- [Integration docs](../../docs/contextbase/CUSTOMER-GUIDE.md)
+- [ContextBase API docs](../../docs/contextbase/CUSTOMER-GUIDE.md)

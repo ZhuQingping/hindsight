@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 from conftest import FakeHTTPResponse
-from lib.client import USER_AGENT, HindsightClient
+from lib.client import USER_AGENT, ContextBaseClient
 
 
 class TestUserAgentHeader:
@@ -14,7 +14,7 @@ class TestUserAgentHeader:
     """
 
     def test_recall_sends_user_agent(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -28,7 +28,7 @@ class TestUserAgentHeader:
         assert captured["ua"].startswith("contextbase-copilot-cli/")
 
     def test_health_check_sends_user_agent(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -43,7 +43,7 @@ class TestUserAgentHeader:
 
 class TestAuthorizationHeader:
     def test_recall_sends_bearer_token(self):
-        c = HindsightClient("http://localhost:9077", api_token="secret-token-123")
+        c = ContextBaseClient("http://localhost:9077", api_token="secret-token-123")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -56,7 +56,7 @@ class TestAuthorizationHeader:
         assert captured["auth"] == "Bearer secret-token-123"
 
     def test_no_authorization_header_without_token(self):
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):
@@ -74,20 +74,20 @@ class TestURLValidation:
         import pytest
 
         with pytest.raises(ValueError):
-            HindsightClient("ftp://example.com")
+            ContextBaseClient("ftp://example.com")
 
     def test_rejects_missing_hostname(self):
         import pytest
 
         with pytest.raises(ValueError):
-            HindsightClient("http://")
+            ContextBaseClient("http://")
 
 
 class TestRetainEncoding:
     def test_retain_posts_async_true(self):
         import json
 
-        c = HindsightClient("http://localhost:9077")
+        c = ContextBaseClient("http://localhost:9077")
         captured = {}
 
         def fake_open(req, timeout=None):

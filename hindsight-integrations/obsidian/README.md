@@ -1,8 +1,8 @@
 # ContextBase for Obsidian
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Give your [Obsidian](https://obsidian.md) vault an AI agent that actually knows your notes, powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+Give your [Obsidian](https://obsidian.md) vault an AI agent that actually knows your notes, powered by [ContextBase](.).
 
 The plugin syncs your vault into a ContextBase memory bank and adds a chat panel whose answers are **grounded on your notes — and cite them**.
 
@@ -38,14 +38,14 @@ Your own frontmatter `tags`/`aliases` are carried through too.
 
 > Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.
 
-While in beta, install via [BRAT](https://github.com/TfTHacker/obsidian42-brat): add the repo [`RSIXDB/hindsight-obsidian`](https://github.com/vectorize-io/hindsight-obsidian) — the dedicated plugin repo BRAT installs from (see [Distribution](#distribution--maintainers)) — then enable it under **Settings → Community plugins**.
+While in beta, install via [BRAT](https://github.com/TfTHacker/obsidian42-brat): add the repo the approved distribution repository — the dedicated plugin repo BRAT installs from (see [Distribution](#distribution--maintainers)) — then enable it under **Settings → Community plugins**.
 
 **Self-hosting alternative:**
 
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-openai-key
-hindsight-api
+contextbase-api
 ```
 
 ## Configuration
@@ -61,7 +61,7 @@ Open **Settings → ContextBase**:
 | Sync on edit              | on                                   | Re-ingest notes automatically as you edit                                                      |
 | Observation consolidation | server default                       | Optional named observation scope for newly ingested content                                    |
 | Default chat depth        | low                                  | Reflect budget for chat answers                                                                |
-| Remember conversations    | **off**                              | When on, chat turns are stored in Hindsight (creates memory outside your vault)                |
+| Remember conversations    | **off**                              | When on, chat turns are stored in ContextBase (creates memory outside your vault)                |
 | Prefix document IDs       | on                                   | Vault-prefixes ids so shared-bank vaults don't collide; turn off only for a single-vault setup |
 
 ## Commands
@@ -127,7 +127,7 @@ To try it in a real vault, copy `main.js`, `manifest.json`, and `styles.css` int
 | Repo                                                                                    | Role                                                                                                                                                                    |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hindsight-integrations/obsidian/` (this monorepo)                                      | **Source of truth.** All code, tests, and the npm package (`contextbase-obsidian`) live here.                                                               |
-| [`RSIXDB/hindsight-obsidian`](https://github.com/vectorize-io/hindsight-obsidian) | **Generated distribution repo** for BRAT + the Obsidian community store. The release workflow mirrors this folder here (via `git subtree`) and cuts the GitHub Release. |
+| the approved distribution repository | **Generated distribution repo** for BRAT + the Obsidian community store. The release workflow mirrors this folder here (via `git subtree`) and cuts the GitHub Release. |
 
 **Why two repos?** Obsidian's BRAT and community store install from a repo's **latest GitHub Release**. We can't use this monorepo's releases — they pollute the core product's release list and steal the "Latest" badge, and BRAT reads a repo's _latest_ release (the core app), not a tag. So distribution releases go to a dedicated repo.
 
@@ -140,7 +140,7 @@ To try it in a real vault, copy `main.js`, `manifest.json`, and `styles.css` int
 The `Release Integration` workflow then automatically (see `.github/workflows/release-integration.yml` → "Mirror Obsidian plugin"):
 
 1. publishes the npm package `contextbase-obsidian`,
-2. mirrors this folder to the **root** of `RSIXDB/hindsight-obsidian` with `git subtree push --prefix=hindsight-integrations/obsidian`, and
+2. mirrors this folder to the **root** of the approved distribution repository with `git subtree push --prefix=hindsight-integrations/obsidian`, and
 3. cuts a GitHub Release there tagged with the bare version (e.g. `0.1.0`, matching `manifest.json`) so BRAT / the community store pick it up.
 
-No manual second-repo step. The mirror needs a repo/org secret **`OBSIDIAN_DIST_TOKEN`** — a token with `contents: write` on `RSIXDB/hindsight-obsidian`.
+No manual second-repo step. The mirror needs a repo/org secret **`OBSIDIAN_DIST_TOKEN`** — a token with `contents: write` on the approved distribution repository.

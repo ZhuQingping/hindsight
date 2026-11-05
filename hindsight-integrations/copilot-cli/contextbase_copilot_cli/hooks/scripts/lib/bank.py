@@ -62,7 +62,7 @@ def derive_bank_id(hook_input, config):
     for f in fields:
         if f not in VALID_FIELDS:
             print(
-                f'[Hindsight] Unknown dynamicBankGranularity field "{f}" — '
+                f'[ContextBase] Unknown dynamicBankGranularity field "{f}" — '
                 f"valid for copilot-cli: {', '.join(sorted(VALID_FIELDS))}",
                 file=sys.stderr,
             )

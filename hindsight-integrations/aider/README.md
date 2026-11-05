@@ -1,8 +1,8 @@
 # contextbase-aider
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Aider](https://aider.chat), powered by [ContextBase](https://github.com/RSIXDB/hindsight).
+Persistent long-term memory for [Aider](https://aider.chat), powered by [ContextBase](.).
 
 `contextbase-aider` is a drop-in wrapper for the `aider` command. It **recalls
 relevant project memory before each session** (injected into Aider's context via
@@ -42,7 +42,7 @@ contextbase-aider -m "add retry logic"    # one-shot; recall uses the message
 contextbase-aider src/app.py tests/       # any aider args
 ```
 
-Use [ContextBase remote service](https://github.com/RSIXDB/hindsight) or a self-hosted server
+Use [ContextBase remote service](.) or a self-hosted server
 with `CONTEXTBASE_API_URL=http://localhost:8888`.
 
 ## Configuration

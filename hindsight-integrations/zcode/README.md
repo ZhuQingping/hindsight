@@ -130,7 +130,7 @@ This creates banks like `zcode::my-project` automatically, using the hook's `cwd
 ## Development
 
 ```bash
-cd contextbase-integrations/zcode
+cd hindsight-integrations/zcode
 uv sync
 uv run pytest tests/ -v
 ```

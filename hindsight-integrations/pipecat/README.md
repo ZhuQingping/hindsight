@@ -1,8 +1,8 @@
 # ContextBase Pipecat Integration
 
-> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying Hindsight SDK dependency keeps its published package/import names.
+> ContextBase source distribution: build/install this integration from this repository until its ContextBase package is published. Package names below identify the new build; they do not imply registry availability. Configure your own service URL; localhost URLs are self-hosted examples. The underlying ContextBase SDK dependency keeps its published package/import names.
 
-Persistent long-term memory for [Pipecat](https://github.com/pipecat-ai/pipecat) voice AI pipelines via [ContextBase](https://github.com/RSIXDB/hindsight). A single `FrameProcessor` slots between your user context aggregator and LLM service — recalling relevant memories before each turn and retaining conversation content after.
+Persistent long-term memory for [Pipecat](https://github.com/pipecat-ai/pipecat) voice AI pipelines via [ContextBase](.). A single `FrameProcessor` slots between your user context aggregator and LLM service — recalling relevant memories before each turn and retaining conversation content after.
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ memory = ContextBaseMemoryService(
 )
 ```
 
-See the [ContextBase installation guide](https://github.com/RSIXDB/hindsight/tree/main/hindsight-docs) for self-hosting setup.
+See the [ContextBase installation guide](../../docs/contextbase/CUSTOMER-GUIDE.md) for self-hosting setup.
 
 ## How It Works
 
@@ -74,9 +74,9 @@ A running ContextBase instance:
 
 **Self-hosted:**
 ```bash
-pip install hindsight-all
+pip install contextbase-all
 export CONTEXTBASE_API_LLM_API_KEY=your-api-key
-hindsight-api  # starts on http://localhost:8888
+contextbase-api  # starts on http://localhost:8888
 ```
 
 Configure your ContextBase service URL and credentials from your deployment administrator. For a local service, build and run this repository first.

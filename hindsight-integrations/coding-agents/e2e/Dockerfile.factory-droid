@@ -1,4 +1,4 @@
-FROM hindsight-coding-agents-e2e-base
+FROM contextbase-coding-agents-e2e-base
 ARG VERSION=latest
 # Droid ships as a self-contained binary from Factory's own installer, not as an npm package. The
 # script drops it in /root/.local/bin, which the base image already has on PATH.
@@ -10,5 +10,5 @@ RUN if [ "${VERSION}" = "latest" ]; then \
     && command -v droid
 # The model route and the workspace-trust grant (see the script's own header): both live in
 # settings.json, which Droid does not let the environment reach.
-COPY droid-e2e-exec.sh /usr/local/bin/hindsight-droid-e2e-exec
-RUN chmod 755 /usr/local/bin/hindsight-droid-e2e-exec
+COPY droid-e2e-exec.sh /usr/local/bin/contextbase-droid-e2e-exec
+RUN chmod 755 /usr/local/bin/contextbase-droid-e2e-exec
