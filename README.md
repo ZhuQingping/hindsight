@@ -1,13 +1,14 @@
 # ContextBase
 
-ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召回、推理及知识整理。
+ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召回、基于记忆回答及知识整理。
 服务按工作空间组织内容，通过业务 API Key 授权 REST、MCP 和 SDK 访问。
 
 ## 从这里开始
 
 | 任务 | 文档 |
 | --- | --- |
-| Claude Code、Codex 和其他 Agent 接入已有服务 | [客户使用指南](docs/contextbase/CUSTOMER-GUIDE.md) |
+| 了解用途、完成首次调用、接入应用或 Agent | [用户指南](docs/contextbase/CUSTOMER-GUIDE.md) |
+| 查阅 REST API、参数和异步任务 | [API 参考](docs/contextbase/user-guide/api/README.md) |
 | 管理工作空间、用户和 API Key | [管理员操作](hindsight-extensions/contextdb-service/README.md#admin-quickstart) |
 | 本地启动（Windows 原生 / Linux x86_64） | [本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md) |
 | 部署、配置及维护服务 | [部署总览](hindsight-extensions/contextdb-service/docs/deployment.md) |
@@ -18,11 +19,11 @@ ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召�
 
 | 客户端 | 交付方式 | 使用说明 |
 | --- | --- | --- |
-| Coding Agents | npm：`@huaweicloud/contextbase-coding-agents` | [安装及项目绑定](docs/contextbase/CUSTOMER-GUIDE.md) |
-| Node.js SDK | npm：`@huaweicloud/contextbase-client` | [Node.js SDK](hindsight-clients/typescript/README.md) |
-| Python SDK | wheel / 源码包 | [Python SDK](hindsight-clients/python/README.md) |
+| Coding Agents | npm：`@huaweicloud/contextbase-coding-agents` | [安装与 Bank 选择](docs/contextbase/user-guide/agents.md) |
+| Node.js SDK | npm：`@huaweicloud/contextbase-client` | [Node.js 接入](docs/contextbase/user-guide/nodejs.md) |
+| Python SDK | wheel / 源码包 | [Python 接入](docs/contextbase/user-guide/python.md) |
 | CLI | `contextbase` 可执行文件 | [CLI 安装器](scripts/install-contextbase.sh) |
-| OpenClaw、Hermes | 各自的插件安装包 | [其他 Agent](docs/contextbase/CUSTOMER-GUIDE.md#7-其他-agent) |
+| OpenClaw、Hermes | 各自的插件安装包 | [其他 Agent](docs/contextbase/user-guide/agents.md#其他-agent) |
 | Agent Plugin、Claude Code 插件 | 对应宿主的插件归档 | [Agent Plugin](hindsight-integrations/agent-plugin/README.md)、[Claude Code](hindsight-integrations/claude-code/README.md) |
 
 客户端连接需要服务方提供的 API Endpoint、业务 Key 和已授权的 Bank ID。
@@ -53,3 +54,4 @@ API、ContextDB 扩展和管理 UI 使用同一源码版本。
 ## 来源与许可
 
 项目派生自 Hindsight，来源归属与许可见 [LICENSE](LICENSE)。
+

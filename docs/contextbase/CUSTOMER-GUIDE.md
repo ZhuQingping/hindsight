@@ -1,240 +1,26 @@
-# ContextBase 客户使用指南
+# ContextBase 用户指南
 
-通过 ContextBase，多个 Agent 可以共享项目约定、设计决策和任务进度。按第 1 至 4 节安装并验证。
-只需手动调用记忆工具时，可直接使用第 5 节的远端 MCP 接入。
+ContextBase 为 AI 应用和 Agent 提供长期记忆服务。你可以保存对话、资料和任务记录，在后续交互中找回相关信息，或基于已有记忆生成回答。
 
-## 1 安装方式
+本指南面向使用已有 ContextBase 服务的开发者。开始前，请准备服务方提供的 API 地址、业务 API Key 和 Bank ID。
 
-需要已安装对应客户端和 Node.js 18 或以上版本。使用第 2 节的 `npx` 命令直接接入，无需下载 tgz、全局安装或登录 npm。
-`@latest` 使用 npm 上标记为 latest 的发布版本；需要固定版本时可替换为已发布的版本号。
+## 按需要阅读
 
-## 2 配置连接和项目
+| 你想做什么 | 阅读内容 |
+| --- | --- |
+| 了解产品用途与适用场景 | [产品介绍](user-guide/overview.md) |
+| 理解 Bank、文档、记忆和知识页 | [核心概念](user-guide/concepts.md) |
+| 完成第一次写入和查询 | [快速开始](user-guide/quickstart.md) |
+| 在 Python 应用中使用 | [Python SDK](user-guide/python.md) |
+| 在 Node.js 应用中使用 | [Node.js SDK](user-guide/nodejs.md) |
+| 接入 Claude Code、Codex、CodeArts 或远端 MCP | [Agent 与工具接入](user-guide/agents.md) |
+| 查阅接口、参数和错误处理 | [API 参考](user-guide/api/README.md) |
+| 排查使用中的常见问题 | [常见问题](user-guide/faq.md) |
 
-填写服务提供方给出的 API 地址、API Key 和 Bank ID。Bank 需已创建并授权；`--project-path '.'` 绑定的是执行命令时的当前目录。
+第一次使用，建议从产品介绍和快速开始读起，再选择对应的接入方式。已有应用可以直接阅读 SDK 指南或 API 参考。
 
-Windows PowerShell：
+## 管理与部署
 
-```powershell
-cd D:\code\my-project
-$env:CONTEXTBASE_API_TOKEN = '你的业务API-Key'
-npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$env:CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
-```
+工作空间、用户和业务 Key 由管理员管理。业务应用取得连接信息后即可接入，无需自行部署服务。
 
-Linux 或 macOS Bash：
-
-```bash
-cd /home/alice/work/my-project
-export CONTEXTBASE_API_TOKEN='你的业务API-Key'
-npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --api-url 'https://实际API端点' --api-token "$CONTEXTBASE_API_TOKEN" --bank-id '实际Bank-ID' --project-path '.'
-```
-
-只使用 Claude Code 时保留 `claude-code`；只使用 Codex 时保留 `codex`。
-
-安装器会配置本地 MCP 工具、自动读写记忆的 Hooks 和配套 Skill。安装对当前系统用户生效，**API 地址和 Key 全局共享，Bank 按项目目录选择**。
-
-连接和项目映射保存在 `~/.contextbase/coding-agent.json`；Windows 对应 `%USERPROFILE%\.contextbase\coding-agent.json`。设置了 `CONTEXTBASE_CONFIG` 时，以该变量指定的文件为准。
-
-Claude Code 和 Codex 在同一项目下使用同一个 Bank，即可共享记忆。
-
-首次接入请指定 `--bank-id`。不指定时复用已有配置；没有映射时按默认规则选择 Bank，云端不一定存在或授权该 Bank。`--project-path` 必须与 `--bank-id` 一起使用。
-
-### 为项目指定或切换 Bank
-
-已配置 API 地址和 Key 后，可直接为项目指定 Bank，无需重复填写连接信息。Bank 需已创建，且当前 Key 有访问权限。
-
-在项目目录中执行（Windows PowerShell）：
-
-```powershell
-cd D:\code\xiyan
-npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "test_cli" --project-path "."
-```
-
-也可以直接指定其他项目的绝对路径：
-
-```powershell
-npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "D:\code\other-project"
-```
-
-Linux 或 macOS Bash：
-
-```bash
-npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex --bank-id "bank_other" --project-path "/home/alice/work/other-project"
-```
-
-只使用一个客户端时，保留对应的 `claude-code` 或 `codex`。这些命令会更新指定项目的绑定，保留其他项目的映射和已有 API 地址、Key。
-
-映射写入前述用户配置文件的 `mapPathToBank` 字段，子目录也适用；多个路径匹配时使用最长路径。例如：
-
-```json
-{
-  "mapPathToBank": {
-    "D:/code/xiyan": "test_cli",
-    "D:/code/other-project": "bank_other"
-  }
-}
-```
-
-以上仅展示映射字段，手动修改时保留文件中的其他配置。为同一项目切换 Bank 时，重新执行绑定命令并替换 `--bank-id` 即可，旧 Bank 的记忆不会自动迁移。
-
-绑定或切换后，在对应项目目录重新启动 Claude Code 或 Codex。可让客户端调用已加载的 ContextBase 诊断工具，确认返回的 `workspace` 和 `bank_id` 与预期一致。
-
-重复安装会保留已有项目映射。已有同名 Claude MCP 配置若不属于本集成，安装器会提示处理，不会直接覆盖。
-
-## 3 启动客户端
-
-### Claude Code
-
-进入已配置的项目目录，执行：
-
-```bash
-claude mcp list
-claude
-```
-
-在会话中输入 **/mcp**，确认 contextbase 已连接。
-
-### Codex
-
-安装器会在 **~/.codex/config.toml** 中启用 Hooks，可检查 features 表：
-
-```toml
-[features]
-hooks = true
-```
-
-已有 [features] 时只补充 hooks，不重复添加表。保留原有模型配置。
-
-进入同一项目目录，执行：
-
-```bash
-codex mcp list
-codex
-```
-
-在会话中输入 **/hooks**，按提示审阅并信任 ContextBase Hook；输入 **/mcp**，确认 contextbase 已连接。完成设置后重新启动客户端。
-
-## 4 验证安装
-
-在已绑定项目目录启动 Claude Code 或 Codex，输入 `/mcp`，确认 `contextbase` 显示已连接，并加载 8 个工具。
-
-随后在对话中输入：
-
-> 请调用当前已加载的 ContextBase 诊断工具，返回 workspace、bank_id、harness 和 api_url。请使用工具的实际返回结果。
-
-确认工具调用成功，且返回的项目路径、Bank、客户端类型和 API 地址与配置一致，即可确认本地 MCP 已安装并可调用。仅显示“已连接”或模型声称安装成功，不代表工具调用成功。
-
-此检查不验证云端读写权限或 Hooks 自动保存；遇到错误可参考第 6 节。
-
-## 5 可选的远端 MCP 接入
-
-只需要按需查询和保存记忆时，可直接连接远端 MCP，无需安装本地适配器。此方式不自动保存会话。
-
-使用服务提供方给出的**完整 MCP Endpoint 和对应凭据**。若已启用前面的集成，不要直接用远端地址替换本地适配器配置。
-
-### Claude Code
-
-PowerShell 和 Bash 均可执行，替换地址及凭据：
-
-```bash
-claude mcp add --scope user --transport http contextbase-remote "完整MCP地址" --header "Authorization: Bearer 实际MCP凭据"
-claude mcp list
-```
-
-该命令会将凭据写入宿主配置。重启 Claude Code，通过 /mcp 检查连接。
-
-### Codex
-
-先在启动 Codex 的终端设置凭据。
-
-PowerShell：
-
-```powershell
-$env:CONTEXTBASE_MCP_TOKEN = '实际MCP凭据'
-```
-
-Bash：
-
-```bash
-export CONTEXTBASE_MCP_TOKEN='实际MCP凭据'
-```
-
-在 **~/.codex/config.toml** 中添加：
-
-```toml
-[mcp_servers.contextbase-remote]
-url = "完整MCP地址"
-bearer_token_env_var = "CONTEXTBASE_MCP_TOKEN"
-```
-
-从同一终端启动 Codex，通过 /mcp 检查。新终端也需要设置该变量。
-
-随后要求客户端“使用 contextbase-remote 保存并查询一条测试记忆”。远端工具与本地适配器不同，以客户端显示的工具列表为准。如果服务提供方要求额外配置 Bank 请求头，使用其提供的配置。
-
-## 6 常见问题和维护
-
-| 问题                       | 处理                                               |
-| -------------------------- | -------------------------------------------------- |
-| 401 或 403                 | 核对凭据、API/MCP 地址及 Bank 权限                 |
-| 修改环境变量后仍使用旧凭据 | 检查 coding-agent.json，文件中的值优先             |
-| MCP 连接成功但没有工具     | 检查当前目录是否匹配 mapPathToBank                 |
-| 两个客户端无法共享记忆     | 确认连接到同一服务和 Bank，等待写入处理完成        |
-| Codex 不自动保存           | 检查 hooks = true 和 /hooks 信任状态               |
-| Claude 安装后没有 MCP      | 按安装输出的手动注册命令补配；仍失败时联系服务支持 |
-| 改配置后未生效             | 完全重启客户端                                     |
-| PowerShell 拒绝执行 .ps1   | 使用 npm.cmd、contextbase-coding-agents.cmd        |
-
-**查看日志**
-
-日志位于 ~/.contextbase/coding-agents-logs/plugin.log。需要服务支持时，提供客户端版本、错误信息和脱敏日志，不发送访问凭据。
-
-**更新**
-
-重新运行第 2 节的 npx 安装命令并重启客户端。需要保留现有连接和项目映射时，可只执行 `npx -y @huaweicloud/contextbase-coding-agents@latest install claude-code codex`（PowerShell 使用 `.cmd`）。
-
-**卸载**
-
-PowerShell：
-
-```powershell
-npx.cmd -y @huaweicloud/contextbase-coding-agents@latest uninstall claude-code codex
-```
-
-Bash：
-
-```bash
-npx -y @huaweicloud/contextbase-coding-agents@latest uninstall claude-code codex
-```
-
-卸载不会删除远端记忆。若只配置了远端 MCP，使用宿主的 MCP 管理命令移除 contextbase-remote。
-
-## 7 其他 Agent
-
-Coding Agents 安装包也支持以下宿主。第 2 节命令中的 `claude-code codex` 可替换为实际使用的安装目标；连接参数和项目 Bank 绑定方式相同。
-
-| 客户端                 | 安装目标      | 接入方式         |
-| ---------------------- | ------------- | ---------------- |
-| Claude Code            | `claude-code` | Hooks + 本地 MCP |
-| Codex CLI              | `codex`       | Hooks + 本地 MCP |
-| Cursor CLI             | `cursor-cli`  | Hooks + 本地 MCP |
-| DSH / DeepSeek Harness | `dsh`         | 原生插件         |
-| OpenCode               | `opencode`    | 原生插件         |
-| OpenCode 2             | `opencode2`   | 原生插件         |
-| pi                     | `pi`          | 原生扩展         |
-| WorkBuddy              | `workbuddy`   | Hooks + 本地 MCP |
-
-例如在 PowerShell 中配置 Cursor CLI：
-
-```powershell
-npx.cmd -y @huaweicloud/contextbase-coding-agents@latest install cursor-cli --api-url "https://实际API端点" --api-token "你的业务API-Key" --bank-id "实际Bank-ID" --project-path "."
-```
-
-原生插件的工具出现在宿主自己的工具列表中；它们不需要另建一个 MCP 注册。重启宿主后，调用实际加载的 ContextBase 诊断工具，核对 `workspace`、`bank_id`、`harness`、`api_url`。DSH 安装项作用于全部配置档，请用新会话验证。
-
-OpenClaw 和 Hermes 使用各自的独立安装包，不能作为上述安装命令的目标：
-
-| 客户端       | 构建产物                                      | 操作指南                                                             |
-| ------------ | --------------------------------------------- | -------------------------------------------------------------------- |
-| OpenClaw     | `contextbase-openclaw-candidate`，内含 `.tgz` | [OpenClaw 使用指南](../../hindsight-integrations/openclaw/README.md) |
-| Hermes Agent | `contextbase-hermes-candidate`，内含插件 ZIP  | [Hermes 使用指南](../../hindsight-integrations/hermes/README.md)     |
-
-两个包都包含对应的 ContextBase SDK。下载使用服务方配置的分发地址，或 [客户端发布页](https://github.com/RSIXDB/hindsight/releases)。它们分别使用 OpenClaw 或 Hermes 的配置，不会自动读取 `coding-agent.json`；要共享记忆，请指定相同的 Endpoint 和 Bank，并分别配置有效凭据。
+管理员请参考[管理员操作](../../hindsight-extensions/contextdb-service/README.md#admin-quickstart)。需要本地安装时，统一使用[本地启动指南](../../hindsight-extensions/contextdb-service/docs/deployment-local.md)；正式部署与维护见[部署总览](../../hindsight-extensions/contextdb-service/docs/deployment.md)。
