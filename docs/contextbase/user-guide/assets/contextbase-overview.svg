@@ -1,126 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
-  <title id="title">ContextBase：面向 AI 应用与 Agent 的长期记忆与知识服务</title>
-  <desc id="desc">应用提交对话、文档与任务记录，Retain 提取记忆并建立关联。应用通过 Recall 获取相关记忆与来源，或通过 Reflect 基于记忆生成回答。知识整理、内容维护、访问与审计提供配套能力。此图展示产品能力关系，不表示任务完成顺序。</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Agent 与 ContextBase 的协作</title>
+  <desc id="desc">当前任务进入 Agent。Agent 按需通过 Recall 从 ContextBase 取回相关记忆，或通过 Reflect 获取基于记忆生成的回答。Agent 调用模型与工具，形成回答或行动，并可通过 Retain 将值得保留的任务记录写入 ContextBase，供后续任务使用。图中接口按需调用，不表示固定执行顺序。</desc>
   <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f4f8fc"/>
-      <stop offset="1" stop-color="#eef5f4"/>
-    </linearGradient>
-    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#142b49"/>
-      <stop offset="1" stop-color="#1c405a"/>
-    </linearGradient>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-      <path d="M1 1 L6.5 4 L1 7" fill="none" stroke="#7193a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="blue-arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M2 2 L11 7 L2 12" fill="none" stroke="#24648b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
-    <marker id="inner-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-      <path d="M1 1 L6.5 4 L1 7" fill="none" stroke="#92c8d2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="gray-arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M2 2 L11 7 L2 12" fill="none" stroke="#77818a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <style>
-      text { font-family: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif; }
-      .ink { fill: #17324c; }
-      .muted { fill: #607789; }
-      .white { fill: #f5fafc; }
-      .soft { fill: #b7cfdd; }
-      .line { fill: none; stroke: #7193a8; stroke-width: 2.2; stroke-linejoin: round; }
-      .inner { fill: none; stroke: #92c8d2; stroke-width: 2; stroke-linejoin: round; }
+      text { font-family: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #202e39; }
+      .flow { fill: none; stroke: #24648b; stroke-width: 2.5; }
+      .quiet { fill: #566570; }
+      .blue { fill: #24648b; }
     </style>
   </defs>
 
-  <rect width="1600" height="1120" rx="28" fill="url(#background)"/>
-  <circle cx="1480" cy="54" r="240" fill="#dceeea" opacity=".38"/>
-  <rect x="72" y="66" width="12" height="36" rx="6" fill="#1e8b88"/>
-  <text x="100" y="92" class="ink" font-size="28" font-weight="700">ContextBase</text>
-  <text x="72" y="172" class="ink" font-size="46" font-weight="700">让记忆连接每一次协作</text>
-  <text x="72" y="220" class="muted" font-size="25">面向 AI 应用与 Agent 的长期记忆与知识服务</text>
+  <rect width="1600" height="900" fill="#fff"/>
+  <text x="80" y="106" font-size="44" font-weight="700">Agent 与 ContextBase 的协作</text>
 
-  <!-- Sources represent content explicitly submitted by applications or adapters. -->
-  <rect x="72" y="330" width="300" height="420" rx="24" fill="#fff" stroke="#d9e4ec" stroke-width="1.5"/>
-  <text x="100" y="381" class="ink" font-size="28" font-weight="700">业务来源</text>
-  <text x="100" y="419" class="muted" font-size="19">由应用或适配器按需提交</text>
-  <g fill="#f3f7fa">
-    <rect x="96" y="451" width="252" height="66" rx="14"/>
-    <rect x="96" y="535" width="252" height="66" rx="14"/>
-    <rect x="96" y="619" width="252" height="66" rx="14"/>
-  </g>
-  <g fill="none" stroke="#557e99" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M117 472 h25 v17 h-14 l-7 6 v-6 h-4 z"/>
-    <path d="M120 552 h17 l7 7 v24 h-24 z M137 552 v8 h7 M125 566 h13 M125 573 h13"/>
-    <path d="M121 637 h23 v29 h-23 z M127 647 l3 3 6-7 M127 658 h11"/>
-  </g>
-  <g class="ink" font-size="24" font-weight="500">
-    <text x="164" y="493">对话与偏好</text>
-    <text x="164" y="577">文档与规范</text>
-    <text x="164" y="661">任务与经验</text>
-  </g>
-  <text x="100" y="722" class="muted" font-size="18">内容选择与提交时机由应用决定</text>
+  <text x="280" y="204" text-anchor="middle" font-size="32">当前任务</text>
+  <path d="M280 226 V277" fill="none" stroke="#77818a" stroke-width="2.5" marker-end="url(#gray-arrow)"/>
 
-  <!-- The core separates memory retrieval from model-generated answers. -->
-  <rect x="432" y="266" width="696" height="600" rx="28" fill="#b9ced9" opacity=".25"/>
-  <rect x="432" y="258" width="696" height="600" rx="28" fill="url(#core)"/>
-  <text x="464" y="305" class="white" font-size="28" font-weight="700">ContextBase</text>
-  <rect x="858" y="279" width="238" height="36" rx="18" fill="#ffffff" fill-opacity=".09"/>
-  <text x="977" y="304" text-anchor="middle" class="soft" font-size="18">工作空间 / Bank</text>
+  <rect x="80" y="280" width="400" height="420" rx="4" fill="#f7f8fa" stroke="#b5bfc8" stroke-width="1.5"/>
+  <text x="120" y="348" font-size="44" font-weight="700">Agent</text>
+  <path d="M120 377 H440" stroke="#d2d9df" stroke-width="1.5"/>
+  <text x="120" y="450" font-size="30">理解与规划</text>
+  <text x="120" y="550" font-size="30">调用模型与工具</text>
+  <text x="120" y="650" font-size="30">形成回答与行动</text>
 
-  <rect x="464" y="330" width="632" height="88" rx="16" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".13"/>
-  <text x="488" y="365" class="white" font-size="25" font-weight="700">Retain</text>
-  <text x="594" y="365" class="white" font-size="24">写入记忆</text>
-  <text x="488" y="397" class="soft" font-size="20">提取事实与经历，建立检索信息与关联</text>
-  <path d="M780 418 V449" class="inner" marker-end="url(#inner-arrow)"/>
+  <rect x="1100" y="280" width="420" height="420" rx="4" fill="#f2f7fa" stroke="#9bb4c5" stroke-width="1.5"/>
+  <text x="1140" y="348" font-size="40" font-weight="700">ContextBase</text>
+  <path d="M1140 377 H1480" stroke="#c7d8e2" stroke-width="1.5"/>
+  <text x="1140" y="450" font-size="34" font-weight="500">长期记忆</text>
+  <text x="1140" y="498" font-size="28" class="quiet">事实 · 经历 · 观察</text>
+  <text x="1140" y="597" font-size="30">来源与关联</text>
+  <text x="1140" y="645" font-size="28" class="quiet">文档 · 分块 · 实体</text>
 
-  <rect x="464" y="452" width="632" height="132" rx="18" fill="#29586b" stroke="#74b7c1" stroke-opacity=".45"/>
-  <text x="488" y="490" class="white" font-size="25" font-weight="700">可持续维护的记忆</text>
-  <g fill="#16394e">
-    <rect x="488" y="512" width="142" height="42" rx="21"/>
-    <rect x="642" y="512" width="104" height="42" rx="21"/>
-    <rect x="758" y="512" width="104" height="42" rx="21"/>
-  </g>
-  <g class="white" font-size="21" text-anchor="middle">
-    <text x="559" y="541">世界事实</text>
-    <text x="694" y="541">经历</text>
-    <text x="810" y="541">观察</text>
-  </g>
-  <text x="1072" y="541" text-anchor="end" fill="#b8e6e4" font-size="20">实体与关联</text>
+  <!-- Recall and Reflect are independent, optional calls from the Agent workflow. -->
+  <text x="790" y="419" text-anchor="middle" font-size="31" class="blue">Recall · 取回相关记忆</text>
+  <path d="M1098 450 H483" class="flow" marker-end="url(#blue-arrow)"/>
+  <text x="790" y="519" text-anchor="middle" font-size="31" class="quiet">Reflect · 按需生成回答</text>
+  <path d="M1098 550 H483" fill="none" stroke="#77818a" stroke-width="2.5" stroke-dasharray="9 8" marker-end="url(#gray-arrow)"/>
 
-  <!-- Both API paths use memory; neither is a mandatory stage of the other. -->
-  <path d="M780 584 V613 H482 V793 H501" class="inner" marker-end="url(#inner-arrow)"/>
-  <path d="M482 683 H501" class="inner" marker-end="url(#inner-arrow)"/>
-  <rect x="504" y="642" width="592" height="82" rx="16" fill="#e9f4fa"/>
-  <text x="528" y="677" class="ink" font-size="25" font-weight="700">Recall</text>
-  <text x="650" y="677" class="ink" font-size="24">检索记忆</text>
-  <text x="528" y="707" fill="#486a82" font-size="19">按需返回相关内容，接入应用自己的工作流</text>
-  <rect x="504" y="752" width="592" height="82" rx="16" fill="#e5f4ef"/>
-  <text x="528" y="787" class="ink" font-size="25" font-weight="700">Reflect</text>
-  <text x="650" y="787" class="ink" font-size="24">基于记忆回答</text>
-  <text x="528" y="817" fill="#42766c" font-size="19">检索并调用模型组织回答，按需返回依据</text>
+  <!-- Retain is an explicit write, rather than implicit capture of every Agent action. -->
+  <text x="790" y="619" text-anchor="middle" font-size="31" class="blue">Retain · 写入任务记录</text>
+  <path d="M482 650 H1097" class="flow" marker-end="url(#blue-arrow)"/>
 
-  <rect x="1190" y="482" width="338" height="376" rx="24" fill="#fff" stroke="#d9e4ec" stroke-width="1.5"/>
-  <text x="1218" y="533" class="ink" font-size="28" font-weight="700">应用与 Agent</text>
-  <text x="1218" y="573" class="muted" font-size="20">跨会话延续业务背景</text>
-  <path d="M1218 605 H1500" stroke="#e2eaf0"/>
-  <path d="M1096 683 H1187" class="line" marker-end="url(#arrow)"/>
-  <path d="M1096 793 H1187" class="line" marker-end="url(#arrow)"/>
-  <circle cx="1225" cy="670" r="5" fill="#387ea5"/>
-  <text x="1243" y="678" class="ink" font-size="24" font-weight="500">相关记忆与来源</text>
-  <text x="1243" y="711" class="muted" font-size="19">由应用组织上下文</text>
-  <circle cx="1225" cy="780" r="5" fill="#218b7c"/>
-  <text x="1243" y="788" class="ink" font-size="24" font-weight="500">基于记忆的回答</text>
-  <text x="1243" y="821" class="muted" font-size="19">结合依据使用结论</text>
-
-  <!-- Supporting capabilities are not automatic steps in the API flow above. -->
-  <path d="M372 374 H461" class="line" marker-end="url(#arrow)"/>
-  <text x="72" y="901" class="muted" font-size="20" font-weight="500">知识与管理</text>
-  <rect x="72" y="925" width="1456" height="118" rx="22" fill="#fff" stroke="#d9e4ec" stroke-width="1.5"/>
-  <path d="M557 949 V1019 M1042 949 V1019" stroke="#e2eaf0" stroke-width="1.5"/>
-  <g class="ink" font-size="24" font-weight="700">
-    <text x="104" y="972">知识整理</text>
-    <text x="589" y="972">内容维护</text>
-    <text x="1074" y="972">访问与审计</text>
-  </g>
-  <g class="muted" font-size="21">
-    <text x="104" y="1011">知识页 · 心智模型 · 主题刷新</text>
-    <text x="589" y="1011">来源更新 · 事实纠正 · 状态管理</text>
-    <text x="1074" y="1011">成员 · API Key · 操作记录</text>
-  </g>
-  <text x="72" y="1086" class="muted" font-size="18">产品能力关系示意 · 知识生成与刷新受配置控制 · 来源原文可用性取决于保存配置</text>
+  <path d="M280 703 V765" fill="none" stroke="#77818a" stroke-width="2.5" marker-end="url(#gray-arrow)"/>
+  <text x="280" y="817" text-anchor="middle" font-size="32">回答 / 执行结果</text>
 </svg>
