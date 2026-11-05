@@ -1,4 +1,4 @@
-package hindsight
+package contextbase
 
 import (
 	"encoding/json"

@@ -539,7 +539,7 @@ else
     [ -f "null_test.go" ] && cp null_test.go "$TEMP_DIR/"
     [ -f "trace_test.go" ] && cp trace_test.go "$TEMP_DIR/"
     [ -f "content_marshal_test.go" ] && cp content_marshal_test.go "$TEMP_DIR/"
-    [ -f "hindsight_client.go" ] && cp hindsight_client.go "$TEMP_DIR/"
+    [ -f "contextbase_client.go" ] && cp contextbase_client.go "$TEMP_DIR/"
     # go.mod/go.sum are maintained, not regenerated: a fresh `go mod tidy`
     # resolves unpinned deps (e.g. testify, pulled in by the maintained tests)
     # to whatever upstream's latest release is, so regeneration output would
@@ -565,9 +565,9 @@ else
         -i /local/openapi.json \
         -g go \
         -o /local/out \
-        --package-name hindsight \
-        --git-user-id vectorize-io \
-        --git-repo-id hindsight/hindsight-clients/go \
+        --package-name contextbase \
+        --git-user-id huaweicloud \
+        --git-repo-id contextbase-client-go \
         --global-property apiDocs=false,apiTests=false,modelDocs=false,modelTests=false
 
     # Remove OpenAPI Generator boilerplate files
@@ -581,7 +581,7 @@ else
     [ -f "$TEMP_DIR/null_test.go" ] && mv "$TEMP_DIR/null_test.go" .
     [ -f "$TEMP_DIR/trace_test.go" ] && mv "$TEMP_DIR/trace_test.go" .
     [ -f "$TEMP_DIR/content_marshal_test.go" ] && mv "$TEMP_DIR/content_marshal_test.go" .
-    [ -f "$TEMP_DIR/hindsight_client.go" ] && mv "$TEMP_DIR/hindsight_client.go" .
+    [ -f "$TEMP_DIR/contextbase_client.go" ] && mv "$TEMP_DIR/contextbase_client.go" .
     # Overwrites the generator-emitted go.mod/go.sum with the maintained ones.
     [ -f "$TEMP_DIR/go.mod" ] && mv "$TEMP_DIR/go.mod" .
     [ -f "$TEMP_DIR/go.sum" ] && mv "$TEMP_DIR/go.sum" .

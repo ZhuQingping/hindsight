@@ -1,4 +1,4 @@
-module github.com/vectorize-io/hindsight/hindsight-clients/go
+module contextbase-client-go
 
 go 1.18
 

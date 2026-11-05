@@ -23,8 +23,8 @@ func main() {
 	template := map[string]interface{}{
 		"version": "1",
 		"bank": map[string]interface{}{
-			"retain_mission":      "Extract customer issues, resolutions, and sentiment.",
-			"enable_observations": true,
+			"retain_mission":       "Extract customer issues, resolutions, and sentiment.",
+			"enable_observations":  true,
 			"observations_mission": "Track recurring customer pain points.",
 		},
 		"mental_models": []map[string]interface{}{

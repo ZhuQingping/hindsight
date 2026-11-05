@@ -1,11 +1,10 @@
 [package]
-name = "hindsight-client"
+name = "contextbase-client"
 version = "0.1.0"
 edition = "2021"
-authors = ["Hindsight Team"]
-description = "Rust client library for Hindsight API - semantic memory system"
+authors = ["ContextBase Team"]
+description = "Rust client library for ContextBase API - semantic memory system"
 license = "MIT"
-repository = "https://github.com/yourusername/hindsight"
 keywords = ["api", "client", "memory", "ai"]
 categories = ["api-bindings"]
 

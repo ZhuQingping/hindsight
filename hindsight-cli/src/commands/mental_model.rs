@@ -6,7 +6,7 @@ use crate::api::ApiClient;
 use crate::output::{self, OutputFormat};
 use crate::ui;
 
-use hindsight_client::types;
+use contextbase_client::types;
 
 /// Parse a --tags-match string into the generated TagsMatch enum, rejecting
 /// unknown values so a typo fails loudly instead of silently changing scope.

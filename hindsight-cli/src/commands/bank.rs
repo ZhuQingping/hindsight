@@ -293,7 +293,7 @@ pub fn create(
         None
     };
 
-    use hindsight_client::types;
+    use contextbase_client::types;
     use std::num::NonZeroU64;
 
     let disposition = if skepticism.is_some() || literalism.is_some() || empathy.is_some() {
@@ -362,7 +362,7 @@ pub fn update(
         None
     };
 
-    use hindsight_client::types;
+    use contextbase_client::types;
     use std::num::NonZeroU64;
 
     let disposition = if skepticism.is_some() || literalism.is_some() || empathy.is_some() {

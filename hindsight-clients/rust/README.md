@@ -1,6 +1,6 @@
-# Hindsight Rust Client
+# ContextBase Rust Client
 
-Auto-generated Rust client library for the Hindsight semantic memory system API.
+Auto-generated Rust client library for the ContextBase semantic memory system API.
 
 ## Features
 
@@ -15,14 +15,14 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-hindsight-client = "0.1.0"
+contextbase-client = "0.1.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ## Quick Start
 
 ```rust
-use hindsight_client::Client;
+use contextbase_client::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Background: {}", profile.background);
 
     // Search memories
-    let search_request = hindsight_client::types::SearchRequest {
+    let search_request = contextbase_client::types::SearchRequest {
         query: "What did I learn today?".to_string(),
         fact_type: None,
         thinking_budget: Some(100),
@@ -53,9 +53,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Store a memory
-    let memory_request = hindsight_client::types::BatchMemoryRequest {
+    let memory_request = contextbase_client::types::BatchMemoryRequest {
         items: vec![
-            hindsight_client::types::MemoryItem {
+            contextbase_client::types::MemoryItem {
                 content: "I learned about Rust today".to_string(),
                 context: Some("Daily learning".to_string()),
             }
@@ -162,8 +162,8 @@ hindsight-clients/rust/
 │   └── lib.rs          # Library entry point
 └── target/
     └── debug/build/
-        └── hindsight-client-.../out/
-            └── hindsight_client_generated.rs  # Generated code
+        └── contextbase-client-.../out/
+            └── contextbase_client_generated.rs  # Generated code
 ```
 
 ## License

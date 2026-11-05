@@ -1,4 +1,4 @@
-package hindsight
+package contextbase
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 // Test that the client can handle large responses with trace
 func TestTraceResponse(t *testing.T) {
-	apiURL := os.Getenv("HINDSIGHT_API_URL")
+	apiURL := os.Getenv("CONTEXTBASE_API_URL")
 	if apiURL == "" {
 		apiURL = "http://localhost:8888"
 	}

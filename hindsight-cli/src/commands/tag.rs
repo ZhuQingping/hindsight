@@ -64,7 +64,7 @@ pub fn list(
 
 #[cfg(test)]
 mod tests {
-    use hindsight_client::types::{ListTagsResponse, TagItem};
+    use contextbase_client::types::{ListTagsResponse, TagItem};
 
     #[test]
     fn test_tag_item_fields() {

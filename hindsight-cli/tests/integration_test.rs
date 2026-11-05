@@ -110,8 +110,8 @@ fn test_memory_item_timestamp_serializes_as_plain_string() {
     // — so `hindsight memory retain --timestamp` never worked. The build.rs
     // spec-massage step now collapses string-only anyOf unions into a plain
     // `{type: string}`, so the field is just `Option<String>`. Assert that.
-    let item = hindsight_client::types::MemoryItem {
-        content: hindsight_client::types::Content::Variant0(
+    let item = contextbase_client::types::MemoryItem {
+        content: contextbase_client::types::Content::Variant0(
             "Bob went hiking yesterday".to_string(),
         ),
         context: None,
