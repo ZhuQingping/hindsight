@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import TypedDict, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from client_artifact_audit import inspect_archive
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -30,7 +32,8 @@ def package_archive(component: str, public_name: str, manifest: str, entries: li
         raise ValueError(f"Invalid version for {component}")
     destination = output / public_name / version
     destination.mkdir(parents=True, exist_ok=True)
-    with ZipFile(destination / f"{public_name}-{version}.zip", "w", ZIP_DEFLATED) as archive:
+    artifact = destination / f"{public_name}-{version}.zip"
+    with ZipFile(artifact, "w", ZIP_DEFLATED) as archive:
         for entry in entries:
             path = source / entry
             files = sorted(path.rglob("*")) if path.is_dir() else [path]
@@ -41,6 +44,11 @@ def package_archive(component: str, public_name: str, manifest: str, entries: li
                     continue
                 archive.write(file, f"{public_name}/{file.relative_to(source).as_posix()}")
         archive.write(ROOT / "LICENSE", f"{public_name}/LICENSE")
+    try:
+        inspect_archive(artifact)
+    except Exception:
+        artifact.unlink(missing_ok=True)
+        raise
 
 
 def main() -> None:

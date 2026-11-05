@@ -5646,6 +5646,9 @@ jobs:
     - name: Check centralized branding
       run: bash scripts/sync-product-brand.sh --check
 
+    - name: Check client artifact branding and nested SDK archives
+      run: python scripts/test-client-artifact-audit.py
+
     - name: Install Python dependencies
       run: |
         cd hindsight-dev && uv sync --frozen --index-strategy unsafe-best-match

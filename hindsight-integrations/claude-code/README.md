@@ -18,7 +18,7 @@ The example URL is a placeholder. Alternatively set `CONTEXTBASE_API_URL` and `C
 
 ## Install
 
-The Huawei Cloud archive URL is pending. After downloading and verifying the approved `contextbase-claude-code-<version>.zip`, extract it and load the resulting directory through Claude Code's local plugin mechanism. For source-checkout testing, use `claude --plugin-dir /absolute/path/to/hindsight-integrations/claude-code`.
+The Huawei Cloud archive URL is pending. After downloading and verifying the approved `contextbase-claude-code-<version>.zip`, extract it and load the resulting directory through Claude Code's local plugin mechanism. Load the extracted directory with `claude --plugin-dir /absolute/path/to/contextbase-claude-code`.
 
 Python 3.10+ is required for hooks. The local MCP launcher creates a Python virtual environment and installs the client dependencies from `requirements.txt`; it does not download or start a memory engine. Python package index access remains required for those dependencies.
 

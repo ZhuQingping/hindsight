@@ -9,7 +9,7 @@
  * same command — our installer — so an absent skill is a decision.
  *
  * `install: true` flips that, and is what the persistent-plugin hosts pass (core/runtime.ts): those
- * can be wired by the HOST's own plugin manager — `dsh plugin add @vectorize-io/…`,
+ * can be wired by the HOST's own plugin manager — `dsh plugin add @huaweicloud/contextbase-coding-agents`,
  * `cline plugin install`, a hand-written config entry — a route our installer never sees, so the
  * plugin loads with its tools registered and no skill anywhere (#4406). There the plugin BEING
  * LOADED is the installation signal: uninstalling removes the entry that loads us, so a running

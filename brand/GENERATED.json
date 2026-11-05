@@ -44,7 +44,7 @@
     },
     {
       "path": "hindsight-cli/Cargo.toml",
-      "sha256": "90a9571542848b6f005c320c42f23a4bacca4b2cc83e1a61c55e5d30a408303f"
+      "sha256": "7b90569d76ad1cfdce403febd21f3495c5e04e8e49836364830e0f4a0b757d42"
     },
     {
       "path": "scripts/install-contextbase.sh",
@@ -60,7 +60,7 @@
     },
     {
       "path": "hindsight-integrations/agent-plugin/README.md",
-      "sha256": "6f186f8504a40331b132c0a394a2c3afeb4024034c33dcb950468dd522c8518d"
+      "sha256": "a5360edb763a8663a110a9351e02df331c4a4f04ba6fef350f48bd06295e9416"
     },
     {
       "path": "hindsight-integrations/agent-plugin/skills/contextbase-memory/SKILL.md",
@@ -68,7 +68,7 @@
     },
     {
       "path": "hindsight-integrations/claude-code/README.md",
-      "sha256": "30d82ec7a9634c9ca6c41363a41e41db6324cc0e78a19f9337f89b76f7df7322"
+      "sha256": "cd97ee35b00efdc95116d82fbb5e25cfe777ddd7b65e4576863782b5769af8ef"
     },
     {
       "path": "hindsight-integrations/claude-code/skills/setup.md",
@@ -76,7 +76,7 @@
     },
     {
       "path": "hindsight-integrations/claude-code/skills/create-agent/SKILL.md",
-      "sha256": "7541bc90c92aa93270c254382c9b1b2a4f4a7e6abb3eacdcce73d1629de1e834"
+      "sha256": "695f073a12659dfd0ba1d9749d6c58c5523897dafc8bf672359162993b2532e5"
     }
   ]
 }

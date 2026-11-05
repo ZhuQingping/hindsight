@@ -94,16 +94,6 @@ transcripts retained on session end — use the hook-based [Coding Agents](../co
 Code, Codex and many other coding agents. The two share the
 same banks, so memory captured by one is recalled by the other.
 
-## Validate the manifests
-
-```bash
-python3 hindsight-integrations/agent-plugin/validate.py
-```
-
-Checks that `plugin.json` and `mcp.json` parse and satisfy the Agent Plugins `1.0.0`
-required-field contract.
-
-
 ## Distribution and connection scope
 
 The Huawei Cloud download URL is pending. This archive is one of the four client distributions; it contains Skills and remote MCP configuration, with no local engine or lifecycle hooks. Use one default `CONTEXTBASE_MCP_URL` copied in full from the console, together with the matching credential. Do not infer the MCP URL from the API URL. Host-specific compatibility limitations above still apply.
