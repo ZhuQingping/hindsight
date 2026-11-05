@@ -21,7 +21,10 @@ NEGATIVE_CASES = {
     "hindsight-integrations/zcode/tests/test_public_brand.py",
 }
 SKIP_PARTS = {"node_modules", "dist", "target", "__pycache__", ".venv", ".git", ".ruff_cache", ".pytest_cache"}
-BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".jar", ".pdf", ".svg", ".pyc"}
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".jar", ".pdf", ".pyc"}
+# The install smoke test rejects legacy identities in the installed runtime.
+# Exempt just its negative regex, so other text on the line is still checked.
+INSTALL_NEGATIVE_ASSERT = re.compile(r"assert\(!/hindsight(?:\|contextbase-local-engine)?/i\.test\(")
 
 
 def main() -> None:
@@ -62,7 +65,10 @@ def main() -> None:
                 "not.toMatch" in line or re.search(r"assert .+ not in", line)
             ):
                 continue
-            checked = INTERNAL_PATH.sub("", line)
+            checked = line
+            if relative == "hindsight-integrations/coding-agents/scripts/test-customer-install.mjs":
+                checked = INSTALL_NEGATIVE_ASSERT.sub("assert(!/legacy/i.test(", checked)
+            checked = INTERNAL_PATH.sub("", checked)
             checked = NATIVE_MODULE.sub("", checked)
             if path.name in {"daemon.py", "llm.py"} or relative.endswith("openclaw/tests/integration.test.ts"):
                 checked = NATIVE_ENV.sub("", checked)

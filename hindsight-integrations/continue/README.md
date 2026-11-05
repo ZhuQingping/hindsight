@@ -32,8 +32,8 @@ pip install contextbase-continue
 **1. Run the adapter**, pointing it at your ContextBase instance and bank:
 
 ```bash
-export CONTEXTBASE_API_KEY=hsk_...            # omit for a local self-hosted server
-export CONTEXTBASE_API_URL=http://localhost:8888   # defaults to ContextBase remote service
+export CONTEXTBASE_API_KEY=hsk_...            # omit only if your server permits no-auth access
+export CONTEXTBASE_API_URL=http://localhost:8888   # required service endpoint; no bundled default
 export CONTEXTBASE_CONTINUE_BANK_ID=my-project
 
 contextbase-continue            # serves on 127.0.0.1:8123

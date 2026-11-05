@@ -5650,6 +5650,7 @@ jobs:
       run: |
         python scripts/test-client-artifact-audit.py
         python scripts/test-client-source-branding.py
+        python scripts/test-client-source-branding-gate.py
 
     - name: Install Python dependencies
       run: |

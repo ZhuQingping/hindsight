@@ -13,7 +13,7 @@ ContextBase memory plugin for [OpenCode](https://opencode.ai) — give your AI c
 
 ## Quick Start
 
-The plugin defaults to **ContextBase remote service** (`http://localhost:8888`). Just enable it and provide your API key.
+Configure your ContextBase service URL and API key before starting OpenCode.
 
 ### 1. Enable the plugin
 
@@ -28,22 +28,23 @@ Add to your `opencode.json` (project) or `~/.config/opencode/opencode.json` (glo
 
 OpenCode auto-installs plugins listed here on startup — no `npm install` required.
 
-### 2. Provide your ContextBase remote service API key
+### 2. Configure your ContextBase connection
 
-Get an API key at [console.example.com/connect](http://localhost:9999), then:
+Use the endpoint and API key supplied by your service administrator:
 
 ```bash
 export CONTEXTBASE_API_TOKEN="your-api-key"
+export CONTEXTBASE_API_URL="https://memory.example.com"
 
 # Optional: override the memory bank ID (defaults to "opencode")
 export CONTEXTBASE_BANK_ID="my-project"
 ```
 
-That's it — the plugin now reads/writes against your Cloud bank.
+The plugin now reads and writes against your configured bank.
 
 ### Using a self-hosted ContextBase instance
 
-Point `CONTEXTBASE_API_URL` at your server (the API key is then optional):
+Point `CONTEXTBASE_API_URL` at your server. An API key is optional only if the server allows unauthenticated access:
 
 ```bash
 export CONTEXTBASE_API_URL="http://localhost:8888"

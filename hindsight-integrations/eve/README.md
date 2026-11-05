@@ -52,14 +52,15 @@ That's it. The provider reads its connection from the environment:
 | Env var             | Purpose                                                                  |
 | ------------------- | ------------------------------------------------------------------------ |
 | `CONTEXTBASE_API_KEY` | Bearer token sent as `Authorization: Bearer <key>`                       |
-| `CONTEXTBASE_API_URL` | ContextBase REST base (defaults to ContextBase remote service)                        |
+| `CONTEXTBASE_API_URL` | Required ContextBase REST base, unless passed as `apiUrl`               |
+| `CONTEXTBASE_CLOUD_API_URL` | Optional deployment Cloud origin; matching endpoints require an API key |
 | `CONTEXTBASE_BANK_ID` | _Optional._ Pin every scope to one shared bank (single-user agents only) |
 
 ### ContextBase remote service
 
-Set `CONTEXTBASE_API_KEY` to a key from your [ContextBase remote service](.)
-dashboard. `CONTEXTBASE_API_URL` defaults to `http://localhost:8888`, so no URL is
-needed.
+Set `CONTEXTBASE_API_URL` to your service endpoint and `CONTEXTBASE_API_KEY` to a
+key issued by its administrator. There is no bundled service URL. Deployments
+can also set `CONTEXTBASE_CLOUD_API_URL` to enable a missing-key check for that origin.
 
 ### Self-hosted
 

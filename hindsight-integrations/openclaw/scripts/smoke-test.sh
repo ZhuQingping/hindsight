@@ -46,6 +46,7 @@ CONTEXTBASE_API_URL="${CONTEXTBASE_API_URL:-http://127.0.0.1:7777}"
 CONFIG_BACKUP=""
 EXT_BACKUP=""
 TARBALL=""
+PACK_DIR=""
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -80,9 +81,9 @@ cleanup() {
     log "restored $EXT_DIR from backup"
   fi
 
-  # Clean up the tarball only if we packed it ourselves.
-  if [[ -n "$TARBALL" && "$TARBALL" == "$PLUGIN_DIR"/contextbase-openclaw-*.tgz ]]; then
-    rm -f "$TARBALL"
+  # Only remove our temporary build directory; a supplied tarball belongs to the caller.
+  if [[ -n "$PACK_DIR" ]]; then
+    rm -rf "$PACK_DIR"
   fi
   exit "$rc"
 }
@@ -181,6 +182,7 @@ main() {
   require openclaw
   require node
   require npm
+  require python3
 
   trap cleanup EXIT
 
@@ -208,19 +210,17 @@ main() {
     log "using provided tarball: $TARBALL"
   else
     log "packing plugin tarball…"
+    PACK_DIR=$(mktemp -d)
     (
       cd "$PLUGIN_DIR"
       npm run clean --silent
       npm run build --silent
-      local_artifacts=$(mktemp -d)
       npm --prefix "$PLUGIN_DIR/../../hindsight-clients/typescript" run build --workspaces=false --silent
-      python3 "$PLUGIN_DIR/../../scripts/package-node-sdk.py" --output "$local_artifacts"
+      python3 "$PLUGIN_DIR/../../scripts/package-node-sdk.py" --output "$PACK_DIR"
       python3 "$PLUGIN_DIR/../../scripts/package-agent-assistants.py" openclaw \
-        --sdk-artifact "$local_artifacts"/huaweicloud-contextbase-client/*/*.tgz --output "$local_artifacts"
-      cp "$local_artifacts"/contextbase-openclaw/*/contextbase-openclaw-*.tgz "$PLUGIN_DIR/"
-      rm -rf "$local_artifacts"
+        --sdk-artifact "$PACK_DIR"/huaweicloud-contextbase-client/*/*.tgz --output "$PACK_DIR"
     )
-    TARBALL="$(ls -t "$PLUGIN_DIR"/contextbase-openclaw-*.tgz | head -1)"
+    TARBALL="$(ls "$PACK_DIR"/contextbase-openclaw/*/contextbase-openclaw-*.tgz | head -1)"
     log "packed: $TARBALL"
   fi
 

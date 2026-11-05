@@ -119,6 +119,6 @@ cargo test
 Build CLI with new client:
 
 ```bash
-cd ../../contextbase-cli
+cd ../../hindsight-cli
 cargo build
 ```

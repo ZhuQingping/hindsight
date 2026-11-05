@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_RECALL_QUERY,
   buildRetainContent,
@@ -104,6 +104,18 @@ describe("turn pairing buffer", () => {
 });
 
 describe("configured Cloud endpoint", () => {
+  it("does not read ambient Cloud settings when an explicit env is supplied", async () => {
+    const { resolveConnection } = await import("./config.js");
+    vi.stubEnv("CONTEXTBASE_CLOUD_API_URL", "https://service.example");
+    try {
+      expect(
+        resolveConnection({ apiUrl: "https://service.example", apiKey: null }, EMPTY_ENV)
+      ).toEqual({ apiUrl: "https://service.example", apiKey: null });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("matches only the deployment's explicit origin", async () => {
     const { isContextBaseCloudUrl, resolveConnection } = await import("./config.js");
     expect(isContextBaseCloudUrl("https://service.example/api", "https://service.example")).toBe(
