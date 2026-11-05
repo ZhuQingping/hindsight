@@ -12,6 +12,8 @@ import re
 import runpy
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = Path(__file__).with_name("fixtures") / "sdk-model-api-f51b165.json"
 
@@ -69,3 +71,23 @@ def test_preparation_preserves_compositions_and_explicit_nullable_items():
     assert schema["nullable"]["items"] == {"type": "string", "nullable": True}
     assert schema["union"]["items"] == {"anyOf": [{"type": "string"}, {"type": "null"}]}
     assert schema["reference"]["items"] == {"$ref": "#/components/schemas/Memory"}
+
+
+@pytest.mark.parametrize("keyword", ["HINDSIGHT", "Agentstratum", "Vectorize"])
+def test_python_package_rejects_legacy_brands(keyword: str) -> None:
+    check = runpy.run_path(str(ROOT / "scripts/package-sdks.py"))["check_member"]
+    with pytest.raises(ValueError, match="Legacy SDK identity"):
+        check("contextbase_client/example.py", keyword.encode())
+    with pytest.raises(ValueError, match="Legacy SDK identity"):
+        check(f"contextbase_client/{keyword}.py", b"clean content")
+
+
+def test_python_package_preserves_only_the_canonical_copyright_notice() -> None:
+    check = runpy.run_path(str(ROOT / "scripts/package-sdks.py"))["check_member"]
+    license_text = (ROOT / "LICENSE").read_bytes()
+    check("contextbase_client.dist-info/licenses/LICENSE", license_text)
+    check("contextbase_client/LICENSE", license_text)
+    with pytest.raises(ValueError, match="Legacy SDK identity"):
+        check("contextbase_client.dist-info/METADATA", license_text)
+    with pytest.raises(ValueError, match="Legacy SDK identity"):
+        check("contextbase_client/LICENSE", license_text + b"\nagentstratum")

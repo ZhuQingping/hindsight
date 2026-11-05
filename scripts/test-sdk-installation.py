@@ -23,7 +23,7 @@ FEATURES = (
     "llm_trace",
     "store_document_text",
 )
-CUSTOMER_TEXT = "customer document mentions hindsight"
+CUSTOMER_TEXT = "customer document mentions hindsight, agentstratum and Vectorize"
 
 
 class FixtureHandler(BaseHTTPRequestHandler):
@@ -57,9 +57,10 @@ class FixtureHandler(BaseHTTPRequestHandler):
 PYTHON_CHECK = """
 import asyncio, importlib.metadata, os
 from contextbase_client import ContextBase
+from contextbase_client_api import __version__
 from contextbase_client_api import Configuration
 
-assert importlib.metadata.version("contextbase-client")
+assert importlib.metadata.version("contextbase-client") == __version__
 endpoint = os.environ["SDK_TEST_ENDPOINT"]
 with ContextBase(base_url=endpoint, api_key="sdk-test-key") as client:
     assert client.get_version().api_version == os.environ["SDK_CUSTOMER_TEXT"]

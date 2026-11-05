@@ -79,6 +79,15 @@ trap 'rm -f "$OPENAPI_GENERATOR_SPEC"' EXIT
 python3 "$SCRIPT_DIR/prepare-client-spec.py" "$OPENAPI_SPEC" "$OPENAPI_GENERATOR_SPEC"
 
 PYTHON_CLIENT_DIR="$CLIENTS_DIR/python"
+# Keep generated runtime metadata aligned with the distribution version.
+PYTHON_CLIENT_VERSION="$(python3 - "$PYTHON_CLIENT_DIR/pyproject.toml" <<'PYTHON_VERSION'
+import sys
+import tomllib
+from pathlib import Path
+
+print(tomllib.loads(Path(sys.argv[1]).read_text())["project"]["version"])
+PYTHON_VERSION
+)"
 
 # Backup the maintained wrapper file
 WRAPPER_FILE="$PYTHON_CLIENT_DIR/contextbase_client/contextbase_client.py"
@@ -138,7 +147,8 @@ docker run --rm \
     -i /local/openapi.json \
     -g python \
     -o /local/out \
-    -c /local/config.yaml || true
+    -c /local/config.yaml \
+    --additional-properties "packageVersion=$PYTHON_CLIENT_VERSION" || true
 
 # Verify critical generated files exist in the tmp dir
 if [ ! -f "$GEN_TMP_DIR/contextbase_client_api/api_client.py" ]; then
@@ -441,8 +451,6 @@ if os.path.exists(content_file):
     else:
         raise SystemExit("Could not find expected to_dict in content.py")
 PATCH_CONTENT_SCRIPT
-
-python3 "$SCRIPT_DIR/brand-sdk-generated.py" python
 
 echo "✓ Python client generated at $PYTHON_CLIENT_DIR"
 echo ""

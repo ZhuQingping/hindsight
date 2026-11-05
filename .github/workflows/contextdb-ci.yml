@@ -8,6 +8,9 @@ on:
       - "hindsight-api-slim/**"
       - "contextbase-control-plane/**"
       - "hindsight-clients/python/**"
+      - "hindsight-dev/tests/test_sdk_model_compatibility.py"
+      - "hindsight-dev/tests/fixtures/sdk-model-*.json"
+      - "hindsight-dev/hindsight_dev/client_coverage_check.py"
       - "hindsight-clients/typescript/**"
       - "hindsight-system-tests/**"
       - "scripts/**"
@@ -34,6 +37,9 @@ on:
       - "hindsight-api-slim/**"
       - "contextbase-control-plane/**"
       - "hindsight-clients/python/**"
+      - "hindsight-dev/tests/test_sdk_model_compatibility.py"
+      - "hindsight-dev/tests/fixtures/sdk-model-*.json"
+      - "hindsight-dev/hindsight_dev/client_coverage_check.py"
       - "hindsight-clients/typescript/**"
       - "hindsight-system-tests/**"
       - "scripts/**"
@@ -98,6 +104,35 @@ jobs:
             ${{ runner.temp }}/native-windows.xml
             ${{ runner.temp }}/contextbase-native/**/windows-*.log
           if-no-files-found: warn
+
+  python-sdk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install SDK build and test dependencies
+        run: python -m pip install build twine pytest-timeout pytest-xdist './hindsight-clients/python[test]'
+      - name: Test Python SDK without a live service
+        run: >-
+          python -m pytest hindsight-clients/python/tests -o addopts='' -q
+          --ignore=hindsight-clients/python/tests/test_main_operations.py
+          --ignore=hindsight-clients/python/tests/test_attachment_download.py
+      - name: Verify SDK references, generated APIs and package keyword checks
+        run: |
+          python scripts/test-sdk-generation.py python
+          python -m pytest hindsight-dev/tests/test_sdk_model_compatibility.py -o addopts='' -q
+      - name: Build and verify wheel and source archive
+        run: |
+          python scripts/package-sdks.py python --output artifacts
+          python -m twine check artifacts/contextbase-python-sdk/*/*.whl artifacts/contextbase-python-sdk/*/*.tar.gz
+          for directory in artifacts/contextbase-python-sdk/*; do
+            python scripts/test-sdk-installation.py python "$directory"
+          done
 
   python:
     runs-on: ubuntu-latest
