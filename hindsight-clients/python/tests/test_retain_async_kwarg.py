@@ -10,6 +10,7 @@ import warnings
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from contextbase_client import ContextBase
 
 OPERATION_ID = "123e4567-e89b-12d3-a456-426614174000"
@@ -175,7 +176,9 @@ def test_retain_warns_once_when_operation_id_dropped_on_sync():
     with pytest.warns(UserWarning, match="operation_id is ignored for synchronous retain") as records:
         client.retain("bank", "content", operation_id=OPERATION_ID)
 
-    assert len(records) == 1
+    # pytest.warns also records unrelated asyncio deprecations on Python 3.12.
+    operation_warnings = [record for record in records if issubclass(record.category, UserWarning)]
+    assert len(operation_warnings) == 1
 
 
 async def test_aretain_batch_warns_when_operation_id_dropped_on_sync():

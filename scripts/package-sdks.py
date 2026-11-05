@@ -10,10 +10,17 @@ from pathlib import Path
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
+LEGACY_IDENTITY = re.compile(rb"hindsight|agentstratum|vectorize", re.IGNORECASE)
 
 
 def check_member(name: str, content: bytes) -> None:
-    if re.search(rb"hindsight", name.encode() + b"\n" + content, re.IGNORECASE):
+    if LEGACY_IDENTITY.search(name.encode()):
+        raise ValueError(f"Legacy SDK identity in artifact member: {name}")
+    if LEGACY_IDENTITY.search(content):
+        # Keep the upstream MIT copyright notice intact. Only the exact canonical
+        # license is exempt; product code, metadata and descriptions stay checked.
+        if Path(name).name == "LICENSE" and content == (ROOT / "LICENSE").read_bytes():
+            return
         raise ValueError(f"Legacy SDK identity in artifact member: {name}")
 
 

@@ -1,6 +1,7 @@
 """Check SDK generation, repository paths and preservation of wire identifiers and data."""
 
 import argparse
+import ast
 import importlib.util
 import shutil
 import subprocess
@@ -10,6 +11,41 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def check_python_sdk_imports() -> None:
+    """Resolve SDK imports in production code, integrations, tests and examples."""
+    tracked = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    references = 0
+    for relative in filter(None, tracked.stdout.split("\0")):
+        path = ROOT / relative
+        for node in ast.walk(ast.parse(path.read_bytes(), filename=relative)):
+            if isinstance(node, ast.Import):
+                modules = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                modules = [node.module]
+            else:
+                continue
+            for name in modules:
+                package = name.split(".")[0]
+                assert package not in {"hindsight_client", "hindsight_client_api"}, (
+                    f"{relative}:{node.lineno}: obsolete SDK import {name}"
+                )
+                if package not in {"contextbase_client", "contextbase_client_api"}:
+                    continue
+                module = importlib.import_module(name)
+                if isinstance(node, ast.ImportFrom):
+                    for alias in node.names:
+                        if alias.name != "*" and not hasattr(module, alias.name):
+                            importlib.import_module(f"{name}.{alias.name}")
+                references += 1
+    print(f"PASS: resolved {references} repository Python SDK imports")
 
 
 def check_python_repository_paths() -> None:
@@ -63,17 +99,24 @@ def main() -> None:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     if args.language == "python":
+        check_python_sdk_imports()
         check_python_repository_paths()
-        source = '''"""Hindsight API"""
-# HINDSIGHT_API example
+        source = '''"""Hindsight / Agentstratum API"""
+# HINDSIGHT_API and AGENTSTRATUM_API examples
 value = Field(default="hindsight-customer", description="Hindsight documentation")
+setting = Field(default="agentstratum-customer", description="agentstratum configuration")
 wire = {"hindsight_field": "Hindsight original data"}
+legacy = {"AGENTSTRATUM_API_FIELD": "Agentstratum original data"}
 '''
         result = module.brand_python(source)
-        assert '"""ContextBase API"""' in result
+        assert '"""ContextBase / ContextBase API"""' in result
+        assert "# CONTEXTBASE_API and CONTEXTBASE_API examples" in result
         assert 'description="ContextBase documentation"' in result
+        assert 'description="contextbase configuration"' in result
         assert 'default="hindsight-customer"' in result
+        assert 'default="agentstratum-customer"' in result
         assert 'wire = {"hindsight_field": "Hindsight original data"}' in result
+        assert 'legacy = {"AGENTSTRATUM_API_FIELD": "Agentstratum original data"}' in result
     else:
         check_node_generation()
         source = '/** Hindsight API */\nconst value = "hindsight-customer";\n'

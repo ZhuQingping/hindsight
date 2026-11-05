@@ -17,6 +17,9 @@ def brand_text(value: str) -> str:
         value.replace("HINDSIGHT", "CONTEXTBASE")
         .replace("Hindsight", "ContextBase")
         .replace("hindsight", "contextbase")
+        .replace("AGENTSTRATUM", "CONTEXTBASE")
+        .replace("Agentstratum", "ContextBase")
+        .replace("agentstratum", "contextbase")
     )
 
 

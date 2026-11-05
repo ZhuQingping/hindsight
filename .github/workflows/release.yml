@@ -32,6 +32,8 @@ jobs:
           --ignore=hindsight-clients/python/tests/test_attachment_download.py
       - name: Verify SDK paths, wrapper coverage and Python branding
         run: python scripts/test-sdk-generation.py python
+      - name: Verify generated APIs and package keyword checks
+        run: python -m pytest hindsight-dev/tests/test_sdk_model_compatibility.py -o addopts='' -q
       - name: Build wheel and source archive and inspect brand names
         run: python scripts/package-sdks.py python --output artifacts
       - name: Check Python package metadata
