@@ -47,17 +47,6 @@ Retain 请求设置 `async=true`：
 }
 ```
 
-```mermaid
-flowchart TD
-    A["保存返回的任务 ID"] --> B["查询任务状态"]
-    B --> C{"status"}
-    C -->|"pending / processing"| W["等待后再查询"]
-    W --> B
-    C -->|"completed"| R["执行后续检索"]
-    C -->|"failed / cancelled"| E["停止等待并处理结果"]
-    C -->|"not_found"| N["核对地址、Bank 和任务 ID"]
-```
-
 | 状态 | 含义 | 建议处理 |
 | --- | --- | --- |
 | `pending` | 等待处理或等待后续执行时机 | 继续轮询 |
