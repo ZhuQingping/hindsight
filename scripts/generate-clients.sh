@@ -14,7 +14,7 @@ CLIENTS_DIR="$PROJECT_ROOT/hindsight-clients"
 OPENAPI_SPEC="$PROJECT_ROOT/hindsight-docs/static/openapi.json"
 
 echo "=================================================="
-echo "Hindsight API Client Generator"
+echo "ContextBase API Client Generator"
 echo "=================================================="
 echo "Project root: $PROJECT_ROOT"
 echo "Clients directory: $CLIENTS_DIR"

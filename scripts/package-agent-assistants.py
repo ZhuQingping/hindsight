@@ -3,7 +3,6 @@
 import argparse
 import hashlib
 import json
-import re
 import shutil
 import subprocess
 import tarfile
@@ -12,25 +11,9 @@ import tomllib
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from client_artifact_audit import inspect_archive
+
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def inspect_archive(artifact: Path) -> None:
-    """Inspect build-time assets; never filter customer data or runtime API errors."""
-
-    def check(name: str, data: bytes) -> None:
-        if re.search(rb"hindsight", name.encode() + data, re.IGNORECASE):
-            raise ValueError(f"Legacy brand in {artifact.name}: {name}")
-
-    if artifact.suffix == ".zip":
-        with ZipFile(artifact) as archive:
-            for name in archive.namelist():
-                check(name, archive.read(name))
-    else:
-        with tarfile.open(artifact) as archive:
-            for member in archive:
-                stream = archive.extractfile(member) if member.isfile() else None
-                check(member.name, stream.read() if stream else b"")
 
 
 def package_openclaw(sdk: Path, output: Path) -> Path:
@@ -108,7 +91,11 @@ def main() -> None:
     artifact = (package_openclaw if args.component == "openclaw" else package_hermes)(
         args.sdk_artifact.resolve(), args.output.resolve()
     )
-    inspect_archive(artifact)
+    try:
+        inspect_archive(artifact)
+    except Exception:
+        artifact.unlink(missing_ok=True)
+        raise
     (artifact.parent / "SHA256SUMS").write_text(
         f"{hashlib.sha256(artifact.read_bytes()).hexdigest()}  {artifact.name}\n"
     )

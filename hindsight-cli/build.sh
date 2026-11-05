@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Build script for hindsight-cli
+# Build script for contextbase-cli
 # This script builds optimized binaries for multiple platforms
 
 # Source cargo environment if it exists
@@ -19,7 +19,7 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
-echo "Building Hindsight CLI for multiple platforms..."
+echo "Building ContextBase CLI for multiple platforms..."
 
 # Ensure we're in the right directory
 cd "$(dirname "$0")"
@@ -50,10 +50,10 @@ build_target() {
 
     # Copy to dist
     if [[ "$target" == *"windows"* ]]; then
-        cp "target/$target/release/hindsight.exe" "dist/$output_name.exe"
+        cp "target/$target/release/contextbase.exe" "dist/$output_name.exe"
         echo "Created: dist/$output_name.exe"
     else
-        cp "target/$target/release/hindsight" "dist/$output_name"
+        cp "target/$target/release/contextbase" "dist/$output_name"
         chmod +x "dist/$output_name"
         echo "Created: dist/$output_name"
     fi
@@ -70,19 +70,19 @@ case "$OS" in
     Darwin)
         if [[ "$ARCH" == "arm64" ]]; then
             echo "Building for macOS ARM64 (Apple Silicon)..."
-            build_target "aarch64-apple-darwin" "hindsight-macos-arm64"
+            build_target "aarch64-apple-darwin" "contextbase-macos-arm64"
         else
             echo "Building for macOS x86_64 (Intel)..."
-            build_target "x86_64-apple-darwin" "hindsight-macos-x86_64"
+            build_target "x86_64-apple-darwin" "contextbase-macos-x86_64"
         fi
         ;;
     Linux)
         if [[ "$ARCH" == "x86_64" ]]; then
             echo "Building for Linux x86_64..."
-            build_target "x86_64-unknown-linux-gnu" "hindsight-linux-x86_64"
+            build_target "x86_64-unknown-linux-gnu" "contextbase-linux-x86_64"
         elif [[ "$ARCH" == "aarch64" ]]; then
             echo "Building for Linux ARM64..."
-            build_target "aarch64-unknown-linux-gnu" "hindsight-linux-arm64"
+            build_target "aarch64-unknown-linux-gnu" "contextbase-linux-arm64"
         fi
         ;;
     *)

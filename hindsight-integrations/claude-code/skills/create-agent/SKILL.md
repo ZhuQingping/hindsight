@@ -12,7 +12,7 @@ Create a new subagent with long-term memory powered by ContextBase.
 
 **Mode A — Self-driving agent (from prepared directory):**
 
-If the user runs `/contextbase-memory:create-agent <name> from <path>` (or similar with a directory path), the directory was prepared by `npx @vectorize-io/self-driving-agents install` and contains:
+If the user runs `/contextbase-memory:create-agent <name> from <path>` (or similar with a directory path), use the supplied directory as seed content. It may contain:
 
 - `*.md`, `*.txt`, `*.html`, `*.json`, `*.csv`, `*.xml` — seed content files (recursively)
 - `bank-template.json` (optional) — defines exact mental models to create

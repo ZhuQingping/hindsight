@@ -1,8 +1,8 @@
 [package]
-name = "hindsight-cli"
+name = "contextbase-cli"
 version = "1.0.0"
 edition = "2021"
-authors = ["Hindsight Team"]
+authors = ["ContextBase Team"]
 description = "A CLI for ContextBase - semantic memory system"
 license = "MIT"
 
