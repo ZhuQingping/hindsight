@@ -13,6 +13,9 @@ ContextBase 为 AI 应用和 Agent 提供长期记忆服务。你可以保存对
 | 完成第一次写入和查询 | [快速开始](user-guide/quickstart.md) |
 | 跟着完整项目案例接入和维护资料 | [项目助手教程](user-guide/project-assistant.md) |
 | 在控制台导入、检查、检索和整理知识 | [控制台使用](user-guide/console.md) |
+| 浏览实体关系图、列表与详情 | [实体与关系浏览](user-guide/entities.md) |
+| 查看概览统计、审计和模型调用记录 | [运行状态与诊断](user-guide/monitoring.md) |
+| 管理成员、Key、授权及凭据更换 | [成员与 API Key 管理](user-guide/administration.md) |
 | 设计对话助手或运维助手的记忆流程 | [更多应用场景](user-guide/use-cases.md) |
 | 在 Python 应用中使用 | [Python SDK](user-guide/python.md) |
 | 在 Node.js 应用中使用 | [Node.js SDK](user-guide/nodejs.md) |

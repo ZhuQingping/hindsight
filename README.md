@@ -11,7 +11,7 @@ ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召�
 | 跟随完整应用案例组织、检索与维护资料 | [项目助手教程](docs/contextbase/user-guide/project-assistant.md) |
 | 通过控制台查看来源、记忆和知识页 | [控制台使用](docs/contextbase/user-guide/console.md) |
 | 查阅 REST API、参数和异步任务 | [API 参考](docs/contextbase/user-guide/api/README.md) |
-| 管理工作空间、用户和 API Key | [管理员操作](hindsight-extensions/contextdb-service/README.md#admin-quickstart) |
+| 管理成员、业务 Key 和空间授权 | [成员与 API Key 管理](docs/contextbase/user-guide/administration.md) |
 | 本地启动（Windows 原生 / Linux x86_64） | [本地启动指南](hindsight-extensions/contextdb-service/docs/deployment-local.md) |
 | 部署、配置及维护服务 | [部署总览](hindsight-extensions/contextdb-service/docs/deployment.md) |
 | 了解权限、生命周期和实现 | [管理功能设计](docs/contextdb-management/DESIGN.md#overview) |
