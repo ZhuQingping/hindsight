@@ -220,3 +220,8 @@ readiness、UI probe 和 status 都不证明模型或 Worker 实际执行成功�
 动态入口不提供固定 Host 白名单；入口访问控制由部署方负责。非法/缺失 Host 会被拒绝，非法非空 origin 配置仍失败关闭。入口与 Node 由同一插件进程拥有并共同退出；仅内部 origin 与子进程端口被适配，不改变部署文件中的公网地址配置。
 
 切换 EIP 后可以直接访问新地址，无须再修改 UI 配置或重启 UI。浏览器 Cookie 不跨 IP/主机传递，因此新地址需要重新登录；从固定模式切换到动态模式也允许一次重新登录。原有 Cookie 名和 token 签名使用稳定内部 origin，隔离不同外部端口；原有到期、退出撤销与服务端会话文件校验保留。HTTPS 网关继续使用固定公开 origin；可以使用稳定域名时，配置域名可避免 EIP 与浏览器地址绑定。
+
+
+### 连接页公共 API 地址
+
+`/connect` 优先使用 `CONTEXTBASE_CP_PUBLIC_API_URL`（兼容 `HINDSIGHT_CP_` 别名）。显式空值或非法值隐藏 API 示例，不回退。未设置时，仅按可信 UI origin 的同一主机和 `CONTEXTBASE_CP_PUBLIC_API_PORT`（1–65535，对外发布端口）推导；不读取内部 dataplane 地址或运营 Key。动态直连 HTTP 的 render 和本地启动自动写入 API 端口；端口映射不同时配置对外端口，固定 HTTPS 网关建议显式配置公共 API URL。生产环境仅允许 HTTP UI 的同 host API/MCP 使用 HTTP，安装包下载仍要求 HTTPS。MCP 地址只来自显式 `PUBLIC_MCP_URL`，不从 API 推导。网关删除客户端伪造的 external-origin 头后注入已校验的 origin，仅用于展示，固定 origin 模式忽略该头。

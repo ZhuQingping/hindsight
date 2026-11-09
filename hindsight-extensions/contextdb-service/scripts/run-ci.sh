@@ -58,10 +58,10 @@ case "$suite" in
     CONTEXTDB_TEST_NODE_BIN=$(command -v node)
     uv run --project hindsight-system-tests --frozen --group contextdb python "$extension/scripts/verify_integration.py" contextdb-system -- \
       --ignore="$extension/tests/system/test_112_contextdb_ui_management.py" -q --junitxml="$reports/system.xml"
-    # The dedicated two-case report is mandatory, even if pytest failed or skipped.
+    # The dedicated six-case report is mandatory, even if pytest failed or skipped.
     status=0
     uv run --project hindsight-system-tests --frozen --group contextdb python "$extension/scripts/verify_integration.py" contextdb-system -- \
-      -k test_ui_workspace_user_key_and_native_permission_flow -q --junitxml="$reports/production-ui.xml" || status=$?
+      -k "test_ui_workspace_user_key_and_native_permission_flow or test_connect_page_derives_the_external_api_endpoint or test_fixed_origin_ignores_a_client_supplied_external_origin" -q --junitxml="$reports/production-ui.xml" || status=$?
     uv run --project hindsight-system-tests --frozen --group contextdb python "$extension/scripts/check_production_ui.py" "$reports/production-ui.xml"
     python3 "$extension/scripts/ci_gate.py" "$reports/contracts.xml" "$reports/system.xml" "$reports/production-ui.xml"
     exit "$status"

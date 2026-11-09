@@ -30,7 +30,7 @@ def test_gateway_owns_node_and_propagates_its_failure(tmp_path: Path, mode: str)
         + (
             "process.exit(7);\n"
             if mode == "child-failure"
-            else "http.createServer((req,res)=>{res.end(process.env.HINDSIGHT_CP_PUBLIC_ORIGIN+'|'+process.env.CONTEXTBASE_CP_PUBLIC_ORIGIN+'|'+process.env.HOSTNAME);}).listen(Number(process.env.PORT),process.env.HOSTNAME);\n"
+            else "http.createServer((req,res)=>{res.end(process.env.HINDSIGHT_CP_PUBLIC_ORIGIN+'|'+process.env.CONTEXTBASE_CP_PUBLIC_ORIGIN+'|'+process.env.HOSTNAME+'|'+process.env.CONTEXTBASE_CP_TRUST_EXTERNAL_ORIGIN);}).listen(Number(process.env.PORT),process.env.HOSTNAME);\n"
         )
     )
     with socket.socket() as reservation:
@@ -68,7 +68,7 @@ def test_gateway_owns_node_and_propagates_its_failure(tmp_path: Path, mode: str)
                         assert time.monotonic() < deadline
                         time.sleep(0.05)
                 stable = f"http://127.0.0.1:{port}"
-                assert response.text == stable + "|" + stable + "|127.0.0.1"
+                assert response.text == stable + "|" + stable + "|127.0.0.1|1"
                 process.terminate()
                 assert process.wait(timeout=15) == 0
         finally:

@@ -6,6 +6,9 @@ import { NextIntlClientProvider } from "next-intl";
 import ConnectPage from "@/app/[locale]/connect/page";
 import messages from "@/messages/en.json";
 
+const requestHeaders = vi.hoisted(() => ({ value: new Headers() }));
+vi.mock("next/headers", () => ({ headers: async () => requestHeaders.value }));
+
 vi.mock("@/components/connect-bank-chooser", () => ({
   ConnectBankChooser: () => <div>chooser</div>,
 }));
@@ -19,6 +22,7 @@ vi.mock("@/components/connection-code", () => ({
 }));
 
 afterEach(() => {
+  requestHeaders.value = new Headers();
   cleanup();
   vi.unstubAllEnvs();
 });
@@ -116,3 +120,34 @@ it("uses latest without npm or download settings when the public API is configur
   expect(document.body.textContent).toContain("npx.cmd --yes");
   expect(screen.queryByRole("link", { name: "Download installation package ↗" })).toBeNull();
 });
+
+it.each(["fixed", "dynamic", "missing", "spoofed"])(
+  "uses a trustworthy per-request origin for %s mode",
+  async (mode) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_URL", undefined);
+    vi.stubEnv("HINDSIGHT_CP_PUBLIC_API_URL", undefined);
+    vi.stubEnv("CONTEXTBASE_CP_PUBLIC_API_PORT", "8888");
+    vi.stubEnv("CONTEXTBASE_CP_PUBLIC_ORIGIN", "http://configured.test:9999");
+    vi.stubEnv(
+      "CONTEXTBASE_CP_TRUST_EXTERNAL_ORIGIN",
+      ["dynamic", "missing"].includes(mode) ? "1" : "0"
+    );
+    requestHeaders.value = new Headers(
+      mode === "missing"
+        ? {}
+        : {
+            "X-ContextDB-External-Origin": "http://external.test:9999",
+          }
+    );
+    await show("team");
+    if (mode === "missing") {
+      expect(document.body.textContent).toContain("<API_ENDPOINT>");
+      expect(document.body.textContent).not.toContain("configured.test");
+    } else {
+      const host = mode === "dynamic" ? "external.test" : "configured.test";
+      expect(document.body.textContent).toContain(`http://${host}:8888`);
+      if (mode !== "dynamic") expect(document.body.textContent).not.toContain("external.test");
+    }
+  }
+);

@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { Link } from "@/i18n/navigation";
 import { ConnectBankChooser } from "@/components/connect-bank-chooser";
 import { ClientConnectionSetup } from "@/components/client-connection-setup";
 import { ResourcePageShell } from "@/components/resource-page-shell";
 import { customerConnection } from "@/lib/customer-connection";
+import { requestUiOrigin } from "@/lib/public-origin";
 
 export default async function ConnectPage({
   searchParams,
@@ -13,7 +15,9 @@ export default async function ConnectPage({
   const t = await getTranslations("resourcePages");
   const rawBankId = (await searchParams).bank_id;
   const bankId = typeof rawBankId === "string" && rawBankId ? rawBankId : null;
-  const connection = customerConnection(bankId ?? "");
+  // Resolve per request: different EIPs/aliases must never share a cached endpoint.
+  const uiOrigin = requestUiOrigin(await headers());
+  const connection = customerConnection(bankId ?? "", { uiOrigin });
 
   return (
     <ResourcePageShell bankId={bankId}>

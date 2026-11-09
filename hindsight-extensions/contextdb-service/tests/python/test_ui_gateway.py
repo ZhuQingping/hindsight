@@ -110,6 +110,7 @@ async def test_origin_checked_before_rewrite_and_forwarded_identity_removed() ->
     async def backend(request: web.Request) -> web.Response:
         calls.append(request.raw_path)
         assert request.headers["Host"] == "contextdb-ui.internal:9999"
+        assert request.headers["X-ContextDB-External-Origin"] == EXTERNAL
         assert request.headers["Origin"] == INTERNAL
         assert request.headers["Referer"] == INTERNAL + "/login"
         assert not any(key.lower().startswith("x-forwarded-") for key in request.headers)
@@ -129,6 +130,7 @@ async def test_origin_checked_before_rewrite_and_forwarded_identity_removed() ->
                     "X-Forwarded-Proto": "https",
                     "X-Forwarded-Host": "evil",
                     "Forwarded": "host=evil",
+                    "X-ContextDB-External-Origin": "http://evil.example",
                 }
                 for origin in ("http://evil", "https://192.0.2.10:3306", "null", ""):
                     async with client.post(url + "/login", headers={**headers, "Origin": origin}) as response:

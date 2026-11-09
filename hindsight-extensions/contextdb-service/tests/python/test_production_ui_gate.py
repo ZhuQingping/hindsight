@@ -17,7 +17,9 @@ gate = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(gate)
 
 
-@pytest.mark.parametrize("defect", [None, "missing", "duplicate", "skipped", "failure", "error", "suite_error"])
+@pytest.mark.parametrize(
+    "defect", [None, "missing", "duplicate", "skipped", "failure", "error", "suite_error", "extra"]
+)
 def test_production_ui_report_requires_both_successful_worker_modes(tmp_path: Path, defect: str | None) -> None:
     suite = ET.Element("testsuite")
     names = sorted(gate.EXPECTED_CASES)
@@ -27,6 +29,8 @@ def test_production_ui_report_requires_both_successful_worker_modes(tmp_path: Pa
         suite.remove(suite[0])
     elif defect == "duplicate":
         ET.SubElement(suite, "testcase", name=names[0])
+    elif defect == "extra":
+        ET.SubElement(suite, "testcase", name="unrelated")
     elif defect == "suite_error":
         suite.set("errors", "1")
     elif defect:
@@ -43,3 +47,8 @@ def test_production_ui_report_requires_both_successful_worker_modes(tmp_path: Pa
 def test_production_ui_gate_rejects_missing_report(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         gate.verify_results(tmp_path / "absent.xml")
+
+
+def test_production_ui_gate_requires_all_three_stories_in_both_modes() -> None:
+    assert len(gate.EXPECTED_CASES) == 6
+    assert len(gate.STORIES) == 3

@@ -231,6 +231,10 @@ def render(config: DeploymentConfig, directory: Path, *, replace: bool = False) 
     }
     if config.ui_public_origin is not None:
         ui["HINDSIGHT_CP_PUBLIC_ORIGIN"] = config.ui_public_origin
+    else:
+        # Dynamic direct-HTTP deployments publish the configured API port.
+        # Fixed origins can sit behind a different proxy mapping: don't guess.
+        ui["HINDSIGHT_CP_PUBLIC_API_PORT"] = str(config.api_port)
     if config.ca_bundle_file:
         api["SSL_CERT_FILE"] = str(config.ca_bundle_file)
         ui["SSL_CERT_FILE"] = str(config.ca_bundle_file)

@@ -1,4 +1,4 @@
-"""Require both production UI Worker stories without skips or failures."""
+"""Require all production UI stories in both Worker modes without skips or failures."""
 
 from __future__ import annotations
 
@@ -6,8 +6,12 @@ import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-STORY = "test_ui_workspace_user_key_and_native_permission_flow"
-EXPECTED_CASES = frozenset(f"{STORY}[{mode}]" for mode in ("embedded-worker", "standalone-worker"))
+STORIES = (
+    "test_ui_workspace_user_key_and_native_permission_flow",
+    "test_connect_page_derives_the_external_api_endpoint",
+    "test_fixed_origin_ignores_a_client_supplied_external_origin",
+)
+EXPECTED_CASES = frozenset(f"{story}[{mode}]" for story in STORIES for mode in ("embedded-worker", "standalone-worker"))
 
 
 def verify_results(report: Path) -> None:

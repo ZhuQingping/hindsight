@@ -3664,14 +3664,16 @@ jobs:
     - name: Build and stamp the production UI from this checkout
       working-directory: hindsight-system-tests
       run: uv run --frozen --group contextdb python -m hindsight_ext_contextdb build-ui --source-root "$GITHUB_WORKSPACE"
-    - name: Run both production UI Worker stories
+    - name: Run production UI and connection endpoint stories
       working-directory: hindsight-system-tests
       run: >-
         uv run --frozen --group contextdb pytest
         -c ../hindsight-extensions/contextdb-service/pytest-system.ini
         ../hindsight-extensions/contextdb-service/tests/system/test_112_contextdb_ui_management.py
+        ../hindsight-extensions/contextdb-service/tests/system/test_ui_dynamic_origin.py::test_connect_page_derives_the_external_api_endpoint
+        ../hindsight-extensions/contextdb-service/tests/system/test_ui_dynamic_origin.py::test_fixed_origin_ignores_a_client_supplied_external_origin
         -v --junitxml="$RUNNER_TEMP/contextdb-production-ui.xml"
-    - name: Require both Worker stories without skips
+    - name: Require all six production UI cases without skips
       if: always()
       working-directory: hindsight-system-tests
       run: >-

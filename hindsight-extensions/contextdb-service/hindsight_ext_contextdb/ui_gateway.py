@@ -20,6 +20,8 @@ from yarl import URL
 
 from .environment import service_env
 
+EXTERNAL_ORIGIN_HEADER = "X-ContextDB-External-Origin"
+
 _HOP_HEADERS = frozenset(
     {
         "connection",
@@ -116,8 +118,11 @@ class Gateway:
                 raise web.HTTPForbidden(text="A same-origin request is required")
         headers = clean_headers(request.headers)
         for name in tuple(headers):
-            if name.lower() == "forwarded" or name.lower().startswith("x-forwarded-"):
+            if name.lower() in {"forwarded", EXTERNAL_ORIGIN_HEADER.lower()} or name.lower().startswith("x-forwarded-"):
                 headers.popall(name, None)
+        # Syntax-validated client Host authority, for display only, never an
+        # authenticated identity. Replace all inbound copies before forwarding.
+        headers[EXTERNAL_ORIGIN_HEADER] = origin
         headers["Host"] = self.internal_authority
         if request.headers.get("Origin") == origin:
             headers["Origin"] = self.internal_origin
@@ -261,6 +266,7 @@ async def serve(source_root: Path, *, development: bool = False) -> int:
     environment = dict(os.environ)
     for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
         environment[prefix + "PUBLIC_ORIGIN"] = internal_origin
+        environment[prefix + "TRUST_EXTERNAL_ORIGIN"] = "1"
         environment[prefix + "HOST"] = "127.0.0.1"
         environment[prefix + "PORT"] = str(internal_port)
     environment.update(HOSTNAME="127.0.0.1", PORT=str(internal_port))

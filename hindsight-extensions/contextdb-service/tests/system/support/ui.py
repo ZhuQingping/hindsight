@@ -7,7 +7,7 @@ import secrets
 import subprocess
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -40,6 +40,24 @@ def verify_ui_server(server: Path, source_root: Path) -> None:
         raise ValueError("Selected UI artifact does not match the system-test source checkout")
 
 
+_HELPER_OWNED_ENV = frozenset({"PATH", "HOME", "NODE_ENV", "HOSTNAME", "PORT", "PYTHONPATH"}) | frozenset(
+    prefix + name
+    for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_")
+    for name in (
+        "PORT",
+        "HOST",
+        "AUTH_MODE",
+        "SESSION_DIR",
+        "CONTEXTDB_ENABLED",
+        "ACCESS_KEY",
+        "DATAPLANE_API_KEY",
+        "DATAPLANE_API_URL",
+        "PUBLIC_ORIGIN",
+        "TRUST_EXTERNAL_ORIGIN",
+    )
+)
+
+
 @contextmanager
 def ui_owner(
     contextdb_deployment: ContextDBDeployment,
@@ -52,7 +70,10 @@ def ui_owner(
     ready_status: int = 200,
     port: int | None = None,
     password: str | None = None,
+    extra_env: Mapping[str, str] | None = None,
 ) -> Iterator[AdminUI]:
+    if extra_env and _HELPER_OWNED_ENV.intersection(extra_env):
+        raise ValueError("extra_env cannot override UI owner settings")
     server = server.resolve()
     verify_ui_server(server, ROOT)
     authorization = contextdb_deployment.headers["Authorization"]
@@ -76,6 +97,7 @@ def ui_owner(
             "HINDSIGHT_CP_DATAPLANE_API_URL": contextdb_deployment.server.url,
         }
     )
+    env.update(extra_env or {})
     if fixed_origin:
         env["HINDSIGHT_CP_PUBLIC_ORIGIN"] = f"http://127.0.0.1:{port}"
     command = [node, str(server)]

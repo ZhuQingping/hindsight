@@ -52,6 +52,7 @@ def test_local_config_overrides_auth_bypass_aliases(local_environment: Path, mon
         assert ui[prefix + "CONTEXTDB_ENABLED"] == "true"
         assert ui[prefix + "SESSION_DIR"] == str(local_environment / "ui-sessions")
         assert prefix + "PUBLIC_ORIGIN" not in ui
+        assert ui[prefix + "PUBLIC_API_PORT"] == "8888"
     for filename in ("api.env", "ui.env"):
         assert (local_environment / filename).stat().st_mode & 0o777 == 0o600
     assert "synthetic-provider-key" not in (local_environment / "ui.env").read_text()
@@ -283,3 +284,18 @@ def test_ui_launch_applies_override_after_persisted_configuration(
     assert os.environ["CONTEXTBASE_CP_PUBLIC_ORIGIN"] == expected
     assert os.environ["CONTEXTBASE_CP_DATAPLANE_API_URL"] == "http://127.0.0.1:8888"
     assert os.environ["CONTEXTBASE_CP_ACCESS_KEY"] == "saved-password"
+
+
+@pytest.mark.parametrize("origin,public_port", [("", None), ("", "18080"), ("", ""), ("https://ui.test", None)])
+def test_local_public_port_uses_api_port_only_for_dynamic_mode(
+    local_environment: Path, monkeypatch: pytest.MonkeyPatch, origin: str, public_port: str | None
+) -> None:
+    monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_ORIGIN", origin)
+    if public_port is not None:
+        monkeypatch.setenv("CONTEXTBASE_CP_PUBLIC_API_PORT", public_port)
+    local.configure(local_environment, "postgresql://synthetic", 18888, 19999)
+    ui = dotenv_values(local_environment / "ui.env")
+    if origin:
+        assert "CONTEXTBASE_CP_PUBLIC_API_PORT" not in ui
+    else:
+        assert ui["CONTEXTBASE_CP_PUBLIC_API_PORT"] == ("18888" if public_port is None else public_port)

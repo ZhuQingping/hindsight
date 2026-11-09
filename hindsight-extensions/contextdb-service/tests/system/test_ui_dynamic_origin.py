@@ -131,3 +131,61 @@ def test_dynamic_session_survives_restart_but_requires_its_private_session_direc
 
     with ui_owner(contextdb_deployment, server, node, tmp_path, fixed_origin=False, port=port, password=password) as ui:
         assert httpx.get(ui.url + "/api/contextdb/users", headers={"Cookie": cookie}).status_code == 401
+
+
+def test_connect_page_derives_the_external_api_endpoint(
+    contextdb_deployment: ContextDBDeployment, tmp_path: Path
+) -> None:
+    server = Path(os.environ.get("CONTEXTDB_UI_SERVER", ROOT / "contextbase-control-plane/standalone/server.js"))
+    node = os.environ.get("CONTEXTDB_TEST_NODE_BIN") or shutil.which("node")
+    if not server.is_file() or not node:
+        pytest.skip("Build the matching production UI before running this story")
+    with ui_owner(
+        contextdb_deployment,
+        server,
+        node,
+        tmp_path,
+        fixed_origin=False,
+        extra_env={"CONTEXTBASE_CP_PUBLIC_API_PORT": "9999"},
+    ) as ui:
+        with httpx.Client(base_url=ui.url, timeout=60, trust_env=False) as client:
+            for host in ("192.0.2.10:3306", "192.0.2.11:3306"):
+                headers = {
+                    "Host": host,
+                    "Origin": "http://" + host,
+                    "X-ContextDB-External-Origin": "http://evil.example",
+                }
+                login = client.post("/api/auth/login", headers=headers, json={"key": ui.password})
+                assert login.status_code == 200
+                cookie = login.headers["set-cookie"].split(";", 1)[0]
+                page = client.get("/connect?bank_id=team", headers={**headers, "Cookie": cookie})
+                assert page.status_code == 200
+                assert "http://" + host.split(":")[0] + ":9999" in page.text
+                assert "API_ENDPOINT" not in page.text
+                assert "evil.example" not in page.text
+                assert contextdb_deployment.server.url not in page.text
+                assert ui.admin_key not in page.text
+
+
+def test_fixed_origin_ignores_a_client_supplied_external_origin(
+    contextdb_deployment: ContextDBDeployment, tmp_path: Path
+) -> None:
+    server = Path(os.environ.get("CONTEXTDB_UI_SERVER", ROOT / "contextbase-control-plane/standalone/server.js"))
+    node = os.environ.get("CONTEXTDB_TEST_NODE_BIN") or shutil.which("node")
+    if not server.is_file() or not node:
+        pytest.skip("Build the matching production UI before running this story")
+    with ui_owner(
+        contextdb_deployment,
+        server,
+        node,
+        tmp_path,
+        extra_env={"CONTEXTBASE_CP_PUBLIC_API_PORT": "9999"},
+    ) as ui:
+        with httpx.Client(base_url=ui.url, timeout=60, trust_env=False) as client:
+            headers = {"Origin": ui.url, "X-ContextDB-External-Origin": "http://evil.example"}
+            assert client.post("/api/auth/login", headers=headers, json={"key": ui.password}).status_code == 200
+            page = client.get("/connect?bank_id=team", headers=headers)
+            assert page.status_code == 200
+            assert "http://127.0.0.1:9999" in page.text
+            assert "evil.example" not in page.text
+            assert ui.admin_key not in page.text

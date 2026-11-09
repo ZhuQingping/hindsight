@@ -99,6 +99,9 @@ def configure(directory: Path, url: str, api_port: int, ui_port: int) -> None:
     if origin:
         for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
             ui[prefix + "PUBLIC_ORIGIN"] = origin
+    else:
+        for prefix in ("HINDSIGHT_CP_", "CONTEXTBASE_CP_"):
+            ui[prefix + "PUBLIC_API_PORT"] = service_env("CP_PUBLIC_API_PORT", str(api_port))
     write_environment(directory / "api.env", api, replace=True)
     write_environment(directory / "ui.env", ui, replace=True)
     os.environ.update(api)

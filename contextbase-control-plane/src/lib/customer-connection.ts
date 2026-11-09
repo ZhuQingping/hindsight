@@ -1,5 +1,6 @@
 import "server-only";
 import { controlPlaneEnv } from "./control-plane-env";
+import { derivedApiUrl, normalizedHttpOrigin } from "./public-origin";
 
 export interface CustomerConnection {
   apiUrl?: string;
@@ -12,10 +13,16 @@ export interface CustomerConnection {
   };
 }
 
-// Only explicitly public settings cross the server/client boundary. Never fall
-// back to the console's internal dataplane address or operator credentials.
-function publicUrl(name: string, options: { bankId?: string; extension?: string } = {}) {
-  const configured = controlPlaneEnv(name)?.trim();
+// Only public configuration and trusted display origins cross this boundary.
+// Never fall back to internal dataplane addresses or operator credentials.
+interface PublicUrlOptions {
+  bankId?: string;
+  extension?: string;
+  trustedOrigin?: string;
+}
+
+function publicUrl(configured: string | undefined, options: PublicUrlOptions = {}) {
+  configured = configured?.trim();
   if (
     !configured ||
     Array.from(configured).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
@@ -24,11 +31,16 @@ function publicUrl(name: string, options: { bankId?: string; extension?: string 
   const value = configured.replaceAll("{bank_id}", encodeURIComponent(options.bankId ?? ""));
   try {
     const url = new URL(value);
-    // Production must serve HTTPS. Development may use HTTP (e.g. a local
-    // dataplane) so the connect page can show example commands without a
-    // published HTTPS address. Internal dataplane/operator credentials still
-    // never leak: username/password/hash are always rejected.
-    const allowHttp = process.env.NODE_ENV !== "production";
+    // Public endpoints normally require HTTPS in production; direct HTTP UI
+    // deployments may use same-host HTTP. Credentials/fragments stay forbidden.
+    const trusted = normalizedHttpOrigin(options.trustedOrigin);
+    const sameHostHttp =
+      trusted &&
+      new URL(trusted).protocol === "http:" &&
+      url.hostname === new URL(trusted).hostname;
+    // Download origins stay HTTPS-only. HTTP endpoint examples are safe only
+    // for the same host as a UI already served over direct HTTP.
+    const allowHttp = !options.extension && (process.env.NODE_ENV !== "production" || sameHostHttp);
     const allowedProtocol = url.protocol === "https:" || (allowHttp && url.protocol === "http:");
     if (!allowedProtocol || url.username || url.password || url.hash) return undefined;
     if (options.extension) {
@@ -56,15 +68,25 @@ function publicNpmPackage(): string | undefined {
     : undefined;
 }
 
-export function customerConnection(bankId: string): CustomerConnection {
+export function customerConnection(
+  bankId: string,
+  context: { uiOrigin?: string } = {}
+): CustomerConnection {
+  const explicitApiUrl = controlPlaneEnv("PUBLIC_API_URL");
+  // Presence, including empty/invalid values, is an operator override. Never
+  // replace it with a derived endpoint or an internal dataplane address.
+  const apiUrl = explicitApiUrl !== undefined ? explicitApiUrl : derivedApiUrl(context.uiOrigin);
   return {
-    apiUrl: publicUrl("PUBLIC_API_URL")?.replace(/\/+$/, ""),
-    mcpUrl: publicUrl("PUBLIC_MCP_URL", { bankId }),
+    apiUrl: publicUrl(apiUrl, { trustedOrigin: context.uiOrigin })?.replace(/\/+$/, ""),
+    mcpUrl: publicUrl(controlPlaneEnv("PUBLIC_MCP_URL"), {
+      bankId,
+      trustedOrigin: context.uiOrigin,
+    }),
     codingAgentsNpm: publicNpmPackage(),
     packages: {
-      openclaw: publicUrl("OPENCLAW_PACKAGE_URL", { extension: ".tgz" }),
-      hermes: publicUrl("HERMES_PACKAGE_URL", { extension: ".zip" }),
-      python: publicUrl("PYTHON_SDK_PACKAGE_URL", { extension: ".whl" }),
+      openclaw: publicUrl(controlPlaneEnv("OPENCLAW_PACKAGE_URL"), { extension: ".tgz" }),
+      hermes: publicUrl(controlPlaneEnv("HERMES_PACKAGE_URL"), { extension: ".zip" }),
+      python: publicUrl(controlPlaneEnv("PYTHON_SDK_PACKAGE_URL"), { extension: ".whl" }),
     },
   };
 }

@@ -156,3 +156,8 @@ API/UI 监听地址分别使用 `CONTEXTBASE_API_HOST` / `CONTEXTBASE_CP_HOST`�
 
 本地插件启动器显式启用 ContextDB。未设置 `CONTEXTBASE_CP_PUBLIC_ORIGIN` / `HINDSIGHT_CP_PUBLIC_ORIGIN` 时，不再写死 localhost，由插件入口适配直连 HTTP 的动态 Host；更换访问 IP 无须重启 UI，新主机地址需要重新登录。插件未启用时保留原有 Node UI 行为。通过 HTTPS 网关访问时显式设置公开 origin，例如 `CONTEXTBASE_CP_PUBLIC_ORIGIN=https://memory.example.test`。配置的非空非法 URL 不会自动降级；密码、会话目录、API/MCP 鉴权均不因此关闭。完整语义见[UI 公网地址与 EIP 变更](deployment.md#ui-公网地址与-eip-变更)。
 
+
+
+### 连接页公共 API 地址
+
+`/connect` 优先使用 `CONTEXTBASE_CP_PUBLIC_API_URL`（兼容 `HINDSIGHT_CP_` 别名）。显式空值或非法值隐藏 API 示例，不回退。未设置时，仅按可信 UI origin 的同一主机和 `CONTEXTBASE_CP_PUBLIC_API_PORT`（1–65535，对外发布端口）推导；不读取内部 dataplane 地址或运营 Key。动态直连 HTTP 的 render 和本地启动自动写入 API 端口；端口映射不同时配置对外端口，固定 HTTPS 网关建议显式配置公共 API URL。生产环境仅允许 HTTP UI 的同 host API/MCP 使用 HTTP，安装包下载仍要求 HTTPS。MCP 地址只来自显式 `PUBLIC_MCP_URL`，不从 API 推导。网关删除客户端伪造的 external-origin 头后注入已校验的 origin，仅用于展示，固定 origin 模式忽略该头。

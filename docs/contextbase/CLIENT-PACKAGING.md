@@ -83,3 +83,5 @@ API 地址通过 `CONTEXTBASE_CP_PUBLIC_API_URL` 配置；远端 MCP 另设 `CON
 其他支持的 Coding Agent 宿主共用 `@huaweicloud/contextbase-coding-agents`。具体安装、MCP 和生命周期检查范围见对应工作流及宿主协议测试，不等价于所有真实宿主版本或 Windows 实机认证。
 
 客户操作见 [客户使用指南](CUSTOMER-GUIDE.md)。OpenClaw、Hermes 配置分别由宿主管理，不自动继承 Coding Agents 的连接文件。服务部署和 Bank 授权由服务方完成；客户端发行包不携带本地引擎。
+
+连接页公共 API 优先使用 `CONTEXTBASE_CP_PUBLIC_API_URL`；未配置时可用 `CONTEXTBASE_CP_PUBLIC_API_PORT` 与可信 UI origin 的同一主机推导，端口是客户访问的对外发布端口。显式空值/非法值禁止回退，内部 dataplane 地址及运营凭据不进入示例；MCP 地址和安装包地址仍需独立配置。

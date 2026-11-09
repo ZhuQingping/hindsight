@@ -88,6 +88,7 @@ def test_rendered_shell_preserves_secrets_without_execution(tmp_path: Path) -> N
     ui_environment = (directory / "ui.env").read_text()
     assert "HINDSIGHT_API_DATABASE_URL" not in ui_environment
     assert "HINDSIGHT_CP_PUBLIC_ORIGIN=https://admin.example.test" in ui_environment
+    assert "PUBLIC_API_PORT" not in ui_environment
     assert "HINDSIGHT_CP_AUTH_MODE=local" in ui_environment
     assert "HINDSIGHT_CP_SESSION_DIR=/var/lib/contextdb/ui-sessions" in ui_environment
     assert (directory / "ui-sessions").stat().st_mode & 0o777 == 0o700
@@ -507,5 +508,6 @@ def test_public_origin_is_optional_and_render_omits_it(tmp_path: Path, omit: boo
     render(config, tmp_path / "dynamic")
     ui = (tmp_path / "dynamic/ui.env").read_text()
     assert "PUBLIC_ORIGIN" not in ui
+    assert "HINDSIGHT_CP_PUBLIC_API_PORT=8888" in ui
     assert "HINDSIGHT_CP_AUTH_MODE=local" in ui
     assert "HINDSIGHT_CP_SESSION_DIR=" in ui
