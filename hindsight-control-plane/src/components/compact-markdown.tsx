@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkCjkFriendly from "remark-cjk-friendly/parseOnly";
 import { cn } from "@/lib/utils";
 
 const TABLE_LINE_RE = /^\s*\|.*\|\s*$/;
@@ -45,8 +46,9 @@ export function CompactMarkdown({ children, className }: { children: string; cla
         className
       )}
     >
+      {/* CJK text after emphasized punctuation needs extended CommonMark delimiter rules. */}
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkCjkFriendly]}
         components={{
           h1: (props) => (
             <div
