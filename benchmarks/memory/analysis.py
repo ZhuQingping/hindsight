@@ -708,10 +708,103 @@ def export(directory: Path, output: Path, baseline: Path | None = None) -> Expor
     return result
 
 
+class CoverageRow(BaseModel):
+    question_id: str
+    question: str
+    evidence_ids: list[str]
+    old_covered: list[str]
+    new_covered: list[str]
+    returned_covered: list[str]
+    old_tokens: int
+    new_tokens: int
+    packing_ms: float
+
+
+class CoverageExport(BaseModel):
+    run_id: str
+    source_manifest_sha256: str
+    question_scope_sha256: str
+    candidate_packing: h.core.PackingSettings
+    candidate_support_sha256: str
+    rows: list[CoverageRow]
+    old_covered_total: int
+    new_covered_total: int
+    returned_covered_total: int
+    old_all_evidence_questions: int
+    new_all_evidence_questions: int
+    note: str = "Offline ID-presence diagnostic only, not new QA accuracy or semantic entailment."
+
+
+def coverage(
+    directory: Path, output: Path, settings: h.core.PackingSettings, contexts: Path | None = None
+) -> CoverageExport:
+    import time
+
+    if output.exists() or (contexts is not None and contexts.exists()):
+        raise FileExistsError("Preserve existing coverage evidence")
+    manifest = manifest_at(directory)
+    completed(directory)
+    corpus = {
+        c.sample_id: c
+        for c in [
+            h.core.RawConversation.model_validate(value)
+            for value in json.loads((directory / "inputs/locomo10.json").read_text())
+        ]
+    }
+    if contexts is not None:
+        contexts.mkdir(parents=True)
+    rows: list[CoverageRow] = []
+    for conversation in manifest.conversations:
+        for question in conversation.questions:
+            qid = h.amb_id(question)
+            saved = h.unseal(directory / f"retrievals/{qid}.json", h.RetrievalRecord, manifest)
+            if saved.error or saved.recall is None or saved.packing is None:
+                raise ValueError("Coverage requires a valid saved retrieval")
+            started = time.perf_counter()
+            packed = h.core.pack_context(saved.recall, conversation, settings, query=question.question)
+            elapsed = (time.perf_counter() - started) * 1000
+            # The packer has returned before this code reads the evaluation annotations.
+            evidence = corpus[conversation.id].qa[question.original_index].evidence
+            returned = "\n".join(chunk.text for chunk in (saved.recall.chunks or {}).values())
+            rows.append(
+                CoverageRow(
+                    question_id=qid,
+                    question=question.question,
+                    evidence_ids=evidence,
+                    old_covered=[e for e in evidence if contains_id(saved.packing.text, e)],
+                    new_covered=[e for e in evidence if contains_id(packed.text, e)],
+                    returned_covered=[e for e in evidence if contains_id(returned, e)],
+                    old_tokens=saved.packing.tokens,
+                    new_tokens=packed.tokens,
+                    packing_ms=elapsed,
+                )
+            )
+            if contexts is not None:
+                h.core.save_model(contexts / f"{qid}-packing.json", packed)
+    result = CoverageExport(
+        run_id=manifest.run_id,
+        source_manifest_sha256=h.core.file_sha(directory / "manifest.json"),
+        question_scope_sha256=manifest.question_scope_sha256,
+        candidate_packing=settings,
+        candidate_support_sha256=h.core.file_sha(Path(__file__).with_name("support.py")),
+        rows=rows,
+        old_covered_total=sum(len(row.old_covered) for row in rows),
+        new_covered_total=sum(len(row.new_covered) for row in rows),
+        returned_covered_total=sum(len(row.returned_covered) for row in rows),
+        old_all_evidence_questions=sum(set(row.evidence_ids) <= set(row.old_covered) for row in rows),
+        new_all_evidence_questions=sum(set(row.evidence_ids) <= set(row.new_covered) for row in rows),
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    h.core.save_model(output, result)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--coverage", action="store_true")
+    parser.add_argument("--contexts-dir", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument(
         "--progress", action="store_true", help="Observe live sealed checkpoints without any model calls"
@@ -720,6 +813,26 @@ def main() -> None:
     parser.add_argument("--wrong-snapshot", action="store_true", help="Posthoc evidence for saved wrong answers")
     parser.add_argument("--official-hindsight", type=Path)
     args = parser.parse_args()
+    if args.coverage:
+        if (
+            args.progress
+            or args.wrong_snapshot
+            or args.baseline
+            or args.official_mem0
+            or args.official_hindsight
+            or args.output is None
+        ):
+            parser.error("--coverage requires --run-dir and new --output; optionally --contexts-dir")
+        manifest = manifest_at(args.run_dir)
+        settings = h.core.PackingSettings.model_validate(
+            manifest.config.packing.model_dump()
+            | {"algorithm": "query-turn-windows-v1", "chunk_order": "query_relevance"}
+        )
+        result_coverage = coverage(args.run_dir, args.output, settings, args.contexts_dir)
+        print(result_coverage.model_dump_json(exclude={"rows"}))
+        return
+    if args.contexts_dir:
+        parser.error("--contexts-dir requires --coverage")
     if args.wrong_snapshot:
         if args.progress or args.baseline or args.official_mem0 or args.official_hindsight or args.output is None:
             parser.error("--wrong-snapshot requires only --run-dir and a new --output")

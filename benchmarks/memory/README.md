@@ -7,14 +7,16 @@
 | [plan.md](plan.md) | LoCoMo 通俗流程、模型和评分口径、公平对比、待办、历史结果及错题分析 |
 | [report.md](report.md) | 友商 benchmark、模型、分数、Token、时延与原始来源 |
 | [runner.py](runner.py) | 唯一执行入口：init、preview、ingest、verify、run、report |
-| [support.py](support.py) | 配置类型、完整条目打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
+| [support.py](support.py) | 配置类型、完整条目/原文窗口打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
+| [analysis.py](analysis.py) | 完整结果导出、官方对照、只读进度、错题证据与离线覆盖诊断 |
+| [probe.py](probe.py) | 本地重排和只读 recall 小样本诊断，不答题、不判题 |
 | [config.example.json](config.example.json) | 当前本机配置模板；只引用凭据，不保存密钥 |
 | [requirements.txt](requirements.txt) | 仓库 Python 环境之外的评测/测试补充依赖 |
 | [tests/test_runner.py](tests/test_runner.py) | 固定 AMB 代码＋合成会话＋模拟服务/模型的离线检查 |
 
-**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别 1–4，默认 conv-30 的 81 题。目录整理后已在个人分支基线上通过 27 项离线检查，Ruff 和类型检查通过；现已复用旧 Bank 完成 81 题 8K 实测，结果见 [复测对照](plan.md#conv-30-8k-复测对照)。
+**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别 1–4；示例配置为 conv-30，完整配置为1540题。已完成81题实测，完整基线正在运行，进度与恢复记录见plan。当前52项离线检查、Ruff和类型检查通过；全局lint仍有既有http.py F841失败。
 
-旧版 conv-30 记录为准确率 91.36%、答案 F1 25.15%，存在已确认的上下文打包缺陷和评分尺度差异。新 AMB 协议实测为 **70/81、准确率 86.42%、F1 21.98%**；两版 prompt/裁判不同，不作为单独打包改动的因果对比。旧结果不覆盖，Bank 和运行环境保留，完整 1540 题未运行。
+旧版 conv-30 记录为准确率 91.36%、答案 F1 25.15%，存在已确认的上下文打包缺陷和评分尺度差异。新 AMB 协议RRF实测为 **70/81、准确率 86.42%、F1 21.98%**；接入本地BGE后为 **76/81、93.83%、F1 26.64%**。两版 prompt/裁判不同，不作为单独打包改动的因果对比。旧结果不覆盖，Bank和运行环境保留，部分1540题结果不当作完整成绩。
 
 ## 离线验证
 
@@ -114,3 +116,10 @@ prepare只做离线冻结；run必须等源基线完整有效，并使用冻结�
 数字gold（年份、计数）按原始类型归档，不强制变成字符串。新建Bank运行中断后，可在新配置中将 `reuse_banks` 显式设为源manifest的完整Bank映射，再用 `checkpoint_source` 接续；只允许这组原Bank，必须重新只读verify。保留原模型调用、源配置/版本快照、导入耗时和累计QA时间。若有未收到回包的中断召回，显式设置 `resume_connection_failures=true`；不增加已完成答案的尝试次数，也不重新导入。
 
 错题原文诊断使用 `analysis.py --run-dir <run> --wrong-snapshot --output <new-file.json>`。它仅分析已封存且判错的记录，列出原文参考句及相邻一轮、session时间、原答案和裁判理由、原文/最终上下文中的ID覆盖，并单列操作失败。可用于运行中逐组排查，但输出kind明确不是成绩，不绕过完整基线验证；不访问Bank或模型、不把QA参考原文补进答题上下文。源片段来自原始合成数据，保存在本机诊断档案，Git报告只保留脱敏归纳。
+
+
+窗口候选已统一到本分支：`packing.algorithm=query-turn-windows-v1`、`chunk_order=query_relevance`。它只用已返回的完整消息及题目选择相邻原文窗口，保留speaker/dia_id/BLIP caption，不读取gold、参考证据或未召回原文；当前v1不保留图像URL或image query。reader总预算仍为8192、事实/原文各4000；API原文候选预算调到65536需另在recall配置声明，不能称API预算不变。
+
+`analysis.py --run-dir <completed-run> --coverage --output <new-json> [--contexts-dir <new-directory>]` 只离线比较原打包和v1窗口的证据ID覆盖，不调用模型，不输出新准确率。已有[81题覆盖诊断](results/conv30-window-coverage-20261119.json)及[三题原文预算诊断](results/conv30-raw64k-probe-20261119.json)均保留原来源哈希。
+
+`probe.py recall` 可加 `--overrides <json>`，仅允许recall/packing两组类型校验后的设置，并在probe目录冻结；调用前后核验服务版本、公开配置及原文文档，不写源Bank或源运行状态。维护脚本更新后，已有运行仍必须执行运行目录内封存的代码，不能直接拿今日runner接续旧manifest。

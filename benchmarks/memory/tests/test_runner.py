@@ -259,6 +259,7 @@ def prepared(
     reuse_banks=None,
     gold_answer=None,
     evidence_ids=None,
+    packing=None,
 ):
     path = config_fixture(tmp_path, conversations=conversations)
     config = json.loads(path.read_text())
@@ -269,6 +270,8 @@ def prepared(
         config["api_url"] = api_url
     if reuse_banks:
         config["reuse_banks"] = reuse_banks
+    if packing is not None:
+        config["packing"] = packing.model_dump(mode="json")
     if questions_per_conversation > 1 or gold_answer is not None or evidence_ids is not None:
         dataset_path = Path(config["sources"]["dataset"]["path"])
         records = json.loads(dataset_path.read_text())
@@ -397,13 +400,23 @@ def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, c
 
 
 @pytest.mark.asyncio
-async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls(tmp_path, checkout, monkeypatch):
+@pytest.mark.parametrize("window_packing", [False, True])
+async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls(
+    tmp_path, checkout, monkeypatch, window_packing
+):
     service = FakeBankService()
     app = web.Application()
     app.router.add_route("*", "/{tail:.*}", service.handle)
     async with TestServer(app) as server:
         directory, manifest = prepared(
-            tmp_path, checkout, conversations=("conv-30", "conv-26"), api_url=str(server.make_url("/"))
+            tmp_path,
+            checkout,
+            conversations=("conv-30", "conv-26"),
+            api_url=str(server.make_url("/")),
+            packing=h.PackingSettings(
+                algorithm="query-turn-windows-v1" if window_packing else "complete-json-separate-budgets-v2",
+                chunk_order="query_relevance" if window_packing else "response_order",
+            ),
         )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
@@ -455,16 +468,51 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
         assert "credential" not in json.loads(output.read_text())["settings"]
         with pytest.raises(FileExistsError):
             analysis.export(directory, output)
+        coverage_settings = analysis.h.core.PackingSettings.model_validate(
+            manifest.config.packing.model_dump()
+            | {"algorithm": "query-turn-windows-v1", "chunk_order": "query_relevance"}
+        )
+        coverage = analysis.coverage(directory, tmp_path / "coverage.json", coverage_settings)
+        assert len(coverage.rows) == 2
+        assert len(service.requests) == request_count and len(factory.calls) == 4
         probe = a.module_from_file("memory_probe_test", SCRIPT.with_name("probe.py"))
         probe_dir = tmp_path / "recall-probe"
-        probe_config = probe.initialize(directory, probe_dir, ["conv-30_q0"], "recall")
+        overrides = tmp_path / "probe-settings.json"
+        overrides.write_text(
+            json.dumps(
+                {
+                    "recall": {"max_tokens": 32768, "max_chunk_tokens": 65536},
+                    "packing": {
+                        "algorithm": "query-turn-windows-v1",
+                        "chunk_order": "query_relevance",
+                        "max_tokens": 600,
+                        "fact_tokens": 0,
+                        "chunk_tokens": 550,
+                    },
+                }
+            )
+        )
+        probe_config = probe.initialize(directory, probe_dir, ["conv-30_q0"], "recall", overrides)
         calls_before = len(service.requests)
         await probe.recall(directory, probe_dir, probe_config)
-        assert service.requests[calls_before:] == [
+        assert [v for v in service.requests[calls_before:] if v[0] != "GET"] == [
             ("POST", f"/v1/default/banks/{manifest.conversations[0].bank_id}/memories/recall")
         ]
         assert len(factory.calls) == 4
         assert (probe_dir / "conv-30_q0-packing.json").is_file()
+        probe_request = json.loads((probe_dir / "conv-30_q0-request.json").read_text())
+        assert probe_request["max_tokens"] == 32768
+        assert probe_request["include"]["chunks"]["max_tokens"] == 65536
+        packed_probe = json.loads((probe_dir / "conv-30_q0-packing.json").read_text())
+        assert packed_probe["tokens"] <= 600 and packed_probe["included_fact_ids"] == []
+        assert json.loads((probe_dir / "manifest.json").read_text())["packing"]["max_tokens"] == 600
+        assert (probe_dir / "overrides.json").read_bytes() == overrides.read_bytes()
+        assert (probe_dir / "server-version-before.json").read_bytes() == (
+            probe_dir / "server-version-after.json"
+        ).read_bytes()
+        assert "NEVER_COPY_THIS_SECRET" not in (probe_dir / "conv-30-server-config-probe-before.json").read_text()
+        assert manifest.config.packing.max_tokens == 8192 and manifest.config.recall.max_tokens == 8192
+        requests_after_probe = len(service.requests)
         night = a.module_from_file("memory_night_test", SCRIPT.with_name("night.py"))
         with h.run_lock(directory):
             assert night.locked(directory)
@@ -472,7 +520,7 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
         assert night.run(directory, tmp_path / "night-status.json", None, 1) == 0
         assert json.loads((tmp_path / "night-status.json").read_text())["stage"] == "completed"
         assert (directory / "public-results.json").is_file()
-        assert len(factory.calls) == 4 and len(service.requests) == request_count + 1
+        assert len(factory.calls) == 4 and len(service.requests) == requests_after_probe
 
 
 @pytest.mark.parametrize("change", ["amb", "helper", "config", "record"])
@@ -1237,3 +1285,90 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(tmp_pa
         assert summary.model_usage["answer"].total_tokens == 20
         assert summary.model_usage["judge"].total_tokens == 20
         assert before == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+
+
+def test_query_windows_find_late_raw_turn_within_fixed_budget(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    conversation = manifest.conversations[0]
+    cid = build_chunk_id(conversation.bank_id, conversation.sessions[0].document_id, 0)
+    turns = [
+        {"speaker": "Person A", "dia_id": f"D1:{i}", "text": "Routine work and everyday news. " * 5} for i in range(70)
+    ]
+    turns[-2]["text"] = "Orion launched on Tuesday."
+    recalled = h.RecallReply(results=[], chunks={cid: h.Chunk(text=json.dumps(turns))})
+    before = recalled.model_dump(mode="json")
+    settings = h.PackingSettings(
+        algorithm="query-turn-windows-v1",
+        chunk_order="query_relevance",
+        max_tokens=600,
+        fact_tokens=0,
+        chunk_tokens=550,
+    )
+    result = h.pack_context(recalled, conversation, settings, query="When did Orion launch?")
+    assert "Orion launched on Tuesday." in result.text
+    assert result.tokens <= 600 and result.chunk_tokens <= 550
+    assert result.included_chunk_ids == [cid]
+    assert "D1:68" in result.text
+    assert recalled.model_dump(mode="json") == before
+    assert h.pack_context(recalled, conversation, settings, query="When did Orion launch?").text == result.text
+    json.loads(result.text)
+
+
+def test_query_windows_recover_complete_messages_and_preserve_image_caption():
+    text = (
+        '[{"speaker":"Alice","dia_id":"D1:1","text":"Look at this picture",'
+        '"blip_caption":"Dancers performing on stage"},'
+        '{"speaker":"Bob","dia_id":"D1:2","text":"incomplete'
+    )
+    turns = h.complete_turns(text)
+    assert len(turns) == 1
+    assert "Dancers performing on stage" in turns[0].render()
+    assert "incomplete" not in turns[0].render()
+
+
+def test_query_windows_do_not_read_original_session_contents(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    conversation = manifest.conversations[0]
+    conversation.sessions[0].content = "ORIGINAL_ONLY_SENTINEL_NOT_RETURNED"
+    cid = build_chunk_id(conversation.bank_id, conversation.sessions[0].document_id, 0)
+    reply = h.RecallReply(results=[], chunks={cid: h.Chunk(text="Only this observed passage is returned.")})
+    settings = h.PackingSettings(algorithm="query-turn-windows-v1", chunk_order="query_relevance")
+    packed = h.pack_context(reply, conversation, settings, query="What passage was returned?")
+    assert "Only this observed passage is returned." in packed.text
+    assert "ORIGINAL_ONLY_SENTINEL" not in packed.text
+
+
+def test_query_windows_require_query_and_validate_even_unselected_banks(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    conversation = manifest.conversations[0]
+    settings = h.PackingSettings(algorithm="query-turn-windows-v1", chunk_order="query_relevance")
+    with pytest.raises(ValueError, match="question text"):
+        h.pack_context(h.RecallReply(results=[]), conversation, settings)
+    cid = build_chunk_id("foreign_bank", conversation.sessions[0].document_id, 0)
+    reply = h.RecallReply(results=[], chunks={cid: h.Chunk(text="unrelated")})
+    with pytest.raises(ValueError, match="outside"):
+        h.pack_context(reply, conversation, settings, query="Which passage?")
+
+
+def test_query_window_settings_cannot_claim_legacy_order():
+    with pytest.raises(ValueError, match="query_relevance"):
+        h.PackingSettings(algorithm="query-turn-windows-v1")
+
+
+def test_probe_overrides_reject_unknown_or_invalid_settings_before_output(tmp_path, checkout):
+    directory, _ = prepared(tmp_path, checkout)
+    probe = a.module_from_file("memory_invalid_probe_test", SCRIPT.with_name("probe.py"))
+    path = tmp_path / "invalid-overrides.json"
+    for settings in [
+        {"gold": "never accepted"},
+        {"recall": {"max_chunk_tokens": 0}},
+        {"packing": {"algorithm": "query-turn-windows-v1"}},
+    ]:
+        path.write_text(json.dumps(settings))
+        with pytest.raises(ValueError):
+            probe.initialize(directory, tmp_path / "invalid-probe", ["conv-30_q0"], "recall", path)
+        assert not (tmp_path / "invalid-probe").exists()
+    path.write_text(json.dumps({"recall": {"max_chunk_tokens": 65536}}))
+    with pytest.raises(ValueError, match="live recall"):
+        probe.initialize(directory, tmp_path / "invalid-local", ["conv-30_q0"], "local", path)
+    assert not (tmp_path / "invalid-local").exists()

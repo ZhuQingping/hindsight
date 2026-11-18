@@ -743,7 +743,9 @@ def components(archive: Archive) -> Components:
                     finally:
                         seal(path, record)
                 try:
-                    record.packing = core.pack_context(record.recall, conversation, manifest.config.packing)
+                    record.packing = core.pack_context(
+                        record.recall, conversation, manifest.config.packing, query=query
+                    )
                 except Exception as error:
                     record.error = type(error).__name__
                     raise
@@ -1036,7 +1038,7 @@ def run(directory: Path, manifest: Manifest, factory: ProviderFactory = core.mak
     return report(directory, manifest)
 
 
-def preview(directory: Path, source: Path, conversation_id: str, output: Path) -> Any:
+def preview(directory: Path, source: Path, conversation_id: str, output: Path, query: str | None = None) -> Any:
     manifest = load_manifest(directory)
     if output.exists():
         raise ValueError("Preview output exists; preserve previous evidence")
@@ -1050,7 +1052,8 @@ def preview(directory: Path, source: Path, conversation_id: str, output: Path) -
         # Read-only preview may inspect an older run, but never adopts its Bank.
         conversation = conversation.model_copy(update={"bank_id": ref.bank_id})
     result = core.Preview(
-        fingerprint=manifest.fingerprint, packing=core.pack_context(recalled, conversation, manifest.config.packing)
+        fingerprint=manifest.fingerprint,
+        packing=core.pack_context(recalled, conversation, manifest.config.packing, query=query),
     )
     core.save_model(output, result)
     return result
@@ -1071,6 +1074,7 @@ def main() -> None:
     pack.add_argument("--recall", type=Path, required=True)
     pack.add_argument("--conversation", required=True)
     pack.add_argument("--output", type=Path, required=True)
+    pack.add_argument("--query")
     args = parser.parse_args()
     logging.disable(logging.CRITICAL)
     if args.command == "init":
@@ -1087,7 +1091,9 @@ def main() -> None:
         elif args.command == "run":
             print(run(args.run_dir, manifest).model_dump_json(indent=2))
         elif args.command == "preview":
-            print(preview(args.run_dir, args.recall, args.conversation, args.output).model_dump_json(indent=2))
+            print(
+                preview(args.run_dir, args.recall, args.conversation, args.output, args.query).model_dump_json(indent=2)
+            )
         else:
             print(report(args.run_dir, manifest).model_dump_json(indent=2))
 

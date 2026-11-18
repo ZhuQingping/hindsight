@@ -1,0 +1,76 @@
+{
+  "source_manifest_sha256": "da725e3c3a7496c0aa36731f44b002f05f08aba5d7d70f3be22026f6056df6ae",
+  "probe_source_hashes": {
+    "probe.py": "08d4e6ec2908e6fb84da20c761af739b9cb63a7e7aa1110de873e866e24c0274",
+    "rerank_preview.py": "dc0fc96d2b4586cb511ab265396e9ae6752eb784ac31d0c3f7d47bc511760101",
+    "analysis.py": "b27454dc6252664d4573517a7a67d67de72c1876389585e98e155bb0c63879bb",
+    "runner.py": "5234542bddaa8f254fc18773e14e39660c09c925b61978a214a47180e542f7ca",
+    "support.py": "04f6ff06f13bcfde09c111800ddb44a337ea50666283a8fa67ab7cd81a3e9905"
+  },
+  "probe_manifest_sha256": "29f68424b608e1a96b9a2685a889c6492610155dcfb60ac4d7a1b637756040f8",
+  "recall": {
+    "budget": "high",
+    "max_tokens": 8192,
+    "max_chunk_tokens": 65536
+  },
+  "packing": {
+    "algorithm": "query-turn-windows-v1",
+    "tokenizer": "o200k_base",
+    "max_tokens": 8192,
+    "fact_tokens": 4000,
+    "chunk_tokens": 4000,
+    "fact_order": "recall_order",
+    "chunk_order": "query_relevance"
+  },
+  "rows": [
+    {
+      "question_id": "conv-30_q37",
+      "inspected_term": "Shia",
+      "ordered_fact_ids_and_text_identical": true,
+      "old_returned_chunks": 11,
+      "new_returned_chunks": 31,
+      "old_returned_raw_text_tokens": 8192,
+      "new_returned_raw_text_tokens": 19843,
+      "term_in_old_raw": true,
+      "term_in_new_raw": true,
+      "term_in_old_window_context": true,
+      "term_in_new_window_context": true,
+      "new_context_tokens": 7984,
+      "new_truncated_chunks": 0,
+      "new_recall_ms": 6697.777958004735
+    },
+    {
+      "question_id": "conv-30_q44",
+      "inspected_term": "graceful",
+      "ordered_fact_ids_and_text_identical": true,
+      "old_returned_chunks": 12,
+      "new_returned_chunks": 31,
+      "old_returned_raw_text_tokens": 8192,
+      "new_returned_raw_text_tokens": 19843,
+      "term_in_old_raw": true,
+      "term_in_new_raw": true,
+      "term_in_old_window_context": true,
+      "term_in_new_window_context": true,
+      "new_context_tokens": 8001,
+      "new_truncated_chunks": 0,
+      "new_recall_ms": 6300.639124936424
+    },
+    {
+      "question_id": "conv-30_q73",
+      "inspected_term": "magical",
+      "ordered_fact_ids_and_text_identical": true,
+      "old_returned_chunks": 11,
+      "new_returned_chunks": 31,
+      "old_returned_raw_text_tokens": 8192,
+      "new_returned_raw_text_tokens": 19843,
+      "term_in_old_raw": false,
+      "term_in_new_raw": true,
+      "term_in_old_window_context": false,
+      "term_in_new_window_context": true,
+      "new_context_tokens": 7976,
+      "new_truncated_chunks": 0,
+      "new_recall_ms": 6037.671666010283
+    }
+  ],
+  "note": "Three diagnostic questions only; no new answer/judge calls, no accuracy claim. Terms are inspected after retrieval/packing. Old original documents and public runtime configuration verified before/after through read-only guarded HTTP. Raw text token counts use local o200k_base, not answer-model billed usage."
+}

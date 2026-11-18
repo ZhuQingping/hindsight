@@ -58,6 +58,12 @@ class Scores(BaseModel):
     values: list[float]
 
 
+class ProbeOverrides(BaseModel):
+    model_config = {"extra": "forbid"}
+    recall: r.h.core.RecallSettings | None = None
+    packing: r.h.core.PackingSettings | None = None
+
+
 class Outcome(BaseModel):
     question_id: str
     fact_count: int
@@ -70,34 +76,40 @@ class Outcome(BaseModel):
     facts: list[r.FactComparison]
 
 
-def initialize(source: Path, output: Path, qids: list[str], mode: str) -> ProbeConfig:
+def initialize(source: Path, output: Path, qids: list[str], mode: str, overrides: Path | None = None) -> ProbeConfig:
     manifest = a.manifest_at(source)
     valid = {r.h.amb_id(q) for c in manifest.conversations for q in c.questions}
     if not qids or len(qids) != len(set(qids)) or not set(qids) <= valid:
         raise ValueError("Choose unique question IDs from the frozen scope")
-    output.mkdir(parents=True, exist_ok=False)
+    settings = ProbeOverrides.model_validate_json(overrides.read_bytes()) if overrides else ProbeOverrides()
+    if mode != "recall" and settings.recall is not None:
+        raise ValueError("Recall overrides require a live recall probe")
     names = ["probe.py", "rerank_preview.py", "analysis.py", "runner.py", "support.py"]
-    for name in names:
-        shutil.copyfile(Path(__file__).with_name(name), output / name)
     config = ProbeConfig(
         mode=mode,
         source_run_id=manifest.run_id,
         source_manifest_sha256=r.h.core.file_sha(source / "manifest.json"),
         questions=qids,
-        packing=manifest.config.packing.model_dump(),
-        recall=manifest.config.recall.model_dump(),
+        packing=(settings.packing or manifest.config.packing).model_dump(),
+        recall=(settings.recall or manifest.config.recall).model_dump(),
         declared_memory=manifest.config.memory_profile.model_dump(),
         source_hashes={name: r.h.core.file_sha(Path(__file__).with_name(name)) for name in names},
     )
+    output.mkdir(parents=True, exist_ok=False)
+    for name in names:
+        shutil.copyfile(Path(__file__).with_name(name), output / name)
+    if overrides:
+        shutil.copyfile(overrides, output / "overrides.json")
     r.h.core.save_model(output / "manifest.json", config)
     return config
 
 
-def record(source: Path, output: Path, qid: str, reply: Any, **details: Any) -> Outcome:
+def record(source: Path, output: Path, qid: str, reply: Any, config: ProbeConfig, **details: Any) -> Outcome:
     manifest = a.manifest_at(source)
     c = next(c for c in manifest.conversations if any(r.h.amb_id(q) == qid for q in c.questions))
     old = r.h.unseal(source / f"retrievals/{qid}.json", r.h.RetrievalRecord, manifest)
-    packed = r.h.core.pack_context(reply, c, manifest.config.packing)
+    question = next(q for q in c.questions if r.h.amb_id(q) == qid)
+    packed = r.h.core.pack_context(reply, c, config.packing, query=question.question)
     ranks = {f.id: i + 1 for i, f in enumerate(reply.results)}
     new = {f.id: f for f in reply.results}
     facts = [
@@ -201,6 +213,7 @@ def local(source: Path, output: Path, config: ProbeConfig, model_path: Path) -> 
             output,
             qid,
             ranked,
+            config,
             repetitions=times,
             max_input_pair_tokens=max(lengths),
             input_pair_tokens=sum(lengths),
@@ -218,6 +231,15 @@ async def recall(source: Path, output: Path, config: ProbeConfig) -> None:
         timeout=aiohttp.ClientTimeout(total=readonly.request_timeout_s), trust_env=False
     ) as s:
         http = r.h.core.BankHTTP(s, readonly, readonly.credential.resolve())
+        # Probes preserve their own checks; never write verification state into the source run.
+        r.h.core.save_model(output / "state.json", r.h.core.State(fingerprint=manifest.fingerprint))
+        transport = r.h.core.Ingestion(output, manifest.model_copy(update={"config": readonly}), http)
+        version = await http.request("GET", "/version", r.h.core.RuntimeSnapshot)
+        r.h.core.save_model(output / "server-version-before.json", version)
+        selected = [c for c in manifest.conversations if any(r.h.amb_id(q) in config.questions for q in c.questions)]
+        for c in selected:
+            await transport.check_runtime(c, "probe-before")
+            await transport.verify_documents(c)
         for qid in config.questions:
             c, q = next((c, q) for c in manifest.conversations for q in c.questions if r.h.amb_id(q) == qid)
             body = r.h.core.RecallBody(
@@ -232,7 +254,14 @@ async def recall(source: Path, output: Path, config: ProbeConfig) -> None:
             reply = await http.request(
                 "POST", f"/v1/default/banks/{c.bank_id}/memories/recall", r.h.core.RecallReply, body
             )
-            record(source, output, qid, reply, recall_ms=(time.perf_counter() - start) * 1000)
+            record(source, output, qid, reply, config, recall_ms=(time.perf_counter() - start) * 1000)
+        for c in selected:
+            await transport.verify_documents(c)
+            await transport.check_runtime(c, "probe-after")
+        after = await http.request("GET", "/version", r.h.core.RuntimeSnapshot)
+        r.h.core.save_model(output / "server-version-after.json", after)
+        if r.h.core.canonical_sha(version) != r.h.core.canonical_sha(after):
+            raise ValueError("Deployment version changed during probe")
 
 
 def main() -> None:
@@ -242,13 +271,14 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--questions", nargs="+", required=True)
     parser.add_argument("--model-path", type=Path)
+    parser.add_argument("--overrides", type=Path, help="Explicit recall/packing experiment settings JSON")
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--repeats", type=int, default=3)
     args = parser.parse_args()
     if min(args.threads, args.batch_size, args.repeats) < 1 or (args.mode == "local" and not args.model_path):
         parser.error("Use positive settings and supply --model-path for local mode")
-    config = initialize(args.source, args.output, args.questions, args.mode)
+    config = initialize(args.source, args.output, args.questions, args.mode, args.overrides)
     config.threads = args.threads
     config.batch_size = args.batch_size
     config.repeats = args.repeats

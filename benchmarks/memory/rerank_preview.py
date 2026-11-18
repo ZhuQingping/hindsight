@@ -205,7 +205,7 @@ async def run(source: Path, output: Path, questions: list[str], key_file: Path, 
                 output / f"{qid}-call.json",
             )
             ranked = reorder(baseline.recall, reply)
-            packed = h.core.pack_context(ranked, conversation, manifest.config.packing)
+            packed = h.core.pack_context(ranked, conversation, manifest.config.packing, query=question.question)
             ranks = {f.id: number + 1 for number, f in enumerate(ranked.results)}
             scores = {baseline.recall.results[item.index].id: item.relevance_score for item in reply.results}
             audit = Comparison(

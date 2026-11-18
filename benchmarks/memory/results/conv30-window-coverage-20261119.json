@@ -1,0 +1,1611 @@
+{
+  "run_id": "locomobge_20261119_005630",
+  "source_manifest_sha256": "da725e3c3a7496c0aa36731f44b002f05f08aba5d7d70f3be22026f6056df6ae",
+  "question_scope_sha256": "c3a40a2b7a5f52b96bc216511eee963844cb1d3a1a619cef2d131698b8492ee0",
+  "candidate_packing": {
+    "algorithm": "query-turn-windows-v1",
+    "tokenizer": "o200k_base",
+    "max_tokens": 8192,
+    "fact_tokens": 4000,
+    "chunk_tokens": 4000,
+    "fact_order": "recall_order",
+    "chunk_order": "query_relevance"
+  },
+  "candidate_support_sha256": "04f6ff06f13bcfde09c111800ddb44a337ea50666283a8fa67ab7cd81a3e9905",
+  "rows": [
+    {
+      "question_id": "conv-30_q0",
+      "question": "When Jon has lost his job as a banker?",
+      "evidence_ids": [
+        "D1:2"
+      ],
+      "old_covered": [
+        "D1:2"
+      ],
+      "new_covered": [
+        "D1:2"
+      ],
+      "returned_covered": [
+        "D1:2"
+      ],
+      "old_tokens": 7743,
+      "new_tokens": 7973,
+      "packing_ms": 372.48366698622704
+    },
+    {
+      "question_id": "conv-30_q1",
+      "question": "When Gina has lost her job at Door Dash?",
+      "evidence_ids": [
+        "D1:3"
+      ],
+      "old_covered": [
+        "D1:3"
+      ],
+      "new_covered": [
+        "D1:3"
+      ],
+      "returned_covered": [
+        "D1:3"
+      ],
+      "old_tokens": 7727,
+      "new_tokens": 7969,
+      "packing_ms": 290.64712510444224
+    },
+    {
+      "question_id": "conv-30_q2",
+      "question": "How do Jon and Gina both like to destress?",
+      "evidence_ids": [
+        "D1:7",
+        "D1:6"
+      ],
+      "old_covered": [
+        "D1:7",
+        "D1:6"
+      ],
+      "new_covered": [
+        "D1:7",
+        "D1:6"
+      ],
+      "returned_covered": [
+        "D1:7",
+        "D1:6"
+      ],
+      "old_tokens": 7674,
+      "new_tokens": 7991,
+      "packing_ms": 311.1300420714542
+    },
+    {
+      "question_id": "conv-30_q3",
+      "question": "What do Jon and Gina both have in common?",
+      "evidence_ids": [
+        "D1:2",
+        "D1:3",
+        "D1:4",
+        "D2:1"
+      ],
+      "old_covered": [],
+      "new_covered": [],
+      "returned_covered": [],
+      "old_tokens": 7723,
+      "new_tokens": 7975,
+      "packing_ms": 303.03637497127056
+    },
+    {
+      "question_id": "conv-30_q4",
+      "question": "Why did Jon decide to start his dance studio?",
+      "evidence_ids": [
+        "D1:2",
+        "D1:4"
+      ],
+      "old_covered": [
+        "D1:2",
+        "D1:4"
+      ],
+      "new_covered": [
+        "D1:2",
+        "D1:4"
+      ],
+      "returned_covered": [
+        "D1:2",
+        "D1:4"
+      ],
+      "old_tokens": 7724,
+      "new_tokens": 7995,
+      "packing_ms": 296.4858330087736
+    },
+    {
+      "question_id": "conv-30_q5",
+      "question": "What Jon thinks the ideal dance studio should look like?",
+      "evidence_ids": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "old_covered": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "new_covered": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "returned_covered": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "old_tokens": 7635,
+      "new_tokens": 8000,
+      "packing_ms": 295.17687507905066
+    },
+    {
+      "question_id": "conv-30_q6",
+      "question": "When is Jon's group performing at a festival?",
+      "evidence_ids": [
+        "D1:24"
+      ],
+      "old_covered": [
+        "D1:24"
+      ],
+      "new_covered": [
+        "D1:24"
+      ],
+      "returned_covered": [
+        "D1:24"
+      ],
+      "old_tokens": 7859,
+      "new_tokens": 7975,
+      "packing_ms": 296.84691596776247
+    },
+    {
+      "question_id": "conv-30_q7",
+      "question": "When did Gina launch an ad campaign for her store?",
+      "evidence_ids": [
+        "D2:1"
+      ],
+      "old_covered": [
+        "D2:1"
+      ],
+      "new_covered": [
+        "D2:1"
+      ],
+      "returned_covered": [
+        "D2:1"
+      ],
+      "old_tokens": 7688,
+      "new_tokens": 7981,
+      "packing_ms": 307.92837508488446
+    },
+    {
+      "question_id": "conv-30_q8",
+      "question": "When was Jon in Paris?",
+      "evidence_ids": [
+        "D2:4"
+      ],
+      "old_covered": [
+        "D2:4"
+      ],
+      "new_covered": [
+        "D2:4"
+      ],
+      "returned_covered": [
+        "D2:4"
+      ],
+      "old_tokens": 7593,
+      "new_tokens": 7958,
+      "packing_ms": 289.3288331106305
+    },
+    {
+      "question_id": "conv-30_q9",
+      "question": "Which city have both Jean and John visited?",
+      "evidence_ids": [
+        "D2:5",
+        "D15:1"
+      ],
+      "old_covered": [
+        "D2:5",
+        "D15:1"
+      ],
+      "new_covered": [
+        "D2:5",
+        "D15:1"
+      ],
+      "returned_covered": [
+        "D2:5",
+        "D15:1"
+      ],
+      "old_tokens": 7747,
+      "new_tokens": 7960,
+      "packing_ms": 310.48374995589256
+    },
+    {
+      "question_id": "conv-30_q10",
+      "question": "When did Gina team up with a local artist for some cool designs?",
+      "evidence_ids": [
+        "D5:5"
+      ],
+      "old_covered": [
+        "D5:5"
+      ],
+      "new_covered": [
+        "D5:5"
+      ],
+      "returned_covered": [
+        "D5:5"
+      ],
+      "old_tokens": 7848,
+      "new_tokens": 7987,
+      "packing_ms": 319.9218340450898
+    },
+    {
+      "question_id": "conv-30_q11",
+      "question": "When did Gina get her tattoo?",
+      "evidence_ids": [
+        "D5:15"
+      ],
+      "old_covered": [
+        "D5:15"
+      ],
+      "new_covered": [
+        "D5:15"
+      ],
+      "returned_covered": [
+        "D5:15"
+      ],
+      "old_tokens": 7856,
+      "new_tokens": 7992,
+      "packing_ms": 293.63591701257974
+    },
+    {
+      "question_id": "conv-30_q12",
+      "question": "When did Jon start to go to the gym?",
+      "evidence_ids": [
+        "D6:1"
+      ],
+      "old_covered": [
+        "D6:1"
+      ],
+      "new_covered": [
+        "D6:1"
+      ],
+      "returned_covered": [
+        "D6:1"
+      ],
+      "old_tokens": 7820,
+      "new_tokens": 7981,
+      "packing_ms": 295.25204107631
+    },
+    {
+      "question_id": "conv-30_q13",
+      "question": "When did Gina open her online clothing store?",
+      "evidence_ids": [
+        "D6:6"
+      ],
+      "old_covered": [
+        "D6:6"
+      ],
+      "new_covered": [
+        "D6:6"
+      ],
+      "returned_covered": [
+        "D6:6"
+      ],
+      "old_tokens": 7775,
+      "new_tokens": 8002,
+      "packing_ms": 300.96024996601045
+    },
+    {
+      "question_id": "conv-30_q14",
+      "question": "When did Jon start expanding his studio's social media presence?",
+      "evidence_ids": [
+        "D8:13"
+      ],
+      "old_covered": [
+        "D8:13"
+      ],
+      "new_covered": [
+        "D8:13"
+      ],
+      "returned_covered": [
+        "D8:13"
+      ],
+      "old_tokens": 7609,
+      "new_tokens": 8004,
+      "packing_ms": 298.06766600813717
+    },
+    {
+      "question_id": "conv-30_q15",
+      "question": "When did Jon host a dance competition?",
+      "evidence_ids": [
+        "D8:13"
+      ],
+      "old_covered": [
+        "D8:13"
+      ],
+      "new_covered": [
+        "D8:13"
+      ],
+      "returned_covered": [
+        "D8:13"
+      ],
+      "old_tokens": 7545,
+      "new_tokens": 8000,
+      "packing_ms": 305.78449997119606
+    },
+    {
+      "question_id": "conv-30_q16",
+      "question": "When did Jon go to a fair to get more exposure for his dance studio?",
+      "evidence_ids": [
+        "D10:1"
+      ],
+      "old_covered": [
+        "D10:1"
+      ],
+      "new_covered": [
+        "D10:1"
+      ],
+      "returned_covered": [
+        "D10:1"
+      ],
+      "old_tokens": 7865,
+      "new_tokens": 7976,
+      "packing_ms": 309.60912501905113
+    },
+    {
+      "question_id": "conv-30_q17",
+      "question": "Why did Gina decide to start her own clothing store?",
+      "evidence_ids": [
+        "D6:8",
+        "D1:3"
+      ],
+      "old_covered": [
+        "D6:8"
+      ],
+      "new_covered": [
+        "D6:8"
+      ],
+      "returned_covered": [
+        "D6:8"
+      ],
+      "old_tokens": 7761,
+      "new_tokens": 7986,
+      "packing_ms": 312.89512501098216
+    },
+    {
+      "question_id": "conv-30_q18",
+      "question": "Do Jon and Gina start businesses out of what they love?",
+      "evidence_ids": [
+        "D1:4",
+        "D6:8"
+      ],
+      "old_covered": [
+        "D1:4",
+        "D6:8"
+      ],
+      "new_covered": [
+        "D1:4",
+        "D6:8"
+      ],
+      "returned_covered": [
+        "D1:4",
+        "D6:8"
+      ],
+      "old_tokens": 7765,
+      "new_tokens": 7982,
+      "packing_ms": 321.15625008009374
+    },
+    {
+      "question_id": "conv-30_q19",
+      "question": "When did Gina interview for a design internship?",
+      "evidence_ids": [
+        "D11:14"
+      ],
+      "old_covered": [
+        "D11:14"
+      ],
+      "new_covered": [
+        "D11:14"
+      ],
+      "returned_covered": [
+        "D11:14"
+      ],
+      "old_tokens": 7704,
+      "new_tokens": 7994,
+      "packing_ms": 308.57712496072054
+    },
+    {
+      "question_id": "conv-30_q20",
+      "question": "When did Gina get accepted for the design internship?",
+      "evidence_ids": [
+        "D12:1"
+      ],
+      "old_covered": [
+        "D12:1"
+      ],
+      "new_covered": [
+        "D12:1"
+      ],
+      "returned_covered": [
+        "D12:1"
+      ],
+      "old_tokens": 7711,
+      "new_tokens": 8002,
+      "packing_ms": 311.7382079362869
+    },
+    {
+      "question_id": "conv-30_q21",
+      "question": "When did Jon start reading \"The Lean Startup\"?",
+      "evidence_ids": [
+        "D12:6"
+      ],
+      "old_covered": [
+        "D12:6"
+      ],
+      "new_covered": [
+        "D12:6"
+      ],
+      "returned_covered": [
+        "D12:6"
+      ],
+      "old_tokens": 7665,
+      "new_tokens": 7999,
+      "packing_ms": 305.7328329887241
+    },
+    {
+      "question_id": "conv-30_q22",
+      "question": "When did Gina develop a video presentation to teach how to style her fashion pieces? ",
+      "evidence_ids": [
+        "D13:4"
+      ],
+      "old_covered": [
+        "D13:4"
+      ],
+      "new_covered": [
+        "D13:4"
+      ],
+      "returned_covered": [
+        "D13:4"
+      ],
+      "old_tokens": 7657,
+      "new_tokens": 7981,
+      "packing_ms": 309.3820420326665
+    },
+    {
+      "question_id": "conv-30_q23",
+      "question": "How did Gina promote her clothes store?",
+      "evidence_ids": [
+        "D5:5",
+        "D16:3",
+        "D8:4",
+        "D13:4"
+      ],
+      "old_covered": [
+        "D8:4"
+      ],
+      "new_covered": [
+        "D5:5",
+        "D16:3",
+        "D8:4"
+      ],
+      "returned_covered": [
+        "D5:5",
+        "D16:3",
+        "D8:4"
+      ],
+      "old_tokens": 7622,
+      "new_tokens": 7961,
+      "packing_ms": 296.4551670011133
+    },
+    {
+      "question_id": "conv-30_q24",
+      "question": "Which events has Jon participated in to promote his business venture?",
+      "evidence_ids": [
+        "D10:1",
+        "D16:6",
+        "D8:4"
+      ],
+      "old_covered": [
+        "D10:1",
+        "D16:6"
+      ],
+      "new_covered": [
+        "D10:1",
+        "D16:6"
+      ],
+      "returned_covered": [
+        "D10:1",
+        "D16:6"
+      ],
+      "old_tokens": 7798,
+      "new_tokens": 7953,
+      "packing_ms": 310.31845801044255
+    },
+    {
+      "question_id": "conv-30_q25",
+      "question": "What does Jon's dance studio offer?",
+      "evidence_ids": [
+        "D13:7",
+        "D8:13"
+      ],
+      "old_covered": [
+        "D13:7",
+        "D8:13"
+      ],
+      "new_covered": [
+        "D13:7",
+        "D8:13"
+      ],
+      "returned_covered": [
+        "D13:7",
+        "D8:13"
+      ],
+      "old_tokens": 7929,
+      "new_tokens": 7999,
+      "packing_ms": 301.3164169387892
+    },
+    {
+      "question_id": "conv-30_q26",
+      "question": "When did Jon receive mentorship to promote his venture?",
+      "evidence_ids": [
+        "D14:1"
+      ],
+      "old_covered": [
+        "D14:1"
+      ],
+      "new_covered": [],
+      "returned_covered": [
+        "D14:1"
+      ],
+      "old_tokens": 7875,
+      "new_tokens": 7998,
+      "packing_ms": 307.2838330408558
+    },
+    {
+      "question_id": "conv-30_q27",
+      "question": "Did Jon and Gina both participate in dance competitions?",
+      "evidence_ids": [
+        "D1:14",
+        "D14:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "old_covered": [
+        "D1:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "new_covered": [
+        "D1:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "returned_covered": [
+        "D1:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "old_tokens": 7850,
+      "new_tokens": 7991,
+      "packing_ms": 307.2348749265075
+    },
+    {
+      "question_id": "conv-30_q28",
+      "question": "When was Jon in Rome?",
+      "evidence_ids": [
+        "D15:1"
+      ],
+      "old_covered": [
+        "D15:1"
+      ],
+      "new_covered": [
+        "D15:1"
+      ],
+      "returned_covered": [
+        "D15:1"
+      ],
+      "old_tokens": 7703,
+      "new_tokens": 7989,
+      "packing_ms": 275.64820798579603
+    },
+    {
+      "question_id": "conv-30_q29",
+      "question": "Which cities has Jon visited?",
+      "evidence_ids": [
+        "D2:4",
+        "D15:1"
+      ],
+      "old_covered": [
+        "D2:4",
+        "D15:1"
+      ],
+      "new_covered": [
+        "D2:4",
+        "D15:1"
+      ],
+      "returned_covered": [
+        "D2:4",
+        "D15:1"
+      ],
+      "old_tokens": 7566,
+      "new_tokens": 8000,
+      "packing_ms": 288.06941595394164
+    },
+    {
+      "question_id": "conv-30_q30",
+      "question": "When Jon is planning to open his dance studio?",
+      "evidence_ids": [
+        "D15:5"
+      ],
+      "old_covered": [
+        "D15:5"
+      ],
+      "new_covered": [
+        "D15:5"
+      ],
+      "returned_covered": [
+        "D15:5"
+      ],
+      "old_tokens": 7753,
+      "new_tokens": 7992,
+      "packing_ms": 306.46379198879004
+    },
+    {
+      "question_id": "conv-30_q31",
+      "question": "How long did it take for Jon to open his studio?",
+      "evidence_ids": [
+        "D1:2",
+        "D15:13"
+      ],
+      "old_covered": [
+        "D15:13"
+      ],
+      "new_covered": [
+        "D1:2",
+        "D15:13"
+      ],
+      "returned_covered": [
+        "D1:2",
+        "D15:13"
+      ],
+      "old_tokens": 7899,
+      "new_tokens": 7969,
+      "packing_ms": 305.19500002264977
+    },
+    {
+      "question_id": "conv-30_q32",
+      "question": "When did Gina design a limited collection of hoodies?",
+      "evidence_ids": [
+        "D16:3"
+      ],
+      "old_covered": [
+        "D16:3"
+      ],
+      "new_covered": [
+        "D16:3"
+      ],
+      "returned_covered": [
+        "D16:3"
+      ],
+      "old_tokens": 7574,
+      "new_tokens": 7958,
+      "packing_ms": 291.7844170005992
+    },
+    {
+      "question_id": "conv-30_q33",
+      "question": "When did Jon visit networking events for his store?",
+      "evidence_ids": [
+        "D16:6"
+      ],
+      "old_covered": [
+        "D16:6"
+      ],
+      "new_covered": [
+        "D16:6"
+      ],
+      "returned_covered": [
+        "D16:6"
+      ],
+      "old_tokens": 7583,
+      "new_tokens": 7969,
+      "packing_ms": 300.7593749789521
+    },
+    {
+      "question_id": "conv-30_q34",
+      "question": "When did Gina start being recognized by fashion editors?",
+      "evidence_ids": [
+        "D17:1"
+      ],
+      "old_covered": [
+        "D17:1"
+      ],
+      "new_covered": [
+        "D17:1"
+      ],
+      "returned_covered": [
+        "D17:1"
+      ],
+      "old_tokens": 7576,
+      "new_tokens": 7970,
+      "packing_ms": 309.11350005771965
+    },
+    {
+      "question_id": "conv-30_q35",
+      "question": "When did Jon start learning marketing and analytics tools?",
+      "evidence_ids": [
+        "D17:4"
+      ],
+      "old_covered": [
+        "D17:4"
+      ],
+      "new_covered": [
+        "D17:4"
+      ],
+      "returned_covered": [
+        "D17:4"
+      ],
+      "old_tokens": 7939,
+      "new_tokens": 7990,
+      "packing_ms": 296.18279193527997
+    },
+    {
+      "question_id": "conv-30_q36",
+      "question": "When did Jon and Gina decide to collaborate to create dance content?",
+      "evidence_ids": [
+        "D18:18"
+      ],
+      "old_covered": [
+        "D18:18"
+      ],
+      "new_covered": [
+        "D18:18"
+      ],
+      "returned_covered": [
+        "D18:18"
+      ],
+      "old_tokens": 7868,
+      "new_tokens": 7992,
+      "packing_ms": 295.09633290581405
+    },
+    {
+      "question_id": "conv-30_q37",
+      "question": "When did Gina mention Shia Labeouf?",
+      "evidence_ids": [
+        "D19:4"
+      ],
+      "old_covered": [],
+      "new_covered": [
+        "D19:4"
+      ],
+      "returned_covered": [
+        "D19:4"
+      ],
+      "old_tokens": 7812,
+      "new_tokens": 7988,
+      "packing_ms": 273.8272499991581
+    },
+    {
+      "question_id": "conv-30_q38",
+      "question": "When did Gina go to a dance class with a group of friends?",
+      "evidence_ids": [
+        "D19:6"
+      ],
+      "old_covered": [
+        "D19:6"
+      ],
+      "new_covered": [
+        "D19:6"
+      ],
+      "returned_covered": [
+        "D19:6"
+      ],
+      "old_tokens": 7707,
+      "new_tokens": 7984,
+      "packing_ms": 320.92116691637784
+    },
+    {
+      "question_id": "conv-30_q39",
+      "question": "What is Gina's favorite style of dance?",
+      "evidence_ids": [
+        "D1:9"
+      ],
+      "old_covered": [
+        "D1:9"
+      ],
+      "new_covered": [
+        "D1:9"
+      ],
+      "returned_covered": [
+        "D1:9"
+      ],
+      "old_tokens": 7878,
+      "new_tokens": 7957,
+      "packing_ms": 275.1324159326032
+    },
+    {
+      "question_id": "conv-30_q40",
+      "question": "What is Jon's favorite style of dance?",
+      "evidence_ids": [
+        "D1:8"
+      ],
+      "old_covered": [
+        "D1:8"
+      ],
+      "new_covered": [
+        "D1:8"
+      ],
+      "returned_covered": [
+        "D1:8"
+      ],
+      "old_tokens": 7755,
+      "new_tokens": 7984,
+      "packing_ms": 300.5848750472069
+    },
+    {
+      "question_id": "conv-30_q41",
+      "question": "What was Gina's favorite dancing memory?",
+      "evidence_ids": [
+        "D1:17"
+      ],
+      "old_covered": [
+        "D1:17"
+      ],
+      "new_covered": [
+        "D1:17"
+      ],
+      "returned_covered": [
+        "D1:17"
+      ],
+      "old_tokens": 7904,
+      "new_tokens": 7985,
+      "packing_ms": 289.7212089737877
+    },
+    {
+      "question_id": "conv-30_q42",
+      "question": "What kind of dance piece did Gina's team perform to win first place?",
+      "evidence_ids": [
+        "D1:19"
+      ],
+      "old_covered": [
+        "D1:19"
+      ],
+      "new_covered": [
+        "D1:19"
+      ],
+      "returned_covered": [
+        "D1:19"
+      ],
+      "old_tokens": 7881,
+      "new_tokens": 8000,
+      "packing_ms": 290.89641699101776
+    },
+    {
+      "question_id": "conv-30_q43",
+      "question": "What do the dancers in the photo represent?",
+      "evidence_ids": [
+        "D1:25"
+      ],
+      "old_covered": [
+        "D1:25"
+      ],
+      "new_covered": [
+        "D1:25"
+      ],
+      "returned_covered": [
+        "D1:25"
+      ],
+      "old_tokens": 4062,
+      "new_tokens": 4080,
+      "packing_ms": 49.78275008033961
+    },
+    {
+      "question_id": "conv-30_q44",
+      "question": "What does Gina say about the dancers in the photo?",
+      "evidence_ids": [
+        "D1:26"
+      ],
+      "old_covered": [],
+      "new_covered": [],
+      "returned_covered": [
+        "D1:26"
+      ],
+      "old_tokens": 7673,
+      "new_tokens": 7995,
+      "packing_ms": 306.3054590020329
+    },
+    {
+      "question_id": "conv-30_q45",
+      "question": "What is Jon's attitude towards being part of the dance festival?",
+      "evidence_ids": [
+        "D1:28"
+      ],
+      "old_covered": [
+        "D1:28"
+      ],
+      "new_covered": [
+        "D1:28"
+      ],
+      "returned_covered": [
+        "D1:28"
+      ],
+      "old_tokens": 7578,
+      "new_tokens": 7986,
+      "packing_ms": 297.08120797295123
+    },
+    {
+      "question_id": "conv-30_q46",
+      "question": "What kind of flooring is Jon looking for in his dance studio?",
+      "evidence_ids": [
+        "D2:8"
+      ],
+      "old_covered": [
+        "D2:8"
+      ],
+      "new_covered": [
+        "D2:8"
+      ],
+      "returned_covered": [
+        "D2:8"
+      ],
+      "old_tokens": 7869,
+      "new_tokens": 7995,
+      "packing_ms": 318.0767090525478
+    },
+    {
+      "question_id": "conv-30_q47",
+      "question": "What did Gina find for her clothing store on 1 February, 2023?",
+      "evidence_ids": [
+        "D3:2"
+      ],
+      "old_covered": [
+        "D3:2"
+      ],
+      "new_covered": [
+        "D3:2"
+      ],
+      "returned_covered": [
+        "D3:2"
+      ],
+      "old_tokens": 7612,
+      "new_tokens": 7977,
+      "packing_ms": 313.5684580774978
+    },
+    {
+      "question_id": "conv-30_q48",
+      "question": "What did Gina design for her store?",
+      "evidence_ids": [
+        "D3:4"
+      ],
+      "old_covered": [
+        "D3:4"
+      ],
+      "new_covered": [
+        "D3:4"
+      ],
+      "returned_covered": [
+        "D3:4"
+      ],
+      "old_tokens": 7598,
+      "new_tokens": 7994,
+      "packing_ms": 302.5225419551134
+    },
+    {
+      "question_id": "conv-30_q49",
+      "question": "What did Gina want her customers to feel in her store?",
+      "evidence_ids": [
+        "D3:6",
+        "D3:8"
+      ],
+      "old_covered": [
+        "D3:6",
+        "D3:8"
+      ],
+      "new_covered": [
+        "D3:6",
+        "D3:8"
+      ],
+      "returned_covered": [
+        "D3:6",
+        "D3:8"
+      ],
+      "old_tokens": 7697,
+      "new_tokens": 7974,
+      "packing_ms": 308.82729194127023
+    },
+    {
+      "question_id": "conv-30_q50",
+      "question": "What did Jon say about Gina's progress with her store?",
+      "evidence_ids": [
+        "D3:3"
+      ],
+      "old_covered": [],
+      "new_covered": [
+        "D3:3"
+      ],
+      "returned_covered": [
+        "D3:3"
+      ],
+      "old_tokens": 7565,
+      "new_tokens": 7996,
+      "packing_ms": 325.54012502077967
+    },
+    {
+      "question_id": "conv-30_q51",
+      "question": "What made Gina choose the furniture and decor for her store?",
+      "evidence_ids": [
+        "D3:6"
+      ],
+      "old_covered": [
+        "D3:6"
+      ],
+      "new_covered": [
+        "D3:6"
+      ],
+      "returned_covered": [
+        "D3:6"
+      ],
+      "old_tokens": 7692,
+      "new_tokens": 8006,
+      "packing_ms": 303.004042012617
+    },
+    {
+      "question_id": "conv-30_q52",
+      "question": "What did Jon say about creating a special experience for customers?",
+      "evidence_ids": [
+        "D3:9"
+      ],
+      "old_covered": [
+        "D3:9"
+      ],
+      "new_covered": [
+        "D3:9"
+      ],
+      "returned_covered": [
+        "D3:9"
+      ],
+      "old_tokens": 7591,
+      "new_tokens": 7996,
+      "packing_ms": 307.649000082165
+    },
+    {
+      "question_id": "conv-30_q53",
+      "question": "What did Gina say about creating an experience for her customers?",
+      "evidence_ids": [
+        "D3:8"
+      ],
+      "old_covered": [
+        "D3:8"
+      ],
+      "new_covered": [
+        "D3:8"
+      ],
+      "returned_covered": [
+        "D3:8"
+      ],
+      "old_tokens": 7816,
+      "new_tokens": 7995,
+      "packing_ms": 301.0002499213442
+    },
+    {
+      "question_id": "conv-30_q54",
+      "question": "How is Gina's store doing?",
+      "evidence_ids": [
+        "D4:2"
+      ],
+      "old_covered": [],
+      "new_covered": [
+        "D4:2"
+      ],
+      "returned_covered": [
+        "D4:2"
+      ],
+      "old_tokens": 7667,
+      "new_tokens": 7968,
+      "packing_ms": 314.784458023496
+    },
+    {
+      "question_id": "conv-30_q55",
+      "question": "What does Gina's tattoo symbolize?",
+      "evidence_ids": [
+        "D5:15"
+      ],
+      "old_covered": [
+        "D5:15"
+      ],
+      "new_covered": [
+        "D5:15"
+      ],
+      "returned_covered": [
+        "D5:15"
+      ],
+      "old_tokens": 7930,
+      "new_tokens": 7978,
+      "packing_ms": 299.9467080226168
+    },
+    {
+      "question_id": "conv-30_q56",
+      "question": "What did Jon and Gina compare their entrepreneurial journeys to?",
+      "evidence_ids": [
+        "D6:15",
+        "D6:16"
+      ],
+      "old_covered": [
+        "D6:15",
+        "D6:16"
+      ],
+      "new_covered": [
+        "D6:15"
+      ],
+      "returned_covered": [
+        "D6:15",
+        "D6:16"
+      ],
+      "old_tokens": 7616,
+      "new_tokens": 8002,
+      "packing_ms": 302.0863749552518
+    },
+    {
+      "question_id": "conv-30_q57",
+      "question": "What advice does Gina give to Jon about running a successful business?",
+      "evidence_ids": [
+        "D7:5"
+      ],
+      "old_covered": [
+        "D7:5"
+      ],
+      "new_covered": [
+        "D7:5"
+      ],
+      "returned_covered": [
+        "D7:5"
+      ],
+      "old_tokens": 7717,
+      "new_tokens": 7994,
+      "packing_ms": 314.8520829854533
+    },
+    {
+      "question_id": "conv-30_q58",
+      "question": "Why did Jon shut down his bank account?",
+      "evidence_ids": [
+        "D8:1"
+      ],
+      "old_covered": [
+        "D8:1"
+      ],
+      "new_covered": [
+        "D8:1"
+      ],
+      "returned_covered": [
+        "D8:1"
+      ],
+      "old_tokens": 7580,
+      "new_tokens": 7987,
+      "packing_ms": 290.35712499171495
+    },
+    {
+      "question_id": "conv-30_q59",
+      "question": "Why did Gina combine her clothing business with dance?",
+      "evidence_ids": [
+        "D8:8"
+      ],
+      "old_covered": [
+        "D8:8"
+      ],
+      "new_covered": [
+        "D8:8"
+      ],
+      "returned_covered": [
+        "D8:8"
+      ],
+      "old_tokens": 7836,
+      "new_tokens": 7967,
+      "packing_ms": 312.0069589931518
+    },
+    {
+      "question_id": "conv-30_q60",
+      "question": "What does Jon's dance make him?",
+      "evidence_ids": [
+        "D9:5"
+      ],
+      "old_covered": [
+        "D9:5"
+      ],
+      "new_covered": [
+        "D9:5"
+      ],
+      "returned_covered": [
+        "D9:5"
+      ],
+      "old_tokens": 7601,
+      "new_tokens": 7961,
+      "packing_ms": 301.45645793527365
+    },
+    {
+      "question_id": "conv-30_q61",
+      "question": "What did Gina receive from a dance contest?",
+      "evidence_ids": [
+        "D9:10"
+      ],
+      "old_covered": [
+        "D9:10"
+      ],
+      "new_covered": [
+        "D9:10"
+      ],
+      "returned_covered": [
+        "D9:10"
+      ],
+      "old_tokens": 7923,
+      "new_tokens": 7975,
+      "packing_ms": 307.00466607231647
+    },
+    {
+      "question_id": "conv-30_q62",
+      "question": "How does Gina stay confident in her business?",
+      "evidence_ids": [
+        "D10:8"
+      ],
+      "old_covered": [
+        "D10:8"
+      ],
+      "new_covered": [
+        "D10:8"
+      ],
+      "returned_covered": [
+        "D10:8"
+      ],
+      "old_tokens": 7685,
+      "new_tokens": 7957,
+      "packing_ms": 321.57291600015014
+    },
+    {
+      "question_id": "conv-30_q63",
+      "question": "What kind of professional experience did Gina get accepted for on May 23, 2023?",
+      "evidence_ids": [
+        "D12:1"
+      ],
+      "old_covered": [
+        "D12:1"
+      ],
+      "new_covered": [
+        "D12:1"
+      ],
+      "returned_covered": [
+        "D12:1"
+      ],
+      "old_tokens": 7982,
+      "new_tokens": 8007,
+      "packing_ms": 288.54195796884596
+    },
+    {
+      "question_id": "conv-30_q64",
+      "question": "Where is Gina's fashion internship?",
+      "evidence_ids": [
+        "D12:3"
+      ],
+      "old_covered": [
+        "D12:3"
+      ],
+      "new_covered": [
+        "D12:3"
+      ],
+      "returned_covered": [
+        "D12:3"
+      ],
+      "old_tokens": 7818,
+      "new_tokens": 7998,
+      "packing_ms": 298.1042079627514
+    },
+    {
+      "question_id": "conv-30_q65",
+      "question": "What book is Jon currently reading?",
+      "evidence_ids": [
+        "D12:6"
+      ],
+      "old_covered": [
+        "D12:6"
+      ],
+      "new_covered": [
+        "D12:6"
+      ],
+      "returned_covered": [
+        "D12:6"
+      ],
+      "old_tokens": 7936,
+      "new_tokens": 7967,
+      "packing_ms": 300.02966697793454
+    },
+    {
+      "question_id": "conv-30_q66",
+      "question": "What is Jon offering to the dancers at his dance studio?",
+      "evidence_ids": [
+        "D13:7"
+      ],
+      "old_covered": [
+        "D13:7"
+      ],
+      "new_covered": [
+        "D13:7"
+      ],
+      "returned_covered": [
+        "D13:7"
+      ],
+      "old_tokens": 7965,
+      "new_tokens": 7966,
+      "packing_ms": 315.61074999626726
+    },
+    {
+      "question_id": "conv-30_q67",
+      "question": "How does Jon use the clipboard with a notepad attached to it?",
+      "evidence_ids": [
+        "D13:11"
+      ],
+      "old_covered": [
+        "D13:11"
+      ],
+      "new_covered": [
+        "D13:11"
+      ],
+      "returned_covered": [
+        "D13:11"
+      ],
+      "old_tokens": 7956,
+      "new_tokens": 7978,
+      "packing_ms": 306.0017499374226
+    },
+    {
+      "question_id": "conv-30_q68",
+      "question": "What does Jon tell Gina he won't do?",
+      "evidence_ids": [
+        "D14:17"
+      ],
+      "old_covered": [
+        "D14:17"
+      ],
+      "new_covered": [
+        "D14:17"
+      ],
+      "returned_covered": [
+        "D14:17"
+      ],
+      "old_tokens": 7993,
+      "new_tokens": 7998,
+      "packing_ms": 313.6784170055762
+    },
+    {
+      "question_id": "conv-30_q69",
+      "question": "What did Jon take a trip to Rome for?",
+      "evidence_ids": [
+        "D15:1"
+      ],
+      "old_covered": [
+        "D15:1"
+      ],
+      "new_covered": [
+        "D15:1"
+      ],
+      "returned_covered": [
+        "D15:1"
+      ],
+      "old_tokens": 7897,
+      "new_tokens": 7975,
+      "packing_ms": 302.5098330108449
+    },
+    {
+      "question_id": "conv-30_q70",
+      "question": "What is Jon working on opening?",
+      "evidence_ids": [
+        "D15:3"
+      ],
+      "old_covered": [
+        "D15:3"
+      ],
+      "new_covered": [
+        "D15:3"
+      ],
+      "returned_covered": [
+        "D15:3"
+      ],
+      "old_tokens": 7782,
+      "new_tokens": 7968,
+      "packing_ms": 315.9242910332978
+    },
+    {
+      "question_id": "conv-30_q71",
+      "question": "How does Gina describe the studio that Jon has opened?",
+      "evidence_ids": [
+        "D15:6"
+      ],
+      "old_covered": [
+        "D15:6"
+      ],
+      "new_covered": [
+        "D15:6"
+      ],
+      "returned_covered": [
+        "D15:6"
+      ],
+      "old_tokens": 7651,
+      "new_tokens": 8001,
+      "packing_ms": 307.6396669493988
+    },
+    {
+      "question_id": "conv-30_q72",
+      "question": "How does Jon feel about the opening night of his dance studio?",
+      "evidence_ids": [
+        "D15:7"
+      ],
+      "old_covered": [
+        "D15:7"
+      ],
+      "new_covered": [
+        "D15:7"
+      ],
+      "returned_covered": [
+        "D15:7"
+      ],
+      "old_tokens": 7926,
+      "new_tokens": 7991,
+      "packing_ms": 307.9412078950554
+    },
+    {
+      "question_id": "conv-30_q73",
+      "question": "How does Gina describe the feeling that dance brings?",
+      "evidence_ids": [
+        "D15:8"
+      ],
+      "old_covered": [],
+      "new_covered": [],
+      "returned_covered": [],
+      "old_tokens": 7657,
+      "new_tokens": 7980,
+      "packing_ms": 308.93558298703283
+    },
+    {
+      "question_id": "conv-30_q74",
+      "question": "What does Jon plan to do at the grand opening of his dance studio?",
+      "evidence_ids": [
+        "D15:9"
+      ],
+      "old_covered": [
+        "D15:9"
+      ],
+      "new_covered": [],
+      "returned_covered": [
+        "D15:9"
+      ],
+      "old_tokens": 7704,
+      "new_tokens": 7955,
+      "packing_ms": 320.5150419380516
+    },
+    {
+      "question_id": "conv-30_q75",
+      "question": "What does Gina say to Jon about the grand opening?",
+      "evidence_ids": [
+        "D15:12"
+      ],
+      "old_covered": [
+        "D15:12"
+      ],
+      "new_covered": [
+        "D15:12"
+      ],
+      "returned_covered": [
+        "D15:12"
+      ],
+      "old_tokens": 7826,
+      "new_tokens": 7979,
+      "packing_ms": 304.8365419963375
+    },
+    {
+      "question_id": "conv-30_q76",
+      "question": "What is the general sentiment about the upcoming grand opening?",
+      "evidence_ids": [
+        "D15:18",
+        "D15:19"
+      ],
+      "old_covered": [
+        "D15:18",
+        "D15:19"
+      ],
+      "new_covered": [
+        "D15:18",
+        "D15:19"
+      ],
+      "returned_covered": [
+        "D15:18",
+        "D15:19"
+      ],
+      "old_tokens": 7897,
+      "new_tokens": 7994,
+      "packing_ms": 309.9852920277044
+    },
+    {
+      "question_id": "conv-30_q77",
+      "question": "What did Gina make a limited edition line of?",
+      "evidence_ids": [
+        "D16:3"
+      ],
+      "old_covered": [
+        "D16:3"
+      ],
+      "new_covered": [
+        "D16:3"
+      ],
+      "returned_covered": [
+        "D16:3"
+      ],
+      "old_tokens": 7709,
+      "new_tokens": 7976,
+      "packing_ms": 301.9803339848295
+    },
+    {
+      "question_id": "conv-30_q78",
+      "question": "According to Gina, what makes Jon a perfect mentor and guide?",
+      "evidence_ids": [
+        "D17:7"
+      ],
+      "old_covered": [
+        "D17:7"
+      ],
+      "new_covered": [
+        "D17:7"
+      ],
+      "returned_covered": [
+        "D17:7"
+      ],
+      "old_tokens": 7758,
+      "new_tokens": 8003,
+      "packing_ms": 314.1440839972347
+    },
+    {
+      "question_id": "conv-30_q80",
+      "question": "What plans does Jon have after receiving advice at the networking event?",
+      "evidence_ids": [
+        "D18:10"
+      ],
+      "old_covered": [
+        "D18:10"
+      ],
+      "new_covered": [
+        "D18:10"
+      ],
+      "returned_covered": [
+        "D18:10"
+      ],
+      "old_tokens": 7439,
+      "new_tokens": 7976,
+      "packing_ms": 296.310041914694
+    },
+    {
+      "question_id": "conv-30_q81",
+      "question": "What offer does Gina make to Jon regarding social media?",
+      "evidence_ids": [
+        "D18:13"
+      ],
+      "old_covered": [
+        "D18:13"
+      ],
+      "new_covered": [
+        "D18:13"
+      ],
+      "returned_covered": [
+        "D18:13"
+      ],
+      "old_tokens": 7927,
+      "new_tokens": 7997,
+      "packing_ms": 307.95983294956386
+    }
+  ],
+  "old_covered_total": 90,
+  "new_covered_total": 93,
+  "returned_covered_total": 97,
+  "old_all_evidence_questions": 70,
+  "new_all_evidence_questions": 71,
+  "note": "Offline ID-presence diagnostic only, not new QA accuracy or semantic entailment."
+}
