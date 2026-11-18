@@ -90,3 +90,5 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 ```
 
 真实recall验证使用相同参数并将 `local` 改为 `recall`、去掉 `--model-path`。源manifest中的模型配置是历史声明，实际服务版本及模型配置需同时归档，不能仅凭历史manifest声称部署配置已验证。
+
+夜间守护使用 `night.py --run-dir <run> --record <new-status.json> [--original-pid <launcher-pid>]`。它监视现有执行者和运行锁；原进程退出且无其他执行者时才调用同一份冻结 runner 接续。它不增加模型尝试上限，不重答已有结果，不把失败基线导出为成功，也不自动提交/推送。完成后在本机 run 内生成 `public-results.json`，经复核后再保存到 results/ 并提交。

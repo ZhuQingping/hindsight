@@ -449,6 +449,14 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
         ]
         assert len(factory.calls) == 4
         assert (probe_dir / "conv-30_q0-packing.json").is_file()
+        night = a.module_from_file("memory_night_test", SCRIPT.with_name("night.py"))
+        with h.run_lock(directory):
+            assert night.locked(directory)
+        assert not night.locked(directory)
+        assert night.run(directory, tmp_path / "night-status.json", None, 1) == 0
+        assert json.loads((tmp_path / "night-status.json").read_text())["stage"] == "completed"
+        assert (directory / "public-results.json").is_file()
+        assert len(factory.calls) == 4 and len(service.requests) == request_count + 1
 
 
 @pytest.mark.parametrize("change", ["amb", "helper", "config", "record"])
