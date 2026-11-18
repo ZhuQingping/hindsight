@@ -201,3 +201,5 @@ q132尤其说明ID覆盖不等于答案覆盖：参考ID D16:7是Caroline从17�
 q54尤其不能误诊为抽取幻觉：10月23日原文D25:4明确说third time，抽取据此标第三次；题目和gold却把这次上映叫第二部。q24原文two weekends later与gold的weekend after June3、q43约三个月与gold含首尾四个月，也存在时间表述歧义。q62同时有未明确为信的拒绝被reader计入，以及gold未计童年兄弟信的范围问题。后续优化需分开检查可修复的无依据计数和原始标注争议，不能删去不利原文或修改gold追分。
 
 第五组conv-43落盘后，累计762题中的60道错题均完成原文检查，更新同一逐题诊断JSON。其中新增明确人物/时间冲突：q135的visualize方法属于John而非Tim；q164的Spanish也是John，Tim实际提French；q6在7月16日说last week，gold却给June；q60在12月11日说last Friday，gold用session当天。q56还有violin/piano前后混用。它们不能靠提高检索或错误转写人物来修复。另有多道开放域推荐题将一个特定商店、组织、书名或瑜伽样式作为唯一gold，而原文只提供兴趣条件；reader给其他建议即被判错。后续保留原判定并做共同裁判对照，不修改gold，也不将合理性争议直接记为系统正确。
+
+第六组conv-44完成后，885题中70道错题均已检查。q39的companionship原句已返回未打包，是可直接验证的窗口改进目标；q17则需要区分计划的重复叙述与独立徒步事件。q5的last week及q57的Scout收养月份有原文/gold冲突。q43/q44可能依赖地图图像，文本、BLIP caption和image query均没有州/公园名称；原图网页获取失败，未声称已识别地图，也不把其他照片的Oregon URL当作确定居住地。扩大原文预算不能自动解决视觉信息缺失。

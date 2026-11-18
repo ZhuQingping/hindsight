@@ -3,10 +3,10 @@
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 762,
-  "reviewed_wrong_cases": 60,
+  "saved_result_scope": 885,
+  "reviewed_wrong_cases": 70,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "d5cc6a321e3cbcba8a9c9f9a4e7e4ff36fbbdee0759599d570594a25f987a0c6",
+  "source_snapshot_sha256": "c4ad4da768fbc6837f323766cb5209bf5d96051b918bddadd6dc8cba0c365636",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
   "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
   "rows": [
@@ -1029,6 +1029,176 @@
       "answer_f1": 0.0,
       "result_sha256": "74acdfb7478b1c44dee90781ef14252651a913df66dc49463cb5d7dfdbc7f577",
       "retrieval_sha256": "96438950fae1759fcb3d138c159dabe752197e7a72fa39fbf75c13d25c6a9116"
+    },
+    {
+      "question_id": "conv-44_q17",
+      "diagnosis": "event_plan_deduplication_and_context_gap",
+      "evidence_summary": "reader将8月、11月、10月28日及未来秋色照相分四次；gold三次。7月8日/11日重复8月计划、10月1日/19日重复11月计划，10月28日同session又说future trail，可能同一计划延伸。多条参考返回未打包。",
+      "recommended_validation": "在完整原文中做事件计划归并，保留同日Saturday/next Saturday歧义；不能逐条事实相加。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many times did Audrey and Andew plan to hike together?",
+      "gold": [
+        "three times"
+      ],
+      "baseline_answer": "Audrey and Andrew planned to hike together **four times**: in August 2023, in November 2023, on October 28, 2023, and on a separate future outing to photograph their dogs amid the autumn colors.",
+      "judge_reason": "The generated answer says four times, whereas the gold answer says three times.",
+      "answer_f1": 0.15384615384615385,
+      "result_sha256": "d6100887f18d247b785ec4db15fbcbea7467579ec2d150970c5bf5a33d846e9f",
+      "retrieval_sha256": "131dc6b65127482b6a497cf22961311d1587c9185b68c34babf484c41abf60e1"
+    },
+    {
+      "question_id": "conv-44_q19",
+      "diagnosis": "nonunique_open_domain_activity",
+      "evidence_summary": "cooking和狗兴趣对应gold烘焙狗零食；reader选择实际表达想试的室内hide-and-seek，同样满足题目活动约束。原文未明确唯一活动。",
+      "recommended_validation": "单列开放域非唯一gold；通用推断利用全部兴趣，但不为某题写入烘焙狗饼干。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What is an indoor activity that Andrew would enjoy doing while make his dog happy?",
+      "gold": [
+        "cook dog treats"
+      ],
+      "baseline_answer": "Andrew could play hide-and-seek indoors with his dog—a fun way to bond while keeping his dog happy and mentally stimulated. On November 4, 2023, he said he wanted to try this activity.",
+      "judge_reason": "The generated answer suggests hide-and-seek rather than cooking dog treats, which is the activity specified in the gold answer.",
+      "answer_f1": 0.0588235294117647,
+      "result_sha256": "2102ac5f19cb5e241b56f1766a5615bd423bce021b401a8e66b0407fe91b5dfd",
+      "retrieval_sha256": "c5af6abdac6c83cbf670b1b76bd85ccd6d7ab7abd3df94a2485c466579e6bcad"
+    },
+    {
+      "question_id": "conv-44_q24",
+      "diagnosis": "family_dog_vs_childhood_inference",
+      "evidence_summary": "Audrey童年Max有明确原文；Andrew只说family dog并分享照片，没有明确童年。Andrew参考原文未返回，但事实中有家庭狗，reader因缺童年锚定而保留不确定。",
+      "recommended_validation": "窗口候选恢复原文后再核验是否有童年证据；不把家庭狗无条件转换成童年养狗。",
+      "confidence": "ambiguous",
+      "category": 1,
+      "question": "Did Audrey and Andrew grow up with a pet dog?",
+      "gold": [
+        "Yes"
+      ],
+      "baseline_answer": "Audrey did: she grew up with a dog named Max and fondly remembered their neighborhood walks and games of fetch. Andrew mentioned having a family dog on April 2, 2023, but the memories do not confirm whether he grew up with one.",
+      "judge_reason": "The generated answer confirms Audrey grew up with a dog but does not confirm Andrew did, whereas the gold answer says yes for both.",
+      "answer_f1": 0.0,
+      "result_sha256": "ab02a92b17645c2abe09e0b37a6e28058a1974c2f929a54f9018ad3ce5ae30f4",
+      "retrieval_sha256": "3caf6e27c56f19a0d4c54eef1001133661da689d925c9987fa2854bd2703f73e"
+    },
+    {
+      "question_id": "conv-44_q33",
+      "diagnosis": "nonunique_open_domain_solution_and_partial_context",
+      "evidence_summary": "原文给工作压力、城市缺空间和养狗，gold方案是换remote/hybrid工作搬郊区；reader提供步行、住所与作息调整，没有该具体建议。部分约束原文未返回或未打包。",
+      "recommended_validation": "验证完整上下文及通用因果方案推理；gold方案可作为推测，不能当作用户已采取行动导入。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "What can Andrew potentially do to improve his stress and accomodate his living situation with his dogs?",
+      "gold": [
+        "Change to a hybrid or remote job so he can move away from the city to the suburbs to have a larger living space and be closer to nature."
+      ],
+      "baseline_answer": "Andrew could combine stress relief with practical changes for city living:\n\n- **Make outdoor time manageable:** Keep taking lunchtime walks and schedule short visits to nearby dog-friendly parks with Toby, Buddy, and Scout. This could give him the calming contact with nature he misses while exercising his dogs. As of November 22, 2023, he already plans a nearby park visit; Scout should remain leashed and outings should suit the puppy’s comfort and stamina.\n- **Provide enrichment at home:** Try Audrey’s suggestions of puzzle toys, training, and hide-and-seek, alongside regular exercise and socialization, to keep the dogs stimulated in an apartment.\n- **Continue searching for suitable housing:** Use pet-friendly housing filters and contact landlords, prioritizing accommodation that permits all three dogs and is near a park or woods.\n- **Protect small self-care breaks:** Continue morning coffee, lunchtime walks, and relaxing cooking; houseplants could also bring some of the nature he finds soothing indoors. Setting firmer work–life boundaries could help preserve time for these activities.\n- **Keep care responsibilities manageable:** Coordinate dog care with his girlfriend and focus on the dogs he already has rather than taking on more. Although he agreed on November 4, 2023, to focus on Toby and Buddy, by November 22 he also had Scout, making a sustainable routine especially important.",
+      "judge_reason": "The answer suggests coping strategies and pet-friendly housing but misses the key proposal of switching to hybrid or remote work to move to a larger suburban home closer to nature.",
+      "answer_f1": 0.0849056603773585,
+      "result_sha256": "2c18d491806b741438c9a87e0dfe3369fe17799dab46b9224306c53e0c879cea",
+      "retrieval_sha256": "56cbfb215d253a078b73a014ddd26107a4ea46f695f5cee2aec0a2a1d95aa640"
+    },
+    {
+      "question_id": "conv-44_q39",
+      "diagnosis": "question_interpretation_and_context_gap",
+      "evidence_summary": "gold companionship在D23:18明确存在，API返回但未打包；reader把get理解为为狗买更大房子，答出有依据但偏题的物质结果。",
+      "recommended_validation": "窗口候选核验companionship进入上下文，再观察reader能否正确理解with having many dogs的收益。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "What did Audrey get wtih having so many dogs?",
+      "gold": [
+        "Companionship"
+      ],
+      "baseline_answer": "Audrey got a new home with a bigger backyard so her dogs had more room to run, explore, and play.",
+      "judge_reason": "The generated answer says Audrey got a larger home, rather than the companionship specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "9f3776875c850b00f841be015dae0d3d9f319b0710b0672deb09e42bc491aa6d",
+      "retrieval_sha256": "13f7f943cef186cb844e3429957d294b0af6e0f72b135fe6bf0f6b67b907beaa"
+    },
+    {
+      "question_id": "conv-44_q43",
+      "diagnosis": "visual_location_uncertainty_and_url_inference",
+      "evidence_summary": "gold Minnesota依赖D11:9地图，caption仅公园树木，query为hiking trails map perfect spot，无州名。reader根据别处Oregon URL和Fox Hollow推Oregon。地图原文未返回，视觉地图未成功核验。",
+      "recommended_validation": "原文窗口不等于读懂地图；若加入视觉必须另报输入及模型，不能仅凭gold称地图已含Minnesota。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "Which US state do Audrey and Andrew potentially live in?",
+      "gold": [
+        "Minnesota"
+      ],
+      "baseline_answer": "They potentially live in Oregon, based on the Oregon.com Blue Lake biking photo and the mention of Fox Hollow hiking trails. Their state is not explicitly confirmed.",
+      "judge_reason": "The generated answer identifies Oregon, whereas the gold answer is Minnesota.",
+      "answer_f1": 0.0,
+      "result_sha256": "97fd19cde927d1013f430f6035f3f55713b27224f545fd288fffe03126a7a316",
+      "retrieval_sha256": "e4013b7ff7ae5e8aa19de51ec2c17c776c13083b8c4f97b1d04d1c1fef1e9427"
+    },
+    {
+      "question_id": "conv-44_q44",
+      "diagnosis": "visual_location_uncertainty",
+      "evidence_summary": "gold Voyageurs National Park未出现在参考文本/caption；D11:9地图没有返回。reader认为未具名，文本路径确实缺直接国家公园名。",
+      "recommended_validation": "核验可访问原图后才讨论视觉增强；本次网页获取地图失败，未伪造识图结论。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "Which national park could Audrey and Andrew be referring to in their conversations?",
+      "gold": [
+        "Voyageurs National Park"
+      ],
+      "baseline_answer": "The national park cannot be identified from the provided conversations. Audrey mentions an unnamed national park visited on May 5, 2023, and another national-park hike during May 22–28, 2023, but gives no name or location. These may or may not have been the same park.",
+      "judge_reason": "The generated answer says the park cannot be identified, whereas the gold answer identifies Voyageurs National Park.",
+      "answer_f1": 0.09302325581395349,
+      "result_sha256": "971b013b10e42ba265021dcf4c201ab5a243eae9fecc1c8efd5e8657ea4dfd46",
+      "retrieval_sha256": "816169696724c555afcb1fcef4cd6f39208da83071744965bfa9946b307199bd"
+    },
+    {
+      "question_id": "conv-44_q5",
+      "diagnosis": "gold_event_vs_session_week_conflict",
+      "evidence_summary": "5月3日原文last week，reader按4月24–30日，gold是5月第一周，似以提及时间代替发生时间。文本已在上下文。",
+      "recommended_validation": "保持原相对时间与session锚点，周定义单列；不把发生日强制移入5月以迎合gold。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did Audrey see a hummingbird?",
+      "gold": [
+        "first week of May 2023"
+      ],
+      "baseline_answer": "Audrey saw a hummingbird while hiking during April 24–30, 2023.",
+      "judge_reason": "April 24–30, 2023 is not the first week of May 2023.",
+      "answer_f1": 0.14285714285714285,
+      "result_sha256": "7953900d9477ab8f9fbde4edc4d39c0480c5d97922eb59ca119a993cea520962",
+      "retrieval_sha256": "e392399728ef55f1e9964dccd4e7f552b96dcef973172c407906601ca84aa31a"
+    },
+    {
+      "question_id": "conv-44_q52",
+      "diagnosis": "nonunique_open_domain_schedule_solution",
+      "evidence_summary": "gold安装bird feeder，reader用已有午休步行结合望远镜/笔记本观鸟，原文没有唯一指定bird feeder。部分忙碌及外出约束原文未返回。",
+      "recommended_validation": "验证完整约束与全局开放域推断；保留多种合理方案与gold严格唯一的差异。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What is something that Andrew could do to make birdwatching hobby to fit in his city schedule?",
+      "gold": [
+        "Install a bird feeder outside where he can see the birds without going outdoors."
+      ],
+      "baseline_answer": "Andrew could turn his lunchtime walks into short birdwatching outings at a nearby city park, bringing binoculars and a small notebook to record sightings. This would let him enjoy birds and nature without needing a long trip or extra time away from work.",
+      "judge_reason": "The generated answer suggests lunchtime birdwatching walks rather than installing a visible outdoor bird feeder as specified in the gold answer.",
+      "answer_f1": 0.08,
+      "result_sha256": "82dd94cd60a45f97bb9ba1b559dddbb7708e58cbeccb014af8a369a2b42b487b",
+      "retrieval_sha256": "7f93c2b73d86da987a8377be433ba94e5ed878e72a0e53cc029a5f4934fcf99c"
+    },
+    {
+      "question_id": "conv-44_q57",
+      "diagnosis": "gold_adoption_month_conflict",
+      "evidence_summary": "11月22日原文the other day才收养Scout，11月4日仍说只有两只并决定先照顾现有狗；reader给11月4日至22日前，gold few days before November指向10月，时间线冲突。",
+      "recommended_validation": "保留事件/提及时间及两狗→三狗状态，继续原评分，不把Scout采纳日改成10月。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did Andrew adopt Scout?",
+      "gold": [
+        "few days before November 2023"
+      ],
+      "baseline_answer": "Andrew adopted Scout shortly before November 22, 2023, sometime after November 4. The exact date is not specified.",
+      "judge_reason": "The gold answer places the adoption a few days before November 2023, whereas the generated answer places it after November 4, in a different time period.",
+      "answer_f1": 0.2727272727272727,
+      "result_sha256": "3156585abf142213ed3294f897fa8d83043ca0e23d2b7344e62fa152385e3659",
+      "retrieval_sha256": "4c1f08d1ced5f8f1e7f231abfd3abaa88874ea8fb277f6454cafbb1861220313"
     }
   ]
 }
