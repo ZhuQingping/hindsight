@@ -445,6 +445,40 @@ BEAM 固定 rubric 和 judge；DolphinBench 按原日期顺序写入、每用户
 完整证据位于上述最终运行目录：`summary.json`、`verification.json`、`comparison.json`、`paired-comparison.json`、`calls/`、`retrievals/`、`results/`。`checkpoint-source/` 保存被沿用的原始检查点及哈希，原运行目录不覆盖。新增只读复用、结构化返回和恢复机制通过 **27 项离线回归**，专项 Ruff 与类型检查通过；全仓既有 F841 问题仍单列。
 
 
+### 8K 退化归因与配置只读核查
+
+本节仅分析已保存答卷和现有部署，未重新答题、未改服务/PG 配置。准确率从 74/81 到 70/81，是旧错改对 3 题、旧对改错 7 题的净结果；不是同一裁判下仅改变打包的一次对照。
+
+| 新增错题 | 已核实证据 | 结论 |
+| --- | --- | --- |
+| q027 双方是否参赛 | Jon 舞队获奖事实在 recall 第 58 位，因 fact_quota 被省略；对应 D1:16 原文也未进入输入 | 排序＋事实/原文预算取舍导致证据丢失 |
+| q029 去过哪些城市 | Paris、Rome 事实在第 49/64 位，均因 fact_quota 省略 | 不是没存、没查到，而是查到后没交给 reader |
+| q031 开店用了多久 | 两版均答约五个月；旧裁判明确接受 50% 时长容差，新裁判按六个月判错 | 确定存在评分规则变化 |
+| q071 舞室如何 | “studio looks amazing”没有进入相关事实或原文召回；旧裁判接受泛化的正面描述 | 原有证据覆盖不足被宽松评分掩盖 |
+| q073 舞蹈感受如何 | “it's magical”完整出现在实际输入的 D15:8 原文；reader 仍只答 joy/freedom | reader 忽略精确信息，同时存在旧评分过宽 |
+| q075 开业时说什么 | D15:12 的 live it up / great memories 已在 recall 原文中，但被打包省略 | 原文配额取舍＋旧评分过宽 |
+| q078 为何适合当导师 | 特定的 positivity / determination 未进入相关提炼事实和原文召回；旧裁判接受泛化品质 | 抽取/原文覆盖不足＋旧评分过宽 |
+
+**不能把新旧差值全算成截断。** 旧版的 JSON 字符串硬截断已修复，但固定“事实 4K＋原文 4K”仍会省略完整证据；当前分配只是工程基线，并非经过寻优的最佳配置。独立 reranker 有机会将关键事实提前，是否提高分数尚需固定裁判、预算的对照验证。
+
+本机 8892 部署及 PG 只读核查：
+
+| 层次 | 实际配置 | 判断 |
+| --- | --- | --- |
+| 神经模型重排 | `HINDSIGHT_API_RERANKER_PROVIDER=rrf`；部署源码 RRFPassthroughCrossEncoder 明确关闭 neural reranking | **没有独立 rerank 模型**。enable_reranking=true 只表示执行该阶段，不能据此认定启用了模型 |
+| 全文检索 | native、english、`tsvector`；`GIN(search_vector)` 索引 valid/ready；109/109 条事实的 search_vector 非空 | 是适合英文的基础方案，不是缺全文索引；尚无证据称为最优或认定需要替换 |
+| 关键词排序 | 部署 SQL 使用 `ts_rank_cd`，并非严格的 BM25 排名公式 | 可对照 BM25 后端，但须实测，不能把索引结构与相关性评分混为一谈 |
+| 向量检索 | pgvector 0.8.6；HNSW cosine 索引 valid/ready；embedding 为 doubao-embedding-vision 1024 维 | 已启用；还没有系统测不同向量/搜索参数对题目证据覆盖的影响 |
+| PG 资源 | PostgreSQL 18.4；shared_buffers=128MB，work_mem=4MB，effective_cache_size=4GB，max_connections=100；多项为默认值 | **未完成系统调优验收**；109 条事实规模下，不能将错误答案归咎于 PG 内存或连接数 |
+
+只读诊断 OR 关键词查询的 EXPLAIN 选择 Seq Scan；该表只有 109 条事实，这本身不是索引故障，也不代表该诊断 SQL 就是应用本次实际执行的 SQL。全库累计统计见本地快照，不用它冒充本轮单独的性能采样。
+
+GIN 是 PostgreSQL 官方推荐的全文索引类型；“换一种全文后端”与“增加模型重排”是两个不同变量。[PG18 全文索引说明](https://www.postgresql.org/docs/18/textsearch-indexes.html)、[文本匹配与排名](https://www.postgresql.org/docs/18/textsearch-controls.html#TEXTSEARCH-RANKING)。
+
+下一轮优先固定 AMB reader/judge 和预算，检查排序/打包的证据保留；然后分别测 reranker、事实与原文配额。PG 索引/内存优化应依据查询计划及负载单独做性能验证，不能宣称调大资源会自动提高 LoCoMo 准确率。原文召回不足和 reader 已见依据却漏答也要分别处理。
+
+证据集中在 `benchmarks/memory/.local/analysis-post-8k/`：`seven-new-wrong-evidence.json`、`postgres-readonly-audit.json`、`bank-index-validation.json`。未修改旧 Bank、测试结果、索引或数据库参数。
+
 ### conv-30 的 81 题流程验证
 
 **81 题调用及数值计算已核验，环境保留；后续诊断发现打包缺陷，见下节，原始记录不改分。** 运行 ID：`locomo-conv30-20261118-200523`；日期 2026-11-18。范围仅为 conv-30；题型分布为类别 1 共 11 题、类别 2 共 26 题、类别 3 共 0 题、类别 4 共 44 题。
