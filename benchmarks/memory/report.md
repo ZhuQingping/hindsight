@@ -209,3 +209,5 @@ q54尤其不能误诊为抽取幻觉：10月23日原文D25:4明确说third time�
 第八组conv-48完成后，1226题中95道错题均已逐题检查。q74/q99是原数据重复问题，保留两个索引和1540分母；咖啡/糕点原句均已返回未打包。q119则caption已在上下文，reader却回答图片所代表的待办压力而非可见desk/notebook/monitor，属于答题定位问题。q101提示应保留相对日期及session锚点；仅报January2022时，只有a year ago的无上下文gold无法验证等价。q116/q174还出现人物归属冲突，q87把Deborah的Bali对应成Thailand，而明说Thailand的是Jolene。
 
 运行中conv-48_q57 judge一次UpstreamHTTPError、q127 answer一次CodexStreamError，均第二次成功，未生成失败题。两次失败尝试usage为null，最终Token只能报告已知用量并另列未知尝试；没有HTTP状态码等证据将其直接认定为限流。原失败尝试及后续成功用量和调用哈希均保留。
+
+第九组conv-49完成后，1382题中112道错题均已逐题检查。q32直接说明事实打包也有瓶颈：丢钥匙事实已在API第44/69位，最终4K事实预算没有保留，相关原文也未返回；仅增大API预算并不等于增大reader可见预算。q123所需lost tourist原句与Sam评论已经在上下文，仍被泛称户外爱好覆盖，属于reader定位问题。q153也重复出现caption有kayak而reader只描述文字中的sunset。另有明确源/gold冲突：q54 knee/ankle、q74 Tuesday/Thursday、q80 2024/2023，以及q24/q144人物调换；全部保留原判定，不修改数据追分。

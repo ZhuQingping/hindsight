@@ -3,10 +3,10 @@
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 1226,
-  "reviewed_wrong_cases": 95,
+  "saved_result_scope": 1382,
+  "reviewed_wrong_cases": 112,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "f7766254889dee0b38eaf9750dee41d446cefeab0bc34366db602d6911e7684c",
+  "source_snapshot_sha256": "3b69fb801d2cfc03f32e78938670b496ccc95bbd7a7fff81283386d46a15954e",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
   "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
   "rows": [
@@ -1624,11 +1624,330 @@
       "answer_f1": 0.0,
       "result_sha256": "95c45f99fd1af39f42ea7e8ba6b25657e00e71b06ed1dff0a32c0ce5d2fd9f12",
       "retrieval_sha256": "60c309cf21d628c98f0299529eef088d0ee5419fa5ee7cadad860558eb2b8932"
+    },
+    {
+      "question_id": "conv-49_q102",
+      "diagnosis": "caption_event_selection_and_question_date_conflict",
+      "evidence_summary": "gold salmon来自8月15日last night原文/caption，即8月14日；题问8月18日，reader选8月19日另一个明确chicken菜。gold图像原文已在上下文。",
+      "recommended_validation": "区分两顿饭和session/发生日期；问菜色时结合caption，但不为了gold更改8月15日源时间。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What dish did Sam make on 18 August, 2023 that turned out flavorful?",
+      "gold": [
+        "grilled dish with salmon and vegetables"
+      ],
+      "baseline_answer": "Sam’s flavorful dish was a grilled chicken and vegetable stir-fry with homemade sauce, mentioned on August 19, 2023. The memories do not explicitly confirm that he made it on August 18.",
+      "judge_reason": "The generated answer names chicken stir-fry rather than the grilled salmon and vegetables specified in the gold answer.",
+      "answer_f1": 0.24242424242424243,
+      "result_sha256": "fa1b677f33bfab3b7bb9daf43af5f9e4781c2d557abe76493471b214d34fe208",
+      "retrieval_sha256": "e8642abd4d49a97ef25533310512bef9fb7956fb5f4d70318fe7067202b618a2"
+    },
+    {
+      "question_id": "conv-49_q106",
+      "diagnosis": "gifted_picture_vs_own_painting_ambiguity",
+      "evidence_summary": "D8:14说朋友赠画启发开始绘画，caption为forest scene；reader答watercolor而非画面。原文并未明确自己最初就画forest，gold将礼物画面当作所画主题。",
+      "recommended_validation": "通用reader区分绘画媒介、作品主题和礼物来源，按picture问法使用caption；保留关系歧义。",
+      "confidence": "ambiguous",
+      "category": 4,
+      "question": "What did Evan start painting years ago due to being inspired by a friend's gift?",
+      "gold": [
+        "forest scene"
+      ],
+      "baseline_answer": "Evan started watercolor painting, inspired by a painting a friend gave him.",
+      "judge_reason": "The generated answer mentions watercolor painting but does not identify the forest scene Evan started painting.",
+      "answer_f1": 0.0,
+      "result_sha256": "7b8691eec4ad3426df431c927df7ae9695d6ad91686d220c8e8a1e0646bc9143",
+      "retrieval_sha256": "2e9cd01ce40b1bfdc21c7eb5326fb5caa04fe18b5d7e61bac266f8764fdf9ea5"
+    },
+    {
+      "question_id": "conv-49_q11",
+      "diagnosis": "multiple_health_motivators_and_reader_selection",
+      "evidence_summary": "Weight problem和gastritis两种事实均在打包事实中，10月胃炎也明确被称wake-up call；reader选择后者，gold只取长期体重问题。多条早期原文未打包。",
+      "recommended_validation": "结合全历史区分长期动因与后续事件，必要时简洁列两者，不把所有错题归为记忆抽取缺失。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "What health issue did Sam face that motivated him to change his lifestyle?",
+      "gold": [
+        "Weight problem"
+      ],
+      "baseline_answer": "Sam had gastritis, which caused a severe stomachache and sent him to the ER on October 14–15, 2023. The scare motivated him to adopt a healthier diet and exercise regularly.",
+      "judge_reason": "The generated answer identifies gastritis as the motivating health issue rather than the weight problem specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "f0e5b7d23e971c8bae5166099b4bfcf861dfbadd138f23b56f90a62d3af700f6",
+      "retrieval_sha256": "23c92eb9d97b703538ce04fb67d440fca372108ba177569966723494f9a4c03a"
+    },
+    {
+      "question_id": "conv-49_q123",
+      "diagnosis": "reader_ignores_available_specific_event",
+      "evidence_summary": "原文中的recurring theme、lost tourist、Sam的go-to guy均已在最终上下文，reader却给泛称户外冒险；相关抽取事实在较低召回排名，但raw足以回答。",
+      "recommended_validation": "通用reader先定位题目as mentioned by Sam的具体对话，不仅选全局高频爱好。",
+      "confidence": "confirmed_reader_selection",
+      "category": 4,
+      "question": "What adventurous theme is emerging in Evan's life as mentioned by Sam?",
+      "gold": [
+        "helping lost tourists"
+      ],
+      "baseline_answer": "An adventurous outdoor theme is emerging in Evan’s life: exploring nature and trying new activities with his partner, from hiking and biking to snowshoeing and a planned skiing honeymoon in Canada.",
+      "judge_reason": "The generated answer describes outdoor activities rather than the emerging theme of helping lost tourists.",
+      "answer_f1": 0.0,
+      "result_sha256": "d4e392f99c625283de650827a9c3a3173c9746a7b316b7f47a6cea20048cb01d",
+      "retrieval_sha256": "67258b1ec3765a0d7436aa98390e89a9b9806f58899076d1073cb71bd8a9d493"
+    },
+    {
+      "question_id": "conv-49_q141",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D21:10明确Keep trying new things，当前API没有返回，reader称未指明。",
+      "recommended_validation": "验证更大原文候选与窗口是否保留该建议，再评估答题。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Evan suggest Sam should keep doing to find his own version of love?",
+      "gold": [
+        "Keep trying new things"
+      ],
+      "baseline_answer": "The provided memories don’t state what Evan suggested Sam should keep doing to find his own version of love.",
+      "judge_reason": "The generated answer claims the information is unavailable instead of identifying Evan’s suggestion to keep trying new things.",
+      "answer_f1": 0.0909090909090909,
+      "result_sha256": "d044d9384b036cc0ff03efec678a7eeb2174e51f3e36c6ba651d855a7575ff5e",
+      "retrieval_sha256": "8e21e74aa03c08c2b2d03a66149d90717e1a8102b9587a88e7d8cd15810bb93c"
+    },
+    {
+      "question_id": "conv-49_q144",
+      "diagnosis": "gold_speaker_conflict_and_caption_gap",
+      "evidence_summary": "参考D22:1的徒步及valley照片由Sam分享，题目却问Evan；API返回但未打包。reader指出没有和Sam已完成徒步记录。",
+      "recommended_validation": "恢复原文caption并说明人物冲突，不把Sam照片改归Evan。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "What did Evan share with Sam after their hiking trip?",
+      "gold": [
+        "a photo of a man standing on a rock looking out over a valley"
+      ],
+      "baseline_answer": "Evan shared that he and his family had hiked in the Rocky Mountains during May 8–14, 2023, and that the views were amazing. The memories do not confirm a completed hiking trip with Sam.",
+      "judge_reason": "The generated answer does not mention the photo of a man standing on a rock overlooking a valley that Evan shared with Sam.",
+      "answer_f1": 0.0,
+      "result_sha256": "6d8f9ed0e99115d8fe5a03632faabda53fc216aa106e932f1ca7e7e4f01f8490",
+      "retrieval_sha256": "45359c420f4e7b4dbe91656d4387f8c6204fd0ebd9b5de3e6c9b92972c51017c"
+    },
+    {
+      "question_id": "conv-49_q145",
+      "diagnosis": "raw_source_missing_and_recipe_referent",
+      "evidence_summary": "D22:12明确cookies并说发recipes，当前API未返回；reader答其他健康零食energy balls。",
+      "recommended_validation": "完整原文候选恢复具体饼干配方offer，区分相邻snacks与cookies指代。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Evan offer to share with Sam after talking about healthy snacks?",
+      "gold": [
+        "the recipes for cookies"
+      ],
+      "baseline_answer": "Evan offered to share a recipe for healthy energy balls.",
+      "judge_reason": "The generated answer names energy ball recipes rather than the cookie recipes Evan offered to share.",
+      "answer_f1": 0.3333333333333333,
+      "result_sha256": "4436a6b6e859a0bd6c50e278c561588c325e68331754f0ce08db8459ac1f4fed",
+      "retrieval_sha256": "559da7e122ec3e1075bf8b44e9149719c5f20d5c2960a30f51343940b355218a"
+    },
+    {
+      "question_id": "conv-49_q153",
+      "diagnosis": "caption_vs_message_grounding",
+      "evidence_summary": "D25:8文本称sunset，caption明确kayak从船头看到；两者都在上下文，reader描述日落并将kayak只作活动，gold要求照片物体。",
+      "recommended_validation": "通用what photo问法以caption/可见物体为主，文字补背景，避免把背景事件替代图中主体。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Evan share a photo of that was taken on a camping trip?",
+      "gold": [
+        "a kayak"
+      ],
+      "baseline_answer": "Evan shared a photo of a beautiful sunset over a lake, taken while kayaking on a camping trip in summer 2023.",
+      "judge_reason": "The generated answer describes a photo of a sunset over a lake rather than a kayak; kayaking is only mentioned as the activity.",
+      "answer_f1": 0.1111111111111111,
+      "result_sha256": "c941dea1d12b14f647ce23c4138abfa4a78523fbf9691e42378ac17c3e1e6284",
+      "retrieval_sha256": "788f4f15cdc3bab7769ff1cd497d49c147d09c62110f4dd9b7b8fb8bd589d6b2"
+    },
+    {
+      "question_id": "conv-49_q24",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D5:1加拿大恋情是Evan经历，题问Sam；reader给Sam真实健康新routine。该恋情原文API返回未打包。",
+      "recommended_validation": "保留人物归属，不把Evan恋情写给Sam；窗口恢复只能让歧义更清楚。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "What significant event happened in Sam's life towards the end of summer 2023?",
+      "gold": [
+        "He fell in love with a Canadian woman"
+      ],
+      "baseline_answer": "Towards the end of summer, on August 21, 2023, Sam started a new diet and exercise routine—a significant step toward better health. By August 27, he reported feeling great and noticing a huge difference.",
+      "judge_reason": "The generated answer describes a new diet and exercise routine rather than Sam falling in love with a Canadian woman.",
+      "answer_f1": 0.05555555555555555,
+      "result_sha256": "2a0177788ca4289675ef13e535e90a1e91f3c3e54a09f4a720cc1948561a4cb6",
+      "retrieval_sha256": "5204878ecfccb3c82300fefbb2f1b94746d6285a233c6199a1bae9eae3e7ffec"
+    },
+    {
+      "question_id": "conv-49_q32",
+      "diagnosis": "fact_budget_selection_and_raw_candidate_gap",
+      "evidence_summary": "weekly losing keys事实在API结果第44、69位，但未入4K事实预算；两处相关原文也未返回，reader只见受伤/汽车挫折。",
+      "recommended_validation": "除原文窗口外验证更大事实配额/上下文预算；不要仅增加事实API预算而忽略最终4K事实截断。",
+      "confidence": "confirmed_context_gap",
+      "category": 1,
+      "question": "What recurring frustration does Evan experience?",
+      "gold": [
+        "Evan consistently misplaces his keys every week."
+      ],
+      "baseline_answer": "Evan repeatedly feels frustrated by setbacks that disrupt his active lifestyle, particularly his painful knee injury on August 25, 2023, and his new Prius breaking down, reported on December 5, 2023.",
+      "judge_reason": "The generated answer describes an injury and a car breakdown rather than Evan's recurring frustration of misplacing his keys every week.",
+      "answer_f1": 0.2222222222222222,
+      "result_sha256": "bea46a895ba3225079470ab4ed5071ebe860820c002fa3494ef264fce83c997f",
+      "retrieval_sha256": "877606473cf9c69e743287b9d7e9b0c5d32078e330e78c71e55e7712d741c382"
+    },
+    {
+      "question_id": "conv-49_q43",
+      "diagnosis": "checkup_frequency_inference_strength",
+      "evidence_summary": "可见检查时间5月、8月、10月及次年1月计划，不是严格固定季度；reader说不规律，gold取约每三月。部分8月原文未打包，但事实时间已知。",
+      "recommended_validation": "全局频率回答可区分roughly与fixed schedule；不将少数观测推断成已确认的固定医疗习惯。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "How often does Sam get health checkups?",
+      "gold": [
+        "every three months"
+      ],
+      "baseline_answer": "Sam appears to get health check-ups irregularly; no fixed schedule is mentioned. He reported visits in May 2023, before August 15, 2023, and on October 2, 2023. On January 10, 2024, he said he had not seen a doctor in a while and planned to make an appointment.",
+      "judge_reason": "The generated answer describes irregular checkups with no fixed schedule, contradicting the gold answer of every three months.",
+      "answer_f1": 0.0,
+      "result_sha256": "48f224e5f360bb837c19d1f904d3d292897d03a7ba7adfae842a13f3a8f2643d",
+      "retrieval_sha256": "186bed87a851f1050c84978f58086da150b057219217bd7a7e121ccb9d68b3a4"
+    },
+    {
+      "question_id": "conv-49_q54",
+      "diagnosis": "gold_anatomical_conflict",
+      "evidence_summary": "D9:2、D11:2明确knee而非ankle；reader忠于原文列膝伤和其他健康事件，gold却重复twisted ankle。不能靠错误抽取身体部位修分。",
+      "recommended_validation": "保留knee与源记录，统一裁判/标注审计单列；原判定不改。",
+      "confidence": "confirmed_source_conflict",
+      "category": 1,
+      "question": "What personal health incidents does Evan face in 2023?",
+      "gold": [
+        "heart palpitations, twisted ankle, twisted ankle"
+      ],
+      "baseline_answer": "Evan faced these personal health incidents in 2023:\n- **May 29–June 4:** Sudden heart palpitations frightened him and prompted him to take his lifestyle more seriously, including reducing processed foods and sugary snacks.\n- **August 25:** He twisted his knee, causing significant pain and disrupting his usual fitness routine. He switched to swimming and planned physical therapy.\n- **September 25–October 1:** He reported injuring his knee while playing basketball with his kids. Physical therapy helped somewhat, but he remained limited to easy exercises and missed outdoor adventures with his family. It is unclear whether this was a new injury or related to the August injury.\n- **November 13–19:** A suspicious check-up finding led to a hospital visit. It turned out to be a misunderstanding, and doctors confirmed everything was fine. The scare reinforced the importance of monitoring his health and appreciating life.\n\nHe also said on **August 7, 2023**, that he had been working on his health for about two years, with ongoing ups and downs, although no additional specific diagnosis was given.",
+      "judge_reason": "Although it correctly mentions heart palpitations, it replaces both twisted-ankle incidents with knee injuries, missing the other health incidents in the gold answer.",
+      "answer_f1": 0.14652014652014653,
+      "result_sha256": "08da06cc715decd18ef00a0fbd24b3814afcc2dfba1761f009800a8eacebf0ba",
+      "retrieval_sha256": "604ddab18f3af7070cc54470f7383c8b250aefafbfbd184ef32d2f2db83d53c2"
+    },
+    {
+      "question_id": "conv-49_q57",
+      "diagnosis": "geographic_nonuniqueness",
+      "evidence_summary": "参考只说Lake Tahoe，reader指出横跨California/Nevada，gold仅California。没有明确州名足以排除另一个州。",
+      "recommended_validation": "将可能地点与确定州分开；保留原gold，不能用未证实的视觉线索强定州。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "Which US state was Sam travelling in during October 2023?",
+      "gold": [
+        "California"
+      ],
+      "baseline_answer": "Sam was traveling through Lake Tahoe on October 14, 2023. Lake Tahoe spans California and Nevada, so the memories do not establish which of those states he was in.",
+      "judge_reason": "The generated answer explicitly says the state cannot be determined rather than identifying California as the gold answer does.",
+      "answer_f1": 0.07142857142857142,
+      "result_sha256": "51971ff78f869502408a04b1cbe6a7b12d632c97a9e09c70db3d6b54a2e616a7",
+      "retrieval_sha256": "e989ef16284ccc87bbc2174cd7d40ad8f00256637b15de6cb43b5c59497496ad"
+    },
+    {
+      "question_id": "conv-49_q64",
+      "diagnosis": "reader_ailment_selection_and_causal_assumption",
+      "evidence_summary": "gastritis和weight事实都已在最终上下文，reader只给体重相关活动受限而未列胃炎。gold把胃炎归因体重，原文只并列健康事件未明说因果。",
+      "recommended_validation": "通用reader识别ailment需给已有诊断并避免虚构因果；既分析答题遗漏，也保留gold因果强度问题。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "Which ailment does Sam have to face due to his weight?",
+      "gold": [
+        "gastritis"
+      ],
+      "baseline_answer": "Sam faces physical discomfort and limited mobility associated with his weight.",
+      "judge_reason": "The generated answer mentions discomfort and limited mobility but does not identify gastritis, the ailment in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "826fc26952e9b40564eee98b268442437e744c328bf0bd50b38a76f15dd965c9",
+      "retrieval_sha256": "433aadd49dd22d6151b2f21a622b4e9a0f4c6fd24f3fc5e2b75f6b7113d1e36f"
+    },
+    {
+      "question_id": "conv-49_q74",
+      "diagnosis": "gold_weekday_conflict",
+      "evidence_summary": "12月17日原文明说last Tuesday，即12月12日，reader正确；gold写Thursday，变为14日。",
+      "recommended_validation": "保留星期锚定与原判错，不把Tuesday改Thursday。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did Evan's son fall off his bike?",
+      "gold": [
+        "Thursday before December 17, 2023."
+      ],
+      "baseline_answer": "Evan’s son fell off his bike on Tuesday, December 12, 2023.",
+      "judge_reason": "The gold answer refers to Thursday, December 14, 2023, whereas the generated answer gives Tuesday, December 12, 2023.",
+      "answer_f1": 0.25000000000000006,
+      "result_sha256": "5269d0f5a91b26f7c099da26dbef63276c50bd66969d1584cae36c7b3ea2aa73",
+      "retrieval_sha256": "d4118b7815a6357ca810bdb0721a567ac28e2f5498f13f6f9bb3e4d035f0f709"
+    },
+    {
+      "question_id": "conv-49_q80",
+      "diagnosis": "gold_year_conflict",
+      "evidence_summary": "session2024年1月10日说yesterday，reader2024年1月9日，gold却2023年1月9日。原文已在上下文。",
+      "recommended_validation": "保留真实session年份并单列gold冲突，不能为了分数回拨一年。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did Evan have a drunken night with his friends?",
+      "gold": [
+        "January 9, 2023"
+      ],
+      "baseline_answer": "Evan had a drunken night with his friends on Tuesday, January 9, 2024.",
+      "judge_reason": "The generated answer gives January 9, 2024, but the gold answer is January 9, 2023, so the year is incorrect.",
+      "answer_f1": 0.26666666666666666,
+      "result_sha256": "96693f9f41e11968952b4f0de9f1b2dd5b1aed946a063780719514a296790d0f",
+      "retrieval_sha256": "e33a3f6f20b1fc07aecb389aedde6a4d2aed9445b205a723c8888002c8209dee"
+    },
+    {
+      "question_id": "conv-49_q99",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "D6:15建议dream interpretation book，API返回却未打包，reader称未指明。",
+      "recommended_validation": "完整窗口候选核验这条建议进入reader。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Evan suggest Sam to check out for insights into his dream?",
+      "gold": [
+        "dream interpretation book"
+      ],
+      "baseline_answer": "The provided memories do not specify what Evan suggested Sam check out for insights into his dream.",
+      "judge_reason": "The generated answer says the suggestion is unspecified rather than identifying the dream interpretation book.",
+      "answer_f1": 0.10526315789473684,
+      "result_sha256": "074e63635f4e8ee467d8ace2d672eb2ff45ebfe3cc837e1d1edfd53e274586a9",
+      "retrieval_sha256": "0b8f9d66dd91cffa1b4dc70078e2cb5bfb3a88509ac88346e82a978d618fbca5"
     }
   ],
   "operational_attempt_audit": {
     "note": "These recovered transport/stream failures had no usage returned for the failed attempts. No evidence here establishes rate limiting. This is a partial audit, not a final total.",
     "records": [
+      {
+        "question_id": "conv-48_q127",
+        "stage": "answer",
+        "source_sha256": "886a70299547950559754be6c8038f6c08d7b349e96b2f984bfc816ea62a081a",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T22:30:18.994760+00:00",
+            "elapsed_s": 4.1055435839807615,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T22:30:23.101462+00:00",
+            "elapsed_s": 4.7323558329371735,
+            "error": null,
+            "usage": {
+              "input_tokens": 7379,
+              "output_tokens": 71,
+              "total_tokens": 7450,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
       {
         "question_id": "conv-48_q57",
         "stage": "judge",
@@ -1660,29 +1979,149 @@
         ]
       },
       {
-        "question_id": "conv-48_q127",
+        "question_id": "conv-49_q121",
         "stage": "answer",
-        "source_sha256": "886a70299547950559754be6c8038f6c08d7b349e96b2f984bfc816ea62a081a",
+        "source_sha256": "65f24c001c52c90ac9406b8696e73a58e4f426663f48b45dcbb32525be5cafe9",
         "status": "completed",
         "attempts": [
           {
             "stage": "answer",
             "state": "failed",
-            "at": "2026-11-18T22:30:18.994760+00:00",
-            "elapsed_s": 4.1055435839807615,
+            "at": "2026-11-18T23:05:07.875063+00:00",
+            "elapsed_s": 3.9340598329436034,
             "error": "CodexStreamError",
             "usage": null
           },
           {
             "stage": "answer",
             "state": "completed",
-            "at": "2026-11-18T22:30:23.101462+00:00",
-            "elapsed_s": 4.7323558329371735,
+            "at": "2026-11-18T23:05:11.810208+00:00",
+            "elapsed_s": 4.125959916971624,
             "error": null,
             "usage": {
-              "input_tokens": 7379,
-              "output_tokens": 71,
-              "total_tokens": 7450,
+              "input_tokens": 7102,
+              "output_tokens": 66,
+              "total_tokens": 7168,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-49_q151",
+        "stage": "answer",
+        "source_sha256": "2e8e0c2af8bca3e31188fb4c22ac1a2b0bdaab72b5f2116ee7ae90dcbb59a011",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T23:09:58.878539+00:00",
+            "elapsed_s": 4.27973175002262,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T23:10:03.159560+00:00",
+            "elapsed_s": 4.274781667045318,
+            "error": null,
+            "usage": {
+              "input_tokens": 7197,
+              "output_tokens": 62,
+              "total_tokens": 7259,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-49_q44",
+        "stage": "judge",
+        "source_sha256": "b0ba4e9c5a67ffe72ebe246bd053ce899b9a742af49063b19074733430630235",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "judge",
+            "state": "failed",
+            "at": "2026-11-18T22:52:31.079599+00:00",
+            "elapsed_s": 3.5024996669963,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "judge",
+            "state": "completed",
+            "at": "2026-11-18T22:52:34.584426+00:00",
+            "elapsed_s": 3.4877094590337947,
+            "error": null,
+            "usage": {
+              "input_tokens": 543,
+              "output_tokens": 51,
+              "total_tokens": 594,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-49_q46",
+        "stage": "answer",
+        "source_sha256": "01cdb249655b47aaa99beb2ebb7ca9c2cd77322de2fd2a89158daead27859e35",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T22:52:47.705262+00:00",
+            "elapsed_s": 3.9015190419740975,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T22:52:51.607981+00:00",
+            "elapsed_s": 12.622211167006753,
+            "error": null,
+            "usage": {
+              "input_tokens": 7662,
+              "output_tokens": 501,
+              "total_tokens": 8163,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-49_q93",
+        "stage": "answer",
+        "source_sha256": "ff24260d52d64b5e6b65eae893f5d19dd31bf8cc8d5d49771526f2dc56af015a",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T23:00:30.786626+00:00",
+            "elapsed_s": 4.037718374980614,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T23:00:34.826784+00:00",
+            "elapsed_s": 10.034444125019945,
+            "error": null,
+            "usage": {
+              "input_tokens": 7282,
+              "output_tokens": 51,
+              "total_tokens": 7333,
               "cached_tokens": 0,
               "thoughts_tokens": 0
             }
