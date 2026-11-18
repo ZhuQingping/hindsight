@@ -195,3 +195,7 @@ q132尤其说明ID覆盖不等于答案覆盖：参考ID D16:7是Caroline从17�
 官方说明LoCoMo对话由赋予人设与事件时间线的虚拟LLM代理生成，再经人工过滤和修订。q50出现了对角色属性推断的拒答，q59还有证据强度不足的歧义，故后续可另立**全局说明合成人设来源**的reader实验，准确限定为本合成数据的虚拟对话者。当前未改变基线/窗口候选或裁判，也不把此做法套用于真实人物的敏感属性推断。[LoCoMo官方项目](https://snap-research.github.io/locomo/)
 
 分类统计采用原数据数字编号：1多跳、2时间、3开放域、4单跳；本次固定AMB版本的展示标签把1/3/4依次叫作single-hop/multi-hop/open-domain，与原始评测含义不一致。因此本地归档保留原编号，不用这些展示名字直接横拼分类分数；1540题总范围、原QA和评分模板均未因此更改。[固定AMB分类代码](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/src/memory_bench/dataset/locomo.py)
+
+第四组conv-42落盘后，已将全部44道已落盘错题合并保存到[逐题诊断数据](results/locomo1540-error-analysis-20261119.json)，来源范围584题，仍不是完整成绩。新发现包括：q14昵称Jo的原句未返回；q34、q91的部分书名/dragons线索只在原始图像搜索query，固定v1窗口未保留此字段；q92灯色连文本、caption和query都没有，不能承诺扩大文本预算即可解决。任何图像或元数据增强均须另列输入口径及模型成本。
+
+q54尤其不能误诊为抽取幻觉：10月23日原文D25:4明确说third time，抽取据此标第三次；题目和gold却把这次上映叫第二部。q24原文two weekends later与gold的weekend after June3、q43约三个月与gold含首尾四个月，也存在时间表述歧义。q62同时有未明确为信的拒绝被reader计入，以及gold未计童年兄弟信的范围问题。后续优化需分开检查可修复的无依据计数和原始标注争议，不能删去不利原文或修改gold追分。

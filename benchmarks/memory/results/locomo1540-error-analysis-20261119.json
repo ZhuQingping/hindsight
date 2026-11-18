@@ -3,10 +3,10 @@
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 385,
-  "reviewed_wrong_cases": 29,
+  "saved_result_scope": 584,
+  "reviewed_wrong_cases": 44,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "f3ecd5793cc97836fadb31f5f91f405241b946db5a6e162ed4529ea10d0f3b75",
+  "source_snapshot_sha256": "bc94e456376a185bb5c8d7a3662357b5b33ba8ef8bed1535dc8be6f234f70098",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
   "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
   "rows": [
@@ -502,6 +502,261 @@
       "answer_f1": 0.11764705882352941,
       "result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
       "retrieval_sha256": "7ae587470a224ef0393ad57971606033d5b6af078dcde5607fe867f407c21701"
+    },
+    {
+      "question_id": "conv-42_q12",
+      "diagnosis": "open_domain_inference_and_gold_strength",
+      "evidence_summary": "过敏信息已在上下文；gold要求推测asthma，原文没有诊断，reader仅给atopic predisposition。不是检索丢失的直接证据。",
+      "recommended_validation": "另立合成人物开放域推断实验，保留推测语气；不得把过敏直接抽取成确诊哮喘。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What underlying condition might Joanna have based on her allergies?",
+      "gold": [
+        "asthma"
+      ],
+      "baseline_answer": "Joanna might have an atopic predisposition—a tendency to develop allergic reactions to multiple substances—given her allergies to furry animals, reptiles (including turtles), and cockroaches. However, the memories do not establish an underlying medical diagnosis; a clinician or allergist would need to evaluate her. Her lactose intolerance is a separate, non-allergic condition.",
+      "judge_reason": "The generated answer suggests an atopic predisposition but does not identify asthma, the condition specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "cc7f21512a3e0635575f9aaf3c81b8dc417806211cd0fad3778137c12990fa41",
+      "retrieval_sha256": "2332fb87998e09ae13ae44f89f0f49dc8476246a58a393ec0832ba9611db6999"
+    },
+    {
+      "question_id": "conv-42_q14",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D7:1直接称Hey Jo，当前API未返回该原句，答题因此否认有昵称。",
+      "recommended_validation": "完整窗口候选核验昵称原句是否进入reader。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "What nickname does Nate use for Joanna?",
+      "gold": [
+        "Jo"
+      ],
+      "baseline_answer": "The provided memories do not specify a nickname Nate uses for Joanna; he calls her “Joanna” in the excerpts.",
+      "judge_reason": "The generated answer denies a nickname is specified, whereas the gold answer identifies the nickname as “Jo.”",
+      "answer_f1": 0.0,
+      "result_sha256": "059a7caece72173a0fd5284f72d9aeb76d88e5b4263a46c891345b0122f773f8",
+      "retrieval_sha256": "04bdba3d2c0ea80f161dd7787cd65cb3ddf6cf08f7b2c7a696d811ac9df7da59"
+    },
+    {
+      "question_id": "conv-42_q195",
+      "diagnosis": "source_destination_ambiguity_and_raw_missing",
+      "evidence_summary": "参考D28:28是Joanna请求去Nate家，Nate邀请看电影或公园；题目却问Nate去Joanna家。该原文未被当前API返回，reader选择其他烘焙事件。",
+      "recommended_validation": "恢复原文并区分邀约双方；保留题目方向歧义，不为gold调换人物。",
+      "confidence": "ambiguous",
+      "category": 4,
+      "question": "What does Nate want to do when he goes over to Joanna's place?",
+      "gold": [
+        "Watch one of Joanna's movies together or go to the park"
+      ],
+      "baseline_answer": "Nate wants to join Joanna in baking and cooking when he visits her place.",
+      "judge_reason": "The generated answer says baking and cooking, rather than watching Joanna's movies together or going to the park.",
+      "answer_f1": 0.17391304347826086,
+      "result_sha256": "b6e53ad31225bd25043fc29ee170dea7a4c77bfea30b174c9dbf8906cb9e8f07",
+      "retrieval_sha256": "99ec7879397e9a14121ac7f17f0e299500d50b1d3674fc5035b17407e420d865"
+    },
+    {
+      "question_id": "conv-42_q24",
+      "diagnosis": "relative_time_gold_conflict",
+      "evidence_summary": "6月3日D14:20写two weekends later，抽取及reader为6月18–19；gold只有the weekend after June3，至少存在周末指代不一致。",
+      "recommended_validation": "保留原相对措辞与锚定时间，统一裁判比较同答案；不强制缩短到gold周末。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "When is Nate hosting a gaming party?",
+      "gold": [
+        "The weekend after 3June, 2022."
+      ],
+      "baseline_answer": "Nate’s gaming party was scheduled for the weekend of June 18–19, 2022.",
+      "judge_reason": "June 18–19, 2022 is not the weekend after June 3, 2022.",
+      "answer_f1": 0.26666666666666666,
+      "result_sha256": "6dfcb94cebfa4885d363cf636875f72b1290fb41f14c790683aa13c36eba9e7a",
+      "retrieval_sha256": "80a5b4a5e83aaf85d4550bc2f8c7be60c5887eb220e9ffef6d2bbac868ccbf57"
+    },
+    {
+      "question_id": "conv-42_q34",
+      "diagnosis": "visual_metadata_and_media_type_ambiguity",
+      "evidence_summary": "D3:17明确Little Women电影；D19:15图片query提供A Court of Thorns and Roses书名，文本及BLIP caption没有书名，该段返回但未打包。gold还将Little Women算书。",
+      "recommended_validation": "固定v1先验证原文窗口；如加入原数据image query需另声明实验和元数据来源，不能称v1已有此信息。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "What book recommendations has Joanna given to Nate?",
+      "gold": [
+        "\"Little Women\",'A Court of Thorns andRoses'."
+      ],
+      "baseline_answer": "No book recommendations from Joanna to Nate are recorded in the provided memories. She recommended the movies Eternal Sunshine of the Spotless Mind and Little Women; the book recommendations mentioned went from Nate to Joanna.",
+      "judge_reason": "The answer denies Joanna gave book recommendations and omits A Court of Thorns and Roses, contradicting the gold answer.",
+      "answer_f1": 0.09191176470588236,
+      "result_sha256": "8dd510efa0ae0fff49a2a62180c39514a55a87d167be00581ad12bc873047aab",
+      "retrieval_sha256": "0587bde9e9be706364af7cd53457d19e1ffc2db532789a46a8c374906751ddc4"
+    },
+    {
+      "question_id": "conv-42_q4",
+      "diagnosis": "open_domain_inference_and_gold_strength",
+      "evidence_summary": "关于动物毛皮/爬行动物过敏的原文已在上下文。reader给毛绒宠物，gold推测无毛猫或猪；原文没有明确安全宠物结论。",
+      "recommended_validation": "单列合成人物常识推断能力，不能把gold建议写入抽取记忆或当作真实医疗结论。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What pets wouldn't cause any discomfort to Joanna?",
+      "gold": [
+        "Hairless cats or pigs,since they don't have fur, which is one of the main causes of Joanna's allergy."
+      ],
+      "baseline_answer": "A stuffed pet, such as her stuffed dog Tilly, would provide comfort without exposure to live animals. No living pet is confirmed to be safe for Joanna: she is allergic to most reptiles, including turtles, animals with fur, and cockroaches.",
+      "judge_reason": "The generated answer suggests a stuffed pet and denies any confirmed safe living pet rather than identifying hairless cats or pigs as the gold answer does.",
+      "answer_f1": 0.10909090909090909,
+      "result_sha256": "fc3f0a5f37f43cb9604c286851355a528380e4bae5e16c2d20ff9e9a1ad2927d",
+      "retrieval_sha256": "d4591529fc02a751fa281507a957ef374794ebbf7c667cf906fcdeb6bc0b7de7"
+    },
+    {
+      "question_id": "conv-42_q43",
+      "diagnosis": "elapsed_duration_annotation_ambiguity",
+      "evidence_summary": "7月10日说recently started book，10月6日说last week完成；reader约三个月，gold四个月，可能按July–October含首尾月份计数。",
+      "recommended_validation": "明确区分经过时长与月份标签计数；不为该题改全局日期算法。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "How long did it take for Joanna to finish writing her book?",
+      "gold": [
+        "four months"
+      ],
+      "baseline_answer": "It took Joanna about three months to write her book—from around July 2022 to September 26–October 2, 2022. Her exact starting date is not given.",
+      "judge_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
+      "answer_f1": 0.07407407407407407,
+      "result_sha256": "9cde9476e924687627a74a377199e47613672e90f08ae8e15aeeafd6078afaee",
+      "retrieval_sha256": "030504943d7fc8645d210be7a333542510a62c6ae80a2addbfe16734831f074f"
+    },
+    {
+      "question_id": "conv-42_q53",
+      "diagnosis": "event_counting_scope_and_context_gap",
+      "evidence_summary": "两条参考中10月25日walk已返回未打包；但全部原文另有11月7日park、11月10日beach，reader数为至少三。gold两次更像只计明确walk措辞。",
+      "recommended_validation": "事件计数需区分明确谓词、泛称习惯和出游推断，核验窗口后是否仍有范围歧义。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many times has Nate taken his turtles on a walk?",
+      "gold": [
+        "Twice."
+      ],
+      "baseline_answer": "At least three times are mentioned: walking them outdoors (March 18, 2022), a park outing (mentioned November 7, 2022), and a beach outing in Tampa on November 10, 2022. The exact total is not stated.",
+      "judge_reason": "The generated answer says at least three times, contradicting the gold answer of twice.",
+      "answer_f1": 0.0,
+      "result_sha256": "4dddd25f2aa815609de07e29a277b2bd3b4b41bada4570c759ba518612aed14d",
+      "retrieval_sha256": "d538a752078f49219f4734a83f89a5828b2f632d5709adc594ac9b533f21d10f"
+    },
+    {
+      "question_id": "conv-42_q54",
+      "diagnosis": "movie_ordinal_source_conflict",
+      "evidence_summary": "正确10月23日事实和D25:2均在上下文；D25:4明确说third time，事实据此标第三次。题目及gold称第二部，reader选6月4日。并非抽取凭空写第三。",
+      "recommended_validation": "优先完整原文证据、保留second/third矛盾；新增reader实验不得删去不利原文或重写gold。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "When was Joanna's second movie script shown on the big screens?",
+      "gold": [
+        "The Sunday before 25October, 2022."
+      ],
+      "baseline_answer": "Joanna’s second movie script was shown on the big screen on June 4, 2022.",
+      "judge_reason": "June 4, 2022 does not match the Sunday before October 25, 2022 (October 23, 2022).",
+      "answer_f1": 0.11764705882352941,
+      "result_sha256": "2e64536c0d8d2c8300c9a9d2c67cc5d0be70b3c4213d4ee77cd44a1a0b74d5fb",
+      "retrieval_sha256": "7b1f65212a31d756e9023d5c2b29aefc5614a60218c45c360d6d928e6b5346d9"
+    },
+    {
+      "question_id": "conv-42_q60",
+      "diagnosis": "visual_specificity_and_world_knowledge",
+      "evidence_summary": "原文和caption已在上下文，文字只写Xeonoblade Chronicles，无2；gold称Xenoblade2并据此推Switch。reader只推Nintendo，图片query是eternal kingdom game cover art，不能补出2。",
+      "recommended_validation": "区分可见系列名与图片具体版本；如评测视觉输入另报模型与成本，不假称文本已写2。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What Console does Nate own?",
+      "gold": [
+        "A Nintendo Switch; since the game \"Xenoblade 2\" is made for this console."
+      ],
+      "baseline_answer": "Nate likely owns a Nintendo console, given his interest in Nintendo games and Xenoblade Chronicles, but the memories do not specify which console.",
+      "judge_reason": "The answer mentions Nintendo but does not identify the Nintendo Switch, instead stating that the console is unspecified.",
+      "answer_f1": 0.09090909090909091,
+      "result_sha256": "c1a4eb814ce551a80b9d166ed050322a7cb34cc24c5d82970f9d493ad178a145",
+      "retrieval_sha256": "40a511dab3559479f45e58e629598683b8083cc43d59709c84f981911e55583e"
+    },
+    {
+      "question_id": "conv-42_q62",
+      "diagnosis": "counting_presupposition_and_extra_source",
+      "evidence_summary": "gold两封对应6月拒信和8月读者信；原文D27:29–30还明确童年兄弟的letter/notes，reader计入；另把10月拒绝假设为信，四封中此项是无依据扩张。",
+      "recommended_validation": "通用计数只纳入明确实体、去重并声明时间范围；保留童年信导致的gold范围歧义。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many letters has Joanna recieved?",
+      "gold": [
+        "Two"
+      ],
+      "baseline_answer": "Joanna has received four letters mentioned in the memories: a rejection letter from a major company, a supportive letter from a blog reader, another production-company rejection (assuming it was a letter), and a childhood letter from her brother. Three are explicitly identified as letters.",
+      "judge_reason": "The generated answer says four letters (or three explicitly identified), contradicting the gold answer of two.",
+      "answer_f1": 0.0,
+      "result_sha256": "3230b0098177dd209cb3a5f661b7e313a96ae85dce16071d54f3696f2bdb57c1",
+      "retrieval_sha256": "05d1dbc4970b5569dec3c961f5d10c06eebf59890dd240f3272fef04396a7c0e"
+    },
+    {
+      "question_id": "conv-42_q66",
+      "diagnosis": "open_domain_alternative_inference_and_partial_retrieval",
+      "evidence_summary": "gold动物园照顾乌龟属职业推测，不是原文明确计划；reader选实际提到的writing。多个养龟细节原文未返回，但部分喜爱乌龟信息已在上下文。",
+      "recommended_validation": "验证原文窗口及合成人物开放域推断；不能把动物园职业作为既有事实导入。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "What alternative career might Nate consider after gaming?",
+      "gold": [
+        "an animalkeeper at a localzoo and workingwith turtles; as heknows a great dealabout turtles andhow to care for them,and he enjoys it."
+      ],
+      "baseline_answer": "Nate might consider a career in writing. On March 24, 2022, he said he wanted to pursue writing and keep working hard at it, though he has not explicitly said he would make it his career after gaming.",
+      "judge_reason": "The generated answer suggests writing instead of the gold answer’s zoo animalkeeper role caring for turtles.",
+      "answer_f1": 0.048780487804878044,
+      "result_sha256": "8e5910919846d51e8d914f2e274b0f32b83713e87559575a389cecdf061ca3a6",
+      "retrieval_sha256": "6f71ccfefcb373e318cf2ab4fe1d137f7f634fef8b17427cf37b78a0188aa2ee"
+    },
+    {
+      "question_id": "conv-42_q78",
+      "diagnosis": "event_counting_and_future_event_deduplication",
+      "evidence_summary": "reader至少10，gold9；原文4月是计划5月第四场，7月第四场是第四次胜利，语义不同；另有泛称获胜、帮朋友和延期，不能每条事实都加一。多条参考未打包。",
+      "recommended_validation": "完整窗口后按已参加/计划/重复叙述/获胜序号建立通用事件表；无唯一事件标识时保留不确定性。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many video game tournaments has Nate participated in?",
+      "gold": [
+        "nine"
+      ],
+      "baseline_answer": "Nate has participated in at least 10 video game tournaments as of November 11, 2022, based on the recorded events.",
+      "judge_reason": "The generated answer says at least 10 tournaments, contradicting the gold answer of nine.",
+      "answer_f1": 0.0,
+      "result_sha256": "1cb3c93fb4e986fd313b36ffb3656caeddb6658eab388ce6c2fb9f719ccffbf4",
+      "retrieval_sha256": "e24f351061b8f67f276bb8eeb172fd73bb26a84d6157a9c1485273db53b0b474"
+    },
+    {
+      "question_id": "conv-42_q91",
+      "diagnosis": "image_query_omitted",
+      "evidence_summary": "参考原文和caption已在上下文，但都没有dragons；原数据D9:14的image query为fantasy novels dragon cover series，含该线索。v1窗口没有保留query。",
+      "recommended_validation": "将图像搜索描述作为明确标注的原始元数据另立实验；不从gold回填dragon。",
+      "confidence": "confirmed_metadata_gap",
+      "category": 4,
+      "question": "What is Nate's favorite book series about?",
+      "gold": [
+        "dragons"
+      ],
+      "baseline_answer": "Nate enjoys a fantasy book series featuring adventures, magic, and memorable characters. He also described an unnamed space-opera series as one of his favorites, praising its exciting battles, action scenes, and plot. The memories don’t give either series’ title or a more specific synopsis.",
+      "judge_reason": "The generated answer mentions generic fantasy and space opera but does not identify dragons as the subject of Nate's favorite book series.",
+      "answer_f1": 0.0,
+      "result_sha256": "e52c3f0ba59b6198cbcdf6976bde27340257d02d1c67bb53a0bb50348b5071ea",
+      "retrieval_sha256": "210265b7777f46feb554baa785a986186ddffc4eb0d583c80321f57634d168fd"
+    },
+    {
+      "question_id": "conv-42_q92",
+      "diagnosis": "visual_information_absent_from_text_and_caption",
+      "evidence_summary": "D10:2返回未打包，但原文、caption及query gaming setup均无red/purple；仅恢复文本不能保证得到灯色。",
+      "recommended_validation": "先核验图像是否确有该颜色，再决定独立视觉caption实验；不把缺失颜色归咎于数据库索引。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What kind of lighting does Nate's gaming room have?",
+      "gold": [
+        "red and purple lighting"
+      ],
+      "baseline_answer": "The memories do not specify what kind of lighting Nate’s gaming room has. Dimmable lights were suggested for his living room, not his gaming room.",
+      "judge_reason": "The generated answer claims the lighting is unspecified rather than identifying the red and purple lighting given in the gold answer.",
+      "answer_f1": 0.07407407407407407,
+      "result_sha256": "8e29369a9d6495f91d094d5b8b5891cedce50abd909aa801bd261659aa37c96d",
+      "retrieval_sha256": "43b99466e2bdc000971146b5425677333449f3d69294c8707f900a0500935e5e"
     }
   ]
 }
