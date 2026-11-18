@@ -1,14 +1,14 @@
 {
-  "kind": "partial-posthoc-error-analysis-not-a-score",
+  "kind": "complete-posthoc-error-analysis",
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 1382,
-  "reviewed_wrong_cases": 112,
+  "saved_result_scope": 1540,
+  "reviewed_wrong_cases": 121,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "3b69fb801d2cfc03f32e78938670b496ccc95bbd7a7fff81283386d46a15954e",
+  "source_snapshot_sha256": "8080269e7871431b0bf438519f697488931a8d2ec2310e72c2a8dbb23c0edf0e",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
-  "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
+  "note": "All 121 wrong cases from the valid complete 1540-question baseline reviewed posthoc. No extra benchmark answer/judge calls, gold or verdict changes. Diagnoses separate direct source conflicts from hypotheses; proposed fixes require independent full-run validation.",
   "rows": [
     {
       "question_id": "conv-26_q132",
@@ -25,7 +25,23 @@
       "judge_reason": "The generated answer does not state the seven-year duration and instead says the starting time is unspecified.",
       "answer_f1": 0.0,
       "result_sha256": "3c1d3a168c3e31a06a72706634b3289f3bff2664a4cd5a5e2b020655f859e5fd",
-      "retrieval_sha256": "bef0b652896bf27707f94880ab0054e382f24a5ae88962b78bf57e7be68e9f31"
+      "retrieval_sha256": "bef0b652896bf27707f94880ab0054e382f24a5ae88962b78bf57e7be68e9f31",
+      "official_mem0": {
+        "answer": "Seven years.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 1686.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Melanie has been creating art (pursuing painting and pottery) for seven years.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.15384615384615385,
+        "retrieval_ms": 1067.8,
+        "context_tokens": 32012
+      }
     },
     {
       "question_id": "conv-26_q133",
@@ -42,7 +58,23 @@
       "judge_reason": "The generated answer claims the sign's content is unspecified rather than identifying that someone was unable to leave, as stated in the gold answer.",
       "answer_f1": 0.18749999999999997,
       "result_sha256": "f98c91a9f1497f542ca923cf0c8154595ebaf9950ce69c5403db2c361d57da1a",
-      "retrieval_sha256": "156e945d33cdd789df6714d241a1170241e1d007d25d9593560589b4c6800b0f"
+      "retrieval_sha256": "156e945d33cdd789df6714d241a1170241e1d007d25d9593560589b4c6800b0f",
+      "official_mem0": {
+        "answer": "A sign on the door stating that someone was not able to leave (a precautionary notice).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6956521739130435,
+        "retrieval_ms": 2584.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not provide the specific text of the precautionary sign or explain exactly what the precaution was for. It only notes that Melanie found the sign \"thoughtful\" and an image caption describes it as a sign on a door \"stating that someone is not being able to leave.\"",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.39215686274509803,
+        "retrieval_ms": 928.0,
+        "context_tokens": 31912
+      }
     },
     {
       "question_id": "conv-26_q135",
@@ -59,7 +91,23 @@
       "judge_reason": "The generated answer describes a car accident involving her son rather than Melanie's injury that forced her to take a break from pottery.",
       "answer_f1": 0.0,
       "result_sha256": "4b96d0c754fb7101407c57185d11e73f222df169350c6abd38a5e78457bbb5e6",
-      "retrieval_sha256": "075799d4997298eef870d05d8f0b76d3741fcb0aa3f76b5a4cc85bf0923837c8"
+      "retrieval_sha256": "075799d4997298eef870d05d8f0b76d3741fcb0aa3f76b5a4cc85bf0923837c8",
+      "official_mem0": {
+        "answer": "Her family’s road trip got off to a bad start when her son was involved in a car accident on the weekend of October 14–15, 2023—airbags deployed and the dashboard was damaged, though he was okay.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.09999999999999999,
+        "retrieval_ms": 2526.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "In October 2023, Melanie mentioned experiencing a setback from an injury she sustained in September, which forced her to take a break from pottery. Furthermore, during the weekend of October 14, 2023, she faced another scary situation when her son was in a car accident during a family road trip.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.22641509433962262,
+        "retrieval_ms": 771.3,
+        "context_tokens": 32113
+      }
     },
     {
       "question_id": "conv-26_q144",
@@ -76,7 +124,23 @@
       "judge_reason": "The answer attributes the fear and reassurance to his siblings and says his own reaction is unknown, rather than stating that he was scared but reassured by his family.",
       "answer_f1": 0.22222222222222224,
       "result_sha256": "ae4f7a5b181569daebfd63c9dfdf1a46395d8e87dd5064dffaef58ca138685e6",
-      "retrieval_sha256": "a3146b454c337daf150b175f43ba9e4b5d68e887f0d6c504087b2d5cdf24ebf3"
+      "retrieval_sha256": "a3146b454c337daf150b175f43ba9e4b5d68e887f0d6c504087b2d5cdf24ebf3",
+      "official_mem0": {
+        "answer": "He was okay.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.36363636363636365,
+        "retrieval_ms": 1927.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Melanie's son was okay after the accident. While the event was scary for the family and his siblings were frightened, they were reassured that he would be fine.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.3125,
+        "retrieval_ms": 822.9,
+        "context_tokens": 31970
+      }
     },
     {
       "question_id": "conv-26_q21",
@@ -93,7 +157,23 @@
       "judge_reason": "The generated answer says the date is unknown, whereas the gold answer specifies the week before 6 July 2023.",
       "answer_f1": 0.0,
       "result_sha256": "ca1da373c2fef2c3ccdf1839a275872a4130c79539b6318b2e22b1d26cf7a6ca",
-      "retrieval_sha256": "fab82a146f70ff603c929b3ec24f6ca9b9c4adde9b08d66283f8afdfe70ded5a"
+      "retrieval_sha256": "fab82a146f70ff603c929b3ec24f6ca9b9c4adde9b08d66283f8afdfe70ded5a",
+      "official_mem0": {
+        "answer": "Around June 29, 2023 (the week before July 6, 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.7142857142857143,
+        "retrieval_ms": 2073.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Caroline had a picnic with her friends and family on June 29, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.12500000000000003,
+        "retrieval_ms": 767.3,
+        "context_tokens": 31965
+      }
     },
     {
       "question_id": "conv-26_q26",
@@ -110,7 +190,23 @@
       "judge_reason": "The generated answer suggests 2023 and uncertainty rather than identifying 2022, the year specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "613f18c331cf870a3d6a22f7ada7ab27a4fa7ce9f36b89518b03394f5671a3b3",
-      "retrieval_sha256": "83d07042d6647cde1833ef5ea95ea8c013023d59d0d2926615db39c864115f30"
+      "retrieval_sha256": "83d07042d6647cde1833ef5ea95ea8c013023d59d0d2926615db39c864115f30",
+      "official_mem0": {
+        "answer": "In 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6666666666666666,
+        "retrieval_ms": 2277.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "I do not have information on when Melanie read a book titled \"nothing is impossible.\" I only know that she read a book in 2022 that reminds her to pursue her dreams.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.06451612903225806,
+        "retrieval_ms": 861.4,
+        "context_tokens": 31972
+      }
     },
     {
       "question_id": "conv-26_q40",
@@ -127,7 +223,23 @@
       "judge_reason": "The generated answer says only one trip is confirmed and the total is unknown, rather than giving the gold answer of two trips.",
       "answer_f1": 0.0,
       "result_sha256": "a6f01371c519f4a5664823e8bd1c73e506e082e10cd2c029b44828f62c4b4375",
-      "retrieval_sha256": "86088ce91abd7e916c4746756b161ef120159972061b6f84455ccee5961fdc3d"
+      "retrieval_sha256": "86088ce91abd7e916c4746756b161ef120159972061b6f84455ccee5961fdc3d",
+      "official_mem0": {
+        "answer": "2 times. (Beach camping around July 6, 2023, and a beach day with her children around July 19, 2023.)",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.25,
+        "retrieval_ms": 1900.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The exact number of times Melanie has gone to the beach in 2023 is not explicitly stated. However, she had at least one recent beach trip in July 2023, and she noted that her family usually visits the beach once or twice a year.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 758.0,
+        "context_tokens": 31976
+      }
     },
     {
       "question_id": "conv-26_q5",
@@ -144,7 +256,23 @@
       "judge_reason": "The Sunday before May 25, 2023 was May 21, not Saturday, May 20 as stated in the generated answer.",
       "answer_f1": 0.23529411764705882,
       "result_sha256": "9816f17cf78695ab836bab127cd413bc55df903359bbcc42dddd7bdc02037c8b",
-      "retrieval_sha256": "29c260abaadddcbe1a89ca810db2845607be4314828dbb62efdda4868a2c9c57"
+      "retrieval_sha256": "29c260abaadddcbe1a89ca810db2845607be4314828dbb62efdda4868a2c9c57",
+      "official_mem0": {
+        "answer": "May 20, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 3724.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Melanie ran a charity race for mental health on Saturday, May 20, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.23529411764705882,
+        "retrieval_ms": 1095.1,
+        "context_tokens": 32042
+      }
     },
     {
       "question_id": "conv-26_q50",
@@ -161,7 +289,23 @@
       "judge_reason": "The generated answer declines to infer a political leaning rather than identifying Caroline as likely liberal.",
       "answer_f1": 0.0,
       "result_sha256": "0e747aaa62e1c0d63a962a43e7687221edf21fc1bc33668fab083f69966dfdf8",
-      "retrieval_sha256": "30878965034842c4ef9f3707ef37c6b82dfc1daa3c61729eeb50c6bed009f5be"
+      "retrieval_sha256": "30878965034842c4ef9f3707ef37c6b82dfc1daa3c61729eeb50c6bed009f5be",
+      "official_mem0": {
+        "answer": "Caroline is likely left-leaning (liberal/progressive), given her active advocacy for LGBTQ+ rights, choice of LGBTQ-inclusive adoption services, and consistent emphasis on inclusion, equality, and social support.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3251.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Based on her strong advocacy for LGBTQ+ and transgender rights, her focus on inclusivity, and her negative encounter with religious conservatives, Caroline's political leaning is likely progressive, liberal, or left-leaning.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0689655172413793,
+        "retrieval_ms": 768.4,
+        "context_tokens": 32114
+      }
     },
     {
       "question_id": "conv-26_q59",
@@ -178,7 +322,23 @@
       "judge_reason": "The generated answer says Caroline’s religiosity cannot be determined rather than identifying her as somewhat but not extremely religious.",
       "answer_f1": 0.14285714285714288,
       "result_sha256": "8464ff5425cd7528d3f77f033432eb810cd74396745df983ad670e8c4ceee620",
-      "retrieval_sha256": "ffa3ad85c5032b5fa093268d9d79685fc74711bdcab59ed6dde4599f87ab7109"
+      "retrieval_sha256": "ffa3ad85c5032b5fa093268d9d79685fc74711bdcab59ed6dde4599f87ab7109",
+      "official_mem0": {
+        "answer": "Probably not. Across her 2023–2024 memories, Caroline doesn’t mention practicing a religion. The only religion‑related moment was a negative encounter with religious conservatives on a hike (around Aug 16, 2023). Her references to “faith” (in a necklace’s symbolic meaning) and sharing a stained‑glass photo are personal or artistic, not signs of religious observance.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0784313725490196,
+        "retrieval_ms": 1927.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not explicitly state whether Caroline is considered religious. However, it mentions that she has a necklace from her grandma symbolizing faith and that she created a stained glass window for a local church. It also notes that she had a negative encounter with a group of religious conservatives while hiking.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0784313725490196,
+        "retrieval_ms": 749.6,
+        "context_tokens": 32208
+      }
     },
     {
       "question_id": "conv-26_q66",
@@ -195,7 +355,23 @@
       "judge_reason": "The generated answer does not mention roasting marshmallows or telling stories, the activities specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "3f3a827695cf0729a194b10ae2ff69754ec3602da06ba351db46c5d217803d97",
-      "retrieval_sha256": "b30e22086f32e97e3d6664d0b0cd9ccf0da4d4383b9085e9fa77dd2e023e7c73"
+      "retrieval_sha256": "b30e22086f32e97e3d6664d0b0cd9ccf0da4d4383b9085e9fa77dd2e023e7c73",
+      "official_mem0": {
+        "answer": "She explores nature with them—hiking mountain trails (even up to summits for the views) as a way to connect with each other.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1750.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "On hikes, Melanie and her family enjoy exploring forests and mountains to connect with nature and with one another.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 766.1,
+        "context_tokens": 31935
+      }
     },
     {
       "question_id": "conv-26_q78",
@@ -212,7 +388,23 @@
       "judge_reason": "The generated answer says the purchases are unspecified, but the gold answer identifies figurines and shoes.",
       "answer_f1": 0.0,
       "result_sha256": "d395a3e2e6e328a5b333780773ef4c0d6d70616b6be8f34bd1b28bbd7f288743",
-      "retrieval_sha256": "4dcc03efa1e56175d05520f23af196b3b7ce102b1f93ccf7b7138506c5e10499"
+      "retrieval_sha256": "4dcc03efa1e56175d05520f23af196b3b7ce102b1f93ccf7b7138506c5e10499",
+      "official_mem0": {
+        "answer": "- Figurines (bought on October 21, 2023; she said they remind her of family love)",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.16666666666666669,
+        "retrieval_ms": 1948.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Melanie has bought new purple running shoes and figurines that remind her of family love.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.13333333333333333,
+        "retrieval_ms": 724.1,
+        "context_tokens": 31912
+      }
     },
     {
       "question_id": "conv-26_q80",
@@ -229,7 +421,23 @@
       "judge_reason": "The generated answer says the date is unknown, whereas the gold answer specifies 21 October 2023.",
       "answer_f1": 0.0,
       "result_sha256": "a0af1d97d33e97f42daea934c5b358421e7bf54ab2dd1b1d0a63613ad55e4d6d",
-      "retrieval_sha256": "9bf2d4ca191b49cb9ebf8bf0d8d9e2f7f0ec0aef3bb910c6febb39753980e93d"
+      "retrieval_sha256": "9bf2d4ca191b49cb9ebf8bf0d8d9e2f7f0ec0aef3bb910c6febb39753980e93d",
+      "official_mem0": {
+        "answer": "October 21, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 1385.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Melanie bought the figurines on October 21, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6,
+        "retrieval_ms": 1217.1,
+        "context_tokens": 32014
+      }
     },
     {
       "question_id": "conv-26_q85",
@@ -246,7 +454,23 @@
       "judge_reason": "The generated answer lists other summer activities but does not mention researching adoption agencies.",
       "answer_f1": 0.0,
       "result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
-      "retrieval_sha256": "9c076568ea7066c9b208922ba96bf26765235958a9d98af9aabe93c1eec5f9df"
+      "retrieval_sha256": "9c076568ea7066c9b208922ba96bf26765235958a9d98af9aabe93c1eec5f9df",
+      "official_mem0": {
+        "answer": "Caroline plans to attend a transgender conference in July 2023, host her own LGBTQ‑themed art show in August, and set up a special nature‑focused summer outing with Melanie (in addition to the larger family outing Melanie suggested).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1878.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Caroline's plans for the summer involve either a family outing or planning something special just for her and Melanie to catch up and explore nature.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 776.6,
+        "context_tokens": 31965
+      }
     },
     {
       "question_id": "conv-30_q13",
@@ -263,7 +487,23 @@
       "judge_reason": "The generated answer gives January 2023, which conflicts with the gold date of 16 March 2023.",
       "answer_f1": 0.07407407407407407,
       "result_sha256": "26a8df00dbc5b93a9aca5849a70c1dac98a5cfbbf394761739ce867e0b734a7f",
-      "retrieval_sha256": "8d71b476e42387fc9ad72adeab1292389cff6eff1dcee673170d4050a559ce95"
+      "retrieval_sha256": "8d71b476e42387fc9ad72adeab1292389cff6eff1dcee673170d4050a559ce95",
+      "official_mem0": {
+        "answer": "March 16, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 1792.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Gina opened her online clothing store on March 16, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4615384615384615,
+        "retrieval_ms": 681.0,
+        "context_tokens": 23733
+      }
     },
     {
       "question_id": "conv-30_q31",
@@ -280,7 +520,23 @@
       "judge_reason": "The generated answer says five months, whereas the gold answer specifies six months.",
       "answer_f1": 0.0,
       "result_sha256": "99737fdcbf55f6f6c2575344011880f0cb9123b66eba5d620a07de4045ada48f",
-      "retrieval_sha256": "44bb83dcdf552867bb3a1981b52e86cab941a7092c4ab8489532467d7a7c9240"
+      "retrieval_sha256": "44bb83dcdf552867bb3a1981b52e86cab941a7092c4ab8489532467d7a7c9240",
+      "official_mem0": {
+        "answer": "About 4 months and 13 days — from February 7, 2023 (when Jon lost his banking job and decided to pursue the studio) to June 20, 2023 (his official opening night).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1818181818181818,
+        "retrieval_ms": 1800.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "It took Jon exactly 5 months and 1 day to open his dance studio, starting from when he lost his job on January 19, 2023, until the grand opening on June 20, 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.13333333333333336,
+        "retrieval_ms": 832.5,
+        "context_tokens": 23692
+      }
     },
     {
       "question_id": "conv-30_q37",
@@ -297,7 +553,23 @@
       "judge_reason": "The generated answer says the date cannot be determined, whereas the gold answer specifies 23 July 2023.",
       "answer_f1": 0.0,
       "result_sha256": "6acb6bf85a4629cc6f5b4c48b3d163247c90c1346e875a49c150a916084c4503",
-      "retrieval_sha256": "75460c9ce8b185dfce4797e13131d34f4273ecd97e3efa75b9694c597d9cba4e"
+      "retrieval_sha256": "75460c9ce8b185dfce4797e13131d34f4273ecd97e3efa75b9694c597d9cba4e",
+      "official_mem0": {
+        "answer": "Right after encouraging Jon with “just do it,” she clarified that the person she was referencing was Shia LaBeouf.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2170.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Gina mentioned Shia Labeouf on Sunday, July 23, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 627.9,
+        "context_tokens": 23666
+      }
     },
     {
       "question_id": "conv-30_q43",
@@ -314,7 +586,23 @@
       "judge_reason": "The generated answer describes symbolic values rather than identifying the dancers as performing at the festival.",
       "answer_f1": 0.1,
       "result_sha256": "5560e086bb4b525bb046658affa6b754072d513de8a79efc8e4eb1b617c38ff1",
-      "retrieval_sha256": "e5e3e2e39c0b6ed18e584cd9a5dca4db98dd4784d7345e91c9bd3bc121d2b456"
+      "retrieval_sha256": "e5e3e2e39c0b6ed18e584cd9a5dca4db98dd4784d7345e91c9bd3bc121d2b456",
+      "official_mem0": {
+        "answer": "They represent an energetic performance.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4444444444444445,
+        "retrieval_ms": 2149.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "There are two photos of dancers mentioned in the memories:\n1. A photo Jon shared of his students on March 23, 2023, represents his motivation, as he is driven by seeing his students succeed and helping them reach their goals.\n2. A picture Gina shared of her dance team on June 16, 2023, represents the idea that hard work and past failures can lead to success, and it served to remind Jon of his love for performing.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.05333333333333333,
+        "retrieval_ms": 612.8,
+        "context_tokens": 23756
+      }
     },
     {
       "question_id": "conv-30_q44",
@@ -331,7 +619,23 @@
       "judge_reason": "The generated answer does not mention Gina saying the dancers look graceful, instead describing unrelated details.",
       "answer_f1": 0.0606060606060606,
       "result_sha256": "5c3a87d8104fb418ccbd54d4c27f7eeea2dc61b07c95fffd414ddffeb751d0c1",
-      "retrieval_sha256": "9b5fa54bc1ff7989b281948cc3146cdb1fca5dddd5270cfbae4332d16fa2ebed"
+      "retrieval_sha256": "9b5fa54bc1ff7989b281948cc3146cdb1fca5dddd5270cfbae4332d16fa2ebed",
+      "official_mem0": {
+        "answer": "She said she was excited and looking forward to seeing Jon’s dancers perform at the upcoming festival.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.1111111111111111,
+        "retrieval_ms": 1914.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "When Jon shares a photo of his dancers, Gina comments that they look awesome, noting specifically that they are \"so graceful!\" and \"look great!\" She also expresses her excitement to see them rock their upcoming festival performance.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.15789473684210528,
+        "retrieval_ms": 631.6,
+        "context_tokens": 23685
+      }
     },
     {
       "question_id": "conv-30_q73",
@@ -348,7 +652,23 @@
       "judge_reason": "The generated answer describes joy and freedom but does not mention Gina describing the feeling as magical.",
       "answer_f1": 0.0,
       "result_sha256": "455d6e961578f1e5194a451ef7b5006e8d5045ebe629aec3b196c3289a60c58b",
-      "retrieval_sha256": "1f51c99223faad38c385e8b0ec2ebfbacc5e4a20971f392a1034278010e1d7ac"
+      "retrieval_sha256": "1f51c99223faad38c385e8b0ec2ebfbacc5e4a20971f392a1034278010e1d7ac",
+      "official_mem0": {
+        "answer": "Joy.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2613.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Gina describes dance as her go-to for stress relief, a way to express herself and be herself, and mentions that contemporary dance is graceful. She also associates it with an \"awesome feeling of accomplishment\" from her days competing.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 706.7,
+        "context_tokens": 23713
+      }
     },
     {
       "question_id": "conv-41_q0",
@@ -365,7 +685,23 @@
       "judge_reason": "The generated answer says the dinner companion is unspecified, whereas the gold answer identifies her mother.",
       "answer_f1": 0.0,
       "result_sha256": "0d31a82dc31c126a186d491c4d046dcb81dae8d3bc02105c432e735f15da1101",
-      "retrieval_sha256": "1ee8d3bf9d86541c38770f74656d9a425247c5b91a803c36d83a6ada64a970fd"
+      "retrieval_sha256": "1ee8d3bf9d86541c38770f74656d9a425247c5b91a803c36d83a6ada64a970fd",
+      "official_mem0": {
+        "answer": "Her mom.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 3019.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Maria had dinner with her mom on May 3, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.16666666666666669,
+        "retrieval_ms": 1989.7,
+        "context_tokens": 38199
+      }
     },
     {
       "question_id": "conv-41_q123",
@@ -382,7 +718,23 @@
       "judge_reason": "The generated answer says the information is unavailable, whereas Maria planned to have dinner with friends from the gym.",
       "answer_f1": 0.0,
       "result_sha256": "1df0b249be331b5547947296a36fab232ae54ac2bed3266ff44513445369f56d",
-      "retrieval_sha256": "89f90febc9c563034a37f17e754d0db35fe7eaea4e1359df400db1151810a262"
+      "retrieval_sha256": "89f90febc9c563034a37f17e754d0db35fe7eaea4e1359df400db1151810a262",
+      "official_mem0": {
+        "answer": "She planned to have dinner with some friends she met at the gym.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5555555555555556,
+        "retrieval_ms": 3005.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "On the evening of July 7, 2023, Maria planned to have dinner with friends from her gym.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5454545454545454,
+        "retrieval_ms": 842.4,
+        "context_tokens": 38395
+      }
     },
     {
       "question_id": "conv-41_q4",
@@ -399,7 +751,23 @@
       "judge_reason": "The week before 1 January 2023 refers to late December (approximately December 25–31), not December 19–25.",
       "answer_f1": 0.0,
       "result_sha256": "08b6fb25760d3ab347c0854ccd70cf420500b45c3e345473feae236cba385ba0",
-      "retrieval_sha256": "584e8dd98470221c624b3c06e8306a0e74b6c53f285588a32e4e4504fa1afecb"
+      "retrieval_sha256": "584e8dd98470221c624b3c06e8306a0e74b6c53f285588a32e4e4504fa1afecb",
+      "official_mem0": {
+        "answer": "Around December 25, 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2884.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John joined the online support group in late December 2022 (the week prior to January 1, 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4,
+        "retrieval_ms": 874.5,
+        "context_tokens": 38084
+      }
     },
     {
       "question_id": "conv-41_q45",
@@ -416,7 +784,23 @@
       "judge_reason": "The generated answer leaves relocation uncertain rather than stating that John would not move because of his specifically U.S.-based military and political goals.",
       "answer_f1": 0.0634920634920635,
       "result_sha256": "d2024ec2403d553817c9d4cd00e9fdf66a7c015faa1ec79cedf9a376c6cc3ec7",
-      "retrieval_sha256": "994218f999da3f5d2d32804dbaf75e796b7f76e5fcfa87ad29de36869f3caa6c"
+      "retrieval_sha256": "994218f999da3f5d2d32804dbaf75e796b7f76e5fcfa87ad29de36869f3caa6c",
+      "official_mem0": {
+        "answer": "Unlikely right now. John is deeply rooted in his local community and family: he’s run for local office (reaffirmed around April 29, 2023), is focused on improving education, infrastructure, housing in West County, organizes petitions and meetings (including flood and veterans’ issues), and centers his wife and kids in decisions. His travels have been domestic (e.g., California trip, planned East Coast trip), and his career moves (policy, local activism, tech roles) don’t suggest relocating abroad. He’s open to new experiences and could consider short‑term travel or temporary assignments (e.g., service), but a move to another country doesn’t align with his current priorities.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.07476635514018691,
+        "retrieval_ms": 3054.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks explicit information on whether John would be open to moving to another country. However, based on his deep commitment to serving his country and his active involvement in improving his local community through politics, volunteering, and fire-fighting, it is likely he is highly rooted where he currently lives.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.09836065573770492,
+        "retrieval_ms": 867.7,
+        "context_tokens": 38065
+      }
     },
     {
       "question_id": "conv-41_q61",
@@ -433,7 +817,23 @@
       "judge_reason": "July 31–August 6 is earlier than the week immediately before August 13, 2023 (approximately August 6–12).",
       "answer_f1": 0.26666666666666666,
       "result_sha256": "20ac718a68142b635e60538c9a5afbb79c0be18edb01ee2c3eb655747fca27d3",
-      "retrieval_sha256": "210a4e0f0253057a383f4a6d537112c2ce15eddbe72249721dc084c5f188ba72"
+      "retrieval_sha256": "210a4e0f0253057a383f4a6d537112c2ce15eddbe72249721dc084c5f188ba72",
+      "official_mem0": {
+        "answer": "Around August 6, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4444444444444445,
+        "retrieval_ms": 2463.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Maria adopted Shadow the week prior to August 13, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5714285714285714,
+        "retrieval_ms": 820.4,
+        "context_tokens": 38152
+      }
     },
     {
       "question_id": "conv-41_q62",
@@ -450,7 +850,23 @@
       "judge_reason": "Although it mentions two dogs, the answer only confirms one shelter adoption and does not state that Maria adopted two dogs from the shelter where she volunteers.",
       "answer_f1": 0.4,
       "result_sha256": "8cdfe7ce7c36a80ef47c6d3001f7278a6573d08d9548a5b3ebd70028f5391769",
-      "retrieval_sha256": "6f30cc5db0fd878b9bba688891091294f374d804c9630892de84231503c8e24f"
+      "retrieval_sha256": "6f30cc5db0fd878b9bba688891091294f374d804c9630892de84231503c8e24f",
+      "official_mem0": {
+        "answer": "2",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2379.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information to answer how many dogs Maria has adopted specifically from the dog shelter she volunteers at, as it only mentions she adopted a puppy from \"a shelter\" without naming it.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 838.6,
+        "context_tokens": 38257
+      }
     },
     {
       "question_id": "conv-41_q63",
@@ -467,7 +883,23 @@
       "judge_reason": "The generated answer says about one week (3–9 days), which does not match the gold answer of two weeks.",
       "answer_f1": 0.09090909090909091,
       "result_sha256": "43490de76ebf852df1e98ce9b70d9ecfd3baa5da85c780abc2b2e9b3d7a20898",
-      "retrieval_sha256": "f7edf228a344201a400bf3d14299e04ca389baddc18fe8c4c7ee867a59d9ef36"
+      "retrieval_sha256": "f7edf228a344201a400bf3d14299e04ca389baddc18fe8c4c7ee867a59d9ef36",
+      "official_mem0": {
+        "answer": "About 1 week and 2 days (9 days), from around July 28, 2023 (Coco) to around August 6, 2023 (Shadow).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.09523809523809525,
+        "retrieval_ms": 2716.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Approximately 1 to 2 weeks passed between Maria adopting Coco (around July 28, 2023) and adopting Shadow (between August 6 and August 12, 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.08333333333333334,
+        "retrieval_ms": 963.1,
+        "context_tokens": 38042
+      }
     },
     {
       "question_id": "conv-41_q8",
@@ -484,7 +916,23 @@
       "judge_reason": "The generated answer suggests financial strain and uncertainty rather than the middle-class or wealthy status stated in the gold answer.",
       "answer_f1": 0.03278688524590164,
       "result_sha256": "67ddd957545316016bbbe7d02a2868b4ec5dcb8c06b791dfc6491378b66568aa",
-      "retrieval_sha256": "f3cf04282b92f371b1e5528bbf3618c1528aa6a9b2cfcc5c07bed2655e05be6d"
+      "retrieval_sha256": "f3cf04282b92f371b1e5528bbf3618c1528aa6a9b2cfcc5c07bed2655e05be6d",
+      "official_mem0": {
+        "answer": "Around April 2023, John was experiencing financial strain and money problems—sparked by car issues—indicating a tight budget at that time. By June 2023 he earned a promotion to assistant manager, suggesting his finances likely improved afterward. Overall, he appears to be in a modest, working‑to‑middle‑class situation: able to provide resources for his children but vulnerable to unexpected expenses.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2312.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John's financial status appears to be strained. He experienced financial difficulties in April 2023 when his car broke down. Although he received a promotion in June 2023, he subsequently lost his job at a mechanical engineering company due to bankruptcy. He has recently been exploring or starting a new job in the tech industry, but noted as of August 2023 that he has been going through \"tough times lately.\"",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.029411764705882356,
+        "retrieval_ms": 849.2,
+        "context_tokens": 37944
+      }
     },
     {
       "question_id": "conv-41_q95",
@@ -501,7 +949,23 @@
       "judge_reason": "The generated answer says the activity is unknown, whereas the gold answer states that Maria and her mom made dinner together.",
       "answer_f1": 0.11764705882352941,
       "result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
-      "retrieval_sha256": "7ae587470a224ef0393ad57971606033d5b6af078dcde5607fe867f407c21701"
+      "retrieval_sha256": "7ae587470a224ef0393ad57971606033d5b6af078dcde5607fe867f407c21701",
+      "official_mem0": {
+        "answer": "They prepared dinner together on May 3, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.36363636363636365,
+        "retrieval_ms": 2819.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "In May 2023, Maria and her mom made dinner together on May 3.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4,
+        "retrieval_ms": 952.6,
+        "context_tokens": 38098
+      }
     },
     {
       "question_id": "conv-42_q12",
@@ -518,7 +982,23 @@
       "judge_reason": "The generated answer suggests an atopic predisposition but does not identify asthma, the condition specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "cc7f21512a3e0635575f9aaf3c81b8dc417806211cd0fad3778137c12990fa41",
-      "retrieval_sha256": "2332fb87998e09ae13ae44f89f0f49dc8476246a58a393ec0832ba9611db6999"
+      "retrieval_sha256": "2332fb87998e09ae13ae44f89f0f49dc8476246a58a393ec0832ba9611db6999",
+      "official_mem0": {
+        "answer": "An atopic predisposition (allergy diathesis)—a tendency toward allergic conditions like allergic rhinitis or eczema—suggested by her multiple environmental allergies (animal dander, cockroaches) and strong reactions.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 4339.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information to determine what underlying condition Joanna might have based on her allergies.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 843.5,
+        "context_tokens": 37422
+      }
     },
     {
       "question_id": "conv-42_q14",
@@ -535,7 +1015,23 @@
       "judge_reason": "The generated answer denies a nickname is specified, whereas the gold answer identifies the nickname as “Jo.”",
       "answer_f1": 0.0,
       "result_sha256": "059a7caece72173a0fd5284f72d9aeb76d88e5b4263a46c891345b0122f773f8",
-      "retrieval_sha256": "04bdba3d2c0ea80f161dd7787cd65cb3ddf6cf08f7b2c7a696d811ac9df7da59"
+      "retrieval_sha256": "04bdba3d2c0ea80f161dd7787cd65cb3ddf6cf08f7b2c7a696d811ac9df7da59",
+      "official_mem0": {
+        "answer": "Jo",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 3671.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Nate uses the nickname \"Jo\" for Joanna.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.2857142857142857,
+        "retrieval_ms": 809.5,
+        "context_tokens": 37086
+      }
     },
     {
       "question_id": "conv-42_q195",
@@ -552,7 +1048,23 @@
       "judge_reason": "The generated answer says baking and cooking, rather than watching Joanna's movies together or going to the park.",
       "answer_f1": 0.17391304347826086,
       "result_sha256": "b6e53ad31225bd25043fc29ee170dea7a4c77bfea30b174c9dbf8906cb9e8f07",
-      "retrieval_sha256": "99ec7879397e9a14121ac7f17f0e299500d50b1d3674fc5035b17407e420d865"
+      "retrieval_sha256": "99ec7879397e9a14121ac7f17f0e299500d50b1d3674fc5035b17407e420d865",
+      "official_mem0": {
+        "answer": "Join her in the kitchen to try her desserts—specifically, he wants to bake her chocolate raspberry tart together.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.14814814814814817,
+        "retrieval_ms": 3643.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Nate wants to join Joanna in the kitchen to try her baking and cook together, as he believes it fosters connection.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.20689655172413793,
+        "retrieval_ms": 827.5,
+        "context_tokens": 36986
+      }
     },
     {
       "question_id": "conv-42_q24",
@@ -569,7 +1081,23 @@
       "judge_reason": "June 18–19, 2022 is not the weekend after June 3, 2022.",
       "answer_f1": 0.26666666666666666,
       "result_sha256": "6dfcb94cebfa4885d363cf636875f72b1290fb41f14c790683aa13c36eba9e7a",
-      "retrieval_sha256": "80a5b4a5e83aaf85d4550bc2f8c7be60c5887eb220e9ffef6d2bbac868ccbf57"
+      "retrieval_sha256": "80a5b4a5e83aaf85d4550bc2f8c7be60c5887eb220e9ffef6d2bbac868ccbf57",
+      "official_mem0": {
+        "answer": "The weekend of June 11–12, 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4444444444444445,
+        "retrieval_ms": 3254.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Nate hosted a gaming party over the weekend of June 17-19, 2022, and mentioned plans to potentially host another one the following month, in July 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.15384615384615385,
+        "retrieval_ms": 876.0,
+        "context_tokens": 37386
+      }
     },
     {
       "question_id": "conv-42_q34",
@@ -586,7 +1114,23 @@
       "judge_reason": "The answer denies Joanna gave book recommendations and omits A Court of Thorns and Roses, contradicting the gold answer.",
       "answer_f1": 0.09191176470588236,
       "result_sha256": "8dd510efa0ae0fff49a2a62180c39514a55a87d167be00581ad12bc873047aab",
-      "retrieval_sha256": "0587bde9e9be706364af7cd53457d19e1ffc2db532789a46a8c374906751ddc4"
+      "retrieval_sha256": "0587bde9e9be706364af7cd53457d19e1ffc2db532789a46a8c374906751ddc4",
+      "official_mem0": {
+        "answer": "None — there are no instances in the memories where Joanna gives Nate book recommendations. She asks what books he enjoys and is open to recommendations, but the only recommendations she gives are for movies (e.g., “Eternal Sunshine of the Spotless Mind”).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.11111111111111112,
+        "retrieval_ms": 6410.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Joanna did not recommend a specific book title to Nate. Instead, she generally recommended reading a fantasy or fiction book series as a great way to relax. When Nate suggested reading the \"A Court of Thorns and Roses\" series, she enthusiastically agreed it was a great choice.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.11111111111111109,
+        "retrieval_ms": 812.0,
+        "context_tokens": 37040
+      }
     },
     {
       "question_id": "conv-42_q4",
@@ -603,7 +1147,23 @@
       "judge_reason": "The generated answer suggests a stuffed pet and denies any confirmed safe living pet rather than identifying hairless cats or pigs as the gold answer does.",
       "answer_f1": 0.10909090909090909,
       "result_sha256": "fc3f0a5f37f43cb9604c286851355a528380e4bae5e16c2d20ff9e9a1ad2927d",
-      "retrieval_sha256": "d4591529fc02a751fa281507a957ef374794ebbf7c667cf906fcdeb6bc0b7de7"
+      "retrieval_sha256": "d4591529fc02a751fa281507a957ef374794ebbf7c667cf906fcdeb6bc0b7de7",
+      "official_mem0": {
+        "answer": "Pets without fur and not reptiles—such as aquarium fish—wouldn’t cause Joanna any discomfort.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.20689655172413793,
+        "retrieval_ms": 3480.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Joanna is allergic to animals with fur, most reptiles, and cockroaches, and she hasn't researched alternative live pets. The only \"pet\" mentioned that doesn't cause her discomfort is her stuffed animal dog, Tilly.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.1702127659574468,
+        "retrieval_ms": 982.0,
+        "context_tokens": 37669
+      }
     },
     {
       "question_id": "conv-42_q43",
@@ -620,7 +1180,23 @@
       "judge_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
       "answer_f1": 0.07407407407407407,
       "result_sha256": "9cde9476e924687627a74a377199e47613672e90f08ae8e15aeeafd6078afaee",
-      "retrieval_sha256": "030504943d7fc8645d210be7a333542510a62c6ae80a2addbfe16734831f074f"
+      "retrieval_sha256": "030504943d7fc8645d210be7a333542510a62c6ae80a2addbfe16734831f074f",
+      "official_mem0": {
+        "answer": "About six weeks (from mid‑August 2022, when she shared her book with her writers group, to around September 29, 2022, when she finished it).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2064.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "It took Joanna approximately 2.5 to 3 months to finish writing her book, having started around July 10, 2022, and finishing it between September 29 and October 5, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.06896551724137931,
+        "retrieval_ms": 925.4,
+        "context_tokens": 37422
+      }
     },
     {
       "question_id": "conv-42_q53",
@@ -637,7 +1213,23 @@
       "judge_reason": "The generated answer says at least three times, contradicting the gold answer of twice.",
       "answer_f1": 0.0,
       "result_sha256": "4dddd25f2aa815609de07e29a277b2bd3b4b41bada4570c759ba518612aed14d",
-      "retrieval_sha256": "d538a752078f49219f4734a83f89a5828b2f632d5709adc594ac9b533f21d10f"
+      "retrieval_sha256": "d538a752078f49219f4734a83f89a5828b2f632d5709adc594ac9b533f21d10f",
+      "official_mem0": {
+        "answer": "1 time — on October 25, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2414.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The exact number of times Nate has taken his turtles for a walk is not specified in the memories. However, he mentioned on March 18, 2022, that he walks them regularly, and there is one specific instance recorded of him taking them for a walk on October 25, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 872.0,
+        "context_tokens": 37175
+      }
     },
     {
       "question_id": "conv-42_q54",
@@ -654,7 +1246,23 @@
       "judge_reason": "June 4, 2022 does not match the Sunday before October 25, 2022 (October 23, 2022).",
       "answer_f1": 0.11764705882352941,
       "result_sha256": "2e64536c0d8d2c8300c9a9d2c67cc5d0be70b3c4213d4ee77cd44a1a0b74d5fb",
-      "retrieval_sha256": "7b1f65212a31d756e9023d5c2b29aefc5614a60218c45c360d6d928e6b5346d9"
+      "retrieval_sha256": "7b1f65212a31d756e9023d5c2b29aefc5614a60218c45c360d6d928e6b5346d9",
+      "official_mem0": {
+        "answer": "Sunday, October 23, 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 2216.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks explicit information on when Joanna's second movie script was shown on the big screens. However, her work is mentioned to have appeared on the big screen on June 4, 2022, and again on October 23, 2022 (which she noted was the third time her writing was shown on the big screen).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.038461538461538464,
+        "retrieval_ms": 895.4,
+        "context_tokens": 37505
+      }
     },
     {
       "question_id": "conv-42_q60",
@@ -671,7 +1279,23 @@
       "judge_reason": "The answer mentions Nintendo but does not identify the Nintendo Switch, instead stating that the console is unspecified.",
       "answer_f1": 0.09090909090909091,
       "result_sha256": "c1a4eb814ce551a80b9d166ed050322a7cb34cc24c5d82970f9d493ad178a145",
-      "retrieval_sha256": "40a511dab3559479f45e58e629598683b8083cc43d59709c84f981911e55583e"
+      "retrieval_sha256": "40a511dab3559479f45e58e629598683b8083cc43d59709c84f981911e55583e",
+      "official_mem0": {
+        "answer": "Nintendo Switch",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 2888.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks explicit information about a specific gaming console Nate owns. However, the memories note that he uses an upgraded computer setup for gaming and is a fan of Nintendo games.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.07142857142857144,
+        "retrieval_ms": 811.4,
+        "context_tokens": 37393
+      }
     },
     {
       "question_id": "conv-42_q62",
@@ -688,7 +1312,23 @@
       "judge_reason": "The generated answer says four letters (or three explicitly identified), contradicting the gold answer of two.",
       "answer_f1": 0.0,
       "result_sha256": "3230b0098177dd209cb3a5f661b7e313a96ae85dce16071d54f3696f2bdb57c1",
-      "retrieval_sha256": "05d1dbc4970b5569dec3c961f5d10c06eebf59890dd240f3272fef04396a7c0e"
+      "retrieval_sha256": "05d1dbc4970b5569dec3c961f5d10c06eebf59890dd240f3272fef04396a7c0e",
+      "official_mem0": {
+        "answer": "One — a generic rejection letter around June 3, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2478.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Joanna has received 3 letters mentioned in the context: \n1. A rejection letter from a major company (around June 2022).\n2. A heartfelt letter from a reader of her blog post (early August 2022).\n3. A handwritten letter from her brother from when they were kids.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 829.0,
+        "context_tokens": 37407
+      }
     },
     {
       "question_id": "conv-42_q66",
@@ -705,7 +1345,23 @@
       "judge_reason": "The generated answer suggests writing instead of the gold answer’s zoo animalkeeper role caring for turtles.",
       "answer_f1": 0.048780487804878044,
       "result_sha256": "8e5910919846d51e8d914f2e274b0f32b83713e87559575a389cecdf061ca3a6",
-      "retrieval_sha256": "6f71ccfefcb373e318cf2ab4fe1d137f7f634fef8b17427cf37b78a0188aa2ee"
+      "retrieval_sha256": "6f71ccfefcb373e318cf2ab4fe1d137f7f634fef8b17427cf37b78a0188aa2ee",
+      "official_mem0": {
+        "answer": "Screenwriting—he mentioned he might start writing and publishing his own drama screenplay.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3473.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "While there is no explicit mention of Nate retiring from gaming, he has a few alternative career options based on his current activities and interests:\n\n1. **Cooking Show Host/Chef:** Nate already has his own cooking show where he teaches people how to make vegan and dairy-free desserts, such as coconut milk ice cream.\n2. **YouTube Content Creator:** He creates gaming videos for YouTube to entertain people and share his love for gaming.\n3. **Screenwriter:** He has expressed interest in potentially writing and publishing his own drama screenplay, inspired by the idea of exploring nature trails.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 826.0,
+        "context_tokens": 37358
+      }
     },
     {
       "question_id": "conv-42_q78",
@@ -722,7 +1378,23 @@
       "judge_reason": "The generated answer says at least 10 tournaments, contradicting the gold answer of nine.",
       "answer_f1": 0.0,
       "result_sha256": "1cb3c93fb4e986fd313b36ffb3656caeddb6658eab388ce6c2fb9f719ccffbf4",
-      "retrieval_sha256": "e24f351061b8f67f276bb8eeb172fd73bb26a84d6157a9c1485273db53b0b474"
+      "retrieval_sha256": "e24f351061b8f67f276bb8eeb172fd73bb26a84d6157a9c1485273db53b0b474",
+      "official_mem0": {
+        "answer": "",
+        "correct": false,
+        "status": "ERROR",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2325.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Based on the memories, Nate has participated in 10 video game tournaments:\n\n1. **January 14, 2022**: Won his 1st tournament (CS:GO).\n2. **March 24, 2022**: Participated in an intense tournament.\n3. **Late April 2022**: Won his 2nd tournament (local Street Fighter).\n4. **Late May 2022**: Won a regional tournament (his 4th participation overall).\n5. **July 8, 2022**: Won his 4th tournament (an online event).\n6. **August 21, 2022**: Won an international tournament.\n7. **September 5, 2022**: Experienced a setback and lost.\n8. **Late September / Early October 2022**: Won a tournament and earned a significant cash prize.\n9. **November 5, 2022**: Won a Valorant tournament final.\n10. **November 9, 2022**: Mentioned participating in a tough tournament where he did not make the finals. *(Note: This introduces a contradiction, as he referred to this loss as his \"last game tournament\" just days after stating he won the Valorant finals).* \n\nAdditionally, he was present at an international tournament around November 4, 2022, but only to help friends reset high scores rather than to compete.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 826.2,
+        "context_tokens": 37568
+      }
     },
     {
       "question_id": "conv-42_q91",
@@ -739,7 +1411,23 @@
       "judge_reason": "The generated answer mentions generic fantasy and space opera but does not identify dragons as the subject of Nate's favorite book series.",
       "answer_f1": 0.0,
       "result_sha256": "e52c3f0ba59b6198cbcdf6976bde27340257d02d1c67bb53a0bb50348b5071ea",
-      "retrieval_sha256": "210265b7777f46feb554baa785a986186ddffc4eb0d583c80321f57634d168fd"
+      "retrieval_sha256": "210265b7777f46feb554baa785a986186ddffc4eb0d583c80321f57634d168fd",
+      "official_mem0": {
+        "answer": "A fantasy series centered on adventures, magic, and a cast of great characters.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2574.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Nate has mentioned two favorite book series: one is a fantasy series that features adventures, magic, and great characters, and the other is a series filled with awesome battles, action scenes, interesting characters, and a great plot.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 814.3,
+        "context_tokens": 37155
+      }
     },
     {
       "question_id": "conv-42_q92",
@@ -756,7 +1444,23 @@
       "judge_reason": "The generated answer claims the lighting is unspecified rather than identifying the red and purple lighting given in the gold answer.",
       "answer_f1": 0.07407407407407407,
       "result_sha256": "8e29369a9d6495f91d094d5b8b5891cedce50abd909aa801bd261659aa37c96d",
-      "retrieval_sha256": "43b99466e2bdc000971146b5425677333449f3d69294c8707f900a0500935e5e"
+      "retrieval_sha256": "43b99466e2bdc000971146b5425677333449f3d69294c8707f900a0500935e5e",
+      "official_mem0": {
+        "answer": "Dimmable lights.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.4,
+        "retrieval_ms": 2923.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The provided context lacks information about the kind of lighting Nate's gaming room has.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.13333333333333333,
+        "retrieval_ms": 849.7,
+        "context_tokens": 37415
+      }
     },
     {
       "question_id": "conv-43_q11",
@@ -773,7 +1477,23 @@
       "judge_reason": "The generated answer says no other sports are mentioned, whereas the gold answer identifies surfing.",
       "answer_f1": 0.0,
       "result_sha256": "32ef4d3998d2869e56f198c0675b6d6086e52cd788b31eed4e0edf2fa8385020",
-      "retrieval_sha256": "2181dd646d0ad11e57dd992a9af14d9251045c57975ba08cf4f9eede9293b2d2"
+      "retrieval_sha256": "2181dd646d0ad11e57dd992a9af14d9251045c57975ba08cf4f9eede9293b2d2",
+      "official_mem0": {
+        "answer": "- Surfing\n- Soccer (he follows it)\n- Yoga (he enjoys practicing it for strength and balance)",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.14285714285714288,
+        "retrieval_ms": 2625.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Besides basketball, John enjoys surfing, which he started around 2018, and he also practices yoga to improve his strength, flexibility, focus, and balance.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 791.6,
+        "context_tokens": 38017
+      }
     },
     {
       "question_id": "conv-43_q113",
@@ -790,7 +1510,23 @@
       "judge_reason": "The generated answer denies knowing Tim's team and attributes the Wolves to John, contradicting the gold answer that Tim supports the Wolves.",
       "answer_f1": 0.09523809523809523,
       "result_sha256": "6afd3881baaed68ffd64a4cf09409d01cf02d389db3a254894f95a63a932bac3",
-      "retrieval_sha256": "252b2cb57d6130d9f5687bee1651ff85459293d92e3f76f6637b4abc0667ff13"
+      "retrieval_sha256": "252b2cb57d6130d9f5687bee1651ff85459293d92e3f76f6637b4abc0667ff13",
+      "official_mem0": {
+        "answer": "Minnesota Wolves",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6666666666666666,
+        "retrieval_ms": 3773.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information about which specific basketball team Tim supports.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 769.5,
+        "context_tokens": 37930
+      }
     },
     {
       "question_id": "conv-43_q135",
@@ -807,7 +1543,23 @@
       "judge_reason": "The generated answer describes timed study blocks and breaks rather than visualizing goals and success.",
       "answer_f1": 0.0,
       "result_sha256": "eb556e4b5a4a7c94f57c12e6e07a28ab55be3aa5a8503970bad47c0c7bdbb9b8",
-      "retrieval_sha256": "de84cd3175d7e3ee5e1b07d7cc403b463baf413f1ae7a640586036122bcf9b36"
+      "retrieval_sha256": "de84cd3175d7e3ee5e1b07d7cc403b463baf413f1ae7a640586036122bcf9b36",
+      "official_mem0": {
+        "answer": "He uses a Pomodoro‑style routine—25‑minute focused blocks followed by 5‑minute fun breaks—to keep sessions from feeling overwhelming and stay on track. He also leans on motivational cues like visual reminders and favorite quotes (e.g., his J.K. Rowling line) and reminds himself of his meaningful goals and love for reading and writing to push through tough moments.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.07547169811320754,
+        "retrieval_ms": 4371.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Tim breaks up his studying into smaller parts, doing 25 minutes of study followed by 5 minutes of a fun activity to keep himself on track and make it less overwhelming.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 828.6,
+        "context_tokens": 37688
+      }
     },
     {
       "question_id": "conv-43_q136",
@@ -824,7 +1576,23 @@
       "judge_reason": "The generated answer attributes the injury to John and omits the key detail that the doctor said it was not too serious.",
       "answer_f1": 0.0784313725490196,
       "result_sha256": "5d20012782568b80035803c80f944f48f9e716cd81d250b02e0032fc44b43155",
-      "retrieval_sha256": "d6df864e46356ad7dc7e4930c4bbf9d7980cc61bfa4f38500d3324a7fa7dd3cb"
+      "retrieval_sha256": "d6df864e46356ad7dc7e4930c4bbf9d7980cc61bfa4f38500d3324a7fa7dd3cb",
+      "official_mem0": {
+        "answer": "He told John he hoped John’s ankle injury would heal soon.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 4602.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Tim did not mention having an injury. The memories indicate that John was the one with an injury, while Tim was swamped with exams during that time.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.06896551724137931,
+        "retrieval_ms": 813.1,
+        "context_tokens": 37892
+      }
     },
     {
       "question_id": "conv-43_q16",
@@ -841,7 +1609,23 @@
       "judge_reason": "The generated answer says five weeks, but the gold answer specifies three weeks.",
       "answer_f1": 0.11764705882352941,
       "result_sha256": "bf1e5fbd090daea33de03ed9f8f0b9ad3ee914d7722501aedba8249b697c785d",
-      "retrieval_sha256": "660b61d30df342b93413877dc038b790039877d665d2acc65fd049e3644fb975"
+      "retrieval_sha256": "660b61d30df342b93413877dc038b790039877d665d2acc65fd049e3644fb975",
+      "official_mem0": {
+        "answer": "Four weeks.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 2952.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Tim reconnected with the Harry Potter fan approximately 3 to 4 weeks after their initial conversation.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.11764705882352941,
+        "retrieval_ms": 994.1,
+        "context_tokens": 37775
+      }
     },
     {
       "question_id": "conv-43_q164",
@@ -858,7 +1642,23 @@
       "judge_reason": "The generated answer says French, but the gold answer identifies Spanish.",
       "answer_f1": 0.0,
       "result_sha256": "7e825831a3969b04598beab02faa7f10c8084427240db9e78cd7f3066d6d2cc5",
-      "retrieval_sha256": "d3e51304e59d01857337d64820adc32e39e0d754898db4b00092d7cd69945bb0"
+      "retrieval_sha256": "d3e51304e59d01857337d64820adc32e39e0d754898db4b00092d7cd69945bb0",
+      "official_mem0": {
+        "answer": "French",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2411.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Besides German, Tim knows French, which he learned in high school.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 757.8,
+        "context_tokens": 37573
+      }
     },
     {
       "question_id": "conv-43_q19",
@@ -875,7 +1675,23 @@
       "judge_reason": "The generated answer names Boys & Girls Clubs of America rather than Good Sports and omits the specific brand partnerships that motivate the gold answer.",
       "answer_f1": 0.1764705882352941,
       "result_sha256": "de4b675b23850acde1a283e07c9c2f840d5b8e03f51ea771cefff7c49f4545ce",
-      "retrieval_sha256": "e38d5d99fc9de513916f9dd6cd2b643e21016769f06234491ffb6080800685c7"
+      "retrieval_sha256": "e38d5d99fc9de513916f9dd6cd2b643e21016769f06234491ffb6080800685c7",
+      "official_mem0": {
+        "answer": "A national youth‑sports nonprofit that combines athletics with academics for underserved kids—like the local organization he’s already teaming up with—would be a great fit. John has repeatedly said he wants to support youth sports and fight for fair chances for underserved communities, he’s already collaborating with a group that helps disadvantaged kids through sports and school, he mentors younger players, and he even organized a children’s charity basketball game. Partnering with a prominent youth‑sports and education charity directly matches his stated goals and lets him amplify the impact he’s already making.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1372549019607843,
+        "retrieval_ms": 3068.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information regarding the name of a specific prominent charity organization John might want to work with. It only states that he wants to start a foundation, support youth sports, and team up with a local organization that assists disadvantaged kids.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.16666666666666666,
+        "retrieval_ms": 868.8,
+        "context_tokens": 37910
+      }
     },
     {
       "question_id": "conv-43_q20",
@@ -892,7 +1708,23 @@
       "judge_reason": "The generated answer says the city is unspecified, whereas the gold answer identifies Seattle.",
       "answer_f1": 0.0,
       "result_sha256": "d5e87877208e7094fe83f8c35ea53354f2e474d01e74f509563d4dfedd7ad463",
-      "retrieval_sha256": "e819eec18518a230f3c3775b47ab5440f02f3fff8338396a2bce419b45e35837"
+      "retrieval_sha256": "e819eec18518a230f3c3775b47ab5440f02f3fff8338396a2bce419b45e35837",
+      "official_mem0": {
+        "answer": "Seattle",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 2813.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The provided context lacks the information to determine which city John was in immediately before traveling to Chicago.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 818.2,
+        "context_tokens": 38000
+      }
     },
     {
       "question_id": "conv-43_q5",
@@ -909,7 +1741,23 @@
       "judge_reason": "The generated answer recommends Harry Potter New York rather than the specific shop in the gold answer, House of MinaLima.",
       "answer_f1": 0.0588235294117647,
       "result_sha256": "cc5e0ed83574e78f4cfb1a6dc039e19435f7783a523dd27857e229d896be9544",
-      "retrieval_sha256": "dbc3b98bb54c3cbc2658da11b7a0b74633634d138d8ae2ac01749c222896f86e"
+      "retrieval_sha256": "dbc3b98bb54c3cbc2658da11b7a0b74633634d138d8ae2ac01749c222896f86e",
+      "official_mem0": {
+        "answer": "The official Harry Potter store in New York City.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2640.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Based on his collection of Harry Potter items and props from MinaLima, Tim would enjoy visiting the Harry Potter New York flagship store (which houses a House of MinaLima gallery) or other fantasy book and merchandise shops in the city.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.15789473684210528,
+        "retrieval_ms": 918.3,
+        "context_tokens": 37752
+      }
     },
     {
       "question_id": "conv-43_q51",
@@ -926,7 +1774,23 @@
       "judge_reason": "The generated answer recommends Vinyasa or power yoga rather than Hatha Yoga, the specific style in the gold answer.",
       "answer_f1": 0.039215686274509796,
       "result_sha256": "c8fa9986aac4a461cf53b82122320da608cce7df8646eb8d66690f18076d02a9",
-      "retrieval_sha256": "6cebfd7b4abf6da8a63c89ae94854e4174f25f96def2f013775197968ef09fe0"
+      "retrieval_sha256": "6cebfd7b4abf6da8a63c89ae94854e4174f25f96def2f013775197968ef09fe0",
+      "official_mem0": {
+        "answer": "A vigorous Vinyasa/Power yoga practice would suit him best for core strength. It emphasizes flow sequences with planks, chaturanga, boat (Navasana), and side‑plank variations, and complements the Warrior II holds (30–60 seconds) he already enjoys for legs and core.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.05555555555555555,
+        "retrieval_ms": 3963.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John might benefit from practicing the Warrior II yoga pose, which he specifically noted as being a good way to work out his legs and core.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.08,
+        "retrieval_ms": 815.0,
+        "context_tokens": 37933
+      }
     },
     {
       "question_id": "conv-43_q55",
@@ -943,7 +1807,23 @@
       "judge_reason": "The generated answer places the start in late 2022 or early 2023, rather than May 2023.",
       "answer_f1": 0.07692307692307693,
       "result_sha256": "1e7243205aab03ef7036feb623d22dd1cce8c7d85fe91aac5abfe9166c8fcbfa",
-      "retrieval_sha256": "fa409ad01b66f3620fcf7a5458dae2c73c8e7eb3dbf2122011d8edcbcfffa3f4"
+      "retrieval_sha256": "fa409ad01b66f3620fcf7a5458dae2c73c8e7eb3dbf2122011d8edcbcfffa3f4",
+      "official_mem0": {
+        "answer": "Around December 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3157.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John started playing basketball professionally in early 2023 (as of December 6, 2023, he noted he had been playing professionally for just under a year).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.07692307692307693,
+        "retrieval_ms": 814.3,
+        "context_tokens": 38126
+      }
     },
     {
       "question_id": "conv-43_q56",
@@ -960,7 +1840,23 @@
       "judge_reason": "The generated answer does not identify August 2023 and instead states that Tim’s start date is unknown.",
       "answer_f1": 0.07142857142857144,
       "result_sha256": "22f40e481e2876227fdf63f684d19005e7e7c9c6964d00322b621b2a2512bb04",
-      "retrieval_sha256": "10df1d646936904af8fb147130d8142463807ad35b1cba7cd15148dafd61a4ba"
+      "retrieval_sha256": "10df1d646936904af8fb147130d8142463807ad35b1cba7cd15148dafd61a4ba",
+      "official_mem0": {
+        "answer": "December 2023 — by December 6, 2023, he had begun learning the violin.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.14285714285714285,
+        "retrieval_ms": 4220.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Tim started learning to play the violin around August 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.3636363636363636,
+        "retrieval_ms": 794.6,
+        "context_tokens": 37841
+      }
     },
     {
       "question_id": "conv-43_q6",
@@ -977,7 +1873,23 @@
       "judge_reason": "The generated answer says July 2023, but the correct month is June 2023.",
       "answer_f1": 0.5,
       "result_sha256": "dbc055484ac23cc7e8cf9fb6fb8a44aef3eb7d6110a6ad68cd16c7c2ba26c47d",
-      "retrieval_sha256": "009f30ac18aedba89ce46d03b03cbd713b644219fdff132a493ea039f3099997"
+      "retrieval_sha256": "009f30ac18aedba89ce46d03b03cbd713b644219fdff132a493ea039f3099997",
+      "official_mem0": {
+        "answer": "July 2023",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 3032.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John achieved his career-high score in points during a game in July 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.14285714285714285,
+        "retrieval_ms": 875.3,
+        "context_tokens": 38041
+      }
     },
     {
       "question_id": "conv-43_q60",
@@ -994,7 +1906,23 @@
       "judge_reason": "The generated answer gives December 8, 2023, instead of the gold answer's December 11, 2023.",
       "answer_f1": 0.2,
       "result_sha256": "65e9ef1223585c558888d55b3f47d3c35dee5049e4c5f08c7331d4dc8e0abe6b",
-      "retrieval_sha256": "0e564b9b59885c17b5d856d3724d3581fb62ce65f1ee4a19892d010e5e41e85e"
+      "retrieval_sha256": "0e564b9b59885c17b5d856d3724d3581fb62ce65f1ee4a19892d010e5e41e85e",
+      "official_mem0": {
+        "answer": "Friday, December 8, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5714285714285715,
+        "retrieval_ms": 4121.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John achieved his career-high in assists on Friday, December 8, 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.28571428571428575,
+        "retrieval_ms": 852.2,
+        "context_tokens": 37965
+      }
     },
     {
       "question_id": "conv-43_q66",
@@ -1011,7 +1939,23 @@
       "judge_reason": "The generated answer recommends Heir to the Empire rather than the gold answer's Star Wars: Jedi Apprentice series.",
       "answer_f1": 0.22222222222222218,
       "result_sha256": "c1bfb337a13797cb6e6af84878a1cb3fc2dedf6bc503c87e8cc999f3a9b5343e",
-      "retrieval_sha256": "46a3b2ef294c6501f3d3d9c9bf2d17d1431f8a5a56a3687a96e186e2ae41eaf7"
+      "retrieval_sha256": "46a3b2ef294c6501f3d3d9c9bf2d17d1431f8a5a56a3687a96e186e2ae41eaf7",
+      "official_mem0": {
+        "answer": "A Star Wars visual encyclopedia or atlas that explores the galaxy’s maps, planets, species, and starships—something that dives into the lore and world‑building—would likely be right up Tim’s alley.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0930232558139535,
+        "retrieval_ms": 2924.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information about a specific Star Wars book that Tim might enjoy.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.1935483870967742,
+        "retrieval_ms": 1648.3,
+        "context_tokens": 37663
+      }
     },
     {
       "question_id": "conv-43_q8",
@@ -1028,7 +1972,23 @@
       "judge_reason": "The generated answer declines to identify the company rather than naming Under Armour, as specified by the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "74acdfb7478b1c44dee90781ef14252651a913df66dc49463cb5d7dfdbc7f577",
-      "retrieval_sha256": "96438950fae1759fcb3d138c159dabe752197e7a72fa39fbf75c13d25c6a9116"
+      "retrieval_sha256": "96438950fae1759fcb3d138c159dabe752197e7a72fa39fbf75c13d25c6a9116",
+      "official_mem0": {
+        "answer": "A renowned outdoor gear company (the specific brand wasn’t named), which John said he signed with around December 12, 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3035.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not provide the specific name of the outdoor gear company that signed John for an endorsement deal.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 832.3,
+        "context_tokens": 37893
+      }
     },
     {
       "question_id": "conv-44_q17",
@@ -1045,7 +2005,23 @@
       "judge_reason": "The generated answer says four times, whereas the gold answer says three times.",
       "answer_f1": 0.15384615384615385,
       "result_sha256": "d6100887f18d247b785ec4db15fbcbea7467579ec2d150970c5bf5a33d846e9f",
-      "retrieval_sha256": "131dc6b65127482b6a497cf22961311d1587c9185b68c34babf484c41abf60e1"
+      "retrieval_sha256": "131dc6b65127482b6a497cf22961311d1587c9185b68c34babf484c41abf60e1",
+      "official_mem0": {
+        "answer": "3",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3679.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Audrey and Andrew planned to hike together 2 times.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.2,
+        "retrieval_ms": 958.4,
+        "context_tokens": 37860
+      }
     },
     {
       "question_id": "conv-44_q19",
@@ -1062,7 +2038,23 @@
       "judge_reason": "The generated answer suggests hide-and-seek rather than cooking dog treats, which is the activity specified in the gold answer.",
       "answer_f1": 0.0588235294117647,
       "result_sha256": "2102ac5f19cb5e241b56f1766a5615bd423bce021b401a8e66b0407fe91b5dfd",
-      "retrieval_sha256": "c5af6abdac6c83cbf670b1b76bd85ccd6d7ab7abd3df94a2485c466579e6bcad"
+      "retrieval_sha256": "c5af6abdac6c83cbf670b1b76bd85ccd6d7ab7abd3df94a2485c466579e6bcad",
+      "official_mem0": {
+        "answer": "Cuddling and hanging out on the couch with his dog.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.18181818181818182,
+        "retrieval_ms": 4006.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Andrew would enjoy playing interactive indoor games with his dogs, such as puzzles, hide-and-seek, and training. He already enjoys playing board games indoors, and he explicitly planned to try these mentally stimulating dog activities after Audrey suggested them as a way to keep dogs happy and busy.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.04347826086956522,
+        "retrieval_ms": 877.6,
+        "context_tokens": 37496
+      }
     },
     {
       "question_id": "conv-44_q24",
@@ -1079,7 +2071,23 @@
       "judge_reason": "The generated answer confirms Audrey grew up with a dog but does not confirm Andrew did, whereas the gold answer says yes for both.",
       "answer_f1": 0.0,
       "result_sha256": "ab02a92b17645c2abe09e0b37a6e28058a1974c2f929a54f9018ad3ce5ae30f4",
-      "retrieval_sha256": "3caf6e27c56f19a0d4c54eef1001133661da689d925c9987fa2854bd2703f73e"
+      "retrieval_sha256": "3caf6e27c56f19a0d4c54eef1001133661da689d925c9987fa2854bd2703f73e",
+      "official_mem0": {
+        "answer": "Audrey did—she grew up with a childhood dog named Max and loved taking long walks with him. For Andrew, there’s no confirmation of a childhood dog; the memories only show him adopting dogs as an adult in 2023 (e.g., Toby).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 4093.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Yes, both Audrey and Andrew grew up with pet dogs. Audrey had a childhood dog named Max, and Andrew reminisced about exploring nature trails with his family's dog.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 869.5,
+        "context_tokens": 37558
+      }
     },
     {
       "question_id": "conv-44_q33",
@@ -1096,7 +2104,23 @@
       "judge_reason": "The answer suggests coping strategies and pet-friendly housing but misses the key proposal of switching to hybrid or remote work to move to a larger suburban home closer to nature.",
       "answer_f1": 0.0849056603773585,
       "result_sha256": "2c18d491806b741438c9a87e0dfe3369fe17799dab46b9224306c53e0c879cea",
-      "retrieval_sha256": "56cbfb215d253a078b73a014ddd26107a4ea46f695f5cee2aec0a2a1d95aa640"
+      "retrieval_sha256": "56cbfb215d253a078b73a014ddd26107a4ea46f695f5cee2aec0a2a1d95aa640",
+      "official_mem0": {
+        "answer": "- Keep simple daily self‑care he already started to lower stress: morning coffee and a lunchtime walk. Keep cooking as a relaxing hobby, and add more houseplants at home for a calming feel.\n- Use nearby dog‑friendly options to accommodate city living with his dogs: keep going to the local dog park, and make use of the doggy daycare with a large indoor play space so the pups can run even when outdoor access is limited.\n- Schedule regular neighborhood walks and small local hikes with Toby, Buddy, and Scout, plus occasional countryside/park day trips to recharge and give them space to roam.\n- Continue the housing search he started: keep contacting landlords and scouting neighborhoods for a pet‑friendly place near a park or woods, and share his criteria with Audrey so she can help.\n- Focus on training and comfort to make city life smoother: stick with positive reinforcement (no punishment), try the pet‑bonding workshop classes, keep Scout leashed outside, and maintain the safe home setup (bed, toys, puppy pads).\n- Manage the multi‑dog household by prioritizing the care of Toby, Buddy, and Scout before considering any more dogs.\n- Address his anxiety about dogs getting lost by keeping them leashed during outings and maintaining consistent routines.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.11055276381909547,
+        "retrieval_ms": 3202.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "To improve his stress, Andrew can:\n- Incorporate daily self-care activities, such as grabbing coffee in the morning or taking a walk during lunch.\n- Add plants to his home and visit parks on weekends to stay connected to nature and find peace.\n- Continue his hobby of cooking and trying new recipes, which he finds relaxing and creatively fulfilling.\n\nTo accommodate his dogs while living in the city, Andrew can:\n- Keep them highly active by ensuring they get daily exercise and socialization.\n- Provide indoor mental stimulation to keep them busy, using creative methods like puzzles, training, and games of hide-and-seek.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.17699115044247787,
+        "retrieval_ms": 1358.5,
+        "context_tokens": 37532
+      }
     },
     {
       "question_id": "conv-44_q39",
@@ -1113,7 +2137,23 @@
       "judge_reason": "The generated answer says Audrey got a larger home, rather than the companionship specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "9f3776875c850b00f841be015dae0d3d9f319b0710b0672deb09e42bc491aa6d",
-      "retrieval_sha256": "13f7f943cef186cb844e3429957d294b0af6e0f72b135fe6bf0f6b67b907beaa"
+      "retrieval_sha256": "13f7f943cef186cb844e3429957d294b0af6e0f72b135fe6bf0f6b67b907beaa",
+      "official_mem0": {
+        "answer": "A cast on her arm—she broke her arm while playing with her four dogs and had to wear a cast.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2820.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Audrey got a tattoo of her four dogs on her arm, to which she recently added more drawings.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1256.2,
+        "context_tokens": 37787
+      }
     },
     {
       "question_id": "conv-44_q43",
@@ -1130,7 +2170,23 @@
       "judge_reason": "The generated answer identifies Oregon, whereas the gold answer is Minnesota.",
       "answer_f1": 0.0,
       "result_sha256": "97fd19cde927d1013f430f6035f3f55713b27224f545fd288fffe03126a7a316",
-      "retrieval_sha256": "e4013b7ff7ae5e8aa19de51ec2c17c776c13083b8c4f97b1d04d1c1fef1e9427"
+      "retrieval_sha256": "e4013b7ff7ae5e8aa19de51ec2c17c776c13083b8c4f97b1d04d1c1fef1e9427",
+      "official_mem0": {
+        "answer": "Oregon",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3249.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Based on clues from the image URLs they share (which reference Portland, the Columbia River Gorge, and Oregon) and Andrew's mention of the Fox Hollow trail, they potentially live in Oregon.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1182.7,
+        "context_tokens": 37546
+      }
     },
     {
       "question_id": "conv-44_q44",
@@ -1147,7 +2203,23 @@
       "judge_reason": "The generated answer says the park cannot be identified, whereas the gold answer identifies Voyageurs National Park.",
       "answer_f1": 0.09302325581395349,
       "result_sha256": "971b013b10e42ba265021dcf4c201ab5a243eae9fecc1c8efd5e8657ea4dfd46",
-      "retrieval_sha256": "816169696724c555afcb1fcef4cd6f39208da83071744965bfa9946b307199bd"
+      "retrieval_sha256": "816169696724c555afcb1fcef4cd6f39208da83071744965bfa9946b307199bd",
+      "official_mem0": {
+        "answer": "They never named a specific park. In their chats they only referred to “a beautiful national park” (Audrey’s trip on May 5, 2023), another national‑park hike during May 26–June 1, 2023, and Andrew shared a photo from “a national park.” No particular park name was given.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.08695652173913045,
+        "retrieval_ms": 3748.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the specific name of the national park(s) Audrey and Andrew are referring to.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.26666666666666666,
+        "retrieval_ms": 1228.1,
+        "context_tokens": 37679
+      }
     },
     {
       "question_id": "conv-44_q5",
@@ -1164,7 +2236,23 @@
       "judge_reason": "April 24–30, 2023 is not the first week of May 2023.",
       "answer_f1": 0.14285714285714285,
       "result_sha256": "7953900d9477ab8f9fbde4edc4d39c0480c5d97922eb59ca119a993cea520962",
-      "retrieval_sha256": "e392399728ef55f1e9964dccd4e7f552b96dcef973172c407906601ca84aa31a"
+      "retrieval_sha256": "e392399728ef55f1e9964dccd4e7f552b96dcef973172c407906601ca84aa31a",
+      "official_mem0": {
+        "answer": "Around April 26, 2023, during a hike.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1818181818181818,
+        "retrieval_ms": 2583.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Audrey saw a hummingbird during a hike in the week prior to May 3, 2023 (between April 26 and May 3, 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.2608695652173913,
+        "retrieval_ms": 843.9,
+        "context_tokens": 37947
+      }
     },
     {
       "question_id": "conv-44_q52",
@@ -1181,7 +2269,23 @@
       "judge_reason": "The generated answer suggests lunchtime birdwatching walks rather than installing a visible outdoor bird feeder as specified in the gold answer.",
       "answer_f1": 0.08,
       "result_sha256": "82dd94cd60a45f97bb9ba1b559dddbb7708e58cbeccb014af8a369a2b42b487b",
-      "retrieval_sha256": "7f93c2b73d86da987a8377be433ba94e5ed878e72a0e53cc029a5f4934fcf99c"
+      "retrieval_sha256": "7f93c2b73d86da987a8377be433ba94e5ed878e72a0e53cc029a5f4934fcf99c",
+      "official_mem0": {
+        "answer": "Turn his daily lunch walk into a mini birdwatching session: bring his binoculars and a small notebook to a nearby city park, spend 10–15 minutes spotting and jotting down observations, and save longer outings for weekends when time allows.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3147.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not explicitly state how Andrew can fit birdwatching into his city schedule. However, based on the information available, he could logically engage in birdwatching during his weekend visits to city parks or during his lunchtime walks, which he already does to appreciate nature and practice self-care.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.06896551724137931,
+        "retrieval_ms": 1232.5,
+        "context_tokens": 37947
+      }
     },
     {
       "question_id": "conv-44_q57",
@@ -1198,7 +2302,23 @@
       "judge_reason": "The gold answer places the adoption a few days before November 2023, whereas the generated answer places it after November 4, in a different time period.",
       "answer_f1": 0.2727272727272727,
       "result_sha256": "3156585abf142213ed3294f897fa8d83043ca0e23d2b7344e62fa152385e3659",
-      "retrieval_sha256": "4c1f08d1ced5f8f1e7f231abfd3abaa88874ea8fb277f6454cafbb1861220313"
+      "retrieval_sha256": "4c1f08d1ced5f8f1e7f231abfd3abaa88874ea8fb277f6454cafbb1861220313",
+      "official_mem0": {
+        "answer": "Just the other day.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.25,
+        "retrieval_ms": 2538.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Andrew adopted Scout \"recently\" or \"the other day\" just prior to November 22, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.33333333333333337,
+        "retrieval_ms": 819.5,
+        "context_tokens": 37621
+      }
     },
     {
       "question_id": "conv-47_q0",
@@ -1215,7 +2335,23 @@
       "judge_reason": "The generated answer discusses stress and denies specific suspected health problems, but fails to mention obesity.",
       "answer_f1": 0.0,
       "result_sha256": "576de2edd3c26c68e58008dbb5ce3346c04bf8947bfc71a5a443310dff5f9791",
-      "retrieval_sha256": "1337bd4db5c3e2a8de806b741eb27ef5aaa6fc6aaf5096ebc7f0eed93c7967bc"
+      "retrieval_sha256": "1337bd4db5c3e2a8de806b741eb27ef5aaa6fc6aaf5096ebc7f0eed93c7967bc",
+      "official_mem0": {
+        "answer": "Work-related stress and burnout. John repeatedly described being super busy with deadlines, having chaotic weeks, needing “chill vibes,” and feeling overwhelmed and stressed while balancing personal and professional responsibilities—pointing to stress-related strain as the likely health concern.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3645.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The provided context lacks information about any suspected health problems for John.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2039.5,
+        "context_tokens": 37945
+      }
     },
     {
       "question_id": "conv-47_q11",
@@ -1232,7 +2368,23 @@
       "judge_reason": "The generated answer says John's feelings were unspecified, whereas the gold answer states he was seeking solitude.",
       "answer_f1": 0.0,
       "result_sha256": "6393c9924985d5e59deafb4037947533a6c72ce29fdbf31d653be0a28c295744",
-      "retrieval_sha256": "b715010d742c5bf8fcf1c6eacd87f4c6809e4c87260422d60b324423f1a528cd"
+      "retrieval_sha256": "b715010d742c5bf8fcf1c6eacd87f4c6809e4c87260422d60b324423f1a528cd",
+      "official_mem0": {
+        "answer": "Excited",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3109.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information to determine how John was feeling on April 10, 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 862.9,
+        "context_tokens": 38057
+      }
     },
     {
       "question_id": "conv-47_q147",
@@ -1249,7 +2401,23 @@
       "judge_reason": "The generated answer only mentions practicing FIFA 23 generally, omitting the specific gamepad control and timing skills John suggested.",
       "answer_f1": 0.0,
       "result_sha256": "bd44315ab319258f7a676fe8df34e98339312181d39bb948a27dcac377d9d277",
-      "retrieval_sha256": "588a0db79299f79499b7834ccf8f748ba0e7dbccd64b638bce2e1dc367dd5dae"
+      "retrieval_sha256": "588a0db79299f79499b7834ccf8f748ba0e7dbccd64b638bce2e1dc367dd5dae",
+      "official_mem0": {
+        "answer": "He told him to practice a little first before they play together.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 6499.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John suggested that James practice FIFA 23 first before they play together.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 790.6,
+        "context_tokens": 37826
+      }
     },
     {
       "question_id": "conv-47_q16",
@@ -1266,7 +2434,23 @@
       "judge_reason": "The generated answer does not identify UNO, the game specified in the gold answer, and instead states that the game is unknown.",
       "answer_f1": 0.0,
       "result_sha256": "ccb3119b69d1ae536cbe9ae595e394876038efca1590834ee6b4fb36af8d5a8a",
-      "retrieval_sha256": "4fe7b13505ea102ba99c760122b38d82cadeff5ccb16dd2b43e37c8485822179"
+      "retrieval_sha256": "4fe7b13505ea102ba99c760122b38d82cadeff5ccb16dd2b43e37c8485822179",
+      "official_mem0": {
+        "answer": "UNO",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 3059.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John forgot the name of the game, and James could not remember it either.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1143.4,
+        "context_tokens": 37752
+      }
     },
     {
       "question_id": "conv-47_q17",
@@ -1283,7 +2467,23 @@
       "judge_reason": "The generated answer identifies Among Us rather than Mafia, the board game named in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "83611a4766203c664a993b3452fe3979561a00daf8d01a49157f998297af7eb9",
-      "retrieval_sha256": "2566a353eb918cd44f2d208ed659790cbaca518aa94add99f3579765a7855f41"
+      "retrieval_sha256": "2566a353eb918cd44f2d208ed659790cbaca518aa94add99f3579765a7855f41",
+      "official_mem0": {
+        "answer": "Among Us",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2894.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The specific name of the game about finding the impostor is not mentioned in the memories.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 914.0,
+        "context_tokens": 37671
+      }
     },
     {
       "question_id": "conv-47_q19",
@@ -1300,7 +2500,23 @@
       "judge_reason": "The generated answer emphasizes uncertainty and existing companionship rather than the gold answer’s conclusion that James was most likely lonely.",
       "answer_f1": 0.10714285714285714,
       "result_sha256": "79f44931f080799efcac246c9bb5bdda727bc8851be6091ec370e13bffcfb4b8",
-      "retrieval_sha256": "f36edd70a13474fc649e951044e49ffba77ca881c1987645e9e2b9c95e496995"
+      "retrieval_sha256": "f36edd70a13474fc649e951044e49ffba77ca881c1987645e9e2b9c95e496995",
+      "official_mem0": {
+        "answer": "Yes. Before he started dating Samantha on September 3, 2022, James often relied on his dogs and gaming for comfort—he said games were his refuge/therapy when he felt overwhelmed, that his dogs (like Max and his newly adopted puppy Ned) cheered him up and made his days happier, and he even experienced love at first sight with a stranger but didn’t approach her, channeling that feeling into his game. After he began seeing Samantha, John noted that James had finally found a person other than his dogs who brings him joy, underscoring that he’d been somewhat lonely beforehand.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.17699115044247785,
+        "retrieval_ms": 2874.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks explicit information to confirm if James was feeling lonely before meeting Samantha. While John noted on September 4, 2022, that he was glad James found someone other than his dogs to bring him joy, James also had an active social life with friends, family, and a gaming group.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.2352941176470588,
+        "retrieval_ms": 829.7,
+        "context_tokens": 37933
+      }
     },
     {
       "question_id": "conv-47_q31",
@@ -1317,7 +2533,23 @@
       "judge_reason": "The generated answer says 9 days, whereas the gold answer specifies 19 days.",
       "answer_f1": 0.09999999999999999,
       "result_sha256": "8a52fca430f206a14eac09727aaf695c80e85cd64b043a2fd07045a394b788cf",
-      "retrieval_sha256": "5e9f18129612d56ae1ed8f7d15eae5198da18fdf848ada6d1fb87d8a401e5846"
+      "retrieval_sha256": "5e9f18129612d56ae1ed8f7d15eae5198da18fdf848ada6d1fb87d8a401e5846",
+      "official_mem0": {
+        "answer": "9 days (from July 11 to July 20, 2022)",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.1818181818181818,
+        "retrieval_ms": 5218.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "James planned to spend 9 days on his trip to Canada, leaving on July 11, 2022, and returning on July 20, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.08695652173913042,
+        "retrieval_ms": 1143.0,
+        "context_tokens": 37980
+      }
     },
     {
       "question_id": "conv-47_q62",
@@ -1334,7 +2566,23 @@
       "judge_reason": "The generated answer says about two months, which differs from the gold answer of nearly three months.",
       "answer_f1": 0.05405405405405406,
       "result_sha256": "e677d33527ef5b9e4c91956ed07fe77ab5b1a7cd8dba354fcc3a050a519c05ca",
-      "retrieval_sha256": "e771fe6371d78b05f47de7305c30bcbcb8af37d28ee681fc3d644527aba436db"
+      "retrieval_sha256": "e771fe6371d78b05f47de7305c30bcbcb8af37d28ee681fc3d644527aba436db",
+      "official_mem0": {
+        "answer": "About two months — from September 3, 2022 (when they became a couple) to October 31, 2022 (when they decided to move in together).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.07692307692307691,
+        "retrieval_ms": 6447.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "James and Samantha dated for 58 days (nearly two months), starting from September 3, 2022, until they decided to move in together on October 31, 2022.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.14285714285714285,
+        "retrieval_ms": 1169.0,
+        "context_tokens": 38008
+      }
     },
     {
       "question_id": "conv-47_q64",
@@ -1351,7 +2599,23 @@
       "judge_reason": "The generated answer says about three months, rather than the nearly four months stated in the gold answer.",
       "answer_f1": 0.06451612903225806,
       "result_sha256": "32d4cbca25954d5d82df81b00492b28d9a3ba3cba59118b80a2e70625c609ed4",
-      "retrieval_sha256": "719c7fbb6d43937259b74c6442bbce99fbb4b56f11d2f07754cdcb9fc33acc69"
+      "retrieval_sha256": "719c7fbb6d43937259b74c6442bbce99fbb4b56f11d2f07754cdcb9fc33acc69",
+      "official_mem0": {
+        "answer": "About four months (from early July 2022 until his win on November 1, 2022).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.23529411764705882,
+        "retrieval_ms": 5522.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "John practiced chess for approximately 3 months and 10 days, having started on July 22, 2022, before winning the tournament on November 1, 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.08,
+        "retrieval_ms": 930.7,
+        "context_tokens": 37833
+      }
     },
     {
       "question_id": "conv-47_q71",
@@ -1368,7 +2632,23 @@
       "judge_reason": "The generated answer describes creating a pet-care app rather than James offering to help John find the perfect pet.",
       "answer_f1": 0.058823529411764705,
       "result_sha256": "d11b7ffcf44c5391dd11913d4bc2c3822af5b806e89b46de5fddfd294acc915e",
-      "retrieval_sha256": "d9063d5612bfb175c641ff26868af2d7ceedbf9456563ceb2b3050b99f59fa6e"
+      "retrieval_sha256": "d9063d5612bfb175c641ff26868af2d7ceedbf9456563ceb2b3050b99f59fa6e",
+      "official_mem0": {
+        "answer": "He offered to help John find the perfect pet.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6666666666666666,
+        "retrieval_ms": 5408.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "James offered to help John find a suitable pet.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 834.1,
+        "context_tokens": 37836
+      }
     },
     {
       "question_id": "conv-48_q101",
@@ -1385,7 +2665,23 @@
       "judge_reason": "The generated answer gives specific years without establishing that either corresponds to the gold answer’s “a year ago.”",
       "answer_f1": 0.0,
       "result_sha256": "13bc043681fd3163b65afae86468d933172003848a3a7857f66fa36c3007901b",
-      "retrieval_sha256": "1daafa5bf52ca894afa478362d79ac138ac92a064c9070ca9d47e154675371ba"
+      "retrieval_sha256": "1daafa5bf52ca894afa478362d79ac138ac92a064c9070ca9d47e154675371ba",
+      "official_mem0": {
+        "answer": "Around August 2021 (when she adopted Susie).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3487.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene acquired her pet snakes on two different occasions: she adopted Susie around August or September 2021, and she bought another pet snake in Paris around January 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 999.4,
+        "context_tokens": 37709
+      }
     },
     {
       "question_id": "conv-48_q115",
@@ -1402,7 +2698,23 @@
       "judge_reason": "The generated answer repeats morning jogging rather than identifying spending time with loved ones as the activity afterward.",
       "answer_f1": 0.0,
       "result_sha256": "dd7a0dee3477e3bda949c0e246e2cf405d2b453efe625c472c01e29d0ebd7c76",
-      "retrieval_sha256": "031701b076e7bcc045dfd2727dff71dba0c014a4de59595c4e547ae80c3dc751"
+      "retrieval_sha256": "031701b076e7bcc045dfd2727dff71dba0c014a4de59595c4e547ae80c3dc751",
+      "official_mem0": {
+        "answer": "Jogging — after that first morning jog in the park (Feb 24, 2023), she decided to make daily jogs part of her routine.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 5588.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "After going for a morning jog in the park, Deborah decided to incorporate daily morning jogs into her routine.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1397.9,
+        "context_tokens": 37527
+      }
     },
     {
       "question_id": "conv-48_q116",
@@ -1419,7 +2731,23 @@
       "judge_reason": "The generated answer describes calmness, alertness, and motivation, but does not mention feeling connected to her body.",
       "answer_f1": 0.125,
       "result_sha256": "aa411dcab98b3250e180884ab0ed9c0d92c921bb186cf91879f69ac67a548c02",
-      "retrieval_sha256": "4067920071c47768b8c5e3b7872e6d2b63831133512ab453b2ef3e8c5c47d0ba"
+      "retrieval_sha256": "4067920071c47768b8c5e3b7872e6d2b63831133512ab453b2ef3e8c5c47d0ba",
+      "official_mem0": {
+        "answer": "Calm and centered — and after yoga specifically, more alert and motivated.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 4881.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "According to Jolene, doing \"breathing exercises\" and meditating helps her feel calmer, clearer, and better able to handle challenges when she is overwhelmed. She also mentions that doing physical workouts is \"tough but enjoyable,\" and that her yoga practice helps her gain perspective and feel more alert, motivated, and relaxed. \n\n*(Note: If you are thinking of the quote about exercise making one feel \"connected to her body,\" the context indicates that Deborah said this, not Jolene.)*",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.1095890410958904,
+        "retrieval_ms": 915.2,
+        "context_tokens": 37728
+      }
     },
     {
       "question_id": "conv-48_q119",
@@ -1436,7 +2764,23 @@
       "judge_reason": "The generated answer describes a to-do list rather than the photo of a desk with a notebook and computer monitor specified in the gold answer.",
       "answer_f1": 0.07407407407407408,
       "result_sha256": "26096853e0e53cb38e07714a9afb285a35f83a6ae17f56fb221081c01e95dfa9",
-      "retrieval_sha256": "29391d33f9ed06ed097708428a3d3d501e2bb0d4790333c7794cf9d02c1c7840"
+      "retrieval_sha256": "29391d33f9ed06ed097708428a3d3d501e2bb0d4790333c7794cf9d02c1c7840",
+      "official_mem0": {
+        "answer": "A photo of a notepad with a colorful to‑do list—notes stacked on a counter—after she said the list felt overwhelming.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.27272727272727276,
+        "retrieval_ms": 4505.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene shared three pictures related to feeling overwhelmed:\n1. A photo of a desk with a notebook and a computer monitor to show her seemingly never-ending to-do list caused by exams and deadlines.\n2. A photo of a notepad with notes on a counter to illustrate her overwhelming stack of tasks.\n3. A photo of a notebook with a motivational quote (her new bullet journal spread), which she uses to stay organized when feeling overwhelmed by juggling engineering, relationships, and personal growth.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1842105263157895,
+        "retrieval_ms": 843.0,
+        "context_tokens": 37559
+      }
     },
     {
       "question_id": "conv-48_q134",
@@ -1453,7 +2797,23 @@
       "judge_reason": "The generated answer gives one year and eight months, which is substantially longer than the gold answer of one year.",
       "answer_f1": 0.08,
       "result_sha256": "7ffb068cd22e06099a3959c814e077e8bfd0519daa485c92dcd66613c06ddae9",
-      "retrieval_sha256": "aed16a978b4aaeb324e4c072a979379efedf60be98baa4958629afdf27ce067f"
+      "retrieval_sha256": "aed16a978b4aaeb324e4c072a979379efedf60be98baa4958629afdf27ce067f",
+      "official_mem0": {
+        "answer": "Since 2022 (about a year as of 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.22222222222222224,
+        "retrieval_ms": 5900.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene has had Seraphim for approximately one year, having bought her in Paris around January 2022.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.2222222222222222,
+        "retrieval_ms": 1220.1,
+        "context_tokens": 37755
+      }
     },
     {
       "question_id": "conv-48_q174",
@@ -1470,7 +2830,23 @@
       "judge_reason": "The generated answer attributes the conflicting plans to Deborah and explicitly denies that Jolene had them, contradicting the gold answer.",
       "answer_f1": 0.16666666666666666,
       "result_sha256": "5ae5422e562c753593a3f77ead268848d9439cb40114200d46efc80dd2deb78d",
-      "retrieval_sha256": "a68a05ffefc4752a8ec7e24f053bc1348034a5942e624f6353a78593b7332d3d"
+      "retrieval_sha256": "a68a05ffefc4752a8ec7e24f053bc1348034a5942e624f6353a78593b7332d3d",
+      "official_mem0": {
+        "answer": "Because she and her partner were heading out for a multi‑week meditation retreat in Phuket starting that weekend (beginning September 9, 2023), so she needed to move the September 8 meetup.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 5602.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene had to reschedule their meeting because Deborah already had plans for their initially proposed time on Wednesday. Jolene then suggested Friday at 5 PM, as she needed to sort out books from her bookcase before she would be free.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.18181818181818182,
+        "retrieval_ms": 1075.0,
+        "context_tokens": 37851
+      }
     },
     {
       "question_id": "conv-48_q179",
@@ -1487,7 +2863,23 @@
       "judge_reason": "The generated answer names the console game Detroit rather than the card game about cats specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "30005986b4a5b07bd2604d9a62dcb80cf4ac585e1e77fffce626f9b49fdce2d8",
-      "retrieval_sha256": "4ba60f44fd5057281a45bdc12831ce8d234338d95330176d65e1af4408733421"
+      "retrieval_sha256": "4ba60f44fd5057281a45bdc12831ce8d234338d95330176d65e1af4408733421",
+      "official_mem0": {
+        "answer": "The console game “Detroit.”",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.28571428571428575,
+        "retrieval_ms": 4434.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene recently played the video game \"Detroit\" on a console with her partner, which she described to Deborah on January 27, 2023. She also mentioned they were planning to play \"Walking Dead\" the following Saturday.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.05555555555555555,
+        "retrieval_ms": 851.1,
+        "context_tokens": 37583
+      }
     },
     {
       "question_id": "conv-48_q23",
@@ -1504,7 +2896,23 @@
       "judge_reason": "The generated answer attributes postponing yoga to academic and internship demands rather than her greater interest in playing video games.",
       "answer_f1": 0.0975609756097561,
       "result_sha256": "68844c33b0779a5515c34ed3f6e179fd8d4a49fd288973e01c11912dfff7da39",
-      "retrieval_sha256": "b39afde4b855c735f2d2b6feb38e0757fc48484c158de55307b36c505470c899"
+      "retrieval_sha256": "b39afde4b855c735f2d2b6feb38e0757fc48484c158de55307b36c505470c899",
+      "official_mem0": {
+        "answer": "Because she often got absorbed in her engineering work and a hectic internship, struggled with work‑life balance, and forgot to prioritize self‑care—so she didn’t make time for yoga.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.125,
+        "retrieval_ms": 2890.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Jolene sometimes puts off doing yoga because she gets too caught up in her studies and struggles to maintain a work-life balance, prioritizing her coursework and internship over self-care.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.12121212121212123,
+        "retrieval_ms": 925.5,
+        "context_tokens": 37753
+      }
     },
     {
       "question_id": "conv-48_q36",
@@ -1521,7 +2929,23 @@
       "judge_reason": "The generated answer does not provide the gold answer’s inferred age range of likely no more than 30.",
       "answer_f1": 0.0,
       "result_sha256": "da37949e4464f8825c47721adb5960794d28a5c3508f71fbe9661223531db0ec",
-      "retrieval_sha256": "fc318ff9f87d767cc5c7eef9aee6685457f113aef619ef0c90f328c1e66b2c7f"
+      "retrieval_sha256": "fc318ff9f87d767cc5c7eef9aee6685457f113aef619ef0c90f328c1e66b2c7f",
+      "official_mem0": {
+        "answer": "Early 20s (around 22–24 in 2023).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3984.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information to determine Jolene's exact age.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 832.6,
+        "context_tokens": 37768
+      }
     },
     {
       "question_id": "conv-48_q46",
@@ -1538,7 +2962,23 @@
       "judge_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
       "answer_f1": 0.07142857142857144,
       "result_sha256": "3ed07838e0d57163f7d4c96a0b8915ffebc5ee94a58f5f8677283c35f9033fc6",
-      "retrieval_sha256": "f44dc65960354bfdeb7f9cecabcfecae8a4b2b8d8ffadf6f34b8098847dc8227"
+      "retrieval_sha256": "f44dc65960354bfdeb7f9cecabcfecae8a4b2b8d8ffadf6f34b8098847dc8227",
+      "official_mem0": {
+        "answer": "From early February 2023 until May 2023 — roughly three months.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.15384615384615385,
+        "retrieval_ms": 4885.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not provide information on how long Jolene worked on the robotics project.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 959.7,
+        "context_tokens": 37666
+      }
     },
     {
       "question_id": "conv-48_q71",
@@ -1555,7 +2995,23 @@
       "judge_reason": "September 1, 2023 falls outside the last week of August 2023 specified in the gold answer.",
       "answer_f1": 0.13333333333333333,
       "result_sha256": "ea32ae6199de4c1960b1fa6b86d9c1f3d797504445302ebb31f4b75754ba0b0d",
-      "retrieval_sha256": "7e81a8b532a780e278c6b7203b95636259364c7271886e45f443ddc36d5b32c4"
+      "retrieval_sha256": "7e81a8b532a780e278c6b7203b95636259364c7271886e45f443ddc36d5b32c4",
+      "official_mem0": {
+        "answer": "September 1, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.25,
+        "retrieval_ms": 6660.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Deborah went to a community meetup on Friday, September 01, 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.13333333333333333,
+        "retrieval_ms": 859.5,
+        "context_tokens": 37649
+      }
     },
     {
       "question_id": "conv-48_q74",
@@ -1572,7 +3028,23 @@
       "judge_reason": "The generated answer says the information is unspecified, whereas the gold answer states they plan to try coffee and fresh pastries.",
       "answer_f1": 0.0,
       "result_sha256": "7f19c1373ec23598deb99048dc82d017db96d14c78d11d88187c44e814c82b0b",
-      "retrieval_sha256": "d3b1c49e810e20576a1358da60ef01388bfd332c7b2ce549a13159ef59a166fd"
+      "retrieval_sha256": "d3b1c49e810e20576a1358da60ef01388bfd332c7b2ce549a13159ef59a166fd",
+      "official_mem0": {
+        "answer": "Fresh pastries.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.8,
+        "retrieval_ms": 5013.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "When they meet at the cafe, Deborah and Jolene plan to try fresh pastries and have coffee.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.35294117647058826,
+        "retrieval_ms": 978.7,
+        "context_tokens": 37623
+      }
     },
     {
       "question_id": "conv-48_q75",
@@ -1589,7 +3061,23 @@
       "judge_reason": "The generated answer says the game is unknown rather than identifying Exploding Kittens as in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "8204dcf21860d01457d40576e586a304195beb5011b205afa4aa0c89f3edaeae",
-      "retrieval_sha256": "3592620d45403c3a76b290ac1dfc772c7274e17c71afbc771342a9700eaad148"
+      "retrieval_sha256": "3592620d45403c3a76b290ac1dfc772c7274e17c71afbc771342a9700eaad148",
+      "official_mem0": {
+        "answer": "Exploding Kittens",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 5715.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the specific name of the card game, as Deborah mentions she doesn't remember what it's called, but she describes it as a card game about cats where you take cards from a deck to attack your opponent.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1020.5,
+        "context_tokens": 37676
+      }
     },
     {
       "question_id": "conv-48_q87",
@@ -1606,7 +3094,23 @@
       "judge_reason": "The generated answer correctly includes Brazil but incorrectly substitutes Indonesia for Thailand.",
       "answer_f1": 0.14285714285714285,
       "result_sha256": "85fd99ec8f791ab00c9dc81ce985f0965213004d112567ea86723189d5168f53",
-      "retrieval_sha256": "8c9afd85653ba8a696419c708ddf265da01ce794dc0b66d5e233e8b2018d0e23"
+      "retrieval_sha256": "8c9afd85653ba8a696419c708ddf265da01ce794dc0b66d5e233e8b2018d0e23",
+      "official_mem0": {
+        "answer": "Indonesia (Bali) and Brazil (Rio de Janeiro).",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.14285714285714285,
+        "retrieval_ms": 3292.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Deborah has traveled to Indonesia (Bali) and Brazil (Rio de Janeiro).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.09090909090909091,
+        "retrieval_ms": 868.0,
+        "context_tokens": 37419
+      }
     },
     {
       "question_id": "conv-48_q99",
@@ -1623,7 +3127,23 @@
       "judge_reason": "The generated answer claims the information is unspecified instead of identifying coffee and fresh pastries.",
       "answer_f1": 0.0,
       "result_sha256": "95c45f99fd1af39f42ea7e8ba6b25657e00e71b06ed1dff0a32c0ce5d2fd9f12",
-      "retrieval_sha256": "60c309cf21d628c98f0299529eef088d0ee5419fa5ee7cadad860558eb2b8932"
+      "retrieval_sha256": "60c309cf21d628c98f0299529eef088d0ee5419fa5ee7cadad860558eb2b8932",
+      "official_mem0": {
+        "answer": "Fresh pastries.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.8,
+        "retrieval_ms": 2512.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "When they meet at the cafe, Deborah and Jolene plan to try fresh pastries and have coffee.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.35294117647058826,
+        "retrieval_ms": 872.9,
+        "context_tokens": 37623
+      }
     },
     {
       "question_id": "conv-49_q102",
@@ -1640,7 +3160,23 @@
       "judge_reason": "The generated answer names chicken stir-fry rather than the grilled salmon and vegetables specified in the gold answer.",
       "answer_f1": 0.24242424242424243,
       "result_sha256": "fa1b677f33bfab3b7bb9daf43af5f9e4781c2d557abe76493471b214d34fe208",
-      "retrieval_sha256": "e8642abd4d49a97ef25533310512bef9fb7956fb5f4d70318fe7067202b618a2"
+      "retrieval_sha256": "e8642abd4d49a97ef25533310512bef9fb7956fb5f4d70318fe7067202b618a2",
+      "official_mem0": {
+        "answer": "Grilled salmon with roasted vegetables",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.8000000000000002,
+        "retrieval_ms": 2632.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context does not explicitly state what dish Sam made on August 18, 2023. However, on August 19, 2023, Sam mentioned that he was enjoying a recipe for a \"flavorful and healthy grilled chicken and veggie stir-fry.\"",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.10810810810810811,
+        "retrieval_ms": 929.0,
+        "context_tokens": 35521
+      }
     },
     {
       "question_id": "conv-49_q106",
@@ -1657,7 +3193,23 @@
       "judge_reason": "The generated answer mentions watercolor painting but does not identify the forest scene Evan started painting.",
       "answer_f1": 0.0,
       "result_sha256": "7b8691eec4ad3426df431c927df7ae9695d6ad91686d220c8e8a1e0646bc9143",
-      "retrieval_sha256": "2e9cd01ce40b1bfdc21c7eb5326fb5caa04fe18b5d7e61bac266f8764fdf9ea5"
+      "retrieval_sha256": "2e9cd01ce40b1bfdc21c7eb5326fb5caa04fe18b5d7e61bac266f8764fdf9ea5",
+      "official_mem0": {
+        "answer": "Watercolor painting.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2084.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan started watercolor painting.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 945.6,
+        "context_tokens": 35319
+      }
     },
     {
       "question_id": "conv-49_q11",
@@ -1674,7 +3226,23 @@
       "judge_reason": "The generated answer identifies gastritis as the motivating health issue rather than the weight problem specified in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "f0e5b7d23e971c8bae5166099b4bfcf861dfbadd138f23b56f90a62d3af700f6",
-      "retrieval_sha256": "23c92eb9d97b703538ce04fb67d440fca372108ba177569966723494f9a4c03a"
+      "retrieval_sha256": "23c92eb9d97b703538ce04fb67d440fca372108ba177569966723494f9a4c03a",
+      "official_mem0": {
+        "answer": "An ER visit for a severe stomachache diagnosed as gastritis, which served as a wake‑up call to change his lifestyle.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 3564.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Sam's motivation to change his lifestyle stemmed from two main health issues: his doctor warned him that his weight was a serious health risk requiring immediate changes, and he later suffered a severe health scare when he ended up in the ER with severe gastritis.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.07142857142857144,
+        "retrieval_ms": 902.9,
+        "context_tokens": 35407
+      }
     },
     {
       "question_id": "conv-49_q123",
@@ -1691,7 +3259,23 @@
       "judge_reason": "The generated answer describes outdoor activities rather than the emerging theme of helping lost tourists.",
       "answer_f1": 0.0,
       "result_sha256": "d4e392f99c625283de650827a9c3a3173c9746a7b316b7f47a6cea20048cb01d",
-      "retrieval_sha256": "67258b1ec3765a0d7436aa98390e89a9b9806f58899076d1073cb71bd8a9d493"
+      "retrieval_sha256": "67258b1ec3765a0d7436aa98390e89a9b9806f58899076d1073cb71bd8a9d493",
+      "official_mem0": {
+        "answer": "Helping lost tourists — Sam said you’re becoming the go-to person for travelers in need.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.35294117647058826,
+        "retrieval_ms": 2638.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Sam mentions that helping lost tourists is becoming a recurring theme in Evan's life, humorously calling him the \"go-to guy for tourists in need.\"",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.24000000000000002,
+        "retrieval_ms": 909.7,
+        "context_tokens": 35355
+      }
     },
     {
       "question_id": "conv-49_q141",
@@ -1708,7 +3292,23 @@
       "judge_reason": "The generated answer claims the information is unavailable instead of identifying Evan’s suggestion to keep trying new things.",
       "answer_f1": 0.0909090909090909,
       "result_sha256": "d044d9384b036cc0ff03efec678a7eeb2174e51f3e36c6ba651d855a7575ff5e",
-      "retrieval_sha256": "8e21e74aa03c08c2b2d03a66149d90717e1a8102b9587a88e7d8cd15810bb93c"
+      "retrieval_sha256": "8e21e74aa03c08c2b2d03a66149d90717e1a8102b9587a88e7d8cd15810bb93c",
+      "official_mem0": {
+        "answer": "Keep believing in love.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.25,
+        "retrieval_ms": 3294.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan suggested that Sam should keep trying new things.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.6153846153846153,
+        "retrieval_ms": 959.2,
+        "context_tokens": 35387
+      }
     },
     {
       "question_id": "conv-49_q144",
@@ -1725,7 +3325,23 @@
       "judge_reason": "The generated answer does not mention the photo of a man standing on a rock overlooking a valley that Evan shared with Sam.",
       "answer_f1": 0.0,
       "result_sha256": "6d8f9ed0e99115d8fe5a03632faabda53fc216aa106e932f1ca7e7e4f01f8490",
-      "retrieval_sha256": "45359c420f4e7b4dbe91656d4387f8c6204fd0ebd9b5de3e6c9b92972c51017c"
+      "retrieval_sha256": "45359c420f4e7b4dbe91656d4387f8c6204fd0ebd9b5de3e6c9b92972c51017c",
+      "official_mem0": {
+        "answer": "A photo of a woman with a backpack on a mountain—an outdoor hiking scene.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.3,
+        "retrieval_ms": 3129.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "After Sam's hiking trip, Evan shared new healthy snacks, recipes for cookies, and a recipe for energy balls.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1038.0,
+        "context_tokens": 35407
+      }
     },
     {
       "question_id": "conv-49_q145",
@@ -1742,7 +3358,23 @@
       "judge_reason": "The generated answer names energy ball recipes rather than the cookie recipes Evan offered to share.",
       "answer_f1": 0.3333333333333333,
       "result_sha256": "4436a6b6e859a0bd6c50e278c561588c325e68331754f0ce08db8459ac1f4fed",
-      "retrieval_sha256": "559da7e122ec3e1075bf8b44e9149719c5f20d5c2960a30f51343940b355218a"
+      "retrieval_sha256": "559da7e122ec3e1075bf8b44e9149719c5f20d5c2960a30f51343940b355218a",
+      "official_mem0": {
+        "answer": "He offered to send her his ginger snap cookie recipes.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.30769230769230765,
+        "retrieval_ms": 3381.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "After talking about the new healthy snacks he had been trying, Evan offered to send Sam the recipes for them, including a recipe for cookies.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.24000000000000002,
+        "retrieval_ms": 961.4,
+        "context_tokens": 35242
+      }
     },
     {
       "question_id": "conv-49_q153",
@@ -1759,7 +3391,23 @@
       "judge_reason": "The generated answer describes a photo of a sunset over a lake rather than a kayak; kayaking is only mentioned as the activity.",
       "answer_f1": 0.1111111111111111,
       "result_sha256": "c941dea1d12b14f647ce23c4138abfa4a78523fbf9691e42378ac17c3e1e6284",
-      "retrieval_sha256": "788f4f15cdc3bab7769ff1cd497d49c147d09c62110f4dd9b7b8fb8bd589d6b2"
+      "retrieval_sha256": "788f4f15cdc3bab7769ff1cd497d49c147d09c62110f4dd9b7b8fb8bd589d6b2",
+      "official_mem0": {
+        "answer": "The front of a kayak on a calm lake at sunset.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.2222222222222222,
+        "retrieval_ms": 2821.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan shared a photo of a kayak taken during an amazing sunset on a camping trip.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.15384615384615385,
+        "retrieval_ms": 1230.4,
+        "context_tokens": 35496
+      }
     },
     {
       "question_id": "conv-49_q24",
@@ -1776,7 +3424,23 @@
       "judge_reason": "The generated answer describes a new diet and exercise routine rather than Sam falling in love with a Canadian woman.",
       "answer_f1": 0.05555555555555555,
       "result_sha256": "2a0177788ca4289675ef13e535e90a1e91f3c3e54a09f4a720cc1948561a4cb6",
-      "retrieval_sha256": "5204878ecfccb3c82300fefbb2f1b94746d6285a233c6199a1bae9eae3e7ffec"
+      "retrieval_sha256": "5204878ecfccb3c82300fefbb2f1b94746d6285a233c6199a1bae9eae3e7ffec",
+      "official_mem0": {
+        "answer": "Sam started a new diet and exercise routine on August 21, 2023, which she said made a huge difference and made her feel great.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 4858.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Towards the end of summer, specifically on August 21, 2023, Sam started a new diet and exercise routine that made a huge positive difference in how he felt.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.12903225806451613,
+        "retrieval_ms": 929.8,
+        "context_tokens": 35495
+      }
     },
     {
       "question_id": "conv-49_q32",
@@ -1793,7 +3457,23 @@
       "judge_reason": "The generated answer describes an injury and a car breakdown rather than Evan's recurring frustration of misplacing his keys every week.",
       "answer_f1": 0.2222222222222222,
       "result_sha256": "bea46a895ba3225079470ab4ed5071ebe860820c002fa3494ef264fce83c997f",
-      "retrieval_sha256": "877606473cf9c69e743287b9d7e9b0c5d32078e330e78c71e55e7712d741c382"
+      "retrieval_sha256": "877606473cf9c69e743287b9d7e9b0c5d32078e330e78c71e55e7712d741c382",
+      "official_mem0": {
+        "answer": "He frequently misplaces his keys—he says he loses them about once a week.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.3157894736842105,
+        "retrieval_ms": 3338.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan's recurring frustration is constantly losing his keys, an issue he describes as a 'weekly ritual'.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.39999999999999997,
+        "retrieval_ms": 1023.0,
+        "context_tokens": 35443
+      }
     },
     {
       "question_id": "conv-49_q43",
@@ -1810,7 +3490,23 @@
       "judge_reason": "The generated answer describes irregular checkups with no fixed schedule, contradicting the gold answer of every three months.",
       "answer_f1": 0.0,
       "result_sha256": "48f224e5f360bb837c19d1f904d3d292897d03a7ba7adfae842a13f3a8f2643d",
-      "retrieval_sha256": "186bed87a851f1050c84978f58086da150b057219217bd7a7e121ccb9d68b3a4"
+      "retrieval_sha256": "186bed87a851f1050c84978f58086da150b057219217bd7a7e121ccb9d68b3a4",
+      "official_mem0": {
+        "answer": "Sam doesn’t get health checkups on a regular schedule. She had checkups on May 21, 2023 and October 2, 2023, but by January 10, 2024 she said she hadn’t seen a doctor “in a while,” indicating her checkups are infrequent/irregular.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2235.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks information on how often Sam gets health checkups.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 931.5,
+        "context_tokens": 35243
+      }
     },
     {
       "question_id": "conv-49_q54",
@@ -1827,7 +3523,23 @@
       "judge_reason": "Although it correctly mentions heart palpitations, it replaces both twisted-ankle incidents with knee injuries, missing the other health incidents in the gold answer.",
       "answer_f1": 0.14652014652014653,
       "result_sha256": "08da06cc715decd18ef00a0fbd24b3814afcc2dfba1761f009800a8eacebf0ba",
-      "retrieval_sha256": "604ddab18f3af7070cc54470f7383c8b250aefafbfbd184ef32d2f2db83d53c2"
+      "retrieval_sha256": "604ddab18f3af7070cc54470f7383c8b250aefafbfbd184ef32d2f2db83d53c2",
+      "official_mem0": {
+        "answer": "- Around May 30, 2023: A sudden heart‑palpitation episode — a serious health scare that prompted him to be more careful with his lifestyle and medication; he later reported feeling better.\n- August 25, 2023: Twisted knee — painful, disrupted his fitness routine; he planned physical therapy and stayed active by swimming.\n- Week of November 14–20, 2023: Hospital check‑up scare — something suspicious was found initially, but doctors later confirmed he was fine; it reinforced the importance of monitoring his health.\n- Late December 2023: Minor accident — he and his partner were fine with no injuries, but it was still a personal safety/health incident.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1904761904761905,
+        "retrieval_ms": 3155.3,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "In 2023, Evan faced the following personal health incidents:\n- **Late May/Early June 2023:** He experienced a health scare involving sudden heart palpitations.\n- **August 25, 2023:** He twisted his knee, which caused him pain and disrupted his fitness routine.\n- **September 29, 2023:** He injured his knee again while playing basketball with his children.\n- **Mid-November 2023:** He was hospitalized after a suspicious finding during a check-up, though it was later determined to be a misunderstanding.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.2510822510822511,
+        "retrieval_ms": 836.2,
+        "context_tokens": 35682
+      }
     },
     {
       "question_id": "conv-49_q57",
@@ -1844,7 +3556,23 @@
       "judge_reason": "The generated answer explicitly says the state cannot be determined rather than identifying California as the gold answer does.",
       "answer_f1": 0.07142857142857142,
       "result_sha256": "51971ff78f869502408a04b1cbe6a7b12d632c97a9e09c70db3d6b54a2e616a7",
-      "retrieval_sha256": "e989ef16284ccc87bbc2174cd7d40ad8f00256637b15de6cb43b5c59497496ad"
+      "retrieval_sha256": "e989ef16284ccc87bbc2174cd7d40ad8f00256637b15de6cb43b5c59497496ad",
+      "official_mem0": {
+        "answer": "California",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 2355.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "During October 2023, Sam was traveling through Lake Tahoe, which is located on the border of California and Nevada.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.1111111111111111,
+        "retrieval_ms": 942.4,
+        "context_tokens": 35527
+      }
     },
     {
       "question_id": "conv-49_q64",
@@ -1861,7 +3589,23 @@
       "judge_reason": "The generated answer mentions discomfort and limited mobility but does not identify gastritis, the ailment in the gold answer.",
       "answer_f1": 0.0,
       "result_sha256": "826fc26952e9b40564eee98b268442437e744c328bf0bd50b38a76f15dd965c9",
-      "retrieval_sha256": "433aadd49dd22d6151b2f21a622b4e9a0f4c6fd24f3fc5e2b75f6b7113d1e36f"
+      "retrieval_sha256": "433aadd49dd22d6151b2f21a622b4e9a0f4c6fd24f3fc5e2b75f6b7113d1e36f",
+      "official_mem0": {
+        "answer": "Gastritis",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 2529.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Sam experienced a severe case of gastritis that landed him in the ER over the weekend of October 14-15, 2023, acting as a wake-up call to improve his health. He also suffers from physical discomfort that limits his movement, and his doctor has warned him that his weight is a serious health risk.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.11764705882352941,
+        "retrieval_ms": 935.7,
+        "context_tokens": 35482
+      }
     },
     {
       "question_id": "conv-49_q74",
@@ -1878,7 +3622,23 @@
       "judge_reason": "The gold answer refers to Thursday, December 14, 2023, whereas the generated answer gives Tuesday, December 12, 2023.",
       "answer_f1": 0.25000000000000006,
       "result_sha256": "5269d0f5a91b26f7c099da26dbef63276c50bd66969d1584cae36c7b3ea2aa73",
-      "retrieval_sha256": "d4118b7815a6357ca810bdb0721a567ac28e2f5498f13f6f9bb3e4d035f0f709"
+      "retrieval_sha256": "d4118b7815a6357ca810bdb0721a567ac28e2f5498f13f6f9bb3e4d035f0f709",
+      "official_mem0": {
+        "answer": "Tuesday, December 12, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4444444444444445,
+        "retrieval_ms": 2780.9,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan's son fell off his bike on Tuesday, December 12, 2023.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.25000000000000006,
+        "retrieval_ms": 869.2,
+        "context_tokens": 35574
+      }
     },
     {
       "question_id": "conv-49_q80",
@@ -1895,7 +3655,23 @@
       "judge_reason": "The generated answer gives January 9, 2024, but the gold answer is January 9, 2023, so the year is incorrect.",
       "answer_f1": 0.26666666666666666,
       "result_sha256": "96693f9f41e11968952b4f0de9f1b2dd5b1aed946a063780719514a296790d0f",
-      "retrieval_sha256": "e33a3f6f20b1fc07aecb389aedde6a4d2aed9445b205a723c8888002c8209dee"
+      "retrieval_sha256": "e33a3f6f20b1fc07aecb389aedde6a4d2aed9445b205a723c8888002c8209dee",
+      "official_mem0": {
+        "answer": "The night of January 9, 2024.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 2514.5,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan had a drunken night with his friends on January 9, 2024.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.28571428571428575,
+        "retrieval_ms": 926.3,
+        "context_tokens": 35391
+      }
     },
     {
       "question_id": "conv-49_q99",
@@ -1912,11 +3688,326 @@
       "judge_reason": "The generated answer says the suggestion is unspecified rather than identifying the dream interpretation book.",
       "answer_f1": 0.10526315789473684,
       "result_sha256": "074e63635f4e8ee467d8ace2d672eb2ff45ebfe3cc837e1d1edfd53e274586a9",
-      "retrieval_sha256": "0b8f9d66dd91cffa1b4dc70078e2cb5bfb3a88509ac88346e82a978d618fbca5"
+      "retrieval_sha256": "0b8f9d66dd91cffa1b4dc70078e2cb5bfb3a88509ac88346e82a978d618fbca5",
+      "official_mem0": {
+        "answer": "A dream interpretation book.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 1.0,
+        "retrieval_ms": 2908.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Evan suggested that Sam check out a dream interpretation book.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.5,
+        "retrieval_ms": 884.7,
+        "context_tokens": 35287
+      }
+    },
+    {
+      "question_id": "conv-50_q134",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D25:19直接回答attention to detail，当前API未返回；reader从其他项目挫折推persistent engine problems。",
+      "recommended_validation": "完整原文候选及窗口核验toughest part问答段，避免用常见故障代替明确回答。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What is the toughest part of car restoration according to Dave?",
+      "gold": [
+        "Paying extra attention to detail"
+      ],
+      "baseline_answer": "The toughest part appears to be dealing with persistent engine problems after putting in substantial effort. On September 22, 2023, Dave described thinking he had fixed his vintage Mustang’s engine, only to hear a strange noise when he started it—a disappointing setback. He did not explicitly label this the single toughest part of restoration.",
+      "judge_reason": "The generated answer identifies persistent engine problems rather than paying extra attention to detail as the toughest part.",
+      "answer_f1": 0.03571428571428571,
+      "result_sha256": "19e4f2f5c9da687e5186bc047060994d861b400172db5facdfef95b91c340e03",
+      "retrieval_sha256": "5d7c214333626668a86eb0d03bcf7db2aa66a054449e6b627924fdacd09b44a4",
+      "official_mem0": {
+        "answer": "Paying extra-close attention to detail—the meticulous, patient work—is the toughest part.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4,
+        "retrieval_ms": 2324.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "According to Dave, the toughest part of car restoration is paying extra attention to detail, which requires a lot of patience.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.4166666666666667,
+        "retrieval_ms": 928.4,
+        "context_tokens": 37746
+      }
+    },
+    {
+      "question_id": "conv-50_q137",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D26:6的10岁车展及早期兴趣属于Dave，题目却问Calvin；reader称Calvin开始兴趣未指明，原文在上下文。",
+      "recommended_validation": "保留两人人物归属，不把Dave童年经历转写Calvin。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "When did Calvin first get interested in cars?",
+      "gold": [
+        "at an early age"
+      ],
+      "baseline_answer": "The memories do not specify when Calvin first became interested in cars. By March 26, 2023, he described owning a luxury car as a long-held dream, so his interest began before then.",
+      "judge_reason": "The generated answer does not identify that Calvin became interested in cars at an early age, instead stating that the timing is unspecified.",
+      "answer_f1": 0.0,
+      "result_sha256": "d7e9d3e0725ff74811ca94c3c6dd7161b1a8a4c6ac8926da3470d6e9b2c6f4b9",
+      "retrieval_sha256": "cdb7e5256b3d2ca3272470ce2344b03f5cd25e10c42a1f2d3443db296eac1416",
+      "official_mem0": {
+        "answer": "March 25, 2023 — when Calvin bought his red Ferrari 488 GTB, calling it a dream come true and taking it for an adrenaline‑filled first drive.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1870.2,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "I am sorry, but the provided memories do not contain information about when Calvin first got interested in cars.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 851.8,
+        "context_tokens": 37930
+      }
+    },
+    {
+      "question_id": "conv-50_q147",
+      "diagnosis": "speaker_and_role_inconsistency",
+      "evidence_summary": "原文D28:34是Dave说writing lyrics/notes提升my motivation，题问Calvin；Calvin前后是在询问/回应Dave。reader列Calvin真实动机来源但未给gold条目。",
+      "recommended_validation": "对合成对话的职业/人物不一致保留说明；不能为了gold将Dave语句当Calvin确定经历。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "What tools does Calvin use to boost his motivation for music?",
+      "gold": [
+        "Writing lyrics and notes"
+      ],
+      "baseline_answer": "Calvin uses several practical and personal sources to boost his musical motivation:\n- **Watching music videos, concerts, and artist documentaries** to learn about other artists’ creative processes and find inspiration.\n- **Collaborating and learning from other artists**, while surrounding himself with supportive friends, family, and his team.\n- **Taking breaks and enjoying other activities** to recharge and overcome creative blocks.\n- **Experimenting with genres, new sounds, and electronic elements** to keep creating exciting and encourage growth.\n- **Reconnecting with his purpose**—sharing his story, bringing people joy, and connecting with audiences—and drawing encouragement from listeners’ reactions.\n- **Keeping meaningful reminders of his passion**, including his custom-made guitar and a diamond-pendant necklace gifted by another artist.",
+      "judge_reason": "The generated answer lists various sources of inspiration but does not mention writing lyrics and notes, which is the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "b675dc49630c3f3d977b770a23537a20da0683dd7cc4f8a6d2a8fc87a85ad9d9",
+      "retrieval_sha256": "ed010093679cf16faa0dd95a5c8bd02efafd368e84a81d7f33d2f15afd9266c2",
+      "official_mem0": {
+        "answer": "- Gold necklace with a diamond pendant — a daily visual reminder that keeps him pushing as a musician.\n- His notebook — part of his music‑creation workflow for capturing ideas and staying connected to the process.\n- Watching music videos, concerts, and artist documentaries — he uses these as inspiration to spark motivation.\n- His guitar — a personal totem that reminds him of his passion and friendships, keeping him inspired.\n- Positive feedback from listeners — he leans on it as a reminder of his purpose and to fuel his drive.\n- Stepping away to recharge: spending time in nature and working on/fixing cars — clears his head and restores his creative mojo.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2138.6,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The provided memories do not mention specific \"tools\" that Calvin uses to boost his motivation for music (it is actually his friend Dave who uses a notebook and writes lyrics/notes as tools to boost motivation). However, Calvin stays motivated and inspired through various strategies and reminders, including:\n\n- Reminding himself of his passion, relying on supportive people, and taking breaks to recharge.\n- Watching music videos, concerts, and documentaries about artists on TV.\n- Staying connected and up-to-date on world events.\n- Collaborating with other artists, experimenting with different musical styles, and focusing on the positive feedback and connections his music creates.\n- Looking at physical reminders of his hard work and passion, such as a diamond pendant necklace gifted by another artist, his custom-made octopus guitar, and his Ferrari.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.017543859649122806,
+        "retrieval_ms": 1637.2,
+        "context_tokens": 37734
+      }
+    },
+    {
+      "question_id": "conv-50_q151",
+      "diagnosis": "gold_speaker_conflict_and_context_gap",
+      "evidence_summary": "D30:1明确Dave刚开始photography，题目/gold归Calvin；该段API返回未打包。reader答Calvin修车这一已有爱好。",
+      "recommended_validation": "恢复原文能帮助指出主体错误，不能把Dave摄影经历换给Calvin。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "What hobby did Calvin take up recently?",
+      "gold": [
+        "Photography"
+      ],
+      "baseline_answer": "Calvin took up working on cars—repairing and customizing them—as a relaxing hobby.",
+      "judge_reason": "The generated answer names working on cars, whereas Calvin’s recent hobby was photography.",
+      "answer_f1": 0.0,
+      "result_sha256": "d8f40958488049bfb814a9519c1be50bc315a658c4cc2ab58e8e5de680194a9d",
+      "retrieval_sha256": "bcc186873eec01a9ffbbc75bdc68bdaf5f4399695beb6c15cd9504275686acd3",
+      "official_mem0": {
+        "answer": "Restoring cars — he’s been working on a sleek vintage car as a relaxing hobby.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1923.1,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Calvin recently took up restoring a sleek vintage car as a hobby to help him relax.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 834.0,
+        "context_tokens": 37493
+      }
+    },
+    {
+      "question_id": "conv-50_q47",
+      "diagnosis": "count_scope_includes_unannotated_events",
+      "evidence_summary": "gold只计4月/10月两次；原文还明确Dave10岁首场车展，3月23日前有classic cars展览。reader至少四次符合更宽全历史范围。",
+      "recommended_validation": "通用计数区分全部已述事件与两个参考ID，但不能仅按参考ID计数迎合gold；保留童年/近期范围歧义。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many car shows has Dave attended?",
+      "gold": [
+        "two"
+      ],
+      "baseline_answer": "Dave has attended at least four car shows: his first at age 10 with his dad, one before March 23, 2023, one on April 15–16, 2023, and one on October 6, 2023.",
+      "judge_reason": "The generated answer says at least four car shows, whereas the gold answer says two.",
+      "answer_f1": 0.0,
+      "result_sha256": "4d4ac21394777707696c72aa2bb2a4e9cec9ab61c46591872b8fec580c625e15",
+      "retrieval_sha256": "adee18e90c0fef4bbc4ebde08888b89f75a0d8f63f7c5e7b2297d339cc8cfe60",
+      "official_mem0": {
+        "answer": "3",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2862.7,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "Dave has attended 4 car shows mentioned in the memories: one with his dad when he was 10 years old, one recently before March 23, 2023, one the weekend before April 20, 2023, and one on October 6, 2023.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 867.5,
+        "context_tokens": 37892
+      }
+    },
+    {
+      "question_id": "conv-50_q61",
+      "diagnosis": "project_identity_and_finish_date_ambiguity",
+      "evidence_summary": "不同session反复出现final result、engine setback、Ford Mustang及10月29日completed新车；reader从8月14日泛称车到10月29日算76天，未证明始终同一Mustang。gold参考止于10月4日近两个月。",
+      "recommended_validation": "按车型/项目归并并保留完成日期多义，不把所有car project合为一辆；完整窗口后验证。",
+      "confidence": "supported",
+      "category": 2,
+      "question": "How long did Dave's work on the Ford Mustang take?",
+      "gold": [
+        "nearly two months"
+      ],
+      "baseline_answer": "Dave’s Ford Mustang restoration appears to have taken about two and a half months—from at least August 14 to October 29, 2023 (76 days). The exact start date is not stated.",
+      "judge_reason": "The generated answer says about two and a half months, which differs from the gold answer of nearly two months.",
+      "answer_f1": 0.06451612903225806,
+      "result_sha256": "5cdd821e66baf40eeb7ecbfed4e63e049d55fb63b45c4269b260fb58b33de5ee",
+      "retrieval_sha256": "62bb79b38228ef66630815ab3a4da4442c3358f2e2d0e72977405b92e82aff81",
+      "official_mem0": {
+        "answer": "A long time.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1855.4,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The exact duration is not explicitly stated, but based on the timeline, it took roughly two and a half months. Dave was working on it by mid-August 2023 and initially hoped to finish by the end of September, but he ultimately completed the restoration before October 29, 2023. In a later, contradictory memory on November 2, 2023, he also claimed to have spent 'ages' restoring a car he found just 'last week'.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.06060606060606061,
+        "retrieval_ms": 950.1,
+        "context_tokens": 37750
+      }
+    },
+    {
+      "question_id": "conv-50_q62",
+      "diagnosis": "workshop_start_anchor_and_duration_approximation",
+      "evidence_summary": "8月11日获选/工作坊、8月14日说去过SF workshop、9月2日说昨天回来；reader从11日到9月1日约三周，gold两周，原文没明确连续起止。",
+      "recommended_validation": "区分获选、参加、返程的时间和是否同次行程，不把提及差当确定工作坊时长。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "How long was the car modification workshop in San Francisco?",
+      "gold": [
+        "two weeks"
+      ],
+      "baseline_answer": "The workshop appears to have lasted about three weeks, from around August 11 to September 1, 2023, though its exact duration is not explicitly stated.",
+      "judge_reason": "The generated answer says about three weeks, whereas the gold answer specifies two weeks.",
+      "answer_f1": 0.07692307692307693,
+      "result_sha256": "4c8ebfff42f3e66bf260129de98cfc62ece4dcaf4046515cceec08131cbec4f7",
+      "retrieval_sha256": "5e58f080cb9ff7415c839c515f345f329b9aa6c5a5e5a76993c3c471eb1dee88",
+      "official_mem0": {
+        "answer": "One day (held on August 14, 2023).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2466.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The exact duration is not explicitly stated in the memories. However, Dave mentions attending the workshop in San Francisco on August 14, 2023, and he returned on September 1, 2023, which means it lasted for approximately 18 days.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 927.1,
+        "context_tokens": 37600
+      }
+    },
+    {
+      "question_id": "conv-50_q67",
+      "diagnosis": "location_specificity_and_cautious_inference",
+      "evidence_summary": "11月2日说last week在Japanese house开party，无Tokyo具体名；此前多次Tokyo演出/未来计划提供推测，reader只确认Japan并列10月24日Boston。",
+      "recommended_validation": "完整时间线区分同一周不同日期出行；likely与明确位置分开，不能把所有日本住所强定Tokyo。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "Where was Calvin located in the last week of October 2023?",
+      "gold": [
+        "Tokyo"
+      ],
+      "baseline_answer": "Calvin was at his house in Japan for an album celebration during October 23–29, 2023. He was also in Boston on October 24, sightseeing with a high school friend.",
+      "judge_reason": "The generated answer mentions Japan but does not identify Tokyo and adds a conflicting claim that Calvin was in Boston.",
+      "answer_f1": 0.0,
+      "result_sha256": "09c6e737d36d273cd9e07e950fa2bdcd479281c4d4eef6d98129fda2ba452098",
+      "retrieval_sha256": "0752d076c8b47601709ec90a23c70a3c4fa93e22077d7d6e3274d55a51a2983f",
+      "official_mem0": {
+        "answer": "At his Japanese mansion in Japan.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 2483.0,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "During the last week of October 2023, Calvin was located in Boston (where he visited sights with a friend on October 24) and Japan (where he hosted an album release party at his Japanese house on October 26).",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 982.7,
+        "context_tokens": 38182
+      }
+    },
+    {
+      "question_id": "conv-50_q7",
+      "diagnosis": "image_group_vs_staff_count_inference",
+      "evidence_summary": "照片caption只写group of people in front of car，原文没有员工人数/身份，reader称无确定staff数量；gold推很多人。",
+      "recommended_validation": "需要另验证原图人员与雇员关系，不能仅凭caption群体自动抽取大员工数；保留证据强度问题。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "Does Dave's shop employ a lot of people?",
+      "gold": [
+        "Yes"
+      ],
+      "baseline_answer": "The memories don’t say how many people Dave’s shop employs, so there isn’t enough information to tell whether it has a large staff.",
+      "judge_reason": "The gold answer confirms that Dave’s shop employs a lot of people, but the generated answer says there is insufficient information.",
+      "answer_f1": 0.0,
+      "result_sha256": "2092137d1574d7faec010b31dbf5f0d8a6a1e7806be24102705cde3d30614aaa",
+      "retrieval_sha256": "dbb3d67199d093e08bd1fbcacff682ee4119b67bf011ad8470ad34d664873ac1",
+      "official_mem0": {
+        "answer": "No. From what Dave has shared, his shop appears to be a small, hands‑on operation he largely runs himself. He’s usually the one doing the work and sometimes teams up with a local garage, but there’s no indication of a large staff.",
+        "correct": false,
+        "status": "WRONG",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 1970.8,
+        "context_tokens": null
+      },
+      "official_hindsight": {
+        "answer": "The context lacks the information to determine if Dave's shop employs a lot of people.",
+        "correct": true,
+        "status": "CORRECT",
+        "derived_answer_f1": 0.0,
+        "retrieval_ms": 930.1,
+        "context_tokens": 37752
+      }
     }
   ],
   "operational_attempt_audit": {
-    "note": "These recovered transport/stream failures had no usage returned for the failed attempts. No evidence here establishes rate limiting. This is a partial audit, not a final total.",
+    "note": "Complete answer/judge failure-attempt audit for this full baseline; all recovered without resampling any completed semantic verdict. Failed attempts returned no usage. Retain/internal-model usage excluded. Error class alone does not establish rate limiting.",
+    "failed_attempts": 12,
+    "attempts_with_unknown_usage": 12,
     "records": [
       {
         "question_id": "conv-48_q127",
@@ -2127,7 +4218,435 @@
             }
           }
         ]
+      },
+      {
+        "question_id": "conv-50_q157",
+        "stage": "judge",
+        "source_sha256": "409c890dbc43f6c65d7d71b28078c7f588464e97bbdccf6def2d1b8c6d5d3638",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "judge",
+            "state": "failed",
+            "at": "2026-11-18T23:41:12.814605+00:00",
+            "elapsed_s": 4.224836207926273,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "judge",
+            "state": "completed",
+            "at": "2026-11-18T23:41:17.042029+00:00",
+            "elapsed_s": 3.4508284580660984,
+            "error": null,
+            "usage": {
+              "input_tokens": 488,
+              "output_tokens": 36,
+              "total_tokens": 524,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-50_q28",
+        "stage": "answer",
+        "source_sha256": "dc6b13595664e1b74dca144359c390ac990aeee53aa90a44aa2eafe41ea465a9",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T23:16:20.191196+00:00",
+            "elapsed_s": 4.196308374986984,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T23:16:24.388976+00:00",
+            "elapsed_s": 8.065258958027698,
+            "error": null,
+            "usage": {
+              "input_tokens": 7646,
+              "output_tokens": 179,
+              "total_tokens": 7825,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-50_q75",
+        "stage": "answer",
+        "source_sha256": "ab44cd968fcde8db368506bcb5d61ef22131e586118b89fed590d0ea702507c1",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T23:25:21.756809+00:00",
+            "elapsed_s": 3.8412780000362545,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T23:25:25.600768+00:00",
+            "elapsed_s": 5.368580832961015,
+            "error": null,
+            "usage": {
+              "input_tokens": 7258,
+              "output_tokens": 92,
+              "total_tokens": 7350,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-50_q76",
+        "stage": "judge",
+        "source_sha256": "b94c5b162c253182aac123f445de877218a0c679d14476b5a5caec32452cc029",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "judge",
+            "state": "failed",
+            "at": "2026-11-18T23:25:37.806786+00:00",
+            "elapsed_s": 3.774772416916676,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "judge",
+            "state": "completed",
+            "at": "2026-11-18T23:25:41.585161+00:00",
+            "elapsed_s": 3.6582638330291957,
+            "error": null,
+            "usage": {
+              "input_tokens": 492,
+              "output_tokens": 42,
+              "total_tokens": 534,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-50_q92",
+        "stage": "judge",
+        "source_sha256": "798e584813ee6ded44e6f0ca7b588c51516817c308d4514f2c7acdcf6c606ebf",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "judge",
+            "state": "failed",
+            "at": "2026-11-18T23:28:43.031237+00:00",
+            "elapsed_s": 3.576633874909021,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "judge",
+            "state": "completed",
+            "at": "2026-11-18T23:28:46.608829+00:00",
+            "elapsed_s": 5.159034708049148,
+            "error": null,
+            "usage": {
+              "input_tokens": 507,
+              "output_tokens": 40,
+              "total_tokens": 547,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
       }
     ]
+  },
+  "historical_vendor_comparison_note": "Fixed public answers and original vendor verdicts, not common-judge or same-model comparisons. No historical answers are injected into our memory/reader.",
+  "historical_vendor_comparison": {
+    "mem0": {
+      "both_correct": 1344,
+      "contextbase_only_correct": [
+        "conv-26_q37",
+        "conv-26_q55",
+        "conv-26_q68",
+        "conv-26_q128",
+        "conv-26_q138",
+        "conv-26_q148",
+        "conv-30_q14",
+        "conv-30_q34",
+        "conv-30_q36",
+        "conv-30_q47",
+        "conv-30_q56",
+        "conv-30_q67",
+        "conv-30_q71",
+        "conv-30_q74",
+        "conv-41_q48",
+        "conv-41_q75",
+        "conv-41_q80",
+        "conv-41_q88",
+        "conv-41_q107",
+        "conv-41_q119",
+        "conv-42_q49",
+        "conv-42_q51",
+        "conv-42_q52",
+        "conv-42_q68",
+        "conv-42_q79",
+        "conv-42_q84",
+        "conv-42_q87",
+        "conv-42_q93",
+        "conv-42_q95",
+        "conv-42_q119",
+        "conv-42_q120",
+        "conv-42_q128",
+        "conv-42_q150",
+        "conv-42_q151",
+        "conv-42_q186",
+        "conv-42_q187",
+        "conv-43_q17",
+        "conv-43_q49",
+        "conv-43_q50",
+        "conv-43_q86",
+        "conv-43_q88",
+        "conv-43_q96",
+        "conv-43_q99",
+        "conv-43_q103",
+        "conv-43_q119",
+        "conv-43_q128",
+        "conv-43_q148",
+        "conv-43_q152",
+        "conv-43_q166",
+        "conv-43_q169",
+        "conv-44_q18",
+        "conv-44_q22",
+        "conv-44_q55",
+        "conv-44_q88",
+        "conv-44_q119",
+        "conv-47_q6",
+        "conv-47_q33",
+        "conv-47_q36",
+        "conv-47_q53",
+        "conv-47_q59",
+        "conv-47_q77",
+        "conv-47_q112",
+        "conv-48_q117",
+        "conv-48_q120",
+        "conv-48_q172",
+        "conv-49_q20",
+        "conv-49_q59",
+        "conv-49_q97",
+        "conv-49_q104",
+        "conv-49_q108",
+        "conv-49_q116",
+        "conv-49_q119",
+        "conv-50_q54",
+        "conv-50_q90",
+        "conv-50_q113"
+      ],
+      "vendor_only_correct": [
+        "conv-26_q5",
+        "conv-26_q21",
+        "conv-26_q26",
+        "conv-26_q40",
+        "conv-26_q50",
+        "conv-26_q78",
+        "conv-26_q80",
+        "conv-26_q132",
+        "conv-26_q133",
+        "conv-30_q13",
+        "conv-30_q31",
+        "conv-30_q43",
+        "conv-30_q73",
+        "conv-41_q0",
+        "conv-41_q4",
+        "conv-41_q8",
+        "conv-41_q45",
+        "conv-41_q61",
+        "conv-41_q62",
+        "conv-41_q63",
+        "conv-41_q95",
+        "conv-41_q123",
+        "conv-42_q4",
+        "conv-42_q14",
+        "conv-42_q24",
+        "conv-42_q54",
+        "conv-42_q60",
+        "conv-43_q11",
+        "conv-43_q16",
+        "conv-43_q19",
+        "conv-43_q20",
+        "conv-43_q60",
+        "conv-43_q113",
+        "conv-43_q135",
+        "conv-44_q5",
+        "conv-44_q17",
+        "conv-44_q24",
+        "conv-44_q33",
+        "conv-47_q16",
+        "conv-47_q19",
+        "conv-47_q62",
+        "conv-47_q64",
+        "conv-47_q71",
+        "conv-48_q36",
+        "conv-48_q46",
+        "conv-48_q71",
+        "conv-48_q74",
+        "conv-48_q75",
+        "conv-48_q87",
+        "conv-48_q99",
+        "conv-48_q119",
+        "conv-48_q134",
+        "conv-48_q174",
+        "conv-49_q32",
+        "conv-49_q54",
+        "conv-49_q57",
+        "conv-49_q64",
+        "conv-49_q74",
+        "conv-49_q99",
+        "conv-49_q102",
+        "conv-49_q123",
+        "conv-49_q144",
+        "conv-49_q145",
+        "conv-49_q153",
+        "conv-50_q134",
+        "conv-50_q147"
+      ],
+      "both_wrong": 55
+    },
+    "hindsight": {
+      "both_correct": 1359,
+      "contextbase_only_correct": [
+        "conv-26_q33",
+        "conv-26_q56",
+        "conv-26_q77",
+        "conv-26_q112",
+        "conv-26_q138",
+        "conv-30_q17",
+        "conv-30_q48",
+        "conv-30_q57",
+        "conv-30_q71",
+        "conv-41_q19",
+        "conv-41_q48",
+        "conv-41_q69",
+        "conv-41_q85",
+        "conv-41_q125",
+        "conv-42_q5",
+        "conv-42_q19",
+        "conv-42_q23",
+        "conv-42_q35",
+        "conv-42_q47",
+        "conv-42_q52",
+        "conv-42_q58",
+        "conv-42_q61",
+        "conv-42_q97",
+        "conv-43_q4",
+        "conv-43_q14",
+        "conv-43_q17",
+        "conv-43_q18",
+        "conv-43_q28",
+        "conv-43_q34",
+        "conv-43_q48",
+        "conv-43_q53",
+        "conv-43_q70",
+        "conv-43_q86",
+        "conv-43_q165",
+        "conv-44_q37",
+        "conv-44_q81",
+        "conv-47_q20",
+        "conv-47_q24",
+        "conv-47_q33",
+        "conv-47_q37",
+        "conv-47_q56",
+        "conv-47_q88",
+        "conv-48_q29",
+        "conv-48_q44",
+        "conv-48_q59",
+        "conv-48_q82",
+        "conv-48_q178",
+        "conv-49_q17",
+        "conv-49_q36",
+        "conv-49_q49",
+        "conv-49_q82",
+        "conv-49_q108",
+        "conv-49_q127",
+        "conv-50_q0",
+        "conv-50_q45",
+        "conv-50_q59",
+        "conv-50_q60",
+        "conv-50_q70",
+        "conv-50_q88",
+        "conv-50_q120"
+      ],
+      "vendor_only_correct": [
+        "conv-26_q5",
+        "conv-26_q21",
+        "conv-26_q26",
+        "conv-26_q50",
+        "conv-26_q78",
+        "conv-26_q80",
+        "conv-26_q132",
+        "conv-26_q133",
+        "conv-26_q135",
+        "conv-26_q144",
+        "conv-30_q13",
+        "conv-30_q37",
+        "conv-30_q44",
+        "conv-41_q0",
+        "conv-41_q4",
+        "conv-41_q61",
+        "conv-41_q63",
+        "conv-41_q95",
+        "conv-41_q123",
+        "conv-42_q14",
+        "conv-42_q34",
+        "conv-42_q54",
+        "conv-43_q5",
+        "conv-43_q8",
+        "conv-43_q11",
+        "conv-43_q16",
+        "conv-43_q55",
+        "conv-43_q56",
+        "conv-44_q5",
+        "conv-44_q19",
+        "conv-44_q24",
+        "conv-44_q57",
+        "conv-47_q0",
+        "conv-47_q11",
+        "conv-47_q64",
+        "conv-47_q71",
+        "conv-48_q36",
+        "conv-48_q46",
+        "conv-48_q74",
+        "conv-48_q99",
+        "conv-48_q101",
+        "conv-48_q119",
+        "conv-48_q134",
+        "conv-49_q11",
+        "conv-49_q32",
+        "conv-49_q57",
+        "conv-49_q64",
+        "conv-49_q74",
+        "conv-49_q99",
+        "conv-49_q123",
+        "conv-49_q141",
+        "conv-49_q145",
+        "conv-49_q153",
+        "conv-50_q7",
+        "conv-50_q61",
+        "conv-50_q62",
+        "conv-50_q134",
+        "conv-50_q137"
+      ],
+      "both_wrong": 63
+    }
   }
 }
