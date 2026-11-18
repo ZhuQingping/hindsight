@@ -129,9 +129,163 @@ class Progress(BaseModel):
     finished_attempts_without_usage: int
     note: str = (
         "Read-only live checkpoint observation, not a valid complete score or an atomic snapshot of the job. "
-        "AMB skip-ingestion writes final results after its query gather; completed answers/judges are separately sealed. "
+        "Isolated LoCoMo saves results after each Bank query gather; completed answers/judges are separately sealed. "
         "Process liveness must be checked independently. No answers are regenerated or source state updated."
     )
+
+
+class OriginalTurn(BaseModel):
+    speaker: str | None = None
+    dia_id: str | None = None
+    text: str | None = None
+    blip_caption: h.core.JsonValue = None
+
+
+class OriginalSession(BaseModel):
+    document_id: str
+    timestamp: str
+    turns: list[OriginalTurn]
+
+
+class EvidencePassage(BaseModel):
+    evidence_id: str
+    document_id: str | None = None
+    session_timestamp: str | None = None
+    neighboring_turns: list[OriginalTurn]
+    id_in_returned_raw: bool
+    id_in_packed_context: bool
+
+
+class WrongCase(BaseModel):
+    question_id: str
+    category: int
+    question: str
+    gold: list[str | int | float]
+    answer: str
+    judge_reason: str
+    answer_f1: float
+    operational_error: str | None
+    inspection_hint: str
+    returned_raw_truncations: int
+    passages: list[EvidencePassage]
+    result_sha256: str
+    retrieval_sha256: str
+
+
+class WrongSnapshot(BaseModel):
+    kind: Literal["posthoc-error-diagnostics-not-a-score"] = "posthoc-error-diagnostics-not-a-score"
+    run_id: str
+    manifest_sha256: str
+    analysis_source_sha256: str
+    expected_full_scope: int
+    saved_result_count: int
+    wrong_cases: list[WrongCase]
+    note: str = (
+        "Original QA evidence is used only after saved verdicts for diagnosis, never for retrieval or answer packing. "
+        "Neighboring original turns help inspect misaligned annotations. ID coverage and inspection hints are "
+        "proxies, not proven causes or evidence of semantic correctness. This may be a partial live snapshot; "
+        "it contains no leaderboard accuracy and does not replace complete-run validation."
+    )
+
+
+def wrong_snapshot(directory: Path, output: Path) -> WrongSnapshot:
+    if output.exists():
+        raise FileExistsError("Preserve earlier diagnostic snapshots")
+    manifest = manifest_at(directory)
+    questions = {h.amb_id(q): q for c in manifest.conversations for q in c.questions}
+    conversations = {c.id: c for c in manifest.conversations}
+    scoring = h.core.FrozenScoring(directory)
+    originals = {
+        c.id: [
+            OriginalSession(
+                document_id=s.document_id,
+                timestamp=s.timestamp,
+                turns=[OriginalTurn.model_validate(t) for t in json.loads(s.content)],
+            )
+            for s in c.sessions
+        ]
+        for c in manifest.conversations
+    }
+    cases = []
+    paths = sorted((directory / "results").glob("*.json"))
+    for path in paths:
+        saved = h.unseal(path, h.SavedResult, manifest)
+        if saved.question_id not in questions or path.stem != saved.question_id:
+            raise ValueError("Diagnostic result outside frozen scope")
+        if saved.amb_result.correct:
+            continue
+        question = questions[saved.question_id]
+        retrieval_path = directory / "retrievals" / (saved.question_id + ".json")
+        retrieved = h.unseal(retrieval_path, h.RetrievalRecord, manifest)
+        if retrieved.bank_id != conversations[question.conversation_id].bank_id:
+            raise ValueError("Diagnostic retrieval belongs to another Bank")
+        raw = "\n".join(c.text for c in (retrieved.recall.chunks or {}).values()) if retrieved.recall else ""
+        packed = retrieved.packing.text if retrieved.packing else ""
+        operational_error = retrieved.error
+        for stage in ("answer", "judge"):
+            call_path = directory / "calls" / f"{saved.question_id}-{stage}.json"
+            if call_path.exists():
+                call = h.unseal(call_path, h.CallRecord, manifest)
+                if call.status != "completed" and operational_error is None:
+                    operational_error = stage + ":" + call.status
+        passages = []
+        for identifier in scoring.gold[question.conversation_id][question.original_index].evidence:
+            passage = EvidencePassage(
+                evidence_id=identifier,
+                neighboring_turns=[],
+                id_in_returned_raw=contains_id(raw, identifier),
+                id_in_packed_context=contains_id(packed, identifier),
+            )
+            for session in originals[question.conversation_id]:
+                position = next((i for i, turn in enumerate(session.turns) if turn.dia_id == identifier), None)
+                if position is not None:
+                    passage.document_id = session.document_id
+                    passage.session_timestamp = session.timestamp
+                    passage.neighboring_turns = session.turns[max(0, position - 1) : position + 2]
+                    break
+            passages.append(passage)
+        if operational_error:
+            hint = "inspect_operational_failure"
+        elif not passages:
+            hint = "inspect_gold_and_source_without_reference_ids"
+        elif any(p.id_in_returned_raw and not p.id_in_packed_context for p in passages):
+            hint = "inspect_client_context_selection"
+        elif not all(p.id_in_returned_raw for p in passages):
+            hint = "inspect_recall_candidates_and_raw_budget"
+        else:
+            hint = "inspect_source_gold_alignment_and_reader_reasoning"
+        cases.append(
+            WrongCase(
+                question_id=saved.question_id,
+                category=question.category,
+                question=question.question,
+                gold=saved.amb_result.gold_answers,
+                answer=saved.amb_result.answer,
+                judge_reason=saved.amb_result.judge_reason,
+                answer_f1=saved.answer_f1,
+                operational_error=operational_error,
+                inspection_hint=hint,
+                returned_raw_truncations=sum(
+                    bool((c.model_extra or {}).get("truncated")) for c in (retrieved.recall.chunks or {}).values()
+                )
+                if retrieved.recall
+                else 0,
+                passages=passages,
+                result_sha256=h.core.file_sha(path),
+                retrieval_sha256=h.core.file_sha(retrieval_path),
+            )
+        )
+    result = WrongSnapshot(
+        run_id=manifest.run_id,
+        manifest_sha256=h.core.file_sha(directory / "manifest.json"),
+        analysis_source_sha256=h.core.file_sha(Path(__file__)),
+        expected_full_scope=len(questions),
+        saved_result_count=len(paths),
+        wrong_cases=cases,
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    h.core.save_model(output, result)
+    return result
 
 
 def progress(directory: Path) -> Progress:
@@ -563,8 +717,15 @@ def main() -> None:
         "--progress", action="store_true", help="Observe live sealed checkpoints without any model calls"
     )
     parser.add_argument("--official-mem0", type=Path)
+    parser.add_argument("--wrong-snapshot", action="store_true", help="Posthoc evidence for saved wrong answers")
     parser.add_argument("--official-hindsight", type=Path)
     args = parser.parse_args()
+    if args.wrong_snapshot:
+        if args.progress or args.baseline or args.official_mem0 or args.official_hindsight or args.output is None:
+            parser.error("--wrong-snapshot requires only --run-dir and a new --output")
+        result_wrong = wrong_snapshot(args.run_dir, args.output)
+        print(result_wrong.model_dump_json(exclude={"wrong_cases"}))
+        return
     if args.progress:
         if args.baseline or args.official_mem0 or args.official_hindsight or args.output:
             parser.error("--progress prints a read-only snapshot; omit other export options")

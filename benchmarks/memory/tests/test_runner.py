@@ -258,6 +258,7 @@ def prepared(
     questions_per_conversation=1,
     reuse_banks=None,
     gold_answer=None,
+    evidence_ids=None,
 ):
     path = config_fixture(tmp_path, conversations=conversations)
     config = json.loads(path.read_text())
@@ -268,7 +269,7 @@ def prepared(
         config["api_url"] = api_url
     if reuse_banks:
         config["reuse_banks"] = reuse_banks
-    if questions_per_conversation > 1 or gold_answer is not None:
+    if questions_per_conversation > 1 or gold_answer is not None or evidence_ids is not None:
         dataset_path = Path(config["sources"]["dataset"]["path"])
         records = json.loads(dataset_path.read_text())
         for conversation in records:
@@ -276,10 +277,13 @@ def prepared(
                 conversation["qa"] = [conversation["qa"][0].copy() for _ in range(questions_per_conversation)] + [
                     conversation["qa"][-1]
                 ]
-            if gold_answer is not None:
+            if gold_answer is not None or evidence_ids is not None:
                 for question in conversation["qa"]:
                     if question["category"] != 5:
-                        question["answer"] = gold_answer
+                        if gold_answer is not None:
+                            question["answer"] = gold_answer
+                        if evidence_ids is not None:
+                            question["evidence"] = evidence_ids
         dataset_path.write_text(json.dumps(records))
         config["sources"]["dataset"]["sha256"] = a.core.file_sha(dataset_path)
     path.write_text(json.dumps(config))
@@ -635,11 +639,12 @@ async def test_concurrent_same_bank_questions_keep_their_own_prompt_and_judge(tm
 
 
 @pytest.mark.asyncio
-async def test_recall_failure_is_archived_and_not_retried_or_removed(tmp_path, checkout, monkeypatch):
+@pytest.mark.parametrize("failure_stage", ["recall", "judge"])
+async def test_recall_failure_is_archived_and_not_retried_or_removed(tmp_path, checkout, monkeypatch, failure_stage):
     service = FakeBankService()
 
     async def handler(request):
-        if request.path.endswith("/memories/recall"):
+        if request.path.endswith("/memories/recall") and failure_stage == "recall":
             service.requests.append((request.method, request.path))
             return web.json_response({"error": "scripted upstream failure"}, status=503)
         return await service.handle(request)
@@ -650,12 +655,19 @@ async def test_recall_failure_is_archived_and_not_retried_or_removed(tmp_path, c
         directory, manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")))
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
-        factory = Factory(manifest)
+        factory = Factory(manifest, fail_judge=failure_stage == "judge")
         await asyncio.to_thread(a.run, directory, manifest, factory)
         summary = a.report(directory, manifest)
-        assert summary.failed == summary.expected == 1 and summary.retrieval_sample_count == 0
+        assert summary.failed == summary.expected == 1
+        assert summary.retrieval_sample_count == (0 if failure_stage == "recall" else 1)
         assert not summary.valid_complete_run and summary.accuracy_all_expected == 0
-        assert not factory.calls
+        assert len(factory.calls) == (0 if failure_stage == "recall" else 2)
+        analysis = a.module_from_file("memory_failed_diagnostic_" + failure_stage, SCRIPT.with_name("analysis.py"))
+        observed_requests = len(service.requests)
+        diagnostic = analysis.wrong_snapshot(directory, tmp_path / "failed-diagnostic.json")
+        assert diagnostic.wrong_cases[0].operational_error is not None
+        assert diagnostic.wrong_cases[0].inspection_hint == "inspect_operational_failure"
+        assert len(service.requests) == observed_requests
         await asyncio.to_thread(a.run, directory, manifest, factory)
         assert sum("recall" in path for _, path in service.requests) == 1
 
@@ -1113,7 +1125,9 @@ async def test_numeric_gold_save_failure_recovers_newly_ingested_banks_without_n
     app = web.Application()
     app.router.add_route("*", "/{tail:.*}", service.handle)
     async with TestServer(app) as server:
-        directory, manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")), gold_answer=2022)
+        directory, manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), gold_answer=2022, evidence_ids=["D1:1"]
+        )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
         original_factory = Factory(manifest, structured=True)
@@ -1161,6 +1175,17 @@ async def test_numeric_gold_save_failure_recovers_newly_ingested_banks_without_n
         analysis = a.module_from_file("memory_numeric_export_test", SCRIPT.with_name("analysis.py"))
         exported = analysis.export(recovered_dir, tmp_path / "numeric-export.json")
         assert exported.rows[0].gold == [2022]
+        requests_before = len(service.requests)
+        diagnostic = analysis.wrong_snapshot(recovered_dir, tmp_path / "wrong-diagnostic.json")
+        assert diagnostic.kind == "posthoc-error-diagnostics-not-a-score"
+        assert diagnostic.saved_result_count == 1 and len(diagnostic.wrong_cases) == 1
+        passage = diagnostic.wrong_cases[0].passages[0]
+        assert passage.evidence_id == "D1:1" and passage.document_id == "conv-30_session_1"
+        assert passage.neighboring_turns[0].text == "Public session memory."
+        assert passage.session_timestamp.startswith("2023-01-01")
+        assert len(service.requests) == requests_before and not new_factory.calls
+        with pytest.raises(FileExistsError):
+            analysis.wrong_snapshot(recovered_dir, tmp_path / "wrong-diagnostic.json")
         assert h.read_model(recovered_dir / "state.json", h.State).answer_elapsed_s >= original_state.answer_elapsed_s
         assert hashes == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
 

@@ -95,7 +95,7 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 
 `analysis.py --run-dir <frozen-full-run> --official-mem0 <locomo_results.json> --official-hindsight <locomo10.json.gz> --output <new-file.json>` 离线整理固定官方快照。输入必须匹配指定版本哈希，逐题校验原数据的会话索引、问题、分类及参考答案，拒绝重复或缺题。已保存 [1540题官方逐题对照](results/official-locomo1540-20261119.json)：保留两家的原始判定，另算原版答案F1和检索P50/P95；后两项明确标记为本地派生值，不当作厂商公布指标。该入口不调用任何模型或记忆服务，也不将官方答案输入我们的答题流程。
 
-运行中查看真实进度使用 `analysis.py --run-dir <run> --progress`，只读校验已封存的逐题检索、answer/judge记录，打印完成阶段与失败/未知用量，不输出部分准确率、不写源目录。固定AMB在skip-ingestion路径中会等整批QA结束才写最终results，所以运行中该目录为空不代表未答题。进程是否存活需另外核实；此入口不替代完整结果验证。
+运行中查看真实进度使用 `analysis.py --run-dir <run> --progress`，只读校验已封存的逐题检索、answer/judge记录，打印完成阶段与失败/未知用量，不输出部分准确率、不写源目录。固定AMB的LoCoMo隔离路径会在每个Bank的QA批次完成后写逐题results；answer/judge更早单独保存，所以该目录暂为空不代表未答题。进程是否存活需另外核实；此入口不替代完整结果验证。
 
 ## 用统一裁判复判公开答案
 
@@ -112,3 +112,5 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 prepare只做离线冻结；run必须等源基线完整有效，并使用冻结代码。重复执行复用原判定，已完成的错误答案不重答、不重判择优。该结果只能称“历史公开答案在共同裁判下的派生分数”，不能称友商新的产品实测或最新官网成绩。
 
 数字gold（年份、计数）按原始类型归档，不强制变成字符串。新建Bank运行中断后，可在新配置中将 `reuse_banks` 显式设为源manifest的完整Bank映射，再用 `checkpoint_source` 接续；只允许这组原Bank，必须重新只读verify。保留原模型调用、源配置/版本快照、导入耗时和累计QA时间。若有未收到回包的中断召回，显式设置 `resume_connection_failures=true`；不增加已完成答案的尝试次数，也不重新导入。
+
+错题原文诊断使用 `analysis.py --run-dir <run> --wrong-snapshot --output <new-file.json>`。它仅分析已封存且判错的记录，列出原文参考句及相邻一轮、session时间、原答案和裁判理由、原文/最终上下文中的ID覆盖，并单列操作失败。可用于运行中逐组排查，但输出kind明确不是成绩，不绕过完整基线验证；不访问Bank或模型、不把QA参考原文补进答题上下文。源片段来自原始合成数据，保存在本机诊断档案，Git报告只保留脱敏归纳。

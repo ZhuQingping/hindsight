@@ -765,3 +765,9 @@ PG只读能力核验保存在 `.local/night-pg-capabilities-20261119.json`；当
 **当前唯一基线执行者：** `locomo1540r_20261119_030518`，指针 `/tmp/contextbase-locomo-full-active-run` 和 `/tmp/contextbase-locomo-full-recovery-run` 均指向该目录；生产者PID89825，exec session92215；独立守护PID89829（PPID1）。日志 `/tmp/contextbase-locomo1540-recovery2-verify.log`、`/tmp/contextbase-locomo1540-recovery2-eval.log`。343条已完成模型记录无损接续，q0/q1仅补未完成召回；模型、8K预算、并发2、尝试上限4、gold及原裁判规则不变。10个Bank只读核验完成，已封存152条最终结果，最新观测173题完成judge、175次检索、0失败/调用错误；仍是部分结果。主线与实验分支各44项离线测试通过，包含完整固定AMB+本地HTTP的数字保存中断→只读恢复，以及中断召回只补未答题、不重答已完成题。全局lint在隔离worktree仍受既有F841阻塞，格式变更已撤回。
 
 后续候选和共同裁判也已重新封存数字类型修复，评测配置未变：窗口候选 `.worktrees/locomo-opt-20261119/benchmarks/memory/.local/runs/locomow8_20261119_0308`（指针 `/tmp/contextbase-locomo-window-candidate-run`），原预注册配置逐字段完全相同；共同裁判 `.local/rejudge1540_20261119_0308`（指针 `/tmp/contextbase-locomo-rejudge-active-run`）。两者都绑定当前恢复基线manifest，尚未调用模型。旧0218窗口候选、0242/v2共同裁判仅为历史准备，不能拿已中断原run当成完整基线启动；统一使用最新指针，并以实际进程/锁和valid_complete_run校验后续启动条件。
+
+逐题诊断准备（第三组进行中）：持续观测生产者89825与守护89829存活，完整基线推进至261题judge、233条最终逐题结果，无操作/模型错误。新增analysis.py的 `--wrong-snapshot` 离线入口，保存原始参考句及±1邻轮、时间、答案/裁判和来源哈希，特别保留参考ID错位的可能，不以ID覆盖自动判定因果。45项离线测试通过，覆盖正常错题的原文定位与数字gold、源档案不写回、不访问HTTP/模型、操作失败与语义错题分离、已有快照不覆盖。global lint在隔离worktree仍是已有F841，自动格式变更撤回。
+
+首233题20个错题均已做来源检查，详见 `.local/triage-first233-v2-20261119.json` 和 `.local/triage-first233-review-20261119.json`。初版诊断快照保留，执行源码按其记录SHA逐字节核验归档在 `.local/triage-first233-source-20261119/`（源码由随后的几行诊断功能修改逆向还原，匹配原执行哈希；不涉及benchmark数据变化）。当前版本另加强了模型阶段操作失败识别。待1540完整后用同入口生成全量错题证据，并继续逐题检查，不发布这些部分数据的榜单准确率。
+
+离线v1对q132现有API回包重打包已验证：Seven years now从旧上下文缺失变为存在，7980tokens，无模型调用，故暂不新增跨chunk窗口变体。事实信息、图像描述/视觉指代不足、标注时间和指代歧义需分开。官方项目已核实虚拟人设生成机制；合成任务来源说明只列为后续独立reader候选，未修改目前预注册方法。固定AMB分类展示标签与原编号含义不一致，总体1540题及模板不变，分类汇总使用原数字编号。
