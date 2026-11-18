@@ -981,3 +981,113 @@ def test_official_public_rows_join_by_validated_identity(tmp_path, checkout, mut
     assert analysis.public_metrics([r.hindsight for r in rows]).context_tokens_mean == 400
     assert not (directory / "calls").exists() and not (directory / "retrievals").exists()
     assert not (directory / "state.json").exists() or not json.loads((directory / "state.json").read_text())["banks"]
+
+
+@pytest.mark.asyncio
+async def test_common_judge_reuses_identical_inputs_without_memory_or_answer_calls(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    rejudge = a.module_from_file("memory_common_judge_test", SCRIPT.with_name("rejudge.py"))
+    new_prompts = []
+
+    class JudgeOnly:
+        async def call(self, *, messages, response_format, strict_schema, **kwargs):
+            assert strict_schema and kwargs["max_retries"] == 0
+            assert set(response_format.model_fields) == {"correct", "reason"}
+            new_prompts.append(messages[0]["content"])
+            await asyncio.sleep(0)  # Make simultaneous duplicate requests contend for the shared task.
+            return LLMCallResult(
+                content=response_format(correct=True, reason="Synthetic common judge"),
+                usage=TokenUsage(input_tokens=7, output_tokens=3, total_tokens=10),
+            )
+
+        async def cleanup(self):
+            pass
+
+    def provider(settings, timeout):
+        return JudgeOnly()
+
+    async with TestServer(app) as server:
+        directory, manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=2
+        )
+        public_rows = []
+        for i in range(2):
+            answer = rejudge.a.PublicAnswer(
+                answer="test answer" if i == 0 else "a different public answer",
+                correct=True,
+                status="CORRECT",
+                derived_answer_f1=0,
+                retrieval_ms=1,
+            )
+            public_rows.append(
+                rejudge.a.PublicRow(
+                    question_id=f"conv-30_q{i}", conversation_id="conv-30", category=2, mem0=answer, hindsight=answer
+                )
+            )
+        metrics = rejudge.a.public_metrics([r.mem0 for r in public_rows])
+        public = rejudge.a.PublicComparison(
+            question_scope_sha256=manifest.question_scope_sha256,
+            mem0_source=rejudge.a.Source(url=None, sha256="synthetic"),
+            hindsight_source=rejudge.a.Source(url=None, sha256="synthetic"),
+            mem0_answer_model="fixture-m",
+            mem0_judge_model="fixture-m",
+            hindsight_answer_model="fixture-h",
+            hindsight_judge_model="fixture-h",
+            mem0_metrics=metrics,
+            hindsight_metrics=metrics,
+            rows=public_rows,
+        )
+        public_path = tmp_path / "public.json"
+        public_path.write_text(public.model_dump_json())
+        output = tmp_path / "common-judge"
+        rejudge.prepare(directory, public_path, output, "unit_common")
+        assert not service.requests and not new_prompts
+        with pytest.raises(ValueError, match="complete source baseline"):
+            await rejudge.run(output, provider)
+        assert not new_prompts
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        original_factory = Factory(manifest, structured=True)
+        original = await asyncio.to_thread(a.run, directory, manifest, original_factory)
+        assert original.valid_complete_run and original.correct == 0
+        request_count = len(service.requests)
+        hashes = {
+            str(p): a.core.file_sha(p) for folder in ["calls", "results"] for p in (directory / folder).glob("*.json")
+        }
+        summary = await rejudge.run(output, provider)
+        assert summary.valid_complete_comparison and summary.baseline_reused_rows == 2
+        assert summary.newly_generated_unique_prompts == 1 and len(new_prompts) == 1
+        assert summary.model_usage.total_tokens == 10 and summary.attempts_without_usage == 0
+        assert all(
+            s.completed == 2 and s.correct == 1 and s.accuracy_all_expected == 0.5 for s in summary.products.values()
+        )
+        assert len(service.requests) == request_count and len(original_factory.calls) == 4
+        assert hashes == {
+            str(p): a.core.file_sha(p) for folder in ["calls", "results"] for p in (directory / folder).glob("*.json")
+        }
+        before = (output / "summary.json").read_bytes()
+        assert (await rejudge.run(output, provider)) == summary and len(new_prompts) == 1
+        assert (output / "summary.json").read_bytes() == before
+
+        class UnavailableJudge(JudgeOnly):
+            async def call(self, **kwargs):
+                raise ValueError("Synthetic terminal judge failure")
+
+        failed_output = tmp_path / "failed-common-judge"
+        rejudge.prepare(directory, public_path, failed_output, "unit_common_failed")
+        with pytest.raises(RuntimeError, match="Model stage failed"):
+            await rejudge.run(failed_output, lambda settings, timeout: UnavailableJudge())
+        assert not (failed_output / "summary.json").exists()
+        failed_calls = [p for product in rejudge.PRODUCTS for p in (failed_output / product / "calls").glob("*.json")]
+        assert len(failed_calls) == 1
+        failed_call = rejudge.h.core.read_model(failed_calls[0], rejudge.h.CallRecord)
+        assert failed_call.stage == "judge" and failed_call.status == "failed"
+        assert failed_call.attempts[0].error == "ValueError"
+        assert len(service.requests) == request_count and len(new_prompts) == 1
+        copied = output / "public-results.json"
+        copied.write_text(copied.read_text() + " ")
+        with pytest.raises(ValueError, match="Public answers modified"):
+            await rejudge.run(output, provider)
+        assert len(new_prompts) == 1

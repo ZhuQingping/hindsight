@@ -96,3 +96,17 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 `analysis.py --run-dir <frozen-full-run> --official-mem0 <locomo_results.json> --official-hindsight <locomo10.json.gz> --output <new-file.json>` 离线整理固定官方快照。输入必须匹配指定版本哈希，逐题校验原数据的会话索引、问题、分类及参考答案，拒绝重复或缺题。已保存 [1540题官方逐题对照](results/official-locomo1540-20261119.json)：保留两家的原始判定，另算原版答案F1和检索P50/P95；后两项明确标记为本地派生值，不当作厂商公布指标。该入口不调用任何模型或记忆服务，也不将官方答案输入我们的答题流程。
 
 运行中查看真实进度使用 `analysis.py --run-dir <run> --progress`，只读校验已封存的逐题检索、answer/judge记录，打印完成阶段与失败/未知用量，不输出部分准确率、不写源目录。固定AMB在skip-ingestion路径中会等整批QA结束才写最终results，所以运行中该目录为空不代表未答题。进程是否存活需另外核实；此入口不替代完整结果验证。
+
+## 用统一裁判复判公开答案
+
+`rejudge.py` 将已归档的两家1540题答案交给我们的同一裁判，保留官方原分数，并另报派生对照。它不调用Mem0/Hindsight服务，不访问Bank，不重新答题。完整judge prompt逐字相同时，优先复用基线已有判定，再共享单次新调用，避免同一答案在两家重复判题得到不同结论。所有复用有源调用哈希，新增Token用量单独统计。
+
+```bash
+.venv/bin/python benchmarks/memory/rejudge.py prepare \
+  --source /path/to/full-baseline \
+  --public-results benchmarks/memory/results/official-locomo1540-20261119.json \
+  --output /path/to/new-common-judge-job --run-id common_YYYYMMDD
+.venv/bin/python /path/to/new-common-judge-job/source/rejudge.py run /path/to/new-common-judge-job
+```
+
+prepare只做离线冻结；run必须等源基线完整有效，并使用冻结代码。重复执行复用原判定，已完成的错误答案不重答、不重判择优。该结果只能称“历史公开答案在共同裁判下的派生分数”，不能称友商新的产品实测或最新官网成绩。
