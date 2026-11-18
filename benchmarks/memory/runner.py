@@ -297,7 +297,8 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
                     and all(
                         a.state == "failed"
                         and a.usage is None
-                        and a.error in {"ConnectionTimeoutError", "ClientConnectorError", "TimeoutError"}
+                        and a.error
+                        in {"ConnectionTimeoutError", "ClientConnectorError", "ClientPayloadError", "TimeoutError"}
                         for a in record.attempts
                     )
                     and len(record.attempts) < config.model_max_attempts
@@ -309,6 +310,7 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
                     "interrupted_unknown",
                     "ConnectionTimeoutError",
                     "ClientConnectorError",
+                    "ClientPayloadError",
                     "TimeoutError",
                 }:
                     retry_ids.add(record.question_id)

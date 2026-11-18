@@ -774,7 +774,10 @@ def test_reuse_mapping_must_match_scope_and_safe_identity(tmp_path, checkout, ma
 
 
 @pytest.mark.asyncio
-async def test_checkpoint_adoption_preserves_all_verdicts_and_explicit_transport_attempts(tmp_path, checkout):
+@pytest.mark.parametrize("transport_error", ["ConnectionTimeoutError", "ClientPayloadError"])
+async def test_checkpoint_adoption_preserves_all_verdicts_and_explicit_transport_attempts(
+    tmp_path, checkout, transport_error
+):
     directory, manifest = prepared(
         tmp_path, checkout, reuse_banks={"conv-30": "unit_test_conv_30"}, questions_per_conversation=2
     )
@@ -796,8 +799,7 @@ async def test_checkpoint_adoption_preserves_all_verdicts_and_explicit_transport
             response_schema=judge_schema,
             status="failed",
             attempts=[
-                a.core.Attempt(stage="judge", state="failed", error="ConnectionTimeoutError", at=a.core.now())
-                for _ in range(2)
+                a.core.Attempt(stage="judge", state="failed", error=transport_error, at=a.core.now()) for _ in range(2)
             ],
         ),
     )
@@ -843,3 +845,23 @@ async def test_native_pydantic_structured_replies_are_archived_as_json_objects(t
     for stage in ["answer", "judge"]:
         row = a.unseal(archive.call_path("conv-30_q0", stage), a.CallRecord, manifest)
         assert row.status == "completed" and isinstance(row.response, dict)
+
+
+@pytest.mark.asyncio
+async def test_truncated_http_body_is_retryable_but_invalid_response_is_not() -> None:
+    async def handler(request: web.Request) -> web.StreamResponse:
+        response = web.StreamResponse(headers={"Content-Length": "100"})
+        await response.prepare(request)
+        await response.write(b'{"answer":')
+        request.transport.close()
+        return response
+
+    app = web.Application()
+    app.router.add_get("/partial", handler)
+    async with TestServer(app) as server:
+        async with aiohttp.ClientSession() as session:
+            with pytest.raises(aiohttp.ClientPayloadError) as error:
+                async with session.get(server.make_url("/partial")) as response:
+                    await response.read()
+    assert h.retryable(error.value)
+    assert not h.retryable(ValueError("Invalid complete answer"))

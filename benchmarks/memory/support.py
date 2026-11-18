@@ -679,7 +679,9 @@ def make_provider(settings: ModelSettings, timeout: float) -> LLMInterface:
 def retryable(error: Exception) -> bool:
     status = getattr(error, "status_code", None)
     return (
-        isinstance(error, (TimeoutError, aiohttp.ClientConnectionError))
+        # A truncated streaming body is a transport failure too. No complete
+        # response was returned; preserve unknown usage before bounded recovery.
+        isinstance(error, (TimeoutError, aiohttp.ClientConnectionError, aiohttp.ClientPayloadError))
         or status == 429
         or (isinstance(status, int) and status >= 500)
     )

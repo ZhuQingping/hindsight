@@ -42,7 +42,7 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 
 连接中断后，可在新运行中通过 `checkpoint_source` 引用原 manifest 的路径与 SHA-256。脚本要求题目、Bank、模型、预算、prompt 协议和依赖一致，复制并校验全部已有检查点；已完成的对错判定不重新生成。仅在显式声明 `resume_connection_failures=true` 且每次增加一次尝试上限（总上限 4）时，允许没有任何响应的连接失败再尝试一次，并可降低恢复并发；未收到回包的中断检索可重新读取；原失败记录和未知用量全部保留。逐题操作失败会计入失败并继续余题，不再中断整组。
 
-当前模板指向本机 API `127.0.0.1:8892`。部署基础为 `dd5521cb…`，并有后续 UI/网关更新；它与本分支不完全一致。脚本经 HTTP 测试部署实例，模型连接及辅助代码来自本分支，两部分版本分别归档。本次目录整理不升级或重启部署。
+当前模板指向本机 API `127.0.0.1:8892`。部署基础为 `dd5521cb…`，并有后续 UI/网关更新；它与本分支不完全一致。脚本经 HTTP 测试部署实例，模型连接及辅助代码来自本分支，两部分版本分别归档。目录整理阶段未升级部署；2026-11-19 已按用户指令补齐本地模型依赖、切换 BGE 并重启，部署源码版本未变。
 
 ## 证据与维护
 
@@ -56,7 +56,7 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 
 ```bash
 .venv/bin/python benchmarks/memory/rerank_preview.py \
-  --source benchmarks/memory/.local/runs/locomo8k_20261118_232951 \
+  --source /path/to/completed-run-matching-current-harness \
   --output benchmarks/memory/.local/rerank-new-run \
   --key-file /path/to/private/modelarts-rerank.json \
   --questions conv-30_q27 conv-30_q29 conv-30_q73 \
@@ -65,4 +65,4 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 
 私有凭据文件为 `{"secret":"<API key>"}`，权限 600，不能提交。默认并发 1、请求起始间隔至少 30 秒；429 至少等待 30 秒并遵守数值 Retry-After，仅允许重试一次，超长等待或其他错误停止。归档请求、响应、全部尝试、排序与打包差异以及来源哈希；配置中只记录密钥文件路径。输出目录必须全新，旧结果不覆盖。三题实测及限制见 [执行计划](plan.md#bge-reranker-三题验证)。
 
-本机固定版本 BGE 已完成相同三题的独立 CPU 测试，模型放在 `/Users/zhuqingping/Work/llm-learning/models/bge-reranker-v2-m3/`；版本、环境、速度与 MaaS 排名对照见 [本机验证记录](plan.md#本机-bge-固定版本验证)。现有实例仍为 RRF。
+本机固定版本 BGE 已完成相同三题的独立 CPU 测试，模型放在 `/Users/zhuqingping/Work/llm-learning/models/bge-reranker-v2-m3/`；版本、环境、速度与 MaaS 排名对照见 [本机验证记录](plan.md#本机-bge-固定版本验证)。2026-11-19 已按用户指令接入现有 8892，81 题复测已完成：76/81（93.83%），F1 26.64%，检索 P50/P95 为 6.34/6.85 秒；[完整对照](plan.md#8892-接入本地-bge-与-81-题复测) 单独归档。
