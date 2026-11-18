@@ -627,3 +627,23 @@ q017/q048 的“额外细节所以判错”理由，与公开 AMB prompt 所强�
 接口格式来源：[华为云官方 rerank 调用说明](https://support.huaweicloud.com/model-call-maas/model-call-028.html)。后续若做完整对照，需明确是客户端重排已返回事实，还是服务端在预算裁剪前重排；保持 reader/judge、题集与 8K 配额一致，并将 rerank 耗时、tokens 和失败次数计入端到端统计。
 
 验证：评测目录 32 项离线测试全部通过，新增脚本 Ruff/格式/ty 通过；使用归档真实响应离线回放，新维护脚本得到的三个上下文与实测逐项一致。基线 711 个文件哈希全部不变，归档未发现密钥。项目全局 lint 仍因已有 `hindsight-api-slim/hindsight_api/api/http.py:5846` 的 F841 失败；该脚本产生的无关格式变化已撤回，未修改业务代码。
+
+### 本机 BGE 固定版本验证
+
+2026-11-19（北京时间）完成独立进程 CPU 验证。模型为 **BAAI/bge-reranker-v2-m3**，固定官方完整 revision **953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e**，不是 bge-m3 向量模型；从已加载模型实数 **567,755,777 个参数（约 0.568B），FP32**。华为文档声明同名模型，但未核实 MaaS 的具体 revision、权重哈希与推理精度，不能宣称两端完全相同。[固定官方仓库](https://huggingface.co/BAAI/bge-reranker-v2-m3/tree/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e)、[MaaS 模型说明](https://support.huaweicloud.com/model-call-maas/model-call-028.html)。
+
+模型目录：`/Users/zhuqingping/Work/llm-learning/models/bge-reranker-v2-m3/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e/`；父目录 `model-lock.json` 保存版本、参数量和逐文件 SHA-256。文件实际放在指定位置，与已完成的 Hugging Face 缓存文件使用硬链接，共享磁盘块，不依赖缓存软链接。主权重 **2,271,071,852 bytes**，从文件创建到下载完成约 **132.6 秒、平均 17.13 MB/s**；分词器首次超时后单独补齐约 3.29 秒。速度不含此前联网探测、重试和归档时间。下载前目标磁盘可用 229.94 GiB，空间足够。权重 SHA-256 为 `d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286`，与 Hugging Face 内容寻址 blob 一致；分词器也核验哈希。
+
+测试环境：Apple M5、24 GiB，独立进程 CPU FP32；PyTorch 2.13.0、Transformers 5.12.1、sentence-transformers 5.7.0；CPU threads=4、interop=1、batch=8、max_length=512、Sigmoid 分数。仅复用上节保存的三个请求，每题 **109 条相同候选事实**，不传标准答案。实际最大输入分别为 116 / 111 / 115 个模型 tokenizer tokens，**没有输入截断**。沿用事实 4000、原文 4000、总预算 8192。启用 HF_HUB_OFFLINE 和 TRANSFORMERS_OFFLINE，不访问 MaaS 或 Bank；不更改已有实例、不重新导入、不调用 reader/judge。
+
+| 题目 | 本机三次推理耗时（秒） | 本机均值 | 前次 MaaS 成功调用 | 前 20 集合与 MaaS 重合 |
+| --- | --- | --- | --- | --- |
+| q027 | 4.019 / 4.089 / 4.271 | **4.126 s** | 4.572 s | 20/20 |
+| q029 | 3.989 / 3.911 / 3.905 | **3.935 s** | 8.070 s | 20/20 |
+| q073 | 4.087 / 4.029 / 4.029 | **4.049 s** | 10.308 s | 20/20 |
+
+本机计时覆盖 tokenize 与 predict，不含排序打包；MaaS 为请求发出到完整回包，包含网络和服务耗时，不含前次 429 等待。三题九次均值约 **4.04 秒/题**。模型加载 **0.790 秒**，完整 q027 预热 **4.189 秒**，均单列并排除正式计时；进程峰值 RSS 约 **2.87 GiB**。未测试多请求并发、GPU/MPS、其他 batch/线程配置，不能称为最优性能或据此给出完整 LoCoMo 检索 P50/P95。
+
+关键事实排序与 MaaS 一致：q027 Jon 参赛 **58 → 19**；q029 Paris **49 → 1**、Rome **64 → 2**，均进入原事实预算。三题各自重复三次的完整排序均一致。两端前 20 集合相同，但其中部分顺序及尾部候选有差异：全 109 个候选同排名分别为 97 / 66 / 93；最大绝对分数差约 0.00327 / 0.00366 / 0.00562。两端打包事实集合差异数分别为 0 / 2 / 3，不宣称完整上下文一致。新上下文 tokens 为 **7843 / 7783 / 7774**。q073 的 magical 仍在原文中，事实候选中没有该词，不能仅凭重排宣称修复答题问题。
+
+原始证据：`benchmarks/memory/.local/local-bge-20261119/`，包含实际执行 `probe.py`、冻结 helper、模型/配置 manifest、三题逐条分数/排名/纳入情况、九次计时、stdout 和校验清单。这是一次独立实验，维护入口仍为本目录现有脚本；未增加产品接口或修改服务端 reranker。**没有产生新的准确率/F1。** 旧 AMB 结果 711 个文件和前次 MaaS 验证 11 个文件哈希全部不变。离线测试 32 项通过，实验脚本 Ruff、格式与 ty 通过；全局 lint 仍被原有 http.py F841 阻塞，自动格式化的无关变更已撤回。

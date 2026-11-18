@@ -64,3 +64,5 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 ```
 
 私有凭据文件为 `{"secret":"<API key>"}`，权限 600，不能提交。默认并发 1、请求起始间隔至少 30 秒；429 至少等待 30 秒并遵守数值 Retry-After，仅允许重试一次，超长等待或其他错误停止。归档请求、响应、全部尝试、排序与打包差异以及来源哈希；配置中只记录密钥文件路径。输出目录必须全新，旧结果不覆盖。三题实测及限制见 [执行计划](plan.md#bge-reranker-三题验证)。
+
+本机固定版本 BGE 已完成相同三题的独立 CPU 测试，模型放在 `/Users/zhuqingping/Work/llm-learning/models/bge-reranker-v2-m3/`；版本、环境、速度与 MaaS 排名对照见 [本机验证记录](plan.md#本机-bge-固定版本验证)。现有实例仍为 RRF。
