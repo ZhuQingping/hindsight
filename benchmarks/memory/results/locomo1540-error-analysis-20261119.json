@@ -3,10 +3,10 @@
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 1035,
-  "reviewed_wrong_cases": 80,
+  "saved_result_scope": 1226,
+  "reviewed_wrong_cases": 95,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "734583800215f16432eec3c6dc6a13b33803068997dbac919d3a96b0a94bf16a",
+  "source_snapshot_sha256": "f7766254889dee0b38eaf9750dee41d446cefeab0bc34366db602d6911e7684c",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
   "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
   "rows": [
@@ -1369,6 +1369,326 @@
       "answer_f1": 0.058823529411764705,
       "result_sha256": "d11b7ffcf44c5391dd11913d4bc2c3822af5b806e89b46de5fddfd294acc915e",
       "retrieval_sha256": "d9063d5612bfb175c641ff26868af2d7ceedbf9456563ceb2b3050b99f59fa6e"
+    },
+    {
+      "question_id": "conv-48_q101",
+      "diagnosis": "relative_date_answer_and_context_free_judge",
+      "evidence_summary": "原文一年前购买在1月27日2023年，抽取正确保留one year before January27；reader给January2022而未说a year ago。裁判只有question/gold/answer，无法从未给出的session锚点验证等价。",
+      "recommended_validation": "通用reader时间答法保留原相对措辞并附绝对锚点，避免仅报年份；保持裁判不变。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "When did Jolene buy her pet snake?",
+      "gold": [
+        "A year ago"
+      ],
+      "baseline_answer": "Jolene bought Seraphim, her pet snake, in Paris around January 2022. Her other snake, Susie, was adopted in 2021.",
+      "judge_reason": "The generated answer gives specific years without establishing that either corresponds to the gold answer’s “a year ago.”",
+      "answer_f1": 0.0,
+      "result_sha256": "13bc043681fd3163b65afae86468d933172003848a3a7857f66fa36c3007901b",
+      "retrieval_sha256": "1daafa5bf52ca894afa478362d79ac138ac92a064c9070ca9d47e154675371ba"
+    },
+    {
+      "question_id": "conv-48_q115",
+      "diagnosis": "question_scope_and_routine_selection",
+      "evidence_summary": "原文说把jog纳入routine、晚上陪loved ones；reader只答晨跑，漏掉题目after提示下gold所指的陪伴活动。原文已在上下文。",
+      "recommended_validation": "通用reader需提取题目所问的新活动及先后关系，不能复制检索到的高频晨跑。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What activity does Deborah incorporate into her daily routine after going for a morning jog in the park?",
+      "gold": [
+        "spending time with loved ones"
+      ],
+      "baseline_answer": "Deborah incorporates morning jogging into her daily routine.",
+      "judge_reason": "The generated answer repeats morning jogging rather than identifying spending time with loved ones as the activity afterward.",
+      "answer_f1": 0.0,
+      "result_sha256": "dd7a0dee3477e3bda949c0e246e2cf405d2b453efe625c472c01e29d0ebd7c76",
+      "retrieval_sha256": "031701b076e7bcc045dfd2727dff71dba0c014a4de59595c4e547ae80c3dc751"
+    },
+    {
+      "question_id": "conv-48_q116",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D7:20是Deborah说connected to my body，题目却问Jolene；reader依据Jolene其他瑜伽感受作答。参考两人原句均可见。",
+      "recommended_validation": "保留speaker归属，另报题目/证据不一致，不把Deborah感受写为Jolene确定事实。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "According to Jolene, what does exercise help her to feel?",
+      "gold": [
+        "connected to her body"
+      ],
+      "baseline_answer": "Jolene says exercise, particularly yoga, helps her feel calmer, more alert, and motivated.",
+      "judge_reason": "The generated answer describes calmness, alertness, and motivation, but does not mention feeling connected to her body.",
+      "answer_f1": 0.125,
+      "result_sha256": "aa411dcab98b3250e180884ab0ed9c0d92c921bb186cf91879f69ac67a548c02",
+      "retrieval_sha256": "4067920071c47768b8c5e3b7872e6d2b63831133512ab453b2ef3e8c5c47d0ba"
+    },
+    {
+      "question_id": "conv-48_q119",
+      "diagnosis": "caption_vs_message_grounding",
+      "evidence_summary": "D8:16文本说to-do list，caption明确desk/notebook/computer monitor，二者均在最终上下文；reader答了分享动机而非图片可见物体。",
+      "recommended_validation": "对问what picture的通用reader明确利用caption并给视觉描述，不需要为该题补数据库候选。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What picture did Jolene share related to feeling overwhelmed?",
+      "gold": [
+        "a photo of a desk with a notebook and a computer monitor"
+      ],
+      "baseline_answer": "Jolene shared a picture of her overwhelming to-do list, showing the many tasks she had to tackle for her studies, exams, and deadlines.",
+      "judge_reason": "The generated answer describes a to-do list rather than the photo of a desk with a notebook and computer monitor specified in the gold answer.",
+      "answer_f1": 0.07407407407407408,
+      "result_sha256": "26096853e0e53cb38e07714a9afb285a35f83a6ae17f56fb221081c01e95dfa9",
+      "retrieval_sha256": "29391d33f9ed06ed097708428a3d3d501e2bb0d4790333c7794cf9d02c1c7840"
+    },
+    {
+      "question_id": "conv-48_q134",
+      "diagnosis": "unstated_asof_date_for_duration",
+      "evidence_summary": "gold沿6月26日I got her last year概括one year；reader依据1月27日去年买入并自设截至9月20日，答1年8个月。题目没有要求按全会话最后日重算。",
+      "recommended_validation": "保留报告时的持续时间与来源日期，避免对未给as-of的问题无条件用最新session重算。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "For how long has Jolene had Seraphim as a pet?",
+      "gold": [
+        "one year"
+      ],
+      "baseline_answer": "Jolene has had Seraphim for approximately 1 year and 8 months as of September 20, 2023. She bought her in Paris around January 2022.",
+      "judge_reason": "The generated answer gives one year and eight months, which is substantially longer than the gold answer of one year.",
+      "answer_f1": 0.08,
+      "result_sha256": "7ffb068cd22e06099a3959c814e077e8bfd0519daa485c92dcd66613c06ddae9",
+      "retrieval_sha256": "aed16a978b4aaeb324e4c072a979379efedf60be98baa4958629afdf27ce067f"
+    },
+    {
+      "question_id": "conv-48_q174",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D26:15说已有安排的是Deborah，题目/gold却归Jolene；reader准确指出主体不一致并给新约会时间。",
+      "recommended_validation": "保留源speaker、原判错及共同裁判比较，不把冲突行转写给Jolene。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "Why did Jolene have to reschedule their meeting with Deborah on September 8, 2023?",
+      "gold": [
+        "Jolene already had plans"
+      ],
+      "baseline_answer": "The meeting discussed on September 8, 2023, was rescheduled because Deborah—not Jolene—remembered she already had plans for the proposed day, Wednesday, September 13. They ultimately agreed to meet on Friday, September 15, at 5.",
+      "judge_reason": "The generated answer attributes the conflicting plans to Deborah and explicitly denies that Jolene had them, contradicting the gold answer.",
+      "answer_f1": 0.16666666666666666,
+      "result_sha256": "5ae5422e562c753593a3f77ead268848d9439cb40114200d46efc80dd2deb78d",
+      "retrieval_sha256": "a68a05ffefc4752a8ec7e24f053bc1348034a5942e624f6353a78593b7332d3d"
+    },
+    {
+      "question_id": "conv-48_q179",
+      "diagnosis": "gold_speaker_conflict_and_raw_missing",
+      "evidence_summary": "D27:12是Deborah说刚玩猫卡牌，题目/gold归Jolene；原文未返回，reader给Jolene实际玩过的Detroit。",
+      "recommended_validation": "恢复原文可解释人物冲突，但不能把Deborah经历直接变Jolene经历；候选后重新分析。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Jolene recently play that she described to Deb?",
+      "gold": [
+        "a card game about cats"
+      ],
+      "baseline_answer": "Jolene played “Detroit” on a console with her partner during January 16–22, 2023. She told Deb it was really fun.",
+      "judge_reason": "The generated answer names the console game Detroit rather than the card game about cats specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "30005986b4a5b07bd2604d9a62dcb80cf4ac585e1e77fffce626f9b49fdce2d8",
+      "retrieval_sha256": "4ba60f44fd5057281a45bdc12831ce8d234338d95330176d65e1af4408733421"
+    },
+    {
+      "question_id": "conv-48_q23",
+      "diagnosis": "raw_source_missing_for_preference_inference",
+      "evidence_summary": "D3:11对恢复瑜伽提问回答计划与伴侣玩console，另有Walking Dead安排；两处原文均未返回，reader只见学习实习压力。",
+      "recommended_validation": "扩大原文候选与窗口后检验游戏优先这一推断，不把它写成永久不爱瑜伽的人设。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "Why did Jolene sometimes put off doing yoga?",
+      "gold": [
+        "She's more interested in playing video games"
+      ],
+      "baseline_answer": "Jolene sometimes put off yoga because she became caught up in studying, exams, deadlines, and her demanding internship. Feeling overwhelmed and focused on achieving her goals, she struggled to make time for relaxation and sometimes neglected self-care.",
+      "judge_reason": "The generated answer attributes postponing yoga to academic and internship demands rather than her greater interest in playing video games.",
+      "answer_f1": 0.0975609756097561,
+      "result_sha256": "68844c33b0779a5515c34ed3f6e179fd8d4a49fd288973e01c11912dfff7da39",
+      "retrieval_sha256": "b39afde4b855c735f2d2b6feb38e0757fc48484c158de55307b36c505470c899"
+    },
+    {
+      "question_id": "conv-48_q36",
+      "diagnosis": "age_inference_is_not_explicit_memory",
+      "evidence_summary": "gold从学生/实习推不超30，原文没有年龄；多个学生参考缺失或未打包，但已有学习信息，reader拒绝确定年龄。",
+      "recommended_validation": "单列合成人物开放域推断与证据强度；即使推测也不将其存为真实年龄事实。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "How old is Jolene?",
+      "gold": [
+        "likely no more than 30; since she's in school"
+      ],
+      "baseline_answer": "Jolene’s current age is not stated in the memories and cannot be determined from the information provided.",
+      "judge_reason": "The generated answer does not provide the gold answer’s inferred age range of likely no more than 30.",
+      "answer_f1": 0.0,
+      "result_sha256": "da37949e4464f8825c47721adb5960794d28a5c3508f71fbe9661223531db0ec",
+      "retrieval_sha256": "fc318ff9f87d767cc5c7eef9aee6685457f113aef619ef0c90f328c1e66b2c7f"
+    },
+    {
+      "question_id": "conv-48_q46",
+      "diagnosis": "elapsed_time_and_inclusive_month_convention",
+      "evidence_summary": "2月1日领到robotics、6月6日说上月完成，readerFeb→May约三个月，gold四个月可能按含首尾月份计数。完成原文返回未打包，但事实包含5月完成。",
+      "recommended_validation": "明确经过时长与标签计数、任务开始/提及时间，窗口候选后保留日期边界不确定性。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "How long did Jolene work on the robotics project given to her by her Professor?",
+      "gold": [
+        "four months"
+      ],
+      "baseline_answer": "Jolene appears to have worked on it for about three months, from February to May 2023, assuming the engineering project she completed in May was the robotics project.",
+      "judge_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
+      "answer_f1": 0.07142857142857144,
+      "result_sha256": "3ed07838e0d57163f7d4c96a0b8915ffebc5ee94a58f5f8677283c35f9033fc6",
+      "retrieval_sha256": "f44dc65960354bfdeb7f9cecabcfecae8a4b2b8d8ffadf6f34b8098847dc8227"
+    },
+    {
+      "question_id": "conv-48_q71",
+      "diagnosis": "event_identity_and_relative_week_ambiguity",
+      "evidence_summary": "9月3日首句last week cool event，后续D24:3说community meetup last Friday；reader按具体后者给9月1日，gold沿首句给8月末。两者是否同次及week定义不明。",
+      "recommended_validation": "按活动名称和原始相对表达区分事件，避免强合并；不把最近Friday强制移到8月以匹配gold。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "When did Deborah go to a community meetup?",
+      "gold": [
+        "last week of August 2023"
+      ],
+      "baseline_answer": "Deborah went to a community meetup on Friday, September 1, 2023.",
+      "judge_reason": "September 1, 2023 falls outside the last week of August 2023 specified in the gold answer.",
+      "answer_f1": 0.13333333333333333,
+      "result_sha256": "ea32ae6199de4c1960b1fa6b86d9c1f3d797504445302ebb31f4b75754ba0b0d",
+      "retrieval_sha256": "7e81a8b532a780e278c6b7203b95636259364c7271886e45f443ddc36d5b32c4"
+    },
+    {
+      "question_id": "conv-48_q74",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "咖啡和fresh pastries在D26:10/12，API返回但均未进入最终上下文，reader称未指明。",
+      "recommended_validation": "完整窗口候选验证两句约会计划保留；与重复题q99分别保留原索引，不删题。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What do Deborah and Jolene plan to try when they meet in a new cafe?",
+      "gold": [
+        "coffee and fresh pastries"
+      ],
+      "baseline_answer": "The memories do not specify what Deborah and Jolene plan to try when they meet at a new cafe.",
+      "judge_reason": "The generated answer says the information is unspecified, whereas the gold answer states they plan to try coffee and fresh pastries.",
+      "answer_f1": 0.0,
+      "result_sha256": "7f19c1373ec23598deb99048dc82d017db96d14c78d11d88187c44e814c82b0b",
+      "retrieval_sha256": "d3b1c49e810e20576a1358da60ef01388bfd332c7b2ce549a13159ef59a166fd"
+    },
+    {
+      "question_id": "conv-48_q75",
+      "diagnosis": "raw_source_missing_for_game_identification",
+      "evidence_summary": "D27:12描述抽牌、猫与攻击对手，gold推Exploding Kittens；该原文未返回，reader称未知。",
+      "recommended_validation": "验证更大原文候选及窗口是否恢复玩法，再测试常识识别；不按gold补书名/游戏名。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "What card game is Deborah talking about?",
+      "gold": [
+        "Exploding Kittens"
+      ],
+      "baseline_answer": "The provided memories do not identify any card game Deborah is talking about.",
+      "judge_reason": "The generated answer says the game is unknown rather than identifying Exploding Kittens as in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "8204dcf21860d01457d40576e586a304195beb5011b205afa4aa0c89f3edaeae",
+      "retrieval_sha256": "3592620d45403c3a76b290ac1dfc772c7274e17c71afbc771342a9700eaad148"
+    },
+    {
+      "question_id": "conv-48_q87",
+      "diagnosis": "country_and_speaker_gold_conflict",
+      "evidence_summary": "Deborah原文明说Bali和Rio，reader归为Indonesia/Brazil；唯一Thailand明说来自Jolene。gold Thailand/Brazil既可能地理误配也可能跨人物混入。参考原文已在上下文。",
+      "recommended_validation": "保留国家地理和人物归属，不把Bali改为Thailand或将Jolene旅行转写给Deborah。",
+      "confidence": "confirmed_source_conflict",
+      "category": 1,
+      "question": "Which countries has Deborah traveled to?",
+      "gold": [
+        "Thailand, Brazil"
+      ],
+      "baseline_answer": "Deborah has traveled to **Indonesia** (Bali, in 2022) and **Brazil** (Rio de Janeiro, in 2020).",
+      "judge_reason": "The generated answer correctly includes Brazil but incorrectly substitutes Indonesia for Thailand.",
+      "answer_f1": 0.14285714285714285,
+      "result_sha256": "85fd99ec8f791ab00c9dc81ce985f0965213004d112567ea86723189d5168f53",
+      "retrieval_sha256": "8c9afd85653ba8a696419c708ddf265da01ce794dc0b66d5e233e8b2018d0e23"
+    },
+    {
+      "question_id": "conv-48_q99",
+      "diagnosis": "duplicate_question_and_client_context_selection",
+      "evidence_summary": "与q74问题和gold完全重复但原索引不同，两条咖啡/糕点证据均返回未打包，reader同样称未说明。",
+      "recommended_validation": "保持1540原分母和两个原始索引，不去重改成绩；完整候选验证同一上下文问题是否修复。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What do Deborah and Jolene plan to try when they meet in a new cafe?",
+      "gold": [
+        "coffee and fresh pastries"
+      ],
+      "baseline_answer": "The memories do not specify what Deborah and Jolene plan to try when they meet at a new cafe.",
+      "judge_reason": "The generated answer claims the information is unspecified instead of identifying coffee and fresh pastries.",
+      "answer_f1": 0.0,
+      "result_sha256": "95c45f99fd1af39f42ea7e8ba6b25657e00e71b06ed1dff0a32c0ce5d2fd9f12",
+      "retrieval_sha256": "60c309cf21d628c98f0299529eef088d0ee5419fa5ee7cadad860558eb2b8932"
     }
-  ]
+  ],
+  "operational_attempt_audit": {
+    "note": "These recovered transport/stream failures had no usage returned for the failed attempts. No evidence here establishes rate limiting. This is a partial audit, not a final total.",
+    "records": [
+      {
+        "question_id": "conv-48_q57",
+        "stage": "judge",
+        "source_sha256": "7576fa113a2777ab86c25e8f717f08247704ae6bfbb08d68d7a53d4c70da68cf",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "judge",
+            "state": "failed",
+            "at": "2026-11-18T22:14:17.373947+00:00",
+            "elapsed_s": 13.20091145799961,
+            "error": "UpstreamHTTPError",
+            "usage": null
+          },
+          {
+            "stage": "judge",
+            "state": "completed",
+            "at": "2026-11-18T22:14:30.577813+00:00",
+            "elapsed_s": 4.004650708055124,
+            "error": null,
+            "usage": {
+              "input_tokens": 459,
+              "output_tokens": 29,
+              "total_tokens": 488,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      },
+      {
+        "question_id": "conv-48_q127",
+        "stage": "answer",
+        "source_sha256": "886a70299547950559754be6c8038f6c08d7b349e96b2f984bfc816ea62a081a",
+        "status": "completed",
+        "attempts": [
+          {
+            "stage": "answer",
+            "state": "failed",
+            "at": "2026-11-18T22:30:18.994760+00:00",
+            "elapsed_s": 4.1055435839807615,
+            "error": "CodexStreamError",
+            "usage": null
+          },
+          {
+            "stage": "answer",
+            "state": "completed",
+            "at": "2026-11-18T22:30:23.101462+00:00",
+            "elapsed_s": 4.7323558329371735,
+            "error": null,
+            "usage": {
+              "input_tokens": 7379,
+              "output_tokens": 71,
+              "total_tokens": 7450,
+              "cached_tokens": 0,
+              "thoughts_tokens": 0
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
