@@ -1,0 +1,507 @@
+{
+  "kind": "partial-posthoc-error-analysis-not-a-score",
+  "run_id": "locomo1540r_20261119_030518",
+  "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
+  "expected_full_scope": 1540,
+  "saved_result_scope": 385,
+  "reviewed_wrong_cases": 29,
+  "reviewer": "Codex assistant source inspection; not human annotation",
+  "source_snapshot_sha256": "f3ecd5793cc97836fadb31f5f91f405241b946db5a6e162ed4529ea10d0f3b75",
+  "dataset_provenance_url": "https://snap-research.github.io/locomo/",
+  "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
+  "rows": [
+    {
+      "question_id": "conv-26_q132",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "D16:7是Caroline的17岁起画画，真正回答Melanie七年的是相邻D16:8；Seven years now在API原文中，却不在最终上下文。",
+      "recommended_validation": "固定v1窗口离线回放已恢复Seven years now；待独立完整候选验证答题。",
+      "confidence": "confirmed_context_gap",
+      "category": 4,
+      "question": "How long has Melanie been creating art?",
+      "gold": [
+        "7 years"
+      ],
+      "baseline_answer": "Melanie has been creating art since at least 2022, when she painted a lake sunrise. She says she has always felt connected to art, but the memories do not specify exactly when she started.",
+      "judge_reason": "The generated answer does not state the seven-year duration and instead says the starting time is unspecified.",
+      "answer_f1": 0.0,
+      "result_sha256": "3c1d3a168c3e31a06a72706634b3289f3bff2664a4cd5a5e2b020655f859e5fd",
+      "retrieval_sha256": "bef0b652896bf27707f94880ab0054e382f24a5ae88962b78bf57e7be68e9f31"
+    },
+    {
+      "question_id": "conv-26_q133",
+      "diagnosis": "raw_source_and_image_caption_missing",
+      "evidence_summary": "D16:16明确是café，图像caption给出告示内容；当前回包没有该参考原文，答题只看到park的概括。",
+      "recommended_validation": "检验增大原文预算后是否返回并打包该caption。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What precautionary sign did Melanie see at the café?",
+      "gold": [
+        "A sign stating that someone is not being able to leave"
+      ],
+      "baseline_answer": "The memories do not specify what the precautionary sign said. They only mention that Melanie saw it at a park—not a café—and that nothing had happened.",
+      "judge_reason": "The generated answer claims the sign's content is unspecified rather than identifying that someone was unable to leave, as stated in the gold answer.",
+      "answer_f1": 0.18749999999999997,
+      "result_sha256": "f98c91a9f1497f542ca923cf0c8154595ebaf9950ce69c5403db2c361d57da1a",
+      "retrieval_sha256": "156e945d33cdd789df6714d241a1170241e1d007d25d9593560589b4c6800b0f"
+    },
+    {
+      "question_id": "conv-26_q135",
+      "diagnosis": "event_time_and_question_ambiguity",
+      "evidence_summary": "10月13日原文说last month受伤，即9月；10月另有儿子事故。gold选陶艺受伤，答题选事故。",
+      "recommended_validation": "核对讨论时间与发生时间；更完整上下文可同时说明两件事，不修改gold。",
+      "confidence": "ambiguous",
+      "category": 4,
+      "question": "What setback did Melanie face in October 2023?",
+      "gold": [
+        "She got hurt and had to take a break from pottery."
+      ],
+      "baseline_answer": "Melanie faced a frightening car accident involving her son during the family’s October 14–15, 2023 road trip. Fortunately, her son was okay, though the experience scared her and her other children.",
+      "judge_reason": "The generated answer describes a car accident involving her son rather than Melanie's injury that forced her to take a break from pottery.",
+      "answer_f1": 0.0,
+      "result_sha256": "4b96d0c754fb7101407c57185d11e73f222df169350c6abd38a5e78457bbb5e6",
+      "retrieval_sha256": "075799d4997298eef870d05d8f0b76d3741fcb0aa3f76b5a4cc85bf0923837c8"
+    },
+    {
+      "question_id": "conv-26_q144",
+      "diagnosis": "referent_and_annotation_ambiguity",
+      "evidence_summary": "原文they were scared之后说their brother would be OK，指代更像受伤男孩的兄弟姐妹；gold将害怕归给son。",
+      "recommended_validation": "保留忠于原文的解释并标注角色歧义；不以改抽取或强猜情绪追分。",
+      "confidence": "ambiguous",
+      "category": 4,
+      "question": "How did Melanie's son handle the accident?",
+      "gold": [
+        "He was scared but reassured by his family"
+      ],
+      "baseline_answer": "Melanie’s son was okay after the October 14–15, 2023 accident. The children were frightened but were reassured that their brother would be okay. His own emotional reaction isn’t specifically described.",
+      "judge_reason": "The answer attributes the fear and reassurance to his siblings and says his own reaction is unknown, rather than stating that he was scared but reassured by his family.",
+      "answer_f1": 0.22222222222222224,
+      "result_sha256": "ae4f7a5b181569daebfd63c9dfdf1a46395d8e87dd5064dffaef58ca138685e6",
+      "retrieval_sha256": "a3146b454c337daf150b175f43ba9e4b5d68e887f0d6c504087b2d5cdf24ebf3"
+    },
+    {
+      "question_id": "conv-26_q21",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D6:11说picnic last week，session是7月6日，当前API原文未返回该处。",
+      "recommended_validation": "检验较大原文预算与窗口选择是否保留该相对日期。",
+      "confidence": "supported",
+      "category": 2,
+      "question": "When did Caroline have a picnic?",
+      "gold": [
+        "The week before 6 July 2023"
+      ],
+      "baseline_answer": "The provided memories do not state when Caroline had a picnic.",
+      "judge_reason": "The generated answer says the date is unknown, whereas the gold answer specifies the week before 6 July 2023.",
+      "answer_f1": 0.0,
+      "result_sha256": "ca1da373c2fef2c3ccdf1839a275872a4130c79539b6318b2e22b1d26cf7a6ca",
+      "retrieval_sha256": "fab82a146f70ff603c929b3ec24f6ca9b9c4adde9b08d66283f8afdfe70ded5a"
+    },
+    {
+      "question_id": "conv-26_q26",
+      "diagnosis": "raw_source_missing_and_visual_reference_uncertainty",
+      "evidence_summary": "D7:8说last year，session在2023年；但文本、BLIP caption及image search query均未写Nothing Is Impossible书名。",
+      "recommended_validation": "检验原文恢复后能否回答2022，并诚实保留书名视觉对应的不确定性。",
+      "confidence": "supported_with_ambiguity",
+      "category": 2,
+      "question": "When did Melanie read the book \"nothing is impossible\"?",
+      "gold": [
+        2022
+      ],
+      "baseline_answer": "Melanie was reading a book Caroline recommended by October 13, 2023, during her recovery from a September 2023 injury. However, the memories do not confirm that its title was “Nothing Is Impossible” or specify exactly when she read it.",
+      "judge_reason": "The generated answer suggests 2023 and uncertainty rather than identifying 2022, the year specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "613f18c331cf870a3d6a22f7ada7ab27a4fa7ce9f36b89518b03394f5671a3b3",
+      "retrieval_sha256": "83d07042d6647cde1833ef5ea95ea8c013023d59d0d2926615db39c864115f30"
+    },
+    {
+      "question_id": "conv-26_q40",
+      "diagnosis": "multi_event_source_coverage",
+      "evidence_summary": "7月6日海滩露营照、7月20日最近去海滩两处被用作两次的gold；当前上下文只确认一处。",
+      "recommended_validation": "召回更多原文，结合日期区分独立旅行与重复叙述。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "How many times has Melanie gone to the beach in 2023?",
+      "gold": [
+        2
+      ],
+      "baseline_answer": "Melanie usually goes to the beach once or twice a year. One trip in 2023 is explicitly confirmed, before July 20; her exact total for 2023 is not stated.",
+      "judge_reason": "The generated answer says only one trip is confirmed and the total is unknown, rather than giving the gold answer of two trips.",
+      "answer_f1": 0.0,
+      "result_sha256": "a6f01371c519f4a5664823e8bd1c73e506e082e10cd2c029b44828f62c4b4375",
+      "retrieval_sha256": "86088ce91abd7e916c4746756b161ef120159972061b6f84455ccee5961fdc3d"
+    },
+    {
+      "question_id": "conv-26_q5",
+      "diagnosis": "source_gold_date_conflict",
+      "evidence_summary": "5月25日原文last Saturday对应5月20日；gold却写Sunday。当前答案与Hindsight公开答案逐字相同，判定不同。",
+      "recommended_validation": "保留官方评分与原文冲突，统一裁判对照；不改gold。",
+      "confidence": "confirmed_annotation_conflict",
+      "category": 2,
+      "question": "When did Melanie run a charity race?",
+      "gold": [
+        "The sunday before 25 May 2023"
+      ],
+      "baseline_answer": "Melanie ran a charity race for mental health on Saturday, May 20, 2023.",
+      "judge_reason": "The Sunday before May 25, 2023 was May 21, not Saturday, May 20 as stated in the generated answer.",
+      "answer_f1": 0.23529411764705882,
+      "result_sha256": "9816f17cf78695ab836bab127cd413bc55df903359bbcc42dddd7bdc02037c8b",
+      "retrieval_sha256": "29c260abaadddcbe1a89ca810db2845607be4314828dbb62efdda4868a2c9c57"
+    },
+    {
+      "question_id": "conv-26_q50",
+      "diagnosis": "synthetic_persona_inference_task_framing",
+      "evidence_summary": "题目要求对虚构角色作likely推断；模型明确拒绝从身份/倡议推断政治取向。官方项目确认对话由virtual agents生成。",
+      "recommended_validation": "另立全局任务来源说明实验，准确说明合成人设；保持原裁判规则，不能套用于真实人物属性推断。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "What would Caroline's political leaning likely be?",
+      "gold": [
+        "Liberal"
+      ],
+      "baseline_answer": "Caroline’s political leaning isn’t explicitly stated, and I wouldn’t infer it from her identity or advocacy. The memories do show that she strongly supports LGBTQ+ rights, equality, inclusion, and acceptance.",
+      "judge_reason": "The generated answer declines to infer a political leaning rather than identifying Caroline as likely liberal.",
+      "answer_f1": 0.0,
+      "result_sha256": "0e747aaa62e1c0d63a962a43e7687221edf21fc1bc33668fab083f69966dfdf8",
+      "retrieval_sha256": "30878965034842c4ef9f3707ef37c6b82dfc1daa3c61729eeb50c6bed009f5be"
+    },
+    {
+      "question_id": "conv-26_q59",
+      "diagnosis": "inference_strength_and_annotation_ambiguity",
+      "evidence_summary": "给教堂做艺术作品和信仰象征不能直接证明个人宗教；gold需要somewhat religious的推断。",
+      "recommended_validation": "把虚构角色任务来源与不确定推断说清；保留证据强度不足的标注疑点。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "Would Caroline be considered religious?",
+      "gold": [
+        "Somewhat, but not extremely religious"
+      ],
+      "baseline_answer": "There isn’t enough information to consider Caroline religious. She treasures a necklace symbolizing love, faith, and strength and created stained glass for a local church, but neither establishes personal religious belief. She has not explicitly described her religious affiliation or practices.",
+      "judge_reason": "The generated answer says Caroline’s religiosity cannot be determined rather than identifying her as somewhat but not extremely religious.",
+      "answer_f1": 0.14285714285714288,
+      "result_sha256": "8464ff5425cd7528d3f77f033432eb810cd74396745df983ad670e8c4ceee620",
+      "retrieval_sha256": "ffa3ad85c5032b5fa093268d9d79685fc74711bdcab59ed6dde4599f87ab7109"
+    },
+    {
+      "question_id": "conv-26_q66",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "原文明确烤棉花糖、讲故事；至少一处API原文已返回但未进入4K原文打包。",
+      "recommended_validation": "用固定窗口候选验证，不将泛泛hiking回答当完整答案。",
+      "confidence": "confirmed_context_gap",
+      "category": 1,
+      "question": "What does Melanie do with her family on hikes?",
+      "gold": [
+        "Roast marshmallows, tell stories"
+      ],
+      "baseline_answer": "Melanie hikes in the mountains and explores forests with her family, enjoying scenic views and connecting with nature and one another.",
+      "judge_reason": "The generated answer does not mention roasting marshmallows or telling stories, the activities specified in the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "3f3a827695cf0729a194b10ae2ff69754ec3602da06ba351db46c5d217803d97",
+      "retrieval_sha256": "b30e22086f32e97e3d6664d0b0cd9ccf0da4d4383b9085e9fa77dd2e023e7c73"
+    },
+    {
+      "question_id": "conv-26_q78",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "D19:2有bought yesterday figurines，D7:18有new shoes；至少一处已返回原文未进最终上下文。",
+      "recommended_validation": "窗口覆盖购买物品的不同session，核验两个对象均有支持。",
+      "confidence": "confirmed_context_gap",
+      "category": 1,
+      "question": "What items has Melanie bought?",
+      "gold": [
+        "Figurines, shoes"
+      ],
+      "baseline_answer": "The provided memories do not specify any items Melanie has bought.",
+      "judge_reason": "The generated answer says the purchases are unspecified, but the gold answer identifies figurines and shoes.",
+      "answer_f1": 0.0,
+      "result_sha256": "d395a3e2e6e328a5b333780773ef4c0d6d70616b6be8f34bd1b28bbd7f288743",
+      "retrieval_sha256": "4dcc03efa1e56175d05520f23af196b3b7ce102b1f93ccf7b7138506c5e10499"
+    },
+    {
+      "question_id": "conv-26_q80",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D19:2是10月22日的bought yesterday，即10月21日，参考原文未在回包中。",
+      "recommended_validation": "检验较大原文预算后相对时间是否进入上下文。",
+      "confidence": "supported",
+      "category": 2,
+      "question": "When did Melanie buy the figurines?",
+      "gold": [
+        "21 October 2023"
+      ],
+      "baseline_answer": "The provided memories do not state when Melanie bought the figurines.",
+      "judge_reason": "The generated answer says the date is unknown, whereas the gold answer specifies 21 October 2023.",
+      "answer_f1": 0.0,
+      "result_sha256": "a0af1d97d33e97f42daea934c5b358421e7bf54ab2dd1b1d0a63613ad55e4d6d",
+      "retrieval_sha256": "9bf2d4ca191b49cb9ebf8bf0d8d9e2f7f0ec0aef3bb910c6febb39753980e93d"
+    },
+    {
+      "question_id": "conv-26_q85",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "5月25日D2:7问summer plans，D2:8直接回答researching adoption agencies；已返回但未打包。",
+      "recommended_validation": "窗口选择保留提问与下一条回答，不只列后来的其他计划。",
+      "confidence": "confirmed_context_gap",
+      "category": 4,
+      "question": "What are Caroline's plans for the summer?",
+      "gold": [
+        "researching adoption agencies"
+      ],
+      "baseline_answer": "Caroline’s summer 2023 plans included:\n- Attending a transgender conference in July to connect with the community and learn about advocacy.\n- Hosting an LGBTQ art show featuring her paintings, initially planned for August; on August 25, she described the show as scheduled for September 2023.\n- Taking a special trip with Melanie to explore nature, catch up, and make memories, which they agreed to plan on August 17.",
+      "judge_reason": "The generated answer lists other summer activities but does not mention researching adoption agencies.",
+      "answer_f1": 0.0,
+      "result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
+      "retrieval_sha256": "9c076568ea7066c9b208922ba96bf26765235958a9d98af9aabe93c1eec5f9df"
+    },
+    {
+      "question_id": "conv-30_q13",
+      "diagnosis": "context_selection_and_event_specificity",
+      "evidence_summary": "1月29日已在为clothing store做广告，3月16日明确online clothes store is open；后者已返回但未打包，事实概括亦未清楚区分。",
+      "recommended_validation": "恢复明确网上店开张原文，说明不同时间线；不把现有概括简单认定为抽取凭空造假。",
+      "confidence": "supported_with_ambiguity",
+      "category": 2,
+      "question": "When did Gina open her online clothing store?",
+      "gold": [
+        "16 March, 2023"
+      ],
+      "baseline_answer": "Gina opened her online clothing store in January 2023, after losing her DoorDash job and by January 29, 2023. The exact opening date is not stated.",
+      "judge_reason": "The generated answer gives January 2023, which conflicts with the gold date of 16 March 2023.",
+      "answer_f1": 0.07407407407407407,
+      "result_sha256": "26a8df00dbc5b93a9aca5849a70c1dac98a5cfbbf394761739ce867e0b734a7f",
+      "retrieval_sha256": "8d71b476e42387fc9ad72adeab1292389cff6eff1dcee673170d4050a559ce95"
+    },
+    {
+      "question_id": "conv-30_q31",
+      "diagnosis": "calendar_duration_and_gold_convention",
+      "evidence_summary": "1月20日筹备至6月20日开张是五个日历月，gold六个月可能按月份包头包尾。",
+      "recommended_validation": "保留日期算术与标注口径疑点，不强行把五个月改为六个月。",
+      "confidence": "ambiguous",
+      "category": 1,
+      "question": "How long did it take for Jon to open his studio?",
+      "gold": [
+        "six months"
+      ],
+      "baseline_answer": "It took Jon about five months—from planning his studio on January 20, 2023, to its scheduled official opening on June 20, 2023.",
+      "judge_reason": "The generated answer says five months, whereas the gold answer specifies six months.",
+      "answer_f1": 0.0,
+      "result_sha256": "99737fdcbf55f6f6c2575344011880f0cb9123b66eba5d620a07de4045ada48f",
+      "retrieval_sha256": "44bb83dcdf552867bb3a1981b52e86cab941a7092c4ab8489532467d7a7c9240"
+    },
+    {
+      "question_id": "conv-30_q37",
+      "diagnosis": "client_context_selection",
+      "evidence_summary": "D19:4的Shia原句API已经返回，但最终上下文没有。",
+      "recommended_validation": "固定窗口选择已在旧Bank证明可恢复，待本Bank完整候选复测。",
+      "confidence": "confirmed_context_gap",
+      "category": 2,
+      "question": "When did Gina mention Shia Labeouf?",
+      "gold": [
+        " 23 July, 2023"
+      ],
+      "baseline_answer": "The provided memories do not show Gina mentioning Shia LaBeouf, so I can’t determine when she did.",
+      "judge_reason": "The generated answer says the date cannot be determined, whereas the gold answer specifies 23 July 2023.",
+      "answer_f1": 0.0,
+      "result_sha256": "6acb6bf85a4629cc6f5b4c48b3d163247c90c1346e875a49c150a916084c4503",
+      "retrieval_sha256": "75460c9ce8b185dfce4797e13131d34f4273ecd97e3efa75b9694c597d9cba4e"
+    },
+    {
+      "question_id": "conv-30_q43",
+      "diagnosis": "reader_referent_and_interpretation",
+      "evidence_summary": "D1:24至26直接说festival performance，答题却作抽象的创造力/社区象征解释。",
+      "recommended_validation": "检验更聚焦图片前后对话的上下文；以后再单列具体描述与抽象解释的reader变体。",
+      "confidence": "supported_reader_issue",
+      "category": 4,
+      "question": "What do the dancers in the photo represent?",
+      "gold": [
+        "They are performing at the festival"
+      ],
+      "baseline_answer": "The dancers represent creativity, self-expression, and the supportive, inclusive dance community Jon hopes to foster at his studio.",
+      "judge_reason": "The generated answer describes symbolic values rather than identifying the dancers as performing at the festival.",
+      "answer_f1": 0.1,
+      "result_sha256": "5560e086bb4b525bb046658affa6b754072d513de8a79efc8e4eb1b617c38ff1",
+      "retrieval_sha256": "e5e3e2e39c0b6ed18e584cd9a5dca4db98dd4784d7345e91c9bd3bc121d2b456"
+    },
+    {
+      "question_id": "conv-30_q44",
+      "diagnosis": "raw_source_missing_and_reference_offset",
+      "evidence_summary": "本Bank回包缺该参考段；真正graceful在D1:25，标注指D1:26。",
+      "recommended_validation": "增原文预算并保留相邻说话人，不能只检查参考ID是否出现。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What does Gina say about the dancers in the photo?",
+      "gold": [
+        "They look graceful"
+      ],
+      "baseline_answer": "Gina says they are friends she attended dance class with on July 21, 2023, and that the experience reminded her how important it is for dancers to have a creative space for self-expression.",
+      "judge_reason": "The generated answer does not mention Gina saying the dancers look graceful, instead describing unrelated details.",
+      "answer_f1": 0.0606060606060606,
+      "result_sha256": "5c3a87d8104fb418ccbd54d4c27f7eeea2dc61b07c95fffd414ddffeb751d0c1",
+      "retrieval_sha256": "9b5fa54bc1ff7989b281948cc3146cdb1fca5dddd5270cfbae4332d16fa2ebed"
+    },
+    {
+      "question_id": "conv-30_q73",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D15:8原文its magical在当前回包之外，泛泛joy不是该处用词。",
+      "recommended_validation": "旧Bank三题真实probe已证明64K原文预算可返回并在8K窗口保留magical，待完整候选。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "How does Gina describe the feeling that dance brings?",
+      "gold": [
+        "magical"
+      ],
+      "baseline_answer": "Gina describes dance as bringing joy, happiness, and freedom of expression. It relieves her stress and makes her worries vanish; she says it is so essential to her that it’s “like air.”",
+      "judge_reason": "The generated answer describes joy and freedom but does not mention Gina describing the feeling as magical.",
+      "answer_f1": 0.0,
+      "result_sha256": "455d6e961578f1e5194a451ef7b5006e8d5045ebe629aec3b196c3289a60c58b",
+      "retrieval_sha256": "1f51c99223faad38c385e8b0ec2ebfbacc5e4a20971f392a1034278010e1d7ac"
+    },
+    {
+      "question_id": "conv-41_q0",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D13:16在5月4日说与mom made dinner last night，可定位5月3日；当前回包没有参考段。",
+      "recommended_validation": "较大原文预算及窗口保留母亲、晚餐与时间锚。",
+      "confidence": "supported",
+      "category": 2,
+      "question": "Who did Maria have dinner with on May 3, 2023?",
+      "gold": [
+        "her mother"
+      ],
+      "baseline_answer": "The provided memories do not specify who Maria had dinner with on May 3, 2023.",
+      "judge_reason": "The generated answer says the dinner companion is unspecified, whereas the gold answer identifies her mother.",
+      "answer_f1": 0.0,
+      "result_sha256": "0d31a82dc31c126a186d491c4d046dcb81dae8d3bc02105c432e735f15da1101",
+      "retrieval_sha256": "1ee8d3bf9d86541c38770f74656d9a425247c5b91a803c36d83a6ada64a970fd"
+    },
+    {
+      "question_id": "conv-41_q123",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "7月7日D23:14明确off to dinner with friends from gym，参考段不在回包。",
+      "recommended_validation": "验证大原文预算后该段是否进入reader。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Maria plan to do later on the evening of 7 July, 2023?",
+      "gold": [
+        "have dinner with friends from the gym"
+      ],
+      "baseline_answer": "The provided memories do not state what Maria planned to do later on the evening of July 7, 2023.",
+      "judge_reason": "The generated answer says the information is unavailable, whereas Maria planned to have dinner with friends from the gym.",
+      "answer_f1": 0.0,
+      "result_sha256": "1df0b249be331b5547947296a36fab232ae54ac2bed3266ff44513445369f56d",
+      "retrieval_sha256": "89f90febc9c563034a37f17e754d0db35fe7eaea4e1359df400db1151810a262"
+    },
+    {
+      "question_id": "conv-41_q4",
+      "diagnosis": "relative_week_normalization_convention",
+      "evidence_summary": "1月1日Sunday原文last week；提炼事实已经写成Dec19–25的上一周一至周日，reader沿用；gold按Dec25–31左右理解。",
+      "recommended_validation": "独立验证保留原句与日期锚、周界限和周起始日口径；不把该问题归因SQL或直接改现有事实。",
+      "confidence": "supported_convention_mismatch",
+      "category": 2,
+      "question": "When did John join the online support group?",
+      "gold": [
+        "The week before 1 January 2023"
+      ],
+      "baseline_answer": "John joined the service-focused online support group during December 19–25, 2022.",
+      "judge_reason": "The week before 1 January 2023 refers to late December (approximately December 25–31), not December 19–25.",
+      "answer_f1": 0.0,
+      "result_sha256": "08b6fb25760d3ab347c0854ccd70cf420500b45c3e345473feae236cba385ba0",
+      "retrieval_sha256": "584e8dd98470221c624b3c06e8306a0e74b6c53f285588a32e4e4504fa1afecb"
+    },
+    {
+      "question_id": "conv-41_q45",
+      "diagnosis": "inference_and_context_selection",
+      "evidence_summary": "两条参考是参加军队和竞选，部分被打包省略；回答说偏向留下但不肯确认不移居，gold需给出明确U.S.目标推断。",
+      "recommended_validation": "恢复完整证据，后续单列合成人设推理来源说明；保留推断强度的不确定性。",
+      "confidence": "supported_with_ambiguity",
+      "category": 3,
+      "question": "Would John be open to moving to another country?",
+      "gold": [
+        "No, he has goals specifically in the U.S. like joining the military and running for office."
+      ],
+      "baseline_answer": "John has not explicitly said whether he would move to another country. He is open to new opportunities, but his strong family ties and commitment to serving his country and local community—including his fire-brigade work as of August 16, 2023—suggest he may prefer to stay. His willingness to relocate abroad remains uncertain.",
+      "judge_reason": "The generated answer leaves relocation uncertain rather than stating that John would not move because of his specifically U.S.-based military and political goals.",
+      "answer_f1": 0.0634920634920635,
+      "result_sha256": "d2024ec2403d553817c9d4cd00e9fdf66a7c015faa1ec79cedf9a376c6cc3ec7",
+      "retrieval_sha256": "994218f999da3f5d2d32804dbaf75e796b7f76e5fcfa87ad29de36869f3caa6c"
+    },
+    {
+      "question_id": "conv-41_q61",
+      "diagnosis": "relative_week_normalization_convention",
+      "evidence_summary": "8月13日Sunday原文adopted last week；提炼事实已归一化Jul31–Aug6，gold用Aug6–12左右。",
+      "recommended_validation": "验证锚定原句和周界限说明；不能假设模型日期就是原文精确日期。",
+      "confidence": "supported_convention_mismatch",
+      "category": 2,
+      "question": "When did Maria adopt Shadow?",
+      "gold": [
+        "The week before 13 August 2023"
+      ],
+      "baseline_answer": "Maria adopted Shadow during the week of July 31–August 6, 2023.",
+      "judge_reason": "July 31–August 6 is earlier than the week immediately before August 13, 2023 (approximately August 6–12).",
+      "answer_f1": 0.26666666666666666,
+      "result_sha256": "20ac718a68142b635e60538c9a5afbb79c0be18edb01ee2c3eb655747fca27d3",
+      "retrieval_sha256": "210a4e0f0253057a383f4a6d537112c2ce15eddbe72249721dc084c5f188ba72"
+    },
+    {
+      "question_id": "conv-41_q62",
+      "diagnosis": "adoption_presupposition_and_inference",
+      "evidence_summary": "原文明确Coco got a puppy、Shadow adopted from a shelter，并未在参考段明确两只都来自她工作的同一收容所；回答的两个名字正确但因限定而被判错。",
+      "recommended_validation": "更完整原文核对是否有额外收养说明；若仍无，标明前提/推断歧义，不凭空补事实。",
+      "confidence": "ambiguous",
+      "category": 1,
+      "question": "How many dogs has Maria adopted from the dog shelter she volunteers at?",
+      "gold": [
+        "two"
+      ],
+      "baseline_answer": "Maria has two dogs, Coco and Shadow. However, only Shadow is explicitly confirmed as adopted from a shelter; the memories do not specify whether it was the shelter where she volunteers.",
+      "judge_reason": "Although it mentions two dogs, the answer only confirms one shelter adoption and does not state that Maria adopted two dogs from the shelter where she volunteers.",
+      "answer_f1": 0.4,
+      "result_sha256": "8cdfe7ce7c36a80ef47c6d3001f7278a6573d08d9548a5b3ebd70028f5391769",
+      "retrieval_sha256": "6f30cc5db0fd878b9bba688891091294f374d804c9630892de84231503c8e24f"
+    },
+    {
+      "question_id": "conv-41_q63",
+      "diagnosis": "cascading_relative_week_normalization",
+      "evidence_summary": "Coco以8月11日two weeks ago算7月28日；Shadow的上周区间继承Jul31–Aug6，因此得3–9天，而gold为两周。",
+      "recommended_validation": "与q61作为同一周界限问题整体验证，不为单题调整天数。",
+      "confidence": "supported_convention_mismatch",
+      "category": 2,
+      "question": "How many weeks passed between Maria adopting Coco and Shadow?",
+      "gold": [
+        "two weeks"
+      ],
+      "baseline_answer": "About one week passed. Maria got Coco on July 28, 2023, and adopted Shadow during July 31–August 6, 2023—3–9 days later.",
+      "judge_reason": "The generated answer says about one week (3–9 days), which does not match the gold answer of two weeks.",
+      "answer_f1": 0.09090909090909091,
+      "result_sha256": "43490de76ebf852df1e98ce9b70d9ecfd3baa5da85c780abc2b2e9b3d7a20898",
+      "retrieval_sha256": "f7edf228a344201a400bf3d14299e04ca389baddc18fe8c4c7ee867a59d9ef36"
+    },
+    {
+      "question_id": "conv-41_q8",
+      "diagnosis": "financial_status_inference_and_time_scope",
+      "evidence_summary": "gold从1月kids have so much推中产或富裕；回答依据4月修车开支和8月失业判断近期财务紧张，两种维度不完全同义。",
+      "recommended_validation": "恢复全史，区分长期经济阶层与临时现金压力；不把当前回答简单认定成检索错误。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What might John's financial status be?",
+      "gold": [
+        "Middle-class or wealthy"
+      ],
+      "baseline_answer": "John is likely experiencing financial strain or uncertainty as of August 16, 2023. Car repairs strained his budget in April 2023, and by August 5, 2023, he had lost his job because his employer went under. Although he was exploring a tech-industry role, there is no confirmation he found new employment. His exact income, savings, and overall financial position are unknown.",
+      "judge_reason": "The generated answer suggests financial strain and uncertainty rather than the middle-class or wealthy status stated in the gold answer.",
+      "answer_f1": 0.03278688524590164,
+      "result_sha256": "67ddd957545316016bbbe7d02a2868b4ec5dcb8c06b791dfc6491378b66568aa",
+      "retrieval_sha256": "f3cf04282b92f371b1e5528bbf3618c1528aa6a9b2cfcc5c07bed2655e05be6d"
+    },
+    {
+      "question_id": "conv-41_q95",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "与q0同一D13:16，内容是Maria和母亲made dinner together；回包中缺失该处。",
+      "recommended_validation": "与q0共享证据检查，但每题仍独立答题/判题。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What activity did Maria and her mom do together in May 2023?",
+      "gold": [
+        "Made dinner together"
+      ],
+      "baseline_answer": "The provided memories do not state what Maria and her mom did together in May 2023.",
+      "judge_reason": "The generated answer says the activity is unknown, whereas the gold answer states that Maria and her mom made dinner together.",
+      "answer_f1": 0.11764705882352941,
+      "result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
+      "retrieval_sha256": "7ae587470a224ef0393ad57971606033d5b6af078dcde5607fe867f407c21701"
+    }
+  ]
+}
