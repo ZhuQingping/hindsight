@@ -1,0 +1,3149 @@
+{
+  "schema_version": 1,
+  "run_id": "locomobge_20261119_005630",
+  "baseline_run_id": "locomo8k_20261118_232951",
+  "manifest_sha256": "da725e3c3a7496c0aa36731f44b002f05f08aba5d7d70f3be22026f6056df6ae",
+  "harness_sha256": "b5e6988c16c516ba4150cf3a0b079f425aaf464ae3a136b1c5199e903cb4807d",
+  "support_sha256": "bb86a8b061ccef383b1ec7d48c0c0ca4ec9b653c662cce52c893ffa90cb448bc",
+  "question_scope_sha256": "c3a40a2b7a5f52b96bc216511eee963844cb1d3a1a619cef2d131698b8492ee0",
+  "dataset": {
+    "url": "https://github.com/snap-research/locomo/blob/main/data/locomo10.json",
+    "sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+  },
+  "scoring": {
+    "url": "https://github.com/snap-research/locomo/blob/main/task_eval/evaluation.py",
+    "sha256": "8e3be5d57ff2ff9ec5cd05939592f468c5f3f1fd95d13e431932bdf6bf0fd6fd"
+  },
+  "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+  "settings": {
+    "memory": {
+      "retain_provider": "openai-codex",
+      "retain_model": "gpt-6.1-sol",
+      "retain_reasoning_effort": "medium",
+      "embedding_provider": "openai-compatible",
+      "embedding_model": "doubao-embedding-vision",
+      "embedding_dimensions": 1024,
+      "reranker": "local:BAAI/bge-reranker-v2-m3@953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e;cpu;fp32;batch8;max_concurrent1",
+      "service_revision": "gpt61-20261107-dd5521cb9"
+    },
+    "answer": {
+      "provider": "openai-codex",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "temperature": null,
+      "output_tokens_limit": null
+    },
+    "judge": {
+      "provider": "openai-codex",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "temperature": null,
+      "output_tokens_limit": null
+    },
+    "packing": {
+      "algorithm": "complete-json-separate-budgets-v2",
+      "tokenizer": "o200k_base",
+      "max_tokens": 8192,
+      "fact_tokens": 4000,
+      "chunk_tokens": 4000,
+      "fact_order": "recall_order",
+      "chunk_order": "response_order"
+    },
+    "recall": {
+      "budget": "high",
+      "max_tokens": 8192,
+      "max_chunk_tokens": 8192
+    },
+    "categories": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "concurrency": 1,
+    "model_max_attempts": 4,
+    "request_timeout_s": 180.0,
+    "protocol": "amb-locomo-cat1to4-packed-v1",
+    "judge_protocol": "pinned-amb-locomo-judge",
+    "f1_protocol": "original-locomo-unchanged",
+    "timestamp_policy": "naive-session-dates-as-UTC"
+  },
+  "summary": {
+    "fingerprint": "f778fafac20232f9de008b4ed6cbb757d0f5c129996e4259d33a22b71730dc04",
+    "protocol": "amb-locomo-cat1to4-packed-v1",
+    "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+    "valid_complete_run": true,
+    "expected": 81,
+    "completed": 81,
+    "failed": 0,
+    "pending": 0,
+    "correct": 76,
+    "accuracy_all_expected": 0.9382716049382716,
+    "answer_f1_all_expected": 0.2664186318829936,
+    "context_tokenizer": "o200k_base",
+    "context_tokens_total": 624297,
+    "context_tokens_mean": 7707.37037037037,
+    "context_tokens_max": 7993,
+    "amb_cl100k_context_tokens_mean": 7835.382716049383,
+    "full_answer_prompt_tokens_mean": 7901.777777777777,
+    "retrieval_sample_count": 81,
+    "retrieval_ms_mean": 6397.087701136407,
+    "retrieval_ms_p50": 6341.64812497329,
+    "retrieval_ms_p95": 6849.860040936619,
+    "model_usage": {
+      "answer": {
+        "input_tokens": 593534,
+        "output_tokens": 8426,
+        "total_tokens": 601960,
+        "cached_tokens": 0,
+        "thoughts_tokens": 0
+      },
+      "judge": {
+        "input_tokens": 39466,
+        "output_tokens": 2766,
+        "total_tokens": 42232,
+        "cached_tokens": 0,
+        "thoughts_tokens": 0
+      }
+    },
+    "attempts_with_unknown_usage": 10,
+    "retained_banks": [
+      "locomo_conv30_20261118_200523"
+    ],
+    "note": "All expected questions stay in denominator; tokens use recorded context, prompt or provider usage as labelled. Retain/internal model usage is excluded."
+  },
+  "previous_summary": {
+    "fingerprint": "09cb98b952f5e88a3e197fc3bf8bfce6b2553f6d9d49e5bc64fee12b031d972b",
+    "protocol": "amb-locomo-cat1to4-packed-v1",
+    "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+    "valid_complete_run": true,
+    "expected": 81,
+    "completed": 81,
+    "failed": 0,
+    "pending": 0,
+    "correct": 70,
+    "accuracy_all_expected": 0.8641975308641975,
+    "answer_f1_all_expected": 0.21979624661932687,
+    "context_tokenizer": "o200k_base",
+    "context_tokens_total": 629001,
+    "context_tokens_mean": 7765.444444444444,
+    "context_tokens_max": 8004,
+    "amb_cl100k_context_tokens_mean": 7897.679012345679,
+    "full_answer_prompt_tokens_mean": 7959.9876543209875,
+    "retrieval_sample_count": 81,
+    "retrieval_ms_mean": 308.29962648100644,
+    "retrieval_ms_p50": 260.78450004570186,
+    "retrieval_ms_p95": 537.9581250017509,
+    "model_usage": {
+      "answer": {
+        "input_tokens": 594936,
+        "output_tokens": 8646,
+        "total_tokens": 603582,
+        "cached_tokens": 0,
+        "thoughts_tokens": 0
+      },
+      "judge": {
+        "input_tokens": 39724,
+        "output_tokens": 2845,
+        "total_tokens": 42569,
+        "cached_tokens": 0,
+        "thoughts_tokens": 0
+      }
+    },
+    "attempts_with_unknown_usage": 35,
+    "retained_banks": [
+      "locomo_conv30_20261118_200523"
+    ],
+    "note": "All expected questions stay in denominator; tokens use recorded context, prompt or provider usage as labelled. Retain/internal model usage is excluded."
+  },
+  "changes": {
+    "both_correct": 69,
+    "both_wrong": 4,
+    "fixed": [
+      "conv-30_q11",
+      "conv-30_q27",
+      "conv-30_q29",
+      "conv-30_q56",
+      "conv-30_q71",
+      "conv-30_q75",
+      "conv-30_q78"
+    ],
+    "regressed": [
+      "conv-30_q37"
+    ]
+  },
+  "error_counts": {
+    "ClientConnectorError": 5,
+    "ServerDisconnectedError": 1,
+    "ConnectionTimeoutError": 3,
+    "ClientPayloadError": 1
+  },
+  "wrong_question_ids": [
+    "conv-30_q31",
+    "conv-30_q37",
+    "conv-30_q43",
+    "conv-30_q44",
+    "conv-30_q73"
+  ],
+  "rows": [
+    {
+      "question_id": "conv-30_q0",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When Jon has lost his job as a banker?",
+      "gold": [
+        "19 January, 2023"
+      ],
+      "answer": "Jon lost his job as a banker on January 19, 2023.",
+      "reasoning": "On January 20, 2023, Jon said he lost his banking job 'yesterday,' which corresponds to January 19, 2023. The explicit dated fact confirms this date.",
+      "correct": true,
+      "judge_reason": "The generated answer gives January 19, 2023, which matches the gold answer exactly.",
+      "answer_f1": 0.4615384615384615,
+      "context_tokens": 7743,
+      "recall_ms": 12295.3755420167,
+      "fact_count": 109,
+      "included_facts": 40,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:2"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:2"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:2"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon lost his job as a banker on January 19, 2023.",
+        "answer_f1": 0.4615384615384615,
+        "judge_reason": "The generated answer gives January 19, 2023, which is the same date as the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q1",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When Gina has lost her job at Door Dash?",
+      "gold": [
+        "January, 2023"
+      ],
+      "answer": "Gina lost her job at Door Dash in January 2023; the exact date is not specified.",
+      "reasoning": "On January 20, 2023, Gina said she had lost her Door Dash job 'this month,' placing the job loss in January 2023. No exact day is provided.",
+      "correct": true,
+      "judge_reason": "The generated answer gives January 2023, matching the gold answer exactly.",
+      "answer_f1": 0.23529411764705882,
+      "context_tokens": 7727,
+      "recall_ms": 6369.490083074197,
+      "fact_count": 109,
+      "included_facts": 37,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:3"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:3"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina lost her job at Door Dash in January 2023; the exact date is not specified.",
+        "answer_f1": 0.23529411764705882,
+        "judge_reason": "The generated answer matches the gold answer by stating that Gina lost her job in January 2023."
+      }
+    },
+    {
+      "question_id": "conv-30_q2",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How do Jon and Gina both like to destress?",
+      "gold": [
+        "by dancing"
+      ],
+      "answer": "Jon and Gina both like to de-stress by dancing.",
+      "reasoning": "Both explicitly describe dance as stress relief in their May 11, 2023 conversation: Jon calls it his stress-buster since childhood, and Gina says dancing makes her worries vanish.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer that both Jon and Gina destress by dancing.",
+      "answer_f1": 0.4,
+      "context_tokens": 7674,
+      "recall_ms": 6253.765458008274,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:7",
+        "D1:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:7",
+        "D1:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:7",
+        "D1:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon and Gina both like to destress by dancing. It gives Jon an escape and helps him cope with stress, while Gina likes to “dance it out” during tough times.",
+        "answer_f1": 0.13793103448275862,
+        "judge_reason": "The generated answer correctly states that both Jon and Gina destress by dancing, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q3",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "What do Jon and Gina both have in common?",
+      "gold": [
+        "They lost their jobs and decided to start their own businesses."
+      ],
+      "answer": "Jon and Gina both love dance, using it for self-expression, happiness, and stress relief. They are also entrepreneurs who pursued their passions after losing jobs—Jon through his dance studio and Gina through her online clothing store. Both face business challenges but remain determined, and they support and encourage each other to keep pursuing their dreams.",
+      "reasoning": "The memories describe both Jon and Gina as passionate dancers who use dance for self-expression and stress relief. Both experienced job loss and pursued entrepreneurship: Jon with a dance studio and Gina with an online clothing store. Their conversations also explicitly describe shared business challenges, determination, and mutual encouragement.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly states that both lost their jobs and became entrepreneurs, matching the gold answer.",
+      "answer_f1": 0.3,
+      "context_tokens": 7723,
+      "recall_ms": 6343.658915953711,
+      "fact_count": 109,
+      "included_facts": 47,
+      "returned_chunks": 14,
+      "included_chunks": 8,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:2",
+        "D1:3",
+        "D1:4",
+        "D2:1"
+      ],
+      "evidence_ids_in_returned_chunks": [],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": true,
+        "answer": "Jon and Gina share a passion for dance, using it for joy, self-expression, and stress relief. Both became entrepreneurs after employment setbacks: Jon pursued a dance studio, and Gina opened an online clothing store. Both face business challenges, remain determined, and support and motivate each other. They also treasure memories of dance classes.\n\nThe memories generally say Jon lost his job, although one account says he left a secure banking job to pursue dance.",
+        "answer_f1": 0.21428571428571427,
+        "judge_reason": "The generated answer states that both became entrepreneurs after employment setbacks, matching the gold answer that they lost their jobs and started businesses."
+      }
+    },
+    {
+      "question_id": "conv-30_q4",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "Why did Jon decide to start his dance studio?",
+      "gold": [
+        "He lost his job and decided to start his own business to share his passion."
+      ],
+      "answer": "Jon decided to start his dance studio after losing his banking job on January 19, 2023, which pushed him to pursue a lifelong dream. Dance had been his passion and escape since childhood, and he wanted to turn that passion into a business where he could teach others, share the joy of dancing, and give people a supportive space to express themselves.",
+      "reasoning": "On January 20, 2023, Jon said he had lost his banking job the previous day, establishing January 19, 2023 as the catalyst. In that same conversation, he explained that dance had been his passion since childhood and that he wanted to teach others and share its joy. On May 11, 2023, he reaffirmed that losing his job pushed him to pursue his dream and create a place for self-expression.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer by explaining that Jon lost his job and started a dance business to share his passion.",
+      "answer_f1": 0.34782608695652173,
+      "context_tokens": 7724,
+      "recall_ms": 6467.438417021185,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:2",
+        "D1:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:2",
+        "D1:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:2",
+        "D1:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon decided to start his dance studio after losing his banking job on January 19, 2023. The job loss pushed him to pursue his long-held dream of turning his lifelong passion for dance into a business. He wanted to teach others, share the joy dance brings him, and create a supportive space where dancers could express themselves and develop their talents.",
+        "answer_f1": 0.34782608695652173,
+        "judge_reason": "The generated answer matches the gold answer that Jon lost his job and started a dance business to share his passion."
+      }
+    },
+    {
+      "question_id": "conv-30_q5",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "What Jon thinks the ideal dance studio should look like?",
+      "gold": [
+        "By the water, with natural light and Marley flooring"
+      ],
+      "answer": "Jon imagines his ideal dance studio by the water, with an ocean view that inspires him and his dancers. He also wants plenty of natural light, enough space to dance comfortably, and a safe, sufficiently bouncy dance floor—preferably durable, easy-to-clean Marley flooring that balances grip with freedom of movement.",
+      "reasoning": "On January 20, 2023, Jon explicitly described his ideal studio as being by the water and shared an ocean-view studio, hoping to find a similarly inspiring place. On January 29, 2023, he additionally emphasized natural light, sufficient space, and safe flooring, specifically Marley flooring.",
+      "correct": true,
+      "judge_reason": "The generated answer includes all three key features: being by the water, natural light, and Marley flooring.",
+      "answer_f1": 0.4,
+      "context_tokens": 7635,
+      "recall_ms": 6313.356542028487,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:20",
+        "D2:4",
+        "D2:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon imagines his ideal dance studio by the water, with an ocean view that inspires his dance group. He also values plenty of natural light, easy access, enough room to dance comfortably, and a safe floor with sufficient bounce.",
+        "answer_f1": 0.4,
+        "judge_reason": "The answer captures the waterfront setting and natural light, and its safe dance flooring broadly aligns with the specified Marley flooring."
+      }
+    },
+    {
+      "question_id": "conv-30_q6",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When is Jon's group performing at a festival?",
+      "gold": [
+        "February, 2023"
+      ],
+      "answer": "Jon’s group was scheduled to perform at a nearby festival in February 2023. By February 8, 2023, Jon confirmed they had performed; the exact date isn’t specified.",
+      "reasoning": "On January 20, 2023, Jon said his group was finishing choreography for a nearby festival 'next month,' meaning February 2023. On February 8 he confirmed the performance had already happened, so it occurred by that date; no exact day is given.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies February 2023, matching the gold answer's month and year.",
+      "answer_f1": 0.14814814814814814,
+      "context_tokens": 7859,
+      "recall_ms": 6433.597874944098,
+      "fact_count": 109,
+      "included_facts": 38,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:24"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:24"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:24"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon’s group is performing at a nearby festival in February 2023; the exact date isn’t specified.",
+        "answer_f1": 0.25,
+        "judge_reason": "The generated answer correctly identifies February 2023, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q7",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina launch an ad campaign for her store?",
+      "gold": [
+        "29 January, 2023"
+      ],
+      "answer": "Gina launched her store’s ad campaign in January 2023, shortly before or on January 29, 2023.",
+      "reasoning": "On January 29, 2023, Gina said she had 'just launched an ad campaign' for her clothing store. This places the launch shortly before or on that date; no exact launch day is specified.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies January 2023 and explicitly includes January 29, 2023, matching the gold answer.",
+      "answer_f1": 0.3157894736842105,
+      "context_tokens": 7688,
+      "recall_ms": 6279.911124962382,
+      "fact_count": 109,
+      "included_facts": 38,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D2:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D2:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D2:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina launched the ad campaign in January 2023, shortly before January 29. The exact date is not specified.",
+        "answer_f1": 0.3157894736842105,
+        "judge_reason": "The answer identifies January 2023 near January 29, matching the gold answer’s time period despite not giving the exact date."
+      }
+    },
+    {
+      "question_id": "conv-30_q8",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When was Jon in Paris?",
+      "gold": [
+        "28 January 2023"
+      ],
+      "answer": "Jon was in Paris on January 28, 2023.",
+      "reasoning": "In the January 29, 2023 conversation, Jon said he had been to Paris 'yesterday,' which corresponds to January 28, 2023. The explicit memory confirms this date.",
+      "correct": true,
+      "judge_reason": "The generated answer gives January 28, 2023, which is the same date as the gold answer.",
+      "answer_f1": 0.5454545454545454,
+      "context_tokens": 7593,
+      "recall_ms": 6046.044540940784,
+      "fact_count": 109,
+      "included_facts": 35,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D2:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D2:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D2:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon was in Paris on Saturday, January 28, 2023.",
+        "answer_f1": 0.5,
+        "judge_reason": "The generated answer gives January 28, 2023, which matches the gold answer exactly."
+      }
+    },
+    {
+      "question_id": "conv-30_q9",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Which city have both Jean and John visited?",
+      "gold": [
+        "Rome"
+      ],
+      "answer": "Rome, assuming you mean Gina and Jon.",
+      "reasoning": "The memories name Gina and Jon rather than Jean and John. Assuming those are the intended people, Gina said on January 29, 2023 that she had visited Rome once, and Jon visited Rome during June 12–18, 2023. Rome is therefore the city both visited.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies Rome, matching the gold answer despite the added name clarification.",
+      "answer_f1": 1.0,
+      "context_tokens": 7747,
+      "recall_ms": 6362.964333035052,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D2:5",
+        "D15:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D2:5",
+        "D15:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D2:5",
+        "D15:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Rome, Italy—assuming you mean Gina and Jon.",
+        "answer_f1": 1.0,
+        "judge_reason": "The generated answer names Rome, matching the gold answer despite the added qualification about names."
+      }
+    },
+    {
+      "question_id": "conv-30_q10",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina team up with a local artist for some cool designs?",
+      "gold": [
+        "February, 2023"
+      ],
+      "answer": "Gina teamed up with a local artist by February 8, 2023; she described the collaboration as having just happened.",
+      "reasoning": "In the February 8, 2023 conversation, Gina said she had 'just teamed up with a local artist' for clothing designs. This establishes that the collaboration began by that date, although the precise date is not given.",
+      "correct": true,
+      "judge_reason": "The generated answer places the collaboration in February 2023, matching the gold answer.",
+      "answer_f1": 0.21052631578947367,
+      "context_tokens": 7848,
+      "recall_ms": 6475.813250057399,
+      "fact_count": 109,
+      "included_facts": 36,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D5:5"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D5:5"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D5:5"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina teamed up with a local artist by February 8, 2023, to create unique clothing designs for her online fashion store.",
+        "answer_f1": 0.18181818181818182,
+        "judge_reason": "The generated answer places the collaboration in February 2023, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q11",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina get her tattoo?",
+      "gold": [
+        "A few years ago"
+      ],
+      "answer": "Gina got her tattoo a few years before February 8, 2023—approximately 2020–2021. The exact date isn’t specified.",
+      "reasoning": "On February 8, 2023, Gina explicitly said she got the tattoo 'a few years ago.' This places it a few years before 2023, approximately 2020–2021, although the exact year is not given.",
+      "correct": true,
+      "judge_reason": "The generated answer states that Gina got her tattoo a few years ago, matching the gold answer.",
+      "answer_f1": 0.2222222222222222,
+      "context_tokens": 7856,
+      "recall_ms": 8868.524624966085,
+      "fact_count": 109,
+      "included_facts": 35,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D5:15"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D5:15"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D5:15"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "Gina already had her tattoo by February 8, 2023, but the memories do not specify exactly when she got it.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer gives only a latest possible date and does not identify that Gina got her tattoo a few years ago."
+      }
+    },
+    {
+      "question_id": "conv-30_q12",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon start to go to the gym?",
+      "gold": [
+        "March, 2023"
+      ],
+      "answer": "Jon started going to the gym during the week of March 6–12, 2023.",
+      "reasoning": "On March 16, 2023, Jon said he started hitting the gym 'last week.' The provided memory identifies that week as March 6–12, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer places Jon’s gym start in March 2023, matching the gold answer.",
+      "answer_f1": 0.3076923076923077,
+      "context_tokens": 7820,
+      "recall_ms": 5936.489125015214,
+      "fact_count": 109,
+      "included_facts": 40,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D6:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D6:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D6:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon started going to the gym during the week of March 6–12, 2023.",
+        "answer_f1": 0.3076923076923077,
+        "judge_reason": "The generated answer places Jon’s gym start in March 2023, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q13",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina open her online clothing store?",
+      "gold": [
+        "16 March, 2023"
+      ],
+      "answer": "Gina announced her online clothing store was open on March 16, 2023. However, earlier memories describe her running it by February 8, 2023, so the exact opening date is unclear.",
+      "reasoning": "Gina explicitly announced that her online clothing store was open on March 16, 2023. However, earlier memories already describe her owning and advertising a clothing store on January 29, 2023, and running an online fashion store by February 8, 2023. Thus March 16 is the explicit opening announcement, but the memories do not establish a consistent exact opening date.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly gives March 16, 2023, matching the gold date despite adding uncertainty.",
+      "answer_f1": 0.1875,
+      "context_tokens": 7775,
+      "recall_ms": 6131.097666919231,
+      "fact_count": 109,
+      "included_facts": 39,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D6:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D6:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D6:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina appears to have opened her online clothing store in January 2023, after losing her DoorDash job; she was already promoting it by January 29. However, she also announced the store was open on March 16, 2023, so the memories are inconsistent about the opening date.",
+        "answer_f1": 0.13043478260869565,
+        "judge_reason": "The generated answer explicitly includes March 16, 2023 as the store’s announced opening date, matching the gold answer despite noting an alternative timeline."
+      }
+    },
+    {
+      "question_id": "conv-30_q14",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon start expanding his studio's social media presence?",
+      "gold": [
+        "April, 2023"
+      ],
+      "answer": "Jon was already expanding his studio’s social media presence by April 3, 2023; the exact start date isn’t specified.",
+      "reasoning": "In the April 3, 2023 conversation, Jon explicitly said he was expanding his dance studio's social media presence. This is the earliest direct evidence provided, although the exact start date is not specified.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies April 2023, matching the month and year in the gold answer.",
+      "answer_f1": 0.19999999999999998,
+      "context_tokens": 7609,
+      "recall_ms": 6487.241082941182,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D8:13"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D8:13"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D8:13"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon had started expanding his studio’s social media presence by April 3, 2023. The exact start date is not specified.",
+        "answer_f1": 0.1904761904761905,
+        "judge_reason": "The generated answer identifies April 2023, matching the month and year in the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q15",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon host a dance competition?",
+      "gold": [
+        "May, 2023"
+      ],
+      "answer": "Jon planned to host a dance competition in May 2023; the exact date is not specified.",
+      "reasoning": "On April 3, 2023, Jon said he was hosting a dance competition 'next month.' That resolves to May 2023. No exact day or confirmation of completion is provided.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies May 2023, matching the gold answer's month and year.",
+      "answer_f1": 0.25,
+      "context_tokens": 7545,
+      "recall_ms": 6221.61333297845,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 4,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D8:13"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D8:13"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D8:13"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon planned to host a dance competition in May 2023. The memories do not specify an exact date or confirm that it took place.",
+        "answer_f1": 0.17391304347826084,
+        "judge_reason": "The generated answer identifies May 2023, matching the gold answer despite its caveat about confirmation."
+      }
+    },
+    {
+      "question_id": "conv-30_q16",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon go to a fair to get more exposure for his dance studio?",
+      "gold": [
+        "24 April, 2023"
+      ],
+      "answer": "Jon went to the fair on April 24, 2023, to promote his dance studio.",
+      "reasoning": "In the conversation dated April 25, 2023, Jon said he went to the fair 'yesterday' to show off his studio. This places the fair on April 24, 2023, consistent with the dated memory.",
+      "correct": true,
+      "judge_reason": "The generated answer gives April 24, 2023, which matches the gold answer exactly.",
+      "answer_f1": 0.375,
+      "context_tokens": 7865,
+      "recall_ms": 6438.259833026677,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D10:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D10:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D10:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon went to the fair on Monday, April 24, 2023, to promote his dance studio and attract potential customers.",
+        "answer_f1": 0.3,
+        "judge_reason": "The generated answer gives April 24, 2023, which exactly matches the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q17",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Why did Gina decide to start her own clothing store?",
+      "gold": [
+        "She always loved fashion trends and finding unique pieces and she lost her job so decided it was time to start her own business."
+      ],
+      "answer": "Gina started her clothing store after losing her job at DoorDash because she wanted to take control of her future and be her own boss. It also fulfilled a long-held dream of combining her passions for fashion, unique clothing, and dance into work she loved.",
+      "reasoning": "In the April 25, 2023 conversation, Gina directly said losing her job made her want to take control of her destiny by opening an online clothing store. On March 16, 2023, she identified the lost job as being at DoorDash and explained that the store combined her interests in fashion trends, unique pieces, and dance. On June 16, 2023, she reiterated that she valued being her own boss and doing something she loved.",
+      "correct": true,
+      "judge_reason": "The answer matches Gina’s love of fashion and unique pieces and her job loss as the motivation for starting her own clothing business.",
+      "answer_f1": 0.31578947368421045,
+      "context_tokens": 7761,
+      "recall_ms": 6218.7128339428455,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D6:8",
+        "D1:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D6:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D6:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina started her clothing store after losing her job at Door Dash in January 2023. She wanted to take control of her future, be her own boss, and turn her passions for fashion and dance into work she loved.",
+        "answer_f1": 0.2666666666666666,
+        "judge_reason": "The answer captures both key motivations: losing her job and turning her love of fashion into her own business."
+      }
+    },
+    {
+      "question_id": "conv-30_q18",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Do Jon and Gina start businesses out of what they love?",
+      "gold": [
+        "Yes"
+      ],
+      "answer": "Yes. Jon started a dance studio out of his lifelong love of dancing, wanting to teach others and share its joy. Gina started an online clothing store to combine her passions for fashion and dance. For both, losing their jobs helped prompt them to turn what they loved into businesses.",
+      "reasoning": "Jon explicitly said on January 20, 2023, that he was starting a dance studio because dancing had been his passion since childhood and he wanted to share its joy. Gina explained on March 16, 2023, that her online clothing store combined her love of fashion trends, unique pieces, and dance. Both also described job loss as a catalyst for entrepreneurship.",
+      "correct": true,
+      "judge_reason": "The generated answer agrees with the gold answer that both Jon and Gina started businesses based on what they love.",
+      "answer_f1": 0.15384615384615385,
+      "context_tokens": 7765,
+      "recall_ms": 6153.028958942741,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:4",
+        "D6:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:4",
+        "D6:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:4",
+        "D6:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Yes. Both built businesses around what they love:\n- **Jon** turned his passion for dance into a dance studio, where he teaches and helps others express themselves. Losing his job motivated him to pursue that dream.\n- **Gina** started an online clothing store inspired by her love of fashion, unique pieces, and dance. Her job loss also pushed her toward entrepreneurship.",
+        "answer_f1": 0.1111111111111111,
+        "judge_reason": "The generated answer says yes, matching the gold answer that both start businesses based on what they love."
+      }
+    },
+    {
+      "question_id": "conv-30_q19",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina interview for a design internship?",
+      "gold": [
+        "10 May, 2023"
+      ],
+      "answer": "Gina interviewed for a design internship on Wednesday, May 10, 2023.",
+      "reasoning": "On May 11, 2023, Gina said she had interviewed for a design internship 'yesterday,' which corresponds to May 10, 2023. The dated fact also confirms this date.",
+      "correct": true,
+      "judge_reason": "The generated answer gives May 10, 2023, which matches the gold answer exactly.",
+      "answer_f1": 0.4615384615384615,
+      "context_tokens": 7704,
+      "recall_ms": 6265.115667018108,
+      "fact_count": 109,
+      "included_facts": 36,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D11:14"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D11:14"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D11:14"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina interviewed for a design internship on May 10, 2023.",
+        "answer_f1": 0.5,
+        "judge_reason": "The generated answer gives May 10, 2023, which is the same date as the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q20",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina get accepted for the design internship?",
+      "gold": [
+        "27 May, 2023"
+      ],
+      "answer": "Gina got accepted for the design internship on May 27, 2023.",
+      "reasoning": "Gina reported on May 27, 2023, that she had just been accepted for the fashion internship. This follows her design internship interview on May 10, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer gives May 27, 2023, which is the same date as the gold answer.",
+      "answer_f1": 0.4615384615384615,
+      "context_tokens": 7711,
+      "recall_ms": 6360.782042029314,
+      "fact_count": 109,
+      "included_facts": 36,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D12:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D12:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D12:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina reported being accepted for the design internship on May 27, 2023. The exact date she received the acceptance is not specified.",
+        "answer_f1": 0.2727272727272727,
+        "judge_reason": "The generated answer gives May 27, 2023, matching the gold answer despite its unnecessary caveat."
+      }
+    },
+    {
+      "question_id": "conv-30_q21",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon start reading \"The Lean Startup\"?",
+      "gold": [
+        "May, 2023"
+      ],
+      "answer": "Jon had started reading \"The Lean Startup\" by May 27, 2023; the exact start date is not stated.",
+      "reasoning": "In the conversation dated May 27, 2023, Jon says he is currently reading \"The Lean Startup.\" This establishes that he had started by that date, but no exact start date is given.",
+      "correct": true,
+      "judge_reason": "The generated answer places Jon’s reading in May 2023, matching the month and year in the gold answer.",
+      "answer_f1": 0.2222222222222222,
+      "context_tokens": 7665,
+      "recall_ms": 6005.365791963413,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D12:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D12:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D12:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon was reading \"The Lean Startup\" by May 27, 2023; the exact date he started is not specified.",
+        "answer_f1": 0.2222222222222222,
+        "judge_reason": "The generated answer identifies May 2023, matching the gold answer's month and year."
+      }
+    },
+    {
+      "question_id": "conv-30_q22",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina develop a video presentation to teach how to style her fashion pieces? ",
+      "gold": [
+        "June, 2023"
+      ],
+      "answer": "Gina had developed the video presentation by June 13, 2023; the exact creation date is not specified.",
+      "reasoning": "In the conversation dated June 13, 2023, Gina said she had developed a video presentation teaching how to style her fashion pieces. No exact creation date was given, so it was completed by that date.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies June 2023, matching the month and year in the gold answer.",
+      "answer_f1": 0.23529411764705882,
+      "context_tokens": 7657,
+      "recall_ms": 6457.422874984331,
+      "fact_count": 109,
+      "included_facts": 39,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D13:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D13:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D13:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "By June 13, 2023, Gina had developed the video presentation; the exact creation date is not specified.",
+        "answer_f1": 0.23529411764705882,
+        "judge_reason": "The generated answer places the video presentation in June 2023, matching the gold answer's month and year."
+      }
+    },
+    {
+      "question_id": "conv-30_q23",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "How did Gina promote her clothes store?",
+      "gold": [
+        "worked with an artist to make unique fashion pieces, made limited-edition sweatshirts, got some new offers and promotions for online store, developed a video presentation showing how to style her pieces"
+      ],
+      "answer": "Gina promoted her clothing store through advertising, special offers, and promotions, which she said were attracting customers and increasing sales by April 3, 2023. She also created a video showing people how to style her fashion pieces, reported on June 13, 2023. In April 2023, she planned to increase advertising and collaborate with fashion bloggers and influencers to reach more customers, although the memories do not confirm those collaborations happened.",
+      "reasoning": "The January 29 memory records a launched advertising campaign. The April 3 conversation directly describes offers and promotions increasing sales and plans for more advertising and blogger/influencer collaborations. The June 13 memory adds a styling video presentation. Collaborations with influencers are plans, not confirmed completed promotions.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer’s online offers and promotions and styling video, despite omitting some other promotional efforts.",
+      "answer_f1": 0.2971861471861472,
+      "context_tokens": 7622,
+      "recall_ms": 6117.7607090212405,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D5:5",
+        "D16:3",
+        "D8:4",
+        "D13:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D5:5",
+        "D16:3",
+        "D8:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D8:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina promoted her clothing store through an advertising campaign, reported on January 29, 2023, and special offers and promotions that were attracting customers and increasing sales by April 3, 2023. She also planned to increase advertising and was considering collaborations with fashion bloggers and influencers, though the memories do not confirm those collaborations happened.",
+        "answer_f1": 0.16009358288770054,
+        "judge_reason": "The generated answer mentions special offers and promotions, matching one of the promotional methods in the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q24",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Which events has Jon participated in to promote his business venture?",
+      "gold": [
+        "fair, networking events, dance competition"
+      ],
+      "answer": "Jon participated in:\n- **A fair on April 24, 2023**, where he promoted his dance studio and gained potential customer leads.\n- **Business networking events**, which he decided to attend on **June 20, 2023**. By **July 21, 2023**, he reported attending an event where he met investors, received useful advice, and made connections to support his business; its exact date is not given.\n\nHe also **planned to host a dance competition in May 2023** featuring dancers from his studio and other schools to showcase local talent and draw attention to his studio, though the memories do not confirm that it took place.",
+      "reasoning": "The clearest completed promotional events are the April 24 fair and networking events: Jon reported choosing to attend them on June 20 and, by July 21, described meeting investors and receiving advice at one. A May dance competition was also intended to attract attention to his studio, but the memories establish only that he planned to host it, not that it occurred.",
+      "correct": true,
+      "judge_reason": "The generated answer mentions the fair, networking events, and dance competition, matching all three events in the gold answer.",
+      "answer_f1": 0.2166666666666667,
+      "context_tokens": 7798,
+      "recall_ms": 6266.658874927089,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D10:1",
+        "D16:6",
+        "D8:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D10:1",
+        "D16:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D10:1",
+        "D16:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon has participated in:\n- **A fair on April 24, 2023**, where he promoted his dance studio and gained potential customer leads.\n- **Business networking events**, including one reported by **July 21, 2023**, where he met investors, made connections, and received useful business advice. The event’s exact date is not stated.\n\nHe also **planned to host a dance competition in May 2023** featuring dancers from his studio and other schools to showcase local talent and attract attention to his business, though the memories do not confirm that it took place.",
+        "answer_f1": 0.2074074074074074,
+        "judge_reason": "The generated answer mentions all three events in the gold answer: a fair, networking events, and a dance competition."
+      }
+    },
+    {
+      "question_id": "conv-30_q25",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "What does Jon's dance studio offer?",
+      "gold": [
+        "one-on-one metoring and training to dancers,  workshops and classes to local schools and centers"
+      ],
+      "answer": "Jon’s dance studio offers dance classes, workshops, and one-on-one mentoring and training to help dancers reach their full potential. It provides a supportive, encouraging space for people of all ages, backgrounds, and skill levels to express themselves through dance.",
+      "reasoning": "Jon explicitly described the studio's offerings on June 13, 2023: dance classes, workshops, and one-on-one mentoring and training. The February 8 and July 23 memories describe an inclusive environment for dancers of all ages, skill levels, and backgrounds, focused on expression and growth.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly identifies dance classes, workshops, and one-on-one mentoring and training as the studio’s offerings.",
+      "answer_f1": 0.36507936507936506,
+      "context_tokens": 7929,
+      "recall_ms": 6163.376291049644,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D13:7",
+        "D8:13"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D13:7",
+        "D8:13"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D13:7",
+        "D8:13"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon’s dance studio offers dance classes, workshops, and one-on-one mentoring and training for dancers of all ages and skill levels. It aims to provide a supportive, encouraging space where dancers can express themselves, develop their skills, and reach their potential.",
+        "answer_f1": 0.34285714285714286,
+        "judge_reason": "The answer includes dance classes, workshops, and one-on-one mentoring and training, matching the core offerings in the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q26",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon receive mentorship to promote his venture?",
+      "gold": [
+        "15 June, 2023"
+      ],
+      "answer": "Jon received mentorship from a businessman on June 15, 2023.",
+      "reasoning": "In the June 16, 2023 conversation, Jon said he had been mentored by a businessman 'yesterday.' This places the mentorship on June 15, 2023, consistent with the explicit memory.",
+      "correct": true,
+      "judge_reason": "The generated answer gives June 15, 2023, which exactly matches the gold answer's date.",
+      "answer_f1": 0.5,
+      "context_tokens": 7875,
+      "recall_ms": 6149.064167053439,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D14:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D14:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D14:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon received mentorship from a businessman on June 15, 2023.",
+        "answer_f1": 0.5,
+        "judge_reason": "The generated answer gives June 15, 2023, which matches the gold answer’s date exactly."
+      }
+    },
+    {
+      "question_id": "conv-30_q27",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Did Jon and Gina both participate in dance competitions?",
+      "gold": [
+        "Yes"
+      ],
+      "answer": "Yes. Jon’s dance crew won first place in a local dance competition in 2022. Gina also competed in dance competitions, including winning first place with her team at a regional competition at age fifteen, performing the contemporary piece “Finding Freedom.” The calendar year of Gina’s win is not specified.",
+      "reasoning": "The January 20, 2023 conversation directly confirms both participated: Jon said his crew won a local competition 'last year,' meaning 2022, and Gina said her team won a regional competition when she was fifteen. Gina's age at that event cannot be converted to a calendar year because her birth date is not provided.",
+      "correct": true,
+      "judge_reason": "The generated answer affirms that both Jon and Gina participated in dance competitions, matching the gold answer.",
+      "answer_f1": 0.1,
+      "context_tokens": 7850,
+      "recall_ms": 6341.64812497329,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 13,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:14",
+        "D14:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:14",
+        "D1:16",
+        "D1:17",
+        "D9:10"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "Gina definitely did: she won first place with her team at a regional dance competition at age fifteen, performing “Finding Freedom” (calendar year unknown). Jon planned to compete in March 2023, and another competition was mentioned for May 2023, but the memories do not confirm his actual participation. So, both were involved in competition plans, but only Gina’s participation is explicitly confirmed.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer confirms only Gina’s participation and leaves Jon’s unconfirmed, contradicting the gold answer that both participated."
+      }
+    },
+    {
+      "question_id": "conv-30_q28",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When was Jon in Rome?",
+      "gold": [
+        "June 2023"
+      ],
+      "answer": "Jon was in Rome during the week of June 12–18, 2023, on a short trip to clear his mind.",
+      "reasoning": "On June 19, 2023, Jon said he took a short trip to Rome 'last week.' The memories explicitly identify that week as June 12–18, 2023; the exact travel days are not specified.",
+      "correct": true,
+      "judge_reason": "The generated answer places Jon in Rome in June 2023, matching the gold answer.",
+      "answer_f1": 0.21052631578947367,
+      "context_tokens": 7703,
+      "recall_ms": 6258.59429105185,
+      "fact_count": 109,
+      "included_facts": 38,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon was in Rome for a short trip during June 12–18, 2023.",
+        "answer_f1": 0.3076923076923077,
+        "judge_reason": "The generated answer places Jon in Rome in June 2023, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q29",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "Which cities has Jon visited?",
+      "gold": [
+        "Paris, Rome"
+      ],
+      "answer": "Jon has visited Paris, France (January 28, 2023), and Rome, Italy (June 12–18, 2023).",
+      "reasoning": "The memories explicitly record Jon visiting Paris on January 28, 2023, and taking a short trip to Rome during June 12–18, 2023. Gina's separate Rome visit is not needed to establish Jon's travels.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly identifies Paris and Rome, matching both cities in the gold answer.",
+      "answer_f1": 0.7,
+      "context_tokens": 7566,
+      "recall_ms": 5984.289958956651,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D2:4",
+        "D15:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D2:4",
+        "D15:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D2:4",
+        "D15:1"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "The provided memories do not specify any cities Jon has visited.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer says no cities are specified, but the gold answer identifies Paris and Rome."
+      }
+    },
+    {
+      "question_id": "conv-30_q30",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When Jon is planning to open his dance studio?",
+      "gold": [
+        "20 June, 2023"
+      ],
+      "answer": "Jon plans to officially open his dance studio on Tuesday, June 20, 2023, with an opening-night celebration.",
+      "reasoning": "In the June 19, 2023 conversation, Jon says the official opening night is 'tomorrow.' Converting that relative reference gives June 20, 2023, consistent with the memories identifying the grand opening date.",
+      "correct": true,
+      "judge_reason": "The generated answer gives June 20, 2023, which matches the gold answer exactly.",
+      "answer_f1": 0.3157894736842105,
+      "context_tokens": 7753,
+      "recall_ms": 6180.9534159256145,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:5"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:5"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:5"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon planned to open his dance studio on Tuesday, June 20, 2023, with an official grand opening that evening.",
+        "answer_f1": 0.2857142857142857,
+        "judge_reason": "The generated answer gives June 20, 2023, which matches the gold answer exactly."
+      }
+    },
+    {
+      "question_id": "conv-30_q31",
+      "conversation_id": "conv-30",
+      "category": 1,
+      "question": "How long did it take for Jon to open his studio?",
+      "gold": [
+        "six months"
+      ],
+      "answer": "It took Jon about five months—from planning his studio on January 20, 2023, to its official opening on June 20, 2023. Some earlier memories describe him as already running it, but June 20 is the explicit grand-opening date.",
+      "reasoning": "Jon first described plans to start a dance studio on January 20, 2023. On June 19, he explicitly scheduled the official opening for the following day, June 20, 2023. That is five months (151 days) after January 20. Earlier memories describe him as already running a studio by February 8, so those references differ from the explicitly dated official opening.",
+      "correct": false,
+      "judge_reason": "The generated answer says five months, whereas the gold answer specifies six months.",
+      "answer_f1": 0.0,
+      "context_tokens": 7899,
+      "recall_ms": 6251.294749905355,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:2",
+        "D15:13"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:2",
+        "D15:13"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:13"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "About five months—from planning his studio in January 2023 to its scheduled official grand opening on June 20, 2023. The memories are somewhat inconsistent: some describe him running it before June, while others still discuss opening preparations in July.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer says about five months, which differs from the gold answer of six months."
+      }
+    },
+    {
+      "question_id": "conv-30_q32",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina design a limited collection of hoodies?",
+      "gold": [
+        "June 2023"
+      ],
+      "answer": "Gina designed the limited collection of hoodies during June 12–18, 2023.",
+      "reasoning": "On June 21, 2023, Gina said she made the limited-edition line 'last week.' The supplied memory explicitly dates that week to June 12–18, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer places the design in June 2023, matching the gold answer.",
+      "answer_f1": 0.33333333333333337,
+      "context_tokens": 7574,
+      "recall_ms": 6298.622124944814,
+      "fact_count": 109,
+      "included_facts": 40,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D16:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D16:3"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D16:3"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina designed the limited collection of hoodies during June 12–18, 2023.",
+        "answer_f1": 0.33333333333333337,
+        "judge_reason": "The generated answer places the hoodie collection design in June 2023, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q33",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon visit networking events for his store?",
+      "gold": [
+        "20 June, 2023"
+      ],
+      "answer": "Jon began attending networking events for his dance studio on June 20, 2023. He also reported attending another networking event by July 21, 2023, where he met investors, though its exact date is unspecified.",
+      "reasoning": "On June 21, 2023, Jon said that yesterday he chose to go to networking events for his business, placing this on June 20, 2023. On July 21, 2023, he also described a recent networking event where he met investors, but its exact date was not given.",
+      "correct": true,
+      "judge_reason": "The generated answer gives June 20, 2023, which matches the gold answer's date.",
+      "answer_f1": 0.1621621621621622,
+      "context_tokens": 7583,
+      "recall_ms": 6271.308041992597,
+      "fact_count": 109,
+      "included_facts": 37,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D16:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D16:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D16:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon decided to attend networking events for his dance studio on June 20, 2023. By July 21, 2023, he reported having attended an event where he met investors and received advice; the exact attendance date is not stated.",
+        "answer_f1": 0.15789473684210528,
+        "judge_reason": "The generated answer explicitly references June 20, 2023, matching the gold answer despite adding caveats about attendance."
+      }
+    },
+    {
+      "question_id": "conv-30_q34",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina start being recognized by fashion editors?",
+      "gold": [
+        "July 2023"
+      ],
+      "answer": "Gina started being recognized by fashion editors during June 26–July 2, 2023.",
+      "reasoning": "On July 9, 2023, Gina said she had been noticed by fashion editors 'last week.' The provided memory dates that recognition to June 26–July 2, 2023.",
+      "correct": true,
+      "judge_reason": "The stated week includes early July 2023, aligning with the gold answer's month under generous time-period grading.",
+      "answer_f1": 0.14285714285714285,
+      "context_tokens": 7576,
+      "recall_ms": 6611.059584072791,
+      "fact_count": 109,
+      "included_facts": 37,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D17:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D17:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D17:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina started being recognized by fashion editors during June 26–July 2, 2023.",
+        "answer_f1": 0.14285714285714285,
+        "judge_reason": "The specified week includes early July 2023, matching the gold answer's time period under generous grading."
+      }
+    },
+    {
+      "question_id": "conv-30_q35",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon start learning marketing and analytics tools?",
+      "gold": [
+        "July, 2023"
+      ],
+      "answer": "Jon started learning marketing and analytics tools on July 9, 2023.",
+      "reasoning": "In the conversation dated July 9, 2023, Jon said he started learning marketing and analytics tools “today,” establishing the date as July 9, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer specifies July 2023, matching the gold answer's month and year.",
+      "answer_f1": 0.33333333333333337,
+      "context_tokens": 7939,
+      "recall_ms": 6849.860040936619,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D17:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D17:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D17:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon started learning marketing and analytics tools on July 9, 2023.",
+        "answer_f1": 0.33333333333333337,
+        "judge_reason": "The generated answer gives July 2023, matching the gold answer's month and year."
+      }
+    },
+    {
+      "question_id": "conv-30_q36",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Jon and Gina decide to collaborate to create dance content?",
+      "gold": [
+        "21 July 2023"
+      ],
+      "answer": "Jon and Gina decided to collaborate to create dance content on July 21, 2023.",
+      "reasoning": "The July 21, 2023 conversation explicitly records Gina offering to help create dance content and manage Jon’s studio social media accounts, and Jon accepting. The corresponding memory dates their agreement to that day.",
+      "correct": true,
+      "judge_reason": "The generated answer gives July 21, 2023, which is the same date as the gold answer.",
+      "answer_f1": 0.375,
+      "context_tokens": 7868,
+      "recall_ms": 6526.2602920411155,
+      "fact_count": 109,
+      "included_facts": 40,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D18:18"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D18:18"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D18:18"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon and Gina decided to collaborate on creating dance content on Friday, July 21, 2023.",
+        "answer_f1": 0.35294117647058826,
+        "judge_reason": "The generated answer gives July 21, 2023, which matches the gold answer exactly."
+      }
+    },
+    {
+      "question_id": "conv-30_q37",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina mention Shia Labeouf?",
+      "gold": [
+        " 23 July, 2023"
+      ],
+      "answer": "The provided memories do not state when Gina mentioned Shia LaBeouf.",
+      "reasoning": "The provided facts and conversation excerpts contain no explicit mention of Shia LaBeouf, so they do not establish a date when Gina mentioned him.",
+      "correct": false,
+      "judge_reason": "The generated answer says the date is unknown, whereas the gold answer specifies 23 July 2023.",
+      "answer_f1": 0.0,
+      "context_tokens": 7812,
+      "recall_ms": 6353.912667022087,
+      "fact_count": 109,
+      "included_facts": 34,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D19:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D19:4"
+      ],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": true,
+        "answer": "Gina mentioned Shia LaBeouf on July 23, 2023.",
+        "answer_f1": 0.5454545454545454,
+        "judge_reason": "The generated answer gives July 23, 2023, which is the same date as the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q38",
+      "conversation_id": "conv-30",
+      "category": 2,
+      "question": "When did Gina go to a dance class with a group of friends?",
+      "gold": [
+        "21 July 2023"
+      ],
+      "answer": "Gina went to a dance class with a group of friends on Friday, July 21, 2023.",
+      "reasoning": "In the July 23, 2023 conversation, Gina said she attended dance class with friends 'last Friday.' The Friday preceding July 23 was July 21, 2023, also explicitly identified in the memories.",
+      "correct": true,
+      "judge_reason": "The generated answer gives July 21, 2023, which is the same date as the gold answer.",
+      "answer_f1": 0.35294117647058826,
+      "context_tokens": 7707,
+      "recall_ms": 7150.431832997128,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D19:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D19:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D19:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina went to a dance class with a group of friends on Friday, July 21, 2023.",
+        "answer_f1": 0.35294117647058826,
+        "judge_reason": "The generated answer gives July 21, 2023, which matches the gold answer exactly."
+      }
+    },
+    {
+      "question_id": "conv-30_q39",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is Gina's favorite style of dance?",
+      "gold": [
+        "Contemporary"
+      ],
+      "answer": "Gina’s favorite style of dance is contemporary.",
+      "reasoning": "In the January 20, 2023 conversation, Gina explicitly agrees that contemporary is her favorite dance style, describing it as expressive and graceful.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies contemporary as Gina’s favorite dance style, exactly matching the gold answer.",
+      "answer_f1": 0.25,
+      "context_tokens": 7878,
+      "recall_ms": 6571.571250096895,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:9"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:9"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:9"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s favorite style is contemporary dance, which she loves for its expressiveness and grace.",
+        "answer_f1": 0.14285714285714288,
+        "judge_reason": "The generated answer identifies contemporary dance, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q40",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is Jon's favorite style of dance?",
+      "gold": [
+        "Contemporary"
+      ],
+      "answer": "Jon’s favorite style of dance is contemporary.",
+      "reasoning": "In the January 20, 2023 conversation, Jon explicitly says contemporary is his top pick because it is expressive and powerful.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies contemporary as Jon’s favorite dance style, exactly matching the gold answer.",
+      "answer_f1": 0.25,
+      "context_tokens": 7755,
+      "recall_ms": 6231.04370792862,
+      "fact_count": 109,
+      "included_facts": 47,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon’s favorite style of dance is contemporary because it is expressive and powerful.",
+        "answer_f1": 0.15384615384615385,
+        "judge_reason": "The generated answer identifies contemporary as Jon’s favorite dance style, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q41",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What was Gina's favorite dancing memory?",
+      "gold": [
+        "Winning first place at a regionals dance competition"
+      ],
+      "answer": "Gina’s favorite dancing memory was winning first place with her team at a regional competition when she was fifteen. They performed an emotional, powerful contemporary piece called “Finding Freedom,” and she remembered an awesome sense of accomplishment. The calendar year is not specified.",
+      "reasoning": "Gina explicitly identified her favorite dance memory in the January 20, 2023 conversation: her team won first place at a regional competition when she was fifteen, performing “Finding Freedom.” Her age is given, but the calendar year is not.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer by identifying winning first place at a regional dance competition as Gina’s favorite dancing memory.",
+      "answer_f1": 0.3111111111111111,
+      "context_tokens": 7904,
+      "recall_ms": 6322.997290990315,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:17"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:17"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:17"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s favorite dancing memory was winning first place with her team at a regional competition when she was fifteen. They performed the contemporary piece “Finding Freedom,” which she remembered as emotional and powerful, and the win gave her a wonderful sense of accomplishment.",
+        "answer_f1": 0.3181818181818182,
+        "judge_reason": "The generated answer matches the gold answer by identifying winning first place at a regional dance competition as Gina’s favorite dancing memory."
+      }
+    },
+    {
+      "question_id": "conv-30_q42",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What kind of dance piece did Gina's team perform to win first place?",
+      "gold": [
+        "\"Finding Freedom\""
+      ],
+      "answer": "Gina’s team performed an emotional, powerful contemporary dance piece called “Finding Freedom.”",
+      "reasoning": "Gina explicitly said her team won first place at a regional competition when she was fifteen, performing a contemporary piece called “Finding Freedom,” which she described as emotional and powerful.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly identifies the dance piece as “Finding Freedom,” matching the gold answer.",
+      "answer_f1": 0.0,
+      "context_tokens": 7881,
+      "recall_ms": 6429.525625077076,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:19"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:19"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:19"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s team performed an emotional, powerful contemporary dance piece called “Finding Freedom.”",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer correctly identifies the dance piece as “Finding Freedom,” matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q43",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What do the dancers in the photo represent?",
+      "gold": [
+        "They are performing at the festival"
+      ],
+      "answer": "The dancers represent the inclusive, creative community Jon hopes to foster at his studio—a place where people of all ages and backgrounds can express themselves through dance.",
+      "reasoning": "The July 23, 2023 conversation connects the dancers' photo with Gina's remarks about creative spaces and self-expression and Jon's wish to welcome dancers of all ages and backgrounds. This supports interpreting the dancers as representing the inclusive community Jon wants his studio to support.",
+      "correct": false,
+      "judge_reason": "The generated answer describes an inclusive studio community rather than identifying the dancers as performing at the festival.",
+      "answer_f1": 0.06896551724137931,
+      "context_tokens": 4062,
+      "recall_ms": 768.9529589843005,
+      "fact_count": 8,
+      "included_facts": 8,
+      "returned_chunks": 6,
+      "included_chunks": 4,
+      "server_truncated_chunks": 0,
+      "evidence_ids": [
+        "D1:25"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:25"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:25"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "The dancers represent the passion, creativity, and self-expression Jon hopes to nurture through his dance studio—a supportive, welcoming community for dancers of all ages and backgrounds.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer describes symbolic values associated with a dance studio rather than identifying the dancers as performing at the festival."
+      }
+    },
+    {
+      "question_id": "conv-30_q44",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Gina say about the dancers in the photo?",
+      "gold": [
+        "They look graceful"
+      ],
+      "answer": "Gina says they are friends she attended dance class with on July 21, 2023. The experience reminded her how important it is for dancers to have a creative space to express themselves.",
+      "reasoning": "The July 23, 2023 conversation pairs a photo of girls in ballet costumes with Gina's statement that she attended dance class with a group of friends last Friday, July 21. She says that experience reminded her how important a creative space for dancers is.",
+      "correct": false,
+      "judge_reason": "The generated answer does not mention Gina saying that the dancers look graceful.",
+      "answer_f1": 0.0606060606060606,
+      "context_tokens": 7673,
+      "recall_ms": 6327.696125023067,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:26"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:26"
+      ],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": false,
+        "answer": "Gina says they are friends she attended dance class with on July 21, 2023. The experience reminded her how important it is for dancers to have a creative space for self-expression.",
+        "answer_f1": 0.0625,
+        "judge_reason": "The generated answer does not mention Gina saying the dancers look graceful, instead giving unrelated details about dance class and self-expression."
+      }
+    },
+    {
+      "question_id": "conv-30_q45",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is Jon's attitude towards being part of the dance festival?",
+      "gold": [
+        "Glad"
+      ],
+      "answer": "Jon is excited and happy to be part of the dance festival. He eagerly anticipates performing and feels proud of his group's hard work and skill.",
+      "reasoning": "In the January 20, 2023 conversation, Jon says he cannot wait for the festival performance and is glad to be part of it. On February 8, 2023, he describes the completed performance as awesome and says the compliments reminded him of his passion for dancing.",
+      "correct": true,
+      "judge_reason": "The generated answer describes Jon as happy and excited, which matches the gold answer that he is glad.",
+      "answer_f1": 0.0,
+      "context_tokens": 7578,
+      "recall_ms": 6669.9845000403,
+      "fact_count": 109,
+      "included_facts": 47,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D1:28"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D1:28"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D1:28"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon is excited and enthusiastic about being part of the dance festival in February 2023. He enjoys performing, and the positive feedback on his dancing reinforces his joy and passion.",
+        "answer_f1": 0.0,
+        "judge_reason": "Describing Jon as excited and enthusiastic conveys the same positive attitude as being glad."
+      }
+    },
+    {
+      "question_id": "conv-30_q46",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What kind of flooring is Jon looking for in his dance studio?",
+      "gold": [
+        "Marley flooring"
+      ],
+      "answer": "Jon is looking for Marley flooring for his dance studio because it balances grip and freedom of movement, is durable, and is easy to clean.",
+      "reasoning": "In the January 29, 2023 conversation, Jon explicitly says he is looking for Marley flooring because it provides grip while allowing movement, is durable, and is easy to clean.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly identifies Marley flooring, matching the gold answer.",
+      "answer_f1": 0.16,
+      "context_tokens": 7869,
+      "recall_ms": 6366.821540985256,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D2:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D2:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D2:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon is looking for Marley flooring for his dance studio because it balances grip and freedom of movement, is durable, and is easy to clean.",
+        "answer_f1": 0.16,
+        "judge_reason": "The generated answer correctly identifies Marley flooring, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q47",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina find for her clothing store on 1 February, 2023?",
+      "gold": [
+        "The perfect spot for her store"
+      ],
+      "answer": "Gina found the perfect location for her clothing store—a space she designed to be cozy and inviting for customers.",
+      "reasoning": "In the conversation dated February 1, 2023, Gina shared a picture of her store location, and Jon said she had found the perfect spot for her store. Gina confirmed it was a great spot.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies the perfect location for her clothing store, matching the gold answer’s perfect spot.",
+      "answer_f1": 0.2727272727272727,
+      "context_tokens": 7612,
+      "recall_ms": 6401.993500068784,
+      "fact_count": 109,
+      "included_facts": 38,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:2"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:2"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:2"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "On February 1, 2023, Gina found the perfect spot for her clothing store—a space she designed to be cozy and inviting for customers.",
+        "answer_f1": 0.3076923076923077,
+        "judge_reason": "The generated answer correctly states that Gina found the perfect spot for her clothing store on February 1, 2023."
+      }
+    },
+    {
+      "question_id": "conv-30_q48",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina design for her store?",
+      "gold": [
+        "the space, furniture, and decor"
+      ],
+      "answer": "Gina designed a cozy, inviting interior for her clothing store, with comfortable furniture and a glamorous chandelier that reflected her personal style.",
+      "reasoning": "In the February 1, 2023 conversation, Gina explicitly described designing her store’s space to reflect her personal style, choosing comfortable furniture and a glamorous chandelier to make customers feel welcome.",
+      "correct": true,
+      "judge_reason": "The generated answer covers the store’s space, furniture, and decor by describing its interior, comfortable furniture, and chandelier.",
+      "answer_f1": 0.09090909090909091,
+      "context_tokens": 7598,
+      "recall_ms": 6182.03829205595,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:4"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:4"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:4"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina designed a cozy, inviting store interior reflecting her personal style, with comfortable furniture and a glamorous chandelier.",
+        "answer_f1": 0.1111111111111111,
+        "judge_reason": "The generated answer covers the store’s space, furniture, and decor through its description of the interior, comfortable furniture, and chandelier."
+      }
+    },
+    {
+      "question_id": "conv-30_q49",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina want her customers to feel in her store?",
+      "gold": [
+        "cozy and comfortable"
+      ],
+      "answer": "Gina wanted her customers to feel cozy, comfortable, and welcome—like they were in a cool oasis that made them want to come back.",
+      "reasoning": "In the February 1, 2023 conversation, Gina said she wanted customers to feel cozy and described her goal as making the store comfortable and inviting, like a cool oasis that they would want to return to.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly includes both cozy and comfortable, matching the gold answer.",
+      "answer_f1": 0.17391304347826084,
+      "context_tokens": 7697,
+      "recall_ms": 6548.710208036937,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:6",
+        "D3:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:6",
+        "D3:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:6",
+        "D3:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina wanted customers to feel comfortable and welcome in her store, enjoying a cozy, inviting atmosphere that would make them want to return.",
+        "answer_f1": 0.17391304347826084,
+        "judge_reason": "The generated answer explicitly says customers should feel comfortable in a cozy atmosphere, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q50",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Jon say about Gina's progress with her store?",
+      "gold": [
+        "hard work's paying off"
+      ],
+      "answer": "Jon said Gina’s success with her store inspired him to keep pushing forward, and he praised her determination as “awesome” (March 16, 2023).",
+      "reasoning": "The March 16, 2023 conversation directly records Jon's reaction to Gina's store: he said her success inspired him to keep pushing forward and praised her determination.",
+      "correct": true,
+      "judge_reason": "The answer conveys Jon’s praise for Gina’s determination and store success, consistent with his saying her hard work was paying off.",
+      "answer_f1": 0.0,
+      "context_tokens": 7565,
+      "recall_ms": 6429.387707961723,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:3"
+      ],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": true,
+        "answer": "On April 3, 2023, Jon said, “Sounds like all your effort’s paying off,” acknowledging Gina’s increased sales and positive customer response to her store’s offers and designs.",
+        "answer_f1": 0.06896551724137932,
+        "judge_reason": "The generated answer’s statement that Gina’s effort was paying off matches the gold answer that her hard work was paying off."
+      }
+    },
+    {
+      "question_id": "conv-30_q51",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What made Gina choose the furniture and decor for her store?",
+      "gold": [
+        "personal style and customer comfort"
+      ],
+      "answer": "Gina chose the furniture and decor to reflect her personal style while making customers feel cozy and welcome. She picked furniture that was both attractive and comfortable, and a chandelier that added glamour while matching the store’s style.",
+      "reasoning": "In the February 1, 2023 conversation, Gina directly explained that she wanted the store to reflect her personal style and make customers feel cozy. She selected furniture for both appearance and comfort, and a chandelier for glamour that matched the store.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly identifies Gina’s personal style and customer comfort as the reasons for her choices.",
+      "answer_f1": 0.2285714285714286,
+      "context_tokens": 7692,
+      "recall_ms": 6551.703167031519,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina chose the furniture and decor to reflect her personal style and make customers feel comfortable. She wanted comfortable furniture and a glamorous chandelier to create a cozy, inviting shopping experience that would encourage customers to return.",
+        "answer_f1": 0.2285714285714286,
+        "judge_reason": "The generated answer explicitly identifies Gina’s personal style and customer comfort as her reasons, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q52",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Jon say about creating a special experience for customers?",
+      "gold": [
+        "It's the key to making them feel welcome and coming back"
+      ],
+      "answer": "Jon said that creating a special experience for customers is key to making them feel welcome and encouraging them to come back. He also told Gina he believed she could create the space she envisioned.",
+      "reasoning": "The February 1, 2023 conversation directly records Jon's response to Gina's aim of making her store comfortable and inviting. He said a special customer experience helps customers feel welcome and return.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer that a special customer experience makes customers feel welcome and encourages them to return.",
+      "answer_f1": 0.3902439024390244,
+      "context_tokens": 7591,
+      "recall_ms": 6382.593541988172,
+      "fact_count": 109,
+      "included_facts": 39,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:9"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:9"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:9"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon wanted his studio to offer more than dance lessons: a welcoming space where people of all ages and backgrounds could express themselves, experience the joy and excitement of dancing, and create memorable experiences.",
+        "answer_f1": 0.10526315789473684,
+        "judge_reason": "The answer captures Jon’s emphasis on creating memorable experiences and making customers feel welcome, though it does not explicitly mention their returning."
+      }
+    },
+    {
+      "question_id": "conv-30_q53",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina say about creating an experience for her customers?",
+      "gold": [
+        "making them want to come back"
+      ],
+      "answer": "Gina said she wanted to create a comfortable, cozy, and inviting shopping experience—a “cool oasis” where customers would feel welcome and want to come back. She expressed this on February 1, 2023.",
+      "reasoning": "In the February 1, 2023 conversation, Gina said making her store comfortable and inviting was key. She wanted customers to feel like they were in a 'cool oasis' and to create an experience that would make them want to return.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly says Gina wanted customers to want to come back, matching the gold answer.",
+      "answer_f1": 0.2285714285714286,
+      "context_tokens": 7816,
+      "recall_ms": 6151.074957917444,
+      "fact_count": 109,
+      "included_facts": 41,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D3:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D3:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D3:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina said she wanted to create a cozy, inviting shopping experience that would make customers want to return. She designed the store to reflect her personal style, with comfortable furniture and a glamorous chandelier.",
+        "answer_f1": 0.16666666666666669,
+        "judge_reason": "The generated answer explicitly says Gina wanted an experience that would make customers want to return, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q54",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How is Gina's store doing?",
+      "gold": [
+        "The store is doing great."
+      ],
+      "answer": "Gina’s clothing store appears to be doing well overall, although running it remains challenging. On April 3, 2023, she said customers loved her offers and promotions and sales were increasing. She has continued working to grow her customer base and adding unique clothing pieces. By July 21, she reported overcoming sourcing difficulties through research and networking, and she had built a customer-ordering website during July 10–16. She finds the business rewarding and enjoys being her own boss.",
+      "reasoning": "Gina explicitly reported on April 3, 2023 that promotions were popular and sales were increasing. June 16 reports show continued customer-base growth efforts; June 21 and July 21 reports describe new merchandise and overcoming sourcing challenges. The latest update says she built an ordering website during July 10–16, 2023. These indicate positive progress despite ongoing challenges, without establishing current revenue figures.",
+      "correct": true,
+      "judge_reason": "The generated answer says Gina’s store is doing well overall, matching the gold answer that it is doing great.",
+      "answer_f1": 0.0547945205479452,
+      "context_tokens": 7667,
+      "recall_ms": 6469.234167016111,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D4:2"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D4:2"
+      ],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s clothing store is doing well and growing, although running it has been challenging. Her offers and promotions have increased sales, and she continues adding unique, trendy pieces. Fashion editors noticed her work during June 26–July 2, 2023, and she built a customer-ordering website during July 10–16. As of July 21, she had also overcome sourcing difficulties through research and networking. She remains focused on expanding her customer base.",
+        "answer_f1": 0.08955223880597014,
+        "judge_reason": "The generated answer says Gina’s store is doing well and growing, matching the gold answer that it is doing great."
+      }
+    },
+    {
+      "question_id": "conv-30_q55",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Gina's tattoo symbolize?",
+      "gold": [
+        "Freedom and expressing herself through dance"
+      ],
+      "answer": "Gina’s tattoo symbolizes freedom—especially dancing without worrying about others’ opinions—and reminds her to follow her passions and express herself.",
+      "reasoning": "In the February 8, 2023 conversation, Gina explicitly says her tattoo stands for freedom: dancing without worrying about what others think, following her passions, and expressing herself.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer by linking Gina’s tattoo to freedom and self-expression through dance.",
+      "answer_f1": 0.2608695652173913,
+      "context_tokens": 7930,
+      "recall_ms": 6152.974124997854,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D5:15"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D5:15"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D5:15"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s tattoo symbolizes freedom—especially dancing without worrying about others’ opinions. It reminds her to follow her passions and express herself.",
+        "answer_f1": 0.25,
+        "judge_reason": "The generated answer correctly identifies freedom and self-expression through dance as the tattoo’s symbolism."
+      }
+    },
+    {
+      "question_id": "conv-30_q56",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Jon and Gina compare their entrepreneurial journeys to?",
+      "gold": [
+        "dancing together and supporting each other"
+      ],
+      "answer": "They compared their entrepreneurial journeys to a rollercoaster, full of ups and downs, and their mutual support to having a partner to dance with.",
+      "reasoning": "In the March 16, 2023 conversation, Jon described entrepreneurship as a 'rollercoaster' and said sharing its challenges with Gina was 'like having a partner to dance with.' Gina agreed that having someone rooting for them helped.",
+      "correct": true,
+      "judge_reason": "The generated answer includes the key comparison of dancing with a partner and supporting each other, matching the gold answer despite the added rollercoaster analogy.",
+      "answer_f1": 0.16000000000000003,
+      "context_tokens": 7616,
+      "recall_ms": 6259.9247910548,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D6:15",
+        "D6:16"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D6:15",
+        "D6:16"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D6:15",
+        "D6:16"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "They compared their entrepreneurial journeys to a roller-coaster ride, with ups and downs—challenges and setbacks mixed with excitement and rewards. The supplied memories imply this comparison rather than explicitly stating it.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer describes a roller-coaster ride rather than dancing together and supporting each other."
+      }
+    },
+    {
+      "question_id": "conv-30_q57",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What advice does Gina give to Jon about running a successful business?",
+      "gold": [
+        "build relationships with customers, create a strong brand image, stay positive"
+      ],
+      "answer": "Gina advises Jon to stay positive, believe in himself, and persevere through setbacks rather than give up. She also encourages him to keep learning and growing through business challenges and to promote his dance studio on social media, including posting dance videos.",
+      "reasoning": "The March 23, 2023 conversation directly records Gina encouraging Jon to stay positive, believe in himself, keep going, and never give up. On May 27, 2023, she advises him to keep learning and growing through challenges. The June 16 memory also states that Jon promoted his business on social media by posting dance videos following Gina’s advice. The brand identity and customer relationship advice in the March 23 conversation was given by Jon to Gina, not the reverse.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly includes staying positive, matching a key part of the gold advice, and its social media promotion advice relates to building a strong brand image.",
+      "answer_f1": 0.0816326530612245,
+      "context_tokens": 7717,
+      "recall_ms": 6306.809959001839,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D7:5"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D7:5"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D7:5"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina advises Jon to:\n- **Believe in himself and his abilities**, remembering his successes and progress to build confidence.\n- **Stay focused on his larger goal and why he started**—his love of dance.\n- **Treat challenges as opportunities to learn and grow**, and keep going rather than give up.\n- **Lean on supportive people** for encouragement and help, and use dancing to manage stress.\n- **Market the studio effectively**: on July 21, 2023, she recommends Instagram and TikTok, dance clips and related content, and collaborations with local influencers or dance communities to reach his target audience. She also offers to help create content and manage his social media accounts.",
+        "answer_f1": 0.0784313725490196,
+        "judge_reason": "The answer overlaps with Gina’s advice to stay positive and create a strong brand image through effective marketing, despite omitting customer relationships."
+      }
+    },
+    {
+      "question_id": "conv-30_q58",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "Why did Jon shut down his bank account?",
+      "gold": [
+        "for his business"
+      ],
+      "answer": "Jon shut down his bank account because he believed it would help his dance studio business grow, despite it being a difficult decision.",
+      "reasoning": "In the April 3, 2023 conversation, Jon explicitly said shutting down his bank account was a tough decision but that he thought it would help his business grow. No more specific financial reason is provided.",
+      "correct": true,
+      "judge_reason": "The generated answer attributes the account closure to Jon’s business, matching the gold answer.",
+      "answer_f1": 0.16,
+      "context_tokens": 7580,
+      "recall_ms": 6134.382082964294,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D8:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D8:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D8:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon shut down his bank account because he believed it would help his dance studio business grow. He did so before April 3, 2023; the exact date is not specified.",
+        "answer_f1": 0.125,
+        "judge_reason": "The generated answer states that Jon closed the account for his business, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q59",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "Why did Gina combine her clothing business with dance?",
+      "gold": [
+        "she is passionate about dance and fashion"
+      ],
+      "answer": "Gina combined her clothing business with dance because she was passionate about both dance and fashion. Bringing them together allowed her to express her creativity, share her passions with others, and offer dance-inspired clothing in her store.",
+      "reasoning": "On March 16, 2023, Gina said she wanted to blend her love of dance and fashion. On April 3, 2023, she explicitly explained that combining these passions let her express her creativity, share her interests with others, and add dance-inspired items to her store.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer by stating that Gina combined the businesses because she is passionate about both dance and fashion.",
+      "answer_f1": 0.2439024390243902,
+      "context_tokens": 7836,
+      "recall_ms": 6283.884415985085,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D8:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D8:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D8:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina combined her clothing business with dance because she loved both dance and fashion and wanted to bring those passions together. It allowed her to express her creativity, offer unique dance-inspired pieces, and stay motivated in growing her business.",
+        "answer_f1": 0.1904761904761905,
+        "judge_reason": "The generated answer matches the gold answer by explaining that Gina combined the businesses because she was passionate about both dance and fashion."
+      }
+    },
+    {
+      "question_id": "conv-30_q60",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Jon's dance make him?",
+      "gold": [
+        "happy"
+      ],
+      "answer": "Dancing makes Jon happy and feel most alive, allowing him to express his true self and relieve stress.",
+      "reasoning": "Jon explicitly said on April 9, 2023 that dancing makes him happy and allows him to express his true self. On May 11, 2023, he also said it is where he feels most alive and helps him de-stress.",
+      "correct": true,
+      "judge_reason": "The generated answer states that dancing makes Jon happy, matching the gold answer.",
+      "answer_f1": 0.11764705882352941,
+      "context_tokens": 7601,
+      "recall_ms": 6139.300000038929,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D9:5"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D9:5"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D9:5"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Dancing makes Jon happy, fulfilled, and most alive, while helping him express himself and relieve stress.",
+        "answer_f1": 0.13333333333333333,
+        "judge_reason": "The generated answer explicitly states that dancing makes Jon happy, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q61",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina receive from a dance contest?",
+      "gold": [
+        "a trophy"
+      ],
+      "answer": "Gina received a trophy from a dance contest.",
+      "reasoning": "In the April 9, 2023 conversation, Gina explicitly described a pictured trophy as one of her trophies from a dance contest.",
+      "correct": true,
+      "judge_reason": "The generated answer correctly states that Gina received a trophy, matching the gold answer.",
+      "answer_f1": 0.2857142857142857,
+      "context_tokens": 7923,
+      "recall_ms": 6158.104458940215,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D9:10"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D9:10"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D9:10"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina received a trophy from a dance contest.",
+        "answer_f1": 0.2857142857142857,
+        "judge_reason": "The generated answer correctly states that Gina received a trophy, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q62",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How does Gina stay confident in her business?",
+      "gold": [
+        "By reminding herself of her successes and progress, having a support system, and focusing on why she started"
+      ],
+      "answer": "Gina stays confident by reminding herself of her successes and progress, leaning on a supportive network, and focusing on why she started her business—her passion for what she does.",
+      "reasoning": "In the April 25, 2023 conversation, Gina directly explains that she maintains confidence by reminding herself of her successes and progress, having a good support system, and focusing on why she started her business and her love for it.",
+      "correct": true,
+      "judge_reason": "The generated answer matches all three confidence strategies in the gold answer: recalling successes and progress, relying on support, and remembering why she started.",
+      "answer_f1": 0.6341463414634146,
+      "context_tokens": 7685,
+      "recall_ms": 6396.344208042137,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D10:8"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D10:8"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D10:8"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina stays confident in her business by focusing on her goals, reminding herself of her successes and progress, and seeking support from others. She also dances to relieve stress and stay motivated.",
+        "answer_f1": 0.5,
+        "judge_reason": "The answer matches the key themes of recalling successes and progress, relying on support, and focusing on her goals."
+      }
+    },
+    {
+      "question_id": "conv-30_q63",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What kind of professional experience did Gina get accepted for on May 23, 2023?",
+      "gold": [
+        "fashion internship"
+      ],
+      "answer": "Gina was accepted for a part-time fashion internship in the fashion department of an international company. She reported the acceptance on May 27, 2023; the memories do not confirm May 23 as the acceptance date.",
+      "reasoning": "The May 27, 2023 conversation directly states that Gina was accepted for a part-time internship in the fashion department of an international company. The provided memories do not establish May 23 as the acceptance date.",
+      "correct": true,
+      "judge_reason": "The generated answer identifies a fashion internship, matching the gold answer despite its additional date caveat.",
+      "answer_f1": 0.12903225806451613,
+      "context_tokens": 7982,
+      "recall_ms": 6488.39862504974,
+      "fact_count": 109,
+      "included_facts": 36,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D12:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D12:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D12:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina was accepted for a part-time internship in the fashion department of an international company. The memories report this on May 27, 2023, rather than explicitly confirming May 23.",
+        "answer_f1": 0.14814814814814814,
+        "judge_reason": "The generated answer identifies a fashion internship, matching the gold answer despite its additional date caveat."
+      }
+    },
+    {
+      "question_id": "conv-30_q64",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "Where is Gina's fashion internship?",
+      "gold": [
+        "fashion department of an international company"
+      ],
+      "answer": "Gina’s internship is in the fashion department of an international company. The company’s name and location aren’t specified.",
+      "reasoning": "On May 27, 2023, Gina said her internship was a part-time position in the fashion department of an international company. No company name or geographic location was provided.",
+      "correct": true,
+      "judge_reason": "The generated answer exactly matches the gold answer that Gina’s internship is in the fashion department of an international company.",
+      "answer_f1": 0.5263157894736842,
+      "context_tokens": 7818,
+      "recall_ms": 6362.071875017136,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D12:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D12:3"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D12:3"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina’s internship is in the fashion department of an international company. The company’s name and location aren’t specified.",
+        "answer_f1": 0.5263157894736842,
+        "judge_reason": "The generated answer exactly matches the gold answer that Gina’s internship is in the fashion department of an international company."
+      }
+    },
+    {
+      "question_id": "conv-30_q65",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What book is Jon currently reading?",
+      "gold": [
+        "The Lean Startup"
+      ],
+      "answer": "Jon is reading \"The Lean Startup.\"",
+      "reasoning": "In the May 27, 2023 conversation, Jon explicitly says he is currently reading \"The Lean Startup.\" No later memory identifies another book.",
+      "correct": true,
+      "judge_reason": "The generated answer names \"The Lean Startup,\" exactly matching the gold answer.",
+      "answer_f1": 0.5714285714285715,
+      "context_tokens": 7936,
+      "recall_ms": 5932.108792010695,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D12:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D12:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D12:6"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon is reading The Lean Startup.",
+        "answer_f1": 0.5714285714285715,
+        "judge_reason": "The generated answer names The Lean Startup, exactly matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q66",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is Jon offering to the dancers at his dance studio?",
+      "gold": [
+        "One-on-one mentoring and training"
+      ],
+      "answer": "Jon offers dance classes, workshops, and one-on-one mentoring and training to help dancers reach their full potential, in a supportive and encouraging environment.",
+      "reasoning": "In the June 13, 2023 conversation, Jon explicitly says he offers dance classes and workshops, plus one-on-one mentoring and training to help dancers reach their full potential. He also describes the studio as a place of support and encouragement.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly includes one-on-one mentoring and training, matching the gold answer.",
+      "answer_f1": 0.2727272727272727,
+      "context_tokens": 7965,
+      "recall_ms": 6452.806625049561,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D13:7"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D13:7"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D13:7"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon offers dance classes, workshops, and one-on-one mentoring and training to help dancers grow and reach their full potential. His studio provides a supportive, encouraging space for dancers of all ages and backgrounds to express themselves.",
+        "answer_f1": 0.17647058823529413,
+        "judge_reason": "The generated answer explicitly includes one-on-one mentoring and training, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q67",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How does Jon use the clipboard with a notepad attached to it?",
+      "gold": [
+        "To set goals, track achievements, and find areas for improvement"
+      ],
+      "answer": "Jon uses the clipboard and notepad to set goals, track his achievements, and identify areas for improvement, helping him stay organized and motivated.",
+      "reasoning": "In the June 13, 2023 conversation, Jon shares an image of a clipboard with a notepad attached. When Gina asks how he uses it, he says it helps him stay organized and motivated by setting goals, tracking achievements, and identifying areas for improvement.",
+      "correct": true,
+      "judge_reason": "The generated answer matches all three uses in the gold answer: setting goals, tracking achievements, and identifying areas for improvement.",
+      "answer_f1": 0.5714285714285714,
+      "context_tokens": 7956,
+      "recall_ms": 6635.553041938692,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D13:11"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D13:11"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D13:11"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon uses it to write down his plans and goals, keeping them visible to help him stay motivated and focused.",
+        "answer_f1": 0.14814814814814814,
+        "judge_reason": "The generated answer identifies writing down plans and goals, which matches the goal-setting purpose in the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q68",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Jon tell Gina he won't do?",
+      "gold": [
+        "quit"
+      ],
+      "answer": "Jon tells Gina he won’t quit or give up on his dream of running his dance studio.",
+      "reasoning": "In the July 23, 2023 conversation, Jon explicitly tells Gina, “I won't quit. I'm gonna keep going, whatever comes my way.” Earlier conversations likewise say he will not give up on his dreams.",
+      "correct": true,
+      "judge_reason": "The generated answer says Jon won’t quit, matching the gold answer.",
+      "answer_f1": 0.1111111111111111,
+      "context_tokens": 7993,
+      "recall_ms": 6244.874999974854,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 13,
+      "included_chunks": 7,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D14:17"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D14:17"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D14:17"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon tells Gina he won’t quit or give up on his dream of running his dance studio, no matter what challenges he faces.",
+        "answer_f1": 0.08333333333333333,
+        "judge_reason": "The generated answer explicitly states that Jon won’t quit, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q69",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Jon take a trip to Rome for?",
+      "gold": [
+        "To clear his mind"
+      ],
+      "answer": "Jon took a trip to Rome to clear his mind while working on opening his dance studio.",
+      "reasoning": "In the June 19, 2023 conversation, Jon explicitly said he took a short trip to Rome the previous week to clear his mind while still working on opening his dance studio. That week was June 12–18, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly states that Jon went to Rome to clear his mind, matching the gold answer.",
+      "answer_f1": 0.4,
+      "context_tokens": 7897,
+      "recall_ms": 6373.564540990628,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:1"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:1"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:1"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon took a short trip to Rome during June 12–18, 2023, to clear his mind while preparing to open his dance studio.",
+        "answer_f1": 0.32,
+        "judge_reason": "The generated answer explicitly states that Jon went to Rome to clear his mind, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q70",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is Jon working on opening?",
+      "gold": [
+        "a dance studio"
+      ],
+      "answer": "Jon is working on opening his own dance studio.",
+      "reasoning": "The memories repeatedly state that Jon is preparing to open his own dance studio, including his direct statement on June 19, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer matches the gold answer by stating that Jon is opening a dance studio.",
+      "answer_f1": 0.3636363636363636,
+      "context_tokens": 7782,
+      "recall_ms": 6096.1703329812735,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:3"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:3"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon is working on opening his own dance studio.",
+        "answer_f1": 0.3636363636363636,
+        "judge_reason": "The generated answer correctly states that Jon is working on opening a dance studio, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q71",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How does Gina describe the studio that Jon has opened?",
+      "gold": [
+        "amazing"
+      ],
+      "answer": "Gina describes Jon’s studio as an amazing-looking creative space—a place for dancers to grow and a go-to spot for self-expression.",
+      "reasoning": "Gina explicitly says on June 13, 2023 that the studio is 'a place for dancers to grow,' on June 19 that it 'looks amazing,' and on July 23 that it will be 'a go-to spot for self-expression' and emphasizes the importance of a creative space for dancers.",
+      "correct": true,
+      "judge_reason": "The generated answer describes the studio as amazing, matching the gold answer.",
+      "answer_f1": 0.0,
+      "context_tokens": 7651,
+      "recall_ms": 7533.113791956566,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:6"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:6"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:6"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "Gina describes Jon’s studio as more than just a business—it’s a place for dancers to grow.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer describes the studio’s purpose but does not convey Gina’s description of it as amazing."
+      }
+    },
+    {
+      "question_id": "conv-30_q72",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How does Jon feel about the opening night of his dance studio?",
+      "gold": [
+        "excited"
+      ],
+      "answer": "Jon feels excited, positive, and ready for his dance studio’s opening night on June 20, 2023. After putting so much work into it, he can’t wait to see everything come together and wants to savor the celebration and make lasting memories with Gina.",
+      "reasoning": "In the June 19, 2023 conversation, Jon says the official opening is tomorrow, establishing June 20, 2023 as the date. He explicitly says he is excited, feels good and ready, and wants to savor the milestone after all his work.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly says Jon feels excited, matching the gold answer.",
+      "answer_f1": 0.05,
+      "context_tokens": 7926,
+      "recall_ms": 6581.634958041832,
+      "fact_count": 109,
+      "included_facts": 45,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:7"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:7"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:7"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon feels excited and ready for his dance studio’s opening night on June 20, 2023. After all the hard work preparing it, he wants to savor this major milestone and looks forward to sharing it with Gina, who plans to attend.",
+        "answer_f1": 0.05128205128205127,
+        "judge_reason": "The generated answer states that Jon feels excited, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q73",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "How does Gina describe the feeling that dance brings?",
+      "gold": [
+        "magical"
+      ],
+      "answer": "Gina says dance brings happiness, joy, and freedom of self-expression. It relieves her stress—when she starts dancing, all her worries vanish. She describes it as essential to who she is: “It’s like air.”",
+      "reasoning": "Gina directly describes dance on April 9, 2023 as a way to express oneself and find happiness. On May 11, 2023, she says that as soon as she starts dancing, all her worries vanish, and describes dance as essential to her identity, 'like air.'",
+      "correct": false,
+      "judge_reason": "The generated answer describes joy and stress relief but does not convey Gina’s specific description of the feeling as magical.",
+      "answer_f1": 0.0,
+      "context_tokens": 7657,
+      "recall_ms": 6352.584165986627,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:8"
+      ],
+      "evidence_ids_in_returned_chunks": [],
+      "evidence_ids_in_packed_context": [],
+      "previous": {
+        "correct": false,
+        "answer": "Gina describes dance as bringing joy, happiness, and a sense of freedom and self-expression. It relieves her stress—she says that as soon as she starts dancing, all her worries vanish.",
+        "answer_f1": 0.0,
+        "judge_reason": "The answer describes joy and freedom but does not capture Gina’s specific description of the feeling as magical."
+      }
+    },
+    {
+      "question_id": "conv-30_q74",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Jon plan to do at the grand opening of his dance studio?",
+      "gold": [
+        "savor all the good vibes"
+      ],
+      "answer": "At his dance studio’s grand opening on June 20, 2023, Jon plans to celebrate with Gina, savor the milestone and good vibes, and make unforgettable memories together.",
+      "reasoning": "In the June 19, 2023 conversation, Jon says the official opening is tomorrow, placing it on June 20, 2023. He says he wants to savor the good vibes, enjoy the moment with Gina, and make awesome memories at the grand opening.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly says Jon plans to savor the good vibes, matching the gold answer.",
+      "answer_f1": 0.21428571428571427,
+      "context_tokens": 7704,
+      "recall_ms": 6576.4222090365365,
+      "fact_count": 109,
+      "included_facts": 44,
+      "returned_chunks": 12,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:9"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:9"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:9"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Jon plans to celebrate his studio’s grand opening on June 20, 2023, with Gina, enjoy the milestone, and make the occasion unforgettable.",
+        "answer_f1": 0.0,
+        "judge_reason": "Celebrating and enjoying the milestone conveys the same general intention as savoring all the good vibes."
+      }
+    },
+    {
+      "question_id": "conv-30_q75",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What does Gina say to Jon about the grand opening?",
+      "gold": [
+        "Let's live it up and make some great memories"
+      ],
+      "answer": "Gina congratulates Jon, says the studio looks amazing, and tells him she’s excited for the grand opening on June 20, 2023. She says his hard work and long nights were worth it, encourages him to savor the moment, and promises to be right by his side to celebrate and make great memories.",
+      "reasoning": "In the June 19, 2023 conversation, Gina congratulates Jon, praises the studio and his hard work, encourages him to savor the opening, and promises to attend. The opening described as tomorrow is June 20, 2023.",
+      "correct": true,
+      "judge_reason": "The generated answer captures Gina’s encouragement to celebrate the grand opening and make great memories, matching the gold answer.",
+      "answer_f1": 0.1509433962264151,
+      "context_tokens": 7826,
+      "recall_ms": 6773.474666988477,
+      "fact_count": 109,
+      "included_facts": 40,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:12"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:12"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:12"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "Gina tells Jon, “Can't wait for tomorrow's grand opening!” She is excited to attend his dance studio’s opening on June 20, 2023, and says she’ll see him there.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer expresses anticipation for the opening but omits Gina’s statement about living it up and making great memories."
+      }
+    },
+    {
+      "question_id": "conv-30_q76",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What is the general sentiment about the upcoming grand opening?",
+      "gold": [
+        "excitement"
+      ],
+      "answer": "The sentiment about the dance studio’s grand opening, scheduled for June 20, 2023, is overwhelmingly positive: Jon and Gina are excited, optimistic, and eager to celebrate. Jon feels proud and ready after his hard work, and Gina is enthusiastic and supportive. Both expect a fun, memorable milestone.",
+      "reasoning": "In the June 19, 2023 conversation, Jon and Gina repeatedly say they cannot wait for the June 20 grand opening. Jon feels excited and ready, while Gina expresses pride and enthusiastic support. Both anticipate celebrating together and making lasting memories.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly describes excitement about the grand opening, matching the gold answer.",
+      "answer_f1": 0.05,
+      "context_tokens": 7897,
+      "recall_ms": 6461.557000060566,
+      "fact_count": 109,
+      "included_facts": 38,
+      "returned_chunks": 12,
+      "included_chunks": 6,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D15:18",
+        "D15:19"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D15:18",
+        "D15:19"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D15:18",
+        "D15:19"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "The sentiment is overwhelmingly positive—both Jon and Gina are excited, proud, and eager to celebrate the dance studio’s grand opening on June 20, 2023. Jon feels ready after all his hard work, and Gina is enthusiastic and supportive, looking forward to sharing the milestone with him.",
+        "answer_f1": 0.05,
+        "judge_reason": "The generated answer explicitly describes excitement about the grand opening, matching the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q77",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What did Gina make a limited edition line of?",
+      "gold": [
+        "Hoodies"
+      ],
+      "answer": "Gina made a limited-edition clothing line, including a hoodie from her personal collection.",
+      "reasoning": "In the June 21, 2023 conversation, Gina showed a hoodie from her own collection and said she had made a limited-edition line the previous week, June 12–18, to showcase her style and creativity. The memories identify this as a clothing line.",
+      "correct": true,
+      "judge_reason": "The generated answer mentions a hoodie as part of Gina’s limited-edition clothing line, matching the gold answer.",
+      "answer_f1": 0.16666666666666669,
+      "context_tokens": 7709,
+      "recall_ms": 6329.972209059633,
+      "fact_count": 109,
+      "included_facts": 42,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D16:3"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D16:3"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D16:3"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina made a limited-edition line of clothing.",
+        "answer_f1": 0.0,
+        "judge_reason": "The generated answer identifies clothing, which includes hoodies, and thus touches on the same topic as the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q78",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "According to Gina, what makes Jon a perfect mentor and guide?",
+      "gold": [
+        "His positivity and determination"
+      ],
+      "answer": "According to Gina, Jon’s love for what he does, his ability to bring joy to others, and his positivity and determination make him a perfect mentor and guide.",
+      "reasoning": "In the July 9, 2023 conversation, Gina responds to Jon's wish to mentor aspiring dancers by praising his love for his work, the joy he brings others, and his positivity and determination.",
+      "correct": true,
+      "judge_reason": "The generated answer explicitly includes Jon’s positivity and determination, matching the gold answer.",
+      "answer_f1": 0.2222222222222222,
+      "context_tokens": 7758,
+      "recall_ms": 6731.957333977334,
+      "fact_count": 109,
+      "included_facts": 46,
+      "returned_chunks": 11,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D17:7"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D17:7"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D17:7"
+      ],
+      "previous": {
+        "correct": false,
+        "answer": "According to Gina, Jon’s passion for dance, his experience, and his dedication to helping other dancers grow and reach their goals make him a perfect mentor and guide.",
+        "answer_f1": 0.07407407407407407,
+        "judge_reason": "The generated answer cites passion, experience, and dedication to others rather than the positivity and determination identified in the gold answer."
+      }
+    },
+    {
+      "question_id": "conv-30_q80",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What plans does Jon have after receiving advice at the networking event?",
+      "gold": [
+        "Sprucing up his business plan, tweaking his pitch to investors, and working on an online platform."
+      ],
+      "answer": "Jon plans to refine his business plan, tweak his pitch to investors, and develop an online platform to showcase his dance studio.",
+      "reasoning": "In the July 21, 2023 conversation, Gina asks Jon about his plans after the networking event. Jon directly says he is improving his business plan, adjusting his investor pitch, and working on an online platform to showcase the dance studio.",
+      "correct": true,
+      "judge_reason": "The generated answer matches all three plans: refining his business plan, tweaking his investor pitch, and developing an online platform.",
+      "answer_f1": 0.588235294117647,
+      "context_tokens": 7439,
+      "recall_ms": 6306.06495810207,
+      "fact_count": 109,
+      "included_facts": 43,
+      "returned_chunks": 10,
+      "included_chunks": 4,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D18:10"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D18:10"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D18:10"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "After receiving advice at the networking event, Jon plans to refine his business plan and investor pitch and develop an online platform to showcase his dance studio and attract investors. As of July 21, 2023, he also plans to collaborate with Gina on content creation and social media management to raise awareness of the studio.",
+        "answer_f1": 0.3225806451612903,
+        "judge_reason": "The generated answer includes all three plans: refining his business plan, improving his investor pitch, and developing an online platform."
+      }
+    },
+    {
+      "question_id": "conv-30_q81",
+      "conversation_id": "conv-30",
+      "category": 4,
+      "question": "What offer does Gina make to Jon regarding social media?",
+      "gold": [
+        "Helping with making content and managing his social media accounts."
+      ],
+      "answer": "Gina offers to help create content and manage Jon’s dance studio’s social media accounts.",
+      "reasoning": "In the July 21, 2023 conversation, Gina explicitly offers to help Jon make content or manage his social media accounts for his dance studio.",
+      "correct": true,
+      "judge_reason": "The generated answer matches Gina’s offer to help create content and manage Jon’s social media accounts.",
+      "answer_f1": 0.5454545454545455,
+      "context_tokens": 7927,
+      "recall_ms": 6334.555999957956,
+      "fact_count": 109,
+      "included_facts": 39,
+      "returned_chunks": 12,
+      "included_chunks": 5,
+      "server_truncated_chunks": 1,
+      "evidence_ids": [
+        "D18:13"
+      ],
+      "evidence_ids_in_returned_chunks": [
+        "D18:13"
+      ],
+      "evidence_ids_in_packed_context": [
+        "D18:13"
+      ],
+      "previous": {
+        "correct": true,
+        "answer": "Gina offers to help Jon create content and manage his dance studio’s social media accounts, including Instagram and TikTok.",
+        "answer_f1": 0.5384615384615384,
+        "judge_reason": "The generated answer matches Gina’s offer to help Jon create content and manage his social media accounts."
+      }
+    }
+  ],
+  "evidence_note": "Evidence IDs are inspected only after scoring. ID presence is a diagnostic proxy, not proof of full supporting text or semantic entailment. No gold/evidence enters retrieval."
+}

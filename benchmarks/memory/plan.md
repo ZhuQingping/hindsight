@@ -704,3 +704,24 @@ q017/q048 的“额外细节所以判错”理由，与公开 AMB prompt 所强�
 全量时间换算：1400×6 秒约 2 小时 20 分，1540×6 秒约 2 小时 34 分，均仅表示假设每题固定 6 秒的检索/重排部分。答题、判题、导入与连接重试另计，其他 Bank 的候选量也可能不同。后续优先保持内容配置，单独比较测评并发 1/2 的吞吐与错误率，以及 CPU 线程/批大小对重排耗时的影响，再决定是否采用 GPU 等部署方式；不因本轮偶发连接错误就认定并发 2 不可用。
 
 本轮最终代码检查：34 项离线测试通过，Ruff、格式与 ty 通过；全局 lint 仍因既有 `hindsight-api-slim/hindsight_api/api/http.py` 的 F841 失败，自动产生的无关变更已撤回。没有修改 API/PG 业务源码。
+
+
+## 2026-11-19 夜间自主任务
+
+**当前授权与目标。** 用户明确要求保存并提交分析/脚本，自主跑完 Mem0/Hindsight 常用的完整 1540 题范围作为 ContextBase 基线，再逐错题优化并追求尽可能高的成绩。这里是对本机 ContextBase 执行同题集，不宣称已经实际部署或重跑 Mem0/Hindsight 产品。阶段目标为超过已核实的完整公开对照；任何“第一/满分”只以完整、可复核的同口径结果为依据，不预先承诺。
+
+**夜间任务输入。** 角色为主执行/开发/验证/复核；场景为 performance-optimization，依据 workflow-night-run 的 night-agent-runbook / worktree-protocol / agent-task-template；本项目没有适用的独立 PG domain profile，采用 CLAUDE.md 与项目 code-review 标准。起点为 memory-benchmark 分支 `69de69624`；主工作区仅有原有未跟踪 hindsight-control-plane/、verification/，不触碰。
+
+**授权操作与边界。** 可以读源码与给定方案、运行真实模型和必要网络调用、创建独立实验 Bank、修改评测/分析脚本与隔离优化代码、运行验证、保存并本地提交。主目录可改范围为 `benchmarks/memory/**` 及其 README 导航；原始数据、密钥和日志只在忽略目录或现有私有运行目录。后续 native 检索优化放独立 worktree `codex/locomo-opt-20261119`，边界预先限定为 engine/search、engine/memories/pg、相应测试及实验配置；需要扩大范围先在此记录新阶段。baseline 始终执行已冻结 runner/support 和当前部署源码，避免被维护脚本改动影响。
+
+**禁止操作。** 不重写旧 Bank/旧结果，不把 gold、evidence ID 或裁判结果传入抽取/召回/打包；不改 gold、不放宽裁判、不重答已完成题目挑最高分。不得推送、合并、对外发布/发送信息、购买新服务或变更账户凭据。不得替换共享 PG 二进制、改变全局扩展或修改基线数据库全局参数来同时影响两个实验；PG SQL/索引优化先限于独立实验空间。用户当前授权包含本地提交和既有模型调用，不另设未经请求的 token 预算。
+
+**冻结基线。** `locomo1540_20261119_012639`，10 个全新 Bank，272 session、5882 消息、1540 题，类别 1–4，旧 Bank 全保留。retain=gpt-6.1-sol medium；reader/judge=gpt-6.1-sol low；doubao-embedding-vision 1024 维；BGE revision 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e，CPU FP32、batch8、重排并发1。API recall 事实/原文各8192，上下文总8192、事实4000/原文4000；QA 并发 **2**，模型单阶段尝试上限4，ingest 单 Bank超时7200秒。ABI、数据、评分与运行配置均在 manifest 固定。先完整导入并核验，再启动 QA；不复用先前81题的答案，以免混入不同抽取结果。
+
+**执行命令。** 本次源目录不切分支；完整 run 路径由 `/tmp/contextbase-locomo-full-active-run` 指向，永久目录为 `.local/runs/locomo1540_20261119_012639/`。使用本机 `.venv/bin/python <run>/runner.py ingest <run>`，成功后运行同一冻结脚本 `run <run>`；不在维护源码变化时悄悄替换在途实现。ingest 日志为 `/tmp/contextbase-locomo1540-ingest.log`，QA 日志为 `/tmp/contextbase-locomo1540-eval.log`，终态归档回 run。机器级配置及凭据引用保存在本机；可提交的完整结果由 analysis.py 离线导出至 results/，不包含密钥、原始 prompt 或大段上下文。
+
+**优化阶段。** 先利用完整基线的所有错题生成证据清单，区分事实抽取、候选缺失、服务端原文预算、客户端打包、reader 定位/推理及标注争议。优先在原8K预算内验证原文检索/打包改进；扩大预算的实验单列，不能混称同预算胜出。参考研究仓《Hindsight记忆检索执行分析与PostgreSQL增强方案.html》：延迟物化、依赖并行、SQL融合主要验证延迟；BM25/原文全文检索、检索参数可能改变质量，必须分别测候选/证据覆盖与完整QA。模型、预算、评分或方法变化使用新 run_id；仅根据系统性新假设开展下一轮，不对同一答案反复采样择优。
+
+**验证与停止条件。** 运行离线 pytest、Ruff/format/ty 与项目全局lint（现有F841另记），所有Bank导入终态必须 completed 且无 extraction_errors；配置、来源哈希、隔离、题目完整性与账目需校验。认证/额度错误停止相关调用并如实记录，429遵守退避，不切账户规避。跨越文件/数据库边界、验证无法执行或有数据污染风险时停止该优化阶段，保留可独立推进的基线工作；不擅自清理证据。部分运行不标完整成绩。
+
+**早间复核。** 检查1540/1540终态、失败/未知用量、全部模型/提示词/版本/预算、Bank隔离和旧结果哈希；读取每道错题与优化依据、每轮配置及同口径净变化；复核patch范围与测试。只有完整通过的候选可形成成绩单，仍需区分开发集反复调优与独立留出验证，以及厂商不同模型口径。未完成项目明确列出进度，不用后台进程存在代替完成证据。

@@ -429,6 +429,26 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
             assert row.packing.text in next(
                 prompt for judge, prompt, qid in factory.calls if not judge and qid == row.question_id
             )
+        analysis = a.module_from_file("memory_analysis_test", SCRIPT.with_name("analysis.py"))
+        request_count = len(service.requests)
+        output = tmp_path / "public-results.json"
+        exported = analysis.export(directory, output, directory)
+        assert len(exported.rows) == 2 and exported.changes.both_wrong == 2
+        assert len(service.requests) == request_count and len(factory.calls) == 4
+        assert "TEST_ONLY_SECRET" not in output.read_text()
+        assert "credential" not in json.loads(output.read_text())["settings"]
+        with pytest.raises(FileExistsError):
+            analysis.export(directory, output)
+        probe = a.module_from_file("memory_probe_test", SCRIPT.with_name("probe.py"))
+        probe_dir = tmp_path / "recall-probe"
+        probe_config = probe.initialize(directory, probe_dir, ["conv-30_q0"], "recall")
+        calls_before = len(service.requests)
+        await probe.recall(directory, probe_dir, probe_config)
+        assert service.requests[calls_before:] == [
+            ("POST", f"/v1/default/banks/{manifest.conversations[0].bank_id}/memories/recall")
+        ]
+        assert len(factory.calls) == 4
+        assert (probe_dir / "conv-30_q0-packing.json").is_file()
 
 
 @pytest.mark.parametrize("change", ["amb", "helper", "config", "record"])
@@ -865,3 +885,9 @@ async def test_truncated_http_body_is_retryable_but_invalid_response_is_not() ->
                     await response.read()
     assert h.retryable(error.value)
     assert not h.retryable(ValueError("Invalid complete answer"))
+
+
+def test_analysis_evidence_ids_do_not_match_longer_turns() -> None:
+    analysis = a.module_from_file("memory_analysis_id_test", SCRIPT.with_name("analysis.py"))
+    assert analysis.contains_id('{"dia_id":"D1:2"}', "D1:2")
+    assert not analysis.contains_id('{"dia_id":"D1:25"}', "D1:2")

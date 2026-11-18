@@ -66,3 +66,27 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 私有凭据文件为 `{"secret":"<API key>"}`，权限 600，不能提交。默认并发 1、请求起始间隔至少 30 秒；429 至少等待 30 秒并遵守数值 Retry-After，仅允许重试一次，超长等待或其他错误停止。归档请求、响应、全部尝试、排序与打包差异以及来源哈希；配置中只记录密钥文件路径。输出目录必须全新，旧结果不覆盖。三题实测及限制见 [执行计划](plan.md#bge-reranker-三题验证)。
 
 本机固定版本 BGE 已完成相同三题的独立 CPU 测试，模型放在 `/Users/zhuqingping/Work/llm-learning/models/bge-reranker-v2-m3/`；版本、环境、速度与 MaaS 排名对照见 [本机验证记录](plan.md#本机-bge-固定版本验证)。2026-11-19 已按用户指令接入现有 8892，81 题复测已完成：76/81（93.83%），F1 26.64%，检索 P50/P95 为 6.34/6.85 秒；[完整对照](plan.md#8892-接入本地-bge-与-81-题复测) 单独归档。
+
+## 分析数据与完整夜间基线
+
+已提交的 [conv-30 逐题分析数据](results/conv30-bge-20261119.json) 包含81题的新旧答案、判定、F1、上下文与耗时、原文证据ID覆盖，以及模型/预算/数据和脚本哈希；不包含密钥或原始大上下文。`analysis.py` 仅离线读取并校验冻结档案，拒绝把未完成运行导出为有效基线，也拒绝覆盖已有导出。
+
+```bash
+.venv/bin/python benchmarks/memory/analysis.py \
+  --run-dir /path/to/completed-run \
+  --baseline /path/to/same-scope-baseline \
+  --output benchmarks/memory/results/new-run.json
+```
+
+完整1540题配置使用 [config.full-baseline.json](config.full-baseline.json)，QA并发2、BGE重排并发1；凭据通过环境提供，数据与AMB路径按模板设置。`init` 后优先执行运行目录里冻结的 `runner.py ingest`，成功后执行 `runner.py run`。当前夜间实际基线及授权/边界/复核项见 [夜间任务记录](plan.md#2026-11-19-夜间自主任务)。旧Bank不复用为新导入目标，所有旧结果保留。
+
+`probe.py` 固化了此前本机独立CPU与真实recall的诊断方法，两种模式均不答题、不判题，输出目录必须全新。`local` 只用已保存候选，核验固定模型权重，预热单列并记录重复计时；`recall` 通过强制只读Bank传输仅调用指定题目的recall。
+
+```bash
+.venv/bin/python benchmarks/memory/probe.py local \
+  --source /path/to/completed-run --output /path/to/new-probe \
+  --questions conv-30_q27 conv-30_q29 conv-30_q73 \
+  --model-path /path/to/bge-reranker-v2-m3/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
+```
+
+真实recall验证使用相同参数并将 `local` 改为 `recall`、去掉 `--model-path`。源manifest中的模型配置是历史声明，实际服务版本及模型配置需同时归档，不能仅凭历史manifest声称部署配置已验证。
