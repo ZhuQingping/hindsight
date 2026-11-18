@@ -134,7 +134,7 @@ class NativeResult(BaseModel):
     context_tokens: int
     retrieve_time_ms: float
     reasoning: str
-    gold_answers: list[str]
+    gold_answers: list[str | int | float]
     judge_reason: str
     meta: dict[str, JsonValue]
 
@@ -239,7 +239,20 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         if hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False).encode()).hexdigest() != fingerprint:
             raise ValueError("Checkpoint source manifest is invalid")
         source_manifest = core.read_model(source_path, Manifest)
-        excluded = {"checkpoint_source", "resume_connection_failures", "model_max_attempts", "concurrency"}
+        # A run that originally created Banks must resume through the read-only
+        # guard. The only permitted transition names those exact source Banks.
+        if config.reuse_banks != source_manifest.config.reuse_banks and (
+            source_manifest.config.reuse_banks
+            or config.reuse_banks != {c.id: c.bank_id for c in source_manifest.conversations}
+        ):
+            raise ValueError("Checkpoint recovery must reuse the exact source Banks read-only")
+        excluded = {
+            "checkpoint_source",
+            "resume_connection_failures",
+            "model_max_attempts",
+            "concurrency",
+            "reuse_banks",
+        }
         previous = source_manifest.config.model_dump(exclude=excluded)
         current = config.model_dump(exclude=excluded)
         if previous != current or source_manifest.conversations != manifest.conversations:
@@ -273,6 +286,14 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             for folder in ("retrievals", "calls", "results")
             for path in sorted((source_directory / folder).glob("*.json"))
         }
+        for filename in [
+            "state.json",
+            "server-version-before.json",
+            *[c.id + "-server-config-before.json" for c in source_manifest.conversations],
+        ]:
+            path = source_directory / filename
+            if path.exists():
+                manifest.checkpoint_imports[filename] = core.file_sha(path)
     manifest.fingerprint = core.canonical_sha(manifest)
     directory.mkdir(parents=True, exist_ok=False)
     (directory / "inputs").mkdir()
@@ -316,12 +337,20 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
                     retry_ids.add(record.question_id)
         for name in manifest.checkpoint_imports:
             original = source_directory / name
-            folder = Path(name).parts[0]
-            record_type = {"calls": CallRecord, "retrievals": RetrievalRecord, "results": SavedResult}[folder]
-            record = unseal(original, record_type, source_manifest)
             snapshot = directory / "checkpoint-source" / name
             snapshot.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, snapshot)
+            if "/" not in name:
+                if name != "state.json":
+                    shutil.copyfile(original, directory / name)
+                continue
+            folder = Path(name).parts[0]
+            record_type = {
+                "calls": CallRecord,
+                "retrievals": RetrievalRecord,
+                "results": SavedResult,
+            }[folder]
+            record = unseal(original, record_type, source_manifest)
             if folder == "retrievals" and record.question_id in retry_ids and record.recall is None:
                 continue
             if folder == "results" and record.question_id in retry_ids:
@@ -331,7 +360,17 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             record.fingerprint = manifest.fingerprint
             seal(directory / name, record)
     core.save_model(directory / "manifest.json", manifest)
-    core.save_model(directory / "state.json", core.State(fingerprint=manifest.fingerprint))
+    state = core.State(fingerprint=manifest.fingerprint)
+    if source_manifest is not None and "state.json" in manifest.checkpoint_imports:
+        previous_state = core.read_model(directory / "checkpoint-source/state.json", core.State)
+        if previous_state.fingerprint != source_manifest.fingerprint or not previous_state.runtime_consistent:
+            raise ValueError("Cannot continue inconsistent source runtime/state")
+        state.answer_elapsed_s = previous_state.answer_elapsed_s
+        state.banks = {
+            name: bank.model_copy(update={"created": False, "verified": False})
+            for name, bank in previous_state.banks.items()
+        }
+    core.save_model(directory / "state.json", state)
     # Exercise the pinned dataset loader during offline preparation, before any Bank
     # can be created. A future upstream/data mismatch must not emerge after ingestion.
     runtime = components(Archive(directory, manifest))
@@ -843,7 +882,10 @@ async def service_stage(directory: Path, manifest: Manifest, stage: str) -> None
                 await transport.check_runtime(conversation, "before")
                 await transport.verify_documents(conversation)
                 await verify_reused_operations(transport, conversation, "verify")
-                transport.state.banks[conversation.id] = core.BankState(created=False, verified=True)
+                previous = transport.state.banks.get(conversation.id, core.BankState())
+                transport.state.banks[conversation.id] = previous.model_copy(
+                    update={"created": False, "verified": True}
+                )
             transport.state.status = "verified_reuse"
             transport.save_state()
         else:

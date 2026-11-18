@@ -64,7 +64,7 @@ class Row(BaseModel):
     conversation_id: str
     category: int
     question: str
-    gold: list[str]
+    gold: list[str | int | float]
     answer: str
     reasoning: str
     correct: bool

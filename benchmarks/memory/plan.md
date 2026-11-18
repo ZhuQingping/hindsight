@@ -757,3 +757,11 @@ PG只读能力核验保存在 `.local/night-pg-capabilities-20261119.json`；当
 新增 `rejudge.py`：基于固定公开答案、完整同scope源基线、同一judge模型/设置和同一AMB LoCoMo prompt；只调用judge。完整prompt身份相同则先复用基线判定，再去重共享新调用，复用源记录带SHA校验，新增用量不重复计入借用记录。失败会取消本轮其他任务并保留检查点；完整输出前需3080个产品/题目判定齐全。离线42项通过，其中真实固定AMB+本地HTTP测试验证：基线未完整时拒绝启动、无额外记忆HTTP、无新reader、并发重复prompt只调用一次、用量不重复、重启不重判、输入篡改拒绝。全局lint在独立worktree运行，仍是既有F841，格式变更已撤回，未在基线依赖目录执行自动改写。
 
 实际准备目录为 `.local/rejudge1540_20261119_0242_v2/`，指针 `/tmp/contextbase-locomo-rejudge-active-run`。v1仅离线准备，随后补了“执行代码必须等于封存源码”检查而保留未执行；以v2为后续入口，不覆盖v1。源基线目前未完整，真实门槛核验拒绝run，新增judge调用检查点为0；q5按我们的原prompt重建后与已存调用完全一致，后续应直接借用原false判定。执行时使用该目录 `source/rejudge.py run <directory>`，不能用变更后的维护源码替换在途实现。输出是共同裁判的历史答案对照，不是Mem0/Hindsight新服务运行。
+
+保存错误与恢复检查点（03:05起）：首组conv-26的152题/304次模型调用已完成，原固定脚本在NativeResult保存时将数字gold按字符串校验，遇2022而中断。该问题属于本地归档schema，不是LLM限流或记忆质量；原脚本及失败目录 `locomo1540_20261119_012639` 完整保留。新增真实数字gold回归和全1540题离线schema审计（1534字符串、6数字），152条已有原生结果逐条验证不改gold/答案/判定。
+
+修复允许新建Bank模式仅转为“严格复用源完整Bank映射”的只读恢复，复制并核验原配置/版本快照，保留导入耗时与此前QA时间，verify前把Bank标记为未核验。先前恢复 `locomo1540r_20261119_025718` 遗漏开启中断召回恢复，conv-30_q0/q1的两条 `interrupted_unknown` 被沿用，遂停止并补齐；复核这两题没有任何answer/judge调用，NativeRunner仅产生操作失败占位，没有额外空答案判题费用。已完成的其他记录没有重答。`030311`仅离线准备未执行；所有尝试保留。
+
+**当前唯一基线执行者：** `locomo1540r_20261119_030518`，指针 `/tmp/contextbase-locomo-full-active-run` 和 `/tmp/contextbase-locomo-full-recovery-run` 均指向该目录；生产者PID89825，exec session92215；独立守护PID89829（PPID1）。日志 `/tmp/contextbase-locomo1540-recovery2-verify.log`、`/tmp/contextbase-locomo1540-recovery2-eval.log`。343条已完成模型记录无损接续，q0/q1仅补未完成召回；模型、8K预算、并发2、尝试上限4、gold及原裁判规则不变。10个Bank只读核验完成，已封存152条最终结果，最新观测173题完成judge、175次检索、0失败/调用错误；仍是部分结果。主线与实验分支各44项离线测试通过，包含完整固定AMB+本地HTTP的数字保存中断→只读恢复，以及中断召回只补未答题、不重答已完成题。全局lint在隔离worktree仍受既有F841阻塞，格式变更已撤回。
+
+后续候选和共同裁判也已重新封存数字类型修复，评测配置未变：窗口候选 `.worktrees/locomo-opt-20261119/benchmarks/memory/.local/runs/locomow8_20261119_0308`（指针 `/tmp/contextbase-locomo-window-candidate-run`），原预注册配置逐字段完全相同；共同裁判 `.local/rejudge1540_20261119_0308`（指针 `/tmp/contextbase-locomo-rejudge-active-run`）。两者都绑定当前恢复基线manifest，尚未调用模型。旧0218窗口候选、0242/v2共同裁判仅为历史准备，不能拿已中断原run当成完整基线启动；统一使用最新指针，并以实际进程/锁和valid_complete_run校验后续启动条件。

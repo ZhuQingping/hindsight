@@ -28,7 +28,7 @@ class WatchState(BaseModel):
     supervisor_pid: int
     original_pid: int | None = None
     child_pid: int | None = None
-    stage: Literal["monitoring", "ingest", "run", "export", "completed", "needs_attention"] = "monitoring"
+    stage: Literal["monitoring", "ingest", "verify", "run", "export", "completed", "needs_attention"] = "monitoring"
     last_update: str
     attempts: dict[str, int] = Field(default_factory=dict)
     exit_codes: dict[str, int] = Field(default_factory=dict)
@@ -36,8 +36,8 @@ class WatchState(BaseModel):
 
 
 def next_stage(
-    state: a.h.core.State, summary: a.h.Summary | None, expected_banks: int
-) -> Literal["ingest", "run", "export", "needs_attention"]:
+    state: a.h.core.State, summary: a.h.Summary | None, expected_banks: int, reused_banks: bool = False
+) -> Literal["ingest", "verify", "run", "export", "needs_attention"]:
     if summary and summary.valid_complete_run:
         if state.status != "completed" or summary.failed or summary.pending:
             raise ValueError("Summary and state disagree")
@@ -47,7 +47,7 @@ def next_stage(
     if state.status == "interrupted_or_failed":
         return "needs_attention"
     if len(state.banks) != expected_banks or not all(b.verified for b in state.banks.values()):
-        return "ingest"
+        return "verify" if reused_banks else "ingest"
     return "run"
 
 
@@ -101,7 +101,7 @@ def run(directory: Path, output: Path, original_pid: int | None, poll_s: float) 
                 save()
                 time.sleep(poll_s)
                 continue
-            stage = next_stage(state, summary, len(manifest.conversations))
+            stage = next_stage(state, summary, len(manifest.conversations), bool(manifest.config.reuse_banks))
             if stage == "needs_attention":
                 record.stage = "needs_attention"
                 save()

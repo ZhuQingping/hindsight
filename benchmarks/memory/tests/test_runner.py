@@ -250,7 +250,14 @@ class Prepared:
 
 
 def prepared(
-    tmp_path, checkout, *, conversations=("conv-30",), api_url=None, questions_per_conversation=1, reuse_banks=None
+    tmp_path,
+    checkout,
+    *,
+    conversations=("conv-30",),
+    api_url=None,
+    questions_per_conversation=1,
+    reuse_banks=None,
+    gold_answer=None,
 ):
     path = config_fixture(tmp_path, conversations=conversations)
     config = json.loads(path.read_text())
@@ -261,13 +268,18 @@ def prepared(
         config["api_url"] = api_url
     if reuse_banks:
         config["reuse_banks"] = reuse_banks
-    if questions_per_conversation > 1:
+    if questions_per_conversation > 1 or gold_answer is not None:
         dataset_path = Path(config["sources"]["dataset"]["path"])
         records = json.loads(dataset_path.read_text())
         for conversation in records:
-            conversation["qa"] = [conversation["qa"][0].copy() for _ in range(questions_per_conversation)] + [
-                conversation["qa"][-1]
-            ]
+            if questions_per_conversation > 1:
+                conversation["qa"] = [conversation["qa"][0].copy() for _ in range(questions_per_conversation)] + [
+                    conversation["qa"][-1]
+                ]
+            if gold_answer is not None:
+                for question in conversation["qa"]:
+                    if question["category"] != 5:
+                        question["answer"] = gold_answer
         dataset_path.write_text(json.dumps(records))
         config["sources"]["dataset"]["sha256"] = a.core.file_sha(dataset_path)
     path.write_text(json.dumps(config))
@@ -1091,3 +1103,112 @@ async def test_common_judge_reuses_identical_inputs_without_memory_or_answer_cal
         with pytest.raises(ValueError, match="Public answers modified"):
             await rejudge.run(output, provider)
         assert len(new_prompts) == 1
+
+
+@pytest.mark.asyncio
+async def test_numeric_gold_save_failure_recovers_newly_ingested_banks_without_new_model_calls(
+    tmp_path, checkout, monkeypatch
+):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")), gold_answer=2022)
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        original_factory = Factory(manifest, structured=True)
+
+        class OldStringOnlyResult(a.NativeResult):
+            gold_answers: list[str]
+
+        with monkeypatch.context() as old:
+            old.setattr(a, "NativeResult", OldStringOnlyResult)
+            with pytest.raises(ValueError, match="gold_answers"):
+                await asyncio.to_thread(a.run, directory, manifest, original_factory)
+        assert len(original_factory.calls) == 2
+        original_state = h.read_model(directory / "state.json", h.State)
+        assert original_state.status == "interrupted_or_failed"
+        hashes = {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+        config = json.loads((tmp_path / "config.json").read_text())
+        config["checkpoint_source"] = {
+            "path": str(directory / "manifest.json"),
+            "sha256": h.file_sha(directory / "manifest.json"),
+        }
+        config["reuse_banks"] = {c.id: c.bank_id for c in manifest.conversations}
+        cfg = tmp_path / "recovery.json"
+        cfg.write_text(json.dumps(config))
+        recovered_dir = tmp_path / "numeric-recovery"
+        recovered = a.init_run(cfg, recovered_dir, "unit_numeric_recovery")
+        state = h.read_model(recovered_dir / "state.json", h.State)
+        assert state.answer_elapsed_s == original_state.answer_elapsed_s
+        assert not state.banks["conv-30"].verified
+        night = a.module_from_file("memory_recovery_night_test", SCRIPT.with_name("night.py"))
+        assert night.next_stage(state, None, 1, reused_banks=True) == "verify"
+        assert night.next_stage(state, None, 1) == "ingest"
+        assert state.banks["conv-30"].ingestion_elapsed_s == original_state.banks["conv-30"].ingestion_elapsed_s
+        assert (recovered_dir / "conv-30-server-config-before.json").read_bytes() == (
+            directory / "conv-30-server-config-before.json"
+        ).read_bytes()
+        await a.service_stage(recovered_dir, recovered, "verify")
+        calls_before = len(service.requests)
+        new_factory = Factory(recovered, structured=True)
+        summary = await asyncio.to_thread(a.run, recovered_dir, recovered, new_factory)
+        assert summary.valid_complete_run and summary.completed == 1 and summary.correct == 0
+        assert not new_factory.calls
+        assert all(method == "GET" for method, _ in service.requests[calls_before:])
+        saved = a.unseal(recovered_dir / "results/conv-30_q0.json", a.SavedResult, recovered)
+        assert saved.amb_result.gold_answers == [2022] and type(saved.amb_result.gold_answers[0]) is int
+        analysis = a.module_from_file("memory_numeric_export_test", SCRIPT.with_name("analysis.py"))
+        exported = analysis.export(recovered_dir, tmp_path / "numeric-export.json")
+        assert exported.rows[0].gold == [2022]
+        assert h.read_model(recovered_dir / "state.json", h.State).answer_elapsed_s >= original_state.answer_elapsed_s
+        assert hashes == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+
+
+@pytest.mark.asyncio
+async def test_interrupted_retrieval_retries_only_the_unanswered_question(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=2
+        )
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        a.seal(
+            directory / "retrievals/conv-30_q0.json",
+            a.RetrievalRecord(
+                fingerprint=manifest.fingerprint,
+                question_id="conv-30_q0",
+                bank_id=manifest.conversations[0].bank_id,
+                error="interrupted_unknown",
+            ),
+        )
+        original_factory = Factory(manifest, structured=True)
+        partial = await asyncio.to_thread(a.run, directory, manifest, original_factory)
+        assert not partial.valid_complete_run and partial.failed == 1
+        assert len(original_factory.calls) == 2  # q1 only; no judge on an operational placeholder.
+        before = {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+        cfg = json.loads((tmp_path / "config.json").read_text())
+        cfg.update(
+            reuse_banks={c.id: c.bank_id for c in manifest.conversations},
+            checkpoint_source={
+                "path": str(directory / "manifest.json"),
+                "sha256": h.file_sha(directory / "manifest.json"),
+            },
+            resume_connection_failures=True,
+        )
+        cfg_path = tmp_path / "retry-recall.json"
+        cfg_path.write_text(json.dumps(cfg))
+        recovered_dir = tmp_path / "recall-recovery"
+        recovered = a.init_run(cfg_path, recovered_dir, "unit_recall_recovery")
+        assert not (recovered_dir / "calls/conv-30_q0-judge.json").exists()
+        await a.service_stage(recovered_dir, recovered, "verify")
+        factory = Factory(recovered, structured=True)
+        summary = await asyncio.to_thread(a.run, recovered_dir, recovered, factory)
+        assert summary.valid_complete_run and summary.completed == 2 and summary.failed == 0
+        assert len(factory.calls) == 2 and all(qid == "conv-30_q0" for _, _, qid in factory.calls)
+        assert summary.model_usage["answer"].total_tokens == 20
+        assert summary.model_usage["judge"].total_tokens == 20
+        assert before == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}

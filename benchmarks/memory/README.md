@@ -110,3 +110,5 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 ```
 
 prepare只做离线冻结；run必须等源基线完整有效，并使用冻结代码。重复执行复用原判定，已完成的错误答案不重答、不重判择优。该结果只能称“历史公开答案在共同裁判下的派生分数”，不能称友商新的产品实测或最新官网成绩。
+
+数字gold（年份、计数）按原始类型归档，不强制变成字符串。新建Bank运行中断后，可在新配置中将 `reuse_banks` 显式设为源manifest的完整Bank映射，再用 `checkpoint_source` 接续；只允许这组原Bank，必须重新只读verify。保留原模型调用、源配置/版本快照、导入耗时和累计QA时间。若有未收到回包的中断召回，显式设置 `resume_connection_failures=true`；不增加已完成答案的尝试次数，也不重新导入。
