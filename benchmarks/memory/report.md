@@ -142,3 +142,24 @@ OpenViking 还公布 HotpotQA top-20 **91.00%**、检索延迟 **0.23s**，以�
 - OpenViking 原始 Claude Code 实验模型由其专用复现文档说明，不能推广到全部 Agent；当前 e2e、SDK 预写入、Mem0 单轮 QA 及 RAG 路径是不同实验。[评测说明](https://github.com/volcengine/OpenViking/blob/2f41f1c7e95be5e7819d1f948fd6d220c5e0454a/benchmark/README.md)、[Claude Code 环境](https://github.com/volcengine/OpenViking/blob/2f41f1c7e95be5e7819d1f948fd6d220c5e0454a/benchmark/locomo/claudecode/README.md)
 
 原始证据保存在本机研究目录 `/Users/zhuqingping/Work/Database/Context/ContextDB-Research/.local-archive/benchmarks/official-20261118/`，manifest 记录 URL、日期、哈希及抓取失败，不随 Git 自动共享。Mem0 时间推理更新文章已通过网页工具核对，本地 HTML 抓取返回 403。执行安排与待办统一见[测试计划](plan.md)。
+
+## 固定官方快照：1540题逐题对照
+
+夜间离线核验并保存了 [逐题对照数据](results/official-locomo1540-20261119.json)。1540个问题均与固定LoCoMo的会话、原始索引、文本、类别和gold一致；没有依赖文件行顺序拼接。以下为已归档的历史运行，不能替代当前产品首页的新成绩。
+
+| 指标 | Mem0 固定快照 | Hindsight 固定快照 |
+| --- | --- | --- |
+| 正确数 / 分母 | 1410 / 1540，另有1道ERROR，计入分母 | 1417 / 1540 |
+| 原裁判正确率 | 91.56% | 92.01% |
+| reader / judge | GPT-5 / GPT-5 | Gemini 3.1 Pro Preview / Gemini 2.5 Flash Lite |
+| 原版答案F1，本地离线计算 | 45.96% | 31.34% |
+| 逐题检索P50 / P95，本地离线计算 | 3055 / 6002 ms | 882 / 1431 ms |
+| 平均上下文 | 此逐题文件未提供 | 36235 tokens |
+
+F1使用固定LoCoMo原版规则：类别1使用multi-answer F1，类别3使用分号前的首答案，其余为词项F1；逐题取均值。两家的正确判定保留原文件，不重新判题。检索百分位使用文件中的 `search_latency_ms` / `retrieve_time_ms`，不把它们当作相同边界的端到端时延。F1和百分位是我们的派生统计，**不是厂商额外发布的指标**，也不代表模型、预算和裁判一致的横评。完整版本URL、原文件SHA-256、每题答案及两家判定均在JSON记录。[Mem0来源](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/locomo_results.json)、[Hindsight来源](https://raw.githubusercontent.com/vectorize-io/agent-memory-benchmark/28b644bd4dd653c0207c7507280439390c829155/outputs/locomo/locomo-hindsight/rag/locomo10.json.gz)。
+
+### PostgreSQL增强前提核验
+
+本机应用连接以只读事务查询：PG **18.4**、pgvector **0.8.6**、pg_trgm **1.6** 已安装；`pg_search`、`pg_textsearch` 不在可用扩展列表，PGroonga和AGE可用但未安装。因此不能把现有英文GIN/`ts_rank_cd`称为BM25，也不能宣称已有原文BM25。当前账号不能读取 `shared_preload_libraries`，已记录未知，没有提权或变更配置。
+
+指定研究HTML的SHA-256为 `96049e2b258fe09de7ac0f404c3a0fe934984c8528b7b6a7b24759d6f3c7ea79`。其中PG16/旧vector测量与本机版本不同，SQL下推的收益需要重新测量。当前优先分清两类问题：原文窗口打包可解决“已返回却未入上下文”，原文全文检索可补“事实抽取遗漏导致候选缺失”；SQL融合、延迟物化和图递归下推主要降低数据库耗时，不直接证明正确率上升。完整基线运行期间不变更共享数据库扩展、索引或服务参数。

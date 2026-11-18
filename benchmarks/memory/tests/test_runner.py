@@ -899,3 +899,77 @@ def test_analysis_evidence_ids_do_not_match_longer_turns() -> None:
     analysis = a.module_from_file("memory_analysis_id_test", SCRIPT.with_name("analysis.py"))
     assert analysis.contains_id('{"dia_id":"D1:2"}', "D1:2")
     assert not analysis.contains_id('{"dia_id":"D1:25"}', "D1:2")
+
+
+@pytest.mark.parametrize("mutation", ["none", "duplicate", "question", "gold", "scope", "index"])
+def test_official_public_rows_join_by_validated_identity(tmp_path, checkout, mutation):
+    directory, _ = prepared(tmp_path, checkout, conversations=("conv-30", "conv-26"))
+    analysis = a.module_from_file("memory_public_test_" + mutation, SCRIPT.with_name("analysis.py"))
+    mem0 = analysis.Mem0Results.model_validate(
+        {
+            "metadata": {"answerer_model": "reader-m", "judge_model": "judge-m", "total_questions": 2},
+            "evaluations": [
+                {
+                    "question_id": f"conv{i}_q0",
+                    "conversation_idx": i,
+                    "category": 2,
+                    "question": "A public question?",
+                    "ground_truth_answer": "GOLD_SENTINEL_NOT_IN_MEMORY",
+                    "search_latency_ms": 10 + i * 10,
+                    "cutoff_results": {
+                        "top_200": {
+                            "judgment": "CORRECT" if i == 0 else "ERROR",
+                            "generated_answer": "GOLD_SENTINEL_NOT_IN_MEMORY" if i == 0 else "",
+                        }
+                    },
+                }
+                for i in range(2)
+            ],
+        }
+    )
+    hindsight = analysis.HindsightResults.model_validate(
+        {
+            "answer_llm": "reader-h",
+            "judge_llm": "judge-h",
+            "total_queries": 2,
+            "correct": 2,
+            "results": [
+                {
+                    "query_id": f"{conv}_q0",
+                    "query": "A public question?",
+                    "answer": "GOLD_SENTINEL_NOT_IN_MEMORY",
+                    "gold_answers": ["GOLD_SENTINEL_NOT_IN_MEMORY"],
+                    "correct": True,
+                    "retrieve_time_ms": 30,
+                    "context_tokens": 400,
+                }
+                for conv in ("conv-26", "conv-30")  # Deliberately reordered, unlike Mem0.
+            ],
+        }
+    )
+    if mutation == "duplicate":
+        hindsight.results[1] = hindsight.results[0].model_copy(deep=True)
+    elif mutation == "question":
+        hindsight.results[0].query = "Different question"
+    elif mutation == "gold":
+        mem0.evaluations[0].ground_truth_answer = "Changed gold"
+    elif mutation == "scope":
+        mem0.metadata.total_questions = 3
+    elif mutation == "index":
+        mem0.evaluations[0].question_id = "conv1_q0"
+    if mutation != "none":
+        with pytest.raises(ValueError):
+            analysis.public_rows(directory, mem0, hindsight)
+        return
+    rows = analysis.public_rows(directory, mem0, hindsight)
+    by_id = {r.question_id: r for r in rows}
+    assert by_id["conv-30_q0"].mem0.correct
+    assert by_id["conv-26_q0"].mem0.status == "ERROR"
+    metrics = analysis.public_metrics([r.mem0 for r in rows])
+    assert metrics.count == 2 and metrics.correct == 1 and metrics.errors == 1
+    assert metrics.accuracy == 0.5 and metrics.derived_answer_f1 == 0.5
+    assert metrics.derived_retrieval_p50_ms == 15 and metrics.derived_retrieval_p95_ms == 19.5
+    assert metrics.context_tokens_mean is None
+    assert analysis.public_metrics([r.hindsight for r in rows]).context_tokens_mean == 400
+    assert not (directory / "calls").exists() and not (directory / "retrievals").exists()
+    assert not (directory / "state.json").exists() or not json.loads((directory / "state.json").read_text())["banks"]

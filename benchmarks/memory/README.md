@@ -92,3 +92,5 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 真实recall验证使用相同参数并将 `local` 改为 `recall`、去掉 `--model-path`。源manifest中的模型配置是历史声明，实际服务版本及模型配置需同时归档，不能仅凭历史manifest声称部署配置已验证。
 
 夜间守护使用 `night.py --run-dir <run> --record <new-status.json> [--original-pid <launcher-pid>]`。它监视现有执行者和运行锁；原进程退出且无其他执行者时才调用同一份冻结 runner 接续。它不增加模型尝试上限，不重答已有结果，不把失败基线导出为成功，也不自动提交/推送。完成后在本机 run 内生成 `public-results.json`，经复核后再保存到 results/ 并提交。
+
+`analysis.py --run-dir <frozen-full-run> --official-mem0 <locomo_results.json> --official-hindsight <locomo10.json.gz> --output <new-file.json>` 离线整理固定官方快照。输入必须匹配指定版本哈希，逐题校验原数据的会话索引、问题、分类及参考答案，拒绝重复或缺题。已保存 [1540题官方逐题对照](results/official-locomo1540-20261119.json)：保留两家的原始判定，另算原版答案F1和检索P50/P95；后两项明确标记为本地派生值，不当作厂商公布指标。该入口不调用任何模型或记忆服务，也不将官方答案输入我们的答题流程。
