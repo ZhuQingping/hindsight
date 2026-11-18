@@ -745,3 +745,9 @@ PG只读能力核验保存在 `.local/night-pg-capabilities-20261119.json`；当
 夜间实验准备检查点（约02:18）：完整基线生产者79502/79504、守护81810仍实测存活，8/10个Bank已核验，conv-49正在处理。原文预算三题证据及可复用probe覆盖/只读核验已在隔离分支提交 `1ab6dfb17`；离线42项通过，global lint仍受既有http.py F841阻塞，自动格式化的无关变更均撤回。
 
 下一轮候选已**仅离线初始化**为 `locomow8_20261119_0218`，目录由 `/tmp/contextbase-locomo-window-candidate-run` 指向。其1540题scope、两阶段模型、记忆profile、来源、SDK代码及AMB源码哈希均与完整基线一致，复用基线10个新Bank、QA并发2、不导入、不复用答案。声明差异仅为API原文预算8192→65536和客户端完整消息窗口；reader总预算仍8192、事实4000/原文4000。`candidate-origin.json`保存两份manifest哈希及启动门槛：必须先确认完整基线valid_complete_run且生产者/运行锁结束，再以该候选目录冻结的runner执行 `verify`、成功后 `run`。当前没有启动候选QA，也没有与基线同时竞争reranker或LLM。
+
+全量导入完成检查点（约02:28）：10/10个Bank全部终态核验通过，原生产者PID79502已从shell顺序执行切为冻结Python runner的QA，守护81810继续监视；没有启动第二个生产者。10个Bank共272文档、1942事实、588原文chunk，embedding均1024维，查询到的所有相关索引有效。只读SQL脚本、完整9/10 Bank元数据与零事实关联chunk诊断封存到run的 `environment-audit/`，带逐文件校验和，未变更数据/DDL/PG全局参数。
+
+原文诊断继续发现独立问题：旧conv-30回包31个chunk都是完整合法JSON，解析355/355句，没有跨chunk解析丢句；数据库实际36个chunk/369句，未返回的5个chunk均无事实关联（14句），但未命中该组参考证据。新完整基线中46个chunk/108个可见dia_id无事实关联，其中4题的部分参考证据受影响：conv-26_q142、conv-47_q147、conv-49_q81、conv-50_q140；这不证明题目必错，其他位置可能还有支持。已有9个非JSON零关联chunk也单独计数，没有假设它们是完整消息。此问题可作为独立原文检索的验证方向，不以改gold或按证据ID检索解决。
+
+主线新增 `analysis.py --progress` 只读入口：固定AMB的skip-ingestion分支整批gather后才落最终结果，但每题answer/judge已单独持久化，故需按模型检查点统计真实进行中进度。首次实测已完成23题reader与judge、25次检索、0阶段失败、0已知调用错误；这不是完整成绩。离线41项通过，新增断言覆盖“answer/judge已完成而最终results尚无文件”的真实检查点场景，不写回或重跑原记录。global lint仍是既有http.py F841阻塞，自动格式化无关变更已恢复。

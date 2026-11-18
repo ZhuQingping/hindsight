@@ -814,6 +814,14 @@ async def test_checkpoint_adoption_preserves_all_verdicts_and_explicit_transport
     await archive.generate("conv-30_q0", "answer", "unchanged prompt", modules["modes.rag"]._OPEN_SCHEMA)
     await archive.generate("conv-30_q1", "answer", "other answer", modules["modes.rag"]._OPEN_SCHEMA)
     assert not (await archive.generate("conv-30_q1", "judge", "already wrong", modules["judge"]._SCHEMA))["correct"]
+    analysis = a.module_from_file("memory_progress_test_" + transport_error, SCRIPT.with_name("analysis.py"))
+    before = {str(p): a.core.file_sha(p) for p in (directory / "calls").glob("*.json")}
+    observed = analysis.progress(directory)
+    assert observed.completed_answers == 2 and observed.completed_judges == 1
+    assert observed.final_result_checkpoints == 0 and observed.expected_questions == 2
+    assert observed.model_call_statuses == {"answer:completed": 2, "judge:completed": 1}
+    assert not observed.failed_question_ids
+    assert before == {str(p): a.core.file_sha(p) for p in (directory / "calls").glob("*.json")}
     # Simulate two connection failures with no returned answer. The copied source
     # remains failed, while a new explicitly configured run may spend one attempt.
     judge_schema = a.ResponseSchema.model_validate(a.asdict(modules["judge"]._SCHEMA))

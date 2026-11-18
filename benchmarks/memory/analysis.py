@@ -114,6 +114,84 @@ class Export(BaseModel):
     )
 
 
+class Progress(BaseModel):
+    run_id: str
+    state: str
+    expected_questions: int
+    verified_banks: int
+    retrieval_checkpoints: int
+    completed_answers: int
+    completed_judges: int
+    final_result_checkpoints: int
+    model_call_statuses: dict[str, int]
+    failed_question_ids: list[str]
+    attempt_errors: dict[str, int]
+    finished_attempts_without_usage: int
+    note: str = (
+        "Read-only live checkpoint observation, not a valid complete score or an atomic snapshot of the job. "
+        "AMB skip-ingestion writes final results after its query gather; completed answers/judges are separately sealed. "
+        "Process liveness must be checked independently. No answers are regenerated or source state updated."
+    )
+
+
+def progress(directory: Path) -> Progress:
+    manifest = manifest_at(directory)
+    state = h.core.read_model(directory / "state.json", h.core.State)
+    if state.fingerprint != manifest.fingerprint:
+        raise ValueError("Progress state belongs to another manifest")
+    questions = {h.amb_id(q) for c in manifest.conversations for q in c.questions}
+    failed: set[str] = set()
+    statuses: dict[str, int] = {}
+    errors: dict[str, int] = {}
+    answers = judges = unknown = 0
+    for path in (directory / "calls").glob("*.json"):
+        call = h.unseal(path, h.CallRecord, manifest)
+        if call.question_id not in questions or path.name != f"{call.question_id}-{call.stage}.json":
+            raise ValueError("Progress call outside frozen scope or filename identity")
+        key = call.stage + ":" + call.status
+        statuses[key] = statuses.get(key, 0) + 1
+        if call.status == "completed":
+            if call.stage == "answer":
+                h.AnswerData.model_validate(call.parsed)
+                answers += 1
+            else:
+                h.JudgeData.model_validate(call.parsed)
+                judges += 1
+        if call.status == "failed":
+            failed.add(call.question_id)
+        for attempt in call.attempts:
+            if attempt.error:
+                errors[attempt.error] = errors.get(attempt.error, 0) + 1
+            unknown += attempt.state != "started" and attempt.usage is None
+    retrievals = results = 0
+    for path in (directory / "retrievals").glob("*.json"):
+        row = h.unseal(path, h.RetrievalRecord, manifest)
+        if row.question_id not in questions or path.stem != row.question_id:
+            raise ValueError("Progress retrieval outside frozen scope")
+        retrievals += 1
+        if row.error:
+            failed.add(row.question_id)
+    for path in (directory / "results").glob("*.json"):
+        row = h.unseal(path, h.SavedResult, manifest)
+        if row.question_id not in questions or path.stem != row.question_id:
+            raise ValueError("Progress result outside frozen scope")
+        results += 1
+    return Progress(
+        run_id=manifest.run_id,
+        state=state.status,
+        expected_questions=len(questions),
+        verified_banks=sum(bank.verified for bank in state.banks.values()),
+        retrieval_checkpoints=retrievals,
+        completed_answers=answers,
+        completed_judges=judges,
+        final_result_checkpoints=results,
+        model_call_statuses=statuses,
+        failed_question_ids=sorted(failed),
+        attempt_errors=errors,
+        finished_attempts_without_usage=unknown,
+    )
+
+
 class PublicAnswer(BaseModel):
     answer: str
     correct: bool
@@ -480,10 +558,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--baseline", type=Path)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--progress", action="store_true", help="Observe live sealed checkpoints without any model calls"
+    )
     parser.add_argument("--official-mem0", type=Path)
     parser.add_argument("--official-hindsight", type=Path)
     args = parser.parse_args()
+    if args.progress:
+        if args.baseline or args.official_mem0 or args.official_hindsight or args.output:
+            parser.error("--progress prints a read-only snapshot; omit other export options")
+        print(progress(args.run_dir).model_dump_json())
+        return
+    if args.output is None:
+        parser.error("An export requires --output")
     if args.official_mem0 or args.official_hindsight:
         if not args.official_mem0 or not args.official_hindsight or args.baseline:
             parser.error("Public export requires both official sources and no --baseline")
