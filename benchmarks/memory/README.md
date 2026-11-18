@@ -49,3 +49,18 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 今后正文只在本目录的 README、plan、report 维护。旧的 `scripts/benchmarks/amb-contextbase*`、`contextbase-locomo*` 和独立旧驱动不再作为维护入口，也不进入本次提交。
 
 原始数据、官方逐题文件、旧结果与验证证据继续保留在现有研究目录 `/Users/zhuqingping/Work/Database/Context/ContextDB-Research/.local-archive/benchmarks/`，本次不移动、不提交。新运行可放在本目录已忽略的 `.local/runs/<run_id>/`。任何凭据、运行数据、第三方源码 checkout、环境和缓存都不进入 Git。
+
+## Reranker 小范围验证
+
+`rerank_preview.py` 复用完成运行的召回快照，调用华为 `bge-reranker-v2-m3`，只重排事实，再按原预算打包；不访问 Bank，不导入，不调用 reader/judge。只传题目与候选事实文本，不传参考答案或证据标注。候选范围已经过原 recall 的预算限制，不能当作服务端全候选 rerank 的完整替代。
+
+```bash
+.venv/bin/python benchmarks/memory/rerank_preview.py \
+  --source benchmarks/memory/.local/runs/locomo8k_20261118_232951 \
+  --output benchmarks/memory/.local/rerank-new-run \
+  --key-file /path/to/private/modelarts-rerank.json \
+  --questions conv-30_q27 conv-30_q29 conv-30_q73 \
+  --interval 30
+```
+
+私有凭据文件为 `{"secret":"<API key>"}`，权限 600，不能提交。默认并发 1、请求起始间隔至少 30 秒；429 至少等待 30 秒并遵守数值 Retry-After，仅允许重试一次，超长等待或其他错误停止。归档请求、响应、全部尝试、排序与打包差异以及来源哈希；配置中只记录密钥文件路径。输出目录必须全新，旧结果不覆盖。三题实测及限制见 [执行计划](plan.md#bge-reranker-三题验证)。
