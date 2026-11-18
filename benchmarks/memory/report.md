@@ -163,3 +163,13 @@ F1使用固定LoCoMo原版规则：类别1使用multi-answer F1，类别3使用�
 本机应用连接以只读事务查询：PG **18.4**、pgvector **0.8.6**、pg_trgm **1.6** 已安装；`pg_search`、`pg_textsearch` 不在可用扩展列表，PGroonga和AGE可用但未安装。因此不能把现有英文GIN/`ts_rank_cd`称为BM25，也不能宣称已有原文BM25。当前账号不能读取 `shared_preload_libraries`，已记录未知，没有提权或变更配置。
 
 指定研究HTML的SHA-256为 `96049e2b258fe09de7ac0f404c3a0fe934984c8528b7b6a7b24759d6f3c7ea79`。其中PG16/旧vector测量与本机版本不同，SQL下推的收益需要重新测量。当前优先分清两类问题：原文窗口打包可解决“已返回却未入上下文”，原文全文检索可补“事实抽取遗漏导致候选缺失”；SQL融合、延迟物化和图递归下推主要降低数据库耗时，不直接证明正确率上升。完整基线运行期间不变更共享数据库扩展、索引或服务参数。
+
+官方两份快照逐题交叉：双方都正确1330题、都错43题，只有Mem0判对80题、只有Hindsight判对87题。conv-30分别为71/81、74/81；我们的旧Bank BGE运行是76/81，但模型、裁判和预算不同，不能把这三项当作严格同环境竞赛。
+
+裁判差异可从原答案直接看到：conv-30_q31的gold是“six months”，Mem0回答“about 4 months and 13 days”仍标为CORRECT；Hindsight回答“5 months and 1 day”标为WRONG。q073的gold为“magical”，Mem0回答“Joy”标CORRECT。这里保留原判定，不擅自重标；它说明需要同时看实际答案、F1和裁判规则，不能只看准确率。具体答案可查上方JSON对应question_id。
+
+### 原文预算三题诊断
+
+独立优化分支提交 `1ab6dfb17`，旧Bank只读实测：保持事实API预算8192，仅将原文API预算8192→65536；三题的事实ID、内容和顺序完全相同，原文由8192增至19843 tokens，31个返回chunk均无截断。q073的“magical”原句因此进入回包，再由窗口选择进入最终8K上下文。q037的Shia、q044的graceful原句也保留。最终上下文为7984/8001/7976 tokens，单次recall为6.70/6.30/6.04秒；未调用reader或judge，不报告新准确率。
+
+这表明q073首先可通过**较大原文候选预算+固定reader预算内的窗口选择**验证，暂不需要为这一题引入全文扩展。该结论只针对这三题和当前Bank；其他题仍可能缺原文候选。每次probe前后核验19个原文文档、公开Bank配置和服务版本，原档案不写回；原始回包、来源脚本和哈希保存在独立worktree `.local/conv30-raw64k-probe-20261119/`，精简统计为该分支 `results/conv30-raw64k-probe-20261119.json`。
