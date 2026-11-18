@@ -16,6 +16,7 @@ ContextBase 为 Agent 提供长期记忆服务，支持内容写入、记忆召�
 | 部署、配置及维护服务 | [部署总览](hindsight-extensions/contextdb-service/docs/deployment.md) |
 | 了解权限、生命周期和实现 | [管理功能设计](docs/contextdb-management/DESIGN.md#overview) |
 | 构建和发布客户端 | [客户端发布与交付](docs/contextbase/CLIENT-PACKAGING.md) |
+| 查看 Agent Memory 打榜方法、友商报告与测试脚本 | [Memory Benchmark](benchmarks/memory/README.md) |
 
 ## 客户端
 

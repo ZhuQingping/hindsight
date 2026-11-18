@@ -1,0 +1,144 @@
+# Agent Memory 友商评测报告
+
+更新及核对日期：2026-11-18。本文统一维护友商使用的测试数据集、准确率、Token、时延、模型环境和来源，不再另设速查、来源或竞品分析文件。
+
+**先看各家测什么，再看具体数值。** 这些是发布者各自条件下的结果，不是统一总榜；未知字段标为未见披露，不能填 0。测试数据集也不同于服务使用的 PostgreSQL、Qdrant 等存储数据库。
+
+Mem0、Hindsight 与 ContextBase 的 LoCoMo 题目、模型、裁判、预算及指标对齐情况，统一见[三家方案对照表](plan.md#mem0-hindsight-与-contextbase-方案对照)。
+
+已完成 conv-30 单组结果的只读对比，发现上下文打包与评分尺度差异；详见[81 题诊断及 Hindsight 对比](plan.md#conv-30-结果诊断及-hindsight-对比)。该分析没有重跑或修改两家的原始标签。
+
+## 各家测试数据集与公布指标
+
+| 产品 | 已收集的测试数据集 | 质量指标 | Token 与成本指标 | 时间指标 |
+| --- | --- | --- | --- | --- |
+| **Mem0** | LoCoMo、LongMemEval-S、BEAM 1M/10M；DolphinBench | 问答准确率及分类结果；BEAM 连续平均分和通过率；工具任务通过率 | 平均上下文 tokens；DolphinBench 另报运行成本 | 主仓库报 P50；DolphinBench 另报任务中位耗时 |
+| **Hindsight** | LoCoMo、LongMemEval-S、BEAM、PersonaMem、LifeBench、PrecisionMemBench、sde-bench；DolphinBench 官方对照 | 准确率、BEAM 平均分、检索 Active Pass/precision/recall、代码与工具任务通过率，分别属于对应套件 | AMB 结果文件报平均上下文 tokens；DolphinBench 另报成本 | AMB 报平均检索时间、写入时间；DolphinBench 报任务中位耗时 |
+| **Cognee** | LoCoMo 修改范围版；BEAM 100K/10M；另有 HotPotQA 研究 | LoCoMo 裁判准确率；BEAM 连续平均分；HotPotQA 另有 EM/F1/语义正确性 | 当前收集的 LoCoMo/BEAM 主报告未见统一的 token 成绩表 | 当前收集的 LoCoMo/BEAM 主报告未见统一的 P50/P95 成绩表 |
+| **阿里云 RDS ContextDB** | FinanceBench、SyllabusQA、Qasper、ClapNQ 四类知识库问答；标准记忆榜尚待核实 | 社区产品文章报告综合准确率 | 相对 LightRAG 的 Token 消耗比例 | 检索耗时；未明确给出 P50/P95 |
+| **腾讯云 TencentDB Agent Memory** | PersonaMem；长会话设置的 WideSearch、SWE-bench、AA-LCR | PersonaMem 总准确率、事实召回率；其余为任务成功率 | 长任务总 tokens、相对节省比例 | 本轮所收集上述成绩表未见 P50/P95 |
+| **火山 OpenViking** | LoCoMo；tau2-bench、ClawWork；HotpotQA 及五类单轮 RAG | Agent 问答准确率、任务成功率、经济模拟收益、知识库 QA 准确率 | 输入 tokens 总量；单题 tokens；建索引 tokens，按套件分别报告 | LoCoMo 平均问答时间；知识库 QA 检索时间，未统一为 P50/P95 |
+| **Zep** | LoCoMo、LongMemEval | 总准确率、分类准确率 | 每题上下文 tokens 中位数 | 检索 P50 和 P95 |
+
+来源：[Mem0 主仓库](https://github.com/mem0ai/mem0)、[Hindsight 结果清单](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)、[Cognee LoCoMo 报告](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/locomo/REPORT.md)、[Cognee BEAM 报告](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/beam/REPORT.md)、[Cognee HotPotQA 说明](https://www.cognee.ai/ai-memory-evals-0825)、[阿里云社区产品文章](https://developer.aliyun.com/article/1752686)、[腾讯产品页](https://cloud.tencent.cn/product/agm)、[腾讯官方仓库](https://github.com/Tencent/TencentDB-Agent-Memory/blob/82b1ab4a2c47a5d65b99845841b7c659ac6f8497/README.md)、[OpenViking 官方报告](https://blog.openviking.ai/post/openviking-benchmark-results/)、[Zep 官方结果](https://www.getzep.com/research/memory-benchmarks/)。
+
+## 成绩、作答模型、裁判模型与效率
+
+**模型是关键评测条件。** 分数同时受记忆系统、作答模型、裁判模型、题目范围和上下文预算影响；更强的作答模型可能提高正确率，换裁判也可能改变判定。下表把作答 / 裁判模型与成绩放在一起；抽取、向量及重排模型见后面的环境表。模型名称必须对应这次成绩，不能用当前默认值或旧运行补全。
+
+下面按每个发布者自己的口径摘录，不构成统一条件的排名。K = 千，M = 百万；“未见披露”不能填为 0。
+
+| 产品与测试 | 质量成绩 | 作答 / 裁判模型 | Token 指标 | 时间指标 | 口径与来源 |
+| --- | --- | --- | --- | --- | --- |
+| **Mem0 / LoCoMo** | 准确率 **92.5%** | 新版成绩未完整绑定；四月旧运行 GPT-5 / GPT-5 | 平均上下文约 **7.0K/题** | P50 **0.88s**，未在主表列 P95 | 托管平台 Top-200 单次检索；不是写入及作答裁判的全流程 tokens。[来源](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026) |
+| **Mem0 / LongMemEval** | 准确率 **94.4%** | 新版成绩未完整绑定；四月 Top-50 样例 GPT-5 / GPT-5 | 平均上下文约 **6.8K/题** | P50 **1.09s** | 同上，不能当作完整答案生成时间。[来源](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026) |
+| **Mem0 / BEAM 1M、10M** | 平均分 **64.1%、48.6%** | GPT-5 / GPT-5 | 平均上下文约 **6.7K、6.9K/题** | P50 **1.00s、1.05s** | 平均分不是题目通过率。[来源](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026) |
+| **Hindsight / LoCoMo** | 准确率 **92.0%** | Gemini 3.1 Pro Preview / Gemini 2.5 Flash Lite | 平均上下文 **36,235/题** | **平均检索 0.964s** | 1540 题历史 AMB rag 运行；这是平均值，不是 P50。[结果文件](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/outputs/locomo/locomo-hindsight/rag/locomo10.json.gz) |
+| **Hindsight / LongMemEval-S** | 准确率 **94.6%** | Gemini 3.1 Pro Preview / Gemini 2.5 Flash Lite | 平均上下文 **43,625/题** | **平均检索 0.675s** | 500 题历史 AMB rag 运行，非当前实例默认配置。[结果文件](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/outputs/longmemeval/hindsight/rag/s.json.gz) |
+| **Cognee / LoCoMo** | 准确率 **90.7% / 91.3%** | GPT-5-mini / GPT-5.1（medium） | 主报告未见统一值 | 主报告未见统一 P50/P95 | 修改范围后的 1762 题，包含对抗题；不是 Mem0 常见 1540 题范围。[来源](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/locomo/REPORT.md) |
+| **Cognee / BEAM** | 100K **79%**、10M **67%** | GPT-5 / GPT-5（独立调用） | 主报告未见统一值 | 主报告未见统一 P50/P95 | 100K 为一个留出会话 20 题的重复平均，10M 为探索结果。[来源](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/beam/REPORT.md) |
+| **阿里云 / 四类知识库 QA** | 综合准确率 **79.32%** | 未见披露；文章仅称使用同一大模型 | 单题 Token 消耗约为 LightRAG **1/3** | 检索耗时 **1.64s** | 社区产品介绍文章自报；模型、分母和分位数未完整披露，非已核实的 LoCoMo 成绩。[来源](https://developer.aliyun.com/article/1752686) |
+| **腾讯云 / PersonaMem** | 总准确率 **76.10%**；事实召回率 **79.07%** | Kimi-K2.5（OpenClaw 3.7）/ 未见披露 | 该表未见披露 | 该表未见披露 | OpenClaw 3.7 + Kimi-K2.5，589 题；两项百分比含义不同。[来源](https://cloud.tencent.cn/product/agm) |
+| **腾讯云 / WideSearch** | 成功率 **33% → 50%** | 未见披露；不能沿用 PersonaMem 的 Kimi 配置 | 整轮 **221.31M → 85.64M**，节省 **61.38%** | 该表未见披露 | 长会话短期压缩评测；不是 PersonaMem 的单题上下文长度。[来源](https://github.com/Tencent/TencentDB-Agent-Memory/blob/82b1ab4a2c47a5d65b99845841b7c659ac6f8497/README.md) |
+| **OpenViking / LoCoMo + OpenClaw** | 准确率 **82.08%** | 该成绩对应模型 / 裁判未完整披露 | 整轮输入 **37,423,456** | **平均问答 38.8s** | 包含 Agent 工作的时间，不是单独数据库检索耗时。[来源](https://blog.openviking.ai/post/openviking-benchmark-results/) |
+| **OpenViking / LoCoMo + Hermes** | 准确率 **82.86%** | 该成绩对应模型 / 裁判未完整披露 | 整轮输入 **52,026,755** | **平均问答 27.9s** | Agent 集成配置单列，不与单轮 reader 的时延直接比较。[来源](https://blog.openviking.ai/post/openviking-benchmark-results/) |
+| **OpenViking / LoCoMo + Claude Code** | 准确率 **80.32%** | doubao-seed-2-0-code-preview-260215 / 裁判未完整披露 | 整轮输入 **129,968,899** | **平均问答 20.4s** | 同上。[来源](https://blog.openviking.ai/post/openviking-benchmark-results/) |
+| **Zep / LoCoMo** | 页面自报准确率 **94.7%** | GPT-5.4（medium）/ GPT-5.4（CoT 评分） | 上下文**中位数 5760/题** | 检索 **P50 87ms、P95 155ms** | 多 scope 组合检索；页面分类与总计数不一致，待逐题记录核实。[来源](https://www.getzep.com/research/memory-benchmarks/) |
+| **Zep / LongMemEval** | 准确率 **90.2%** | GPT-5.4（medium）/ GPT-5.4（CoT 评分） | 上下文**中位数 4408/题** | 检索 **P50 104ms、P95 162ms** | 模型、scope 及预算见官方方法说明。[来源](https://www.getzep.com/research/memory-benchmarks/) |
+
+## 指标怎么理解
+
+| 指标 | 直白含义 | 阅读时注意 |
+| --- | --- | --- |
+| 准确率 | 有多少题被判为答对 | 核对 judge、评分宽容度、题型范围、样本量；固定 Mem0 prompt 允许日期相差 14 天、列表答中一项；与 F1、BEAM 平均分区分 |
+| 答案 F1 | 回答与标准答案的词项重合程度 | 不能与裁判准确率直接比较；也不是检索证据的 F1@K |
+| 上下文 tokens | 每题交给作答模型的记忆文本有多长 | 核对是否含 prompt、使用哪个 tokenizer、均值还是中位数 |
+| 总输入 tokens | 整个运行累计输入了多少模型 tokens | 与每题上下文不同，需明确运行阶段和题数 |
+| 平均时间 | 所有请求耗时的平均值 | 少量很慢请求可能明显拉高它，不等于 P50 |
+| P50 / P95 | 约一半 / 95% 请求在此时间内完成 | 核对计时边界是检索还是完整回答，是否计入重试 |
+| 相对 Token 节省 | 相比指定基线少用了多少 | 仅对该基线和场景成立，不代表绝对费用 |
+
+答案 F1 并非每家都主报。例：[MemTensor MemOS 的历史官方表](https://huggingface.co/datasets/MemTensor/MemOS_eval_result/blob/1e791b0b305cef8a4385ce7ef09c5c9343baefa6/README.md)同时给出正确率 75.80%、答案 F1 45.27 和 tokens 2640；[BAI-LAB MemoryOS](https://github.com/BAI-LAB/MemoryOS)则以 F1、BLEU-1 为研究指标。两者是不同项目，历史值不代表当前最佳成绩。
+
+## 记忆侧模型及完整评测环境
+
+| 产品 | 已披露的模型与环境 | 检索和评分方式 | 尚缺的关键信息 |
+| --- | --- | --- | --- |
+| **Mem0** | 官方评测仓已有结果样例使用 **GPT-5 作答、GPT-5 裁判，Azure provider**；平台新算法与 OSS 分开 | Top-200；同时评估 Top-10/20/50/200；单次检索后生成答案，再裁判；BEAM 有平均分和通过率 | 当前宣传成绩未与完整逐题运行环境逐一绑定；平台内部抽取、embedding、服务 build 不宜用 OSS 默认配置代替 |
+| **Hindsight** | AMB 指定结果文件中，LoCoMo、LME-S、PersonaMem 及 BEAM 10M 的 reader 为 **Gemini 3.1 Pro Preview**，judge 为 **Gemini 2.5 Flash Lite** | 前三项为 rag；BEAM 历史结果为 single-query；LoCoMo/LME 平均返回上下文约 **36.2K/43.6K tokens** | 这些结果头部未完整披露记忆抽取、embedding、重排及硬件；不能以当前 CI 配置替代历史环境 |
+| **Cognee / BEAM** | embedding：**text-embedding-3-large**；100K 抽取 **GPT-5**，10M 抽取 **GPT-5-mini**；reader/judge 均 **GPT-5**；10M 在 **Modal 分布式环境**写入 | 100K 固定 hybrid retrieval；10M 按题型路由；BEAM rubric 每项 0/0.5/1，先按题平均再汇总 | 10M 特定分布式编排未全部公开；路由使用题型标签且在报告题集上选择；硬件规格未完整给出 |
+| **Cognee / LoCoMo** | **GPT-5-mini** 抽取、摘要及作答；**text-embedding-3-large** 向量；**GPT-5.1 medium** 裁判；Cognee 1.5.4 | hybrid 检索 passages/entities/facts 各最多 20；二元正确率 | 重排模型及硬件未完整披露；与 BEAM 使用的模型配置不同 |
+| **阿里云 RDS ContextDB** | 托管服务；文章称采用**同一大模型**横评四类知识库问答 | 报告准确率、Token 消耗和检索耗时 | 模型名称、样本量、judge、top-k、硬件、逐题结果均未充分披露；社区发布身份与正式评测版本待进一步确认 |
+| **腾讯云 / PersonaMem** | **OpenClaw 3.7 + Kimi-K2.5**；产品页明确给出 20 画像、6462 上下文、589 题 | 对比原生 OpenClaw 与记忆增强后的 PersonaMem 表现 | PersonaMem split、judge、记忆抽取/embedding、检索预算、逐题结果及硬件未完整披露；当前 DeepSeek 默认配置不是该次 Kimi 环境 |
+| **OpenViking** | 主仓库标注评测版本 **0.3.22**；Claude Code 复现文档记载原始实验使用 ARK 上的 **doubao-seed-2-0-code-preview-260215** | 各 Agent 有独立导入、QA、judge 流程；SDK 预写入与真实 hook 自动捕获是不同实验 | 官方报告未逐项固定所有 Agent 模型、judge、题目分母及运行参数；当前脚本默认值不能证明复现了发布成绩 |
+| **Zep / LoCoMo、LongMemEval** | **GPT-5.4 medium** 作答、**GPT-5.4** CoT 裁判；记忆抽取及 embedding 模型未见完整披露 | 多 scope 组合检索，cross-encoder 重排；重排模型名称未披露 | 托管系统内部模型及硬件；LoCoMo 页面总计与分类差异仍待核实 |
+
+模型与数据范围来自成绩表及文末链接的官方报告和结果文件；同一模型用于不同调用不代表评分没有方差。
+
+**ContextBase 首轮必须逐项记录：**记忆抽取/摘要模型、embedding 模型及维度、重排模型或排序算法、作答模型、裁判模型，以及各自的精确版本、provider、reasoning 配置、temperature、输出上限和 prompt。记忆侧模型影响存储和召回，作答模型影响生成，裁判模型影响正确率判定；答案 F1 不依赖 LLM 裁判，但仍受生成答案的模型影响。跨产品对照应固定作答、裁判及预算，分别报告记忆侧配置；厂商原始成绩保留其原配置。
+
+### Hindsight LoCoMo：哪些参数可以追溯
+
+针对上表 **92.0%（1417/1540）** 这一组 AMB 历史结果，公开程度如下。结果文件中的实测记录与源码默认值分开列示：
+
+| 证据层级 | 已核实内容 |
+| --- | --- |
+| **该次结果文件明确记录** | `dataset=locomo`、`split=locomo10`、`mode=rag`、`oracle=false`；1540 题，272 份导入文档；reader `gemini:gemini-3.1-pro-preview`，judge `gemini:gemini-2.5-flash-lite` |
+| **该次结果文件记录的统计值** | 导入耗时 330205.8ms；平均检索 964.1ms；平均上下文 36235.4 tokens/题。这些是实测统计，不是预算配置 |
+| **固定 AMB 源码的 LoCoMo 默认检索参数** | `budget=high`、`max_tokens=32768`、`include_chunks=true`、`max_chunk_tokens=16384`、`include_entities=false`；问题截取前 1900 字符；token 上限可被环境变量覆盖 |
+| **固定 AMB 源码的生成与写入默认行为** | Gemini 生成 `temperature=0`；seed 仅在设置 `OMB_SEED` 时传入；内嵌 provider 配置写入模型 `gemini-2.5-flash-lite`；observations 默认关闭，可由环境变量启用 |
+| **尚不能绑定该次成绩的完整配置** | 服务端抽取模型及精确版本、embedding 模型/维度、重排模型、chunk 参数、全部环境变量覆盖、seed、服务 build、PG/机器规格、并发及冷/热状态 |
+
+**结论：已公开结果和可运行代码，但该次成绩的完整配置快照仍不齐。** 源码默认写入模型及检索预算可用于准备复现，不能据此宣称它们就是 92.0% 运行的全部生效配置。`32768` 是事实返回预算，原文 chunks 另有预算；总上下文还受序列化方式影响，不能把它当作完整 reader 输入硬上限。
+
+来源：[该次结果文件](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/outputs/locomo/locomo-hindsight/rag/locomo10.json.gz)、[固定 AMB Hindsight 适配器](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/src/memory_bench/memory/hindsight.py)、[固定 Gemini 调用代码](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/src/memory_bench/llm/gemini.py)。
+
+## 其他任务评测
+
+| 发布者 | 项目 | 原生基线 → 增强后 | 适用范围 |
+| --- | --- | --- | --- |
+| 腾讯云 | WideSearch | 成功率 **33% → 50%**；tokens **221.31M → 85.64M** | 长会话中的短期上下文卸载和压缩 |
+| 腾讯云 | SWE-bench | 成功率 **58.4% → 64.2%**；tokens **3474.1M → 2375.4M** | 每个 session 连续 50 项任务的设置；不能当作标准独立 SWE-bench leaderboard |
+| 腾讯云 | AA-LCR | 成功率 **44.0% → 47.5%** | 长会话设置，非 PersonaMem 长期偏好评测 |
+| OpenViking | tau2-bench Retail / Airline | **70.94% → 77.81% / 54.38% → 66.25%** | Agent 经验记忆提升任务成功率，非长对话 QA |
+| Mem0 DolphinBench | Hermes / GPT 5.6 Luna | 内置记忆 **394/600**；Mem0 **424/600**；Hindsight **417/600** | 600 项模拟工具任务，同一 harness/model 行内对照 |
+
+来源：[腾讯官方仓库](https://github.com/Tencent/TencentDB-Agent-Memory/blob/82b1ab4a2c47a5d65b99845841b7c659ac6f8497/README.md)、[OpenViking 官方报告](https://blog.openviking.ai/post/openviking-benchmark-results/)、[DolphinBench 官方运行记录](https://github.com/mem0ai/dolphinbench/blob/81cb6f8405b40a9e76089cef650806a80af06ea2/results/README.md)。腾讯公布的“+51.52%”是 WideSearch 相对提升，不能写成增加 51.52 个百分点。
+
+OpenViking 还公布 HotpotQA top-20 **91.00%**、检索延迟 **0.23s**，以及五类单轮 RAG 平均 **66.87%**、检索延迟 **0.19s**；这些是知识库问答，不能与其 LoCoMo Agent 问答耗时 20–39 秒混用。
+
+## 数据范围与版本说明
+
+1. **Mem0 的旧文件与新宣传值有时间差。** 官方 2026-05-14 更新文章明确将 LoCoMo **91.6% → 92.5%**、LME **93.4% → 94.4%**归于四月算法到五月时间推理更新。仓库四月文件中的 1410/1540 与 467/500 与旧值一致，不宜再笼统称为“原因未知的冲突”。Top-50 README 94.8% 与指定 JSON 90.4% 的对应关系仍待核实。[官方更新](https://mem0.ai/blog/the-token-efficient-memory-algorithm-now-has-temporal-reasoning)
+2. **Cognee 的技术报告比宣传摘要限定更严。** 100K 79% 为 20 题的四轮平均，10M 67% 属于同题选配置的探索结果；重复轮数不增加独立样本量。它们不能直接证明优于 Hindsight 的完整 BEAM split。[技术报告](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/beam/REPORT.md)
+3. **阿里云的 79.32% 存在来源口径差异。** 2026-08-03 产品介绍将其用于四类知识库问答，2026-09-08 社区文章又称为 LoCoMo，2026-10-15 文章给出四类 RAG 平均 79.3%。产品页与快速入门未核实到标准记忆榜分数。当前按“RAG 自报值、LoCoMo 待核实”收录，且不把开发者社区域名本身视为官方身份保证。[八月文章](https://developer.aliyun.com/article/1752686)、[九月文章](https://developer.aliyun.com/article/1761547)、[十月文章](https://developer.aliyun.com/article/1771153)
+
+4. **Zep 的页面总计与分类有差异。** LoCoMo 总表报 1459/1540，分类正确数合计 1436、分母合计 1539，故只按页面自报值收录，不据此排名。它同时公布上下文中位数与检索 P50/P95。[来源](https://www.getzep.com/research/memory-benchmarks/)
+5. **LoCoMo 评分方法要写清。** 原始问答代码主要使用词项 F1；Mem0 当前常见口径是 LLM 裁判正确率，类别 1–4 共 1540 题，不含 446 道对抗题。四类题型不是四种评分指标。[原始代码](https://github.com/snap-research/locomo/blob/main/task_eval/evaluation.py)、[Mem0 评分定义](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/benchmarks/locomo/prompts.py)
+6. **其他项目的历史指标分别保留。** MemTensor MemOS 同时公布 Overall 75.80%、答案 F1 45.27、tokens 2640；BAI-LAB MemoryOS 报 F1/BLEU-1，是不同项目。Membase 本地引擎报 LoCoMo 准确率 93.1%，40 题计时样本的上下文均值 6562，检索 P50/P95 1.67/7.02 秒、端到端 8.30/18.0 秒；这些都不是托管 API 指标。[MemOS 历史结果](https://huggingface.co/datasets/MemTensor/MemOS_eval_result/blob/1e791b0b305cef8a4385ce7ef09c5c9343baefa6/README.md)、[MemoryOS](https://github.com/BAI-LAB/MemoryOS)、[Membase](https://docs.membase.com/evaluation/benchmarks/)
+
+## 其他已收集结果
+
+下列数据用于后续选题，不与不同协议的主表混排。
+
+| 产品及项目 | 结果与口径 | 来源 |
+| --- | --- | --- |
+| Hindsight / PersonaMem 32K | 510/589，86.6%；平均上下文 15811.6 tokens、平均检索 674.9ms | [结果文件](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/outputs/personamem/hindsight/rag/32k.json.gz) |
+| Hindsight / BEAM | 500K 71.1%、1M 73.9%、10M 64.1%；官网 100K 显示 75%，固定结果清单一组为约 73.4%，分开维护 | [官网](https://benchmarks.hindsight.vectorize.io/)、[固定清单](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json) |
+| Hindsight / LifeBench EN | 1433/2003，71.5% | 同一 AMB 固定清单 |
+| Hindsight / PrecisionMemBench | AMB 移植版 66/77、Active 33/43；原项目公布的 Hindsight 为 11/77、Active 0/43。版本、分类及过滤不同，不将差值归为引擎提升 | [AMB 固定清单](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)、[原版](https://github.com/tenurehq/precisionmembench) |
+| Hindsight / sde-bench、locomo-fixed | coding 部分配置 61/61，也有 60/61，部分无记忆基线接近满分；一组 Gemma4 + agent 的 locomo-fixed 为 1284/1502、85.5% | 同一 AMB 固定清单 |
+| Mem0 OSS / LongMemEval | 按不同抽取模型约 88.6%–91.0%；特定 Qwen embedding、GPT-5 作答及裁判，非默认安装成绩 | [固定评测 README](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/README.md) |
+| Mem0 / Top-50 及 BEAM 通过率 | LME Top-50 自报 474/500、94.8%；BEAM 1M 通过率 491/700、70.1%，10M 为 101/200、50.5%，与连续平均分分别报告 | 同一 Mem0 固定评测 README |
+
+## 来源与追溯
+
+各结果在表内直接链接来源。固定源码快照为 AMB `28b644bd4dd653c0207c7507280439390c829155`、Mem0 评测仓 `4b61c5d31b9c668a12b4f5e78064248a02c82d2b`、Cognee `5870f15d2488b99e80f71dd6e8e146b228749356`、OpenViking `2f41f1c7e95be5e7819d1f948fd6d220c5e0454a`、TencentDB Agent Memory `82b1ab4a2c47a5d65b99845841b7c659ac6f8497`，不把当前 main 的默认值当成历史实测配置。
+
+- Mem0 四月 LoCoMo 结果为 1410/1540，LME Top-200 文件为 passed 467/500；两个 BEAM 文件的平均分与 README 一致。Top-50 文件为 452/500，仍须与新版运行匹配。LoCoMo/LME Top-50 样例为 GPT-5 作答与裁判、Azure provider。[LoCoMo 文件](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/locomo_results.json)、[LME Top-200](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/longmemeval_results.json)、[LME Top-50](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/longmemeval_top50_results.json)、[BEAM 1M](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/beam_1m_results.json)、[BEAM 10M](https://github.com/mem0ai/memory-benchmarks/blob/4b61c5d31b9c668a12b4f5e78064248a02c82d2b/results/platform/beam_10m_results.json)
+- Hindsight 的 LoCoMo、LME、PersonaMem 文件头及前轮已读取的 BEAM 10M 结果均记录 Gemini 3.1 Pro Preview 作答、Gemini 2.5 Flash Lite 裁判；前三个头部提取不是完整逐题文件。[BEAM 10M 文件](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/outputs/beam/hindsight/single-query/10m.json.gz)
+- Cognee 的 LoCoMo 审计排除 143 题，其中与 96 道开放域重合 15 道，总排除 224、保留 1762；保留全部 446 道对抗题。两次结果为 1598/1762 与 1608/1762。[技术报告](https://github.com/topoteretes/cognee/blob/5870f15d2488b99e80f71dd6e8e146b228749356/cognee/eval_framework/locomo/REPORT.md)
+- 阿里云正式产品页及快速入门用于确认产品身份，社区文章的作者归属和正式评测版本仍待进一步核实；不以同名 contextdb.ai 或 contextdb.tech 项目替代。[产品页](https://www.aliyun.com/activity/database/contextdb)、[快速入门](https://help.aliyun.com/zh/rds/apsaradb-rds-for-mysql/rds-contextdb-quick-start)
+- OpenViking 原始 Claude Code 实验模型由其专用复现文档说明，不能推广到全部 Agent；当前 e2e、SDK 预写入、Mem0 单轮 QA 及 RAG 路径是不同实验。[评测说明](https://github.com/volcengine/OpenViking/blob/2f41f1c7e95be5e7819d1f948fd6d220c5e0454a/benchmark/README.md)、[Claude Code 环境](https://github.com/volcengine/OpenViking/blob/2f41f1c7e95be5e7819d1f948fd6d220c5e0454a/benchmark/locomo/claudecode/README.md)
+
+原始证据保存在本机研究目录 `/Users/zhuqingping/Work/Database/Context/ContextDB-Research/.local-archive/benchmarks/official-20261118/`，manifest 记录 URL、日期、哈希及抓取失败，不随 Git 自动共享。Mem0 时间推理更新文章已通过网页工具核对，本地 HTML 抓取返回 403。执行安排与待办统一见[测试计划](plan.md)。

@@ -1,0 +1,690 @@
+"""Real pinned AMB code, synthetic LoCoMo histories, local HTTP and scripted models only."""
+
+import asyncio
+import importlib.util
+import json
+import os
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Iterator
+from unittest.mock import Mock
+from urllib.parse import urlsplit
+
+import aiohttp
+import numpy as np
+import pytest
+import tiktoken
+from aiohttp import web
+from aiohttp.test_utils import TestServer
+from hindsight_api.engine.chunk_ids import build_chunk_id
+from hindsight_api.engine.response_models import LLMCallResult, TokenUsage
+
+SCRIPT = Path(__file__).parents[1] / "runner.py"
+spec = importlib.util.spec_from_file_location("amb_contextbase_test", SCRIPT)
+a = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = a
+spec.loader.exec_module(a)
+
+
+h = a.core
+
+
+def config_fixture(tmp_path, *, conversations=("conv-30",), attempts=2):
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    records = []
+    for name in conversations:
+        records.append(
+            {
+                "sample_id": name,
+                "conversation": {
+                    "speaker_a": "Person A",
+                    "speaker_b": "Person B",
+                    "session_1_date_time": "1:00 pm on 1 January, 2023",
+                    "session_1": [{"speaker": "Person A", "dia_id": "D1:1", "text": "Public session memory."}],
+                    "session_10_date_time": "1:00 pm on 10 January, 2023",
+                    "session_10": [{"speaker": "Person B", "dia_id": "D10:1", "text": "Another public memory."}],
+                },
+                "qa": [
+                    {
+                        "question": "A public question?",
+                        "answer": "GOLD_SENTINEL_NOT_IN_MEMORY",
+                        "category": 2,
+                        "evidence": ["EVIDENCE_SENTINEL_NOT_IN_MEMORY"],
+                    },
+                    {"question": "Excluded adversarial?", "category": 5},
+                ],
+            }
+        )
+    (sources / "locomo10.json").write_text(json.dumps(records))
+    # Original LoCoMo F1 functions, formatting normalized; no real QA data.
+    (sources / "locomo_evaluation.py").write_text(r"""
+def normalize_answer(s):
+    s = s.replace(',', '')
+
+    def remove_articles(text):
+        return regex.sub('\\b(a|an|the|and)\\b', ' ', text)
+
+    def white_space_fix(text):
+        return ' '.join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return ''.join((ch for ch in text if ch not in exclude))
+
+    def lower(text):
+        return text.lower()
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
+
+def f1_score(prediction, ground_truth):
+    prediction_tokens = [ps.stem(w) for w in normalize_answer(prediction).split()]
+    ground_truth_tokens = [ps.stem(w) for w in normalize_answer(ground_truth).split()]
+    common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
+    num_same = sum(common.values())
+    if num_same == 0:
+        return 0
+    precision = 1.0 * num_same / len(prediction_tokens)
+    recall = 1.0 * num_same / len(ground_truth_tokens)
+    f1 = 2 * precision * recall / (precision + recall)
+    return f1
+
+def f1(prediction, ground_truth):
+    predictions = [p.strip() for p in prediction.split(',')]
+    ground_truths = [g.strip() for g in ground_truth.split(',')]
+    return np.mean([max([f1_score(prediction, gt) for prediction in predictions]) for gt in ground_truths])
+""")
+    template = json.loads((SCRIPT.parent / "config.example.json").read_text())
+    template["sources"] = {
+        name: {"path": str(sources / filename), "sha256": h.file_sha(sources / filename)}
+        for name, filename in h.SOURCE_FILES.items()
+    }
+    template["conversations"] = list(conversations)
+    template["poll_interval_s"] = 0.01
+    template["model_max_attempts"] = attempts
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(template))
+    return path
+
+
+def recall_fixture(conversation, count=109, *, giant=False):
+    doc = conversation.sessions[0].document_id
+    identifier = build_chunk_id(conversation.bank_id, doc, 0)
+    facts = [
+        h.Fact(
+            id=f"fact{i}",
+            text=("x " * 10000 if giant and i == 0 else f"Fact {i}: this is an entire statement with a date."),
+            document_id=doc,
+            chunk_id=identifier,
+            mentioned_at="2023-01-01T13:00:00Z",
+        )
+        for i in range(count)
+    ]
+    return h.RecallReply(
+        results=facts,
+        chunks={
+            identifier: h.Chunk(text='Original passage with "quotes", 中文 and an exact detail omitted by the facts.')
+        },
+    )
+
+
+class FakeBankService:
+    def __init__(self):
+        self.documents = {}
+        self.polls = {}
+        self.requests = []
+        self.ingestion_bodies = []
+        self.reads_before_completed = 0
+        self.config_marker = 0
+
+    async def handle(self, request):
+        self.requests.append((request.method, request.path))
+        if request.path == "/version":
+            return web.json_response({"api_version": "fixture"})
+        prefix = "/v1/default/banks/"
+        tail = request.path.removeprefix(prefix)
+        bank, _, suffix = tail.partition("/")
+        assert bank.startswith("unit_test_conv_")
+        if request.method == "PUT":
+            assert request.headers["If-None-Match"] == "*"
+            assert bank not in self.documents
+            self.documents[bank] = {}
+            self.polls[bank] = 0
+            return web.json_response({"bank_id": bank})
+        if suffix == "config":
+            return web.json_response(
+                {"bank_id": bank, "config": {"enable_observations": False, "llm_api_key": "NEVER_COPY_THIS_SECRET"}}
+            )
+        if suffix == "memories" and request.method == "POST":
+            body = await request.json()
+            self.ingestion_bodies.append(body)
+            self.documents[bank] = {x["document_id"]: x["content"] for x in body["items"]}
+            return web.json_response({"operation_id": body["operation_id"]})
+        if suffix == "operations":
+            self.polls[bank] += 1
+            operation_id = next(
+                x["operation_id"]
+                for x in self.ingestion_bodies
+                if x["items"][0]["document_id"].startswith(bank.split("unit_test_")[1].replace("conv_", "conv-") + "_")
+            )
+            return web.json_response(
+                {
+                    "total": 2,
+                    "operations": [
+                        {"operation_id": operation_id, "status": "completed"},
+                        {"operation_id": "child", "status": "processing"},
+                    ],
+                }
+            )
+        if suffix.startswith("operations/"):
+            child = suffix.endswith("child")
+            status = "processing" if child and self.polls[bank] == 1 else "completed"
+            return web.json_response(
+                {
+                    "operation_id": suffix.split("/")[1],
+                    "status": status,
+                    "result_metadata": {"extraction_errors_count": 0},
+                }
+            )
+        if suffix == "documents":
+            assert self.polls[bank] >= 2
+            return web.json_response(
+                {
+                    "total": len(self.documents[bank]),
+                    "items": [{"id": k, "bank_id": bank} for k in self.documents[bank]],
+                }
+            )
+        if suffix.startswith("documents/"):
+            doc = suffix.removeprefix("documents/")
+            return web.json_response({"id": doc, "bank_id": bank, "original_text": self.documents[bank][doc]})
+        if suffix == "memories/recall":
+            assert self.polls[bank] >= 2
+            body = await request.json()
+            assert body["include"]["entities"] is None
+            doc = next(iter(self.documents[bank]))
+            chunk = build_chunk_id(bank, doc, 0)
+            return web.json_response(
+                {
+                    "results": [
+                        {"id": bank + "_fact", "text": "Public memory.", "document_id": doc, "chunk_id": chunk}
+                    ],
+                    "chunks": {chunk: {"text": "Public original passage."}},
+                }
+            )
+        raise AssertionError(f"Unexpected request (including reflect/delete): {request.method} {suffix}")
+
+
+@pytest.fixture(scope="session")
+def checkout():
+    fallback = SCRIPT.parents[3] / "ContextDB-Research/.local-archive/benchmarks/tools/amb-28b644b"
+    path = Path(os.environ.get("CONTEXTBASE_AMB_CHECKOUT", str(fallback)))
+    if not path.exists():
+        pytest.skip("Set CONTEXTBASE_AMB_CHECKOUT to the fixed offline source checkout")
+    assert a.git(path, "rev-parse", "HEAD") == a.AMB_COMMIT
+    return path
+
+
+@pytest.fixture(autouse=True)
+def prevent_real_services(monkeypatch):
+    original = aiohttp.ClientSession._request
+
+    async def guarded(self, method, url, **kwargs):
+        parsed = urlsplit(str(url))
+        assert parsed.hostname == "127.0.0.1" and parsed.port not in (8888, 8891, 8892), (
+            "Offline tests cannot access real services"
+        )
+        return await original(self, method, url, **kwargs)
+
+    monkeypatch.setattr(aiohttp.ClientSession, "_request", guarded)
+    monkeypatch.setattr("urllib.request.urlretrieve", Mock(side_effect=AssertionError("No dataset downloads")))
+
+
+@dataclass
+class Prepared:
+    directory: Path
+    manifest: Any
+
+    def __iter__(self) -> Iterator[Any]:
+        yield self.directory
+        yield self.manifest
+
+
+def prepared(tmp_path, checkout, *, conversations=("conv-30",), api_url=None, questions_per_conversation=1):
+    path = config_fixture(tmp_path, conversations=conversations)
+    config = json.loads(path.read_text())
+    config.update(
+        protocol="amb-locomo-cat1to4-packed-v1", judge_protocol="pinned-amb-locomo-judge", amb_checkout=str(checkout)
+    )
+    if api_url:
+        config["api_url"] = api_url
+    if questions_per_conversation > 1:
+        dataset_path = Path(config["sources"]["dataset"]["path"])
+        records = json.loads(dataset_path.read_text())
+        for conversation in records:
+            conversation["qa"] = [conversation["qa"][0].copy() for _ in range(questions_per_conversation)] + [
+                conversation["qa"][-1]
+            ]
+        dataset_path.write_text(json.dumps(records))
+        config["sources"]["dataset"]["sha256"] = a.core.file_sha(dataset_path)
+    path.write_text(json.dumps(config))
+    directory = tmp_path / "amb-run"
+    return Prepared(directory, a.init_run(path, directory, "unit_test"))
+
+
+class ScriptedModel:
+    def __init__(self, factory, *, judge):
+        self.factory = factory
+        self.judge = judge
+
+    async def call(self, *, messages, response_format, strict_schema, **kwargs):
+        assert strict_schema and kwargs["max_retries"] == 0
+        prompt = messages[0]["content"]
+        self.factory.calls.append((self.judge, prompt, a.QUESTION_ID.get()))
+        if self.judge and self.factory.interrupt_judge:
+            self.factory.interrupt_judge = False
+            raise asyncio.CancelledError()
+        if self.judge and self.factory.fail_judge:
+            raise ValueError("Scripted failure")
+        content = (
+            {"correct": self.factory.correct, "reason": "Scripted mechanics fixture"}
+            if self.judge
+            else {"answer": self.factory.answer, "reasoning": "Scripted mechanics fixture"}
+        )
+        return LLMCallResult(
+            content=json.dumps(content), usage=TokenUsage(input_tokens=7, output_tokens=3, total_tokens=10)
+        )
+
+    async def cleanup(self):
+        self.factory.cleanups += 1
+
+
+class Factory:
+    def __init__(self, manifest, *, correct=False, answer="test answer", interrupt_judge=False, fail_judge=False):
+        self.manifest = manifest
+        self.correct = correct
+        self.answer = answer
+        self.interrupt_judge = interrupt_judge
+        self.fail_judge = fail_judge
+        self.calls = []
+        self.cleanups = 0
+
+    def __call__(self, settings, timeout):
+        return ScriptedModel(self, judge=settings is self.manifest.config.judge)
+
+
+def test_init_is_offline_freezes_upstream_and_rejects_existing_directory(tmp_path, checkout, monkeypatch):
+    monkeypatch.delenv("CONTEXTBASE_BENCH_KEY", raising=False)
+    factory = Mock(side_effect=AssertionError("No model creation"))
+    monkeypatch.setattr(a.core, "make_provider", factory)
+    directory, manifest = prepared(tmp_path, checkout)
+    assert a.load_manifest(directory) == manifest
+    assert manifest.config.amb_commit == a.AMB_COMMIT
+    assert (directory / "amb-source/uv.lock").is_file()
+    assert len(manifest.amb_files) > 30
+    assert a.core.read_model(directory / "state.json", a.core.State).banks == {}
+    assert not (directory / "calls").exists()
+    assert "GOLD_SENTINEL" not in json.dumps([q.model_dump() for c in manifest.conversations for q in c.questions])
+    with pytest.raises(FileExistsError):
+        a.init_run(tmp_path / "config.json", directory, "unit_test")
+    assert not factory.called
+
+
+def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    archive = a.Archive(directory, manifest)
+    runtime = a.components(archive)
+    queries = runtime.dataset.load_queries("locomo10")
+    assert [q.id for q in queries] == ["conv-30_q0"]  # adversarial excluded
+    assert queries[0].meta["query_timestamp"] == "2023-01-10T13:00:00+00:00"
+    docs = runtime.dataset.load_documents("locomo10")
+    assert len(docs) == 2 and all(doc.user_id == "conv-30" for doc in docs)
+    assert all("GOLD_SENTINEL" not in doc.content and "EVIDENCE_SENTINEL" not in doc.content for doc in docs)
+    packed = a.core.pack_context(
+        recall_fixture(manifest.conversations[0]), manifest.conversations[0], manifest.config.packing
+    )
+    meta = {**queries[0].meta, "_raw_response": {"packing": packed.model_dump(), "DONT_INJECT": "RAW_BYPASS_SENTINEL"}}
+    actual = runtime.dataset.build_rag_prompt(
+        queries[0].query, "WRAPPER_SHOULD_NOT_ENTER_PROMPT", "open", "locomo10", meta=meta
+    )
+    upstream = a.amb_modules(directory)["dataset.locomo"].LoComoDataset()
+    expected = upstream.build_rag_prompt(queries[0].query, packed.text, "open", "locomo10", meta=queries[0].meta)
+    assert actual == expected
+    assert packed.text in actual and json.loads(packed.text)["chunks"]
+    assert "RAW_BYPASS_SENTINEL" not in actual and "WRAPPER_SHOULD_NOT_ENTER_PROMPT" not in actual
+    assert packed.tokens <= 8192
+    assert runtime.dataset.build_judge_prompt("q", ["gold"], "answer") == upstream.build_judge_prompt(
+        "q", ["gold"], "answer"
+    )
+    assert runtime.runner.__class__.__mro__[1].__module__.endswith(".runner")
+    assert runtime.mode.__class__.__mro__[1].__module__.endswith(".modes.rag")
+    with pytest.raises(ValueError, match="reset"):
+        runtime.memory.prepare(directory, {"conv-30"}, reset=True)
+
+
+@pytest.mark.asyncio
+async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(
+            tmp_path, checkout, conversations=("conv-30", "conv-26"), api_url=str(server.make_url("/"))
+        )
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        factory = Factory(manifest)
+        summary = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert summary.valid_complete_run and summary.expected == summary.completed == 2
+        assert summary.correct == 0 and summary.accuracy_all_expected == 0
+        assert len(factory.calls) == factory.cleanups == 4
+        assert {x[2] for x in factory.calls} == {"conv-30_q0", "conv-26_q0"}
+        assert all(
+            "GOLD_SENTINEL" not in prompt and "EVIDENCE_SENTINEL" not in prompt
+            for judge, prompt, _ in factory.calls
+            if not judge
+        )
+        assert all("GOLD_SENTINEL" in prompt for judge, prompt, _ in factory.calls if judge)
+        assert all(
+            "GOLD_SENTINEL" not in json.dumps(body) and "EVIDENCE_SENTINEL" not in json.dumps(body)
+            for body in service.ingestion_bodies
+        )
+        assert summary.model_usage["answer"].input_tokens == 14
+        assert summary.model_usage["judge"].output_tokens == 6
+        assert summary.attempts_with_unknown_usage == 0
+        assert summary.retrieval_sample_count == 2
+        recalls = sum("recall" in path for _, path in service.requests)
+        before = {p.name: a.core.file_sha(p) for p in (directory / "results").glob("*.json")}
+        second = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert second.valid_complete_run and second.correct == 0
+        assert len(factory.calls) == 4 and sum("recall" in path for _, path in service.requests) == recalls
+        assert before == {p.name: a.core.file_sha(p) for p in (directory / "results").glob("*.json")}
+        assert len(service.documents) == 2 and all(
+            method != "DELETE" and "reflect" not in path for method, path in service.requests
+        )
+        assert "NEVER_COPY_THIS_SECRET" not in "".join(p.read_text() for p in directory.glob("*-server-config-*.json"))
+        native = json.loads(next((directory / "amb-output").rglob("locomo10.json")).read_text())
+        assert native["total_queries"] == 2 and native["answer_llm"] == "openai-codex:gpt-6.1-sol"
+        assert native["ingested_docs"] == 4 and native["ingestion_time_ms"] > 0
+        for path in (directory / "retrievals").glob("*.json"):
+            row = a.unseal(path, a.RetrievalRecord, manifest)
+            assert row.packing.text in next(
+                prompt for judge, prompt, qid in factory.calls if not judge and qid == row.question_id
+            )
+
+
+@pytest.mark.parametrize("change", ["amb", "helper", "config", "record"])
+def test_drift_rejected_and_legacy_untouched(tmp_path, checkout, change):
+    directory, manifest = prepared(tmp_path, checkout)
+    if change == "amb":
+        (directory / "amb-source/src/memory_bench/dataset/locomo.py").write_text("# changed")
+    elif change == "helper":
+        (directory / "support.py").write_text("# changed")
+    elif change == "config":
+        value = json.loads((directory / "manifest.json").read_text())
+        value["config"]["packing"]["max_tokens"] = 16000
+        (directory / "manifest.json").write_text(json.dumps(value))
+    else:
+        record = a.SavedResult(
+            fingerprint=manifest.fingerprint,
+            question_id="conv-30_q0",
+            answer_f1=0,
+            amb_result=a.NativeResult(
+                query_id="conv-30_q0",
+                query="q",
+                answer="a",
+                correct=False,
+                context="{}",
+                context_tokens=1,
+                retrieve_time_ms=1,
+                reasoning="r",
+                gold_answers=["g"],
+                judge_reason="r",
+                meta={},
+            ),
+        )
+        path = directory / "results/conv-30_q0.json"
+        a.seal(path, record)
+        path.write_text(path.read_text().replace('"correct": false', '"correct": true'))
+        with pytest.raises(ValueError, match="Checkpoint"):
+            a.report(directory, manifest)
+        return
+    with pytest.raises(ValueError):
+        a.load_manifest(directory)
+
+
+def test_legacy_refused_without_a_lock_or_mutation(tmp_path):
+    old = tmp_path / "old"
+    old.mkdir()
+    (old / "run.json").write_text('{"accuracy": 0.9136}')
+    before = (old / "run.json").read_bytes()
+    with pytest.raises(ValueError, match="legacy"):
+        a.load_manifest(old)
+    assert (old / "run.json").read_bytes() == before
+    assert len(list(old.iterdir())) == 1
+
+
+@pytest.mark.asyncio
+async def test_interrupted_judge_does_not_regenerate_answer(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    factory = Factory(manifest, interrupt_judge=True)
+    archive = a.Archive(directory, manifest, factory)
+    modules = a.amb_modules(directory)
+    schema = modules["modes.rag"]._OPEN_SCHEMA
+    qid = "conv-30_q0"
+    await archive.generate(qid, "answer", "Public prompt", schema)
+    judge_schema = modules["judge"]._SCHEMA
+    with pytest.raises(asyncio.CancelledError):
+        await archive.generate(qid, "judge", "Gold prompt", judge_schema)
+    await archive.generate(qid, "answer", "Public prompt", schema)
+    await archive.generate(qid, "judge", "Gold prompt", judge_schema)
+    assert len([x for x in factory.calls if not x[0]]) == 1
+    assert len([x for x in factory.calls if x[0]]) == 2
+    saved = a.unseal(archive.call_path(qid, "judge"), a.CallRecord, manifest)
+    assert [attempt.state for attempt in saved.attempts] == ["interrupted_unknown", "completed"]
+    summary = a.report(directory, manifest)
+    assert summary.attempts_with_unknown_usage == 1 and not summary.valid_complete_run
+
+
+@pytest.mark.asyncio
+async def test_failed_judge_stays_in_denominator_and_is_not_retried(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout, conversations=("conv-30", "conv-26"))
+    factory = Factory(manifest, fail_judge=True)
+    archive = a.Archive(directory, manifest, factory)
+    schema = a.amb_modules(directory)["judge"]._SCHEMA
+    with pytest.raises(RuntimeError, match="stage failed"):
+        await archive.generate("conv-30_q0", "judge", "Gold prompt", schema)
+    with pytest.raises(RuntimeError, match="previously failed"):
+        await archive.generate("conv-30_q0", "judge", "Gold prompt", schema)
+    summary = a.report(directory, manifest)
+    assert summary.expected == 2 and summary.failed == 1 and summary.pending == 1
+    assert summary.accuracy_all_expected == 0 and len(factory.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_supplementary_f1_tokens_percentiles_and_full_prompt_are_separate(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout, conversations=("conv-30", "conv-26"))
+    factory = Factory(manifest, answer="GOLD_SENTINEL_NOT_IN_MEMORY")
+    archive = a.Archive(directory, manifest, factory)
+    schema = a.amb_modules(directory)["modes.rag"]._OPEN_SCHEMA
+    latencies = [100.0, 900.0]
+    token_counts = []
+    for conversation, latency in zip(manifest.conversations, latencies, strict=True):
+        question = conversation.questions[0]
+        qid = a.amb_id(question)
+        recall = recall_fixture(conversation)
+        packed = a.core.pack_context(recall, conversation, manifest.config.packing)
+        token_counts.append(packed.tokens)
+        a.seal(
+            directory / f"retrievals/{qid}.json",
+            a.RetrievalRecord(
+                fingerprint=manifest.fingerprint,
+                question_id=qid,
+                bank_id=conversation.bank_id,
+                recall=a.core.RecallReply.model_validate(recall.model_dump()),
+                packing=packed,
+                retrieval_elapsed_ms=latency,
+            ),
+        )
+        await archive.generate(qid, "answer", "Full answer prompt " + packed.text, schema)
+    summary = a.report(directory, manifest)
+    assert summary.answer_f1_all_expected == 1.0  # Original F1 on synthetic identical answers
+    assert summary.retrieval_ms_p50 == np.percentile(latencies, 50)
+    assert summary.retrieval_ms_p95 == np.percentile(latencies, 95)
+    assert summary.context_tokens_total == sum(token_counts)
+    assert summary.full_answer_prompt_tokens_mean > summary.context_tokens_mean
+    expected = [
+        len(tiktoken.get_encoding("cl100k_base").encode(a.unseal(p, a.RetrievalRecord, manifest).packing.text))
+        for p in (directory / "retrievals").glob("*.json")
+    ]
+    assert summary.amb_cl100k_context_tokens_mean == sum(expected) / 2
+    assert not summary.valid_complete_run  # No judge/results; F1 isn't accuracy.
+
+
+def test_preview_is_offline_and_preserves_source(tmp_path, checkout, monkeypatch):
+    directory, manifest = prepared(tmp_path, checkout)
+    recall = recall_fixture(manifest.conversations[0])
+    source = tmp_path / "saved-recall.json"
+    source.write_text(recall.model_dump_json())
+    before = source.read_bytes()
+    monkeypatch.delenv("CONTEXTBASE_BENCH_KEY", raising=False)
+    output = directory / "preview.json"
+    result = a.preview(directory, source, "conv-30", output)
+    assert json.loads(result.packing.text)["chunks"]
+    assert result.packing.tokens <= 8192 and source.read_bytes() == before
+    with pytest.raises(ValueError, match="exists"):
+        a.preview(directory, source, "conv-30", output)
+    assert not (directory / "calls").exists()
+
+
+@pytest.mark.asyncio
+async def test_concurrent_same_bank_questions_keep_their_own_prompt_and_judge(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=3
+        )
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        factory = Factory(manifest)
+        summary = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert summary.valid_complete_run and summary.completed == 3
+        assert len(factory.calls) == 6
+        for qid in ("conv-30_q0", "conv-30_q1", "conv-30_q2"):
+            assert sorted(judge for judge, _, identity in factory.calls if identity == qid) == [False, True]
+
+
+@pytest.mark.asyncio
+async def test_recall_failure_is_archived_and_not_retried_or_removed(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+
+    async def handler(request):
+        if request.path.endswith("/memories/recall"):
+            service.requests.append((request.method, request.path))
+            return web.json_response({"error": "scripted upstream failure"}, status=503)
+        return await service.handle(request)
+
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", handler)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")))
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        factory = Factory(manifest)
+        with pytest.raises(RuntimeError, match="Recall failed"):
+            await asyncio.to_thread(a.run, directory, manifest, factory)
+        summary = a.report(directory, manifest)
+        assert summary.failed == summary.expected == 1 and summary.retrieval_sample_count == 0
+        assert not summary.valid_complete_run and summary.accuracy_all_expected == 0
+        assert not factory.calls
+        with pytest.raises(ValueError, match="could not be packed"):
+            await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert sum("recall" in path for _, path in service.requests) == 1
+
+
+@pytest.mark.asyncio
+async def test_runtime_drift_stops_calls_before_evaluation(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    drifted = False
+
+    async def handler(request):
+        if request.path.endswith("/config") and drifted:
+            return web.json_response({"config": {"changed": True}})
+        return await service.handle(request)
+
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", handler)
+    async with TestServer(app) as server:
+        directory, manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")))
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        await a.service_stage(directory, manifest, "ingest")
+        drifted = True
+        factory = Factory(manifest)
+        with pytest.raises(ValueError, match="configuration changed"):
+            await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert not factory.calls and not a.report(directory, manifest).valid_complete_run
+
+
+def test_original_scoring_functions_on_synthetic_answers(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    scoring = a.core.FrozenScoring(directory)
+    assert scoring.single("The red bicycle", "red") == pytest.approx(2 / 3)
+    assert scoring.single("bicycles", "bicycle") == 1
+    assert scoring.multi("red, blue", "red, blue") == 1
+    assert scoring.single("", "red") == 0
+
+
+def test_fact_flood_cannot_starve_original_passage(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    recalled = recall_fixture(manifest.conversations[0])
+    packing = h.pack_context(
+        recalled, manifest.conversations[0], h.PackingSettings(max_tokens=1200, fact_tokens=600, chunk_tokens=500)
+    )
+    payload = json.loads(packing.text)
+    assert payload["facts"] and payload["chunks"]
+    assert payload["chunks"][0]["text"] == next(iter(recalled.chunks.values())).text
+    assert packing.tokens == len(tiktoken.get_encoding("o200k_base").encode(packing.text)) <= 1200
+    assert packing.omitted
+    assert all(x["mentioned_at"] == "2023-01-01T13:00:00Z" for x in payload["facts"])
+    assert (
+        h.pack_context(
+            recalled, manifest.conversations[0], h.PackingSettings(max_tokens=1200, fact_tokens=600, chunk_tokens=500)
+        )
+        == packing
+    )
+
+
+def test_oversized_fact_is_omitted_whole_not_sliced(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    packing = h.pack_context(
+        recall_fixture(manifest.conversations[0], count=2, giant=True), manifest.conversations[0], h.PackingSettings()
+    )
+    assert packing.included_fact_ids == ["fact1"]
+    assert packing.omitted[0].id == "fact0"
+    assert json.loads(packing.text)["chunks"]
+
+
+@pytest.mark.parametrize("crossing", ["fact", "chunk"])
+def test_cross_bank_or_conversation_evidence_is_rejected(tmp_path, checkout, crossing):
+    directory, manifest = prepared(tmp_path, checkout)
+    recalled = recall_fixture(manifest.conversations[0], count=1)
+    if crossing == "fact":
+        recalled.results[0].document_id = "conv-other_session_1"
+    else:
+        recalled.chunks = {
+            build_chunk_id("another_bank", manifest.conversations[0].sessions[0].document_id, 0): h.Chunk(
+                text="foreign"
+            )
+        }
+    with pytest.raises(ValueError, match="outside"):
+        h.pack_context(recalled, manifest.conversations[0], h.PackingSettings())
+
+
+def test_all_oversized_original_passages_fail_visibly(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    conversation = manifest.conversations[0]
+    recalled = recall_fixture(conversation, count=1)
+    next(iter(recalled.chunks.values())).text = "huge source " * 2000
+    with pytest.raises(ValueError, match="No complete original passage fits"):
+        h.pack_context(recalled, conversation, h.PackingSettings(max_tokens=300, fact_tokens=150, chunk_tokens=100))

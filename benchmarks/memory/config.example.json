@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "protocol": "amb-locomo-cat1to4-packed-v1",
+  "sources": {
+    "dataset": {
+      "path": "${LOCOMO_SOURCE_DIR}/locomo10.json",
+      "url": "https://github.com/snap-research/locomo/blob/main/data/locomo10.json",
+      "sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+    },
+    "scoring": {
+      "path": "${LOCOMO_SOURCE_DIR}/locomo_evaluation.py",
+      "url": "https://github.com/snap-research/locomo/blob/main/task_eval/evaluation.py",
+      "sha256": "8e3be5d57ff2ff9ec5cd05939592f468c5f3f1fd95d13e431932bdf6bf0fd6fd"
+    }
+  },
+  "conversations": [
+    "conv-30"
+  ],
+  "question_limit_per_conversation": null,
+  "api_url": "http://127.0.0.1:8892",
+  "credential": {
+    "env": "CONTEXTBASE_BENCH_KEY"
+  },
+  "memory_profile": {
+    "retain_provider": "openai-codex",
+    "retain_model": "gpt-6.1-sol",
+    "retain_reasoning_effort": "medium",
+    "embedding_provider": "openai-compatible",
+    "embedding_model": "doubao-embedding-vision",
+    "embedding_dimensions": 1024,
+    "reranker": "rrf",
+    "service_revision": "gpt61-20261107-dd5521cb9"
+  },
+  "answer": {
+    "provider": "openai-codex",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "low",
+    "temperature": null,
+    "output_tokens_limit": null
+  },
+  "judge": {
+    "provider": "openai-codex",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "low",
+    "temperature": null,
+    "output_tokens_limit": null
+  },
+  "packing": {
+    "algorithm": "complete-json-separate-budgets-v2",
+    "tokenizer": "o200k_base",
+    "max_tokens": 8192,
+    "fact_tokens": 4000,
+    "chunk_tokens": 4000,
+    "fact_order": "recall_order",
+    "chunk_order": "response_order"
+  },
+  "recall": {
+    "budget": "high",
+    "max_tokens": 8192,
+    "max_chunk_tokens": 8192
+  },
+  "concurrency": 4,
+  "request_timeout_s": 180,
+  "ingestion_timeout_s": 3600,
+  "poll_interval_s": 5,
+  "model_max_attempts": 2,
+  "enable_observations": false,
+  "retain_environment": true,
+  "categories": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "timestamp_policy": "naive-session-dates-as-UTC",
+  "judge_protocol": "pinned-amb-locomo-judge",
+  "f1_protocol": "original-locomo-unchanged",
+  "amb_checkout": "${CONTEXTBASE_AMB_CHECKOUT}",
+  "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+  "upstream_tokenizer": "cl100k_base"
+}
