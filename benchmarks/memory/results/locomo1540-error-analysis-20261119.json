@@ -3,10 +3,10 @@
   "run_id": "locomo1540r_20261119_030518",
   "manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "expected_full_scope": 1540,
-  "saved_result_scope": 584,
-  "reviewed_wrong_cases": 44,
+  "saved_result_scope": 762,
+  "reviewed_wrong_cases": 60,
   "reviewer": "Codex assistant source inspection; not human annotation",
-  "source_snapshot_sha256": "bc94e456376a185bb5c8d7a3662357b5b33ba8ef8bed1535dc8be6f234f70098",
+  "source_snapshot_sha256": "d5cc6a321e3cbcba8a9c9f9a4e7e4ff36fbbdee0759599d570594a25f987a0c6",
   "dataset_provenance_url": "https://snap-research.github.io/locomo/",
   "note": "Partial diagnostic evidence; no accuracy/ranking claim and no gold/verdict changes. Case labels are hypotheses or explicitly stated source ambiguities; fixes require separate complete-run validation. Dialogue speakers are synthetic benchmark personas.",
   "rows": [
@@ -757,6 +757,278 @@
       "answer_f1": 0.07407407407407407,
       "result_sha256": "8e29369a9d6495f91d094d5b8b5891cedce50abd909aa801bd261659aa37c96d",
       "retrieval_sha256": "43b99466e2bdc000971146b5425677333449f3d69294c8707f900a0500935e5e"
+    },
+    {
+      "question_id": "conv-43_q11",
+      "diagnosis": "raw_source_missing",
+      "evidence_summary": "D3:25明确John喜欢surfing，当前API未返回；其余篮球参考不能回答besides basketball。",
+      "recommended_validation": "验证扩大原文候选和固定窗口后是否保留冲浪原句。",
+      "confidence": "supported",
+      "category": 1,
+      "question": "What sports does John like besides basketball?",
+      "gold": [
+        "surfing"
+      ],
+      "baseline_answer": "The memories do not mention any sports John likes besides basketball.",
+      "judge_reason": "The generated answer says no other sports are mentioned, whereas the gold answer identifies surfing.",
+      "answer_f1": 0.0,
+      "result_sha256": "32ef4d3998d2869e56f198c0675b6d6086e52cd788b31eed4e0edf2fa8385020",
+      "retrieval_sha256": "2181dd646d0ad11e57dd992a9af14d9251045c57975ba08cf4f9eede9293b2d2"
+    },
+    {
+      "question_id": "conv-43_q113",
+      "diagnosis": "implicit_preference_and_speaker_attribution",
+      "evidence_summary": "John明确称Wolves my team，Tim仅评价Wolves are solid；reader区分两人，gold把此视为Tim支持Wolves。",
+      "recommended_validation": "保持人物归属，单列明确支持与好评推断；不把John偏好转写Tim的确定事实。",
+      "confidence": "ambiguous",
+      "category": 4,
+      "question": "Which basketball team does Tim support?",
+      "gold": [
+        "The Wolves"
+      ],
+      "baseline_answer": "The memories do not specify which basketball team Tim supports. His favorite player is LeBron James; the Minnesota Wolves are John's team.",
+      "judge_reason": "The generated answer denies knowing Tim's team and attributes the Wolves to John, contradicting the gold answer that Tim supports the Wolves.",
+      "answer_f1": 0.09523809523809523,
+      "result_sha256": "6afd3881baaed68ffd64a4cf09409d01cf02d389db3a254894f95a63a932bac3",
+      "retrieval_sha256": "252b2cb57d6130d9f5687bee1651ff85459293d92e3f76f6637b4abc0667ff13"
+    },
+    {
+      "question_id": "conv-43_q135",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D18:6是John说visualize goals，Tim在D18:7说25分钟学习/5分钟休息。reader回答Tim实际方法，gold对应John。两句均在上下文。",
+      "recommended_validation": "保留人物正确归属及原判错，统一裁判对照；不通过错误抽取把John方法写给Tim。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "How does Tim stay motivated during difficult study sessions?",
+      "gold": [
+        "Visualizing goals and success"
+      ],
+      "baseline_answer": "Tim breaks studying into 25-minute blocks, followed by five-minute breaks to do something fun. As he explained on November 16, 2023, this makes studying feel less overwhelming and helps him stay focused and on track.",
+      "judge_reason": "The generated answer describes timed study blocks and breaks rather than visualizing goals and success.",
+      "answer_f1": 0.0,
+      "result_sha256": "eb556e4b5a4a7c94f57c12e6e07a28ab55be3aa5a8503970bad47c0c7bdbb9b8",
+      "retrieval_sha256": "de84cd3175d7e3ee5e1b07d7cc403b463baf413f1ae7a640586036122bcf9b36"
+    },
+    {
+      "question_id": "conv-43_q136",
+      "diagnosis": "question_subject_and_gold_conflict",
+      "evidence_summary": "11月16日受伤者是John，医生not too serious也是John说；题目却问Tim的伤。reader明确纠正人物并遗漏医生内容，故又有答题完整性问题。",
+      "recommended_validation": "可验证通用歧义答法：先指出主体不一致，再给被问事件相关事实；不得悄悄调换人物。",
+      "confidence": "supported",
+      "category": 4,
+      "question": "What did Tim say about his injury on 16 November, 2023?",
+      "gold": [
+        "The doctor said it's not too serious"
+      ],
+      "baseline_answer": "On November 16, 2023, it was John—not Tim—who had an injury. Tim said, “Ouch, bummer about the injury. Hang tight,” and “I hope your injury heals soon.” When John said he hated being off the court, Tim replied, “I bet. It's like if I couldn't read due to an injury.”",
+      "judge_reason": "The generated answer attributes the injury to John and omits the key detail that the doctor said it was not too serious.",
+      "answer_f1": 0.0784313725490196,
+      "result_sha256": "5d20012782568b80035803c80f944f48f9e716cd81d250b02e0032fc44b43155",
+      "retrieval_sha256": "d6df864e46356ad7dc7e4930c4bbf9d7980cc61bfa4f38500d3324a7fa7dd3cb"
+    },
+    {
+      "question_id": "conv-43_q16",
+      "diagnosis": "event_anchor_and_elapsed_time_ambiguity",
+      "evidence_summary": "7月16日说last week与加州粉丝交谈，8月9日just skyped；reader按第一次实际事件时间算约五周，gold三周更像按session间24天约三周。",
+      "recommended_validation": "分别记录事件时间与提及时间；不把session差当唯一真实经过时长。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "After how many weeks did Tim reconnect with the fellow Harry Potter fan from California?",
+      "gold": [
+        "three weeks"
+      ],
+      "baseline_answer": "Tim reconnected with the fellow Harry Potter fan approximately five weeks later, on August 9, 2023.",
+      "judge_reason": "The generated answer says five weeks, but the gold answer specifies three weeks.",
+      "answer_f1": 0.11764705882352941,
+      "result_sha256": "bf1e5fbd090daea33de03ed9f8f0b9ad3ee914d7722501aedba8249b697c785d",
+      "retrieval_sha256": "660b61d30df342b93413877dc038b790039877d665d2acc65fd049e3644fb975"
+    },
+    {
+      "question_id": "conv-43_q164",
+      "diagnosis": "gold_speaker_conflict",
+      "evidence_summary": "D27:6说Spanish的是John，Tim在D27:7说高中学French。reader给French与原文一致，gold将John语言写给Tim。",
+      "recommended_validation": "保留raw speaker对齐和原gold，列为标注争议；不污染记忆。",
+      "confidence": "confirmed_source_conflict",
+      "category": 4,
+      "question": "What language does Tim know besides German?",
+      "gold": [
+        "Spanish"
+      ],
+      "baseline_answer": "French, which he studied in high school.",
+      "judge_reason": "The generated answer says French, but the gold answer identifies Spanish.",
+      "answer_f1": 0.0,
+      "result_sha256": "7e825831a3969b04598beab02faa7f10c8084427240db9e78cd7f3066d6d2cc5",
+      "retrieval_sha256": "d3e51304e59d01857337d64820adc32e39e0d754898db4b00092d7cd69945bb0"
+    },
+    {
+      "question_id": "conv-43_q19",
+      "diagnosis": "nonunique_open_domain_recommendation",
+      "evidence_summary": "品牌Nike/Gatorade/Under Armour和慈善意向都已在上下文；gold特指Good Sports，reader推荐另一青年慈善机构，原文未直接指定任何机构。",
+      "recommended_validation": "开放域实验应基于品牌与青年体育等全部约束给最具体推测，并注明推断；不能按gold硬编码机构。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What is a prominent charity organization that John might want to work with and why?",
+      "gold": [
+        "Good Sports, because they work with Nike, Gatorade, and Under Armour and they aim toprovide youth sports opportunities for kids ages 3-18 in high-need communities."
+      ],
+      "baseline_answer": "John might want to work with Boys & Girls Clubs of America, a prominent youth-development charity offering sports and educational opportunities. Its work aligns with his commitment to helping disadvantaged children, expanding access to youth sports, and mentoring young athletes. This is a suggested match, not an organization he explicitly named.",
+      "judge_reason": "The generated answer names Boys & Girls Clubs of America rather than Good Sports and omits the specific brand partnerships that motivate the gold answer.",
+      "answer_f1": 0.1764705882352941,
+      "result_sha256": "de4b675b23850acde1a283e07c9c2f840d5b8e03f51ea771cefff7c49f4545ce",
+      "retrieval_sha256": "e38d5d99fc9de513916f9dd6cd2b643e21016769f06234491ffb6080800685c7"
+    },
+    {
+      "question_id": "conv-43_q20",
+      "diagnosis": "travel_sequence_inference_and_partial_context",
+      "evidence_summary": "Seattle是7月16日谈到下月赛程的城市，Chicago在8月11日已去；部分8月9日参考未打包，reader认为前城未知。",
+      "recommended_validation": "窗口候选检验旅行时间线恢复，区分计划城市与已到城市；不要把计划自动当成访问事实。",
+      "confidence": "supported",
+      "category": 2,
+      "question": "Which city was John in before traveling to Chicago?",
+      "gold": [
+        "Seattle"
+      ],
+      "baseline_answer": "The memories do not specify which city John was in before traveling to Chicago.",
+      "judge_reason": "The generated answer says the city is unspecified, whereas the gold answer identifies Seattle.",
+      "answer_f1": 0.0,
+      "result_sha256": "d5e87877208e7094fe83f8c35ea53354f2e474d01e74f509563d4dfedd7ad463",
+      "retrieval_sha256": "e819eec18518a230f3c3775b47ab5440f02f3fff8338396a2bce419b45e35837"
+    },
+    {
+      "question_id": "conv-43_q5",
+      "diagnosis": "nonunique_open_domain_recommendation",
+      "evidence_summary": "MinaLima原文已在上下文；reader建议Harry Potter New York，gold指定House of MinaLima。题目为可能喜欢的商店，不是明确访问记录。",
+      "recommended_validation": "通用推断优先最具体收藏品牌，保持推测；不把任一推荐导入为既有访问记忆。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "Based on Tim's collections, what is a shop that he would enjoy visiting in New York city?",
+      "gold": [
+        "House of MinaLima"
+      ],
+      "baseline_answer": "Tim would likely enjoy visiting Harry Potter New York, the flagship Harry Potter store, because he collects Harry Potter books and owns MinaLima artwork. Its themed books, artwork, and collectibles would fit his interests.",
+      "judge_reason": "The generated answer recommends Harry Potter New York rather than the specific shop in the gold answer, House of MinaLima.",
+      "answer_f1": 0.0588235294117647,
+      "result_sha256": "cc5e0ed83574e78f4cfb1a6dc039e19435f7783a523dd27857e229d896be9544",
+      "retrieval_sha256": "dbc3b98bb54c3cbc2658da11b7a0b74633634d138d8ae2ac01749c222896f86e"
+    },
+    {
+      "question_id": "conv-43_q51",
+      "diagnosis": "nonunique_open_domain_recommendation",
+      "evidence_summary": "原文只说尝试yoga增强力量灵活性；gold特指Hatha，reader给其他力量瑜伽建议，参考原文未指明Hatha。",
+      "recommended_validation": "单列开放域推断及gold唯一性问题，不归因PG漏召回，也不把gold样式写入原记忆。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What kind of yoga for building core strength might John benefit from?",
+      "gold": [
+        "Hatha Yoga"
+      ],
+      "baseline_answer": "John might benefit from core-focused yoga, particularly a strength-building Vinyasa or power yoga practice. Warrior II is an especially good fit: on December 1, 2023, he said he enjoyed holding it for 30–60 seconds to work his legs and core. Adding plank, side plank, and boat poses could further develop core strength and stability.",
+      "judge_reason": "The generated answer recommends Vinyasa or power yoga rather than Hatha Yoga, the specific style in the gold answer.",
+      "answer_f1": 0.039215686274509796,
+      "result_sha256": "c8fa9986aac4a461cf53b82122320da608cce7df8646eb8d66690f18076d02a9",
+      "retrieval_sha256": "6cebfd7b4abf6da8a63c89ae94854e4174f25f96def2f013775197968ef09fe0"
+    },
+    {
+      "question_id": "conv-43_q55",
+      "diagnosis": "professional_start_and_team_signing_ambiguity",
+      "evidence_summary": "5月新签队不必然首次职业比赛；12月6日明确just under a year，reader据后者推2022末/2023初。gold取5月。5月原文返回未打包。",
+      "recommended_validation": "保留新签队与职业开始两个事件类型，窗口候选后检查完整时间线，不能把不同事件合并强算5月。",
+      "confidence": "ambiguous",
+      "category": 2,
+      "question": "When did John start playing professionally?",
+      "gold": [
+        "May, 2023"
+      ],
+      "baseline_answer": "John started playing professionally around late 2022 or early 2023. On December 6, 2023, he said he had been a professional for “just under a year.”",
+      "judge_reason": "The generated answer places the start in late 2022 or early 2023, rather than May 2023.",
+      "answer_f1": 0.07692307692307693,
+      "result_sha256": "1e7243205aab03ef7036feb623d22dd1cce8c7d85fe91aac5abfe9166c8fcbfa",
+      "retrieval_sha256": "fa409ad01b66f3620fcf7a5458dae2c73c8e7eb3dbf2122011d8edcbcfffa3f4"
+    },
+    {
+      "question_id": "conv-43_q56",
+      "diagnosis": "instrument_source_inconsistency",
+      "evidence_summary": "D21:11说最近学violin，D21:12转问piano，D21:13回答four months；gold把四个月算给violin，reader忠于紧邻piano提问。",
+      "recommended_validation": "保留前后乐器矛盾，另报推断歧义；不把四个月确定写入violin事实。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did Tim start playing the violin?",
+      "gold": [
+        "August 2023"
+      ],
+      "baseline_answer": "Tim had recently started playing the violin by December 6, 2023. His exact start date is not stated; the mention of playing for four months refers to piano.",
+      "judge_reason": "The generated answer does not identify August 2023 and instead states that Tim’s start date is unknown.",
+      "answer_f1": 0.07142857142857144,
+      "result_sha256": "22f40e481e2876227fdf63f684d19005e7e7c9c6964d00322b621b2a2512bb04",
+      "retrieval_sha256": "10df1d646936904af8fb147130d8142463807ad35b1cba7cd15148dafd61a4ba"
+    },
+    {
+      "question_id": "conv-43_q6",
+      "diagnosis": "gold_month_conflict",
+      "evidence_summary": "7月16日D3:1明确last week最高40分，readerJuly，goldJune。即便不同week起点仍落7月，不能归咎于周定义。",
+      "recommended_validation": "保留July及原gold判定，在统一裁判与标注审计中单列。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "In which month's game did John achieve a career-high score in points?",
+      "gold": [
+        "June 2023"
+      ],
+      "baseline_answer": "July 2023.",
+      "judge_reason": "The generated answer says July 2023, but the correct month is June 2023.",
+      "answer_f1": 0.5,
+      "result_sha256": "dbc055484ac23cc7e8cf9fb6fb8a44aef3eb7d6110a6ad68cd16c7c2ba26c47d",
+      "retrieval_sha256": "009f30ac18aedba89ce46d03b03cbd713b644219fdff132a493ea039f3099997"
+    },
+    {
+      "question_id": "conv-43_q60",
+      "diagnosis": "gold_event_vs_session_date_conflict",
+      "evidence_summary": "12月11日session的实际D23:3说last Friday，reader12月8日；gold用12月11日提及日期，参考ID还偏在D23:2。",
+      "recommended_validation": "保持事件日期与session日期分开；不为了gold把last Friday丢弃。",
+      "confidence": "confirmed_source_conflict",
+      "category": 2,
+      "question": "When did John achieve a career-high assist performance?",
+      "gold": [
+        "December 11, 2023"
+      ],
+      "baseline_answer": "John achieved his career-high assist performance on Friday, December 8, 2023, in a game against his team’s rival.",
+      "judge_reason": "The generated answer gives December 8, 2023, instead of the gold answer's December 11, 2023.",
+      "answer_f1": 0.2,
+      "result_sha256": "65e9ef1223585c558888d55b3f47d3c35dee5049e4c5f08c7331d4dc8e0abe6b",
+      "retrieval_sha256": "0e564b9b59885c17b5d856d3724d3581fb62ce65f1ee4a19892d010e5e41e85e"
+    },
+    {
+      "question_id": "conv-43_q66",
+      "diagnosis": "nonunique_open_domain_recommendation",
+      "evidence_summary": "Star Wars和沉浸式阅读偏好都在上下文，gold指定Jedi Apprentice，reader给Heir to the Empire；原文未提任一书名。",
+      "recommended_validation": "保留其为推测推荐而非检索漏书名；读者实验按全局兴趣特征回答，不针对该题塞标准书名。",
+      "confidence": "ambiguous",
+      "category": 3,
+      "question": "What is a Star Wars book that Tim might enjoy?",
+      "gold": [
+        "Star Wars: Jedi Apprentice by Judy Blundell and David Farland. It is a highly rated and immersive series about his favorite movies."
+      ],
+      "baseline_answer": "Tim might enjoy *Heir to the Empire* by Timothy Zahn. Its expansive Star Wars setting, epic adventure, and compelling characters fit his love of immersive worlds and strong character development. This is a recommendation based on his interests; the memories do not mention him reading any Star Wars books.",
+      "judge_reason": "The generated answer recommends Heir to the Empire rather than the gold answer's Star Wars: Jedi Apprentice series.",
+      "answer_f1": 0.22222222222222218,
+      "result_sha256": "c1bfb337a13797cb6e6af84878a1cb3fc2dedf6bc503c87e8cc999f3a9b5343e",
+      "retrieval_sha256": "46a3b2ef294c6501f3d3d9c9bf2d17d1431f8a5a56a3687a96e186e2ae41eaf7"
+    },
+    {
+      "question_id": "conv-43_q8",
+      "diagnosis": "cautious_inference_despite_returned_brand_preference",
+      "evidence_summary": "7月希望合作Under Armour、12月拿到未具名户外品牌交易均在上下文；reader因无明确名称而拒猜，gold做跨期品牌推断。",
+      "recommended_validation": "全局reader区分likely问题与事实确认，对合成人物允许有依据的可能性回答，同时注明并非已确认。",
+      "confidence": "supported",
+      "category": 3,
+      "question": "Which outdoor gear company likely signed up John for an endorsement deal?",
+      "gold": [
+        "Under Armour"
+      ],
+      "baseline_answer": "The company is not identified in the memories. John only described it as a renowned outdoor gear company that signed him during December 11–17, 2023; there is insufficient evidence to name a likely brand.",
+      "judge_reason": "The generated answer declines to identify the company rather than naming Under Armour, as specified by the gold answer.",
+      "answer_f1": 0.0,
+      "result_sha256": "74acdfb7478b1c44dee90781ef14252651a913df66dc49463cb5d7dfdbc7f577",
+      "retrieval_sha256": "96438950fae1759fcb3d138c159dabe752197e7a72fa39fbf75c13d25c6a9116"
     }
   ]
 }
