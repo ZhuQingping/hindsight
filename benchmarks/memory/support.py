@@ -145,6 +145,7 @@ class Config(StrictModel):
     judge_protocol: Literal["pinned-amb-locomo-judge"] = "pinned-amb-locomo-judge"
     f1_protocol: Literal["original-locomo-unchanged"] = "original-locomo-unchanged"
     conversations: list[str] = Field(min_length=1)
+    reuse_banks: dict[str, str] = Field(default_factory=dict)
     # A limit is a declared smoke scope, never silently presented as the full split.
     question_limit_per_conversation: int | None = Field(default=None, gt=0)
     api_url: str
@@ -158,7 +159,7 @@ class Config(StrictModel):
     request_timeout_s: float = Field(default=180, gt=0)
     ingestion_timeout_s: float = Field(default=3600, gt=0)
     poll_interval_s: float = Field(default=5, ge=0.01)
-    model_max_attempts: int = Field(default=2, ge=1, le=3)
+    model_max_attempts: int = Field(default=2, ge=1, le=4)
     enable_observations: Literal[False] = False
     retain_environment: Literal[True] = True
 
@@ -166,6 +167,13 @@ class Config(StrictModel):
     def scope_and_target(self) -> Config:
         if len(set(self.conversations)) != len(self.conversations):
             raise ValueError("Conversation IDs must be unique")
+        if self.reuse_banks:
+            if set(self.reuse_banks) != set(self.conversations):
+                raise ValueError("reuse_banks must name exactly the selected conversations")
+            if len(set(self.reuse_banks.values())) != len(self.reuse_banks):
+                raise ValueError("Each conversation must reuse a different Bank")
+            if any(not re.fullmatch(r"[a-z][a-z0-9_]{0,53}", bank) for bank in self.reuse_banks.values()):
+                raise ValueError("Reused Bank IDs must be canonical")
         url = urlsplit(self.api_url)
         if url.scheme not in ("http", "https") or not url.netloc or url.username or url.query or url.fragment:
             raise ValueError("api_url must be an HTTP(S) service URL without credentials/query/fragment")
@@ -629,6 +637,14 @@ class BankHTTP:
         *,
         create_only: bool = False,
     ) -> T:
+        if self.config.reuse_banks:
+            prefixes = ["/v1/default/banks/" + bank for bank in self.config.reuse_banks.values()]
+            read = method == "GET" and (
+                path == "/version" or any(path == p or path.startswith(p + "/") for p in prefixes)
+            )
+            recall = method == "POST" and any(path == p + "/memories/recall" for p in prefixes)
+            if not (read or recall):
+                raise ValueError("Reused Banks are read-only: only scoped GET and recall are allowed")
         headers = {"Authorization": "Bearer " + self.secret}
         if create_only:
             headers["If-None-Match"] = "*"
@@ -752,6 +768,8 @@ class Ingestion:
         save_model(self.directory / (conversation.id + "-server-config-" + label + ".json"), sanitized)
 
     async def ingest(self) -> None:
+        if self.config.reuse_banks:
+            raise ValueError("Cannot ingest into reused Banks; use read-only verify")
         self.state.status = "ingesting"
         self.save_state()
         for conversation in self.manifest.conversations:

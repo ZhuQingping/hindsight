@@ -77,5 +77,6 @@
   "f1_protocol": "original-locomo-unchanged",
   "amb_checkout": "${CONTEXTBASE_AMB_CHECKOUT}",
   "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
-  "upstream_tokenizer": "cl100k_base"
+  "upstream_tokenizer": "cl100k_base",
+  "reuse_banks": {}
 }

@@ -249,7 +249,9 @@ class Prepared:
         yield self.manifest
 
 
-def prepared(tmp_path, checkout, *, conversations=("conv-30",), api_url=None, questions_per_conversation=1):
+def prepared(
+    tmp_path, checkout, *, conversations=("conv-30",), api_url=None, questions_per_conversation=1, reuse_banks=None
+):
     path = config_fixture(tmp_path, conversations=conversations)
     config = json.loads(path.read_text())
     config.update(
@@ -257,6 +259,8 @@ def prepared(tmp_path, checkout, *, conversations=("conv-30",), api_url=None, qu
     )
     if api_url:
         config["api_url"] = api_url
+    if reuse_banks:
+        config["reuse_banks"] = reuse_banks
     if questions_per_conversation > 1:
         dataset_path = Path(config["sources"]["dataset"]["path"])
         records = json.loads(dataset_path.read_text())
@@ -291,7 +295,12 @@ class ScriptedModel:
             else {"answer": self.factory.answer, "reasoning": "Scripted mechanics fixture"}
         )
         return LLMCallResult(
-            content=json.dumps(content), usage=TokenUsage(input_tokens=7, output_tokens=3, total_tokens=10)
+            content=response_format.model_validate(content)
+            if self.factory.structured == "model"
+            else content
+            if self.factory.structured
+            else json.dumps(content),
+            usage=TokenUsage(input_tokens=7, output_tokens=3, total_tokens=10),
         )
 
     async def cleanup(self):
@@ -299,12 +308,22 @@ class ScriptedModel:
 
 
 class Factory:
-    def __init__(self, manifest, *, correct=False, answer="test answer", interrupt_judge=False, fail_judge=False):
+    def __init__(
+        self,
+        manifest,
+        *,
+        correct=False,
+        answer="test answer",
+        interrupt_judge=False,
+        fail_judge=False,
+        structured=False,
+    ):
         self.manifest = manifest
         self.correct = correct
         self.answer = answer
         self.interrupt_judge = interrupt_judge
         self.fail_judge = fail_judge
+        self.structured = structured
         self.calls = []
         self.cleanups = 0
 
@@ -372,7 +391,7 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
         )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
-        factory = Factory(manifest)
+        factory = Factory(manifest, structured=True)
         summary = await asyncio.to_thread(a.run, directory, manifest, factory)
         assert summary.valid_complete_run and summary.expected == summary.completed == 2
         assert summary.correct == 0 and summary.accuracy_all_expected == 0
@@ -592,14 +611,12 @@ async def test_recall_failure_is_archived_and_not_retried_or_removed(tmp_path, c
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
         factory = Factory(manifest)
-        with pytest.raises(RuntimeError, match="Recall failed"):
-            await asyncio.to_thread(a.run, directory, manifest, factory)
+        await asyncio.to_thread(a.run, directory, manifest, factory)
         summary = a.report(directory, manifest)
         assert summary.failed == summary.expected == 1 and summary.retrieval_sample_count == 0
         assert not summary.valid_complete_run and summary.accuracy_all_expected == 0
         assert not factory.calls
-        with pytest.raises(ValueError, match="could not be packed"):
-            await asyncio.to_thread(a.run, directory, manifest, factory)
+        await asyncio.to_thread(a.run, directory, manifest, factory)
         assert sum("recall" in path for _, path in service.requests) == 1
 
 
@@ -688,3 +705,141 @@ def test_all_oversized_original_passages_fail_visibly(tmp_path, checkout):
     next(iter(recalled.chunks.values())).text = "huge source " * 2000
     with pytest.raises(ValueError, match="No complete original passage fits"):
         h.pack_context(recalled, conversation, h.PackingSettings(max_tokens=300, fact_tokens=150, chunk_tokens=100))
+
+
+@pytest.mark.asyncio
+async def test_reuse_bank_verifies_without_writes_and_runs_on_same_memory(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        seed = tmp_path / "seed"
+        seed.mkdir()
+        seed_dir, seed_manifest = prepared(seed, checkout, api_url=str(server.make_url("/")))
+        await a.service_stage(seed_dir, seed_manifest, "ingest")
+        existing = seed_manifest.conversations[0].bank_id
+        before = json.dumps(service.documents, sort_keys=True)
+        service.requests.clear()
+        target = tmp_path / "reuse"
+        target.mkdir()
+        directory, manifest = prepared(
+            target, checkout, api_url=str(server.make_url("/")), reuse_banks={"conv-30": existing}
+        )
+        await a.service_stage(directory, manifest, "verify")
+        state = a.core.read_model(directory / "state.json", a.core.State)
+        assert state.banks["conv-30"].verified and not state.banks["conv-30"].created
+        assert all(method == "GET" for method, _ in service.requests)
+        with pytest.raises(ValueError, match="Cannot ingest"):
+            await a.service_stage(directory, manifest, "ingest")
+        async with aiohttp.ClientSession() as session:
+            http = a.core.BankHTTP(session, manifest.config, "TEST_ONLY_SECRET")
+            for method, suffix in (("PUT", ""), ("DELETE", ""), ("POST", "/memories"), ("POST", "/reflect")):
+                with pytest.raises(ValueError, match="read-only"):
+                    await http.request(method, "/v1/default/banks/" + existing + suffix, a.core.RuntimeSnapshot)
+        factory = Factory(manifest)
+        summary = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert summary.valid_complete_run and summary.completed == 1
+        assert summary.retained_banks == [existing]
+        assert before == json.dumps(service.documents, sort_keys=True)
+        assert all(
+            method == "GET" or (method == "POST" and path.endswith("/memories/recall"))
+            for method, path in service.requests
+        )
+
+
+@pytest.mark.asyncio
+async def test_reuse_rejects_changed_source_documents(tmp_path, checkout, monkeypatch):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        directory, manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), reuse_banks={"conv-30": "unit_test_conv_30"}
+        )
+        service.documents["unit_test_conv_30"] = {s.document_id: s.content for s in manifest.conversations[0].sessions}
+        service.polls["unit_test_conv_30"] = 2
+        service.documents["unit_test_conv_30"][manifest.conversations[0].sessions[0].document_id] = "[]"
+        with pytest.raises(ValueError, match="differs"):
+            await a.service_stage(directory, manifest, "verify")
+        assert all(method == "GET" for method, _ in service.requests)
+        assert not a.core.read_model(directory / "state.json", a.core.State).banks
+
+
+@pytest.mark.parametrize("mapping", [{"other": "bank_a"}, {"conv-30": "not/canonical"}])
+def test_reuse_mapping_must_match_scope_and_safe_identity(tmp_path, checkout, mapping):
+    with pytest.raises(ValueError):
+        prepared(tmp_path, checkout, reuse_banks=mapping)
+
+
+@pytest.mark.asyncio
+async def test_checkpoint_adoption_preserves_all_verdicts_and_explicit_transport_attempts(tmp_path, checkout):
+    directory, manifest = prepared(
+        tmp_path, checkout, reuse_banks={"conv-30": "unit_test_conv_30"}, questions_per_conversation=2
+    )
+    archive = a.Archive(directory, manifest, Factory(manifest, structured=True))
+    modules = a.amb_modules(directory)
+    await archive.generate("conv-30_q0", "answer", "unchanged prompt", modules["modes.rag"]._OPEN_SCHEMA)
+    await archive.generate("conv-30_q1", "answer", "other answer", modules["modes.rag"]._OPEN_SCHEMA)
+    assert not (await archive.generate("conv-30_q1", "judge", "already wrong", modules["judge"]._SCHEMA))["correct"]
+    # Simulate two connection failures with no returned answer. The copied source
+    # remains failed, while a new explicitly configured run may spend one attempt.
+    judge_schema = a.ResponseSchema.model_validate(a.asdict(modules["judge"]._SCHEMA))
+    a.seal(
+        archive.call_path("conv-30_q0", "judge"),
+        a.CallRecord(
+            fingerprint=manifest.fingerprint,
+            question_id="conv-30_q0",
+            stage="judge",
+            prompt="unchanged judge",
+            response_schema=judge_schema,
+            status="failed",
+            attempts=[
+                a.core.Attempt(stage="judge", state="failed", error="ConnectionTimeoutError", at=a.core.now())
+                for _ in range(2)
+            ],
+        ),
+    )
+    before = {str(p.relative_to(directory)): a.core.file_sha(p) for p in directory.rglob("*.json")}
+    config = json.loads((tmp_path / "config.json").read_text())
+    config["checkpoint_source"] = {
+        "path": str(directory / "manifest.json"),
+        "sha256": a.core.file_sha(directory / "manifest.json"),
+    }
+    config["resume_connection_failures"] = True
+    config["model_max_attempts"] = 3
+    config["concurrency"] = 1
+    next_config = tmp_path / "next-config.json"
+    next_config.write_text(json.dumps(config))
+    next_dir = tmp_path / "next-run"
+    next_manifest = a.init_run(next_config, next_dir, "unit_next")
+    assert a.load_manifest(next_dir) == next_manifest
+    factory = Factory(next_manifest, structured=True, correct=True)
+    next_archive = a.Archive(next_dir, next_manifest, factory)
+    await next_archive.generate("conv-30_q0", "answer", "unchanged prompt", modules["modes.rag"]._OPEN_SCHEMA)
+    await next_archive.generate("conv-30_q0", "judge", "unchanged judge", modules["judge"]._SCHEMA)
+    assert not (await next_archive.generate("conv-30_q1", "judge", "already wrong", modules["judge"]._SCHEMA))[
+        "correct"
+    ]
+    assert len(factory.calls) == 1 and factory.calls[0][0] is True
+    saved = a.unseal(next_archive.call_path("conv-30_q0", "judge"), a.CallRecord, next_manifest)
+    assert [attempt.state for attempt in saved.attempts] == ["failed", "failed", "completed"]
+    assert before == {str(p.relative_to(directory)): a.core.file_sha(p) for p in directory.rglob("*.json")}
+    config["packing"]["max_tokens"] = 16000
+    next_config.write_text(json.dumps(config))
+    with pytest.raises(ValueError, match="identical"):
+        a.init_run(next_config, tmp_path / "invalid", "unit_invalid")
+
+
+@pytest.mark.asyncio
+async def test_native_pydantic_structured_replies_are_archived_as_json_objects(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    factory = Factory(manifest, structured="model")
+    archive = a.Archive(directory, manifest, factory)
+    modules = a.amb_modules(directory)
+    await archive.generate("conv-30_q0", "answer", "public", modules["modes.rag"]._OPEN_SCHEMA)
+    await archive.generate("conv-30_q0", "judge", "gold", modules["judge"]._SCHEMA)
+    for stage in ["answer", "judge"]:
+        row = a.unseal(archive.call_path("conv-30_q0", stage), a.CallRecord, manifest)
+        assert row.status == "completed" and isinstance(row.response, dict)

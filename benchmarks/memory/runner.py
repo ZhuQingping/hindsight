@@ -59,6 +59,8 @@ class Config(core.Config):
     # AMB uses this tokenizer. Keep the original scorer and legacy packing utility,
     # but count the actual injected context in both tokenizers for comparison.
     upstream_tokenizer: Literal["cl100k_base"] = "cl100k_base"
+    checkpoint_source: core.Source | None = None
+    resume_connection_failures: bool = False
 
 
 class Manifest(core.Manifest):
@@ -67,6 +69,7 @@ class Manifest(core.Manifest):
     config: Config
     core_sha256: str
     amb_files: dict[str, str]
+    checkpoint_imports: dict[str, str] = Field(default_factory=dict)
     integration_notes: list[str] = Field(
         default_factory=lambda: [
             "Unmodified AMB LoComoDataset loaders/prompts, RAGMode, GeminiJudge and EvalRunner.",
@@ -108,7 +111,7 @@ class CallRecord(Sealed):
     prompt: str
     response_schema: ResponseSchema
     status: Literal["started", "completed", "failed", "interrupted"] = "started"
-    response: str | None = None
+    response: str | dict[str, JsonValue] | None = None
     parsed: AnswerData | JudgeData | None = None
     attempts: list[core.Attempt] = Field(default_factory=list)
 
@@ -205,6 +208,9 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             home = settings.codex_home or os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
             settings.codex_home = str(Path(os.path.expandvars(home)).expanduser().resolve())
     conversations = core.corpus(config, run_id, sources["dataset"])
+    for conversation in conversations:
+        if config.reuse_banks:
+            conversation.bank_id = config.reuse_banks[conversation.id]
     scope = [q.model_dump(mode="json") for c in conversations for q in c.questions]
     runtime = core.environment() | {
         name: core.importlib.metadata.version(name) for name in ("rich", "google-genai", "openai")
@@ -221,6 +227,52 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         client_source_sha256=core.client_sources(),
         amb_files={path: core.file_sha(checkout / path) for path in paths},
     )
+    source_manifest = None
+    source_directory = None
+    if config.checkpoint_source is not None:
+        source_path = Path(config.checkpoint_source.path).expanduser().resolve()
+        if core.file_sha(source_path) != config.checkpoint_source.sha256:
+            raise ValueError("Checkpoint source manifest hash changed")
+        raw = json.loads(source_path.read_text())
+        fingerprint = raw["fingerprint"]
+        raw["fingerprint"] = ""
+        if hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False).encode()).hexdigest() != fingerprint:
+            raise ValueError("Checkpoint source manifest is invalid")
+        source_manifest = core.read_model(source_path, Manifest)
+        excluded = {"checkpoint_source", "resume_connection_failures", "model_max_attempts", "concurrency"}
+        previous = source_manifest.config.model_dump(exclude=excluded)
+        current = config.model_dump(exclude=excluded)
+        if previous != current or source_manifest.conversations != manifest.conversations:
+            raise ValueError("Checkpoint reuse requires identical questions, Banks, models and all evaluation settings")
+        if config.concurrency != source_manifest.config.concurrency:
+            if not config.resume_connection_failures or config.concurrency > source_manifest.config.concurrency:
+                raise ValueError("Checkpoint transport recovery may only reduce concurrency")
+        if config.model_max_attempts != source_manifest.config.model_max_attempts:
+            if (
+                not config.resume_connection_failures
+                or config.model_max_attempts != source_manifest.config.model_max_attempts + 1
+            ):
+                raise ValueError("Only one explicitly recorded extra transport attempt may be added")
+        if (
+            source_manifest.environment != runtime
+            or source_manifest.client_source_sha256 != manifest.client_source_sha256
+        ):
+            raise ValueError("Checkpoint provider/runtime changed")
+        source_directory = source_path.parent
+        for filename, digest in (
+            ("runner.py", source_manifest.harness_sha256),
+            ("support.py", source_manifest.core_sha256),
+        ):
+            if core.file_sha(source_directory / filename) != digest:
+                raise ValueError("Checkpoint source code was modified")
+        for name, filename in core.SOURCE_FILES.items():
+            if core.file_sha(source_directory / "inputs" / filename) != getattr(config.sources, name).sha256:
+                raise ValueError("Checkpoint source inputs changed")
+        manifest.checkpoint_imports = {
+            str(path.relative_to(source_directory)): core.file_sha(path)
+            for folder in ("retrievals", "calls", "results")
+            for path in sorted((source_directory / folder).glob("*.json"))
+        }
     manifest.fingerprint = core.canonical_sha(manifest)
     directory.mkdir(parents=True, exist_ok=False)
     (directory / "inputs").mkdir()
@@ -232,6 +284,50 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         target = directory / "amb-source" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(checkout / path, target)
+    if source_manifest is not None and source_directory is not None:
+        shutil.copyfile(source_directory / "manifest.json", directory / "inputs/checkpoint-source-manifest.json")
+        retry_ids: set[str] = set()
+        if config.resume_connection_failures:
+            for path in (source_directory / "calls").glob("*.json"):
+                record = unseal(path, CallRecord, source_manifest)
+                if (
+                    record.status == "failed"
+                    and record.response is None
+                    and record.attempts
+                    and all(
+                        a.state == "failed"
+                        and a.usage is None
+                        and a.error in {"ConnectionTimeoutError", "ClientConnectorError", "TimeoutError"}
+                        for a in record.attempts
+                    )
+                    and len(record.attempts) < config.model_max_attempts
+                ):
+                    retry_ids.add(record.question_id)
+            for path in (source_directory / "retrievals").glob("*.json"):
+                record = unseal(path, RetrievalRecord, source_manifest)
+                if record.recall is None and record.error in {
+                    "interrupted_unknown",
+                    "ConnectionTimeoutError",
+                    "ClientConnectorError",
+                    "TimeoutError",
+                }:
+                    retry_ids.add(record.question_id)
+        for name in manifest.checkpoint_imports:
+            original = source_directory / name
+            folder = Path(name).parts[0]
+            record_type = {"calls": CallRecord, "retrievals": RetrievalRecord, "results": SavedResult}[folder]
+            record = unseal(original, record_type, source_manifest)
+            snapshot = directory / "checkpoint-source" / name
+            snapshot.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(original, snapshot)
+            if folder == "retrievals" and record.question_id in retry_ids and record.recall is None:
+                continue
+            if folder == "results" and record.question_id in retry_ids:
+                continue  # Keep the operational failure in source evidence, never replace it there.
+            if folder == "calls" and record.question_id in retry_ids and record.status == "failed":
+                record.status = "interrupted"  # Attempts and their failures stay intact; one bounded continuation.
+            record.fingerprint = manifest.fingerprint
+            seal(directory / name, record)
     core.save_model(directory / "manifest.json", manifest)
     core.save_model(directory / "state.json", core.State(fingerprint=manifest.fingerprint))
     # Exercise the pinned dataset loader during offline preparation, before any Bank
@@ -276,6 +372,15 @@ def load_manifest(directory: Path) -> Manifest:
     for name, filename in core.SOURCE_FILES.items():
         if core.file_sha(directory / "inputs" / filename) != getattr(manifest.config.sources, name).sha256:
             raise ValueError(f"Frozen input changed: {name}")
+    if manifest.config.checkpoint_source is not None:
+        if (
+            core.file_sha(directory / "inputs/checkpoint-source-manifest.json")
+            != manifest.config.checkpoint_source.sha256
+        ):
+            raise ValueError("Checkpoint source manifest copy changed")
+        for name, digest in manifest.checkpoint_imports.items():
+            if core.file_sha(directory / "checkpoint-source" / name) != digest:
+                raise ValueError("Checkpoint source snapshot changed")
     runtime = core.environment() | {
         name: core.importlib.metadata.version(name) for name in ("rich", "google-genai", "openai")
     }
@@ -417,8 +522,17 @@ class Archive:
                     timeout=self.manifest.config.request_timeout_s,
                 )
                 attempt.usage = reply.usage
-                record.response = reply.content
-                parsed = response_type.model_validate_json(reply.content)
+                content = (
+                    reply.content.model_dump(mode="json") if isinstance(reply.content, BaseModel) else reply.content
+                )
+                record.response = content
+                # This branch's Codex provider returns an already parsed object for
+                # strict structured output; other providers return JSON text.
+                parsed = (
+                    response_type.model_validate_json(content)
+                    if isinstance(content, str)
+                    else response_type.model_validate(content)
+                )
                 record.parsed = parsed
                 record.status = "completed"
                 attempt.state = "completed"
@@ -632,7 +746,21 @@ def components(archive: Archive) -> Components:
             qid = meta["_contextbase_question_id"]
             # ContextVar is task-local and is copied by AMB's to_thread into its judge.
             QUESTION_ID.set(qid)
-            result = await super().async_answer(query, memory, task_type=task_type, user_id=user_id, meta=meta)
+            try:
+                result = await super().async_answer(query, memory, task_type=task_type, user_id=user_id, meta=meta)
+            except Exception:
+                # AMB otherwise aborts the entire conversation on one exhausted
+                # transport failure. Preserve that terminal failure and evaluate
+                # the remaining questions; never regenerate a failed answer.
+                call = archive.call_path(qid, "answer")
+                retrieval = directory / "retrievals" / f"{qid}.json"
+                failed_call = call.exists() and unseal(call, CallRecord, manifest).status == "failed"
+                failed_retrieval = retrieval.exists() and unseal(retrieval, RetrievalRecord, manifest).error is not None
+                if not (failed_call or failed_retrieval):
+                    raise
+                return models.AnswerResult(
+                    answer="", reasoning="Recorded operational failure", context="", retrieve_time_ms=0
+                )
             saved = unseal(directory / "retrievals" / f"{qid}.json", RetrievalRecord, manifest)
             # Upstream stores a generic '## Memory' wrapper here, although the LoCoMo
             # prompt hook injected the packed string. Archive/count the actual input.
@@ -643,6 +771,18 @@ def components(archive: Archive) -> Components:
     class Judge(upstream_judge):
         def __init__(self) -> None:
             self._llm = Bridge("judge")
+
+        def score(self, query: str, answer: str, gold_answers: list[str], prompt_fn: Any = None) -> Any:
+            try:
+                return super().score(query, answer, gold_answers, prompt_fn)
+            except Exception:
+                qid = QUESTION_ID.get()
+                path = archive.call_path(qid, "judge") if qid else None
+                if path is None or not path.exists() or unseal(path, CallRecord, manifest).status != "failed":
+                    raise
+                return models.JudgeResult(
+                    correct=False, reason="Recorded judge transport/format failure; not a semantic verdict"
+                )
 
     class Runner(upstream_runner):
         def __init__(self) -> None:
@@ -677,6 +817,10 @@ def components(archive: Archive) -> Components:
 
 
 async def service_stage(directory: Path, manifest: Manifest, stage: str) -> None:
+    if stage == "ingest" and manifest.config.reuse_banks:
+        raise ValueError("Cannot ingest into reused Banks; use read-only verify")
+    if stage == "verify" and not manifest.config.reuse_banks:
+        raise ValueError("verify requires explicit reuse_banks mapping")
     secret = manifest.config.credential.resolve()
     async with aiohttp.ClientSession(
         timeout=aiohttp.ClientTimeout(total=manifest.config.request_timeout_s), trust_env=False
@@ -692,12 +836,22 @@ async def service_stage(directory: Path, manifest: Manifest, stage: str) -> None
         transport = core.Ingestion(directory, manifest, RedactedHTTP(session, manifest.config, secret))
         if stage == "ingest":
             await transport.ingest()
+        elif stage == "verify":
+            for conversation in manifest.conversations:
+                await transport.check_runtime(conversation, "before")
+                await transport.verify_documents(conversation)
+                await verify_reused_operations(transport, conversation, "verify")
+                transport.state.banks[conversation.id] = core.BankState(created=False, verified=True)
+            transport.state.status = "verified_reuse"
+            transport.save_state()
         else:
             if not all(transport.state.banks.get(c.id, core.BankState()).verified for c in manifest.conversations):
                 raise ValueError("Every Bank must be ingested and verified before answering")
             for conversation in manifest.conversations:
                 await transport.check_runtime(conversation, stage)
                 await transport.verify_documents(conversation)
+                if manifest.config.reuse_banks:
+                    await verify_reused_operations(transport, conversation, stage)
         version = await transport.http.request("GET", "/version", core.RuntimeSnapshot)
         baseline = directory / "server-version-before.json"
         if baseline.exists() and core.canonical_sha(
@@ -707,6 +861,18 @@ async def service_stage(directory: Path, manifest: Manifest, stage: str) -> None
             transport.save_state()
             raise ValueError("Server version changed")
         core.save_model(baseline if not baseline.exists() else directory / f"server-version-{stage}.json", version)
+
+
+async def verify_reused_operations(transport: Any, conversation: Any, label: str) -> None:
+    operations = await transport.all_operations(conversation)
+    if not operations or any(op.status != "completed" for op in operations):
+        raise ValueError("Reused Bank has missing, pending or failed ingestion operations")
+    if any(op.result_metadata and op.result_metadata.extraction_errors_count for op in operations):
+        raise ValueError("Reused Bank reports extraction errors")
+    core.save_model(
+        transport.directory / f"{conversation.id}-reuse-operations-{label}.json",
+        core.OperationsPage(operations=operations, total=len(operations)),
+    )
 
 
 def report(directory: Path, manifest: Manifest) -> Summary:
@@ -754,10 +920,9 @@ def report(directory: Path, manifest: Manifest) -> Summary:
     amb_tokens = [len(amb_encoder.encode(record.packing.text)) for record in retrieved if record.packing is not None]
     prompts = [len(encoder.encode(record.prompt)) for record in calls if record.stage == "answer"]
     latencies = [record.retrieval_elapsed_ms for record in retrieved if record.retrieval_elapsed_ms is not None]
-    failed = (
-        {record.question_id for record in calls if record.status == "failed"}
-        | {record.question_id for record in retrieved if record.error is not None}
-    ) - set(results)
+    failed = {record.question_id for record in calls if record.status == "failed"} | {
+        record.question_id for record in retrieved if record.error is not None
+    }
     correct = sum(record.amb_result.correct is True for record in results.values())
     count = len(archive.questions)
     summary = Summary(
@@ -765,14 +930,15 @@ def report(directory: Path, manifest: Manifest) -> Summary:
         protocol=manifest.config.protocol,
         amb_commit=AMB_COMMIT,
         valid_complete_run=len(results) == count
+        and not failed
         and state.status == "completed"
         and state.runtime_consistent
         and set(state.banks) == set(archive.conversations)
         and all(bank.verified for bank in state.banks.values()),
         expected=count,
-        completed=len(results),
+        completed=len(set(results) - failed),
         failed=len(failed),
-        pending=count - len(results) - len(failed),
+        pending=count - len(set(results) | failed),
         correct=correct,
         accuracy_all_expected=correct / count,
         answer_f1_all_expected=f1_total / count,
@@ -853,7 +1019,7 @@ def main() -> None:
     init.add_argument("--config", type=Path, required=True)
     init.add_argument("--run-dir", type=Path, required=True)
     init.add_argument("--run-id", required=True)
-    for command in ("ingest", "run", "report"):
+    for command in ("ingest", "verify", "run", "report"):
         sub = commands.add_parser(command)
         sub.add_argument("run_dir", type=Path)
     pack = commands.add_parser("preview", help="Offline: inspect packing of a saved recall, no new answers")
@@ -872,6 +1038,8 @@ def main() -> None:
         manifest = load_manifest(args.run_dir)
         if args.command == "ingest":
             asyncio.run(service_stage(args.run_dir, manifest, "ingest"))
+        elif args.command == "verify":
+            asyncio.run(service_stage(args.run_dir, manifest, "verify"))
         elif args.command == "run":
             print(run(args.run_dir, manifest).model_dump_json(indent=2))
         elif args.command == "preview":
