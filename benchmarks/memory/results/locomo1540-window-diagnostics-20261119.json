@@ -2320,6 +2320,428 @@
       "evidence_ids": [
         "D29:27"
       ]
+    },
+    {
+      "question_id": "conv-49_q11",
+      "conversation_id": "conv-49",
+      "question": "What health issue did Sam face that motivated him to change his lifestyle?",
+      "gold": [
+        "Weight problem"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Sam had gastritis, which caused a severe stomachache and sent him to the ER on October 14–15, 2023. The scare motivated him to adopt a healthier diet and exercise regularly.",
+      "candidate_answer": "Sam had a gastritis scare: severe stomach pain sent him to the ER on October 14–15, 2023, motivating him to improve his diet and exercise. His doctor had also warned on October 2, 2023, that his weight posed a serious health risk.",
+      "baseline_reason": "The generated answer identifies gastritis as the motivating health issue rather than the weight problem specified in the gold answer.",
+      "candidate_reason": "The generated answer mentions that Sam’s weight posed a serious health risk, matching the gold answer’s weight problem.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.22222222222222224,
+      "evidence_ids": [
+        "D2:6",
+        "D3:4",
+        "D24:12",
+        "D24:14",
+        "D5:5",
+        "D6:2",
+        "D7:2",
+        "D7:12",
+        "D8:1",
+        "D10:6",
+        "D12:1",
+        "D13:2",
+        "D14:1",
+        "D15:1",
+        "D16:3",
+        "D17:3",
+        "D24:20",
+        "D25:1",
+        "D25:3"
+      ],
+      "candidate_result_sha256": "661079ef87c8f6aea3c7783618abb345be6a267561e18d40946f7f6d0cd7ed19",
+      "baseline_result_sha256": "f0e5b7d23e971c8bae5166099b4bfcf861dfbadd138f23b56f90a62d3af700f6",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q24",
+      "conversation_id": "conv-49",
+      "question": "What significant event happened in Sam's life towards the end of summer 2023?",
+      "gold": [
+        "He fell in love with a Canadian woman"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Towards the end of summer, on August 21, 2023, Sam started a new diet and exercise routine—a significant step toward better health. By August 27, he reported feeling great and noticing a huge difference.",
+      "candidate_answer": "On August 21, 2023, Sam started a new diet and exercise routine—a significant step toward improving his health. By August 27, he reported feeling great and noticing a huge difference.",
+      "baseline_reason": "The generated answer describes a new diet and exercise routine rather than Sam falling in love with a Canadian woman.",
+      "candidate_reason": "The generated answer describes a diet and exercise routine rather than Sam falling in love with a Canadian woman.",
+      "baseline_f1": 0.05555555555555555,
+      "candidate_f1": 0.060606060606060615,
+      "evidence_ids": [
+        "D5:1"
+      ],
+      "candidate_result_sha256": "5f9cb24650b7a24e3886a9d52844888c8e9d3922551295849cab9c746fa60cab",
+      "baseline_result_sha256": "2a0177788ca4289675ef13e535e90a1e91f3c3e54a09f4a720cc1948561a4cb6",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q32",
+      "conversation_id": "conv-49",
+      "question": "What recurring frustration does Evan experience?",
+      "gold": [
+        "Evan consistently misplaces his keys every week."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan repeatedly feels frustrated by setbacks that disrupt his active lifestyle, particularly his painful knee injury on August 25, 2023, and his new Prius breaking down, reported on December 5, 2023.",
+      "candidate_answer": "Evan is repeatedly frustrated by health problems and physical limitations that interfere with his active lifestyle, particularly his knee injury on August 25, 2023, which disrupted his usual fitness routine.",
+      "baseline_reason": "The generated answer describes an injury and a car breakdown rather than Evan's recurring frustration of misplacing his keys every week.",
+      "candidate_reason": "The generated answer describes health limitations rather than Evan’s recurring frustration of misplacing his keys every week.",
+      "baseline_f1": 0.2222222222222222,
+      "candidate_f1": 0.18181818181818182,
+      "evidence_ids": [
+        "D6:13",
+        "D21:20"
+      ],
+      "candidate_result_sha256": "ffbcac83661c7743c87b45ff4e69d6b6b471e1b6b4d792110936fd42a03fe418",
+      "baseline_result_sha256": "bea46a895ba3225079470ab4ed5071ebe860820c002fa3494ef264fce83c997f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q43",
+      "conversation_id": "conv-49",
+      "question": "How often does Sam get health checkups?",
+      "gold": [
+        "every three months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Sam appears to get health check-ups irregularly; no fixed schedule is mentioned. He reported visits in May 2023, before August 15, 2023, and on October 2, 2023. On January 10, 2024, he said he had not seen a doctor in a while and planned to make an appointment.",
+      "candidate_answer": "Sam appears to get health checkups occasionally, rather than on a stated regular schedule. He had a checkup in May 2023 (before May 24), a doctor’s appointment before August 15, 2023, and another checkup on October 2, 2023. On January 10, 2024, he said he hadn’t seen a doctor in a while and planned to make an appointment. The memories don’t establish an exact frequency.",
+      "baseline_reason": "The generated answer describes irregular checkups with no fixed schedule, contradicting the gold answer of every three months.",
+      "candidate_reason": "The generated answer says there is no established regular frequency, contradicting the gold answer that Sam gets checkups every three months.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D2:6",
+        "D7:2",
+        "D12:1"
+      ],
+      "candidate_result_sha256": "79b6454410a36eb935c12840acc86def1d3368d4c2a19f0783ec94689a3c79bd",
+      "baseline_result_sha256": "48f224e5f360bb837c19d1f904d3d292897d03a7ba7adfae842a13f3a8f2643d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q54",
+      "conversation_id": "conv-49",
+      "question": "What personal health incidents does Evan face in 2023?",
+      "gold": [
+        "heart palpitations, twisted ankle, twisted ankle"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan faced these personal health incidents in 2023:\n- **May 29–June 4:** Sudden heart palpitations frightened him and prompted him to take his lifestyle more seriously, including reducing processed foods and sugary snacks.\n- **August 25:** He twisted his knee, causing significant pain and disrupting his usual fitness routine. He switched to swimming and planned physical therapy.\n- **September 25–October 1:** He reported injuring his knee while playing basketball with his kids. Physical therapy helped somewhat, but he remained limited to easy exercises and missed outdoor adventures with his family. It is unclear whether this was a new injury or related to the August injury.\n- **November 13–19:** A suspicious check-up finding led to a hospital visit. It turned out to be a misunderstanding, and doctors confirmed everything was fine. The scare reinforced the importance of monitoring his health and appreciating life.\n\nHe also said on **August 7, 2023**, that he had been working on his health for about two years, with ongoing ups and downs, although no additional specific diagnosis was given.",
+      "candidate_answer": "Evan faced these personal health incidents in 2023:\n- **May 29–June 4:** Sudden heart palpitations frightened him and prompted him to take his health and lifestyle more seriously.\n- **August 25:** He twisted his knee, causing significant pain and disrupting his fitness routine. He subsequently used swimming to stay active and considered physical therapy.\n- **September 25–October 1:** He reported injuring his knee while playing basketball with his kids. Physical therapy helped somewhat, but he was limited to gentle exercise and missed outdoor adventures with his family. The memories do not clarify whether this was related to the August injury or a separate injury.\n- **November 13–19:** A suspicious check-up finding led to a hospital visit. It proved to be a misunderstanding, and doctors confirmed everything was fine, but the scare reinforced the importance of monitoring his health.\n\nHe also described ongoing health struggles, saying on August 7, 2023, that he had been working on his health for approximately two years—since around August 2021.",
+      "baseline_reason": "Although it correctly mentions heart palpitations, it replaces both twisted-ankle incidents with knee injuries, missing the other health incidents in the gold answer.",
+      "candidate_reason": "Although it mentions heart palpitations, the generated answer substitutes knee injuries for the twisted ankle incidents in the gold answer.",
+      "baseline_f1": 0.14652014652014653,
+      "candidate_f1": 0.08080808080808081,
+      "evidence_ids": [
+        "D3:1",
+        "D9:2",
+        "D11:2"
+      ],
+      "candidate_result_sha256": "c246aaa3ac67295788c911c2d7a5787ec9c60c6a7bb3c2c00a56097691502c3a",
+      "baseline_result_sha256": "08da06cc715decd18ef00a0fbd24b3814afcc2dfba1761f009800a8eacebf0ba",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q57",
+      "conversation_id": "conv-49",
+      "question": "Which US state was Sam travelling in during October 2023?",
+      "gold": [
+        "California"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Sam was traveling through Lake Tahoe on October 14, 2023. Lake Tahoe spans California and Nevada, so the memories do not establish which of those states he was in.",
+      "candidate_answer": "California—Sam was traveling through Lake Tahoe on October 14, 2023, though the lake straddles California and Nevada.",
+      "baseline_reason": "The generated answer explicitly says the state cannot be determined rather than identifying California as the gold answer does.",
+      "candidate_reason": "The generated answer identifies California, matching the gold answer.",
+      "baseline_f1": 0.07142857142857142,
+      "candidate_f1": 0.125,
+      "evidence_ids": [
+        "D13:14"
+      ],
+      "candidate_result_sha256": "c70f19db9602d575bcc9900e81c7d76c450e7ec6e09d6453db0d654ad1eed8fa",
+      "baseline_result_sha256": "51971ff78f869502408a04b1cbe6a7b12d632c97a9e09c70db3d6b54a2e616a7",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q64",
+      "conversation_id": "conv-49",
+      "question": "Which ailment does Sam have to face due to his weight?",
+      "gold": [
+        "gastritis"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Sam faces physical discomfort and limited mobility associated with his weight.",
+      "candidate_answer": "Sam faces physical discomfort and limited mobility associated with his weight. The memories do not identify a specific disease caused by his weight.",
+      "baseline_reason": "The generated answer mentions discomfort and limited mobility but does not identify gastritis, the ailment in the gold answer.",
+      "candidate_reason": "The generated answer does not identify gastritis, the specific ailment stated in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D2:6",
+        "D7:2",
+        "D12:1",
+        "D14:1"
+      ],
+      "candidate_result_sha256": "90726f67b2d8f7980499b0aec6acbaab09932c7821d9dcd471cbb7f013dd1807",
+      "baseline_result_sha256": "826fc26952e9b40564eee98b268442437e744c328bf0bd50b38a76f15dd965c9",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q74",
+      "conversation_id": "conv-49",
+      "question": "When did Evan's son fall off his bike?",
+      "gold": [
+        "Thursday before December 17, 2023."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan’s son fell off his bike on Tuesday, December 12, 2023.",
+      "candidate_answer": "Evan’s son fell off his bike on Tuesday, December 12, 2023.",
+      "baseline_reason": "The gold answer refers to Thursday, December 14, 2023, whereas the generated answer gives Tuesday, December 12, 2023.",
+      "candidate_reason": "The Thursday before December 17, 2023 was December 14, not Tuesday, December 12.",
+      "baseline_f1": 0.25000000000000006,
+      "candidate_f1": 0.25000000000000006,
+      "evidence_ids": [
+        "D20:3"
+      ],
+      "candidate_result_sha256": "9251c6e32d31dce85683a638f449a94cb1d91272b2a6be9a46ed754be32490de",
+      "baseline_result_sha256": "5269d0f5a91b26f7c099da26dbef63276c50bd66969d1584cae36c7b3ea2aa73",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q80",
+      "conversation_id": "conv-49",
+      "question": "When did Evan have a drunken night with his friends?",
+      "gold": [
+        "January 9, 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan had a drunken night with his friends on Tuesday, January 9, 2024.",
+      "candidate_answer": "Evan had a drunken night with his friends on January 9, 2024.",
+      "baseline_reason": "The generated answer gives January 9, 2024, but the gold answer is January 9, 2023, so the year is incorrect.",
+      "candidate_reason": "The generated answer gives January 9, 2024, but the correct date is January 9, 2023.",
+      "baseline_f1": 0.26666666666666666,
+      "candidate_f1": 0.28571428571428575,
+      "evidence_ids": [
+        "D24:3"
+      ],
+      "candidate_result_sha256": "33685f341acd5e9394cb4bc686327799bd2e5348f5b985cd2cd3b70171008b3d",
+      "baseline_result_sha256": "96693f9f41e11968952b4f0de9f1b2dd5b1aed946a063780719514a296790d0f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q99",
+      "conversation_id": "conv-49",
+      "question": "What did Evan suggest Sam to check out for insights into his dream?",
+      "gold": [
+        "dream interpretation book"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not specify what Evan suggested Sam check out for insights into his dream.",
+      "candidate_answer": "Evan suggested checking out a dream interpretation book.",
+      "baseline_reason": "The generated answer says the suggestion is unspecified rather than identifying the dream interpretation book.",
+      "candidate_reason": "The generated answer matches the gold answer by identifying a dream interpretation book.",
+      "baseline_f1": 0.10526315789473684,
+      "candidate_f1": 0.6,
+      "evidence_ids": [
+        "D6:15"
+      ],
+      "candidate_result_sha256": "aae8b641c950ad7b11eb5f5f5996154321501975b23aed8a78b15d2f411c98c3",
+      "baseline_result_sha256": "074e63635f4e8ee467d8ace2d672eb2ff45ebfe3cc837e1d1edfd53e274586a9",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q102",
+      "conversation_id": "conv-49",
+      "question": "What dish did Sam make on 18 August, 2023 that turned out flavorful?",
+      "gold": [
+        "grilled dish with salmon and vegetables"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Sam’s flavorful dish was a grilled chicken and vegetable stir-fry with homemade sauce, mentioned on August 19, 2023. The memories do not explicitly confirm that he made it on August 18.",
+      "candidate_answer": "Sam made a grilled chicken and vegetable stir-fry with homemade sauce. It was discussed on August 19, 2023, though the memories do not explicitly confirm that he made it on August 18.",
+      "baseline_reason": "The generated answer names chicken stir-fry rather than the grilled salmon and vegetables specified in the gold answer.",
+      "candidate_reason": "The generated answer identifies chicken stir-fry rather than the grilled salmon and vegetables specified in the gold answer.",
+      "baseline_f1": 0.24242424242424243,
+      "candidate_f1": 0.17647058823529413,
+      "evidence_ids": [
+        "D7:4"
+      ],
+      "candidate_result_sha256": "a109ff6a79a1e7062fa4476efdca22ed20b7cdeebbfd1c83154802e0fda3a98b",
+      "baseline_result_sha256": "fa1b677f33bfab3b7bb9daf43af5f9e4781c2d557abe76493471b214d34fe208",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q104",
+      "conversation_id": "conv-49",
+      "question": "What food did Sam share a photo of on 19 August, 2023?",
+      "gold": [
+        "bowl of spinach, avocado, and strawberries"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Sam shared a photo of grilled chicken and vegetable stir-fry with homemade sauce. He also shared a photo of a spinach, avocado, and strawberry salad that day.",
+      "candidate_answer": "Sam shared a photo of grilled chicken and vegetable stir-fry with homemade sauce.",
+      "baseline_reason": "The generated answer includes the spinach, avocado, and strawberry salad, matching the gold answer despite adding another dish.",
+      "candidate_reason": "The generated answer names chicken stir-fry rather than the bowl of spinach, avocado, and strawberries in the gold answer.",
+      "baseline_f1": 0.2962962962962963,
+      "candidate_f1": 0.12500000000000003,
+      "evidence_ids": [
+        "D8:1"
+      ],
+      "candidate_result_sha256": "81ce7896147498b9f141159ae7ebd20e1a9cad968f1b59f578c20ce039dcde47",
+      "baseline_result_sha256": "1ed5c1f57e17ee88aeacd755c0f8d929542773d1e4d3d65360f8405e9a27692f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q106",
+      "conversation_id": "conv-49",
+      "question": "What did Evan start painting years ago due to being inspired by a friend's gift?",
+      "gold": [
+        "forest scene"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan started watercolor painting, inspired by a painting a friend gave him.",
+      "candidate_answer": "Evan started watercolor painting after being inspired by a painting a friend gave him.",
+      "baseline_reason": "The generated answer mentions watercolor painting but does not identify the forest scene Evan started painting.",
+      "candidate_reason": "The generated answer names watercolor painting but does not identify the forest scene Evan started painting.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D8:14"
+      ],
+      "candidate_result_sha256": "624efca648c1fb9185601432a5455ccca15676088ca1d8a657cd0fbedd109f32",
+      "baseline_result_sha256": "7b8691eec4ad3426df431c927df7ae9695d6ad91686d220c8e8a1e0646bc9143",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q123",
+      "conversation_id": "conv-49",
+      "question": "What adventurous theme is emerging in Evan's life as mentioned by Sam?",
+      "gold": [
+        "helping lost tourists"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "An adventurous outdoor theme is emerging in Evan’s life: exploring nature and trying new activities with his partner, from hiking and biking to snowshoeing and a planned skiing honeymoon in Canada.",
+      "candidate_answer": "Helping lost tourists and turning those encounters into unexpected adventures is becoming a recurring theme in Evan’s life. Sam joked that Evan was becoming the “go-to guy for tourists in need.”",
+      "baseline_reason": "The generated answer describes outdoor activities rather than the emerging theme of helping lost tourists.",
+      "candidate_reason": "The generated answer explicitly identifies helping lost tourists as the recurring adventurous theme, matching the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.19354838709677416,
+      "evidence_ids": [
+        "D14:2"
+      ],
+      "candidate_result_sha256": "92986cb839e73ba9e05564362328ba0e5ad52a75a99aafb3338da6c7c8c3c9e2",
+      "baseline_result_sha256": "d4e392f99c625283de650827a9c3a3173c9746a7b316b7f47a6cea20048cb01d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q141",
+      "conversation_id": "conv-49",
+      "question": "What did Evan suggest Sam should keep doing to find his own version of love?",
+      "gold": [
+        "Keep trying new things"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories don’t state what Evan suggested Sam should keep doing to find his own version of love.",
+      "candidate_answer": "Evan suggested that Sam keep trying new things and embrace the journey, because he might find his own version of love in unexpected places.",
+      "baseline_reason": "The generated answer claims the information is unavailable instead of identifying Evan’s suggestion to keep trying new things.",
+      "candidate_reason": "The generated answer explicitly says Sam should keep trying new things, matching the gold answer.",
+      "baseline_f1": 0.0909090909090909,
+      "candidate_f1": 0.3076923076923077,
+      "evidence_ids": [
+        "D21:10"
+      ],
+      "candidate_result_sha256": "4d87efe8f86c9dafdd712c63b4bf24aecc5aeda510c6dffe46ec545b4e140dd7",
+      "baseline_result_sha256": "d044d9384b036cc0ff03efec678a7eeb2174e51f3e36c6ba651d855a7575ff5e",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q144",
+      "conversation_id": "conv-49",
+      "question": "What did Evan share with Sam after their hiking trip?",
+      "gold": [
+        "a photo of a man standing on a rock looking out over a valley"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Evan shared that he and his family had hiked in the Rocky Mountains during May 8–14, 2023, and that the views were amazing. The memories do not confirm a completed hiking trip with Sam.",
+      "candidate_answer": "Evan shared healthy snacks and cookies he had been trying, and offered to send Sam the recipes.",
+      "baseline_reason": "The generated answer does not mention the photo of a man standing on a rock overlooking a valley that Evan shared with Sam.",
+      "candidate_reason": "The generated answer mentions snacks and recipes rather than the photo of a man standing on a rock overlooking a valley.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D22:1"
+      ],
+      "candidate_result_sha256": "610b7df61497d85e066fcb4d9ee81a7c25be3e64374dd7c0a67e5295b41f32f2",
+      "baseline_result_sha256": "6d8f9ed0e99115d8fe5a03632faabda53fc216aa106e932f1ca7e7e4f01f8490",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q145",
+      "conversation_id": "conv-49",
+      "question": "What did Evan offer to share with Sam after talking about healthy snacks?",
+      "gold": [
+        "the recipes for cookies"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Evan offered to share a recipe for healthy energy balls.",
+      "candidate_answer": "Evan offered to share recipes for healthy snacks and cookies with Sam.",
+      "baseline_reason": "The generated answer names energy ball recipes rather than the cookie recipes Evan offered to share.",
+      "candidate_reason": "The generated answer correctly states that Evan offered to share cookie recipes with Sam.",
+      "baseline_f1": 0.3333333333333333,
+      "candidate_f1": 0.42857142857142855,
+      "evidence_ids": [
+        "D22:12"
+      ],
+      "candidate_result_sha256": "6d5b4ba123116f7cdfa537ab4d288acb3e2577b9a7bce2b2be5e377346396da8",
+      "baseline_result_sha256": "4436a6b6e859a0bd6c50e278c561588c325e68331754f0ce08db8459ac1f4fed",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-49_q153",
+      "conversation_id": "conv-49",
+      "question": "What did Evan share a photo of that was taken on a camping trip?",
+      "gold": [
+        "a kayak"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Evan shared a photo of a beautiful sunset over a lake, taken while kayaking on a camping trip in summer 2023.",
+      "candidate_answer": "Evan shared a photo of an amazing sunset on a lake, taken from a kayak during a camping trip in summer 2023.",
+      "baseline_reason": "The generated answer describes a photo of a sunset over a lake rather than a kayak; kayaking is only mentioned as the activity.",
+      "candidate_reason": "The generated answer mentions a kayak in the camping-trip photo, matching the gold answer’s topic.",
+      "baseline_f1": 0.1111111111111111,
+      "candidate_f1": 0.1111111111111111,
+      "evidence_ids": [
+        "D25:8"
+      ],
+      "candidate_result_sha256": "971216d0ad88b2aa937cebfb5134fb05e026260532c7b63ce24dcdf4d3512fb1",
+      "baseline_result_sha256": "c941dea1d12b14f647ce23c4138abfa4a78523fbf9691e42378ac17c3e1e6284",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -2899,6 +3321,96 @@
       "question_id": "conv-26_q59",
       "finding": "新窗口事实含necklace的faith含义及为local church做stained glass，reader也明确引用两者后拒绝认定宗教性；原文不直接声明个人信仰。主要是推断强度与gold somewhat religious的差异，不是丢失这两条线索。",
       "confidence": "confirmed_inference_strength_ambiguity"
+    },
+    {
+      "question_id": "conv-49_q11",
+      "finding": "新旧事实均提weight和gastritis；新答案额外说明October2体重严重健康风险而被接受。不能把该转对全称为旧上下文无体重问题，新窗口/reader对多次健康事件的选择均可能相关。",
+      "confidence": "supported_reader_event_selection"
+    },
+    {
+      "question_id": "conv-49_q57",
+      "finding": "新旧都提供Lake Tahoe，旧答横跨California/Nevada无法确定，新答先给California并保留跨州提示。原句未唯一给州，转对主要是推断强度/答案表述变化，不是发现独有California证据。",
+      "confidence": "confirmed_inference_strength_ambiguity"
+    },
+    {
+      "question_id": "conv-49_q99",
+      "finding": "旧打包没有dream interpretation book，新窗口D6:15明确保留书籍建议，新答案直接命中。属于实际上下文恢复。",
+      "confidence": "confirmed_context_recovery"
+    },
+    {
+      "question_id": "conv-49_q123",
+      "finding": "D14:2 helping tourists recurring theme和D14:3 go-to guy for tourists在新旧打包中均完整存在；旧reader答户外活动，新reader答游客主题。转对为reader定位变化，不能称原句旧版缺失。",
+      "confidence": "confirmed_reader_selection"
+    },
+    {
+      "question_id": "conv-49_q141",
+      "finding": "旧事实有try new things但缺与love关系的原句，新窗口保留D21:10 own version of love in unexpected places，新答案正确关联建议与找爱。上下文关系恢复比单词覆盖更有意义。",
+      "confidence": "confirmed_context_relation_recovery"
+    },
+    {
+      "question_id": "conv-49_q145",
+      "finding": "新窗口D22:12明确snacks and cookies及send recipes，并有cookie caption；旧打包偏D22:14 energy balls，答错成能量球配方。相邻但不同食谱的原句恢复。",
+      "confidence": "confirmed_context_recovery"
+    },
+    {
+      "question_id": "conv-49_q153",
+      "finding": "D25:8 kayak caption和sunset文字在新旧打包均存在；两答案都是湖上日落/划艇，旧while kayaking被拒，新from a kayak被接受，F1同为0.1111。不能归因于目标caption新召回，主要是表述/裁判差异。",
+      "confidence": "confirmed_wording_and_judge_difference"
+    },
+    {
+      "question_id": "conv-49_q104",
+      "finding": "D8:1 spinach/avocado/strawberries在recall原文，但新窗口完全未包含这些词，旧上下文含salad且旧答案同时列stir-fry和salad而判对。当前是明确窗口回退和日期下多道菜选择问题。",
+      "confidence": "confirmed_context_regression"
+    },
+    {
+      "question_id": "conv-49_q102",
+      "finding": "D7:4 salmon/vegetables caption已完整打包，D7:6 grilled dish也在；reader仍选择另一道chicken stir-fry并对August18保留疑问。存在事件日期/图片caption定位错误，非salmon原文未返回。",
+      "confidence": "confirmed_reader_caption_event_selection"
+    },
+    {
+      "question_id": "conv-49_q106",
+      "finding": "D8:14 forest scene caption已打包，reader只答watercolor。caption描述朋友赠送的画，gold却将其作Evan最初画的题材，题意有歧义；至少目标caption并未因截断缺失。",
+      "confidence": "supported_reader_caption_and_question_ambiguity"
+    },
+    {
+      "question_id": "conv-49_q144",
+      "finding": "标注D22:1照片实际speaker为Sam，题目问Evan分享；新窗口已保留Sam的hiking/valley照片及Evan后续snacks。人物与gold原文冲突，不可为了得分把Sam照片改归Evan。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-49_q24",
+      "finding": "D5:1 met Canadian woman的speaker为Evan，新窗口已含该句；题目却问Sam，reader按Sam回答健康改变。人物归属/gold冲突，非Canadian woman没有召回。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-49_q32",
+      "finding": "D6:13和D21:20每周丢钥匙均返回但未进8K窗口，reader选膝盖与健康挫折。当前存在明确原文选择缺口；不能从failure推断数据库根本没有钥匙记忆。",
+      "confidence": "confirmed_context_selection_gap"
+    },
+    {
+      "question_id": "conv-49_q43",
+      "finding": "新reader已列May、August、October几次检查，拒绝推定固定every3months；原标注只列检查事件而非直接声明固定频率。部分原文ID缺窗口，但相关时间事实已提供，主要需验证周期推断与gold强度。",
+      "confidence": "supported_temporal_pattern_inference_ambiguity"
+    },
+    {
+      "question_id": "conv-49_q54",
+      "finding": "D9:2/D11:2原文明确knee，gold重复twisted ankle；reader虽未打包这两个ID，已从事实正确答出膝盖伤，心悸亦有。不能以扩大原文强行将knee修成ankle；额外事件列表也拉长答案。",
+      "confidence": "confirmed_source_gold_body_part_conflict"
+    },
+    {
+      "question_id": "conv-49_q64",
+      "finding": "D14:1原文未进窗口，但最终事实明确ER/gastritis且新旧都存在；reader没有选gastritis而质疑疾病由体重导致的因果。混合reader定位/因果措辞歧义，不能仅按ID缺失认定疾病事实丢失。",
+      "confidence": "confirmed_available_fact_with_causality_ambiguity"
+    },
+    {
+      "question_id": "conv-49_q74",
+      "finding": "D20:3 last Tuesday已打包，session为December17，答案December12；gold Thursday对应December14。保留原评分并标时间标注冲突，不改成错误星期。",
+      "confidence": "confirmed_source_gold_weekday_conflict"
+    },
+    {
+      "question_id": "conv-49_q80",
+      "finding": "D24 session是2024-01-10，D24:3 yesterday已打包，答案January9 2024符合时间；gold写2023。跨年标注冲突，不是reader算错一年。",
+      "confidence": "confirmed_source_gold_year_conflict"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -5583,5 +6095,91 @@
     "all_have_current_v1_source_review": true,
     "source_review_scope": "first8 completed1225 only",
     "note": "Codex source inspection, not human annotation. All77 current wrong answers compared with returned/packed source and gold; source conflicts remain scored wrong under unchanged judge, no score correction."
+  },
+  "first_nine_bank_comparison": {
+    "kind": "completed-qa-in-first-nine-banks-not-full1540-score",
+    "scope_completed": 1381,
+    "bank_scope_expected": 1382,
+    "operational_gaps": [
+      {
+        "question_id": "conv-44_q90",
+        "error": "HTTPFailure"
+      }
+    ],
+    "candidate_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
+    "baseline_correct": 1269,
+    "candidate_correct": 1293,
+    "baseline_f1": 0.27633566616279603,
+    "candidate_f1": 0.2789923294400129,
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60",
+      "conv-43_q5",
+      "conv-44_q39",
+      "conv-47_q16",
+      "conv-47_q71",
+      "conv-47_q147",
+      "conv-48_q74",
+      "conv-48_q75",
+      "conv-48_q99",
+      "conv-48_q119",
+      "conv-48_q174",
+      "conv-49_q11",
+      "conv-49_q57",
+      "conv-49_q99",
+      "conv-49_q123",
+      "conv-49_q141",
+      "conv-49_q145",
+      "conv-49_q153"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23",
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166",
+      "conv-44_q37",
+      "conv-44_q55",
+      "conv-47_q56",
+      "conv-48_q188",
+      "conv-49_q104"
+    ],
+    "note": "Same completed semantic QA IDs, all source result/retrieval/call checksum verified; one transport gap excluded pending completion, not a full score.",
+    "baseline_accuracy": 0.9188993482983345,
+    "candidate_accuracy": 0.9362780593772628,
+    "private_snapshot_sha256": "9c2212bb62d38cbf93e0d0817974de7ef8ea9073efa30f51797f3e57f673a1a7",
+    "private_snapshot_path": ".local/window-first-nine-banks-completed-20261119.json",
+    "conv49": {
+      "scope": 156,
+      "baseline_correct": 139,
+      "candidate_correct": 145,
+      "fixed": 7,
+      "regressed": 1,
+      "net_correct": 6
+    }
+  },
+  "first_nine_source_review_coverage": {
+    "semantic_wrong_cases": 88,
+    "all_have_current_v1_source_review": true,
+    "reviewer": "Codex assistant source inspection, not human annotation",
+    "note": "First9 completed semantic1381 only. Original score and source conflicts preserved; no answers or judges re-sampled."
   }
 }
