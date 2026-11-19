@@ -1,0 +1,68 @@
+{
+  "trials": [
+    {
+      "trial": "experiment-01",
+      "repeats": 5,
+      "A_p95_ms": 7.249925006180999,
+      "B_p95_ms": 7.334558153524992,
+      "C_p95_ms": 6.9063914241269195,
+      "notes": "Timing completed, then cleanup failed (wrong method name); retained, not primary"
+    },
+    {
+      "trial": "experiment-02",
+      "repeats": 10,
+      "A_p95_ms": 7.416750153061002,
+      "B_p95_ms": 7.619185344083235,
+      "C_p95_ms": 7.1692269295454025,
+      "notes": "Cleanup fixed; assertion was weaker than subsequent runs; retained"
+    },
+    {
+      "trial": "experiment-03",
+      "repeats": 10,
+      "A_p95_ms": 7.538902212399988,
+      "B_p95_ms": 7.67351245158352,
+      "C_p95_ms": 7.404051622143014,
+      "notes": "Explicit ANALYZE and exact frozen output checks, ORDER BY distance,id; retained"
+    },
+    {
+      "trial": "experiment-04",
+      "repeats": 10,
+      "A_p95_ms": 7.181732880417257,
+      "B_p95_ms": 7.354954507900402,
+      "C_p95_ms": 6.836012483108788,
+      "notes": "Distance-only ORDER BY preserves ANN path eligibility; retained. arm_limit=300, not final high-budget profile."
+    },
+    {
+      "trial": "experiment-05",
+      "repeats": 10,
+      "arm_limit": 1000,
+      "A_p95_ms": 7.124293938977644,
+      "B_p95_ms": 7.386178820161149,
+      "C_p95_ms": 6.883772555738686,
+      "notes": "Final primary: align arm_limit=1000 and truncate_to=2000 with existing high budget; fusion cap remains300. All81 checked. Changes made for configuration correctness, not selecting fastest result."
+    }
+  ],
+  "final_executed_source_sha256": {
+    "audit_source.py": "30cda9320e00e25550c9d84d7b62b37c2d93148fe132456380c41ad8c08f99a1",
+    "store.py": "fff45b43d3ac20aa3cf08977d5da1124eb42bc9c62d738145f4cf3b1058d06d5",
+    "test_fusion.py": "ec2aa724d956653d61e5e9fa87b9d170ac645e42a677161ab2d6108b2b940b7c",
+    "Makefile": "ee1e5fb550256ea33f12264fcb7231b71747a471b899f070280f8eaaacc3ac7d",
+    "experiment.py": "4493042cfb0f6aff94e1fa177b68676a3748cda50b74d93392eeb6e05ccd2a3b",
+    "contextbase_recall.c": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f",
+    "install.sql": "a59c9c88ed7a7886729cc4ce0a3c91d679ccaf3089bd4dd17b638c0ed436bb32",
+    "baseline-candidate.sql": "cedc9e13d251199af171b1bfc0f9e9c804f253d642518a8d5328b722ec628d28",
+    "queries.py": "d44e21b6d68143435d4d2ce9a8d1ebbe6cda929b3058b21b1b78e06cebe492e5",
+    "pushed-candidate.sql": "c58b73b391f38e4da9d7332d287bd22d85512010d79011843050af4aa61b1a1b",
+    "contextbase_recall.dylib": "c18cf02c8d9a1a3e94964f754719a79c3cafd8201cb25540ccfb9d3fffb3ba6a"
+  },
+  "primary_trial": "experiment-05",
+  "supplementary_trial03_bootstrap": {
+    "resampling": "81 question clusters, retaining all 10 repetitions; one Bank only; percentile bootstrap exploratory",
+    "repetitions": 3000,
+    "a_minus_c_p95_ms_point": 0.1348505902569732,
+    "a_minus_c_p95_ms_ci95": [
+      -0.258403531188378,
+      0.988057249924152
+    ]
+  }
+}

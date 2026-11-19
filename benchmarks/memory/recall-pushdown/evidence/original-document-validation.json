@@ -1,0 +1,33 @@
+{
+  "views": [
+    {
+      "width": 1440,
+      "document_width": 1440,
+      "h2": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    },
+    {
+      "width": 1024,
+      "document_width": 1024,
+      "h2": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    },
+    {
+      "width": 390,
+      "document_width": 390,
+      "h2": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    }
+  ],
+  "missing_local_links": [],
+  "page_errors": [],
+  "external_requests": [],
+  "scope": "Final report and prototype evidence; no image generation",
+  "pass": true
+}

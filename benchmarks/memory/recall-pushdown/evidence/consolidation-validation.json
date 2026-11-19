@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-19",
+  "scope": "Documentation consolidation only; no new PG, model or benchmark execution",
+  "markdown_files": 7,
+  "missing_local_links": [],
+  "views": [
+    {
+      "width": 1440,
+      "document_width": 1440,
+      "chapters": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    },
+    {
+      "width": 1024,
+      "document_width": 1024,
+      "chapters": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    },
+    {
+      "width": 390,
+      "document_width": 390,
+      "chapters": 9,
+      "markdown_residue": false,
+      "images": 0,
+      "broken_anchors": []
+    }
+  ],
+  "page_errors": [],
+  "external_requests": [],
+  "pass": true
+}

@@ -1,0 +1,33 @@
+[
+  {
+    "question_id": "conv-30_q000",
+    "temporal": false,
+    "candidate_business_fetches": 2,
+    "candidate_rows_after_fusion": 109,
+    "sql_files": [
+      "q000-01.sql",
+      "q000-02.sql"
+    ],
+    "arm_limit": 1000,
+    "fact_types": "world-only experimental profile",
+    "not_counted": "connection setup, authentication/config, later chunks/entities, protocol messages",
+    "sql_normalization": "only trailing whitespace removed; no parameter values saved"
+  },
+  {
+    "question_id": "conv-30_q047",
+    "temporal": true,
+    "candidate_business_fetches": 5,
+    "candidate_rows_after_fusion": 109,
+    "sql_files": [
+      "q047-01.sql",
+      "q047-02.sql",
+      "q047-03.sql",
+      "q047-04.sql",
+      "q047-05.sql"
+    ],
+    "arm_limit": 1000,
+    "fact_types": "world-only experimental profile",
+    "not_counted": "connection setup, authentication/config, later chunks/entities, protocol messages",
+    "sql_normalization": "only trailing whitespace removed; no parameter values saved"
+  }
+]

@@ -1,0 +1,90 @@
+{
+  "verified_utc": "2026-11-18T17:00:53.498897+00:00",
+  "hindsight_commit": "e7a0b54828b9605e18e19848e56d56f078dbafed",
+  "hindsight_branch": "memory-benchmark",
+  "reference_html": {
+    "path": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/Hindsight记忆检索执行分析与PostgreSQL增强方案.html",
+    "sha256": "96049e2b258fe09de7ac0f404c3a0fe934984c8528b7b6a7b24759d6f3c7ea79"
+  },
+  "source_files": [
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "sha256": "b00b10c0b08f2f491e3d04aac540984849294114a0dd7a977b79c8972d7f1d60"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/hindsight-api-slim/hindsight_api/engine/memories/postgres.py",
+      "sha256": "510a41018c0a097e4263f6928bfec15fbee26e6bf9a741e81552f211f04eb1df"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/hindsight-api-slim/hindsight_api/engine/memory_engine.py",
+      "sha256": "ffeb0ff62e82e678baaf94c9679d6d03e8de4b0e800032cdbff20fadb7217ab1"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/hindsight-api-slim/hindsight_api/engine/fact_budget.py",
+      "sha256": "22df42082573eefcee8a689ceec24f2a9b1ba348267afd41104f4b9dea1ae13d"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/README.md",
+      "sha256": "19801e33154a28690ff08e5671c3794e2d05d23bb2982fdd70a57e90722bf3a7"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/plan.md",
+      "sha256": "057029b0aa6f690297cb9ca4578ad7299d695cbcb3b8a9f76c30338791f60f4b"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/support.py",
+      "sha256": "bb86a8b061ccef383b1ec7d48c0c0ca4ec9b653c662cce52c893ffa90cb448bc"
+    },
+    {
+      "path": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/runner.py",
+      "sha256": "b5e6988c16c516ba4150cf3a0b079f425aaf464ae3a136b1c5199e903cb4807d"
+    }
+  ],
+  "contract": {
+    "FullRecallRequest_line": 804,
+    "fields": [
+      "bank_id",
+      "fact_types",
+      "query_embedding",
+      "query_text",
+      "limit",
+      "temporal_window",
+      "temporal_semantic_threshold",
+      "tags",
+      "tags_match",
+      "tag_groups",
+      "created_after",
+      "created_before",
+      "min_semantic",
+      "min_keyword",
+      "enable_text_search",
+      "enable_graph",
+      "reranking",
+      "reranker_max_candidates",
+      "per_source_cap",
+      "strategy_boosts",
+      "recency_decay_function",
+      "recency_decay_linear_window_days",
+      "recency_decay_halflife_days",
+      "now",
+      "min_reranker",
+      "min_final",
+      "truncate_to",
+      "max_tokens",
+      "tokenizer_encoding",
+      "include_entities",
+      "include_chunks",
+      "max_chunk_tokens",
+      "prefer_observations",
+      "include_source_facts",
+      "max_source_facts_tokens",
+      "max_source_facts_tokens_per_observation"
+    ],
+    "PostgresMemories_implements_recall_unified": true,
+    "PostgresMemories_implements_full_recall": false,
+    "full_recall_default_declines": true,
+    "query_embedding_generated_before_full_recall": true,
+    "context_pack_remains_in_benchmark_client": true
+  },
+  "scope": "Read-only source and existing evidence analysis; no new API/model calls, database changes, or performance run"
+}

@@ -1,0 +1,248 @@
+{
+  "completed_utc": "2026-11-18T17:49:04.467783+00:00",
+  "hindsight_commit": "c4f3af3eb1d82bc16db6f3412647cc757372402f",
+  "pg_base_commit": "f5cc81719e6da4cbdb1f797c48b693e91018153a",
+  "checks": {
+    "pgxs_build": "PASS; no core replacement",
+    "pgindent": "PASS; PostgreSQL formatter, only new C file",
+    "pg_patch_apply_check": "PASS on original source tree",
+    "ruff_and_format": "PASS",
+    "ty": "PASS",
+    "real_pg_tests": "PASS 8 cases, including400 RRF and400 budget differential iterations",
+    "source_fusion": "PASS81/81, all IDs/order/scores, arm_limit1000",
+    "candidate_tie_audit": "PASS79/79, unmodified arm output + common tie rule matches new DAG",
+    "controlled_timing": "PASS81 questions x10 repeats x3 paths;79 native and2 fallback; all timed outputs checked",
+    "document": "PASS9 chapters,1440/1024/390 widths, no broken local links or Markdown residue",
+    "credential_literal_scan": "PASS39 text artifacts before final manifest",
+    "source_bank": "PASS all6 content digests match snapshot",
+    "prototype_cluster": "STOPPED after verification",
+    "new_reader_judge_accuracy": "NOT RUN; no new pushdown accuracy",
+    "http_recall_ab_p95": "NOT RUN; direct prepared-request adapter only",
+    "query_parallelism_and_early_stop": "NOT IMPLEMENTED/NOT PROVED",
+    "new_query_embeddings": "81 texts,9 encode_query batches; provider HTTP count and Token usage not separately audited; excluded from timed A/B",
+    "production_source_edits": "NONE; no Hindsight global auto-fix lint run",
+    "git_commit_push": "NOT RUN",
+    "original_sealed_benchmark_files": "PASS 711 RRF +430 BGE files, unchanged"
+  },
+  "benchmark_preservation": {
+    "locomo8k_20261118_232951": {
+      "files_checked": 711,
+      "unchanged": true
+    },
+    "locomobge_20261119_005630": {
+      "files_checked": 430,
+      "unchanged": true
+    }
+  },
+  "source_fusion_proof_sha256": "e2167bf5ea38744144832f18dccb09474200ed801715bb1f49d46a665e0c25b4",
+  "files": [
+    {
+      "path": "Recall下推到PG-源码契约与LoCoMo收益分析-20261119.html",
+      "sha256": "e27ab243752c6a13e7512fe16141a9833a5be96c41551a4478867d5211c2c0d1",
+      "bytes": 54201
+    },
+    {
+      "path": "Recall下推到PG-源码契约与LoCoMo收益分析-20261119.md",
+      "sha256": "2886ef37db6eda8a4eb295413217641cb63dfd3f8106f21d53e55611fa9c2b4b",
+      "bytes": 42033
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/build-report.mjs",
+      "sha256": "2b9f7c5ac61c742f27178f5b8a7c2aa48431000f3df4d0d16e0b51e7ff4ef188",
+      "bytes": 6204
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/candidate-order-audit.json",
+      "sha256": "28181e4beafd5e35d3368cb04234a8a3db8ca9ef11ffdbcea95f211679ef474b",
+      "bytes": 13444
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/code-review.md",
+      "sha256": "35feedeaf221ec4c1443c6797c127e1b29d2fc1dc676c5151562199eb0b408f6",
+      "bytes": 2963
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q000-01.sql",
+      "sha256": "9cbc2532620faec1ce484192ad7d5601c9a56b97cb41fd6c5588bcdac3213419",
+      "bytes": 1018
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q000-02.sql",
+      "sha256": "9c1bd17e62aada3d683ccad6523f0219dc75316cae90894296dc66e6ea00eba4",
+      "bytes": 4863
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q047-01.sql",
+      "sha256": "9cbc2532620faec1ce484192ad7d5601c9a56b97cb41fd6c5588bcdac3213419",
+      "bytes": 1018
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q047-02.sql",
+      "sha256": "b6efd0b1fa3d89fff72e97cbed8ff54c1949418ccb3b277969d8fa64bd49ed9f",
+      "bytes": 933
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q047-03.sql",
+      "sha256": "cff42662a533d7a148850b6b26a6274ba9db3e73b8f419dbeef17ff8d892733c",
+      "bytes": 1171
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q047-04.sql",
+      "sha256": "cff42662a533d7a148850b6b26a6274ba9db3e73b8f419dbeef17ff8d892733c",
+      "bytes": 1171
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql/q047-05.sql",
+      "sha256": "9c1bd17e62aada3d683ccad6523f0219dc75316cae90894296dc66e6ea00eba4",
+      "bytes": 4863
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/current-sql-counts.json",
+      "sha256": "4c154a4a5c5126efb36f80a00a91b2ed3fa1d7f515c56a2269bceb2f5efdab29",
+      "bytes": 1020
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/document-validation.json",
+      "sha256": "490d43964abefc529b6a1d286334cef093bf5c16a26b5a14c1ceec179fff7f44",
+      "bytes": 655
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/latency-sensitivity.json",
+      "sha256": "f7334de46ac039518cea44f43e061c2fdc6df1971ab80764815de93e26af2f4f",
+      "bytes": 882
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/locomo-baseline-summary.json",
+      "sha256": "9cdf4d3e580fdc8da83000a3008da9b8b5fbcf953cd0ec9d27d1b0efd749ae0d",
+      "bytes": 1251
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/locomo-rerank-comparison.json",
+      "sha256": "91f8a277da46293560ad4d9155aaefecd897cfa4240ca56291ba0a7c7d86659e",
+      "bytes": 3714
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/night-task.md",
+      "sha256": "4f169bf6ed3d13a89ae857f65a3908bc6b61acd9313720537c63c990ad8ed85d",
+      "bytes": 2371
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/.gitignore",
+      "sha256": "cb8147ed2e518948d73f5baef9bebdddc4834e2fcc50a6e5138eda77a3400d9a",
+      "bytes": 45
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/.pytest_cache/.gitignore",
+      "sha256": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd",
+      "bytes": 37
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/.pytest_cache/README.md",
+      "sha256": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
+      "bytes": 302
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/Makefile",
+      "sha256": "ee1e5fb550256ea33f12264fcb7231b71747a471b899f070280f8eaaacc3ac7d",
+      "bytes": 105
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/README.md",
+      "sha256": "a27fea5d5a3143d9ba42e13ee6f116ba3614acf16690dc82f461eaa5bcca1dfb",
+      "bytes": 7388
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/audit_source.py",
+      "sha256": "677b59e336ffafece7bae0036775c373f57339d6207a44a26d106bb93271a697",
+      "bytes": 3727
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/baseline-candidate.sql",
+      "sha256": "cedc9e13d251199af171b1bfc0f9e9c804f253d642518a8d5328b722ec628d28",
+      "bytes": 3634
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/capture_sql.py",
+      "sha256": "5f14db08c09f86d2ef72f7ff16e8b601d5bf04471036a8d181c8065b863ca6a4",
+      "bytes": 3564
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/contextbase_recall.c",
+      "sha256": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f",
+      "bytes": 6070
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/experiment.py",
+      "sha256": "4493042cfb0f6aff94e1fa177b68676a3748cda50b74d93392eeb6e05ccd2a3b",
+      "bytes": 14016
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/install.sql",
+      "sha256": "a59c9c88ed7a7886729cc4ce0a3c91d679ccaf3089bd4dd17b638c0ed436bb32",
+      "bytes": 524
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/pg-extension.patch",
+      "sha256": "e4e7c7244a10434fd3ad923d226eb6c9cda99fc4744cf980ccc9c87cf6b5f616",
+      "bytes": 6847
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/pushed-candidate.sql",
+      "sha256": "c58b73b391f38e4da9d7332d287bd22d85512010d79011843050af4aa61b1a1b",
+      "bytes": 4503
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/queries.py",
+      "sha256": "d44e21b6d68143435d4d2ce9a8d1ebbe6cda929b3058b21b1b78e06cebe492e5",
+      "bytes": 5482
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/store.py",
+      "sha256": "fff45b43d3ac20aa3cf08977d5da1124eb42bc9c62d738145f4cf3b1058d06d5",
+      "bytes": 9963
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype/test_fusion.py",
+      "sha256": "ec2aa724d956653d61e5e9fa87b9d170ac645e42a677161ab2d6108b2b940b7c",
+      "bytes": 4049
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype-data-audit.json",
+      "sha256": "0a302bec269f13bbcec3aba9e224b9ce8099e95b2ece730c12f7c9281c0d6058",
+      "bytes": 1470
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype-explain-summary.json",
+      "sha256": "b86807c05d29ca8ceecc60f2f6ffdbff9cf6ba2e3118b25e6c5762160666de7c",
+      "bytes": 199070
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype-results.json",
+      "sha256": "33b9dfa67bb03cee59065c1537ecb5cfdf4da12b2838f4a1d605b9a74c8203a8",
+      "bytes": 16579
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype-timings.json",
+      "sha256": "71acdfa724503c15b905f1f5cca90c830432a1e4368723240f6dc55b19916d2a",
+      "bytes": 609536
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/prototype-trials.json",
+      "sha256": "ab7dc94fee5ded6644bc58c95b6491fd142fb2d34b29784ef23ac48d4f4901fe",
+      "bytes": 2954
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/source-contract-audit.json",
+      "sha256": "cf41f30d74d2b3110e02e57b9d4d72d278c47f0700c2d8c8ae56d2e16e4d4777",
+      "bytes": 3459
+    },
+    {
+      "path": "reports/recall-pushdown-20261119/source-fusion-equivalence.json",
+      "sha256": "e2167bf5ea38744144832f18dccb09474200ed801715bb1f49d46a665e0c25b4",
+      "bytes": 13234
+    }
+  ],
+  "reference_preserved": true,
+  "source_core_unchanged_from_contract": true,
+  "benchmark_docs_updated_by_other_session": "README/plan reflect completed BGE run; this task did not edit them"
+}

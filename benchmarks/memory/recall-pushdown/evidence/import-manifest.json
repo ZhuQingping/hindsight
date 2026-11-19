@@ -1,0 +1,182 @@
+{
+  "date": "2026-11-19",
+  "purpose": "Documentation consolidation only; no database/model/service/test execution",
+  "source_analysis": {
+    "path": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/Recall下推到PG-源码契约与LoCoMo收益分析-20261119.md",
+    "sha256": "2886ef37db6eda8a4eb295413217641cb63dfd3f8106f21d53e55611fa9c2b4b"
+  },
+  "copied_files": [
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/candidate-order-audit.json",
+      "destination": "evidence/candidate-order-audit.json",
+      "sha256": "28181e4beafd5e35d3368cb04234a8a3db8ca9ef11ffdbcea95f211679ef474b"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql-counts.json",
+      "destination": "evidence/current-sql-counts.json",
+      "sha256": "4c154a4a5c5126efb36f80a00a91b2ed3fa1d7f515c56a2269bceb2f5efdab29"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/latency-sensitivity.json",
+      "destination": "evidence/latency-sensitivity.json",
+      "sha256": "f7334de46ac039518cea44f43e061c2fdc6df1971ab80764815de93e26af2f4f"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/locomo-baseline-summary.json",
+      "destination": "evidence/locomo-baseline-summary.json",
+      "sha256": "9cdf4d3e580fdc8da83000a3008da9b8b5fbcf953cd0ec9d27d1b0efd749ae0d"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/locomo-rerank-comparison.json",
+      "destination": "evidence/locomo-rerank-comparison.json",
+      "sha256": "91f8a277da46293560ad4d9155aaefecd897cfa4240ca56291ba0a7c7d86659e"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype-data-audit.json",
+      "destination": "evidence/prototype-data-audit.json",
+      "sha256": "0a302bec269f13bbcec3aba9e224b9ce8099e95b2ece730c12f7c9281c0d6058"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype-results.json",
+      "destination": "evidence/prototype-results.json",
+      "sha256": "33b9dfa67bb03cee59065c1537ecb5cfdf4da12b2838f4a1d605b9a74c8203a8"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype-timings.json",
+      "destination": "evidence/prototype-timings.json",
+      "sha256": "71acdfa724503c15b905f1f5cca90c830432a1e4368723240f6dc55b19916d2a"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype-trials.json",
+      "destination": "evidence/prototype-trials.json",
+      "sha256": "ab7dc94fee5ded6644bc58c95b6491fd142fb2d34b29784ef23ac48d4f4901fe"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype-explain-summary.json",
+      "destination": "evidence/prototype-explain-summary.json",
+      "sha256": "b86807c05d29ca8ceecc60f2f6ffdbff9cf6ba2e3118b25e6c5762160666de7c"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/source-contract-audit.json",
+      "destination": "evidence/source-contract-audit.json",
+      "sha256": "cf41f30d74d2b3110e02e57b9d4d72d278c47f0700c2d8c8ae56d2e16e4d4777"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/source-fusion-equivalence.json",
+      "destination": "evidence/source-fusion-equivalence.json",
+      "sha256": "e2167bf5ea38744144832f18dccb09474200ed801715bb1f49d46a665e0c25b4"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/verification.json",
+      "destination": "evidence/original-verification.json",
+      "sha256": "4b533b36085a6837650d19059fa1afde9ec7b6ebc6400deaf52713431e39d3b5"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/document-validation.json",
+      "destination": "evidence/original-document-validation.json",
+      "sha256": "490d43964abefc529b6a1d286334cef093bf5c16a26b5a14c1ceec179fff7f44"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/code-review.md",
+      "destination": "evidence/original-code-review.md",
+      "sha256": "35feedeaf221ec4c1443c6797c127e1b29d2fc1dc676c5151562199eb0b408f6"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/night-task.md",
+      "destination": "evidence/original-night-task.md",
+      "sha256": "4f169bf6ed3d13a89ae857f65a3908bc6b61acd9313720537c63c990ad8ed85d"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/artifact-checksums.json",
+      "destination": "evidence/original-artifact-checksums.json",
+      "sha256": "459b7e09d178a5b5454622e12e147b3dde9a31fc8910df1fe460ea50c524191f"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q047-03.sql",
+      "destination": "evidence/current-sql/q047-03.sql",
+      "sha256": "d47e8c719ec783099fd5a7a91a70aeca0910d89047acfe3e42fa43b78b850d77",
+      "source_sha256": "cff42662a533d7a148850b6b26a6274ba9db3e73b8f419dbeef17ff8d892733c",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q000-02.sql",
+      "destination": "evidence/current-sql/q000-02.sql",
+      "sha256": "8c03e49c56f5a94709dcfc22a97699df965d4fe4c3d8fa6a32a500c30b058205",
+      "source_sha256": "9c1bd17e62aada3d683ccad6523f0219dc75316cae90894296dc66e6ea00eba4",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q047-02.sql",
+      "destination": "evidence/current-sql/q047-02.sql",
+      "sha256": "b6efd0b1fa3d89fff72e97cbed8ff54c1949418ccb3b277969d8fa64bd49ed9f"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q000-01.sql",
+      "destination": "evidence/current-sql/q000-01.sql",
+      "sha256": "9cbc2532620faec1ce484192ad7d5601c9a56b97cb41fd6c5588bcdac3213419"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q047-01.sql",
+      "destination": "evidence/current-sql/q047-01.sql",
+      "sha256": "9cbc2532620faec1ce484192ad7d5601c9a56b97cb41fd6c5588bcdac3213419"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q047-05.sql",
+      "destination": "evidence/current-sql/q047-05.sql",
+      "sha256": "8c03e49c56f5a94709dcfc22a97699df965d4fe4c3d8fa6a32a500c30b058205",
+      "source_sha256": "9c1bd17e62aada3d683ccad6523f0219dc75316cae90894296dc66e6ea00eba4",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/current-sql/q047-04.sql",
+      "destination": "evidence/current-sql/q047-04.sql",
+      "sha256": "d47e8c719ec783099fd5a7a91a70aeca0910d89047acfe3e42fa43b78b850d77",
+      "source_sha256": "cff42662a533d7a148850b6b26a6274ba9db3e73b8f419dbeef17ff8d892733c",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/contextbase_recall.c",
+      "destination": "evidence/prototype/contextbase_recall.c",
+      "sha256": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/Makefile",
+      "destination": "evidence/prototype/Makefile",
+      "sha256": "ee1e5fb550256ea33f12264fcb7231b71747a471b899f070280f8eaaacc3ac7d"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/install.sql",
+      "destination": "evidence/prototype/install.sql",
+      "sha256": "a59c9c88ed7a7886729cc4ce0a3c91d679ccaf3089bd4dd17b638c0ed436bb32"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/pg-extension.patch",
+      "destination": "evidence/prototype/pg-extension.patch",
+      "sha256": "e4e7c7244a10434fd3ad923d226eb6c9cda99fc4744cf980ccc9c87cf6b5f616"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/baseline-candidate.sql",
+      "destination": "evidence/prototype/baseline-candidate.sql",
+      "sha256": "92f4c8bd0458fed0158130eec821039790edcd5872679109dd082edfa9ea2b6c",
+      "source_sha256": "cedc9e13d251199af171b1bfc0f9e9c804f253d642518a8d5328b722ec628d28",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    },
+    {
+      "source": "/Users/zhuqingping/Work/Database/Context/ContextDB-Research/reports/recall-pushdown-20261119/prototype/pushed-candidate.sql",
+      "destination": "evidence/prototype/pushed-candidate.sql",
+      "sha256": "095822ab0a8ea975fb7d182deca90350d79183c8fc7dc826579ae21cb1047e0f",
+      "source_sha256": "c58b73b391f38e4da9d7332d287bd22d85512010d79011843050af4aa61b1a1b",
+      "normalization": "Removed trailing empty lines only; SQL tokens and parameters unchanged"
+    }
+  ],
+  "privacy_boundary": "No raw Bank dumps, query embeddings, model weights, credentials, full prompts or run directories copied; original verification is historical and not a new test run.",
+  "report_transformations": [
+    "Added historical81-question scope and current maintenance notice",
+    "Rebased source and evidence hyperlinks into this repository",
+    "Replaced old external report link with its historical path/hash provenance",
+    "Regenerated self-contained HTML with current design/progress/plan navigation"
+  ],
+  "validation": "consolidation-validation.json",
+  "current_status": "restricted prototype exists; next81-question full-path implementation NOT STARTED",
+  "copy_note": "Six SQL files omit trailing empty lines for git whitespace checks; their source_sha256 preserves original hash and sha256 is the archived copy. Other copied files are byte-identical."
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "request": "21-dual-rrf-recall",
+    "date": "2026-11-12",
+    "http_seconds": 1.585,
+    "retrieval_seconds": 0.9228823184967041,
+    "illustrative_retrieval_cut": 0.5,
+    "hypothetical_http_seconds": 1.123558840751648,
+    "hypothetical_reduction_percent": 29.11300689264051,
+    "scope": "Conditional arithmetic only: unchanged other stages, serial critical-path assumption; not a measured optimization or P95 estimate"
+  },
+  {
+    "request": "23-dual-maas-recall",
+    "date": "2026-11-12",
+    "http_seconds": 10.294,
+    "retrieval_seconds": 0.49331188201904297,
+    "illustrative_retrieval_cut": 0.5,
+    "hypothetical_http_seconds": 10.047344058990479,
+    "hypothetical_reduction_percent": 2.3961136682487028,
+    "scope": "Conditional arithmetic only: unchanged other stages, serial critical-path assumption; not a measured optimization or P95 estimate"
+  }
+]

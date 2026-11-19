@@ -1,0 +1,717 @@
+{
+  "scope": "Unmodified store arms, sort score DESC and UUID ASC inside each arm, then existing Python RRF; compare controlled SQL arms and RRF",
+  "passed": 79,
+  "cases": [
+    {
+      "question_id": "conv-30_q000",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        51,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q001",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        56,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q002",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        78,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q003",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        98,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q004",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        81,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q005",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        62,
+        109,
+        67
+      ]
+    },
+    {
+      "question_id": "conv-30_q006",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        74,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q007",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        45,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q008",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        75,
+        109,
+        72
+      ]
+    },
+    {
+      "question_id": "conv-30_q009",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        8,
+        2,
+        101
+      ]
+    },
+    {
+      "question_id": "conv-30_q010",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        45,
+        109,
+        79
+      ]
+    },
+    {
+      "question_id": "conv-30_q011",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        51,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q012",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        76,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q013",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        48,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q014",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        59,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q015",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        72,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q016",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        75,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q017",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        48,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q018",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        68,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q019",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        50,
+        109,
+        76
+      ]
+    },
+    {
+      "question_id": "conv-30_q020",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        53,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q021",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        28,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q022",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        36,
+        109,
+        54
+      ]
+    },
+    {
+      "question_id": "conv-30_q023",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        50,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q024",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        74,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q025",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        83,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q026",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        58,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q027",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        93,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q028",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        74,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q029",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        75,
+        109,
+        72
+      ]
+    },
+    {
+      "question_id": "conv-30_q030",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        82,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q031",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        59,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q032",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        43,
+        109,
+        53
+      ]
+    },
+    {
+      "question_id": "conv-30_q033",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        54,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q034",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        33,
+        109,
+        52
+      ]
+    },
+    {
+      "question_id": "conv-30_q035",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        60,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q036",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        93,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q037",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        39,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q038",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        90,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q039",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        61,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q040",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        74,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q041",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        58,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q042",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        34,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q043",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        0,
+        8,
+        0
+      ]
+    },
+    {
+      "question_id": "conv-30_q044",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        37,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q045",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        75,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q046",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        65,
+        109,
+        66
+      ]
+    },
+    {
+      "question_id": "conv-30_q048",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        40,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q049",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        43,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q050",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        79,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q051",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        40,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q052",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        55,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q053",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        49,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q054",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        50,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q055",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        45,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q056",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        36,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q057",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        77,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q058",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        55,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q059",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        70,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q060",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        70,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q061",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        57,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q062",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        47,
+        109,
+        90
+      ]
+    },
+    {
+      "question_id": "conv-30_q064",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        52,
+        109,
+        57
+      ]
+    },
+    {
+      "question_id": "conv-30_q065",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        39,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q066",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        76,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q067",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        38,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q068",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        95,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q069",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        36,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q070",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        72,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q071",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        96,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q072",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        71,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q073",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        54,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q074",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        77,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q075",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        69,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q076",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        6,
+        9,
+        103
+      ]
+    },
+    {
+      "question_id": "conv-30_q077",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        43,
+        109,
+        91
+      ]
+    },
+    {
+      "question_id": "conv-30_q078",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        58,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q080",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        73,
+        109,
+        89
+      ]
+    },
+    {
+      "question_id": "conv-30_q081",
+      "equal_after_same_arm_tie_rule": true,
+      "source_arm_counts": [
+        51,
+        109,
+        89
+      ]
+    }
+  ]
+}

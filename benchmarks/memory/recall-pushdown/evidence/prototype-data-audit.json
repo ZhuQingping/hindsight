@@ -1,0 +1,62 @@
+{
+  "source_and_clone_match": true,
+  "tables": {
+    "memory_units": {
+      "rows": 109,
+      "md5": "9a26e3a18c7cd446ea326087379f318e"
+    },
+    "memory_links": {
+      "rows": 2212,
+      "md5": "23c7959813f1e1b018a800e1baa4a0b5"
+    },
+    "documents": {
+      "rows": 19,
+      "md5": "a22a73ccff7ef549dd7c115857e25b21"
+    },
+    "chunks": {
+      "rows": 36,
+      "md5": "06d5dedbfeb314690d4c862ad15f3cdb"
+    },
+    "entities": {
+      "rows": 115,
+      "md5": "fbc4f33326324eeb16edd841f2f1144e"
+    },
+    "unit_entities": {
+      "rows": 373,
+      "md5": "94d50b92965f08f95f83dc8bdb26d380"
+    }
+  },
+  "version": "PostgreSQL 18.4 on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit",
+  "vector_extension": "0.8.6",
+  "host": "macOS-26.4.1-arm64-arm-64bit",
+  "machine": "arm64",
+  "settings": [
+    {
+      "name": "jit",
+      "setting": "on",
+      "unit": null
+    },
+    {
+      "name": "max_connections",
+      "setting": "16",
+      "unit": null
+    },
+    {
+      "name": "max_parallel_workers_per_gather",
+      "setting": "2",
+      "unit": null
+    },
+    {
+      "name": "shared_buffers",
+      "setting": "16384",
+      "unit": "8kB"
+    },
+    {
+      "name": "work_mem",
+      "setting": "4096",
+      "unit": "kB"
+    }
+  ],
+  "snapshot_sha256": "39498df2c03fc69c71b5c9e5de60e1e82f31be7c9a11061ff315c3c472037805",
+  "hindsight_git_head_at_audit": "69de696249a66172e4e5797c7fbbc2380a80b2d8"
+}
