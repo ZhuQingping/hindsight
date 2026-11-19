@@ -12,7 +12,7 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 
 ## 协作交接（2026-11-19）
 
-**最新执行优先级（11:38）：用户要求尽快结束本轮以便拆分任务。停止追加独立测试；当前V1结束后先归档交接，不自动启动元数据、reader、32K或共同裁判全量实验。结束方式（跑满1540或立即停止按部分结果归档）已向用户澄清，未答复前保持当前进程运行，不擅自丢弃剩余范围。候选代码、配置和离线证据全部保留供任务拆分。**
+**最新执行优先级：用户已明确要求暂时暂停、reranker改2并发，再继续剩余测试。已完成切换，原评测进程恢复；本轮完成后仅归档交接，不自动启动元数据、reader、32K或共同裁判新实验。**
 
 **共同入口：本仓`memory-benchmark`分支，目录`benchmarks/memory/`。先读本节和README；管理层简表在report开头。** 以下为当日11:35左右核验的交接快照，动态进度以实际进程与逐题记录为准。
 
@@ -26,7 +26,7 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 | 新元数据打包 | `query-turn-windows-metadata-v2`代码已提交（`249118630`），78项离线测试通过；六题重打包能恢复原有图片搜索元数据，**没有新QA分数** |
 | 新reader/32K | 固定提示与缓存复测能力已准备，**尚未执行**；元数据候选单独验证后再组合，旧预登记配置保留 |
 | 原文检索/PG方向 | 已完成只读索引/零关联chunk诊断与全1540题离线候选覆盖检查；有补充候选的依据，**尚未部署或取得新QA成绩** |
-| 重排性能 | 同模型、同两题输入ABBA短测：两题串行平均45.92秒→2并发36.92秒，耗时降19.6%、吞吐增24.4%，两题全部分数/排序一致；有并行负载干扰，不能当作端到端提升；**8892仍为并发1** |
+| 重排性能 | 同模型、同两题输入ABBA短测：两题串行平均45.92秒→2并发36.92秒，耗时降19.6%、吞吐增24.4%，两题全部分数/排序一致；有并行负载干扰，不能当作端到端提升；**短测时8892为1，现已按用户要求切换2** |
 | PG占用 | 当前10Bank约0.092GB，其中数据表/TOAST约0.030GB、索引约0.063GB；加旧LoCoMo Bank约0.099GB |
 | 其他benchmark | LongMemEval-S、BEAM1M/10M均未跑ContextBase；友商数字来自各自官方结果，不是本机同条件复现 |
 
@@ -34,7 +34,7 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 
 - 当前代码仓：`/Users/zhuqingping/Work/Database/Context/hindsight`；不要切换共享工作目录的分支，同事各自在独立分支/工作目录开发。
 - 在测服务：本机API `http://127.0.0.1:8892`、PG5432；部署release为`gpt61-20261107-dd5521cb9`，不是benchmark分支当前HEAD。不要把评测脚本分支当成已经部署的新服务。
-- 模型：retain `gpt-6.1-sol medium`；reader/judge `gpt-6.1-sol low`；embedding `doubao-embedding-vision` 1024维；BGE-reranker-v2-m3固定revision `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`，CPU FP32/batch8/4线程；QA2并发、rerank1并发。机器10核/24GiB，当前有余量试2，但不是预期翻倍。
+- 模型：retain `gpt-6.1-sol medium`；reader/judge `gpt-6.1-sol low`；embedding `doubao-embedding-vision` 1024维；BGE-reranker-v2-m3固定revision `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`，CPU FP32/batch8/4线程；QA2并发；rerank起始为1，现已切换2并分段归档。机器10核/24GiB，当前有余量试2，但不是预期翻倍。
 - 完整基线目录：`.local/runs/locomo1540r_20261119_030518/`。当前V1目录：`.local/runs/locomow8r_20261119_011537/`；`/tmp/contextbase-locomo-window-candidate-run`指向它。旧候选/网络恢复链均保留，不能当作多次独立完整成绩。
 - 当前producer6427、supervisor6428、caffeinate6429（仅快照）；日志`/tmp/contextbase-locomo-window-network-eval.log`。使用运行目录内冻结的runner/support；未完结时不再启动第二个run或共同裁判任务争用同一实例。
 - 查看真实进度（仓根目录执行）：`.venv/bin/python benchmarks/memory/analysis.py --run-dir benchmarks/memory/.local/runs/locomow8r_20261119_011537 --progress`，并用`ps -p 6427,6428 -o pid=,etime=,state=`核验进程。观察超时不是任务停止，不能据此重启。
@@ -46,7 +46,7 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 | A：统计与逐题归因 | `analysis.py`、`results/locomo1540-baseline-20261119.json`、`results/locomo1540-error-analysis-20261119.json`、`results/locomo1540-window-diagnostics-20261119.json` | 同题配对统计、分类指标、修复/回退题的原文→检索→打包→答题→裁判证据 | 只读原run；区分模型judge与F1，不能把部分结果当全量；参考ID覆盖不等于答案正确 |
 | B：上下文与reader | `support.py`、`runner.py`、`tests/test_runner.py`；`.local/metadata-v2-offline-validation-20261119/` | 全局打包/提示候选、冻结配置、预算和来源测试；完整缓存上的新实验 | 不改当前run；新配置新run_id；完整1540题重新答题判题，不从旧答案挑选；不能按gold补原文 |
 | C：原文检索与PG增强 | 指定研究HTML、`engine/memories/base.py`、`engine/memories/pg/`；`.local/pg-baseline-audit-20261119/` | Bank隔离的原文检索、有限邻接、FTS/融合/延迟物化方案与独立实验 | 本机当前是英文GIN/ts_rank_cd，不是BM25；无事实关联chunk不可假设被扩大关联预算解决；不在共享PG做DDL或全局参数变更 |
-| D：CPU重排与延迟 | `engine/cross_encoder.py`；`.local/reranker-concurrency-check-20261119/` | 并发/线程/batch/分桶的吞吐、尾延迟与分数/排序一致性对比 | 同模型、同输入测；不要将两题总耗时写成单题时延；现有8892线程池需重启才生效，当前保持不变 |
+| D：CPU重排与延迟 | `engine/cross_encoder.py`；`.local/reranker-concurrency-check-20261119/` | 并发/线程/batch/分桶的吞吐、尾延迟与分数/排序一致性对比 | 同模型、同输入测；不要将两题总耗时写成单题时延；8892已重启切换2；后续资源变更需另行留存阶段记录 |
 
 由主控统一整合README/plan/report、启动正式模型实验和发布结论；各工作线先提交自己的代码、配置及结构化结果，减少共同编辑同一报告的冲突。源码改动先离线验证，再在独立实例/实验验证，避免争用当前BGE线程池和模型配额。
 
@@ -878,3 +878,9 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 78项离线测试、Ruff/ty通过；全局lint在隔离worktree执行，仍被既有http.py:5846的F841挡住，自动格式化的无关文件已还原。当前运行目录的冻结runner/support仍与manifest哈希完全一致。新候选配置仅引用完整来源缓存，实际验证会拒绝尚未完成的V1且不创建输出。准备目录`.local/metadata-v2-offline-validation-20261119/`保存配置、冻结代码、六题packing和哈希。
 
 执行顺序调整为：先完成当前V1全1540题；随后优先做同AMB reader的元数据8K全量缓存复测，以隔离输入差异；再做固定的新reader与较大预算实验。原已登记reader8K/32K配置不覆盖，如将其与新元数据策略组合，必须另存并注明全局配置变化、开发集调优和完整范围，所有1540题重新答题判题，不按旧对错选择性重试。尚未执行元数据候选或组合reader实验，当前不报告其准确率。
+
+### 用户授权的重排2并发切换
+
+已短暂停住producer6427和guardian6428，由原部署manage.py重启8892，只修改`HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT=1→2`。实际暂停23.42秒，851题完成答案/裁判及暂停前全部sealed文件的字节哈希逐一保留；原进程随后SIGCONT，native启动日志确认max_concurrent=2，且已有新检索成功。原manifest保留为初始配置，不修改其fingerprint；有效资源变化单独记录在当前run的`performance-epochs.json`，原env前后完整备份位于私有performance目录，0600且不提交。
+
+切换时预先记录的在途题为conv-44_q89/q90，其中q90出现HTTPFailure且没有recall结果和答案，将在新检查点中做有证据、限次的传输恢复；不重答任何已完成语义结果。当前run继续处理剩余题，不因这一条中断丢弃全轮。恢复证据必须与原manifest及暂停前待返回记录哈希绑定，不能把HTTPFailure一律列为可重试。最终质量指标保留1540题范围；时延按1并发、切换在途、2并发三段报告，不能把混合资源条件称为统一配置的延迟基线。
