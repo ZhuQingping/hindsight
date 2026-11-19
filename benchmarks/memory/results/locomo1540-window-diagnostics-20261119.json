@@ -2,7 +2,7 @@
   "kind": "partial-paired-diagnostic-not-full1540-score",
   "baseline_run_id": "locomo1540r_20261119_030518",
   "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 233,
+  "scope": 385,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
@@ -18,10 +18,16 @@
     "conv-30_q13",
     "conv-30_q37",
     "conv-30_q44",
-    "conv-30_q73"
+    "conv-30_q73",
+    "conv-41_q0",
+    "conv-41_q123",
+    "conv-41_q4",
+    "conv-41_q45",
+    "conv-41_q95"
   ],
   "regressed": [
-    "conv-26_q68"
+    "conv-26_q68",
+    "conv-41_q94"
   ],
   "unchanged_wrong": [
     "conv-26_q144",
@@ -31,9 +37,13 @@
     "conv-26_q59",
     "conv-26_q66",
     "conv-30_q31",
-    "conv-30_q43"
+    "conv-30_q43",
+    "conv-41_q61",
+    "conv-41_q62",
+    "conv-41_q63",
+    "conv-41_q8"
   ],
-  "note": "Read-only paired inspection of the first two completed Banks (233/1540), not a complete benchmark or vendor ranking. Same newly ingested Banks as the full baseline. No regeneration, modified gold, changed judge or per-question best-answer mixing.",
+  "note": "Paired inspection of the first three completed Banks (385/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -51,7 +61,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.1111111111111111,
       "baseline_result_sha256": "3c1d3a168c3e31a06a72706634b3289f3bff2664a4cd5a5e2b020655f859e5fd",
-      "candidate_result_sha256": "e8abe7643d913e2efe98858095ef8e4bc34a9fab95c3c78f00ded59f6a8c0566"
+      "candidate_result_sha256": "e8abe7643d913e2efe98858095ef8e4bc34a9fab95c3c78f00ded59f6a8c0566",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q133",
@@ -68,7 +79,8 @@
       "baseline_f1": 0.18749999999999997,
       "candidate_f1": 0.4,
       "baseline_result_sha256": "f98c91a9f1497f542ca923cf0c8154595ebaf9950ce69c5403db2c361d57da1a",
-      "candidate_result_sha256": "aa9005c24276d16c74d9ffdbdca42f467d5da6335e1c1470bc13e98e2dcd0c98"
+      "candidate_result_sha256": "aa9005c24276d16c74d9ffdbdca42f467d5da6335e1c1470bc13e98e2dcd0c98",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q135",
@@ -85,7 +97,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.3428571428571429,
       "baseline_result_sha256": "4b96d0c754fb7101407c57185d11e73f222df169350c6abd38a5e78457bbb5e6",
-      "candidate_result_sha256": "d3ddf8876929844e385853bc7480bdd1a8d1564973ee5db4bf1b7107891bd046"
+      "candidate_result_sha256": "d3ddf8876929844e385853bc7480bdd1a8d1564973ee5db4bf1b7107891bd046",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q144",
@@ -102,7 +115,8 @@
       "baseline_f1": 0.22222222222222224,
       "candidate_f1": 0.2162162162162162,
       "baseline_result_sha256": "ae4f7a5b181569daebfd63c9dfdf1a46395d8e87dd5064dffaef58ca138685e6",
-      "candidate_result_sha256": "641319725f0c4d72ff8d8fd12a71515c58c38aa1d9d6e50ab58ebefab704ce22"
+      "candidate_result_sha256": "641319725f0c4d72ff8d8fd12a71515c58c38aa1d9d6e50ab58ebefab704ce22",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q21",
@@ -119,7 +133,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.12500000000000003,
       "baseline_result_sha256": "ca1da373c2fef2c3ccdf1839a275872a4130c79539b6318b2e22b1d26cf7a6ca",
-      "candidate_result_sha256": "efc0d293154ca6da3efea36f14dbc4ddc104e6b11fea9f8c38f89c75bfbf1126"
+      "candidate_result_sha256": "efc0d293154ca6da3efea36f14dbc4ddc104e6b11fea9f8c38f89c75bfbf1126",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q26",
@@ -136,7 +151,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.25,
       "baseline_result_sha256": "613f18c331cf870a3d6a22f7ada7ab27a4fa7ce9f36b89518b03394f5671a3b3",
-      "candidate_result_sha256": "87eae9509b3855a67ffb8e4809217da0fc314e295cd9869efe81b50bc970d00f"
+      "candidate_result_sha256": "87eae9509b3855a67ffb8e4809217da0fc314e295cd9869efe81b50bc970d00f",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q40",
@@ -153,7 +169,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "a6f01371c519f4a5664823e8bd1c73e506e082e10cd2c029b44828f62c4b4375",
-      "candidate_result_sha256": "dde91ef800c707c42a61f86494e58d5973bacc12049818c1a26c9993516b4327"
+      "candidate_result_sha256": "dde91ef800c707c42a61f86494e58d5973bacc12049818c1a26c9993516b4327",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q5",
@@ -170,7 +187,8 @@
       "baseline_f1": 0.23529411764705882,
       "candidate_f1": 0.23529411764705882,
       "baseline_result_sha256": "9816f17cf78695ab836bab127cd413bc55df903359bbcc42dddd7bdc02037c8b",
-      "candidate_result_sha256": "52acb63c042d85da21b4f8cdef67935126e9616b14213641534cd46f7f578acb"
+      "candidate_result_sha256": "52acb63c042d85da21b4f8cdef67935126e9616b14213641534cd46f7f578acb",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q50",
@@ -187,7 +205,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "0e747aaa62e1c0d63a962a43e7687221edf21fc1bc33668fab083f69966dfdf8",
-      "candidate_result_sha256": "029a4eb2329cc160ce03d3c715ae91e6a39b0ef2ec5e97a53e3bee0d957016c1"
+      "candidate_result_sha256": "029a4eb2329cc160ce03d3c715ae91e6a39b0ef2ec5e97a53e3bee0d957016c1",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q59",
@@ -204,7 +223,8 @@
       "baseline_f1": 0.14285714285714288,
       "candidate_f1": 0.0816326530612245,
       "baseline_result_sha256": "8464ff5425cd7528d3f77f033432eb810cd74396745df983ad670e8c4ceee620",
-      "candidate_result_sha256": "d984f46c272479513d77e9031940e5455954c03d28e38ff93c57bb246ead8d4a"
+      "candidate_result_sha256": "d984f46c272479513d77e9031940e5455954c03d28e38ff93c57bb246ead8d4a",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q66",
@@ -221,7 +241,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "3f3a827695cf0729a194b10ae2ff69754ec3602da06ba351db46c5d217803d97",
-      "candidate_result_sha256": "896d53181c8c3d5dbb4fa0c4d3cac4ee22ac178541a31b65887797f706a2c1a0"
+      "candidate_result_sha256": "896d53181c8c3d5dbb4fa0c4d3cac4ee22ac178541a31b65887797f706a2c1a0",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q68",
@@ -238,7 +259,8 @@
       "baseline_f1": 0.09523809523809525,
       "candidate_f1": 0.047619047619047616,
       "baseline_result_sha256": "65efdaacde692d76150d634474d3d595ab64a97399139b5c1283a23e77d3a2ef",
-      "candidate_result_sha256": "c25ecdc003e36ddfac8408af90f50c3e82ceb29b2b1e33c8b6b9493583b47dd0"
+      "candidate_result_sha256": "c25ecdc003e36ddfac8408af90f50c3e82ceb29b2b1e33c8b6b9493583b47dd0",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q78",
@@ -255,7 +277,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.09090909090909091,
       "baseline_result_sha256": "d395a3e2e6e328a5b333780773ef4c0d6d70616b6be8f34bd1b28bbd7f288743",
-      "candidate_result_sha256": "f43490849e9963f7823d030b340f5b2bd4218e7dd3df3f207939670764ed7c24"
+      "candidate_result_sha256": "f43490849e9963f7823d030b340f5b2bd4218e7dd3df3f207939670764ed7c24",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q80",
@@ -272,7 +295,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.6,
       "baseline_result_sha256": "a0af1d97d33e97f42daea934c5b358421e7bf54ab2dd1b1d0a63613ad55e4d6d",
-      "candidate_result_sha256": "999a488ad220cb50377b6f0fd9b631da4481ed6c9c43e20f3cdabd46baad6bc3"
+      "candidate_result_sha256": "999a488ad220cb50377b6f0fd9b631da4481ed6c9c43e20f3cdabd46baad6bc3",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-26_q85",
@@ -289,7 +313,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.11320754716981131,
       "baseline_result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
-      "candidate_result_sha256": "71591eb8ed39dfca5d59efc627339239732c8862f19c7d5b217d7b619b65fa4a"
+      "candidate_result_sha256": "71591eb8ed39dfca5d59efc627339239732c8862f19c7d5b217d7b619b65fa4a",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q13",
@@ -306,7 +331,8 @@
       "baseline_f1": 0.07407407407407407,
       "candidate_f1": 0.15,
       "baseline_result_sha256": "26a8df00dbc5b93a9aca5849a70c1dac98a5cfbbf394761739ce867e0b734a7f",
-      "candidate_result_sha256": "80088e60e97f0f6a7345f9cdc32e494a7b2c1a18c7113221b798ca9b8b025de1"
+      "candidate_result_sha256": "80088e60e97f0f6a7345f9cdc32e494a7b2c1a18c7113221b798ca9b8b025de1",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q31",
@@ -323,7 +349,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "99737fdcbf55f6f6c2575344011880f0cb9123b66eba5d620a07de4045ada48f",
-      "candidate_result_sha256": "45e91cc7f871f197698954b5b2cf73d828d5df77f0be347416b7cf56adc5374f"
+      "candidate_result_sha256": "45e91cc7f871f197698954b5b2cf73d828d5df77f0be347416b7cf56adc5374f",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q37",
@@ -340,7 +367,8 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.5454545454545454,
       "baseline_result_sha256": "6acb6bf85a4629cc6f5b4c48b3d163247c90c1346e875a49c150a916084c4503",
-      "candidate_result_sha256": "3a95df14c9bd7c18c5b94032d314625c88bcdf3423b51b294e128cfa24f49e88"
+      "candidate_result_sha256": "3a95df14c9bd7c18c5b94032d314625c88bcdf3423b51b294e128cfa24f49e88",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q43",
@@ -357,7 +385,8 @@
       "baseline_f1": 0.1,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "5560e086bb4b525bb046658affa6b754072d513de8a79efc8e4eb1b617c38ff1",
-      "candidate_result_sha256": "b563e4c1afa2327a553a3076a2afa9334bebda90027e86acadc35c68dba30207"
+      "candidate_result_sha256": "b563e4c1afa2327a553a3076a2afa9334bebda90027e86acadc35c68dba30207",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q44",
@@ -374,7 +403,8 @@
       "baseline_f1": 0.0606060606060606,
       "candidate_f1": 0.11764705882352941,
       "baseline_result_sha256": "5c3a87d8104fb418ccbd54d4c27f7eeea2dc61b07c95fffd414ddffeb751d0c1",
-      "candidate_result_sha256": "856d38a3b7a341f5045bd2954f6f3a7d841f9ad940e6e675614c3cf50bead088"
+      "candidate_result_sha256": "856d38a3b7a341f5045bd2954f6f3a7d841f9ad940e6e675614c3cf50bead088",
+      "candidate_source_run_id": "locomow8_20261119_0308"
     },
     {
       "question_id": "conv-30_q73",
@@ -391,7 +421,188 @@
       "baseline_f1": 0.0,
       "candidate_f1": 0.0,
       "baseline_result_sha256": "455d6e961578f1e5194a451ef7b5006e8d5045ebe629aec3b196c3289a60c58b",
-      "candidate_result_sha256": "7c5c2462c01893badbf4dea7a44385ec499c0426282d6d03ca4ee23553ed61e8"
+      "candidate_result_sha256": "7c5c2462c01893badbf4dea7a44385ec499c0426282d6d03ca4ee23553ed61e8",
+      "candidate_source_run_id": "locomow8_20261119_0308"
+    },
+    {
+      "question_id": "conv-41_q0",
+      "question": "Who did Maria have dinner with on May 3, 2023?",
+      "gold": [
+        "her mother"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not specify who Maria had dinner with on May 3, 2023.",
+      "candidate_answer": "Maria had dinner with her mother on May 3, 2023.",
+      "baseline_reason": "The generated answer says the dinner companion is unspecified, whereas the gold answer identifies her mother.",
+      "candidate_reason": "The generated answer correctly identifies her mother as Maria’s dinner companion on May 3, 2023.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.33333333333333337,
+      "baseline_result_sha256": "0d31a82dc31c126a186d491c4d046dcb81dae8d3bc02105c432e735f15da1101",
+      "candidate_result_sha256": "014305fdaebab90ee18a64322402927cb0f3610a3dd5dd864c29147a60015fb3",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q123",
+      "question": "What did Maria plan to do later on the evening of 7 July, 2023?",
+      "gold": [
+        "have dinner with friends from the gym"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not state what Maria planned to do later on the evening of July 7, 2023.",
+      "candidate_answer": "Maria planned to have dinner with some friends from the gym on the evening of July 7, 2023.",
+      "baseline_reason": "The generated answer says the information is unavailable, whereas Maria planned to have dinner with friends from the gym.",
+      "candidate_reason": "The generated answer matches the gold answer: Maria planned to have dinner with friends from the gym that evening.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.5454545454545454,
+      "baseline_result_sha256": "1df0b249be331b5547947296a36fab232ae54ac2bed3266ff44513445369f56d",
+      "candidate_result_sha256": "fe0f9ec35064e7a937b57085cf670f2bea3cf75d3e802d436800c3ce3af17a54",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q4",
+      "question": "When did John join the online support group?",
+      "gold": [
+        "The week before 1 January 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "John joined the service-focused online support group during December 19–25, 2022.",
+      "candidate_answer": "John joined the online support group during December 19–25, 2022.",
+      "baseline_reason": "The week before 1 January 2023 refers to late December (approximately December 25–31), not December 19–25.",
+      "candidate_reason": "December 19–25, 2022 reasonably corresponds to the preceding calendar week relative to January 1, 2023.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "08b6fb25760d3ab347c0854ccd70cf420500b45c3e345473feae236cba385ba0",
+      "candidate_result_sha256": "79ff44c2772aef8ba92d2bcc350fb0f0ebaf8f590aa234e680c347d33d93ac30",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q45",
+      "question": "Would John be open to moving to another country?",
+      "gold": [
+        "No, he has goals specifically in the U.S. like joining the military and running for office."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "John has not explicitly said whether he would move to another country. He is open to new opportunities, but his strong family ties and commitment to serving his country and local community—including his fire-brigade work as of August 16, 2023—suggest he may prefer to stay. His willingness to relocate abroad remains uncertain.",
+      "candidate_answer": "John has not explicitly said whether he would move to another country. Based on the memories available as of August 16, 2023, he would likely be hesitant: he is strongly committed to serving his country and local community, values his family ties, and finds purpose in his fire brigade. Although he is open to new experiences and career changes, there is no direct evidence that he would welcome moving abroad.",
+      "baseline_reason": "The generated answer leaves relocation uncertain rather than stating that John would not move because of his specifically U.S.-based military and political goals.",
+      "candidate_reason": "The answer conveys that John would likely resist moving abroad because of his commitment to serving his country and community, consistent with his U.S.-focused goals.",
+      "baseline_f1": 0.0634920634920635,
+      "candidate_f1": 0.12658227848101267,
+      "baseline_result_sha256": "d2024ec2403d553817c9d4cd00e9fdf66a7c015faa1ec79cedf9a376c6cc3ec7",
+      "candidate_result_sha256": "9b7d2fc6ae4a50b02c7fa7d8e5336ef6559d693c1b6b616ddad67c2983733b5f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q61",
+      "question": "When did Maria adopt Shadow?",
+      "gold": [
+        "The week before 13 August 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Maria adopted Shadow during the week of July 31–August 6, 2023.",
+      "candidate_answer": "Maria adopted Shadow during the week of July 31–August 6, 2023.",
+      "baseline_reason": "July 31–August 6 is earlier than the week immediately before August 13, 2023 (approximately August 6–12).",
+      "candidate_reason": "July 31–August 6 is earlier than the week immediately before August 13, 2023.",
+      "baseline_f1": 0.26666666666666666,
+      "candidate_f1": 0.26666666666666666,
+      "baseline_result_sha256": "20ac718a68142b635e60538c9a5afbb79c0be18edb01ee2c3eb655747fca27d3",
+      "candidate_result_sha256": "82d33905869bcd6305e336bcb868935c3818c095661c6466f68bb626272d0c0f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q62",
+      "question": "How many dogs has Maria adopted from the dog shelter she volunteers at?",
+      "gold": [
+        "two"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Maria has two dogs, Coco and Shadow. However, only Shadow is explicitly confirmed as adopted from a shelter; the memories do not specify whether it was the shelter where she volunteers.",
+      "candidate_answer": "Maria has two dogs mentioned, Coco and Shadow, but only Shadow is explicitly confirmed as a shelter adoption. The memories do not establish how many she adopted from the specific dog shelter where she volunteers.",
+      "baseline_reason": "Although it mentions two dogs, the answer only confirms one shelter adoption and does not state that Maria adopted two dogs from the shelter where she volunteers.",
+      "candidate_reason": "The generated answer does not affirm that Maria adopted two dogs from that shelter, instead stating that the number cannot be established.",
+      "baseline_f1": 0.4,
+      "candidate_f1": 0.33333333333333337,
+      "baseline_result_sha256": "8cdfe7ce7c36a80ef47c6d3001f7278a6573d08d9548a5b3ebd70028f5391769",
+      "candidate_result_sha256": "191d5d71a07aceb6ee8b7aba5d8400bf5b2566133ae5af9e26d73289b69254b2",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q63",
+      "question": "How many weeks passed between Maria adopting Coco and Shadow?",
+      "gold": [
+        "two weeks"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "About one week passed. Maria got Coco on July 28, 2023, and adopted Shadow during July 31–August 6, 2023—3–9 days later.",
+      "candidate_answer": "Approximately one week passed: Maria adopted Coco on July 28, 2023, and Shadow during July 31–August 6, 2023 (3–9 days later).",
+      "baseline_reason": "The generated answer says about one week (3–9 days), which does not match the gold answer of two weeks.",
+      "candidate_reason": "The generated answer says approximately one week, whereas the gold answer specifies two weeks.",
+      "baseline_f1": 0.09090909090909091,
+      "candidate_f1": 0.09090909090909091,
+      "baseline_result_sha256": "43490de76ebf852df1e98ce9b70d9ecfd3baa5da85c780abc2b2e9b3d7a20898",
+      "candidate_result_sha256": "35db79fe5e286b39dda683e0c9b4e1b3e56c1e340791f186066206e40e197e11",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q8",
+      "question": "What might John's financial status be?",
+      "gold": [
+        "Middle-class or wealthy"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John is likely experiencing financial strain or uncertainty as of August 16, 2023. Car repairs strained his budget in April 2023, and by August 5, 2023, he had lost his job because his employer went under. Although he was exploring a tech-industry role, there is no confirmation he found new employment. His exact income, savings, and overall financial position are unknown.",
+      "candidate_answer": "John may be financially strained or facing financial uncertainty. Car repairs after his April 7, 2023 breakdown stretched his finances, and by August 5, 2023, he had lost his job because his employer went under. As of August 16, 2023, there is no confirmation that he has found another paid job. His exact income, savings, and debts are unknown.",
+      "baseline_reason": "The generated answer suggests financial strain and uncertainty rather than the middle-class or wealthy status stated in the gold answer.",
+      "candidate_reason": "The generated answer describes John as financially strained, contradicting the gold answer that he is middle-class or wealthy.",
+      "baseline_f1": 0.03278688524590164,
+      "candidate_f1": 0.03333333333333333,
+      "baseline_result_sha256": "67ddd957545316016bbbe7d02a2868b4ec5dcb8c06b791dfc6491378b66568aa",
+      "candidate_result_sha256": "66da974994ec2a6197d4d3f658a2645ec1497aaf1d1f498621debfe354897b5e",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q94",
+      "question": "What kind of food did Maria have on her dinner spread iwth her mother?",
+      "gold": [
+        "Salads, sandwiches, homemade desserts"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Maria’s dinner spread with her mother included salads, sandwiches, and homemade desserts. Her favorite was a banana split sundae.",
+      "candidate_answer": "Maria had a variety of food on her dinner spread with her mother, but the specific dishes weren’t stated.",
+      "baseline_reason": "The generated answer includes salads, sandwiches, and homemade desserts, matching all foods listed in the gold answer.",
+      "candidate_reason": "The generated answer says the dishes were unspecified instead of identifying salads, sandwiches, and homemade desserts.",
+      "baseline_f1": 0.38095238095238093,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "0c90263f9d40f894666a38817ba766a986eb8d46e0ac2f2c1e38609ff851c86c",
+      "candidate_result_sha256": "2800ed7f50f91c7f498c56f49a78bc34d39bf349225e6d044ec882df4828c1fd",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-41_q95",
+      "question": "What activity did Maria and her mom do together in May 2023?",
+      "gold": [
+        "Made dinner together"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not state what Maria and her mom did together in May 2023.",
+      "candidate_answer": "Maria and her mom cooked dinner together on May 3, 2023.",
+      "baseline_reason": "The generated answer says the activity is unknown, whereas the gold answer states that Maria and her mom made dinner together.",
+      "candidate_reason": "The generated answer matches the gold answer that Maria and her mom made dinner together in May 2023.",
+      "baseline_f1": 0.11764705882352941,
+      "candidate_f1": 0.30769230769230765,
+      "baseline_result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
+      "candidate_result_sha256": "3109b0fee74b3f4249830b85d3c93516ac75b3afac89ca8821ff0a1331e5b574",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -526,7 +737,75 @@
       "question_id": "conv-30_q31",
       "finding": "新旧答案都从Jan20到Jun20算约五个月，gold六个月；扩大原文后仍保留前后开店阶段冲突。暂不将日期/近似计数争议当检索修复目标。",
       "confidence": "ambiguous"
+    },
+    {
+      "question_id": "conv-41_q0",
+      "finding": "恢复了May3与母亲晚餐这一具体事件，模型由未知改为her mother。与q95属于同一事件的不同问题，不应当成两种独立检索能力突破。",
+      "confidence": "supported"
+    },
+    {
+      "question_id": "conv-41_q123",
+      "finding": "模型由未知改为July7 evening与gym friends晚餐，与gold一致；完整结果保留用于后续上下文覆盖核验。",
+      "confidence": "supported"
+    },
+    {
+      "question_id": "conv-41_q4",
+      "finding": "新旧均答December19–25，只少了service-focused等措辞；旧judge说应为December25–31，新judge认为preceding calendar week可接受，F1均0。此转对体现裁判对周定义的波动，不能列为日期检索修复。",
+      "confidence": "confirmed_grading_difference"
+    },
+    {
+      "question_id": "conv-41_q45",
+      "finding": "旧答法保持不确定，新答法更倾向hesitant，judge由错转对；都没有明确复述gold中的military/running for office。不能直接归因为完整召回了这些目标事实。",
+      "confidence": "supported_judge_and_wording_effect"
+    },
+    {
+      "question_id": "conv-41_q94",
+      "finding": "真实菜品在D13:18，回包已包含；新8K窗口只保留D13:16母亲做饭和D13:17追问，遗漏D13:18答句。三句位于同一个已返回物理chunk，不是原文候选缺失、跨chunk解析失败或image query缺失。既定32K重打包保留D13:18及sandwiches（22593 tokens），尚无新答题成绩。",
+      "confidence": "confirmed_context_gap"
+    },
+    {
+      "question_id": "conv-41_q95",
+      "finding": "由未指明改为May3一起做晚餐，与q0共享原事件支持；原协议判定保留。",
+      "confidence": "supported"
+    },
+    {
+      "question_id": "conv-41_q61",
+      "finding": "新旧均为July31–August6，均判错，先前相对last week/周起点问题仍在，不因原文候选增大自动解决。",
+      "confidence": "ambiguous"
+    },
+    {
+      "question_id": "conv-41_q62",
+      "finding": "新旧均只确认Shadow来自shelter，未确认两犬都来自志愿者所在shelter；恢复中断的judge后仍按原gold判错，未重判择优。",
+      "confidence": "ambiguous"
+    },
+    {
+      "question_id": "conv-41_q63",
+      "finding": "网络中断的未返回recall已重新读取，答案仍为3–9天约一周，gold两周；与Shadow时间锚点问题相连，不是网络操作失败。",
+      "confidence": "ambiguous"
+    },
+    {
+      "question_id": "conv-41_q8",
+      "finding": "仍根据失业/车维修推financial strain，而gold据早期家境概括middle-class/wealthy；需区分临时流动性和长期阶层，不能靠修改判题消除。",
+      "confidence": "ambiguous"
     }
   ],
-  "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d"
+  "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
+  "active_candidate_run_id": "locomow8r_20261119_011537",
+  "active_candidate_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+  "source_conv41_comparison_sha256": "cf58a71b01ba94ca0397bf1f303f52a7fe3472182ea89515114e09feb3b0d4bd",
+  "offline_q94_diagnostic": {
+    "source_run_id": "locomow8r_20261119_011537",
+    "question_id": "conv-41_q94",
+    "source_retrieval_sha256": "e41a8f9cc480df20fffd73427807b1a6dddadd18f8045ead468257a1bd5118d8",
+    "support_sha256": "73fb1ce6c69d493ed2d4276dace1c6e3ae38fc193cb8038d17c4e4355b0a3745",
+    "old_tokens": 7962,
+    "repacked_tokens": 22593,
+    "same_physical_chunk_contains_question_and_answer": true,
+    "answer_turn_id": "D13:18",
+    "id_in_old_context": false,
+    "id_in_repacked_context": true,
+    "sandwiches_in_old_context": false,
+    "sandwiches_in_repacked_context": true,
+    "note": "Posthoc original source review showed D13:16 dinner-with-mom, D13:17 food question, D13:18 actual salads/sandwiches/desserts answer. All are in returned raw chunks; old window stops at D13:17. This is not missing image-query metadata. Repacking uses only raw reply+question, no gold; no new answer/judge score."
+  }
 }
