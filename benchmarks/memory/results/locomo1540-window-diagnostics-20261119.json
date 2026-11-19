@@ -1953,6 +1953,373 @@
       "candidate_result_sha256": "49472cedffea3f8d3cc997255fd4ba1ee3a318729cce5f1b74f79d6e0a6109e0",
       "candidate_source_run_id": "locomow8r_20261119_011537",
       "baseline_result_sha256": "bd44315ab319258f7a676fe8df34e98339312181d39bb948a27dcac377d9d277"
+    },
+    {
+      "question_id": "conv-48_q23",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.0975609756097561,
+      "candidate_f1": 0.05128205128205128,
+      "baseline_answer": "Jolene sometimes put off yoga because she became caught up in studying, exams, deadlines, and her demanding internship. Feeling overwhelmed and focused on achieving her goals, she struggled to make time for relaxation and sometimes neglected self-care.",
+      "candidate_answer": "Jolene sometimes put off yoga because she was overwhelmed by studying, exams, deadlines, and her internship workload. She became so focused on her goals that she struggled to make time for relaxation and self-care.",
+      "baseline_reason": "The generated answer attributes postponing yoga to academic and internship demands rather than her greater interest in playing video games.",
+      "candidate_reason": "The generated answer attributes her delay to academic and internship pressures rather than her preference for playing video games.",
+      "question": "Why did Jolene sometimes put off doing yoga?",
+      "gold": [
+        "She's more interested in playing video games"
+      ],
+      "candidate_result_sha256": "c5eac1b37c977404f016f8f7b11ce8fd96b84b181368d693475d18f94e9c8a57",
+      "baseline_result_sha256": "68844c33b0779a5515c34ed3f6e179fd8d4a49fd288973e01c11912dfff7da39",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D3:11",
+        "D2:30"
+      ]
+    },
+    {
+      "question_id": "conv-48_q36",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_answer": "Jolene’s current age is not stated in the memories and cannot be determined from the information provided.",
+      "candidate_answer": "Jolene’s current age is not stated in the memories. We only know that she began playing video games at age 10.",
+      "baseline_reason": "The generated answer does not provide the gold answer’s inferred age range of likely no more than 30.",
+      "candidate_reason": "The generated answer does not provide the gold answer’s estimated current age of no more than 30.",
+      "question": "How old is Jolene?",
+      "gold": [
+        "likely no more than 30; since she's in school"
+      ],
+      "candidate_result_sha256": "1b94c812a9ea176faf6f9cdcb137e47db682986a4d48768cbb1e1ed7c7a226ec",
+      "baseline_result_sha256": "da37949e4464f8825c47721adb5960794d28a5c3508f71fbe9661223531db0ec",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D8:2",
+        "D13:5",
+        "D21:6",
+        "D21:8",
+        "D22:6",
+        "D22:14",
+        "D24:2",
+        "D24:14",
+        "D25:5",
+        "D26:6"
+      ]
+    },
+    {
+      "question_id": "conv-48_q46",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.07142857142857144,
+      "candidate_f1": 0.13333333333333336,
+      "baseline_answer": "Jolene appears to have worked on it for about three months, from February to May 2023, assuming the engineering project she completed in May was the robotics project.",
+      "candidate_answer": "Jolene worked on it for approximately three months, from February to May 2023.",
+      "baseline_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
+      "candidate_reason": "The generated answer states approximately three months, whereas the gold answer specifies four months.",
+      "question": "How long did Jolene work on the robotics project given to her by her Professor?",
+      "gold": [
+        "four months"
+      ],
+      "candidate_result_sha256": "bacda6fd134966bc972a395697b07c5271994671c495a548ffff8a302bc98c99",
+      "baseline_result_sha256": "3ed07838e0d57163f7d4c96a0b8915ffebc5ee94a58f5f8677283c35f9033fc6",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D3:1",
+        "D12:10",
+        "D13:1"
+      ]
+    },
+    {
+      "question_id": "conv-48_q71",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.13333333333333333,
+      "candidate_f1": 0.13333333333333333,
+      "baseline_answer": "Deborah went to a community meetup on Friday, September 1, 2023.",
+      "candidate_answer": "Deborah went to a community meetup on Friday, September 1, 2023.",
+      "baseline_reason": "September 1, 2023 falls outside the last week of August 2023 specified in the gold answer.",
+      "candidate_reason": "September 1, 2023 is not in the last week of August 2023.",
+      "question": "When did Deborah go to a community meetup?",
+      "gold": [
+        "last week of August 2023"
+      ],
+      "candidate_result_sha256": "c1f3de0c86971d1f49e7348eae6b221dabaebb20d5353202a70d1609d5603135",
+      "baseline_result_sha256": "ea32ae6199de4c1960b1fa6b86d9c1f3d797504445302ebb31f4b75754ba0b0d",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D24:1"
+      ]
+    },
+    {
+      "question_id": "conv-48_q74",
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.4444444444444444,
+      "baseline_answer": "The memories do not specify what Deborah and Jolene plan to try when they meet at a new cafe.",
+      "candidate_answer": "They plan to try fresh pastries.",
+      "baseline_reason": "The generated answer says the information is unspecified, whereas the gold answer states they plan to try coffee and fresh pastries.",
+      "candidate_reason": "The generated answer mentions fresh pastries, matching part of the gold answer and satisfying the generous grading criterion.",
+      "question": "What do Deborah and Jolene plan to try when they meet in a new cafe?",
+      "gold": [
+        "coffee and fresh pastries"
+      ],
+      "candidate_result_sha256": "ba86a6fd093a8ba595dcacd7b9935f6cebbe2f1d44f47241e0b5e4bc53c0d02d",
+      "baseline_result_sha256": "7f19c1373ec23598deb99048dc82d017db96d14c78d11d88187c44e814c82b0b",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D26:10",
+        "D26:12"
+      ]
+    },
+    {
+      "question_id": "conv-48_q75",
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.1111111111111111,
+      "baseline_answer": "The provided memories do not identify any card game Deborah is talking about.",
+      "candidate_answer": "Deborah is most likely talking about **Exploding Kittens**, a cat-themed card game where players draw cards and use cards to attack opponents. The name is inferred from her description on September 12, 2023, rather than explicitly stated.",
+      "baseline_reason": "The generated answer says the game is unknown rather than identifying Exploding Kittens as in the gold answer.",
+      "candidate_reason": "The generated answer identifies Exploding Kittens, matching the gold answer.",
+      "question": "What card game is Deborah talking about?",
+      "gold": [
+        "Exploding Kittens"
+      ],
+      "candidate_result_sha256": "95aa154602b7218d4069fbb9187a1c0bc5beb3519abef182509487cd8e75f2cc",
+      "baseline_result_sha256": "8204dcf21860d01457d40576e586a304195beb5011b205afa4aa0c89f3edaeae",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D27:12"
+      ]
+    },
+    {
+      "question_id": "conv-48_q87",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.14285714285714285,
+      "candidate_f1": 0.14285714285714285,
+      "baseline_answer": "Deborah has traveled to **Indonesia** (Bali, in 2022) and **Brazil** (Rio de Janeiro, in 2020).",
+      "candidate_answer": "Deborah has traveled to **Indonesia** (Bali, in 2022) and **Brazil** (Rio de Janeiro, in 2020).",
+      "baseline_reason": "The generated answer correctly includes Brazil but incorrectly substitutes Indonesia for Thailand.",
+      "candidate_reason": "The answer correctly includes Brazil but incorrectly substitutes Indonesia for Thailand.",
+      "question": "Which countries has Deborah traveled to?",
+      "gold": [
+        "Thailand, Brazil"
+      ],
+      "candidate_result_sha256": "da69fdd6e53b459250386c2c44ef4f2c753d85bc35e79193797e56fdd3d9d223",
+      "baseline_result_sha256": "85fd99ec8f791ab00c9dc81ce985f0965213004d112567ea86723189d5168f53",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D6:10",
+        "D23:18"
+      ]
+    },
+    {
+      "question_id": "conv-48_q99",
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.4444444444444444,
+      "baseline_answer": "The memories do not specify what Deborah and Jolene plan to try when they meet at a new cafe.",
+      "candidate_answer": "They plan to try fresh pastries.",
+      "baseline_reason": "The generated answer claims the information is unspecified instead of identifying coffee and fresh pastries.",
+      "candidate_reason": "The generated answer correctly mentions fresh pastries, which matches part of the gold answer and is sufficient under the generous grading criteria.",
+      "question": "What do Deborah and Jolene plan to try when they meet in a new cafe?",
+      "gold": [
+        "coffee and fresh pastries"
+      ],
+      "candidate_result_sha256": "69cf710f199c453452f8ea88aea12f86e5ac73b0d2c07302e79f8f552b74ebbc",
+      "baseline_result_sha256": "95c45f99fd1af39f42ea7e8ba6b25657e00e71b06ed1dff0a32c0ce5d2fd9f12",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D26:10",
+        "D26:12"
+      ]
+    },
+    {
+      "question_id": "conv-48_q101",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_answer": "Jolene bought Seraphim, her pet snake, in Paris around January 2022. Her other snake, Susie, was adopted in 2021.",
+      "candidate_answer": "Jolene bought her pet snake Seraphim in Paris around January 2022. Her other snake, Susie, was adopted in 2021.",
+      "baseline_reason": "The generated answer gives specific years without establishing that either corresponds to the gold answer’s “a year ago.”",
+      "candidate_reason": "The generated answer gives January 2022 and 2021, neither of which can be established as matching the gold answer of a year ago.",
+      "question": "When did Jolene buy her pet snake?",
+      "gold": [
+        "A year ago"
+      ],
+      "candidate_result_sha256": "d4e0e14ece0ae4467af917bdbda4bdf0595a4ad25b80977e300e2eccd4fb1fad",
+      "baseline_result_sha256": "13bc043681fd3163b65afae86468d933172003848a3a7857f66fa36c3007901b",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D2:24"
+      ]
+    },
+    {
+      "question_id": "conv-48_q115",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_answer": "Deborah incorporates morning jogging into her daily routine.",
+      "candidate_answer": "Deborah incorporates morning jogging into her daily routine.",
+      "baseline_reason": "The generated answer repeats morning jogging rather than identifying spending time with loved ones as the activity afterward.",
+      "candidate_reason": "The generated answer repeats the morning jog rather than identifying spending time with loved ones as the activity afterward.",
+      "question": "What activity does Deborah incorporate into her daily routine after going for a morning jog in the park?",
+      "gold": [
+        "spending time with loved ones"
+      ],
+      "candidate_result_sha256": "e1e21ea59b2a4666affbcbe84a649eb4bf9e8d2382c68ae620669a97b455c2bb",
+      "baseline_result_sha256": "dd7a0dee3477e3bda949c0e246e2cf405d2b453efe625c472c01e29d0ebd7c76",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D7:18"
+      ]
+    },
+    {
+      "question_id": "conv-48_q116",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.125,
+      "candidate_f1": 0.1,
+      "baseline_answer": "Jolene says exercise, particularly yoga, helps her feel calmer, more alert, and motivated.",
+      "candidate_answer": "Jolene says exercise, particularly yoga, helps her feel more alert and motivated, as well as calmer and clearer.",
+      "baseline_reason": "The generated answer describes calmness, alertness, and motivation, but does not mention feeling connected to her body.",
+      "candidate_reason": "The generated answer describes alertness, motivation, calmness, and clarity but does not mention feeling connected to her body.",
+      "question": "According to Jolene, what does exercise help her to feel?",
+      "gold": [
+        "connected to her body"
+      ],
+      "candidate_result_sha256": "a3e163988985e4438900da4d24ee8d000401cb4fa50e86c08d0ef7f3a67c17fd",
+      "baseline_result_sha256": "aa411dcab98b3250e180884ab0ed9c0d92c921bb186cf91879f69ac67a548c02",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D7:20"
+      ]
+    },
+    {
+      "question_id": "conv-48_q119",
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_f1": 0.07407407407407408,
+      "candidate_f1": 0.26666666666666666,
+      "baseline_answer": "Jolene shared a picture of her overwhelming to-do list, showing the many tasks she had to tackle for her studies, exams, and deadlines.",
+      "candidate_answer": "Jolene shared a picture of her seemingly never-ending to-do list—a desk with a notebook and computer monitor—on March 2, 2023. She also shared a photo of a notepad with notes on a counter on March 22, 2023, to illustrate how overwhelming her tasks felt.",
+      "baseline_reason": "The generated answer describes a to-do list rather than the photo of a desk with a notebook and computer monitor specified in the gold answer.",
+      "candidate_reason": "The generated answer explicitly identifies a desk with a notebook and computer monitor, matching the gold answer.",
+      "question": "What picture did Jolene share related to feeling overwhelmed?",
+      "gold": [
+        "a photo of a desk with a notebook and a computer monitor"
+      ],
+      "candidate_result_sha256": "0fd51bdc131642eb4388b8051e4ba2c43d28375e85a713ee5e7d551066893e73",
+      "baseline_result_sha256": "26096853e0e53cb38e07714a9afb285a35f83a6ae17f56fb221081c01e95dfa9",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D8:16"
+      ]
+    },
+    {
+      "question_id": "conv-48_q134",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.08,
+      "candidate_f1": 0.08,
+      "baseline_answer": "Jolene has had Seraphim for approximately 1 year and 8 months as of September 20, 2023. She bought her in Paris around January 2022.",
+      "candidate_answer": "Jolene has had Seraphim for approximately 1 year and 8 months as of September 20, 2023. She bought her in Paris around January 2022.",
+      "baseline_reason": "The generated answer gives one year and eight months, which is substantially longer than the gold answer of one year.",
+      "candidate_reason": "The generated answer states one year and eight months, which is substantially longer than the gold answer of one year.",
+      "question": "For how long has Jolene had Seraphim as a pet?",
+      "gold": [
+        "one year"
+      ],
+      "candidate_result_sha256": "9beee250f874348fdeffb3fc40b0df8763a668e5eb256264eb73efbbe9b16a6d",
+      "baseline_result_sha256": "7ffb068cd22e06099a3959c814e077e8bfd0519daa485c92dcd66613c06ddae9",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D14:6"
+      ]
+    },
+    {
+      "question_id": "conv-48_q174",
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_f1": 0.16666666666666666,
+      "candidate_f1": 0.1951219512195122,
+      "baseline_answer": "The meeting discussed on September 8, 2023, was rescheduled because Deborah—not Jolene—remembered she already had plans for the proposed day, Wednesday, September 13. They ultimately agreed to meet on Friday, September 15, at 5.",
+      "candidate_answer": "It was Deborah, rather than Jolene, who needed to reschedule: during their September 8, 2023 conversation, Deborah remembered she already had plans for Monday, September 11. They ultimately agreed to meet on Friday, September 15, at 5.",
+      "baseline_reason": "The generated answer attributes the conflicting plans to Deborah and explicitly denies that Jolene had them, contradicting the gold answer.",
+      "candidate_reason": "The generated answer identifies preexisting plans as the reason for rescheduling, matching the gold answer despite attributing them to Deborah instead of Jolene.",
+      "question": "Why did Jolene have to reschedule their meeting with Deborah on September 8, 2023?",
+      "gold": [
+        "Jolene already had plans"
+      ],
+      "candidate_result_sha256": "702a507223e35c2489370b51c579ff60315eb5dce807ff472ebf27a6933298be",
+      "baseline_result_sha256": "5ae5422e562c753593a3f77ead268848d9439cb40114200d46efc80dd2deb78d",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D26:15"
+      ]
+    },
+    {
+      "question_id": "conv-48_q179",
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_answer": "Jolene played “Detroit” on a console with her partner during January 16–22, 2023. She told Deb it was really fun.",
+      "candidate_answer": "Jolene played “Detroit” on a console with her partner during January 16–22, 2023. She told Deb it was very fun.",
+      "baseline_reason": "The generated answer names the console game Detroit rather than the card game about cats specified in the gold answer.",
+      "candidate_reason": "The generated answer names the console game “Detroit,” rather than the card game about cats specified in the gold answer.",
+      "question": "What did Jolene recently play that she described to Deb?",
+      "gold": [
+        "a card game about cats"
+      ],
+      "candidate_result_sha256": "dc12c8a46a3924803523bd91fff7681006abd90169df26462c3a4df6162045b4",
+      "baseline_result_sha256": "30005986b4a5b07bd2604d9a62dcb80cf4ac585e1e77fffce626f9b49fdce2d8",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D27:12"
+      ]
+    },
+    {
+      "question_id": "conv-48_q188",
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_f1": 0.18181818181818182,
+      "candidate_f1": 0.0,
+      "baseline_answer": "Jolene suggested going surfing together with Deborah in October 2023.",
+      "candidate_answer": "Jolene suggested watching the sunrise together with Deborah.",
+      "baseline_reason": "The generated answer correctly identifies surfing as the outdoor activity Jolene suggested doing with Deborah.",
+      "candidate_reason": "The generated answer says watching the sunrise, whereas the gold answer specifies surfing.",
+      "question": "What outdoor activity did Jolene suggest doing together with Deborah?",
+      "gold": [
+        "Surfing"
+      ],
+      "candidate_result_sha256": "ebc928eecc8867d9c37c96d31737b11f2d535250a5f3aece173ebe09743e0d08",
+      "baseline_result_sha256": "8bddadd4438b3e65a54bcab998df2850c79ace523335fdd89b17d231d6788a32",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "conversation_id": "conv-48",
+      "evidence_ids": [
+        "D29:27"
+      ]
     }
   ],
   "offline_repacking_diagnostics": {
@@ -2427,6 +2794,86 @@
       "question_id": "conv-47_q147",
       "finding": "D30:18仍未返回，timing仍未入上下文；gamepad出现于别处Mario手柄对话。新答案仅多说熟悉controls，judge以核心话题相符判对，不能当作零事实关联原文缺口或gamepad+timing完整答案已修复。",
       "confidence": "confirmed_partial_answer_judge_acceptance"
+    },
+    {
+      "question_id": "conv-48_q74",
+      "finding": "D26:10的fresh pastries及D26:12的coffee进入新窗口；旧打包未保留该约定。新答案只说pastries仍被原judge接受，不能称完整回答两项。",
+      "confidence": "confirmed_context_recovery_partial_answer"
+    },
+    {
+      "question_id": "conv-48_q75",
+      "finding": "新窗口保留D27:12猫主题抽牌/攻击规则，旧打包无该段；新reader据描述推断Exploding Kittens并标注推断，原文未直接报游戏名。",
+      "confidence": "supported_context_and_inference"
+    },
+    {
+      "question_id": "conv-48_q99",
+      "finding": "与q74题目重复但仍按原数据独立计分；恢复相同咖啡约定，新答案只报pastries，原judge宽松接受。",
+      "confidence": "confirmed_context_recovery_partial_answer"
+    },
+    {
+      "question_id": "conv-48_q119",
+      "finding": "D8:16的desk/notebook/computer monitor caption在新旧打包中都存在；新答案明确复述caption，旧答案只复述to-do list。转对不是旧上下文缺图像caption，而是reader选择/表述改善。",
+      "confidence": "confirmed_reader_selection"
+    },
+    {
+      "question_id": "conv-48_q174",
+      "finding": "新旧上下文都有Deborah的D26:15已有安排；新旧答案也都指出实际是Deborah而非题目Jolene。旧judge据人物矛盾拒绝，新judge按原因接受。原分数保留，但该转对不能证明人物消歧已修复。",
+      "confidence": "confirmed_judge_variation_and_source_conflict"
+    },
+    {
+      "question_id": "conv-48_q188",
+      "finding": "新旧事实首项都明确两人计划October surfing，新原文同时包含watch sunrise together，且D29:27已打包。新reader改答sunrise而被判错；多条活动竞争/题意歧义，不能归因于surfing事实未召回或8K截断。",
+      "confidence": "confirmed_reader_selection_with_competing_events"
+    },
+    {
+      "question_id": "conv-48_q101",
+      "finding": "D2:24一年前已返回并打包，事实还给January2022；reader将相对时间转为绝对日期并补另一蛇2021，judge不接受与未锚定gold A year ago等价。主要是相对时间口径/多宠物混杂，非原文缺失。",
+      "confidence": "supported_temporal_answer_alignment"
+    },
+    {
+      "question_id": "conv-48_q115",
+      "finding": "D7:18及事实都保留晚间spend time with loved ones；reader只回答把jogging加入日常，遗漏题目所问后续活动。题目after与原文evening也有概括差异。",
+      "confidence": "confirmed_reader_selection"
+    },
+    {
+      "question_id": "conv-48_q116",
+      "finding": "D7:20 connected to my body已打包，但speaker为Deborah，提问却是Jolene；抽取事实亦正确归属Deborah，新reader回答Jolene的其他益处。属于gold/人物冲突，不能为了分数强行换人。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-48_q134",
+      "finding": "D14:6 last year已打包；reader以最后session September20为当前时点，从January2022推算1年8个月，gold使用one year粗粒度。时间锚点/精度口径问题，不是未召回。",
+      "confidence": "supported_temporal_anchor_ambiguity"
+    },
+    {
+      "question_id": "conv-48_q179",
+      "finding": "D27:12猫主题卡牌已打包，但说话者是Deborah；题问Jolene向Deb描述，reader选Jolene确实玩过的Detroit。gold人物与原文冲突，不能认定系统把Deborah的牌抽错。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-48_q23",
+      "finding": "参考D3:11及D2:30均在recall原文，未进入最终窗口；reader回答学业压力。视频游戏/伴侣与暂停瑜伽的关联需跨轮保留，存在上下文选择缺口，但ID缺失本身不证明全部语义支持均缺失。",
+      "confidence": "supported_context_selection_gap"
+    },
+    {
+      "question_id": "conv-48_q36",
+      "finding": "多个学生/实习原文ID未进入最终窗口，但最终事实明确engineering student、engineering school；reader拒绝估计当前年龄。gold要求由学生推断不超过30岁，该推断不是原文确定年龄，不属于单纯检索漏掉年龄。",
+      "confidence": "confirmed_inference_policy_difference"
+    },
+    {
+      "question_id": "conv-48_q46",
+      "finding": "D3:1 February1项目开始与D13:1 June6说last month完成均已打包。reader按February→May算3个月，gold4个月可能按月份含首尾计数；不改gold也不谎称缺失项目终点。",
+      "confidence": "supported_duration_counting_ambiguity"
+    },
+    {
+      "question_id": "conv-48_q71",
+      "finding": "标注D24:1 last week未打包，但事实已给September1，session9月3的D24:3原话last Friday也指September1；gold却取August最后一周。应保留具体/概括时间冲突，不能单按D24:1缺失判为唯一packing错误。",
+      "confidence": "supported_source_time_conflict"
+    },
+    {
+      "question_id": "conv-48_q87",
+      "finding": "参考D6:10明确Bali，reader正确映射Indonesia；D23:18 Rio对应Brazil虽未入原文窗口，答案仍答出Brazil。gold是Thailand,Brazil，所标Bali并不支持Thailand；不能为追分把Bali地理改成Thailand。",
+      "confidence": "confirmed_reference_gold_geography_conflict"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -4865,5 +5312,77 @@
     "note": "Only completed semantic QA; a proven restart interruption remains pending. Same completed question IDs in both sides; no full1540 score. Resource epochs are mixed and separately declared.",
     "private_snapshot_sha256": "bb6e4d57e4edd1f43276f3555b5f66208a38cb79c2658a9f7e7f6e30d69055db",
     "private_snapshot_path": ".local/window-first-seven-banks-completed-20261119.json"
+  },
+  "first_eight_bank_comparison": {
+    "kind": "completed-qa-in-first-eight-banks-not-full1540-score",
+    "scope_completed": 1225,
+    "bank_scope_expected": 1226,
+    "operational_gaps": [
+      {
+        "question_id": "conv-44_q90",
+        "error": "HTTPFailure"
+      }
+    ],
+    "candidate_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
+    "baseline_correct": 1130,
+    "candidate_correct": 1148,
+    "baseline_f1": 0.27681056407010357,
+    "candidate_f1": 0.2788049987871536,
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60",
+      "conv-43_q5",
+      "conv-44_q39",
+      "conv-47_q16",
+      "conv-47_q71",
+      "conv-47_q147",
+      "conv-48_q74",
+      "conv-48_q75",
+      "conv-48_q99",
+      "conv-48_q119",
+      "conv-48_q174"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23",
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166",
+      "conv-44_q37",
+      "conv-44_q55",
+      "conv-47_q56",
+      "conv-48_q188"
+    ],
+    "baseline_accuracy": 0.9224489795918367,
+    "candidate_accuracy": 0.9371428571428572,
+    "private_snapshot_sha256": "2a86f314757ad4845375e66cfd955760b74e15531572412095049676e59b3cd2",
+    "private_snapshot_path": ".local/window-first-eight-banks-completed-20261119.json",
+    "note": "Only first eight Banks with completed semantic QA, excluding one proven transport interruption pending completion; not full1540 score. No wrong answer re-sampled.",
+    "conv48": {
+      "scope": 191,
+      "baseline_correct": 176,
+      "candidate_correct": 180,
+      "fixed": 5,
+      "regressed": 1,
+      "net_correct": 4
+    }
   }
 }
