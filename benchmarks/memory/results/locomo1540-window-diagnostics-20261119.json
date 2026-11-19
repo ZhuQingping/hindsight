@@ -2,7 +2,7 @@
   "kind": "partial-paired-diagnostic-not-full1540-score",
   "baseline_run_id": "locomo1540r_20261119_030518",
   "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 385,
+  "scope": 584,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
@@ -23,11 +23,13 @@
     "conv-41_q123",
     "conv-41_q4",
     "conv-41_q45",
-    "conv-41_q95"
+    "conv-41_q95",
+    "conv-42_q60"
   ],
   "regressed": [
     "conv-26_q68",
-    "conv-41_q94"
+    "conv-41_q94",
+    "conv-42_q23"
   ],
   "unchanged_wrong": [
     "conv-26_q144",
@@ -41,9 +43,23 @@
     "conv-41_q61",
     "conv-41_q62",
     "conv-41_q63",
-    "conv-41_q8"
+    "conv-41_q8",
+    "conv-42_q4",
+    "conv-42_q12",
+    "conv-42_q14",
+    "conv-42_q24",
+    "conv-42_q34",
+    "conv-42_q43",
+    "conv-42_q53",
+    "conv-42_q54",
+    "conv-42_q62",
+    "conv-42_q66",
+    "conv-42_q78",
+    "conv-42_q91",
+    "conv-42_q92",
+    "conv-42_q195"
   ],
-  "note": "Paired inspection of the first three completed Banks (385/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
+  "note": "Paired inspection of the first four completed Banks (584/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -603,6 +619,363 @@
       "baseline_result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
       "candidate_result_sha256": "3109b0fee74b3f4249830b85d3c93516ac75b3afac89ca8821ff0a1331e5b574",
       "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q4",
+      "question": "What pets wouldn't cause any discomfort to Joanna?",
+      "gold": [
+        "Hairless cats or pigs,since they don't have fur, which is one of the main causes of Joanna's allergy."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "A stuffed pet, such as her stuffed dog Tilly, would provide comfort without exposure to live animals. No living pet is confirmed to be safe for Joanna: she is allergic to most reptiles, including turtles, animals with fur, and cockroaches.",
+      "candidate_answer": "No living pets are confirmed to be allergy-safe for Joanna. She is allergic to most reptiles, furry animals, turtles, and cockroaches. Her stuffed dog, Tilly, is a comfortable alternative that brings her joy without any reported discomfort.",
+      "baseline_reason": "The generated answer suggests a stuffed pet and denies any confirmed safe living pet rather than identifying hairless cats or pigs as the gold answer does.",
+      "candidate_reason": "The generated answer fails to identify hairless cats or pigs as comfortable pets for Joanna and instead claims no living pets are confirmed safe.",
+      "baseline_f1": 0.10909090909090909,
+      "candidate_f1": 0.07692307692307693,
+      "evidence_ids": [
+        "D2:23"
+      ],
+      "candidate_result_sha256": "ff1feb4f43a3d73d092a8d91295460c7f04b3b98623be9410cf779bfdb222382",
+      "baseline_result_sha256": "fc3f0a5f37f43cb9604c286851355a528380e4bae5e16c2d20ff9e9a1ad2927d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q12",
+      "question": "What underlying condition might Joanna have based on her allergies?",
+      "gold": [
+        "asthma"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Joanna might have an atopic predisposition—a tendency to develop allergic reactions to multiple substances—given her allergies to furry animals, reptiles (including turtles), and cockroaches. However, the memories do not establish an underlying medical diagnosis; a clinician or allergist would need to evaluate her. Her lactose intolerance is a separate, non-allergic condition.",
+      "candidate_answer": "Joanna might have an atopic predisposition (atopy)—a tendency to develop allergic reactions to multiple substances—given her allergies to furry animals, reptiles, and cockroaches. However, these memories do not establish a diagnosis; a clinician or allergist would need to assess her. Her lactose intolerance is a separate, non-allergic condition.",
+      "baseline_reason": "The generated answer suggests an atopic predisposition but does not identify asthma, the condition specified in the gold answer.",
+      "candidate_reason": "The generated answer suggests atopy rather than asthma, the underlying condition specified in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D5:11",
+        "D2:23"
+      ],
+      "candidate_result_sha256": "a82522ec5eb78620abd2218270ea506fd201c200d1ee56033076f877b102546d",
+      "baseline_result_sha256": "cc7f21512a3e0635575f9aaf3c81b8dc417806211cd0fad3778137c12990fa41",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q14",
+      "question": "What nickname does Nate use for Joanna?",
+      "gold": [
+        "Jo"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The provided memories do not specify a nickname Nate uses for Joanna; he calls her “Joanna” in the excerpts.",
+      "candidate_answer": "The provided context does not specify a nickname Nate uses for Joanna; he addresses her as “Joanna.”",
+      "baseline_reason": "The generated answer denies a nickname is specified, whereas the gold answer identifies the nickname as “Jo.”",
+      "candidate_reason": "The generated answer denies a nickname is specified, whereas the gold answer identifies it as “Jo.”",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D7:1"
+      ],
+      "candidate_result_sha256": "879bfbdd325e283fc7b070b0696d5a4d88f18f74766a3bb481dbd64613fa6215",
+      "baseline_result_sha256": "059a7caece72173a0fd5284f72d9aeb76d88e5b4263a46c891345b0122f773f8",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q23",
+      "question": "Which of Joanna's screenplay were rejected from production companies?",
+      "gold": [
+        "first screenplay on drama and romance, third screenplay on loss identity and connection"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Joanna reported two production-company rejections:\n- **June 3, 2022:** A major company rejected her recently finished screenplay—likely her **third screenplay, about loss, identity, and connection**, completed May 20. The letter was generic and offered little feedback.\n- **October 21, 2022:** A production company rejected **the screenplay she had submitted to a film contest on June 24, 2022**.\n\nNeither screenplay is named, and it is unclear whether these were two different scripts or the same script rejected twice.",
+      "candidate_answer": "Two rejections are mentioned, although neither screenplay is named:\n- **Reported June 3, 2022:** A major company rejected a completed screenplay with a generic letter and little feedback. It was likely her third screenplay, about **loss, identity, and connection**, completed May 20, 2022, but the connection is not explicitly confirmed.\n- **Reported October 21, 2022:** Another production company rejected a screenplay. Nate suggested it was the one she submitted to a **film contest on June 24, 2022**, though Joanna did not explicitly confirm this.\n\nThe memories do not establish whether these were two different screenplays.",
+      "baseline_reason": "The answer identifies the third screenplay about loss, identity, and connection and mentions a second rejected screenplay, sufficiently overlapping with the gold answer under generous grading.",
+      "candidate_reason": "The answer identifies the third screenplay about loss, identity, and connection but fails to identify the first screenplay about drama and romance.",
+      "baseline_f1": 0.24812030075187969,
+      "candidate_f1": 0.22619047619047616,
+      "evidence_ids": [
+        "D14:1",
+        "D3:1",
+        "D2:7",
+        "D24:12",
+        "D24:13"
+      ],
+      "candidate_result_sha256": "cf869e397d53ea5d9dab795dd5690536fa63b10d760cf73949c3aebb9c083aa5",
+      "baseline_result_sha256": "55bdac20cdd2e74c2e9ec779e8b043f639526bba8c062a28bcd93c98d0f1adf1",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q24",
+      "question": "When is Nate hosting a gaming party?",
+      "gold": [
+        "The weekend after 3June, 2022."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Nate’s gaming party was scheduled for the weekend of June 18–19, 2022.",
+      "candidate_answer": "Nate planned to host his gaming party on June 18–19, 2022.",
+      "baseline_reason": "June 18–19, 2022 is not the weekend after June 3, 2022.",
+      "candidate_reason": "June 18–19, 2022 is not the weekend after June 3, 2022, which was June 4–5.",
+      "baseline_f1": 0.26666666666666666,
+      "candidate_f1": 0.13333333333333333,
+      "evidence_ids": [
+        "D14:20"
+      ],
+      "candidate_result_sha256": "9b659576084154c2fe44036cc0360e3662648a57352f7eeb27d324c6ea23efc9",
+      "baseline_result_sha256": "6dfcb94cebfa4885d363cf636875f72b1290fb41f14c790683aa13c36eba9e7a",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q34",
+      "question": "What book recommendations has Joanna given to Nate?",
+      "gold": [
+        "\"Little Women\",'A Court of Thorns andRoses'."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "No book recommendations from Joanna to Nate are recorded in the provided memories. She recommended the movies Eternal Sunshine of the Spotless Mind and Little Women; the book recommendations mentioned went from Nate to Joanna.",
+      "candidate_answer": "On August 22, 2022, Joanna recommended that Nate read a **fantasy book series**, explaining that fiction series are great for relaxing. She also endorsed an unnamed series he showed her, saying, “That's a great one!” No specific book or series titles are identified in the memories.\n\nEarlier, on March 24, 2022, she advised him to **read widely and explore different genres** to strengthen his writing.",
+      "baseline_reason": "The answer denies Joanna gave book recommendations and omits A Court of Thorns and Roses, contradicting the gold answer.",
+      "candidate_reason": "The generated answer names neither Little Women nor A Court of Thorns and Roses and incorrectly claims no specific titles were identified.",
+      "baseline_f1": 0.09191176470588236,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D3:17",
+        "D19:14",
+        "D19:16"
+      ],
+      "candidate_result_sha256": "364c54d093d323e960218b88f33f1f84c9fcd1cc1c78f9407f821f59dca1d820",
+      "baseline_result_sha256": "8dd510efa0ae0fff49a2a62180c39514a55a87d167be00581ad12bc873047aab",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q43",
+      "question": "How long did it take for Joanna to finish writing her book?",
+      "gold": [
+        "four months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "It took Joanna about three months to write her book—from around July 2022 to September 26–October 2, 2022. Her exact starting date is not given.",
+      "candidate_answer": "It took Joanna about three months to finish her book—from around July 2022 to September 26–October 2, 2022. Her exact start date isn’t stated.",
+      "baseline_reason": "The generated answer says about three months, whereas the gold answer specifies four months.",
+      "candidate_reason": "The generated answer says about three months, which does not match the gold answer of four months.",
+      "baseline_f1": 0.07407407407407407,
+      "candidate_f1": 0.07692307692307693,
+      "evidence_ids": [
+        "D17:14",
+        "D22:9"
+      ],
+      "candidate_result_sha256": "bf41db7631465251ab0397294c5ba2019a9fbe0086eca8a610ab50a791ad234d",
+      "baseline_result_sha256": "9cde9476e924687627a74a377199e47613672e90f08ae8e15aeeafd6078afaee",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q53",
+      "question": "How many times has Nate taken his turtles on a walk?",
+      "gold": [
+        "Twice."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "At least three times are mentioned: walking them outdoors (March 18, 2022), a park outing (mentioned November 7, 2022), and a beach outing in Tampa on November 10, 2022. The exact total is not stated.",
+      "candidate_answer": "Four times are mentioned: walking them outdoors (mentioned March 18, 2022), a walk on October 25, 2022, a park outing (mentioned November 7, 2022), and a trip to the beach in Tampa on November 10, 2022.",
+      "baseline_reason": "The generated answer says at least three times, contradicting the gold answer of twice.",
+      "candidate_reason": "The generated answer says four times, whereas the gold answer says twice.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D5:4",
+        "D25:15"
+      ],
+      "candidate_result_sha256": "f3fd205a246de006d7d146cbb01c66c97cc33777120c17f0c378c8aca469e488",
+      "baseline_result_sha256": "4dddd25f2aa815609de07e29a277b2bd3b4b41bada4570c759ba518612aed14d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q54",
+      "question": "When was Joanna's second movie script shown on the big screens?",
+      "gold": [
+        "The Sunday before 25October, 2022."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Joanna’s second movie script was shown on the big screen on June 4, 2022.",
+      "candidate_answer": "Joanna’s second movie script was shown on the big screen on June 4, 2022.",
+      "baseline_reason": "June 4, 2022 does not match the Sunday before October 25, 2022 (October 23, 2022).",
+      "candidate_reason": "The generated answer gives June 4, 2022, rather than October 23, 2022, the Sunday before October 25.",
+      "baseline_f1": 0.11764705882352941,
+      "candidate_f1": 0.11764705882352941,
+      "evidence_ids": [
+        "D25:1"
+      ],
+      "candidate_result_sha256": "0f0fb29eb998730f04edfc43c6e70d7e27a6f04fe95dd0b5931f9c5384ea35e9",
+      "baseline_result_sha256": "2e64536c0d8d2c8300c9a9d2c67cc5d0be70b3c4213d4ee77cd44a1a0b74d5fb",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q60",
+      "question": "What Console does Nate own?",
+      "gold": [
+        "A Nintendo Switch; since the game \"Xenoblade 2\" is made for this console."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Nate likely owns a Nintendo console, given his interest in Nintendo games and Xenoblade Chronicles, but the memories do not specify which console.",
+      "candidate_answer": "Nate likely owns a Nintendo Switch, although the memories do not explicitly confirm his console.",
+      "baseline_reason": "The answer mentions Nintendo but does not identify the Nintendo Switch, instead stating that the console is unspecified.",
+      "candidate_reason": "The generated answer identifies a Nintendo Switch, matching the gold answer despite its qualification.",
+      "baseline_f1": 0.09090909090909091,
+      "candidate_f1": 0.2666666666666667,
+      "evidence_ids": [
+        "D27:23"
+      ],
+      "candidate_result_sha256": "8028bf0ed170ce7d7bdcccd24f600888238a4deb5ddb8330d7cf437682b48563",
+      "baseline_result_sha256": "c1a4eb814ce551a80b9d166ed050322a7cb34cc24c5d82970f9d493ad178a145",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q62",
+      "question": "How many letters has Joanna recieved?",
+      "gold": [
+        "Two"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Joanna has received four letters mentioned in the memories: a rejection letter from a major company, a supportive letter from a blog reader, another production-company rejection (assuming it was a letter), and a childhood letter from her brother. Three are explicitly identified as letters.",
+      "candidate_answer": "Joanna has received at least four letters mentioned in the memories: two rejection letters, one from a blog reader, and one from her brother during childhood.",
+      "baseline_reason": "The generated answer says four letters (or three explicitly identified), contradicting the gold answer of two.",
+      "candidate_reason": "The generated answer says at least four letters, which contradicts the gold answer of two.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.14285714285714288,
+      "evidence_ids": [
+        "D14:1",
+        "D18:5"
+      ],
+      "candidate_result_sha256": "dbb99f466a167ff10ab4b8bab6f0ccde94d6ff96dc6dba38f4231957b7b29888",
+      "baseline_result_sha256": "3230b0098177dd209cb3a5f661b7e313a96ae85dce16071d54f3696f2bdb57c1",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q66",
+      "question": "What alternative career might Nate consider after gaming?",
+      "gold": [
+        "an animalkeeper at a localzoo and workingwith turtles; as heknows a great dealabout turtles andhow to care for them,and he enjoys it."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Nate might consider a career in writing. On March 24, 2022, he said he wanted to pursue writing and keep working hard at it, though he has not explicitly said he would make it his career after gaming.",
+      "candidate_answer": "Nate might consider a career in writing. On March 24, 2022, he expressed an interest in pursuing writing and continuing to work hard at it.",
+      "baseline_reason": "The generated answer suggests writing instead of the gold answer’s zoo animalkeeper role caring for turtles.",
+      "candidate_reason": "The generated answer suggests writing, whereas the gold answer specifies working as an animal keeper at a local zoo caring for turtles.",
+      "baseline_f1": 0.048780487804878044,
+      "candidate_f1": 0.07407407407407407,
+      "evidence_ids": [
+        "D5:8",
+        "D19:3",
+        "D25:19",
+        "D28:25"
+      ],
+      "candidate_result_sha256": "281c7736d909bf781656c0dd8838f41d4c4dc048865dc2f9557248eaa936f8f0",
+      "baseline_result_sha256": "8e5910919846d51e8d914f2e274b0f32b83713e87559575a389cecdf061ca3a6",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q78",
+      "question": "How many video game tournaments has Nate participated in?",
+      "gold": [
+        "nine"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Nate has participated in at least 10 video game tournaments as of November 11, 2022, based on the recorded events.",
+      "candidate_answer": "Nate has participated in at least 10 video game tournaments as of November 11, 2022, counting the loss reported on November 9 as a separate tournament from his November 5 Valorant win. If those two reports describe the same tournament inconsistently, the count would be at least 9.",
+      "baseline_reason": "The generated answer says at least 10 tournaments, contradicting the gold answer of nine.",
+      "candidate_reason": "The generated answer primarily claims at least 10 tournaments rather than nine, mentioning nine only as a conditional alternative.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D1:3",
+        "D6:7",
+        "D10:4",
+        "D14:8",
+        "D17:1",
+        "D19:1",
+        "D20:1",
+        "D22:2",
+        "D27:1"
+      ],
+      "candidate_result_sha256": "1c4a6fe6f7180ea7d0ea1563308e54ccb00d2733658d45faea9ca5d28d59c284",
+      "baseline_result_sha256": "1cb3c93fb4e986fd313b36ffb3656caeddb6658eab388ce6c2fb9f719ccffbf4",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q91",
+      "question": "What is Nate's favorite book series about?",
+      "gold": [
+        "dragons"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Nate enjoys a fantasy book series featuring adventures, magic, and memorable characters. He also described an unnamed space-opera series as one of his favorites, praising its exciting battles, action scenes, and plot. The memories don’t give either series’ title or a more specific synopsis.",
+      "candidate_answer": "Nate’s favorite book series features adventures, magic, exciting battles and action scenes, interesting characters, and an engaging plot. The memories don’t identify its title or give a more specific storyline.",
+      "baseline_reason": "The generated answer mentions generic fantasy and space opera but does not identify dragons as the subject of Nate's favorite book series.",
+      "candidate_reason": "The generated answer gives generic fantasy elements but does not mention dragons, the subject identified in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D9:14"
+      ],
+      "candidate_result_sha256": "ed40d509450fe244e582dd9f73e22f837204bc48f5cec0e5c00554a8a928266f",
+      "baseline_result_sha256": "e52c3f0ba59b6198cbcdf6976bde27340257d02d1c67bb53a0bb50348b5071ea",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q92",
+      "question": "What kind of lighting does Nate's gaming room have?",
+      "gold": [
+        "red and purple lighting"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not specify what kind of lighting Nate’s gaming room has. Dimmable lights were suggested for his living room, not his gaming room.",
+      "candidate_answer": "The memories do not specify what kind of lighting Nate’s gaming room has.",
+      "baseline_reason": "The generated answer claims the lighting is unspecified rather than identifying the red and purple lighting given in the gold answer.",
+      "candidate_reason": "The generated answer says the lighting is unspecified, but the gold answer identifies red and purple lighting.",
+      "baseline_f1": 0.07407407407407407,
+      "candidate_f1": 0.13333333333333333,
+      "evidence_ids": [
+        "D10:2"
+      ],
+      "candidate_result_sha256": "c189f08d6ccb4e35038dfdc6d9f8cfd4e0c07d9dd4e9c76b728384dafb39d276",
+      "baseline_result_sha256": "8e29369a9d6495f91d094d5b8b5891cedce50abd909aa801bd261659aa37c96d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-42_q195",
+      "question": "What does Nate want to do when he goes over to Joanna's place?",
+      "gold": [
+        "Watch one of Joanna's movies together or go to the park"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Nate wants to join Joanna in baking and cooking when he visits her place.",
+      "candidate_answer": "Nate wants to bake with Joanna when he goes over to her place.",
+      "baseline_reason": "The generated answer says baking and cooking, rather than watching Joanna's movies together or going to the park.",
+      "candidate_reason": "The generated answer says Nate wants to bake, rather than watch Joanna's movies together or go to the park.",
+      "baseline_f1": 0.17391304347826086,
+      "candidate_f1": 0.17391304347826086,
+      "evidence_ids": [
+        "D28:29"
+      ],
+      "candidate_result_sha256": "c2c5c7c072d373969914c3da81f262cb83ed75c9ef6d639212826b3644a1128d",
+      "baseline_result_sha256": "b6e53ad31225bd25043fc29ee170dea7a4c77bfea30b174c9dbf8906cb9e8f07",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -787,6 +1160,86 @@
       "question_id": "conv-41_q8",
       "finding": "仍根据失业/车维修推financial strain，而gold据早期家境概括middle-class/wealthy；需区分临时流动性和长期阶层，不能靠修改判题消除。",
       "confidence": "ambiguous"
+    },
+    {
+      "question_id": "conv-42_q4",
+      "finding": "原文说明毛皮/爬虫过敏；gold要求推断无毛猫或猪，reader拒绝确认任何活体安全宠物。属于推断策略/非唯一推荐，不是缺少明确动物名称原句的检索失误。",
+      "confidence": "supported_inference_policy"
+    },
+    {
+      "question_id": "conv-42_q12",
+      "finding": "过敏信息已在上下文，gold将其关联到asthma，reader回答atopy并保留诊断不确定性。不能把未推断特定病名归为丢失明确诊断原句。",
+      "confidence": "supported_inference_policy"
+    },
+    {
+      "question_id": "conv-42_q14",
+      "finding": "D7:1的Hey Jo原文已返回；最终窗口只有D7:11–13等邻近编号，没有[D7:1]原句，昵称仍未进入上下文。严格区分编号D7:1与D7:11的子串，属于持续打包遗漏。",
+      "confidence": "confirmed_context_gap"
+    },
+    {
+      "question_id": "conv-42_q23",
+      "finding": "两轮都只明确识别第三剧本和另一份未确认题材的拒稿，旧judge按部分重合判对，新judge因缺第一部drama/romance判错。第一剧本的题材事实已经进入新上下文；该回退不能直接归因于该事实被截掉，主要涉及作品关联与判题尺度波动。",
+      "confidence": "confirmed_partial_answer_judge_variation"
+    },
+    {
+      "question_id": "conv-42_q24",
+      "finding": "D14:20原文是two weekends later，抽取/两轮答案June18–19，gold却是June3之后的周末。不能靠强制回答June4–5来证明时间抽取改进；保留原judge错判记录并标注源/gold时间歧义。",
+      "confidence": "supported_source_gold_timing_dispute"
+    },
+    {
+      "question_id": "conv-42_q34",
+      "finding": "Little Women原句讲电影，且已经进入上下文；另一书名只在D19:15图片搜索query中。不能把此题全部归为扩大预算即可恢复的书名原句。",
+      "confidence": "confirmed_input_policy_and_scope"
+    },
+    {
+      "question_id": "conv-42_q43",
+      "finding": "开始写书的D17:14原文已返回但未进入最终窗口；抽取事实仍给July10已开始，结束为September26–October2。三个月/四个月还涉及不完整起点及月份计数，不能单凭漏参考ID宣称修复后必对。",
+      "confidence": "supported_context_and_duration_ambiguity"
+    },
+    {
+      "question_id": "conv-42_q53",
+      "finding": "参考原文两次walk已进入上下文；新答案又把park和beach outing都算成walk，得到4次。需要区分明确散步与其他户外活动及重复叙述，属于事件范围/去重而非两次walk原句缺失。",
+      "confidence": "confirmed_event_scope_error"
+    },
+    {
+      "question_id": "conv-42_q54",
+      "finding": "新上下文包含October23放映原句及third time，reader据此排除该次并答June4；gold问second movie script却指October23。作品序号与放映次数可能被混同，不能靠增加同样原文自动纠正。",
+      "confidence": "supported_ordinal_interpretation"
+    },
+    {
+      "question_id": "conv-42_q60",
+      "finding": "旧答案仅Nintendo且称机型不明，新答案推断Nintendo Switch而判对。参考D27:23未完整入窗口，依据是抽取中的Nintendo/Xenoblade线索；属于推断/具体程度变化，不能称明确机型原句恢复。",
+      "confidence": "confirmed_inference_answer_change"
+    },
+    {
+      "question_id": "conv-42_q62",
+      "finding": "gold按拒稿与读者来信计2封，新上下文还提童年兄弟来信以及第二次拒稿，reader计至少4封。需区分明确letter、另一次rejection是否确有信及问题时间范围，不是单纯召回不足。",
+      "confidence": "supported_event_scope_ambiguity"
+    },
+    {
+      "question_id": "conv-42_q66",
+      "finding": "gold按照顾海龟的爱好推断动物饲养员，reader依据明确表达的写作兴趣建议writer；若干照顾海龟原文仍未入窗口，但职业本身没有明确原句，属于候选兴趣覆盖与非唯一职业推断。",
+      "confidence": "supported_inference_and_context_selection"
+    },
+    {
+      "question_id": "conv-42_q78",
+      "finding": "九个标注事件原文已在最终上下文，reader综合更早参与次数和后续比赛计至少10，另附条件9。应复核参与/获胜序数及同一赛事重复叙述；不是所有赛事原文都丢了，不能按gold强行去掉一个事件。",
+      "confidence": "supported_event_counting"
+    },
+    {
+      "question_id": "conv-42_q91",
+      "finding": "D9:14图片搜索query含dragon，观察caption只说桌上书，窗口不渲染query。属于已声明输入政策的限制，原判定保留。",
+      "confidence": "confirmed_image_metadata_boundary"
+    },
+    {
+      "question_id": "conv-42_q92",
+      "finding": "D10:2的caption和正文不描述红紫灯光，其他紫色头发原句不能作灯光证据；当前未抓图或再caption，不能承诺预算解决。",
+      "confidence": "confirmed_visual_detail_gap"
+    },
+    {
+      "question_id": "conv-42_q195",
+      "finding": "gold引用D28:29是Nate邀请Joanna来自己家看电影/公园，问题却问Nate去Joanna家。新上下文还有一起烘焙的事实，reader选后者；需区分邀请方向与另一个访问事件，不把gold一律当源文无歧义。",
+      "confidence": "supported_invitation_direction_dispute"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -1076,5 +1529,20 @@
     ],
     "private_snapshot_sha256": "fdd376d15b3f594fc083533f5a23376988a22f9c6b504ae69013a57fdc1559e2",
     "private_snapshot_path": ".local/window-first518-paired-20261119.json"
+  },
+  "source_conv42_comparison_sha256": "a62de450a98f9892cef9af1fe4f02eed9a8eaacc11aceae7cdc6c8e114e6c30e",
+  "conv42_summary": {
+    "source_run_id": "locomow8r_20261119_011537",
+    "scope": 199,
+    "baseline_correct": 184,
+    "candidate_correct": 184,
+    "baseline_f1": 0.2760545432446597,
+    "candidate_f1": 0.27478670279228495,
+    "fixed": [
+      "conv-42_q60"
+    ],
+    "regressed": [
+      "conv-42_q23"
+    ]
   }
 }
