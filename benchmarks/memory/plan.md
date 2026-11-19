@@ -807,3 +807,5 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 真实1540题基线缓存已仅离线全量审计，无模型或产品服务调用，状态/manifest/summary/public export原字节保持不变；当前仍在运行的窗口源被门槛正确拒绝。最终审计、冻结源码和两个配置的SHA统一封存在`.local/reader-replay-validation-20261119/`，由`/tmp/contextbase-locomo-reader-plans`指向；audit-and-preregistration.json绑定当前代码和配置。先前v2审计及计划文件保留但不是执行入口。下阶段两个配置（与先前预登记逐字相同）：reader8k保留当前窗口8K/4K事实/4K原文，只改全局答题指导；reader32k额外将最终上下文设32768、事实10000/原文22000，API预算仍沿用源8192/65536。均只准备配置，未init、未答题；必须先等完整有效窗口源，再根据前一阶段结果决定执行，不改正在跑的窗口v1。
 
 窗口首组检查点：conv-26全部152题落盘，按原judge相对基线8道旧错转对、1道原对转错（q68），不是1540完整成绩。逐题配对与后验诊断保存`results/locomo1540-window-diagnostics-20261119.json`，完整原始152题对照仍在.local/window-first152-comparison-20261119.json。q68的Seven years回包可见而8K选窗丢失；同义q132却恢复并转对，既定32K离线重打包能保留q68原句，但没有新答题分数。q66的部分marshmallows/stories支持已在8K上下文，仍答错，不能把一切归因检索。q78仅答中figurines仍按原宽松judge转对，未擅自收紧或放宽规则。窗口v1保持原冻结配置，继续全题，不合并两轮逐题最优答案。
+
+窗口conv-30检查点：全部81题保存，基线75对→候选79对；q13/q37/q44/q73转对、无回退，q31/q43仍错。Shia/graceful原句及答案明确恢复；q73即使magical已在上下文仍没出现在答案里，F1为0但judge语义判对，已记录裁判差异而非虚报原词修复。前两组233题共12转对/1回退，配对小结更新同一results/locomo1540-window-diagnostics-20261119.json，原私有152题与conv30对照文件各自保留。没有修改窗口v1或重新回答已完成题目，完整运行继续。

@@ -1,8 +1,8 @@
 {
-  "kind": "partial-first-bank-diagnostic-not-full-score",
+  "kind": "partial-paired-diagnostic-not-full1540-score",
   "baseline_run_id": "locomo1540r_20261119_030518",
   "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 152,
+  "scope": 233,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
@@ -14,7 +14,11 @@
     "conv-26_q26",
     "conv-26_q78",
     "conv-26_q80",
-    "conv-26_q85"
+    "conv-26_q85",
+    "conv-30_q13",
+    "conv-30_q37",
+    "conv-30_q44",
+    "conv-30_q73"
   ],
   "regressed": [
     "conv-26_q68"
@@ -25,9 +29,11 @@
     "conv-26_q5",
     "conv-26_q50",
     "conv-26_q59",
-    "conv-26_q66"
+    "conv-26_q66",
+    "conv-30_q31",
+    "conv-30_q43"
   ],
-  "note": "Read-only paired inspection after one Bank completed, not a complete benchmark or model-equal vendor ranking. No regeneration or changed gold/verdicts.",
+  "note": "Read-only paired inspection of the first two completed Banks (233/1540), not a complete benchmark or vendor ranking. Same newly ingested Banks as the full baseline. No regeneration, modified gold, changed judge or per-question best-answer mixing.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -284,6 +290,108 @@
       "candidate_f1": 0.11320754716981131,
       "baseline_result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
       "candidate_result_sha256": "71591eb8ed39dfca5d59efc627339239732c8862f19c7d5b217d7b619b65fa4a"
+    },
+    {
+      "question_id": "conv-30_q13",
+      "question": "When did Gina open her online clothing store?",
+      "gold": [
+        "16 March, 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Gina opened her online clothing store in January 2023, after losing her DoorDash job and by January 29, 2023. The exact opening date is not stated.",
+      "candidate_answer": "Gina announced that her online clothing store was open on March 16, 2023. However, earlier memories mention her clothing store by January 29, 2023, and explicitly her online store on February 8, so the exact opening date is unclear.",
+      "baseline_reason": "The generated answer gives January 2023, which conflicts with the gold date of 16 March 2023.",
+      "candidate_reason": "The generated answer explicitly identifies March 16, 2023, matching the gold date, despite adding uncertainty.",
+      "baseline_f1": 0.07407407407407407,
+      "candidate_f1": 0.15,
+      "baseline_result_sha256": "26a8df00dbc5b93a9aca5849a70c1dac98a5cfbbf394761739ce867e0b734a7f",
+      "candidate_result_sha256": "80088e60e97f0f6a7345f9cdc32e494a7b2c1a18c7113221b798ca9b8b025de1"
+    },
+    {
+      "question_id": "conv-30_q31",
+      "question": "How long did it take for Jon to open his studio?",
+      "gold": [
+        "six months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "It took Jon about five months—from planning his studio on January 20, 2023, to its scheduled official opening on June 20, 2023.",
+      "candidate_answer": "About five months—from discussing his studio plans on January 20, 2023, to the scheduled official opening on June 20, 2023. The memories are somewhat inconsistent: some describe him running the studio before June, while a July 23 memory still refers to plans to open.",
+      "baseline_reason": "The generated answer says five months, whereas the gold answer specifies six months.",
+      "candidate_reason": "The generated answer says about five months, which does not match the gold answer of six months.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "99737fdcbf55f6f6c2575344011880f0cb9123b66eba5d620a07de4045ada48f",
+      "candidate_result_sha256": "45e91cc7f871f197698954b5b2cf73d828d5df77f0be347416b7cf56adc5374f"
+    },
+    {
+      "question_id": "conv-30_q37",
+      "question": "When did Gina mention Shia Labeouf?",
+      "gold": [
+        " 23 July, 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not show Gina mentioning Shia LaBeouf, so I can’t determine when she did.",
+      "candidate_answer": "Gina mentioned Shia Labeouf on July 23, 2023.",
+      "baseline_reason": "The generated answer says the date cannot be determined, whereas the gold answer specifies 23 July 2023.",
+      "candidate_reason": "The generated answer gives July 23, 2023, which matches the gold answer's date.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.5454545454545454,
+      "baseline_result_sha256": "6acb6bf85a4629cc6f5b4c48b3d163247c90c1346e875a49c150a916084c4503",
+      "candidate_result_sha256": "3a95df14c9bd7c18c5b94032d314625c88bcdf3423b51b294e128cfa24f49e88"
+    },
+    {
+      "question_id": "conv-30_q43",
+      "question": "What do the dancers in the photo represent?",
+      "gold": [
+        "They are performing at the festival"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The dancers represent creativity, self-expression, and the supportive, inclusive dance community Jon hopes to foster at his studio.",
+      "candidate_answer": "The dancers represent the passion, commitment, and creative potential that inspire Jon’s dance studio—a supportive space where dancers can express themselves, grow, and reach their potential.",
+      "baseline_reason": "The generated answer describes symbolic values rather than identifying the dancers as performing at the festival.",
+      "candidate_reason": "The generated answer describes symbolic inspiration for a dance studio rather than identifying the dancers as performing at the festival.",
+      "baseline_f1": 0.1,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "5560e086bb4b525bb046658affa6b754072d513de8a79efc8e4eb1b617c38ff1",
+      "candidate_result_sha256": "b563e4c1afa2327a553a3076a2afa9334bebda90027e86acadc35c68dba30207"
+    },
+    {
+      "question_id": "conv-30_q44",
+      "question": "What does Gina say about the dancers in the photo?",
+      "gold": [
+        "They look graceful"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Gina says they are friends she attended dance class with on July 21, 2023, and that the experience reminded her how important it is for dancers to have a creative space for self-expression.",
+      "candidate_answer": "Gina says the dancers are “so graceful” and asks whether they are Jon’s dancers at the festival.",
+      "baseline_reason": "The generated answer does not mention Gina saying the dancers look graceful, instead describing unrelated details.",
+      "candidate_reason": "The generated answer’s description of the dancers as “so graceful” matches the gold answer that they look graceful.",
+      "baseline_f1": 0.0606060606060606,
+      "candidate_f1": 0.11764705882352941,
+      "baseline_result_sha256": "5c3a87d8104fb418ccbd54d4c27f7eeea2dc61b07c95fffd414ddffeb751d0c1",
+      "candidate_result_sha256": "856d38a3b7a341f5045bd2954f6f3a7d841f9ad940e6e675614c3cf50bead088"
+    },
+    {
+      "question_id": "conv-30_q73",
+      "question": "How does Gina describe the feeling that dance brings?",
+      "gold": [
+        "magical"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Gina describes dance as bringing joy, happiness, and freedom of expression. It relieves her stress and makes her worries vanish; she says it is so essential to her that it’s “like air.”",
+      "candidate_answer": "Gina describes dance as an incomparable feeling of joy and freedom—a way to be herself, express herself, and find happiness. It also relieves her stress, making her worries vanish.",
+      "baseline_reason": "The generated answer describes joy and freedom but does not mention Gina describing the feeling as magical.",
+      "candidate_reason": "The description of dance as an incomparable, joyful, freeing feeling captures the same sentiment as Gina calling it magical.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "455d6e961578f1e5194a451ef7b5006e8d5045ebe629aec3b196c3289a60c58b",
+      "candidate_result_sha256": "7c5c2462c01893badbf4dea7a44385ec499c0426282d6d03ca4ee23553ed61e8"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -388,6 +496,37 @@
       "question_id": "conv-26_q78",
       "finding": "新答案只提figurines、未列shoes；原宽松judge仍判对。保留原规则，但转对不等于列表完整召回。",
       "confidence": "confirmed_partial_list_acceptance"
+    },
+    {
+      "question_id": "conv-30_q13",
+      "finding": "新答案同时给March16公布开店以及更早店铺线索，原judge据匹配gold判对。保留时间矛盾，不将其说成已唯一确定开店日期。",
+      "confidence": "supported"
+    },
+    {
+      "question_id": "conv-30_q37",
+      "finding": "Shia原句已进入新上下文，答出July23并判对，属于有回包/上下文及答案共同支持的恢复。",
+      "confidence": "confirmed_context_recovery"
+    },
+    {
+      "question_id": "conv-30_q44",
+      "finding": "graceful原句已进入新上下文，答案明确说so graceful并判对。",
+      "confidence": "confirmed_context_recovery"
+    },
+    {
+      "question_id": "conv-30_q73",
+      "finding": "magical原句已在新8K上下文，但新答案仍只说incomparable joy/freedom，未复述magical，F1仍为0。新judge按相同感受语义判对，旧相近回答却判错；转对不能全归因于成功使用目标原词，须区分上下文恢复、答题选词与裁判波动。",
+      "confidence": "confirmed_wording_and_judge_difference"
+    },
+    {
+      "question_id": "conv-30_q43",
+      "finding": "原上下文已有D1:24–27的舞者舞台caption和performing at festival原句，新8K窗口也明确保留，reader却再次回答象征passion/commitment。问题在问法解释/reader定位，不是原文仍未召回。",
+      "confidence": "confirmed_reader_selection"
+    },
+    {
+      "question_id": "conv-30_q31",
+      "finding": "新旧答案都从Jan20到Jun20算约五个月，gold六个月；扩大原文后仍保留前后开店阶段冲突。暂不将日期/近似计数争议当检索修复目标。",
+      "confidence": "ambiguous"
     }
-  ]
+  ],
+  "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d"
 }
