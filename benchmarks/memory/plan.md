@@ -10,21 +10,21 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 
 **PG Recall 下推专项已统一归档：**见[维护入口](recall-pushdown/README.md)、[当前设计](recall-pushdown/design.md)、[分析报告](recall-pushdown/analysis.md)、[进展](recall-pushdown/progress.md)与[一晚最小计划](recall-pushdown/plan.md)。下一阶段暂不启动；已有原型的79题接管＋2题回退不能称为完整81题下推，历史BGE 76/81也不是下推成绩。该专项不改变下面正在执行的1540题/V1计划，不占用其模型或服务资源。
 
-**当前状态：完整1540题基线已完成并通过完整性核验，1419题正确、失败0，准确率92.14%、答案F1 27.65%，平均上下文7806 tokens，检索P50/P95 15.31/19.47秒；121道错题全部逐题分析。完整数据和模型/预算见[基线结果](results/locomo1540-baseline-20261119.json)、[错误分析](results/locomo1540-error-analysis-20261119.json)和[报告](report.md)。独立8K窗口候选正在运行，复用原10个Bank、不重新导入，尚无候选完整成绩。**
+**当前状态：完整基线与窗口优化均已完成1540题且valid_complete_run=true。基线1419对、92.14%；优化1442对、93.64%，净增23题（36转对、13回退）。F1 27.65%→28.01%，上下文7806→7980 tokens，检索P50/P95 15.31/19.47→21.99/32.91秒；后者为reranker1→2混合资源。98道优化错题均已检查来源，唯一中断q90已补齐；其余1539题原答案/判定不变。见[全量优化结果](results/locomo1540-window-20261119.json)、[逐题诊断](results/locomo1540-window-diagnostics-20261119.json)和[报告](report.md)。下面的早期部分成绩是历史检查点。**
 
 ## 协作交接（2026-11-19）
 
-**最新执行优先级：用户已明确要求暂时暂停、reranker改2并发，再继续剩余测试。已完成切换，原评测进程恢复；本轮完成后仅归档交接，不自动启动元数据、reader、32K或共同裁判新实验。**
+**最新执行优先级：本轮已完成、恢复并核验；保留环境、原10个Bank及所有旧结果。当前仅归档交接，不自动启动元数据、reader/32K、共同裁判或PG新QA实验。**
 
-**共同入口：本仓`memory-benchmark`分支，目录`benchmarks/memory/`。先读本节和README；管理层简表在report开头。** 以下为当日11:35左右核验的交接快照，动态进度以实际进程与逐题记录为准。
+**共同入口：本仓`memory-benchmark`分支，目录`benchmarks/memory/`，同一维护版runner通过两份配置选择baseline/window方案。先读本节和README；管理层简表在report开头。以下已更新为全量收尾状态。**
 
 | 事项 | 已完成/当前状态 |
 | --- | --- |
 | 测试口径 | 固定AMB `28b644b`、LoCoMo类别1–4，共1540题；10个Bank、272session、5882消息 |
 | 全量基线 | **1419/1540，准确率92.14%、F1 27.65%、上下文7806 tokens、检索P50/P95 15.31/19.47秒**；失败0，121错题已逐题分析 |
 | V1窗口优化 | 原文API预算8192→65536，最终reader仍约8K，按问题选完整消息窗口；复用旧10个Bank、不重新导入 |
-| V1最新进度 | **817题答题/判题完成，762题按完整Bank落盘，无失败题；全量未结束** |
-| V1同范围效果 | 前762题基线702对→715对，**92.13%→93.83%**；F1 26.74%→27.23%；检索P50/P95 15.23/18.68→16.99/29.32秒；19修复、6回退，含judge波动 |
+| V1最新进度 | **1540/1540，1442对、98错、失败0、待处理0；整轮及补齐进程已退出** |
+| V1同范围效果 | 全1540题92.14%→93.64%，F1 27.65%→28.01%，36转对/13回退；时延变慢，含reader/judge差异与标注争议，不能将全部转对都称检索修复 |
 | 新元数据打包 | `query-turn-windows-metadata-v2`代码已提交（`249118630`），78项离线测试通过；六题重打包能恢复原有图片搜索元数据，**没有新QA分数** |
 | 新reader/32K | 固定提示与缓存复测能力已准备，**尚未执行**；元数据候选单独验证后再组合，旧预登记配置保留 |
 | 原文检索/PG方向 | 已完成只读索引/零关联chunk诊断与全1540题离线候选覆盖检查；有补充候选的依据，**尚未部署或取得新QA成绩** |
@@ -37,9 +37,9 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 - 当前代码仓：`/Users/zhuqingping/Work/Database/Context/hindsight`；不要切换共享工作目录的分支，同事各自在独立分支/工作目录开发。
 - 在测服务：本机API `http://127.0.0.1:8892`、PG5432；部署release为`gpt61-20261107-dd5521cb9`，不是benchmark分支当前HEAD。不要把评测脚本分支当成已经部署的新服务。
 - 模型：retain `gpt-6.1-sol medium`；reader/judge `gpt-6.1-sol low`；embedding `doubao-embedding-vision` 1024维；BGE-reranker-v2-m3固定revision `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`，CPU FP32/batch8/4线程；QA2并发；rerank起始为1，现已切换2并分段归档。机器10核/24GiB，当前有余量试2，但不是预期翻倍。
-- 完整基线目录：`.local/runs/locomo1540r_20261119_030518/`。当前V1目录：`.local/runs/locomow8r_20261119_011537/`；`/tmp/contextbase-locomo-window-candidate-run`指向它。旧候选/网络恢复链均保留，不能当作多次独立完整成绩。
-- 当前producer6427、supervisor6428、caffeinate6429（仅快照）；日志`/tmp/contextbase-locomo-window-network-eval.log`。使用运行目录内冻结的runner/support；未完结时不再启动第二个run或共同裁判任务争用同一实例。
-- 查看真实进度（仓根目录执行）：`.venv/bin/python benchmarks/memory/analysis.py --run-dir benchmarks/memory/.local/runs/locomow8r_20261119_011537 --progress`，并用`ps -p 6427,6428 -o pid=,etime=,state=`核验进程。观察超时不是任务停止，不能据此重启。
+- 完整基线：`.local/runs/locomo1540r_20261119_030518/`；完整优化：`.local/runs/locomow8c_20261119_1506/`（manifest SHA `dec51c5669eeb4259499ae44224af07f7d2ca7168d3d85f0ca1fc1f29223d57d`）。旧优化恢复源`locomow8r_20261119_011537`保持原HTTPFailure，不能冒充完整有效成绩。
+- 原producer6427、supervisor6428已退出，补齐任务也正常退出；本轮无活动评测进程。8892和全部Bank继续保留。原日志`/tmp/contextbase-locomo-window-network-eval.log`保留。
+- 查看完整优化归档：`.venv/bin/python benchmarks/memory/analysis.py --run-dir benchmarks/memory/.local/runs/locomow8c_20261119_1506 --progress`。重新复测统一使用README的维护版runner与对应配置，新run目录；不要覆盖旧记录。
 
 ### 建议并行分工
 
@@ -56,9 +56,9 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 
 - `results/`中的脱敏JSON和三份人读文档已在Git；`.local/`保存真实回包、完整answer/judge提示与响应、冻结源码、配置、校验和，**不在Git**。跨机器协作需另行准备公开LoCoMo数据和脱敏证据；不要假定克隆仓库就带有本机原始记录。
 - 当前实际回包在`<run>/retrievals/<qid>.json`；答题/判题完整记录在`<run>/calls/<qid>-answer.json`、`<qid>-judge.json`；完整Bank结果在`<run>/results/<qid>.json`。完整交互示例：`.local/examples/locomo-conv30-q44-full-interaction.html`。未归档的HTTP headers/SSE不能事后假装有原始抓包。
-- 凭据仅通过本机配置引用，勿提交`api.env`、admin-key、OAuth信息；旧Bank、旧结果、已完成答案和原裁判判定全部保留。当前改动只本地提交，没有推送/合并。
+- 凭据仅通过本机配置引用，勿提交`api.env`、admin-key、OAuth信息；旧Bank、旧结果、已完成答案和原裁判判定全部保留。维护分支已推送个人远程，未合并主分支；最终数据随本次收尾提交。
 - 每个候选交付：明确假设和变量、代码commit、完整配置/数据与评分SHA、新run_id、同范围指标和全部修复/回退题。记录accuracy、原始F1、同tokenizer上下文tokens、检索P50/P95；缓存复测必须标注“沿用来源检索时延”，不能宣称新速度。
-- 后续顺序：完成当前V1全1540题并核验→单独元数据8K缓存全量→reader/更大预算→独立原文/PG实验。必要时依据完整证据调整，但不得改gold、放宽judge或重答择优。全部10组已用于分析，后续为开发集调优，不宣称未见测试集泛化或榜单第一。
+- 后续方向：元数据8K、简洁reader/更大预算、独立原文/PG实验都作为分开的候选，不自动启动。全1540已用于开发分析；不改gold、不放宽judge、不重答择优，不宣称未见集泛化或同条件榜单第一。PG Recall专项按上方独立入口交接。
 
 阅读顺序：[数据规模](#数据是什么) → [测试流程](#从导入到出成绩的流程) → [真实案例](#用一道真实题目走完整流程) → [三家方案对照](#mem0-hindsight-与-contextbase-方案对照) → [指标](#成绩怎样计算) → [公平对比](#怎样与-mem0-和-hindsight-公平比较) → [固化脚本](#固化脚本与复测方法) → [耗时](#一轮测试需要多久) → [资源预算](#存储和-token-预算) → [本轮结果诊断](#conv-30-结果诊断及-hindsight-对比)。
 
@@ -924,3 +924,12 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 前九组1382题中1381题语义QA完成，仍仅q90传输中断。同范围基线1269/1381（91.89%）→V1 1293/1381（93.63%），累计35转对、11回退，净增24；F1为27.63%→27.90%。conv-49单组139/156→145/156，7转对1回退。新增18条来源检查已合入既有JSON；当前88道语义错题均有V1原文/上下文检查，未改分。
 
 q99梦境书、q141寻找爱建议、q145饼干配方实际恢复原句；q123游客主题旧打包已存在，是reader选择变化；q153旧新都有kayak caption，答案相近但judge判定翻转。回退q104缺salad caption且最终不含spinach/avocado/strawberries。q24/q144人物、q54膝盖/脚踝、q74星期、q80跨年等gold冲突单列；q64最终事实已有gastritis，不能按参考原文ID未打包就说疾病事实缺失。只进行离线来源检查，最后一组继续原配置执行。
+
+
+### 全量收尾核验（2026-11-19）
+
+最终run为`locomow8c_20261119_1506`，完整结果1442/1540、准确率93.6364%、原版F1 28.0107%。分类型：多跳263→262/282，时间288→292/321，开放推断67→73/96，单跳801→815/841；改善主要来自单跳/推断，多跳仍回退1题，不能只看总体上升。总上下文12,289,688 tokens；已知answer+judge 12,786,184 tokens，19次未知尝试用量保留。98道错题均有当前来源检查。
+
+补齐前核验原进程退出、真实锁空闲、仅q90为HTTPFailure且无语义调用。新检查点只新增q90 answer/judge，其他1539题的6156份payload去除fingerprint/checksum后逐字一致；原源6158份sealed文件SHA全部不变。q90判对，原失败记录不覆盖。恢复审计`.local/window-restart-recovery-prepared-20261119/completed-preservation-audit.json`，脱敏副本合入diagnostics。
+
+维护版离线复包：上一轮1540题全部Packed记录一致；本轮先前完成1381题的reader正文全部逐字一致，其中1题非正文元数据不完全一致（conv-41_q122），不宣称所有Packed字段完全一致。此为已有回包兼容核验，没有新recall/答题/判题分数。三种显式hash seed的该题复算正文也一致，非正文差异原因留作后续排查，当前成绩保留原始上下文。完整配置、客户端/服务端指纹及PG插件见环境清单，服务部署继续保留。

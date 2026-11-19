@@ -6,14 +6,27 @@
 
 | Benchmark | Mem0 | Hindsight | ContextBase |
 | --- | ---: | ---: | ---: |
-| LoCoMo | 92.5% | 92.0% | **92.14%（1540题全量）** |
+| LoCoMo | 92.5% | 92.0% | **基线92.14% → 优化93.64%（均1540题）** |
 | LongMemEval-S | 94.4% | 94.6% | 尚未测试 |
 | BEAM 1M | 64.1% | 73.9% | 尚未测试 |
 | BEAM 10M | 48.6% | 64.1% | 尚未测试 |
 
-**ContextBase第一版优化：前七组已完成1034题，同题准确率92.26%→93.62%，提高1.35个百分点；全量仍在测试，另有1条中断检索待补。**
+**ContextBase第一版优化已全量完成：1442/1540，准确率93.64%，比基线净多答对23题（+1.49个百分点）。36题转对、13题回退；98道错题已逐条检查来源。**
 
-LoCoMo、LongMemEval为准确率，BEAM为平均分；各家模型和环境不同，表格不是统一条件排名。来源：[Mem0官方表](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026)、[Hindsight固定官方结果](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)、[ContextBase基线](results/locomo1540-baseline-20261119.json)和[优化阶段结果](results/locomo1540-window-diagnostics-20261119.json)。
+| 指标 | 上一轮基线 | 本轮窗口优化 |
+| --- | ---: | ---: |
+| 准确率 | 92.14%（1419/1540） | **93.64%（1442/1540）** |
+| 原版答案F1 | 27.65% | **28.01%** |
+| 平均记忆上下文（o200k） | 7806 tokens | 7980 tokens |
+| recall P50 / P95 | 15.31 / 19.47秒 | 21.99 / 32.91秒（混合资源） |
+
+本轮提高了准确率，但F1只增加0.36个百分点，检索时延变长。变化为原文候选8K→64K及客户端问题相关消息窗口，最终上下文仍8K；原Bank、reader/judge模型、原AMB提示与裁判规则不变，未部署PG下推或全文新索引。模型为`gpt-6.1-sol`，与友商模型/硬件不同，不能据数值宣称同条件第一。
+
+重排并发中途1→2，已单列851题切换前（P50/P95 17.68/29.80秒）、2题切换/恢复（28.58/43.45秒）、687题切换后（24.88/34.78秒）；不同题/负载，不能作为并发加速的同题对照。模型账目含19次未知用量尝试，已知答题/判题共12,786,184 tokens，不含retain及内部调用，不能当完整账单。
+
+唯一重启中断q90已首次答题/判题并判对；其余1539题原答案和裁判逐条一致，旧运行6158份sealed记录哈希未变。原始失败仍留在旧目录。完整结果：[全量优化](results/locomo1540-window-20261119.json)；原因、配置和资源恢复证据：[逐题诊断](results/locomo1540-window-diagnostics-20261119.json)。
+
+LoCoMo、LongMemEval为准确率，BEAM为平均分；各家模型和环境不同，表格不是统一条件排名。来源：[Mem0官方表](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026)、[Hindsight固定官方结果](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)、[ContextBase基线](results/locomo1540-baseline-20261119.json)和[优化全量结果](results/locomo1540-window-20261119.json)。
 
 ---
 

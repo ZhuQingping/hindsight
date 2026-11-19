@@ -1,35 +1,48 @@
 {
-  "kind": "partial-paired-diagnostic-not-full1540-score",
+  "kind": "full1540-paired-diagnostic-with-historical-checkpoints",
   "baseline_run_id": "locomo1540r_20261119_030518",
-  "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 1034,
+  "candidate_run_id": "locomow8c_20261119_1506",
+  "scope": 1540,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
-  "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
+  "candidate_manifest_sha256": "dec51c5669eeb4259499ae44224af07f7d2ca7168d3d85f0ca1fc1f29223d57d",
   "fixed": [
-    "conv-26_q132",
-    "conv-26_q133",
-    "conv-26_q135",
     "conv-26_q21",
     "conv-26_q26",
     "conv-26_q78",
     "conv-26_q80",
     "conv-26_q85",
+    "conv-26_q132",
+    "conv-26_q133",
+    "conv-26_q135",
     "conv-30_q13",
     "conv-30_q37",
     "conv-30_q44",
     "conv-30_q73",
     "conv-41_q0",
-    "conv-41_q123",
     "conv-41_q4",
     "conv-41_q45",
     "conv-41_q95",
+    "conv-41_q123",
     "conv-42_q60",
     "conv-43_q5",
     "conv-44_q39",
     "conv-47_q16",
     "conv-47_q71",
-    "conv-47_q147"
+    "conv-47_q147",
+    "conv-48_q74",
+    "conv-48_q75",
+    "conv-48_q99",
+    "conv-48_q119",
+    "conv-48_q174",
+    "conv-49_q11",
+    "conv-49_q57",
+    "conv-49_q99",
+    "conv-49_q123",
+    "conv-49_q141",
+    "conv-49_q145",
+    "conv-49_q153",
+    "conv-50_q134"
   ],
   "regressed": [
     "conv-26_q68",
@@ -40,21 +53,25 @@
     "conv-43_q166",
     "conv-44_q37",
     "conv-44_q55",
-    "conv-47_q56"
+    "conv-47_q56",
+    "conv-48_q188",
+    "conv-49_q104",
+    "conv-50_q130",
+    "conv-50_q136"
   ],
   "unchanged_wrong": [
-    "conv-26_q144",
-    "conv-26_q40",
     "conv-26_q5",
+    "conv-26_q40",
     "conv-26_q50",
     "conv-26_q59",
     "conv-26_q66",
+    "conv-26_q144",
     "conv-30_q31",
     "conv-30_q43",
+    "conv-41_q8",
     "conv-41_q61",
     "conv-41_q62",
     "conv-41_q63",
-    "conv-41_q8",
     "conv-42_q4",
     "conv-42_q12",
     "conv-42_q14",
@@ -99,9 +116,37 @@
     "conv-47_q19",
     "conv-47_q31",
     "conv-47_q62",
-    "conv-47_q64"
+    "conv-47_q64",
+    "conv-48_q23",
+    "conv-48_q36",
+    "conv-48_q46",
+    "conv-48_q71",
+    "conv-48_q87",
+    "conv-48_q101",
+    "conv-48_q115",
+    "conv-48_q116",
+    "conv-48_q134",
+    "conv-48_q179",
+    "conv-49_q24",
+    "conv-49_q32",
+    "conv-49_q43",
+    "conv-49_q54",
+    "conv-49_q64",
+    "conv-49_q74",
+    "conv-49_q80",
+    "conv-49_q102",
+    "conv-49_q106",
+    "conv-49_q144",
+    "conv-50_q7",
+    "conv-50_q47",
+    "conv-50_q61",
+    "conv-50_q62",
+    "conv-50_q67",
+    "conv-50_q137",
+    "conv-50_q147",
+    "conv-50_q151"
   ],
-  "note": "Paired completed semantic QA in the first seven Banks:1034/1035 answered, one predeclared restart interruption pending. Not full1540 or seven fully scored Banks. Mixed resource epochs are separately declared; completed calls are never regenerated and source hashes remain explicit.",
+  "note": "Full1540 comparison and98 wrong-case source reviews; historical first-bank checkpoints remain for traceability. No re-answering completed semantic QA, gold edits, lenient judge substitution, or picking best answers. ID coverage is diagnostic, not causal proof.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -120,7 +165,8 @@
       "candidate_f1": 0.1111111111111111,
       "baseline_result_sha256": "3c1d3a168c3e31a06a72706634b3289f3bff2664a4cd5a5e2b020655f859e5fd",
       "candidate_result_sha256": "e8abe7643d913e2efe98858095ef8e4bc34a9fab95c3c78f00ded59f6a8c0566",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "89b2f74d4bb48ad97e2285ca297c101e44ceaec0e05e9817a822a3b139f2b786"
     },
     {
       "question_id": "conv-26_q133",
@@ -138,7 +184,8 @@
       "candidate_f1": 0.4,
       "baseline_result_sha256": "f98c91a9f1497f542ca923cf0c8154595ebaf9950ce69c5403db2c361d57da1a",
       "candidate_result_sha256": "aa9005c24276d16c74d9ffdbdca42f467d5da6335e1c1470bc13e98e2dcd0c98",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "bb8cc869defce3eab59ecb099efb55ab243181c166fd492f7d05667bbbc7bee3"
     },
     {
       "question_id": "conv-26_q135",
@@ -156,7 +203,8 @@
       "candidate_f1": 0.3428571428571429,
       "baseline_result_sha256": "4b96d0c754fb7101407c57185d11e73f222df169350c6abd38a5e78457bbb5e6",
       "candidate_result_sha256": "d3ddf8876929844e385853bc7480bdd1a8d1564973ee5db4bf1b7107891bd046",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "172ef6f2674510ea0f40427c9e34408a4783d9b3b50ca90cede81e8d4dbbe899"
     },
     {
       "question_id": "conv-26_q144",
@@ -174,7 +222,8 @@
       "candidate_f1": 0.2162162162162162,
       "baseline_result_sha256": "ae4f7a5b181569daebfd63c9dfdf1a46395d8e87dd5064dffaef58ca138685e6",
       "candidate_result_sha256": "641319725f0c4d72ff8d8fd12a71515c58c38aa1d9d6e50ab58ebefab704ce22",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "f83b3ad00675db970d9755ac41d07a2915505935e80bffcce1d260b532985988"
     },
     {
       "question_id": "conv-26_q21",
@@ -192,7 +241,8 @@
       "candidate_f1": 0.12500000000000003,
       "baseline_result_sha256": "ca1da373c2fef2c3ccdf1839a275872a4130c79539b6318b2e22b1d26cf7a6ca",
       "candidate_result_sha256": "efc0d293154ca6da3efea36f14dbc4ddc104e6b11fea9f8c38f89c75bfbf1126",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "79c81acd35cad7021335d5fcdf7e2bff504508e699df1327730c7ae2e0f06e3d"
     },
     {
       "question_id": "conv-26_q26",
@@ -210,7 +260,8 @@
       "candidate_f1": 0.25,
       "baseline_result_sha256": "613f18c331cf870a3d6a22f7ada7ab27a4fa7ce9f36b89518b03394f5671a3b3",
       "candidate_result_sha256": "87eae9509b3855a67ffb8e4809217da0fc314e295cd9869efe81b50bc970d00f",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "8c6c9ea656228de4763864e748dcc95cd4db8a1a8b0701840524739837c52fac"
     },
     {
       "question_id": "conv-26_q40",
@@ -228,7 +279,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "a6f01371c519f4a5664823e8bd1c73e506e082e10cd2c029b44828f62c4b4375",
       "candidate_result_sha256": "dde91ef800c707c42a61f86494e58d5973bacc12049818c1a26c9993516b4327",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "1c6fe4c4d608771b53291066bf75f266a10e1749c0c62d4fc4c749b881620b82"
     },
     {
       "question_id": "conv-26_q5",
@@ -246,7 +298,8 @@
       "candidate_f1": 0.23529411764705882,
       "baseline_result_sha256": "9816f17cf78695ab836bab127cd413bc55df903359bbcc42dddd7bdc02037c8b",
       "candidate_result_sha256": "52acb63c042d85da21b4f8cdef67935126e9616b14213641534cd46f7f578acb",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "dda989ce1139ffaaf5eae21bb37fb68ef50c3f6686937f74eed770ca81ebf0a7"
     },
     {
       "question_id": "conv-26_q50",
@@ -264,7 +317,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "0e747aaa62e1c0d63a962a43e7687221edf21fc1bc33668fab083f69966dfdf8",
       "candidate_result_sha256": "029a4eb2329cc160ce03d3c715ae91e6a39b0ef2ec5e97a53e3bee0d957016c1",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "fe9af143c522cdc839b9ce7e036e0b0f36de930195b4aa1d981b88e6d4bed915"
     },
     {
       "question_id": "conv-26_q59",
@@ -282,7 +336,8 @@
       "candidate_f1": 0.0816326530612245,
       "baseline_result_sha256": "8464ff5425cd7528d3f77f033432eb810cd74396745df983ad670e8c4ceee620",
       "candidate_result_sha256": "d984f46c272479513d77e9031940e5455954c03d28e38ff93c57bb246ead8d4a",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "d2751ddb8f85956482c7ba6125a660127993640b2409cc8efd044964e1367bc2"
     },
     {
       "question_id": "conv-26_q66",
@@ -300,7 +355,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "3f3a827695cf0729a194b10ae2ff69754ec3602da06ba351db46c5d217803d97",
       "candidate_result_sha256": "896d53181c8c3d5dbb4fa0c4d3cac4ee22ac178541a31b65887797f706a2c1a0",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "fd9630bba91c913639a1962815d7a596929399cf0a7fe2b26c6e8aea17c8dcdb"
     },
     {
       "question_id": "conv-26_q68",
@@ -318,7 +374,8 @@
       "candidate_f1": 0.047619047619047616,
       "baseline_result_sha256": "65efdaacde692d76150d634474d3d595ab64a97399139b5c1283a23e77d3a2ef",
       "candidate_result_sha256": "c25ecdc003e36ddfac8408af90f50c3e82ceb29b2b1e33c8b6b9493583b47dd0",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "45b4be180e2914f70612d9e6bb00001d168b9a6c0307a0589cf258c3e9148602"
     },
     {
       "question_id": "conv-26_q78",
@@ -336,7 +393,8 @@
       "candidate_f1": 0.09090909090909091,
       "baseline_result_sha256": "d395a3e2e6e328a5b333780773ef4c0d6d70616b6be8f34bd1b28bbd7f288743",
       "candidate_result_sha256": "f43490849e9963f7823d030b340f5b2bd4218e7dd3df3f207939670764ed7c24",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "c22e7d017b42cd3ef79bbab0d0421a4b9d615ef9a74b22168c04029004352d60"
     },
     {
       "question_id": "conv-26_q80",
@@ -354,7 +412,8 @@
       "candidate_f1": 0.6,
       "baseline_result_sha256": "a0af1d97d33e97f42daea934c5b358421e7bf54ab2dd1b1d0a63613ad55e4d6d",
       "candidate_result_sha256": "999a488ad220cb50377b6f0fd9b631da4481ed6c9c43e20f3cdabd46baad6bc3",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "ba52b43d2b66250daf687032a789a323363a332b8817bb7add23f264e52512ca"
     },
     {
       "question_id": "conv-26_q85",
@@ -372,7 +431,8 @@
       "candidate_f1": 0.11320754716981131,
       "baseline_result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
       "candidate_result_sha256": "71591eb8ed39dfca5d59efc627339239732c8862f19c7d5b217d7b619b65fa4a",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "a643dffa034ec4d376bb23b4f192cdb703823e17555b51f9a84a8319c9351b80"
     },
     {
       "question_id": "conv-30_q13",
@@ -390,7 +450,8 @@
       "candidate_f1": 0.15,
       "baseline_result_sha256": "26a8df00dbc5b93a9aca5849a70c1dac98a5cfbbf394761739ce867e0b734a7f",
       "candidate_result_sha256": "80088e60e97f0f6a7345f9cdc32e494a7b2c1a18c7113221b798ca9b8b025de1",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "253899092361b4842312fbb044a757e1a0c107ca0bd8231e01a97ebd8b51fd9d"
     },
     {
       "question_id": "conv-30_q31",
@@ -408,7 +469,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "99737fdcbf55f6f6c2575344011880f0cb9123b66eba5d620a07de4045ada48f",
       "candidate_result_sha256": "45e91cc7f871f197698954b5b2cf73d828d5df77f0be347416b7cf56adc5374f",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "231662da0fecf95033404f67df90a41e96fe5821a81bb624918140354c9f9695"
     },
     {
       "question_id": "conv-30_q37",
@@ -426,7 +488,8 @@
       "candidate_f1": 0.5454545454545454,
       "baseline_result_sha256": "6acb6bf85a4629cc6f5b4c48b3d163247c90c1346e875a49c150a916084c4503",
       "candidate_result_sha256": "3a95df14c9bd7c18c5b94032d314625c88bcdf3423b51b294e128cfa24f49e88",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "0898358c53e8aaedfd3ae5348249939062155187f4e5c31addeb9526d8e8d0d8"
     },
     {
       "question_id": "conv-30_q43",
@@ -444,7 +507,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "5560e086bb4b525bb046658affa6b754072d513de8a79efc8e4eb1b617c38ff1",
       "candidate_result_sha256": "b563e4c1afa2327a553a3076a2afa9334bebda90027e86acadc35c68dba30207",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "95724abd317deba5adc266322775d4b9980e2a3c23617520006d9ef47365052f"
     },
     {
       "question_id": "conv-30_q44",
@@ -462,7 +526,8 @@
       "candidate_f1": 0.11764705882352941,
       "baseline_result_sha256": "5c3a87d8104fb418ccbd54d4c27f7eeea2dc61b07c95fffd414ddffeb751d0c1",
       "candidate_result_sha256": "856d38a3b7a341f5045bd2954f6f3a7d841f9ad940e6e675614c3cf50bead088",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "b0fef1f0a6c4fa4a01eee9e908c62b9fb72e197112d4ae09b4655c02c0570886"
     },
     {
       "question_id": "conv-30_q73",
@@ -480,7 +545,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "455d6e961578f1e5194a451ef7b5006e8d5045ebe629aec3b196c3289a60c58b",
       "candidate_result_sha256": "7c5c2462c01893badbf4dea7a44385ec499c0426282d6d03ca4ee23553ed61e8",
-      "candidate_source_run_id": "locomow8_20261119_0308"
+      "candidate_source_run_id": "locomow8_20261119_0308",
+      "final_candidate_result_sha256": "869a27901af4ae8e8a8b2be4f8a9d578d46749dc909d2430e0409f1652ee4bb6"
     },
     {
       "question_id": "conv-41_q0",
@@ -498,7 +564,8 @@
       "candidate_f1": 0.33333333333333337,
       "baseline_result_sha256": "0d31a82dc31c126a186d491c4d046dcb81dae8d3bc02105c432e735f15da1101",
       "candidate_result_sha256": "014305fdaebab90ee18a64322402927cb0f3610a3dd5dd864c29147a60015fb3",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "8072ac136ca1cfb536116adde91556cf7e9b6296d24a9aa8e688f59433c45061"
     },
     {
       "question_id": "conv-41_q123",
@@ -516,7 +583,8 @@
       "candidate_f1": 0.5454545454545454,
       "baseline_result_sha256": "1df0b249be331b5547947296a36fab232ae54ac2bed3266ff44513445369f56d",
       "candidate_result_sha256": "fe0f9ec35064e7a937b57085cf670f2bea3cf75d3e802d436800c3ce3af17a54",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "fa7ddf5bf73234280985b52f42fef057fdbf348c32297f12a14243f113739547"
     },
     {
       "question_id": "conv-41_q4",
@@ -534,7 +602,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "08b6fb25760d3ab347c0854ccd70cf420500b45c3e345473feae236cba385ba0",
       "candidate_result_sha256": "79ff44c2772aef8ba92d2bcc350fb0f0ebaf8f590aa234e680c347d33d93ac30",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "cc4aa39fe776a8f47a2a9c5ce3d6c04532a6234d095d404fa8b5c6222ce8a82b"
     },
     {
       "question_id": "conv-41_q45",
@@ -552,7 +621,8 @@
       "candidate_f1": 0.12658227848101267,
       "baseline_result_sha256": "d2024ec2403d553817c9d4cd00e9fdf66a7c015faa1ec79cedf9a376c6cc3ec7",
       "candidate_result_sha256": "9b7d2fc6ae4a50b02c7fa7d8e5336ef6559d693c1b6b616ddad67c2983733b5f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "ab1ca8ff9734b834b541e48777668a6817d697823ce33b1377e76862ceeac74b"
     },
     {
       "question_id": "conv-41_q61",
@@ -570,7 +640,8 @@
       "candidate_f1": 0.26666666666666666,
       "baseline_result_sha256": "20ac718a68142b635e60538c9a5afbb79c0be18edb01ee2c3eb655747fca27d3",
       "candidate_result_sha256": "82d33905869bcd6305e336bcb868935c3818c095661c6466f68bb626272d0c0f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "54b73d726539ab19941f89b8091ec927908f3567e493d2c68644c39e08e5aefa"
     },
     {
       "question_id": "conv-41_q62",
@@ -588,7 +659,8 @@
       "candidate_f1": 0.33333333333333337,
       "baseline_result_sha256": "8cdfe7ce7c36a80ef47c6d3001f7278a6573d08d9548a5b3ebd70028f5391769",
       "candidate_result_sha256": "191d5d71a07aceb6ee8b7aba5d8400bf5b2566133ae5af9e26d73289b69254b2",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "5fe5fe3cca49fa567db8af5e247b0d175158061434c20feb57f065de99eaa7f3"
     },
     {
       "question_id": "conv-41_q63",
@@ -606,7 +678,8 @@
       "candidate_f1": 0.09090909090909091,
       "baseline_result_sha256": "43490de76ebf852df1e98ce9b70d9ecfd3baa5da85c780abc2b2e9b3d7a20898",
       "candidate_result_sha256": "35db79fe5e286b39dda683e0c9b4e1b3e56c1e340791f186066206e40e197e11",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "9a7f46a402dff6601403b8e380026e78237864634bdf2e5095b29fe5bdefcd7a"
     },
     {
       "question_id": "conv-41_q8",
@@ -624,7 +697,8 @@
       "candidate_f1": 0.03333333333333333,
       "baseline_result_sha256": "67ddd957545316016bbbe7d02a2868b4ec5dcb8c06b791dfc6491378b66568aa",
       "candidate_result_sha256": "66da974994ec2a6197d4d3f658a2645ec1497aaf1d1f498621debfe354897b5e",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "fcdeab76986237f0c9e53605e9b89baf5e1ad7a6b9c01d3e97f9dd328968291d"
     },
     {
       "question_id": "conv-41_q94",
@@ -642,7 +716,8 @@
       "candidate_f1": 0.0,
       "baseline_result_sha256": "0c90263f9d40f894666a38817ba766a986eb8d46e0ac2f2c1e38609ff851c86c",
       "candidate_result_sha256": "2800ed7f50f91c7f498c56f49a78bc34d39bf349225e6d044ec882df4828c1fd",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "30f64cf1101bc34d152038ebd0f52ae12f913de851a9028e6ac024b80f4bc803"
     },
     {
       "question_id": "conv-41_q95",
@@ -660,7 +735,8 @@
       "candidate_f1": 0.30769230769230765,
       "baseline_result_sha256": "7700c126033fa81529dda73619121badf56d0ee8510f9db60474a5de30a0de9a",
       "candidate_result_sha256": "3109b0fee74b3f4249830b85d3c93516ac75b3afac89ca8821ff0a1331e5b574",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "7de9e040e8770de67bd80e6bfdf48174df688a9cf4fcac87bede8f7a12184a6b"
     },
     {
       "question_id": "conv-42_q4",
@@ -681,7 +757,8 @@
       ],
       "candidate_result_sha256": "ff1feb4f43a3d73d092a8d91295460c7f04b3b98623be9410cf779bfdb222382",
       "baseline_result_sha256": "fc3f0a5f37f43cb9604c286851355a528380e4bae5e16c2d20ff9e9a1ad2927d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "6430045180161f609833c2a2292dcb9915d5e99c4c60e1d00b9c920409de3b08"
     },
     {
       "question_id": "conv-42_q12",
@@ -703,7 +780,8 @@
       ],
       "candidate_result_sha256": "a82522ec5eb78620abd2218270ea506fd201c200d1ee56033076f877b102546d",
       "baseline_result_sha256": "cc7f21512a3e0635575f9aaf3c81b8dc417806211cd0fad3778137c12990fa41",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "236abe45a401517b92cd2de7445e4f34c03b8cf51515ffaba9966b03a3fe05d6"
     },
     {
       "question_id": "conv-42_q14",
@@ -724,7 +802,8 @@
       ],
       "candidate_result_sha256": "879bfbdd325e283fc7b070b0696d5a4d88f18f74766a3bb481dbd64613fa6215",
       "baseline_result_sha256": "059a7caece72173a0fd5284f72d9aeb76d88e5b4263a46c891345b0122f773f8",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "6c156e5c18994627e661e245fd293d3ea1a9bfdab74f5c3e66e57090f9c02045"
     },
     {
       "question_id": "conv-42_q23",
@@ -749,7 +828,8 @@
       ],
       "candidate_result_sha256": "cf869e397d53ea5d9dab795dd5690536fa63b10d760cf73949c3aebb9c083aa5",
       "baseline_result_sha256": "55bdac20cdd2e74c2e9ec779e8b043f639526bba8c062a28bcd93c98d0f1adf1",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "3b3ba246dedaea07b5b8db32050f8c81135b5192584db220182457cb3b7b11e4"
     },
     {
       "question_id": "conv-42_q24",
@@ -770,7 +850,8 @@
       ],
       "candidate_result_sha256": "9b659576084154c2fe44036cc0360e3662648a57352f7eeb27d324c6ea23efc9",
       "baseline_result_sha256": "6dfcb94cebfa4885d363cf636875f72b1290fb41f14c790683aa13c36eba9e7a",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "d4a9ca84e750cb038f5808703594f9b2152723d41f7cb9a776c686fda65f58be"
     },
     {
       "question_id": "conv-42_q34",
@@ -793,7 +874,8 @@
       ],
       "candidate_result_sha256": "364c54d093d323e960218b88f33f1f84c9fcd1cc1c78f9407f821f59dca1d820",
       "baseline_result_sha256": "8dd510efa0ae0fff49a2a62180c39514a55a87d167be00581ad12bc873047aab",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "627b1f9d8066ed54a4626bdc4ea15005a9f8b8b7f40fa0f61ece03d6e9452cdf"
     },
     {
       "question_id": "conv-42_q43",
@@ -815,7 +897,8 @@
       ],
       "candidate_result_sha256": "bf41db7631465251ab0397294c5ba2019a9fbe0086eca8a610ab50a791ad234d",
       "baseline_result_sha256": "9cde9476e924687627a74a377199e47613672e90f08ae8e15aeeafd6078afaee",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "5aa12921fbc729d744d487bc78ce5a36c7882c52f3a169c3c7731fa02900a228"
     },
     {
       "question_id": "conv-42_q53",
@@ -837,7 +920,8 @@
       ],
       "candidate_result_sha256": "f3fd205a246de006d7d146cbb01c66c97cc33777120c17f0c378c8aca469e488",
       "baseline_result_sha256": "4dddd25f2aa815609de07e29a277b2bd3b4b41bada4570c759ba518612aed14d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "ed5d1f557db3104a82ab11a90c761de951ceb3fd10c1b74bfd0203fd412f7013"
     },
     {
       "question_id": "conv-42_q54",
@@ -858,7 +942,8 @@
       ],
       "candidate_result_sha256": "0f0fb29eb998730f04edfc43c6e70d7e27a6f04fe95dd0b5931f9c5384ea35e9",
       "baseline_result_sha256": "2e64536c0d8d2c8300c9a9d2c67cc5d0be70b3c4213d4ee77cd44a1a0b74d5fb",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "737f3ca09f84d53316694d3935b1d8f1b6d5a7fc9ced56dae9f12721c00d376f"
     },
     {
       "question_id": "conv-42_q60",
@@ -879,7 +964,8 @@
       ],
       "candidate_result_sha256": "8028bf0ed170ce7d7bdcccd24f600888238a4deb5ddb8330d7cf437682b48563",
       "baseline_result_sha256": "c1a4eb814ce551a80b9d166ed050322a7cb34cc24c5d82970f9d493ad178a145",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "bc273fa46d746f218f2f355c997b2b8aeed9f959c1eb7eda94947ab7429f35b4"
     },
     {
       "question_id": "conv-42_q62",
@@ -901,7 +987,8 @@
       ],
       "candidate_result_sha256": "dbb99f466a167ff10ab4b8bab6f0ccde94d6ff96dc6dba38f4231957b7b29888",
       "baseline_result_sha256": "3230b0098177dd209cb3a5f661b7e313a96ae85dce16071d54f3696f2bdb57c1",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "4fa79975df65bd95435e74c1ffbcda7285cbae2294d6266f4940fa9146a13555"
     },
     {
       "question_id": "conv-42_q66",
@@ -925,7 +1012,8 @@
       ],
       "candidate_result_sha256": "281c7736d909bf781656c0dd8838f41d4c4dc048865dc2f9557248eaa936f8f0",
       "baseline_result_sha256": "8e5910919846d51e8d914f2e274b0f32b83713e87559575a389cecdf061ca3a6",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "ffa59cfb47a620147e46b016a5b3a508a7c4306f8814a405afd7f1c7717cc3b9"
     },
     {
       "question_id": "conv-42_q78",
@@ -954,7 +1042,8 @@
       ],
       "candidate_result_sha256": "1c4a6fe6f7180ea7d0ea1563308e54ccb00d2733658d45faea9ca5d28d59c284",
       "baseline_result_sha256": "1cb3c93fb4e986fd313b36ffb3656caeddb6658eab388ce6c2fb9f719ccffbf4",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "02a118a5debb02d5292438840a5dbf4918099c1f56eebbb14b442e97e8109a8a"
     },
     {
       "question_id": "conv-42_q91",
@@ -975,7 +1064,8 @@
       ],
       "candidate_result_sha256": "ed40d509450fe244e582dd9f73e22f837204bc48f5cec0e5c00554a8a928266f",
       "baseline_result_sha256": "e52c3f0ba59b6198cbcdf6976bde27340257d02d1c67bb53a0bb50348b5071ea",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "3b8c6b155dca07c67501a6b775479cc731f18aa6d2b90ac80a892f22bf00ded3"
     },
     {
       "question_id": "conv-42_q92",
@@ -996,7 +1086,8 @@
       ],
       "candidate_result_sha256": "c189f08d6ccb4e35038dfdc6d9f8cfd4e0c07d9dd4e9c76b728384dafb39d276",
       "baseline_result_sha256": "8e29369a9d6495f91d094d5b8b5891cedce50abd909aa801bd261659aa37c96d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "7dd4ecf163bf12ebe0f747519d9529b72dc124d6db8a50af8270e420005700d3"
     },
     {
       "question_id": "conv-42_q195",
@@ -1017,7 +1108,8 @@
       ],
       "candidate_result_sha256": "c2c5c7c072d373969914c3da81f262cb83ed75c9ef6d639212826b3644a1128d",
       "baseline_result_sha256": "b6e53ad31225bd25043fc29ee170dea7a4c77bfea30b174c9dbf8906cb9e8f07",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "4b3a61c1bbbb29b14329f09dfc0431b7a0995fa54476ce770b77fab7d7197bb4"
     },
     {
       "question_id": "conv-43_q5",
@@ -1038,7 +1130,8 @@
       ],
       "candidate_result_sha256": "c492eb7fea12cca05cc4927cad212e2ba748a2dd6ac58964e699013ee3437e95",
       "baseline_result_sha256": "cc5e0ed83574e78f4cfb1a6dc039e19435f7783a523dd27857e229d896be9544",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "0d187ab8f9b54bb04a76527b0b0efeeb3579ce36c9e26f8b3ec0eee6d72d1827"
     },
     {
       "question_id": "conv-43_q6",
@@ -1059,7 +1152,8 @@
       ],
       "candidate_result_sha256": "344a5d0ab30e464b20defd56be953f32bfb11c9abc91898c59be6aebb3223155",
       "baseline_result_sha256": "dbc055484ac23cc7e8cf9fb6fb8a44aef3eb7d6110a6ad68cd16c7c2ba26c47d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "4b6438d416b7b69c76e2e0fc34dc85845b7e68cd036138b669f78b146ba06b05"
     },
     {
       "question_id": "conv-43_q8",
@@ -1081,7 +1175,8 @@
       ],
       "candidate_result_sha256": "8af433f5553ce8201f4d1b280daca13207a5c8e2b65a7f09fa1840c7d6a5bc4e",
       "baseline_result_sha256": "74acdfb7478b1c44dee90781ef14252651a913df66dc49463cb5d7dfdbc7f577",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "832b95794018cccd0be8115c437c30b280ed3cbb03ed2ff2cb7253fafbb5c4a7"
     },
     {
       "question_id": "conv-43_q11",
@@ -1105,7 +1200,8 @@
       ],
       "candidate_result_sha256": "d06bbbf41b15c8f57574de3df1f7a1d1a26660bf7bd1f60553b3d1ffa134728d",
       "baseline_result_sha256": "32ef4d3998d2869e56f198c0675b6d6086e52cd788b31eed4e0edf2fa8385020",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "a7a65062b1dd468dbfa6c884a0d15e71028800a408003385de4d25017cb7fccb"
     },
     {
       "question_id": "conv-43_q16",
@@ -1127,7 +1223,8 @@
       ],
       "candidate_result_sha256": "d445d7f071e44d1dc102d119b6d4a3911aba572c35b8de7fddc22702570a088d",
       "baseline_result_sha256": "bf1e5fbd090daea33de03ed9f8f0b9ad3ee914d7722501aedba8249b697c785d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "36ec7c2ba321b8b2617d2c92ce9e4b53bbf22a587017b7c9a1121a75366547cf"
     },
     {
       "question_id": "conv-43_q19",
@@ -1150,7 +1247,8 @@
       ],
       "candidate_result_sha256": "1c7b76720c8105eaf9c29545224c4cedc23b90615188db047c7803adebfc66c1",
       "baseline_result_sha256": "de4b675b23850acde1a283e07c9c2f840d5b8e03f51ea771cefff7c49f4545ce",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "df70623440f24aa70e7e6969caa98e7d5d82f564d71b7624b4bc0b90336883a5"
     },
     {
       "question_id": "conv-43_q20",
@@ -1174,7 +1272,8 @@
       ],
       "candidate_result_sha256": "23ed8c031b6bc26f889afd64dcda17b66e11fdc0625883c6fb3cf259b5595fc4",
       "baseline_result_sha256": "d5e87877208e7094fe83f8c35ea53354f2e474d01e74f509563d4dfedd7ad463",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "48a1aed8c9f628c5fb9502fc7cd7269b9f471790d6e834fb4cb17bbba9d6c9a7"
     },
     {
       "question_id": "conv-43_q48",
@@ -1195,7 +1294,8 @@
       ],
       "candidate_result_sha256": "5d60b2e2c51198ff9b952b96b854778b8656f82b1b1317d4b362d1e45d283d35",
       "baseline_result_sha256": "f534e460a61ac58de3222b925ee203e57829ccc8a94fe2445eafaeebf00237d2",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "ea894f4fe7733651a73493664ff4b774cac7b39d6421d0c4b744508bb1f6b464"
     },
     {
       "question_id": "conv-43_q49",
@@ -1217,7 +1317,8 @@
       ],
       "candidate_result_sha256": "20be03942da5d21a337184d5ba545fe221a207117286272d6ca803b4164cbdc5",
       "baseline_result_sha256": "6c169211062e52cdfdb2236e9d08553b40f1ec92013914ee5f5ec29b69157d4f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "a14fecce118c3d94cd44243100e466ee849595ce7135323613452c08508071d3"
     },
     {
       "question_id": "conv-43_q51",
@@ -1238,7 +1339,8 @@
       ],
       "candidate_result_sha256": "7319ff786810a7187b8bf75a9bc32f23b2b20c8540ed1ab7b0561ca878ace016",
       "baseline_result_sha256": "c8fa9986aac4a461cf53b82122320da608cce7df8646eb8d66690f18076d02a9",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "7919af0402bd15e14958e89a7893739d1ffa5a58cb8c5924273c5d245c794520"
     },
     {
       "question_id": "conv-43_q55",
@@ -1260,7 +1362,8 @@
       ],
       "candidate_result_sha256": "0bb063fb2c6c99686d4fd4a8679aaca937632b509cf575de07a95afaff32ab0c",
       "baseline_result_sha256": "1e7243205aab03ef7036feb623d22dd1cce8c7d85fe91aac5abfe9166c8fcbfa",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "f56d1abdaba9e95ce2f9e91235bc7647f25909ad67dcd3d98bfd2fe31e6d0672"
     },
     {
       "question_id": "conv-43_q56",
@@ -1281,7 +1384,8 @@
       ],
       "candidate_result_sha256": "4c9246a25cbd1a4d2609c892f097530a074e6fc00a21f248ee4bd37154b248a0",
       "baseline_result_sha256": "22f40e481e2876227fdf63f684d19005e7e7c9c6964d00322b621b2a2512bb04",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "db9d7afba050e52a4d8b63705e6d16b5cb8c038e3f255de2aa482ee3934ef5e3"
     },
     {
       "question_id": "conv-43_q60",
@@ -1302,7 +1406,8 @@
       ],
       "candidate_result_sha256": "bb9cf07f340c2f98559be0daf48b9c5f4093f1325e99bf9c620ce861348344cf",
       "baseline_result_sha256": "65e9ef1223585c558888d55b3f47d3c35dee5049e4c5f08c7331d4dc8e0abe6b",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "72630c52064cce09b9f7d2b47972446fc624a7bae94f9adbb977ceb490d5d3a6"
     },
     {
       "question_id": "conv-43_q66",
@@ -1324,7 +1429,8 @@
       ],
       "candidate_result_sha256": "740a0f1fbb81b69e91b87ec48520d86deb191c9b17cccc577b6639c4cd66bb0a",
       "baseline_result_sha256": "c1bfb337a13797cb6e6af84878a1cb3fc2dedf6bc503c87e8cc999f3a9b5343e",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "b6eaaf454eb8bf1a50c0e45699d0b3d4f4f4ea1bee35a9fb9e51917be2456411"
     },
     {
       "question_id": "conv-43_q113",
@@ -1345,7 +1451,8 @@
       ],
       "candidate_result_sha256": "db6e6507c4b230557c375f084304012549f72c9f6ffb665f8cea88231302329f",
       "baseline_result_sha256": "6afd3881baaed68ffd64a4cf09409d01cf02d389db3a254894f95a63a932bac3",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "e935d9293a50c90ca56a795ec310321e9aa0ba0d982d9d050ccc70ed2e3de819"
     },
     {
       "question_id": "conv-43_q135",
@@ -1366,7 +1473,8 @@
       ],
       "candidate_result_sha256": "b30769c4fa7d852783a99c8f1be4648f9e2d7d245e458c98adf86cdd2174e617",
       "baseline_result_sha256": "eb556e4b5a4a7c94f57c12e6e07a28ab55be3aa5a8503970bad47c0c7bdbb9b8",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "2fca0afd0c458c61bf4199b1e70a51af35b43c7527ba593cdec49ca880b17f56"
     },
     {
       "question_id": "conv-43_q136",
@@ -1387,7 +1495,8 @@
       ],
       "candidate_result_sha256": "e0170693d0a4ee6a2062b500df83d235f2eca067071c7969c0ca811f93c04652",
       "baseline_result_sha256": "5d20012782568b80035803c80f944f48f9e716cd81d250b02e0032fc44b43155",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "00815e0a0422dad619cc90a8750e803a30f2c246a2441eeec28e747b199181e8"
     },
     {
       "question_id": "conv-43_q164",
@@ -1408,7 +1517,8 @@
       ],
       "candidate_result_sha256": "4d3db518ec274b2290bef1411e96be6fdf394a18f23bdb3b7290a314f067ab6a",
       "baseline_result_sha256": "7e825831a3969b04598beab02faa7f10c8084427240db9e78cd7f3066d6d2cc5",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "56b39d4c7a1547472632ca79d8c0f0896c099af8d1c97fd41f47f5c4e5b4cf94"
     },
     {
       "question_id": "conv-43_q166",
@@ -1429,7 +1539,8 @@
       ],
       "candidate_result_sha256": "c6e3cafc2bf558342a6b367dd40c1951df267a1214757a4aeabb408dfb7a5ea7",
       "baseline_result_sha256": "ce1aad1ad0a8734ffc76eb1dcb152a2fc69cf7d74fcb25f7d563315c580e0f3e",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "90e28b8771257aa51a0917add8cf38a26a1a90c59a5e5ffa26f62a132451ce4b"
     },
     {
       "question_id": "conv-44_q5",
@@ -1451,7 +1562,8 @@
       ],
       "candidate_result_sha256": "0afcd9bb279a78256661b227b392b0b629748bab1a000f4ecdc6828fa6aa9eac",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "7953900d9477ab8f9fbde4edc4d39c0480c5d97922eb59ca119a993cea520962"
+      "baseline_result_sha256": "7953900d9477ab8f9fbde4edc4d39c0480c5d97922eb59ca119a993cea520962",
+      "final_candidate_result_sha256": "8a4409acda21ba46d286dd27ec8c152ba7237e46e6557170642c685fdc6cb306"
     },
     {
       "question_id": "conv-44_q17",
@@ -1475,7 +1587,8 @@
       ],
       "candidate_result_sha256": "b321fbcb945b9d48a676e2b0a1ceec21d56cb23831c1c8ae1b8bb66ab0923ee7",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "d6100887f18d247b785ec4db15fbcbea7467579ec2d150970c5bf5a33d846e9f"
+      "baseline_result_sha256": "d6100887f18d247b785ec4db15fbcbea7467579ec2d150970c5bf5a33d846e9f",
+      "final_candidate_result_sha256": "9ca276c28fb2711ac16f8520e494f6e466304cacbfccea86072261a1e776a6ae"
     },
     {
       "question_id": "conv-44_q19",
@@ -1498,7 +1611,8 @@
       ],
       "candidate_result_sha256": "c8c33b33406df06803fe52bdb254d847f7cee6f9958cd811b52c5d412893ae5a",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "2102ac5f19cb5e241b56f1766a5615bd423bce021b401a8e66b0407fe91b5dfd"
+      "baseline_result_sha256": "2102ac5f19cb5e241b56f1766a5615bd423bce021b401a8e66b0407fe91b5dfd",
+      "final_candidate_result_sha256": "bbaaa4ecc22084296aacc1e8bcbe0a6707784dc35f46bf59534837c885ac67c7"
     },
     {
       "question_id": "conv-44_q24",
@@ -1521,7 +1635,8 @@
       ],
       "candidate_result_sha256": "aae8404d5b5406840fbeebb58c320b57c93f4cf9c2e8eed153e7c8bb21c74bee",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "ab02a92b17645c2abe09e0b37a6e28058a1974c2f929a54f9018ad3ce5ae30f4"
+      "baseline_result_sha256": "ab02a92b17645c2abe09e0b37a6e28058a1974c2f929a54f9018ad3ce5ae30f4",
+      "final_candidate_result_sha256": "9fdc432152cff731dfc92613eaf902249d177890080f60ea171bb99b55b131d6"
     },
     {
       "question_id": "conv-44_q33",
@@ -1545,7 +1660,8 @@
       ],
       "candidate_result_sha256": "3b33faf8e1ae8481217045013a9412815adfb6cce3e299da217ac38b0cc5da47",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "2c18d491806b741438c9a87e0dfe3369fe17799dab46b9224306c53e0c879cea"
+      "baseline_result_sha256": "2c18d491806b741438c9a87e0dfe3369fe17799dab46b9224306c53e0c879cea",
+      "final_candidate_result_sha256": "536af480bf3d88310bb1995bcd07acd2fe370fe6c4add3804791e6774f99b5d4"
     },
     {
       "question_id": "conv-44_q37",
@@ -1567,7 +1683,8 @@
       ],
       "candidate_result_sha256": "1da9b6f497af169f5032104c14cdbb257cfc78c912f9f0f7780b3682537aae49",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "e97c96e0487d02589765976696cbe8c2fab2395b44d1705fbcf1ca1b7f2fe20b"
+      "baseline_result_sha256": "e97c96e0487d02589765976696cbe8c2fab2395b44d1705fbcf1ca1b7f2fe20b",
+      "final_candidate_result_sha256": "55aff89884d9936716b95d147db76739174b4a9121a9ff1480940c2d49ce562a"
     },
     {
       "question_id": "conv-44_q39",
@@ -1590,7 +1707,8 @@
       ],
       "candidate_result_sha256": "3d8a0c497e1bfb458089c00abe7cf9fa5f76914b1b64ca4c9d767b3ac5bfd4de",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "9f3776875c850b00f841be015dae0d3d9f319b0710b0672deb09e42bc491aa6d"
+      "baseline_result_sha256": "9f3776875c850b00f841be015dae0d3d9f319b0710b0672deb09e42bc491aa6d",
+      "final_candidate_result_sha256": "57d5f8ada56e649ceddfc168a98f6957ea84e4bcbc2465d6c80cb3a2b7002ad2"
     },
     {
       "question_id": "conv-44_q43",
@@ -1612,7 +1730,8 @@
       ],
       "candidate_result_sha256": "7978b2f47fe18fd8d485d4d56543977b3da4c7b2abd718a80e4b65db0adaaa32",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "97fd19cde927d1013f430f6035f3f55713b27224f545fd288fffe03126a7a316"
+      "baseline_result_sha256": "97fd19cde927d1013f430f6035f3f55713b27224f545fd288fffe03126a7a316",
+      "final_candidate_result_sha256": "88e124314c0b747a9081bdc1c1f22c722f9c88f30fa76c806a6d9dfb9d856319"
     },
     {
       "question_id": "conv-44_q44",
@@ -1635,7 +1754,8 @@
       ],
       "candidate_result_sha256": "52f1d64848673b66a63edf29f2db2cc60b48781f3a84bf8ca6f7fb64bd35343e",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "971b013b10e42ba265021dcf4c201ab5a243eae9fecc1c8efd5e8657ea4dfd46"
+      "baseline_result_sha256": "971b013b10e42ba265021dcf4c201ab5a243eae9fecc1c8efd5e8657ea4dfd46",
+      "final_candidate_result_sha256": "d239b33510339f46d5be233af77ab4c0e986cac413f68df0a5b58336cc1dcb28"
     },
     {
       "question_id": "conv-44_q52",
@@ -1660,7 +1780,8 @@
       ],
       "candidate_result_sha256": "6bb774f39b42886130977e45a2df1c3094b256fd1cf140c0abcd75cf9336a7ed",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "82dd94cd60a45f97bb9ba1b559dddbb7708e58cbeccb014af8a369a2b42b487b"
+      "baseline_result_sha256": "82dd94cd60a45f97bb9ba1b559dddbb7708e58cbeccb014af8a369a2b42b487b",
+      "final_candidate_result_sha256": "6e32ec44ad909e90ca5417e4abf0dc0068cada758d0f21f2ae766e5992d3a3de"
     },
     {
       "question_id": "conv-44_q55",
@@ -1682,7 +1803,8 @@
       ],
       "candidate_result_sha256": "c3b344cce1f302366d160b808e0022cae0ffd675d22479999b567c9d3aad9e07",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "61232c7ed41389fe7d993a8a5208071eb52399b79eade5f4184770bd3b7a4689"
+      "baseline_result_sha256": "61232c7ed41389fe7d993a8a5208071eb52399b79eade5f4184770bd3b7a4689",
+      "final_candidate_result_sha256": "156f9f0cc3ced1cd782655b3f102111e139c2791747b8ea3cd30125a25387f6e"
     },
     {
       "question_id": "conv-44_q57",
@@ -1704,7 +1826,8 @@
       ],
       "candidate_result_sha256": "8c24eebd41b52898e06126db1ce8b5544bbf1be865641bded859d3971317a2e7",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "3156585abf142213ed3294f897fa8d83043ca0e23d2b7344e62fa152385e3659"
+      "baseline_result_sha256": "3156585abf142213ed3294f897fa8d83043ca0e23d2b7344e62fa152385e3659",
+      "final_candidate_result_sha256": "a82549382bfc41cbedf5a5683cb10d0ad0172e851c1059e5006e2c40e8a6529f"
     },
     {
       "question_id": "conv-47_q0",
@@ -1726,7 +1849,8 @@
       ],
       "candidate_result_sha256": "ce01f0a3754c1deb8130cc064dbfa810c83fcfbe7bd9c385922fbee9119fdefa",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "576de2edd3c26c68e58008dbb5ce3346c04bf8947bfc71a5a443310dff5f9791"
+      "baseline_result_sha256": "576de2edd3c26c68e58008dbb5ce3346c04bf8947bfc71a5a443310dff5f9791",
+      "final_candidate_result_sha256": "32de9cd2b66b6637b3fefe43afc57916b809caea947f63241924d1b15a93480f"
     },
     {
       "question_id": "conv-47_q11",
@@ -1748,7 +1872,8 @@
       ],
       "candidate_result_sha256": "a595e8daa4a7593a887dcd01346d5e59dc584a06c8b6f935614cb1d8786bda9d",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "6393c9924985d5e59deafb4037947533a6c72ce29fdbf31d653be0a28c295744"
+      "baseline_result_sha256": "6393c9924985d5e59deafb4037947533a6c72ce29fdbf31d653be0a28c295744",
+      "final_candidate_result_sha256": "df79a3e5b29ab02bf94176dc27c81af14f76b4c1b31557fb495229216223d628"
     },
     {
       "question_id": "conv-47_q16",
@@ -1770,7 +1895,8 @@
       ],
       "candidate_result_sha256": "9ac90ab15ae4316f3bd8f6f8e706641b9fea9c96a5cb408c8ab00a1e898aed93",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "ccb3119b69d1ae536cbe9ae595e394876038efca1590834ee6b4fb36af8d5a8a"
+      "baseline_result_sha256": "ccb3119b69d1ae536cbe9ae595e394876038efca1590834ee6b4fb36af8d5a8a",
+      "final_candidate_result_sha256": "07801af1755e6ffe4d99df393a62bb23f5c56194ef22a285ad73ec5276ee57c0"
     },
     {
       "question_id": "conv-47_q17",
@@ -1792,7 +1918,8 @@
       ],
       "candidate_result_sha256": "5a0437791efa4dc6b99cfc093c96378121de37e99100097920a422f597c9aff9",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "83611a4766203c664a993b3452fe3979561a00daf8d01a49157f998297af7eb9"
+      "baseline_result_sha256": "83611a4766203c664a993b3452fe3979561a00daf8d01a49157f998297af7eb9",
+      "final_candidate_result_sha256": "c256e81a74f6d10c6d54fc06509ac85dcb95241b628eecb8412f30a1b0aca3f9"
     },
     {
       "question_id": "conv-47_q19",
@@ -1814,7 +1941,8 @@
       ],
       "candidate_result_sha256": "2078831027e8290e63c1acf484e42ff52a2296ed47112c5d1b3f2c7bede790e4",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "79f44931f080799efcac246c9bb5bdda727bc8851be6091ec370e13bffcfb4b8"
+      "baseline_result_sha256": "79f44931f080799efcac246c9bb5bdda727bc8851be6091ec370e13bffcfb4b8",
+      "final_candidate_result_sha256": "810f9ae33c9f610adc7267c1a04a00e436b7f884d5f8aca9e1cd8ec9352ef966"
     },
     {
       "question_id": "conv-47_q31",
@@ -1837,7 +1965,8 @@
       ],
       "candidate_result_sha256": "3dbac42583be970569fc867dadb8fc3eed1c6aff965c35cacd7597926ea7f959",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "8a52fca430f206a14eac09727aaf695c80e85cd64b043a2fd07045a394b788cf"
+      "baseline_result_sha256": "8a52fca430f206a14eac09727aaf695c80e85cd64b043a2fd07045a394b788cf",
+      "final_candidate_result_sha256": "19665f6b62428b5266710e148bac3539c17bfa447d28f3efd6eb25ff55ba2d06"
     },
     {
       "question_id": "conv-47_q56",
@@ -1860,7 +1989,8 @@
       ],
       "candidate_result_sha256": "d995cdc555f7877416708c44371c8b8f8f812042177ea7d8b5055abcbbeea320",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "fc0441b661a386dcfb2c660bbe1cc91ab9ca3e114f62f899a07efb35ae69ef1d"
+      "baseline_result_sha256": "fc0441b661a386dcfb2c660bbe1cc91ab9ca3e114f62f899a07efb35ae69ef1d",
+      "final_candidate_result_sha256": "aa11231e530f72159fbdc9ed626cabe87ca25c651687a820c39d03e3f741f827"
     },
     {
       "question_id": "conv-47_q62",
@@ -1884,7 +2014,8 @@
       ],
       "candidate_result_sha256": "d9c4af05280918dd86414a29906474884151c8d77e7e194ddb93d26081857924",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "e677d33527ef5b9e4c91956ed07fe77ab5b1a7cd8dba354fcc3a050a519c05ca"
+      "baseline_result_sha256": "e677d33527ef5b9e4c91956ed07fe77ab5b1a7cd8dba354fcc3a050a519c05ca",
+      "final_candidate_result_sha256": "7661322a7be1b580ff71a737b13266bd44e03a42dbcf9133ad7ee5cef42745b4"
     },
     {
       "question_id": "conv-47_q64",
@@ -1908,7 +2039,8 @@
       ],
       "candidate_result_sha256": "5432e9b7ef3ada506162504f0aaf1103d40ae710c973907006bcc349425587eb",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "32d4cbca25954d5d82df81b00492b28d9a3ba3cba59118b80a2e70625c609ed4"
+      "baseline_result_sha256": "32d4cbca25954d5d82df81b00492b28d9a3ba3cba59118b80a2e70625c609ed4",
+      "final_candidate_result_sha256": "d257a9dcd17c66a70237c6ceff8b8e3ec929b734223bb75095e61f0aac2af3d6"
     },
     {
       "question_id": "conv-47_q71",
@@ -1930,7 +2062,8 @@
       ],
       "candidate_result_sha256": "69d4689d686495390e5befbde75d03ea725dd22608de60ac8d4e4d181ea97cf4",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "d11b7ffcf44c5391dd11913d4bc2c3822af5b806e89b46de5fddfd294acc915e"
+      "baseline_result_sha256": "d11b7ffcf44c5391dd11913d4bc2c3822af5b806e89b46de5fddfd294acc915e",
+      "final_candidate_result_sha256": "32243e416fc615c82e6abea3601e8b24fe586ac0dd4826aafd359e042cd73012"
     },
     {
       "question_id": "conv-47_q147",
@@ -1952,7 +2085,8 @@
       ],
       "candidate_result_sha256": "49472cedffea3f8d3cc997255fd4ba1ee3a318729cce5f1b74f79d6e0a6109e0",
       "candidate_source_run_id": "locomow8r_20261119_011537",
-      "baseline_result_sha256": "bd44315ab319258f7a676fe8df34e98339312181d39bb948a27dcac377d9d277"
+      "baseline_result_sha256": "bd44315ab319258f7a676fe8df34e98339312181d39bb948a27dcac377d9d277",
+      "final_candidate_result_sha256": "a1a3bc505480ed0c00c4f6e8eb6b6c7e164011446cc40022a1b3e907289d185d"
     },
     {
       "question_id": "conv-48_q23",
@@ -1975,7 +2109,8 @@
       "evidence_ids": [
         "D3:11",
         "D2:30"
-      ]
+      ],
+      "final_candidate_result_sha256": "94d9ab5f033ac21baa424a60327efec6e71e2192a12f73eeb698e9d9603dd4a7"
     },
     {
       "question_id": "conv-48_q36",
@@ -2006,7 +2141,8 @@
         "D24:14",
         "D25:5",
         "D26:6"
-      ]
+      ],
+      "final_candidate_result_sha256": "cd1b2ce4373b07ac19fa7dfc9271c8a0b97bfce4a03d0470a78c370e125c6cc7"
     },
     {
       "question_id": "conv-48_q46",
@@ -2030,7 +2166,8 @@
         "D3:1",
         "D12:10",
         "D13:1"
-      ]
+      ],
+      "final_candidate_result_sha256": "608bdb54d873ad4c05a3e848a140c01008273dea8d95da49b45ff0190339a65b"
     },
     {
       "question_id": "conv-48_q71",
@@ -2052,7 +2189,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D24:1"
-      ]
+      ],
+      "final_candidate_result_sha256": "c15d3fabc2f53d0e91f3bd9d87f94fcf5c2525cf50df40a93b03a1712ac45c52"
     },
     {
       "question_id": "conv-48_q74",
@@ -2075,7 +2213,8 @@
       "evidence_ids": [
         "D26:10",
         "D26:12"
-      ]
+      ],
+      "final_candidate_result_sha256": "6b2174ab11d7d4b6a4197fcb328e0675e1c863a0872ed18be0e1028f33cb2710"
     },
     {
       "question_id": "conv-48_q75",
@@ -2097,7 +2236,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D27:12"
-      ]
+      ],
+      "final_candidate_result_sha256": "e0fe863dc85d680456b3ae66c330197d850901f12c578a1c156c69eaf281576b"
     },
     {
       "question_id": "conv-48_q87",
@@ -2120,7 +2260,8 @@
       "evidence_ids": [
         "D6:10",
         "D23:18"
-      ]
+      ],
+      "final_candidate_result_sha256": "86745f824fe97a12b5ab42caca4a35fb75b1a8a929dcff98e4feeb2a425e16b3"
     },
     {
       "question_id": "conv-48_q99",
@@ -2143,7 +2284,8 @@
       "evidence_ids": [
         "D26:10",
         "D26:12"
-      ]
+      ],
+      "final_candidate_result_sha256": "416c0c02e5a57d2d0f9fb1b4469a37670ffc013a2f055802d6204d178f80d30d"
     },
     {
       "question_id": "conv-48_q101",
@@ -2165,7 +2307,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D2:24"
-      ]
+      ],
+      "final_candidate_result_sha256": "11fef2f6f5c5fc4ad7bbbb5d457870634facbe80384092ab7cd00a88d9a04616"
     },
     {
       "question_id": "conv-48_q115",
@@ -2187,7 +2330,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D7:18"
-      ]
+      ],
+      "final_candidate_result_sha256": "b61b90239bcf1a024c73cce9ffadacd40060f854c3ec0d41835541259a849f6e"
     },
     {
       "question_id": "conv-48_q116",
@@ -2209,7 +2353,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D7:20"
-      ]
+      ],
+      "final_candidate_result_sha256": "7398b04e29710ae125fb0d96503fbd46930e45e809349b9603ade7376102b148"
     },
     {
       "question_id": "conv-48_q119",
@@ -2231,7 +2376,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D8:16"
-      ]
+      ],
+      "final_candidate_result_sha256": "fdf060a831f6a4c28822df5ba94a3e9539640db98abc2a257f0b7f503b55306a"
     },
     {
       "question_id": "conv-48_q134",
@@ -2253,7 +2399,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D14:6"
-      ]
+      ],
+      "final_candidate_result_sha256": "aecebfa3400569adcbe12fa2dcfa1c1b0a4a91b24e642cbcaa35cf10bed6224f"
     },
     {
       "question_id": "conv-48_q174",
@@ -2275,7 +2422,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D26:15"
-      ]
+      ],
+      "final_candidate_result_sha256": "2440c16dd67ec5a6e982d6d480a32ff516ed5ea7af2300468b384d4b747b8285"
     },
     {
       "question_id": "conv-48_q179",
@@ -2297,7 +2445,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D27:12"
-      ]
+      ],
+      "final_candidate_result_sha256": "47ce0cae018cad9d4d65ec61a129687f41f4373b732297d26e1f7dc577d9aab8"
     },
     {
       "question_id": "conv-48_q188",
@@ -2319,7 +2468,8 @@
       "conversation_id": "conv-48",
       "evidence_ids": [
         "D29:27"
-      ]
+      ],
+      "final_candidate_result_sha256": "f07113953a99abfadb153dcf619584b0e3a7023ef0da923224d6dbff12ee304c"
     },
     {
       "question_id": "conv-49_q11",
@@ -2359,7 +2509,8 @@
       ],
       "candidate_result_sha256": "661079ef87c8f6aea3c7783618abb345be6a267561e18d40946f7f6d0cd7ed19",
       "baseline_result_sha256": "f0e5b7d23e971c8bae5166099b4bfcf861dfbadd138f23b56f90a62d3af700f6",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "f7ca1b427600b06ae60ab4697b496962745119a69dfaacbd95070a383cd3841a"
     },
     {
       "question_id": "conv-49_q24",
@@ -2381,7 +2532,8 @@
       ],
       "candidate_result_sha256": "5f9cb24650b7a24e3886a9d52844888c8e9d3922551295849cab9c746fa60cab",
       "baseline_result_sha256": "2a0177788ca4289675ef13e535e90a1e91f3c3e54a09f4a720cc1948561a4cb6",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "3b8441ecf31fc7cb76e1bd7b7d34437793cd5823d7160812a04621465187294c"
     },
     {
       "question_id": "conv-49_q32",
@@ -2404,7 +2556,8 @@
       ],
       "candidate_result_sha256": "ffbcac83661c7743c87b45ff4e69d6b6b471e1b6b4d792110936fd42a03fe418",
       "baseline_result_sha256": "bea46a895ba3225079470ab4ed5071ebe860820c002fa3494ef264fce83c997f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "a1c3b7751fe255404a4f6b6b3bfefd694c24548ee26a6a91cf857bd1ac6908bc"
     },
     {
       "question_id": "conv-49_q43",
@@ -2428,7 +2581,8 @@
       ],
       "candidate_result_sha256": "79b6454410a36eb935c12840acc86def1d3368d4c2a19f0783ec94689a3c79bd",
       "baseline_result_sha256": "48f224e5f360bb837c19d1f904d3d292897d03a7ba7adfae842a13f3a8f2643d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "9c275e9ebb2818076a091e8be08b5ed7cced02c26ffcf28cecc5986d849d9cd6"
     },
     {
       "question_id": "conv-49_q54",
@@ -2452,7 +2606,8 @@
       ],
       "candidate_result_sha256": "c246aaa3ac67295788c911c2d7a5787ec9c60c6a7bb3c2c00a56097691502c3a",
       "baseline_result_sha256": "08da06cc715decd18ef00a0fbd24b3814afcc2dfba1761f009800a8eacebf0ba",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "41850bafb1f0a3b5c9d960de6d71982dff64279f9eeaf38bbfa8b0e5bb1c9bc8"
     },
     {
       "question_id": "conv-49_q57",
@@ -2474,7 +2629,8 @@
       ],
       "candidate_result_sha256": "c70f19db9602d575bcc9900e81c7d76c450e7ec6e09d6453db0d654ad1eed8fa",
       "baseline_result_sha256": "51971ff78f869502408a04b1cbe6a7b12d632c97a9e09c70db3d6b54a2e616a7",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "a97745056eba550e315a27e43a699a3907f3b9da6ae01a77e21950a5077ff272"
     },
     {
       "question_id": "conv-49_q64",
@@ -2499,7 +2655,8 @@
       ],
       "candidate_result_sha256": "90726f67b2d8f7980499b0aec6acbaab09932c7821d9dcd471cbb7f013dd1807",
       "baseline_result_sha256": "826fc26952e9b40564eee98b268442437e744c328bf0bd50b38a76f15dd965c9",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "36fa6a7e7ad10ace5cf547303523b7e38ddfe9874439913b494c68d532ad68fc"
     },
     {
       "question_id": "conv-49_q74",
@@ -2521,7 +2678,8 @@
       ],
       "candidate_result_sha256": "9251c6e32d31dce85683a638f449a94cb1d91272b2a6be9a46ed754be32490de",
       "baseline_result_sha256": "5269d0f5a91b26f7c099da26dbef63276c50bd66969d1584cae36c7b3ea2aa73",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "1673856917f1f4732d908f51202620aa8059df5a15c07101ff90ad37cdeeb3e0"
     },
     {
       "question_id": "conv-49_q80",
@@ -2543,7 +2701,8 @@
       ],
       "candidate_result_sha256": "33685f341acd5e9394cb4bc686327799bd2e5348f5b985cd2cd3b70171008b3d",
       "baseline_result_sha256": "96693f9f41e11968952b4f0de9f1b2dd5b1aed946a063780719514a296790d0f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "61dd69c1a9db774a413c00759ef2ba4891ccc51d5f61626b50168e0b89b6a04a"
     },
     {
       "question_id": "conv-49_q99",
@@ -2565,7 +2724,8 @@
       ],
       "candidate_result_sha256": "aae8b641c950ad7b11eb5f5f5996154321501975b23aed8a78b15d2f411c98c3",
       "baseline_result_sha256": "074e63635f4e8ee467d8ace2d672eb2ff45ebfe3cc837e1d1edfd53e274586a9",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "550568c007cc5ecfe5bd80912f974a34bb6fdb7d0fc2b770e99a465cab53c04b"
     },
     {
       "question_id": "conv-49_q102",
@@ -2587,7 +2747,8 @@
       ],
       "candidate_result_sha256": "a109ff6a79a1e7062fa4476efdca22ed20b7cdeebbfd1c83154802e0fda3a98b",
       "baseline_result_sha256": "fa1b677f33bfab3b7bb9daf43af5f9e4781c2d557abe76493471b214d34fe208",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "066d23bde93cea942f57de8e97a635af37ba83451bb7a6772e8ea110012d04a7"
     },
     {
       "question_id": "conv-49_q104",
@@ -2609,7 +2770,8 @@
       ],
       "candidate_result_sha256": "81ce7896147498b9f141159ae7ebd20e1a9cad968f1b59f578c20ce039dcde47",
       "baseline_result_sha256": "1ed5c1f57e17ee88aeacd755c0f8d929542773d1e4d3d65360f8405e9a27692f",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "44694a898fd3629194cdfdecac448f015229060a45bfee837cb3c269564fb8ca"
     },
     {
       "question_id": "conv-49_q106",
@@ -2631,7 +2793,8 @@
       ],
       "candidate_result_sha256": "624efca648c1fb9185601432a5455ccca15676088ca1d8a657cd0fbedd109f32",
       "baseline_result_sha256": "7b8691eec4ad3426df431c927df7ae9695d6ad91686d220c8e8a1e0646bc9143",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "2aacca30d8f00ab123140ba4cda8819a9a981aba207b443abb8ab743afbacc82"
     },
     {
       "question_id": "conv-49_q123",
@@ -2653,7 +2816,8 @@
       ],
       "candidate_result_sha256": "92986cb839e73ba9e05564362328ba0e5ad52a75a99aafb3338da6c7c8c3c9e2",
       "baseline_result_sha256": "d4e392f99c625283de650827a9c3a3173c9746a7b316b7f47a6cea20048cb01d",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "672eab27fbfd1cecb1d8bc6f64d27e3b241837ff381c29342987610ec08c4297"
     },
     {
       "question_id": "conv-49_q141",
@@ -2675,7 +2839,8 @@
       ],
       "candidate_result_sha256": "4d87efe8f86c9dafdd712c63b4bf24aecc5aeda510c6dffe46ec545b4e140dd7",
       "baseline_result_sha256": "d044d9384b036cc0ff03efec678a7eeb2174e51f3e36c6ba651d855a7575ff5e",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "e10153ab222a88162dee1367afa115bde4c5718ef7e89e2447cedc7f12286fb4"
     },
     {
       "question_id": "conv-49_q144",
@@ -2697,7 +2862,8 @@
       ],
       "candidate_result_sha256": "610b7df61497d85e066fcb4d9ee81a7c25be3e64374dd7c0a67e5295b41f32f2",
       "baseline_result_sha256": "6d8f9ed0e99115d8fe5a03632faabda53fc216aa106e932f1ca7e7e4f01f8490",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "c922f4de8aa9fb34a73be78be741d5239c072eb7ee9f5d137beb0b9e43f008dd"
     },
     {
       "question_id": "conv-49_q145",
@@ -2719,7 +2885,8 @@
       ],
       "candidate_result_sha256": "6d5b4ba123116f7cdfa537ab4d288acb3e2577b9a7bce2b2be5e377346396da8",
       "baseline_result_sha256": "4436a6b6e859a0bd6c50e278c561588c325e68331754f0ce08db8459ac1f4fed",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "dcd3f95bfe4162a1021e86fe29d1c336143a03c9fcbc761d863772bcb71c353f"
     },
     {
       "question_id": "conv-49_q153",
@@ -2741,7 +2908,265 @@
       ],
       "candidate_result_sha256": "971216d0ad88b2aa937cebfb5134fb05e026260532c7b63ce24dcdf4d3512fb1",
       "baseline_result_sha256": "c941dea1d12b14f647ce23c4138abfa4a78523fbf9691e42378ac17c3e1e6284",
-      "candidate_source_run_id": "locomow8r_20261119_011537"
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "final_candidate_result_sha256": "733978e896faca48b42943d21739d185b0a531ff3a75b41a44ee81ae496a3449"
+    },
+    {
+      "question_id": "conv-50_q7",
+      "conversation_id": "conv-50",
+      "question": "Does Dave's shop employ a lot of people?",
+      "gold": [
+        "Yes"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories don’t say how many people Dave’s shop employs, so there isn’t enough information to tell whether it has a large staff.",
+      "candidate_answer": "The memories don’t specify how many people Dave’s shop employs. He mentioned working with other mechanics, but there’s not enough information to say whether he employs a lot of people.",
+      "baseline_reason": "The gold answer confirms that Dave’s shop employs a lot of people, but the generated answer says there is insufficient information.",
+      "candidate_reason": "The generated answer says there is insufficient information, whereas the gold answer confirms that Dave’s shop employs a lot of people.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D4:17"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "147305e29d5af02dd4e37440d97d214d3bc2458a90a9050999c7bd97e14f0013",
+      "baseline_result_sha256": "2092137d1574d7faec010b31dbf5f0d8a6a1e7806be24102705cde3d30614aaa",
+      "final_candidate_result_sha256": "147305e29d5af02dd4e37440d97d214d3bc2458a90a9050999c7bd97e14f0013"
+    },
+    {
+      "question_id": "conv-50_q47",
+      "conversation_id": "conv-50",
+      "question": "How many car shows has Dave attended?",
+      "gold": [
+        "two"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Dave has attended at least four car shows: his first at age 10 with his dad, one before March 23, 2023, one on April 15–16, 2023, and one on October 6, 2023.",
+      "candidate_answer": "Dave has attended at least four car shows: his first at age 10 with his father, a classic-car exhibition before March 23, 2023, a show on April 15–16, 2023, and one on October 6, 2023.",
+      "baseline_reason": "The generated answer says at least four car shows, whereas the gold answer says two.",
+      "candidate_reason": "The generated answer says at least four car shows, contradicting the gold answer of two.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D3:12",
+        "D22:1"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "6ac989bc8e1f4eaa2df4e7a56d9e3dd7bf3037028e0fc2b770af70131ecb97eb",
+      "baseline_result_sha256": "4d4ac21394777707696c72aa2bb2a4e9cec9ab61c46591872b8fec580c625e15",
+      "final_candidate_result_sha256": "6ac989bc8e1f4eaa2df4e7a56d9e3dd7bf3037028e0fc2b770af70131ecb97eb"
+    },
+    {
+      "question_id": "conv-50_q61",
+      "conversation_id": "conv-50",
+      "question": "How long did Dave's work on the Ford Mustang take?",
+      "gold": [
+        "nearly two months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Dave’s Ford Mustang restoration appears to have taken about two and a half months—from at least August 14 to October 29, 2023 (76 days). The exact start date is not stated.",
+      "candidate_answer": "Dave’s Mustang restoration appears to have taken roughly five weeks: he was working on it on September 22, 2023, and reported his car restoration finished by October 29, 2023—a span of 37 days. The exact duration isn’t stated, and the completion report does not explicitly name the Mustang.",
+      "baseline_reason": "The generated answer says about two and a half months, which differs from the gold answer of nearly two months.",
+      "candidate_reason": "The generated answer estimates roughly five weeks, which does not match the gold answer of nearly two months.",
+      "baseline_f1": 0.06451612903225806,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D14:11",
+        "D20:1",
+        "D21:4"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "808f6607f8754916e53a9705ed74b85297e5e03e5c5ac89db1e2cb5daceaa08c",
+      "baseline_result_sha256": "5cdd821e66baf40eeb7ecbfed4e63e049d55fb63b45c4269b260fb58b33de5ee",
+      "final_candidate_result_sha256": "808f6607f8754916e53a9705ed74b85297e5e03e5c5ac89db1e2cb5daceaa08c"
+    },
+    {
+      "question_id": "conv-50_q62",
+      "conversation_id": "conv-50",
+      "question": "How long was the car modification workshop in San Francisco?",
+      "gold": [
+        "two weeks"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The workshop appears to have lasted about three weeks, from around August 11 to September 1, 2023, though its exact duration is not explicitly stated.",
+      "candidate_answer": "The workshop’s duration isn’t specified. Dave reported being selected on August 11, 2023, attending a San Francisco workshop by August 14, and returning from San Francisco on September 1, 2023, but these dates don’t establish how long the workshop lasted.",
+      "baseline_reason": "The generated answer says about three weeks, whereas the gold answer specifies two weeks.",
+      "candidate_reason": "The generated answer says the duration is unspecified rather than identifying the two-week duration given in the gold answer.",
+      "baseline_f1": 0.07692307692307693,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D14:1",
+        "D17:1"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "0444b1aca9b8aa2f427e1167bab5076669bf7c327fb60a03ef6bf6754b96aa0e",
+      "baseline_result_sha256": "4c8ebfff42f3e66bf260129de98cfc62ece4dcaf4046515cceec08131cbec4f7",
+      "final_candidate_result_sha256": "0444b1aca9b8aa2f427e1167bab5076669bf7c327fb60a03ef6bf6754b96aa0e"
+    },
+    {
+      "question_id": "conv-50_q67",
+      "conversation_id": "conv-50",
+      "question": "Where was Calvin located in the last week of October 2023?",
+      "gold": [
+        "Tokyo"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Calvin was at his house in Japan for an album celebration during October 23–29, 2023. He was also in Boston on October 24, sightseeing with a high school friend.",
+      "candidate_answer": "Calvin was at his house in Japan during October 23–29, 2023, celebrating his new album with family and friends. He was also recorded as exploring Boston with a high school friend on October 24, 2023, so the memories place him in both locations that week.",
+      "baseline_reason": "The generated answer mentions Japan but does not identify Tokyo and adds a conflicting claim that Calvin was in Boston.",
+      "candidate_reason": "The answer names Japan and Boston but does not identify Tokyo as Calvin's location.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D28:1"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "951dc3fde3152ff8aa51f4d5a683070dc077b9fc27bab76b11a5f930f8f8a407",
+      "baseline_result_sha256": "09c6e737d36d273cd9e07e950fa2bdcd479281c4d4eef6d98129fda2ba452098",
+      "final_candidate_result_sha256": "951dc3fde3152ff8aa51f4d5a683070dc077b9fc27bab76b11a5f930f8f8a407"
+    },
+    {
+      "question_id": "conv-50_q130",
+      "conversation_id": "conv-50",
+      "question": "How does Calvin balance his job and personal life?",
+      "gold": [
+        "Takes it one day at a time"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Calvin admits that balancing his music career—especially touring with Frank Ocean—with his personal life is difficult and sometimes overwhelming. He manages it by:\n- Taking things one day at a time and relying on friends and his team for support, as he explained on October 23, 2023.\n- Taking breaks and enjoying favorite activities to recharge, including working on cars and going for relaxing drives.\n- Keeping work and relaxation spaces separate: as of November 2, 2023, he uses his studio only for work and unwinds in a separate cozy room with a TV.\n\nHis enjoyment of performing and connecting with audiences also helps him stay motivated despite the demands.",
+      "candidate_answer": "Calvin admits that balancing his music career, touring with Frank Ocean, and personal life is challenging. He manages it by relying on friends and his team for support, taking breaks to recharge, and making time for relaxing activities such as working on cars, taking long drives, and enjoying nature. He also separates work from downtime: as of November 2, 2023, he kept his music studio for work and used a separate cozy room with a TV to unwind and find inspiration.",
+      "baseline_reason": "The generated answer explicitly says Calvin takes things one day at a time, matching the gold answer.",
+      "candidate_reason": "The generated answer lists coping strategies but does not mention Calvin's approach of taking it one day at a time.",
+      "baseline_f1": 0.11881188118811882,
+      "candidate_f1": 0.0759493670886076,
+      "evidence_ids": [
+        "D25:4"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "6c7690d31b0fca8694e3e584b5c5e7f6a7ff961df5ff91ea8328c57a01a683f8",
+      "baseline_result_sha256": "c8082e5e996f6c0c8be75275f02b5e08b11c1dd4527dec4a3f3af29f3859cf5f",
+      "final_candidate_result_sha256": "6c7690d31b0fca8694e3e584b5c5e7f6a7ff961df5ff91ea8328c57a01a683f8"
+    },
+    {
+      "question_id": "conv-50_q134",
+      "conversation_id": "conv-50",
+      "question": "What is the toughest part of car restoration according to Dave?",
+      "gold": [
+        "Paying extra attention to detail"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The toughest part appears to be dealing with persistent engine problems after putting in substantial effort. On September 22, 2023, Dave described thinking he had fixed his vintage Mustang’s engine, only to hear a strange noise when he started it—a disappointing setback. He did not explicitly label this the single toughest part of restoration.",
+      "candidate_answer": "According to Dave, the toughest part is having patience and paying close attention to detail, though the payoff makes it worthwhile.",
+      "baseline_reason": "The generated answer identifies persistent engine problems rather than paying extra attention to detail as the toughest part.",
+      "candidate_reason": "The generated answer identifies paying close attention to detail, matching the gold answer.",
+      "baseline_f1": 0.03571428571428571,
+      "candidate_f1": 0.3478260869565218,
+      "evidence_ids": [
+        "D25:19"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "26f9274b26c3c7b90ae1427941e83493b722af018d375b591efd447a1fc68150",
+      "baseline_result_sha256": "19e4f2f5c9da687e5186bc047060994d861b400172db5facdfef95b91c340e03",
+      "final_candidate_result_sha256": "26f9274b26c3c7b90ae1427941e83493b722af018d375b591efd447a1fc68150"
+    },
+    {
+      "question_id": "conv-50_q136",
+      "conversation_id": "conv-50",
+      "question": "When did Dave sell the car he restored last year?",
+      "gold": [
+        "Last year"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Dave sold the car to a collector sometime after restoring it in 2022 and before his October 23, 2023 conversation. The exact sale date is not specified.",
+      "candidate_answer": "Dave sold the car to a collector after restoring it in 2022 and before mentioning the sale on October 23, 2023. The exact sale date is not specified.",
+      "baseline_reason": "The answer places the sale after the 2022 restoration and before October 2023, broadly consistent with the gold answer’s reference to last year despite lacking an exact date.",
+      "candidate_reason": "The generated answer gives only a broad sale window rather than identifying the sale as occurring last year.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D25:17"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "3c8850519e7fddc1b33b26993952a11c4eb50b9ab3965c9866850b4d11bd6705",
+      "baseline_result_sha256": "b1f0243549ad52076a41e1dc0d9e68d2e7a8142a04996ee8068fe90c1d0bc251",
+      "final_candidate_result_sha256": "3c8850519e7fddc1b33b26993952a11c4eb50b9ab3965c9866850b4d11bd6705"
+    },
+    {
+      "question_id": "conv-50_q137",
+      "conversation_id": "conv-50",
+      "question": "When did Calvin first get interested in cars?",
+      "gold": [
+        "at an early age"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not specify when Calvin first became interested in cars. By March 26, 2023, he described owning a luxury car as a long-held dream, so his interest began before then.",
+      "candidate_answer": "The memories do not specify when Calvin first became interested in cars. By March 26, 2023, owning a luxury car was already a long-held dream of his, so his interest began before then.",
+      "baseline_reason": "The generated answer does not identify that Calvin became interested in cars at an early age, instead stating that the timing is unspecified.",
+      "candidate_reason": "The generated answer does not identify that Calvin became interested in cars at an early age, instead saying the timing is unspecified.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D26:6"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "2615aa9c5a8daa80e19fe3c208d57880bab73418f2518bf460d52ea50574ce79",
+      "baseline_result_sha256": "d7e9d3e0725ff74811ca94c3c6dd7161b1a8a4c6ac8926da3470d6e9b2c6f4b9",
+      "final_candidate_result_sha256": "2615aa9c5a8daa80e19fe3c208d57880bab73418f2518bf460d52ea50574ce79"
+    },
+    {
+      "question_id": "conv-50_q147",
+      "conversation_id": "conv-50",
+      "question": "What tools does Calvin use to boost his motivation for music?",
+      "gold": [
+        "Writing lyrics and notes"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Calvin uses several practical and personal sources to boost his musical motivation:\n- **Watching music videos, concerts, and artist documentaries** to learn about other artists’ creative processes and find inspiration.\n- **Collaborating and learning from other artists**, while surrounding himself with supportive friends, family, and his team.\n- **Taking breaks and enjoying other activities** to recharge and overcome creative blocks.\n- **Experimenting with genres, new sounds, and electronic elements** to keep creating exciting and encourage growth.\n- **Reconnecting with his purpose**—sharing his story, bringing people joy, and connecting with audiences—and drawing encouragement from listeners’ reactions.\n- **Keeping meaningful reminders of his passion**, including his custom-made guitar and a diamond-pendant necklace gifted by another artist.",
+      "candidate_answer": "Calvin uses several tools and strategies to boost his musical motivation:\n- **Creative inspiration:** Watching music videos, concerts, and documentaries about artists’ creative processes, and learning from other musicians.\n- **Collaboration and support:** Working with other artists and surrounding himself with positive friends and teammates, including Dave.\n- **Rest and reflection:** Taking breaks, enjoying favorite activities, and reminding himself why he started—following his dreams, sharing his story, and making a difference.\n- **Experimentation:** Trying new genres, sounds, and electronic elements to keep growing.\n- **Audience connection:** Drawing encouragement from live performances, positive feedback, and the joy his music brings people.\n- **Personal reminders:** His gifted diamond-pendant necklace and custom-made guitar remind him of his musical passion and friendships.\n\nHe also draws inspiration from world events and other people’s experiences. The lyric-writing notebook mentioned in the memories is Dave’s, not Calvin’s.",
+      "baseline_reason": "The generated answer lists various sources of inspiration but does not mention writing lyrics and notes, which is the gold answer.",
+      "candidate_reason": "The generated answer does not identify writing lyrics and notes as Calvin’s motivational tools and instead attributes the lyric-writing notebook to Dave.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D28:34"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "2f6112441911d163fcc0f212f52780f68246b0a7ff5eb4405a937548298f22eb",
+      "baseline_result_sha256": "b675dc49630c3f3d977b770a23537a20da0683dd7cc4f8a6d2a8fc87a85ad9d9",
+      "final_candidate_result_sha256": "2f6112441911d163fcc0f212f52780f68246b0a7ff5eb4405a937548298f22eb"
+    },
+    {
+      "question_id": "conv-50_q151",
+      "conversation_id": "conv-50",
+      "question": "What hobby did Calvin take up recently?",
+      "gold": [
+        "Photography"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Calvin took up working on cars—repairing and customizing them—as a relaxing hobby.",
+      "candidate_answer": "Calvin took up working on and fixing cars as a relaxing hobby.",
+      "baseline_reason": "The generated answer names working on cars, whereas Calvin’s recent hobby was photography.",
+      "candidate_reason": "The generated answer names fixing cars, but Calvin's recent hobby was photography.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D30:1"
+      ],
+      "candidate_source_run_id": "locomow8c_20261119_1506",
+      "candidate_result_sha256": "74f265e281313d84416b147c540fe0e188e09449e663ba4905113d708a568922",
+      "baseline_result_sha256": "d8f40958488049bfb814a9519c1be50bc315a658c4cc2ab58e8e5de680194a9d",
+      "final_candidate_result_sha256": "74f265e281313d84416b147c540fe0e188e09449e663ba4905113d708a568922"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -3411,11 +3836,66 @@
       "question_id": "conv-49_q80",
       "finding": "D24 session是2024-01-10，D24:3 yesterday已打包，答案January9 2024符合时间；gold写2023。跨年标注冲突，不是reader算错一年。",
       "confidence": "confirmed_source_gold_year_conflict"
+    },
+    {
+      "question_id": "conv-50_q130",
+      "finding": "回退：D25:4 one day at a time在recall回包，但新8K正文与事实均无该短语，旧答案明确使用而判对。属于实际窗口选择回退，不能只看新答案列了很多其他策略便称回答完整。",
+      "confidence": "confirmed_context_regression"
+    },
+    {
+      "question_id": "conv-50_q134",
+      "finding": "转对：新窗口保留耐心和attention to detail的恢复难点原句，新答案命中；旧打包缺patience且旧reader专注另一时间的engine trouble。属于关键原文关系恢复，非换gold。",
+      "confidence": "supported_context_recovery"
+    },
+    {
+      "question_id": "conv-50_q136",
+      "finding": "新旧答案几乎同义，均说2022恢复之后、October23 2023之前售出且日期不详；旧judge宽松接受，新judge拒绝非last year。D25:17只明确restored last year，没有明确售出也在去年。主要是裁判差异与时间修饰范围歧义，不能当检索未召回。",
+      "confidence": "confirmed_judge_and_temporal_scope_ambiguity"
+    },
+    {
+      "question_id": "conv-50_q137",
+      "finding": "D26:6十岁参加车展的speaker为Dave，问题问Calvin；参考原文已打包，reader未把Dave童年改归Calvin而被判错。保留人物标注冲突。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-50_q147",
+      "finding": "D28:34 writing lyrics and notes由Dave说boost my motivation，问题问Calvin；新窗口有原句，reader明确指出笔记本是Dave的。不是相关原文丢失，不应强行换人追分。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-50_q151",
+      "finding": "D30:1摄影爱好的speaker为Dave，问题问Calvin；参考原文已打包，reader按Calvin回答汽车爱好。人物/gold冲突保留，不改记忆归属。",
+      "confidence": "confirmed_source_question_speaker_conflict"
+    },
+    {
+      "question_id": "conv-50_q47",
+      "finding": "两处gold参考车展原句已打包，新答案还计入童年首次车展及其他展会，总计至少4；gold只取2次。需限定计数范围并排查重复事件，不能将漏数当优化目标或直接说全是检索错误。",
+      "confidence": "supported_event_count_scope_ambiguity"
+    },
+    {
+      "question_id": "conv-50_q61",
+      "finding": "Aug14 D14:11、Sep22 D20:1、Oct4 D21:4都已打包，新reader却主要用Sep22到Oct29的37天推约5周，忽略更早项目叙述。主要是跨session项目同一性和起点选择；gold近2月亦为推断，不是明确时长原句。",
+      "confidence": "supported_multisession_temporal_linking"
+    },
+    {
+      "question_id": "conv-50_q62",
+      "finding": "D14:1 Aug14参加研修与D17:1 Sep2说昨天归来均已打包；新reader列日期却拒绝推定两周。原文未直接说固定课程时长，端点差约18天，不等同精确14天。周期近似/推断强度问题，非原文仍未召回。",
+      "confidence": "supported_duration_inference_ambiguity"
+    },
+    {
+      "question_id": "conv-50_q67",
+      "finding": "目标D28:1只说Japanese house，已打包；上下文有Tokyo但多属May/November等其他事件，且目标周另有Boston记录。reader给Japan和Boston而未强推Tokyo，被gold拒绝，需区分城市粒度、时间关联与原文冲突。",
+      "confidence": "supported_location_time_granularity_ambiguity"
+    },
+    {
+      "question_id": "conv-50_q7",
+      "finding": "D4:17店铺照片caption是group of people standing in front of a car，已打包；人物数量及是否雇员均未明确，reader有其他mechanics事实仍拒绝断言employ a lot。gold要求从群像推雇员多，属于图片caption/雇员身份推断强度差异。",
+      "confidence": "supported_caption_entailment_ambiguity"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
-  "active_candidate_run_id": "locomow8r_20261119_011537",
-  "active_candidate_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+  "active_candidate_run_id": "locomow8c_20261119_1506",
+  "active_candidate_manifest_sha256": "dec51c5669eeb4259499ae44224af07f7d2ca7168d3d85f0ca1fc1f29223d57d",
   "source_conv41_comparison_sha256": "cf58a71b01ba94ca0397bf1f303f52a7fe3472182ea89515114e09feb3b0d4bd",
   "offline_q94_diagnostic": {
     "source_run_id": "locomow8r_20261119_011537",
@@ -5787,13 +6267,8 @@
     ],
     "global_lint": "Existing native api/http.py F841; unrelated isolated formatter edits restored."
   },
-  "scope_bank_expected": 1035,
-  "operational_gaps": [
-    {
-      "question_id": "conv-44_q90",
-      "error": "HTTPFailure"
-    }
-  ],
+  "scope_bank_expected": 1540,
+  "operational_gaps": [],
   "first_seven_bank_comparison": {
     "kind": "completed-qa-in-first-seven-banks-not-full1540-score",
     "scope_completed": 1034,
@@ -6181,5 +6656,195 @@
     "all_have_current_v1_source_review": true,
     "reviewer": "Codex assistant source inspection, not human annotation",
     "note": "First9 completed semantic1381 only. Original score and source conflicts preserved; no answers or judges re-sampled."
+  },
+  "initial_candidate_run_id": "locomow8_20261119_0308",
+  "initial_candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
+  "full_comparison": {
+    "source_result_sha256": "c621bf38ac2b3d58bb9c0bca280de286e37bbeeb72cb848fcbe5b7ab707d24db",
+    "baseline": {
+      "fingerprint": "8c76bfaf3853a07646b9f48c294ddc234dde01a0298bf4d9ccb11a275c163439",
+      "protocol": "amb-locomo-cat1to4-packed-v1",
+      "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+      "valid_complete_run": true,
+      "expected": 1540,
+      "completed": 1540,
+      "failed": 0,
+      "pending": 0,
+      "correct": 1419,
+      "accuracy_all_expected": 0.9214285714285714,
+      "answer_f1_all_expected": 0.2764637690602649,
+      "context_tokenizer": "o200k_base",
+      "context_tokens_total": 12021123,
+      "context_tokens_mean": 7805.924025974026,
+      "context_tokens_max": 8006,
+      "amb_cl100k_context_tokens_mean": 7930.018181818182,
+      "full_answer_prompt_tokens_mean": 8001.605844155844,
+      "retrieval_sample_count": 1540,
+      "retrieval_measurement": "live-http-recall",
+      "retrieval_source_run_id": null,
+      "retrieval_ms_mean": 14391.512553509803,
+      "retrieval_ms_p50": 15306.603499513585,
+      "retrieval_ms_p95": 19465.347406634828,
+      "model_usage": {
+        "answer": {
+          "input_tokens": 11372590,
+          "output_tokens": 166419,
+          "total_tokens": 11539009,
+          "cached_tokens": 0,
+          "thoughts_tokens": 0
+        },
+        "judge": {
+          "input_tokens": 758691,
+          "output_tokens": 52534,
+          "total_tokens": 811225,
+          "cached_tokens": 0,
+          "thoughts_tokens": 0
+        }
+      },
+      "attempts_with_unknown_usage": 12,
+      "retained_banks": [
+        "locomo1540_20261119_012639_conv_26",
+        "locomo1540_20261119_012639_conv_30",
+        "locomo1540_20261119_012639_conv_41",
+        "locomo1540_20261119_012639_conv_42",
+        "locomo1540_20261119_012639_conv_43",
+        "locomo1540_20261119_012639_conv_44",
+        "locomo1540_20261119_012639_conv_47",
+        "locomo1540_20261119_012639_conv_48",
+        "locomo1540_20261119_012639_conv_49",
+        "locomo1540_20261119_012639_conv_50"
+      ],
+      "note": "All expected questions stay in denominator; tokens use recorded context, prompt or provider usage as labelled. Retain/internal model usage is excluded."
+    },
+    "candidate": {
+      "fingerprint": "17c58222b7a21037ae89ad7926bf946be254789671f8321f7384f1d04ae8da8d",
+      "protocol": "amb-locomo-cat1to4-packed-v1",
+      "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+      "valid_complete_run": true,
+      "expected": 1540,
+      "completed": 1540,
+      "failed": 0,
+      "pending": 0,
+      "correct": 1442,
+      "accuracy_all_expected": 0.9363636363636364,
+      "answer_f1_all_expected": 0.2801066496737245,
+      "context_tokenizer": "o200k_base",
+      "context_tokens_total": 12289688,
+      "context_tokens_mean": 7980.316883116883,
+      "context_tokens_max": 8007,
+      "amb_cl100k_context_tokens_mean": 8128.567532467532,
+      "full_answer_prompt_tokens_mean": 8175.3038961038965,
+      "retrieval_sample_count": 1540,
+      "retrieval_measurement": "live-http-recall",
+      "retrieval_source_run_id": null,
+      "retrieval_ms_mean": 21167.81138983206,
+      "retrieval_ms_p50": 21994.48906199541,
+      "retrieval_ms_p95": 32913.20487710764,
+      "model_usage": {
+        "answer": {
+          "input_tokens": 11807173,
+          "output_tokens": 167378,
+          "total_tokens": 11974551,
+          "cached_tokens": 0,
+          "thoughts_tokens": 0
+        },
+        "judge": {
+          "input_tokens": 759327,
+          "output_tokens": 52306,
+          "total_tokens": 811633,
+          "cached_tokens": 0,
+          "thoughts_tokens": 0
+        }
+      },
+      "attempts_with_unknown_usage": 19,
+      "retained_banks": [
+        "locomo1540_20261119_012639_conv_26",
+        "locomo1540_20261119_012639_conv_30",
+        "locomo1540_20261119_012639_conv_41",
+        "locomo1540_20261119_012639_conv_42",
+        "locomo1540_20261119_012639_conv_43",
+        "locomo1540_20261119_012639_conv_44",
+        "locomo1540_20261119_012639_conv_47",
+        "locomo1540_20261119_012639_conv_48",
+        "locomo1540_20261119_012639_conv_49",
+        "locomo1540_20261119_012639_conv_50"
+      ],
+      "note": "All expected questions stay in denominator; tokens use recorded context, prompt or provider usage as labelled. Retain/internal model usage is excluded."
+    },
+    "fixed_count": 36,
+    "regressed_count": 13,
+    "net_correct": 23,
+    "resource_phase_latency": [
+      {
+        "phase": "before",
+        "reranker_concurrency": 1,
+        "questions": 851,
+        "recall_p50_ms": 17678.305457928218,
+        "recall_p95_ms": 29804.351040977053
+      },
+      {
+        "phase": "transition",
+        "reranker_concurrency": null,
+        "questions": 2,
+        "recall_p50_ms": 28578.108729503583,
+        "recall_p95_ms": 43450.64339796663
+      },
+      {
+        "phase": "after",
+        "reranker_concurrency": 2,
+        "questions": 687,
+        "recall_p50_ms": 24882.307791966014,
+        "recall_p95_ms": 34782.2313833516
+      }
+    ],
+    "note": "All1540 complete, no operational exclusions; overall latency has1→2 reranker resource epochs. Original reader/judge/gold unchanged. Cross-vendor models/hardware differ."
+  },
+  "full_error_source_review_coverage": {
+    "semantic_wrong_cases": 98,
+    "all_have_current_source_review": true,
+    "reviewer": "Codex assistant source inspection, not human annotation",
+    "operational_gaps": 0,
+    "no_gold_or_judge_edits": true
+  },
+  "transport_completion_audit": {
+    "captured_at": "2026-11-19T07:08:53.133970+00:00",
+    "source_run": "locomow8r_20261119_011537",
+    "completed_run": "locomow8c_20261119_1506",
+    "all6158_source_sealed_files_unchanged": true,
+    "unchanged_completed_payloads_excluding_envelope": 6156,
+    "unchanged_semantic_qa": 1539,
+    "new_model_calls": [
+      "conv-44_q90-answer.json",
+      "conv-44_q90-judge.json"
+    ],
+    "total_completed_model_calls": 3080,
+    "full_result_count": 1540,
+    "source_original_failure_retained": true,
+    "final_manifest_sha256": "dec51c5669eeb4259499ae44224af07f7d2ca7168d3d85f0ca1fc1f29223d57d",
+    "private_audit_sha256": "835f1f0857778fc14c123c21c8e2e40b66dfca195b49262364e3864c6591aa0d"
+  },
+  "maintained_harness_compatibility": {
+    "source_sha256": "ad404c76fec90fddd9022de04e7b873deff2e3706aeda54b49154d33cc7cec7e",
+    "runner_sha256": "c214ac6754e24cdb2add8899eec2b997686d257273407ace524ecb0b980620a5",
+    "support_sha256": "f29ef88316032a3a6f574e1b4d3b4285b3a44c7809b6d6481b838c7f5e5a5312",
+    "runs": [
+      {
+        "run_id": "locomo1540r_20261119_030518",
+        "scope": 1540,
+        "full_record_identical": 1540,
+        "reader_context_text_identical": 1540,
+        "nonidentical_record_question_ids": []
+      },
+      {
+        "run_id": "locomow8r_20261119_011537",
+        "scope": 1381,
+        "full_record_identical": 1380,
+        "reader_context_text_identical": 1381,
+        "nonidentical_record_question_ids": [
+          "conv-41_q122"
+        ]
+      }
+    ],
+    "note": "Read-only replay of recorded recall using original config. All2921 reader context texts byte-identical. One window record has a non-text metadata difference; no claim all packed records identical. This is not a new QA score."
   }
 }
