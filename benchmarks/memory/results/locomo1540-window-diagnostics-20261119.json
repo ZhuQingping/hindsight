@@ -2874,6 +2874,31 @@
       "question_id": "conv-48_q87",
       "finding": "参考D6:10明确Bali，reader正确映射Indonesia；D23:18 Rio对应Brazil虽未入原文窗口，答案仍答出Brazil。gold是Thailand,Brazil，所标Bali并不支持Thailand；不能为追分把Bali地理改成Thailand。",
       "confidence": "confirmed_reference_gold_geography_conflict"
+    },
+    {
+      "question_id": "conv-26_q144",
+      "finding": "D18:6/7均已返回并打包。they were scared紧接their brother would be OK，更像兄弟姐妹害怕，而非受伤男孩本人；新答案忠于该指代仍被gold判错。原文/题目人物指代冲突，不是检索遗漏。",
+      "confidence": "confirmed_source_referent_ambiguity"
+    },
+    {
+      "question_id": "conv-26_q40",
+      "finding": "新8K已经包含July6 D6:16海滩露营照片与July20 D10:8最近去海滩两处；reader仍仅确认一次、拒绝把两次叙述算独立事件。与旧基线只有部分原文不同，当前主要是事件去重/隐含时间推断，不能继续标原文未返回。",
+      "confidence": "confirmed_multievent_reader_uncertainty"
+    },
+    {
+      "question_id": "conv-26_q5",
+      "finding": "May25的D2:1明确last Saturday，原文已打包，答案May20计算正确；gold Sunday对应May21。新旧答案相同且均被我们的裁判拒绝；保留gold冲突，不把准确地算Saturday改为Sunday来追分。",
+      "confidence": "confirmed_source_gold_date_conflict"
+    },
+    {
+      "question_id": "conv-26_q50",
+      "finding": "原标注D12:1没有进窗口，但事实明确religious conservatives的负面经历，以及支持LGBTQ rights/equality/inclusion；模型明确认为不足以推断政治倾向。属于合成人设开放推断任务的谨慎答题策略，不能仅因标注ID缺失就声称政治相关支持未提供。",
+      "confidence": "supported_synthetic_persona_inference_policy"
+    },
+    {
+      "question_id": "conv-26_q59",
+      "finding": "新窗口事实含necklace的faith含义及为local church做stained glass，reader也明确引用两者后拒绝认定宗教性；原文不直接声明个人信仰。主要是推断强度与gold somewhat religious的差异，不是丢失这两条线索。",
+      "confidence": "confirmed_inference_strength_ambiguity"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -5552,5 +5577,11 @@
       "empty_reference_cases": 0
     },
     "note": "Existing question-only top4 lexical candidates plus same-document neighboring chunks are compared after the fact against64K raw recall. No new model/recall/DB/packing or ranked candidate computation. ID coverage is not entailment, budget-feasible inclusion, or accuracy; empty-reference sets count vacuously. Raw candidate ranks were computed for full1540 independently of gold. No test score improvement claimed."
+  },
+  "first_eight_source_review_coverage": {
+    "semantic_wrong_cases": 77,
+    "all_have_current_v1_source_review": true,
+    "source_review_scope": "first8 completed1225 only",
+    "note": "Codex source inspection, not human annotation. All77 current wrong answers compared with returned/packed source and gold; source conflicts remain scored wrong under unchanged judge, no score correction."
   }
 }
