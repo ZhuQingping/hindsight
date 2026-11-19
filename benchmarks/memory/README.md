@@ -14,7 +14,7 @@
 | [requirements.txt](requirements.txt) | 仓库 Python 环境之外的评测/测试补充依赖 |
 | [tests/test_runner.py](tests/test_runner.py) | 固定 AMB 代码＋合成会话＋模拟服务/模型的离线检查 |
 
-**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别1–4的1540题基线已完整完成：**1419/1540、92.14%、答案F1 27.65%，检索P50/P95 15.31/19.47秒**。121道错题均已分析，独立8K窗口候选已启动。见[完整结果](results/locomo1540-baseline-20261119.json)和[报告](report.md)。当前70项离线检查、Ruff和类型检查通过；全局lint仍有既有http.py F841失败。
+**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别1–4的1540题基线已完整完成：**1419/1540、92.14%、答案F1 27.65%，检索P50/P95 15.31/19.47秒**。121道错题均已分析，独立8K窗口候选已启动。见[完整结果](results/locomo1540-baseline-20261119.json)和[报告](report.md)。当前71项离线检查、Ruff和类型检查通过；全局lint仍有既有http.py F841失败。
 
 历史conv-30：旧版91.36%、F1 25.15%；新AMB协议RRF为70/81、86.42%、F1 21.98%；旧Bank接入BGE后为76/81、93.83%、F1 26.64%。完整基线使用全新抽取Bank，其conv-30为75/81，不能把旧Bank成绩拼入全量。各次旧结果和Bank均保留，prompt/裁判不同的运行不作为单一打包改动的因果对比。
 
@@ -133,4 +133,4 @@ prepare只做离线冻结；run必须等源基线完整有效，并使用冻结�
 
 流程仍是init → 冻结runner verify → run，不执行ingest。脚本核验源全部检索、模型调用、结果、F1、状态和隔离，保存来源文件哈希及快照；可按新packing配置重打包，但不能从未召回的原文补信息。新运行对整个原范围重新答题和判题，已完成的新判定不重答择优。缺失快照直接失败，禁止悄悄回退live recall。之后的同方法故障接续也保留检索来源。
 
-`summary.retrieval_measurement=reused-source-recall`表示检索P50/P95沿用来源的测量，**不是新测速**；`retrieval_source_run_id`标明来源。新Token账目只统计新答题/判题调用；上下文及prompt长度按新打包实计。当前已通过70项离线检查，并只读审计真实1540题源；新reader提示和32K配置仍只是离线准备，没有新成绩。
+`summary.retrieval_measurement=reused-source-recall`表示检索P50/P95沿用来源的测量，**不是新测速**；`retrieval_source_run_id`标明来源。新Token账目只统计新答题/判题调用；上下文及prompt长度按新打包实计。当前已通过71项离线检查，并只读审计真实1540题源；新reader提示和32K配置仍只是离线准备，没有新成绩。

@@ -809,3 +809,14 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 窗口首组检查点：conv-26全部152题落盘，按原judge相对基线8道旧错转对、1道原对转错（q68），不是1540完整成绩。逐题配对与后验诊断保存`results/locomo1540-window-diagnostics-20261119.json`，完整原始152题对照仍在.local/window-first152-comparison-20261119.json。q68的Seven years回包可见而8K选窗丢失；同义q132却恢复并转对，既定32K离线重打包能保留q68原句，但没有新答题分数。q66的部分marshmallows/stories支持已在8K上下文，仍答错，不能把一切归因检索。q78仅答中figurines仍按原宽松judge转对，未擅自收紧或放宽规则。窗口v1保持原冻结配置，继续全题，不合并两轮逐题最优答案。
 
 窗口conv-30检查点：全部81题保存，基线75对→候选79对；q13/q37/q44/q73转对、无回退，q31/q43仍错。Shia/graceful原句及答案明确恢复；q73即使magical已在上下文仍没出现在答案里，F1为0但judge语义判对，已记录裁判差异而非虚报原词修复。前两组233题共12转对/1回退，配对小结更新同一results/locomo1540-window-diagnostics-20261119.json，原私有152题与conv30对照文件各自保留。没有修改窗口v1或重新回答已完成题目，完整运行继续。
+
+
+网络切换与接续（2026-11-19）：用户提示即将断网后，原窗口producer1156及supervisor1157以SIGSTOP保护现场；网络恢复时暂停已超过180秒请求超时，故没有盲目恢复过期socket。原进程已终止，旧目录/全部sealed结果和调用保留。原state的字节副本为state-before-network-finalization.json；网络事件及终止/活跃耗时依据保存于network-handoff-20261119.json和network-stop-record.json。只将操作状态收尾为interrupted_or_failed，累计QA活跃时间依据launch到SIGSTOP的时刻保存3085.243071秒，不计离线等待；没有改写任何已完成语义答案或判定。
+
+冻结恢复run为`locomow8r_20261119_011537`（UTC命名），目录`benchmarks/memory/.local/runs/locomow8r_20261119_011537`，当前/tmp/contextbase-locomo-window-candidate-run指向此目录。原591个已完成模型调用payload逐条与新副本一致，仅封装fingerprint/checksum变化；网络恢复仅补未返回的conv-41_q63 recall，以及未完成的conv-41_q62 judge。旧in-flight recall的error为null、recall为null，新增显式resume_connection_failures条件下的孤立请求识别，不改源记录；71项离线检查覆盖error=null与interrupted_unknown两种中断，新请求不复用旧占位结果，其余已完成模型调用不重答。Ruff/ty通过；全局lint的既有F841状态未变。
+
+10个Bank只读verify已再次通过，未重新导入。新producer6427、supervisor6428、scoped caffeinate6429均实际存活，日志/tmp/contextbase-locomo-window-network-eval.log；网络恢复后已出现新的成功recall、answer和judge，不以PID存在冒充恢复成功。当前337题已判、0失败题；5次未知用量包含原4次流错误和1次在途判题中断。完整恢复证明为新run的network-recovery-proof.json。模型、原reader/judge提示、检索预算和8K窗口v1均与原预登记保持一致。此次采用检查点接续；普通进程守护不应被描述为已实现独立联网探测功能。
+
+后续reader/32K预登记配置仍保留，但绑定的旧窗口目录已因网络中断不完整，不能直接执行。待当前恢复run全量有效后，只更换来源manifest路径/哈希并核验同一scope/Banks/评测配置，保留原预登记及这次纯传输接续证明，不能绕过完整源门槛。
+
+按用户要求已导出真实conv-30_q44完整业务交互到`.local/examples/locomo-conv30-q44-full-interaction.html`：接口完整归档返回、打包结果、完整答题/判题prompt、模型内容、尝试用量及原始记录均未删减；请求体/逻辑参数是依冻结脚本还原，未保存的HTTP头、SSE、随机请求ID明确不冒充原始抓包。此文件含原始记忆与完整prompt，仅本机保留，不进入Git。

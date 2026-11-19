@@ -1253,13 +1253,16 @@ async def test_numeric_gold_save_failure_recovers_newly_ingested_banks_without_n
 
 
 @pytest.mark.asyncio
-async def test_interrupted_retrieval_retries_only_the_unanswered_question(tmp_path, checkout, monkeypatch):
+@pytest.mark.parametrize("orphan_error", ["interrupted_unknown", None])
+async def test_interrupted_retrieval_retries_only_the_unanswered_question(
+    tmp_path, checkout, monkeypatch, orphan_error
+):
     service = FakeBankService()
     app = web.Application()
     app.router.add_route("*", "/{tail:.*}", service.handle)
     async with TestServer(app) as server:
         directory, manifest = prepared(
-            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=2
+            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=2 if orphan_error else 1
         )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
@@ -1269,13 +1272,18 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(tmp_pa
                 fingerprint=manifest.fingerprint,
                 question_id="conv-30_q0",
                 bank_id=manifest.conversations[0].bank_id,
-                error="interrupted_unknown",
+                error=orphan_error,
             ),
         )
         original_factory = Factory(manifest, structured=True)
-        partial = await asyncio.to_thread(a.run, directory, manifest, original_factory)
-        assert not partial.valid_complete_run and partial.failed == 1
-        assert len(original_factory.calls) == 2  # q1 only; no judge on an operational placeholder.
+        if orphan_error:
+            partial = await asyncio.to_thread(a.run, directory, manifest, original_factory)
+            assert not partial.valid_complete_run and partial.failed == 1
+            assert len(original_factory.calls) == 2  # q1 only, no judge on an operational placeholder.
+        else:
+            # A process stopped mid-request has not returned to AMB at all.
+            # Do not resume the expired socket merely to manufacture a failure.
+            assert not original_factory.calls
         before = {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
         cfg = json.loads((tmp_path / "config.json").read_text())
         cfg.update(
@@ -1294,10 +1302,10 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(tmp_pa
         await a.service_stage(recovered_dir, recovered, "verify")
         factory = Factory(recovered, structured=True)
         summary = await asyncio.to_thread(a.run, recovered_dir, recovered, factory)
-        assert summary.valid_complete_run and summary.completed == 2 and summary.failed == 0
+        assert summary.valid_complete_run and summary.completed == (2 if orphan_error else 1) and summary.failed == 0
         assert len(factory.calls) == 2 and all(qid == "conv-30_q0" for _, _, qid in factory.calls)
-        assert summary.model_usage["answer"].total_tokens == 20
-        assert summary.model_usage["judge"].total_tokens == 20
+        assert summary.model_usage["answer"].total_tokens == (20 if orphan_error else 10)
+        assert summary.model_usage["judge"].total_tokens == (20 if orphan_error else 10)
         assert before == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
 
 

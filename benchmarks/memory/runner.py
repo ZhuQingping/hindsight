@@ -374,6 +374,7 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             for path in (source_directory / "retrievals").glob("*.json"):
                 record = unseal(path, RetrievalRecord, source_manifest)
                 if record.recall is None and record.error in {
+                    None,  # An orphaned in-flight request with no response; keep the source record unchanged.
                     "interrupted_unknown",
                     "ConnectionTimeoutError",
                     "ClientConnectorError",
