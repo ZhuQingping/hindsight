@@ -1544,5 +1544,108 @@
     "regressed": [
       "conv-42_q23"
     ]
+  },
+  "raw_candidate_feasibility": {
+    "kind": "offline-lexical-candidate-coverage-not-qa-score",
+    "scope": 1540,
+    "source_snapshot_chunks": 588,
+    "policy": "Observed complete speech+BLIP only; query-only BM25-style top4 seeds plus same-document chunk index +/-1, at most12 candidates.",
+    "mean_seed_candidates": 3.9954545454545456,
+    "mean_expanded_candidates": 7.873376623376624,
+    "chunks_without_complete_turns": 10,
+    "statistics": {
+      "all1540": {
+        "n": 1540,
+        "baseline_returned_covered": {
+          "any_reference": 1481,
+          "all_references": 1373
+        },
+        "baseline_packed_covered": {
+          "any_reference": 1424,
+          "all_references": 1261
+        },
+        "seed_covered": {
+          "any_reference": 1312,
+          "all_references": 1122
+        },
+        "expanded_covered": {
+          "any_reference": 1362,
+          "all_references": 1165
+        },
+        "union_baseline_returned_and_expanded": {
+          "any_reference": 1509,
+          "all_references": 1424
+        }
+      },
+      "baseline_wrong121": {
+        "n": 121,
+        "baseline_returned_covered": {
+          "any_reference": 99,
+          "all_references": 83
+        },
+        "baseline_packed_covered": {
+          "any_reference": 82,
+          "all_references": 57
+        },
+        "seed_covered": {
+          "any_reference": 98,
+          "all_references": 71
+        },
+        "expanded_covered": {
+          "any_reference": 103,
+          "all_references": 76
+        },
+        "union_baseline_returned_and_expanded": {
+          "any_reference": 115,
+          "all_references": 103
+        }
+      }
+    },
+    "q147": {
+      "question_id": "conv-47_q147",
+      "seed_ids": [
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F30_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F17_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F24_1",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F21_0"
+      ],
+      "expanded_ids": [
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F30_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F17_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F24_1",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F21_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F30_1",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F17_1",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F24_0",
+        "locomo1540~5F20261119~5F012639~5Fconv~5F47_conv-47~5Fsession~5F21_1"
+      ],
+      "evidence_ids": [
+        "D30:18"
+      ],
+      "baseline_returned_covered": [],
+      "baseline_packed_covered": [],
+      "seed_covered": [],
+      "expanded_covered": [
+        "D30:18"
+      ]
+    },
+    "diagnostic_sha256": "c129f6f93bf1ee87d93159abe44d285e3f92e5c03d81b6a0a6e84857a488b294",
+    "script_sha256": "28472c0df40c3198f9f69ed57d6a28adf24c0db5599711da1324beb19a7fd361",
+    "support_sha256": "73fb1ce6c69d493ed2d4276dace1c6e3ae38fc193cb8038d17c4e4355b0a3745",
+    "snapshot_sha256": "3957317bfdb80ec793f125f35d3ccc3ef8e63ca7c4bb1599ea1e9a41557cc5dd",
+    "baseline_sha256": "64e44157d56f6a4a78ae7d31be1be0999cef36f7606fb0272717d85547882a19",
+    "private_diagnostic_path": ".local/pg-baseline-audit-20261119/raw-candidate-coverage-v2.json",
+    "verification": "All1540 seed rankings reproduced under independent PYTHONHASHSEED=42; all candidate expansions checked <=12.",
+    "limits": [
+      "Offline Python BM25-style scoring (k1=1.2,b=.75), top4 positive seeds, same-document index +/-1, max12.",
+      "This is not PostgreSQL FTS/BM25 performance or an implemented native retrieval endpoint.",
+      "No model, recall API, DDL, index creation, Bank mutation or answer regeneration.",
+      "Coverage means literal observed turn IDs, not entailment, packed budget feasibility or answer accuracy.",
+      "Image-search query/URLs excluded; only complete observed speaker/text/caption objects indexed.",
+      "All1540 cases are already reviewed development data; this is not an unseen holdout.",
+      "Union comparison uses original 8K-raw baseline, not the in-flight 64K-raw window run; final retrieval complementarity must be rechecked against that complete run.",
+      "Seed-only coverage is lower than baseline fact-driven recall; this is a complementary candidate hypothesis, not evidence to replace existing retrieval.",
+      "No reader-budget packing, model answer or native SQL performance evaluation has yet used these candidates."
+    ]
   }
 }
