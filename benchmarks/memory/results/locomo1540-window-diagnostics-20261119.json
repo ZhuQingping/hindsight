@@ -4126,5 +4126,20 @@
     "note": "Only completed QA. conv-44_q90 transport interruption has no answer/judge and remains pending recovery; final full-scope score must include all1540.",
     "private_snapshot_sha256": "35aa9ee62b856227ea8a1348b3da3f4853de7678577a68cbccff864e017e1904",
     "private_snapshot_path": ".local/window-first881-completed-20261119.json"
+  },
+  "resource_epoch_export_preparation": {
+    "purpose": "Frozen credential-free final exporter with declared resource-epoch latency; does not change evaluation methods or run models.",
+    "code_sha256": {
+      "analysis.py": "e72eef6d440906d34ff1252814a916ec5b06f7172b2418478ce1586ed8461ab8",
+      "runner.py": "c214ac6754e24cdb2add8899eec2b997686d257273407ace524ecb0b980620a5",
+      "support.py": "f29ef88316032a3a6f574e1b4d3b4285b3a44c7809b6d6481b838c7f5e5a5312"
+    },
+    "checks": [
+      "84 offline tests pass, including real pinned-AMB export with no extra HTTP/model calls.",
+      "Epochs must form an exact disjoint partition of the full scope; source/timeline digest mismatch is rejected.",
+      "Inherited epoch declaration must match its source-proof hash; historical retrieval cache timings are labeled.",
+      "Per-phase metrics separate predeclared in-flight transition IDs, without changing any verdict or overall quality denominator."
+    ],
+    "global_lint": "Existing native api/http.py F841; unrelated isolated formatter edits restored."
   }
 }

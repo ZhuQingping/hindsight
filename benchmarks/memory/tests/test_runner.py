@@ -482,11 +482,75 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
         output = tmp_path / "public-results.json"
         exported = analysis.export(directory, output, directory)
         assert len(exported.rows) == 2 and exported.changes.both_wrong == 2
+        assert exported.resource_epochs is None
         assert len(service.requests) == request_count and len(factory.calls) == 4
         assert "TEST_ONLY_SECRET" not in output.read_text()
         assert "credential" not in json.loads(output.read_text())["settings"]
         with pytest.raises(FileExistsError):
             analysis.export(directory, output)
+        if packing_algorithm == "query-turn-windows-v1" and reader_profile == "amb-default":
+            qids = [row.question_id for row in exported.rows]
+            declaration = analysis.ResourceEpochDeclaration(
+                source_run_id=manifest.run_id,
+                source_manifest_sha256=h.file_sha(directory / "manifest.json"),
+                initial_manifest_reranker_label=manifest.config.memory_profile.reranker,
+                setting="HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT",
+                before=1,
+                after=2,
+                pause_started_at="2026-11-19T03:45:00+00:00",
+                resumed_at="2026-11-19T03:45:23+00:00",
+                pause_elapsed_s=23,
+                env_before_sha256="1" * 64,
+                env_after_sha256="2" * 64,
+                switch_journal_sha256="3" * 64,
+                phase1_recall_question_ids=qids[:1],
+                transition_question_ids=[],
+                phase2_recall_question_ids=qids[1:],
+            )
+            phase_path = directory / "performance-epochs.json"
+            phase_path.write_text(declaration.model_dump_json(indent=2))
+            phase_bytes = phase_path.read_bytes()
+            hashes = {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+            phase_export = analysis.export(directory, tmp_path / "resource-epochs-export.json", directory)
+            report = phase_export.resource_epochs
+            assert report is not None and not report.historical_source_timings
+            assert [p.questions for p in report.latency] == [1, 0, 1]
+            assert [p.reranker_concurrency for p in report.latency] == [1, None, 2]
+            assert report.latency[0].recall_p50_ms == exported.rows[0].recall_ms
+            assert report.latency[1].recall_p95_ms is None
+            assert phase_export.summary == exported.summary and phase_export.rows == exported.rows
+            assert report.declaration_sha256 == h.file_sha(phase_path)
+            assert hashes == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+            inherited = manifest.model_copy(
+                update={
+                    "checkpoint_imports": manifest.checkpoint_imports
+                    | {"performance-epochs.json": h.file_sha(phase_path)},
+                    "retrieval_origin": a.RetrievalOrigin(
+                        run_id=manifest.run_id, manifest_sha256=h.file_sha(directory / "manifest.json")
+                    ),
+                }
+            )
+            inherited_report = analysis.resource_epoch_report(directory, inherited, exported.rows)
+            assert inherited_report.historical_source_timings and inherited_report.latency == report.latency
+            for invalid in ("scope", "foreign", "inherited-tamper"):
+                raw = declaration.model_dump()
+                if invalid == "scope":
+                    raw["phase2_recall_question_ids"] = qids[:1]
+                if invalid == "foreign":
+                    raw["source_manifest_sha256"] = "0" * 64
+                phase_path.write_text(json.dumps(raw))
+                current_manifest = manifest
+                if invalid == "inherited-tamper":
+                    current_manifest = manifest.model_copy(
+                        update={
+                            "checkpoint_imports": manifest.checkpoint_imports | {"performance-epochs.json": "0" * 64}
+                        }
+                    )
+                with pytest.raises(ValueError, match="Resource|resource"):
+                    analysis.resource_epoch_report(directory, current_manifest, exported.rows)
+            phase_path.write_bytes(phase_bytes)
+            assert hashes == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+            assert len(service.requests) == request_count and len(factory.calls) == 4
         coverage_settings = analysis.h.core.PackingSettings.model_validate(
             manifest.config.packing.model_dump()
             | {"algorithm": "query-turn-windows-v1", "chunk_order": "query_relevance"}

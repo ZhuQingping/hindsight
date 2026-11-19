@@ -140,3 +140,5 @@ prepare只做离线冻结；run必须等源基线完整有效，并使用冻结�
 独立候选打包方法 `query-turn-windows-metadata-v2` 保留返回原文自带的图片搜索 `query`，标注为source metadata，和BLIP caption分开；不抓图、不生成新caption，不读取QA gold。默认complete-JSON及`query-turn-windows-v1`行为不变，不能在原运行中途切换。六题已有回包的离线重打包通过预算与来源核验，原v1序列化结果逐题完全复现；候选尚未产生答题/判题成绩。初始化缓存复测时仍要求完整有效1540题来源，当前未完成的来源已实际拒绝且未创建输出。配置和代码冻结于`.local/metadata-v2-offline-validation-20261119/`，摘要见既有部分诊断JSON。
 
 重启在途HTTP错误恢复：只有`resume_connection_failures=true`且已记录的服务重启证明与源manifest、暂停前待返回record的完整序列化哈希一致，且不存在recall结果/answer/judge调用，才允许补齐。任意HTTPFailure不会一律重试。新检查点归档原proof和资源分段，但不复制为可递归重用的重启授权。真实q90证据已通过只读核验，84项离线测试覆盖有效恢复、缺失证明、外来manifest、错误preimage、已有语义调用和未完成重启。当前评测仍使用自己的冻结代码，收尾配置在`.local/window-restart-recovery-prepared-20261119/`，未启动。
+
+最终完整结果导出会附`resource_epochs`：绑定`performance-epochs.json`的SHA、原始资源标签、1并发/切换在途/2并发三段的题数与检索P50/P95；三段必须严格覆盖全部题目且不重复。总体准确率/F1不删任何题，整体原始时延标注为混合资源条件，阶段时延也不称为同题加速对照。来源缓存复测明确沿用历史时延。普通无资源切换的旧运行字段为null，旧文件不覆盖。导出不会读取env或凭据文件，也不调用API/模型。收尾冻结导出源码位于`.local/window-restart-recovery-prepared-20261119/export-source/`，其SHA见export-audit.json。

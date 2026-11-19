@@ -890,3 +890,5 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 重启中断q90的原始HTTPFailure保持原样；恢复器在内存构造暂停前error=None的pending record，并核对其完整序列化SHA与切换前journal。已在真实q90上吻合，且没有answer/judge文件。84项离线测试通过，其他无证明HTTPFailure、已有语义结果、外来/损坏证明、未完成重启均不能借此恢复；checkpoint-source保留原证明，避免再次递归使用同一次重启授权。现有PIDs与冻结脚本不变。全局lint仍为既有http.py:5846 F841，隔离worktree自动格式化已还原。
 
 只准备了`.local/window-restart-recovery-prepared-20261119/`中的配置和冻结源码。必须先等原producer退出、真实run锁空闲、源状态终态，再确认全1540题仅剩q90传输缺口，才init新检查点并只读verify、补齐缺口。所有已完成答案/判定复用，不因答错重跑；资源epochs文件和重启proof均归档。此后只做完整性、指标、错误归因和协作交接，不自动启动新候选。
+
+归档补充：最终维护版analysis.py自动读取已声明的资源epochs，只接受与原manifest或已归档来源哈希绑定的完整题目分区；分别导出三段时延，整体成绩保留全部1540题。缓存复测的时延仍标为来源历史值。已用真实固定AMB+模拟HTTP/模型验证无额外调用、质量行/summary不变，外来来源、重复/漏题和继承声明篡改会被拒绝。84项离线检查、Ruff/ty通过，冻结导出版本另存于收尾准备目录export-source，不覆盖先前冻结的runner配置。

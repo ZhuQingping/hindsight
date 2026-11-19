@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 spec = importlib.util.spec_from_file_location("_memory_analysis_runner", Path(__file__).with_name("runner.py"))
 if spec is None or spec.loader is None:
@@ -92,6 +92,45 @@ class Changes(BaseModel):
     regressed: list[str]
 
 
+class ResourceEpochDeclaration(BaseModel):
+    source_run_id: str
+    source_manifest_sha256: str
+    initial_manifest_reranker_label: str
+    setting: Literal["HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT"]
+    before: int = Field(ge=1)
+    after: int = Field(ge=1)
+    pause_started_at: str
+    resumed_at: str
+    pause_elapsed_s: float = Field(ge=0)
+    env_before_sha256: str
+    env_after_sha256: str
+    switch_journal_sha256: str
+    phase1_recall_question_ids: list[str]
+    transition_question_ids: list[str]
+    phase2_recall_question_ids: list[str]
+
+
+class ResourceLatency(BaseModel):
+    phase: Literal["before", "transition", "after"]
+    reranker_concurrency: int | None
+    questions: int
+    recall_p50_ms: float | None
+    recall_p95_ms: float | None
+
+
+class ResourceEpochReport(BaseModel):
+    declaration_sha256: str
+    declaration: ResourceEpochDeclaration
+    historical_source_timings: bool
+    latency: list[ResourceLatency]
+    note: str = (
+        "Initial memory.reranker describes the initial epoch only. Overall accuracy/F1 retains all questions; "
+        "overall raw latency is mixed-resource and includes transition requests. Steady-state phase metrics "
+        "separate predeclared transition IDs and are not paired same-question speed comparisons. "
+        "Cached retrieval experiments retain historical source timings, not new speed measurements."
+    )
+
+
 class Export(BaseModel):
     schema_version: int = 1
     run_id: str
@@ -110,6 +149,7 @@ class Export(BaseModel):
     error_counts: dict[str, int]
     wrong_question_ids: list[str]
     rows: list[Row]
+    resource_epochs: ResourceEpochReport | None = None
     evidence_note: str = (
         "Evidence IDs are inspected only after scoring. ID presence is a diagnostic proxy, "
         "not proof of full supporting text or semantic entailment. No gold/evidence enters retrieval."
@@ -591,6 +631,50 @@ def completed(directory: Path) -> h.Summary:
     return summary
 
 
+def resource_epoch_report(directory: Path, manifest: h.Manifest, rows: list[Row]) -> ResourceEpochReport | None:
+    path = directory / "performance-epochs.json"
+    if not path.exists():
+        return None
+    declaration = h.core.read_model(path, ResourceEpochDeclaration)
+    digest = h.core.file_sha(path)
+    # Original runs bind the operation to their manifest. Continuations/cache
+    # experiments additionally bind the exact declaration bytes in source proof.
+    inherited = manifest.checkpoint_imports.get("performance-epochs.json")
+    if inherited is not None:
+        if inherited != digest:
+            raise ValueError("Inherited resource declaration changed")
+    elif declaration.source_manifest_sha256 != h.core.file_sha(directory / "manifest.json"):
+        raise ValueError("Resource declaration belongs to another source")
+    groups = {
+        "before": declaration.phase1_recall_question_ids,
+        "transition": declaration.transition_question_ids,
+        "after": declaration.phase2_recall_question_ids,
+    }
+    identifiers = [qid for group in groups.values() for qid in group]
+    if len(identifiers) != len(set(identifiers)) or set(identifiers) != {row.question_id for row in rows}:
+        raise ValueError("Resource epochs must partition the complete question scope exactly")
+    by_id = {row.question_id: row for row in rows}
+    profiles = {"before": declaration.before, "transition": None, "after": declaration.after}
+    phases: list[ResourceLatency] = []
+    for phase in ("before", "transition", "after"):
+        values = [by_id[qid].recall_ms for qid in groups[phase]]
+        phases.append(
+            ResourceLatency(
+                phase=phase,
+                reranker_concurrency=profiles[phase],
+                questions=len(values),
+                recall_p50_ms=float(np.percentile(values, 50)) if values else None,
+                recall_p95_ms=float(np.percentile(values, 95)) if values else None,
+            )
+        )
+    return ResourceEpochReport(
+        declaration_sha256=digest,
+        declaration=declaration,
+        historical_source_timings=manifest.retrieval_origin is not None,
+        latency=phases,
+    )
+
+
 def export(directory: Path, output: Path, baseline: Path | None = None) -> Export:
     if output.exists():
         raise FileExistsError("Preserve the existing exported baseline")
@@ -703,6 +787,7 @@ def export(directory: Path, output: Path, baseline: Path | None = None) -> Expor
         error_counts=errors,
         wrong_question_ids=[r.question_id for r in rows if not r.correct],
         rows=rows,
+        resource_epochs=resource_epoch_report(directory, manifest, rows),
     )
     if baseline:
         result.changes = Changes(
