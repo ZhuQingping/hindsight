@@ -912,5 +912,169 @@
       }
     ],
     "private_evidence_path": ".local/window-conv42-input-policy-review-20261119.json"
+  },
+  "first518_comparison": {
+    "kind": "fixed-first518-paired-completed-stage-diagnostic-not-full1540-score",
+    "scope_policy": "First 518 QA in frozen manifest order; all completed. Not a reconstruction of the exact historical completion-race boundary.",
+    "baseline": {
+      "n": 518,
+      "correct": 475,
+      "accuracy": 0.916988416988417,
+      "f1": 0.25900233321853006,
+      "context_tokens_mean": 7812.444015444015,
+      "recall_p50_ms": 13284.876416437328,
+      "recall_p95_ms": 18152.963233110495
+    },
+    "candidate": {
+      "n": 518,
+      "correct": 490,
+      "accuracy": 0.9459459459459459,
+      "f1": 0.26926614219578626,
+      "context_tokens_mean": 7975.9324324324325,
+      "recall_p50_ms": 14514.08012502361,
+      "recall_p95_ms": 21560.955234861467
+    },
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23"
+    ],
+    "unchanged_wrong": [
+      "conv-26_q5",
+      "conv-26_q40",
+      "conv-26_q50",
+      "conv-26_q59",
+      "conv-26_q66",
+      "conv-26_q144",
+      "conv-30_q31",
+      "conv-30_q43",
+      "conv-41_q8",
+      "conv-41_q61",
+      "conv-41_q62",
+      "conv-41_q63",
+      "conv-42_q4",
+      "conv-42_q12",
+      "conv-42_q14",
+      "conv-42_q24",
+      "conv-42_q34",
+      "conv-42_q43",
+      "conv-42_q53",
+      "conv-42_q54",
+      "conv-42_q62",
+      "conv-42_q66",
+      "conv-42_q78",
+      "conv-42_q91",
+      "conv-42_q92"
+    ],
+    "by_bank": {
+      "conv-26": {
+        "baseline": {
+          "n": 152,
+          "correct": 138,
+          "accuracy": 0.9078947368421053,
+          "f1": 0.274335677093541,
+          "context_tokens_mean": 7835.111842105263,
+          "recall_p50_ms": 9557.327999966219,
+          "recall_p95_ms": 13186.456815240668
+        },
+        "candidate": {
+          "n": 152,
+          "correct": 145,
+          "accuracy": 0.9539473684210527,
+          "f1": 0.28182858452740706,
+          "context_tokens_mean": 7981.5921052631575,
+          "recall_p50_ms": 9548.449521011207,
+          "recall_p95_ms": 15370.539610495323
+        }
+      },
+      "conv-30": {
+        "baseline": {
+          "n": 81,
+          "correct": 75,
+          "accuracy": 0.9259259259259259,
+          "f1": 0.2431766223524544,
+          "context_tokens_mean": 7705.333333333333,
+          "recall_p50_ms": 6024.9994159676135,
+          "recall_p95_ms": 8549.481875030324
+        },
+        "candidate": {
+          "n": 81,
+          "correct": 79,
+          "accuracy": 0.9753086419753086,
+          "f1": 0.2643273242270425,
+          "context_tokens_mean": 7947.172839506173,
+          "recall_p50_ms": 5998.234207974747,
+          "recall_p95_ms": 7804.622915922664
+        }
+      },
+      "conv-41": {
+        "baseline": {
+          "n": 152,
+          "correct": 143,
+          "accuracy": 0.9407894736842105,
+          "f1": 0.2641418674113881,
+          "context_tokens_mean": 7835.006578947368,
+          "recall_p50_ms": 16714.977458061185,
+          "recall_p95_ms": 19195.34962518373
+        },
+        "candidate": {
+          "n": 152,
+          "correct": 147,
+          "accuracy": 0.9671052631578947,
+          "f1": 0.2792438235357566,
+          "context_tokens_mean": 7979.736842105263,
+          "recall_p50_ms": 16825.224125001114,
+          "recall_p95_ms": 21601.938872528262
+        }
+      },
+      "conv-42": {
+        "baseline": {
+          "n": 133,
+          "correct": 119,
+          "accuracy": 0.8947368421052632,
+          "f1": 0.24524297317218435,
+          "context_tokens_mean": 7825.984962406015,
+          "recall_p50_ms": 14865.919291973114,
+          "recall_p95_ms": 17284.55854994245
+        },
+        "candidate": {
+          "n": 133,
+          "correct": 119,
+          "accuracy": 0.8947368421052632,
+          "f1": 0.246513852401699,
+          "context_tokens_mean": 7982.631578947368,
+          "recall_p50_ms": 17596.65895893704,
+          "recall_p95_ms": 23054.232457815666
+        }
+      }
+    },
+    "candidate_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "limitations": [
+      "Same memories/models/judge; recall raw budget and packing method changed together.",
+      "Independent LLM judging can introduce verdict variation.",
+      "385 Bank-final result checkpoints plus completed stage ledgers for ongoing Bank; not a full1540 score."
+    ],
+    "private_snapshot_sha256": "fdd376d15b3f594fc083533f5a23376988a22f9c6b504ae69013a57fdc1559e2",
+    "private_snapshot_path": ".local/window-first518-paired-20261119.json"
   }
 }
