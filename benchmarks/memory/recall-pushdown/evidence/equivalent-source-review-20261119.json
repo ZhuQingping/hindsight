@@ -1,0 +1,18 @@
+{
+  "status": "PASS within prototype scope",
+  "native_sources_sha256": {
+    "contextbase_recall.c": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f",
+    "contextbase_legacy_order.c": "9192ceae9e1c2ceac1d5858bd8aa851f9ba0914e1d0c80b9da37dc5ca5ac4810",
+    "Makefile": "08f4a333a1341f917ca316b0f7ab90feddf7f070165d833f34e38192c95af2f0",
+    "LICENSE.cpython": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  },
+  "targeted_tests_passed": 30,
+  "native_set_differential_trials": 1200,
+  "changed_module_ruff": "PASS",
+  "changed_module_ty": "PASS",
+  "wheel_new_sql_and_backend": "PASS",
+  "repository_lint": "RUN, BLOCKED by pre-existing api/http.py F841; unrelated autoformat reverted",
+  "original_worktree_clean": true,
+  "production_deployment": false,
+  "commit_push": false
+}

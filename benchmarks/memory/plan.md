@@ -8,7 +8,9 @@ LoCoMo 测试的是：**系统读完一段很长的聊天后，能否记住信�
 
 本文从数据、流程和真实题目讲起，再说明模型、评分、公平对比及资源预算。后半部分维护本机环境、后续待办和执行记录；友商已发布成绩统一见[友商评测报告](report.md)。
 
-**PG Recall 下推专项已统一归档：**见[维护入口](recall-pushdown/README.md)、[当前设计](recall-pushdown/design.md)、[分析报告](recall-pushdown/analysis.md)、[进展](recall-pushdown/progress.md)与[一晚最小计划](recall-pushdown/plan.md)。下一阶段暂不启动；已有原型的79题接管＋2题回退不能称为完整81题下推，历史BGE 76/81也不是下推成绩。该专项不改变下面正在执行的1540题/V1计划，不占用其模型或服务资源。
+**等价实现更新：** 原始版、修改关闭、修复开启已完成独立对照，RRF/真实BGE各81题完整响应、融合结果及reader正文与原始版一致；每题一次候选SQL、零后续补查。限定固定81题与哈希环境，未切换原服务；见[首版报告](recall-pushdown/implementation-report.md)。现有打榜服务、Bank和成绩不变。
+
+**PG Recall 下推专项已统一归档：**见[维护入口](recall-pushdown/README.md)、[当前设计](recall-pushdown/design.md)、[分析报告](recall-pushdown/analysis.md)、[进展](recall-pushdown/progress.md)与[一次PG调用实施计划](recall-pushdown/plan.md)。简化目标是 PG 一次调用完成四路检索、RRF 和候选补全，ContextBase 复用 BGE/评分/预算，不再补查 PG，最终结果等价；两边代码已实现并完成限定81题可行性验收，最新结果见[首版报告](recall-pushdown/implementation-report.md)；完整 Recall 平均/P50 收益仍须按[最小收益验证](recall-pushdown/latency-validation-plan.md)单独确认。已有79题接管＋2题回退不满足该目标，历史BGE 76/81也不是下推成绩。专项不改变本文件维护的1540题/V1计划，不占用其模型或服务资源。
 
 **当前状态：完整基线与窗口优化均已完成1540题且valid_complete_run=true。基线1419对、92.14%；优化1442对、93.64%，净增23题（36转对、13回退）。F1 27.65%→28.01%，上下文7806→7980 tokens，检索P50/P95 15.31/19.47→21.99/32.91秒；后者为reranker1→2混合资源。98道优化错题均已检查来源，唯一中断q90已补齐；其余1539题原答案/判定不变。见[全量优化结果](results/locomo1540-window-20261119.json)、[逐题诊断](results/locomo1540-window-diagnostics-20261119.json)和[报告](report.md)。下面的早期部分成绩是历史检查点。**
 

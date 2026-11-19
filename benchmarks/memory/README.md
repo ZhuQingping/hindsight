@@ -29,7 +29,7 @@ git rev-parse HEAD
 | [recall-profiles/validation.md](recall-profiles/validation.md) | 默认兼容、1540份重放、81题真实对照与复测验收 |
 | [plan.md](plan.md) | LoCoMo 通俗流程、模型和评分口径、公平对比、待办、历史结果及错题分析 |
 | [report.md](report.md) | 友商 benchmark、模型、分数、Token、时延与原始来源 |
-| [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：设计、分析报告、当前进展、一晚最小计划与历史证据；下一阶段暂不启动 |
+| [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：首版实现、81题可行性验收、设计与执行证据；尚未部署 |
 | [runner.py](runner.py) | 唯一执行入口：init、preview、ingest、verify、run、report |
 | [support.py](support.py) | 配置类型、完整条目/原文窗口打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
 | [analysis.py](analysis.py) | 完整结果导出、官方对照、只读进度、错题证据与离线覆盖诊断 |
@@ -51,9 +51,11 @@ git rev-parse HEAD
 
 ## PG Recall 下推专项
 
+**等价实现更新：** 原始版、修改关闭、修复开启已完成独立对照，RRF/真实BGE各81题完整响应、融合结果及reader正文与原始版一致；每题一次候选SQL、零后续补查。限定固定81题与哈希环境，未切换原服务；见[首版报告](recall-pushdown/implementation-report.md)。现有打榜服务、Bank和成绩不变。
+
 下推设计和分析已统一到 [recall-pushdown/](recall-pushdown/README.md)：[当前设计](recall-pushdown/design.md)、[分析报告](recall-pushdown/analysis.md)（[HTML](recall-pushdown/analysis.html)）、[进展](recall-pushdown/progress.md)和[下一步计划](recall-pushdown/plan.md)。今后在此维护，旧研究目录保留历史快照。
 
-**状态：只有受限原型，现有81题的时间检索、评分、预算与本地BGE完整下推尚未启动。** 该专项基于旧conv-30 Bank，不与当前1540题/V1运行混用。6–8小时是后续最小实验实现的估算，不是已启动任务；本次只整理资料，不启动PG、模型或评测。
+**状态：首版候选下推已实现并完成81题可行性验收。** PG一次四路检索、RRF和补全，ContextBase复用BGE/评分/预算，无后续补查；RRF与本地BGE各81题HTTP响应、reader输入及一次查询检查均通过，见[首版报告](recall-pushdown/implementation-report.md)。仅针对旧conv-30，不更改全量打榜服务或源Bank；尚未部署，也未证明端到端提速。
 
 ## 配置归档与同事复测版本
 

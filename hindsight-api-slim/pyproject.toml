@@ -192,6 +192,7 @@ include = [
 [tool.hatch.build]
 include = [
     "hindsight_api/**/*.py",
+    "hindsight_api/**/*.sql",
     "hindsight_api/alembic/**/*",
 ]
 

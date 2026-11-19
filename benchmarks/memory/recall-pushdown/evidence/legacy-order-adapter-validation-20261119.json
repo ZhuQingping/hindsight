@@ -1,0 +1,7 @@
+{
+  "set_trials": 600,
+  "union_trials": 600,
+  "status": "PASS",
+  "python_hash_seed": 0,
+  "scope": "Independent built-in CPython constructor, dict-to-set and left-associated union comparison; synthetic UUIDs only."
+}

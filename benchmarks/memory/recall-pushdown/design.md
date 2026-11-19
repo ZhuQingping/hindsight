@@ -1,80 +1,120 @@
-# 当前设计：覆盖现有 81 题的 PG Recall 下推
+# Recall下推设计：一次PG候选调用，保持原始结果
 
-更新日期：2026-11-19。**状态：设计已整理，下一阶段未启动。** 本设计收敛了此前 40–64 小时的通用方案，目标是一晚完成固定请求剖面的实验版本；不是已经完成的实现。
+更新日期：2026-11-19。本文对应当前`EquivalentPostgresRecallMemories`实现，不再使用早期UUID规范化对照作为等价基线。实现与验收见[实现报告](implementation-report.md)，逐题差分和修复过程见[三组验证](three-way-original-compatibility.md)。
 
-## 1. 对外入口和内部边界
+## 1. 目标与已验证范围
 
-复用现有 `full_recall(FullRecallRequest) -> RecallResult | None`。应用继续完成认证、请求解析和查询向量生成；PG 完成该剖面的候选检索、融合、评分及预算选择，并通过数据库侧桥接批量调用本地 BGE 模型进程，返回该请求所需的事实、分数和原文。
+**PG一次调用完成四路检索、RRF融合、Top-K和候选补全；ContextBase继续完成原有模型重排、最终评分、预算和响应组装，返回后不再补查PG。** 首先保持原始结果，不在此次改动中调整排序策略。
+
+已验证原PG 18.4、109条world事实Bank和固定81题。在RRF及真实本地BGE两种模式中，修复版各81题的完整业务JSON、融合结果、最终reader正文和Token均与未修改原始版一致；BGE有序模型输入也一致。两道时间题q047/q063均接管。
+
+严格兼容验证限定CPython 3.11.15、64位SipHash13、`PYTHONHASHSEED=0`。未知解释器/哈希配置在查询前退出接管；未验证任意部署、执行计划、Bank规模和请求形状。没有修改PG core、生产服务或LoCoMo客户端协议。
+
+## 2. 实际调用链
 
 ```text
-既有 Recall API
-  -> 参数/时间解析、query embedding
-  -> full_recall(request)
-       PG：向量 + 全文 + 有界图/时间检索
-       PG：RRF、Top-K、补读入选正文
-       PG 批量桥接：本地 BGE 模型进程 -> ID/模型分数
-       PG：最终评分、事实/原文预算与截断
-       -> RecallResult
-  -> 既有客户端 pack_context
-  -> reader 答题
+LoCoMo或其他客户端：原有 Recall HTTP 请求
+                         |
+ContextBase：认证/Bank配置、查询向量、时间条件解析
+                         |
+                         v
+MemoriesExtension.full_recall(request)
+  关闭：默认PostgresMemories返回None -> 原检索与Python RRF
+  开启：选择EquivalentPostgresRecallMemories
+                         |
+                         | 一次参数化候选SQL
+                         v
+SELECT recall_equiv.candidates($1::jsonb, $2::name)
+  ├─ 原始向量/全文UNION
+  ├─ 依赖向量种子的实体、语义和因果图扩展
+  ├─ 有时间条件时执行原时间入口与有界关系扩展
+  ├─ 保留原单路名次 -> PG C RRF / Top-K
+  └─ 一次返回候选正文、各路信号和关联原文
+                         |
+                         | 返回候选包，释放PG连接
+                         v
+ContextBase共享finalize_candidates
+  原BGE重排或RRF模式 -> 最终评分 -> 原文/事实预算 -> RecallResult
+                         |
+原HTTP响应 -> 原LoCoMo pack_context；不再补查PG
 ```
 
-模型进程负责推理及与基线相同的分数归一化；适配层负责参数、连接生命周期和结果封装。不能将最终评分、预算选择继续留在适配层，却把它记录为已完成 PG 下推。查询内并行、动态提前剪枝仍是后续研发，本晚不作为已实现能力。
+`full_recall`是服务端存储扩展接口，不是新HTTP参数。“开启”表示服务端选择实验store并接管支持的请求；“关闭”表示使用默认store。配置开关不由LoCoMo客户端按题目决定。
 
-## 2. 固定工作负载
+**一次调用限于候选阶段。** API外层Bank/配置读取、启动/预热与PG函数内部语句分别计数；整个HTTP请求并非只执行一条SQL。当前函数组织内部SQL连续处理，不代表四路已经在PG内并行。
 
-| 项目 | 最小实现范围 |
-| --- | --- |
-| 数据 | 旧 Bank `locomo_conv30_20261118_200523` 的冻结快照；109 条事实，全部为 world；不重新抽取、不改原 Bank |
-| 题集 | 既有 conv-30、类别 1–4，共 81 题；不是全量 1,540 题或 V1 窗口方案 |
-| 请求形状 | 以归档的真实请求和生效配置核对；无标签/来源补全，返回事实、分数和 chunks。若默认类型列表包含空类型，先验证其为空，不要求客户端偷偷改成另一种请求 |
-| 检索预算 | 每路 high=1000，融合候选上限 300；与真实配置分别核验，不能把两者混为一项 |
-| 时间 | 固定原查询时间锚点，复用现有解析规则；补齐 q047、q063 的时间检索和关系扩展 |
-| 模型 | 固定现有 BGE 权重 revision、输入模板、分数处理、CPU/精度/batch 等参数；启动时记录资源实效值，不把历史并发视为当前配置 |
-| 存储侧预算 | 事实 8192、原文 8192，固定 `o200k_base` |
-| reader 上下文 | 保持既有完整条目协议：事实/原文各 4000 配额，总上限 8192，包装计入总量；不自动切换 V1 窗口或其他新算法 |
+## 3. ContextBase与PG的职责
 
-标签、observation/source 处理、跨 Bank、其他 tokenizer、其他模型/排序模式、在线更新与生产级调度不纳入本晚。形状不支持时返回 `None`；**上述 81 题不能用回退充当下推成功。**
-
-## 3. 需要补齐的四部分
-
-### 3.1 时间检索
-
-复用现有时间候选选择、覆盖选择、关系扩展及分数规则，将数据访问和所需计算组织在 PG 侧。隐式时间解析必须与传统路径一致：不能仅检查调用者是否显式传了 `temporal_window`。适配入口可先解析并传入结构化条件；同一查询不得因走不同路径得到不同时间范围。
-
-保留原有扩展边界、关系权重、停止条件和时间过滤。先做到两道时间题的候选、分数、来源及最终结果一致，不在这一步修改图算法。
-
-### 3.2 最终评分
-
-以现有 [apply_combined_scoring](../../../hindsight-api-slim/hindsight_api/engine/search/reranking.py) 为依据，在 PG 计算模型相关分与时间、证据等权重。保留日期粒度、空日期、未来日期、时间锚点和并列规则；当前 world 事实没有的信号按原语义中性处理。
-
-模型输入模板、分数归一化与最终业务加权是不同阶段。不能把 RRF 分数直接当 BGE 分数，不能因 SQL 改写引入另一套排序公式。
-
-### 3.3 Token 预算与原文
-
-利用冻结语料，在实验快照中准备按“正文哈希＋tokenizer/版本”校验的 Token 计数及准确截断信息；不按题号缓存召回结果或答案。PG 使用这些信息完成事实选择、原文预算及截断。哈希或版本不匹配时拒绝使用缓存，不能静默用字节/字符估算代替 Token。
-
-事实预算复用已有 `budget_select` 原型并补齐实际接入；保留跳过超长事实、保底返回及零预算等边界。chunks 选择须保持现有流程顺序，不能擅自改为只读取最终事实的原文。最终客户端 JSON 打包仍保留，因其 Token 不能靠逐条计数简单相加代替。
-
-### 3.4 本地 BGE 批量重排
-
-最小桥接采用数据库侧 C 调用与本地模型工作进程的批量通信，候选 ID 与模型分数关联返回。每次 Recall 一批输入，模型内部复用既有 batch 设置，不按每条候选发起一次通信。沿用相同输入文本构造、归一化与版本，设置有界等待并记录失败。
-
-本晚不让每个 PG backend 独立加载 PyTorch，不开发通用模型注册平台或高并发推理调度。桥接与错误处理尚待实现；PG 若未实际发起/接收模型阶段，不能将普通应用侧 BGE 调用改名为数据库重排能力。
-
-## 4. 复用能力与研发边界
-
-| 部分 | 本晚做法 | 性质 |
+| 工作 | 当前执行位置与实现 | 改动性质 |
 | --- | --- | --- |
-| 入口、请求/响应 | 复用 `full_recall`、`RecallResult`、阶段统计 | 存储适配 |
-| 向量、全文、图/时间关系访问 | 复用 pgvector、原生全文、连接/LATERAL/聚合和既有 SQL 规则 | SQL 组织与改写 |
-| RRF、预算选择 | 复用已验证 C 函数，补齐接入 | 现有原型扩展 |
-| 评分和原文预算 | 将现有规则落实到 PG SQL/C | 本晚新增执行实现 |
-| BGE | 复用权重和推理代码，增加 PG 侧批量桥接 | 本晚新增运行时集成 |
-| 流式子计划、上界停止、依赖感知并行 | 本晚不实现 | 后续内核级执行器研发 |
+| 认证、Bank/租户解析、query embedding | 原ContextBase引擎；schema来自认证上下文 | 复用 |
+| 时间条件解析 | 实验store调用full_recall前解析，回退不重复解析 | ContextBase衔接 |
+| 四路检索与关系扩展 | `recall_equiv.candidates`、`temporal_candidates`；复用原SQL构造器、PG/pgvector及现有索引 | SQL/PLpgSQL集成 |
+| 融合、去重、Top-K | 已有C `recall_probe.rrf_topk`，按原始单路名次执行 | PG C扩展，非core补丁 |
+| 原图集合顺序适配 | C辅助函数兼容固定CPython集合构造/联合顺序 | 实验性兼容代码 |
+| 候选正文及关联原文 | PG同次查询返回，携带日期、来源名次、分数及已加载附件标识 | SQL补全和内部候选协议 |
+| BGE、最终评分、预算、组装 | 连接释放后调用ContextBase共享后处理 | 提取复用原逻辑，未移植到PG |
+| 客户端打包、reader/judge | 原LoCoMo流程 | 未修改；本轮未重新答题/判题 |
 
-## 5. 等价性要求
+C扩展源码随ContextBase同一提交保存在[native目录](native/README.md)，与实际PG开发工作区源码逐文件一致。PG SQL保存在store包中并进入wheel；不需要替换postgres二进制。
 
-现有原型与未修改 store 的差异可由各臂并列规则解释；统一“分数降序、UUID 升序”后，79/79 题的 RRF 结果一致。正式 A/B 应在两侧使用同一已声明规则，先形成共同基线；不能把改排序藏在执行位置优化里。
+## 4. 内部候选契约与连接生命周期
 
-候选必须实时从冻结 PG 表生成，BGE 必须实际执行；已有候选排名回放只用于函数正确性。先比较候选、模型输入/分数、最终响应和 reader prompt，再比较时延。若最终输入发生变化，旧 70/81、76/81 都不能直接继承为新成绩。
+`FullRecallRequest`末尾追加请求级`FullRecallRuntime`，绑定认证后的backend及共享finalize回调，不把模型实例或tokenizer写入PG。原请求位置参数顺序保持不变，默认store仍返回`None`。
+
+一次SQL传入Bank、事实类型、查询向量、全文词项、时间窗口、检索与候选上限、阈值，以及由服务端原SQL构造器生成的查询模板。HTTP调用者不能提交任意SQL模板；租户schema单独绑定并按标识符引用。
+
+返回包经`CandidatePayload`校验，包含：
+
+| 内容 | 用途 |
+| --- | --- |
+| 有序`MergedCandidate` | 保留ID、RRF分数/名次、各路名次及有效原始分数 |
+| 候选正文、上下文、日期、类型、来源、标签、元数据与证据字段 | 复用原模型输入与最终评分 |
+| `chunks`查找表 | 模型排序后按原顺序去重、截断原文，无需查库 |
+| 已加载标识 | 区分“已知为空”和“尚未读取”，防止响应层补查 |
+
+PG不知道BGE最终选中哪些候选，因此预取候选所需的关联原文并集，不能按最终事实预算提前丢弃。模型推理在`acquire_with_retry`上下文退出后开始，不占用该查询连接或快照。共享后处理对原路径保留原有延迟读取，对完整候选包跳过读库分支。
+
+缺失必要字段、已发现的附件数据或数据库执行错误会暴露为失败，不静默补查或重跑旧路径。当前Bank无附件，未验收带附件单次调用。
+
+## 5. 等价规则：保留单路名次，不另定排序策略
+
+旧下推采用`score DESC, id`，改变了同分名次。RRF按`1 / (60 + rank)`累分，同分候选交换位置也会改变融合结果。此次修复保持原公式、权重、上限和模型参数：
+
+1. 向量/全文复用原完整UNION查询，保留原返回顺序。
+2. 图路复用原SQL，兼容原字典集合构造及联合后的顺序，再按原分数稳定排序。
+3. 时间路保留种子、批次、邻居首次出现与排序规则；保持原浮点乘法顺序。
+4. 原单路名次交给C RRF，融合后的同分规则继承原首次出现顺序。
+5. 不给原始基线补排序，不在比较时忽略分数或重排响应。
+
+集合兼容辅助函数仅处理规范UUID字符串、固定哈希环境，不加载Python运行时。它不是新的通用排序策略。今后若定义稳定并列规则，须作为独立策略变更重新评估，不冒充本次无损下推。
+
+## 6. 接管与回退边界
+
+当前实验store限定配置的Bank、原生英文全文、`link_expansion`图检索、RRF或cross-encoder模式，以及当前无标签/创建时间过滤、无实体/来源补全等请求形状。完整条件以[支持检查代码](../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py)为准。
+
+默认请求可包含world/experience/observation类型，但本轮Bank实际只有world数据。PG查询会检查是否存在请求涉及的非world事实；发现则报范围错误，不返回近似结果。形状或运行环境可提前判断不支持时，返回`None`并调用原store，明确绕过历史Canonical排序；查询后才发现的数据范围问题不静默回退。
+
+`SECURITY INVOKER`保留调用者权限；表访问由Bank谓词、限定种子和认证schema约束。验证账号目标记忆表仅SELECT，不在请求中执行迁移、初始化或数据写入。
+
+## 7. 代码位置
+
+| 文件 | 作用 |
+| --- | --- |
+| [base.py](../../../hindsight-api-slim/hindsight_api/engine/memories/base.py) | runtime、候选包/原文类型及接管前时间解析能力标识 |
+| [recall_pushdown.py](../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py) | 当前Equivalent实验store、支持检查、原SQL构造与单次查询；旧Canonical仅供历史诊断 |
+| [recall_equivalent.sql](../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_equivalent.sql) | 当前PG检索、时间扩展、融合调用、补全与候选包 |
+| [contextbase_recall.c](native/contextbase_recall.c) | 通用RRF/Top-K；其中预算函数未接入当前路径 |
+| [contextbase_legacy_order.c](native/contextbase_legacy_order.c) | 固定CPython集合顺序的实验兼容辅助函数 |
+| [memory_engine.py](../../../hindsight-api-slim/hindsight_api/engine/memory_engine.py) | full_recall衔接、共享后处理及预加载数据复用 |
+| [retrieval.py](../../../hindsight-api-slim/hindsight_api/engine/search/retrieval.py) | 已解析时间条件的回退复用 |
+| [system_config.py](../../../hindsight-api-slim/hindsight_api/engine/system_config.py) | 已有配置表的只读启动，避免不必要DDL |
+| [pyproject.toml](../../../hindsight-api-slim/pyproject.toml) | PG SQL进入wheel |
+
+旧`recall_pushdown.sql`和Canonical store保留以复核历史失败，不作为当前开启路径。当前选择器是`hindsight_api.engine.memories.pg.recall_pushdown:EquivalentPostgresRecallMemories`。
+
+## 8. 验收与收益边界
+
+原始固定提交、修改关闭、修改开启三组对照均不对原始结果补排序。核对各路名次、融合ID/顺序/分数/名次、实际模型输入、完整业务JSON及原客户端reader正文/Token；应用计数与PG日志交叉验证一次调用和零补查。
+
+81题来自109条事实，低于Top-300，不足以验证大规模裁剪收益。本轮未实现查询内并行、动态剪枝、CustomScan、PG模型通信或PG评分/预算。Token节省为0，没有新的准确率成绩，也未证明完整Recall稳定提速。后续性能判断见[最小收益验证](latency-validation-plan.md)。

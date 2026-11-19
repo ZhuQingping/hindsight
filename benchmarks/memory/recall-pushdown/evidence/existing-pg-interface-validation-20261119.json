@@ -1,0 +1,215 @@
+{
+  "status": "PASS for existing-PG frozen 81-question feasibility",
+  "postgres_version": "PostgreSQL 18.4 on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit",
+  "database": "contextbase_gpt61_20261107",
+  "port": 5432,
+  "bank": "locomo_conv30_20261118_200523",
+  "schema": "ctxdb_ws_locomo_conv30_20261118_200523",
+  "facts": 109,
+  "interfaces": {
+    "control": "http://127.0.0.1:8895",
+    "pushdown": "http://127.0.0.1:8896"
+  },
+  "initialization": false,
+  "migrations": false,
+  "data_import": false,
+  "replace_pg_binary": false,
+  "new_pg_core_operator": false,
+  "accuracy_evaluation": "NOT RUN; no reader/judge; no inherited benchmark score",
+  "embedding": "frozen original query vectors, live embedding time excluded",
+  "model": "bge-reranker-v2-m3@953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e; CPU FP32; batch8; concurrent1",
+  "mode_results": {
+    "rrf": {
+      "questions": 81,
+      "equal_responses": 81,
+      "equal_reader_contexts": 81,
+      "equal_model_inputs": null,
+      "one_candidate_sql": 81,
+      "zero_postquery_reads": 81,
+      "pg_actual_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "tokens": {
+        "control": 631007,
+        "pushdown": 631007
+      },
+      "token_saving": 0,
+      "sql_counts": {
+        "control": {
+          "api": 2,
+          "legacy": 347
+        },
+        "pushdown": {
+          "api": 2,
+          "full_recall": 81
+        }
+      },
+      "http": {
+        "control": {
+          "n": 81,
+          "mean_ms": 18.911090550116366,
+          "p50_ms": 17.468334059230983,
+          "p95_ms": 27.74812502320856
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 13.983015465423648,
+          "p50_ms": 12.752540991641581,
+          "p95_ms": 19.74012504797429
+        }
+      },
+      "endpoints": {
+        "control": "http://127.0.0.1:8895/v1/default/banks/locomo_conv30_20261118_200523/memories/recall",
+        "pushdown": "http://127.0.0.1:8896/v1/default/banks/locomo_conv30_20261118_200523/memories/recall"
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "636663f863f7a375ab7c30caf38e1bf3720bd713192f19a224ae7cb1218aee8d",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e"
+      }
+    },
+    "bge": {
+      "questions": 81,
+      "equal_responses": 81,
+      "equal_reader_contexts": 81,
+      "equal_model_inputs": 81,
+      "one_candidate_sql": 81,
+      "zero_postquery_reads": 81,
+      "pg_actual_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "tokens": {
+        "control": 624297,
+        "pushdown": 624297
+      },
+      "token_saving": 0,
+      "sql_counts": {
+        "control": {
+          "api": 2,
+          "legacy": 379
+        },
+        "pushdown": {
+          "api": 40,
+          "full_recall": 81
+        }
+      },
+      "http": {
+        "control": {
+          "n": 81,
+          "mean_ms": 6545.608433137395,
+          "p50_ms": 6545.89583305642,
+          "p95_ms": 7813.010875019245
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 8078.846237155103,
+          "p50_ms": 8156.356416991912,
+          "p95_ms": 8935.434291954152
+        }
+      },
+      "endpoints": {
+        "control": "http://127.0.0.1:8895/v1/default/banks/locomo_conv30_20261118_200523/memories/recall",
+        "pushdown": "http://127.0.0.1:8896/v1/default/banks/locomo_conv30_20261118_200523/memories/recall"
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "636663f863f7a375ab7c30caf38e1bf3720bd713192f19a224ae7cb1218aee8d",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e"
+      },
+      "model_span": {
+        "control": {
+          "n": 81,
+          "mean_ms": 6521.737095135276,
+          "p50_ms": 6528.138709021732,
+          "p95_ms": 7789.815750089474
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 8052.814913081454,
+          "p50_ms": 8131.678916979581,
+          "p95_ms": 8911.132917040959
+        }
+      },
+      "non_model_mean_ms": {
+        "control": 23.87133800211926,
+        "pushdown": 26.031324073649298
+      }
+    }
+  },
+  "bank_integrity": {
+    "unchanged": true,
+    "tables": {
+      "memory_units": {
+        "rows": 109,
+        "sha256": "c24edef7efac4c083f259e6d72d248501534e2716ea6518963a4c316c9216a0f"
+      },
+      "memory_links": {
+        "rows": 2212,
+        "sha256": "51ec28415f553d047e7dda0b2bb11c26eeaf60643a5b2ac4141ae762dd9d29c5"
+      },
+      "documents": {
+        "rows": 19,
+        "sha256": "8c36f53a650b2823ea5f7374e225b06a97fc3098ff1fd979030076d8a7259774"
+      },
+      "chunks": {
+        "rows": 36,
+        "sha256": "ba8aa5ee1c934c91cecbe18fd25d3c074a8c590955f92ca4b4eceb60669f7a36"
+      },
+      "entities": {
+        "rows": 115,
+        "sha256": "d0133ccc9a64bc4abb5b486d672f48df1ab68aebf1d54e27b25655e6e4dfc22b"
+      },
+      "unit_entities": {
+        "rows": 373,
+        "sha256": "1af8f98e91a3f2c3f0a5ac96017f20d03d06f37416a690e61e8bdb5fb43cf3fe"
+      },
+      "banks": {
+        "rows": 1,
+        "sha256": "0f44009c7bb3275f848081655fbf3a205c79b539495bb700f3b75b5912011ebf"
+      }
+    }
+  },
+  "pg_restarted": false,
+  "postmaster_start_unchanged": true,
+  "test_database_role": {
+    "superuser": false,
+    "read_only": true,
+    "memory_table_select": true,
+    "memory_table_write": false
+  },
+  "temporary_interfaces_stopped": true,
+  "interpretation": "Sequential one-pass correctness verification; timing points include cache/runtime/CPU variability, not randomized performance proof; frozen embeddings; no demonstrated accuracy or token gain.",
+  "checks": {
+    "targeted_startup_guard_and_store_boundary_tests_passed": 14,
+    "ruff_changed_files": "PASS",
+    "format_changed_files": "PASS",
+    "repository_lint": "BLOCKED by pre-existing api/http.py F841; unrelated autoformat restored"
+  },
+  "startup_source_formatting": {
+    "executed_sha256": "b38ba8f4784f24ceb99864fbb0ccd75f3074ff9090bed00d06d5c137a7634e65",
+    "working_sha256": "647c9003590982f49b0f383994d72cc600c269021e176fd2a84179248e74b45f",
+    "ast_equal": true
+  },
+  "packer_sha256": "bb86a8b061ccef383b1ec7d48c0c0ca4ec9b653c662cce52c893ffa90cb448bc",
+  "native_sha256": "c18cf02c8d9a1a3e94964f754719a79c3cafd8201cb25540ccfb9d3fffb3ba6a",
+  "sql_sha256": "cad41f2fc474f3379c0ffaad8b997a8a6c70bbff14d84f6676c21717ec87c9c3",
+  "baseline_scope_audit": {
+    "control_source": "same modified source as pushdown, not the unmodified original deployment",
+    "control_store": "CanonicalPostgresMemories",
+    "control_changes": [
+      "sort each retrieval arm by its score then UUID",
+      "resolve implicit temporal constraint before full_recall"
+    ],
+    "completed_comparison": "normalized control versus PG pushdown, RRF and real BGE 81 questions each",
+    "unmodified_original_behavior_preservation": "NOT VERIFIED by this comparison",
+    "prechange_source_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+    "required_bridge": "unmodified original + default store versus modified source + default store without normalization; then modified default store versus PG pushdown",
+    "tie_order_warning": "candidate ordering can affect RRF scores, Top-K and final context; do not sort outputs to hide differences"
+  }
+}

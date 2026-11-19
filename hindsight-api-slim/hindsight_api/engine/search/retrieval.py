@@ -117,6 +117,7 @@ async def retrieve_all_fact_types_parallel(
     enable_text_search: bool = True,
     enable_temporal_retrieval: bool = True,
     enable_graph_retrieval: bool = True,
+    temporal_constraint_resolved: bool = False,
 ) -> MultiFactTypeRetrievalResult:
     """
     Retrieve every recall arm for all fact types, through the memories store.
@@ -167,7 +168,7 @@ async def retrieve_all_fact_types_parallel(
             # serialised through a single worker, and costs up to ~1.3s on
             # document-sized query text (see temporal_extraction).
             temporal_constraint = (temporal_window.start, temporal_window.end)
-        else:
+        elif not temporal_constraint_resolved:
             from .temporal_extraction import extract_temporal_constraint_async
 
             # Off the event loop: this is pure CPU and would otherwise stall every

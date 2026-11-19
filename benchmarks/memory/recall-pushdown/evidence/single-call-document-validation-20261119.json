@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "file": "implementation-report.html",
+      "width": 1440,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    },
+    {
+      "file": "implementation-report.html",
+      "width": 1024,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    },
+    {
+      "file": "implementation-report.html",
+      "width": 390,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    },
+    {
+      "file": "analysis.html",
+      "width": 1440,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    },
+    {
+      "file": "analysis.html",
+      "width": 1024,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    },
+    {
+      "file": "analysis.html",
+      "width": 390,
+      "overflow": false,
+      "rawBold": false,
+      "brokenAnchors": [],
+      "missingLocalLinks": [],
+      "pageErrors": []
+    }
+  ]
+}

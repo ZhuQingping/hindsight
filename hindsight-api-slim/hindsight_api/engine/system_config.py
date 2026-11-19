@@ -1,4 +1,4 @@
-﻿"""Persist and load file-storage configuration from the database.
+"""Persist and load file-storage configuration from the database.
 
 A thin key-value store (``ctxdb_meta.system_config`` table) backs the runtime
 file-storage config so changes made through the admin API survive process
@@ -44,6 +44,11 @@ _SECRET_FIELDS = frozenset(
 
 async def _ensure_table(conn: "asyncpg.Connection") -> None:
     """Create the ctxdb_meta.system_config table if it does not exist yet."""
+    # Reusing an initialized database must also work with a read-only account.
+    # CREATE IF NOT EXISTS is still forbidden in a read-only transaction, even
+    # when the schema/table already exists. Only a genuinely new store needs DDL.
+    if await conn.fetchval("SELECT to_regclass('ctxdb_meta.system_config') IS NOT NULL"):
+        return
     await conn.execute(
         """
         CREATE SCHEMA IF NOT EXISTS ctxdb_meta;
@@ -63,9 +68,7 @@ async def load_file_storage_config(pool: "asyncpg.Pool") -> dict[str, str | None
     """
     async with pool.acquire() as conn:
         await _ensure_table(conn)
-        row = await conn.fetchrow(
-            "SELECT value FROM ctxdb_meta.system_config WHERE key = $1", CONFIG_KEY
-        )
+        row = await conn.fetchrow("SELECT value FROM ctxdb_meta.system_config WHERE key = $1", CONFIG_KEY)
     if row is None:
         return None
     try:
@@ -75,9 +78,7 @@ async def load_file_storage_config(pool: "asyncpg.Pool") -> dict[str, str | None
         return None
 
 
-async def save_file_storage_config(
-    pool: "asyncpg.Pool", config: dict[str, str | None]
-) -> None:
+async def save_file_storage_config(pool: "asyncpg.Pool", config: dict[str, str | None]) -> None:
     """Persist file-storage config to the database (upsert).
 
     ``config`` is a full snapshot — every persisted field is written, fields set
@@ -97,8 +98,5 @@ async def save_file_storage_config(
             CONFIG_KEY,
             payload,
         )
-    safe = {
-        k: ("***" if k in _SECRET_FIELDS and v else v)
-        for k, v in filtered.items()
-    }
+    safe = {k: ("***" if k in _SECRET_FIELDS and v else v) for k, v in filtered.items()}
     logger.info("Persisted file storage config: %s", safe)

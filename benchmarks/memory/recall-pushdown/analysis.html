@@ -1,7 +1,7 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PG Recall 下推分析与原型证据</title><style>
-:root{--ink:#223249;--blue:#245381;--muted:#617086;--line:#d9e1eb;--bg:#f4f6f9}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.85}nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;flex-wrap:wrap;gap:8px}nav a,button{font:inherit;font-size:13px;background:#edf2f8;border:1px solid var(--line);border-radius:5px;color:var(--blue);padding:5px 9px;text-decoration:none;cursor:pointer}nav .brand{margin-right:auto;background:#fff;border:0;font-weight:650}main{overflow-wrap:anywhere;max-width:1260px;margin:25px auto 50px;padding:42px 48px 70px;background:white;border:1px solid var(--line);border-radius:8px}h1{font-size:31px;line-height:1.45;margin:0 0 24px;color:#163752}h2{font-size:25px;line-height:1.5;margin:48px 0 22px;padding:12px 16px;background:#edf3fa;border-left:4px solid #376c9c}h3{font-size:20px;line-height:1.55;margin:30px 0 14px;color:#244b6f}p{margin:13px 0}strong{font-weight:650}a{color:#245b91;text-underline-offset:3px;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px;line-height:1.8}th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere}th{background:#eef3f9;text-align:left;color:#214769}tbody tr:nth-child(even){background:#fbfcfe}pre{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;background:#f3f6fa;border:1px solid #e0e6ee;border-radius:6px;padding:16px}code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;font-size:.9em}p code,td code,li code{background:#edf2f7;border-radius:3px;padding:1px 4px}blockquote{margin:22px 0;padding:12px 22px;border-left:4px solid #7f9fbc;background:#f1f6fb}li{margin:7px 0}details.sql{border:1px solid var(--line);border-radius:6px;margin:18px 0}summary{padding:12px 16px;cursor:pointer;color:var(--blue)}details pre{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 6px 6px}footer{max-width:1260px;margin:auto;padding:0 24px 32px;color:var(--muted);font-size:13px}#toc{margin:20px 0 30px;padding:14px 20px;background:#fafbfd;border:1px solid var(--line);border-radius:6px}#toc summary{padding:0}#toc ol{margin:10px 0;padding-left:24px}#toc li{font-size:14px;margin:3px 0}@media(max-width:800px){nav{padding:8px 12px}main{padding:24px 18px;margin:10px 7px 30px}h1{font-size:25px}h2{font-size:21px}h3{font-size:18px}table{font-size:12px}th,td{padding:7px 6px}pre{font-size:11px}}@media print{nav,#toc,footer{display:none}body{background:white;font-size:10pt}main{max-width:none;margin:0;padding:0;border:0}h1{font-size:20pt}h2{font-size:16pt;break-before:page;border:0;background:none;padding:0}h3{font-size:12pt;break-after:avoid}table{font-size:8pt}tr{break-inside:avoid}pre{font-size:7pt}a{color:inherit;text-decoration:none}summary{display:none}details.sql{border:0}}</style></head><body><nav><a class="brand" href="README.md">PG Recall 下推｜维护入口</a><a href="design.md">当前设计</a><a href="progress.md">进展</a><a href="plan.md">下一步计划：未启动</a><a href="analysis.md">Markdown 源文档</a><button id="toggle">展开全部 SQL</button><button id="print">打印</button></nav><main><h1 id="section-1">Recall 下推到 PG：对 LoCoMo 准确率、P95 与 Token 的影响</h1><details id="toc"><summary>目录：9 个章节</summary><ol><li><a href="#section-2">1. 结论：下推先争取同准更快，再验证更准或更省</a></li><li><a href="#section-3">2. 源码确认：预留了什么，当前 PG 做到哪一步</a></li><li><a href="#section-6">3. 当前 LoCoMo 证据：真正的问题在检索、排序还是打包</a></li><li><a href="#section-10">4. P95：最直接的目标，但要分开数据库与模型耗时</a></li><li><a href="#section-14">5. 准确率与 Token：需要优化证据选择，而非只移动执行位置</a></li><li><a href="#section-18">6. 验证方案：先分离“下推”和“策略”两个变量</a></li><li><a href="#section-21">7. 具体下推方案：一个接管入口，分阶段交付执行能力</a></li><li><a href="#section-27">8. 夜间原型：已经做了什么，证据支持到哪里</a></li><li><a href="#section-32">9. 公平使用现有 81 题：下一次正式 A/B 的验收条件</a></li></ol></details>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recall 下推到 PG：对 LoCoMo 准确率、P95 与 Token 的影响</title><style>
+:root{--ink:#223249;--blue:#245381;--muted:#617086;--line:#d9e1eb;--bg:#f4f6f9}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.85}nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;flex-wrap:wrap;gap:8px}nav a,button{font:inherit;font-size:13px;background:#edf2f8;border:1px solid var(--line);border-radius:5px;color:var(--blue);padding:5px 9px;text-decoration:none;cursor:pointer}nav .brand{margin-right:auto;background:#fff;border:0;font-weight:650}main{overflow-wrap:anywhere;max-width:1260px;margin:25px auto 50px;padding:42px 48px 70px;background:white;border:1px solid var(--line);border-radius:8px}h1{font-size:31px;line-height:1.45;margin:0 0 24px;color:#163752}h2{font-size:25px;line-height:1.5;margin:48px 0 22px;padding:12px 16px;background:#edf3fa;border-left:4px solid #376c9c}h3{font-size:20px;line-height:1.55;margin:30px 0 14px;color:#244b6f}p{margin:13px 0}strong{font-weight:650}a{color:#245b91;text-underline-offset:3px;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px;line-height:1.8}th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere}th{background:#eef3f9;text-align:left;color:#214769}tbody tr:nth-child(even){background:#fbfcfe}pre{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;background:#f3f6fa;border:1px solid #e0e6ee;border-radius:6px;padding:16px}code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;font-size:.9em}p code,td code,li code{background:#edf2f7;border-radius:3px;padding:1px 4px}blockquote{margin:22px 0;padding:12px 22px;border-left:4px solid #7f9fbc;background:#f1f6fb}li{margin:7px 0}details.sql{border:1px solid var(--line);border-radius:6px;margin:18px 0}summary{padding:12px 16px;cursor:pointer;color:var(--blue)}details pre{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 6px 6px}footer{max-width:1260px;margin:auto;padding:0 24px 32px;color:var(--muted);font-size:13px}#toc{margin:20px 0 30px;padding:14px 20px;background:#fafbfd;border:1px solid var(--line);border-radius:6px}#toc summary{padding:0}#toc ol{margin:10px 0;padding-left:24px}#toc li{font-size:14px;margin:3px 0}@media(max-width:800px){nav{padding:8px 12px}main{padding:24px 18px;margin:10px 7px 30px}h1{font-size:25px}h2{font-size:21px}h3{font-size:18px}table{font-size:12px}th,td{padding:7px 6px}pre{font-size:11px}}@media print{nav,#toc,footer{display:none}body{background:white;font-size:10pt}main{max-width:none;margin:0;padding:0;border:0}h1{font-size:20pt}h2{font-size:16pt;break-before:page;border:0;background:none;padding:0}h3{font-size:12pt;break-after:avoid}table{font-size:8pt}tr{break-inside:avoid}pre{font-size:7pt}a{color:inherit;text-decoration:none}summary{display:none}details.sql{border:0}}</style></head><body><nav><a class="brand" href="README.md">PG Recall 下推｜维护入口</a><a href="implementation-report.html">当前实现</a><a href="design.html">当前设计</a><a href="three-way-original-compatibility.html">三组验证</a><a href="analysis.html">分析</a><a href="implementation-review.md">审查</a><a href="analysis.md">Markdown</a><button id="toggle">展开全部 SQL</button><button id="print">打印</button></nav><main><h1 id="section-1">Recall 下推到 PG：对 LoCoMo 准确率、P95 与 Token 的影响</h1><details id="toc"><summary>目录：9 个章节</summary><ol><li><a href="#section-2">1. 结论：下推先争取同准更快，再验证更准或更省</a></li><li><a href="#section-3">2. 源码确认：预留了什么，当前 PG 做到哪一步</a></li><li><a href="#section-6">3. 当前 LoCoMo 证据：真正的问题在检索、排序还是打包</a></li><li><a href="#section-10">4. P95：最直接的目标，但要分开数据库与模型耗时</a></li><li><a href="#section-15">5. 准确率与 Token：需要优化证据选择，而非只移动执行位置</a></li><li><a href="#section-19">6. 验证方案：先分离“下推”和“策略”两个变量</a></li><li><a href="#section-22">7. 具体下推方案：一个接管入口，分阶段交付执行能力</a></li><li><a href="#section-28">8. 夜间原型：已经做了什么，证据支持到哪里</a></li><li><a href="#section-33">9. 公平使用现有 81 题：下一次正式 A/B 的验收条件</a></li></ol></details>
 <blockquote>
-<p><strong>维护说明（2026-11-19）：</strong> 本报告记录旧 conv-30 Bank 的 81 题下推研究及早期原型，后续全量 1,540 题和 V1 优化以<a href="../README.md">打榜主入口</a>为准。当前设计见<a href="design.md">design.md</a>，进展见<a href="progress.md">progress.md</a>，下一阶段一晚实施计划见<a href="plan.md">plan.md</a>。该阶段仍未启动。原研究目录保留历史快照；今后本报告正文只在这里维护。</p>
+<p><strong>当前实现（2026-11-19）：</strong> PG一次候选调用完成四路检索、C RRF/Top-K和补全，ContextBase保留原BGE/评分/预算，无后续补查。原始、修改关闭、修复开启三组已完成核验，RRF/BGE各81题完整响应与原始版一致。严格范围及代码见<a href="design.md">当前设计</a>、<a href="implementation-report.md">实现报告</a>和<a href="three-way-original-compatibility.md">三组验证</a>。下文研究及第8章早期原型保留历史口径，不作为当前完整Recall提速或准确率证据。</p>
 </blockquote>
 <p>分析日期：2026-11-19。参考文档：《Hindsight 记忆检索执行分析与 PostgreSQL 增强方案》（<a href="evidence/source-contract-audit.json">原文件位置与哈希</a>）。源码基线：<code>memory-benchmark</code> 分支、<code>e7a0b54828b9605e18e19848e56d56f078dbafed</code>。</p>
 <p>本报告已补充夜间原型与实际验证：只读导出打榜使用的 LoCoMo Bank，在独立 PG 18.4 实例运行 SQL/C 融合原型；保留现有服务、Bank 和打榜结果。另为 81 个查询准备并冻结向量，没有新增 reader、judge 或 BGE 调用。第 7 章说明落地方案及研发边界，第 8 章报告原型实测与限制。</p>
@@ -59,7 +59,7 @@
 </tr>
 </tbody></table>
 <p><code>FullRecallRequest</code> 已包含查询文本与向量、事实类型、标签/时间条件、检索预算、重排模式与候选上限、时间及策略权重、最低分、事实与原文预算、tokenizer，以及来源事实等开关。接口默认返回 <code>None</code>，表示不接管；不支持的请求形状应便宜地回退，不能近似执行后冒充等价结果。</p>
-<p>当前 <code>PostgresMemories</code> 实现了 <code>recall_unified</code>，没有覆盖 <code>full_recall</code>。因此，<strong>“已有接入契约”已经确认，“PG 已经完成融合下推”尚未实现。</strong> 源码与哈希记录见<a href="evidence/source-contract-audit.json">接口核验</a>。</p>
+<p>默认 <code>PostgresMemories</code> 仍实现 recall_unified、full_recall 默认返回 None。本轮新增的实验子类已实现一次候选下推与共用后处理，见<a href="implementation-report.md">实现报告</a>；不把默认后端与已选择实验扩展混为一谈。历史接口核验记录保持不变。 源码与哈希记录见<a href="evidence/source-contract-audit.json">接口核验</a>。</p>
 <p>这里指产品实现。本轮另有隔离的 <code>PGRecallPrototype.full_recall</code> 实验适配器，尚不能作为产品后端直接替换；其候选 DAG、原型范围与兼容性差距见第 8 章。</p>
 <p>接口注释中的“四次 store 交互”是候选、补读、原文、实体等阶段调用，不是旧现场的 19 次 PG 业务 SQL。规划可以将核心检索合成一次请求，但认证、配置和统计等仍可能执行其他 SQL，必须分层计数。</p>
 <p>源码位置：<a href="../../../hindsight-api-slim/hindsight_api/engine/memories/base.py">base.py</a> 第 804、1759、1799 行；<a href="../../../hindsight-api-slim/hindsight_api/engine/memories/postgres.py">postgres.py</a> 第 124 行；<a href="../../../hindsight-api-slim/hindsight_api/engine/memory_engine.py">memory_engine.py</a> 第 9428 行。</p>
@@ -78,7 +78,9 @@ full_recall(request)
 RecallResult
                   |
                   v
-评测或应用打包最终上下文 -&gt; reader 生成答案 &lt;-- 仍在外部</code></pre><p><code>FullRecallRequest</code> 传入的是重排模式等策略，不包含完整的模型端点、权重版本与运行环境。PG 实现还需要配置或接入模型执行器；接上方法并不等于模型推理也自然完成。</p>
+评测或应用打包最终上下文 -&gt; reader 生成答案 &lt;-- 仍在外部
+</code></pre>
+<p><code>FullRecallRequest</code> 传入重排模式等策略，不包含完整模型运行时。简化方案不让 PG 接入模型：ContextBase 初始化新适配层时绑定现有 reranker/tokenizer，在取得候选包后完成后处理；接上 SQL 入口本身不能替代这些衔接。</p>
 <p>Memlake 官方架构也说明：Hindsight 随请求传入融合、重排、权重和预算策略，存储侧就近执行并返回入选记忆。这为执行下推提供产品参照；其存储架构、硬件和测试条件与 PG 不同，不能照搬提速数字。<a href="https://docs.hindsight.vectorize.io/enterprise/memlake/architecture/">Memlake 架构</a>、<a href="https://docs.hindsight.vectorize.io/enterprise/memlake/performance/">基准限制</a></p>
 <h2 id="section-6">3. 当前 LoCoMo 证据：真正的问题在检索、排序还是打包</h2>
 <h3 id="section-7">3.1 采用已有的 81 题完成运行作为小范围基线</h3>
@@ -254,12 +256,15 @@ RecallResult
 <h3 id="section-13">4.3 P95 应怎样测</h3>
 <p>分别报告存储侧执行、Recall HTTP，以及 RAG 问答端到端三类 P95；问答计时不包含离线裁判。存储侧可使用已有 <code>store_stages</code> 与 <code>full_recall</code> 阶段埋点，不要在下推后失去阶段可见性。<a href="../../../hindsight-api-slim/hindsight_api/engine/memory_engine.py">埋点实现</a> 第 9496 行</p>
 <p>固定数据、模型、资源与请求到达率，对单请求、小并发和接近饱和的负载分别测量；区分热缓存、冷打开、超时和重试。小 Bank 与大 Bank、多 Bank 分开。阶段 P95 不能相加得到请求 P95；19 条 SQL 时间求和也不能替代关键路径。</p>
-<h2 id="section-14">5. 准确率与 Token：需要优化证据选择，而非只移动执行位置</h2>
-<h3 id="section-15">5.1 两条有依据的收益路径</h3>
+<h3 id="section-14">4.4 最新决策：先验证完整 Recall 平均与 P50 的改善上限</h3>
+<p>当前目标以完整 HTTP Recall 的平均耗时/P50 为准。旧 BGE 81 题平均为 6397.09ms、P50 为 6341.65ms；原型适配层平均 6.778→6.579ms、P50 6.597→6.363ms，两组计时范围不同，不能相减或外推。旧 81 份 BGE 回包的 trace 均为 None，尚不能还原正式服务的 SQL、排队和模型推理占比。</p>
+<p>收益预审原建议先用 8 题×3 轮真实 Recall 分段诊断，逐请求计算“拟优化的 PG 关键路径全部消除”的乐观边界，再判断完整平均/P50 是否有业务价值。若上限也不足，不继续为一次调用投入；具体记录项、门槛和后续 A/B 见<a href="latency-validation-plan.md">最小收益验证</a>。该分段诊断未独立执行；用户后续已授权先实现可行性首版，当前进展见<a href="implementation-report.md">实现报告</a>。</p>
+<h2 id="section-15">5. 准确率与 Token：需要优化证据选择，而非只移动执行位置</h2>
+<h3 id="section-16">5.1 两条有依据的收益路径</h3>
 <p><strong>路径一：相同时延预算，找到更多有效证据。</strong> 等价下推节省的时间可以用于更充分的 ANN 搜索、有界图/时间扩展或更合适的候选重排。它可能改善多跳、时间推理题的证据覆盖，但已经改变了检索策略；更多候选也可能增加噪声。必须与同算法的应用侧实现比较，才能区分策略收益和下推收益。</p>
 <p><strong>路径二：相同 Token 预算，让关键证据进入最终输入。</strong> q029 已说明预算前的候选存在，问题出在排名和配额。可以比较重排、事实/原文配额、来源覆盖与冗余处理；q073 则要求保留原文细节，不能以相似为由删掉独有证据。</p>
 <p>当前代码已有 <code>prefer_observations</code> 来源去重和事实预算选择；评测客户端也已按完整条目打包、避免硬切 JSON。这些是基线，不能重新包装为下推的新能力。<a href="../../../hindsight-api-slim/hindsight_api/engine/fact_budget.py">事实选择</a>、<a href="../support.py">客户端打包</a> 第 504 行</p>
-<h3 id="section-16">5.2 目前还有两次预算，完整下推不自动覆盖最终打包</h3>
+<h3 id="section-17">5.2 目前还有两次预算，完整下推不自动覆盖最终打包</h3>
 <pre><code class="language-text">PG/存储侧 full_recall
     facts 的 max_tokens + chunks 的 max_chunk_tokens 等预算
                          |
@@ -268,10 +273,12 @@ RecallResult
     最终 8,192 总预算，事实 4,000 + 原文 4,000 + 包装
                          |
                          v
-实际 reader prompt</code></pre><p>当前已完成运行的 recall 事实、原文各设 8,192，而 reader 之前还会做总计 8K 的打包。<strong><code>FullRecallRequest.max_tokens</code> 不是“最终 reader 上下文的全量上限”。</strong> 仅实现接口，不能解决 q029 这种下游再次筛掉证据的问题。</p>
+实际 reader prompt
+</code></pre>
+<p>当前已完成运行的 recall 事实、原文各设 8,192，而 reader 之前还会做总计 8K 的打包。<strong><code>FullRecallRequest.max_tokens</code> 不是“最终 reader 上下文的全量上限”。</strong> 仅实现接口，不能解决 q029 这种下游再次筛掉证据的问题。</p>
 <p>要协调最终选择，应用适配层需明确传递最终预算、事实/原文规则、tokenizer 及序列化口径，或者让客户端继续按相同策略校验。现有接口尚未表达当前 <code>pack_context</code> 的全部规则。内核可以提供通用预算选择机制，不必固化某个 LoCoMo JSON 或业务类型。</p>
 <p>Token 在序列化边界不一定可简单相加；缓存单条长度不能替代最终文本校验。数据挪到数据库后，若正文、原文、日期和包装全部相同，实际上下文 Token 也应相同。</p>
-<h3 id="section-17">5.3 Token 必须分四个口径</h3>
+<h3 id="section-18">5.3 Token 必须分四个口径</h3>
 <table>
 <thead>
 <tr>
@@ -303,7 +310,7 @@ RecallResult
 </tbody></table>
 <p>本机协议以 <code>o200k_base</code> 记忆上下文为主口径，同时保留 AMB 的 <code>cl100k_base</code> 统计。不能将 7,765.44 的上下文数当成全部调用 Token，也不能把 1,915→300 的候选裁剪比例当成 reader 的 Token 降幅。</p>
 <p>本方案在冻结记忆上比较 Recall，写入期 retain 的 Token 不属于执行下推的直接节省；若同时改变写入策略，需要另建实验。</p>
-<h2 id="section-18">6. 验证方案：先分离“下推”和“策略”两个变量</h2>
+<h2 id="section-19">6. 验证方案：先分离“下推”和“策略”两个变量</h2>
 <table>
 <thead>
 <tr>
@@ -332,38 +339,42 @@ RecallResult
 <td>哪些质量或 Token 收益来自策略？同策略在应用侧与存储侧差多少？</td>
 </tr>
 </tbody></table>
-<h3 id="section-19">6.1 B 组先做等价性，不急于重新付费答题</h3>
+<h3 id="section-20">6.1 B 组先做等价性，不急于重新付费答题</h3>
 <p>冻结 query embedding、<code>now/question_date</code>、配置及模型版本；逐题比较候选与最终 ID/顺序、正文、相关分数、来源、原文和最终打包字符串。执行统计允许不同。若最终 reader 输入逐字一致，可以先证明没有引入新的信息差异，再运行有必要的模型评估；相同 prompt 下模型仍可能波动，不能把偶然答案变化当作下推提分。</p>
 <p>特别需要覆盖：标签/时间过滤、RRF/interleave/重排模式、模型失败回退、来源预算、<code>prefer_observations</code> 和排序并列。当前 chunks 在事实预算筛选前收集；改成只取最终事实的 chunks 会改变结果，不能当作无损优化。当前事实预算对“所有候选均过长”的情况会保留一条完整事实并允许超预算；零预算、空文本与超长事实都要按实际代码做边界差分，不能仅凭文档描述重写。</p>
 <p>没有已存在的“强制 Python 路径”请求开关可供假定使用。可用两个测试实例/存储实现对照：默认 PG 的 <code>full_recall</code> 返回 <code>None</code>，原型实现对已支持形状接管，未支持形状仍返回 <code>None</code>。</p>
-<h3 id="section-20">6.2 C 组再画质量、时延与 Token 的权衡曲线</h3>
+<h3 id="section-21">6.2 C 组再画质量、时延与 Token 的权衡曲线</h3>
 <p>先在固定 8K 协议上验证 q027/q029 这类已知问题，然后使用未参与调参的题目检验总体结果；开发样本不能代替完整成绩。更改预算时另列 4K/8K 等实验档位，并保持事实、原文、包装的统计边界一致。</p>
 <p>报告总体准确率与答案 F1，同时按题型和对话分组；补充 gold 证据覆盖和最终上下文中证据覆盖。LoCoMo 的对话证据 ID 与数据库 UUID 不同，需通过入库来源建立映射。不要把已有相关事实未进入最终输入的问题，都归为检索未命中。</p>
 <p>性能测试另用重复、固定到达率的请求负载，不将一次 81 题模型作答运行直接当作数据库压测。记录成功、超时和失败；质量分母保留全部应测题，另列成功请求上的质量，避免仅由少超时造成的表观提分混入检索质量结论。</p>
 <p>两端复用同一冻结 Bank/事实/向量/关系快照，避免重新抽取或后台整合改变语料。服务端下推版本与当前部署版本、当前工作区版本分别归档。正式运行继续使用本项目固定 AMB，不切到网上最新 main。LoCoMo 数据与原始评分来源见<a href="https://github.com/snap-research/locomo">官方仓库</a>。</p>
-<h2 id="section-21">7. 具体下推方案：一个接管入口，分阶段交付执行能力</h2>
-<h3 id="section-22">7.1 入口与流程：接管 Recall，不把业务类型固化进内核</h3>
-<p><strong>对 Hindsight 复用 <code>full_recall(request)</code>；对 PG 建设融合检索执行与批量模型重排两项能力。</strong> <code>world</code>、<code>observation</code>、关系类型、权重和预算仍由应用解释并传参。数据库执行通用的过滤、排名、关联、预算与投影，不在内核写死这些业务名。</p>
-<pre><code class="language-text">既有 Recall API / MemoryRecall
+<h2 id="section-22">7. 具体下推方案：一个接管入口，分阶段交付执行能力</h2>
+<h3 id="section-23">7.1 入口与流程：接管 Recall，不把业务类型固化进内核</h3>
+<p><strong>本版复用 full_recall 接管契约：PG 一次完成候选检索、融合和补全，ContextBase 保留模型重排、最终评分和预算。</strong> 数据库按参数执行过滤、排名和关联，不在内核固化 world/observation 等业务名。PG 批量模型能力不作为此次交付要求。</p>
+<pre><code class="language-text">既有 Recall API
+             |
+ContextBase.full_recall(request) 适配层
+             |
+             | 一次参数化 SQL 调用
+             v
+PG 候选执行入口
+  ├─ 向量、全文、图、时间检索
+  ├─ RRF 融合、候选裁剪
+  └─ 补齐正文、关联原文及必要字段
+             |
+             | 一次候选包返回，释放查询连接
+             v
+ContextBase：现有 BGE rerank
+          -&gt; 最终评分、原文与事实预算
+          -&gt; 完整 RecallResult，不再补查 PG
              |
              v
-  full_recall(request)                     应用适配与能力检查
-             |
-             v
-  1. 生成候选，只携带 ID、排名与必要属性
-       向量检索 ----种子----&gt; 有界图扩展
-       全文检索 ----------------------┐    独立分支可并行
-       时间检索（有时间条件时）-------┤    图扩展等待种子
-                                     v
-  2. 库内融合 Top-K ----&gt; 补读入选正文 ----&gt; 批量模型重排能力
-       去重、RRF、上界剪枝                  按请求的排序模式执行
-                                     |
-                                     v
-  3. 最终评分、预算选择、补全原文/实体 ----&gt; RecallResult
-                                     |
-                                     v
-      既有客户端 pack_context ----&gt; reader 答题</code></pre><p>这是一个入口的内部执行流程，<strong>不是新增多个对外接口</strong>。其中“可并行”“上界剪枝”属于拟研发目标；本轮 C 函数原型尚未实现它们。</p>
-<h3 id="section-23">7.2 哪些复用，哪些确实需要研发</h3>
+既有 pack_context -&gt; reader 答题
+</code></pre>
+<p>PG 返回的是候选包；full_recall 适配层在 ContextBase 进程中完成后处理，再返回完整 RecallResult。当前引擎遇到非 None 结果会直接返回，不能只交候选给它。必须修改接管衔接并复用现有后处理；HTTP 和 LoCoMo 请求协议保持不变。</p>
+<p>首版以 SQL/存储过程与既有 C 函数组合，不新增模型桥接或 PG 评分/预算。一次调用不等于一条内部 SQL或一个融合物理算子；查询内并行、上界剪枝仍属后续研发。</p>
+<h3 id="section-24">7.2 哪些复用，哪些确实需要研发</h3>
+<p>下表区分首版集成与后续内核研究；流式融合、并行和提前停止不计入本次 6–9 小时范围。</p>
 <table>
 <thead>
 <tr>
@@ -374,10 +385,10 @@ RecallResult
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>接管入口与策略传递</strong></td>
-<td><code>FullRecallRequest</code>、<code>RecallResult</code>、返回 <code>None</code> 回退、<code>store_stages</code></td>
-<td>PG 后端适配、支持形状检查、正确传递自然语言时间分析结果、回退及阶段监控</td>
-<td><strong>应用/存储适配研发</strong>，不需要修改 PG 内核</td>
+<td><strong>接管与后处理衔接</strong></td>
+<td><code>FullRecallRequest</code>、<code>RecallResult</code>、None 回退、现有 reranker 与预算</td>
+<td>单次 SQL、完整候选包、隐式时间前移、复用后处理并消除补查</td>
+<td><strong>本版必做的 ContextBase/存储适配</strong>，不是只改配置</td>
 </tr>
 <tr>
 <td><strong>候选过滤与关系扩展</strong></td>
@@ -398,52 +409,58 @@ RecallResult
 <td><strong>重点执行器/插件协同研发</strong>；不是调大 worker 数，也不是给现有扫描换名字</td>
 </tr>
 <tr>
-<td><strong>模型重排能力</strong></td>
-<td>已有 BGE 适配器及批量调用；模型服务可独立部署</td>
-<td>候选批次与模型执行器衔接，结果关联、背压、超时、取消、失败回退和指标归因</td>
-<td>首版属于 <strong>近库模型运行时与存储适配</strong>；不要求把 HTTP 或模型权重装进每个 PG backend</td>
+<td><strong>模型重排</strong></td>
+<td>ContextBase 已有 BGE 适配器、批量调用、模型实例及异常规则</td>
+<td>新适配层复用模型，输入与基线一致；查询连接在推理前释放</td>
+<td><strong>本版留在 ContextBase</strong>，不研发 PG 模型桥接</td>
 </tr>
 <tr>
-<td><strong>最终评分与预算</strong></td>
-<td>现有 Python 评分、BPE、事实预算和客户端完整 JSON 打包；PG SQL 可做评分与过滤</td>
-<td>保持语义的存储侧实现；缓存 Token 长度时携带正文哈希和 tokenizer 版本；最终序列化校验</td>
-<td>先复用验证过的规则。<strong>位置改变不自动产生质量收益</strong>，也不自动覆盖最终 reader 预算</td>
+<td><strong>最终评分、预算与结果组装</strong></td>
+<td>现有 Python 评分、BPE、事实/原文预算和完整 JSON 打包</td>
+<td>提取共享计算，以完整候选包中的正文与 chunks 后处理，不再读库</td>
+<td><strong>本版留在 ContextBase</strong>；不新增 PG Token 元数据表或预算移植</td>
 </tr>
 </tbody></table>
 <p>PG 18 已提供 CustomScan 扩展接入设施，因此应先用扩展验证，不预设必须维护一套 PG core 分叉。需要改 core 的位置，应由原型暴露的接口限制决定。<a href="https://www.postgresql.org/docs/18/custom-scan.html">PG CustomScan</a></p>
 <p>另有两个不能混淆的事实：pgvector 0.8.7 的 HNSW/IVFFlat handler 中，<code>amcanparallel=false</code>，<code>amcanbuildparallel=true</code>，前者与查询扫描、后者与建索引有关；<code>amcanreturn=NULL</code> 表明它们不直接提供 index-only 返回能力。<strong>窄列候选仍可能访问 heap，不能据此宣称消除了 heap I/O。</strong> 不同检索分支仍可能各用串行索引扫描并在计划级并行，不能反过来说它们完全不能并发。<a href="https://raw.githubusercontent.com/pgvector/pgvector/v0.8.7/src/hnsw.c">HNSW 源码</a>、<a href="https://raw.githubusercontent.com/pgvector/pgvector/v0.8.7/src/ivfflat.c">IVFFlat 源码</a>、<a href="https://www.postgresql.org/docs/18/parallel-plans.html">PG 并行计划</a></p>
-<h3 id="section-24">7.3 用实际 SQL 说明：到底少做什么</h3>
+<h3 id="section-25">7.3 用实际 SQL 说明：到底少做什么</h3>
 <p>在当前 LoCoMo 快照上，以本次 world-only、高预算 1,000 的请求剖面调用未修改的 PG store，普通题候选阶段采集到 <strong>2 次业务 fetch</strong>：向量＋全文组合 SQL、图扩展 SQL。有时间条件的 q047 为 <strong>5 次</strong>：组合检索、时间候选、两轮时间关系扩展、图扩展。它们尚未计入后续原文补全、鉴权与配置。<strong>11 月 12 日另一 Bank 的 19 次 SQL，不应套用到当前每道题。</strong> 完整 SQL 与采集范围见<a href="evidence/current-sql-counts.json">当前 SQL 计数</a>、<a href="evidence/current-sql/q000-01.sql">普通题实际组合 SQL</a>。</p>
 <p>现有组合查询会在候选阶段读取如下字段（实际 SQL 节选）：</p>
 <pre><code class="language-sql">SELECT id, text, context, event_date, occurred_start, occurred_end,
        mentioned_at, fact_type, document_id, chunk_id, tags, metadata,
        proof_count,
        1 - (embedding &lt;=&gt; $1::vector) AS similarity,
-       NULL::float AS bm25_score, 'semantic' AS source
+       NULL::float AS bm25_score, &#39;semantic&#39; AS source
 FROM ctxdb_ws_locomo_conv30_20261118_200523.memory_units
-WHERE bank_id = $2 AND fact_type = 'world'
+WHERE bank_id = $2 AND fact_type = &#39;world&#39;
   AND embedding IS NOT NULL
   AND (1 - (embedding &lt;=&gt; $1::vector)) &gt;= 0.3
 ORDER BY embedding &lt;=&gt; $1::vector
-LIMIT 1000;</code></pre><p>同一记忆可能同时命中向量、全文和图；应用接收了多份正文后再去重。原型将候选阶段改成 <code>id/arm/rank/score</code>，在 PG 中融合后再关联正文。下面是原型中的实际函数调用，输入数组来自同一条 SQL 的候选 CTE，不需要先把候选发给应用再传回来：</p>
+LIMIT 1000;
+</code></pre>
+<p>同一记忆可能同时命中向量、全文和图；应用接收了多份正文后再去重。原型将候选阶段改成 <code>id/arm/rank/score</code>，在 PG 中融合后再关联正文。下面是原型中的实际函数调用，输入数组来自同一条 SQL 的候选 CTE，不需要先把候选发给应用再传回来：</p>
 <pre><code class="language-sql">SELECT f.*
 FROM packed
 CROSS JOIN LATERAL recall_probe.rrf_topk(
     packed.ids, packed.ranks, $5, 60::float8
-) f;</code></pre><p><code>$5</code> 为候选上限。该函数按 UUID 合并并累加 RRF，按分数与首次出现顺序保留 Top-K；随后对入选 ID 补读 <code>memory_units</code>。普通 SQL 对照采用有序 <code>SUM(1.0/(60+rank))</code> 和 <code>LIMIT</code>，同样能表达这件事。完整的<a href="evidence/prototype/baseline-candidate.sql">应用融合对照 SQL</a>与<a href="evidence/prototype/pushed-candidate.sql">库内融合 SQL</a>均保留。</p>
+) f;
+</code></pre>
+<p><code>$5</code> 为候选上限。该函数按 UUID 合并并累加 RRF，按分数与首次出现顺序保留 Top-K；随后对入选 ID 补读 <code>memory_units</code>。普通 SQL 对照采用有序 <code>SUM(1.0/(60+rank))</code> 和 <code>LIMIT</code>，同样能表达这件事。完整的<a href="evidence/prototype/baseline-candidate.sql">应用融合对照 SQL</a>与<a href="evidence/prototype/pushed-candidate.sql">库内融合 SQL</a>均保留。</p>
 <p><strong>当前收益主要是减少重复正文的传输和对象构造。</strong> 当前只有 109 个唯一事实，低于 Top-300，几乎不存在“把大批唯一候选裁掉”的空间。不能将其描述为从 300 条减少到 35 条，也不能把传输节省等同于索引扫描工作量下降。</p>
-<h3 id="section-25">7.4 真正值得继续研发的部分：让候选生成与融合共同停止</h3>
+<h3 id="section-26">7.4 真正值得继续研发的部分：让候选生成与融合共同停止</h3>
 <p>本轮 C 函数先接收完整候选数组，再完成累分和 Top-K。它没有控制子计划，因此仍会把候选全部生成出来。<strong>下一步重点应是候选流与融合执行器协同，而不是继续包装函数接口。</strong></p>
 <p>拟采用 CustomScan/自定义路径承接候选 DAG：向量和全文等子计划输出窄 tuple slot；种子满足条件后启动有界关系扩展；融合状态按 ID 保存累计分与来源状态。执行器既要决定下一个读取哪一路，也要在可以证明的情况下停止继续拉取。</p>
 <p>RRF 可利用各路已读取的排名前沿推算剩余贡献上界。例如某候选尚未在某路出现，而该路已读到排名 r，则它在这一路的潜在贡献不超过 <code>1/(60+r+1)</code>。前提是每路 ID 唯一、排名流满足约定，且上界覆盖尚未完成的图/时间分支。将已知分数、各未完成来源的上界及当前第 K 名一起比较，才有机会证明无需继续读取。证明须包括未见候选与并列规则；前提不成立或上界过松时仍必须读完，不能强行宣布剪枝成功。</p>
 <p>这里保证的是<strong>给定候选臂语义下的 RRF Top-K</strong>，不能据此把近似 ANN 变成精确全库检索；也不能拿 RRF 上界去保证神经模型的最终分数。模型重排前的候选裁剪属于另一层质量/成本选择。</p>
 <p>验收要看“实际少访问多少索引候选、少读多少 heap/TOAST、少生成多少中间行、并行后关键路径缩短多少”，同时检查 P95、CPU 和总工作量。若只是把应用 CPU 转移到 PG CPU，而查询总工作没有减少，就不算该项研发目标达成。</p>
-<h3 id="section-26">7.5 模型能力如何落地，避免把推理成本藏进数据库</h3>
-<p>首先复用已经验证的 BGE 批量接口：PG 先提供入选 ID 与模型所需文本，由近库执行器评分，再以 ID＋分数回送后续评分/预算阶段。模型权重版本、输入模板、截断长度、精度和回退策略必须与基线一致。<strong>同样的 109 对输入仍需完成同样的模型计算；近库不等于少算。</strong></p>
-<p>第一版允许 <code>full_recall</code> 适配层内部有“候选 SQL → 模型执行 → 结果处理/补读”的阶段往返；<code>full_recall</code> 是一次存储接管，不等于全流程只能是一条 SQL。不能为了宣传“一条 SQL”让普通 backend 无控制地等待长时间模型调用。若后续研发可挂起/恢复的模型子计划，还需单独解决资源占用、取消、快照寿命和故障恢复。</p>
-<p>对于当前 Bank，BGE 的 6 秒级完整 Recall 与毫秒级候选处理形成明显量级差异。要降低 BGE 路径时延，应独立验证推理实现、硬件和安全的模型输入减少机制；缩小候选集合会改变算法，必须重新评估质量，不能计作等价下推收益。当前已存在候选上限参数，不将调参重新列为内核研发。</p>
-<h2 id="section-27">8. 夜间原型：已经做了什么，证据支持到哪里</h2>
-<h3 id="section-28">8.1 使用真实打榜 Bank 的只读快照，未改动打榜环境</h3>
+<h3 id="section-27">7.5 简化实现：模型与预算保留在 ContextBase</h3>
+<p>PG 只完成四路候选、RRF/裁剪及补全，一次返回候选正文、各路信号和关联原文并集。ContextBase 复用现有 BGE 输入模板、归一化、最终评分及预算规则；后处理后才返回 RecallResult，不需要 PG 模型桥接。两边具体文件和职责见<a href="design.md">当前设计</a>。</p>
+<p>PG 不知道模型最终选中哪些候选，因此要提前返回其可能用到的原文，不能按最终事实/原文预算提前排除。ContextBase 在内存中按模型排序去重、计数及截断，保持先处理原文、再筛事实预算的原顺序。缺字段暴露为错误，不再补查，也不能伪造空值。这会增加部分原文提前读取和传输，必须测完整包大小，不能继承早期仅候选正文的 56.7% 降幅。</p>
+<p>一次参数化 PG 调用结束后释放查询连接，再执行模型；模型等待不再延长该查询快照。响应层也不补查附件或原文。API 外层鉴权/配置与 PG 内部语句单列，不能宣称整个 HTTP 只访问一次 PG。</p>
+<p>先前实施估算为6–9小时；本轮已经完成实现与所测81题验收，详见<a href="implementation-report.md">首版报告</a>。本轮首版已实现并通过RRF/BGE各81题验收；完整Recall收益仍未确认，见<a href="implementation-report.md">实现报告</a>。</p>
+<p>当前 BGE 的完整 Recall 为秒级，候选处理为毫秒级；相同模型输入仍需同样推理工作。本版不预先承诺显著 P95 改善、提分或省 Token；后续若缩减模型输入，属于改变策略，应另行验证质量。</p>
+<h2 id="section-28">8. 夜间原型：已经做了什么，证据支持到哪里</h2>
+<h3 id="section-29">8.1 使用真实打榜 Bank 的只读快照，未改动打榜环境</h3>
 <p>从打榜使用的 <code>locomo_conv30_20261118_200523</code> 专用 schema 只读导出，在独立 Unix socket、独立数据目录的 PG 18.4 实例恢复，使用已安装的 pgvector 0.8.6。数据包含 <strong>109 条事实、2,212 条关系、373 条事实—实体关联、115 个实体、19 份文档、36 个原文块</strong>。试验结束核对源库与快照逐表行数及内容摘要一致。<a href="evidence/prototype-data-audit.json">数据与环境核验</a></p>
 <p>用户指定的 PG 源码为 18.4、提交 <code>f5cc81719e6da4cbdb1f797c48b693e91018153a</code>。在独立 worktree 实现 C 函数并用 PGXS 编译，没有改动原 PG 工作区的已有修改，也未替换运行中的 PG 二进制。</p>
 <p>实现包括：</p>
@@ -454,7 +471,7 @@ CROSS JOIN LATERAL recall_probe.rrf_topk(
 <li>同一候选 DAG 的 Python 融合、普通 SQL 融合和 C 函数融合三条对照路径。</li>
 </ul>
 <p>这是 <strong>C 函数与存储适配原型，不是已经完成的 CustomScan 执行器</strong>。原型接收预先分析好的请求、冻结查询向量，并仅覆盖本数据集的 world-only 形状；自然语言时间解析在计时前准备。两道有时间条件的题回退到未修改的 store 路径，其余 79 题执行候选下推。默认多事实类型、标签/来源、模型模式及完整扩展加载生命周期尚未覆盖；<strong>不能配置到 8892 作为产品后端直接替换。</strong></p>
-<h3 id="section-29">8.2 正确性验证：融合函数等价，不等于整条新 SQL 已等价替换线上</h3>
+<h3 id="section-30">8.2 正确性验证：融合函数等价，不等于整条新 SQL 已等价替换线上</h3>
 <table>
 <thead>
 <tr>
@@ -492,7 +509,7 @@ CROSS JOIN LATERAL recall_probe.rrf_topk(
 <p>已核验当前 store 的并列顺序差异：将未修改 store 的各臂统一为“分数降序、UUID 升序”后，79/79 题的 RRF ID、顺序、分数及来源排名与受控 DAG 一致。现有图融合使用 Python 集合迭代，受控 SQL 显式打破并列；排序位置会影响 RRF 与预算。正式接入前须明确并列规则，在两侧同时实现并作为独立变更验收，不能把它藏在性能优化中。<a href="evidence/candidate-order-audit.json">并列规则核验</a></p>
 <p>历史 8892 部署与当前源码分支还存在版本差异。因此，即使解释了当前 store 的并列差异，也不能直接继承旧运行的答卷分数。</p>
 <p>证据：<a href="evidence/source-fusion-equivalence.json">原始四路融合回放</a>、<a href="evidence/prototype-results.json">完整结果摘要</a>。</p>
-<h3 id="section-30">8.3 时延和搬运实测：有小幅改善，尚未证明端到端显著收益</h3>
+<h3 id="section-31">8.3 时延和搬运实测：有小幅改善，尚未证明端到端显著收益</h3>
 <p>最终实验使用同一 PG 实例、相同候选 SQL 和评分/预算代码；单并发、热缓存、固定种子随机交错三条路径，每条 81 题×10 轮。每路检索预算 1,000、融合候选上限 300，与现有 high 预算设置对齐；本 Bank 总共只有 109 条事实。<strong>计时从调用实验适配层到得到 RecallResult，不含 embedding、时间分析、HTTP、reader 或 judge。</strong> 它不是 8892 API P95。</p>
 <p>路径一也使用改写后的候选 DAG；这组实验隔离的是“融合放在哪一侧、正文在融合前还是融合后传出”的差异，不是直接拿 8892 原实现与完整新内核比较。</p>
 <table>
@@ -538,16 +555,16 @@ CROSS JOIN LATERAL recall_probe.rrf_topk(
 <p>路径三相对路径一的适配层 P95 点估计减少 <strong>0.241 ms，约 3.4%</strong>。搬运统计仅对 79 题直接下推分支计算实际查询回包的 <code>text＋context</code>，减少 <strong>56.7%</strong>；两道回退题不混入这项物理回包统计。字节不包含 PG 协议、其他列，不代表 heap I/O 或模型 Token。</p>
 <p>按题目成组重采样，P95 节省量的探索性 95% 区间为 <strong>−0.195—0.351 ms，跨过 0</strong>。此前开发轮次的点估计也只有零点几毫秒，参数与实现修正均保留。单 Bank、宿主机干扰和微小差异限制了解释力，<strong>不能据此承诺产品 API P95 有稳定、显著的下降</strong>。普通 SQL 路径在本规模下更慢，也说明“下推”本身不是性能保证。<a href="evidence/prototype-timings.json">全部计时</a>、<a href="evidence/prototype-trials.json">保留的全部实验轮次与修正说明</a></p>
 <p>查询计划没有 <code>Gather</code>/<code>Parallel Append</code>；本轮没有证明查询内并行。C 路径仍需完整生成候选并构造数组，<strong>没有实现或证明动态提前剪枝</strong>。当前小 Bank 的唯一事实少于 Top-300，更不适合据此估计海量数据的剪枝效果。<a href="evidence/prototype-explain-summary.json">去除查询向量等字面量的计划摘要</a></p>
-<h3 id="section-31">8.4 准确率与 Token 的结论</h3>
+<h3 id="section-32">8.4 准确率与 Token 的结论</h3>
 <p><strong>准确率：本轮没有新的下推准确率。</strong> 原始排名回放证明的是融合等价性；受控路径证明的是同输入条件下执行成本的差异。新 DAG 改了并列顺序，且没有新增 reader/judge，因此不提供虚构的“下推后 76/81”或“提升 7.41 个百分点”。76/81 属于另一会话已完成的 BGE 排序实验。</p>
 <p><strong>Token：受控三条路径的最终打包内容相同，Token 节省为 0。</strong> 最终实验的 81 份上下文合计均为 631,045 个 <code>o200k_base</code> Token；这也不是旧 RRF 运行的 629,001，因为它们的上下文并不相同。候选正文传输减少与模型 Token 不变可以同时成立。</p>
 <p><strong>P95：目前只测得受控适配层的微小改善，没有测得完整 HTTP 下推对照。</strong> 不将 7 ms 与原服务 538 ms 或 BGE 6.85 s 直接相减，更不将几个阶段的 P95 相加。当前证据支持继续验证大 Bank 的执行效率，不支持将本次微测当成端到端加速承诺。</p>
-<h2 id="section-32">9. 公平使用现有 81 题：下一次正式 A/B 的验收条件</h2>
-<h3 id="section-33">9.1 先做到真正的等价接入</h3>
+<h2 id="section-33">9. 公平使用现有 81 题：下一次正式 A/B 的验收条件</h2>
+<h3 id="section-34">9.1 先做到真正的等价接入</h3>
 <p>冻结原 Bank 快照、查询向量、时间锚点、并列规则、模型版本/输入模板、来源关系、min_scores、预算和最终 packer。先完成时间分支、当前实际请求的事实类型、标签/来源和失败回退；逐题核对完整响应、最终 reader prompt，而不只比 ID 集合。</p>
 <p>自然语言时间条件尤其要明确：当前 hook 之前传入的 <code>temporal_window</code> 主要来自显式参数，传统路径还会解析查询文本。实现应把这次解析正确前移并传入 store，或在 store 内保持等价行为，避免没有显式窗口时误删时间检索。本原型的两道时间题采用既有解析器预先准备并回退，尚未解决完整产品接入。</p>
 <p><strong>未达到逐题等价，就不能用这版原型宣称“仅移动执行位置”的准确率或时延收益。</strong> 若为消除不确定性统一并列规则，应先形成新基线，再比较它的应用侧和库内实现。</p>
-<h3 id="section-34">9.2 性能 A/B 与质量 A/B 分开运行</h3>
+<h3 id="section-35">9.2 性能 A/B 与质量 A/B 分开运行</h3>
 <table>
 <thead>
 <tr>
@@ -562,9 +579,9 @@ CROSS JOIN LATERAL recall_probe.rrf_topk(
 <td>测执行位置对存储阶段和 Recall HTTP P95 的影响</td>
 </tr>
 <tr>
-<td>BGE：应用执行 vs PG 接管</td>
-<td>同一模型、同一 109 对输入或同样的候选上限、同硬件、同批次/精度/输入模板</td>
-<td>测近库执行本身的收益，不能夹带模型或输入减少</td>
+<td>BGE：原候选路径 vs PG 候选路径</td>
+<td>模型均在 ContextBase；同一模型、同一候选输入、硬件、批次/精度和模板</td>
+<td>测候选下推对完整 Recall 的净收益，不混入模型执行位置或输入量变化</td>
 </tr>
 <tr>
 <td>证据策略：新旧排序/原文选择/预算</td>
@@ -575,9 +592,9 @@ CROSS JOIN LATERAL recall_probe.rrf_topk(
 <p>性能实验复用全部 81 个真实查询、多轮随机交错，分别测试并发 1 与固定的小并发，记录吞吐、成功/超时/失败、P50/P95，以及索引访问、heap/TOAST、行数/字节、模型排队/推理等。查询结果缓存关闭；冷热缓存分开；全部尾延迟与失败保留。两个实现先在同一冻结库比较，再验证完整 HTTP；不能将保存的响应回放时延冒充实时数据库时延。</p>
 <p>相同最终 prompt 的等价实验无需为了制造两个分数重复付费生成答案；它提供的是输入等价证据。任何修改最终输入的方案都要使用既有 <code>benchmarks/memory/runner.py</code>、固定 AMB reader/judge 做新的完整 81 题运行，并保留所有对错判定及未知用量。不能只重答 q029 等已知错题，再拼入旧答卷组成新成绩。</p>
 <p>质量报告同时给出总体准确率、答案 F1、由错变对/由对变错的题目，以及关键证据在“数据库候选 → Recall 返回 → reader 最终输入”三个位置的覆盖。先把 q037/q044 的下游打包丢失与 q073 的上游原文未返回分开定位；不能把 reader 已见依据却答错的问题归为数据库漏召回。</p>
-<h3 id="section-35">9.3 对研发决策的建议</h3>
+<h3 id="section-36">9.3 对研发决策的建议</h3>
 <p><strong>同意继续做融合执行原型，但不以当前 81 题承诺大幅提速或提分。</strong> 这批题用于正确性与小范围质量检查；内核性能立项还需要更大、更多 Bank 和有代表性的过滤/关系扇出负载。不能复制事实扩容后仍把测试称为真实 LoCoMo 准确率实验。</p>
-<p>第一阶段先完成 PG <code>full_recall</code> 兼容适配、普通 SQL 基线和实际端到端剖析。只有确认候选生成、搬运或串行调度构成显著成本，再推进候选流融合、依赖感知并行与安全上界剪枝；使用与普通 SQL、应用执行相同的结果质量作为验收条件。</p>
-<p>对当前 BGE 路径，模型计算与证据保留是更直接的问题。PG 可以提供更好的执行组织和近库模型能力，但<strong>优化位置、减少模型计算量、提高证据质量是三件需要分别举证的事</strong>。</p>
+<p>第一阶段交付“PG 一次取完整候选、ContextBase 后处理、无补查且结果等价”的 81 题版本，不把现有多次查库简单藏进 Python 包装；同结果、一次调用和无补查同时通过后，再分析净收益。只有确认候选生成、搬运或串行调度成本显著，再推进候选流融合、依赖感知并行与安全上界剪枝；仍需保持相同质量。</p>
+<p>当前 BGE 路径的模型计算仍占重要部分。本版先验证候选执行与往返收益，模型及证据选择规则不变；<strong>改变执行位置、减少模型计算、提高证据质量必须分别举证</strong>。</p>
 <p>原型、完整 SQL、补丁和复现方法见 <a href="evidence/prototype/README.md">原型交付说明</a>。源库与现有服务未修改；原参考文档、既有 benchmark 脚本及旧成绩保留。</p>
-</main><footer>2026-11-19 · 旧 Bank 81 题研究与早期原型 · 当前设计、进展、计划以本目录为准</footer><script>const ds=[...document.querySelectorAll('details.sql')];document.getElementById('toggle').onclick=()=>{const open=ds.some(d=>!d.open);ds.forEach(d=>d.open=open)};document.getElementById('print').onclick=()=>window.print();</script></body></html>
+</main><footer>2026-11-19 · 当前实现与原始等价验证 · 生产服务未切换</footer><script>const ds=[...document.querySelectorAll('details.sql')];document.getElementById('toggle').onclick=()=>{const open=ds.some(d=>!d.open);ds.forEach(d=>d.open=open)};document.getElementById('print').onclick=()=>window.print();</script></body></html>

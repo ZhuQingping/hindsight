@@ -1,0 +1,178 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recall下推实现报告：PG与ContextBase等价适配</title><style>
+:root{--ink:#223249;--blue:#245381;--muted:#617086;--line:#d9e1eb;--bg:#f4f6f9}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.85}nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;flex-wrap:wrap;gap:8px}nav a,button{font:inherit;font-size:13px;background:#edf2f8;border:1px solid var(--line);border-radius:5px;color:var(--blue);padding:5px 9px;text-decoration:none;cursor:pointer}nav .brand{margin-right:auto;background:#fff;border:0;font-weight:650}main{overflow-wrap:anywhere;max-width:1260px;margin:25px auto 50px;padding:42px 48px 70px;background:white;border:1px solid var(--line);border-radius:8px}h1{font-size:31px;line-height:1.45;margin:0 0 24px;color:#163752}h2{font-size:25px;line-height:1.5;margin:48px 0 22px;padding:12px 16px;background:#edf3fa;border-left:4px solid #376c9c}h3{font-size:20px;line-height:1.55;margin:30px 0 14px;color:#244b6f}p{margin:13px 0}strong{font-weight:650}a{color:#245b91;text-underline-offset:3px;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px;line-height:1.8}th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere}th{background:#eef3f9;text-align:left;color:#214769}tbody tr:nth-child(even){background:#fbfcfe}pre{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;background:#f3f6fa;border:1px solid #e0e6ee;border-radius:6px;padding:16px}code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;font-size:.9em}p code,td code,li code{background:#edf2f7;border-radius:3px;padding:1px 4px}blockquote{margin:22px 0;padding:12px 22px;border-left:4px solid #7f9fbc;background:#f1f6fb}li{margin:7px 0}details.sql{border:1px solid var(--line);border-radius:6px;margin:18px 0}summary{padding:12px 16px;cursor:pointer;color:var(--blue)}details pre{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 6px 6px}footer{max-width:1260px;margin:auto;padding:0 24px 32px;color:var(--muted);font-size:13px}#toc{margin:20px 0 30px;padding:14px 20px;background:#fafbfd;border:1px solid var(--line);border-radius:6px}#toc summary{padding:0}#toc ol{margin:10px 0;padding-left:24px}#toc li{font-size:14px;margin:3px 0}@media(max-width:800px){nav{padding:8px 12px}main{padding:24px 18px;margin:10px 7px 30px}h1{font-size:25px}h2{font-size:21px}h3{font-size:18px}table{font-size:12px}th,td{padding:7px 6px}pre{font-size:11px}}@media print{nav,#toc,footer{display:none}body{background:white;font-size:10pt}main{max-width:none;margin:0;padding:0;border:0}h1{font-size:20pt}h2{font-size:16pt;break-before:page;border:0;background:none;padding:0}h3{font-size:12pt;break-after:avoid}table{font-size:8pt}tr{break-inside:avoid}pre{font-size:7pt}a{color:inherit;text-decoration:none}summary{display:none}details.sql{border:0}}</style></head><body><nav><a class="brand" href="README.md">PG Recall 下推｜维护入口</a><a href="implementation-report.html">当前实现</a><a href="design.html">当前设计</a><a href="three-way-original-compatibility.html">三组验证</a><a href="analysis.html">分析</a><a href="implementation-review.md">审查</a><a href="implementation-report.md">Markdown</a><button id="toggle">展开全部 SQL</button><button id="print">打印</button></nav><main><h1 id="section-1">Recall下推实现报告：PG与ContextBase等价适配</h1><details id="toc"><summary>目录：8 个章节</summary><ol><li><a href="#section-2">1. 当前交付</a></li><li><a href="#section-3">2. 两侧改动和提交范围</a></li><li><a href="#section-4">3. 原始版、关闭与开启的对照结果</a></li><li><a href="#section-5">4. 为什么旧版失败，新版如何修复</a></li><li><a href="#section-6">5. 验证环境和保护措施</a></li><li><a href="#section-7">6. 代码、测试与审查</a></li><li><a href="#section-8">7. 性能、质量与当前限制</a></li><li><a href="#section-9">8. 交付后的边界</a></li></ol></details>
+<p>更新日期：2026-11-19。<strong>当前实现已通过固定81题验证：PG一次候选调用完成四路检索、C RRF/Top-K和补全；ContextBase复用原BGE、评分和预算。RRF与真实本地BGE两种模式，各81/81题完整响应与未修改原始版一致。</strong> 本文对应当前代码，不再将旧规范化A/B作为原始等价证据。</p>
+<h2 id="section-2">1. 当前交付</h2>
+<pre><code class="language-text">原Recall HTTP请求
+        |
+ContextBase：认证、配置、embedding、时间条件
+        |
+        | 一次 SELECT recall_equiv.candidates($1::jsonb, $2::name)
+        v
+PG：原始四路检索顺序 -&gt; C RRF / Top-K -&gt; 正文与关联原文
+        |
+        | 完整候选包，释放查询连接
+        v
+ContextBase：原BGE / 最终评分 / 原文与事实预算 -&gt; RecallResult
+        |
+原客户端pack_context；候选查询后不再补查PG
+</code></pre>
+<p><code>full_recall</code>是ContextBase存储扩展接口。服务端选择<code>EquivalentPostgresRecallMemories</code>时接管支持的请求；默认store返回<code>None</code>，继续原路径。客户端HTTP协议和LoCoMo打包逻辑未改。</p>
+<p>“一次PG调用”指候选业务阶段，API外层Bank/配置读取单列；PG函数内部仍执行多条SQL。本次不是PG内四路并行，也未新增融合CustomScan。</p>
+<h2 id="section-3">2. 两侧改动和提交范围</h2>
+<table>
+<thead>
+<tr>
+<th>一侧</th>
+<th>当前实现</th>
+<th>主要代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PG C扩展</td>
+<td>哈希去重累分、有界堆RRF/Top-K；固定CPython图集合顺序兼容</td>
+<td><a href="native/contextbase_recall.c">C RRF</a>、<a href="native/contextbase_legacy_order.c">顺序适配</a>、<a href="native/README.md">PGXS与许可证</a></td>
+</tr>
+<tr>
+<td>PG SQL/PLpgSQL</td>
+<td>原查询形状、图/时间扩展、原始名次、C RRF调用、候选及关联原文一次补全</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_equivalent.sql">recall_equivalent.sql</a></td>
+</tr>
+<tr>
+<td>ContextBase store</td>
+<td>接管范围检查、复用原SQL构造器、一次参数化查询、解码、释放连接后共享处理</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py">recall_pushdown.py</a></td>
+</tr>
+<tr>
+<td>ContextBase引擎</td>
+<td>追加runtime与候选包类型，提取共用BGE/评分/预算路径；预取模式不再hydrate或读原文</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/memories/base.py">base.py</a>、<a href="../../../hindsight-api-slim/hindsight_api/engine/memory_engine.py">memory_engine.py</a></td>
+</tr>
+<tr>
+<td>时间、启动和分发</td>
+<td>已解析时间条件不重复解析；已有配置表允许只读启动；SQL随wheel发布</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/search/retrieval.py">retrieval.py</a>、<a href="../../../hindsight-api-slim/hindsight_api/engine/system_config.py">system_config.py</a>、<a href="../../../hindsight-api-slim/pyproject.toml">pyproject.toml</a></td>
+</tr>
+</tbody></table>
+<p>本次没有PG core改动。PG与ContextBase是两个独立Git仓库；为在一个commit中保存完整改动，已将实际PG开发工作区的C源码、Makefile和CPython许可证逐文件一致地纳入本仓库<code>native/</code>，与ContextBase、SQL、测试和文档一并版本化。独立PG工作区仍保留相同源码，不将其伪称为另一个已提交的PG commit。</p>
+<p>源码清单及哈希见<a href="evidence/commit-source-manifest-20261119.json">提交源码清单</a>。不提交动态库、模型、凭据、查询向量或真实记忆回包。</p>
+<h2 id="section-4">3. 原始版、关闭与开启的对照结果</h2>
+<p>原始基线为改动前提交<code>0951c3664b3083a99268040c8c84113073a057b3</code>，不是8892历史部署。原始工作区产品源码未改，未给基线追加UUID排序。三组使用同一原PG、同一Bank、同一81题、固定真实查询向量、时间和预算。</p>
+<table>
+<thead>
+<tr>
+<th>核验项，每种模式81题</th>
+<th align="right">原始版 ↔ 新版关闭</th>
+<th align="right">原始版 ↔ 修复版开启</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完整业务JSON响应</td>
+<td align="right">81/81相同</td>
+<td align="right">81/81相同</td>
+</tr>
+<tr>
+<td>融合候选ID、顺序与RRF分数</td>
+<td align="right">81/81相同</td>
+<td align="right">81/81相同</td>
+</tr>
+<tr>
+<td>修复版融合名次与各路名次</td>
+<td align="right">基线回归；四路记录相同</td>
+<td align="right">81/81相同</td>
+</tr>
+<tr>
+<td>实际BGE有序输入</td>
+<td align="right">81/81相同</td>
+<td align="right">81/81相同</td>
+</tr>
+<tr>
+<td>原客户端reader正文和Token</td>
+<td align="right">81/81相同</td>
+<td align="right">81/81相同</td>
+</tr>
+</tbody></table>
+<p>修复版RRF/BGE各81次候选SQL均与PG日志81次入口执行对应，后续补查均为0；两道时间题q047/q063均接管。RRF两侧Token总数均为629,045；BGE两侧均为624,297。Token节省均为0。</p>
+<p>BGE使用实际本地<code>bge-reranker-v2-m3</code>，权重revision <code>953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e</code>、CPU FP32、batch 8、模型并发1；没有回放模型分数。核验融合有效字段、模型输入、完整业务JSON和最终reader正文；内部调试payload包含预加载标识差异，不宣称内部对象字节完全相同。</p>
+<p>证据：<a href="evidence/threeway-original-compatibility-20261119.json">原始三组摘要</a>、<a href="evidence/equivalent-original-validation-20261119.json">修复后摘要</a>、<a href="evidence/equivalent-question-validation-20261119.json">修复后逐题检查</a>。</p>
+<h2 id="section-5">4. 为什么旧版失败，新版如何修复</h2>
+<p>旧下推添加<code>score DESC, id</code>，同分候选名次改变；RRF按名次累分，因而原始版与旧下推在RRF模式下81题响应均不同。原始与修改关闭仍81题一致，问题出在下推输入顺序。</p>
+<p>将原始各路名次直接送入PG C RRF，81题融合结果完全相同，已排除C公式算错。修复复用原向量/全文完整UNION、原图SQL，兼容固定CPython图集合顺序，并保持时间扩展的首次出现、稳定排序和浮点计算次序。RRF继续留在PG，没有移回ContextBase，也没有调分数或权重。</p>
+<p>旧失败记录、旧规范化对照和修复记录分别保留。完整根因见<a href="three-way-original-compatibility.md">三组对照与修复验证</a>，历史原库规范化A/B见<a href="local-existing-pg-validation.md">历史报告</a>。</p>
+<h2 id="section-6">5. 验证环境和保护措施</h2>
+<p>复用本机PG 18.4、端口5432、数据库<code>contextbase_gpt61_20261107</code>及原Bank <code>locomo_conv30_20261118_200523</code>。数据包含109条world事实、2212条关系、373条事实实体关联、115个实体、19份文档和36个chunks。</p>
+<p>原Bank七张表逐行摘要未变，PG启动时间未变；没有initdb、迁移、重导入或替换postgres二进制。原8892/8891服务未重启、未切换。独立临时API/模型进程退出，辅助快照PG已停止，原PG保留实验namespace和版本化扩展库。</p>
+<p>候选查询使用非超级用户、目标表仅SELECT。原始引擎启动检查已存在配置表时的临时CREATE权限，在启动后撤回并恢复只读；记忆请求期间连接只读。新引擎通过已有表检查避免重复DDL。详细记录在验收摘要中。</p>
+<h2 id="section-7">6. 代码、测试与审查</h2>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th>状态与范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RRF和真实BGE各81题、模型输入、reader差分</td>
+<td>通过，使用未修改原始基线，无输出归一化</td>
+</tr>
+<tr>
+<td>应用计数与PG日志</td>
+<td>通过，各81次候选入口、零后续补查</td>
+</tr>
+<tr>
+<td>目标数据与原PG完整性</td>
+<td>通过，七表摘要及启动时间不变</td>
+</tr>
+<tr>
+<td>接管边界、原始fallback、连接释放、取消、缺失字段、启动与计数隔离</td>
+<td>30项通过</td>
+</tr>
+<tr>
+<td>C集合兼容独立随机差分</td>
+<td>600组构造＋600组联合通过，真实CPython内置集合对照</td>
+</tr>
+<tr>
+<td>新PG模块Ruff、类型检查与wheel内容</td>
+<td>通过；wheel包含当前SQL及store</td>
+</tr>
+<tr>
+<td>全仓lint</td>
+<td>已执行，原有<code>api/http.py</code>的F841阻塞；无关自动格式化已撤回</td>
+</tr>
+<tr>
+<td>HTML布局、粗体和本地链接</td>
+<td>重新导出后验证，见<a href="evidence/commit-document-validation-20261119.json">展示检查</a></td>
+</tr>
+</tbody></table>
+<p>产品源码与执行冻结版本的原有类方法AST一致；交付另增加经过单测的原始fallback覆盖，防止不支持的请求继承旧Canonical排序。全部核心计算复用原引擎，不维护第二套BGE/评分/预算算法。验收和审查记录见<a href="implementation-review.md">实现审查</a>。</p>
+<h2 id="section-8">7. 性能、质量与当前限制</h2>
+<table>
+<thead>
+<tr>
+<th>顺序正确性运行的HTTP观测值</th>
+<th align="right">原始版</th>
+<th align="right">修复下推版</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RRF平均 / P50 / P95，ms</td>
+<td align="right">22.01 / 19.70 / 40.44</td>
+<td align="right">17.07 / 15.69 / 23.11</td>
+</tr>
+<tr>
+<td>BGE平均 / P50 / P95，s</td>
+<td align="right">7.276 / 7.085 / 8.901</td>
+<td align="right">6.913 / 6.622 / 8.740</td>
+</tr>
+<tr>
+<td>BGE非模型部分平均，ms</td>
+<td align="right">28.99</td>
+<td align="right">35.80</td>
+</tr>
+</tbody></table>
+<p>这些是顺序正确性运行，冻结查询向量不含在线embedding时间，不是重复交错的性能A/B。模型运行时有波动，非模型部分本轮反而增加，因此不能将完整耗时下降归因于PG。尚未证明完整Recall稳定提速。</p>
+<p>本轮没有重新答题或运行judge，不继承历史76/81成绩。等价上下文未省Token，也不能推导准确率提高。109条事实低于Top-300，尚不足以验证大规模裁剪、传输或索引访问收益。</p>
+<p>严格兼容仅验收CPython 3.11.15、64位SipHash13、哈希种子0及当前81题形状。当前未覆盖生产进程的随机哈希、通用多类型数据、附件、实体/来源补全、其他过滤、大Bank或并发写入；PG调用模型、PG评分/预算、查询内并行、动态剪枝及CustomScan均未实现。</p>
+<h2 id="section-9">8. 交付后的边界</h2>
+<p>本次将PG扩展、ContextBase实现、测试、设计、实现报告和脱敏证据合并为一个可审查commit，不推送或切换生产。用户现有数据与服务保持原状。</p>
+<p>后续如继续，先扩展真实部署运行环境与请求覆盖，再按<a href="latency-validation-plan.md">性能验证计划</a>做交错、重复的完整Recall A/B。执行位置优化与排序/证据策略调整分别验收，不以减少调用次数代替性能收益。</p>
+</main><footer>2026-11-19 · 当前实现与原始等价验证 · 生产服务未切换</footer><script>const ds=[...document.querySelectorAll('details.sql')];document.getElementById('toggle').onclick=()=>{const open=ds.some(d=>!d.open);ds.forEach(d=>d.open=open)};document.getElementById('print').onclick=()=>window.print();</script></body></html>

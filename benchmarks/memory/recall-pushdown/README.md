@@ -1,33 +1,29 @@
-# PostgreSQL Recall 下推：统一维护入口
+# PostgreSQL Recall下推：统一维护入口
 
-更新日期：2026-11-19。**当前只有受限原型；覆盖现有 81 题的下一阶段实现尚未启动。** 本次操作仅整理文档和已有证据，不启动开发、PG、模型或新评测。
+更新日期：2026-11-19。**当前状态：原始等价适配已通过限定81题验收。C RRF保留PG；RRF/真实BGE各81/81题完整响应、融合结果及reader正文与未修改原始版一致，BGE输入一致。每题一次候选SQL、零后续补查。固定解释器/哈希环境的实验结论，未切换原服务。** 见[三组对照与修复验证](three-way-original-compatibility.md)。
 
-| 阅读目的 | 维护文件 |
+| 阅读目的 | 文档 |
 | --- | --- |
-| 看当前要实现什么、哪些在 PG 执行 | [当前设计](design.md) |
-| 看依据、SQL、收益与边界 | [分析报告 Markdown](analysis.md)／[HTML](analysis.html) |
-| 看已经完成、尚未完成和实测结果 | [当前进展](progress.md) |
-| 看一晚最小范围、时间安排和验收 | [下一步计划](plan.md) |
-| 核对原始结果、SQL 与历史验证 | [证据说明](evidence/README.md) |
+| 先看当前是否符合“一次PG调用、结果等价” | [三组对照与修复验证](three-way-original-compatibility.md) |
+| 看两边改动及调用链 | [设计](design.md)、[实施计划](plan.md) |
+| 看PG C与SQL代码 | [C源码说明](native/README.md)、[PG SQL](../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_equivalent.sql) |
+| 看已完成和待完成 | [进展](progress.md) |
+| 判断完整Recall平均/P50收益 | [最小收益验证](latency-validation-plan.md) |
+| 查看历史规范化对照实验 | [原PG历史A/B](local-existing-pg-validation.md)、[隔离快照首版](implementation-report.md) |
+| 查看分析与原始证据范围 | [分析](analysis.md)、[证据说明](evidence/README.md) |
 
-## 当前结论
+## 当前范围
 
-`full_recall` 可以承接存储侧完整流程；目前实现的是 PG 候选融合原型，尚未完成时间检索、评分、预算和模型重排的完整下推。已有 C 融合函数对 81 题原始候选排名回放精确一致；受控执行中 79 题下推、2 道时间题回退。
+PG一次候选业务查询完成四路检索、C RRF、Top-K、候选正文与关联原文补全；ContextBase释放查询连接后复用原BGE、最终评分、事实/原文预算与组装，不再补查PG。下推的是ContextBase服务端的RRF，不是LoCoMo客户端打包。API外层配置读取单独计数。
 
-79 题下推分支的候选正文逻辑字节减少 **56.7%**；受控适配层 P95 为 **7.124 → 6.884 ms**，节省量区间跨过 0。最终上下文相同，Token 节省为 **0**，没有新的下推准确率或完整 HTTP P95 成绩。历史 BGE **76/81** 是排序实验结果，不能归因于下推。
+修复保留原始各路名次，没有调整分数、权重和模型参数。当前严格验证限定原109条world事实、81题及CPython 3.11.15/64位SipHash13/哈希种子0；顺序兼容机制不是通用排序策略，未覆盖配置在查询前退出接管。不能据此宣布全部请求或生产8892已经等价。
 
-下一阶段将目标收敛到旧 Bank 的同一批 81 题：补齐 PG 时间检索、评分、预算与本地 BGE 批量重排，目标 **6–8 小时**形成可验证实验版本。该估算不是收益承诺，也不是已经启动的任务。
+## 收益边界
 
-## 与打榜主线的关系
+当前首先验收可行性和兼容性，没有证明完整Recall平均、P50或P95提升。冻结查询向量不含在线embedding耗时，实际本地BGE运行参与验证。结果等价不自动节省Token；没有新的reader/judge成绩，不继承历史76/81。查询内并行、动态剪枝、PG调用模型及PG评分/预算均未在本版实现。
 
-本专项的固定数据来自旧 Bank `locomo_conv30_20261118_200523`，109 条事实。打榜主线后续已开展全量 1,540 题及 V1 窗口优化，使用的 Bank、预算和运行资源可能不同。最新状态以[主 README](../README.md)、[打榜计划](../plan.md)和[打榜报告](../report.md)为准，不能把本专项的历史 81 题分数、毫秒级微测或配置套入全量运行。
+## 与打榜及维护的关系
 
-准确率评测继续使用既有 [runner.py](../runner.py)、[support.py](../support.py) 及固定 AMB，不维护第二套 reader/judge；现有运行继续使用自己的冻结源码。新 PG A/B 必须使用同一支持 `full_recall` 的源码版本，不能将当前分支与 8892 历史部署直接混作等价对照。
+本专项使用旧Bank `locomo_conv30_20261118_200523`。全量1540题及V1使用自己的Bank、配置和冻结源码，以[打榜主入口](../README.md)为准，不混用分母。准确率评测继续使用既有runner/support和固定AMB，不维护第二套reader/judge。
 
-## 维护约定
-
-- 当前设计、进展、下一步计划及分析正文只维护本目录。旧 `ContextDB-Research` 文件保留为历史快照，不再双写。
-- `analysis.md` 是分析报告源文件；`analysis.html` 是展示导出，更新正文后同步导出。
-- `evidence/` 是已有实验的只读证据；`original-*` 文件中的路径、哈希、验证时间均指历史来源，不代表本次重新运行。
-- 原始 Bank 导出、向量、完整 prompt、运行档案、凭据、模型权重及编译产物不进入本目录。现有私有位置见[证据说明](evidence/README.md)。
-- 下一阶段只有收到启动指令后才执行。当前不启动模型、服务、打榜或下推工程。
+本轮将PG扩展与ContextBase代码、文档和证据纳入同一提交；不推送或切换原服务；原PG和源Bank不重建。正文、设计与进展统一维护本目录，旧ContextDB-Research展示文件是历史快照。原始回包、向量、凭据、权重和编译产物保留在gitignored私有目录；脱敏摘要进入evidence，旧失败记录保留。

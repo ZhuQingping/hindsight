@@ -1,0 +1,53 @@
+{
+  "scope": "Single ContextBase repository commit includes byte-identical PG extension sources, PG SQL, ContextBase integration, tests, documents and sanitized evidence. No PG core change or separate PG repository commit.",
+  "baseline_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+  "source_sha256": {
+    "hindsight-api-slim/hindsight_api/engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py": "7fa2975ff63eedbb4ef7da60c8ff54f41c7c0fa14159327274ab6aeb8c425b01",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_equivalent.sql": "05bc4338b639648d135c26ee6737aa8afc93b0634e1807457d0e4acb4ce46c3d",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.sql": "cad41f2fc474f3379c0ffaad8b997a8a6c70bbff14d84f6676c21717ec87c9c3",
+    "hindsight-api-slim/hindsight_api/engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+    "hindsight-api-slim/hindsight_api/engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e",
+    "hindsight-api-slim/hindsight_api/engine/system_config.py": "647c9003590982f49b0f383994d72cc600c269021e176fd2a84179248e74b45f",
+    "hindsight-api-slim/pyproject.toml": "b018fcf27e0ab5ecf604c61f9fa0f4304086da70ecfd2eabf568d5c51951f2f5",
+    "hindsight-api-slim/tests/test_recall_candidate_pushdown.py": "f6ec9f34bcb61db56e02506b57e8cf6c771550a14899b9555c5e44ffb5a36a81",
+    "hindsight-api-slim/tests/test_recall_verification_scope.py": "b46b8780a6d5b2a096bb1e496be880c249c79974078e04fcb8619b29a6542595",
+    "hindsight-api-slim/tests/test_system_config_readonly_startup.py": "8daa11c707f20820e91d5c3612411d34683c9c5fd8309a3fabcb236726a323dc",
+    "benchmarks/memory/recall-pushdown/verify.py": "648569c2cb49754f134605bd1b6c56161652fe934d541f210dc1d89e1ebb04de",
+    "benchmarks/memory/recall-pushdown/native/contextbase_recall.c": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f",
+    "benchmarks/memory/recall-pushdown/native/contextbase_legacy_order.c": "9192ceae9e1c2ceac1d5858bd8aa851f9ba0914e1d0c80b9da37dc5ca5ac4810",
+    "benchmarks/memory/recall-pushdown/native/Makefile": "08f4a333a1341f917ca316b0f7ab90feddf7f070165d833f34e38192c95af2f0",
+    "benchmarks/memory/recall-pushdown/native/LICENSE.cpython": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  },
+  "executed_source_audit": {
+    "unchanged_sha256_files": [
+      "engine/memory_engine.py",
+      "engine/memories/base.py",
+      "engine/search/retrieval.py",
+      "engine/memories/postgres.py",
+      "engine/search/fusion.py",
+      "engine/search/reranking.py",
+      "engine/cross_encoder.py",
+      "engine/fact_budget.py"
+    ],
+    "store_existing_method_ASTs_unchanged": true,
+    "only_added_store_method": "EquivalentPostgresRecallMemories.recall_unified: preserve original fallback; tested",
+    "current_equivalent_sql_matches_installed_sha256": true,
+    "native_sources_match_PG_worktree": true
+  },
+  "checks": {
+    "targeted_tests": 30,
+    "C_sources_build_against_existing_PG18_4": "PASS; build in temporary directory, not installed",
+    "changed_python_ruff_format_ty": "PASS",
+    "prior_real_recall_validation": "RRF and actual BGE: 81/81 exact original responses, model inputs and reader contexts, one candidate SQL and zero postreads",
+    "repository_lint": "Previously executed; blocked by pre-existing api/http.py F841; no new Python product changes in documentation/commit preparation"
+  },
+  "not_included": [
+    "credentials",
+    "private Bank responses/vectors/weights",
+    "compiled binaries",
+    "unrelated worktree and IDE files"
+  ],
+  "production_switch": false,
+  "remote_push": false
+}

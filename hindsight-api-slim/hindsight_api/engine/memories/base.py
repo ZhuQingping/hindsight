@@ -51,12 +51,13 @@ from ...extensions.base import Extension
 # actually exist -- the SQL builders below take this exact type, and a bare `str` made
 # every hop between them unverifiable.
 from ..search.tags import TagGroup, TagsMatch, tag_filter_active
-from ..search.types import RetrievalResult
+from ..search.types import MergedCandidate, RetrievalResult
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from ..consolidation.consolidator import _TemporalBounds
+    from ..db.base import DatabaseBackend
     from ..embeddings import Embeddings
-    from ..response_models import MemoryFact
+    from ..response_models import MemoryFact, RecallResult
     from ..retain.types import CausalRelation, EmbeddingLike, EntityResolutionResult, ProcessedFact
     from ..search.retrieval import GraphRetriever
     from ..transfer.export import _LoadedExport, _UnitLocation
@@ -801,6 +802,39 @@ class SemanticBm25Result:
 
 
 @dataclass
+class RecallCandidateChunk:
+    """An original-text row fetched with the candidates, before model ranking."""
+
+    chunk_text: str
+    chunk_index: int
+    document_id: str | None = None
+
+
+@dataclass
+class RecallCandidateBatch:
+    """Input to shared postprocessing; None chunks means the legacy lazy read."""
+
+    candidates: list[MergedCandidate]
+    chunks: dict[str, RecallCandidateChunk] | None = None
+    fully_loaded: bool = False
+    max_conn_wait: float = 0.0
+    stages: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class FullRecallRuntime:
+    """Request-local services, never serialized into a database or shared across requests.
+
+    The store uses the authenticated read backend; the finalizer reuses the engine's
+    model/scoring/budget path. A complete candidate batch must need no subsequent read.
+    """
+
+    backend: DatabaseBackend
+    finalize: Callable[[RecallCandidateBatch], Awaitable["RecallResult"]]
+    finalized: bool = False
+
+
+@dataclass
 class FullRecallRequest:
     """Everything a store needs to answer a whole recall — see
     :meth:`MemoriesExtension.full_recall`.
@@ -876,6 +910,9 @@ class FullRecallRequest:
     #: Per-observation budget. When >= 0 this REPLACES the total, so one observation with many
     #: sources cannot spend every other observation's provenance.
     max_source_facts_tokens_per_observation: int = -1
+
+    # Appended to preserve all existing positional request fields.
+    runtime: FullRecallRuntime | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass
@@ -1795,6 +1832,8 @@ class MemoriesExtension(Extension, ABC):
         acquires its own connections from and runs the graph arm on; a store that reaches its index
         another way (e.g. over the network) ignores it.
         """
+
+    resolve_temporal_before_full_recall = False
 
     async def full_recall(self, request: "FullRecallRequest") -> "RecallResult | None":
         """Answer a WHOLE recall inside the store, or decline by returning ``None``.

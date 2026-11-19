@@ -1,0 +1,206 @@
+{
+  "status": "accepted_for_frozen_81_question_feasibility",
+  "accuracy_evaluation": "NOT RUN; no reader/judge calls; historical 76/81 is not a pushdown score",
+  "workload": {
+    "bank_id": "locomo_conv30_20261118_200523",
+    "facts": 109,
+    "questions": 81,
+    "query_embeddings": "frozen real vectors; live embedding service excluded",
+    "model": "local bge-reranker-v2-m3",
+    "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "device": "CPU FP32",
+    "batch_size": 8,
+    "max_concurrent": 1,
+    "ordering": "common UUID tie order on both stores; not historical process-dependent ties"
+  },
+  "modes": {
+    "rrf": {
+      "questions": 81,
+      "equal_http_responses": 81,
+      "equal_reader_contexts": 81,
+      "equal_model_inputs": null,
+      "one_application_query": 81,
+      "zero_postquery_reads": 81,
+      "pg_log_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "reader_context_tokens": {
+        "control": 631007,
+        "pushdown": 631007,
+        "saving": 0
+      },
+      "http": {
+        "control": {
+          "n": 81,
+          "mean_ms": 10.67810603072522,
+          "p50_ms": 9.362332988530397,
+          "p95_ms": 16.041958006098866
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 10.569245846263696,
+          "p50_ms": 9.53341694548726,
+          "p95_ms": 16.106374911032617
+        }
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "636663f863f7a375ab7c30caf38e1bf3720bd713192f19a224ae7cb1218aee8d",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e"
+      },
+      "control_artifact": "single-call-v3-rrf-control",
+      "pushdown_artifact": "single-call-v3-rrf-pushdown",
+      "outside_request_sql_excluded": null,
+      "pg_execute_duration_ms": {
+        "mean": 4.282456790123457,
+        "p50": 4.123,
+        "scope": "PG execute log duration; parse/bind/network excluded"
+      }
+    },
+    "bge": {
+      "questions": 81,
+      "equal_http_responses": 81,
+      "equal_reader_contexts": 81,
+      "equal_model_inputs": 81,
+      "one_application_query": 81,
+      "zero_postquery_reads": 81,
+      "pg_log_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "reader_context_tokens": {
+        "control": 624297,
+        "pushdown": 624297,
+        "saving": 0
+      },
+      "http": {
+        "control": {
+          "n": 81,
+          "mean_ms": 7407.355028309537,
+          "p50_ms": 7846.739875036292,
+          "p95_ms": 8634.247875073925
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 6592.789376035253,
+          "p50_ms": 6743.277000030503,
+          "p95_ms": 7465.749499970116
+        }
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "636663f863f7a375ab7c30caf38e1bf3720bd713192f19a224ae7cb1218aee8d",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e"
+      },
+      "control_artifact": "single-call-v3-bge-control",
+      "pushdown_artifact": "single-call-v4-bge-pushdown",
+      "outside_request_sql_excluded": 5,
+      "bge_call": {
+        "control": {
+          "n": 81,
+          "mean_ms": 7390.734491721773,
+          "p50_ms": 7832.545374985784,
+          "p95_ms": 8599.963707965799
+        },
+        "pushdown": {
+          "n": 81,
+          "mean_ms": 6578.26990846625,
+          "p50_ms": 6729.352375026792,
+          "p95_ms": 7450.912083033472
+        }
+      },
+      "non_model_ms_mean": {
+        "control": 16.62053658776445,
+        "pushdown": 14.519467569002307
+      },
+      "optimistic_all_non_model_removed_bound_percent": {
+        "mean": 0.22437883055751245,
+        "p50": 0.18089678358863445,
+        "assumption": "Per request set all non-model time to zero, unchanged rerank wall span; conditional arithmetic, not measured speedup"
+      },
+      "verifier_change": "Only SQL ownership instrumentation changed v3 to v4 (request ContextVar); all product source bytes identical; old background false positives retained.",
+      "pg_execute_duration_ms": {
+        "mean": 5.586901234567901,
+        "p50": 5.461,
+        "scope": "PG execute log duration; parse/bind/network excluded"
+      }
+    }
+  },
+  "tests": {
+    "targeted_regression_passed": 75,
+    "request_scope_regression_passed": 3,
+    "ruff_changed_files": "PASS",
+    "format_changed_files": "PASS",
+    "new_pg_store_typecheck": "PASS",
+    "shared_typecheck": {
+      "baseline_diagnostics": 44,
+      "current_diagnostics": 43,
+      "new_diagnostics": 0
+    },
+    "wheel_sql_and_module": "PASS",
+    "whole_repository_lint": "BLOCKED by baseline api/http.py F841; unrelated automatic formatting reverted",
+    "whole_store_ast_scan": "BLOCKED by baseline system_config.py UTF-8 BOM; unchanged by this patch"
+  },
+  "latency_interpretation": "Single sequential correctness passes, frozen embedding, with model/runtime variability; total mean delta is not attributable to PG. No statistically established full Recall speedup.",
+  "index_trial": {
+    "scope": "q047 first temporal neighbor batch; separate copied schema; no full Recall speed claim",
+    "before_warm": {
+      "mean_ms": 0.3392,
+      "p50_ms": 0.337
+    },
+    "after_warm": {
+      "mean_ms": 0.1348,
+      "p50_ms": 0.133
+    },
+    "neighbor_result_equal": false,
+    "candidate_equal_questions": 79,
+    "changed_questions": [
+      "conv-30_q047",
+      "conv-30_q063"
+    ],
+    "adopted": false,
+    "reason": "Equal-weight LIMIT boundary changes with the access path; retain result equivalence. Only a second copied schema was changed."
+  },
+  "source_guard": {
+    "existing_service": "not restarted or reconfigured",
+    "source_bank": "no retain or writes; all DDL/seed/index work in private cluster/test databases",
+    "deployment": "NOT RUN",
+    "commit_push": "NOT RUN"
+  },
+  "packer_sha256": "bb86a8b061ccef383b1ec7d48c0c0ca4ec9b653c662cce52c893ffa90cb448bc",
+  "environment": {
+    "postgres": "PostgreSQL 18.4 on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit",
+    "pgvector": "0.8.6"
+  },
+  "snapshot_counts_after_validation": {
+    "memory_units": 109,
+    "memory_links": 2212,
+    "chunks": 36,
+    "documents": 19,
+    "entities": 115,
+    "unit_entities": 373
+  },
+  "historical_evidence_integrity": {
+    "checked": 30,
+    "unchanged": true
+  },
+  "review": "implementation-review.md",
+  "baseline_scope_audit": {
+    "control_source": "same modified source as pushdown, not the unmodified original deployment",
+    "control_store": "CanonicalPostgresMemories",
+    "control_changes": [
+      "sort each retrieval arm by its score then UUID",
+      "resolve implicit temporal constraint before full_recall"
+    ],
+    "completed_comparison": "normalized control versus PG pushdown, RRF and real BGE 81 questions each",
+    "unmodified_original_behavior_preservation": "NOT VERIFIED by this comparison",
+    "prechange_source_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+    "required_bridge": "unmodified original + default store versus modified source + default store without normalization; then modified default store versus PG pushdown",
+    "tie_order_warning": "candidate ordering can affect RRF scores, Top-K and final context; do not sort outputs to hide differences"
+  }
+}

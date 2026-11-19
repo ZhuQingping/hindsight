@@ -1,0 +1,144 @@
+{
+  "scope": "Three-way Recall functionality only. No reader/judge. No sorting added to original/default-store paths. Exact JSON equality is the primary response criterion.",
+  "prechange_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+  "modes": {
+    "rrf": {
+      "questions": 81,
+      "comparisons": {
+        "original_vs_modified_off": {
+          "response_equal": 81,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 81,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 81,
+          "chunks_equal": 81,
+          "reader_text_equal": 81,
+          "arms_equal": 81,
+          "fusion_ID_set_equal": 81,
+          "fusion_ID_order_equal": 81,
+          "fusion_scores_by_ID_equal": 81
+        },
+        "original_vs_pushdown": {
+          "response_equal": 0,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 0,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 0,
+          "chunks_equal": 16,
+          "reader_text_equal": 0,
+          "fusion_ID_set_equal": 81,
+          "fusion_ID_order_equal": 0,
+          "fusion_scores_by_ID_equal": 0
+        },
+        "modified_off_vs_pushdown": {
+          "response_equal": 0,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 0,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 0,
+          "chunks_equal": 16,
+          "reader_text_equal": 0,
+          "fusion_ID_set_equal": 81,
+          "fusion_ID_order_equal": 0,
+          "fusion_scores_by_ID_equal": 0
+        }
+      },
+      "artifacts": {
+        "original": "threeway-v1-rrf-original-s0",
+        "modified_off": "threeway-v1-rrf-modified_off-s0",
+        "pushdown": "threeway-v1-rrf-pushdown-s0"
+      },
+      "full_original_and_modified_off_responses_exact": true
+    },
+    "bge": {
+      "questions": 81,
+      "comparisons": {
+        "original_vs_modified_off": {
+          "response_equal": 81,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 81,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 81,
+          "chunks_equal": 81,
+          "reader_text_equal": 81,
+          "model_input_equal": 81,
+          "arms_equal": 81,
+          "fusion_ID_set_equal": 81,
+          "fusion_ID_order_equal": 81,
+          "fusion_scores_by_ID_equal": 81
+        },
+        "original_vs_pushdown": {
+          "response_equal": 1,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 80,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 1,
+          "chunks_equal": 81,
+          "reader_text_equal": 81,
+          "model_input_equal": 0
+        },
+        "modified_off_vs_pushdown": {
+          "response_equal": 1,
+          "returned_ID_set_equal": 81,
+          "returned_ID_order_equal": 80,
+          "result_fields_by_ID_except_scores_equal": 81,
+          "scores_by_ID_equal": 1,
+          "chunks_equal": 81,
+          "reader_text_equal": 81,
+          "model_input_equal": 0
+        }
+      },
+      "artifacts": {
+        "original": "threeway-v1-bge-original-s0",
+        "modified_off": "threeway-v1-bge-modified_off-s0",
+        "pushdown": "v2-full-bge-pushdown"
+      },
+      "full_original_and_modified_off_responses_exact": true
+    }
+  },
+  "original_python_hash_seed": "0",
+  "modified_off_python_hash_seed": "0",
+  "pushdown_rrf_python_hash_seed": "0",
+  "pushdown_bge_reference": "Reused v2-full-bge-pushdown frozen real-model results. Historical process hash seed was not recorded; do not treat times as a new controlled three-way performance trial.",
+  "rrf_root_cause": {
+    "semantic": {
+      "same_members": 81,
+      "same_order": 81,
+      "PG_matches_score_UUID_sort": 81,
+      "original_score_descending": 81,
+      "changed_only_equal_score_positions": 81
+    },
+    "bm25": {
+      "same_members": 81,
+      "same_order": 1,
+      "PG_matches_score_UUID_sort": 81,
+      "original_score_descending": 81,
+      "changed_only_equal_score_positions": 81
+    },
+    "graph": {
+      "same_members": 81,
+      "same_order": 1,
+      "PG_matches_score_UUID_sort": 81,
+      "original_score_descending": 81,
+      "changed_only_equal_score_positions": 81
+    },
+    "temporal": {
+      "same_members": 81,
+      "same_order": 79,
+      "PG_matches_score_UUID_sort": 81,
+      "original_score_descending": 81,
+      "changed_only_equal_score_positions": 81
+    }
+  },
+  "same_original_arm_order_C_vs_Python": 81,
+  "equal_score_example": {
+    "question_id": "conv-30_q000",
+    "arm": "keyword",
+    "equal_score": 0.800000011920929,
+    "memory_A_original_rank": 2,
+    "memory_B_original_rank": 3,
+    "memory_A_PG_rank": 3,
+    "memory_B_PG_rank": 2
+  },
+  "status": "RRF ORIGINAL-COMPATIBILITY FAIL; BGE COMPARED"
+}

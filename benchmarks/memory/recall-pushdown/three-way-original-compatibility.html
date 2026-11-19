@@ -1,0 +1,287 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recall下推等价适配：三组对照与修复验证</title><style>
+:root{--ink:#223249;--blue:#245381;--muted:#617086;--line:#d9e1eb;--bg:#f4f6f9}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.85}nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;flex-wrap:wrap;gap:8px}nav a,button{font:inherit;font-size:13px;background:#edf2f8;border:1px solid var(--line);border-radius:5px;color:var(--blue);padding:5px 9px;text-decoration:none;cursor:pointer}nav .brand{margin-right:auto;background:#fff;border:0;font-weight:650}main{overflow-wrap:anywhere;max-width:1260px;margin:25px auto 50px;padding:42px 48px 70px;background:white;border:1px solid var(--line);border-radius:8px}h1{font-size:31px;line-height:1.45;margin:0 0 24px;color:#163752}h2{font-size:25px;line-height:1.5;margin:48px 0 22px;padding:12px 16px;background:#edf3fa;border-left:4px solid #376c9c}h3{font-size:20px;line-height:1.55;margin:30px 0 14px;color:#244b6f}p{margin:13px 0}strong{font-weight:650}a{color:#245b91;text-underline-offset:3px;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px;line-height:1.8}th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;overflow-wrap:anywhere}th{background:#eef3f9;text-align:left;color:#214769}tbody tr:nth-child(even){background:#fbfcfe}pre{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;background:#f3f6fa;border:1px solid #e0e6ee;border-radius:6px;padding:16px}code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'PingFang SC',monospace;font-size:.9em}p code,td code,li code{background:#edf2f7;border-radius:3px;padding:1px 4px}blockquote{margin:22px 0;padding:12px 22px;border-left:4px solid #7f9fbc;background:#f1f6fb}li{margin:7px 0}details.sql{border:1px solid var(--line);border-radius:6px;margin:18px 0}summary{padding:12px 16px;cursor:pointer;color:var(--blue)}details pre{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 6px 6px}footer{max-width:1260px;margin:auto;padding:0 24px 32px;color:var(--muted);font-size:13px}#toc{margin:20px 0 30px;padding:14px 20px;background:#fafbfd;border:1px solid var(--line);border-radius:6px}#toc summary{padding:0}#toc ol{margin:10px 0;padding-left:24px}#toc li{font-size:14px;margin:3px 0}@media(max-width:800px){nav{padding:8px 12px}main{padding:24px 18px;margin:10px 7px 30px}h1{font-size:25px}h2{font-size:21px}h3{font-size:18px}table{font-size:12px}th,td{padding:7px 6px}pre{font-size:11px}}@media print{nav,#toc,footer{display:none}body{background:white;font-size:10pt}main{max-width:none;margin:0;padding:0;border:0}h1{font-size:20pt}h2{font-size:16pt;break-before:page;border:0;background:none;padding:0}h3{font-size:12pt;break-after:avoid}table{font-size:8pt}tr{break-inside:avoid}pre{font-size:7pt}a{color:inherit;text-decoration:none}summary{display:none}details.sql{border:0}}</style></head><body><nav><a class="brand" href="README.md">PG Recall 下推｜维护入口</a><a href="implementation-report.html">当前实现</a><a href="design.html">当前设计</a><a href="three-way-original-compatibility.html">三组验证</a><a href="analysis.html">分析</a><a href="implementation-review.md">审查</a><a href="three-way-original-compatibility.md">Markdown</a><button id="toggle">展开全部 SQL</button><button id="print">打印</button></nav><main><h1 id="section-1">Recall下推等价适配：三组对照与修复验证</h1><details id="toc"><summary>目录：7 个章节</summary><ol><li><a href="#section-2">1. 先看结论：改了什么，验证了什么</a></li><li><a href="#section-3">2. 为什么必须做三组对照</a></li><li><a href="#section-4">3. 修复前：数据相同，名次已改变</a></li><li><a href="#section-5">4. 根因：同分排序改变了RRF的输入</a></li><li><a href="#section-6">5. 修复方案：保留原始名次，RRF继续留在PG</a></li><li><a href="#section-7">6. 修复后验收</a></li><li><a href="#section-8">7. 收益、边界与交付位置</a></li></ol></details>
+<p>更新日期：2026-11-19。<strong>修复版保留PG内C RRF，不调整分数和权重；RRF及真实本地BGE两种模式各81/81题的完整业务响应与未修改原始版完全一致。两道时间题均接管，每题一次候选SQL、零后续补查。</strong> 实验限定原109条world事实Bank、固定81题及CPython 3.11.15、<code>PYTHONHASHSEED=0</code>环境；尚未切换原服务。</p>
+<h2 id="section-2">1. 先看结论：改了什么，验证了什么</h2>
+<p>此前下推SQL给同分候选增加UUID排序，改变了进入RRF的名次，因此不满足“结果等价”的要求。此次修复恢复原始各路候选顺序，融合和Top-K继续在PG中完成。模型、最终评分和预算继续复用ContextBase原逻辑。</p>
+<pre><code class="language-text">既有 Recall HTTP 接口
+        |
+ContextBase：认证、配置、时间解析、查询向量
+        |
+        | 一次参数化候选SQL
+        v
+PG：原始四路检索顺序 -&gt; C RRF / Top-K -&gt; 候选正文与关联原文
+        |
+        | 完整候选包；释放PG连接
+        v
+ContextBase：原BGE重排 / 最终评分 / 预算 -&gt; Recall响应
+        |
+既有LoCoMo客户端打包上下文；不再补查PG
+</code></pre>
+<p><strong>一次调用指候选检索阶段，不代表整个HTTP请求只有一条SQL。</strong> API外层原有Bank/配置读取单独记录；PG函数内部执行多条SQL。本轮没有实现查询内并行、动态剪枝或新CustomScan。</p>
+<h2 id="section-3">2. 为什么必须做三组对照</h2>
+<table>
+<thead>
+<tr>
+<th>组别</th>
+<th>源码与实现</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原始版 O</td>
+<td>改动前提交<code>0951c3664b3083a99268040c8c84113073a057b3</code>，默认Postgres store，产品源码未改</td>
+<td>定义原有Recall行为</td>
+</tr>
+<tr>
+<td>修改后关闭 U</td>
+<td>修改后源码，默认Postgres store</td>
+<td>检查共享后处理提取是否改变原行为</td>
+</tr>
+<tr>
+<td>修改后开启 B</td>
+<td>修改后源码，下推store</td>
+<td>检查下推是否保持原行为</td>
+</tr>
+</tbody></table>
+<p>O/U在RRF和真实BGE两种模式中，均为81/81题完整响应一致；BGE有序模型输入也全部一致。这是回归保护，不是下推通过的替代证据。</p>
+<p>三个版本使用同一原PG、同一Bank、同一81题、冻结真实查询向量、时间锚点和预算。O/U与修复版均固定哈希种子0，不给原始候选或响应额外排序。原始版是上述固定提交，不能与8892历史部署混为一谈。</p>
+<p>先前<code>CanonicalPostgresMemories</code>对照额外规范化排序，也前移了时间解析；此前“81题一致”仅适用于该规范化对照。它不能证明与未修改原始版等价，旧报告现作为历史诊断保存。</p>
+<h2 id="section-4">3. 修复前：数据相同，名次已改变</h2>
+<table>
+<thead>
+<tr>
+<th>比较项，81题</th>
+<th align="right">O ↔ U，RRF</th>
+<th align="right">O ↔ 旧下推，RRF</th>
+<th align="right">O ↔ 旧下推，真实BGE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完整业务JSON响应相同</td>
+<td align="right">81</td>
+<td align="right">0</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>最终返回ID集合相同</td>
+<td align="right">81</td>
+<td align="right">81</td>
+<td align="right">81</td>
+</tr>
+<tr>
+<td>最终返回ID顺序相同</td>
+<td align="right">81</td>
+<td align="right">0</td>
+<td align="right">80</td>
+</tr>
+<tr>
+<td>原客户端打包后的reader正文相同</td>
+<td align="right">81</td>
+<td align="right">0</td>
+<td align="right">81</td>
+</tr>
+<tr>
+<td>实际有序模型输入相同</td>
+<td align="right">不适用</td>
+<td align="right">不适用</td>
+<td align="right">0</td>
+</tr>
+</tbody></table>
+<p>旧BGE下推列复用已冻结的实际模型记录，旧进程哈希种子未记录；它用于追踪既有差异，不作为新的性能样本。原始版和修改关闭版的BGE均为本轮新跑。</p>
+<p>旧BGE组q011只交换第99、100条返回结果，未进入最终客户端上下文；最大数值分差约<code>1.77e-6</code>。因此不能把“81题响应有差异”解读为81题答案错误；本轮未重新运行reader/judge。RRF组差异则实际改变了最终reader正文。</p>
+<h2 id="section-5">4. 根因：同分排序改变了RRF的输入</h2>
+<p>原始图检索合并多个Python字典的ID集合，再只按分数做稳定排序。同分候选继承集合迭代顺序；该顺序受解释器及哈希种子影响。原始全文和时间路也没有统一采用UUID作为最终并列键。旧下推改成<code>score DESC, id</code>，改变了单路名次。</p>
+<table>
+<thead>
+<tr>
+<th>检索路</th>
+<th align="right">候选集合相同的题数</th>
+<th align="right">顺序不同的题数</th>
+<th>变化位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>向量</td>
+<td align="right">81</td>
+<td align="right">0</td>
+<td>无</td>
+</tr>
+<tr>
+<td>全文</td>
+<td align="right">81</td>
+<td align="right">80</td>
+<td>同分候选</td>
+</tr>
+<tr>
+<td>图</td>
+<td align="right">81</td>
+<td align="right">80</td>
+<td>同分候选</td>
+</tr>
+<tr>
+<td>时间</td>
+<td align="right">81</td>
+<td align="right">2</td>
+<td>同分候选</td>
+</tr>
+</tbody></table>
+<p>例如q000，两个全文候选分数均为<code>0.800000011920929</code>，原始版排第2、第3，旧下推版排第3、第2。RRF按<code>1 / (60 + rank)</code>计分，交换名次会改变贡献，进而影响融合、重排输入和预算。</p>
+<p><strong>直接排除C RRF计算错误的证据：</strong> 将原始版实际记录的各路ID及名次直接传入已安装的<code>recall_probe.rrf_topk()</code>，不增加排序，81/81题的融合ID、顺序、分数和名次均与原Python RRF一致。问题在输入名次，不在融合公式；把RRF移回ContextBase也不能自动修复输入顺序。</p>
+<p>代码依据：<a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/link_expansion.py">原图路集合与排序，约262行</a>、<a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.sql">旧下推SQL</a>。</p>
+<h2 id="section-6">5. 修复方案：保留原始名次，RRF继续留在PG</h2>
+<p>本次没有改变RRF公式、权重、Top-K、模型输入模板、BGE精度、批量大小或预算。</p>
+<table>
+<thead>
+<tr>
+<th>修复位置</th>
+<th>具体处理</th>
+<th>为什么需要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>向量与全文</td>
+<td>复用原SQL构造器生成的完整UNION，保留返回行序</td>
+<td>拆写查询或添加UUID键会改变并列名次</td>
+</tr>
+<tr>
+<td>图扩展</td>
+<td>复用原图SQL；兼容原集合构造和联合后的顺序</td>
+<td>只删除UUID排序仍不能复现Python集合顺序</td>
+</tr>
+<tr>
+<td>时间路</td>
+<td>保留种子、邻居、首次出现与稳定排序规则；保持浮点乘法顺序</td>
+<td>两道时间题也必须符合原算法</td>
+</tr>
+<tr>
+<td>融合与裁剪</td>
+<td>原始单路名次送入已有C RRF/Top-K</td>
+<td>已直接验证融合计算与Python相同</td>
+</tr>
+<tr>
+<td>后处理</td>
+<td>一次带回候选正文、附件空标识及关联原文，释放连接后调用共享处理</td>
+<td>模型、评分、预算不复制实现，也不补查</td>
+</tr>
+<tr>
+<td>未支持请求</td>
+<td>查询前退出接管，原始store处理</td>
+<td>不继承历史Canonical对照的排序规则</td>
+</tr>
+</tbody></table>
+<p>实验入口为：</p>
+<pre><code class="language-sql">SELECT recall_equiv.candidates($1::jsonb, $2::name) AS bundle;
+</code></pre>
+<p>扩展选择器为<code>hindsight_api.engine.memories.pg.recall_pushdown:EquivalentPostgresRecallMemories</code>，仅服务端启用指定Bank，不新增客户端<code>full_recall</code>参数。SQL模板仅由认证后的服务端既有构造器产生，不接收HTTP任意SQL。</p>
+<p><strong>兼容机制有明确范围：</strong> 新增C辅助函数模拟CPython 3.11、64位SipHash13、哈希种子0下UUID字符串的集合构造/联合顺序；PG不加载Python运行时。已对真实CPython内置集合执行600组构造、600组联合随机差分，全部通过。它是临时旧行为适配，不是新的通用相关性策略；当前不能宣称任意解释器、随机种子、执行计划或数据规模下均已等价。</p>
+<p>未知解释器/哈希配置查库前退出接管。生产8892未改，不能把固定种子实验通过说成已验证该生产进程。后续若正式制定稳定并列规则，应单独做排序与LoCoMo质量实验，不混入本次等价修复。</p>
+<h2 id="section-7">6. 修复后验收</h2>
+<p>使用原5432 PG与原Bank，重新执行修复版的RRF和真实BGE各81题，再与原始记录严格比较；未对原始输入、回包或结果做规范化。</p>
+<table>
+<thead>
+<tr>
+<th>验收项</th>
+<th align="right">RRF</th>
+<th align="right">真实本地BGE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完整业务JSON响应完全相同</td>
+<td align="right">81/81</td>
+<td align="right">81/81</td>
+</tr>
+<tr>
+<td>融合ID顺序、分数、名次及各路名次相同</td>
+<td align="right">81/81</td>
+<td align="right">81/81</td>
+</tr>
+<tr>
+<td>实际有序模型输入相同</td>
+<td align="right">不调用模型</td>
+<td align="right">81/81</td>
+</tr>
+<tr>
+<td>原客户端reader正文与Token相同</td>
+<td align="right">81/81</td>
+<td align="right">81/81</td>
+</tr>
+<tr>
+<td>一次候选SQL且零后续补查</td>
+<td align="right">81/81</td>
+<td align="right">81/81</td>
+</tr>
+<tr>
+<td>PG日志中的候选入口执行次数</td>
+<td align="right">81</td>
+<td align="right">81</td>
+</tr>
+<tr>
+<td>时间题q047/q063接管</td>
+<td align="right">2/2</td>
+<td align="right">2/2</td>
+</tr>
+</tbody></table>
+<p>RRF两侧reader Token总计均为629,045；BGE两侧均为624,297。两种模式内部的Token节省均为0，不比较两种排序模式之间的差额作为下推收益。</p>
+<p>原Bank七张表逐行摘要与初始记录一致，PG启动时间未变；测试账号已恢复默认只读、临时CREATE权限已撤销。原始源码工作区保持干净。查询前退出接管、原始fallback顺序、连接释放、取消、缺失字段与计数隔离等30项测试通过；集合兼容辅助函数1200组独立差分通过。</p>
+<p>新模块Ruff/类型检查和wheel打包通过。全仓lint实际执行，仍被原有<code>api/http.py</code>的F841阻塞，无关自动格式化已撤回。用户HTTP协议未改，没有新增OpenAPI参数。</p>
+<p>完整脱敏证据：<a href="evidence/equivalent-original-validation-20261119.json">修复验收摘要</a>、<a href="evidence/equivalent-question-validation-20261119.json">逐题检查</a>。旧下推失败证据保留在第7节链接中。</p>
+<p>严格比较不会对候选、回包或模型输入补排序，也不会删除分数字段。内部调试对象的payload哈希不相同，不能宣称内部对象字节等价；其中原路径的<code>attachment_ids=None</code>表示尚未补读，预取路径用<code>[]</code>表示已知为空。验收分别比较融合有效字段、真实模型输入、完整业务JSON和最终reader正文。</p>
+<h2 id="section-8">7. 收益、边界与交付位置</h2>
+<p>本轮首先证明可行性及行为兼容。冻结查询向量不包含在线embedding耗时，顺序单轮运行不能证明完整Recall平均/P50/P95提升。</p>
+<table>
+<thead>
+<tr>
+<th>顺序正确性运行的HTTP观测值</th>
+<th align="right">原始版</th>
+<th align="right">修复下推版</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RRF平均 / P50 / P95，ms</td>
+<td align="right">22.01 / 19.70 / 40.44</td>
+<td align="right">17.07 / 15.69 / 23.11</td>
+</tr>
+<tr>
+<td>BGE平均 / P50 / P95，s</td>
+<td align="right">7.276 / 7.085 / 8.901</td>
+<td align="right">6.913 / 6.622 / 8.740</td>
+</tr>
+<tr>
+<td>BGE非模型部分平均，ms</td>
+<td align="right">28.99</td>
+<td align="right">35.80</td>
+</tr>
+</tbody></table>
+<p>这些不是交错、重复的性能A/B，BGE差额主要伴随模型运行时波动；非模型部分本轮反而增加，因此不能把完整耗时下降归因于PG下推。大Bank、并发与交错A/B仍需后续验证。</p>
+<p>等价上下文没有节省Token，本轮也没有新的答题准确率成绩。不调整排序质量的等价下推，不能单凭架构推导准确率上升。</p>
+<p>原5432 PG、原Bank和8892服务继续使用原配置；未初始化数据库、迁移或重新导入。原引擎启动时对已存在配置表执行<code>CREATE IF NOT EXISTS</code>所需的临时CREATE权限单独记录，启动后撤销、恢复只读并检查连接；不把这一步混入候选查询计数。</p>
+<table>
+<thead>
+<tr>
+<th>需要查看</th>
+<th>位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ContextBase下推适配层</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py">recall_pushdown.py</a></td>
+</tr>
+<tr>
+<td>PG四路检索、时间路、融合调用与一次补全</td>
+<td><a href="../../../hindsight-api-slim/hindsight_api/engine/memories/pg/recall_equivalent.sql">recall_equivalent.sql</a></td>
+</tr>
+<tr>
+<td>C RRF及临时顺序兼容源码</td>
+<td><a href="native/README.md">native目录</a></td>
+</tr>
+<tr>
+<td>修复前真实三组摘要及逐题差异</td>
+<td><a href="evidence/threeway-original-compatibility-20261119.json">摘要</a>、<a href="evidence/threeway-question-differences-20261119.json">逐题</a></td>
+</tr>
+<tr>
+<td>集合适配独立验证</td>
+<td><a href="evidence/legacy-order-adapter-validation-20261119.json">1200组差分</a></td>
+</tr>
+</tbody></table>
+<p>原始回包、模型输入哈希、逐路记录及PG日志片段位于私有目录<code>benchmarks/memory/.local/existing-pg-recall-20261119/</code>，不提交凭据、真实正文、权重或编译产物。原始源码工作区<code>.worktrees/recall-original-baseline-20261119</code>保持产品源码未改。本轮代码、文档和脱敏证据按用户要求纳入同一提交；不推送或切换原服务。</p>
+</main><footer>2026-11-19 · 当前实现与原始等价验证 · 生产服务未切换</footer><script>const ds=[...document.querySelectorAll('details.sql')];document.getElementById('toggle').onclick=()=>{const open=ds.some(d=>!d.open);ds.forEach(d=>d.open=open)};document.getElementById('print').onclick=()=>window.print();</script></body></html>

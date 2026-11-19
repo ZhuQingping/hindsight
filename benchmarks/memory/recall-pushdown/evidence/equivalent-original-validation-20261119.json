@@ -1,0 +1,212 @@
+{
+  "status": "PASS within frozen runtime/query/data contract",
+  "scope": "Existing PG, frozen 109 world facts, 81 original questions. Exact business JSON comparison without posthoc normalization. Actual local BGE. No new reader/judge.",
+  "original_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+  "runtime_contract": "CPython 3.11.15, 64-bit SipHash13, PYTHONHASHSEED=0; UUID-string set/union compatibility adapter only. Not certified for other runtimes, seeds, data or query shapes.",
+  "rrf_location": "PG installed C RRF primitive; not moved back to ContextBase",
+  "model_location": "ContextBase original local BGE; same final scorer and budgets",
+  "performance_interpretation": "Sequential correctness runs, frozen embeddings exclude live embedding latency. These timings are observations, not a controlled end-to-end speedup claim.",
+  "modes": {
+    "rrf": {
+      "questions": 81,
+      "pass_counts": {
+        "response_equal": 81,
+        "fusion_ids_order_scores_ranks_equal": 81,
+        "reader_text_equal": 81,
+        "reader_tokens_equal": 81,
+        "one_candidate_sql": 81,
+        "zero_postquery_reads": 81,
+        "http_ok_and_claimed": 81
+      },
+      "pg_logged_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "reader_token_totals": {
+        "original": 629045,
+        "equivalent": 629045
+      },
+      "token_saving": 0,
+      "sequential_http_observations": {
+        "original": {
+          "n": 81,
+          "mean_ms": 22.01078958481688,
+          "p50_ms": 19.695041002705693,
+          "p95_ms": 40.44445801991969
+        },
+        "equivalent": {
+          "n": 81,
+          "mean_ms": 17.073674414904765,
+          "p50_ms": 15.691083972342312,
+          "p95_ms": 23.105458007194102
+        }
+      },
+      "sql_counts": {
+        "original": {
+          "api": 2,
+          "legacy": 185,
+          "postprocess": 162
+        },
+        "equivalent": {
+          "api": 2,
+          "full_recall": 81
+        }
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "e1c5d01905128550a858f2d93747612432b6c4d060a7869c522cd97c2ae242d2",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e",
+        "engine/memories/postgres.py": "510a41018c0a097e4263f6928bfec15fbee26e6bf9a741e81552f211f04eb1df",
+        "engine/search/fusion.py": "19ccdfd73e5c9da7c10561c92e4c86af2d6c7b6fed870f41a848fbce1d25dfa4",
+        "engine/search/reranking.py": "5b428be91758cb2b7b56b2619edccd0df199020234d43411133b4cfac51ac15a",
+        "engine/cross_encoder.py": "b9e604a271328aa525939da4878ec5c807fea282382cbef4d27e280090c67e80",
+        "engine/fact_budget.py": "22df42082573eefcee8a689ceec24f2a9b1ba348267afd41104f4b9dea1ae13d"
+      },
+      "artifacts": {
+        "original": "threeway-v1-rrf-original-s0",
+        "equivalent": "equivalent-v1-main-rrf"
+      }
+    },
+    "bge": {
+      "questions": 81,
+      "pass_counts": {
+        "response_equal": 81,
+        "fusion_ids_order_scores_ranks_equal": 81,
+        "reader_text_equal": 81,
+        "reader_tokens_equal": 81,
+        "one_candidate_sql": 81,
+        "zero_postquery_reads": 81,
+        "http_ok_and_claimed": 81,
+        "model_input_equal": 81,
+        "model_ids_equal": 81
+      },
+      "pg_logged_candidate_executes": 81,
+      "temporal_questions": [
+        "conv-30_q047",
+        "conv-30_q063"
+      ],
+      "reader_token_totals": {
+        "original": 624297,
+        "equivalent": 624297
+      },
+      "token_saving": 0,
+      "sequential_http_observations": {
+        "original": {
+          "n": 81,
+          "mean_ms": 7275.776909402698,
+          "p50_ms": 7085.218082997017,
+          "p95_ms": 8900.961915962398
+        },
+        "equivalent": {
+          "n": 81,
+          "mean_ms": 6913.443366784234,
+          "p50_ms": 6622.001832933165,
+          "p95_ms": 8739.594707963988
+        }
+      },
+      "sql_counts": {
+        "original": {
+          "api": 2,
+          "legacy": 185,
+          "postprocess": 196
+        },
+        "equivalent": {
+          "api": 34,
+          "full_recall": 81
+        }
+      },
+      "source_sha256": {
+        "engine/memory_engine.py": "50dfc3edae266cd3ff12d556d021d350228c841a13eff5e2f2387dfa6da81e31",
+        "engine/memories/base.py": "27b84708569907700a8b9ed9bc166e3098d033ab3db3f7da6f766940bf39a06f",
+        "engine/memories/pg/recall_pushdown.py": "e1c5d01905128550a858f2d93747612432b6c4d060a7869c522cd97c2ae242d2",
+        "engine/search/retrieval.py": "36ca725ed6d18506851bfa78eb0c473ac233876b928a90c8ff08ee4c3c03b20e",
+        "engine/memories/postgres.py": "510a41018c0a097e4263f6928bfec15fbee26e6bf9a741e81552f211f04eb1df",
+        "engine/search/fusion.py": "19ccdfd73e5c9da7c10561c92e4c86af2d6c7b6fed870f41a848fbce1d25dfa4",
+        "engine/search/reranking.py": "5b428be91758cb2b7b56b2619edccd0df199020234d43411133b4cfac51ac15a",
+        "engine/cross_encoder.py": "b9e604a271328aa525939da4878ec5c807fea282382cbef4d27e280090c67e80",
+        "engine/fact_budget.py": "22df42082573eefcee8a689ceec24f2a9b1ba348267afd41104f4b9dea1ae13d"
+      },
+      "artifacts": {
+        "original": "threeway-v1-bge-original-s0",
+        "equivalent": "equivalent-v1-main-bge"
+      },
+      "model_span_observations": {
+        "original": {
+          "n": 81,
+          "mean_ms": 7246.790264859612,
+          "p50_ms": 7060.209791990928,
+          "p95_ms": 8876.795499934815
+        },
+        "equivalent": {
+          "n": 81,
+          "mean_ms": 6877.646061791578,
+          "p50_ms": 6588.261332944967,
+          "p95_ms": 8708.560375031084
+        }
+      },
+      "non_model_mean_ms": {
+        "original": 28.986644543086488,
+        "equivalent": 35.797304992656
+      }
+    }
+  },
+  "test_role_read_only_restored": true,
+  "original_bank_integrity": {
+    "unchanged": true,
+    "tables": {
+      "memory_units": {
+        "rows": 109,
+        "sha256": "c24edef7efac4c083f259e6d72d248501534e2716ea6518963a4c316c9216a0f"
+      },
+      "memory_links": {
+        "rows": 2212,
+        "sha256": "51ec28415f553d047e7dda0b2bb11c26eeaf60643a5b2ac4141ae762dd9d29c5"
+      },
+      "documents": {
+        "rows": 19,
+        "sha256": "8c36f53a650b2823ea5f7374e225b06a97fc3098ff1fd979030076d8a7259774"
+      },
+      "chunks": {
+        "rows": 36,
+        "sha256": "ba8aa5ee1c934c91cecbe18fd25d3c074a8c590955f92ca4b4eceb60669f7a36"
+      },
+      "entities": {
+        "rows": 115,
+        "sha256": "d0133ccc9a64bc4abb5b486d672f48df1ab68aebf1d54e27b25655e6e4dfc22b"
+      },
+      "unit_entities": {
+        "rows": 373,
+        "sha256": "1af8f98e91a3f2c3f0a5ac96017f20d03d06f37416a690e61e8bdb5fb43cf3fe"
+      },
+      "banks": {
+        "rows": 1,
+        "sha256": "0f44009c7bb3275f848081655fbf3a205c79b539495bb700f3b75b5912011ebf"
+      }
+    }
+  },
+  "original_pg_restart": false,
+  "temporary_create_grants_revoked": true,
+  "installation": {
+    "native_path": "/Users/zhuqingping/Work/Database/PG/pg_18_4/lib/postgresql/contextbase_legacy_order_experimental_20261119.dylib",
+    "native_sha256": "638f6b1c95cf1a3cdc01ff72b1bc1701f4427a000c61e87b0a6be4ed127df8f4",
+    "sql_sha256": "05bc4338b639648d135c26ee6737aa8afc93b0634e1807457d0e4acb4ce46c3d",
+    "data_directory": "/Users/zhuqingping/Work/Database/PG/pg_18_4/data",
+    "postmaster_start": "2026-11-04 03:31:08.975998+00:00",
+    "scope": "new compatibility namespace only; no bank table/index/model configuration changes"
+  },
+  "packer_sha256": "bb86a8b061ccef383b1ec7d48c0c0ca4ec9b653c662cce52c893ffa90cb448bc",
+  "internal_payload_note": "Fusion debug payload hashes are not equal: prefetched attachment_ids=[] marks known-empty instead of original unloaded None. Not an exact internal object claim. Business JSON, actual BGE input and final reader text are compared without normalization.",
+  "working_source_audit": "All executed class method ASTs unchanged; working file additionally restores original fallback for unsupported experimental requests, tested independently.",
+  "temporary_snapshot_pg_stopped": true,
+  "checks": {
+    "targeted_tests_passed": 30,
+    "legacy_order_differential_trials": 1200,
+    "module_ruff": "PASS",
+    "module_ty": "PASS",
+    "wheel_includes_new_sql": "PASS",
+    "repository_lint": "BLOCKED by pre-existing api/http.py F841; unrelated formatting restored",
+    "html_viewport_checks": 12
+  }
+}

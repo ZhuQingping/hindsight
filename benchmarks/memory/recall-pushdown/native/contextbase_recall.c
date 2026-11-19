@@ -1,0 +1,208 @@
+/* Experimental, generic fusion primitive. No Hindsight fact types or model policy. */
+#include "postgres.h"
+#include "fmgr.h"
+#include "funcapi.h"
+#include "catalog/pg_type_d.h"
+#include "utils/array.h"
+#include "utils/hsearch.h"
+#include "utils/uuid.h"
+#include "miscadmin.h"
+
+PG_MODULE_MAGIC;
+PG_FUNCTION_INFO_V1(contextbase_rrf_topk);
+PG_FUNCTION_INFO_V1(contextbase_budget_select);
+
+typedef struct FusionEntry
+{
+	pg_uuid_t	id;				/* hash key must be first */
+	double		score;
+	int			first;
+} FusionEntry;
+
+/* Exact tie policy: Python dict insertion order followed by stable score sort. */
+static int
+entry_compare(const void *va, const void *vb)
+{
+	const FusionEntry *a = *(const FusionEntry *const *) va;
+	const FusionEntry *b = *(const FusionEntry *const *) vb;
+
+	if (a->score > b->score)
+		return -1;
+	if (a->score < b->score)
+		return 1;
+	return (a->first > b->first) - (a->first < b->first);
+}
+
+/* A worst-first heap retains only K pointers, after all score contributions. */
+static void
+heap_down(FusionEntry **heap, int n, int pos)
+{
+	for (;;)
+	{
+		int			child = pos * 2 + 1;
+		FusionEntry *tmp;
+
+		if (child >= n)
+			return;
+		if (child + 1 < n && entry_compare(&heap[child + 1], &heap[child]) > 0)
+			child++;
+		if (entry_compare(&heap[pos], &heap[child]) >= 0)
+			return;
+		tmp = heap[pos];
+		heap[pos] = heap[child];
+		heap[child] = tmp;
+		pos = child;
+	}
+}
+
+Datum
+contextbase_rrf_topk(PG_FUNCTION_ARGS)
+{
+	ArrayType  *ids = PG_GETARG_ARRAYTYPE_P(0);
+	ArrayType  *ranks = PG_GETARG_ARRAYTYPE_P(1);
+	int			k = PG_GETARG_INT32(2);
+	double		constant = PG_GETARG_FLOAT8(3);
+	Datum	   *id_values,
+			   *rank_values;
+	bool	   *id_nulls,
+			   *rank_nulls;
+	int			nids,
+				nranks,
+				i,
+				kept = 0,
+				capacity;
+	HASHCTL		ctl;
+	HTAB	   *table;
+	HASH_SEQ_STATUS scan;
+	FusionEntry *entry;
+	FusionEntry **heap;
+	ReturnSetInfo *rsinfo = (ReturnSetInfo *) fcinfo->resultinfo;
+
+	if (ARR_NDIM(ids) > 1 || ARR_NDIM(ranks) > 1 || k < 0 ||
+		!isfinite(constant) || constant < 0)
+		ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+						errmsg("one-dimensional arrays, nonnegative K and finite nonnegative RRF constant required")));
+	deconstruct_array(ids, UUIDOID, UUID_LEN, false, TYPALIGN_CHAR, &id_values, &id_nulls, &nids);
+	deconstruct_array(ranks, INT4OID, 4, true, TYPALIGN_INT, &rank_values, &rank_nulls, &nranks);
+	if (nids != nranks)
+		ereport(ERROR, (errcode(ERRCODE_ARRAY_SUBSCRIPT_ERROR), errmsg("ID/rank array lengths differ")));
+	InitMaterializedSRF(fcinfo, 0);
+	memset(&ctl, 0, sizeof(ctl));
+	ctl.keysize = UUID_LEN;
+	ctl.entrysize = sizeof(FusionEntry);
+	ctl.hcxt = CurrentMemoryContext;
+	table = hash_create("recall fusion", Max(16, nids), &ctl, HASH_ELEM | HASH_BLOBS | HASH_CONTEXT);
+	for (i = 0; i < nids; i++)
+	{
+		bool		found;
+		int			rank;
+
+		CHECK_FOR_INTERRUPTS();
+		if (id_nulls[i] || rank_nulls[i] || (rank = DatumGetInt32(rank_values[i])) < 1)
+			ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg("IDs/ranks must be nonnull and ranks positive")));
+		entry = hash_search(table, DatumGetUUIDP(id_values[i]), HASH_ENTER, &found);
+		if (!found)
+		{
+			entry->score = 0.0;
+			entry->first = i;
+		}
+
+		/*
+		 * Input MUST follow source order then rank: preserve floating
+		 * addition order.
+		 */
+		entry->score += 1.0 / (constant + rank);
+	}
+	capacity = Min(k, hash_get_num_entries(table));
+	heap = palloc_array(FusionEntry *, Max(1, capacity));
+	hash_seq_init(&scan, table);
+	while ((entry = hash_seq_search(&scan)) != NULL)
+	{
+		CHECK_FOR_INTERRUPTS();
+		if (capacity == 0)
+			continue;
+		if (kept < capacity)
+		{
+			int			pos = kept++;
+
+			heap[pos] = entry;
+			while (pos > 0)
+			{
+				int			parent = (pos - 1) / 2;
+				FusionEntry *tmp;
+
+				if (entry_compare(&heap[pos], &heap[parent]) <= 0)
+					break;
+				tmp = heap[pos];
+				heap[pos] = heap[parent];
+				heap[parent] = tmp;
+				pos = parent;
+			}
+		}
+		else if (entry_compare(&entry, &heap[0]) < 0)
+		{
+			heap[0] = entry;
+			heap_down(heap, kept, 0);
+		}
+	}
+	qsort(heap, kept, sizeof(FusionEntry *), entry_compare);
+	for (i = 0; i < kept; i++)
+	{
+		Datum		values[4];
+		bool		nulls[4] = {false, false, false, false};
+
+		values[0] = UUIDPGetDatum(&heap[i]->id);
+		values[1] = Float8GetDatum(heap[i]->score);
+		values[2] = Int32GetDatum(i + 1);
+		values[3] = Int32GetDatum(heap[i]->first + 1);
+		tuplestore_putvalues(rsinfo->setResult, rsinfo->setDesc, values, nulls);
+	}
+	hash_destroy(table);
+	PG_RETURN_NULL();
+}
+
+/* Costs are exact caller-tokenizer counts, not a byte/character approximation. */
+Datum
+contextbase_budget_select(PG_FUNCTION_ARGS)
+{
+	ArrayType  *ids = PG_GETARG_ARRAYTYPE_P(0);
+	ArrayType  *costs = PG_GETARG_ARRAYTYPE_P(1);
+	int			budget = PG_GETARG_INT32(2);
+	bool		fallback = PG_GETARG_BOOL(3);
+	Datum	   *id_values,
+			   *cost_values,
+			   *selected;
+	bool	   *id_nulls,
+			   *cost_nulls;
+	int			nids,
+				ncosts,
+				i,
+				kept = 0;
+	int64		used = 0;
+
+	if (ARR_NDIM(ids) > 1 || ARR_NDIM(costs) > 1 || budget < 0)
+		ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg("one-dimensional arrays and nonnegative budget required")));
+	deconstruct_array(ids, UUIDOID, UUID_LEN, false, TYPALIGN_CHAR, &id_values, &id_nulls, &nids);
+	deconstruct_array(costs, INT4OID, 4, true, TYPALIGN_INT, &cost_values, &cost_nulls, &ncosts);
+	if (nids != ncosts)
+		ereport(ERROR, (errcode(ERRCODE_ARRAY_SUBSCRIPT_ERROR), errmsg("ID/cost array lengths differ")));
+	selected = palloc_array(Datum, Max(1, nids));
+	for (i = 0; i < nids; i++)
+	{
+		int			cost;
+
+		CHECK_FOR_INTERRUPTS();
+		if (id_nulls[i] || cost_nulls[i] || (cost = DatumGetInt32(cost_values[i])) < 0)
+			ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg("IDs/costs must be nonnull and costs nonnegative")));
+		if (used + cost <= budget)
+		{
+			selected[kept++] = id_values[i];
+			used += cost;
+		}
+	}
+	if (kept == 0 && nids > 0 && budget > 0 && fallback)
+		selected[kept++] = id_values[0];
+	if (kept == 0)
+		PG_RETURN_ARRAYTYPE_P(construct_empty_array(UUIDOID));
+	PG_RETURN_ARRAYTYPE_P(construct_array(selected, kept, UUIDOID, UUID_LEN, false, TYPALIGN_CHAR));
+}
