@@ -840,5 +840,77 @@
       "This is an observation only; no request, configuration change or answer regeneration."
     ],
     "source_ledger": ".local/window-recovery-timing-20261119.json"
+  },
+  "ongoing_bank_source_review": {
+    "kind": "partial-posthoc-source-review-not-a-score",
+    "run_id": "locomow8r_20261119_011537",
+    "limits": "Four completed answer/judge records selected for diagnosis while their Bank is still running; no rerun, changed input policy, or full-Bank accuracy claim.",
+    "cases": [
+      {
+        "question_id": "conv-42_q14",
+        "question": "What nickname does Nate use for Joanna?",
+        "gold": [
+          "Jo"
+        ],
+        "baseline_correct": false,
+        "candidate_correct": false,
+        "diagnosis": "raw-turn-excluded-by-packing",
+        "review": "The nickname Jo is explicit in D7:1 and the returned recall text; Hey Jo is absent from the reader prompt. This is a packing omission, not evidence that extraction lost the underlying original.",
+        "source_sha256": {
+          "retrieval": "5ddb267e52af9954503efbac1e128c3ad4fe781733817e833e22eaf563d9908f",
+          "answer": "1085364c17a9e4df9f9ffe3d7b2c4133600c4c9824c5ebc5a41ad7f195e222e7",
+          "judge": "2b0996bad3501fb58eaf0931c820e9154287868822ab7be8274714b3a8e13ad6"
+        }
+      },
+      {
+        "question_id": "conv-42_q34",
+        "question": "What book recommendations has Joanna given to Nate?",
+        "gold": [
+          "\"Little Women\",'A Court of Thorns andRoses'."
+        ],
+        "baseline_correct": false,
+        "candidate_correct": false,
+        "diagnosis": "mixed-source-scope-and-image-metadata",
+        "review": "Little Women is present in the reader prompt, but the cited D3:17 describes a movie. The second book title appears in D19:15 image-search query metadata and is absent from the reader prompt. More tokens alone cannot prove a supported textual book-list answer.",
+        "source_sha256": {
+          "retrieval": "a472d89519627826eaa09e9a6e22c649e6763936527c5f79814ff62d747d7952",
+          "answer": "2171d544f6c8a32be2a1f723e6ceac37a66dae1f9d5bc79d536103d0f3c38fa2",
+          "judge": "1d4fe82e2845373357d63f3a611ce1b2b69a8f3e28af63dde57fd1b02acd5270"
+        }
+      },
+      {
+        "question_id": "conv-42_q91",
+        "question": "What is Nate's favorite book series about?",
+        "gold": [
+          "dragons"
+        ],
+        "baseline_correct": false,
+        "candidate_correct": false,
+        "diagnosis": "image-search-metadata-versus-observed-caption",
+        "review": "The cited D9:14 BLIP caption says books on a table; dragons appear in the source image-search query, which the declared window algorithm does not render. Treating that query as an observed image description would change the input policy. No new policy is applied to this run.",
+        "source_sha256": {
+          "retrieval": "4c65c67b3c0f3e373bcd50db94e39013227a5a3d5bb267430b2b9c76540443e2",
+          "answer": "64f14f43264ad7730541ac97f6b05d495f79dbb0b6048dfb2d731e2955dcf4c4",
+          "judge": "71c38e78f00149ec86cd85f8ffce081250c336f8e4027a813b58b6e11375c7b5"
+        }
+      },
+      {
+        "question_id": "conv-42_q92",
+        "question": "What kind of lighting does Nate's gaming room have?",
+        "gold": [
+          "red and purple lighting"
+        ],
+        "baseline_correct": false,
+        "candidate_correct": false,
+        "diagnosis": "visual-detail-not-in-cited-caption",
+        "review": "The cited D10:2 caption identifies a gaming room but does not specify red/purple lighting; its query is only gaming setup. An unrelated purple-hair mention in context is not lighting evidence. The cited text/caption cannot by itself support the gold colors; no image was fetched or re-captioned.",
+        "source_sha256": {
+          "retrieval": "02c1e2c4490847301ea4c3d15c8b61727213c2877a250c16f1dc2ed2ffc932b6",
+          "answer": "db0a1fb28ce9f8d86911c2c0b74e5fa7b832772403ff1aa388cdb6bd959a6f80",
+          "judge": "dbe43f54be9a20e44cad4a146bd37f62d6e0eee352e2b4b9f516eaa5185443f0"
+        }
+      }
+    ],
+    "private_evidence_path": ".local/window-conv42-input-policy-review-20261119.json"
   }
 }
