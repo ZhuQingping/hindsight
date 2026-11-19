@@ -253,6 +253,11 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             "explicitly versioned global reader guidance prepends the original reader prompt."
         )
         manifest.integration_notes.append(f"Reader profile: {config.reader_profile}; judge prompt unchanged.")
+    if config.packing.algorithm == "query-turn-windows-metadata-v2":
+        manifest.integration_notes.append(
+            "Original image-search queries are retained as labeled source metadata, not observed image captions; "
+            "no images are fetched or re-captioned."
+        )
     source_manifest = None
     source_directory = None
     if config.source_ref is not None:

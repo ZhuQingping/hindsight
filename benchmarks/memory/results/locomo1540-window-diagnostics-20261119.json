@@ -2295,5 +2295,134 @@
     ],
     "private_snapshot_sha256": "f29e03fde7cd9a77b84b1aec5b49e150733dfee4c003a68aca217d759d2b5331",
     "private_snapshot_path": ".local/window-first762-metrics-20261119.json"
+  },
+  "metadata_candidate_offline_validation": {
+    "kind": "offline-packing-no-new-qa-score",
+    "source_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "source_run_id": "locomow8r_20261119_011537",
+    "source_is_incomplete": true,
+    "config_for_future_full_retrieval_replay_sha256": "ff130c27ea7f161693a52eb0432db7e64fea3e5475c4b73b3024ee0e46266e86",
+    "code_sha256": {
+      "runner.py": "e2ec0f904c47584e0025d5e8c30cecf01bcb8017501de4ebb804f4be2f366090",
+      "support.py": "f29ef88316032a3a6f574e1b4d3b4285b3a44c7809b6d6481b838c7f5e5a5312"
+    },
+    "cases": [
+      {
+        "question_id": "conv-43_q48",
+        "source_retrieval_sha256": "ef17e9792a7a024bd9aecfa8117cbc5a444b22debfdc785d607c7dc29d0bcfe5",
+        "v1_reproduced": true,
+        "v1_tokens": 7960,
+        "metadata8k_tokens": 7973,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": true,
+        "dragons_in_old": false,
+        "dragons_in_new": false,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": false,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "f8257bd91954f890e92f200d7e8c8d8f75c62fc289dac5e8fbbbc0f5d40eed01"
+      },
+      {
+        "question_id": "conv-43_q49",
+        "source_retrieval_sha256": "165fb0eb6092107b63027a2b1c459d8fc3466c8c6041a60fcca53947703fd2fa",
+        "v1_reproduced": true,
+        "v1_tokens": 7980,
+        "metadata8k_tokens": 7980,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": true,
+        "dragons_in_old": false,
+        "dragons_in_new": false,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": false,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "411b4efbcf995c1d4774863af694e1ab034041320608956f78108ae1d7582c1c"
+      },
+      {
+        "question_id": "conv-42_q34",
+        "source_retrieval_sha256": "a472d89519627826eaa09e9a6e22c649e6763936527c5f79814ff62d747d7952",
+        "v1_reproduced": true,
+        "v1_tokens": 7953,
+        "metadata8k_tokens": 7954,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": false,
+        "dragons_in_old": false,
+        "dragons_in_new": true,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": true,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "2e5faf6b4f0f8977b05b1fc9ee4b65c684c0fbdd11f6e464d19eeeda2863e6bd"
+      },
+      {
+        "question_id": "conv-42_q91",
+        "source_retrieval_sha256": "4c65c67b3c0f3e373bcd50db94e39013227a5a3d5bb267430b2b9c76540443e2",
+        "v1_reproduced": true,
+        "v1_tokens": 7947,
+        "metadata8k_tokens": 7965,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": false,
+        "dragons_in_old": false,
+        "dragons_in_new": true,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": true,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "1fe3dc013ffa93748a15ae613dc5818aff9ef9c42a99fb1febfad022888808c8"
+      },
+      {
+        "question_id": "conv-42_q92",
+        "source_retrieval_sha256": "02c1e2c4490847301ea4c3d15c8b61727213c2877a250c16f1dc2ed2ffc932b6",
+        "v1_reproduced": true,
+        "v1_tokens": 7984,
+        "metadata8k_tokens": 7988,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": false,
+        "dragons_in_old": false,
+        "dragons_in_new": false,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": false,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "85e96fb5202d5e4ae7b2307d63e19788378c2d6f51680ee50dc4afaeb09c363c"
+      },
+      {
+        "question_id": "conv-30_q44",
+        "source_retrieval_sha256": "d2668b18fcb3cd7dfb07bb67ce18d913eca6e6114b374527441718bef799d299",
+        "v1_reproduced": true,
+        "v1_tokens": 7987,
+        "metadata8k_tokens": 7991,
+        "ankle_query_in_old": false,
+        "ankle_query_in_new": false,
+        "dragons_in_old": false,
+        "dragons_in_new": false,
+        "thorns_title_in_old": false,
+        "thorns_title_in_new": false,
+        "source_metadata_label_present": true,
+        "red_and_purple_lighting_in_new": false,
+        "packing_sha256": "2022bafa365d0c4ef23ea8863b4366b7b1c3a2b416cd07c68ce5822e6c3ab29c"
+      }
+    ],
+    "notes": [
+      "Frozen original image-search query fields are dataset metadata, not QA gold or observed vision.",
+      "Same original AMB reader and judge; only separately named packing algorithm differs.",
+      "Default complete-JSON and v1 windows unchanged; all six v1 packings exactly reproduce sealed original records.",
+      "No model calls, live recall, new Bank, import, API restart, or source record writes.",
+      "Configuration is prepared only; its full-source completeness gate must reject initialization until all1540 valid results exist.",
+      "Six cases are posthoc diagnostics, not an unseen holdout or evidence of improved accuracy."
+    ],
+    "audit_sha256": "88e9adc9dfb5fd141f990452a2944cbcced65de59c0818a3c49cb72c8a11d65f",
+    "completeness_gate": {
+      "rejected": true,
+      "reason": "Retrieval reuse requires a complete, valid source",
+      "output_created": false
+    },
+    "offline_checks": {
+      "pinned_amb_tests": 78,
+      "ruff": "passed",
+      "ty": "passed",
+      "global_lint": "existing F841 in native api/http.py:5846; isolated lint worktree auto-format changes restored"
+    }
   }
 }

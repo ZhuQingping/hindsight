@@ -412,10 +412,13 @@ def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, c
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("window_packing", [False, True])
+@pytest.mark.parametrize(
+    "packing_algorithm",
+    ["complete-json-separate-budgets-v2", "query-turn-windows-v1", "query-turn-windows-metadata-v2"],
+)
 @pytest.mark.parametrize("reader_profile", ["amb-default", "locomo-grounded-concise-v1"])
 async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls(
-    tmp_path, checkout, monkeypatch, window_packing, reader_profile
+    tmp_path, checkout, monkeypatch, packing_algorithm, reader_profile
 ):
     service = FakeBankService()
     app = web.Application()
@@ -428,8 +431,10 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
             api_url=str(server.make_url("/")),
             reader_profile=reader_profile,
             packing=h.PackingSettings(
-                algorithm="query-turn-windows-v1" if window_packing else "complete-json-separate-budgets-v2",
-                chunk_order="query_relevance" if window_packing else "response_order",
+                algorithm=packing_algorithm,
+                chunk_order="response_order"
+                if packing_algorithm == "complete-json-separate-budgets-v2"
+                else "query_relevance",
             ),
         )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
@@ -1372,9 +1377,56 @@ def test_query_windows_require_query_and_validate_even_unselected_banks(tmp_path
         h.pack_context(reply, conversation, settings, query="Which passage?")
 
 
-def test_query_window_settings_cannot_claim_legacy_order():
+@pytest.mark.parametrize("algorithm", ["query-turn-windows-v1", "query-turn-windows-metadata-v2"])
+def test_query_window_settings_cannot_claim_legacy_order(algorithm):
     with pytest.raises(ValueError, match="query_relevance"):
-        h.PackingSettings(algorithm="query-turn-windows-v1")
+        h.PackingSettings(algorithm=algorithm)
+
+
+def test_metadata_windows_retain_original_query_as_labeled_metadata_within_budget(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    conversation = manifest.conversations[0]
+    conversation.sessions[0].content = "ORIGINAL_ONLY_SENTINEL_NOT_RETURNED"
+    cid = build_chunk_id(conversation.bank_id, conversation.sessions[0].document_id, 0)
+    source = json.dumps(
+        [
+            {"speaker": "Alice", "dia_id": "D1:1", "text": "A quiet day."},
+            {
+                "speaker": "Bob",
+                "dia_id": "D1:2",
+                "text": "Look at this picture.",
+                "blip_caption": "A person with a wrapped leg.",
+                "query": "ankle injury bandage",
+                "img_url": ["https://example.invalid/not-fetched.png"],
+            },
+        ]
+    )
+    reply = h.RecallReply(results=[], chunks={cid: h.Chunk(text=source)})
+    before = reply.model_dump(mode="json")
+    settings = h.PackingSettings(
+        algorithm="query-turn-windows-metadata-v2",
+        chunk_order="query_relevance",
+        max_tokens=300,
+        fact_tokens=0,
+        chunk_tokens=250,
+    )
+    packed = h.pack_context(reply, conversation, settings, query="Where was the injury?")
+    assert "Source image-search query (metadata, not an observed caption): ankle injury bandage" in packed.text
+    assert "Image caption: A person with a wrapped leg." in packed.text
+    assert "not-fetched.png" not in packed.text and "ORIGINAL_ONLY_SENTINEL" not in packed.text
+    assert packed.tokens <= 300 and packed.chunk_tokens <= 250
+    assert reply.model_dump(mode="json") == before
+    assert h.pack_context(reply, conversation, settings, query="Where was the injury?").text == packed.text
+    legacy = settings.model_copy(update={"algorithm": "query-turn-windows-v1"})
+    assert "ankle injury bandage" not in h.pack_context(reply, conversation, legacy, query="Where was the injury?").text
+
+
+@pytest.mark.parametrize("value", [None, 12, {"unexpected": "metadata"}])
+def test_malformed_optional_image_query_does_not_hide_observed_speech(value):
+    text = json.dumps([{"speaker": "Alice", "text": "Observed speech.", "query": value}])
+    turns = h.complete_turns(text)
+    assert len(turns) == 1 and turns[0].render() == "Alice: Observed speech."
+    assert turns[0].render(include_image_search_query=True) == turns[0].render()
 
 
 def test_probe_overrides_reject_unknown_or_invalid_settings_before_output(tmp_path, checkout):

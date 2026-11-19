@@ -34,7 +34,7 @@ from hindsight_api.engine.llm_interface import LLMInterface
 from hindsight_api.engine.llm_wrapper import create_llm_provider
 from hindsight_api.engine.response_models import TokenUsage
 from nltk.stem import PorterStemmer
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
 
 VERSION = "contextbase-memory-support-v1"
 SOURCE_FILES = MappingProxyType({"dataset": "locomo10.json", "scoring": "locomo_evaluation.py"})
@@ -117,9 +117,9 @@ class MemoryProfile(StrictModel):
 
 
 class PackingSettings(StrictModel):
-    algorithm: Literal["complete-json-separate-budgets-v2", "query-turn-windows-v1"] = (
-        "complete-json-separate-budgets-v2"
-    )
+    algorithm: Literal[
+        "complete-json-separate-budgets-v2", "query-turn-windows-v1", "query-turn-windows-metadata-v2"
+    ] = "complete-json-separate-budgets-v2"
     tokenizer: Literal["o200k_base", "cl100k_base"] = "o200k_base"
     max_tokens: int = Field(default=8192, ge=32)
     fact_tokens: int = Field(default=4000, ge=0)
@@ -131,7 +131,7 @@ class PackingSettings(StrictModel):
     def budgets(self) -> PackingSettings:
         if self.fact_tokens + self.chunk_tokens > self.max_tokens:
             raise ValueError("Fact and chunk quotas cannot exceed the total context budget")
-        if (self.algorithm == "query-turn-windows-v1") != (self.chunk_order == "query_relevance"):
+        if (self.algorithm != "complete-json-separate-budgets-v2") != (self.chunk_order == "query_relevance"):
             raise ValueError("Query window packing requires explicit query_relevance chunk order")
         return self
 
@@ -542,11 +542,23 @@ class ChatTurn(BaseModel):
     text: str
     dia_id: str | None = None
     blip_caption: str | None = None
+    source_image_search_query: str | None = Field(default=None, validation_alias="query")
 
-    def render(self) -> str:
+    @field_validator("source_image_search_query", mode="before")
+    @classmethod
+    def textual_image_query(cls, value: object) -> str | None:
+        # Malformed optional metadata must not discard speech that v1 could already read.
+        return value if isinstance(value, str) else None
+
+    def render(self, *, include_image_search_query: bool = False) -> str:
         label = f"[{self.dia_id}] " if self.dia_id else ""
         caption = f"\nImage caption: {self.blip_caption}" if self.blip_caption else ""
-        return f"{label}{self.speaker}: {self.text}{caption}"
+        metadata = ""
+        if include_image_search_query and self.source_image_search_query:
+            metadata = (
+                "\nSource image-search query (metadata, not an observed caption): " + self.source_image_search_query
+            )
+        return f"{label}{self.speaker}: {self.text}{caption}{metadata}"
 
 
 @dataclass
@@ -620,7 +632,8 @@ def pack_query_windows(
         if ref is None or ref.bank_id != conversation.bank_id or ref.document_id not in documents:
             raise ValueError("Chunk identity is invalid or outside the question's Bank")
         turns = complete_turns(chunk.text)
-        units = [turn.render() for turn in turns] if turns else [chunk.text]
+        include_metadata = settings.algorithm == "query-turn-windows-metadata-v2"
+        units = [turn.render(include_image_search_query=include_metadata) for turn in turns] if turns else [chunk.text]
         sources.append(
             WindowSource(
                 identifier=identifier,
@@ -716,7 +729,7 @@ def pack_context(
         else:
             omitted.append(Omitted(id=fact.id, reason="fact_quota"))
     fact_total = len(encoder.encode(payload.render()))
-    if settings.algorithm == "query-turn-windows-v1":
+    if settings.algorithm != "complete-json-separate-budgets-v2":
         if query is None or not query.strip():
             raise ValueError("Query-aware packing requires the question text")
         selection = pack_query_windows(recalled, conversation, settings, query, payload, fact_total)
