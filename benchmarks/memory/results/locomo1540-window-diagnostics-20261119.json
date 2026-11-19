@@ -1,0 +1,393 @@
+{
+  "kind": "partial-first-bank-diagnostic-not-full-score",
+  "baseline_run_id": "locomo1540r_20261119_030518",
+  "candidate_run_id": "locomow8_20261119_0308",
+  "scope": 152,
+  "full_expected": 1540,
+  "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
+  "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
+  "fixed": [
+    "conv-26_q132",
+    "conv-26_q133",
+    "conv-26_q135",
+    "conv-26_q21",
+    "conv-26_q26",
+    "conv-26_q78",
+    "conv-26_q80",
+    "conv-26_q85"
+  ],
+  "regressed": [
+    "conv-26_q68"
+  ],
+  "unchanged_wrong": [
+    "conv-26_q144",
+    "conv-26_q40",
+    "conv-26_q5",
+    "conv-26_q50",
+    "conv-26_q59",
+    "conv-26_q66"
+  ],
+  "note": "Read-only paired inspection after one Bank completed, not a complete benchmark or model-equal vendor ranking. No regeneration or changed gold/verdicts.",
+  "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
+  "cases": [
+    {
+      "question_id": "conv-26_q132",
+      "question": "How long has Melanie been creating art?",
+      "gold": [
+        "7 years"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Melanie has been creating art since at least 2022, when she painted a lake sunrise. She says she has always felt connected to art, but the memories do not specify exactly when she started.",
+      "candidate_answer": "Melanie has been creating art for about seven years as of September 13, 2023—since approximately 2016.",
+      "baseline_reason": "The generated answer does not state the seven-year duration and instead says the starting time is unspecified.",
+      "candidate_reason": "The generated answer states about seven years, matching the gold answer of 7 years.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.1111111111111111,
+      "baseline_result_sha256": "3c1d3a168c3e31a06a72706634b3289f3bff2664a4cd5a5e2b020655f859e5fd",
+      "candidate_result_sha256": "e8abe7643d913e2efe98858095ef8e4bc34a9fab95c3c78f00ded59f6a8c0566"
+    },
+    {
+      "question_id": "conv-26_q133",
+      "question": "What precautionary sign did Melanie see at the café?",
+      "gold": [
+        "A sign stating that someone is not being able to leave"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The memories do not specify what the precautionary sign said. They only mention that Melanie saw it at a park—not a café—and that nothing had happened.",
+      "candidate_answer": "Melanie saw a sign posted on a door stating that someone was unable to leave. She explained that it was just a precaution.",
+      "baseline_reason": "The generated answer claims the sign's content is unspecified rather than identifying that someone was unable to leave, as stated in the gold answer.",
+      "candidate_reason": "The generated answer matches the gold answer by identifying a sign stating that someone was unable to leave.",
+      "baseline_f1": 0.18749999999999997,
+      "candidate_f1": 0.4,
+      "baseline_result_sha256": "f98c91a9f1497f542ca923cf0c8154595ebaf9950ce69c5403db2c361d57da1a",
+      "candidate_result_sha256": "aa9005c24276d16c74d9ffdbdca42f467d5da6335e1c1470bc13e98e2dcd0c98"
+    },
+    {
+      "question_id": "conv-26_q135",
+      "question": "What setback did Melanie face in October 2023?",
+      "gold": [
+        "She got hurt and had to take a break from pottery."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Melanie faced a frightening car accident involving her son during the family’s October 14–15, 2023 road trip. Fortunately, her son was okay, though the experience scared her and her other children.",
+      "candidate_answer": "Melanie reported in October 2023 that an injury had forced her to take a break from pottery, an important outlet for self-expression and peace. The injury itself occurred in September 2023.",
+      "baseline_reason": "The generated answer describes a car accident involving her son rather than Melanie's injury that forced her to take a break from pottery.",
+      "candidate_reason": "The generated answer matches the gold answer that Melanie was injured and had to take a break from pottery.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.3428571428571429,
+      "baseline_result_sha256": "4b96d0c754fb7101407c57185d11e73f222df169350c6abd38a5e78457bbb5e6",
+      "candidate_result_sha256": "d3ddf8876929844e385853bc7480bdd1a8d1564973ee5db4bf1b7107891bd046"
+    },
+    {
+      "question_id": "conv-26_q144",
+      "question": "How did Melanie's son handle the accident?",
+      "gold": [
+        "He was scared but reassured by his family"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Melanie’s son was okay after the October 14–15, 2023 accident. The children were frightened but were reassured that their brother would be okay. His own emotional reaction isn’t specifically described.",
+      "candidate_answer": "Melanie’s son was okay after the October 14–15, 2023 accident. The memories don’t specify how he handled it emotionally; the other children were scared and were reassured that their brother would be okay.",
+      "baseline_reason": "The answer attributes the fear and reassurance to his siblings and says his own reaction is unknown, rather than stating that he was scared but reassured by his family.",
+      "candidate_reason": "The generated answer attributes fear and reassurance to the other children and says the son's emotions are unspecified, contradicting the gold answer that he was scared but reassured by family.",
+      "baseline_f1": 0.22222222222222224,
+      "candidate_f1": 0.2162162162162162,
+      "baseline_result_sha256": "ae4f7a5b181569daebfd63c9dfdf1a46395d8e87dd5064dffaef58ca138685e6",
+      "candidate_result_sha256": "641319725f0c4d72ff8d8fd12a71515c58c38aa1d9d6e50ab58ebefab704ce22"
+    },
+    {
+      "question_id": "conv-26_q21",
+      "question": "When did Caroline have a picnic?",
+      "gold": [
+        "The week before 6 July 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not state when Caroline had a picnic.",
+      "candidate_answer": "Caroline had a picnic with friends and family during June 26–July 2, 2023.",
+      "baseline_reason": "The generated answer says the date is unknown, whereas the gold answer specifies the week before 6 July 2023.",
+      "candidate_reason": "June 26–July 2, 2023 is the calendar week before July 6, 2023, matching the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.12500000000000003,
+      "baseline_result_sha256": "ca1da373c2fef2c3ccdf1839a275872a4130c79539b6318b2e22b1d26cf7a6ca",
+      "candidate_result_sha256": "efc0d293154ca6da3efea36f14dbc4ddc104e6b11fea9f8c38f89c75bfbf1126"
+    },
+    {
+      "question_id": "conv-26_q26",
+      "question": "When did Melanie read the book \"nothing is impossible\"?",
+      "gold": [
+        2022
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Melanie was reading a book Caroline recommended by October 13, 2023, during her recovery from a September 2023 injury. However, the memories do not confirm that its title was “Nothing Is Impossible” or specify exactly when she read it.",
+      "candidate_answer": "Melanie read \"Nothing Is Impossible\" in 2022.",
+      "baseline_reason": "The generated answer suggests 2023 and uncertainty rather than identifying 2022, the year specified in the gold answer.",
+      "candidate_reason": "The generated answer gives 2022, which exactly matches the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.25,
+      "baseline_result_sha256": "613f18c331cf870a3d6a22f7ada7ab27a4fa7ce9f36b89518b03394f5671a3b3",
+      "candidate_result_sha256": "87eae9509b3855a67ffb8e4809217da0fc314e295cd9869efe81b50bc970d00f"
+    },
+    {
+      "question_id": "conv-26_q40",
+      "question": "How many times has Melanie gone to the beach in 2023?",
+      "gold": [
+        2
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Melanie usually goes to the beach once or twice a year. One trip in 2023 is explicitly confirmed, before July 20; her exact total for 2023 is not stated.",
+      "candidate_answer": "Melanie goes to the beach once or twice a year. At least one trip in 2023 is confirmed, but the exact total for 2023 is not specified.",
+      "baseline_reason": "The generated answer says only one trip is confirmed and the total is unknown, rather than giving the gold answer of two trips.",
+      "candidate_reason": "The generated answer does not identify the gold answer of two beach visits in 2023, instead stating that the exact total is unknown.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "a6f01371c519f4a5664823e8bd1c73e506e082e10cd2c029b44828f62c4b4375",
+      "candidate_result_sha256": "dde91ef800c707c42a61f86494e58d5973bacc12049818c1a26c9993516b4327"
+    },
+    {
+      "question_id": "conv-26_q5",
+      "question": "When did Melanie run a charity race?",
+      "gold": [
+        "The sunday before 25 May 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Melanie ran a charity race for mental health on Saturday, May 20, 2023.",
+      "candidate_answer": "Melanie ran a charity race for mental health on Saturday, May 20, 2023.",
+      "baseline_reason": "The Sunday before May 25, 2023 was May 21, not Saturday, May 20 as stated in the generated answer.",
+      "candidate_reason": "The Sunday before May 25, 2023 was May 21, not Saturday, May 20, 2023.",
+      "baseline_f1": 0.23529411764705882,
+      "candidate_f1": 0.23529411764705882,
+      "baseline_result_sha256": "9816f17cf78695ab836bab127cd413bc55df903359bbcc42dddd7bdc02037c8b",
+      "candidate_result_sha256": "52acb63c042d85da21b4f8cdef67935126e9616b14213641534cd46f7f578acb"
+    },
+    {
+      "question_id": "conv-26_q50",
+      "question": "What would Caroline's political leaning likely be?",
+      "gold": [
+        "Liberal"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Caroline’s political leaning isn’t explicitly stated, and I wouldn’t infer it from her identity or advocacy. The memories do show that she strongly supports LGBTQ+ rights, equality, inclusion, and acceptance.",
+      "candidate_answer": "Caroline’s political leaning is not explicitly stated. She strongly supports LGBTQ+ rights, equality, and inclusion, but those views alone are insufficient to reliably identify her political ideology or party affiliation.",
+      "baseline_reason": "The generated answer declines to infer a political leaning rather than identifying Caroline as likely liberal.",
+      "candidate_reason": "The generated answer declines to infer a political leaning rather than identifying Caroline as likely liberal, as the gold answer does.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "0e747aaa62e1c0d63a962a43e7687221edf21fc1bc33668fab083f69966dfdf8",
+      "candidate_result_sha256": "029a4eb2329cc160ce03d3c715ae91e6a39b0ef2ec5e97a53e3bee0d957016c1"
+    },
+    {
+      "question_id": "conv-26_q59",
+      "question": "Would Caroline be considered religious?",
+      "gold": [
+        "Somewhat, but not extremely religious"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "There isn’t enough information to consider Caroline religious. She treasures a necklace symbolizing love, faith, and strength and created stained glass for a local church, but neither establishes personal religious belief. She has not explicitly described her religious affiliation or practices.",
+      "candidate_answer": "There is not enough information to consider Caroline religious. Although she treasures a necklace symbolizing love, faith, and strength and created stained glass for a local church, she never explicitly states religious beliefs or practices. Her negative encounter with religious conservatives also does not mean she is nonreligious.",
+      "baseline_reason": "The generated answer says Caroline’s religiosity cannot be determined rather than identifying her as somewhat but not extremely religious.",
+      "candidate_reason": "The generated answer claims insufficient information rather than identifying Caroline as somewhat but not extremely religious.",
+      "baseline_f1": 0.14285714285714288,
+      "candidate_f1": 0.0816326530612245,
+      "baseline_result_sha256": "8464ff5425cd7528d3f77f033432eb810cd74396745df983ad670e8c4ceee620",
+      "candidate_result_sha256": "d984f46c272479513d77e9031940e5455954c03d28e38ff93c57bb246ead8d4a"
+    },
+    {
+      "question_id": "conv-26_q66",
+      "question": "What does Melanie do with her family on hikes?",
+      "gold": [
+        "Roast marshmallows, tell stories"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Melanie hikes in the mountains and explores forests with her family, enjoying scenic views and connecting with nature and one another.",
+      "candidate_answer": "Melanie and her family hike in the mountains, explore forests, and enjoy scenic views, connecting with nature and one another.",
+      "baseline_reason": "The generated answer does not mention roasting marshmallows or telling stories, the activities specified in the gold answer.",
+      "candidate_reason": "The generated answer omits roasting marshmallows and telling stories, the specific family activities identified in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "baseline_result_sha256": "3f3a827695cf0729a194b10ae2ff69754ec3602da06ba351db46c5d217803d97",
+      "candidate_result_sha256": "896d53181c8c3d5dbb4fa0c4d3cac4ee22ac178541a31b65887797f706a2c1a0"
+    },
+    {
+      "question_id": "conv-26_q68",
+      "question": "How long has Melanie been practicing art?",
+      "gold": [
+        "Since 2016"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Melanie has been practicing art for about seven years as of September 13, 2023, meaning she began around 2016.",
+      "candidate_answer": "Melanie has been practicing art since at least 2022, when she painted a lake sunrise—roughly a year or more by October 22, 2023. She says she has always felt connected to art, but her exact starting date or age is not stated.",
+      "baseline_reason": "The generated answer states that Melanie began practicing art around 2016, matching the gold answer.",
+      "candidate_reason": "The generated answer gives 2022 and says the start date is unknown, rather than identifying 2016 as the gold answer does.",
+      "baseline_f1": 0.09523809523809525,
+      "candidate_f1": 0.047619047619047616,
+      "baseline_result_sha256": "65efdaacde692d76150d634474d3d595ab64a97399139b5c1283a23e77d3a2ef",
+      "candidate_result_sha256": "c25ecdc003e36ddfac8408af90f50c3e82ceb29b2b1e33c8b6b9493583b47dd0"
+    },
+    {
+      "question_id": "conv-26_q78",
+      "question": "What items has Melanie bought?",
+      "gold": [
+        "Figurines, shoes"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not specify any items Melanie has bought.",
+      "candidate_answer": "Melanie bought a couple of wooden doll figurines on October 21, 2023. She said they reminded her of family love.",
+      "baseline_reason": "The generated answer says the purchases are unspecified, but the gold answer identifies figurines and shoes.",
+      "candidate_reason": "The generated answer mentions figurines, matching one of the purchased items in the gold answer and satisfying the generous grading criterion.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.09090909090909091,
+      "baseline_result_sha256": "d395a3e2e6e328a5b333780773ef4c0d6d70616b6be8f34bd1b28bbd7f288743",
+      "candidate_result_sha256": "f43490849e9963f7823d030b340f5b2bd4218e7dd3df3f207939670764ed7c24"
+    },
+    {
+      "question_id": "conv-26_q80",
+      "question": "When did Melanie buy the figurines?",
+      "gold": [
+        "21 October 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories do not state when Melanie bought the figurines.",
+      "candidate_answer": "Melanie bought the figurines on October 21, 2023.",
+      "baseline_reason": "The generated answer says the date is unknown, whereas the gold answer specifies 21 October 2023.",
+      "candidate_reason": "The generated answer gives October 21, 2023, which is the same date as the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.6,
+      "baseline_result_sha256": "a0af1d97d33e97f42daea934c5b358421e7bf54ab2dd1b1d0a63613ad55e4d6d",
+      "candidate_result_sha256": "999a488ad220cb50377b6f0fd9b631da4481ed6c9c43e20f3cdabd46baad6bc3"
+    },
+    {
+      "question_id": "conv-26_q85",
+      "question": "What are Caroline's plans for the summer?",
+      "gold": [
+        "researching adoption agencies"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Caroline’s summer 2023 plans included:\n- Attending a transgender conference in July to connect with the community and learn about advocacy.\n- Hosting an LGBTQ art show featuring her paintings, initially planned for August; on August 25, she described the show as scheduled for September 2023.\n- Taking a special trip with Melanie to explore nature, catch up, and make memories, which they agreed to plan on August 17.",
+      "candidate_answer": "Caroline’s main plan for summer 2023 was to research adoption agencies, pursuing her dream of starting a family and giving children in need a loving home. She also planned to attend a transgender conference in July, organize an LGBTQ art show (initially planned for August, later mentioned for September), and take a special nature-focused trip with Melanie.",
+      "baseline_reason": "The generated answer lists other summer activities but does not mention researching adoption agencies.",
+      "candidate_reason": "The generated answer explicitly identifies researching adoption agencies as Caroline’s main summer plan, matching the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.11320754716981131,
+      "baseline_result_sha256": "f51ddfb8d94d062ad61e64a142e91c8630f6507251199404517649fb5550e2dd",
+      "candidate_result_sha256": "71591eb8ed39dfca5d59efc627339239732c8862f19c7d5b217d7b619b65fa4a"
+    }
+  ],
+  "offline_repacking_diagnostics": {
+    "kind": "offline-context-diagnostic-not-score",
+    "source_run_id": "locomow8_20261119_0308",
+    "source_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
+    "planned_reader32k_config_sha256": "1a439bddcc7cc5648c5b0a74d9bb1d713698b263bf96b8402f742dfa24f0516c",
+    "support_sha256": "73fb1ce6c69d493ed2d4276dace1c6e3ae38fc193cb8038d17c4e4355b0a3745",
+    "rows": [
+      {
+        "question_id": "conv-26_q132",
+        "question": "How long has Melanie been creating art?",
+        "source_retrieval_sha256": "063fd29011a4ebe9bce172bc8016df4c4ef276752635b9337795f5e79741231d",
+        "source_result_sha256": "e8abe7643d913e2efe98858095ef8e4bc34a9fab95c3c78f00ded59f6a8c0566",
+        "source_context_tokens": 7997,
+        "repacked_tokens": 22286,
+        "diagnostic_substrings": {
+          "seven years": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          },
+          "marshmallow": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          },
+          "stories": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          }
+        },
+        "note": "Substrings are diagnostic hints, not evidence of a correct answer or a new score. Only already returned raw recall was repacked; gold was not given to the packer."
+      },
+      {
+        "question_id": "conv-26_q68",
+        "question": "How long has Melanie been practicing art?",
+        "source_retrieval_sha256": "db6606ce83519b899396b383c99e78f4c7b86867b664388e50f721afc4f2badd",
+        "source_result_sha256": "c25ecdc003e36ddfac8408af90f50c3e82ceb29b2b1e33c8b6b9493583b47dd0",
+        "source_context_tokens": 7953,
+        "repacked_tokens": 22263,
+        "diagnostic_substrings": {
+          "seven years": {
+            "returned": true,
+            "packed8k": false,
+            "packed32k": true
+          },
+          "marshmallow": {
+            "returned": true,
+            "packed8k": false,
+            "packed32k": true
+          },
+          "stories": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          }
+        },
+        "note": "Substrings are diagnostic hints, not evidence of a correct answer or a new score. Only already returned raw recall was repacked; gold was not given to the packer."
+      },
+      {
+        "question_id": "conv-26_q66",
+        "question": "What does Melanie do with her family on hikes?",
+        "source_retrieval_sha256": "1587cc6716ddb6d58a7425b7746dd266e79e1467d3d6006cff76439c74966987",
+        "source_result_sha256": "896d53181c8c3d5dbb4fa0c4d3cac4ee22ac178541a31b65887797f706a2c1a0",
+        "source_context_tokens": 7981,
+        "repacked_tokens": 21055,
+        "diagnostic_substrings": {
+          "seven years": {
+            "returned": true,
+            "packed8k": false,
+            "packed32k": false
+          },
+          "marshmallow": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          },
+          "stories": {
+            "returned": true,
+            "packed8k": true,
+            "packed32k": true
+          }
+        },
+        "note": "Substrings are diagnostic hints, not evidence of a correct answer or a new score. Only already returned raw recall was repacked; gold was not given to the packer."
+      }
+    ]
+  },
+  "source_review": [
+    {
+      "question_id": "conv-26_q68",
+      "finding": "Seven years原文已返回，但8K最终上下文未保留；原基线答对，新窗口答错。同义题q132却保留了该原文并答对，说明选窗仍对措辞敏感。既定32K重打包恢复该原句（22263 tokens），尚未调用reader验证。",
+      "confidence": "confirmed_context_gap"
+    },
+    {
+      "question_id": "conv-26_q66",
+      "finding": "8K窗口已经包含D4:8的family outing+hike+roasted marshmallows，以及D18:21的stories/campfires；虽然没有原标注D16:4/D10:12，不能仅按参考ID认定所有答案支持均缺失。reader仍只答山林景色，存在活动关联/答题选择问题；hike与camping范围也需区分。",
+      "confidence": "supported_reader_selection"
+    },
+    {
+      "question_id": "conv-26_q78",
+      "finding": "新答案只提figurines、未列shoes；原宽松judge仍判对。保留原规则，但转对不等于列表完整召回。",
+      "confidence": "confirmed_partial_list_acceptance"
+    }
+  ]
+}
