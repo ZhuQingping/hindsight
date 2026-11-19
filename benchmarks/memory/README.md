@@ -10,7 +10,8 @@
 | [support.py](support.py) | 配置类型、完整条目/原文窗口打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
 | [analysis.py](analysis.py) | 完整结果导出、官方对照、只读进度、错题证据与离线覆盖诊断 |
 | [probe.py](probe.py) | 本地重排和只读 recall 小样本诊断，不答题、不判题 |
-| [config.example.json](config.example.json) | 当前本机配置模板；只引用凭据，不保存密钥 |
+| [config.example.json](config.example.json) | 早期conv-30模板，不是当前V1配置 |
+| [config.window-v1.example.json](config.window-v1.example.json) | 当前V1方法复测模板：复用10个旧Bank，64K原文候选、8K最终上下文 |
 | [requirements.txt](requirements.txt) | 仓库 Python 环境之外的评测/测试补充依赖 |
 | [tests/test_runner.py](tests/test_runner.py) | 固定 AMB 代码＋合成会话＋模拟服务/模型的离线检查 |
 
@@ -19,6 +20,25 @@
 **同事协作入口：**见[plan中的协作交接](plan.md#协作交接2026-11-19)。11:35左右核验：当前V1已完成817题答题/判题，前五组762题同范围准确率92.13%→93.83%，未形成全量优化成绩。分工建议为统计归因、上下文/reader、原文/PG检索、CPU重排性能四条线；主控统一整合报告和调度正式实验。原始`.local`不在Git，开发分支也不等于8892当前部署版本。
 
 历史conv-30：旧版91.36%、F1 25.15%；新AMB协议RRF为70/81、86.42%、F1 21.98%；旧Bank接入BGE后为76/81、93.83%、F1 26.64%。完整基线使用全新抽取Bank，其conv-30为75/81，不能把旧Bank成绩拼入全量。各次旧结果和Bank均保留，prompt/裁判不同的运行不作为单一打包改动的因果对比。
+
+## 配置归档与同事复测版本
+
+**客户端与服务端分别固定版本，不能用一个“最新代码”代替。** 同事使用包含本节的`memory-benchmark`提交及其V1模板，记录实际`git rev-parse HEAD`；已有运行继续使用自己run目录中的冻结源码。
+
+| 归档 | 位置与内容 |
+| --- | --- |
+| 可提交的V1配置 | [config.window-v1.example.json](config.window-v1.example.json)：模型、类别1–4共1540题、10个旧Bank、recall事实8192/原文65536、最终上下文8192（事实4000/原文4000）、窗口算法、QA并发2；新复测统一reranker并发2 |
+| 可提交的环境清单 | [environment-20261119.json](results/environment-20261119.json)：客户端/AMB版本、服务端部署基础commit、497份服务源码指纹与13份差异、依赖版本、脱敏env、模型权重版本、PG插件/索引/可见参数 |
+| 本机完整运行档案 | `.local/runs/locomow8r_20261119_011537/`：manifest.json、冻结源码、检索回包、打包上下文、answer/judge完整交互；不随Git推送 |
+| 资源变更档案 | 上述run的`performance-epochs.json`及`performance/reranker2-switch-20261119/`：原运行reranker从1切到2的时间线；env备份含密钥，只留本机 |
+| 服务端实际配置 | `/Users/zhuqingping/.local/share/contextbase/deployments/gpt61-20261107/runtime/api.env`，含密钥，不提交 |
+| PG只读审计 | `.local/pg-baseline-audit-20261119/`；插件、索引与关键参数的脱敏副本已合入环境清单。审计连接参数不能证明API每条查询的SET LOCAL值 |
+
+当前8892部署为`gpt61-20261107-dd5521cb9`，基础commit为`dd5521cb948beff39a24d604f625bc4108d1aac2`，另有部署源码差异；**不是当前memory-benchmark分支的服务端代码**。清单用于核验，不是可安装的服务端镜像，仅checkout该基础commit不能保证完全相同。
+
+同事若复测当前方法：固定本分支提交，用V1模板和自己的凭据/路径，连接当前8892及原10个Bank（远程访问需配置可达地址），按init → 冻结runner verify → run，不执行ingest。独立机器需恢复同一批Bank及匹配服务环境；重新导入或部署本分支最新服务端代码，应标记为新环境实验。不要直接执行manifest中的本机绝对路径。
+
+模板统一使用当前reranker并发2；原运行是1→2的混合资源，因此方法复测不等于原时延逐值复现。模型输出也不保证逐字相同。PG密码、OAuth凭据、模型权重及原始`.local`均不会随Git推送，须按同事实际环境单独准备。
 
 ## 离线验证
 

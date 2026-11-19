@@ -1,0 +1,2462 @@
+{
+  "captured_at": "2026-11-19T05:33:41.071835+00:00",
+  "purpose": "Sanitized current benchmark/client/server/PG inventory, not a deployable service image.",
+  "client": {
+    "branch": "memory-benchmark",
+    "inventory_prepared_from_commit": "63e7a61908908cda5c35ce081039e6d0653f30c4",
+    "current_frozen_run_id": "locomow8r_20261119_011537",
+    "current_frozen_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "current_frozen_runner_sha256": "8a00ef8feaa2111ae060e6c0afa525db10ce336c07e70892ac6c21237a65eb4e",
+    "current_frozen_support_sha256": "73fb1ce6c69d493ed2d4276dace1c6e3ae38fc193cb8038d17c4e4355b0a3745",
+    "runtime": {
+      "python": "3.11.15 (main, Mar 25 2026, 02:58:47) [Clang 22.1.1 ]",
+      "aiohttp": "3.14.3",
+      "pydantic": "2.12.5",
+      "nltk": "3.10.4",
+      "numpy": "2.3.4",
+      "regex": "2026.9.3",
+      "tiktoken": "0.12.0",
+      "rich": "14.2.0",
+      "google-genai": "2.18.1",
+      "openai": "2.24.0"
+    },
+    "provider_module_sha256": {
+      "hindsight_api.engine.providers.codex_llm": "bc62fe4dfc3b123c3155591663a314595f623153473b6b7fa0baf2677bf70489",
+      "hindsight_api.engine.providers.gemini_llm": "c39527d896d7164fed378f9009bac00b81d76eb9e46c710a843af149401eafd4",
+      "hindsight_api.engine.providers.openai_compatible_llm": "3d7b04045530c5bf9b9e5b7aa846d0c56a43520ff68a0efde95a4a0b62cbf598",
+      "hindsight_api.engine.providers.openai_responses_llm": "50dce9592ede0bbe4c36cc1e8350349c3a2c9489d809e92b46e314f527176d39",
+      "hindsight_api.engine.llm_wrapper": "5e53269f8e39027d22fc198c52b754b1569f717d2e137e02f1de31e2de6f51a1"
+    },
+    "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+    "template": "config.window-v1.example.json"
+  },
+  "server": {
+    "deployment_id": "gpt61-20261107-dd5521cb9",
+    "base_source_commit": "dd5521cb948beff39a24d604f625bc4108d1aac2",
+    "base_commit_available_locally": true,
+    "deployed_source_files": 497,
+    "deployed_source_sha256": {
+      "hindsight-api-slim/hindsight_api/__init__.py": "8ae8e199802eda4b5e9ff3da04708fc5b66028252dff58d34e6efd8ee5b0b6a1",
+      "hindsight-api-slim/hindsight_api/_cross_loop.py": "e66a8087d363000662d69f4f33989ca659ffef6fbd2124a5a2595393bb5502b6",
+      "hindsight-api-slim/hindsight_api/_pg_extensions.py": "d5ea04f0f110d4a58621fb02b92515a10b4679f3096b7c4423ea21deaf8d0867",
+      "hindsight-api-slim/hindsight_api/_pg_search.py": "c8a51f9fd1a6cefc07d7e27cf325f115c6d33032de405cd61975e044f4d28437",
+      "hindsight-api-slim/hindsight_api/_text_search.py": "5a0c99853ecc291220d48e3ffe0fa3237ec34c6ad86e45bb394bdc20801c0c31",
+      "hindsight-api-slim/hindsight_api/_thread_limits.py": "1d7460ef59675b658b7871e777042581eb1df3360719ed888ddea6f3402a3c8b",
+      "hindsight-api-slim/hindsight_api/_vector_index.py": "65ab60669a5e675ae69d56e891c9e939c97752332151fc81bf9897d3f5ba444a",
+      "hindsight-api-slim/hindsight_api/admin/__init__.py": "46f69cceec13c60e9a8dcfc9964d04855cf926a94d0774fcb2ed3ad20450c1fb",
+      "hindsight-api-slim/hindsight_api/admin/cli.py": "dc42d3da197400e083b02b7e1d75b02f1c9379713a2d121362c596e4ad6373f2",
+      "hindsight-api-slim/hindsight_api/alembic/_dialect.py": "1e88555f699ad42b5999cacacdf1d16ab810f2b38550971b23d862850bb8a771",
+      "hindsight-api-slim/hindsight_api/alembic/_owned.py": "1d1a0bd6d85b6a939aa4d70a4addd2919626e93283bef4b451897c1b19327503",
+      "hindsight-api-slim/hindsight_api/alembic/env.py": "bb62a6ad6256b81ad92b9482363ceeba01e652a4c051497ec2570d567c17fb30",
+      "hindsight-api-slim/hindsight_api/alembic/versions/2071c7518f88_add_memory_links_bank_id_index.py": "503f8bd5c507237dc7b70d2d86ed3194fffad9341bb5eb57d427cd65a654bbb7",
+      "hindsight-api-slim/hindsight_api/alembic/versions/2eee35aa3cfc_case_insensitive_entities_trgm_index.py": "b2cdec835d394ba2847b9cbbbbf461ebee6412ca62fadd37eb12efd32d9cd193",
+      "hindsight-api-slim/hindsight_api/alembic/versions/5a366d414dce_initial_schema.py": "034cad1dae1dca9cd7ce1b02d771e717f529346b6428c02e5980e68899aaba2c",
+      "hindsight-api-slim/hindsight_api/alembic/versions/7c2e5a9d1f40_entities_bank_scoped_trgm_index.py": "5efa938bdc90e22caa5c61d8926aece48440d73d61eb94193a1b93fe2010fe07",
+      "hindsight-api-slim/hindsight_api/alembic/versions/86f7a033d372_repair_mental_models_subtype_at_head.py": "6f8ea150707035b0d1589f6bf5d2b452fe62dab880876678f74e797bffd9e9b6",
+      "hindsight-api-slim/hindsight_api/alembic/versions/8c6fa6f7230b_merge_v053_divergent_heads.py": "05af8bd39ab282e74c387b72285a649e6e5fd66ab5c50e4581e84c26368f24c6",
+      "hindsight-api-slim/hindsight_api/alembic/versions/9f8e7d6c5b4a_memory_links_deferrable_fk.py": "a04edce4c6f95bf7a0017377782e8fe90dec732e3696ab9b7a00d81750e782da",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a1b2c3d4e5f6_add_file_storage_table.py": "79242d9faafa68dad23c3496c5af3ac6a3801de49a79c554c1bd98fc7b402b3d",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a1c9e7f3b2d8_observation_history_drop_memory_units_fk.py": "47a5c73acea1156d348c9035eeb5d2cad84331bf97a34162d28c253317102b79",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a1d3f5b7c9e2_widen_remaining_bank_id_to_text.py": "1a867a43f9dcf8e11d8a83a7ed574395c57048d24d88f61f386f332e474c27d2",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a2b3c4d5e6f7_add_text_signals_column.py": "7a270539c281d8c0c5d402b5edba7ae996a6424443446fe10a9ac50a06993413",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a2b3c4d5e6f8_add_gin_index_source_memory_ids.py": "249c9b41dfee84b39dfbdcad6711383224af9f7cbd4f214e57df5f1d5c657f90",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a2v3w4x5y6z7_add_last_refreshed_source_query.py": "e77553f8795389623786b1cb04b4c0f02a8c4526e6f9a7c362f09506b9d1c96a",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a3b4c5d6e7f8_add_consolidation_failed_at_to_memory_units.py": "effd758c9212a0986773fffded284377daf16b55c2074c2bb31433df41fdc721",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a4b5c6d7e8f9_fix_per_bank_vector_index_type.py": "6ccd7ec02c6a9e1afb1d76bbe5051db23236c14aca5b950376317986d0f1a562",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a6c4e8f1b203_add_reasoning_tokens_to_llm_requests.py": "15163fcda28a3765ffb247b2addfc545b9489200daa57de002fe36467501b587",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a7b8c9d0e1f2_split_history_into_own_tables.py": "5749e0d64f6614850863bc7fc14a35fff8509c7861bea5deb01f3878ea7f64f0",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a7c2e9f41b60_attachment_belongs_to_document.py": "fbb1f57c759c89933f9da34b3282163a0447e14b6fe2e29ae5cb5ffed47daa8e",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a8c1e4f7b0d3_add_operation_retention_indexes.py": "00eb17d671eccb646744ac9a4c07ba07051c22e3f0bd3dbeea7b011b7f7c2fa0",
+      "hindsight-api-slim/hindsight_api/alembic/versions/a9b8c7d6e5f4_add_knowledge_pages.py": "2686f6c8c58015f36c232cd39363cd641fd54359be7014786f334a9e598f2aa2",
+      "hindsight-api-slim/hindsight_api/alembic/versions/aa2b3c4d5e6f_nullable_event_date.py": "6213f7439c046d785c418c5522569c7a6970d5c2aeb9cae3756bf0d7bbdc7a5f",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b2d4f6a8c1e3_repair_maintenance_routines_public.py": "d5a5edf7d971e16369329a13716c2ea41931509aa5ee5028d664501357ede187",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b3c4d5e6f7a8_add_content_hash_to_chunks.py": "ec883bcc18edaee770fc1378fa0f534d046aa902ad50aa7a22b4295f3b981a78",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b3c4d5e6f7g8_add_temporal_date_indexes.py": "3398a72a3d7e9faf6c40443d99e06337c0795b0d80a420e5b8cb6fdcc2d326c3",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b3e8d1c6f4a9_entity_kind_partial_trgm_index.py": "8f72ac41be2050bc0420156dc3396b3b8a0930148ce83fc5d3f59d8afd7ecdfb",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b3w4x5y6z7a8_add_structured_content_to_mental_models.py": "c9bc3a63428d269c78e523a56ab5a1da14e040fca55570e01a2fe6ee02f04c76",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b4c5d6e7f8a9_backfill_observation_scopes.py": "cf5cd8b0ad64a9539d6fbf134025569a9899b916347ac6de7ed80c544a8e1cb1",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b57a7c9e0d13_add_bank_stats_cache.py": "2c957aa2ff59ca7b36695a134c966bad2bd7d65b3b1208ee84fd55d73e755c76",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b5a4c3e2f1d8_add_graph_maintenance_queue.py": "11a4ade5d96aa76b7766b26a3652df02f6b80ac2513026414e3e1bec08ae6e81",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b5d4e3f2a1c9_backfill_entity_cooccurrences_event_time.py": "ef52ce1d6fe32d4ca0b0347c84fa5397c5621c7df14d500eccc38e76266aae1b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b6d2f8a4c1e7_maintenance_routines_schema_local.py": "2838b760f218be7390208303a54a8e1ac3264e6fea34efbfec9a96970eff954c",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b7c4d8e9f1a2_add_chunks_table.py": "61411e538929ab5f79cc98f415f8f784386cfb4ef37073272829ddd5643637c5",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b8c9d0e1f2a3_vchord_cosine_opclass.py": "031ae402cd80945084a29ffd29defd0c99cb1f64140bf7e17a2e3bc3076bf1c2",
+      "hindsight-api-slim/hindsight_api/alembic/versions/b8d3f1a6c2e4_add_mental_models_last_refresh_failed_at.py": "93f4b2afdd56f2aaf9ff6a5b2fcb0830b0a3b5853bab8b94b0415e092623c30b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c1a2b3d4e5f6_enable_pg_trgm_and_entities_trgm_index.py": "041829c2f96dc9ed1d900c62b2bc7da40b1b6bc017de480051a938b30be771ff",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c1d2e3f4a5b6_merge_graph_queue_and_vchord_heads.py": "506eeeb184df212432cf7c63ef50403c6e8ca35639c778277b50beb0685749db",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c2d3e4f5g6h7_add_audit_log_table.py": "5e3586e674f69bf2cd36716f378e449ca320efecbbb8791b380b76054f6d920f",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c3d4e5f6g7h8_add_history_to_mental_models.py": "97966f24c6b87fcf8707152737527c93accb243c1099528711dee9d3823e4dc6",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c3e5a7b9d1f4_widen_history_bank_id_to_text.py": "679940c8d68ce6b3ff2844666ba618f08daa218e77472d26ab6968fa37b5e513",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c3f7a1b9d2e4_backfill_observation_search_vector.py": "97bc75b61ed71229c999437baa4e6864c0d06d6f605bd5e00cbf2b8031996730",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c4e8a1b7d2f6_memory_units_bank_updated_at_index.py": "135fb160010a6d9e2230314adc36146455cd7a48df3011ecfdc3ae7998df43f4",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c4f7a91b2d38_add_entity_maintenance_queue.py": "c05dcd18eaa083a0b220e40fb31a2a1c2d669260f95fcd856c04ac2671eafd7b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c4x5y6z7a8b9_backsweep_orphan_observations_v2.py": "769d19df8d1523947220d3a7553e9ec0acbf0b1ff31e26d612303388f7dfd5aa",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c5d6e7f8a9b0_add_bank_id_to_memory_links.py": "fc0b3fb8608ec64e0ba302d2a9a3ed11171512a846ab191db0cdd5b19aad1f99",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c7d1e9a4b3f2_add_archive_causal_links.py": "177a226528f745b91ec4e2fd2573a10d907f8cce211415e58d5a20eec84c5215",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c7e9f1a3b5d2_maintenance_routines_skip_vanished_schemas.py": "c28892b8204694657b1f156561b660d99cc6df6a6093688eb2b08857f83ba97c",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c8b4e2a71f95_maintenance_routines_skip_locked_schemas.py": "e5c3fdae907581c1ae0edbe85ebff2457cdd26b727a402ec80f2fb267a3befa4",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c8d1e4f7a20b_add_bank_aliases.py": "a591b3ca233f977564479348e36ad9c86870f4015773f56ca13f24e6f54b8430",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c8e2f4a6b1d3_oracle_mental_models_text_index.py": "aed948a8ec7013147cfbbcf07e6f8d690e1f1f075f982b912f8ac58c6f026287",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c8e5f2a3b4d1_add_retain_params_to_documents.py": "75790914341597579dd51101765fb52c885218d997df3796f7fc26be536a00e7",
+      "hindsight-api-slim/hindsight_api/alembic/versions/c9a1b2d3e4f5_add_invalidated_memory_units.py": "4a13126efac4b57177a288425618c9e3f0607d4c0d3ea63b1addd116722e5a48",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d1e2f3a4b5c6_drop_v1_mental_model_structured_content.py": "00786a2fe77cd635c096ceacc69a11d05ca695cf1caed6b94cb74625241e3508",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d2e3f4a5b6c7_add_memory_links_expansion_indexes.py": "f0ab3dfc07090c142861b153d534add163b03ceea2fcfd42bca451e4f3391754",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d3e4f5a6b7c8_add_llm_requests_table.py": "a2304d858b1a61622e1d3f1c09f8369faa23974e99c47a8d2d35365a895dfbd1",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d4e5f6g7h8i9_gin_source_memory_ids_fastupdate_off.py": "fc35c2b92bf38f75acd0966b132a9d852e222b9db7414cee8e5d9c86eb048dc8",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d4f6a8c2e1b3_drop_archive_embedding_column.py": "773ab73f9f473cf1cec42f3a3994e67a6499bb8db5e8b73a602c2e949442600a",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d4f8b1c6e903_add_bank_alias_is_primary.py": "6e5a9a911da3bf7027624c6051ec8c986f06877bef0c3d059ad052739572dbcc",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d5e6f7a8b9c0_add_bank_internal_id_and_per_bank_hnsw.py": "ab0fbb8289667d211c2388d05efcb1e2987ffc6805f7a4d062a6c4015fd1d5b7",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d5y6z7a8b9c0_backfill_mental_models_subtype.py": "d5c3648479158a2af7b92df2a65c7d39fbedc48558d229f5c7ef412cb4a15c7d",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d6e7f8a9b0c1_drop_documents_metadata_column.py": "da2cb5290816a9669df10c29382f76d22edd428608a2be43f906077956a05ca9",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d7b2f8a1c934_add_schemas_with_expired_operations_routine.py": "b2125833a6cd82061ea5708340d2518da4e24ab3ec2df1d1d9d3200cedd4648d",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d9c1a7b4e2f6_async_operations_serialization_key.py": "ddb131c25738d2b691043b2d21d47b5f9f41517afc37576b384ba197fef9e0b1",
+      "hindsight-api-slim/hindsight_api/alembic/versions/d9f6a3b4c5e2_rename_bank_to_interactions.py": "12dd7cbd3192f43a05dd6c6a8f15dad9b674e4958de42aa5a2795b72c0812073",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e0a1b2c3d4e5_disposition_to_3_traits.py": "3ed8dc37f9dc7f338ffe193cd5c7ccdbb4a7468a541a9bcc70a2c0c99ffc7ee4",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e1b2c3d4f5a6_drop_unused_indexes.py": "c106ef1921078980d1c6a6fb443ffc4d16b2daf7fe62a946795916a430b9c6f5",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e1f2a3b4c5d6_merge_heads_embedding_drop_and_links_index.py": "e88b849ecc28404ca3aba335e1a9d6ce20244dc16e6f7dafa336de8df876c5af",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e2f4a6c8b0d1_add_attachments.py": "be6327653cfda08ec6cb974904e3a554d5e2403ab168608762da269724302931",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e4a7c1b9d2f6_drop_memory_units_access_count.py": "9b1add2957bcee26d86e1c24e22fcc0deda131af944f32a2733136ce28abb71d",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e4f5a6b7c8d9_add_webhooks_tables.py": "2d1a1996fa27b1263b1ee854bb5ce71488193c8d53b7d7f0c7ef31bc41f333bb",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e5b1c7d3a902_merge_trgm_index_and_reasoning_tokens.py": "b9c104fe6907664aef422e2e465d86ae4663e27dc46fdb44a6fd5585ad09b116",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e5f6a7b8c9d0_add_maintenance_routines.py": "80ba0238593945835f09b7239d486431f26ae090f58704d31f6af11876be46d8",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e5f6g7h8i9j0_cascade_delete_ops_on_bank_delete.py": "64451d0861cafafe92a4229e5a9a76d242020bfc7932fe5a3f7d1cddde6f5562",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e7c3a91f4b62_add_mental_model_last_memory_seen_at.py": "67f9350b7493ec05f67d150cbeff21d2b9794b05bdedd0333e31094b30471fb4",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e7c3a9f1b2d5_drop_archive_search_vector_column.py": "e51eebacd0880eb1312b27226ae8440ae083d6df17543367a80a47c26cd15323",
+      "hindsight-api-slim/hindsight_api/alembic/versions/e9b2c7d1f3a4_drop_entity_memory_links.py": "442ac1b428668b352261f634e27c79750064a4be7e1268850163ef09ba8f018a",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f1a2b3c4d5e6_add_memory_links_composite_index.py": "d656d01b3f8e97f3937473230b1bd88b16b0250f88130854cd2a307ff6141983",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f2a6d8c4b1e9_drop_stale_global_memory_units_vector_index.py": "d9a17e186c807c86538bc5dab0a58d0974cfdd909a7d8464ec2b02ab3497b2b5",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f2a7c9d4b168_add_mental_models_cron_index.py": "b6e919eea8e971eee28553555b863a06198cbdae0f23fd83adf7080bd625b033",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f3a5b7c9d1e2_drop_memory_units_bm25_matview.py": "9e56efe5a1890315d9ca3efc806bec31f174ef7ab74f40f701d71b8ae07625f9",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f4d1c2b3a5e6_add_scheduled_mental_model_refresh_routine.py": "e76cb7e71e3ead3acefc4b774186d1fceae944b9b33e8dcb85df0caa8a9d6433",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f6g7h8i9j0k1_chunk_fk_cascade_delete.py": "25998135bd9bd7409794d1bdef53e5686c26f5a6663c3d7dcbf4488afdb64ad2",
+      "hindsight-api-slim/hindsight_api/alembic/versions/f7g8h9i0j1k2_add_webhook_http_config.py": "e7f93309f512f7cb929f9e54a9c4bcd028a5e3e974f9a0945ad5b43c836072ec",
+      "hindsight-api-slim/hindsight_api/alembic/versions/g2a3b4c5d6e7_add_tags_column.py": "6784c3d8cfdb5a6d51ea38b7de54c2986a35bcebcb997beab6acd778df207683",
+      "hindsight-api-slim/hindsight_api/alembic/versions/g2h3i4j5k6l7_remove_opinion_fact_type.py": "b2a30d20fbaa3e462e1720248504afcba061888c5bee49fe9d919771ad8a62a0",
+      "hindsight-api-slim/hindsight_api/alembic/versions/g7h8i9j0k1l2_backsweep_orphan_observations.py": "8424788f21f94cf1d640f95ca717b04ebc7c21cd83abcd02c107fa9745b76a23",
+      "hindsight-api-slim/hindsight_api/alembic/versions/h3c4d5e6f7g8_mental_models_v4.py": "d8e97842068591803d8e93142869ddff5fa4e58d77d6fd06bb18e0976b37029d",
+      "hindsight-api-slim/hindsight_api/alembic/versions/h3i4j5k6l7m8_merge_heads_and_add_unit_entities_index.py": "c94159774ea23dd7734f759c73449666b545ae934f1afa852e4e8fa56ac9ed4b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/i4d5e6f7g8h9_delete_opinions.py": "66685aa3b8c683bf4309518c9d2c0257e1e3408b7332a70704d184049c342491",
+      "hindsight-api-slim/hindsight_api/alembic/versions/i4j5k6l7m8n9_add_cancelled_status_to_async_operations.py": "5abbdc12b043dfa20bc91781d07b8c1007d33095001d05920637627b960a9587",
+      "hindsight-api-slim/hindsight_api/alembic/versions/j5e6f7g8h9i0_mental_model_versions.py": "4dc2737e1a5c220d6fab56a62286fd422e7d77e97fc360df62668af72717f864",
+      "hindsight-api-slim/hindsight_api/alembic/versions/k6f7g8h9i0j1_add_directive_subtype.py": "4720859cf36d05bfb2a8c4689b7cae0793db4733facb2973f6d2ccaf78493795",
+      "hindsight-api-slim/hindsight_api/alembic/versions/k6l7m8n9o0p1_create_observation_sources_table.py": "b573f4d80d7dfc9e045e567171304d0257bdab5d62423dd40fa5e33666248dba",
+      "hindsight-api-slim/hindsight_api/alembic/versions/l7g8h9i0j1k2_add_worker_columns.py": "732475cc8ebbd1959cde458c15ea15f4b7fdcd6d9e8bf1c57260eeacdf74b61e",
+      "hindsight-api-slim/hindsight_api/alembic/versions/m3rg3h3ad5f6_merge_deferrable_fk_and_cooccurrence_backfill.py": "881eca0bf79bcb69924ec3ef8e4e0540b6cb04da2a9a9f76a1e676c5ce4fe181",
+      "hindsight-api-slim/hindsight_api/alembic/versions/m8h9i0j1k2l3_mental_model_id_to_text.py": "acca15a0f3ff125d881c6d30d13aeb8edcc65fcf8b1ad076a84d7f2459e984f6",
+      "hindsight-api-slim/hindsight_api/alembic/versions/n9i0j1k2l3m4_learnings_and_pinned_reflections.py": "eb5cb0f7ea1fecd20476961986de79445d0ddbd7e2fef43edfb7674cdadd643f",
+      "hindsight-api-slim/hindsight_api/alembic/versions/o0j1k2l3m4n5_migrate_mental_models_data.py": "8c224fa30c231d0dcbc111ddbe3a135cf52497d0b15219baf1fdb37cf4abb1e1",
+      "hindsight-api-slim/hindsight_api/alembic/versions/o1a2b3c4d5e6_oracle_baseline.py": "e3694dc52d9d23af01e7f1846b0322541b1d79dd2fd9f22995b23aace02a105a",
+      "hindsight-api-slim/hindsight_api/alembic/versions/p1k2l3m4n5o6_new_knowledge_architecture.py": "1c234b86f249edd91b4e1766ac157bedc8c5b0bffa0943672af18477a02c7fc1",
+      "hindsight-api-slim/hindsight_api/alembic/versions/p4q5r6s7t8u9_configurable_bm25_language.py": "e6f3189d276add176e568bc9e49c78fd5a850d25430c5f63994573678ffa7a89",
+      "hindsight-api-slim/hindsight_api/alembic/versions/q2l3m4n5o6p7_fix_mental_model_fact_type.py": "3a892dd9bfa1f15527fbf91d7bc8da2bbaf20b49e3c6e21232ad09d7533265ff",
+      "hindsight-api-slim/hindsight_api/alembic/versions/r3m4n5o6p7q8_add_reflect_response_to_reflections.py": "558916a311f6f36052e3d3b962d55969e21b988a5b624a1bc597bb687e334fcb",
+      "hindsight-api-slim/hindsight_api/alembic/versions/rename_personality_to_disposition.py": "4e6cb7a794ad61e055b09df0ea86b14b9ea8b220ef3450d602d46e10b6bee2f3",
+      "hindsight-api-slim/hindsight_api/alembic/versions/s4n5o6p7q8r9_add_consolidated_at_to_memory_units.py": "c2d9e302208a0d50b2bbfff7da8a6be3e7203022ce4053bd5bb424acaac1443b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/t5o6p7q8r9s0_rename_mental_models_to_observations.py": "4d4e382f2981c950ddeabd317f07367e953b488191c231bfcffb3cd4e6d1104b",
+      "hindsight-api-slim/hindsight_api/alembic/versions/u6p7q8r9s0t1_mental_models_text_id.py": "84cf7b2939c40b6fbac1b770f0802416bdd93d34bbd114321e8074b3110e881e",
+      "hindsight-api-slim/hindsight_api/alembic/versions/v7q8r9s0t1u2_add_max_tokens_to_mental_models.py": "c600dcec0b5ce5874c46b826136869c9bc9aad4f6e7a5cd9b1cc67de756b9cdd",
+      "hindsight-api-slim/hindsight_api/alembic/versions/w8r9s0t1u2v3_fix_mental_models_pk_isolation.py": "a18a10e3236bea3ee705c351f7c05aa2f48bcd73066996eb7cb1a0c01543f1c5",
+      "hindsight-api-slim/hindsight_api/alembic/versions/x9s0t1u2v3w4_add_bank_config_column.py": "9f9357534f4638099f51d62e9797dad6914c2e868f70c376d6b3a7b1f87086c5",
+      "hindsight-api-slim/hindsight_api/alembic/versions/y0t1u2v3w4x5_add_result_metadata_gin_index.py": "acadfe2e267769b70cd9aa2013b9adbeb390846f7d66c71c88c6f22772a0b43a",
+      "hindsight-api-slim/hindsight_api/alembic/versions/z1u2v3w4x5y6_add_observation_tags_to_memory_units.py": "1fe62720de2266aed6f51eb5f1f0faf4dc414d0be65068d49cc96ce5b8d3d51a",
+      "hindsight-api-slim/hindsight_api/api/__init__.py": "78f26037419947ea8d6dab0d6798a375d3501842561b497268ca9981a263783a",
+      "hindsight-api-slim/hindsight_api/api/admission.py": "27a7b138e24fb6b7b68a80e83759c10160271b24134f8fa893b3883f7b94bfb0",
+      "hindsight-api-slim/hindsight_api/api/disconnect.py": "78917b4b35b9db1d7b5a4a5734b88afc0d2dbc6b7461cdbec8a3ff868bc73ef6",
+      "hindsight-api-slim/hindsight_api/api/http.py": "b1a5090e905c92e67d9190589d1b728a50c92e4a18566dee877c430e762c1d35",
+      "hindsight-api-slim/hindsight_api/api/mcp.py": "90ba27702cbc46f5c9d3859b30b5c35852132e4a60be7f5fd1dd7cce2eee6fc2",
+      "hindsight-api-slim/hindsight_api/api/observability.py": "22b7d542c3d8879f08e64693a6b63f4033edd677ac71ff8eb79d6366677f1d6a",
+      "hindsight-api-slim/hindsight_api/api/page_markdown.py": "8cc15c444d8f38683cbc376910d0b2cf857ccc55c999c87c83630843f31893f2",
+      "hindsight-api-slim/hindsight_api/api/passthrough_headers.py": "47800c369908a90516c08da24c6c52eeedfc9064f3bf74d2493429b9c1355400",
+      "hindsight-api-slim/hindsight_api/api/unknown_params.py": "7dd630195ab1ea8ab8dc97853a96b8137c1476cf4e4fd919b063edb7460d81c6",
+      "hindsight-api-slim/hindsight_api/banner.py": "96eb01345458381849a35a00be4cd99dcb7db04d3869e2fd081666bcfe7a8fe0",
+      "hindsight-api-slim/hindsight_api/brand.py": "733b0a6cb607ae3166674688e8d29bfc600624b3487d2068e0d2e27db3341780",
+      "hindsight-api-slim/hindsight_api/brand_defaults.py": "d4393386cc8e27286b2ca9bb9530e8cff7c037029dccad7874166a0fd796bb91",
+      "hindsight-api-slim/hindsight_api/cancellation.py": "a827df0dd8bce6a6c0af771583014033bc94d4a5e5dce8fcf9014b96764eb465",
+      "hindsight-api-slim/hindsight_api/config.py": "f7cf1a85876d7577cffecb19f9849427915b2a436778676c107c4b2da6086e1c",
+      "hindsight-api-slim/hindsight_api/config_resolver.py": "f3c8e5c5da8ac896694114092a1ac5ebc69fb3b42e03136de1b284a384fcb686",
+      "hindsight-api-slim/hindsight_api/daemon.py": "51c7b15391610c8ad825ad77aa3695626e95854a8815e97b033a236ed414d58d",
+      "hindsight-api-slim/hindsight_api/db_url.py": "010628696a99dbedd579df859d99b53d0e4155f5ee11cfac76ab96afbae147e3",
+      "hindsight-api-slim/hindsight_api/engine/__init__.py": "e14c134bdb8a73619510f7128668bea57ddb81d400b44eb8144c266263d2413a",
+      "hindsight-api-slim/hindsight_api/engine/aiohttp_session.py": "ce461f277a75adce75d04d30dc622e740c063418e684f282edc2b5abeb501817",
+      "hindsight-api-slim/hindsight_api/engine/audit.py": "fb7cd3455e05004b2aae6e0549c6203400a127dfb7e41bfd7ba835bd82fac63c",
+      "hindsight-api-slim/hindsight_api/engine/background_writes.py": "bf68743d283dcd20638e33ac8c5a81d606423fd83cc5e3ec7b416a950a88dd26",
+      "hindsight-api-slim/hindsight_api/engine/bank_aliases.py": "254a7171e81a8b8c08e7758136f5b8973ac96f9f493ee720dffa63a743e9b042",
+      "hindsight-api-slim/hindsight_api/engine/bank_attribution.py": "b01ac0e8f42102335a3a2f8d9aebadcfc309d74594bdc9a7c2e7251c40275c64",
+      "hindsight-api-slim/hindsight_api/engine/bank_info_cache.py": "c596d593d22477b56a005a367d20230603f63b5b6e19cfaa1caa9c708864e34a",
+      "hindsight-api-slim/hindsight_api/engine/bank_stats_cache.py": "77683f8730c70f72ddd799bb97ce752bd45da0157946a656a983e45c4ece2119",
+      "hindsight-api-slim/hindsight_api/engine/cache_affinity.py": "586ecd716836f88b5ff820cbedb4f2ba8be4cd1b7b7d43fc8826718d8088a45b",
+      "hindsight-api-slim/hindsight_api/engine/causal_links.py": "d084171ab050064004970580b5f464d96eeaf68ea02264f2e57f4006d25b6a03",
+      "hindsight-api-slim/hindsight_api/engine/chinese_temporal_periods.py": "e456d0cf4f8a45c2dc9d4abf5a24863a6bdd589c22aa4e8bc8ebab803e142967",
+      "hindsight-api-slim/hindsight_api/engine/chunk_ids.py": "17c03cfbb3b7e78d577693601fb56bb2d905a9d8446279a0759060722ee2d391",
+      "hindsight-api-slim/hindsight_api/engine/consolidation/__init__.py": "a8450fcb447b6a4368028a102f54c0b76ad56ac8ef9d74dc373876ce93747e57",
+      "hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py": "4dbda20482328a984119d6e9b7ca28ae6c3daf61deaf3602bda9b0039d805fe0",
+      "hindsight-api-slim/hindsight_api/engine/consolidation/prompts.py": "aea3d86dfbd84e5dbcca279b625714bfdb0734ec3c26f8f883d40e5418c3e0e6",
+      "hindsight-api-slim/hindsight_api/engine/cross_encoder.py": "b9e604a271328aa525939da4878ec5c807fea282382cbef4d27e280090c67e80",
+      "hindsight-api-slim/hindsight_api/engine/db/__init__.py": "f580d13c226508070e00601ecf20b6445a8013cc894861c1f913a2441d6943b9",
+      "hindsight-api-slim/hindsight_api/engine/db/base.py": "1e2be0e5b01b3362791356286f5361719a91cb35406d07f42e3ee4aabc2ff87e",
+      "hindsight-api-slim/hindsight_api/engine/db/ops.py": "e6b5dd9329c4072f6fe995a21498c87469f29413b7ba4ea495e4f512a7dff9cf",
+      "hindsight-api-slim/hindsight_api/engine/db/ops_oracle.py": "a6054591a45f48d38b942aa0df0c15cb14b62e7e408038c45b45c2b61f7d35b1",
+      "hindsight-api-slim/hindsight_api/engine/db/ops_postgresql.py": "4eb84180374cfcbcb60f4b818813c4a10976d89ee7f5b089b1ef04e3dfc428cb",
+      "hindsight-api-slim/hindsight_api/engine/db/optional_routines.py": "dc9e541d40169ea597b2c0d3da63a8152ae7b11b27d826e0558521acecdff770",
+      "hindsight-api-slim/hindsight_api/engine/db/oracle.py": "fd27051798f2b2d4b8485a008d85ae650ee7f2e912833461baea9de495f46f5f",
+      "hindsight-api-slim/hindsight_api/engine/db/pool_instrumentation.py": "b678b7bb0eabaa590a394536c33d9a611a8c426822c10a0dc05f880d94322c10",
+      "hindsight-api-slim/hindsight_api/engine/db/postgresql.py": "380be583660b372f7d97d81d020ba923c6c5717a1950833b16236e643f32be03",
+      "hindsight-api-slim/hindsight_api/engine/db/result.py": "a4d33a8130d1a05ebfd6930a62fa58d5dfec74133e3c229a1eab4b74ffc8a3c6",
+      "hindsight-api-slim/hindsight_api/engine/db_budget.py": "a68e0f9f4201e1f27f6e12e22d62cce7c357398ed2506ddd5206436e5b76810d",
+      "hindsight-api-slim/hindsight_api/engine/db_utils.py": "1d7824b99eb54ab2153981b4e4c0d3ceb2ef856b99988fd9ca51dce2753b19b8",
+      "hindsight-api-slim/hindsight_api/engine/directives/__init__.py": "e59c5a46a655c897246c6125688d83311301b678fea9893144a767387070a2f0",
+      "hindsight-api-slim/hindsight_api/engine/directives/models.py": "3cac6f9a15b5f9f8c121300e06eed1297e4b8fad5cda376c4da5fc0037a529a8",
+      "hindsight-api-slim/hindsight_api/engine/embeddings.py": "209f6110de2a4e0640fd99c9276f16e326eb52e9b37b1ae433146c9b72df4802",
+      "hindsight-api-slim/hindsight_api/engine/fact_budget.py": "22df42082573eefcee8a689ceec24f2a9b1ba348267afd41104f4b9dea1ae13d",
+      "hindsight-api-slim/hindsight_api/engine/graph_maintenance.py": "38b8bb47ca9e71aa90555e9d606428ae84f11e52668b4f27549c8dda564a2eb1",
+      "hindsight-api-slim/hindsight_api/engine/interface.py": "3f289610f586fefbf6228a393b9f07bb25d1ee01de77a9cab286183e85d4cce4",
+      "hindsight-api-slim/hindsight_api/engine/jina_mlx_reranker.py": "d7473f0d72ee98000d867cc025e959273d551ec1c53132e5e13d330b0423544a",
+      "hindsight-api-slim/hindsight_api/engine/llm_interface.py": "4eeb18cf22c2c36864b257344d94b1272a86d4fe645fc83afa7c1c2fe65fded2",
+      "hindsight-api-slim/hindsight_api/engine/llm_trace.py": "05300c0de1847e9fa7c0063ba441f52d9fb6b0cee09a3a8615bd7dbafba593aa",
+      "hindsight-api-slim/hindsight_api/engine/llm_transport.py": "661f0ab93cbe56a57063078ed002e4655e40355e46c3a4514ba0474f019de6cc",
+      "hindsight-api-slim/hindsight_api/engine/llm_wrapper.py": "5e53269f8e39027d22fc198c52b754b1569f717d2e137e02f1de31e2de6f51a1",
+      "hindsight-api-slim/hindsight_api/engine/local_device.py": "5fd8a40c946e96c990cab20dd9987a22b4d039f004830ecf5bfeafb6c20ce758",
+      "hindsight-api-slim/hindsight_api/engine/maintenance.py": "1f694f320ebd8b412a9db933649882c9c28e0e0dc4f10cfd936e3763c4b58ec3",
+      "hindsight-api-slim/hindsight_api/engine/memories/__init__.py": "15c5cf1e326186839624ab3eedf21bf719a9d5b68064dbc46dcaee6865acae47",
+      "hindsight-api-slim/hindsight_api/engine/memories/base.py": "b00b10c0b08f2f491e3d04aac540984849294114a0dd7a977b79c8972d7f1d60",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/__init__.py": "8456e2a6d547f868131f38c050bb1a0ebdb3529d71188bc7b605e8bd526e4c5c",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/admin.py": "739ef78947213875420a03134963b9e3298992d2ff1545b5c7ca7c3899802930",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/banks.py": "aff74cc415a433a8e6b454e0318028fd61409261d8972609393225abefa652c0",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/consolidation.py": "09ad7a17ad36fe8cbe46436d950f6134c9980611e2eab758d56533516564078f",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/counts.py": "a0411c785813e813781f5773381a8b59d05c69fceff02b5ca900fd94f885027f",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/curation.py": "5d08713df3bc49bc22993f47c5678a59affa390dbc887c4f542e9d629e12f2de",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/documents.py": "4eb380d22fbe866352a015c7245627e28a19602b8b078286b44b3410f9dc9a42",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/engine_curation.py": "49eb92701e0f9cf203e5202eca4a02025530c0da071a6096fbb771a244ba7f61",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/entity_resolver.py": "29f08df52ad4ef7cd60285bca652877064853db780a20b654327492cc1846124",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/expand.py": "a6d3902d2f2f94be060fbd60796aa268ae543c578c313c35bab1cb719ed06372",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/graph.py": "f0cffe8498fcdd9a62daa304c979c8aeaeaed0c7baf2c889a7503b4a9c67dca2",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/link_expansion.py": "90b89a48a30b1b972bdb1bf79a562600bd4ab587e993f930165770d6a0815fbc",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/links.py": "592ddd8f0e121cd7e6c6cc6a41e1cae783fea3868390f48201225b5204d04c5c",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/reads.py": "e41fab491f6a7cd1c31d9b5fb1508104ea5a01f1b58a11500e32fa8423817437",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/recall.py": "5a350edee559b1d563ca7d775a457b244ab3ba4a95936e3b71738cfd12864268",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/retain.py": "10fbd78b99cb47ef5f33836edefd3c29e6f6a5f790d3317931ee11dbe3ab1281",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/transfer.py": "d9dcd96d8447825467bf1c8307ebbfab2890f8e2683599071b3e74cd4b872103",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py": "68054c3483fb78ff500f3be63492212d659889b0da1e063800ebbaf9ae2acc73",
+      "hindsight-api-slim/hindsight_api/engine/memories/postgres.py": "510a41018c0a097e4263f6928bfec15fbee26e6bf9a741e81552f211f04eb1df",
+      "hindsight-api-slim/hindsight_api/engine/memory_engine.py": "ffeb0ff62e82e678baaf94c9679d6d03e8de4b0e800032cdbff20fadb7217ab1",
+      "hindsight-api-slim/hindsight_api/engine/mental_model_refresh.py": "9d3c5ec52cc5004a2d1592e8b3695468fe74b4a598b082b75e6c46028738556e",
+      "hindsight-api-slim/hindsight_api/engine/metadata_utils.py": "54b9b09bcf394a22df466421aef53d6216c4d4ef150da0454445821c910c3234",
+      "hindsight-api-slim/hindsight_api/engine/multi_llm.py": "4f3d211b2020254dd2c0c1c9150295a2b9dd78616474aa5af09ed54f6bce0609",
+      "hindsight-api-slim/hindsight_api/engine/operation_metadata.py": "ee0157e1472d7a9f509b41abe2546aca1112fb3839e3b9ff889c2b83d13ba3f5",
+      "hindsight-api-slim/hindsight_api/engine/parsers/__init__.py": "5b6856f4f5f43d13a400fcc89aa124fd80f8310f94fbf85c1d2fea9356d31100",
+      "hindsight-api-slim/hindsight_api/engine/parsers/base.py": "a6130387943379ac2192847ee6a1384e2c1ee567b4903b9cbcec3677d0034b97",
+      "hindsight-api-slim/hindsight_api/engine/parsers/iris.py": "8beb1522f0df650f73e18051730b47c406973ed0f774b779a4bb06b677a369bb",
+      "hindsight-api-slim/hindsight_api/engine/parsers/llama_parse.py": "845d7c00ea284e35f0281473c2d3e90a6a0d511a61bfbd4740b1714baadfc954",
+      "hindsight-api-slim/hindsight_api/engine/parsers/markitdown.py": "c4ff040282dc853a910cce80c168e8e3910eb861fa38e80aaa25ca839d8d2dc8",
+      "hindsight-api-slim/hindsight_api/engine/prompt_preview.py": "664a20d1edd2b4cca280d764cbfa96f5d8c5c4ee9813e69cd389ec6d8a47db89",
+      "hindsight-api-slim/hindsight_api/engine/prompt_utils.py": "e5dc5901ea90f462a3e725e7a13e08afb49a7d2d34f6fd3475fc44e0f1b4c19f",
+      "hindsight-api-slim/hindsight_api/engine/provider_auth.py": "8a68272451c4e096d189969db55397dc4f39eebae35752a84a6ec8f0be2d241a",
+      "hindsight-api-slim/hindsight_api/engine/providers/__init__.py": "ba35543c65d3166834eb0b03ce20da749dc384793d7b64c1eaef3ff4458df41a",
+      "hindsight-api-slim/hindsight_api/engine/providers/anthropic_llm.py": "e3502565a4b1250173d3091aa37d400d76a38d0f3a9f21d5ebaca0a15e712a2e",
+      "hindsight-api-slim/hindsight_api/engine/providers/claude_code_llm.py": "fbdd385ab64ddf7b328198bbd0d1ef4cfe625b0f85002c004d0715e620b97880",
+      "hindsight-api-slim/hindsight_api/engine/providers/codex_auth.py": "2a29324b1cba7153e33dcf9c8527a41012d1618edf39adeeb84bdc3ff70dbbc3",
+      "hindsight-api-slim/hindsight_api/engine/providers/codex_llm.py": "bc62fe4dfc3b123c3155591663a314595f623153473b6b7fa0baf2677bf70489",
+      "hindsight-api-slim/hindsight_api/engine/providers/cursor_llm.py": "7b3449379174cf1264b42ad88b4139eabb9debb9f8dcbaf8900b77cc413b952d",
+      "hindsight-api-slim/hindsight_api/engine/providers/fireworks_llm.py": "e104fba2200ed4a5e392f2f1fa92d54036625a34d284936cfad70e19f30f3947",
+      "hindsight-api-slim/hindsight_api/engine/providers/gemini_cache.py": "498ebb61b6ac9e3d5936a4397aa06028b22cf5bb44dd285f35c59301d79597d1",
+      "hindsight-api-slim/hindsight_api/engine/providers/gemini_llm.py": "c39527d896d7164fed378f9009bac00b81d76eb9e46c710a843af149401eafd4",
+      "hindsight-api-slim/hindsight_api/engine/providers/github_copilot_llm.py": "373155ef095db926d59897cc78093cf73816ef6f7cfe95f8dd171c1017c42750",
+      "hindsight-api-slim/hindsight_api/engine/providers/litellm_llm.py": "b73e9941074f789612a58158b820c9de97c54c0517010c42681d31c59968fae9",
+      "hindsight-api-slim/hindsight_api/engine/providers/litellm_router_llm.py": "43ea7d72d3c6675f5cc674316f639dd7f6bbd685b468b4ca28c579178b2e1450",
+      "hindsight-api-slim/hindsight_api/engine/providers/llamacpp_llm.py": "d5fbb347154e553963b8a56d878783780693470a7d2af2ec70976ec421b280e5",
+      "hindsight-api-slim/hindsight_api/engine/providers/llm_debug.py": "0c1a4a68a4b7b2bff3b77256a084b4717b8a1449a926fec1e7b7a20d97f0bbc8",
+      "hindsight-api-slim/hindsight_api/engine/providers/mock_llm.py": "def747d5f539ee9843b94d09a8d217dc231d833f61b0ef52925753769c652a7c",
+      "hindsight-api-slim/hindsight_api/engine/providers/none_llm.py": "9b8c5d5f263915dff836e20e1779836f46edbba1ea9861172e2eb70baccf5ebd",
+      "hindsight-api-slim/hindsight_api/engine/providers/nous_auth.py": "373eafc557743bfb9f9d0ab336b56e2a13c4e6a4165319eb077b0f7de9b3661c",
+      "hindsight-api-slim/hindsight_api/engine/providers/nous_llm.py": "6fd25d421411a98fa4918b71dc521240cb07d7957e429570f469b49751d273ae",
+      "hindsight-api-slim/hindsight_api/engine/providers/oauth_store_lock.py": "a53f7e8237fa220e76a814e1e6f00b0ad476ee7c6d5eb174ae11e5f20a456f36",
+      "hindsight-api-slim/hindsight_api/engine/providers/openai_compatible_headers.py": "28e32b2e2942577d21d1a0767e5f74ff8aac412e7ed1164cea11d98de795f69b",
+      "hindsight-api-slim/hindsight_api/engine/providers/openai_compatible_llm.py": "3d7b04045530c5bf9b9e5b7aa846d0c56a43520ff68a0efde95a4a0b62cbf598",
+      "hindsight-api-slim/hindsight_api/engine/providers/openai_responses_llm.py": "50dce9592ede0bbe4c36cc1e8350349c3a2c9489d809e92b46e314f527176d39",
+      "hindsight-api-slim/hindsight_api/engine/providers/xai_oauth_auth.py": "d5a606d9215a221b29ba22ef03f743e76dd5d4f3beca2b0b1fbb0b63aa11e3f3",
+      "hindsight-api-slim/hindsight_api/engine/providers/xai_oauth_llm.py": "5db35667cb8679f66711071427a6071bc974aa64382a65475c4d34094967ecb5",
+      "hindsight-api-slim/hindsight_api/engine/query_analyzer.py": "c6d5a559e1a98ab53ce5bd9d076539cfc9a7fd860555d3587de58d5126b05f7c",
+      "hindsight-api-slim/hindsight_api/engine/reflect/__init__.py": "6463cd5ccbc82819dfe8bf4b3165d20c5d1dda491cc65b65782cdcfffde0acb0",
+      "hindsight-api-slim/hindsight_api/engine/reflect/agent.py": "037eb7b1dcc1b087683975a3cb54b5b16af73150f0010613ca092701b1d78598",
+      "hindsight-api-slim/hindsight_api/engine/reflect/delta_ops.py": "63a8357a3314d0296090a8f9b5b99f0c81590616de224c1d46018b364c9ee3b3",
+      "hindsight-api-slim/hindsight_api/engine/reflect/models.py": "c6463bcb238c614f3781e2f125d1a28fd80126e09f210ff16ceab6384042e80a",
+      "hindsight-api-slim/hindsight_api/engine/reflect/observations.py": "4cc8af639ba3ac900e846dce1454c612ec1b5b6ec03a3c83e65d099437dbc893",
+      "hindsight-api-slim/hindsight_api/engine/reflect/presentation.py": "ef9647b2511d55993278df70e912afa57d3697151e1e7fbb8d9a9a688eebb8e0",
+      "hindsight-api-slim/hindsight_api/engine/reflect/prompts.py": "aa039729d8a4d5eca0db6d97126d712136ad8c497f0827ad95ccda90ffd6f399",
+      "hindsight-api-slim/hindsight_api/engine/reflect/retractions.py": "633a84f49aadaf3bd811452be92d1eae0a197d97d0247631dac8a8b5916f11c1",
+      "hindsight-api-slim/hindsight_api/engine/reflect/structured_doc.py": "3808e05803baac72562d88ccf079de6a8694b6b8c1e8ea0fabf0a6c073d48e3a",
+      "hindsight-api-slim/hindsight_api/engine/reflect/tokenization.py": "e850fb0e6ed452703f35c6aad779a3aa508958a10504a5cb1214aeb683f312be",
+      "hindsight-api-slim/hindsight_api/engine/reflect/tools.py": "e1ef6d5e63bf3f5afd7ce8aee7db939449c5f4c0c6abc75d62952d0b8e790078",
+      "hindsight-api-slim/hindsight_api/engine/reflect/tools_schema.py": "7eb556a704441a6ddf656385829e8a32300d01dfa3d30c37372fc92fa79f16b5",
+      "hindsight-api-slim/hindsight_api/engine/remote_retry.py": "bae6ebc69d8c52f251e8cbbc50a179e5349fd37e3bac8ecf5de58f132a065087",
+      "hindsight-api-slim/hindsight_api/engine/response_models.py": "ea41a9f477d4edc0908e51598fd9b1c7c4beaa4907c5df28c5c5e5552a7480df",
+      "hindsight-api-slim/hindsight_api/engine/retain/__init__.py": "c25113a46af33ed817519cb94dc96ecd7ee8dcd54ede885e691b125287e70aa1",
+      "hindsight-api-slim/hindsight_api/engine/retain/attachment_content.py": "ae2f8de222ee6c16ac5a46d31f62b6034bf04e8b5b7189a9f7d29954d422e6f1",
+      "hindsight-api-slim/hindsight_api/engine/retain/attachment_store.py": "a96c81e310ecbf5d9aeeec56ffe1f69cc7f212e89ee4472f139dc2e0681ffb15",
+      "hindsight-api-slim/hindsight_api/engine/retain/bank_utils.py": "2eed6c817a0ad099cb79b2b8283685218f38846dce0898f4d8b4b15c2b36d892",
+      "hindsight-api-slim/hindsight_api/engine/retain/chunk_storage.py": "381e3bb7ddb1e2168e78613f53f846145ded2071277bb3cb129df6b4bd1bb29a",
+      "hindsight-api-slim/hindsight_api/engine/retain/embedding_coalescer.py": "b9f7654b0d9318abd443921f3ac20cf55b0ee47c79287ae6c897254b17671dad",
+      "hindsight-api-slim/hindsight_api/engine/retain/embedding_processing.py": "033a79c4497b12c749fdc1053444cbcd670f72c4040552c23b723d0359600429",
+      "hindsight-api-slim/hindsight_api/engine/retain/embedding_utils.py": "4e64722bbac441ba76c570ce4bf2dadf6302915de2ac548ac67bea6088fc7108",
+      "hindsight-api-slim/hindsight_api/engine/retain/entity_labels.py": "dd32a529070206f2d51f3bdbd0c6bde7ba798ff67a1b18d383b36a6ce97368cd",
+      "hindsight-api-slim/hindsight_api/engine/retain/entity_processing.py": "88cbd43a9fb7db2d6fd51e92e4b34a1bc8ebc154edcbd03fb8a8917c59498c57",
+      "hindsight-api-slim/hindsight_api/engine/retain/fact_extraction.py": "0a12297f4f937b9d858c44995918d7e5744c41df13e4f243f7d6919d53e030da",
+      "hindsight-api-slim/hindsight_api/engine/retain/fact_storage.py": "911a43f671e3acd04afa9b4252c6b73cb0b097f550233c3642bd473dcec16054",
+      "hindsight-api-slim/hindsight_api/engine/retain/fold.py": "8d9aec1a3ba9ebec772bc97788b746af883f2f8685af175de719dab6c1469dc8",
+      "hindsight-api-slim/hindsight_api/engine/retain/link_creation.py": "b700f89220aa84c6cdcff1fb0c413177ed99d070fc3b883d037a33010767cea4",
+      "hindsight-api-slim/hindsight_api/engine/retain/memory_budget.py": "3e3ebb201938ba1c6ff21c61df69a7683a57331935c8261b4a49f9d60d780a06",
+      "hindsight-api-slim/hindsight_api/engine/retain/orchestrator.py": "486622bb58f0625931f7d2ae41ddb29a4fdabba87dd8fffe20408244ba06487d",
+      "hindsight-api-slim/hindsight_api/engine/retain/timing.py": "db415525e464dc8cb4a54a3c9d28f1aa9c4e8831009c40f1c5049eae68243dc4",
+      "hindsight-api-slim/hindsight_api/engine/retain/types.py": "d2a93668652d27d8c1e131cd9cc5e160b617e1a1b91369e624b6d53692c65c72",
+      "hindsight-api-slim/hindsight_api/engine/schema.py": "313d498fa25b067dba00ecf8a6c248baf1a1214ebdf91846a90868184742d08a",
+      "hindsight-api-slim/hindsight_api/engine/search/__init__.py": "4c26a3674a10e804e912362785c18a5adbd89c01a43c86ca2f3ebfe8cad6576f",
+      "hindsight-api-slim/hindsight_api/engine/search/bm25_term_selection.py": "4be305ddec12c6f1a92e5288c45a8f71aff0d0338b9b7519bbaee0c26ac63842",
+      "hindsight-api-slim/hindsight_api/engine/search/fusion.py": "19ccdfd73e5c9da7c10561c92e4c86af2d6c7b6fed870f41a848fbce1d25dfa4",
+      "hindsight-api-slim/hindsight_api/engine/search/graph_retrieval.py": "87dab314c9b8430138524a5460b4d9a1f0454042dc0e34a2446bbdcc548ae1d5",
+      "hindsight-api-slim/hindsight_api/engine/search/recall_boost.py": "1be4f88c1215c46092466e0c216e2182b8be12b1cea7baea106654638a87604d",
+      "hindsight-api-slim/hindsight_api/engine/search/reranking.py": "5b428be91758cb2b7b56b2619edccd0df199020234d43411133b4cfac51ac15a",
+      "hindsight-api-slim/hindsight_api/engine/search/retrieval.py": "e7a2661628e92339f7a303807b253e3a385abc432a243e0f36a653989cd39a42",
+      "hindsight-api-slim/hindsight_api/engine/search/tag_resolution.py": "da9d29b08699bb397cd9bf7ac788003bd9ab7adf33483246b8978961005bfdb4",
+      "hindsight-api-slim/hindsight_api/engine/search/tags.py": "05d64e88002e01e3ea6256ccb0c4a34fb8d1e8e23e0c48bbca930a547cf1823d",
+      "hindsight-api-slim/hindsight_api/engine/search/temporal_extraction.py": "a2701dbcf2594939bb96ce49ff7753036c4b078db3f47da7c2462228a6cae3aa",
+      "hindsight-api-slim/hindsight_api/engine/search/think_utils.py": "7dbc4d7c9f1a5722fd5f5702b195a13229ae262e8a8b7a888dba87786f2f4dde",
+      "hindsight-api-slim/hindsight_api/engine/search/trace.py": "986f75a56de027ab47f24450406ed3abc0e1a04ddec06e35602e6cee743bd408",
+      "hindsight-api-slim/hindsight_api/engine/search/tracer.py": "2d82da289f977cad3992736d3b8af05ee64c9e5ba8da313ed84a97d3fd84c0e2",
+      "hindsight-api-slim/hindsight_api/engine/search/types.py": "26e89836d231e93d387829998449e9a54dac59a0a4f13f04c61e2321c7938313",
+      "hindsight-api-slim/hindsight_api/engine/source_facts.py": "e32d24c0719d293e830dd13ffb12b6b8833d03520399ab5f1de0c2a96adfc85d",
+      "hindsight-api-slim/hindsight_api/engine/source_scope.py": "40e881f70a1e06c6274441e0958a896bd4e6511109f3e7460a0227f2fa9a74b3",
+      "hindsight-api-slim/hindsight_api/engine/sql/__init__.py": "f95c79dacaee61b6a9a8dfb382c7aa5e5e96f4bd8cba85d58a7255d097168ab4",
+      "hindsight-api-slim/hindsight_api/engine/sql/base.py": "ee74404cfae6111c920367d41cbc27c7dbde0deda16b1bcba46509ac89aa0753",
+      "hindsight-api-slim/hindsight_api/engine/sql/oracle.py": "f959d83a515a4e74704d1b59ee538de995f946986fe4df88862cc57282ddc843",
+      "hindsight-api-slim/hindsight_api/engine/sql/postgresql.py": "a887b4642b8f25c0b2d8e9715e197d5c24575e3d4a70d00ae94692b7783e8c16",
+      "hindsight-api-slim/hindsight_api/engine/storage/__init__.py": "fcf5af6182e3d8c5a062970d16c338459723f456a7aca215e3e7d59df489c984",
+      "hindsight-api-slim/hindsight_api/engine/storage/base.py": "0a67cffece2545635669460072a4664c012f04413a82d3ff668b4d8c8e487045",
+      "hindsight-api-slim/hindsight_api/engine/storage/postgresql.py": "6c98ea8d55d33e5fdd749c85746f495e20006e957d30f0f56696343991b81699",
+      "hindsight-api-slim/hindsight_api/engine/storage/s3.py": "668d45ab95e1b7bf5e33149653500aa9b2762adca18fc6f33ab351aa8acaab2b",
+      "hindsight-api-slim/hindsight_api/engine/structured_output.py": "37dd078f3bc4357296b42591cc64adf08c46e8c8677920cffa2ab3254c1de543",
+      "hindsight-api-slim/hindsight_api/engine/system_config.py": "29cda103eabcc159d16b26f3422d329a6a345f6dc8d4c94f3e4384aec6aafeb3",
+      "hindsight-api-slim/hindsight_api/engine/task_backend.py": "1033b68c1eb612bdf1e4982d6dc0621cf658bc0ca7c619d9b0e6266a81a9819f",
+      "hindsight-api-slim/hindsight_api/engine/tei_retry.py": "72cb9aef99696b5d139e8b2883db782a4ed6357472b9ec58b47ff9c920369771",
+      "hindsight-api-slim/hindsight_api/engine/temporal_language_detection.py": "8900e159aed8c4b52d997199621d82a103af3fd6458295f25ec354821f476d36",
+      "hindsight-api-slim/hindsight_api/engine/temporal_periods.py": "153b1947f8bd3f2db703de24d46d84e1a672dfb9dcb4858f311622422d8c05f9",
+      "hindsight-api-slim/hindsight_api/engine/time_filter.py": "4d16825245069d8741c26f126d0e716b054cdc8daffd7029f3287708b6e795fc",
+      "hindsight-api-slim/hindsight_api/engine/token_encoding.py": "dcc8c3032591a11ae3cdbe7ca91c45130a33a07fc2bef9fc6819a64e6b7fc721",
+      "hindsight-api-slim/hindsight_api/engine/transfer/__init__.py": "2bcb68ec83e974c0fbccacbc13712e47a815984beacf96a4fb3be39a91e77edd",
+      "hindsight-api-slim/hindsight_api/engine/transfer/export.py": "18a84fda949615ed85991de84ca0e9ffab1b8843347caaf34f782a564cefcf2c",
+      "hindsight-api-slim/hindsight_api/engine/transfer/importer.py": "269e830b80207134f8fc9999300ba2355563b7481749b1190d3d566f5db4c170",
+      "hindsight-api-slim/hindsight_api/engine/transfer/schema.py": "1dcc89208e2fbef000fdf1db598bcd7535d5a239e931e88d700774aefeced9a2",
+      "hindsight-api-slim/hindsight_api/engine/transfer/stream_archive.py": "8f7860a1004aca4c3ceb5890790adcf4172a76776a3a926dac612cc787026d65",
+      "hindsight-api-slim/hindsight_api/engine/trigram.py": "4ac0319f546529e69810f5b24e9e094423b5e177764c08d21addfd87e468e6c1",
+      "hindsight-api-slim/hindsight_api/engine/vector_index_health.py": "1a816ddf891a1ec0e7d4d0814fdb19d4b8e033776f2da8f94646d84dad43212c",
+      "hindsight-api-slim/hindsight_api/extensions/__init__.py": "60ca6bb95059a18e252e33f868af9d2351b45a622d384e459d6d9970ec0ccd93",
+      "hindsight-api-slim/hindsight_api/extensions/bank_tables.py": "79f57171b3eab8f35127999afa9ab4081a616d58dffeed4c1891ca77fa3f5b50",
+      "hindsight-api-slim/hindsight_api/extensions/base.py": "554d0f9b72e1b047c468648d5a7731b68bc414cae85470a94154f8e4650cf4df",
+      "hindsight-api-slim/hindsight_api/extensions/builtin/__init__.py": "724b5714a418f0497a33f28b0a90324ac5e93490317e7c403dd3b96ed69bcb46",
+      "hindsight-api-slim/hindsight_api/extensions/builtin/memory_defense_regex.py": "5f3214f5ee9937afd6ca3f58601825a781b5ec6155202a1f9944b396e61fe989",
+      "hindsight-api-slim/hindsight_api/extensions/builtin/tenant.py": "54b341d9c9a681bc8a0141d5747135d34d79266454c4fdf3b95c4e0a965d89a8",
+      "hindsight-api-slim/hindsight_api/extensions/context.py": "7638031fcc411dfb5839df9e0a6f53417d490a945de2d7d8320e0c6987cb7711",
+      "hindsight-api-slim/hindsight_api/extensions/http.py": "90fdb66b419abcb182492729d01884f1bac93aac9e96eea913a56cfca3b2cc6b",
+      "hindsight-api-slim/hindsight_api/extensions/loader.py": "c10ba9c81208025dc36ffc79b1c4389e5ad87c66b1184c0a3d1f3d4d43b92e5c",
+      "hindsight-api-slim/hindsight_api/extensions/mcp.py": "1f6145c1248a298f8f2dd3747f4f769085779e0371257e6ef9d28a146e85bd65",
+      "hindsight-api-slim/hindsight_api/extensions/memory_defense.py": "4ff0e743b79d3fb6d3ddaf8572762921a008e50e1dd6b58c57eec97816b668f5",
+      "hindsight-api-slim/hindsight_api/extensions/operation_validator.py": "de67ab4b3b5d668afe985d2138b19810b7faa9f9c8ebb8815ff1ef4690512b2d",
+      "hindsight-api-slim/hindsight_api/extensions/tenant.py": "d9ce6ac6181433da18f36e64d765c500d3fc1d47b4953afb4003fa3513a7257b",
+      "hindsight-api-slim/hindsight_api/extensions/validator_instrumentation.py": "ec8ede7c8acbfcfc69e2e26cff3a19f44d1e0149650d28798a60ad3485652bc2",
+      "hindsight-api-slim/hindsight_api/http_probe.py": "56b92882c28f9991bed7e5b621f93da95e13e41e3f43cda5086b1c5f59f2e52b",
+      "hindsight-api-slim/hindsight_api/liveness.py": "0a1b49e017b8e6323d3c946a529cd56517342ac428a6132135b98313f5eed755",
+      "hindsight-api-slim/hindsight_api/loop_lag.py": "5d291588c04bbcc951597d8b04bdeeab735290cca5b713facc0dcd7d87d05def",
+      "hindsight-api-slim/hindsight_api/loop_watchdog.py": "a199763fb13b0f10897dbf80efbcc1c2f6fc3480c607d2d393c1c6bb5f5b85fb",
+      "hindsight-api-slim/hindsight_api/main.py": "bbe169110347603392a254653fa33aec50be26c35cbdc57483e2cfeeb7203be4",
+      "hindsight-api-slim/hindsight_api/mcp_local.py": "331f44c014ed3433688538d831a6f52f100696d61bfd46e779a2bbaac38720e9",
+      "hindsight-api-slim/hindsight_api/mcp_tools.py": "13b7a36e5a4b1db982289381d140cd04ee20f62d25f8153dde5c50fe982783ef",
+      "hindsight-api-slim/hindsight_api/metrics.py": "f05fa64417cb18ccb88fc2eae6fa275592da02b291aa808138fcb9099758052d",
+      "hindsight-api-slim/hindsight_api/metrics_multiworker.py": "5409a071c3c7a079d9da8ff9050ea1ecc540e501858a0dcaa08a64e59efdba12",
+      "hindsight-api-slim/hindsight_api/migrations.py": "4dcdf64d4d751ba6f5c2ccc036c17de8adde9976d293c43f248f6fe71d2f9d83",
+      "hindsight-api-slim/hindsight_api/models.py": "6f0f3f3c4e0725fa8aa721c722c2f6f2cb6b63ac7965cfaefb0b0c5736df0d2b",
+      "hindsight-api-slim/hindsight_api/pg0.py": "c4c27fa5b01e23f231a33f27fac8e0002a653b5f31c2f211427b9165debae76a",
+      "hindsight-api-slim/hindsight_api/product_config.py": "345738bf1c0067d3f7bb131320f45fe1dd3bcae46cb0d0d6a816a4b92768c4b2",
+      "hindsight-api-slim/hindsight_api/profiling.py": "bc3b2d6823777329b2ec8e554630c57e372707f6322804feb844a7860be53e79",
+      "hindsight-api-slim/hindsight_api/public_errors.py": "9a4cb55594361527993454dbbc7fe6701bc2c76c71037545a6e8c487be13c0dc",
+      "hindsight-api-slim/hindsight_api/server.py": "9e13b162aa073502f6222f06760c92ed32a2d1131ac626e2c0e976f96d1e6878",
+      "hindsight-api-slim/hindsight_api/tracing.py": "e49aa1627eb8bd35ac6494b8ca13b76eec9d2167e47a39b0a3c38164c32baa65",
+      "hindsight-api-slim/hindsight_api/utils.py": "9d6b1bda11f89983071bb9e3831501d3080f0fd1c3dc20c7490874461a6c720b",
+      "hindsight-api-slim/hindsight_api/webhooks/__init__.py": "5933794331691d3f23e4c30ff36d73fc4511788bdbcc2aa15bcb0e22882d0f27",
+      "hindsight-api-slim/hindsight_api/webhooks/manager.py": "1971551f3b966695f61b0eda274082b6bfb5e0fca24b601c4ff5701d51bd8b8d",
+      "hindsight-api-slim/hindsight_api/webhooks/models.py": "f7798075e6118bab3689c32e2b4e15f3fab7625c2288f25aef306804228aecf2",
+      "hindsight-api-slim/hindsight_api/webhooks/url_guard.py": "e3f8858240046b0991c2c859a176b474ad3797e7880e80b0fcdaf918917d0211",
+      "hindsight-api-slim/hindsight_api/worker/__init__.py": "873a4c2ef39f80bd8a2abae293ff68baf13309dbc94ab1fea63e547452badc9d",
+      "hindsight-api-slim/hindsight_api/worker/backpressure.py": "9d67a01b8f8b17ea89c7c3f2813ab46e0c269ea873b4f5748f06c276a079d796",
+      "hindsight-api-slim/hindsight_api/worker/exceptions.py": "15f54dfbb6774199c94863993104d2cbecc2f98c7fe075948193b7bec61f078d",
+      "hindsight-api-slim/hindsight_api/worker/main.py": "b66b49e8b0f057591a7f18994eefb18156a3ec8dcb9920034c706e7e427ee10e",
+      "hindsight-api-slim/hindsight_api/worker/poller.py": "b8fef481b054f88f3b504712db802c4336771e4bb9c7a5e26583ab660ccb8ffc",
+      "hindsight-api-slim/hindsight_api/worker/stage.py": "e3bb8a815f055dcdbd95454a5cd932bf1c5fb125d0cfeea02ce0fe999bae8ed3",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/__init__.py": "14f932fc12b6a2eb65515e8b29c45e0ef04e3c14d9740faffccb48768f656f8b",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/__main__.py": "a097b361cba3173193fad73d2eb5b1d775a8cfa4f911e9fe5c0891560a7656e1",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/artifacts.py": "e7928c222a87f0b04edd7a388b45fb07ef6792e7b187053b8148c5136dc32339",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/asgi.py": "c547a2fa2fb20ce30e3a9671f97ac5ef596061a31aa671d098bb139dddc68d65",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/authorization.py": "5f1b5e87a1b3744ae989d769b6fd6f53b835464cde49f30b9f34b50fbd9e9425",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/bank_contract.py": "0f45491e7ef9ee52eabfc7c04c74e40816537d0fa191e09cb5f7518d31839887",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/bank_rest.py": "b10113f1e4b3e15534c70ab177ed9af2da239736a3a19ff04be7d8c93b5f7628",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/bootstrap.py": "c2d90d60a35953e3079e2efead0a862cfd636c56bb75623d78dff15c2827c20f",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/config.py": "4cb5709a1828b3ff087beb4e29560f7e8030b964382b1175e797623d9857bdf1",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/database_checks.py": "cdc0cb165b0018fb2746ebc7b286d0d1b165bbb7a10644bc36da71648a46e248",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/deployment.py": "687a5174f81e65f723777ec092a3467e456598fdb48c003a9e5ae605f1ecf75a",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/diagnostics.py": "88377da2fec77dff5f9eff52d8b10dc472ba8bcddbb667294e1659d9b147a250",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/embedded.py": "79aa44bae74d49ae53e867385150359d5bcb14578611dd820c73f197b615e72e",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/environment.py": "93842db9c45ed31309d7f3cc9665d301ad874548f905eec89ae41b5c9632d9bd",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/http.py": "78528a0b02fc5fab9034a38c5fce9f8e7c493366cef9c8f5f63edaf9ab114d3a",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/launch.py": "90b0917b83232bfc329cbe1f86dbd0561fbee1cf6d977ac98c464740d994191e",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/lifecycle.py": "f475247e05287d600c77106463fcb4584e982f5665f0e394d327edc51b9cfb0e",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/local.py": "d065927b7a2d46dc45b0a38af7edbd108de6da900eee694924e3e744d3d97651",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/maintenance.py": "3b73378604d0122a2dcd04d565a787b70ede2f1d3e6c0ee9b082dff4711367b3",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/mcp.py": "2fa7f186df46f97fef09d31e1e31d8f35d8402e00f919448f914e6f25ae9d5b7",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/migrations.py": "1a2561946cdd48fa08feebacb56debeee7bab94ed523fbab0c6b24a5047d2c85",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/models.py": "9f8573b0873d1f8e96c7c17f73b3dabe4bfdc69f879f0cd51d8a90f808e4f71b",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/preflight.py": "48925d83e7e43790e114c4c963ac6a6b624e4004d7bb5139bc32553a76a467fe",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/private_paths.py": "8e6438d4953c3c7f4b4f13bef78c9335846c3cb3d50baefe7631cedafe9e7b01",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/repository.py": "27e36e1beb755d71e410d99bc4aacc9fc9c8e1f1a1abc17245437edd26ef9746",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/routing.py": "5e632dab854b3fd3568f81185b52ebd1e7a8c0cd57166b6d1e37281468a0fab4",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/security.py": "316e3a4fa563e8411fd894ded6b64c50f55f8a0d8d715bde246765a82fcf621b",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/tenant.py": "883efa6e349c2ffee11b898bc3f633000356c2645d1ea25c37b433c9f659720c",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/transport.py": "065f66c4dcba9d60c6469ca8ddd7c22378c9b695ac0c697c0dd8969a0d596cf0",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/ui_gateway.py": "49db69665437b335d6c0becbef39026aeb42a5ce1e4fef5d9e315546d29b4964",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/ui_probe.py": "0944f60819a62e6f7fb955fd47ead28a45ef72afda9839cd02e77c9c4b6ac0f7",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/usage.py": "e24cb1c7dd3cb422fcd8ed76bebc7f112fd30c45d655c105c31b81ad08442270",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/usage_admin.py": "4addbcaac543b33bfa0e4610cf39a48f9924ee427df6bb1e0c16b813f756276b",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/usage_repository.py": "7b7c5116d1c79764ff9b0e168c77ce9bc9997973293c1780e34b567d35b3a71c",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/validator.py": "6a29f96f08fbaea10bb3de5f73e0195d3c57204e1b6a3ec13f7cc037570fd812",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/windows.py": "3e07ed0e59b27b02170c164f14d5cc7c1b3d45460736f9f029dbcb4150b07e9e",
+      "hindsight-extensions/contextdb-service/scripts/check_production_ui.py": "168ad3ca87916899218b63131f59ea96c66a95d8af6c6d5174c32c549589e7fc",
+      "hindsight-extensions/contextdb-service/scripts/ci_gate.py": "1fce16fc88ffa3a09b5df7e9cba7ba067071b673b9ee29a6b07e53dc25ab7933",
+      "hindsight-extensions/contextdb-service/scripts/generate_openapi.py": "fce052dd7cc8e6b5ba59330bf6b0e42a176327e69b9e6a8d335b710bd0c92545",
+      "hindsight-extensions/contextdb-service/scripts/node-agent.sh": "44b103c47db9655b13bca3a6f6e5cf14b5ceb8e2191d657dbebf40c7596a400e",
+      "hindsight-extensions/contextdb-service/scripts/run-ci.sh": "6b0c289154933236201983206bfaf745255842e9246cddbdf290285152893eb9",
+      "hindsight-extensions/contextdb-service/scripts/run_combined.py": "3cabf90ebe1e5dcecb9507425463b38fad21d49a9c578f56dc5416636f2983dc",
+      "hindsight-extensions/contextdb-service/scripts/service.sh": "740a7172de2e272796852b243cbb70acc6d43606b3009413c5a2beb900aa7b31",
+      "hindsight-extensions/contextdb-service/scripts/verify_integration.py": "ab275f5383f02084f7f83674c3f489c6b8f4fe43666fb631727ff9a9d7363556",
+      "hindsight-extensions/contextdb-service/tests/__init__.py": "ca0e979dcb302ad081128262fc96377e031e6aad6d5d30a6020944fedb9c9ffb",
+      "hindsight-extensions/contextdb-service/tests/conftest.py": "108f5f8ead1a934f46f25a38feb7d57140e981e58a42d938898489a4c7d078ab",
+      "hindsight-extensions/contextdb-service/tests/contracts/test_ui_key_contract.py": "c872a8b55e01fb1e8c8b4cced9dd102d406b608796d9a7b09a795157c5ad7294",
+      "hindsight-extensions/contextdb-service/tests/lifecycle_http.py": "44a1dfb7d05c5398531dd68ec47f9dde14a8eb0fd2f06724f7d1c1ee2cb069a9",
+      "hindsight-extensions/contextdb-service/tests/paths.py": "379ca0ece4c3ed43ab1a3573b3e4277cca94873f177585f0377d58d0265dc647",
+      "hindsight-extensions/contextdb-service/tests/python/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "hindsight-extensions/contextdb-service/tests/python/conftest.py": "9e4f3973e601745301399f9fe7dae38827287c1de121c408a56193ad83cda858",
+      "hindsight-extensions/contextdb-service/tests/python/support/__init__.py": "ad24fe1f22e4470d382ac21358d3259b4df9494342b7f1a975043d6d84b9c1d9",
+      "hindsight-extensions/contextdb-service/tests/python/support/http.py": "b4a14ce090d20b5d3ab6c795ef4d4ad15c8780015d1d019ff51dc4ed3d61e959",
+      "hindsight-extensions/contextdb-service/tests/python/support/identities.py": "4a6f3575ddcb2acdcf4f7cbaecb731a35b1af544001fe6d137515adadcb5e2d6",
+      "hindsight-extensions/contextdb-service/tests/python/support/lifecycle.py": "2ece872cc85b755581e3a46dbe484cfddd423f0b86569d800ee1d273cf93c919",
+      "hindsight-extensions/contextdb-service/tests/python/support/metadata.py": "841d83fd077402d29df240ce9f9e792f00f87550001002e4b1536dfdcbb6533a",
+      "hindsight-extensions/contextdb-service/tests/python/support/native_doubles.py": "5dbed6ea3e040f500e9903f824cb857de7d153d0f74510229d33c30f3f6345f8",
+      "hindsight-extensions/contextdb-service/tests/python/test_authorization.py": "be4eafe12eac2548a1711d29fc6f8ef7dd5767bad002c9fb909828d19fca1058",
+      "hindsight-extensions/contextdb-service/tests/python/test_authorization_models.py": "9ab5e8b593bc75100989f5427234334803aefb06d0eebed3d1e10a04ba54ae6a",
+      "hindsight-extensions/contextdb-service/tests/python/test_bank_rest.py": "a382dc882d48425b29832d0780fa95097b41068a85616e699da3cb1fd4f62215",
+      "hindsight-extensions/contextdb-service/tests/python/test_bootstrap_deployment.py": "7d4b41c985a2ecac829b0bb8a9e1836c3036e84c18374f25eb112e198d75e18b",
+      "hindsight-extensions/contextdb-service/tests/python/test_build_artifacts.py": "f37088f96e16f1e1b68b05657480644e7e85eeb2f8d597fb7dbea2bed3b78a63",
+      "hindsight-extensions/contextdb-service/tests/python/test_ci_gate.py": "21eeddd266bd59ff96cedb41481517b3fb76be16064ab7fa0f34b5e72f7c087a",
+      "hindsight-extensions/contextdb-service/tests/python/test_combined_lifecycle.py": "9706e205da5b396603f91417f3e47e43fa56b22534a2de2e4e65f319fc7cf2dd",
+      "hindsight-extensions/contextdb-service/tests/python/test_credential_repr.py": "1baeaffd5ad6a20d6c6db2ec6402cb5fc3069ae9db32378f83f14ddffa0c66c9",
+      "hindsight-extensions/contextdb-service/tests/python/test_customer_pg_boundary.py": "fc670224f1a3d3c2639d940e1ac5bb35a8c9bb4139a9653ad286251a23eb2a96",
+      "hindsight-extensions/contextdb-service/tests/python/test_deployment_contract.py": "5d687539ef85af4e0dc99e1a105026e2a40dd221916c1d2318e8a800a0b68b5e",
+      "hindsight-extensions/contextdb-service/tests/python/test_diagnostics.py": "0aff5972eb56effb44b974b434e36792510a7e9dac96adc0ace06597af2b9423",
+      "hindsight-extensions/contextdb-service/tests/python/test_environment.py": "c0ffcbb064e57e4a472b8a5114200052ce401f77bb10704b6cce1416e61eae19",
+      "hindsight-extensions/contextdb-service/tests/python/test_extensions.py": "92760f34a6a5f6ac00fe2e6629f74af55eb9934cd839271aba910cc6cb61fc79",
+      "hindsight-extensions/contextdb-service/tests/python/test_http.py": "f82ab010475a8d2f1c08856c25e7be6a5b40892c336cc7bf759a30ea71abc842",
+      "hindsight-extensions/contextdb-service/tests/python/test_lifecycle_metadata.py": "e7c287dea9bfa42409d8594eb1693710ef25f055f906d3a23f895d9f32edaf30",
+      "hindsight-extensions/contextdb-service/tests/python/test_local_deployment.py": "01ddf00d3e44dbc0c082b9def1c6bc4edadaef1bb7ec9ee01464c1fdaf5ac6ff",
+      "hindsight-extensions/contextdb-service/tests/python/test_local_shutdown.py": "f6d2bca4f85da989d8fdc3a281b05442547ccbf1c52da5f38f9801d91cf2e0c5",
+      "hindsight-extensions/contextdb-service/tests/python/test_maintenance_bootstrap.py": "a86cf52c9f1398b5657f82de0ab33762213d06820ae90a1f823db245d9dbe7f3",
+      "hindsight-extensions/contextdb-service/tests/python/test_managed_dotenv.py": "6cfcce3a406d8a2a79184497c200a1c75ff8ac58e5bc5bc503db5e2f9ad141c2",
+      "hindsight-extensions/contextdb-service/tests/python/test_management_logging.py": "3bd809030547a82a050fead9b4c5c0be5dbe33dbf111a78fa249a1eef9c902b0",
+      "hindsight-extensions/contextdb-service/tests/python/test_mcp_discovery.py": "957a20f5a836d23b8d655bdad97f740d6896abd4c1368714fc06f428a13aaa37",
+      "hindsight-extensions/contextdb-service/tests/python/test_mcp_metadata_errors.py": "4f1cbdbd87c89bfeaa622c2450508edb1519e00fa4306027d09328eb6718a0cf",
+      "hindsight-extensions/contextdb-service/tests/python/test_mcp_schema_context.py": "eedce7fcaca58479e9cf0bc897c011c3ab89a1044a02c55b4a3ef41b32f39083",
+      "hindsight-extensions/contextdb-service/tests/python/test_mcp_tool_policy.py": "a264b7a318be2541d0e1f57c53eda5c8d30483d883f1968ae0519b83d870e5ed",
+      "hindsight-extensions/contextdb-service/tests/python/test_metadata_initialization.py": "3543c24f8244f0d36086fd866f1d753eb01feddec81e4f89bfc87cb72ccb3f9a",
+      "hindsight-extensions/contextdb-service/tests/python/test_openapi_contract.py": "a91b2a2ddac06572d0ebf137e14da151dda38136c1ef67a76c12ad91bd3a4af4",
+      "hindsight-extensions/contextdb-service/tests/python/test_pgroonga_preflight.py": "f2c67e91b92fa415383fc35a5bce04bc7cd300440a84c2281ff6598948aa2197",
+      "hindsight-extensions/contextdb-service/tests/python/test_production_ui_gate.py": "2b57895da593ca135216425759cf9f74313d856ade6f205e99cbc221cd5f0b16",
+      "hindsight-extensions/contextdb-service/tests/python/test_query_efficiency.py": "bc5dd30498ad13489f7a28f97725d6b312d086661fd5db176c00084c42143b80",
+      "hindsight-extensions/contextdb-service/tests/python/test_readable_workspaces.py": "ffbe7bb1d364fa774a3b17f2cca106f0538bbc1e700e0f3178fdf89c3de9da72",
+      "hindsight-extensions/contextdb-service/tests/python/test_release_hardening.py": "bb95779db844d1269a5ec714ea9a623ed76fa3e93eea3b2e33064a4e2289afb9",
+      "hindsight-extensions/contextdb-service/tests/python/test_repository.py": "6505609dc6088e65fddeb7d902d3b4bce5fed38aa7c44dd06732e4f004ce680f",
+      "hindsight-extensions/contextdb-service/tests/python/test_resource_cleanup.py": "9b5ae7060d0927414d871a107a94175515c2bd70f372dd159c9619cf5626cbbd",
+      "hindsight-extensions/contextdb-service/tests/python/test_security.py": "f59f43f6a51e4304d2c22678bf32348c0e1c76fa5de250dcc4c877b4877b6dda",
+      "hindsight-extensions/contextdb-service/tests/python/test_startup_diagnostics.py": "ef74f3811092caa56998527e02ac6c8bc46ae1a1e67a2c7e2acb510a383a6df4",
+      "hindsight-extensions/contextdb-service/tests/python/test_tenant_admin.py": "147983a7fce65928f17668e2c4409658897d2916c5b6b21fa781b244fb94c8c8",
+      "hindsight-extensions/contextdb-service/tests/python/test_transport.py": "1199a676da169981c5be24b62dd3c305953055a10d645a2a712a1dafb9a979ef",
+      "hindsight-extensions/contextdb-service/tests/python/test_ui_gateway.py": "5fe1de5e3c7d1f85463517f519f452e77e4be425f5c36489cd47016a26f5749d",
+      "hindsight-extensions/contextdb-service/tests/python/test_ui_owner_environment.py": "dc28ea5e1f69f47c93994251395fb7d32222036d5fbffd3b3a97adde59d542cd",
+      "hindsight-extensions/contextdb-service/tests/python/test_ui_probe.py": "3efb67eb97483b62be7986b05970c5a1fd312ea86ffa3dc23d9f5b050865ef08",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage.py": "ed9781188792c6b5416f77ec10067fb20627e6337f177379a00b44f8361ba3e2",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage_admin.py": "414df9a061ea18a9c589c194d2160b5339e8d82b3b53daff8b2ca9f6931c384c",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage_authorization.py": "6eed45861a50aaf645b935a8bd7f11e7f7a5182b82c34b20f774add7c09895f9",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage_repository.py": "1e6a19fcdda8f6ed60d0bdc6d588dc1edff15ab5c4bee065badce3b8c668c0d7",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage_switch.py": "cf35b3633064cd1899aaee51152f83e4da03ff43ce47c580f301cdfce1c8a951",
+      "hindsight-extensions/contextdb-service/tests/python/test_usage_upgrade.py": "99a6ebe9241f6b8b462e14958b370408b6fbedf3bd994abd365512e2b484383d",
+      "hindsight-extensions/contextdb-service/tests/python/test_webhook_boundary.py": "3c6fad3a4e2f734b4883b2c0be4aae0e62285b7aeb298f5f91beb3bc532da108",
+      "hindsight-extensions/contextdb-service/tests/system/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "hindsight-extensions/contextdb-service/tests/system/conftest.py": "990e810113c3d98f933a8a5b49caff3b878cb1642021b0dba02571703bc37758",
+      "hindsight-extensions/contextdb-service/tests/system/support/__init__.py": "7e061bceef0b09b6a226d651938cda3723de61ad1a3bcc514ca0a5321a42b4c1",
+      "hindsight-extensions/contextdb-service/tests/system/support/clients.py": "67ba5fd89149b2da0c6cfe40449ddcea79f5e33c844ec2956b83d847e38ef6ee",
+      "hindsight-extensions/contextdb-service/tests/system/support/deployment.py": "b7e9f546e3e4491a63c7cbbc78c9a26153a43a2752ebb85f0db0e0ac2f724c08",
+      "hindsight-extensions/contextdb-service/tests/system/support/knowledge.py": "51624507d124f46f010db385e249d96b241ad849575df3fec08fece75c70e4f8",
+      "hindsight-extensions/contextdb-service/tests/system/support/mcp.py": "53d4a47b786cc8e9734fcaed63a93ae3b3ba6e8be6925bd13feb3afdfceb41a2",
+      "hindsight-extensions/contextdb-service/tests/system/support/startup_diagnostics.py": "00d4d55e85b4ae022be156d900e30ff7dd6fdc742df0ed30a1e02d1dcec66c27",
+      "hindsight-extensions/contextdb-service/tests/system/support/ui.py": "9cbd50cc43199482eb29830328434c3425e0752ec8fc90329d305550c0667cc7",
+      "hindsight-extensions/contextdb-service/tests/system/test_100_contextdb_service.py": "ebf3c8f0339329e440da7dd0144d7579a76db6360a818e4606d6fc7d36adfa79",
+      "hindsight-extensions/contextdb-service/tests/system/test_101_contextdb_knowledge.py": "2e94d61cf7cf8d9fe0267a9fa75fa0da3821ae0964685ad3846cb6cf54a4f61c",
+      "hindsight-extensions/contextdb-service/tests/system/test_102_contextdb_fixture_cleanup.py": "4ec41a2d06c6face480f3b0ab114bea747c34f2f1b1c5948778cc3358e0f99d0",
+      "hindsight-extensions/contextdb-service/tests/system/test_103_contextdb_sync_management.py": "37a858733389486873fcfce76344a9d90842bf63182cf1fffdc06ee7e7e18833",
+      "hindsight-extensions/contextdb-service/tests/system/test_104_contextdb_mcp_identity.py": "35a3f866f2fd71dae83d19f6967a8875df9af044a54d44b3aa12c7351f045eb1",
+      "hindsight-extensions/contextdb-service/tests/system/test_105_contextdb_knowledge_scope.py": "1fde74cbae2422d9b5a29bf9503e259ff54ecf64a26791c73c6c011e1c518381",
+      "hindsight-extensions/contextdb-service/tests/system/test_106_contextdb_default_template.py": "47689da587eeaa636723cacd076c47fe610a9d6632a0cd41d5a49bb0deb07b9f",
+      "hindsight-extensions/contextdb-service/tests/system/test_107_contextdb_default_compatibility.py": "1c7403aeee40a78861a403a6665b0e2b1f5ef91a250daa3e6df1128f2789c03f",
+      "hindsight-extensions/contextdb-service/tests/system/test_109_contextdb_fault_retention.py": "b4500a028588bb55d8e7ac7c1fc79e8b9e217fa436f67fc8fd97a1b871825cab",
+      "hindsight-extensions/contextdb-service/tests/system/test_110_contextdb_tenant_admin.py": "7fee167384c83c8781aa1f9324832da6547f813985e9f065f2f3e3c0b2ace26f",
+      "hindsight-extensions/contextdb-service/tests/system/test_111_contextdb_business_keys.py": "e165124fdcf7398b98b4db1068f70e366da67e540b468f9e21b05647bca57e92",
+      "hindsight-extensions/contextdb-service/tests/system/test_112_contextdb_ui_management.py": "854000ae6f6fb9b38275120fe45eda51af6a77f56050134e023b7adc316653ee",
+      "hindsight-extensions/contextdb-service/tests/system/test_113_contextdb_optimized_authorization.py": "e717d9757fce2e8478175baa199dd463cbece1802cf75cb374b0f4cf1e8e9d29",
+      "hindsight-extensions/contextdb-service/tests/system/test_114_contextdb_diagnostic_credentials.py": "9f929d6e4957312ceceec0902dcc69d99839f6c9a2d0419406f851b61799af07",
+      "hindsight-extensions/contextdb-service/tests/system/test_115_contextdb_workspace_recreation.py": "1aabf142ee8e8b4ee594edb764843746a78e5d98e63d75471382779821f7555e",
+      "hindsight-extensions/contextdb-service/tests/system/test_116_contextdb_chunks.py": "58860bf04c44dff0d9f9f8de7f5c635be34eb1d468e4b3a5eb98cb924563cd2a",
+      "hindsight-extensions/contextdb-service/tests/system/test_117_contextdb_management_failures.py": "093fcda0f9dc315afc1e26f096aebb228533292210706664e03c3970b11fe74a",
+      "hindsight-extensions/contextdb-service/tests/system/test_118_contextdb_append_contention.py": "d3b1123a4d57bbed21d831455c997c5164eda11fbc2341fed344fbddffa502d9",
+      "hindsight-extensions/contextdb-service/tests/system/test_119_contextdb_mcp_configuration.py": "3ab0d042e94896662b99311bc7522585c11aae1691a317660dd4463fb78ac0ac",
+      "hindsight-extensions/contextdb-service/tests/system/test_120_contextdb_maintenance.py": "85678642904d9d6e9cc67d0ecbd56d4e6fe77961f764b2892c03ee6f398e900e",
+      "hindsight-extensions/contextdb-service/tests/system/test_121_contextdb_usage.py": "1ab7837b15339fdb11637d8d33d41e05998ef3a7c1b6da9efef2f887b119639f",
+      "hindsight-extensions/contextdb-service/tests/system/test_122_contextdb_usage_switch.py": "c74ed3c917f48c681f605d7c01668174b5458d501d0b82e21bd0364d36bd26dc",
+      "hindsight-extensions/contextdb-service/tests/system/test_123_contextdb_bank_rest.py": "1a8638fea08510975d0d51a9f5099a3523d9726b35ff4c122bb5ab38959bdf49",
+      "hindsight-extensions/contextdb-service/tests/system/test_124_contextdb_mcp_tool_policy.py": "00531f1773f169575f4aa94da89c75aa4d6fa511584b2a142d732dc059b36bb0",
+      "hindsight-extensions/contextdb-service/tests/system/test_125_contextdb_mcp_endpoint_tools.py": "d75a9c3680d30230c5520e0373e4b30a41a10ecd49fd6e987759ebdd61cb5062",
+      "hindsight-extensions/contextdb-service/tests/system/test_126_contextdb_local_start.py": "0ef7dc450b31e93f410888ef14729fcf0f4f4ed7605793a863e37af1261a04e1",
+      "hindsight-extensions/contextdb-service/tests/system/test_ui_dynamic_origin.py": "64d67c6ccf0675912c53e1f018206e0bd97b6c3e779e91cb4c4d030213da0a64",
+      "hindsight-extensions/contextdb-service/tests/system/test_ui_gateway_runtime.py": "ffeb649d7e8c9c6671ce7085146ec5e2d850e4fddccaee1e38997a9cba32a431",
+      "hindsight-extensions/contextdb-service/tests/windows/test_native_local.py": "1ac32364e78e89b87383944b903a7100c2a0b63bfa07b30c282d8abecda35e15",
+      "hindsight-extensions/contextdb-service/tests/windows/test_startup_flow.py": "2d606aa10dfa242d374f62c0e098eca9661039500f0b280ee3f4672866c660a9"
+    },
+    "files_different_or_added_vs_base_commit": [
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/deployment.py",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/local.py",
+      "hindsight-extensions/contextdb-service/hindsight_ext_contextdb/ui_gateway.py",
+      "hindsight-extensions/contextdb-service/scripts/check_production_ui.py",
+      "hindsight-extensions/contextdb-service/scripts/run-ci.sh",
+      "hindsight-extensions/contextdb-service/tests/python/test_deployment_contract.py",
+      "hindsight-extensions/contextdb-service/tests/python/test_local_deployment.py",
+      "hindsight-extensions/contextdb-service/tests/python/test_production_ui_gate.py",
+      "hindsight-extensions/contextdb-service/tests/python/test_ui_gateway.py",
+      "hindsight-extensions/contextdb-service/tests/python/test_ui_owner_environment.py",
+      "hindsight-extensions/contextdb-service/tests/system/support/ui.py",
+      "hindsight-extensions/contextdb-service/tests/system/test_ui_dynamic_origin.py",
+      "hindsight-extensions/contextdb-service/tests/system/test_ui_gateway_runtime.py"
+    ],
+    "api_version_snapshot": {
+      "api_version": "1.0.0",
+      "features": {
+        "observations": true,
+        "mcp": true,
+        "worker": true,
+        "bank_config_api": true,
+        "bank_llm_health": false,
+        "file_upload_api": true,
+        "document_export_api": true,
+        "document_import_api": true,
+        "audit_log": false,
+        "llm_trace": false,
+        "store_document_text": true
+      }
+    },
+    "runtime_packages": {
+      "torch": "2.13.0",
+      "sentence-transformers": "5.7.0",
+      "transformers": "5.12.1",
+      "numpy": "2.3.4",
+      "pydantic": "2.12.5",
+      "aiohttp": "3.14.3",
+      "asyncpg": "0.30.0",
+      "pgvector": "0.4.1",
+      "tiktoken": "0.12.0",
+      "tokenizers": "0.22.2",
+      "safetensors": "0.8.0"
+    },
+    "safe_env_configured_values": {
+      "HINDSIGHT_API_LLM_PROVIDER": "openai-codex",
+      "HINDSIGHT_API_LLM_MODEL": "gpt-6.1-sol",
+      "HINDSIGHT_API_LLM_REASONING_EFFORT": "medium",
+      "HINDSIGHT_API_EMBEDDINGS_PROVIDER": "openai",
+      "HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL": "doubao-embedding-vision",
+      "HINDSIGHT_API_EMBEDDINGS_OPENAI_DIMENSIONS": "1024",
+      "HINDSIGHT_API_RERANKER_PROVIDER": "local",
+      "HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT": "2",
+      "HINDSIGHT_API_RERANKER_LOCAL_BATCH_SIZE": "8",
+      "HINDSIGHT_API_RERANKER_LOCAL_FORCE_CPU": "true",
+      "HINDSIGHT_API_RERANKER_LOCAL_FP16": "false",
+      "OMP_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1"
+    },
+    "reranker_model_repository": "BAAI/bge-reranker-v2-m3",
+    "reranker_model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "reranker_model_weight_sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+    "resource_epochs": "See results/locomo1540-window-diagnostics-20261119.json: effective_reranker_resource_epochs"
+  },
+  "postgresql": {
+    "key_setting_snapshot": {
+      "captured_at": "2026-11-19T05:27:42.351369+00:00",
+      "scope": "Read-only audit connection, not the active API connection; query-specific SET LOCAL values are not inferred from session defaults.",
+      "settings": [
+        {
+          "name": "default_text_search_config",
+          "setting": "pg_catalog.english",
+          "unit": null,
+          "source": "configuration file",
+          "pending_restart": false
+        },
+        {
+          "name": "effective_cache_size",
+          "setting": "524288",
+          "unit": "8kB",
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "effective_io_concurrency",
+          "setting": "16",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "enable_bitmapscan",
+          "setting": "on",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "enable_indexscan",
+          "setting": "on",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "enable_seqscan",
+          "setting": "on",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "jit",
+          "setting": "on",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "maintenance_io_concurrency",
+          "setting": "16",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "maintenance_work_mem",
+          "setting": "65536",
+          "unit": "kB",
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "max_connections",
+          "setting": "100",
+          "unit": null,
+          "source": "configuration file",
+          "pending_restart": false
+        },
+        {
+          "name": "max_parallel_workers",
+          "setting": "8",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "max_parallel_workers_per_gather",
+          "setting": "2",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "max_worker_processes",
+          "setting": "8",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "plan_cache_mode",
+          "setting": "auto",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "random_page_cost",
+          "setting": "4",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "seq_page_cost",
+          "setting": "1",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "server_version",
+          "setting": "18.4",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "shared_buffers",
+          "setting": "16384",
+          "unit": "8kB",
+          "source": "configuration file",
+          "pending_restart": false
+        },
+        {
+          "name": "track_io_timing",
+          "setting": "off",
+          "unit": null,
+          "source": "default",
+          "pending_restart": false
+        },
+        {
+          "name": "work_mem",
+          "setting": "4096",
+          "unit": "kB",
+          "source": "default",
+          "pending_restart": false
+        }
+      ],
+      "not_exposed_in_this_session": [
+        "shared_preload_libraries",
+        "hnsw.ef_search",
+        "hnsw.iterative_scan",
+        "hnsw.max_scan_tuples",
+        "hnsw.scan_mem_multiplier",
+        "ivfflat.probes",
+        "ivfflat.iterative_scan",
+        "ivfflat.max_probes"
+      ],
+      "extensions": [
+        {
+          "name": "btree_gin",
+          "version": "1.3",
+          "schema": "public"
+        },
+        {
+          "name": "pg_trgm",
+          "version": "1.6",
+          "schema": "public"
+        },
+        {
+          "name": "plpgsql",
+          "version": "1.0",
+          "schema": "pg_catalog"
+        },
+        {
+          "name": "vector",
+          "version": "0.8.6",
+          "schema": "public"
+        }
+      ],
+      "limitations": [
+        "Restricted or null settings remain unknown; do not fill from assumed defaults.",
+        "This is a selected key-setting snapshot, not a full postgresql.conf or server permission audit.",
+        "No SET of database/global parameters, DDL, index creation, data mutation or benchmark/model calls."
+      ]
+    },
+    "index_snapshot_sha256": "e4d96a1195028b81f663c17652c4f0698a8b9f6fb2531373178823dc8cb302f3",
+    "index_snapshots": [
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_26",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_26",
+        "facts": 159,
+        "chunks": 47,
+        "documents": 19,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_26.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_26.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_1a71a2db87534db3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_1a71a2db87534db3 ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_26'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_1a71a2db87534db3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_1a71a2db87534db3 ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_26'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_1a71a2db87534db3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_1a71a2db87534db3 ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_26'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_26.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_26.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_30",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_30",
+        "facts": 113,
+        "chunks": 36,
+        "documents": 19,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_30.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_30.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_adb09f6ee3d7437e",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_adb09f6ee3d7437e ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_30'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_adb09f6ee3d7437e",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_adb09f6ee3d7437e ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_30'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_adb09f6ee3d7437e",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_adb09f6ee3d7437e ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_30'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_30.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_30.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_41",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_41",
+        "facts": 217,
+        "chunks": 66,
+        "documents": 32,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_41.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_41.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_c462d958de894000",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_c462d958de894000 ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_41'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_c462d958de894000",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_c462d958de894000 ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_41'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_c462d958de894000",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_c462d958de894000 ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_41'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_41.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_41.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_42",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_42",
+        "facts": 201,
+        "chunks": 60,
+        "documents": 29,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_42.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_42.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_f5e31645dd5448c0",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_f5e31645dd5448c0 ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_42'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_f5e31645dd5448c0",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_f5e31645dd5448c0 ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_42'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_f5e31645dd5448c0",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_f5e31645dd5448c0 ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_42'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_42.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_42.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_43",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_43",
+        "facts": 231,
+        "chunks": 65,
+        "documents": 29,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_43.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_43.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_1b091a6e98fb4ef6",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_1b091a6e98fb4ef6 ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_43'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_1b091a6e98fb4ef6",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_1b091a6e98fb4ef6 ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_43'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_1b091a6e98fb4ef6",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_1b091a6e98fb4ef6 ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_43'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_43.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_43.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_44",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_44",
+        "facts": 216,
+        "chunks": 74,
+        "documents": 28,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_44.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_44.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_f8bb9dca21374149",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_f8bb9dca21374149 ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_44'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_f8bb9dca21374149",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_f8bb9dca21374149 ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_44'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_f8bb9dca21374149",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_f8bb9dca21374149 ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_44'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_44.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_44.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_47",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_47",
+        "facts": 214,
+        "chunks": 64,
+        "documents": 31,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_47.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_47.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_cef7b75c82904931",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_cef7b75c82904931 ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_47'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_cef7b75c82904931",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_cef7b75c82904931 ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_47'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_cef7b75c82904931",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_cef7b75c82904931 ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_47'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_47.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_47.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_48",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_48",
+        "facts": 232,
+        "chunks": 63,
+        "documents": 30,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_48.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_48.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_a8d53d69bad24889",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_a8d53d69bad24889 ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_48'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_a8d53d69bad24889",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_a8d53d69bad24889 ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_48'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_a8d53d69bad24889",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_a8d53d69bad24889 ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_48'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_48.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_48.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_49",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_49",
+        "facts": 159,
+        "chunks": 50,
+        "documents": 25,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_49.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_49.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_705b94cfac3c4c71",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_705b94cfac3c4c71 ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_49'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_705b94cfac3c4c71",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_705b94cfac3c4c71 ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_49'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_705b94cfac3c4c71",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_705b94cfac3c4c71 ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_49'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_49.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_49.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      },
+      {
+        "bank_id": "locomo1540_20261119_012639_conv_50",
+        "schema_name": "ctxdb_ws_locomo1540_20261119_012639_conv_50",
+        "facts": 200,
+        "chunks": 63,
+        "documents": 30,
+        "embedding_dimensions": 1024,
+        "indexes": [
+          {
+            "name": "idx_chunks_bank_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_50.chunks USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_chunks_document_id",
+            "table": "chunks",
+            "definition": "CREATE INDEX idx_chunks_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_50.chunks USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_date ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_id ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_mentioned_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_mentioned_at ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type, mentioned_at) WHERE (mentioned_at IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_end",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_end ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type, occurred_end) WHERE (occurred_end IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_occurred_start",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_occurred_start ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type, occurred_start) WHERE (occurred_start IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_type_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_type_date ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type, event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_bank_updated_at",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_bank_updated_at ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, updated_at DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_chunk_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_chunk_id ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_consolidation_failed",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_consolidation_failed ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, consolidation_failed_at) WHERE ((consolidation_failed_at IS NOT NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_document_id",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_document_id ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (document_id)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_embedding_hnsw",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_embedding_hnsw ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING hnsw (embedding vector_cosine_ops)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_event_date",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_event_date ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (event_date DESC)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_fact_type",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_fact_type ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (fact_type)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_observations",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_observations ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, fact_type) WHERE (fact_type = 'observation'::text)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_source_memory_ids",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_source_memory_ids ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING gin (source_memory_ids) WITH (fastupdate=off) WHERE (source_memory_ids IS NOT NULL)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_tags",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_tags ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING gin (tags)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_text_search",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_text_search ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING gin (search_vector)",
+            "valid": true
+          },
+          {
+            "name": "idx_memory_units_unconsolidated",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_memory_units_unconsolidated ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (bank_id, created_at) WHERE ((consolidated_at IS NULL) AND (fact_type = ANY (ARRAY['experience'::text, 'world'::text])))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_expr_036c7390d0464cb3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_expr_036c7390d0464cb3 ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'experience'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_50'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_obsv_036c7390d0464cb3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_obsv_036c7390d0464cb3 ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'observation'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_50'::text))",
+            "valid": true
+          },
+          {
+            "name": "idx_mu_emb_worl_036c7390d0464cb3",
+            "table": "memory_units",
+            "definition": "CREATE INDEX idx_mu_emb_worl_036c7390d0464cb3 ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING hnsw (embedding vector_cosine_ops) WHERE ((fact_type = 'world'::text) AND (bank_id = 'locomo1540_20261119_012639_conv_50'::text))",
+            "valid": true
+          },
+          {
+            "name": "pk_chunks",
+            "table": "chunks",
+            "definition": "CREATE UNIQUE INDEX pk_chunks ON ctxdb_ws_locomo1540_20261119_012639_conv_50.chunks USING btree (chunk_id)",
+            "valid": true
+          },
+          {
+            "name": "pk_memory_units",
+            "table": "memory_units",
+            "definition": "CREATE UNIQUE INDEX pk_memory_units ON ctxdb_ws_locomo1540_20261119_012639_conv_50.memory_units USING btree (id)",
+            "valid": true
+          }
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "This current API deployment is separate from the benchmark Git branch; matching base commit alone does not prove identical deployed source if the differing-file list is nonempty.",
+    "An API version string1.0.0 alone is not a unique build identifier. Compare source fingerprints and runtime packages.",
+    "Source snapshots/hashes identify the deployed code; this file does not package or deploy the server.",
+    "New code+different server is a new-environment experiment, not an exact reproduction of the current local deployment.",
+    "V1 example reuses the original ten Banks; an independent server needs those exact stored memories restored, or explicitly declares a new extraction baseline.",
+    "Current run started with reranker1 and later changed to2; the example uses current2 uniformly and cannot reproduce mixed-resource timing exactly.",
+    "Secrets and full env backups remain private in .local; no credential values or machine-specific model paths are included here.",
+    "Null/omitted model settings are unspecified, not a claim of deterministic temperature0.",
+    "PG settings describe an audit connection; per-query application SET LOCAL values are not inferred."
+  ]
+}
