@@ -10725,6 +10725,45 @@ class MemoryEngine(MemoryEngineInterface):
                 logger.error("\n" + "\n".join(log_buffer), exc_info=True)
             raise RuntimeError(f"Failed to search memories ({type(e).__name__}): {e!r}") from e
 
+    async def _recall_document_dates(
+        self, bank_id: str, document_ids: list[str], *, request_context: "RequestContext"
+    ) -> dict[str, str]:
+        """Read authorized retained session dates for opt-in context selection.
+
+        Never substitute ingestion time or a fact's inferred event date. Only
+        caller-visible documents already referenced by recall may be requested.
+        This metadata read is separate from candidate retrieval/RRF pushdown.
+        """
+        await self._authenticate_tenant(request_context)
+        from .memories import get_memories
+
+        # Called only after recall_async has authorized and selected the source
+        # chunks. Reuse the caller scope, without a second billable recall or
+        # requiring unrelated GET_DOCUMENT permission.
+        tag_scope = await self._tag_scope(bank_id, request_context)
+        backend = await self._get_backend()
+        dates: dict[str, str] = {}
+        async with acquire_with_retry(backend) as conn:
+            for document_id in dict.fromkeys(document_ids):
+                doc = await get_memories().get_document_with_counts(
+                    conn=conn,
+                    ops=self._backend.ops,
+                    fq_table=fq_table,
+                    bank_id=bank_id,
+                    document_id=document_id,
+                )
+                if not doc or not tags_satisfy_groups(doc["tags"], tag_scope):
+                    raise ValueError("locomo source document is unavailable in the caller's scope")
+                params = conn.parse_json(doc["retain_params"]) if doc["retain_params"] else {}
+                timestamp = (params or {}).get("event_date")
+                if not isinstance(timestamp, str) or not timestamp:
+                    raise ValueError("locomo requires a retained event_date for every source document")
+                parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    raise ValueError("locomo source document dates must include a timezone")
+                dates[document_id] = timestamp
+        return dates
+
     async def get_document(
         self,
         document_id: str,

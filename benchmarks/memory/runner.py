@@ -942,12 +942,15 @@ def components(archive: Archive) -> Components:
                 ) as session:
                     http = core.BankHTTP(session, manifest.config, secret)
                     body = core.RecallBody(
+                        recall_profile="locomo" if manifest.config.recall_profile == "locomo" else None,
                         query=query,
                         budget=manifest.config.recall.budget,
                         max_tokens=manifest.config.recall.max_tokens,
                         query_timestamp=query_timestamp,
                         include=core.RecallInclude(
-                            chunks=core.ChunkBudget(max_tokens=manifest.config.recall.max_chunk_tokens)
+                            chunks=None
+                            if manifest.config.recall_profile == "locomo"
+                            else core.ChunkBudget(max_tokens=manifest.config.recall.max_chunk_tokens)
                         ),
                     )
                     started = time.monotonic()
@@ -968,9 +971,12 @@ def components(archive: Archive) -> Components:
                     finally:
                         seal(path, record)
                 try:
-                    record.packing = core.pack_context(
-                        record.recall, conversation, manifest.config.packing, query=query
-                    )
+                    if manifest.config.recall_profile == "locomo":
+                        record.packing = core.server_packed_context(record.recall)
+                    else:
+                        record.packing = core.pack_context(
+                            record.recall, conversation, manifest.config.packing, query=query
+                        )
                 except Exception as error:
                     record.error = type(error).__name__
                     raise

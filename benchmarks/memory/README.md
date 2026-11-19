@@ -23,6 +23,10 @@ git rev-parse HEAD
 
 | 文件 | 用途 |
 | --- | --- |
+| [locomo-optimization.md](locomo-optimization.md) | 客户端窗口优化的目的、1540题效果、36题改善与13题回退、成本与限制 |
+| [locomo-optimization-cases.md](locomo-optimization-cases.md) | 全部49道变化题及原始档案定位 |
+| [recall-profiles/design.md](recall-profiles/design.md) | recall_profile服务端选窗迁移设计；与PG检索下推独立 |
+| [recall-profiles/validation.md](recall-profiles/validation.md) | 默认兼容、1540份重放、81题真实对照与复测验收 |
 | [plan.md](plan.md) | LoCoMo 通俗流程、模型和评分口径、公平对比、待办、历史结果及错题分析 |
 | [report.md](report.md) | 友商 benchmark、模型、分数、Token、时延与原始来源 |
 | [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：设计、分析报告、当前进展、一晚最小计划与历史证据；下一阶段暂不启动 |

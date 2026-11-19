@@ -21,8 +21,10 @@ var _ MappedNullable = &RecallRequest{}
 
 // RecallRequest Request model for recall endpoint.
 type RecallRequest struct {
-	Query string   `json:"query"`
-	Types []string `json:"types,omitempty"`
+	// Opt-in recall context selection. Omitted/default preserves existing recall; locomo selects original message windows; beam is reserved and rejected until implemented.
+	RecallProfile *string  `json:"recall_profile,omitempty"`
+	Query         string   `json:"query"`
+	Types         []string `json:"types,omitempty"`
 	// When recalling raw facts ('world'/'experience') together with 'observation', drop any raw fact that an observation in the results was consolidated from, so the observation supersedes it and you don't get duplicate content. The freed slots are backfilled with the next results, keeping the result count at the requested budget. Disabled by default; set to true to enable. No effect unless 'observation' and at least one raw type are both requested.
 	PreferObservations *bool          `json:"prefer_observations,omitempty"`
 	Budget             *Budget        `json:"budget,omitempty"`
@@ -73,6 +75,38 @@ func NewRecallRequestWithDefaults() *RecallRequest {
 	var tagsMatch string = "any"
 	this.TagsMatch = &tagsMatch
 	return &this
+}
+
+// GetRecallProfile returns the RecallProfile field value if set, zero value otherwise.
+func (o *RecallRequest) GetRecallProfile() string {
+	if o == nil || IsNil(o.RecallProfile) {
+		var ret string
+		return ret
+	}
+	return *o.RecallProfile
+}
+
+// GetRecallProfileOk returns a tuple with the RecallProfile field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RecallRequest) GetRecallProfileOk() (*string, bool) {
+	if o == nil || IsNil(o.RecallProfile) {
+		return nil, false
+	}
+	return o.RecallProfile, true
+}
+
+// HasRecallProfile returns a boolean if a field has been set.
+func (o *RecallRequest) HasRecallProfile() bool {
+	if o != nil && !IsNil(o.RecallProfile) {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallProfile gets a reference to the given string and assigns it to the RecallProfile field.
+func (o *RecallRequest) SetRecallProfile(v string) {
+	o.RecallProfile = &v
 }
 
 // GetQuery returns the Query field value
@@ -529,6 +563,9 @@ func (o RecallRequest) MarshalJSON() ([]byte, error) {
 
 func (o RecallRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.RecallProfile) {
+		toSerialize["recall_profile"] = o.RecallProfile
+	}
 	toSerialize["query"] = o.Query
 	if o.Types != nil {
 		toSerialize["types"] = o.Types

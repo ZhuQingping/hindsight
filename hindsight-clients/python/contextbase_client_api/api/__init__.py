@@ -17,4 +17,5 @@ from contextbase_client_api.api.mental_models_api import MentalModelsApi
 from contextbase_client_api.api.monitoring_api import MonitoringApi
 from contextbase_client_api.api.operations_api import OperationsApi
 from contextbase_client_api.api.product_api import ProductApi
+from contextbase_client_api.api.system_api import SystemApi
 from contextbase_client_api.api.webhooks_api import WebhooksApi

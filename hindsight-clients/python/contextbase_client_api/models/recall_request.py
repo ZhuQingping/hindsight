@@ -31,6 +31,7 @@ class RecallRequest(BaseModel):
     """
     Request model for recall endpoint.
     """ # noqa: E501
+    recall_profile: Optional[StrictStr] = Field(default=None, description="Opt-in recall context selection. Omitted/default preserves existing recall; locomo selects original message windows; beam is reserved and rejected until implemented.")
     query: StrictStr
     types: Optional[List[StrictStr]] = None
     prefer_observations: Optional[StrictBool] = Field(default=False, description="When recalling raw facts ('world'/'experience') together with 'observation', drop any raw fact that an observation in the results was consolidated from, so the observation supersedes it and you don't get duplicate content. The freed slots are backfilled with the next results, keeping the result count at the requested budget. Disabled by default; set to true to enable. No effect unless 'observation' and at least one raw type are both requested.")
@@ -44,7 +45,17 @@ class RecallRequest(BaseModel):
     tag_groups: Optional[List[MentalModelTriggerInputTagGroupsInner]] = None
     min_scores: Optional[MinScores] = None
     temporal_window: Optional[TemporalWindow] = None
-    __properties: ClassVar[List[str]] = ["query", "types", "prefer_observations", "budget", "max_tokens", "trace", "query_timestamp", "include", "tags", "tags_match", "tag_groups", "min_scores", "temporal_window"]
+    __properties: ClassVar[List[str]] = ["recall_profile", "query", "types", "prefer_observations", "budget", "max_tokens", "trace", "query_timestamp", "include", "tags", "tags_match", "tag_groups", "min_scores", "temporal_window"]
+
+    @field_validator('recall_profile')
+    def recall_profile_validate_enum(cls, value):
+        """Validates the enum"""
+        if value is None:
+            return value
+
+        if value not in set(['default', 'locomo', 'beam']):
+            raise ValueError("must be one of enum values ('default', 'locomo', 'beam')")
+        return value
 
     @field_validator('tags_match')
     def tags_match_validate_enum(cls, value):
@@ -153,6 +164,7 @@ class RecallRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "recall_profile": obj.get("recall_profile"),
             "query": obj.get("query"),
             "types": obj.get("types"),
             "prefer_observations": obj.get("prefer_observations") if obj.get("prefer_observations") is not None else False,

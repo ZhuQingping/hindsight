@@ -62,7 +62,17 @@ if TYPE_CHECKING:
     from opentelemetry.trace import Span
 
 from fastapi.routing import APIRoute
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from hindsight_api import MemoryEngine
 from hindsight_api.config import RETAIN_EXTRACTION_MODES
@@ -542,6 +552,12 @@ class RecallRequest(BaseModel):
         }
     )
 
+    # Keep runtime default behavior, but leave the optional wire field without
+    # an OpenAPI default so regenerated SDKs omit it when talking to old servers.
+    recall_profile: Literal["default", "locomo", "beam"] = Field(
+        default_factory=lambda: "default",
+        description="Opt-in recall context selection. Omitted/default preserves existing recall; locomo selects original message windows; beam is reserved and rejected until implemented.",
+    )
     query: str
     types: list[str] | None = Field(
         default=None,
@@ -877,6 +893,17 @@ class ChunkData(BaseModel):
     )
 
 
+from hindsight_api.engine.recall_profiles.models import RecallProfileContext
+
+
+def _recall_profile_error(message: str, field_path: tuple[str, ...] = ("recall_profile",)) -> HTTPException:
+    """Keep semantic profile failures compatible with the declared 422 schema."""
+    return HTTPException(
+        status_code=422,
+        detail=[{"loc": ["body", *field_path], "msg": message, "type": "value_error"}],
+    )
+
+
 class RecallResponse(BaseModel):
     """Response model for recall endpoints."""
 
@@ -919,6 +946,19 @@ class RecallResponse(BaseModel):
             }
         }
     )
+
+    recall_context: RecallProfileContext | None = Field(
+        default=None,
+        description="Server-selected context for an opt-in profile; absent under default. Use text verbatim, without a second client packing pass.",
+    )
+    @model_serializer(mode="wrap")
+    def _omit_absent_profile(self, handler: SerializerFunctionWrapHandler):
+        # No return annotation: Pydantic otherwise replaces the response's
+        # serialization schema with a free-form dict and drops SDK model types.
+        serialized = handler(self)
+        if self.recall_context is None:
+            serialized.pop("recall_context", None)
+        return serialized
 
     results: list[RecallResult]
     trace: dict[str, Any] | None = None
@@ -6353,6 +6393,23 @@ def _register_routes(app: FastAPI):
                 metrics.record_recall_phase("body_parse", max(0.0, handler_start - _deps_done))
 
         try:
+            locomo_profile = None
+            if request.recall_profile == "beam":
+                raise _recall_profile_error("recall_profile beam is reserved and not enabled")
+            if request.recall_profile == "locomo":
+                if not request.query.strip():
+                    raise _recall_profile_error("locomo requires a nonempty query", ("query",))
+                if request.include.chunks is not None:
+                    raise _recall_profile_error(
+                        "locomo returns recall_context; omit include.chunks to avoid returning candidate raw chunks",
+                        ("include", "chunks"),
+                    )
+                try:
+                    from hindsight_api.engine.recall_profiles import locomo as locomo_profile
+                except ImportError as error:
+                    raise HTTPException(
+                        status_code=503, detail="locomo requires hindsight-api-slim[recall-profiles]"
+                    ) from error
             # Default to all fact types if not specified
             fact_types = request.types if request.types else list(VALID_RECALL_FACT_TYPES)
 
@@ -6374,6 +6431,11 @@ def _register_routes(app: FastAPI):
             # Determine chunk inclusion settings
             include_chunks = request.include.chunks is not None
             max_chunk_tokens = request.include.chunks.max_tokens if include_chunks else 8192
+            if request.recall_profile == "locomo":
+                # Internal candidates only. The wire response contains selected context,
+                # never the 64K candidate map. Fact retrieval/ranking is unchanged.
+                include_chunks = True
+                max_chunk_tokens = 65536
 
             # Determine source facts inclusion settings
             include_source_facts = request.include.source_facts is not None
@@ -6507,6 +6569,48 @@ def _register_routes(app: FastAPI):
                 source_facts=source_facts_response,
                 source_facts_truncated=core_result.source_facts_truncated,
             )
+
+            if request.recall_profile == "locomo":
+                from hindsight_api.engine.chunk_ids import parse_chunk_id
+
+                assert locomo_profile is not None
+                # A returned fact may reference a document whose chunk fell
+                # outside the candidate budget. Keep that authorized source in
+                # scope even when no original passage was returned for it.
+                document_ids = list(
+                    dict.fromkeys(result.document_id for result in recall_results if result.document_id is not None)
+                )
+                for chunk_id in chunks_response or {}:
+                    ref = parse_chunk_id(chunk_id)
+                    if ref is None or ref.bank_id != bank_id:
+                        raise _recall_profile_error("Invalid chunk identity for locomo")
+                    if ref.document_id not in document_ids:
+                        document_ids.append(ref.document_id)
+                try:
+                    dates = await app.state.memory._recall_document_dates(
+                        bank_id, document_ids, request_context=request_context
+                    )
+                except ValueError as error:
+                    raise _recall_profile_error(str(error)) from error
+                selection_context = locomo_profile.SelectionContext(
+                    bank_id=bank_id,
+                    sessions=[
+                        locomo_profile.SessionMetadata(document_id=did, timestamp=dates[did]) for did in document_ids
+                    ],
+                )
+                wire = response.model_dump(mode="json", exclude_none=True)
+                try:
+                    packed = await asyncio.to_thread(
+                        locomo_profile.apply_profile,
+                        locomo_profile.RecallReply.model_validate(wire),
+                        recall_profile="locomo",
+                        query=request.query,
+                        context=selection_context,
+                    )
+                except ValueError as error:
+                    raise _recall_profile_error(str(error)) from error
+                response.recall_context = RecallProfileContext.model_validate(packed.model_dump())
+                response.chunks = None
 
             handler_duration = time.time() - handler_start
             # END OF THE ENGINE CALL, not end of handler. Measured at the end, this window also

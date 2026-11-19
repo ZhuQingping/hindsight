@@ -98,6 +98,49 @@ paths:
       summary: Get API version and feature flags
       tags:
       - Monitoring
+  /v1/file-storage/config:
+    get:
+      description: Returns the current file-storage backend configuration. Secret
+        credentials are masked.
+      operationId: get_file_storage_config
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileStorageConfigResponse'
+          description: Successful Response
+      summary: Get file-storage configuration
+      tags:
+      - System
+    put:
+      description: Updates file-storage backend configuration in memory and reinitializes
+        the storage backend. Only fields present in the request body are applied;
+        secret fields set to the mask string keep their current value. Changes are
+        in-memory only and revert on restart.
+      operationId: update_file_storage_config
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileStorageConfigUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileStorageConfigResponse'
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Update file-storage configuration
+      tags:
+      - System
   /metrics:
     get:
       description: Exports metrics in Prometheus format for scraping
@@ -8688,6 +8731,76 @@ components:
       required:
       - operation_ids
       title: FileRetainResponse
+    FileStorageConfigResponse:
+      description: Current file-storage backend configuration (secrets masked).
+      example:
+        storage_type: storage_type
+        extension: extension
+        s3_region: s3_region
+        s3_access_key_id: s3_access_key_id
+        s3_secret_access_key: s3_secret_access_key
+        s3_bucket: s3_bucket
+        s3_endpoint: s3_endpoint
+      properties:
+        storage_type:
+          description: "Active backend: native, s3, gcs, or azure"
+          title: Storage Type
+          type: string
+        extension:
+          nullable: true
+          type: string
+        s3_bucket:
+          nullable: true
+          type: string
+        s3_region:
+          nullable: true
+          type: string
+        s3_endpoint:
+          nullable: true
+          type: string
+        s3_access_key_id:
+          nullable: true
+          type: string
+        s3_secret_access_key:
+          nullable: true
+          type: string
+      required:
+      - storage_type
+      title: FileStorageConfigResponse
+    FileStorageConfigUpdate:
+      additionalProperties: false
+      description: |-
+        Partial update for file-storage configuration.
+
+        Only fields present in the request body are applied.  Secret fields set to
+        the mask string (returned by GET) keep their current value.
+      example:
+        storage_type: storage_type
+        s3_region: s3_region
+        s3_access_key_id: s3_access_key_id
+        s3_secret_access_key: s3_secret_access_key
+        s3_bucket: s3_bucket
+        s3_endpoint: s3_endpoint
+      properties:
+        storage_type:
+          nullable: true
+          type: string
+        s3_bucket:
+          nullable: true
+          type: string
+        s3_region:
+          nullable: true
+          type: string
+        s3_endpoint:
+          nullable: true
+          type: string
+        s3_access_key_id:
+          nullable: true
+          type: string
+        s3_secret_access_key:
+          nullable: true
+          type: string
+      title: FileStorageConfigUpdate
     GraphDataResponse:
       description: Response model for graph data endpoint.
       example:
@@ -11539,6 +11652,21 @@ components:
           title: Contextdb Name
           type: string
       title: ProductConfig
+    ProfileOmission:
+      properties:
+        id:
+          title: Id
+          type: string
+        reason:
+          enum:
+          - fact_quota
+          - chunk_quota
+          title: Reason
+          type: string
+      required:
+      - id
+      - reason
+      title: ProfileOmission
     PromptBlockModel:
       description: |-
         One block of a message: its text, and the setting that decides it.
@@ -11813,6 +11941,66 @@ components:
           nullable: true
           type: string
       title: PromptPreviewResponse
+    RecallProfileContext:
+      properties:
+        profile:
+          default: locomo
+          enum:
+          - locomo
+          title: Profile
+          type: string
+        version:
+          default: message_windows_v1
+          enum:
+          - message_windows_v1
+          title: Version
+          type: string
+        format:
+          default: locomo-packed-json-v1
+          enum:
+          - locomo-packed-json-v1
+          title: Format
+          type: string
+        tokenizer:
+          default: o200k_base
+          enum:
+          - o200k_base
+          title: Tokenizer
+          type: string
+        text:
+          title: Text
+          type: string
+        tokens:
+          title: Tokens
+          type: integer
+        fact_tokens:
+          title: Fact Tokens
+          type: integer
+        chunk_tokens:
+          title: Chunk Tokens
+          type: integer
+        included_fact_ids:
+          items:
+            type: string
+            nullable: false
+          type: array
+        included_chunk_ids:
+          items:
+            type: string
+            nullable: false
+          type: array
+        omitted:
+          items:
+            $ref: '#/components/schemas/ProfileOmission'
+          type: array
+      required:
+      - chunk_tokens
+      - fact_tokens
+      - included_chunk_ids
+      - included_fact_ids
+      - text
+      - tokens
+      title: RecallProfileContext
     RecallRequest:
       description: Request model for recall endpoint.
       example:
@@ -11834,6 +12022,16 @@ components:
         - world
         - experience
       properties:
+        recall_profile:
+          description: Opt-in recall context selection. Omitted/default preserves
+            existing recall; locomo selects original message windows; beam is reserved
+            and rejected until implemented.
+          enum:
+          - default
+          - locomo
+          - beam
+          title: Recall Profile
+          type: string
         query:
           title: Query
           type: string
@@ -11933,6 +12131,8 @@ components:
           query: What did Alice say about machine learning?
           time_seconds: 0.123
       properties:
+        recall_context:
+          $ref: '#/components/schemas/RecallProfileContext'
         results:
           items:
             $ref: '#/components/schemas/RecallResult'

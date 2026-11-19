@@ -17,6 +17,7 @@ contextbase_client_api/api/mental_models_api.py
 contextbase_client_api/api/monitoring_api.py
 contextbase_client_api/api/operations_api.py
 contextbase_client_api/api/product_api.py
+contextbase_client_api/api/system_api.py
 contextbase_client_api/api/webhooks_api.py
 contextbase_client_api/api_client.py
 contextbase_client_api/api_response.py
@@ -103,6 +104,8 @@ contextbase_client_api/models/extraction_chunk.py
 contextbase_client_api/models/features_info.py
 contextbase_client_api/models/file_content_block.py
 contextbase_client_api/models/file_retain_response.py
+contextbase_client_api/models/file_storage_config_response.py
+contextbase_client_api/models/file_storage_config_update.py
 contextbase_client_api/models/graph_data_response.py
 contextbase_client_api/models/http_validation_error.py
 contextbase_client_api/models/image_content_block.py
@@ -165,10 +168,12 @@ contextbase_client_api/models/operation_response.py
 contextbase_client_api/models/operation_status_response.py
 contextbase_client_api/models/operations_list_response.py
 contextbase_client_api/models/product_config.py
+contextbase_client_api/models/profile_omission.py
 contextbase_client_api/models/prompt_block_model.py
 contextbase_client_api/models/prompt_message_model.py
 contextbase_client_api/models/prompt_preview_request.py
 contextbase_client_api/models/prompt_preview_response.py
+contextbase_client_api/models/recall_profile_context.py
 contextbase_client_api/models/recall_request.py
 contextbase_client_api/models/recall_response.py
 contextbase_client_api/models/recall_result.py

@@ -128,6 +128,44 @@ def recall_fixture(conversation, count=109, *, giant=False):
     )
 
 
+def test_server_profile_requires_matching_candidate_and_packing_settings(tmp_path):
+    data = json.loads(config_fixture(tmp_path).read_text())
+    data["recall_profile"] = "locomo"
+    data["packing"].update(algorithm="query-turn-windows-v1", chunk_order="query_relevance")
+    data["recall"]["max_chunk_tokens"] = 65536
+    assert a.Config.model_validate(data).recall_profile == "locomo"
+    data["recall"]["max_chunk_tokens"] = 8192
+    with pytest.raises(ValueError, match="65536 candidate"):
+        a.Config.model_validate(data)
+
+
+def test_server_context_is_used_verbatim_and_missing_or_corrupt_context_fails():
+    with pytest.raises(ValueError, match="not returned"):
+        h.server_packed_context(h.RecallReply(results=[]))
+    text = '{"facts":[], "chunks":[]}'
+    packed = dict(
+        text=text,
+        tokens=len(tiktoken.get_encoding("o200k_base").encode(text)),
+        fact_tokens=0,
+        chunk_tokens=0,
+        included_fact_ids=[],
+        included_chunk_ids=[],
+        omitted=[],
+    )
+    context = dict(
+        **packed, profile="locomo", version="message_windows_v1", format="locomo-packed-json-v1", tokenizer="o200k_base"
+    )
+    reply = h.RecallReply(results=[], recall_context=context)
+    assert h.server_packed_context(reply).text == text
+    reply.recall_context.tokens += 1
+    with pytest.raises(ValueError, match="token contract"):
+        h.server_packed_context(reply)
+    reply.recall_context.tokens -= 1
+    reply.recall_context.fact_tokens = 4001
+    with pytest.raises(ValueError, match="token contract"):
+        h.server_packed_context(reply)
+
+
 class FakeBankService:
     def __init__(self):
         self.documents = {}

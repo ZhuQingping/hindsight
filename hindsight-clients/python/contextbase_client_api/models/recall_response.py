@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, StrictBool
 from typing import Any, ClassVar, Dict, List, Optional
 from contextbase_client_api.models.chunk_data import ChunkData
 from contextbase_client_api.models.entity_state_response import EntityStateResponse
+from contextbase_client_api.models.recall_profile_context import RecallProfileContext
 from contextbase_client_api.models.recall_result import RecallResult
 from typing import Optional, Set
 from typing_extensions import Self
@@ -29,13 +30,14 @@ class RecallResponse(BaseModel):
     """
     Response model for recall endpoints.
     """ # noqa: E501
+    recall_context: Optional[RecallProfileContext] = None
     results: List[RecallResult]
     trace: Optional[Dict[str, Any]] = None
     entities: Optional[Dict[str, EntityStateResponse]] = None
     chunks: Optional[Dict[str, ChunkData]] = None
     source_facts: Optional[Dict[str, RecallResult]] = None
     source_facts_truncated: Optional[StrictBool] = None
-    __properties: ClassVar[List[str]] = ["results", "trace", "entities", "chunks", "source_facts", "source_facts_truncated"]
+    __properties: ClassVar[List[str]] = ["recall_context", "results", "trace", "entities", "chunks", "source_facts", "source_facts_truncated"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -76,6 +78,9 @@ class RecallResponse(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of recall_context
+        if self.recall_context:
+            _dict['recall_context'] = self.recall_context.to_dict()
         # override the default output from pydantic by calling `to_dict()` of each item in results (list)
         _items = []
         if self.results:
@@ -104,6 +109,11 @@ class RecallResponse(BaseModel):
                 if self.source_facts[_key_source_facts]:
                     _field_dict[_key_source_facts] = self.source_facts[_key_source_facts].to_dict()
             _dict['source_facts'] = _field_dict
+        # set to None if recall_context (nullable) is None
+        # and model_fields_set contains the field
+        if self.recall_context is None and "recall_context" in self.model_fields_set:
+            _dict['recall_context'] = None
+
         # set to None if trace (nullable) is None
         # and model_fields_set contains the field
         if self.trace is None and "trace" in self.model_fields_set:
@@ -141,6 +151,7 @@ class RecallResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "recall_context": RecallProfileContext.from_dict(obj["recall_context"]) if obj.get("recall_context") is not None else None,
             "results": [RecallResult.from_dict(_item) for _item in obj["results"]] if obj.get("results") is not None else None,
             "trace": obj.get("trace"),
             "entities": dict(

@@ -21,6 +21,7 @@ var _ MappedNullable = &RecallResponse{}
 
 // RecallResponse Response model for recall endpoints.
 type RecallResponse struct {
+	RecallContext        NullableRecallProfileContext   `json:"recall_context,omitempty"`
 	Results              []RecallResult                 `json:"results"`
 	Trace                map[string]interface{}         `json:"trace,omitempty"`
 	Entities             map[string]EntityStateResponse `json:"entities,omitempty"`
@@ -47,6 +48,49 @@ func NewRecallResponse(results []RecallResult) *RecallResponse {
 func NewRecallResponseWithDefaults() *RecallResponse {
 	this := RecallResponse{}
 	return &this
+}
+
+// GetRecallContext returns the RecallContext field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *RecallResponse) GetRecallContext() RecallProfileContext {
+	if o == nil || IsNil(o.RecallContext.Get()) {
+		var ret RecallProfileContext
+		return ret
+	}
+	return *o.RecallContext.Get()
+}
+
+// GetRecallContextOk returns a tuple with the RecallContext field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *RecallResponse) GetRecallContextOk() (*RecallProfileContext, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.RecallContext.Get(), o.RecallContext.IsSet()
+}
+
+// HasRecallContext returns a boolean if a field has been set.
+func (o *RecallResponse) HasRecallContext() bool {
+	if o != nil && o.RecallContext.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRecallContext gets a reference to the given NullableRecallProfileContext and assigns it to the RecallContext field.
+func (o *RecallResponse) SetRecallContext(v RecallProfileContext) {
+	o.RecallContext.Set(&v)
+}
+
+// SetRecallContextNil sets the value for RecallContext to be an explicit nil
+func (o *RecallResponse) SetRecallContextNil() {
+	o.RecallContext.Set(nil)
+}
+
+// UnsetRecallContext ensures that no value is present for RecallContext, not even an explicit nil
+func (o *RecallResponse) UnsetRecallContext() {
+	o.RecallContext.Unset()
 }
 
 // GetResults returns the Results field value
@@ -258,6 +302,9 @@ func (o RecallResponse) MarshalJSON() ([]byte, error) {
 
 func (o RecallResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if o.RecallContext.IsSet() {
+		toSerialize["recall_context"] = o.RecallContext.Get()
+	}
 	toSerialize["results"] = o.Results
 	if o.Trace != nil {
 		toSerialize["trace"] = o.Trace

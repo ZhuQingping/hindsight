@@ -135,6 +135,8 @@ import type {
   GetEntityGraphErrors,
   GetEntityGraphResponses,
   GetEntityResponses,
+  GetFileStorageConfigData,
+  GetFileStorageConfigResponses,
   GetGraphData,
   GetGraphErrors,
   GetGraphResponses,
@@ -291,6 +293,9 @@ import type {
   UpdateDocumentData,
   UpdateDocumentErrors,
   UpdateDocumentResponses,
+  UpdateFileStorageConfigData,
+  UpdateFileStorageConfigErrors,
+  UpdateFileStorageConfigResponses,
   UpdateKnowledgeNodeData,
   UpdateKnowledgeNodeErrors,
   UpdateKnowledgeNodeResponses,
@@ -395,6 +400,40 @@ export const getVersion = <ThrowOnError extends boolean = false>(
   (options?.client ?? client).get<GetVersionResponses, unknown, ThrowOnError>({
     url: "/version",
     ...options,
+  });
+
+/**
+ * Get file-storage configuration
+ *
+ * Returns the current file-storage backend configuration. Secret credentials are masked.
+ */
+export const getFileStorageConfig = <ThrowOnError extends boolean = false>(
+  options?: Options<GetFileStorageConfigData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<GetFileStorageConfigResponses, unknown, ThrowOnError>({
+    url: "/v1/file-storage/config",
+    ...options,
+  });
+
+/**
+ * Update file-storage configuration
+ *
+ * Updates file-storage backend configuration in memory and reinitializes the storage backend. Only fields present in the request body are applied; secret fields set to the mask string keep their current value. Changes are in-memory only and revert on restart.
+ */
+export const updateFileStorageConfig = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateFileStorageConfigData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    UpdateFileStorageConfigResponses,
+    UpdateFileStorageConfigErrors,
+    ThrowOnError
+  >({
+    url: "/v1/file-storage/config",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 
 /**

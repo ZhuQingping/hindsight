@@ -2829,6 +2829,85 @@ export type FileRetainResponse = {
 };
 
 /**
+ * FileStorageConfigResponse
+ *
+ * Current file-storage backend configuration (secrets masked).
+ */
+export type FileStorageConfigResponse = {
+  /**
+   * Storage Type
+   *
+   * Active backend: native, s3, gcs, or azure
+   */
+  storage_type: string;
+  /**
+   * Extension
+   *
+   * Custom FileStorage extension path
+   */
+  extension?: string | null;
+  /**
+   * S3 Bucket
+   */
+  s3_bucket?: string | null;
+  /**
+   * S3 Region
+   */
+  s3_region?: string | null;
+  /**
+   * S3 Endpoint
+   */
+  s3_endpoint?: string | null;
+  /**
+   * S3 Access Key Id
+   *
+   * Masked when set
+   */
+  s3_access_key_id?: string | null;
+  /**
+   * S3 Secret Access Key
+   *
+   * Masked when set
+   */
+  s3_secret_access_key?: string | null;
+};
+
+/**
+ * FileStorageConfigUpdate
+ *
+ * Partial update for file-storage configuration.
+ *
+ * Only fields present in the request body are applied.  Secret fields set to
+ * the mask string (returned by GET) keep their current value.
+ */
+export type FileStorageConfigUpdate = {
+  /**
+   * Storage Type
+   */
+  storage_type?: string | null;
+  /**
+   * S3 Bucket
+   */
+  s3_bucket?: string | null;
+  /**
+   * S3 Region
+   */
+  s3_region?: string | null;
+  /**
+   * S3 Endpoint
+   */
+  s3_endpoint?: string | null;
+  /**
+   * S3 Access Key Id
+   */
+  s3_access_key_id?: string | null;
+  /**
+   * S3 Secret Access Key
+   */
+  s3_secret_access_key?: string | null;
+};
+
+/**
  * GraphDataResponse
  *
  * Response model for graph data endpoint.
@@ -5347,6 +5426,20 @@ export type ProductConfig = {
 };
 
 /**
+ * ProfileOmission
+ */
+export type ProfileOmission = {
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Reason
+   */
+  reason: "fact_quota" | "chunk_quota";
+};
+
+/**
  * PromptBlockModel
  *
  * One block of a message: its text, and the setting that decides it.
@@ -5523,11 +5616,67 @@ export type PromptPreviewResponse = {
 };
 
 /**
+ * RecallProfileContext
+ */
+export type RecallProfileContext = {
+  /**
+   * Profile
+   */
+  profile?: "locomo";
+  /**
+   * Version
+   */
+  version?: "message_windows_v1";
+  /**
+   * Format
+   */
+  format?: "locomo-packed-json-v1";
+  /**
+   * Tokenizer
+   */
+  tokenizer?: "o200k_base";
+  /**
+   * Text
+   */
+  text: string;
+  /**
+   * Tokens
+   */
+  tokens: number;
+  /**
+   * Fact Tokens
+   */
+  fact_tokens: number;
+  /**
+   * Chunk Tokens
+   */
+  chunk_tokens: number;
+  /**
+   * Included Fact Ids
+   */
+  included_fact_ids: Array<string>;
+  /**
+   * Included Chunk Ids
+   */
+  included_chunk_ids: Array<string>;
+  /**
+   * Omitted
+   */
+  omitted?: Array<ProfileOmission>;
+};
+
+/**
  * RecallRequest
  *
  * Request model for recall endpoint.
  */
 export type RecallRequest = {
+  /**
+   * Recall Profile
+   *
+   * Opt-in recall context selection. Omitted/default preserves existing recall; locomo selects original message windows; beam is reserved and rejected until implemented.
+   */
+  recall_profile?: "default" | "locomo" | "beam";
   /**
    * Query
    */
@@ -5597,6 +5746,10 @@ export type RecallRequest = {
  * Response model for recall endpoints.
  */
 export type RecallResponse = {
+  /**
+   * Server-selected context for an opt-in profile; absent under default. Use text verbatim, without a second client packing pass.
+   */
+  recall_context?: RecallProfileContext | null;
   /**
    * Results
    */
@@ -7235,6 +7388,50 @@ export type GetVersionResponses = {
 };
 
 export type GetVersionResponse = GetVersionResponses[keyof GetVersionResponses];
+
+export type GetFileStorageConfigData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/file-storage/config";
+};
+
+export type GetFileStorageConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: FileStorageConfigResponse;
+};
+
+export type GetFileStorageConfigResponse =
+  GetFileStorageConfigResponses[keyof GetFileStorageConfigResponses];
+
+export type UpdateFileStorageConfigData = {
+  body: FileStorageConfigUpdate;
+  path?: never;
+  query?: never;
+  url: "/v1/file-storage/config";
+};
+
+export type UpdateFileStorageConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateFileStorageConfigError =
+  UpdateFileStorageConfigErrors[keyof UpdateFileStorageConfigErrors];
+
+export type UpdateFileStorageConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: FileStorageConfigResponse;
+};
+
+export type UpdateFileStorageConfigResponse =
+  UpdateFileStorageConfigResponses[keyof UpdateFileStorageConfigResponses];
 
 export type MetricsEndpointMetricsGetData = {
   body?: never;

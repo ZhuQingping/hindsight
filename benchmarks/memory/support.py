@@ -160,6 +160,7 @@ class Config(StrictModel):
     memory_profile: MemoryProfile
     answer: ModelSettings
     judge: ModelSettings
+    recall_profile: Literal["default", "locomo"] = Field(default="default", exclude_if=lambda value: value == "default")
     packing: PackingSettings = Field(default_factory=PackingSettings)
     recall: RecallSettings = Field(default_factory=RecallSettings)
     concurrency: int = Field(default=4, ge=1, le=32)
@@ -174,6 +175,15 @@ class Config(StrictModel):
     def scope_and_target(self) -> Config:
         if (self.reader_profile != "amb-default") != (self.protocol == "amb-locomo-cat1to4-reader-v2"):
             raise ValueError("A custom reader profile requires the explicitly different reader-v2 protocol")
+        if self.recall_profile == "locomo" and (
+            self.packing.algorithm != "query-turn-windows-v1"
+            or self.packing.tokenizer != "o200k_base"
+            or self.packing.max_tokens != 8192
+            or self.packing.fact_tokens != 4000
+            or self.packing.chunk_tokens != 4000
+            or self.recall.max_chunk_tokens != 65536
+        ):
+            raise ValueError("Server locomo requires frozen v1 packing and 65536 candidate chunk tokens")
         if len(set(self.conversations)) != len(self.conversations):
             raise ValueError("Conversation IDs must be unique")
         if self.reuse_banks:
@@ -285,6 +295,7 @@ class RecallReply(BaseModel):
     model_config = ConfigDict(extra="allow")
     results: list[Fact]
     chunks: dict[str, Chunk] | None = None
+    recall_context: "ServerPacked | None" = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class PackedFact(StrictModel):
@@ -323,6 +334,35 @@ class Packed(StrictModel):
     included_fact_ids: list[str]
     included_chunk_ids: list[str]
     omitted: list[Omitted]
+
+
+class ServerPacked(Packed):
+    profile: Literal["locomo"]
+    version: Literal["message_windows_v1"]
+    format: Literal["locomo-packed-json-v1"]
+    tokenizer: Literal["o200k_base"]
+
+
+RecallReply.model_rebuild()
+
+
+def server_packed_context(reply: RecallReply) -> Packed:
+    """Use server context verbatim, never repack or silently fall back."""
+    if reply.recall_context is None:
+        raise ValueError("Requested server locomo context was not returned")
+    packed = Packed.model_validate(
+        reply.recall_context.model_dump(exclude={"profile", "version", "format", "tokenizer"})
+    )
+    total = len(tiktoken.get_encoding("o200k_base").encode(packed.text))
+    if (
+        total != packed.tokens
+        or total > 8192
+        or not 0 <= packed.fact_tokens <= 4000
+        or not 0 <= packed.chunk_tokens <= 4000
+    ):
+        raise ValueError("Server context violates the declared token contract")
+    Payload.model_validate_json(packed.text)
+    return packed
 
 
 class CreateBank(StrictModel):
@@ -1060,10 +1100,11 @@ class ChunkBudget(StrictModel):
 
 class RecallInclude(StrictModel):
     entities: None = None
-    chunks: ChunkBudget
+    chunks: ChunkBudget | None = None
 
 
 class RecallBody(StrictModel):
+    recall_profile: Literal["locomo"] | None = Field(default=None, exclude_if=lambda value: value is None)
     query: str
     budget: str
     max_tokens: int

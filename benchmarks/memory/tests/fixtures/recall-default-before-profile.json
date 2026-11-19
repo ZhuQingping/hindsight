@@ -1,0 +1,38 @@
+{
+  "kind": "unmodified-05d2894c5-real-http-route-synthetic-engine-boundary",
+  "http_source_sha256": "b1a5090e905c92e67d9190589d1b728a50c92e4a18566dee877c430e762c1d35",
+  "response": {
+    "results": [
+      {
+        "id": "fact1",
+        "text": "A practices art.",
+        "type": "world",
+        "entities": null,
+        "context": null,
+        "occurred_start": null,
+        "occurred_end": null,
+        "mentioned_at": null,
+        "document_id": "session",
+        "metadata": null,
+        "chunk_id": "profile~5Fbank_session_0",
+        "tags": null,
+        "source_fact_ids": null,
+        "scores": null,
+        "attachments": null
+      }
+    ],
+    "trace": null,
+    "entities": null,
+    "chunks": {
+      "profile~5Fbank_session_0": {
+        "id": "profile~5Fbank_session_0",
+        "text": "[{\"speaker\": \"A\", \"dia_id\": \"D1:1\", \"text\": \"I have practiced art for seven years.\"}, {\"speaker\": \"B\", \"dia_id\": \"D1:2\", \"text\": \"That is wonderful.\"}]",
+        "chunk_index": 0,
+        "truncated": false,
+        "attachments": null
+      }
+    },
+    "source_facts": null,
+    "source_facts_truncated": null
+  }
+}
