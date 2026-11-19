@@ -1647,5 +1647,56 @@
       "Seed-only coverage is lower than baseline fact-driven recall; this is a complementary candidate hypothesis, not evidence to replace existing retrieval.",
       "No reader-budget packing, model answer or native SQL performance evaluation has yet used these candidates."
     ]
+  },
+  "first584_comparison": {
+    "kind": "matched-first-four-complete-banks-not-full1540-score",
+    "scope": 584,
+    "baseline": {
+      "n": 584,
+      "correct": 540,
+      "accuracy": 0.9246575342465754,
+      "f1": 0.2679464850701803,
+      "context_tokens_mean": 7815.390410958904,
+      "recall_p50_ms": 14084.700395993423,
+      "recall_p95_ms": 18072.94842323172
+    },
+    "candidate": {
+      "n": 584,
+      "correct": 555,
+      "accuracy": 0.9503424657534246,
+      "f1": 0.276328892369274,
+      "context_tokens_mean": 7976.4914383561645,
+      "recall_p50_ms": 15444.327375036664,
+      "recall_p95_ms": 22690.86588123464
+    },
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23"
+    ],
+    "context_token_basis": "o200k_base packed memory only, same basis as baseline export. Native AMB context_tokens uses cl100k and is separately retained per row.",
+    "supersedes_private_snapshot_sha256": "accb1da00454882130f70d2e8af9e4ef2996669ecc2f3c46aa93c4624d54d452",
+    "private_snapshot_sha256": "7fbd9656c56f2a21b692fd5b76190d1dea62922048fad3e14237ce28b83759b0",
+    "private_snapshot_path": ".local/window-first584-metrics-v2-20261119.json"
   }
 }
