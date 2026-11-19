@@ -807,5 +807,38 @@
     "sandwiches_in_old_context": false,
     "sandwiches_in_repacked_context": true,
     "note": "Posthoc original source review showed D13:16 dinner-with-mom, D13:17 food question, D13:18 actual salads/sandwiches/desserts answer. All are in returned raw chunks; old window stops at D13:17. This is not missing image-query metadata. Repacking uses only raw reply+question, no gold; no new answer/judge score."
+  },
+  "live_timing_diagnostic": {
+    "kind": "partial-live-timing-diagnostic-not-full-run-score",
+    "at": "2026-11-19T01:48:15.946785+00:00",
+    "run_id": "locomow8r_20261119_011537",
+    "scope": "conv-42 only; separate stage populations may differ while in flight",
+    "statistics": {
+      "answer": {
+        "n": 50,
+        "mean_s": 5.033792067496106,
+        "p50_s": 4.650971832976211,
+        "p95_nearest_rank_s": 7.964776583015919
+      },
+      "judge": {
+        "n": 50,
+        "mean_s": 3.580171744246036,
+        "p50_s": 3.3321620000060648,
+        "p95_nearest_rank_s": 4.6623274580342695
+      },
+      "recall_http": {
+        "n": 51,
+        "mean_s": 16.861241991862233,
+        "p50_s": 16.924374375026673,
+        "p95_nearest_rank_s": 19.466516499989666
+      }
+    },
+    "limits": [
+      "Recall HTTP includes embeddings, server queue, retrieval and reranking; it does not isolate reranker execution.",
+      "Model elapsed includes transport and provider processing; it does not establish rate-limit waiting.",
+      "Concurrent stages overlap; summing medians is not wall-clock throughput.",
+      "This is an observation only; no request, configuration change or answer regeneration."
+    ],
+    "source_ledger": ".local/window-recovery-timing-20261119.json"
   }
 }
