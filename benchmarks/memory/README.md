@@ -37,6 +37,10 @@ git rev-parse HEAD
 
 **当前状态：两轮1540题均已完整完成并通过核验。** 基线1419/1540（92.14%），窗口优化1442/1540（93.64%），净增23题；F1 27.65%→28.01%，平均上下文7806→7980 tokens，检索P50/P95 15.31/19.47秒→21.99/32.91秒。本轮资源中途reranker1→2，时延为混合条件，已分段归档。见[完整优化结果](results/locomo1540-window-20261119.json)、[逐题诊断](results/locomo1540-window-diagnostics-20261119.json)和[报告](report.md)。84项离线检查、Ruff和类型检查通过；既有全局http.py F841另记。
 
+**本轮优化发生在哪里：**服务端核心检索代码、PG索引、原Bank未改。客户端把recall原文预算从8192提高到65536，然后在`support.py:pack_query_windows()`用Python的BM25式词面评分（另含相邻词加分）选择消息及前后各一条；最终仍是约4K事实＋4K原文。它不是PG执行的BM25，也没有额外调用大模型。答题/裁判模型及指令模板不变，改变的是给答题模型看的记忆内容。运行资源另有reranker并发1→2，独立分段记录。
+
+**对外口径：**“ContextBase＋客户端窗口打包，在LoCoMo类别1–4共1540题上，固定AMB裁判准确率93.64%、原版答案F1 28.01%”。这是LoCoMo数据集上的可复现方法实验，不是官方论文完整模型/设置的复现，也不是同条件友商排名。原数据/gold/评分不改；QA参考证据只用于事后诊断，不参与检索与打包。官方也提供不同数据库与检索设置的RAG实验：[LoCoMo说明](https://github.com/snap-research/locomo#code)，[原评分代码](https://github.com/snap-research/locomo/blob/main/task_eval/evaluation.py)；当前准确率来自[固定AMB的模型裁判流程](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/README.md)。
+
 **同事协作入口：**见[plan中的协作交接](plan.md#协作交接2026-11-19)。本轮36题转对、13题回退，98道当前错题均有来源检查；传输补齐只新增q90的answer/judge，其余1539题原答案和判定原样保留。当前仅归档交接，未自动启动元数据、reader/32K、共同裁判或PG新QA实验。
 
 历史conv-30：旧版91.36%、F1 25.15%；新AMB协议RRF为70/81、86.42%、F1 21.98%；旧Bank接入BGE后为76/81、93.83%、F1 26.64%。完整基线使用全新抽取Bank，其conv-30为75/81，不能把旧Bank成绩拼入全量。各次旧结果和Bank均保留，prompt/裁判不同的运行不作为单一打包改动的因果对比。
