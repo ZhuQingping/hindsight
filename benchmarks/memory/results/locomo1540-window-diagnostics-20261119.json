@@ -5511,5 +5511,15 @@
       }
     },
     "note": "Original frozen F1 recomputed for all1225 saved answers and exactly matched archived values. Word counts are descriptive; length is not proven causal and these are not alternative scores. Category3 uses original primary answer before semicolon; category1 original comma-split scorer."
+  },
+  "first_eight_prompt_audit": {
+    "kind": "paired-instruction-and-schema-audit-not-a-score",
+    "scope": 1225,
+    "same_question_scope_sha256": "383881aa9af5ee60927118ce5da2700538c6da4a0f52430d7d5f8845f8219b77",
+    "all_reader_instructions_dates_questions_equal_after_only_memory_replacement": true,
+    "all_judge_rules_gold_questions_equal_after_only_generated_answer_replacement": true,
+    "all_response_schemas_equal": true,
+    "same_models": true,
+    "note": "Only exact saved context or generated-answer field was replaced to compare templates. No prompt edits, no model calls, no judgments changed. Scope is first8 completed1225, not yet full1540."
   }
 }

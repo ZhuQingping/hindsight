@@ -902,3 +902,6 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 
 
 前八组F1复核：从冻结原版scorer重新计算1225道已保存答案，逐题与原存F1完全一致，没有换评分器。标准答案归一化后平均4.18词，基线答案24.08词、V1答案24.52词；V1判对1148题中997题F1<0.5，54题F1=0。F1只增0.20个百分点，不能把裁判的语义接受等同于词面命中。类别1多跳在此前八组199/213→197/213，类别2时间229/256→233/256，类别3开放推断50/76→55/76，类别4单跳652/680→663/680；总提升掩盖了多跳回退。统计见同一diagnostics JSON的first_eight_f1_diagnostic，长度仅为描述，尚不能证明缩短答案就一定提高真实质量。现有简洁reader候选继续只保留离线准备，不在当前运行中途修改prompt。
+
+
+前八组提示词实证核验：逐题校验1225对answer/judge的sealed记录，reader仅将精确匹配的整段packing替换为占位符、judge仅将Generated answer字段替换为占位符后，新旧prompt逐字相等，response_schema亦相等，模型配置相等。题集scope SHA完全一致。由此证明该范围内没有更改reader指令或放宽judge规则；不消除同模型非确定输出/裁判波动。逐题模板哈希留在`.local/window-first-eight-prompt-audit-20261119.json`，脱敏摘要合入既有diagnostics JSON的first_eight_prompt_audit；全量仍待完成后核验。
