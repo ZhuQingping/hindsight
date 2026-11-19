@@ -2,7 +2,7 @@
   "kind": "partial-paired-diagnostic-not-full1540-score",
   "baseline_run_id": "locomo1540r_20261119_030518",
   "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 762,
+  "scope": 1034,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
@@ -25,7 +25,11 @@
     "conv-41_q45",
     "conv-41_q95",
     "conv-42_q60",
-    "conv-43_q5"
+    "conv-43_q5",
+    "conv-44_q39",
+    "conv-47_q16",
+    "conv-47_q71",
+    "conv-47_q147"
   ],
   "regressed": [
     "conv-26_q68",
@@ -33,7 +37,10 @@
     "conv-42_q23",
     "conv-43_q48",
     "conv-43_q49",
-    "conv-43_q166"
+    "conv-43_q166",
+    "conv-44_q37",
+    "conv-44_q55",
+    "conv-47_q56"
   ],
   "unchanged_wrong": [
     "conv-26_q144",
@@ -76,9 +83,25 @@
     "conv-43_q113",
     "conv-43_q135",
     "conv-43_q136",
-    "conv-43_q164"
+    "conv-43_q164",
+    "conv-44_q5",
+    "conv-44_q17",
+    "conv-44_q19",
+    "conv-44_q24",
+    "conv-44_q33",
+    "conv-44_q43",
+    "conv-44_q44",
+    "conv-44_q52",
+    "conv-44_q57",
+    "conv-47_q0",
+    "conv-47_q11",
+    "conv-47_q17",
+    "conv-47_q19",
+    "conv-47_q31",
+    "conv-47_q62",
+    "conv-47_q64"
   ],
-  "note": "Paired inspection of the first five completed Banks (762/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
+  "note": "Paired completed semantic QA in the first seven Banks:1034/1035 answered, one predeclared restart interruption pending. Not full1540 or seven fully scored Banks. Mixed resource epochs are separately declared; completed calls are never regenerated and source hashes remain explicit.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -1407,6 +1430,529 @@
       "candidate_result_sha256": "c6e3cafc2bf558342a6b367dd40c1951df267a1214757a4aeabb408dfb7a5ea7",
       "baseline_result_sha256": "ce1aad1ad0a8734ffc76eb1dcb152a2fc69cf7d74fcb25f7d563315c580e0f3e",
       "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-44_q5",
+      "conversation_id": "conv-44",
+      "question": "When did Audrey see a hummingbird?",
+      "gold": [
+        "first week of May 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Audrey saw a hummingbird while hiking during April 24–30, 2023.",
+      "candidate_answer": "Audrey saw a hummingbird while hiking during April 24–30, 2023.",
+      "baseline_reason": "April 24–30, 2023 is not the first week of May 2023.",
+      "candidate_reason": "April 24–30, 2023 is not the first week of May 2023, so the generated answer gives the wrong time period.",
+      "baseline_f1": 0.14285714285714285,
+      "candidate_f1": 0.14285714285714285,
+      "evidence_ids": [
+        "D4:1"
+      ],
+      "candidate_result_sha256": "0afcd9bb279a78256661b227b392b0b629748bab1a000f4ecdc6828fa6aa9eac",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "7953900d9477ab8f9fbde4edc4d39c0480c5d97922eb59ca119a993cea520962"
+    },
+    {
+      "question_id": "conv-44_q17",
+      "conversation_id": "conv-44",
+      "question": "How many times did Audrey and Andew plan to hike together?",
+      "gold": [
+        "three times"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Audrey and Andrew planned to hike together **four times**: in August 2023, in November 2023, on October 28, 2023, and on a separate future outing to photograph their dogs amid the autumn colors.",
+      "candidate_answer": "Audrey and Andrew planned to hike together on five occasions: July 8, July 11, October 1, October 19, and October 28, 2023. Some conversations revisited the same planned outing, so this does not necessarily mean five separate hikes.",
+      "baseline_reason": "The generated answer says four times, whereas the gold answer says three times.",
+      "candidate_reason": "The generated answer says five occasions rather than the gold answer’s three times, and its caveat does not establish the correct count.",
+      "baseline_f1": 0.15384615384615385,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D11:7",
+        "D24:13",
+        "D26:20"
+      ],
+      "candidate_result_sha256": "b321fbcb945b9d48a676e2b0a1ceec21d56cb23831c1c8ae1b8bb66ab0923ee7",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "d6100887f18d247b785ec4db15fbcbea7467579ec2d150970c5bf5a33d846e9f"
+    },
+    {
+      "question_id": "conv-44_q19",
+      "conversation_id": "conv-44",
+      "question": "What is an indoor activity that Andrew would enjoy doing while make his dog happy?",
+      "gold": [
+        "cook dog treats"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Andrew could play hide-and-seek indoors with his dog—a fun way to bond while keeping his dog happy and mentally stimulated. On November 4, 2023, he said he wanted to try this activity.",
+      "candidate_answer": "Andrew could play hide-and-seek with his dog indoors—a fun way to bond and keep his dog mentally stimulated and happy.",
+      "baseline_reason": "The generated answer suggests hide-and-seek rather than cooking dog treats, which is the activity specified in the gold answer.",
+      "candidate_reason": "The generated answer suggests playing hide-and-seek rather than cooking dog treats, the activity specified in the gold answer.",
+      "baseline_f1": 0.0588235294117647,
+      "candidate_f1": 0.09523809523809525,
+      "evidence_ids": [
+        "D10:12",
+        "D12:1"
+      ],
+      "candidate_result_sha256": "c8c33b33406df06803fe52bdb254d847f7cee6f9958cd811b52c5d412893ae5a",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "2102ac5f19cb5e241b56f1766a5615bd423bce021b401a8e66b0407fe91b5dfd"
+    },
+    {
+      "question_id": "conv-44_q24",
+      "conversation_id": "conv-44",
+      "question": "Did Audrey and Andrew grow up with a pet dog?",
+      "gold": [
+        "Yes"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Audrey did: she grew up with a dog named Max and fondly remembered their neighborhood walks and games of fetch. Andrew mentioned having a family dog on April 2, 2023, but the memories do not confirm whether he grew up with one.",
+      "candidate_answer": "Audrey did: she grew up with a dog named Max and fondly recalled their long neighborhood walks and games of fetch. Andrew mentioned a family dog on April 2, 2023, but the memories do not confirm whether he grew up with it.",
+      "baseline_reason": "The generated answer confirms Audrey grew up with a dog but does not confirm Andrew did, whereas the gold answer says yes for both.",
+      "candidate_reason": "The answer confirms Audrey grew up with a dog but does not confirm Andrew did, whereas the gold answer says yes for both.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D2:16",
+        "D13:10"
+      ],
+      "candidate_result_sha256": "aae8404d5b5406840fbeebb58c320b57c93f4cf9c2e8eed153e7c8bb21c74bee",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "ab02a92b17645c2abe09e0b37a6e28058a1974c2f929a54f9018ad3ce5ae30f4"
+    },
+    {
+      "question_id": "conv-44_q33",
+      "conversation_id": "conv-44",
+      "question": "What can Andrew potentially do to improve his stress and accomodate his living situation with his dogs?",
+      "gold": [
+        "Change to a hybrid or remote job so he can move away from the city to the suburbs to have a larger living space and be closer to nature."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Andrew could combine stress relief with practical changes for city living:\n\n- **Make outdoor time manageable:** Keep taking lunchtime walks and schedule short visits to nearby dog-friendly parks with Toby, Buddy, and Scout. This could give him the calming contact with nature he misses while exercising his dogs. As of November 22, 2023, he already plans a nearby park visit; Scout should remain leashed and outings should suit the puppy’s comfort and stamina.\n- **Provide enrichment at home:** Try Audrey’s suggestions of puzzle toys, training, and hide-and-seek, alongside regular exercise and socialization, to keep the dogs stimulated in an apartment.\n- **Continue searching for suitable housing:** Use pet-friendly housing filters and contact landlords, prioritizing accommodation that permits all three dogs and is near a park or woods.\n- **Protect small self-care breaks:** Continue morning coffee, lunchtime walks, and relaxing cooking; houseplants could also bring some of the nature he finds soothing indoors. Setting firmer work–life boundaries could help preserve time for these activities.\n- **Keep care responsibilities manageable:** Coordinate dog care with his girlfriend and focus on the dogs he already has rather than taking on more. Although he agreed on November 4, 2023, to focus on Toby and Buddy, by November 22 he also had Scout, making a sustainable routine especially important.",
+      "candidate_answer": "Andrew could combine stress relief with practical care for his dogs:\n\n- **Make outdoor time manageable:** Take regular short walks and nearby park visits with Toby, Buddy, and Scout, with occasional dog-friendly hikes when work allows. Nature helps him relax, but outings should suit the puppies’ ages and abilities; Scout is still adjusting as of November 22, 2023.\n- **Keep small self-care routines:** Continue morning coffee, lunchtime walks, and cooking, which he has found relaxing, while protecting some time away from work.\n- **Provide enrichment at home:** Use puzzles, positive-reinforcement training, and hide-and-seek to keep the dogs mentally engaged in his city living space. Maintain Scout’s safe area with a bed, toys, and puppy pads.\n- **Seek suitable housing:** Continue using pet-friendly housing filters and contacting landlords, specifically checking that all three dogs are permitted. A home near a park or woods would support both exercise and his connection to nature.\n- **Share responsibilities and avoid overextending himself:** Coordinate dog care with his girlfriend and focus on the dogs he already has rather than adding more, since caring for two already felt demanding on November 4, 2023.",
+      "baseline_reason": "The answer suggests coping strategies and pet-friendly housing but misses the key proposal of switching to hybrid or remote work to move to a larger suburban home closer to nature.",
+      "candidate_reason": "The answer suggests general stress relief and pet-friendly housing but omits the key proposal of switching to hybrid or remote work to move to a larger suburban home closer to nature.",
+      "baseline_f1": 0.0849056603773585,
+      "candidate_f1": 0.10526315789473684,
+      "evidence_ids": [
+        "D12:3",
+        "D18:1",
+        "D21:5"
+      ],
+      "candidate_result_sha256": "3b33faf8e1ae8481217045013a9412815adfb6cce3e299da217ac38b0cc5da47",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "2c18d491806b741438c9a87e0dfe3369fe17799dab46b9224306c53e0c879cea"
+    },
+    {
+      "question_id": "conv-44_q37",
+      "conversation_id": "conv-44",
+      "question": "When did Audrey get into an accident in the park?",
+      "gold": [
+        "between October 19 and 24, 2023"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "Audrey had the accident while playing with her dogs at the park during October 16–22, 2023. The exact day is not specified.",
+      "candidate_answer": "Audrey had an accident while playing with her dogs at the park during October 16–22, 2023. The exact day is not specified.",
+      "baseline_reason": "The date ranges overlap substantially in late October 2023, and the generated answer appropriately notes that the exact day is unspecified.",
+      "candidate_reason": "The generated answer gives October 16–22 rather than the gold answer’s October 19–24, 2023, so the time periods do not match.",
+      "baseline_f1": 0.16666666666666666,
+      "candidate_f1": 0.16666666666666666,
+      "evidence_ids": [
+        "D25:2"
+      ],
+      "candidate_result_sha256": "1da9b6f497af169f5032104c14cdbb257cfc78c912f9f0f7780b3682537aae49",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "e97c96e0487d02589765976696cbe8c2fab2395b44d1705fbcf1ca1b7f2fe20b"
+    },
+    {
+      "question_id": "conv-44_q39",
+      "conversation_id": "conv-44",
+      "question": "What did Audrey get wtih having so many dogs?",
+      "gold": [
+        "Companionship"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Audrey got a new home with a bigger backyard so her dogs had more room to run, explore, and play.",
+      "candidate_answer": "Having so many dogs brought Audrey joy, happiness, unconditional love, and companionship—a little family she couldn’t imagine living without.",
+      "baseline_reason": "The generated answer says Audrey got a larger home, rather than the companionship specified in the gold answer.",
+      "candidate_reason": "The generated answer explicitly includes companionship, matching the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D2:15",
+        "D23:18"
+      ],
+      "candidate_result_sha256": "3d8a0c497e1bfb458089c00abe7cf9fa5f76914b1b64ca4c9d767b3ac5bfd4de",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "9f3776875c850b00f841be015dae0d3d9f319b0710b0672deb09e42bc491aa6d"
+    },
+    {
+      "question_id": "conv-44_q43",
+      "conversation_id": "conv-44",
+      "question": "Which US state do Audrey and Andrew potentially live in?",
+      "gold": [
+        "Minnesota"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "They potentially live in Oregon, based on the Oregon.com Blue Lake biking photo and the mention of Fox Hollow hiking trails. Their state is not explicitly confirmed.",
+      "candidate_answer": "They potentially live in Virginia, based on the mention of hiking at Fox Hollow, a trail in Shenandoah National Park. However, their state is not explicitly stated, and the trail name alone does not establish it conclusively.",
+      "baseline_reason": "The generated answer identifies Oregon, whereas the gold answer is Minnesota.",
+      "candidate_reason": "The generated answer suggests Virginia, whereas the gold answer is Minnesota.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D11:9"
+      ],
+      "candidate_result_sha256": "7978b2f47fe18fd8d485d4d56543977b3da4c7b2abd718a80e4b65db0adaaa32",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "97fd19cde927d1013f430f6035f3f55713b27224f545fd288fffe03126a7a316"
+    },
+    {
+      "question_id": "conv-44_q44",
+      "conversation_id": "conv-44",
+      "question": "Which national park could Audrey and Andrew be referring to in their conversations?",
+      "gold": [
+        "Voyageurs National Park"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The national park cannot be identified from the provided conversations. Audrey mentions an unnamed national park visited on May 5, 2023, and another national-park hike during May 22–28, 2023, but gives no name or location. These may or may not have been the same park.",
+      "candidate_answer": "The national park cannot be identified from the conversations. Audrey mentions an unnamed national park visited on May 5, 2023, and another hike during May 22–28, 2023; Andrew also shares a photo from an unnamed national park on October 28, 2023. There is no evidence establishing which park—or whether they meant the same park.",
+      "baseline_reason": "The generated answer says the park cannot be identified, whereas the gold answer identifies Voyageurs National Park.",
+      "candidate_reason": "The generated answer says the park cannot be identified, whereas the gold answer identifies Voyageurs National Park.",
+      "baseline_f1": 0.09302325581395349,
+      "candidate_f1": 0.08,
+      "evidence_ids": [
+        "D5:8",
+        "D11:9"
+      ],
+      "candidate_result_sha256": "52f1d64848673b66a63edf29f2db2cc60b48781f3a84bf8ca6f7fb64bd35343e",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "971b013b10e42ba265021dcf4c201ab5a243eae9fecc1c8efd5e8657ea4dfd46"
+    },
+    {
+      "question_id": "conv-44_q52",
+      "conversation_id": "conv-44",
+      "question": "What is something that Andrew could do to make birdwatching hobby to fit in his city schedule?",
+      "gold": [
+        "Install a bird feeder outside where he can see the birds without going outdoors."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Andrew could turn his lunchtime walks into short birdwatching outings at a nearby city park, bringing binoculars and a small notebook to record sightings. This would let him enjoy birds and nature without needing a long trip or extra time away from work.",
+      "candidate_answer": "Andrew could turn his lunchtime walks into short birdwatching sessions at a nearby city park, bringing binoculars and a small notebook to record sightings. This would let him enjoy birds without needing to schedule a dedicated trip out of town.",
+      "baseline_reason": "The generated answer suggests lunchtime birdwatching walks rather than installing a visible outdoor bird feeder as specified in the gold answer.",
+      "candidate_reason": "The generated answer suggests lunchtime birdwatching walks rather than installing a visible outdoor bird feeder, as specified in the gold answer.",
+      "baseline_f1": 0.08,
+      "candidate_f1": 0.08333333333333333,
+      "evidence_ids": [
+        "D20:5",
+        "D20:21",
+        "D23:1",
+        "D1:14"
+      ],
+      "candidate_result_sha256": "6bb774f39b42886130977e45a2df1c3094b256fd1cf140c0abcd75cf9336a7ed",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "82dd94cd60a45f97bb9ba1b559dddbb7708e58cbeccb014af8a369a2b42b487b"
+    },
+    {
+      "question_id": "conv-44_q55",
+      "conversation_id": "conv-44",
+      "question": "When did Andrew make his dogs a fun indoor area?",
+      "gold": [
+        "few days before November 22, 2023"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "By November 22, 2023, Andrew and his girlfriend had created a safe, fun space for Scout with a bed, toys, and puppy pads. The exact setup date wasn’t stated.",
+      "candidate_answer": "The memories don’t say Andrew made an indoor area for his dogs. On June 26, 2023, he visited a nearby doggy daycare with a large indoor play space. Audrey had created a backyard dog play area by that same date.",
+      "baseline_reason": "The answer places the setup before November 22, 2023, broadly matching the gold answer’s timeframe despite not specifying a few days earlier.",
+      "candidate_reason": "The generated answer denies the event and gives June 26, 2023, rather than a few days before November 22, 2023.",
+      "baseline_f1": 0.2,
+      "candidate_f1": 0.048780487804878044,
+      "evidence_ids": [
+        "D28:12"
+      ],
+      "candidate_result_sha256": "c3b344cce1f302366d160b808e0022cae0ffd675d22479999b567c9d3aad9e07",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "61232c7ed41389fe7d993a8a5208071eb52399b79eade5f4184770bd3b7a4689"
+    },
+    {
+      "question_id": "conv-44_q57",
+      "conversation_id": "conv-44",
+      "question": "When did Andrew adopt Scout?",
+      "gold": [
+        "few days before November 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Andrew adopted Scout shortly before November 22, 2023, sometime after November 4. The exact date is not specified.",
+      "candidate_answer": "Andrew adopted Scout shortly before November 22, 2023, likely between November 4 and November 22. The exact date is not stated.",
+      "baseline_reason": "The gold answer places the adoption a few days before November 2023, whereas the generated answer places it after November 4, in a different time period.",
+      "candidate_reason": "The gold answer places the adoption a few days before November 2023, whereas the generated answer places it within November, between November 4 and 22.",
+      "baseline_f1": 0.2727272727272727,
+      "candidate_f1": 0.25,
+      "evidence_ids": [
+        "D28:6"
+      ],
+      "candidate_result_sha256": "8c24eebd41b52898e06126db1ce8b5544bbf1be865641bded859d3971317a2e7",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "3156585abf142213ed3294f897fa8d83043ca0e23d2b7344e62fa152385e3659"
+    },
+    {
+      "question_id": "conv-47_q0",
+      "conversation_id": "conv-47",
+      "question": "What are John's suspected health problems?",
+      "gold": [
+        "Obesity"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John appears to be experiencing stress and emotional strain related to work pressure and difficulty balancing his personal and professional life, as reported on April 23 and July 9, 2022. However, the memories do not state any diagnosed or specifically suspected health problems.",
+      "candidate_answer": "No specific suspected health problems are stated for John. He reported work-related stress, frustration, and feeling overwhelmed on April 23 and July 9, 2022, but the memories do not establish any medical or mental-health diagnosis.",
+      "baseline_reason": "The generated answer discusses stress and denies specific suspected health problems, but fails to mention obesity.",
+      "candidate_reason": "The generated answer denies any suspected health problems and does not mention obesity, which is the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D1:27"
+      ],
+      "candidate_result_sha256": "ce01f0a3754c1deb8130cc064dbfa810c83fcfbe7bd9c385922fbee9119fdefa",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "576de2edd3c26c68e58008dbb5ce3346c04bf8947bfc71a5a443310dff5f9791"
+    },
+    {
+      "question_id": "conv-47_q11",
+      "conversation_id": "conv-47",
+      "question": "How was John feeling on April 10, 2022?",
+      "gold": [
+        "seeking solitude"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not specify how John was feeling on April 10, 2022.",
+      "candidate_answer": "The memories do not specify how John was feeling on April 10, 2022.",
+      "baseline_reason": "The generated answer says John's feelings were unspecified, whereas the gold answer states he was seeking solitude.",
+      "candidate_reason": "The generated answer claims the information is unspecified rather than identifying that John was seeking solitude.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D6:7"
+      ],
+      "candidate_result_sha256": "a595e8daa4a7593a887dcd01346d5e59dc584a06c8b6f935614cb1d8786bda9d",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "6393c9924985d5e59deafb4037947533a6c72ce29fdbf31d653be0a28c295744"
+    },
+    {
+      "question_id": "conv-47_q16",
+      "conversation_id": "conv-47",
+      "question": "What is the game with different colored cards that was John talking about with James?",
+      "gold": [
+        "UNO"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "The provided memories don’t identify a game with different colored cards. John mentioned “Dungeons of the Dragon” on September 18, 2022, but there’s no card-color detail confirming that it is the game you mean.",
+      "candidate_answer": "The game was most likely UNO, based on John's description of matching colored or numbered cards and using draw-card and skip-turn actions.",
+      "baseline_reason": "The generated answer does not identify UNO, the game specified in the gold answer, and instead states that the game is unknown.",
+      "candidate_reason": "The generated answer identifies UNO, matching the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.1,
+      "evidence_ids": [
+        "D8:34"
+      ],
+      "candidate_result_sha256": "9ac90ab15ae4316f3bd8f6f8e706641b9fea9c96a5cb408c8ab00a1e898aed93",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "ccb3119b69d1ae536cbe9ae595e394876038efca1590834ee6b4fb36af8d5a8a"
+    },
+    {
+      "question_id": "conv-47_q17",
+      "conversation_id": "conv-47",
+      "question": "What is the board game where you have to find the imposter that John mentions to James?",
+      "gold": [
+        "Mafia"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John most likely meant **Among Us**, where players identify the impostor. The memory from April 29, 2022 does not explicitly name the game, and Among Us is a video game rather than a board game.",
+      "candidate_answer": "John most likely means **Among Us**, the game where players identify the impostor. He mentioned it on April 29, 2022, though the memories do not explicitly name it, and it is a video game rather than a board game.",
+      "baseline_reason": "The generated answer identifies Among Us rather than Mafia, the board game named in the gold answer.",
+      "candidate_reason": "The generated answer identifies Among Us rather than Mafia, the board game named in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D8:36"
+      ],
+      "candidate_result_sha256": "5a0437791efa4dc6b99cfc093c96378121de37e99100097920a422f597c9aff9",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "83611a4766203c664a993b3452fe3979561a00daf8d01a49157f998297af7eb9"
+    },
+    {
+      "question_id": "conv-47_q19",
+      "conversation_id": "conv-47",
+      "question": "Was James feeling lonely before meeting Samantha?",
+      "gold": [
+        "Most likely yes, because he mentioned that the only creatures that gave him joy are dogs and he was actively trying to date."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not explicitly say James felt lonely before meeting Samantha on August 9, 2022. He may have wanted a romantic connection, but he already found companionship and support through his dogs, sister, friends, and online gaming community.",
+      "candidate_answer": "The memories do not explicitly say James felt lonely before meeting Samantha on August 9, 2022. He may have wanted a romantic connection—he regretted not approaching a woman he found attractive on April 6, 2022—but he also had supportive friends, his sister, his dogs, and an online gaming community. So romantic longing is plausible, but loneliness is not established.",
+      "baseline_reason": "The generated answer emphasizes uncertainty and existing companionship rather than the gold answer’s conclusion that James was most likely lonely.",
+      "candidate_reason": "The generated answer treats loneliness as unestablished rather than affirming the gold answer’s likely loneliness based on his dogs and dating efforts.",
+      "baseline_f1": 0.10714285714285714,
+      "candidate_f1": 0.08,
+      "evidence_ids": [
+        "D9:16"
+      ],
+      "candidate_result_sha256": "2078831027e8290e63c1acf484e42ff52a2296ed47112c5d1b3f2c7bede790e4",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "79f44931f080799efcac246c9bb5bdda727bc8851be6091ec370e13bffcfb4b8"
+    },
+    {
+      "question_id": "conv-47_q31",
+      "conversation_id": "conv-47",
+      "question": "How many days did James plan to spend on his trip in Canada?",
+      "gold": [
+        "19 days"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "James planned to spend 9 days on his trip to Canada, from July 11 to July 20, 2022.",
+      "candidate_answer": "James planned to spend 9 days in Canada, from July 11 to July 20, 2022.",
+      "baseline_reason": "The generated answer says 9 days, whereas the gold answer specifies 19 days.",
+      "candidate_reason": "The generated answer says 9 days, whereas the gold answer specifies 19 days.",
+      "baseline_f1": 0.09999999999999999,
+      "candidate_f1": 0.11764705882352941,
+      "evidence_ids": [
+        "D16:9",
+        "D16:13"
+      ],
+      "candidate_result_sha256": "3dbac42583be970569fc867dadb8fc3eed1c6aff965c35cacd7597926ea7f959",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "8a52fca430f206a14eac09727aaf695c80e85cd64b043a2fd07045a394b788cf"
+    },
+    {
+      "question_id": "conv-47_q56",
+      "conversation_id": "conv-47",
+      "question": "Which of James's family members have visited him in the last year?",
+      "gold": [
+        "mother, sister"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "James was visited by his sister on July 21, 2022, and his mother on October 19, 2022. His mother brought her army friend along.",
+      "candidate_answer": "James’s mother visited him on October 19, 2022, accompanied by her army friend. No other family members are explicitly recorded as having visited him in the last year.",
+      "baseline_reason": "The generated answer identifies James's mother and sister as visitors, matching the gold answer.",
+      "candidate_reason": "The answer mentions James’s mother but omits his sister and explicitly denies any other family visits, contradicting the gold answer.",
+      "baseline_f1": 0.26666666666666666,
+      "candidate_f1": 0.125,
+      "evidence_ids": [
+        "D17:28",
+        "D28:19"
+      ],
+      "candidate_result_sha256": "d995cdc555f7877416708c44371c8b8f8f812042177ea7d8b5055abcbbeea320",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "fc0441b661a386dcfb2c660bbe1cc91ab9ca3e114f62f899a07efb35ae69ef1d"
+    },
+    {
+      "question_id": "conv-47_q62",
+      "conversation_id": "conv-47",
+      "question": "How long did James and Samantha date for before deciding to move in together?",
+      "gold": [
+        "nearly three months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "About two months. They became a couple on September 3, 2022, and by October 31, 2022—58 days later—they had decided to move in together and rented an apartment near McGee’s bar. The exact date of their decision isn’t specified.",
+      "candidate_answer": "About two months (58 days, or 8 weeks and 2 days), from becoming a couple on September 3, 2022, to announcing their decision to move in together on October 31, 2022.",
+      "baseline_reason": "The generated answer says about two months, which differs from the gold answer of nearly three months.",
+      "candidate_reason": "The generated answer says about two months, which does not match the gold answer of nearly three months.",
+      "baseline_f1": 0.05405405405405406,
+      "candidate_f1": 0.0625,
+      "evidence_ids": [
+        "D19:14",
+        "D29:8",
+        "D29:10"
+      ],
+      "candidate_result_sha256": "d9c4af05280918dd86414a29906474884151c8d77e7e194ddb93d26081857924",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "e677d33527ef5b9e4c91956ed07fe77ab5b1a7cd8dba354fcc3a050a519c05ca"
+    },
+    {
+      "question_id": "conv-47_q64",
+      "conversation_id": "conv-47",
+      "question": "How long did John practice chess for before winning the chess tournament?",
+      "gold": [
+        "nearly four months"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John practiced chess for about three months before winning the regional tournament on November 1, 2022. He reported having just started on July 22, 2022—102 days before his win.",
+      "candidate_answer": "About three months. John reported starting chess around July 22, 2022, and won the regional tournament on November 1, 2022—approximately 3 months and 10 days later.",
+      "baseline_reason": "The generated answer says about three months, rather than the nearly four months stated in the gold answer.",
+      "candidate_reason": "The generated answer states about three months (3 months and 10 days), rather than the nearly four months specified in the gold answer.",
+      "baseline_f1": 0.06451612903225806,
+      "candidate_f1": 0.07692307692307691,
+      "evidence_ids": [
+        "D17:1",
+        "D30:2",
+        "D30:4"
+      ],
+      "candidate_result_sha256": "5432e9b7ef3ada506162504f0aaf1103d40ae710c973907006bcc349425587eb",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "32d4cbca25954d5d82df81b00492b28d9a3ba3cba59118b80a2e70625c609ed4"
+    },
+    {
+      "question_id": "conv-47_q71",
+      "conversation_id": "conv-47",
+      "question": "What did James offer to do for John regarding pets?",
+      "gold": [
+        "help find the perfect pet"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "James suggested developing a dog-walking and pet-care app with John to connect pet owners with reliable dog walkers and provide pet-care information. The memories do not explicitly mention any other pet-related offer to John.",
+      "candidate_answer": "James offered to help John find the perfect pet when he was ready to get one.",
+      "baseline_reason": "The generated answer describes creating a pet-care app rather than James offering to help John find the perfect pet.",
+      "candidate_reason": "The generated answer matches the gold answer that James offered to help John find the perfect pet.",
+      "baseline_f1": 0.058823529411764705,
+      "candidate_f1": 0.4210526315789474,
+      "evidence_ids": [
+        "D2:19"
+      ],
+      "candidate_result_sha256": "69d4689d686495390e5befbde75d03ea725dd22608de60ac8d4e4d181ea97cf4",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "d11b7ffcf44c5391dd11913d4bc2c3822af5b806e89b46de5fddfd294acc915e"
+    },
+    {
+      "question_id": "conv-47_q147",
+      "conversation_id": "conv-47",
+      "question": "What did John suggest James practice before playing FIFA 23 together?",
+      "gold": [
+        "Control with a gamepad and timing"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "John suggested James practice playing FIFA 23 a little before they played together.",
+      "candidate_answer": "John suggested James practice playing FIFA 23 a little and get familiar with its controls before they played together.",
+      "baseline_reason": "The generated answer only mentions practicing FIFA 23 generally, omitting the specific gamepad control and timing skills John suggested.",
+      "candidate_reason": "The generated answer captures John's suggestion to practice and become familiar with the controls, matching the gold answer's core topic.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.19047619047619047,
+      "evidence_ids": [
+        "D30:18"
+      ],
+      "candidate_result_sha256": "49472cedffea3f8d3cc997255fd4ba1ee3a318729cce5f1b74f79d6e0a6109e0",
+      "candidate_source_run_id": "locomow8r_20261119_011537",
+      "baseline_result_sha256": "bd44315ab319258f7a676fe8df34e98339312181d39bb948a27dcac377d9d277"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -1766,6 +2312,121 @@
       "question_id": "conv-43_q166",
       "finding": "gold证据D27:19明确speaker=Tim说Harry Potter favorite，题却问John。新上下文同时含John喜欢Harry Potter及LOTR，reader改选LOTR；属于偏好强度、人物标注及reader选择交织，不能简单归为正确Harry Potter记忆被截断。",
       "confidence": "confirmed_source_speaker_conflict_and_answer_selection"
+    },
+    {
+      "question_id": "conv-44_q5",
+      "finding": "May3会话说last week，两轮都答April24–30，gold写May第一周；保留源/gold时间冲突，不靠改日期追分。",
+      "confidence": "supported_source_gold_time_dispute"
+    },
+    {
+      "question_id": "conv-44_q17",
+      "finding": "新答案数出五次提及且自认可能重复，未合并成独立计划；需区分同一出游的重复计划与新的邀约，扩大覆盖还可能增加重复计数。",
+      "confidence": "supported_event_deduplication"
+    },
+    {
+      "question_id": "conv-44_q19",
+      "finding": "室内hide-and-seek符合原文狗狗活动建议，gold只收cook dog treats；属于根据多项兴趣的非唯一推荐，不能一律归为取不到原文。",
+      "confidence": "supported_nonunique_recommendation"
+    },
+    {
+      "question_id": "conv-44_q24",
+      "finding": "Audrey童年Max明确，Andrew只提family dog，reader不确认童年。更强的年龄/家庭背景推断可能影响得分，但不应说已有原文明示两人童年养狗。",
+      "confidence": "supported_inference_scope"
+    },
+    {
+      "question_id": "conv-44_q33",
+      "finding": "压力、住处和狗狗信息已支撑reader建议，但gold要求hybrid/remote job搬郊区的特定组合，reader只提公园/住房/照顾安排。主要为开放域方案选择与答案冗长，不是PG候选不足的已证实情况。",
+      "confidence": "supported_inference_and_answer_selection"
+    },
+    {
+      "question_id": "conv-44_q37",
+      "finding": "新旧答案都给October16–22且exact day unknown；旧judge因与gold19–24重合判对，新judge以不匹配判错。此回退直接体现裁判对重合日期区间的波动，未证明检索变差。",
+      "confidence": "confirmed_date_judge_variation"
+    },
+    {
+      "question_id": "conv-44_q39",
+      "finding": "新答案明确说companionship，且新窗口保留D23:18原句；但旧4K事实也已含companionship，不能称旧上下文完全没有答案。另原F1把companionship—a连成词，导致实际F1仍0；离线只加空格的诊断为0.20，不替换真实答案或原F1。",
+      "confidence": "confirmed_contextual_selection_and_format_metric"
+    },
+    {
+      "question_id": "conv-44_q43",
+      "finding": "新答案从Oregon猜成Virginia，依据Fox Hollow地名；所引图片文字未明确州，无法确认Minnesota。两个猜测不等于新检索确定了州，不能将图片URL当居住地真值。",
+      "confidence": "supported_missing_visual_or_location_evidence"
+    },
+    {
+      "question_id": "conv-44_q44",
+      "finding": "原文/caption未明确Voyageurs名称，reader继续拒绝识别具体公园；来源可能需要图片细节，扩大文本预算本身不能补出不存在的公园名。",
+      "confidence": "supported_visual_detail_gap"
+    },
+    {
+      "question_id": "conv-44_q52",
+      "finding": "reader给午间附近公园观鸟，gold指定家中bird feeder；属于满足忙碌/观鸟需求的非唯一建议，未证明原文有feeder而被截掉。",
+      "confidence": "supported_nonunique_recommendation"
+    },
+    {
+      "question_id": "conv-44_q55",
+      "finding": "D28:12原句已返回未选入窗口，但Andrew给Scout准备bed/toys/puppy pads的safe-space事实仍在新上下文。reader转去June26狗托管indoor play space并否认自家事件；是相关原句遗漏和事件消歧/答题选择混合，不能归为全部相关事实消失。",
+      "confidence": "confirmed_raw_gap_and_reader_disambiguation"
+    },
+    {
+      "question_id": "conv-44_q57",
+      "finding": "Nov22的the other day与Scout新收养支持November期间，gold写November之前；两轮保持November且判错，保留源/gold冲突。",
+      "confidence": "supported_source_gold_time_dispute"
+    },
+    {
+      "question_id": "conv-47_q0",
+      "finding": "原文线索只支持饮食/压力等兴趣推断，reader不诊断obesity；gold要求特定健康推断，不是已经明示肥胖诊断却漏取的已证实情况。",
+      "confidence": "supported_inference_policy"
+    },
+    {
+      "question_id": "conv-47_q11",
+      "finding": "题问April10，参考April20的two days ago却对应April18；两轮拒绝确定April10感受，保留时间锚点冲突。",
+      "confidence": "supported_source_gold_time_dispute"
+    },
+    {
+      "question_id": "conv-47_q16",
+      "finding": "新上下文明确保留D8:34同色/同数字出牌、draw extra、skip turn规则，reader据此推断UNO并答对；细节支持可直接核验，不只是问题自带colored一词。",
+      "confidence": "confirmed_detailed_context_and_inference"
+    },
+    {
+      "question_id": "conv-47_q17",
+      "finding": "reader将impostor游戏猜为Among Us且承认它不是board game，gold为Mafia；新窗口未解决游戏类型与非唯一识别，需要按题目board-game约束推断。",
+      "confidence": "supported_game_type_inference"
+    },
+    {
+      "question_id": "conv-47_q19",
+      "finding": "reader强调社交支持与不确定，gold要求most likely lonely；属于情感推断立场，更多同类事实不保证跨越该推断门槛。",
+      "confidence": "supported_inference_policy"
+    },
+    {
+      "question_id": "conv-47_q31",
+      "finding": "July11到July20为9天，gold19天；两轮相同，保持原判与源冲突记录，不改算术迎合gold。",
+      "confidence": "confirmed_source_gold_duration_dispute"
+    },
+    {
+      "question_id": "conv-47_q56",
+      "finding": "新上下文仍有与sister看日落及相处的事实，但明确来访的D17:28原句已返回未打包；reader只确认mother visit。是具体访问关系原句遗漏，不能说所有sister记忆都没有。",
+      "confidence": "confirmed_specific_relation_context_gap"
+    },
+    {
+      "question_id": "conv-47_q62",
+      "finding": "答案按Sept3成为couple到Oct31入住决定算约两月，gold按早期约会近三月；需要区分first dating与formal couple起点，不能简化为日期计算错误。",
+      "confidence": "supported_relationship_anchor_ambiguity"
+    },
+    {
+      "question_id": "conv-47_q64",
+      "finding": "July22到Nov1为约3月10天，新旧答about three months，goldnearly four months；月份近似和计数口径影响判定，保留原结果。",
+      "confidence": "supported_duration_approximation"
+    },
+    {
+      "question_id": "conv-47_q71",
+      "finding": "新窗口明确保留D2:19的help find the perfect one，答案准确复述帮助找宠物；这是有实际原句及答案共同支持的恢复。",
+      "confidence": "confirmed_direct_quote_visible_and_answered"
+    },
+    {
+      "question_id": "conv-47_q147",
+      "finding": "D30:18仍未返回，timing仍未入上下文；gamepad出现于别处Mario手柄对话。新答案仅多说熟悉controls，judge以核心话题相符判对，不能当作零事实关联原文缺口或gamepad+timing完整答案已修复。",
+      "confidence": "confirmed_partial_answer_judge_acceptance"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -4141,5 +4802,68 @@
       "Per-phase metrics separate predeclared in-flight transition IDs, without changing any verdict or overall quality denominator."
     ],
     "global_lint": "Existing native api/http.py F841; unrelated isolated formatter edits restored."
+  },
+  "scope_bank_expected": 1035,
+  "operational_gaps": [
+    {
+      "question_id": "conv-44_q90",
+      "error": "HTTPFailure"
+    }
+  ],
+  "first_seven_bank_comparison": {
+    "kind": "completed-qa-in-first-seven-banks-not-full1540-score",
+    "scope_completed": 1034,
+    "bank_scope_expected": 1035,
+    "operational_gaps": [
+      {
+        "question_id": "conv-44_q90",
+        "error": "HTTPFailure"
+      }
+    ],
+    "baseline_correct": 954,
+    "candidate_correct": 968,
+    "baseline_accuracy": 0.9226305609284333,
+    "candidate_accuracy": 0.9361702127659575,
+    "baseline_f1": 0.27268742273205554,
+    "candidate_f1": 0.2742119084433667,
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60",
+      "conv-43_q5",
+      "conv-44_q39",
+      "conv-47_q16",
+      "conv-47_q71",
+      "conv-47_q147"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23",
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166",
+      "conv-44_q37",
+      "conv-44_q55",
+      "conv-47_q56"
+    ],
+    "note": "Only completed semantic QA; a proven restart interruption remains pending. Same completed question IDs in both sides; no full1540 score. Resource epochs are mixed and separately declared.",
+    "private_snapshot_sha256": "bb6e4d57e4edd1f43276f3555b5f66208a38cb79c2658a9f7e7f6e30d69055db",
+    "private_snapshot_path": ".local/window-first-seven-banks-completed-20261119.json"
   }
 }
