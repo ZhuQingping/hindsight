@@ -5521,5 +5521,36 @@
     "all_response_schemas_equal": true,
     "same_models": true,
     "note": "Only exact saved context or generated-answer field was replaced to compare templates. No prompt edits, no model calls, no judgments changed. Scope is first8 completed1225, not yet full1540."
+  },
+  "raw_candidate_complement_vs_v1_first1225": {
+    "kind": "offline-source-id-complement-vs-v1-64k-not-new-qa-score",
+    "scope": 1225,
+    "candidate_source_sha256": "c129f6f93bf1ee87d93159abe44d285e3f92e5c03d81b6a0a6e84857a488b294",
+    "stored_chunk_snapshot_sha256": "3957317bfdb80ec793f125f35d3ccc3ef8e63ca7c4bb1599ea1e9a41557cc5dd",
+    "v1_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "paired_snapshot_sha256": "2a86f314757ad4845375e66cfd955760b74e15531572412095049676e59b3cd2",
+    "all_completed": {
+      "scope": 1225,
+      "v1_returned_all_reference_ids": 1219,
+      "v1_packed_all_reference_ids": 968,
+      "native_plus_lexical_all_reference_ids": 1220,
+      "extra_all_reference_cases": [
+        "conv-47_q147"
+      ],
+      "cases_with_any_extra_reference_id": [
+        "conv-47_q147"
+      ],
+      "empty_reference_cases": 2
+    },
+    "v1_wrong_only": {
+      "scope": 77,
+      "v1_returned_all_reference_ids": 77,
+      "v1_packed_all_reference_ids": 40,
+      "native_plus_lexical_all_reference_ids": 77,
+      "extra_all_reference_cases": [],
+      "cases_with_any_extra_reference_id": [],
+      "empty_reference_cases": 0
+    },
+    "note": "Existing question-only top4 lexical candidates plus same-document neighboring chunks are compared after the fact against64K raw recall. No new model/recall/DB/packing or ranked candidate computation. ID coverage is not entailment, budget-feasible inclusion, or accuracy; empty-reference sets count vacuously. Raw candidate ranks were computed for full1540 independently of gold. No test score improvement claimed."
   }
 }

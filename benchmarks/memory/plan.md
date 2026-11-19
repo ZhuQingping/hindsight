@@ -905,3 +905,10 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 
 
 前八组提示词实证核验：逐题校验1225对answer/judge的sealed记录，reader仅将精确匹配的整段packing替换为占位符、judge仅将Generated answer字段替换为占位符后，新旧prompt逐字相等，response_schema亦相等，模型配置相等。题集scope SHA完全一致。由此证明该范围内没有更改reader指令或放宽judge规则；不消除同模型非确定输出/裁判波动。逐题模板哈希留在`.local/window-first-eight-prompt-audit-20261119.json`，脱敏摘要合入既有diagnostics JSON的first_eight_prompt_audit；全量仍待完成后核验。
+
+
+### 原文全文候选相对V1的增量（仅离线覆盖证据）
+
+将已冻结、仅按问题生成的top4词面候选及同文档邻chunk，与V1前八组1225题的64K recall回包比较，而不是继续拿旧8K基线推断新收益：1219题的全部标注ID已经在原文回包中（含2题无参考ID），加入离线候选仅到1220题，增量只有conv-47_q147且其V1已被judge接受。77道V1错题全部有非空参考ID，77题的标注ID均已返回，40题全部进入最终8K上下文；已测全文候选没有补出这77题的额外标注ID。
+
+因此该范围优先检查上下文打包、reader及标注歧义；PG全文增强可继续作为完整性/候选排序/减少CPU重排的独立方向，但不能再把旧8K下的覆盖增量宣称为V1准确率潜力。ID出现不证明完整证据可推理，未进入标注ID不证明所有等价支持缺失；这是事后开发集诊断，没有新模型/recall/DB请求，没有新准确率。私有逐题数据`.local/pg-baseline-audit-20261119/raw-candidate-vs-v1-first1225.json`，脱敏摘要合入既有diagnostics的raw_candidate_complement_vs_v1_first1225。
