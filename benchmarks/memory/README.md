@@ -25,6 +25,7 @@ git rev-parse HEAD
 | --- | --- |
 | [plan.md](plan.md) | LoCoMo 通俗流程、模型和评分口径、公平对比、待办、历史结果及错题分析 |
 | [report.md](report.md) | 友商 benchmark、模型、分数、Token、时延与原始来源 |
+| [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：设计、分析报告、当前进展、一晚最小计划与历史证据；下一阶段暂不启动 |
 | [runner.py](runner.py) | 唯一执行入口：init、preview、ingest、verify、run、report |
 | [support.py](support.py) | 配置类型、完整条目/原文窗口打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
 | [analysis.py](analysis.py) | 完整结果导出、官方对照、只读进度、错题证据与离线覆盖诊断 |
@@ -39,6 +40,12 @@ git rev-parse HEAD
 **同事协作入口：**见[plan中的协作交接](plan.md#协作交接2026-11-19)。分工可按统计归因、上下文/reader、原文/PG检索、CPU重排性能四条线推进；当前88道V1语义错题已有逐题来源检查。现阶段优先完成本轮及其收尾，不自动启动新候选。原始`.local`不在Git，开发分支也不等于8892当前部署版本，详见下文配置与版本说明。
 
 历史conv-30：旧版91.36%、F1 25.15%；新AMB协议RRF为70/81、86.42%、F1 21.98%；旧Bank接入BGE后为76/81、93.83%、F1 26.64%。完整基线使用全新抽取Bank，其conv-30为75/81，不能把旧Bank成绩拼入全量。各次旧结果和Bank均保留，prompt/裁判不同的运行不作为单一打包改动的因果对比。
+
+## PG Recall 下推专项
+
+下推设计和分析已统一到 [recall-pushdown/](recall-pushdown/README.md)：[当前设计](recall-pushdown/design.md)、[分析报告](recall-pushdown/analysis.md)（[HTML](recall-pushdown/analysis.html)）、[进展](recall-pushdown/progress.md)和[下一步计划](recall-pushdown/plan.md)。今后在此维护，旧研究目录保留历史快照。
+
+**状态：只有受限原型，现有81题的时间检索、评分、预算与本地BGE完整下推尚未启动。** 该专项基于旧conv-30 Bank，不与当前1540题/V1运行混用。6–8小时是后续最小实验实现的估算，不是已启动任务；本次只整理资料，不启动PG、模型或评测。
 
 ## 配置归档与同事复测版本
 
@@ -58,6 +65,33 @@ git rev-parse HEAD
 同事若复测当前方法：固定本分支提交，用V1模板和自己的凭据/路径，连接当前8892及原10个Bank（远程访问需配置可达地址），按init → 冻结runner verify → run，不执行ingest。独立机器需恢复同一批Bank及匹配服务环境；重新导入或部署本分支最新服务端代码，应标记为新环境实验。不要直接执行manifest中的本机绝对路径。
 
 模板统一使用当前reranker并发2；原运行是1→2的混合资源，因此方法复测不等于原时延逐值复现。模型输出也不保证逐字相同。PG密码、OAuth凭据、模型权重及原始`.local`均不会随Git推送，须按同事实际环境单独准备。
+
+## 同一runner选择上一轮或本轮方案
+
+**使用 `--config` 选择方案，没有 `--v1` / `--v2` 开关。** 为避免与内部算法版本号混淆，配置按“baseline（上一轮）”和“window（本轮）”命名：
+
+| 选择 | 复测配置 | recall原文候选 | 打包方法 | 最终记忆预算 |
+| --- | --- | --- | --- | --- |
+| 上一轮基线方案 | [config.baseline-reuse.example.json](config.baseline-reuse.example.json) | 8192 | complete-json-separate-budgets-v2，response_order | 8192，事实4000/原文4000 |
+| 本轮窗口优化方案 | [config.window-v1.example.json](config.window-v1.example.json) | 65536 | query-turn-windows-v1，query_relevance | 8192，事实4000/原文4000 |
+
+两份均固定原10个Bank、1540题、相同答题/判题模型、AMB原裁判，不重新导入。旧的`config.full-baseline.json`用于创建新Bank的完整基线，不用它直接复测原Bank。模型/凭据/数据与AMB路径准备见下文；这里的模板默认当前8892、当前reranker并发2，不能逐值重现旧基线并发1或本轮1→2混合资源的时延。配置声明不会自动修改服务端，先核对环境清单。
+
+在仓库根目录执行以下命令；先选择其中一个配置，每次使用全新的run目录和run_id。**以下命令会发起真实复测，当前整轮未完成前不要同时启动。**
+
+```bash
+# 二选一：上一轮基线方案
+BENCH_CONFIG=benchmarks/memory/config.baseline-reuse.example.json
+# 或本轮窗口优化方案：
+# BENCH_CONFIG=benchmarks/memory/config.window-v1.example.json
+
+BENCH_RUN=benchmarks/memory/.local/runs/my_retest_001
+.venv/bin/python benchmarks/memory/runner.py init --config "$BENCH_CONFIG" --run-dir "$BENCH_RUN" --run-id my_retest_001
+.venv/bin/python benchmarks/memory/runner.py verify "$BENCH_RUN"
+.venv/bin/python benchmarks/memory/runner.py run "$BENCH_RUN"
+```
+
+这三步为：冻结配置与代码 → 只读核验原Bank → 答题与判题；**不执行ingest**。启动期间固定同一个Git提交，init会自动存下运行快照，无需到旧运行目录挑脚本。中途维护代码变化时校验会拒绝混用；恢复旧任务按其已归档运行快照处理。
 
 ## 离线验证
 
@@ -89,7 +123,7 @@ export CONTEXTBASE_AMB_CHECKOUT="/path/to/agent-memory-benchmark"
 
 ## 证据与维护
 
-今后正文只在本目录的 README、plan、report 维护。旧的 `scripts/benchmarks/amb-contextbase*`、`contextbase-locomo*` 和独立旧驱动不再作为维护入口，也不进入本次提交。
+打榜正文在本目录的 README、plan、report 维护；PG Recall 下推专项正文统一在 [recall-pushdown/](recall-pushdown/README.md) 维护。旧的 `scripts/benchmarks/amb-contextbase*`、`contextbase-locomo*` 和独立旧驱动不再作为维护入口，也不进入本次提交。
 
 原始数据、官方逐题文件、旧结果与验证证据继续保留在现有研究目录 `/Users/zhuqingping/Work/Database/Context/ContextDB-Research/.local-archive/benchmarks/`，本次不移动、不提交。新运行可放在本目录已忽略的 `.local/runs/<run_id>/`。任何凭据、运行数据、第三方源码 checkout、环境和缓存都不进入 Git。
 
