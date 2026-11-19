@@ -2424,5 +2424,39 @@
       "ty": "passed",
       "global_lint": "existing F841 in native api/http.py:5846; isolated lint worktree auto-format changes restored"
     }
+  },
+  "reranker_concurrency_probe": {
+    "kind": "standalone-reranker-throughput-not-end-to-end-latency",
+    "serial_two_queries_mean_s": 45.91793020849582,
+    "parallel_two_queries_mean_s": 36.921969896066,
+    "elapsed_reduction": 0.195913889663201,
+    "throughput_gain": 0.24364789684172083,
+    "maximum_absolute_score_delta": 0,
+    "all_rankings_identical": true,
+    "saved_queries": 2,
+    "total_inference_calls": 8,
+    "source_sha256": "f75fb82e95251a0d9b683584276291f3c396214c291825ada4d5d0eeb8f2ce62",
+    "script_sha256": "bf9119df42d05e52a9b1b8b8d4db21b913476999179396ecf1e94cc0541fc09c",
+    "notes": [
+      "Standalone deployed native class, CPU FP32, same saved question+returned fact texts for all rounds.",
+      "Original live benchmark keeps running; co-load may affect absolute timings and measured speedup.",
+      "Each round scores both saved queries; parallel mode shares one model with two executor workers.",
+      "Input documents are returned facts, not guaranteed identical to the full internal recall candidate pool.",
+      "No Bank reads/writes, live recall, API restart, answer/judge calls or new benchmark accuracy."
+    ]
+  },
+  "storage_size_snapshot": {
+    "current_10_banks": {
+      "schemas": 10,
+      "total_bytes": 92495872,
+      "table_including_toast_bytes": 29835264,
+      "index_bytes": 62660608
+    },
+    "all_locomo_named_schemas": {
+      "schemas": 11,
+      "total_bytes": 98648064
+    },
+    "entire_current_database_bytes": 145749695,
+    "notes": "Read-only relation sizing; current10 sums all user tables and indexes in exact baseline test schemas; all_locomo also includes preserved old test Banks. Database size includes other workloads and internal space. WAL, model files and filesystem result archives excluded."
   }
 }
