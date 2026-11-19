@@ -933,3 +933,8 @@ q99梦境书、q141寻找爱建议、q145饼干配方实际恢复原句；q123�
 补齐前核验原进程退出、真实锁空闲、仅q90为HTTPFailure且无语义调用。新检查点只新增q90 answer/judge，其他1539题的6156份payload去除fingerprint/checksum后逐字一致；原源6158份sealed文件SHA全部不变。q90判对，原失败记录不覆盖。恢复审计`.local/window-restart-recovery-prepared-20261119/completed-preservation-audit.json`，脱敏副本合入diagnostics。
 
 维护版离线复包：上一轮1540题全部Packed记录一致；本轮先前完成1381题的reader正文全部逐字一致，其中1题非正文元数据不完全一致（conv-41_q122），不宣称所有Packed字段完全一致。此为已有回包兼容核验，没有新recall/答题/判题分数。三种显式hash seed的该题复算正文也一致，非正文差异原因留作后续排查，当前成绩保留原始上下文。完整配置、客户端/服务端指纹及PG插件见环境清单，服务部署继续保留。
+
+
+### 全量错题优化分工依据（纯离线）
+
+98道错题的全部标注参考ID都已在64K recall原文中出现：55题全部进入8K上下文，20题只进入部分，23题完全未进入。后续可先分成43题窗口选择检查、55题reader/事件关联/标注与裁判检查，逐题名单在diagnostics的full_evidence_coverage_handoff。这里是排查优先级，不能把43题直接当可修复数，也不能仅凭ID齐全认定记忆语义充分。已有question-only词面候选加邻chunk在这98题上没有新增参考ID覆盖，不能宣称全文索引会自动解决当前错题；PG下推仍需独立验证延迟和完整性。没有调用模型、recall或DB，没有改分；原始逐题覆盖保存在`.local/pg-baseline-audit-20261119/raw-candidate-vs-v1-full1540.json`。
