@@ -29,7 +29,7 @@ import numpy as np
 import tiktoken
 from hindsight_api.engine.llm_interface import LLMInterface
 from hindsight_api.engine.response_models import TokenUsage
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, StrictBool
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, StrictBool, model_validator
 
 
 def module_from_file(name: str, path: Path) -> ModuleType:
@@ -52,7 +52,6 @@ ProviderFactory = Callable[[Any, float], LLMInterface]
 
 
 class Config(core.Config):
-    protocol: Literal["amb-locomo-cat1to4-packed-v1"] = "amb-locomo-cat1to4-packed-v1"
     judge_protocol: Literal["pinned-amb-locomo-judge"] = "pinned-amb-locomo-judge"
     amb_checkout: str
     amb_commit: Literal["28b644bd4dd653c0207c7507280439390c829155"] = AMB_COMMIT
@@ -60,7 +59,25 @@ class Config(core.Config):
     # but count the actual injected context in both tokenizers for comparison.
     upstream_tokenizer: Literal["cl100k_base"] = "cl100k_base"
     checkpoint_source: core.Source | None = None
+    retrieval_source: core.Source | None = None
     resume_connection_failures: bool = False
+
+    @model_validator(mode="after")
+    def independent_source_modes(self) -> Config:
+        if self.checkpoint_source and self.retrieval_source:
+            raise ValueError("Choose checkpoint continuation or a fresh retrieval-only experiment")
+        if self.retrieval_source and (not self.reuse_banks or self.resume_connection_failures):
+            raise ValueError("Retrieval-only experiments require explicit read-only Banks and no recovery override")
+        return self
+
+    @property
+    def source_ref(self) -> core.Source | None:
+        return self.checkpoint_source or self.retrieval_source
+
+
+class RetrievalOrigin(core.StrictModel):
+    run_id: str
+    manifest_sha256: str
 
 
 class Manifest(core.Manifest):
@@ -70,6 +87,7 @@ class Manifest(core.Manifest):
     core_sha256: str
     amb_files: dict[str, str]
     checkpoint_imports: dict[str, str] = Field(default_factory=dict)
+    retrieval_origin: RetrievalOrigin | None = None
     integration_notes: list[str] = Field(
         default_factory=lambda: [
             "Unmodified AMB LoComoDataset loaders/prompts, RAGMode, GeminiJudge and EvalRunner.",
@@ -164,6 +182,8 @@ class Summary(core.StrictModel):
     amb_cl100k_context_tokens_mean: float | None
     full_answer_prompt_tokens_mean: float | None
     retrieval_sample_count: int
+    retrieval_measurement: Literal["live-http-recall", "reused-source-recall"] = "live-http-recall"
+    retrieval_source_run_id: str | None = None
     retrieval_ms_mean: float | None
     retrieval_ms_p50: float | None
     retrieval_ms_p95: float | None
@@ -227,11 +247,17 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         client_source_sha256=core.client_sources(),
         amb_files={path: core.file_sha(checkout / path) for path in paths},
     )
+    if config.reader_profile != "amb-default":
+        manifest.integration_notes[0] = (
+            "Unmodified AMB loaders, RAGMode, GeminiJudge and EvalRunner; "
+            "explicitly versioned global reader guidance prepends the original reader prompt."
+        )
+        manifest.integration_notes.append(f"Reader profile: {config.reader_profile}; judge prompt unchanged.")
     source_manifest = None
     source_directory = None
-    if config.checkpoint_source is not None:
-        source_path = Path(config.checkpoint_source.path).expanduser().resolve()
-        if core.file_sha(source_path) != config.checkpoint_source.sha256:
+    if config.source_ref is not None:
+        source_path = Path(config.source_ref.path).expanduser().resolve()
+        if core.file_sha(source_path) != config.source_ref.sha256:
             raise ValueError("Checkpoint source manifest hash changed")
         raw = json.loads(source_path.read_text())
         fingerprint = raw["fingerprint"]
@@ -239,6 +265,7 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         if hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False).encode()).hexdigest() != fingerprint:
             raise ValueError("Checkpoint source manifest is invalid")
         source_manifest = core.read_model(source_path, Manifest)
+        manifest.retrieval_origin = source_manifest.retrieval_origin
         # A run that originally created Banks must resume through the read-only
         # guard. The only permitted transition names those exact source Banks.
         if config.reuse_banks != source_manifest.config.reuse_banks and (
@@ -248,19 +275,25 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             raise ValueError("Checkpoint recovery must reuse the exact source Banks read-only")
         excluded = {
             "checkpoint_source",
+            "retrieval_source",
             "resume_connection_failures",
             "model_max_attempts",
             "concurrency",
             "reuse_banks",
         }
+        if config.retrieval_source is not None:
+            # Same stored memories, query scope, API recall, models and judge.
+            # Only the declared reader instructions/packing may change; all
+            # answers and verdicts will be generated anew for the entire scope.
+            excluded |= {"packing", "reader_profile", "protocol"}
         previous = source_manifest.config.model_dump(exclude=excluded)
         current = config.model_dump(exclude=excluded)
         if previous != current or source_manifest.conversations != manifest.conversations:
             raise ValueError("Checkpoint reuse requires identical questions, Banks, models and all evaluation settings")
-        if config.concurrency != source_manifest.config.concurrency:
+        if config.retrieval_source is None and config.concurrency != source_manifest.config.concurrency:
             if not config.resume_connection_failures or config.concurrency > source_manifest.config.concurrency:
                 raise ValueError("Checkpoint transport recovery may only reduce concurrency")
-        if config.model_max_attempts != source_manifest.config.model_max_attempts:
+        if config.retrieval_source is None and config.model_max_attempts != source_manifest.config.model_max_attempts:
             if (
                 not config.resume_connection_failures
                 or config.model_max_attempts != source_manifest.config.model_max_attempts + 1
@@ -272,6 +305,17 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         ):
             raise ValueError("Checkpoint provider/runtime changed")
         source_directory = source_path.parent
+        if config.retrieval_source is not None:
+            validate_complete_retrieval_source(source_directory, source_manifest)
+            manifest.retrieval_origin = source_manifest.retrieval_origin or RetrievalOrigin(
+                run_id=source_manifest.run_id, manifest_sha256=config.retrieval_source.sha256
+            )
+            manifest.integration_notes.append(
+                f"Retrieval-only source: {source_manifest.run_id}. No source answers/verdicts are adopted; "
+                "recall timings are historical source measurements, not fresh recall measurements."
+            )
+        if source_manifest.amb_files != manifest.amb_files:
+            raise ValueError("Source AMB code differs from this experiment")
         for filename, digest in (
             ("runner.py", source_manifest.harness_sha256),
             ("support.py", source_manifest.core_sha256),
@@ -294,6 +338,8 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             path = source_directory / filename
             if path.exists():
                 manifest.checkpoint_imports[filename] = core.file_sha(path)
+        if config.retrieval_source is not None:
+            manifest.checkpoint_imports["summary.json"] = core.file_sha(source_directory / "summary.json")
     manifest.fingerprint = core.canonical_sha(manifest)
     directory.mkdir(parents=True, exist_ok=False)
     (directory / "inputs").mkdir()
@@ -341,16 +387,22 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             snapshot.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, snapshot)
             if "/" not in name:
-                if name != "state.json":
+                if name not in {"state.json", "summary.json"}:
                     shutil.copyfile(original, directory / name)
                 continue
             folder = Path(name).parts[0]
+            if config.retrieval_source is not None and folder != "retrievals":
+                continue  # Snapshot source proof, never adopt source answers or verdicts.
             record_type = {
                 "calls": CallRecord,
                 "retrievals": RetrievalRecord,
                 "results": SavedResult,
             }[folder]
             record = unseal(original, record_type, source_manifest)
+            if config.retrieval_source is not None:
+                conversation = next(c for c in conversations if c.bank_id == record.bank_id)
+                question = next(q for q in conversation.questions if amb_id(q) == record.question_id)
+                record.packing = core.pack_context(record.recall, conversation, config.packing, query=question.question)
             if folder == "retrievals" and record.question_id in retry_ids and record.recall is None:
                 continue
             if folder == "results" and record.question_id in retry_ids:
@@ -361,7 +413,11 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             seal(directory / name, record)
     core.save_model(directory / "manifest.json", manifest)
     state = core.State(fingerprint=manifest.fingerprint)
-    if source_manifest is not None and "state.json" in manifest.checkpoint_imports:
+    if (
+        config.checkpoint_source is not None
+        and source_manifest is not None
+        and "state.json" in manifest.checkpoint_imports
+    ):
         previous_state = core.read_model(directory / "checkpoint-source/state.json", core.State)
         if previous_state.fingerprint != source_manifest.fingerprint or not previous_state.runtime_consistent:
             raise ValueError("Cannot continue inconsistent source runtime/state")
@@ -413,15 +469,16 @@ def load_manifest(directory: Path) -> Manifest:
     for name, filename in core.SOURCE_FILES.items():
         if core.file_sha(directory / "inputs" / filename) != getattr(manifest.config.sources, name).sha256:
             raise ValueError(f"Frozen input changed: {name}")
-    if manifest.config.checkpoint_source is not None:
-        if (
-            core.file_sha(directory / "inputs/checkpoint-source-manifest.json")
-            != manifest.config.checkpoint_source.sha256
-        ):
+    if manifest.config.source_ref is not None:
+        if core.file_sha(directory / "inputs/checkpoint-source-manifest.json") != manifest.config.source_ref.sha256:
             raise ValueError("Checkpoint source manifest copy changed")
         for name, digest in manifest.checkpoint_imports.items():
             if core.file_sha(directory / "checkpoint-source" / name) != digest:
                 raise ValueError("Checkpoint source snapshot changed")
+    if manifest.retrieval_origin is not None:
+        expected = {amb_id(q) + ".json" for c in manifest.conversations for q in c.questions}
+        if {p.name for p in (directory / "retrievals").glob("*.json")} != expected:
+            raise ValueError("Reused retrieval checkpoint missing or unexpected; live recall fallback is forbidden")
     runtime = core.environment() | {
         name: core.importlib.metadata.version(name) for name in ("rich", "google-genai", "openai")
     }
@@ -443,6 +500,86 @@ def unseal(path: Path, record_type: type[Any], manifest: Manifest) -> Any:
     ):
         raise ValueError(f"Checkpoint content or protocol changed: {path.name}")
     return record
+
+
+def validate_complete_retrieval_source(directory: Path, manifest: Manifest) -> None:
+    """Audit a completed source without executing it, writing it or calling models."""
+    if not (directory / "summary.json").exists() or not (directory / "state.json").exists():
+        raise ValueError("Retrieval reuse requires a complete, valid source")
+    summary = core.read_model(directory / "summary.json", Summary)
+    state = core.read_model(directory / "state.json", core.State)
+    questions = {amb_id(q): q for c in manifest.conversations for q in c.questions}
+    banks = {c.id: c.bank_id for c in manifest.conversations}
+    documents = {c.id: {session.document_id for session in c.sessions} for c in manifest.conversations}
+    count = len(questions)
+    if (
+        not summary.valid_complete_run
+        or summary.fingerprint != manifest.fingerprint
+        or summary.expected != count
+        or summary.completed != count
+        or summary.failed
+        or summary.pending
+        or state.fingerprint != manifest.fingerprint
+        or state.status != "completed"
+        or not state.runtime_consistent
+        or set(state.banks) != set(banks)
+        or not all(bank.verified for bank in state.banks.values())
+    ):
+        raise ValueError("Retrieval reuse requires a complete, valid, runtime-consistent source")
+    for folder, expected in {
+        "retrievals": {qid + ".json" for qid in questions},
+        "results": {qid + ".json" for qid in questions},
+        "calls": {f"{qid}-{stage}.json" for qid in questions for stage in ("answer", "judge")},
+    }.items():
+        if {p.name for p in (directory / folder).glob("*.json")} != expected:
+            raise ValueError("Retrieval source has missing or unexpected question checkpoints")
+    encoder = tiktoken.get_encoding(manifest.config.packing.tokenizer)
+    scoring = core.FrozenScoring(directory)
+    correct = 0
+    f1_total = 0.0
+    for qid, question in questions.items():
+        retrieved = unseal(directory / f"retrievals/{qid}.json", RetrievalRecord, manifest)
+        answer = unseal(directory / f"calls/{qid}-answer.json", CallRecord, manifest)
+        judge = unseal(directory / f"calls/{qid}-judge.json", CallRecord, manifest)
+        result = unseal(directory / f"results/{qid}.json", SavedResult, manifest)
+        if (
+            any(record.question_id != qid for record in (retrieved, answer, judge, result))
+            or retrieved.bank_id != banks[question.conversation_id]
+            or retrieved.error
+            or retrieved.recall is None
+            or retrieved.packing is None
+            or retrieved.retrieval_elapsed_ms is None
+            or answer.stage != "answer"
+            or judge.stage != "judge"
+            or answer.status != "completed"
+            or judge.status != "completed"
+        ):
+            raise ValueError("Retrieval source contains an invalid or incomplete question")
+        allowed_documents = documents[question.conversation_id]
+        for identifier in retrieved.recall.chunks or {}:
+            ref = core.parse_chunk_id(identifier)
+            if ref is None or ref.bank_id != retrieved.bank_id or ref.document_id not in allowed_documents:
+                raise ValueError("Retrieval source contains a raw chunk outside the question's Bank")
+        if any(f.document_id is not None and f.document_id not in allowed_documents for f in retrieved.recall.results):
+            raise ValueError("Retrieval source contains a fact outside the question's conversation")
+        parsed_answer = AnswerData.model_validate(answer.parsed)
+        parsed_judge = JudgeData.model_validate(judge.parsed)
+        tokens = len(encoder.encode(retrieved.packing.text))
+        f1 = scoring.f1(question, parsed_answer.answer)
+        if (
+            tokens != retrieved.packing.tokens
+            or tokens > manifest.config.packing.max_tokens
+            or result.amb_result.query_id != qid
+            or result.amb_result.answer != parsed_answer.answer
+            or result.amb_result.context != retrieved.packing.text
+            or result.amb_result.correct != parsed_judge.correct
+            or abs(result.answer_f1 - f1) > 1e-12
+        ):
+            raise ValueError("Retrieval source results disagree with sealed evidence and model calls")
+        correct += int(parsed_judge.correct)
+        f1_total += f1
+    if summary.correct != correct or abs(summary.answer_f1_all_expected - f1_total / count) > 1e-12:
+        raise ValueError("Retrieval source summary disagrees with all question checkpoints")
 
 
 def amb_modules(directory: Path) -> dict[str, ModuleType]:
@@ -646,13 +783,14 @@ def components(archive: Archive) -> Components:
             category: str | None = None,
             meta: dict[str, Any] | None = None,
         ) -> str:
-            # Preserve the exact upstream instruction/date/question template, replacing
-            # only its raw-response shortcut with the already budgeted context string.
+            # Default preserves the exact upstream template. A declared reader-v2
+            # experiment adds only global guidance, leaving the judge untouched.
             if meta is None:
                 raise ValueError("Packed recall metadata is required")
             packed = core.Packed.model_validate(meta["_raw_response"]["packing"])
             clean = {key: value for key, value in meta.items() if key != "_raw_response"}
-            return super().build_rag_prompt(query, packed.text, task_type, split, category, clean)
+            upstream = super().build_rag_prompt(query, packed.text, task_type, split, category, clean)
+            return core.reader_prompt(upstream, manifest.config.reader_profile)
 
     class Memory(modules["memory.base"].MemoryProvider):
         name = "contextbase-http"
@@ -703,6 +841,8 @@ def components(archive: Archive) -> Components:
                 if record.question_id != qid or record.bank_id != conversation.bank_id:
                     raise ValueError("Saved retrieval belongs to another question/Bank")
             else:
+                if manifest.retrieval_origin is not None:
+                    raise ValueError("Reused retrieval checkpoint missing; live recall fallback is forbidden")
                 record = RetrievalRecord(
                     fingerprint=manifest.fingerprint,
                     question_id=qid,
@@ -976,6 +1116,12 @@ def report(directory: Path, manifest: Manifest) -> Summary:
         protocol=manifest.config.protocol,
         amb_commit=AMB_COMMIT,
         valid_complete_run=len(results) == count
+        and len(retrieved) == count
+        and all(
+            r.recall is not None and r.packing is not None and r.retrieval_elapsed_ms is not None for r in retrieved
+        )
+        and len(calls) == count * 2
+        and all(call.status == "completed" for call in calls)
         and not failed
         and state.status == "completed"
         and state.runtime_consistent
@@ -995,6 +1141,8 @@ def report(directory: Path, manifest: Manifest) -> Summary:
         amb_cl100k_context_tokens_mean=statistics.mean(amb_tokens) if amb_tokens else None,
         full_answer_prompt_tokens_mean=statistics.mean(prompts) if prompts else None,
         retrieval_sample_count=len(latencies),
+        retrieval_measurement="reused-source-recall" if manifest.retrieval_origin else "live-http-recall",
+        retrieval_source_run_id=manifest.retrieval_origin.run_id if manifest.retrieval_origin else None,
         retrieval_ms_mean=statistics.mean(latencies) if latencies else None,
         retrieval_ms_p50=float(np.percentile(latencies, 50)) if latencies else None,
         retrieval_ms_p95=float(np.percentile(latencies, 95)) if latencies else None,

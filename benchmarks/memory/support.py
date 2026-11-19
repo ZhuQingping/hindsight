@@ -144,7 +144,8 @@ class RecallSettings(StrictModel):
 
 class Config(StrictModel):
     schema_version: Literal[2] = 2
-    protocol: Literal["amb-locomo-cat1to4-packed-v1"] = "amb-locomo-cat1to4-packed-v1"
+    protocol: Literal["amb-locomo-cat1to4-packed-v1", "amb-locomo-cat1to4-reader-v2"] = "amb-locomo-cat1to4-packed-v1"
+    reader_profile: Literal["amb-default", "locomo-grounded-concise-v1"] = "amb-default"
     sources: Sources
     categories: tuple[Literal[1], Literal[2], Literal[3], Literal[4]] = (1, 2, 3, 4)
     timestamp_policy: Literal["naive-session-dates-as-UTC"] = "naive-session-dates-as-UTC"
@@ -171,6 +172,8 @@ class Config(StrictModel):
 
     @model_validator(mode="after")
     def scope_and_target(self) -> Config:
+        if (self.reader_profile != "amb-default") != (self.protocol == "amb-locomo-cat1to4-reader-v2"):
+            raise ValueError("A custom reader profile requires the explicitly different reader-v2 protocol")
         if len(set(self.conversations)) != len(self.conversations):
             raise ValueError("Conversation IDs must be unique")
         if self.reuse_banks:
@@ -186,6 +189,28 @@ class Config(StrictModel):
         if url.path not in ("", "/"):
             raise ValueError("api_url must point at the service root")
         return self
+
+
+_GROUNDED_READER_GUIDANCE = """# ADDITIONAL READER GUIDANCE: locomo-grounded-concise-v1
+These conversations are from LoCoMo, a synthetic dataset of fictional characters.
+Apply the following guidance together with the conversation evidence:
+- Keep the final answer field short and direct; put explanation in the reasoning field. Answer all requested items, without unrelated background.
+- Preserve speaker attribution. Prefer original dialogue over an extracted summary if they conflict. Do not transfer one speaker's experiences to another.
+- When asked what a photo or picture shows, use its supplied image caption for the depicted subject; use the surrounding dialogue for context.
+- Anchor relative dates to the session in which they were said. Preserve the reported relative expression alongside its date conversion when relevant. Label the time reference when reporting a duration, rather than silently mixing report dates, event dates and the current date.
+- When counting, distinguish completed events, plans, habits and repeated descriptions of the same event. Do not count duplicate mentions as distinct events.
+- For questions asking what might, likely or could be true, or asking for a recommendation, use relevant conversation details and general knowledge to make a reasonable inference. Mark uncertainty briefly; do not present an inference as a remembered fact.
+- If a question's premise conflicts with the dialogue, state the conflict briefly and give the relevant supported information. Do not invent missing details.
+"""
+
+
+def reader_prompt(upstream_prompt: str, profile: str) -> str:
+    """Global, versioned reader guidance; never receives gold, verdicts or evidence annotations."""
+    if profile == "amb-default":
+        return upstream_prompt
+    if profile != "locomo-grounded-concise-v1":
+        raise ValueError("Unknown reader profile")
+    return _GROUNDED_READER_GUIDANCE + "\n" + upstream_prompt
 
 
 class RawQA(BaseModel):

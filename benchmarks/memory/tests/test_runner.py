@@ -260,6 +260,7 @@ def prepared(
     gold_answer=None,
     evidence_ids=None,
     packing=None,
+    reader_profile="amb-default",
 ):
     path = config_fixture(tmp_path, conversations=conversations)
     config = json.loads(path.read_text())
@@ -272,6 +273,9 @@ def prepared(
         config["reuse_banks"] = reuse_banks
     if packing is not None:
         config["packing"] = packing.model_dump(mode="json")
+    config["reader_profile"] = reader_profile
+    if reader_profile != "amb-default":
+        config["protocol"] = "amb-locomo-cat1to4-reader-v2"
     if questions_per_conversation > 1 or gold_answer is not None or evidence_ids is not None:
         dataset_path = Path(config["sources"]["dataset"]["path"])
         records = json.loads(dataset_path.read_text())
@@ -367,8 +371,9 @@ def test_init_is_offline_freezes_upstream_and_rejects_existing_directory(tmp_pat
     assert not factory.called
 
 
-def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, checkout):
-    directory, manifest = prepared(tmp_path, checkout)
+@pytest.mark.parametrize("reader_profile", ["amb-default", "locomo-grounded-concise-v1"])
+def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, checkout, reader_profile):
+    directory, manifest = prepared(tmp_path, checkout, reader_profile=reader_profile)
     archive = a.Archive(directory, manifest)
     runtime = a.components(archive)
     queries = runtime.dataset.load_queries("locomo10")
@@ -386,7 +391,14 @@ def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, c
     )
     upstream = a.amb_modules(directory)["dataset.locomo"].LoComoDataset()
     expected = upstream.build_rag_prompt(queries[0].query, packed.text, "open", "locomo10", meta=queries[0].meta)
-    assert actual == expected
+    assert actual == h.reader_prompt(expected, reader_profile)
+    if reader_profile == "amb-default":
+        assert actual == expected
+    else:
+        assert actual.endswith(expected) and actual.startswith("# ADDITIONAL READER GUIDANCE")
+        assert "fictional characters" in actual and "image caption" in actual
+        assert "GOLD_SENTINEL" not in actual and "EVIDENCE_SENTINEL" not in actual
+        assert "judge prompt unchanged" in manifest.integration_notes[-1]
     assert packed.text in actual and json.loads(packed.text)["chunks"]
     assert "RAW_BYPASS_SENTINEL" not in actual and "WRAPPER_SHOULD_NOT_ENTER_PROMPT" not in actual
     assert packed.tokens <= 8192
@@ -401,8 +413,9 @@ def test_real_amb_loader_and_prompt_use_only_complete_packed_context(tmp_path, c
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("window_packing", [False, True])
+@pytest.mark.parametrize("reader_profile", ["amb-default", "locomo-grounded-concise-v1"])
 async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls(
-    tmp_path, checkout, monkeypatch, window_packing
+    tmp_path, checkout, monkeypatch, window_packing, reader_profile
 ):
     service = FakeBankService()
     app = web.Application()
@@ -413,6 +426,7 @@ async def test_pinned_amb_end_to_end_isolated_banks_and_resume_without_new_calls
             checkout,
             conversations=("conv-30", "conv-26"),
             api_url=str(server.make_url("/")),
+            reader_profile=reader_profile,
             packing=h.PackingSettings(
                 algorithm="query-turn-windows-v1" if window_packing else "complete-json-separate-budgets-v2",
                 chunk_order="query_relevance" if window_packing else "response_order",
@@ -1372,3 +1386,222 @@ def test_probe_overrides_reject_unknown_or_invalid_settings_before_output(tmp_pa
     with pytest.raises(ValueError, match="live recall"):
         probe.initialize(directory, tmp_path / "invalid-local", ["conv-30_q0"], "local", path)
     assert not (tmp_path / "invalid-local").exists()
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"reader_profile": "locomo-grounded-concise-v1"},
+        {"protocol": "amb-locomo-cat1to4-reader-v2"},
+        {"reader_profile": "unknown", "protocol": "amb-locomo-cat1to4-reader-v2"},
+    ],
+)
+def test_reader_profile_cannot_claim_unchanged_amb_protocol(tmp_path, settings):
+    path = config_fixture(tmp_path)
+    value = json.loads(path.read_text())
+    a.Config.model_validate(value)
+    value |= settings
+    with pytest.raises(ValueError):
+        a.Config.model_validate(value)
+    with pytest.raises(ValueError, match="Unknown reader profile"):
+        h.reader_prompt("unchanged", "unknown")
+
+
+def test_checkpoint_reuse_requires_identical_reader_profile(tmp_path, checkout):
+    directory, manifest = prepared(tmp_path, checkout)
+    cfg = manifest.config.model_dump(mode="json")
+    cfg.update(
+        reader_profile="locomo-grounded-concise-v1",
+        protocol="amb-locomo-cat1to4-reader-v2",
+        reuse_banks={c.id: c.bank_id for c in manifest.conversations},
+        checkpoint_source={"path": str(directory / "manifest.json"), "sha256": h.file_sha(directory / "manifest.json")},
+    )
+    path = tmp_path / "different-reader.json"
+    path.write_text(json.dumps(cfg))
+    with pytest.raises(ValueError, match="identical questions"):
+        a.init_run(path, tmp_path / "reader-must-not-adopt", "new_reader")
+    assert not (tmp_path / "reader-must-not-adopt").exists()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reader_profile", ["amb-default", "locomo-grounded-concise-v1"])
+async def test_retrieval_only_full_scope_experiment_makes_all_new_answers_without_recall(
+    tmp_path, checkout, monkeypatch, reader_profile
+):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        source, source_manifest = prepared(
+            tmp_path, checkout, api_url=str(server.make_url("/")), questions_per_conversation=2
+        )
+        await a.service_stage(source, source_manifest, "ingest")
+        original_factory = Factory(source_manifest, answer="original source answer")
+        original = await asyncio.to_thread(a.run, source, source_manifest, original_factory)
+        assert original.valid_complete_run and original.correct == 0
+        before = {str(p): h.file_sha(p) for p in source.rglob("*.json")}
+        cfg = source_manifest.config.model_dump(mode="json")
+        cfg.update(
+            reuse_banks={c.id: c.bank_id for c in source_manifest.conversations},
+            retrieval_source={"path": str(source / "manifest.json"), "sha256": h.file_sha(source / "manifest.json")},
+            reader_profile=reader_profile,
+            protocol="amb-locomo-cat1to4-reader-v2"
+            if reader_profile != "amb-default"
+            else "amb-locomo-cat1to4-packed-v1",
+            packing=h.PackingSettings(max_tokens=1500, fact_tokens=0, chunk_tokens=1200).model_dump(),
+        )
+        path = tmp_path / "reader-config.json"
+        path.write_text(json.dumps(cfg))
+        directory = tmp_path / "reader-experiment"
+        requests_before = len(service.requests)
+        manifest = a.init_run(path, directory, "fresh_reader")
+        assert len(service.requests) == requests_before
+        assert not list((directory / "calls").glob("*.json")) and not list((directory / "results").glob("*.json"))
+        assert not (directory / "summary.json").exists()
+        assert manifest.retrieval_origin.run_id == source_manifest.run_id
+        state = h.read_model(directory / "state.json", h.State)
+        assert not state.banks and state.answer_elapsed_s == 0
+        for p in (directory / "retrievals").glob("*.json"):
+            record = a.unseal(p, a.RetrievalRecord, manifest)
+            assert record.packing.included_fact_ids == [] and record.packing.tokens <= 1500
+            assert "GOLD_SENTINEL" not in record.packing.text
+        with pytest.raises(ValueError, match="ingest|read-only|reuse"):
+            await a.service_stage(directory, manifest, "ingest")
+        await a.service_stage(directory, manifest, "verify")
+        factory = Factory(manifest, correct=True, answer="new independent answer")
+        summary = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert summary.valid_complete_run and summary.correct == summary.completed == 2
+        assert summary.retrieval_measurement == "reused-source-recall"
+        assert summary.retrieval_source_run_id == source_manifest.run_id
+        assert summary.model_usage["answer"].total_tokens == summary.model_usage["judge"].total_tokens == 20
+        assert len(factory.calls) == 4 and all(method == "GET" for method, _ in service.requests[requests_before:])
+        assert all("original source answer" not in prompt for _, prompt, _ in factory.calls)
+        assert all("new independent answer" in prompt for judge, prompt, _ in factory.calls if judge)
+        if reader_profile != "amb-default":
+            assert all(
+                prompt.startswith("# ADDITIONAL READER GUIDANCE") for judge, prompt, _ in factory.calls if not judge
+            )
+        requests_after = len(service.requests)
+        second = await asyncio.to_thread(a.run, directory, manifest, factory)
+        assert second.valid_complete_run and len(factory.calls) == 4
+        assert all(method == "GET" for method, _ in service.requests[requests_after:])
+        assert before == {str(p): h.file_sha(p) for p in source.rglob("*.json")}
+        analysis = a.module_from_file("memory_retrieval_export_test", SCRIPT.with_name("analysis.py"))
+        exported = analysis.export(directory, tmp_path / "reader-export.json", source)
+        assert exported.changes.fixed == ["conv-30_q0", "conv-30_q1"]
+        assert exported.settings.reader_profile == reader_profile
+        assert exported.settings.retrieval_source.sha256 == h.file_sha(source / "manifest.json")
+        # A later transport continuation retains historical-latency provenance.
+        cfg = manifest.config.model_dump(mode="json")
+        cfg.update(
+            retrieval_source=None,
+            checkpoint_source={
+                "path": str(directory / "manifest.json"),
+                "sha256": h.file_sha(directory / "manifest.json"),
+            },
+        )
+        path.write_text(json.dumps(cfg))
+        recovered = tmp_path / "reader-continuation"
+        recovery = a.init_run(path, recovered, "continued_reader")
+        assert recovery.retrieval_origin == manifest.retrieval_origin
+        await a.service_stage(recovered, recovery, "verify")
+        resumed_factory = Factory(recovery)
+        resumed = await asyncio.to_thread(a.run, recovered, recovery, resumed_factory)
+        assert resumed.valid_complete_run and resumed.retrieval_measurement == "reused-source-recall"
+        assert resumed.retrieval_source_run_id == source_manifest.run_id
+        assert not resumed_factory.calls
+        # Missing borrowed evidence cannot silently become a newly timed recall.
+        active_path = directory / "retrievals/conv-30_q0.json"
+        active_bytes = active_path.read_bytes()
+        active_path.unlink()
+        with pytest.raises(ValueError, match="fallback is forbidden"):
+            a.load_manifest(directory)
+        assert not a.report(directory, manifest).valid_complete_run
+        runtime = a.components(a.Archive(directory, manifest, factory))
+        q = manifest.conversations[0].questions[0]
+        token = a.QUESTION_ID.set("conv-30_q0")
+        requests_before_missing = len(service.requests)
+        try:
+            with pytest.raises(ValueError, match="fallback is forbidden"):
+                await runtime.memory.async_retrieve(
+                    q.question, user_id=q.conversation_id, query_timestamp=manifest.conversations[0].reference_date
+                )
+        finally:
+            a.QUESTION_ID.reset(token)
+        assert len(service.requests) == requests_before_missing and len(factory.calls) == 4
+        active_path.write_bytes(active_bytes)
+        assert a.report(directory, manifest).valid_complete_run
+        # Frozen cache proof must be checked on every load.
+        copied = next((directory / "checkpoint-source/retrievals").glob("*.json"))
+        copied.write_text(copied.read_text() + " ")
+        with pytest.raises(ValueError, match="snapshot changed"):
+            a.load_manifest(directory)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "incomplete",
+        "unverified",
+        "missing",
+        "other-bank",
+        "foreign-chunk",
+        "verdict",
+        "recall-settings",
+        "both-modes",
+        "new-banks",
+    ],
+)
+async def test_retrieval_only_rejects_invalid_source_before_output(tmp_path, checkout, monkeypatch, mutation):
+    service = FakeBankService()
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", service.handle)
+    async with TestServer(app) as server:
+        monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
+        source, source_manifest = prepared(tmp_path, checkout, api_url=str(server.make_url("/")))
+        await a.service_stage(source, source_manifest, "ingest")
+        await asyncio.to_thread(a.run, source, source_manifest, Factory(source_manifest))
+        cfg = source_manifest.config.model_dump(mode="json")
+        cfg.update(
+            reuse_banks={c.id: c.bank_id for c in source_manifest.conversations},
+            retrieval_source={"path": str(source / "manifest.json"), "sha256": h.file_sha(source / "manifest.json")},
+        )
+        if mutation == "incomplete":
+            (source / "summary.json").unlink()
+        elif mutation == "unverified":
+            state = h.read_model(source / "state.json", h.State)
+            state.banks["conv-30"].verified = False
+            h.save_model(source / "state.json", state)
+        elif mutation == "missing":
+            (source / "results/conv-30_q0.json").unlink()
+        elif mutation == "other-bank":
+            p = source / "retrievals/conv-30_q0.json"
+            record = a.unseal(p, a.RetrievalRecord, source_manifest)
+            record.bank_id = "foreign_bank"
+            a.seal(p, record)
+        elif mutation == "foreign-chunk":
+            p = source / "retrievals/conv-30_q0.json"
+            record = a.unseal(p, a.RetrievalRecord, source_manifest)
+            doc = source_manifest.conversations[0].sessions[0].document_id
+            record.recall.chunks = {build_chunk_id("foreign_bank", doc, 0): next(iter(record.recall.chunks.values()))}
+            a.seal(p, record)
+        elif mutation == "verdict":
+            p = source / "results/conv-30_q0.json"
+            record = a.unseal(p, a.SavedResult, source_manifest)
+            record.amb_result.correct = True
+            a.seal(p, record)
+        elif mutation == "recall-settings":
+            cfg["recall"]["max_tokens"] += 1
+        elif mutation == "both-modes":
+            cfg["checkpoint_source"] = cfg["retrieval_source"]
+        else:
+            cfg["reuse_banks"] = {}
+        path = tmp_path / "invalid-reader.json"
+        path.write_text(json.dumps(cfg))
+        target = tmp_path / "must-not-exist"
+        requests_before = len(service.requests)
+        with pytest.raises(ValueError):
+            a.init_run(path, target, "invalid_cache")
+        assert not target.exists() and len(service.requests) == requests_before

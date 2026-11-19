@@ -37,6 +37,8 @@ class Model(BaseModel):
 
 
 class Settings(BaseModel):
+    reader_profile: str = "amb-default"
+    retrieval_source: Source | None = None
     memory: h.core.MemoryProfile
     answer: Model
     judge: Model
@@ -676,6 +678,12 @@ def export(directory: Path, output: Path, baseline: Path | None = None) -> Expor
         scoring=Source(url=cfg.sources.scoring.url, sha256=cfg.sources.scoring.sha256),
         amb_commit=cfg.amb_commit,
         settings=Settings(
+            reader_profile=cfg.reader_profile,
+            retrieval_source=(
+                Source(url=None, sha256=manifest.retrieval_origin.manifest_sha256)
+                if manifest.retrieval_origin
+                else None
+            ),
             memory=cfg.memory_profile,
             answer=Model.model_validate(cfg.answer.model_dump()),
             judge=Model.model_validate(cfg.judge.model_dump()),

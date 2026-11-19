@@ -798,3 +798,10 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 完整结果提交至 `results/locomo1540-baseline-20261119.json`；同一个错误分析JSON更新到完整121题，并附Mem0/Hindsight原公开答案与判定，明确原裁判差异。已知答题+判题Token12,350,234，12次失败尝试usage未知（CodexStreamError11、UpstreamHTTPError1），无证据将其简单称限流。分类、模型、硬件、预算和效率完整说明已补report；不宣称第一或同模型优胜。
 
 窗口候选启动检查点：基线退出、锁空闲和有效完整门槛通过后，候选冻结runner verify对同一10个Bank全部成功，再启动run，未执行ingest、未导入旧答案/裁判记录。实际目录由 `/tmp/contextbase-locomo-window-candidate-run` 指向，producer1156、supervisor1157、scoped caffeinate1158；日志 `/tmp/contextbase-locomo-window-eval.log`。守护源码与校验和封存在候选supervisor/，launch.json记录实际基线run及manifest哈希。已有真实answer/judge完成，尚无完整候选成绩。当前不并行启动共同裁判任务，以免与整轮QA竞争模型调用；继续按预先冻结顺序验证，不在途中更改窗口规则。
+
+
+后续答题实验离线准备：新增显式reader-v2协议及`locomo-grounded-concise-v1`全局reader指导，默认AMB提示仍逐字相同，judge/gold/F1均未改。基于121道公开基线错题归纳了简洁输出、caption、speaker、相对时间及计数原则，不包含具体题目或答案。所有10组对话已在诊断中检查，后续此提示实验按开发集调优报告，不宣称独立留出泛化。
+
+新增`retrieval_source`模式用于避免重复CPU检索：只接受完整有效源，逐题核验sealed检索/reader/judge/结果/F1与Bank隔离，源文件全部封存，新的主动calls/results初始为空；只重用原回包、重新按声明的全局预算打包，不复用原答案或裁判。所有1540题新答新判。接口预算/模型/记忆/范围不可暗改，缺失缓存禁止live recall回退，报告明确沿用源检索时延；同方法故障接续仍保留这一来源。70项离线检查通过，含真实固定AMB+本地模拟HTTP的完整往返、判定全新、GET-only、重启不重答、来源不变、坏源/缺失/跨Bank/伪造verdict拒绝、缓存破坏及恢复来源继承；Ruff和ty通过，全局lint仍是既有F841（日志/tmp/contextbase-reader-replay-lint-20261119.log），其无关格式变化已撤回。
+
+真实1540题基线缓存已仅离线全量审计，无模型或产品服务调用，状态/manifest/summary/public export原字节保持不变；当前仍在运行的窗口源被门槛正确拒绝。最终审计、冻结源码和两个配置的SHA统一封存在`.local/reader-replay-validation-20261119/`，由`/tmp/contextbase-locomo-reader-plans`指向；audit-and-preregistration.json绑定当前代码和配置。先前v2审计及计划文件保留但不是执行入口。下阶段两个配置（与先前预登记逐字相同）：reader8k保留当前窗口8K/4K事实/4K原文，只改全局答题指导；reader32k额外将最终上下文设32768、事实10000/原文22000，API预算仍沿用源8192/65536。均只准备配置，未init、未答题；必须先等完整有效窗口源，再根据前一阶段结果决定执行，不改正在跑的窗口v1。
