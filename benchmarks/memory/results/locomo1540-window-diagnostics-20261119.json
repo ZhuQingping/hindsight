@@ -2,7 +2,7 @@
   "kind": "partial-paired-diagnostic-not-full1540-score",
   "baseline_run_id": "locomo1540r_20261119_030518",
   "candidate_run_id": "locomow8_20261119_0308",
-  "scope": 584,
+  "scope": 762,
   "full_expected": 1540,
   "baseline_manifest_sha256": "0ca63977fdb349e0a967296064e3932c2acab657c70b26ca3aa6aa73c198c7b0",
   "candidate_manifest_sha256": "62bb9ca48ebb6d0f36ef0dfddc3a94e487c7867c5dc9e37cf3765bc77ef71b4c",
@@ -24,12 +24,16 @@
     "conv-41_q4",
     "conv-41_q45",
     "conv-41_q95",
-    "conv-42_q60"
+    "conv-42_q60",
+    "conv-43_q5"
   ],
   "regressed": [
     "conv-26_q68",
     "conv-41_q94",
-    "conv-42_q23"
+    "conv-42_q23",
+    "conv-43_q48",
+    "conv-43_q49",
+    "conv-43_q166"
   ],
   "unchanged_wrong": [
     "conv-26_q144",
@@ -57,9 +61,24 @@
     "conv-42_q78",
     "conv-42_q91",
     "conv-42_q92",
-    "conv-42_q195"
+    "conv-42_q195",
+    "conv-43_q6",
+    "conv-43_q8",
+    "conv-43_q11",
+    "conv-43_q16",
+    "conv-43_q19",
+    "conv-43_q20",
+    "conv-43_q51",
+    "conv-43_q55",
+    "conv-43_q56",
+    "conv-43_q60",
+    "conv-43_q66",
+    "conv-43_q113",
+    "conv-43_q135",
+    "conv-43_q136",
+    "conv-43_q164"
   ],
-  "note": "Paired inspection of the first four completed Banks (584/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
+  "note": "Paired inspection of the first five completed Banks (762/1540), not a complete score. The logical experiment began in locomow8_20261119_0308 and continues through a transport-only checkpoint run; row-level source run IDs disambiguate record hashes. Same models, judge, memories, recall/packing method; no regeneration of completed semantic verdicts or per-question best-answer mixing.",
   "source_partial_comparison_sha256": "f94848ec5ece4f28ed6ae3cd0c7f48de046586efc3babaaff8e228f9e9bfd960",
   "cases": [
     {
@@ -976,6 +995,418 @@
       "candidate_result_sha256": "c2c5c7c072d373969914c3da81f262cb83ed75c9ef6d639212826b3644a1128d",
       "baseline_result_sha256": "b6e53ad31225bd25043fc29ee170dea7a4c77bfea30b174c9dbf8906cb9e8f07",
       "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q5",
+      "question": "Based on Tim's collections, what is a shop that he would enjoy visiting in New York city?",
+      "gold": [
+        "House of MinaLima"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": true,
+      "baseline_answer": "Tim would likely enjoy visiting Harry Potter New York, the flagship Harry Potter store, because he collects Harry Potter books and owns MinaLima artwork. Its themed books, artwork, and collectibles would fit his interests.",
+      "candidate_answer": "Tim would likely enjoy visiting Harry Potter New York, the flagship shop at 935 Broadway. Its Harry Potter books, artwork, and collectibles would fit his book collection and love of MinaLima’s wizarding-world designs.",
+      "baseline_reason": "The generated answer recommends Harry Potter New York rather than the specific shop in the gold answer, House of MinaLima.",
+      "candidate_reason": "The answer recommends Harry Potter New York, which houses MinaLima’s shop, and explicitly connects it to Tim’s interest in MinaLima designs.",
+      "baseline_f1": 0.0588235294117647,
+      "candidate_f1": 0.0606060606060606,
+      "evidence_ids": [
+        "D2:9"
+      ],
+      "candidate_result_sha256": "c492eb7fea12cca05cc4927cad212e2ba748a2dd6ac58964e699013ee3437e95",
+      "baseline_result_sha256": "cc5e0ed83574e78f4cfb1a6dc039e19435f7783a523dd27857e229d896be9544",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q6",
+      "question": "In which month's game did John achieve a career-high score in points?",
+      "gold": [
+        "June 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "July 2023.",
+      "candidate_answer": "July 2023, when he scored a personal-best 40 points.",
+      "baseline_reason": "The generated answer says July 2023, but the correct month is June 2023.",
+      "candidate_reason": "The generated answer says July 2023, but the gold answer specifies June 2023.",
+      "baseline_f1": 0.5,
+      "candidate_f1": 0.2,
+      "evidence_ids": [
+        "D3:1"
+      ],
+      "candidate_result_sha256": "344a5d0ab30e464b20defd56be953f32bfb11c9abc91898c59be6aebb3223155",
+      "baseline_result_sha256": "dbc055484ac23cc7e8cf9fb6fb8a44aef3eb7d6110a6ad68cd16c7c2ba26c47d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q8",
+      "question": "Which outdoor gear company likely signed up John for an endorsement deal?",
+      "gold": [
+        "Under Armour"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The company is not identified in the memories. John only described it as a renowned outdoor gear company that signed him during December 11–17, 2023; there is insufficient evidence to name a likely brand.",
+      "candidate_answer": "The company’s name is not provided. John signed with an unnamed renowned outdoor gear company during December 11–17, 2023; there is not enough evidence to identify the brand reliably.",
+      "baseline_reason": "The generated answer declines to identify the company rather than naming Under Armour, as specified by the gold answer.",
+      "candidate_reason": "The generated answer says the brand cannot be identified, whereas the gold answer identifies Under Armour.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D3:15",
+        "D25:2"
+      ],
+      "candidate_result_sha256": "8af433f5553ce8201f4d1b280daca13207a5c8e2b65a7f09fa1840c7d6a5bc4e",
+      "baseline_result_sha256": "74acdfb7478b1c44dee90781ef14252651a913df66dc49463cb5d7dfdbc7f577",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q11",
+      "question": "What sports does John like besides basketball?",
+      "gold": [
+        "surfing"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not mention any sports John likes besides basketball.",
+      "candidate_answer": "The memories don’t mention John liking any specific sports besides basketball.",
+      "baseline_reason": "The generated answer says no other sports are mentioned, whereas the gold answer identifies surfing.",
+      "candidate_reason": "The generated answer claims no other sports are mentioned, but the gold answer identifies surfing.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D1:7",
+        "D2:14",
+        "D3:1",
+        "D3:25"
+      ],
+      "candidate_result_sha256": "d06bbbf41b15c8f57574de3df1f7a1d1a26660bf7bd1f60553b3d1ffa134728d",
+      "baseline_result_sha256": "32ef4d3998d2869e56f198c0675b6d6086e52cd788b31eed4e0edf2fa8385020",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q16",
+      "question": "After how many weeks did Tim reconnect with the fellow Harry Potter fan from California?",
+      "gold": [
+        "three weeks"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Tim reconnected with the fellow Harry Potter fan approximately five weeks later, on August 9, 2023.",
+      "candidate_answer": "Tim reconnected with the fellow Harry Potter fan after about five weeks, on August 9, 2023.",
+      "baseline_reason": "The generated answer says five weeks, but the gold answer specifies three weeks.",
+      "candidate_reason": "The generated answer says five weeks, whereas the gold answer specifies three weeks.",
+      "baseline_f1": 0.11764705882352941,
+      "candidate_f1": 0.11764705882352941,
+      "evidence_ids": [
+        "D3:2",
+        "D5:1"
+      ],
+      "candidate_result_sha256": "d445d7f071e44d1dc102d119b6d4a3911aba572c35b8de7fddc22702570a088d",
+      "baseline_result_sha256": "bf1e5fbd090daea33de03ed9f8f0b9ad3ee914d7722501aedba8249b697c785d",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q19",
+      "question": "What is a prominent charity organization that John might want to work with and why?",
+      "gold": [
+        "Good Sports, because they work with Nike, Gatorade, and Under Armour and they aim toprovide youth sports opportunities for kids ages 3-18 in high-need communities."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John might want to work with Boys & Girls Clubs of America, a prominent youth-development charity offering sports and educational opportunities. Its work aligns with his commitment to helping disadvantaged children, expanding access to youth sports, and mentoring young athletes. This is a suggested match, not an organization he explicitly named.",
+      "candidate_answer": "John might want to work with the Boys & Girls Clubs of America, a prominent organization supporting young people through educational and recreational programs, including sports. Its mission aligns with his commitment to helping disadvantaged children, expanding access to basketball, and mentoring young athletes. This is a suggested match, not an organization he explicitly named.",
+      "baseline_reason": "The generated answer names Boys & Girls Clubs of America rather than Good Sports and omits the specific brand partnerships that motivate the gold answer.",
+      "candidate_reason": "The generated answer names Boys & Girls Clubs of America rather than Good Sports and omits the specified brand partnerships.",
+      "baseline_f1": 0.1764705882352941,
+      "candidate_f1": 0.08450704225352113,
+      "evidence_ids": [
+        "D3:13",
+        "D3:15",
+        "D6:15"
+      ],
+      "candidate_result_sha256": "1c7b76720c8105eaf9c29545224c4cedc23b90615188db047c7803adebfc66c1",
+      "baseline_result_sha256": "de4b675b23850acde1a283e07c9c2f840d5b8e03f51ea771cefff7c49f4545ce",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q20",
+      "question": "Which city was John in before traveling to Chicago?",
+      "gold": [
+        "Seattle"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not specify which city John was in before traveling to Chicago.",
+      "candidate_answer": "The memories do not specify which city John was in immediately before traveling to Chicago.",
+      "baseline_reason": "The generated answer says the city is unspecified, whereas the gold answer identifies Seattle.",
+      "candidate_reason": "The generated answer claims the city is unspecified, whereas the gold answer identifies Seattle.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D3:19",
+        "D5:2",
+        "D6:1",
+        "D6:3"
+      ],
+      "candidate_result_sha256": "23ed8c031b6bc26f889afd64dcda17b66e11fdc0625883c6fb3cf259b5595fc4",
+      "baseline_result_sha256": "d5e87877208e7094fe83f8c35ea53354f2e474d01e74f509563d4dfedd7ad463",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q48",
+      "question": "When did John get an ankle injury in 2023?",
+      "gold": [
+        "around November 16, 2023"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "John said on November 21, 2023, that he injured his ankle during the preceding basketball season; the exact date is not given. He also reported an ongoing injury during the week of November 16, 2023, though it is unclear whether this was the same injury.",
+      "candidate_answer": "John hurt his ankle during the basketball season preceding November 21, 2023. The exact date is not specified; he described it as happening “last season.”",
+      "baseline_reason": "The generated answer mentions an ongoing injury during the week of November 16, 2023, matching the approximate date in the gold answer.",
+      "candidate_reason": "The generated answer places the injury in an unspecified previous basketball season rather than around November 16, 2023.",
+      "baseline_f1": 0.625,
+      "candidate_f1": 0.14835164835164835,
+      "evidence_ids": [
+        "D18:2"
+      ],
+      "candidate_result_sha256": "5d60b2e2c51198ff9b952b96b854778b8656f82b1b1317d4b362d1e45d283d35",
+      "baseline_result_sha256": "f534e460a61ac58de3222b925ee203e57829ccc8a94fe2445eafaeebf00237d2",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q49",
+      "question": "How many times has John injured his ankle?",
+      "gold": [
+        "two times"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "John has injured his ankle twice: once during the basketball season preceding November 21, 2023, and again in November 2023, with recovery continuing into December 2023.",
+      "candidate_answer": "John has explicitly mentioned injuring his ankle once, during the basketball season preceding November 21, 2023. Other injury updates do not clearly establish separate ankle injuries.",
+      "baseline_reason": "The generated answer says John injured his ankle twice, matching the gold answer of two times.",
+      "candidate_reason": "The generated answer says John injured his ankle once, whereas the gold answer states twice.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D18:2",
+        "D19:6"
+      ],
+      "candidate_result_sha256": "20be03942da5d21a337184d5ba545fe221a207117286272d6ca803b4164cbdc5",
+      "baseline_result_sha256": "6c169211062e52cdfdb2236e9d08553b40f1ec92013914ee5f5ec29b69157d4f",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q51",
+      "question": "What kind of yoga for building core strength might John benefit from?",
+      "gold": [
+        "Hatha Yoga"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John might benefit from core-focused yoga, particularly a strength-building Vinyasa or power yoga practice. Warrior II is an especially good fit: on December 1, 2023, he said he enjoyed holding it for 30–60 seconds to work his legs and core. Adding plank, side plank, and boat poses could further develop core strength and stability.",
+      "candidate_answer": "John might benefit from core-focused Vinyasa or power yoga, incorporating poses such as plank, side plank, and Boat Pose to strengthen his abdomen and improve stability for basketball. This builds on the strength and balance benefits he reported on December 1, 2023. Given his injury recovery, he should adapt poses with guidance from his physical therapist.",
+      "baseline_reason": "The generated answer recommends Vinyasa or power yoga rather than Hatha Yoga, the specific style in the gold answer.",
+      "candidate_reason": "The generated answer recommends Vinyasa or power yoga rather than Hatha Yoga, the specific type in the gold answer.",
+      "baseline_f1": 0.039215686274509796,
+      "candidate_f1": 0.037037037037037035,
+      "evidence_ids": [
+        "D20:2"
+      ],
+      "candidate_result_sha256": "7319ff786810a7187b8bf75a9bc32f23b2b20c8540ed1ab7b0561ca878ace016",
+      "baseline_result_sha256": "c8fa9986aac4a461cf53b82122320da608cce7df8646eb8d66690f18076d02a9",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q55",
+      "question": "When did John start playing professionally?",
+      "gold": [
+        "May, 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John started playing professionally around late 2022 or early 2023. On December 6, 2023, he said he had been a professional for “just under a year.”",
+      "candidate_answer": "John started playing professionally around late 2022 or early 2023. On December 6, 2023, he said he had been a professional for just under a year.",
+      "baseline_reason": "The generated answer places the start in late 2022 or early 2023, rather than May 2023.",
+      "candidate_reason": "The generated answer gives late 2022 or early 2023, which does not match May 2023.",
+      "baseline_f1": 0.07692307692307693,
+      "candidate_f1": 0.07692307692307693,
+      "evidence_ids": [
+        "D1:3",
+        "D21:4"
+      ],
+      "candidate_result_sha256": "0bb063fb2c6c99686d4fd4a8679aaca937632b509cf575de07a95afaff32ab0c",
+      "baseline_result_sha256": "1e7243205aab03ef7036feb623d22dd1cce8c7d85fe91aac5abfe9166c8fcbfa",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q56",
+      "question": "When did Tim start playing the violin?",
+      "gold": [
+        "August 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Tim had recently started playing the violin by December 6, 2023. His exact start date is not stated; the mention of playing for four months refers to piano.",
+      "candidate_answer": "Tim had recently started playing the violin as of December 6, 2023; the exact start date is not specified. His reference to playing for about four months concerned the piano, not the violin.",
+      "baseline_reason": "The generated answer does not identify August 2023 and instead states that Tim’s start date is unknown.",
+      "candidate_reason": "The generated answer does not identify August 2023 and instead says the violin start date is unspecified.",
+      "baseline_f1": 0.07142857142857144,
+      "candidate_f1": 0.06451612903225806,
+      "evidence_ids": [
+        "D21:13"
+      ],
+      "candidate_result_sha256": "4c9246a25cbd1a4d2609c892f097530a074e6fc00a21f248ee4bd37154b248a0",
+      "baseline_result_sha256": "22f40e481e2876227fdf63f684d19005e7e7c9c6964d00322b621b2a2512bb04",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q60",
+      "question": "When did John achieve a career-high assist performance?",
+      "gold": [
+        "December 11, 2023"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "John achieved his career-high assist performance on Friday, December 8, 2023, in a game against his team’s rival.",
+      "candidate_answer": "John achieved his career-high in assists on Friday, December 8, 2023, in a game against his team’s rival.",
+      "baseline_reason": "The generated answer gives December 8, 2023, instead of the gold answer's December 11, 2023.",
+      "candidate_reason": "The generated answer gives December 8, 2023, instead of the gold answer’s December 11, 2023.",
+      "baseline_f1": 0.2,
+      "candidate_f1": 0.2,
+      "evidence_ids": [
+        "D23:2"
+      ],
+      "candidate_result_sha256": "bb9cf07f340c2f98559be0daf48b9c5f4093f1325e99bf9c620ce861348344cf",
+      "baseline_result_sha256": "65e9ef1223585c558888d55b3f47d3c35dee5049e4c5f08c7331d4dc8e0abe6b",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q66",
+      "question": "What is a Star Wars book that Tim might enjoy?",
+      "gold": [
+        "Star Wars: Jedi Apprentice by Judy Blundell and David Farland. It is a highly rated and immersive series about his favorite movies."
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Tim might enjoy *Heir to the Empire* by Timothy Zahn. Its expansive Star Wars setting, epic adventure, and compelling characters fit his love of immersive worlds and strong character development. This is a recommendation based on his interests; the memories do not mention him reading any Star Wars books.",
+      "candidate_answer": "Tim might enjoy *Heir to the Empire* by Timothy Zahn, the first novel in the original Thrawn trilogy. Its rich Star Wars world-building, memorable characters, and epic adventure fit his love of immersive fantasy and his favorite movie franchise. This is a recommendation, not a book the memories say he has read.",
+      "baseline_reason": "The generated answer recommends Heir to the Empire rather than the gold answer's Star Wars: Jedi Apprentice series.",
+      "candidate_reason": "The generated answer recommends Heir to the Empire rather than the gold answer's Star Wars: Jedi Apprentice series.",
+      "baseline_f1": 0.22222222222222218,
+      "candidate_f1": 0.28571428571428575,
+      "evidence_ids": [
+        "D27:19",
+        "D27:21"
+      ],
+      "candidate_result_sha256": "740a0f1fbb81b69e91b87ec48520d86deb191c9b17cccc577b6639c4cd66bb0a",
+      "baseline_result_sha256": "c1bfb337a13797cb6e6af84878a1cb3fc2dedf6bc503c87e8cc999f3a9b5343e",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q113",
+      "question": "Which basketball team does Tim support?",
+      "gold": [
+        "The Wolves"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "The memories do not specify which basketball team Tim supports. His favorite player is LeBron James; the Minnesota Wolves are John's team.",
+      "candidate_answer": "The memories do not specify which basketball team Tim supports. His favorite player is LeBron James; John is the one who supports the Minnesota Wolves.",
+      "baseline_reason": "The generated answer denies knowing Tim's team and attributes the Wolves to John, contradicting the gold answer that Tim supports the Wolves.",
+      "candidate_reason": "The generated answer denies knowing Tim's team and assigns the Wolves to John, contradicting the gold answer that Tim supports the Wolves.",
+      "baseline_f1": 0.09523809523809523,
+      "candidate_f1": 0.08695652173913045,
+      "evidence_ids": [
+        "D12:21"
+      ],
+      "candidate_result_sha256": "db6e6507c4b230557c375f084304012549f72c9f6ffb665f8cea88231302329f",
+      "baseline_result_sha256": "6afd3881baaed68ffd64a4cf09409d01cf02d389db3a254894f95a63a932bac3",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q135",
+      "question": "How does Tim stay motivated during difficult study sessions?",
+      "gold": [
+        "Visualizing goals and success"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "Tim breaks studying into 25-minute blocks, followed by five-minute breaks to do something fun. As he explained on November 16, 2023, this makes studying feel less overwhelming and helps him stay focused and on track.",
+      "candidate_answer": "Tim breaks studying into 25-minute sessions followed by five-minute breaks to do something fun. This makes difficult study sessions feel less overwhelming and helps him stay focused and on track, as he explained on November 16, 2023.",
+      "baseline_reason": "The generated answer describes timed study blocks and breaks rather than visualizing goals and success.",
+      "candidate_reason": "The generated answer describes timed study breaks rather than visualizing goals and success, as specified in the gold answer.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D18:6"
+      ],
+      "candidate_result_sha256": "b30769c4fa7d852783a99c8f1be4648f9e2d7d245e458c98adf86cdd2174e617",
+      "baseline_result_sha256": "eb556e4b5a4a7c94f57c12e6e07a28ab55be3aa5a8503970bad47c0c7bdbb9b8",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q136",
+      "question": "What did Tim say about his injury on 16 November, 2023?",
+      "gold": [
+        "The doctor said it's not too serious"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "On November 16, 2023, it was John—not Tim—who had an injury. Tim said, “Ouch, bummer about the injury. Hang tight,” and “I hope your injury heals soon.” When John said he hated being off the court, Tim replied, “I bet. It's like if I couldn't read due to an injury.”",
+      "candidate_answer": "On 16 November 2023, Tim was referring to John’s injury, not his own. He said, “Ouch, bummer about the injury. Hang tight,” and “I hope your injury heals soon.” When John said he hated being off the court, Tim replied, “I bet. It’s like if I couldn’t read due to an injury.”",
+      "baseline_reason": "The generated answer attributes the injury to John and omits the key detail that the doctor said it was not too serious.",
+      "candidate_reason": "The generated answer discusses John’s injury instead of stating that Tim’s doctor said his injury was not too serious.",
+      "baseline_f1": 0.0784313725490196,
+      "candidate_f1": 0.07407407407407407,
+      "evidence_ids": [
+        "D18:10"
+      ],
+      "candidate_result_sha256": "e0170693d0a4ee6a2062b500df83d235f2eca067071c7969c0ca811f93c04652",
+      "baseline_result_sha256": "5d20012782568b80035803c80f944f48f9e716cd81d250b02e0032fc44b43155",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q164",
+      "question": "What language does Tim know besides German?",
+      "gold": [
+        "Spanish"
+      ],
+      "baseline_correct": false,
+      "candidate_correct": false,
+      "baseline_answer": "French, which he studied in high school.",
+      "candidate_answer": "Tim knows French, which he studied in high school.",
+      "baseline_reason": "The generated answer says French, but the gold answer identifies Spanish.",
+      "candidate_reason": "The generated answer says French, but the gold answer identifies Spanish.",
+      "baseline_f1": 0.0,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D27:6"
+      ],
+      "candidate_result_sha256": "4d3db518ec274b2290bef1411e96be6fdf394a18f23bdb3b7290a314f067ab6a",
+      "baseline_result_sha256": "7e825831a3969b04598beab02faa7f10c8084427240db9e78cd7f3066d6d2cc5",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
+    },
+    {
+      "question_id": "conv-43_q166",
+      "question": "What is John's favorite book series?",
+      "gold": [
+        "Harry Potter"
+      ],
+      "baseline_correct": true,
+      "candidate_correct": false,
+      "baseline_answer": "John’s favorite book series appears to be Harry Potter, though the memories explicitly confirm only that he is a fan, not that it is his single favorite.",
+      "candidate_answer": "John’s favorite book series appears to be The Lord of the Rings. He loves its adventure, world, and characters, especially Aragorn.",
+      "baseline_reason": "The generated answer identifies Harry Potter, matching the gold answer despite its qualification.",
+      "candidate_reason": "The generated answer names The Lord of the Rings rather than Harry Potter, the favorite series given in the gold answer.",
+      "baseline_f1": 0.14814814814814814,
+      "candidate_f1": 0.0,
+      "evidence_ids": [
+        "D27:19"
+      ],
+      "candidate_result_sha256": "c6e3cafc2bf558342a6b367dd40c1951df267a1214757a4aeabb408dfb7a5ea7",
+      "baseline_result_sha256": "ce1aad1ad0a8734ffc76eb1dcb152a2fc69cf7d74fcb25f7d563315c580e0f3e",
+      "candidate_source_run_id": "locomow8r_20261119_011537"
     }
   ],
   "offline_repacking_diagnostics": {
@@ -1240,6 +1671,101 @@
       "question_id": "conv-42_q195",
       "finding": "gold引用D28:29是Nate邀请Joanna来自己家看电影/公园，问题却问Nate去Joanna家。新上下文还有一起烘焙的事实，reader选后者；需区分邀请方向与另一个访问事件，不把gold一律当源文无歧义。",
       "confidence": "supported_invitation_direction_dispute"
+    },
+    {
+      "question_id": "conv-43_q5",
+      "finding": "新旧答案都推荐Harry Potter New York而非明确House of MinaLima；旧judge不接受，新judge以店内关联接受。此转对主要是判题解释差异，未证明恢复了新的商店事实。",
+      "confidence": "confirmed_recommendation_judge_variation"
+    },
+    {
+      "question_id": "conv-43_q6",
+      "finding": "July16会话说last week，答案July而goldJune；保留原判定并列源/gold月份冲突，不强制改成June追分。",
+      "confidence": "supported_source_gold_time_conflict"
+    },
+    {
+      "question_id": "conv-43_q8",
+      "finding": "原文/事实未明确签约品牌，reader不猜Under Armour；属于特定品牌推断要求，而不是已经找到品牌后漏答的已证实情况。",
+      "confidence": "supported_inference_policy"
+    },
+    {
+      "question_id": "conv-43_q11",
+      "finding": "surfing及surfboard原文在API回包，未进入新旧最终上下文，仍是原文窗口覆盖不足；不能把surfing说成未抽取所以完全不可查。",
+      "confidence": "confirmed_context_gap"
+    },
+    {
+      "question_id": "conv-43_q16",
+      "finding": "July16的last week与August9重连形成约五周，gold三周；两轮相同，需区分记忆事件时间和数据标注，不能机械改日期。",
+      "confidence": "supported_time_anchor_dispute"
+    },
+    {
+      "question_id": "conv-43_q19",
+      "finding": "源给公益/青少年体育兴趣，reader建议Boys & Girls Clubs，gold指定Good Sports及品牌合作，属于非唯一开放域推荐，不能靠增加同样记忆保证特定组织名。",
+      "confidence": "supported_nonunique_recommendation"
+    },
+    {
+      "question_id": "conv-43_q20",
+      "finding": "Seattle确已进入当前上下文，但D3:19是计划下月去Seattle；之后未明说那场获胜比赛就在Seattle。reader拒绝确定Chicago之前所在地，属于跨事件关联/推断，不是Seattle字面缺失。",
+      "confidence": "supported_event_linking_ambiguity"
+    },
+    {
+      "question_id": "conv-43_q48",
+      "finding": "November16当前伤情事实和last-season ankle事实都已打包，但reader只选后者。旧prompt还含D18:2的图片搜索query=ankle injury wrapped bandages，新窗口删去query后仅有腿部包扎caption。这一元数据丢失可能削弱November16与ankle的关联，不能将回退全部归为reader或预算；尚未隔离因果。",
+      "confidence": "confirmed_metadata_difference_possible_causal_link"
+    },
+    {
+      "question_id": "conv-43_q49",
+      "finding": "新上下文保留November16伤情和last-season ankle事实，reader认为只能确认一次；旧prompt含图片搜索query的ankle细节，新窗口不含。事件是否独立及图片元数据是否可用同时影响计数，不能凭gold两次强制拆分事件。",
+      "confidence": "confirmed_metadata_difference_and_event_scope"
+    },
+    {
+      "question_id": "conv-43_q51",
+      "finding": "reader给Vinyasa/power，gold指定Hatha，属于根据核心力量需求的非唯一建议；原文未明确Hatha，检索预算不保证解决。",
+      "confidence": "supported_nonunique_recommendation"
+    },
+    {
+      "question_id": "conv-43_q55",
+      "finding": "December6说just under a year，May只说签新队；两轮据前者答late2022/early2023，goldMay2023。新队签约不等于首次职业起点，保留歧义。",
+      "confidence": "supported_professional_start_ambiguity"
+    },
+    {
+      "question_id": "conv-43_q56",
+      "finding": "December6最近开始violin，而four months在piano语境；goldAugust可能把两种乐器相混。维持数据和原判，不让reader转写成已明确四个月小提琴。",
+      "confidence": "supported_instrument_source_conflict"
+    },
+    {
+      "question_id": "conv-43_q60",
+      "finding": "December11原文last Friday对应December8，goldDecember11；两轮答案不变，保留原判定和日期冲突。",
+      "confidence": "supported_source_gold_time_conflict"
+    },
+    {
+      "question_id": "conv-43_q66",
+      "finding": "reader推荐Heir to the Empire，gold只收Jedi Apprentice；属于非唯一Star Wars读物推荐，未证明原文曾出现gold书名。",
+      "confidence": "supported_nonunique_recommendation"
+    },
+    {
+      "question_id": "conv-43_q113",
+      "finding": "D12:21是Tim说The Wolves are solid，可支持偏好推断但并未直说唯一支持球队。reader只确认John球队并拒答Tim队伍，属于偏好推断/人物归属的保守回答，不是球队文字没进入记忆的已证实问题。",
+      "confidence": "supported_preference_inference"
+    },
+    {
+      "question_id": "conv-43_q135",
+      "finding": "gold证据D18:6是John的visualization，而题问Tim；Tim在同组说25-minute学习和breaks，新旧回答遵循Tim原话，保留人物冲突。",
+      "confidence": "confirmed_source_speaker_conflict"
+    },
+    {
+      "question_id": "conv-43_q136",
+      "finding": "D18:10明确speaker=John说doctor not too serious，题却问Tim伤情；新旧回答纠正人物，裁判仍按gold判错，保留原分母和判定。",
+      "confidence": "confirmed_source_speaker_conflict"
+    },
+    {
+      "question_id": "conv-43_q164",
+      "finding": "Spanish属John，Tim明确学过French；新旧均答French，保留题目/gold人物冲突，不以改人名提高分数。",
+      "confidence": "confirmed_source_speaker_conflict"
+    },
+    {
+      "question_id": "conv-43_q166",
+      "finding": "gold证据D27:19明确speaker=Tim说Harry Potter favorite，题却问John。新上下文同时含John喜欢Harry Potter及LOTR，reader改选LOTR；属于偏好强度、人物标注及reader选择交织，不能简单归为正确Harry Potter记忆被截断。",
+      "confidence": "confirmed_source_speaker_conflict_and_answer_selection"
     }
   ],
   "source_conv30_comparison_sha256": "f7c33017b2662affb8a473baeff7009ca4c75a033ba9fc097f5b2e4dd88b618d",
@@ -1698,5 +2224,76 @@
     "supersedes_private_snapshot_sha256": "accb1da00454882130f70d2e8af9e4ef2996669ecc2f3c46aa93c4624d54d452",
     "private_snapshot_sha256": "7fbd9656c56f2a21b692fd5b76190d1dea62922048fad3e14237ce28b83759b0",
     "private_snapshot_path": ".local/window-first584-metrics-v2-20261119.json"
+  },
+  "source_conv43_comparison_sha256": "45c7330451617e38b2716f518a1a7a5688baeb4848a3d967c032c36228654d53",
+  "conv43_summary": {
+    "source_run_id": "locomow8r_20261119_011537",
+    "scope": 178,
+    "baseline_correct": 162,
+    "candidate_correct": 160,
+    "baseline_f1": 0.26577379392670564,
+    "candidate_f1": 0.2589552979127398,
+    "fixed": [
+      "conv-43_q5"
+    ],
+    "regressed": [
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166"
+    ]
+  },
+  "first762_comparison": {
+    "kind": "matched-first-five-complete-banks-not-full1540-score",
+    "scope": 762,
+    "baseline": {
+      "n": 762,
+      "correct": 702,
+      "accuracy": 0.9212598425196851,
+      "f1": 0.26743895354322694,
+      "context_tokens_mean": 7812.242782152231,
+      "recall_p50_ms": 15228.53187500732,
+      "recall_p95_ms": 18682.788347918537
+    },
+    "candidate": {
+      "n": 762,
+      "correct": 715,
+      "accuracy": 0.9383202099737533,
+      "f1": 0.27227049366420436,
+      "context_tokens_mean": 7977.891076115486,
+      "recall_p50_ms": 16989.489478990436,
+      "recall_p95_ms": 29322.095852682825
+    },
+    "context_token_basis": "o200k_base packed memory only, same as baseline export; not native AMB cl100k context_tokens.",
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60",
+      "conv-43_q5"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23",
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166"
+    ],
+    "private_snapshot_sha256": "f29e03fde7cd9a77b84b1aec5b49e150733dfee4c003a68aca217d759d2b5331",
+    "private_snapshot_path": ".local/window-first762-metrics-20261119.json"
   }
 }
