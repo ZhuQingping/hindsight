@@ -5384,5 +5384,132 @@
       "regressed": 1,
       "net_correct": 4
     }
+  },
+  "first_eight_f1_diagnostic": {
+    "kind": "first-eight-banks-f1-diagnostic-not-full-score",
+    "scope": 1225,
+    "source_snapshot_sha256": "2a86f314757ad4845375e66cfd955760b74e15531572412095049676e59b3cd2",
+    "frozen_f1_sha256": "8e3be5d57ff2ff9ec5cd05939592f468c5f3f1fd95d13e431932bdf6bf0fd6fd",
+    "baseline": {
+      "scope": 1225,
+      "correct": 1130,
+      "mean_f1": 0.27681056407010285,
+      "mean_answer_normalized_words": 24.082448979591838,
+      "median_answer_normalized_words": 17,
+      "mean_gold_normalized_words": 4.180408163265306,
+      "correct_but_zero_f1": 52,
+      "correct_but_f1_below_half": 984,
+      "correct_mean_f1": 0.2940298919327032
+    },
+    "candidate": {
+      "scope": 1225,
+      "correct": 1148,
+      "mean_f1": 0.2788049987871531,
+      "mean_answer_normalized_words": 24.51918367346939,
+      "median_answer_normalized_words": 17,
+      "mean_gold_normalized_words": 4.180408163265306,
+      "correct_but_zero_f1": 54,
+      "correct_but_f1_below_half": 997,
+      "correct_mean_f1": 0.2923564309104916
+    },
+    "by_category": {
+      "1": {
+        "baseline": {
+          "scope": 213,
+          "correct": 199,
+          "mean_f1": 0.3143546417310241,
+          "mean_answer_normalized_words": 43.990610328638496,
+          "median_answer_normalized_words": 30,
+          "mean_gold_normalized_words": 5.230046948356808,
+          "correct_but_zero_f1": 12,
+          "correct_but_f1_below_half": 165,
+          "correct_mean_f1": 0.3325071539060249
+        },
+        "candidate": {
+          "scope": 213,
+          "correct": 197,
+          "mean_f1": 0.3029308513276493,
+          "mean_answer_normalized_words": 46.97652582159625,
+          "median_answer_normalized_words": 31,
+          "mean_gold_normalized_words": 5.230046948356808,
+          "correct_but_zero_f1": 10,
+          "correct_but_f1_below_half": 162,
+          "correct_mean_f1": 0.3218562517218252
+        }
+      },
+      "2": {
+        "baseline": {
+          "scope": 256,
+          "correct": 229,
+          "mean_f1": 0.2605407990018307,
+          "mean_answer_normalized_words": 14.18359375,
+          "median_answer_normalized_words": 13.0,
+          "mean_gold_normalized_words": 3.05859375,
+          "correct_but_zero_f1": 5,
+          "correct_but_f1_below_half": 216,
+          "correct_mean_f1": 0.2784637449126624
+        },
+        "candidate": {
+          "scope": 256,
+          "correct": 233,
+          "mean_f1": 0.2657458564435676,
+          "mean_answer_normalized_words": 14.3671875,
+          "median_answer_normalized_words": 13.0,
+          "mean_gold_normalized_words": 3.05859375,
+          "correct_but_zero_f1": 5,
+          "correct_but_f1_below_half": 217,
+          "correct_mean_f1": 0.2801348476099171
+        }
+      },
+      "3": {
+        "baseline": {
+          "scope": 76,
+          "correct": 50,
+          "mean_f1": 0.12640268226810772,
+          "mean_answer_normalized_words": 36.723684210526315,
+          "median_answer_normalized_words": 32.0,
+          "mean_gold_normalized_words": 4.552631578947368,
+          "correct_but_zero_f1": 7,
+          "correct_but_f1_below_half": 45,
+          "correct_mean_f1": 0.1620099793695344
+        },
+        "candidate": {
+          "scope": 76,
+          "correct": 55,
+          "mean_f1": 0.13944254762608685,
+          "mean_answer_normalized_words": 36.078947368421055,
+          "median_answer_normalized_words": 32.0,
+          "mean_gold_normalized_words": 4.552631578947368,
+          "correct_but_zero_f1": 10,
+          "correct_but_f1_below_half": 49,
+          "correct_mean_f1": 0.17144173598977877
+        }
+      },
+      "4": {
+        "baseline": {
+          "scope": 680,
+          "correct": 652,
+          "mean_f1": 0.28798581455929856,
+          "mean_answer_normalized_words": 20.16029411764706,
+          "median_answer_normalized_words": 17.0,
+          "mean_gold_normalized_words": 4.232352941176471,
+          "correct_but_zero_f1": 28,
+          "correct_but_f1_below_half": 558,
+          "correct_mean_f1": 0.2978775424895387
+        },
+        "candidate": {
+          "scope": 680,
+          "correct": 663,
+          "mean_f1": 0.29174011663579025,
+          "mean_answer_normalized_words": 20.014705882352942,
+          "median_answer_normalized_words": 17.0,
+          "mean_gold_normalized_words": 4.232352941176471,
+          "correct_but_zero_f1": 29,
+          "correct_but_f1_below_half": 569,
+          "correct_mean_f1": 0.2979167211515782
+        }
+      }
+    },
+    "note": "Original frozen F1 recomputed for all1225 saved answers and exactly matched archived values. Word counts are descriptive; length is not proven causal and these are not alternative scores. Category3 uses original primary answer before semicolon; category1 original comma-split scorer."
   }
 }
