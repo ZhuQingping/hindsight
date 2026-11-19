@@ -4,30 +4,16 @@
 
 ## 管理层汇报摘要（2026-11-19）
 
-**ContextBase已完成LoCoMo类别1–4全1540题的可复现基线，准确率92.14%；第一版优化在已完成、可逐题核验的同一批584题上，从92.47%提高到95.03%（+2.57个百分点），但检索延迟上升。优化轮尚未全量完成，不能发布95.03%为1540题成绩或宣称榜单第一。**
+| Benchmark | Mem0 | Hindsight | ContextBase |
+| --- | ---: | ---: | ---: |
+| LoCoMo | 92.5% | 92.0% | **92.14%（1540题全量）** |
+| LongMemEval-S | 94.4% | 94.6% | 尚未测试 |
+| BEAM 1M | 64.1% | 73.9% | 尚未测试 |
+| BEAM 10M | 48.6% | 64.1% | 尚未测试 |
 
-| Benchmark | 衡量什么 | ContextBase进展与优先级 |
-| --- | --- | --- |
-| LoCoMo | 跨session事实、时间、多跳问答 | 首要：全量基线已完成，V1优化全量验证中 |
-| LongMemEval-S | 更长历史中的信息提取、更新与时间推理 | 第二：已调研，尚未实测 |
-| BEAM（1M/10M） | 百万/千万token历史下的长期记忆能力 | 第三：已调研，尚未实测；平均分与问答准确率分开报告 |
-| PersonaMem | 用户画像与偏好记忆 | 补充：已调研，尚未实测 |
+**ContextBase第一版优化：同584题准确率92.47%→95.03%，提高2.57个百分点；全量仍在测试。**
 
-行业参照：Mem0官方主表公布LoCoMo **92.5%**、LongMemEval **94.4%**、BEAM 1M/10M平均分 **64.1%/48.6%**；Hindsight固定AMB历史结果为LoCoMo **92.01%（1417/1540）**、LongMemEval-S **94.6%（473/500）**。这些是不同模型、裁判和环境下的厂商成绩，供定位目标，不构成同条件排名。[Mem0官方表](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026)、[固定AMB结果清单](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)。更多产品与来源见后文。
-
-| 指标 | 已完成基线：1540题 | 上轮同范围：584题 | V1优化：同584题 |
-| --- | --- | --- | --- |
-| 答对题数 | 1419 | 540 | 555 |
-| 准确率 | 92.14% | 92.47% | **95.03%** |
-| 答案F1 | 27.65% | 26.79% | **27.63%** |
-| 平均上下文tokens/题 | 7806 | 7815 | 7976 |
-| 检索P50 | 15.31秒 | 14.08秒 | 15.44秒 |
-| 检索P95 | 19.47秒 | 18.07秒 | 22.69秒 |
-| 完整性 | 1540题完成、失败0 | 固定前四组配对基准 | 前四组完成，其余仍运行 |
-
-V1具体改动：原文API候选预算8192→65536 tokens，按问题选择完整消息窗口；reader仍按约8K记忆预算打包。复用原10个Bank、不重新导入，保留相同答题/裁判模型与规则。584题中18题错转对、3题对转错，错题44→29（下降34.1%）；部分变化含judge波动，不能全部归为检索修复。Token均为o200k_base的记忆上下文，不含题目/提示、导入和裁判tokens。原始配对记录、哈希和口径见[结构化诊断](results/locomo1540-window-diagnostics-20261119.json)。
-
-测试环境：现有本机ContextBase（8892）、PostgreSQL18.4/pgvector0.8.6；抽取GPT-6.1-sol medium，答题/裁判GPT-6.1-sol low，本地BGE-reranker-v2-m3 CPU。**当前主要短板是F1、检索时延及部分推理/图片题；当前已取得质量方向的阶段性改善，尚未实现质量与效率同时提升。** 下一步先完成V1全部1540题，再独立验证答题提示、reader预算和原文检索/PG增强；其他benchmark尚无ContextBase成绩。
+LoCoMo、LongMemEval为准确率，BEAM为平均分；各家模型和环境不同，表格不是统一条件排名。来源：[Mem0官方表](https://github.com/mem0ai/mem0#new-memory-algorithm-april-2026)、[Hindsight固定官方结果](https://github.com/vectorize-io/agent-memory-benchmark/blob/28b644bd4dd653c0207c7507280439390c829155/results-manifest.json)、[ContextBase基线](results/locomo1540-baseline-20261119.json)和[优化阶段结果](results/locomo1540-window-diagnostics-20261119.json)。
 
 ---
 
