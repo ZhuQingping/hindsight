@@ -4054,5 +4054,77 @@
       "Private environment backups contain credentials and stay ignored, mode0600; never copy them into public results."
     ],
     "phase_record_sha256": "4702bc42956406ccaedc151c3d6eda13e92ac9b248d723da822eb4789be212eb"
+  },
+  "recorded_restart_recovery_preparation": {
+    "kind": "prepared-transport-only-completion-not-a-new-method-experiment",
+    "source_run_id": "locomow8r_20261119_011537",
+    "source_manifest_sha256": "5a9193787fdf546cc16c735a2679e0c9dcc1cdb161af8c9a1ee5bec25f5d75cf",
+    "config_sha256": "bf65b2dd3bee8052bdb0055f3873cef28e966952d32c1378fc0c8f5c98d1a8b6",
+    "code_sha256": {
+      "runner.py": "c214ac6754e24cdb2add8899eec2b997686d257273407ace524ecb0b980620a5",
+      "support.py": "f29ef88316032a3a6f574e1b4d3b4285b3a44c7809b6d6481b838c7f5e5a5312",
+      "analysis.py": "18f8a6ff777d5fa765e6eea4eb91d5e71c995f1bbfe87f207e1406c762fa58a1",
+      "night.py": "3ccd66f7791535214499892626974d8e9e025eeba7534bd49a3405133cfe1a7a"
+    },
+    "recoverable_now": [
+      "conv-44_q90"
+    ],
+    "proof_paths": [
+      "performance/reranker2-switch-20261119/journal.json"
+    ],
+    "checks": [
+      "84 pinned-AMB offline tests passed; Ruff/format/ty passed.",
+      "Only hash-proven pending HTTPFailure with no answer/judge can recover from this restart; unproven HTTPFailure remains non-retryable.",
+      "All completed source calls/results are preserved byte-for-byte in proof archive and reused without new semantic calls.",
+      "No initialization or model call yet. Wait for original producer exit, source terminal state and actual run lock free.",
+      "If any additional missing/failed stage appears, audit it before execution; do not call semantic wrong answers retryable.",
+      "Effective resource epochs copied into recovery archive; do not claim uniform concurrency latency.",
+      "Frozen recovery uses same API request budgets, v1 packing, original AMB reader/judge, models, questions, source Banks and data.",
+      "After valid full1540 export and handoff, do not start metadata/new-reader/32K/common-judge experiments."
+    ]
+  },
+  "first881_completed_comparison": {
+    "kind": "first881-completed-judges-not-full1540-score",
+    "scope": 881,
+    "scope_policy": "First881 completed judge calls ordered by final successful attempt timestamp+elapsed, with question_id tie break; no selection by correctness.",
+    "candidate_correct": 823,
+    "candidate_accuracy": 0.9341657207718501,
+    "baseline_same_scope_correct": 811,
+    "baseline_same_scope_accuracy": 0.9205448354143019,
+    "fixed": [
+      "conv-26_q21",
+      "conv-26_q26",
+      "conv-26_q78",
+      "conv-26_q80",
+      "conv-26_q85",
+      "conv-26_q132",
+      "conv-26_q133",
+      "conv-26_q135",
+      "conv-30_q13",
+      "conv-30_q37",
+      "conv-30_q44",
+      "conv-30_q73",
+      "conv-41_q0",
+      "conv-41_q4",
+      "conv-41_q45",
+      "conv-41_q95",
+      "conv-41_q123",
+      "conv-42_q60",
+      "conv-43_q5",
+      "conv-44_q39"
+    ],
+    "regressed": [
+      "conv-26_q68",
+      "conv-41_q94",
+      "conv-42_q23",
+      "conv-43_q48",
+      "conv-43_q49",
+      "conv-43_q166",
+      "conv-44_q37",
+      "conv-44_q55"
+    ],
+    "note": "Only completed QA. conv-44_q90 transport interruption has no answer/judge and remains pending recovery; final full-scope score must include all1540.",
+    "private_snapshot_sha256": "35aa9ee62b856227ea8a1348b3da3f4853de7678577a68cbccff864e017e1904",
+    "private_snapshot_path": ".local/window-first881-completed-20261119.json"
   }
 }

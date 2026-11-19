@@ -884,3 +884,9 @@ q4/q61的last week已在提炼事实中成为前一周一至周日区间，而go
 已短暂停住producer6427和guardian6428，由原部署manage.py重启8892，只修改`HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT=1→2`。实际暂停23.42秒，851题完成答案/裁判及暂停前全部sealed文件的字节哈希逐一保留；原进程随后SIGCONT，native启动日志确认max_concurrent=2，且已有新检索成功。原manifest保留为初始配置，不修改其fingerprint；有效资源变化单独记录在当前run的`performance-epochs.json`，原env前后完整备份位于私有performance目录，0600且不提交。
 
 切换时预先记录的在途题为conv-44_q89/q90，其中q90出现HTTPFailure且没有recall结果和答案，将在新检查点中做有证据、限次的传输恢复；不重答任何已完成语义结果。当前run继续处理剩余题，不因这一条中断丢弃全轮。恢复证据必须与原manifest及暂停前待返回记录哈希绑定，不能把HTTPFailure一律列为可重试。最终质量指标保留1540题范围；时延按1并发、切换在途、2并发三段报告，不能把混合资源条件称为统一配置的延迟基线。
+
+### 收尾恢复准备（不启动新实验）
+
+重启中断q90的原始HTTPFailure保持原样；恢复器在内存构造暂停前error=None的pending record，并核对其完整序列化SHA与切换前journal。已在真实q90上吻合，且没有answer/judge文件。84项离线测试通过，其他无证明HTTPFailure、已有语义结果、外来/损坏证明、未完成重启均不能借此恢复；checkpoint-source保留原证明，避免再次递归使用同一次重启授权。现有PIDs与冻结脚本不变。全局lint仍为既有http.py:5846 F841，隔离worktree自动格式化已还原。
+
+只准备了`.local/window-restart-recovery-prepared-20261119/`中的配置和冻结源码。必须先等原producer退出、真实run锁空闲、源状态终态，再确认全1540题仅剩q90传输缺口，才init新检查点并只读verify、补齐缺口。所有已完成答案/判定复用，不因答错重跑；资源epochs文件和重启proof均归档。此后只做完整性、指标、错误归因和协作交接，不自动启动新候选。

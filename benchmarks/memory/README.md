@@ -14,7 +14,7 @@
 | [requirements.txt](requirements.txt) | 仓库 Python 环境之外的评测/测试补充依赖 |
 | [tests/test_runner.py](tests/test_runner.py) | 固定 AMB 代码＋合成会话＋模拟服务/模型的离线检查 |
 
-**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别1–4的1540题基线已完整完成：**1419/1540、92.14%、答案F1 27.65%，检索P50/P95 15.31/19.47秒**。121道错题均已分析，独立8K窗口候选已启动。见[完整结果](results/locomo1540-baseline-20261119.json)和[报告](report.md)。当前78项离线检查、Ruff和类型检查通过；全局lint仍有既有http.py F841失败。
+**当前状态：**固定 AMB `28b644bd4dd653c0207c7507280439390c829155`，类别1–4的1540题基线已完整完成：**1419/1540、92.14%、答案F1 27.65%，检索P50/P95 15.31/19.47秒**。121道错题均已分析，独立8K窗口候选已启动。见[完整结果](results/locomo1540-baseline-20261119.json)和[报告](report.md)。当前84项离线检查、Ruff和类型检查通过；全局lint仍有既有http.py F841失败。
 
 **同事协作入口：**见[plan中的协作交接](plan.md#协作交接2026-11-19)。11:35左右核验：当前V1已完成817题答题/判题，前五组762题同范围准确率92.13%→93.83%，未形成全量优化成绩。分工建议为统计归因、上下文/reader、原文/PG检索、CPU重排性能四条线；主控统一整合报告和调度正式实验。原始`.local`不在Git，开发分支也不等于8892当前部署版本。
 
@@ -138,3 +138,5 @@ prepare只做离线冻结；run必须等源基线完整有效，并使用冻结�
 `summary.retrieval_measurement=reused-source-recall`表示检索P50/P95沿用来源的测量，**不是新测速**；`retrieval_source_run_id`标明来源。新Token账目只统计新答题/判题调用；上下文及prompt长度按新打包实计。当前已通过71项离线检查，并只读审计真实1540题源；新reader提示和32K配置仍只是离线准备，没有新成绩。
 
 独立候选打包方法 `query-turn-windows-metadata-v2` 保留返回原文自带的图片搜索 `query`，标注为source metadata，和BLIP caption分开；不抓图、不生成新caption，不读取QA gold。默认complete-JSON及`query-turn-windows-v1`行为不变，不能在原运行中途切换。六题已有回包的离线重打包通过预算与来源核验，原v1序列化结果逐题完全复现；候选尚未产生答题/判题成绩。初始化缓存复测时仍要求完整有效1540题来源，当前未完成的来源已实际拒绝且未创建输出。配置和代码冻结于`.local/metadata-v2-offline-validation-20261119/`，摘要见既有部分诊断JSON。
+
+重启在途HTTP错误恢复：只有`resume_connection_failures=true`且已记录的服务重启证明与源manifest、暂停前待返回record的完整序列化哈希一致，且不存在recall结果/answer/judge调用，才允许补齐。任意HTTPFailure不会一律重试。新检查点归档原proof和资源分段，但不复制为可递归重用的重启授权。真实q90证据已通过只读核验，84项离线测试覆盖有效恢复、缺失证明、外来manifest、错误preimage、已有语义调用和未完成重启。当前评测仍使用自己的冻结代码，收尾配置在`.local/window-restart-recovery-prepared-20261119/`，未启动。

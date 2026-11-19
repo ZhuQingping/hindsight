@@ -20,6 +20,7 @@ import subprocess
 import sys
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Iterator, Literal
@@ -143,6 +144,28 @@ class RetrievalRecord(Sealed):
     retrieval_elapsed_ms: float | None = None
 
 
+class RestartEvents(BaseModel):
+    all_sealed_records_preserved: Literal[True]
+    paused_at: datetime
+    ready_at: datetime
+    resumed_at: datetime
+    pause_elapsed_s: float = Field(gt=0)
+    failure_type: None = None
+
+
+class RecordedRestart(BaseModel):
+    initial_manifest_sha256: str
+    completed_qa_before: list[str]
+    transition_question_ids: list[str]
+    sealed_file_hashes: dict[str, str]
+    events: RestartEvents
+
+
+class RestartRecovery(core.StrictModel):
+    question_ids: set[str] = Field(default_factory=set)
+    proof_paths: list[str] = Field(default_factory=list)
+
+
 class NativeResult(BaseModel):
     model_config = ConfigDict(extra="allow")
     query_id: str
@@ -260,6 +283,7 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         )
     source_manifest = None
     source_directory = None
+    restart_recovery = RestartRecovery()
     if config.source_ref is not None:
         source_path = Path(config.source_ref.path).expanduser().resolve()
         if core.file_sha(source_path) != config.source_ref.sha256:
@@ -335,6 +359,18 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
             for folder in ("retrievals", "calls", "results")
             for path in sorted((source_directory / folder).glob("*.json"))
         }
+        if config.resume_connection_failures:
+            restart_recovery = recorded_restart_recovery(source_directory, source_manifest)
+            for name in restart_recovery.proof_paths:
+                manifest.checkpoint_imports[name] = core.file_sha(source_directory / name)
+        if (source_directory / "performance-epochs.json").exists():
+            manifest.checkpoint_imports["performance-epochs.json"] = core.file_sha(
+                source_directory / "performance-epochs.json"
+            )
+            manifest.integration_notes.append(
+                "Source QA spans declared resource epochs; performance-epochs.json is preserved. "
+                "Do not describe aggregate latency as a uniform-concurrency measurement."
+            )
         for filename in [
             "state.json",
             "server-version-before.json",
@@ -358,7 +394,7 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
         shutil.copyfile(checkout / path, target)
     if source_manifest is not None and source_directory is not None:
         shutil.copyfile(source_directory / "manifest.json", directory / "inputs/checkpoint-source-manifest.json")
-        retry_ids: set[str] = set()
+        retry_ids: set[str] = set(restart_recovery.question_ids)
         if config.resume_connection_failures:
             for path in (source_directory / "calls").glob("*.json"):
                 record = unseal(path, CallRecord, source_manifest)
@@ -397,6 +433,8 @@ def init_run(config_path: Path, directory: Path, run_id: str) -> Manifest:
                     shutil.copyfile(original, directory / name)
                 continue
             folder = Path(name).parts[0]
+            if folder == "performance":
+                continue  # Hash-bound source restart proof only; never replay it as a new restart.
             if config.retrieval_source is not None and folder != "retrievals":
                 continue  # Snapshot source proof, never adopt source answers or verdicts.
             record_type = {
@@ -506,6 +544,47 @@ def unseal(path: Path, record_type: type[Any], manifest: Manifest) -> Any:
     ):
         raise ValueError(f"Checkpoint content or protocol changed: {path.name}")
     return record
+
+
+def recorded_restart_recovery(directory: Path, manifest: Manifest) -> RestartRecovery:
+    """Allow HTTP failure recovery only for a hash-proven pre-restart pending request.
+
+    HTTPFailure alone is intentionally not retryable: it can mean authentication or
+    validation failure. A recorded service restart must prove that this exact sealed
+    request was pending before the restart, and that no semantic call ever started.
+    """
+    recovery = RestartRecovery()
+    scope = {amb_id(q) for c in manifest.conversations for q in c.questions}
+    for path in sorted(directory.glob("performance/reranker*-switch-*/journal.json")):
+        proof = core.read_model(path, RecordedRestart)
+        if (
+            proof.initial_manifest_sha256 != core.file_sha(directory / "manifest.json")
+            or not proof.events.paused_at <= proof.events.ready_at <= proof.events.resumed_at
+            or not set(proof.transition_question_ids) <= scope
+            or len(proof.transition_question_ids) > manifest.config.concurrency
+        ):
+            raise ValueError("Recorded restart proof does not match the source scope/timeline")
+        for qid in proof.transition_question_ids:
+            name = f"retrievals/{qid}.json"
+            record = unseal(directory / name, RetrievalRecord, manifest)
+            if record.error != "HTTPFailure":
+                continue
+            if (
+                record.recall is not None
+                or record.packing is not None
+                or record.retrieval_elapsed_ms is not None
+                or qid in proof.completed_qa_before
+                or any((directory / "calls" / f"{qid}-{stage}.json").exists() for stage in ("answer", "judge"))
+            ):
+                raise ValueError("Recorded restart cannot retry a returned recall or semantic call")
+            pending = record.model_copy(update={"error": None, "checksum": ""})
+            pending.checksum = core.canonical_sha(pending)
+            original_sha = hashlib.sha256(pending.model_dump_json(indent=2).encode()).hexdigest()
+            if proof.sealed_file_hashes.get(name) != original_sha:
+                raise ValueError("Recorded restart pending-request preimage does not match")
+            recovery.question_ids.add(qid)
+        recovery.proof_paths.append(str(path.relative_to(directory)))
+    return recovery
 
 
 def validate_complete_retrieval_source(directory: Path, manifest: Manifest) -> None:

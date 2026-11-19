@@ -1257,8 +1257,28 @@ async def test_numeric_gold_save_failure_recovers_newly_ingested_banks_without_n
         assert hashes == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
 
 
+def record_pending_restart(directory, manifest, qid):
+    path = directory / "performance/reranker2-switch-test/journal.json"
+    path.parent.mkdir(parents=True)
+    proof = a.RecordedRestart(
+        initial_manifest_sha256=h.file_sha(directory / "manifest.json"),
+        completed_qa_before=[],
+        transition_question_ids=[qid],
+        sealed_file_hashes={f"retrievals/{qid}.json": h.file_sha(directory / "retrievals" / f"{qid}.json")},
+        events=a.RestartEvents(
+            all_sealed_records_preserved=True,
+            paused_at="2026-11-19T03:45:00+00:00",
+            ready_at="2026-11-19T03:45:20+00:00",
+            resumed_at="2026-11-19T03:45:23+00:00",
+            pause_elapsed_s=23,
+        ),
+    )
+    path.write_text(proof.model_dump_json(indent=2))
+    return path
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize("orphan_error", ["interrupted_unknown", None])
+@pytest.mark.parametrize("orphan_error", ["interrupted_unknown", None, "HTTPFailure"])
 async def test_interrupted_retrieval_retries_only_the_unanswered_question(
     tmp_path, checkout, monkeypatch, orphan_error
 ):
@@ -1271,6 +1291,16 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(
         )
         monkeypatch.setenv("CONTEXTBASE_BENCH_KEY", "TEST_ONLY_SECRET")
         await a.service_stage(directory, manifest, "ingest")
+        if orphan_error == "HTTPFailure":
+            a.seal(
+                directory / "retrievals/conv-30_q0.json",
+                a.RetrievalRecord(
+                    fingerprint=manifest.fingerprint,
+                    question_id="conv-30_q0",
+                    bank_id=manifest.conversations[0].bank_id,
+                ),
+            )
+            record_pending_restart(directory, manifest, "conv-30_q0")
         a.seal(
             directory / "retrievals/conv-30_q0.json",
             a.RetrievalRecord(
@@ -1303,6 +1333,10 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(
         cfg_path.write_text(json.dumps(cfg))
         recovered_dir = tmp_path / "recall-recovery"
         recovered = a.init_run(cfg_path, recovered_dir, "unit_recall_recovery")
+        if orphan_error == "HTTPFailure":
+            proof = "performance/reranker2-switch-test/journal.json"
+            assert (recovered_dir / "checkpoint-source" / proof).read_bytes() == (directory / proof).read_bytes()
+            assert not (recovered_dir / proof).exists()  # No recursive use of the same restart proof.
         assert not (recovered_dir / "calls/conv-30_q0-judge.json").exists()
         await a.service_stage(recovered_dir, recovered, "verify")
         factory = Factory(recovered, structured=True)
@@ -1312,6 +1346,38 @@ async def test_interrupted_retrieval_retries_only_the_unanswered_question(
         assert summary.model_usage["answer"].total_tokens == (20 if orphan_error else 10)
         assert summary.model_usage["judge"].total_tokens == (20 if orphan_error else 10)
         assert before == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+
+
+@pytest.mark.parametrize("invalid", ["no-proof", "foreign-manifest", "wrong-preimage", "semantic-call", "unfinished"])
+def test_http_failure_needs_exact_recorded_restart_and_no_semantic_call(tmp_path, checkout, invalid):
+    directory, manifest = prepared(tmp_path, checkout)
+    qid = "conv-30_q0"
+    record = a.RetrievalRecord(
+        fingerprint=manifest.fingerprint, question_id=qid, bank_id=manifest.conversations[0].bank_id
+    )
+    a.seal(directory / "retrievals" / f"{qid}.json", record)
+    proof_path = record_pending_restart(directory, manifest, qid)
+    record.error = "HTTPFailure"
+    a.seal(directory / "retrievals" / f"{qid}.json", record)
+    proof = json.loads(proof_path.read_text())
+    if invalid == "no-proof":
+        proof_path.unlink()
+        assert not a.recorded_restart_recovery(directory, manifest).question_ids
+        return
+    if invalid == "foreign-manifest":
+        proof["initial_manifest_sha256"] = "0" * 64
+    elif invalid == "wrong-preimage":
+        proof["sealed_file_hashes"][f"retrievals/{qid}.json"] = "0" * 64
+    elif invalid == "semantic-call":
+        (directory / "calls").mkdir(exist_ok=True)
+        (directory / "calls" / f"{qid}-answer.json").write_text("Already generated; cannot recover this way.")
+    elif invalid == "unfinished":
+        del proof["events"]["resumed_at"]
+    proof_path.write_text(json.dumps(proof))
+    before = {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
+    with pytest.raises(ValueError):
+        a.recorded_restart_recovery(directory, manifest)
+    assert before == {str(p): h.file_sha(p) for p in directory.rglob("*.json")}
 
 
 def test_query_windows_find_late_raw_turn_within_fixed_budget(tmp_path, checkout):
