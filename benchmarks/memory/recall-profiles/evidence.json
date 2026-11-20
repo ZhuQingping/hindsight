@@ -1003,5 +1003,42 @@
     "hindsight-api-slim/hindsight_api/api/http.py": "c6a813f81672f3288999f0654eeefd2986eb0dd847f184af28df81f9551421c5",
     "hindsight-api-slim/hindsight_api/engine/memory_engine.py": "53f0f74cc116369e8fde2bf740cb5e5ef9c1d0ccaf2f84eb42d8df12ac3cee5e",
     "hindsight-docs/static/openapi.json": "1090d28cf47bb6b3ac5cc8eeff097bd49a0dafeece07c019fd016167cb874fb1"
+  },
+  "delivery_rebase": {
+    "target_remote": "zhuqingping",
+    "target_branch": "memory-benchmark",
+    "target_base_commit": "0951c3664",
+    "feature_commits_after_rebase": [
+      "fd948f699",
+      "ae869b490"
+    ],
+    "excluded_unpublished_pg_pushdown_commit": "05d2894c5",
+    "functional_tests": {
+      "passed": 113,
+      "skipped": 1
+    },
+    "python_sdk_tests_passed": 4,
+    "live_native_check": {
+      "latest_native_default_status": 200,
+      "latest_native_locomo_status": 200,
+      "latest_packing_equal": true,
+      "default_has_profile_field": false,
+      "beam_status": 422,
+      "beam_error_schema_valid": true,
+      "context_sha256": "9db617b9fdd356d00f0583440b06a038b0e15e09107f7d70d69d6561ae36cf7a",
+      "source_hashes": {
+        "hindsight-api-slim/hindsight_api/api/http.py": "c6a813f81672f3288999f0654eeefd2986eb0dd847f184af28df81f9551421c5",
+        "hindsight-api-slim/hindsight_api/engine/memory_engine.py": "b5c7d58171f623cba7b00d83053ca6bcf19b461c9b1d5770a20ac987aca8d077",
+        "hindsight-api-slim/hindsight_api/engine/recall_profiles/locomo.py": "e6e5f3f30c38ba958785e1665ae0d51a7749b40d50499ca2c234ba0cdcbf4213"
+      }
+    },
+    "full81_qa_rerun": false,
+    "full1540_replay_rerun": false,
+    "note": "Historical full validation retains its actual pre-rebase source fingerprints. Rebase delivery was rechecked with function tests, SDK tests and native PG/HTTP smoke.",
+    "log_sha256": {
+      "recall-profile-rebase-tests.log": "ece56309f4d0afc6c60f9f21180486ca3164a1ed92e81ace264bf7d82e932337",
+      "recall-profile-rebase-sdk-tests.log": "470fe3d3a7e196944e78928d795fe86915195d51ff5823c2f9929a4d7bb5b634",
+      "recall-profile-rebase-native-check.log": "58b237c2affb65f3a2637ef31dadd6b0d8741cebd4a27d6cbc4d6248ead55faa"
+    }
   }
 }
