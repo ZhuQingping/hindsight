@@ -89,6 +89,12 @@ class PostgresRecallPushdownMemories(CanonicalPostgresMemories):
     def legacy_queries(self, request: FullRecallRequest) -> LegacyQueries | None:
         return None
 
+    def supports_query_terms(self, request: FullRecallRequest) -> bool:
+        config = get_config()
+        return (
+            config.bm25_max_query_terms <= 0 or len(tokenize_query(request.query_text)) <= config.bm25_max_query_terms
+        )
+
     def supports(self, request: FullRecallRequest) -> bool:
         config = get_config()
         return (
@@ -121,22 +127,14 @@ class PostgresRecallPushdownMemories(CanonicalPostgresMemories):
             and config.text_search_extension_native_language == "english"
             and config.bm25_min_score == 0
             and config.graph_retriever == "link_expansion"
-            and (
-                config.bm25_max_query_terms <= 0
-                or len(tokenize_query(request.query_text)) <= config.bm25_max_query_terms
-            )
+            and self.supports_query_terms(request)
         )
 
-    async def full_recall(self, request: FullRecallRequest) -> RecallResult | None:
-        if not self.supports(request):
-            return None
-        assert request.runtime is not None
-        from ...memory_engine import get_current_schema
-
+    def candidate_query(self, request: FullRecallRequest) -> CandidateQuery:
         config = get_config()
         window = request.temporal_window
         templates = self.legacy_queries(request)
-        query = CandidateQuery(
+        return CandidateQuery(
             bank_id=request.bank_id,
             fact_types=request.fact_types,
             embedding=request.query_embedding,
@@ -153,6 +151,14 @@ class PostgresRecallPushdownMemories(CanonicalPostgresMemories):
             graph_sql=templates.graph_sql if templates else None,
             temporal_sql=templates.temporal_sql if templates else None,
         )
+
+    async def full_recall(self, request: FullRecallRequest) -> RecallResult | None:
+        if not self.supports(request):
+            return None
+        assert request.runtime is not None
+        from ...memory_engine import get_current_schema
+
+        query = self.candidate_query(request)
         # Returning the connection before model inference avoids holding a PG query
         # snapshot or pool slot across seconds of CPU inference. No post-query loader
         # is installed: the shared finalizer consumes only this complete bundle.

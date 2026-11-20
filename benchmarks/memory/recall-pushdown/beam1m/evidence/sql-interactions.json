@@ -1,0 +1,246 @@
+{
+  "scope": "Correctness capture, separate from timing samples. Cold driver type discovery and Bank/config reads shown separately. Full native authentication can add more fixed SQL.",
+  "off": [
+    {
+      "question_id": "1_abstention_0",
+      "temporal": false,
+      "counts": {
+        "bank_config": 2,
+        "term_selection": 1,
+        "driver_metadata": 9,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_abstention_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "driver_metadata": 3,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_contradiction_resolution_1",
+      "temporal": true,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "temporal": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 7
+    },
+    {
+      "question_id": "1_event_ordering_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_event_ordering_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_information_extraction_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_information_extraction_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_instruction_following_0",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_instruction_following_1",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_knowledge_update_0",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_knowledge_update_1",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_multi_session_reasoning_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_multi_session_reasoning_1",
+      "temporal": false,
+      "counts": {
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 5
+    },
+    {
+      "question_id": "1_preference_following_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_summarization_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_summarization_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_temporal_reasoning_0",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    },
+    {
+      "question_id": "1_temporal_reasoning_1",
+      "temporal": false,
+      "counts": {
+        "term_selection": 1,
+        "native_vector_and_fts": 1,
+        "graph_expansion": 2,
+        "chunks": 1,
+        "attachment_metadata": 1
+      },
+      "business_calls_excluding_driver_and_bank": 6
+    }
+  ],
+  "on_candidate_calls_per_request": 1,
+  "no_pg_read_after_model": true,
+  "entry": "SELECT recall_beam_arrays.candidates($1::jsonb, $2::name) AS bundle"
+}

@@ -1,0 +1,38 @@
+{
+  "unit_selected": {
+    "passed": 33,
+    "log": "final-selected-tests.log"
+  },
+  "pg_temporal_contract": {
+    "passed": 2,
+    "log": "temporal-contract-private-db.log"
+  },
+  "ruff_targeted": "passed",
+  "ruff_format_targeted": "7 files already formatted",
+  "ty_targeted": "passed, Python3.11 venv, cwd hindsight-api-slim",
+  "required_repository_lint": {
+    "status": "failed_on_existing_baseline",
+    "file": "hindsight-api-slim/hindsight_api/api/http.py",
+    "line": 5846,
+    "rule": "F841",
+    "existing_in_commit": "05d2894c5",
+    "unrelated_file_not_changed": true
+  },
+  "runtime": {
+    "checked_at": 1795119587.9503229,
+    "memory_hashes_after_normal_service_restore_equal": true,
+    "pg_duration_audit_disabled": true,
+    "normal_services_health": {
+      "off": 200,
+      "on": 200
+    },
+    "test_hook_removed": true,
+    "locomo_original_pids_alive": [
+      11018,
+      14870,
+      14778
+    ],
+    "protected_baseline_clean": true,
+    "own_caffeinate_stopped": true
+  }
+}

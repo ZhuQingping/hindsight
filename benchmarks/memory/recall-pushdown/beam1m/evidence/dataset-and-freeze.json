@@ -1,0 +1,134 @@
+{
+  "selection": {
+    "dataset": "Mohammadta/BEAM",
+    "revision": "3205395e897e7318c7b094ef4e6047b9b82dbb03",
+    "download_host": "hf-mirror.com",
+    "split": "1M",
+    "split_rows": 35,
+    "selection": "First physical row of fixed split; selected before reading answers or evaluating retrieval",
+    "conversation_id": "1",
+    "bank_id": "beam1m_1_20261120",
+    "documents": 50,
+    "questions": 20,
+    "content_characters": 4283514,
+    "formatted_chat_cl100k_tokens": 985363,
+    "document_cl100k_tokens": 985337,
+    "documents_sha256": "9412c01dddda86d5070293388572b1037dfd78c8f96c644706bcac59949943de",
+    "questions_sha256": "f9d1c48e424cf0032621653848ef4869d956cb1aecd7e20368e9945d911eadd5",
+    "amb_commit": "28b644bd4dd653c0207c7507280439390c829155",
+    "question_fields": [
+      "id",
+      "query",
+      "gold_ids",
+      "gold_answers",
+      "user_id",
+      "meta"
+    ]
+  },
+  "freeze": {
+    "status": "frozen",
+    "frozen_at": 1795110222.562006,
+    "pg_port": 55440,
+    "api_stopped_pid": 74905,
+    "worker_stopped": true,
+    "complete_documents": 50,
+    "document_content_exact": true,
+    "questions": 20,
+    "operations_completed": 51,
+    "extraction_errors_count": 0,
+    "fact_types": {
+      "experience": 1011,
+      "world": 1513
+    },
+    "memory_table_hashes": {
+      "documents": {
+        "rows": 50,
+        "sha256": "c9ab6e229e6d351816b1508e1542ad902cac77a96da975a2ec77d4adee883f62"
+      },
+      "chunks": {
+        "rows": 1509,
+        "sha256": "1f0d88a2f47d39539150bd9ac45e46267285bbc42c794738f4b270d69d5e4b3f"
+      },
+      "memory_units": {
+        "rows": 2524,
+        "sha256": "dcb2fbed07b1e70d72dadb3028eb9c581ec4ff5968a4b8cc56159db67432c5e3"
+      },
+      "entities": {
+        "rows": 1263,
+        "sha256": "e85df7f32fb500ac73a6f47ebe2f3763f1d523e6550ddece9b96ed76fdff1024"
+      },
+      "unit_entities": {
+        "rows": 9716,
+        "sha256": "aa09af261da320a12837941affd5850f4434b37aa8d7958aa7c2bafd15fe5d89"
+      },
+      "memory_links": {
+        "rows": 62031,
+        "sha256": "607ba41111684949dbd9ac9c99837ca15e20972be937febc26e854117b9c02b6"
+      },
+      "entity_cooccurrences": {
+        "rows": 6904,
+        "sha256": "1625f3022b064d9afa72ed6c371828dd9cfb2b31b0c5aa8d3e6a22028fb0eca6"
+      }
+    },
+    "dump_sha256": "0a601336a235145a0b78aa6651cae49a6961560fefd6091fa72b43070013c03a",
+    "dump_bytes": 13676609,
+    "postgresql_version": "PostgreSQL 18.4 on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit",
+    "pgvector_version": "0.8.6",
+    "baseline_commit": "05d2894c5",
+    "retention_note": "GLM5.3 fixed model. Early completed operations used default effort; remaining resumed operations used supported low effort. See retain-effort-transition.json. One frozen dataset is shared by every A/B group."
+  },
+  "integrity": {
+    "passed": true,
+    "checked_at": 1795119172.697827,
+    "complete_native_http_samples": 120,
+    "memory_immutable": true,
+    "timezone_for_table_hashes": "Asia/Shanghai",
+    "memory_table_hashes": {
+      "documents": {
+        "rows": 50,
+        "sha256": "c9ab6e229e6d351816b1508e1542ad902cac77a96da975a2ec77d4adee883f62"
+      },
+      "chunks": {
+        "rows": 1509,
+        "sha256": "1f0d88a2f47d39539150bd9ac45e46267285bbc42c794738f4b270d69d5e4b3f"
+      },
+      "memory_units": {
+        "rows": 2524,
+        "sha256": "dcb2fbed07b1e70d72dadb3028eb9c581ec4ff5968a4b8cc56159db67432c5e3"
+      },
+      "entities": {
+        "rows": 1263,
+        "sha256": "e85df7f32fb500ac73a6f47ebe2f3763f1d523e6550ddece9b96ed76fdff1024"
+      },
+      "unit_entities": {
+        "rows": 9716,
+        "sha256": "aa09af261da320a12837941affd5850f4434b37aa8d7958aa7c2bafd15fe5d89"
+      },
+      "memory_links": {
+        "rows": 62031,
+        "sha256": "607ba41111684949dbd9ac9c99837ca15e20972be937febc26e854117b9c02b6"
+      },
+      "entity_cooccurrences": {
+        "rows": 6904,
+        "sha256": "1625f3022b064d9afa72ed6c371828dd9cfb2b31b0c5aa8d3e6a22028fb0eca6"
+      }
+    },
+    "historical_109_fact_questions_exact": 81,
+    "direct_pg_input_same_as_original_http": true,
+    "selected_source_hashes_unchanged": true,
+    "first_version_worktree_clean": true,
+    "link_types": {
+      "caused_by": 285,
+      "semantic": 16112,
+      "temporal": 45634
+    },
+    "dependencies": {
+      "asyncpg": "0.30.0",
+      "pydantic": "2.12.5",
+      "torch": "2.13.0",
+      "sentence-transformers": "5.7.0",
+      "transformers": "5.12.1",
+      "tiktoken": "0.12.0"
+    }
+  }
+}

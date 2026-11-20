@@ -1,0 +1,1510 @@
+{
+  "cover_index": {
+    "scope": "Physical clone of complete frozen independent PG; no source memory/index changed",
+    "port": 55820,
+    "index": "(from_unit_id, link_type, weight DESC) INCLUDE (to_unit_id, bank_id, entity_id)",
+    "purpose": "Test a covering adjacency index before adopting it. Exact candidate package equality is mandatory.",
+    "status": "equivalent_measured",
+    "mismatches": [],
+    "summary": {
+      "before": {
+        "n": 80,
+        "mean_ms": 35.13208592921728,
+        "p50_ms": 36.082666483707726,
+        "p95_ms": 46.576542081311345
+      },
+      "covering_index": {
+        "n": 80,
+        "mean_ms": 35.4005843604682,
+        "p50_ms": 36.8251460022293,
+        "p95_ms": 48.428624984808266
+      },
+      "restored_without_index": {
+        "n": 80,
+        "mean_ms": 35.387620369147044,
+        "p50_ms": 36.5486245136708,
+        "p95_ms": 46.7496250057593
+      }
+    },
+    "rows": [
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 0,
+        "ms": 32.35108405351639
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_1",
+        "repeat": 0,
+        "ms": 25.47370793763548
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 0,
+        "ms": 33.605750068090856
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_0",
+        "repeat": 0,
+        "ms": 38.21149992290884
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_0",
+        "repeat": 0,
+        "ms": 37.207874935120344
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 0,
+        "ms": 39.50629197061062
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_1",
+        "repeat": 0,
+        "ms": 51.974917063489556
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 0,
+        "ms": 34.98787502758205
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_0",
+        "repeat": 0,
+        "ms": 28.79208291415125
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_0",
+        "repeat": 0,
+        "ms": 38.277957937680185
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 0,
+        "ms": 35.33145796973258
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 0,
+        "ms": 38.985708029940724
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_1",
+        "repeat": 0,
+        "ms": 46.41212499700487
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_0",
+        "repeat": 0,
+        "ms": 18.80645810160786
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_0",
+        "repeat": 0,
+        "ms": 33.26233406551182
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 0,
+        "ms": 41.337333037517965
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_1",
+        "repeat": 0,
+        "ms": 37.359499954618514
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_1",
+        "repeat": 0,
+        "ms": 40.611290954984725
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_1",
+        "repeat": 0,
+        "ms": 27.044332935474813
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 0,
+        "ms": 21.91595791373402
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_0",
+        "repeat": 1,
+        "ms": 37.81787503976375
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 1,
+        "ms": 41.40437499154359
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_0",
+        "repeat": 1,
+        "ms": 38.49412500858307
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_0",
+        "repeat": 1,
+        "ms": 33.331750077195466
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 1,
+        "ms": 35.34270904492587
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 1,
+        "ms": 39.277833071537316
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_1",
+        "repeat": 1,
+        "ms": 40.52650008816272
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 1,
+        "ms": 32.06812508869916
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 1,
+        "ms": 21.969750057905912
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_0",
+        "repeat": 1,
+        "ms": 36.75945906434208
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_1",
+        "repeat": 1,
+        "ms": 37.67283307388425
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_0",
+        "repeat": 1,
+        "ms": 18.653332954272628
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_1",
+        "repeat": 1,
+        "ms": 26.688375044614077
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_0",
+        "repeat": 1,
+        "ms": 29.038167092949152
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 1,
+        "ms": 35.15550005249679
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_1",
+        "repeat": 1,
+        "ms": 46.32670804858208
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_1",
+        "repeat": 1,
+        "ms": 52.32483404688537
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 1,
+        "ms": 33.69404189288616
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_1",
+        "repeat": 1,
+        "ms": 25.41533298790455
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 1,
+        "ms": 38.946083979681134
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 2,
+        "ms": 34.97820789925754
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_1",
+        "repeat": 2,
+        "ms": 40.853458107449114
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_0",
+        "repeat": 2,
+        "ms": 28.947374899871647
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 2,
+        "ms": 33.62054203171283
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_1",
+        "repeat": 2,
+        "ms": 26.83579095173627
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_0",
+        "repeat": 2,
+        "ms": 38.32404199056327
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_1",
+        "repeat": 2,
+        "ms": 25.39466693997383
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 2,
+        "ms": 34.99141591601074
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 2,
+        "ms": 41.13291704561561
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_1",
+        "repeat": 2,
+        "ms": 37.468416965566576
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 2,
+        "ms": 39.4854589831084
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_1",
+        "repeat": 2,
+        "ms": 52.472083014436066
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 2,
+        "ms": 21.96824993006885
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_0",
+        "repeat": 2,
+        "ms": 33.06637506466359
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_0",
+        "repeat": 2,
+        "ms": 36.704541998915374
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_1",
+        "repeat": 2,
+        "ms": 46.528957900591195
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_0",
+        "repeat": 2,
+        "ms": 38.2744170492515
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_0",
+        "repeat": 2,
+        "ms": 18.61908403225243
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 2,
+        "ms": 38.797250017523766
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 2,
+        "ms": 32.083458034321666
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_0",
+        "repeat": 3,
+        "ms": 28.82675000000745
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_1",
+        "repeat": 3,
+        "ms": 26.673792046494782
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_0",
+        "repeat": 3,
+        "ms": 38.4328329237178
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 3,
+        "ms": 33.788208034820855
+      },
+      {
+        "stage": "before",
+        "question_id": "1_information_extraction_1",
+        "repeat": 3,
+        "ms": 25.126665947027504
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_1",
+        "repeat": 3,
+        "ms": 39.275833987630904
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 3,
+        "ms": 40.31891596969217
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_0",
+        "repeat": 3,
+        "ms": 38.34420908242464
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 3,
+        "ms": 22.008416010066867
+      },
+      {
+        "stage": "before",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 3,
+        "ms": 32.33366704080254
+      },
+      {
+        "stage": "before",
+        "question_id": "1_summarization_1",
+        "repeat": 3,
+        "ms": 41.32262500934303
+      },
+      {
+        "stage": "before",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 3,
+        "ms": 41.40683310106397
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 3,
+        "ms": 35.31104093417525
+      },
+      {
+        "stage": "before",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 3,
+        "ms": 40.97570793237537
+      },
+      {
+        "stage": "before",
+        "question_id": "1_event_ordering_0",
+        "repeat": 3,
+        "ms": 33.571874955669045
+      },
+      {
+        "stage": "before",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 3,
+        "ms": 35.46079096850008
+      },
+      {
+        "stage": "before",
+        "question_id": "1_instruction_following_0",
+        "repeat": 3,
+        "ms": 36.94070898927748
+      },
+      {
+        "stage": "before",
+        "question_id": "1_preference_following_1",
+        "repeat": 3,
+        "ms": 52.34250007197261
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_1",
+        "repeat": 3,
+        "ms": 46.576542081311345
+      },
+      {
+        "stage": "before",
+        "question_id": "1_abstention_0",
+        "repeat": 3,
+        "ms": 18.618999980390072
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_1",
+        "repeat": 0,
+        "ms": 40.77745811082423
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 0,
+        "ms": 33.688333933241665
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 0,
+        "ms": 37.85041696392
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_0",
+        "repeat": 0,
+        "ms": 18.598041962832212
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 0,
+        "ms": 39.21487496700138
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 0,
+        "ms": 41.45570797845721
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 0,
+        "ms": 35.2725419215858
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 0,
+        "ms": 52.468542009592056
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 0,
+        "ms": 25.41816688608378
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 0,
+        "ms": 28.88566709589213
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 0,
+        "ms": 26.52504201978445
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 0,
+        "ms": 32.189249992370605
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_0",
+        "repeat": 0,
+        "ms": 38.73100003693253
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 0,
+        "ms": 37.49991592485458
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 0,
+        "ms": 33.82416605018079
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 0,
+        "ms": 39.66324997600168
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_1",
+        "repeat": 0,
+        "ms": 46.32479196880013
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 0,
+        "ms": 38.18249993491918
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 0,
+        "ms": 35.22141696885228
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 0,
+        "ms": 22.100041969679296
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 1,
+        "ms": 39.11412495654076
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 1,
+        "ms": 27.202000026591122
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 1,
+        "ms": 32.085291924886405
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 1,
+        "ms": 35.226708045229316
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 1,
+        "ms": 41.49316705297679
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 1,
+        "ms": 38.86479197535664
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_1",
+        "repeat": 1,
+        "ms": 46.467875014059246
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_1",
+        "repeat": 1,
+        "ms": 40.94345809426159
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 1,
+        "ms": 33.49420800805092
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_0",
+        "repeat": 1,
+        "ms": 40.42133304756135
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 1,
+        "ms": 29.090291005559266
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 1,
+        "ms": 22.45112496893853
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 1,
+        "ms": 35.30966700054705
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_0",
+        "repeat": 1,
+        "ms": 18.78354197833687
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 1,
+        "ms": 25.630791089497507
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 1,
+        "ms": 37.353500025346875
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 1,
+        "ms": 39.465417037718
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 1,
+        "ms": 37.625125027261674
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 1,
+        "ms": 34.362916951067746
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 1,
+        "ms": 52.69416607916355
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 2,
+        "ms": 25.73762508109212
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 2,
+        "ms": 22.126832976937294
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 2,
+        "ms": 32.24933298770338
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 2,
+        "ms": 38.90074999071658
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_1",
+        "repeat": 2,
+        "ms": 40.994832990691066
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 2,
+        "ms": 52.20466700848192
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 2,
+        "ms": 35.64983303658664
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 2,
+        "ms": 35.048749996349216
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 2,
+        "ms": 29.194000060670078
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 2,
+        "ms": 37.47062501497567
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 2,
+        "ms": 41.81249998509884
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 2,
+        "ms": 33.73212495353073
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 2,
+        "ms": 37.117875064723194
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 2,
+        "ms": 38.49629091564566
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 2,
+        "ms": 40.02837499137968
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 2,
+        "ms": 33.971832948736846
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_0",
+        "repeat": 2,
+        "ms": 38.79924991633743
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_1",
+        "repeat": 2,
+        "ms": 46.57654196489602
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_0",
+        "repeat": 2,
+        "ms": 18.72966589871794
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 2,
+        "ms": 26.74000000115484
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 3,
+        "ms": 26.969708036631346
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 3,
+        "ms": 37.47533296700567
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 3,
+        "ms": 34.06829200685024
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 3,
+        "ms": 32.30449999682605
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 3,
+        "ms": 35.23758298251778
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 3,
+        "ms": 29.20862496830523
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 3,
+        "ms": 25.459875003434718
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 3,
+        "ms": 39.276208030059934
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_0",
+        "repeat": 3,
+        "ms": 19.140042015351355
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 3,
+        "ms": 35.27250001206994
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 3,
+        "ms": 38.647708017379045
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 3,
+        "ms": 37.69841697067022
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_0",
+        "repeat": 3,
+        "ms": 41.24366701580584
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 3,
+        "ms": 36.53241693973541
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_abstention_1",
+        "repeat": 3,
+        "ms": 48.428624984808266
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 3,
+        "ms": 53.10983408708125
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 3,
+        "ms": 22.488957969471812
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_summarization_1",
+        "repeat": 3,
+        "ms": 40.72112496942282
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 3,
+        "ms": 41.50266700889915
+      },
+      {
+        "stage": "covering_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 3,
+        "ms": 39.7083330899477
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_0",
+        "repeat": 0,
+        "ms": 38.823415990918875
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 0,
+        "ms": 40.17699998803437
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 0,
+        "ms": 37.08466701209545
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 0,
+        "ms": 35.47408303711563
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 0,
+        "ms": 33.91475009266287
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_0",
+        "repeat": 0,
+        "ms": 18.592167063616216
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 0,
+        "ms": 43.277124990709126
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 0,
+        "ms": 33.69754203595221
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_1",
+        "repeat": 0,
+        "ms": 41.242417064495385
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 0,
+        "ms": 37.98804199323058
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 0,
+        "ms": 33.80962507799268
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 0,
+        "ms": 35.210790927521884
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 0,
+        "ms": 39.1892499756068
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 0,
+        "ms": 25.50370804965496
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 0,
+        "ms": 29.43891705945134
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 0,
+        "ms": 22.09808398038149
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 0,
+        "ms": 37.88675006944686
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 0,
+        "ms": 27.012250036932528
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_1",
+        "repeat": 0,
+        "ms": 46.7496250057593
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 0,
+        "ms": 52.395291975699365
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_0",
+        "repeat": 1,
+        "ms": 38.84004196152091
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 1,
+        "ms": 38.11766696162522
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 1,
+        "ms": 37.27962507400662
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 1,
+        "ms": 32.33445901423693
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 1,
+        "ms": 35.15279106795788
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 1,
+        "ms": 39.115041960030794
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 1,
+        "ms": 37.30000008363277
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 1,
+        "ms": 27.049832977354527
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_1",
+        "repeat": 1,
+        "ms": 46.654833015054464
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 1,
+        "ms": 41.57333308830857
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 1,
+        "ms": 39.642332936637104
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 1,
+        "ms": 33.52645901031792
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 1,
+        "ms": 33.89270801562816
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 1,
+        "ms": 25.285292067565024
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 1,
+        "ms": 29.004542040638626
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_0",
+        "repeat": 1,
+        "ms": 19.556500017642975
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 1,
+        "ms": 36.10404103528708
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 1,
+        "ms": 22.59916707407683
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 1,
+        "ms": 53.13504196237773
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_1",
+        "repeat": 1,
+        "ms": 41.87237506266683
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 2,
+        "ms": 25.465541053563356
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 2,
+        "ms": 38.41550007928163
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 2,
+        "ms": 37.084707990288734
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 2,
+        "ms": 29.205790953710675
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 2,
+        "ms": 35.45320802368224
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_1",
+        "repeat": 2,
+        "ms": 46.65625002235174
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 2,
+        "ms": 27.038541971705854
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 2,
+        "ms": 41.11533297691494
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 2,
+        "ms": 34.10512499976903
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 2,
+        "ms": 39.42187502980232
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 2,
+        "ms": 41.52633296325803
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 2,
+        "ms": 37.829625071026385
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 2,
+        "ms": 33.80824998021126
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 2,
+        "ms": 35.31658404972404
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_1",
+        "repeat": 2,
+        "ms": 41.03995894547552
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_0",
+        "repeat": 2,
+        "ms": 18.784790998324752
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 2,
+        "ms": 31.926458002999425
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 2,
+        "ms": 52.31341696344316
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_0",
+        "repeat": 2,
+        "ms": 38.85024995543063
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 2,
+        "ms": 22.177375038154423
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_0",
+        "repeat": 3,
+        "ms": 28.94154202658683
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_1",
+        "repeat": 3,
+        "ms": 26.796666905283928
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_1",
+        "repeat": 3,
+        "ms": 37.59245900437236
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_1",
+        "repeat": 3,
+        "ms": 41.19141690898687
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_1",
+        "repeat": 3,
+        "ms": 39.927750010974705
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_1",
+        "repeat": 3,
+        "ms": 33.8809589156881
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_0",
+        "repeat": 3,
+        "ms": 38.549458025954664
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_0",
+        "repeat": 3,
+        "ms": 18.649459001608193
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_event_ordering_0",
+        "repeat": 3,
+        "ms": 33.684083027765155
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_1",
+        "repeat": 3,
+        "ms": 35.48091696575284
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_information_extraction_1",
+        "repeat": 3,
+        "ms": 25.43812501244247
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_0",
+        "repeat": 3,
+        "ms": 21.747541963122785
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_instruction_following_0",
+        "repeat": 3,
+        "ms": 36.99320799205452
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_knowledge_update_1",
+        "repeat": 3,
+        "ms": 39.41399999894202
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_contradiction_resolution_0",
+        "repeat": 3,
+        "ms": 41.44824994727969
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_temporal_reasoning_0",
+        "repeat": 3,
+        "ms": 35.46733397524804
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_preference_following_1",
+        "repeat": 3,
+        "ms": 52.436749916523695
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_multi_session_reasoning_0",
+        "repeat": 3,
+        "ms": 32.510916935279965
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_summarization_0",
+        "repeat": 3,
+        "ms": 38.9885000186041
+      },
+      {
+        "stage": "restored_without_index",
+        "question_id": "1_abstention_1",
+        "repeat": 3,
+        "ms": 46.73379205632955
+      }
+    ],
+    "probe_stopped": true
+  },
+  "index_used": {
+    "scope": "Index usage check on the stopped physical clone, after all timed runs; no primary index change",
+    "question_id": "1_abstention_0",
+    "candidate_package_equal": true,
+    "new_cover_index_used": true,
+    "clone_stopped": true
+  },
+  "plan_mode_probe": {
+    "scope": "Read-only original/off engine on physical clone, frozen query vectors and passthrough reranker; existing PG parameter diagnosis, not a new kernel feature. Primary PG/native measurements already completed and untouched.",
+    "jit_available": false,
+    "failures": [],
+    "summary": {
+      "force_generic_plan": {
+        "n": 200,
+        "mean_ms": 52.68461974046659,
+        "p50_ms": 51.043479004874825,
+        "p95_ms": 113.55854105204344
+      },
+      "force_custom_plan": {
+        "n": 200,
+        "mean_ms": 51.9213901902549,
+        "p50_ms": 47.969021019525826,
+        "p95_ms": 127.46004201471806
+      },
+      "auto": {
+        "n": 200,
+        "mean_ms": 50.73576727590989,
+        "p50_ms": 46.43779149046168,
+        "p95_ms": 126.51524995453656
+      }
+    }
+  },
+  "parallel_plan": {
+    "nodes": [],
+    "plans": 40,
+    "profile_only": true
+  }
+}

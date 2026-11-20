@@ -1,0 +1,265 @@
+{
+  "private_archive": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/.local/beam1m-recall-20261120/runtime/tools",
+  "files": {
+    "beam_pin_native_vectors.py": {
+      "executed_sha256": "9ec1daad9c1ee2383c77407187b42ae12bcf269da2fd6152bf1a76526c8186e4",
+      "archived_replay_sha256": "0d7912dd53723b93f230084cd008f0d8833ba267137904ff22840ec2df92e6b3"
+    },
+    "beam_prepare_parallel.py": {
+      "executed_sha256": "cd6f3e0281895025ebe9dc0367c5019693066fa853a654bb9f8c93e35cd7d9b0",
+      "archived_replay_sha256": "cd6f3e0281895025ebe9dc0367c5019693066fa853a654bb9f8c93e35cd7d9b0"
+    },
+    "beam_generate_vectors.py": {
+      "executed_sha256": "52c5b20dcd16a28aa26afb8ff23fb8eadbcc41aeba4be25907f7b46bc8def578",
+      "archived_replay_sha256": "52c5b20dcd16a28aa26afb8ff23fb8eadbcc41aeba4be25907f7b46bc8def578"
+    },
+    "beam_model_probe.py": {
+      "executed_sha256": "734271f9625a83f835a77e83c221a580f468f38000a315a328105ec6a29a4557",
+      "archived_replay_sha256": "734271f9625a83f835a77e83c221a580f468f38000a315a328105ec6a29a4557"
+    },
+    "beam_post_index_plan.py": {
+      "executed_sha256": "13f35cc3634153f1b77111c4b25c037b1c67ff0ecc33a76aba55b93d23969032",
+      "archived_replay_sha256": "13f35cc3634153f1b77111c4b25c037b1c67ff0ecc33a76aba55b93d23969032"
+    },
+    "beam_profile_development.py": {
+      "executed_sha256": "e86d293334fb72b0110cba331cb3cce12138406451d86ab4b8849db491077b75",
+      "archived_replay_sha256": "e86d293334fb72b0110cba331cb3cce12138406451d86ab4b8849db491077b75"
+    },
+    "beam_profile_final_variants.py": {
+      "executed_sha256": "653270b084371fa0efde08e9f205b2fc178fa8b4ff043f447528db3c05dfcb3a",
+      "archived_replay_sha256": "653270b084371fa0efde08e9f205b2fc178fa8b4ff043f447528db3c05dfcb3a"
+    },
+    "beam_term_selector_validation.py": {
+      "executed_sha256": "ebad8afebc1903d20e42ee36e7fcc16a564c21c59015a3bdba377c5024809f17",
+      "archived_replay_sha256": "ebad8afebc1903d20e42ee36e7fcc16a564c21c59015a3bdba377c5024809f17"
+    },
+    "beam_native_services.py": {
+      "executed_sha256": "3e1e6116899c50140ffc0d2776ccf025314a65ec9bae1947f901b2c071292873",
+      "archived_replay_sha256": "3e1e6116899c50140ffc0d2776ccf025314a65ec9bae1947f901b2c071292873"
+    },
+    "beam_sql_timeline_probe.py": {
+      "executed_sha256": "6f6fd6544255f4f591747ce4c57a9c94928d4e032365c758640902bad8da06aa",
+      "archived_replay_sha256": "6f6fd6544255f4f591747ce4c57a9c94928d4e032365c758640902bad8da06aa"
+    },
+    "beam_render_runtime.py": {
+      "executed_sha256": "31769a9871503fb4c8c693fbc1a839bdfc76222a1aa6ede3c6bf081487550029",
+      "archived_replay_sha256": "31769a9871503fb4c8c693fbc1a839bdfc76222a1aa6ede3c6bf081487550029"
+    },
+    "beam_run_verify.py": {
+      "executed_sha256": "a2e2fefc6e0e20be8637533f690b29da5aed27850c160a514d79e4c86ec4c50e",
+      "archived_replay_sha256": "a2e2fefc6e0e20be8637533f690b29da5aed27850c160a514d79e4c86ec4c50e"
+    },
+    "beam_parallel_validate.py": {
+      "executed_sha256": "4ce3d70f4fe2fe0ac34d1b6e28d6e37ea47019eebabb653962e229a21eb6df2c",
+      "archived_replay_sha256": "4ce3d70f4fe2fe0ac34d1b6e28d6e37ea47019eebabb653962e229a21eb6df2c"
+    },
+    "beam_final_integrity.py": {
+      "executed_sha256": "47d516291d2ba85eca2c24cbd76aa9fc289d5b2c6783c9fba84a6efb72ac4622",
+      "archived_replay_sha256": "47d516291d2ba85eca2c24cbd76aa9fc289d5b2c6783c9fba84a6efb72ac4622"
+    },
+    "beam_candidate_trials.py": {
+      "executed_sha256": "13119776100ba79fbe5af3132587eaff6c05a54179a67594dbecc564d02fb06a",
+      "archived_replay_sha256": "13119776100ba79fbe5af3132587eaff6c05a54179a67594dbecc564d02fb06a"
+    },
+    "beam_init_pg.py": {
+      "executed_sha256": "a3d516aeaf17a5a283439d1ae5c4ae89b4104f9c78f7b38833dcf7ad31044575",
+      "archived_replay_sha256": "a3d516aeaf17a5a283439d1ae5c4ae89b4104f9c78f7b38833dcf7ad31044575"
+    },
+    "beam_init_pg_resume.py": {
+      "executed_sha256": "cac3e2a2e6ed33e316b89fc0cafea4da8368bb50a2e58b22db291011660e3baf",
+      "archived_replay_sha256": "cac3e2a2e6ed33e316b89fc0cafea4da8368bb50a2e58b22db291011660e3baf"
+    },
+    "beam_regression_setup.py": {
+      "executed_sha256": "c00783dedf308437b58ecde18be178b73d0b9e1d3b3d833f8ea0f57450b61822",
+      "archived_replay_sha256": "198a74b7b3f9e2004999c8d5276bd808ba3810907215601bc401b2cb6c39fcb8"
+    },
+    "beam_repeat_embedding.py": {
+      "executed_sha256": "a276dc3d90235863b9f8f6446c6bc0a4ad9393f7d61a185e42516b052dc75cea",
+      "archived_replay_sha256": "a276dc3d90235863b9f8f6446c6bc0a4ad9393f7d61a185e42516b052dc75cea"
+    },
+    "beam_install_functions.py": {
+      "executed_sha256": "269dc4203d1509de1612caca90cf2cbc09cc206a04600212933af88310ab4c16",
+      "archived_replay_sha256": "269dc4203d1509de1612caca90cf2cbc09cc206a04600212933af88310ab4c16"
+    },
+    "beam_dataset_fetch_mirror.py": {
+      "executed_sha256": "2cd55b0238eb5e345156ecf021ca9a6f46f712751c4ebba82faf0dbadeb18190",
+      "archived_replay_sha256": "2cd55b0238eb5e345156ecf021ca9a6f46f712751c4ebba82faf0dbadeb18190"
+    },
+    "beam_regression_variants.py": {
+      "executed_sha256": "780dd56fd80f6a226e6b93e2b33dfc682adac4b3741e8d1a9b42b4956f9d3a50",
+      "archived_replay_sha256": "780dd56fd80f6a226e6b93e2b33dfc682adac4b3741e8d1a9b42b4956f9d3a50"
+    },
+    "beam_setup_inputs.py": {
+      "executed_sha256": "973cdd92ed01f38410a0bd9cf17b35196d78518e756961c8930950ba3e635a17",
+      "archived_replay_sha256": "973cdd92ed01f38410a0bd9cf17b35196d78518e756961c8930950ba3e635a17"
+    },
+    "beam_update_findings.py": {
+      "executed_sha256": "2676d90df9fa06c216d89424ce1e04a2d36a6db1608826a583a25ea6899effcc",
+      "archived_replay_sha256": "af21889225d8db369b5c402cdd491500e0a9532ce272a6db93c7d1f2e37791c9"
+    },
+    "beam_install_parallel.py": {
+      "executed_sha256": "a48500c50dcad9d329659fd4e49ac85a9c2fcaee3a063830a76d1ebf2ce2b6f1",
+      "archived_replay_sha256": "a48500c50dcad9d329659fd4e49ac85a9c2fcaee3a063830a76d1ebf2ce2b6f1"
+    },
+    "beam_setup_reader.py": {
+      "executed_sha256": "def75ee9826a173a0b2d08c1604b575844ed63c5d53e3fb3af28d18404ab944d",
+      "archived_replay_sha256": "def75ee9826a173a0b2d08c1604b575844ed63c5d53e3fb3af28d18404ab944d"
+    },
+    "beam_set_low_effort.py": {
+      "executed_sha256": "afbd892a5f8c93960117e53b06133f5e34e347a84eaec88cba358584f7ad8ea7",
+      "archived_replay_sha256": "afbd892a5f8c93960117e53b06133f5e34e347a84eaec88cba358584f7ad8ea7"
+    },
+    "beam_prepare_dataset.py": {
+      "executed_sha256": "f9b48654925a2ffa4bf583a2b28c84a89930929349980fe76a88237e62de842a",
+      "archived_replay_sha256": "f9b48654925a2ffa4bf583a2b28c84a89930929349980fe76a88237e62de842a"
+    },
+    "beam_index_probe.py": {
+      "executed_sha256": "3d896b0be6ce73473b998bb5f933ed68792bcff77700d023180deb9ad564aae0",
+      "archived_replay_sha256": "3d896b0be6ce73473b998bb5f933ed68792bcff77700d023180deb9ad564aae0"
+    },
+    "beam_native_trials.py": {
+      "executed_sha256": "55ebd0c8f6192dba36b093ba6be99dd33b549070c95207312d0ec6ecb1e192b8",
+      "archived_replay_sha256": "55ebd0c8f6192dba36b093ba6be99dd33b549070c95207312d0ec6ecb1e192b8"
+    },
+    "beam_check_final_arms.py": {
+      "executed_sha256": "19c8ed861c8e42d50d7c7acfbae3b89f275a94e92d504a9007ea401506a4d746",
+      "archived_replay_sha256": "19c8ed861c8e42d50d7c7acfbae3b89f275a94e92d504a9007ea401506a4d746"
+    },
+    "beam_prepare_verification.py": {
+      "executed_sha256": "99f001fdd66dc6addc926229d226f59b99616ca3b6c9df70f34ea00f286c8933",
+      "archived_replay_sha256": "99f001fdd66dc6addc926229d226f59b99616ca3b6c9df70f34ea00f286c8933"
+    },
+    "beam_install_compatible.py": {
+      "executed_sha256": "dc8846bff664b904128c26754c4f0098a88d3f615ded64b037f193a6cb292c23",
+      "archived_replay_sha256": "dc8846bff664b904128c26754c4f0098a88d3f615ded64b037f193a6cb292c23"
+    },
+    "beam_prepare_compatible.py": {
+      "executed_sha256": "b4b09393be5ed03e00458d60fb68be0a04eedf74f6a9ea19ac0da04f5b4184dc",
+      "archived_replay_sha256": "b4b09393be5ed03e00458d60fb68be0a04eedf74f6a9ea19ac0da04f5b4184dc"
+    },
+    "beam_freeze.py": {
+      "executed_sha256": "5e199cc786f6b4469f701560d60cbb07516bdc5cb036c2afd3aa8518a4efe4b8",
+      "archived_replay_sha256": "5e199cc786f6b4469f701560d60cbb07516bdc5cb036c2afd3aa8518a4efe4b8"
+    },
+    "beam_database_path_v2_trials.py": {
+      "executed_sha256": "c7f62dd0738d1709317fee7037d8e8c0f22d9ec7d4da12852139c05f5754f58b",
+      "archived_replay_sha256": "ba06700e88517515a1ab4e8a2aa99e41d3866ae147f1acfbb2b162e215c3043d"
+    },
+    "beam_private_stats.py": {
+      "executed_sha256": "0cdc0a5c3954ab60d75f2405908b959f426d5ae04c9a2257fbba4e91b2119856",
+      "archived_replay_sha256": "0cdc0a5c3954ab60d75f2405908b959f426d5ae04c9a2257fbba4e91b2119856"
+    },
+    "beam_prepare_streamed.py": {
+      "executed_sha256": "9f50cac2c53ee278ca2cb429ac8664ef1d003c4890e608c0a1f5be9665e2361b",
+      "archived_replay_sha256": "9f50cac2c53ee278ca2cb429ac8664ef1d003c4890e608c0a1f5be9665e2361b"
+    },
+    "beam_pre_native_diagnostics.py": {
+      "executed_sha256": "b89f16d01c564bf5b4765f87e98be807c15d655d76a185fa943cb11708dfdc12",
+      "archived_replay_sha256": "9ed94e77a78a7e8f24832911c5854689c9c5e0e8271df27d92892e8ff2bacbc2"
+    },
+    "beam_prepare_compatible_variants.py": {
+      "executed_sha256": "a96f444772bdb05c19bcd6985484a7bfcfb7934cd9ae0a032e8f91a059ef1e16",
+      "archived_replay_sha256": "a96f444772bdb05c19bcd6985484a7bfcfb7934cd9ae0a032e8f91a059ef1e16"
+    },
+    "beam_extend_observer.py": {
+      "executed_sha256": "1e4186d1590877ce6212ad90cdaca54da9b54f1b87f36a58c9f08ea98145ed84",
+      "archived_replay_sha256": "6abaf417c1fdb749a1feb159a2ca267174fc8aad388cc4700e3fbd1694fdf829"
+    },
+    "beam_dataset_fetch.py": {
+      "executed_sha256": "76b6a02c8902fc0fd1cd8c2a36c3e42d763c2939c1fd438937872dfc63693615",
+      "archived_replay_sha256": "76b6a02c8902fc0fd1cd8c2a36c3e42d763c2939c1fd438937872dfc63693615"
+    },
+    "beam_temporal_smoke.py": {
+      "executed_sha256": "410aa320dbc0d5eb3ff32c50068853f6bc56021f1675065c86607565273f7eff",
+      "archived_replay_sha256": "096a015088ffe1cd08fd0be59c6f3c889b0803f99405883dc1ebc2f446f1f85a"
+    },
+    "beam_install_regression_functions.py": {
+      "executed_sha256": "3b0d3edc75ad1a20aca5ea5a78ee5317f8421f502edb86f52ab9b15b1b49e0b2",
+      "archived_replay_sha256": "3b0d3edc75ad1a20aca5ea5a78ee5317f8421f502edb86f52ab9b15b1b49e0b2"
+    },
+    "beam_finish_docs.py": {
+      "executed_sha256": "f22def1b7bc267b5d8b571043572b3f2e51912e0476cb4f8c86ef7e7f4ab188a",
+      "archived_replay_sha256": "9741636c2878cc4704eea900ebb7805219bc22112e3b7239d28cde348b4a9e7e"
+    },
+    "beam_native_embedding_audit.py": {
+      "executed_sha256": "465914f8f74714410444e3347766b5589e11df72604e5a42fdc46d5276a17c25",
+      "archived_replay_sha256": "465914f8f74714410444e3347766b5589e11df72604e5a42fdc46d5276a17c25"
+    },
+    "beam_install_variants.py": {
+      "executed_sha256": "ed7ba806cca2da2b8286283bc14ddc328e07c8c04867997bac003b1a56e6e1c2",
+      "archived_replay_sha256": "ed7ba806cca2da2b8286283bc14ddc328e07c8c04867997bac003b1a56e6e1c2"
+    },
+    "beam_database_path_trials.py": {
+      "executed_sha256": "05984bb68814586e6131b9e48e9cd704bca5f88e619875251ffbf6713f78ade9",
+      "archived_replay_sha256": "ba2336741f5214c8ad8a4d0f38dd598b31e9e7bf71c60ce7c8e647cf36b388e5"
+    },
+    "beam_install_streamed.py": {
+      "executed_sha256": "c2b0b71908bd3fd69ea9959be16990c709d6a556443883b880ac8b0d512c4719",
+      "archived_replay_sha256": "c2b0b71908bd3fd69ea9959be16990c709d6a556443883b880ac8b0d512c4719"
+    },
+    "beam_post_plan_probe.py": {
+      "executed_sha256": "4d92c3348b4e7437942db02e4035d6d63101332ba7f654fc5c5694c7edd7d2b7",
+      "archived_replay_sha256": "b08375eddbbf7175c8703d784f877802dbddedbf1d174a9b9f2b59090137a407"
+    },
+    "beam_make_latency_driver.py": {
+      "executed_sha256": "edda8b132ab7d1c1be3b74dd83228a74072fa1d411c387962f47c76a2ccb1cab",
+      "archived_replay_sha256": "edda8b132ab7d1c1be3b74dd83228a74072fa1d411c387962f47c76a2ccb1cab"
+    },
+    "beam_regression_compatible.py": {
+      "executed_sha256": "0928b6b92c927f7bfb608edc627849d536c6383a8dea2bdd9b83cfac65cc237d",
+      "archived_replay_sha256": "0928b6b92c927f7bfb608edc627849d536c6383a8dea2bdd9b83cfac65cc237d"
+    },
+    "beam_restore_normal.py": {
+      "executed_sha256": "27ea238f126077542795c3d0502a78ae6562e32234eefd4539efacc445a3a692",
+      "archived_replay_sha256": "27ea238f126077542795c3d0502a78ae6562e32234eefd4539efacc445a3a692"
+    },
+    "beam_gc_probe.py": {
+      "executed_sha256": "7b81798815f4928276ff6bec80d1ef17362ca35804dcf641a03263de7d8ccd70",
+      "archived_replay_sha256": "7b81798815f4928276ff6bec80d1ef17362ca35804dcf641a03263de7d8ccd70"
+    },
+    "beam_check_development_arms.py": {
+      "executed_sha256": "0bdd73dae52581bf5382a8a86c4d3036f71253023604951571258d0e82146e73",
+      "archived_replay_sha256": "0bdd73dae52581bf5382a8a86c4d3036f71253023604951571258d0e82146e73"
+    },
+    "beam_ingest.py": {
+      "executed_sha256": "34aad202aad42f53d6a4af919ec8c2753d536e3ffb660acbd4cdfe69948bdc0b",
+      "archived_replay_sha256": "34aad202aad42f53d6a4af919ec8c2753d536e3ffb660acbd4cdfe69948bdc0b"
+    },
+    "beam_night_orchestrator.py": {
+      "executed_sha256": "df2e9a0f19f79e72e9940551c22251e6eaa9e0df38b3fba0f4601767e9836f03",
+      "archived_replay_sha256": "acbdebbd15542c35825c3c9d2e82b4359fcd7f85480c3b31f4896e8bda26b649"
+    },
+    "beam_v1_coverage.py": {
+      "executed_sha256": "0f75f7dd323a25186a7d9c3417d2db7c36f63bf4f597019b9efa419de8f0434f",
+      "archived_replay_sha256": "0f75f7dd323a25186a7d9c3417d2db7c36f63bf4f597019b9efa419de8f0434f"
+    },
+    "beam_prepare_arrays.py": {
+      "executed_sha256": "b4cf74ceb9dba78ab3d38d39421f3b1dd60c217bd2c1243b58d064692502770c",
+      "archived_replay_sha256": "b4cf74ceb9dba78ab3d38d39421f3b1dd60c217bd2c1243b58d064692502770c"
+    },
+    "beam_temporal_contract_setup.py": {
+      "executed_sha256": "5f521518d4ec331ca7b01f5d8833c3b22b94f84ff39792da8b01c7db883e531d",
+      "archived_replay_sha256": "5f521518d4ec331ca7b01f5d8833c3b22b94f84ff39792da8b01c7db883e531d"
+    },
+    "beam_create_dev_snapshot.py": {
+      "executed_sha256": "3252b860bbc62f5ec74cace7937ddd17a2ba75ecc1bae5135e1f949a4c417513",
+      "archived_replay_sha256": "3252b860bbc62f5ec74cace7937ddd17a2ba75ecc1bae5135e1f949a4c417513"
+    },
+    "beam_init_pg_finish.py": {
+      "executed_sha256": "2b44ebb8de6836f14dd7a6bd76c7ee1d24a7f8ef36e1d844b00f468a5fd9dc47",
+      "archived_replay_sha256": "2b44ebb8de6836f14dd7a6bd76c7ee1d24a7f8ef36e1d844b00f468a5fd9dc47"
+    },
+    "beam_prepare_variants.py": {
+      "executed_sha256": "d9f625e92f4d83b48368dc58f3fe3284d934e9a3fe385bcfa0769ec0f5158ccd",
+      "archived_replay_sha256": "d9f625e92f4d83b48368dc58f3fe3284d934e9a3fe385bcfa0769ec0f5158ccd"
+    },
+    "beam_analyze_native.py": {
+      "executed_sha256": "9404b993cab00f758975ecf6822ff8c2615166dd49fe8c0258447bed7e9efd82",
+      "archived_replay_sha256": "9404b993cab00f758975ecf6822ff8c2615166dd49fe8c0258447bed7e9efd82"
+    },
+    "beam_publish_report.py": {
+      "executed_sha256": "96a8f83c295ada5595470b60df63fdf9ff0b58c44bd62a8dd358ef9e24c03529",
+      "archived_replay_sha256": "96a8f83c295ada5595470b60df63fdf9ff0b58c44bd62a8dd358ef9e24c03529"
+    }
+  }
+}

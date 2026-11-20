@@ -1,0 +1,62 @@
+{
+  "scope": "Additional scheduling observation, excluded from performance samples. Query logger completion times approximate client call intervals; overlapping intervals prove concurrent dispatch, not an exact measure of CPU parallelism. Original per-fact-type graph is asyncio.gather; P3 FOREACH/EXECUTE is serial.",
+  "responses_exact": true,
+  "rows": [
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "repeat": 0,
+      "fact_types": [
+        "experience",
+        "world"
+      ],
+      "individual_graph_call_ms": [
+        7.3784999549388885,
+        9.777333936654031
+      ],
+      "wall_span_ms": 9.800540981814265,
+      "observed_client_interval_overlap_ms": 7.355292909778655
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "repeat": 0,
+      "fact_types": [
+        "world",
+        "experience"
+      ],
+      "individual_graph_call_ms": [
+        5.134208011440933,
+        5.396542022936046
+      ],
+      "wall_span_ms": 6.779750110581517,
+      "observed_client_interval_overlap_ms": 3.7509999237954617
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "repeat": 1,
+      "fact_types": [
+        "world",
+        "experience"
+      ],
+      "individual_graph_call_ms": [
+        4.579291911795735,
+        4.665415966883302
+      ],
+      "wall_span_ms": 4.670999827794731,
+      "observed_client_interval_overlap_ms": 4.573708050884306
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "repeat": 1,
+      "fact_types": [
+        "world",
+        "experience"
+      ],
+      "individual_graph_call_ms": [
+        4.632125026546419,
+        4.9761669943109155
+      ],
+      "wall_span_ms": 4.9761669943109155,
+      "observed_client_interval_overlap_ms": 4.632125026546419
+    }
+  ]
+}

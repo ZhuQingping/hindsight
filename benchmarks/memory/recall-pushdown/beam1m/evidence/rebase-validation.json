@@ -1,0 +1,263 @@
+{
+  "scope": "After rebase onto zhuqingping/memory-benchmark 18be05bde. Same frozen BEAM Bank/vectors/time, real loopback HTTP, RRF passthrough reranker. Actual BGE not rerun; prepared model input hashes compared to pre-rebase pristine original. Timing not used for new performance claims.",
+  "passed": true,
+  "questions": 20,
+  "http_requests": 40,
+  "selected_measured_source_files_unchanged": true,
+  "unit_tests_passed": 33,
+  "recall_profile_tests_passed": 32,
+  "historical_profile_replay_skipped": 1,
+  "skip_reason": "RECALL_PROFILE_REPLAY_RUN_DIR not supplied; private full1540 replay outside this task",
+  "remote_base": "18be05bde",
+  "original_v1": "05d2894c5",
+  "rebased_v1": "b682cd693",
+  "rows": [
+    {
+      "question_id": "1_abstention_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_abstention_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_contradiction_resolution_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_event_ordering_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_event_ordering_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_information_extraction_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_information_extraction_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_instruction_following_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_instruction_following_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_knowledge_update_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_knowledge_update_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_multi_session_reasoning_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_multi_session_reasoning_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_preference_following_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_summarization_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_summarization_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_temporal_reasoning_0",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_temporal_reasoning_1",
+      "off_on_response_exact": true,
+      "off_matches_historical_original": true,
+      "model_input_exact": true,
+      "pairs": 300,
+      "on_claimed": true,
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    }
+  ],
+  "memory_immutable_after_rebase_verification": true,
+  "memory_table_hashes": {
+    "documents": {
+      "rows": 50,
+      "sha256": "c9ab6e229e6d351816b1508e1542ad902cac77a96da975a2ec77d4adee883f62"
+    },
+    "chunks": {
+      "rows": 1509,
+      "sha256": "1f0d88a2f47d39539150bd9ac45e46267285bbc42c794738f4b270d69d5e4b3f"
+    },
+    "memory_units": {
+      "rows": 2524,
+      "sha256": "dcb2fbed07b1e70d72dadb3028eb9c581ec4ff5968a4b8cc56159db67432c5e3"
+    },
+    "entities": {
+      "rows": 1263,
+      "sha256": "e85df7f32fb500ac73a6f47ebe2f3763f1d523e6550ddece9b96ed76fdff1024"
+    },
+    "unit_entities": {
+      "rows": 9716,
+      "sha256": "aa09af261da320a12837941affd5850f4434b37aa8d7958aa7c2bafd15fe5d89"
+    },
+    "memory_links": {
+      "rows": 62031,
+      "sha256": "607ba41111684949dbd9ac9c99837ca15e20972be937febc26e854117b9c02b6"
+    },
+    "entity_cooccurrences": {
+      "rows": 6904,
+      "sha256": "1625f3022b064d9afa72ed6c371828dd9cfb2b31b0c5aa8d3e6a22028fb0eca6"
+    }
+  },
+  "required_repository_lint": {
+    "status": "existing F841 only",
+    "file": "hindsight-api-slim/hindsight_api/api/http.py",
+    "line": 5886,
+    "baseline_line": 5846,
+    "unrelated_formatter_changes_restored": true
+  },
+  "scope_default_profile_only": true,
+  "real_bge_performance_rerun": false,
+  "source_sha256": {
+    "hindsight-api-slim/hindsight_api/engine/memory_engine.py": "53f0f74cc116369e8fde2bf740cb5e5ef9c1d0ccaf2f84eb42d8df12ac3cee5e",
+    "hindsight-api-slim/hindsight_api/api/http.py": "c6a813f81672f3288999f0654eeefd2986eb0dd847f184af28df81f9551421c5",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py": "c233aae05222c8d0ccb110b7daccc5f9c4ce90a3c14ec7704a5f2eb78cf316fa",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_beam.py": "35cabaf48a19c51979317936322cae9a01ed3c09a381c6507e3d6093d62a9cac",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_arrays.sql": "7f000181c27bebbbb7b37fd8ae0686347ef9a0f8b94121e9f48f3fdb09888b0d"
+  }
+}

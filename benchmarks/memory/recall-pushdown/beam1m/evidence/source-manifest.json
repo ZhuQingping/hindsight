@@ -1,0 +1,35 @@
+{
+  "baseline_commit": "05d2894c5",
+  "pristine_original_commit": "0951c3664b3083a99268040c8c84113073a057b3",
+  "branch": "codex/beam1m-recall-perf-20261120",
+  "uncommitted": true,
+  "selected": {
+    "time": 1795112216.09939,
+    "selected_variant": "P3 arrays",
+    "p4_streamed": "Equivalent but negligible average gain; not selected",
+    "p5_graph_parallel": "No Gather/parallel workers observed; slower; not selected",
+    "sources": {
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_pushdown.py": "c233aae05222c8d0ccb110b7daccc5f9c4ce90a3c14ec7704a5f2eb78cf316fa",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_beam.py": "35cabaf48a19c51979317936322cae9a01ed3c09a381c6507e3d6093d62a9cac",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_beam.sql": "73dbc752af29862682450e79d1bf39ac485812dc5f7e63efc69f65999fd47502",
+      "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_arrays.sql": "7f000181c27bebbbb7b37fd8ae0686347ef9a0f8b94121e9f48f3fdb09888b0d",
+      "benchmarks/memory/recall-pushdown/beam1m/model_observer.py": "eaa3985762c36388cfd8a1411b92ae1f9a8c4553694d8056e0682dd705a35c36"
+    }
+  },
+  "hardware": {
+    "cpu": "Apple M5",
+    "ram_bytes": 25769803776,
+    "bge_device": "cpu",
+    "bge_precision": "float32",
+    "batch_size": 8,
+    "omp_threads": 4
+  },
+  "dependencies": {
+    "asyncpg": "0.30.0",
+    "pydantic": "2.12.5",
+    "torch": "2.13.0",
+    "sentence-transformers": "5.7.0",
+    "transformers": "5.12.1",
+    "tiktoken": "0.12.0"
+  }
+}
