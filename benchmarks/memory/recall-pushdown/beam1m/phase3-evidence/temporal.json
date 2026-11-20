@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "question_id": "1_abstention_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "baseline_inputs_reconstructed_from_captured_original_payload": true,
+      "temporal_active": true
+    },
+    {
+      "question_id": "1_abstention_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "baseline_inputs_reconstructed_from_captured_original_payload": true,
+      "temporal_active": true
+    }
+  ]
+}

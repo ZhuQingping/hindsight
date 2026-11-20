@@ -271,7 +271,9 @@ async def run(args: argparse.Namespace) -> None:
             scope = request_scope.get()
             if scope is not None:
                 scope.sample.model_pairs = len(pairs)
-                scope.sample.model_input_sha256 = hashlib.sha256(json.dumps(pairs).encode()).hexdigest()
+                scope.sample.model_input_sha256 = hashlib.sha256(
+                    json.dumps(pairs, ensure_ascii=False).encode()
+                ).hexdigest()
             result = await super()._predict(pairs)
             if scope is not None:
                 scope.sample.model_ms = (perf_counter() - started) * 1000
@@ -303,6 +305,10 @@ async def run(args: argparse.Namespace) -> None:
             EquivalentPostgresRecallMemories,
             PostgresRecallPushdownMemories,
         )
+        from hindsight_api.engine.memories.pg.recall_rank import (
+            RankJsonPostgresRecallMemories,
+            RankPostgresRecallMemories,
+        )
         from hindsight_api.engine.memories.pg.recall_streamed import StreamedPostgresRecallMemories
 
         parent = {
@@ -311,6 +317,8 @@ async def run(args: argparse.Namespace) -> None:
             "packed": PackedPostgresRecallMemories,
             "arrays": ArrayPostgresRecallMemories,
             "streamed": StreamedPostgresRecallMemories,
+            "rank": RankPostgresRecallMemories,
+            "rank_json": RankJsonPostgresRecallMemories,
             "pushdown": PostgresRecallPushdownMemories,
             "equivalent": EquivalentPostgresRecallMemories,
             "control": CanonicalPostgresMemories,
@@ -412,7 +420,18 @@ async def run(args: argparse.Namespace) -> None:
             finally:
                 scope.stage = (
                     "response"
-                    if args.path in {"pushdown", "equivalent", "beam", "projection", "packed", "arrays", "streamed"}
+                    if args.path
+                    in {
+                        "pushdown",
+                        "equivalent",
+                        "beam",
+                        "projection",
+                        "packed",
+                        "arrays",
+                        "streamed",
+                        "rank",
+                        "rank_json",
+                    }
                     else "legacy"
                 )
 
@@ -458,7 +477,8 @@ async def run(args: argparse.Namespace) -> None:
         if file.exists():
             report.source_sha256[relative] = hashlib.sha256(file.read_bytes()).hexdigest()
     log_start = args.pg_log.stat().st_size if args.pg_log else 0
-    set_memories(RecordingStore({"bank_id": args.bank_id}))
+    store_class = parent if args.serve_only else RecordingStore
+    set_memories(store_class({"bank_id": args.bank_id}))
     engine = MemoryEngine(
         db_url=args.pg_dsn,
         memory_llm_provider="mock",
@@ -577,6 +597,14 @@ async def run(args: argparse.Namespace) -> None:
     while not server.started:
         await asyncio.sleep(0.01)
     try:
+        if args.serve_only:
+            # A separate load generator avoids allocating client/report objects
+            # in the API's process and confusing their GC with retrieval work.
+            (args.output_dir / "ready.json").write_text(
+                json.dumps({"endpoint": report.endpoint, "pid": os.getpid(), "path": args.path})
+            )
+            await serving
+            return
         headers = {"Authorization": "Bearer " + api_key} if api_key else {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=600), headers=headers) as client:
             for repeat in range(args.repeats):
@@ -623,7 +651,17 @@ async def run(args: argparse.Namespace) -> None:
                     if (
                         not args.latency
                         and args.path
-                        in {"pushdown", "equivalent", "beam", "projection", "packed", "arrays", "streamed"}
+                        in {
+                            "pushdown",
+                            "equivalent",
+                            "beam",
+                            "projection",
+                            "packed",
+                            "arrays",
+                            "streamed",
+                            "rank",
+                            "rank_json",
+                        }
                         and (
                             not active.claimed
                             or sum(x.stage == "full_recall" for x in active.sql) != 1
@@ -675,6 +713,8 @@ async def run(args: argparse.Namespace) -> None:
             "projection",
             "packed",
             "arrays",
+            "rank",
+            "rank_json",
         } and report.pg_log_candidate_executes != len(report.samples):
             raise RuntimeError("PG log execute count differs from application call count")
     report.outside_request_sql = recorder.outside_request
@@ -714,7 +754,19 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument(
         "--path",
-        choices=["control", "pushdown", "equivalent", "legacy", "beam", "projection", "packed", "arrays", "streamed"],
+        choices=[
+            "control",
+            "pushdown",
+            "equivalent",
+            "legacy",
+            "beam",
+            "projection",
+            "packed",
+            "arrays",
+            "streamed",
+            "rank",
+            "rank_json",
+        ],
         required=True,
     )
     parser.add_argument("--mode", choices=["rrf", "bge"], default="rrf")
@@ -724,10 +776,13 @@ def main() -> None:
         "--latency", action="store_true", help="Disable heavy correctness observers and per-query logger"
     )
     parser.add_argument("--live-embeddings", action="store_true")
+    parser.add_argument("--serve-only", action="store_true", help="Run the frozen-input API for an external client")
     parser.add_argument("--take", type=int, default=81)
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--ids", nargs="*")
     args = parser.parse_args()
+    if args.serve_only and not args.latency:
+        parser.error("Serve-only requires --latency; use the normal driver for per-request correctness capture")
     if args.pg_dsn_file:
         args.pg_dsn = args.pg_dsn_file.read_text().strip()
     if args.existing_pg_data_dir is not None and args.api_key_file is None:

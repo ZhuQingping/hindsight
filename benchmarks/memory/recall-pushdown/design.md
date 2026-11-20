@@ -1,5 +1,7 @@
 # Recall下推设计：一次PG候选调用，保持原始结果
 
+> 2026-11-20 归档说明：本文件保留当时的阶段记录（含“未提交/未推送”状态）。当前维护、发布与验收状态以[统一入口](README.md)、当前进展和远程分支 HEAD 为准；代码发布不表示剩余验收通过。
+
 更新日期：2026-11-19。本文对应当前`EquivalentPostgresRecallMemories`实现，不再使用早期UUID规范化对照作为等价基线。实现与验收见[实现报告](implementation-report.md)，逐题差分和修复过程见[三组验证](three-way-original-compatibility.md)。
 
 ## 1. 目标与已验证范围

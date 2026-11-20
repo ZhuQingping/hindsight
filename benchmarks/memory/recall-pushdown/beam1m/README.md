@@ -1,11 +1,17 @@
 # BEAM 1M Recall 下推实验
 
-**已完成：单个完整会话导入、冻结、等价验证和多轮性能测试。**
+更新：2026-11-20。当前代码、手册与状态统一在[专项入口](../README.md)。
 
-[展示报告 HTML](BEAM1M-Recall下推性能验证报告.html) · [报告 Markdown](BEAM1M-Recall下推性能验证报告.md) · [SQL 与次数](SQL交互证据.md) · [设计](design.md) · [代码与复现](handoff.md) · [检视结论](review.md)
+**当前性能阶段：核心路径平均 53.48→44.75 ms，P50 49.18→43.16 ms，排除模型。** 三组各 400 次测量响应相同；17 题平均改善、3 题退化。真实 BGE 当前版完成 3/20，剩余待人工验收。没有跨路并行或完整 Recall 加速结论。
 
-20 题、3 轮真实 BGE 对照：120 次测量响应一致。排除模型的数据库路径 P95 从 124.71 ms 降至 65.11 ms，平均约 52 ms 基本持平；补充归因显示该 P95 长尾与 Python GC 同步，不能作为 PG 检索算子加速证据。完整 Recall 约 56 秒，主要耗在 CPU BGE，尚未证明 PG 下推显著降低完整平均时延或 P50。
+- 当前：[性能报告](phase3-performance.md) / [HTML](phase3-performance.html)、[脱敏证据](phase3-evidence/README.md)、[使用手册](../RUNBOOK.md)、[交接](../AGENT_HANDOFF.md)。
+- 当前代码：`native/contextbase_rank_cd_or.c`（本目录上一级），ContextBase 的 `recall_rank.py`、`recall_rank_json.sql`；P3 和首版保留作对照。
+- 规模：一个完整官方会话，50/50 文档、约 985k 输入 Token，2,524 事实、62,031 关系；不是百万向量数据。冻结后同一 Bank 测试。
 
-BEAM 1M 是约 100 万输入 Token，本次形成 2,524 条事实，不能当作百万向量测试。正式等价测试固定相同检索向量和参考时间，仍计入真实 embedding 请求和真实 BGE 耗时。
+## 历史阶段
 
-第一版 `05d2894c5` 保持干净。开发位于 `.worktrees/beam1m-recall-perf-20261120`；已 rebase 到远程 `memory-benchmark` 的 `18be05bde`，本轮设计、实现和证据纳入同一个特性提交，未推送。LoCoMo 原环境未修改。整合记录与新增验证见 [rebase-validation.md](rebase-validation.md)。
+[早期报告 HTML](BEAM1M-Recall下推性能验证报告.html) · [Markdown](BEAM1M-Recall下推性能验证报告.md) · [SQL 与次数](SQL交互证据.md) · [早期设计](design.md) · [早期检视](review.md)
+
+上一轮 P3 做完 20 题×3 轮×两组的真实 BGE 共 120 次测量，响应一致；排除模型时平均约 52 ms 基本持平。该记录不能替代当前性能版剩余 BGE 验收，也不能把 248 ms 的中间实现作为原始基线。
+
+原首版 `05d2894c5` 保持干净，P3 `4016fed9b` 保留。远程整合基础 `18be05bde` 的回归记录见 [rebase-validation.md](rebase-validation.md)。LoCoMo 原环境未修改，当前临时压测和模型验证已停止。

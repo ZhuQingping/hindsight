@@ -1,0 +1,151 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>性能阶段交接</title><style>body{max-width:1120px;margin:36px auto;padding:0 28px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#1e293b;line-height:1.7}h1{font-size:29px;color:#0f2744}h2{font-size:23px;border-bottom:1px solid #dbe3ee;padding-bottom:8px;margin-top:38px}h3{font-size:19px}table{border-collapse:collapse;width:100%;font-size:14px;margin:18px 0}th,td{border:1px solid #dbe3ee;padding:9px 12px;text-align:left;vertical-align:top}th{background:#f0f5fa}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;background:#f1f5f9;border-radius:7px;font-size:13px}code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}a{color:#1463ad}p,li{overflow-wrap:anywhere}@media print{body{max-width:none;margin:12mm;padding:0}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}a{color:inherit}}</style></head><body><p><strong>归档更新：</strong>已有代码按用户要求统一到 memory-benchmark；以下未提交/未推送为测量时状态。当前状态见 <a href="../README.md">统一入口</a>。发布不代表剩余验收通过。</p><h1>第三阶段：性能优化阶段交付与人工验收</h1>
+<p>2026-11-20。<strong>当前阶段已停止研发，按后续明确指令统一归档到 memory-benchmark；等待人工与剩余真实 BGE 验收。</strong></p>
+<h2>1. 当前交付什么</h2>
+<p>采用两项改动：<strong>PG C 扩展的全文 OR 评分精确快速路径，以及直接构造最终返回 JSON。</strong> 原查询范围、候选数、同分顺序、C RRF、模型输入、最终评分和预算保持原规则。没有切换 BM25，没有恢复图并发，也没有实现新的跨路并行。</p>
+<p>代码基线 <code>4016fed9b</code> 保留，当前开发分支为 <code>codex/recall-perf-phase3-20261120</code>。它仍位于工作区 <code>/Users/zhuqingping/Work/Database/Context/hindsight/.worktrees/beam1m-recall-perf-20261120</code>。PG 主干仓没有本轮修改；新增 C 扩展源码放在 ContextBase 仓并实际由 PG 执行。</p>
+<h2>2. 性能：相对原流程的净收益</h2>
+<table>
+<thead>
+<tr>
+<th>冻结输入的 Recall 核心 HTTP 路径</th>
+<th style="text-align:right">平均 ms</th>
+<th style="text-align:right">P50 ms</th>
+<th style="text-align:right">P95 ms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原流程，关闭下推</td>
+<td style="text-align:right">53.48</td>
+<td style="text-align:right">49.18</td>
+<td style="text-align:right">125.24</td>
+</tr>
+<tr>
+<td>已提交 P3 下推</td>
+<td style="text-align:right">53.06</td>
+<td style="text-align:right">52.55</td>
+<td style="text-align:right">66.87</td>
+</tr>
+<tr>
+<td>本轮新版本</td>
+<td style="text-align:right"><strong>44.75</strong></td>
+<td style="text-align:right"><strong>43.16</strong></td>
+<td style="text-align:right"><strong>58.74</strong></td>
+</tr>
+</tbody>
+</table>
+<p>相对原流程，平均减少 <strong>8.73 ms，约 16.3%</strong>，P50 减少 <strong>6.02 ms，约 12.2%</strong>。这次没有用阶段性 248 ms 版本作为收益基线。当前改善尚未达到内部暂定的平均/P50各下降 20% 目标，不宣称最终性能目标已经达成。</p>
+<p>三个独立 API 进程、一个外部客户端；每组 20 题 × 20 轮，共 400 个测量样本，另外排除两轮预热。问题和版本顺序随机交错，默认 GC 开启，全部响应与历史等价基线核对。<strong>不包含 embedding、实际 BGE，也不包含 ContextBase 完整业务鉴权层。</strong> 因此不能说完整生产 Recall 快了 16%；此前 CPU BGE 占主导的问题没有改变。</p>
+<p>P95 包含 Python GC 影响，不能全部归因于 PG 算子加速。20 题中 17 题平均更快、3 题更慢，最大单题平均退化约 5.35 ms；逐题原因未完成因果归因，不能隐去退化题。按问题聚类的平均差值 bootstrap 95% 区间为约 -12.98～-5.01 ms，仅适用于这一固定会话。</p>
+<p>依据：<a href="phase3-evidence/external-http.json">1,200 次时延与响应哈希</a>、<a href="phase3-evidence/analysis.json">逐题分析</a>。</p>
+<h2>3. 为什么能少做工作</h2>
+<ul>
+<li><strong>精确 OR 快速路径</strong>：普通 OR 查询的每个最小覆盖是一处命中位置。直接累加原默认位置权重，避免为每条候选构造/排序位置表示、反复解释查询树。重复查询词去重；只缓存表达式内的查询结构，不缓存文档或答案。AND、NOT、短语、前缀、词项权重和超限查询交给原 PG 函数。</li>
+<li><strong>直接生成 JSON</strong>：P3 内部时间状态仍为 JSONB，最终候选与原文直接组装为传输 JSON，减少最后一轮 JSONB 构造。保留全部候选/原文，chunk 键按原 JSONB 顺序输出；Python 继续使用原候选模型和预算流程。</li>
+</ul>
+<p>只推荐 <code>RankJsonPostgresRecallMemories</code>。<code>RankPostgresRecallMemories</code> 为单独归因 C 评分收益的对照。图仍串行；并行设置/批量收集、窄投影没有足够净收益，未采用。另一个完整融合 C 原型在合成 ±0 元数据的严格位比较中发现差异，已排除，没有放宽比较标准让它通过。</p>
+<h2>4. 已验证与待验证范围</h2>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th>当前结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>真实向量/查询评分</td>
+<td>50,480 次 <code>float4send</code> 逐位相等</td>
+</tr>
+<tr>
+<td>生成评分用例</td>
+<td>7,560 次逐位相等，含权重、重复位置、剥离位置及回退语法</td>
+</tr>
+<tr>
+<td>可重复 SQL 用例</td>
+<td>72 个逐位相等检查通过</td>
+</tr>
+<tr>
+<td>默认请求</td>
+<td>20 题响应、模型输入一致；外部测量 1,200 次响应一致</td>
+</tr>
+<tr>
+<td>额外时间请求</td>
+<td>2 题响应和模型输入一致</td>
+</tr>
+<tr>
+<td>历史恢复库</td>
+<td>109 事实 / 81 题完整候选包一致，未访问活动 LoCoMo</td>
+</tr>
+<tr>
+<td>实际本地 BGE</td>
+<td><strong>已完成 3 题，响应和输入与历史原始基线一致；17 题待你们测试</strong></td>
+</tr>
+<tr>
+<td>相关单元测试</td>
+<td>39 项通过</td>
+</tr>
+<tr>
+<td>数据</td>
+<td>测试后七张记忆表哈希不变</td>
+</tr>
+</tbody>
+</table>
+<p>JSON 对象键的排列顺序不作为差异；数组顺序和数值没有误差容忍。三题实际 BGE 的旧观察器曾用 ASCII 转义计算输入哈希，RRF 观察器用 UTF-8；按相同输入重算两种编码后核对一致，观察器现已统一 UTF-8。原始记录未覆盖。</p>
+<p>没有新增准确率评估或 Token 节省；不将真实 BGE 3 题说成 20 题全部通过。严格等价仍限定同一冻结数据、向量、时间、配置与已支持形状；多租户/并发写入/附件等一般用途发布覆盖不在本阶段完成。</p>
+<h2>5. 代码入口</h2>
+<p>所有代码均在上述开发工作区：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>benchmarks/memory/recall-pushdown/native/contextbase_rank_cd_or.c</code></td>
+<td>新 C 评分函数，独立编译模块</td>
+</tr>
+<tr>
+<td><code>benchmarks/memory/recall-pushdown/native/test_rank_cd.sql</code></td>
+<td>评分字节相等回归用例</td>
+</tr>
+<tr>
+<td><code>hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank_json.sql</code></td>
+<td>推荐候选入口，精确评分及直接 JSON 返回</td>
+</tr>
+<tr>
+<td><code>hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank.py</code></td>
+<td>opt-in 适配；推荐 <code>RankJsonPostgresRecallMemories</code></td>
+</tr>
+<tr>
+<td><code>benchmarks/memory/recall-pushdown/beam1m/verify_beam.py</code></td>
+<td>新路径核对；serve-only 模式供独立客户端测量</td>
+</tr>
+</tbody>
+</table>
+<p>专用 PG 55440 已注册新函数与独立模块路径。没有覆盖原共享库。<strong>现有 8898/8899 服务没有切换到新版本，不能直接用 8899 判断本轮收益。</strong> 常规服务接入需使用新代码、独立测试进程，并配置 <code>HINDSIGHT_API_MEMORIES_EXTENSION=hindsight_api.engine.memories.pg.recall_rank:RankJsonPostgresRecallMemories</code> 及原 Bank allowlist。不要替换活动 LoCoMo 服务。</p>
+<h2>6. 你们如何测试</h2>
+<p>私有数据、凭据、快照和完整响应保留在 <code>/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/.local/beam1m-recall-20261120</code>，没有提交。以下命令只针对专用冻结库，使用单独的临时 API；输出标签不能重复。</p>
+<p>先复核默认 Recall 的等价性，模型采用 RRF 透传：</p>
+<pre><code class="language-bash">R=/Users/zhuqingping/Work/Database/Context/hindsight
+D=&quot;$R/benchmarks/memory/.local/beam1m-recall-20261120&quot;
+&quot;$R/.venv/bin/python&quot; &quot;$D/runtime/tools/replay/beam_run_verify.py&quot; \
+  --database beam1m --path legacy --mode rrf --take 20 --label user-phase3-off
+&quot;$R/.venv/bin/python&quot; &quot;$D/runtime/tools/replay/beam_run_verify.py&quot; \
+  --database beam1m --path rank_json --mode rrf --take 20 --label user-phase3-new
+</code></pre>
+<p>对照 <code>results/user-phase3-off/verification.json</code> 与 <code>results/user-phase3-new/verification.json</code> 的逐题响应、模型输入哈希，以及两目录的完整响应文件。固定向量是同一份真实 embedding 快照；两次独立实时 embedding 可能数值不同，不能直接用于严格等价归因。</p>
+<p>复测性能，仍排除模型：</p>
+<pre><code class="language-bash">&quot;$R/.venv/bin/python&quot; &quot;$D/phase3/tools/replay_external.py&quot; user-phase3-perf
+</code></pre>
+<p>这会临时启动三套独立 API，完成交错测试后关闭自己创建的进程。不要同时运行 BGE 或其他重负载。结果在 <code>phase3/user-phase3-perf/results.json</code>，每组 400 次。原流程及 P3 都会重测，不复用历史 52 ms。该私有重放脚本与已执行驱动仅有运行目录标签的差异，原脚本也已归档。</p>
+<p>完整实际 BGE 核对可把上述模式改为 <code>--mode bge</code>、使用新标签。20 题单组约需 18～20 分钟；本阶段仅做完 3 题，未将剩余题静默继续运行。完整带模型时延若要比较，需要同配置、同输入、公平交错的新 A/B，不能拿历史耗时相减。</p>
+<h2>7. 检视和停止状态</h2>
+<p>C 扩展编译通过，目标 Ruff/ty 通过。要求的全仓 lint 已运行，仍只有原有 <code>http.py:5886</code> F841；无关 formatter 改动已排除。完整融合原型未被加入默认构建和选择器。</p>
+<p>临时外部 API 已全部退出；实际 BGE 验证已按阶段交付停止。专用 PG 及原有常规服务保留供你们测试。没有继续并行研发或自动切换服务。后续按用户明确指令提交归档，人工验收仍未完成；代码发布不代表生产发布批准。</p>
+<p>详细证据：<a href="phase3-evidence/manifest.json">清单与源码哈希</a>、<a href="phase3-evidence/bge-prefix.json">真实 BGE 已完成部分</a>、<a href="phase3-evidence/temporal.json">时间请求</a>、<a href="phase3-evidence/regression109.json">81 题恢复库</a>。</p>
+<h3>最终交接修补</h3>
+<p>末次检视只增加了缓存重建错误路径的指针置空，避免分配异常被捕获后保留旧指针；使用独立 <code>rank-build-v2</code> 库，没有覆盖已加载的 v1。最终库重新通过 50,480 + 7,560 个逐位评分检查。整轮性能和 3 题 BGE 仍是 v1 正常路径测量，未标成 v2 新测结果；本次不再启动长测，留给人工验收。源码、测量版和最终库哈希均已记录。</p>
+</body></html>

@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-20",
+  "purpose": "experimental source/docs/evidence publication, not production acceptance",
+  "target_remote": "https://github.com/ZhuQingping/hindsight.git",
+  "target_branch": "memory-benchmark",
+  "source_base": "4016fed9bdbe083b4414aab92e5efc3885bdfc1c",
+  "source_sha256": {
+    "benchmarks/memory/recall-pushdown/native/contextbase_recall.c": "5dffd204f573668de19948a4b50beaf36fde835f074fc88b456f22c9a0633c3f",
+    "benchmarks/memory/recall-pushdown/native/contextbase_legacy_order.c": "9192ceae9e1c2ceac1d5858bd8aa851f9ba0914e1d0c80b9da37dc5ca5ac4810",
+    "benchmarks/memory/recall-pushdown/native/contextbase_rank_cd_or.c": "80a4109e787dd4b12243fd3f675c9acc5d9b0dc30833f2a45db62929a8379650",
+    "benchmarks/memory/recall-pushdown/native/Makefile": "0f3e6c08e814b31022a7b29fb4442f0fdcb8879692412d4c516957a68268d913",
+    "benchmarks/memory/recall-pushdown/native/install.sql": "eef934b85bd0630e2858595e71d120c38ed52847663e3f1e9b8e3753e4775a8d",
+    "benchmarks/memory/recall-pushdown/native/test_rank_cd.sql": "a0db0e30bbb322fa57ef8baa51e01c3f092459da9d825b4ca7d0f4d3d5702cf4",
+    "benchmarks/memory/recall-pushdown/beam1m/measure_http.py": "f70969ca8aefbc1da323edb573c2058a95bcd728e81aa14e709f31706e7319bc",
+    "benchmarks/memory/recall-pushdown/beam1m/verify_beam.py": "55624719aa2c6f7e3e849df41c62a7a4566f5ffc03f899fa955eb5184036cbd7",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank.py": "10cf2a24e1b09ba3d1000b562e5d5d7ede910c1fff5d88a5ce569c0df9169e46",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank.sql": "b3ab040d5b29dca507ad421a85fe13cceb53d800346a9d4e1e8598856e6239fe",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank_json.sql": "b2b5292ba7a8dd65eb1a71fe46bbdff9058048f473fe5b158c277b1cc309770d"
+  },
+  "pg_core_modified": false,
+  "pgxs_build": "passed, PostgreSQL 18.4",
+  "installer": "passed on new empty scratch database in isolated PG; database dropped",
+  "sql_fixture_comparisons": 72,
+  "portable_external_client": {
+    "smoke_responses": 6,
+    "historical_original_hashes_equal": true,
+    "all_owned_processes_stopped": true,
+    "performance_claim": false
+  },
+  "targeted_unit_tests": 39,
+  "required_full_lint": "failed only existing api/http.py:5886 F841; unrelated formatter changes excluded",
+  "targeted_ruff_format_ty": "Ruff/format pass; runtime and new external client ty pass; including verifier reports existing dynamic-base unsupported-base warning",
+  "extra_embedded_pg_temporal_test": "interrupted during environment startup; not counted as passed",
+  "performance_evidence": "beam1m/phase3-evidence/external-http.json, historical measured v1; final v2 only score-bit comparisons rerun",
+  "actual_bge_completed": 3,
+  "actual_bge_total": 20,
+  "production_services_switched": false,
+  "private_assets_included": false,
+  "published_baseline_commits": [
+    "b682cd693",
+    "4016fed9b"
+  ]
+}

@@ -8,6 +8,7 @@ from hindsight_api.engine.db.postgresql import PostgreSQLBackend
 from hindsight_api.engine.memories.base import FullRecallRequest, FullRecallRuntime
 from hindsight_api.engine.memories.pg.recall_beam import BeamPostgresRecallMemories
 from hindsight_api.engine.memories.pg.recall_pushdown import EquivalentPostgresRecallMemories
+from hindsight_api.engine.memories.pg.recall_rank import RankJsonPostgresRecallMemories, RankPostgresRecallMemories
 from hindsight_api.engine.search.retrieval import tokenize_query
 
 
@@ -46,11 +47,14 @@ def test_long_query_preserves_original_text_and_server_term_policy(monkeypatch):
 
 
 @pytest.mark.parametrize("field,value", [("tags", ["private"]), ("include_entities", True), ("per_source_cap", 10)])
-def test_long_query_support_does_not_relax_other_guards(monkeypatch, field, value):
+@pytest.mark.parametrize(
+    "store_class", [BeamPostgresRecallMemories, RankPostgresRecallMemories, RankJsonPostgresRecallMemories]
+)
+def test_long_query_support_does_not_relax_other_guards(monkeypatch, field, value, store_class):
     monkeypatch.setenv("PYTHONHASHSEED", "0")
     req = make_request()
     setattr(req, field, value)
-    assert not BeamPostgresRecallMemories({"bank_id": "beam-test"}).supports(req)
+    assert not store_class({"bank_id": "beam-test"}).supports(req)
 
 
 def test_default_adapter_still_serializes_the_same_short_query(monkeypatch):

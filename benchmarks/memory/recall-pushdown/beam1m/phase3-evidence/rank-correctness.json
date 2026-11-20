@@ -1,0 +1,111 @@
+{
+  "scope": "Exact float4send equality, no tolerance. All 2524 frozen search vectors x 20 real tsqueries, plus generated weighted/stripped/duplicate-position/prefix/boolean/phrase/empty cases. No data writes.",
+  "passed": true,
+  "real_comparisons": 50480,
+  "generated": {
+    "comparisons": 7560,
+    "differences": 0
+  },
+  "rows": [
+    {
+      "question_id": "1_abstention_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_abstention_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_contradiction_resolution_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_event_ordering_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_event_ordering_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_information_extraction_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_information_extraction_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_instruction_following_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_instruction_following_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_knowledge_update_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_knowledge_update_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_multi_session_reasoning_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_multi_session_reasoning_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_preference_following_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_summarization_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_summarization_1",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_temporal_reasoning_0",
+      "comparisons": 2524,
+      "differences": 0
+    },
+    {
+      "question_id": "1_temporal_reasoning_1",
+      "comparisons": 2524,
+      "differences": 0
+    }
+  ]
+}

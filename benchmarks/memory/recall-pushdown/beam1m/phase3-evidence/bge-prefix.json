@@ -1,0 +1,33 @@
+{
+  "status": "stopped_for_user_stage_handoff",
+  "scope": "Actual BGE correctness prefix only, no new end-to-end model timing claim. Remaining questions pending user validation; interrupted in-flight request excluded.",
+  "completed_questions": 3,
+  "remaining_questions": 17,
+  "completed_responses_exact": true,
+  "rows": [
+    {
+      "question_id": "1_abstention_0",
+      "actual_bge_response_exact_vs_historical": true,
+      "actual_model_input_matches_original": true,
+      "input_hash_encoding_note": "Legacy BGE observer used ASCII escapes; reconstructed original inputs match both encodings. Observer now uses UTF-8 consistently.",
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_abstention_1",
+      "actual_bge_response_exact_vs_historical": true,
+      "actual_model_input_matches_original": true,
+      "input_hash_encoding_note": "Legacy BGE observer used ASCII escapes; reconstructed original inputs match both encodings. Observer now uses UTF-8 consistently.",
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "actual_bge_response_exact_vs_historical": true,
+      "actual_model_input_matches_original": true,
+      "input_hash_encoding_note": "Legacy BGE observer used ASCII escapes; reconstructed original inputs match both encodings. Observer now uses UTF-8 consistently.",
+      "candidate_entry_calls": 1,
+      "post_model_pg_reads": 0
+    }
+  ]
+}

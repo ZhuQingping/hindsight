@@ -1,0 +1,63 @@
+{
+  "baseline_commit": "4016fed9b",
+  "branch": "codex/recall-perf-phase3-20261120",
+  "status": "stopped_for_user_testing",
+  "committed": false,
+  "pushed": false,
+  "memory_unchanged": true,
+  "memory_table_hashes": {
+    "documents": {
+      "rows": 50,
+      "sha256": "c9ab6e229e6d351816b1508e1542ad902cac77a96da975a2ec77d4adee883f62"
+    },
+    "chunks": {
+      "rows": 1509,
+      "sha256": "1f0d88a2f47d39539150bd9ac45e46267285bbc42c794738f4b270d69d5e4b3f"
+    },
+    "memory_units": {
+      "rows": 2524,
+      "sha256": "dcb2fbed07b1e70d72dadb3028eb9c581ec4ff5968a4b8cc56159db67432c5e3"
+    },
+    "entities": {
+      "rows": 1263,
+      "sha256": "e85df7f32fb500ac73a6f47ebe2f3763f1d523e6550ddece9b96ed76fdff1024"
+    },
+    "unit_entities": {
+      "rows": 9716,
+      "sha256": "aa09af261da320a12837941affd5850f4434b37aa8d7958aa7c2bafd15fe5d89"
+    },
+    "memory_links": {
+      "rows": 62031,
+      "sha256": "607ba41111684949dbd9ac9c99837ca15e20972be937febc26e854117b9c02b6"
+    },
+    "entity_cooccurrences": {
+      "rows": 6904,
+      "sha256": "1625f3022b064d9afa72ed6c371828dd9cfb2b31b0c5aa8d3e6a22028fb0eca6"
+    }
+  },
+  "source_sha256": {
+    "benchmarks/memory/recall-pushdown/native/contextbase_rank_cd_or.c": "80a4109e787dd4b12243fd3f675c9acc5d9b0dc30833f2a45db62929a8379650",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank.py": "10cf2a24e1b09ba3d1000b562e5d5d7ede910c1fff5d88a5ce569c0df9169e46",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank.sql": "b3ab040d5b29dca507ad421a85fe13cceb53d800346a9d4e1e8598856e6239fe",
+    "hindsight-api-slim/hindsight_api/engine/memories/pg/recall_rank_json.sql": "b2b5292ba7a8dd65eb1a71fe46bbdff9058048f473fe5b158c277b1cc309770d",
+    "benchmarks/memory/recall-pushdown/beam1m/verify_beam.py": "55624719aa2c6f7e3e849df41c62a7a4566f5ffc03f899fa955eb5184036cbd7"
+  },
+  "compiled_rank_library_sha256": "847010c00b8267583bc006b0b5a9b44ea5efcdcc7bee04dfb9cda8e7acc39300",
+  "sql_fixture_comparisons": 72,
+  "unit_tests_passed": 39,
+  "required_lint": "Only existing F841 at http.py:5886; unrelated formatter changes restored",
+  "native_services_switched": false,
+  "performance_scope": "Fixed query vectors/time; mock passthrough reranker; no production ContextBase auth layer or embedding/model time. Default GC. External client and separate API processes.",
+  "not_adopted": [
+    "Function/bulk parallel-setting prototypes: no useful mean gain; no adopted real multi-route parallelism",
+    "Narrow native projection: small gain, not selected",
+    "Full fusion C prototype: signed-zero source-metadata mismatch in synthetic bit comparison; rejected rather than relaxing comparison"
+  ],
+  "bge_completed": 3,
+  "bge_remaining": 17,
+  "measured_rank_source_sha256": "60df3c52be9afb5889dcd944166a5e80c2d3cc9c96a9edbfd7f5ca8ce0ab34df",
+  "measured_library_sha256": "daee5f552f47f39cf34425e89d1c72e2af813fe56fed31174c718ba0ce263068",
+  "final_library_path": "/Users/zhuqingping/Work/Database/Context/hindsight/benchmarks/memory/.local/beam1m-recall-20261120/phase3/rank-build-v2/contextbase_rank_cd_or.dylib",
+  "final_guard_only_change": "Clear cached query pointer after memory-context reset, before allocation; v2 independent library, all 58,040 score comparisons rerun. Full performance and BGE records remain v1 normal-path measurements.",
+  "helper_after_timing_changes": "Formatting/import order and consistent UTF-8 model-input hash encoding; no performance result rewritten."
+}

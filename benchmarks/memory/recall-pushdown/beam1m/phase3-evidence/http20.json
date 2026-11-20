@@ -1,0 +1,126 @@
+{
+  "passed": true,
+  "questions": 20,
+  "rows": [
+    {
+      "question_id": "1_abstention_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_abstention_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_contradiction_resolution_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_contradiction_resolution_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_event_ordering_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_event_ordering_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_information_extraction_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_information_extraction_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_instruction_following_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_instruction_following_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_knowledge_update_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_knowledge_update_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_multi_session_reasoning_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_multi_session_reasoning_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_preference_following_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_preference_following_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_summarization_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_summarization_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_temporal_reasoning_0",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    },
+    {
+      "question_id": "1_temporal_reasoning_1",
+      "response_exact": true,
+      "model_input_exact": true,
+      "pairs": 300
+    }
+  ]
+}

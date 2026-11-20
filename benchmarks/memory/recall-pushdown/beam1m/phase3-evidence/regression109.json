@@ -1,0 +1,331 @@
+{
+  "scope": "Historical 109-fact archive restored in independent PG55440; active LoCoMo not accessed. No memory writes.",
+  "questions": 81,
+  "passed": true,
+  "rows": [
+    {
+      "question_id": "conv-30_q000",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q001",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q002",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q003",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q004",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q005",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q006",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q007",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q008",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q009",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q010",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q011",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q012",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q013",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q014",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q015",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q016",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q017",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q018",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q019",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q020",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q021",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q022",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q023",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q024",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q025",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q026",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q027",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q028",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q029",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q030",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q031",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q032",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q033",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q034",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q035",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q036",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q037",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q038",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q039",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q040",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q041",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q042",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q043",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q044",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q045",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q046",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q047",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q048",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q049",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q050",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q051",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q052",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q053",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q054",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q055",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q056",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q057",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q058",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q059",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q060",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q061",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q062",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q063",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q064",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q065",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q066",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q067",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q068",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q069",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q070",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q071",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q072",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q073",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q074",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q075",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q076",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q077",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q078",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q080",
+      "full_candidate_package_exact": true
+    },
+    {
+      "question_id": "conv-30_q081",
+      "full_candidate_package_exact": true
+    }
+  ]
+}

@@ -29,7 +29,7 @@ git rev-parse HEAD
 | [recall-profiles/validation.md](recall-profiles/validation.md) | 默认兼容、1540份重放、81题真实对照与复测验收 |
 | [plan.md](plan.md) | LoCoMo 通俗流程、模型和评分口径、公平对比、待办、历史结果及错题分析 |
 | [report.md](report.md) | 友商 benchmark、模型、分数、Token、时延与原始来源 |
-| [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：首版实现、81题可行性验收、设计与执行证据；尚未部署 |
+| [recall-pushdown/README.md](recall-pushdown/README.md) | PG Recall 下推专项：C 插件、手册、当前进展和证据；实验环境，未切换正式服务 |
 | [runner.py](runner.py) | 唯一执行入口：init、preview、ingest、verify、run、report |
 | [support.py](support.py) | 配置类型、完整条目/原文窗口打包、HTTP 导入核验、原始 LoCoMo F1；没有独立执行入口 |
 | [analysis.py](analysis.py) | 完整结果导出、官方对照、只读进度、错题证据与离线覆盖诊断 |
@@ -50,6 +50,8 @@ git rev-parse HEAD
 历史conv-30：旧版91.36%、F1 25.15%；新AMB协议RRF为70/81、86.42%、F1 21.98%；旧Bank接入BGE后为76/81、93.83%、F1 26.64%。完整基线使用全新抽取Bank，其conv-30为75/81，不能把旧Bank成绩拼入全量。各次旧结果和Bank均保留，prompt/裁判不同的运行不作为单一打包改动的因果对比。
 
 ## PG Recall 下推专项
+
+**2026-11-20 当前入口：** [统一维护目录](recall-pushdown/README.md)、[使用手册](recall-pushdown/RUNBOOK.md)、[Agent 交接](recall-pushdown/AGENT_HANDOFF.md)。当前 BEAM 核心路径平均 53.48→44.75 ms（排除 embedding/BGE/完整鉴权），真实 BGE 仅完成 3/20 题，待验；与本文件 LoCoMo 答题成绩独立。以下首版为历史里程碑。
 
 **等价实现更新：** 原始版、修改关闭、修复开启已完成独立对照，RRF/真实BGE各81题完整响应、融合结果及reader正文与原始版一致；每题一次候选SQL、零后续补查。限定固定81题与哈希环境，未切换原服务；见[首版报告](recall-pushdown/implementation-report.md)。现有打榜服务、Bank和成绩不变。
 
