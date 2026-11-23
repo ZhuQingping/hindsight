@@ -1,0 +1,140 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ContextBase 长期记忆测试调优简报，涵盖 LoCoMo、LongMemEval、BEAM 的成绩对比、真实题目、优化过程与下一步。">
+<title>ContextBase 长期记忆测试进展</title><style>
+:root{color-scheme:light;--ink:#172636;--muted:#526170;--accent:#185e75;--line:#dce4e8;--pale:#f2f7f9}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#f6f8fa;color:var(--ink);font:16px/1.85 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:1080px;margin:40px auto;padding:54px 62px 42px;background:#fff;border:1px solid #e7ecef;border-radius:12px}
+header{margin-bottom:30px}h1{margin:0 0 9px;font-size:clamp(26px,3.2vw,36px);line-height:1.4;letter-spacing:-.025em;color:#101e2c}
+.date{margin:0 0 20px;color:var(--muted);font-size:14px}.intro{font-size:17px;line-height:1.9;margin:0;max-width:850px}
+a{color:var(--accent);text-underline-offset:4px;text-decoration-thickness:1px}a:hover{color:#103c50}a:focus-visible{outline:3px solid #d99f29;outline-offset:4px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}nav a{text-decoration:none;padding:5px 14px;background:var(--pale);border:1px solid var(--line);border-radius:5px;font-size:14px}
+h2{font-size:23px;line-height:1.5;margin:0 0 18px;letter-spacing:-.02em}h2 span{display:block;font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0;margin-bottom:4px}
+section{padding-top:30px;margin-top:30px;border-top:1px solid var(--line)}#scores{padding-top:0;margin-top:0;border-top:0}
+p{margin:12px 0}strong{font-weight:650}p.label strong{margin-right:3px}em{font-style:normal}
+ul.measures{margin:14px 0 18px;padding-left:23px}ul.measures li{padding-left:4px;margin:10px 0}ul.measures li::marker{color:var(--accent)}
+details.settings{margin:16px 0;padding:10px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);font-size:14px;color:var(--muted)}details.settings summary{cursor:pointer;color:var(--accent);font-weight:600}details.settings p{margin:9px 0 3px}
+.table-wrap{overflow-x:auto;margin:18px 0 20px;border:1px solid var(--line);border-radius:7px}
+table{width:100%;border-collapse:collapse;min-width:760px;font-size:15px;line-height:1.6}
+th,td{padding:15px 13px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}th{background:#eaf1f5;font-size:14px;font-weight:650}th:first-child,td:first-child{text-align:left;width:23%}tr:last-child td{border-bottom:0}td:last-child{font-weight:750;color:#124e64;background:#f0f7fa;font-size:17px}tbody tr:nth-child(even) td:not(:last-child){background:#fafcfd}
+td small,td:first-child small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:3px}td .pending{color:#8a5a18}td:last-child small{color:#185e75;font-weight:500}
+.notes{font-size:13px;color:var(--muted);line-height:1.8}.notes p{margin:8px 0}.example{padding:3px 0 3px 19px;margin:17px 0;border-left:3px solid #94b4c3}.example p{margin:4px 0}.example .question{font-size:17px;font-weight:600}.example .eyebrow{font-size:12px;letter-spacing:.04em;color:var(--muted)}
+.result{color:#125770;font-weight:700}.sources{font-size:13px;color:var(--muted)}.sources p{margin:9px 0}.sources a{display:inline-block;margin-right:12px}footer{margin-top:24px;color:var(--muted);font-size:12px}
+@media(max-width:700px){body{background:#fff;font-size:15px;line-height:1.9}main{margin:0;padding:28px 20px 30px;border:0;border-radius:0}.intro{font-size:16px}h2{font-size:21px}section{margin-top:25px;padding-top:25px}.table-wrap{margin-left:0;margin-right:0}nav{gap:7px}nav a{padding:4px 10px}.notes{font-size:13px}.example{padding-left:13px}.example .question{font-size:16px}}
+@media print{@page{size:A4;margin:16mm}html{scroll-behavior:auto}body{background:white;font-size:10pt;line-height:1.55;color:#000}main{max-width:none;border:0;border-radius:0;margin:0;padding:0}header{margin-bottom:18px}h1{font-size:22pt}.date{font-size:9pt;margin-bottom:12px}.intro{font-size:10.5pt;line-height:1.6}nav{display:none}h2{font-size:14pt;break-after:avoid}h2 span{font-size:9pt}section{margin-top:18px;padding-top:18px}p{orphans:3;widows:3}.example{break-inside:avoid}.table-wrap{overflow:visible;border-radius:0}table{min-width:0;font-size:8.5pt}th{font-size:8pt}th,td{padding:8px 6px}td:last-child{font-size:10pt}thead{display:table-header-group}tr{break-inside:avoid}.notes,.sources{font-size:8.5pt}a{color:inherit}footer{font-size:8pt}}
+</style></head><body><main>
+<header><h1>ContextBase 长期记忆测试进展</h1><p class="date">实验数据截至2026年11月22日 · 文稿更新2026年11月23日</p><p class="intro">ContextBase 帮助 AI 保存和找回过去交流中的信息。我们用三类公开测试，检查它能否记住具体细节、合并多次对话的线索，以及识别后来更新的决定。三项测试均已有完整结果；下一步重点是让最佳成绩能够重复出现，并把有效方法转成可扩展的产品能力。</p>
+<nav aria-label="简报目录"><a href="#scores">成绩对比</a><a href="#locomo">LoCoMo</a><a href="#longmemeval">LongMemEval</a><a href="#beam">BEAM</a><a href="#validation">验证方式</a><a href="#next">下一步</a><a href="#sources">资料来源</a></nav></header>
+<section id="scores" aria-labelledby="scores-title"><h2 id="scores-title"><span>所选配置与结果</span>ContextBase 实测与友商公开结果参考</h2>
+<div class="table-wrap" role="region" aria-label="成绩对比表，可横向滚动" tabindex="0"><table><thead><tr>
+<th scope="col">测试</th>
+<th scope="col">Mem0</th>
+<th scope="col">MemOS</th>
+<th scope="col">AgentArts Memory</th>
+<th scope="col">Hindsight</th>
+<th scope="col">ContextBase</th>
+</tr></thead><tbody>
+<tr>
+<td>LoCoMo-10<small>准确率</small></td>
+<td>92.50%</td>
+<td>88.83%</td>
+<td>93.20%<small class="pending">待核原始报告</small></td>
+<td>92.00%</td>
+<td>93.64%</td>
+</tr>
+<tr>
+<td>LongMemEval-S<small>准确率</small></td>
+<td>94.40%</td>
+<td>89.20%</td>
+<td>92.40%<small class="pending">待核原始报告</small></td>
+<td>94.60%</td>
+<td>95.20%<small>最佳单轮</small></td>
+</tr>
+<tr>
+<td>BEAM 100K<small>综合得分 · 满分100</small></td>
+<td>70.41分</td>
+<td>66.87分</td>
+<td>—</td>
+<td>73.37分</td>
+<td>77.03分</td>
+</tr>
+</tbody></table></div>
+<div class="notes"><p><strong>比较说明：</strong>各家模型、提供给模型的资料量和评分设置不同，以上为所选配置结果参考，不是统一条件排名。MemOS三项、Mem0的BEAM来自OmniMemEval复测；该框架由MemOS所属组织维护。AgentArts两项沿用提供资料，原始评测报告待核。</p></div>
+<div class="notes"><p><strong>口径说明：</strong>BEAM满分100，允许部分得分，不能理解成答对题目的比例。Hindsight官网展示75，但其链接公开运行复算为73.37；Mem0另有LongMemEval 94.8%的公开配置，表中94.4%不是其最高值。</p></div>
+<div class="notes"><p><strong>LoCoMo说明：</strong>表中93.64%对应原文组织实验<a href="https://github.com/RSIXDB/hindsight/issues/117">#117</a>。另一次不同模型和写入配置实验为94.29%<a href="https://github.com/RSIXDB/hindsight/issues/112">#112</a>；两套实验分别记录，不将其方法与分数混算。</p></div>
+<div class="notes"><p><strong>术语说明：</strong>下文token是模型衡量文字量的单位，K表示千；候选预算是可供挑选的材料量，最终阅读预算是实际交给答题模型的材料上限。</p></div>
+</section>
+<section id="locomo" aria-labelledby="locomo-title"><h2 id="locomo-title"><span>01 · LoCoMo-10</span>记住日常交流中的具体细节</h2>
+<p class="label"><strong>测什么：</strong>“10”指10组长期人物对话，每组包含多次不同日期的交流，不是10道题。本轮评估1540道问答题，不含对抗题。</p>
+<div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
+<p class="question">“Evan建议Sam看什么来理解自己的梦？”</p><p>标准答案是“解梦书”。这考察能否从过去聊天里找回一个具体建议。</p></div>
+<p class="label"><strong>优化思路：</strong>扩大原文候选范围，用BM25挑出相关消息，并保留前后文，减少关键答案在截取材料时丢失。</p>
+<ul class="measures" aria-label="具体优化措施">
+<li><strong>扩大候选范围：</strong>关联原文的返回预算从8K提高到64K，让客户端有更多原文可选。</li>
+<li><strong>BM25选择消息：</strong>按问题与原文的关键词相关度，选出相关的完整消息，保留前后各一条。</li>
+<li><strong>合并并控制长度：</strong>合并重叠片段，最终交给模型的记忆仍不超过8K。</li>
+</ul>
+<details class="settings"><summary>实验设置与实现细节</summary><p>选窗在Python评测客户端完成，不额外调用大模型，不读取整库原文，不修改核心引擎；最终记忆上限8192 token，事实与原文配额各4000。评分使用BM25式词项匹配、相邻词奖励、停用词和Porter词干处理。另一路#112实验在写入时从concise改为verbose，并增加retain_mission，要求保留短答的主题、时间、说话人及具体细节，结果为94.29%；它与本段93.64%实验采用不同配置，分别记录。</p></details>
+<p class="label"><strong>验证结果：</strong>两轮各1540题，92.14%→93.64%，净多答对23题。候选扩展与选窗一起改变，尚未拆分各自贡献。</p>
+<p class="label"><strong>下一步：</strong>保留完整问答上下文，减少挑选原文时漏掉关键回复；用未参与调优的新会话及重复全量测试验证效果。</p>
+</section>
+<section id="longmemeval" aria-labelledby="longmemeval-title"><h2 id="longmemeval-title"><span>02 · LongMemEval-S</span>综合多次对话中的信息</h2>
+<p class="label"><strong>测什么：</strong>“S”表示较短的历史长度档位，仍有500道题；每题附带数十次历史会话，每题历史约11.5万 token（模型衡量文字量的单位）。</p>
+<div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
+<p class="question">“今年我在美国的几次露营旅行，一共花了多少天？”</p><p>标准答案是“8天”。需要合并不同对话里的经历，并避免重复统计。</p></div>
+<p class="label"><strong>优化思路：</strong>直接用历史原话补足摘要遗漏的细节，让模型能合并多次对话中的信息。</p>
+<ul class="measures" aria-label="具体优化措施">
+<li><strong>补取原文：</strong>客户端用只读SQL读取每题已存储的历史原文，再执行既定安全过滤。</li>
+<li><strong>按角色整理：</strong>用户发言按时间排列；相关助手回复用BM25挑选；“是的”“两次”等短答补上前文。</li>
+<li><strong>把空间留给原话：</strong>移除交给模型的摘要正文，增加用户原话和必要回复的配额，总上限48K。</li>
+</ul>
+<p class="label"><strong>实施位置：</strong>修改的是评测客户端Python代码。ContextBase核心引擎和concise抽取模式保持不变，最佳轮沿用固定答题模板与作者判题协议。</p>
+<details class="settings"><summary>实验设置与实现细节</summary><p>原生前40条事实对应文档的排名仍辅助选择来源；BM25选择“前置用户发言＋助手回复”窗口。v5用户／助手／摘要配额为24K／14K／8K，v7为30K／16K／0，总上限48K。安全过滤后，能容纳全部用户发言的题目从477题增至500题；平均上下文40.7K→34.8K，减少约14.3%，不代表总费用同比下降。抽取为GLM 5.3、concise、low；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash。</p></details>
+<p class="label"><strong>验证结果：</strong>从91.0%的起点，经多轮组合调优，最佳476/500＝95.2%；同配置四轮平均约94.5%。</p>
+<p class="label"><strong>成绩范围：</strong>最佳轮500题均重新答题、判题，但复用已建记忆和原生检索结果，并使用安全处理后的语料。它不是从导入开始全部重跑的成绩，也不代表核心引擎单独效果。</p>
+<p class="label"><strong>下一步：</strong>按索引读取相关片段的500题测试为94.4%（一次空输出按错计）。补完另一轮剩余242题后，重点改进跨对话事件去重，以及数量、时间判断，再以至少三轮完整测试争取稳定96%以上。当前续跑受模型接口访问限制。</p>
+</section>
+<section id="beam" aria-labelledby="beam-title"><h2 id="beam-title"><span>03 · BEAM 100K</span>在长历史中识别最新决定</h2>
+<p class="label"><strong>测什么：</strong>“100K”是历史长度档位，官方约128K token，不是题数，也不是每次回答都输入全部历史。本轮包含20段长对话、400题，覆盖信息更新、时间、偏好、总结等能力。</p>
+<div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
+<p class="question">“我申请高级制片人岗位的截止日期是哪天？”</p><p>历史中先说5月10日，后来延期至5月20日，正确答案是“5月20日”。这要求找出最新决定。</p></div>
+<p class="label"><strong>优化思路：</strong>保持找到的材料不变，把更相关的原文放在前面，帮助模型优先读到关键证据。</p>
+<ul class="measures" aria-label="具体优化措施">
+<li><strong>复用同一份检索结果：</strong>两组使用完全相同的事实和原文块，排除材料多少不同带来的影响。</li>
+<li><strong>客户端BM25排序：</strong>按问题与原文块的关键词相关度重排整块原文；同分保持原顺序，不增加大模型调用。</li>
+<li><strong>保持其他条件一致：</strong>模型、提示词及40K阅读上限不变，沿用事实与出处分组、日期和角色标注。</li>
+</ul>
+<details class="settings"><summary>实验设置与实现细节</summary><p>本轮只调整客户端原文排序，未改引擎、未重导数据、未扩大候选池。BM25参数k1＝1.2、b＝0.75，固定停用词、统一大小写、不做词干处理；实际平均材料约29.6K token。答题为GLM 5.3，判题为DeepSeek V4.1 Flash。来源分组和区分“用户陈述／助手建议、计划／已完成”的答题规则均为既有设置，不计作本轮新增措施。</p></details>
+<p class="label"><strong>验证结果：</strong>两组各400题全部重新答题、判题，74.53→77.03分，净增2.50分；81题上涨、58题下降。尚未验证重复运行的稳定性。</p>
+<p class="label"><strong>下一步：</strong>重点改进知识更新和总结，分清助手建议、用户计划与已经完成的事实，检查提分是否伴随其他题目退步。</p>
+</section>
+<section id="validation" aria-labelledby="validation-title"><h2 id="validation-title">优化是如何验证的</h2>
+<p>先用少量代表题检查改法，再冻结配置跑全量，逐题记录收益、回退和失败。LongMemEval首阶段比较了14组全量配置，每组按500题统计；加大思考强度、改写提示词、二次核对并未稳定超过最终方案。后续重点是复测稳定性，而非只保留最好的一轮。</p>
+</section>
+<section id="next" aria-labelledby="next-title"><h2 id="next-title">后续投入重点</h2>
+<p>将已有初步收益的原文选择、排序和来源标注，逐步做成统一服务能力；固定答题与评分设置，在新会话和重复全量测试中同时检查准确性、响应时间与成本，避免只追最好的一轮分数。</p>
+</section>
+<section id="sources" class="sources" aria-labelledby="sources-title"><h2 id="sources-title">实验记录与数据来源</h2>
+<p><strong>内部实验</strong><br>
+<a href="https://github.com/RSIXDB/hindsight/issues/117">LoCoMo 原文组织 #117</a>
+<a href="https://github.com/RSIXDB/hindsight/issues/112">LoCoMo 写入配置 #112</a>
+<a href="https://github.com/RSIXDB/hindsight/issues/115">LongMemEval #115</a>
+<a href="https://github.com/RSIXDB/hindsight/issues/113">BEAM #113</a>
+</p>
+<p><strong>友商公开结果</strong><br>
+<a href="https://mem0.ai/blog/introducing-temporal-reasoning-in-mem0">Mem0 公开报告</a>
+<a href="https://github.com/MemTensor/OmniMemEval/blob/ff13e4a5b12e3c406a81c32bb0834c7e8d73f38e/docs/user_memory/results.md">OmniMemEval 固定版本成绩表</a>
+<a href="https://github.com/vectorize-io/hindsight-benchmarks/blob/b512a50c83d73194d3c26863d3834187c61a8d2d/visualizer/lib/amb.ts#L9">Hindsight 官网展示与运行入口</a>
+</p>
+<p><strong>真实例题定位</strong><br>
+<a href="https://github.com/snap-research/locomo/blob/main/data/locomo10.json">LoCoMo conv-49_q99</a>
+<a href="https://github.com/RSIXDB/hindsight/issues/115">LongMemEval b5ef892d</a>
+<a href="https://github.com/RSIXDB/hindsight/issues/113">BEAM 18_knowledge_update_1</a>
+</p>
+<p><strong>测试定义</strong><br>
+<a href="https://github.com/snap-research/locomo">LoCoMo 官方说明</a>
+<a href="https://github.com/xiaowu0162/LongMemEval">LongMemEval 官方说明</a>
+<a href="https://github.com/mohammadtavakoli78/BEAM">BEAM 官方说明</a>
+</p>
+<p>内部实验及附件需仓库访问权限。后续稳定性数据截至2026年11月22日；AgentArts两项数值的原始报告待核。</p></section>
+<footer>ContextBase 长期记忆测试进展 · 2026年11月22日</footer></main></body></html>
