@@ -71,8 +71,8 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <p class="label"><strong>优化思路：</strong>扩大原文候选范围，用BM25挑出相关消息，并保留前后文，减少关键答案在截取材料时丢失。</p>
 <ul class="measures" aria-label="具体优化措施">
 <li><strong>提高 recall 关联原文返回上限：</strong>调用召回接口时，将关联原文预算从8K调到64K，让客户端获得更多候选原文；事实返回预算不变。</li>
-<li><strong>BM25选择消息：</strong>按问题与原文的关键词相关度，选出相关的完整消息，保留前后各一条。</li>
-<li><strong>合并并控制长度：</strong>合并重叠片段，最终交给模型的记忆仍不超过8K。</li>
+<li><strong>客户端BM25选窗：</strong>按问题与原文的关键词相关度，选出相关的完整消息，保留前后各一条。</li>
+<li><strong>客户端打包预算：</strong>合并重叠片段，最终交给答题模型的记忆仍不超过8K。</li>
 </ul>
 <details class="settings"><summary>实验设置与实现细节</summary><p>选窗在Python评测客户端完成，不额外调用大模型，不读取整库原文，不修改核心引擎；最终记忆上限8192 token，事实与原文配额各4000。评分使用BM25式词项匹配、相邻词奖励、停用词和Porter词干处理。另一路#112实验在写入时从concise改为verbose，并增加retain_mission，要求保留短答的主题、时间、说话人及具体细节，结果为94.29%；它与本段93.64%实验采用不同配置，分别记录。</p></details>
 <p class="label"><strong>验证结果：</strong>两轮各1540题，92.14%→93.64%，净多答对23题。候选扩展与选窗一起改变，尚未拆分各自贡献。</p>
@@ -84,9 +84,9 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <p class="question">“今年我在美国的几次露营旅行，一共花了多少天？”</p><p>标准答案是“8天”。需要合并不同对话里的经历，并避免重复统计。</p></div>
 <p class="label"><strong>优化思路：</strong>直接用历史原话补足摘要遗漏的细节，让模型能合并多次对话中的信息。</p>
 <ul class="measures" aria-label="具体优化措施">
-<li><strong>补取原文：</strong>客户端用只读SQL读取每题已存储的历史原文，再执行既定安全过滤。</li>
-<li><strong>按角色整理：</strong>用户发言按时间排列；相关助手回复用BM25挑选；“是的”“两次”等短答补上前文。</li>
-<li><strong>把空间留给原话：</strong>移除交给模型的摘要正文，增加用户原话和必要回复的配额，总上限48K。</li>
+<li><strong>从数据库补充原文：</strong>在recall之后，客户端另用只读SQL读取该题记忆库的全部已存储原文，再执行安全过滤；不是只获取recall命中记录的原文。</li>
+<li><strong>客户端BM25选窗与角色分组：</strong>对额外读取的原文，用户发言按时间排列；助手回复连同前置问题用BM25挑选；“是的”“两次”等短答补上前文。</li>
+<li><strong>客户端打包预算：</strong>重新组装交给答题模型的材料，用户原话上限30K、助手回复16K，不放入抽取摘要正文，总上限48K；不修改recall接口的响应内容。</li>
 </ul>
 <p class="label"><strong>实施位置：</strong>修改的是评测客户端Python代码。ContextBase核心引擎和concise抽取模式保持不变，最佳轮沿用固定答题模板与作者判题协议。</p>
 <details class="settings"><summary>实验设置与实现细节</summary><p>原生前40条事实对应文档的排名仍辅助选择来源；BM25选择“前置用户发言＋助手回复”窗口。v5用户／助手／摘要配额为24K／14K／8K，v7为30K／16K／0，总上限48K。安全过滤后，能容纳全部用户发言的题目从477题增至500题；平均上下文40.7K→34.8K，减少约14.3%，不代表总费用同比下降。抽取为GLM 5.3、concise、low；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash。</p></details>
@@ -102,7 +102,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <ul class="measures" aria-label="具体优化措施">
 <li><strong>复用同一份检索结果：</strong>两组使用完全相同的事实和原文块，排除材料多少不同带来的影响。</li>
 <li><strong>客户端BM25排序：</strong>按问题与原文块的关键词相关度重排整块原文；同分保持原顺序，不增加大模型调用。</li>
-<li><strong>保持其他条件一致：</strong>模型、提示词及40K阅读上限不变，沿用事实与出处分组、日期和角色标注。</li>
+<li><strong>客户端打包预算与对照条件：</strong>交给答题模型的材料上限仍为40K，模型、提示词不变，沿用事实与出处分组、日期和角色标注。</li>
 </ul>
 <details class="settings"><summary>实验设置与实现细节</summary><p>本轮只调整客户端原文排序，未改引擎、未重导数据、未扩大候选池。BM25参数k1＝1.2、b＝0.75，固定停用词、统一大小写、不做词干处理；实际平均材料约29.6K token。答题为GLM 5.3，判题为DeepSeek V4.1 Flash。来源分组和区分“用户陈述／助手建议、计划／已完成”的答题规则均为既有设置，不计作本轮新增措施。</p></details>
 <p class="label"><strong>验证结果：</strong>两组各400题全部重新答题、判题，74.53→77.03分，净增2.50分；81题上涨、58题下降。尚未验证重复运行的稳定性。</p>
