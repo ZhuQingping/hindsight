@@ -70,7 +70,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <p class="question">“Evan建议Sam看什么来理解自己的梦？”</p><p>标准答案是“解梦书”。这考察能否从过去聊天里找回一个具体建议。</p></div>
 <p class="label"><strong>优化思路：</strong>扩大原文候选范围，用BM25挑出相关消息，并保留前后文，减少关键答案在截取材料时丢失。</p>
 <ul class="measures" aria-label="具体优化措施">
-<li><strong>扩大候选范围：</strong>关联原文的返回预算从8K提高到64K，让客户端有更多原文可选。</li>
+<li><strong>提高 recall 关联原文返回上限：</strong>调用召回接口时，将关联原文预算从8K调到64K，让客户端获得更多候选原文；事实返回预算不变。</li>
 <li><strong>BM25选择消息：</strong>按问题与原文的关键词相关度，选出相关的完整消息，保留前后各一条。</li>
 <li><strong>合并并控制长度：</strong>合并重叠片段，最终交给模型的记忆仍不超过8K。</li>
 </ul>
