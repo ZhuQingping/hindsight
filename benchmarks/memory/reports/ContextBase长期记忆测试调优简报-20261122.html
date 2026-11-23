@@ -24,7 +24,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 @media print{@page{size:A4;margin:16mm}html{scroll-behavior:auto}body{background:white;font-size:10pt;line-height:1.55;color:#000}main{max-width:none;border:0;border-radius:0;margin:0;padding:0}header{margin-bottom:18px}h1{font-size:22pt}.date{font-size:9pt;margin-bottom:12px}.intro{font-size:10.5pt;line-height:1.6}nav{display:none}h2{font-size:14pt;break-after:avoid}h2 span{font-size:9pt}section{margin-top:18px;padding-top:18px}p{orphans:3;widows:3}.example{break-inside:avoid}.table-wrap{overflow:visible;border-radius:0}table{min-width:0;font-size:8.5pt}th{font-size:8pt}th,td{padding:8px 6px}td:last-child{font-size:10pt}thead{display:table-header-group}tr{break-inside:avoid}.notes,.sources{font-size:8.5pt}a{color:inherit}footer{font-size:8pt}}
 </style></head><body><main>
 <header><h1>ContextBase 长期记忆测试进展</h1><p class="date">实验数据截至2026年11月22日 · 文稿更新2026年11月23日</p><p class="intro">ContextBase 帮助 AI 保存和找回过去交流中的信息。我们用三类公开测试，检查它能否记住具体细节、合并多次对话的线索，以及识别后来更新的决定。三项测试均已有完整结果；下一步重点是让最佳成绩能够重复出现，并把有效方法转成可扩展的产品能力。</p>
-<nav aria-label="简报目录"><a href="#scores">成绩对比</a><a href="#locomo">LoCoMo</a><a href="#longmemeval">LongMemEval</a><a href="#beam">BEAM</a><a href="#validation">验证方式</a><a href="#next">下一步</a><a href="#sources">资料来源</a></nav></header>
+<nav aria-label="简报目录"><a href="#scores">成绩对比</a><a href="#locomo">LoCoMo</a><a href="#longmemeval">LongMemEval</a><a href="#beam">BEAM</a><a href="#validation">验证方式</a><a href="#next">产品化与复测</a><a href="#sources">资料来源</a></nav></header>
 <section id="scores" aria-labelledby="scores-title"><h2 id="scores-title"><span>所选配置与结果</span>ContextBase 实测与友商公开结果参考</h2>
 <div class="table-wrap" role="region" aria-label="成绩对比表，可横向滚动" tabindex="0"><table><thead><tr>
 <th scope="col">测试</th>
@@ -48,7 +48,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <td>89.20%</td>
 <td>92.40%</td>
 <td>94.60%</td>
-<td>95.20%<small>最佳单轮</small></td>
+<td>95.20%</td>
 </tr>
 <tr>
 <td>BEAM 100K<small>综合得分 · 满分100</small></td>
@@ -74,7 +74,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <li><strong>提高 recall 关联原文返回上限：</strong>调用召回接口时，将关联原文预算从8K调到64K，让客户端获得更多候选原文。</li>
 <li><strong>客户端BM25选窗：</strong>按问题与原文的关键词相关度选择完整消息，保留前后各一条，并合并重叠片段。</li>
 </ul>
-<p class="label"><strong>对照条件：</strong>复用相同记忆库，不重新抽取；事实返回预算、答题与判题模型及指令不变。客户端最终打包预算仍为8K，事实与原文配额各约4K。</p>
+<p class="label"><strong>对照条件：</strong>复用相同记忆库，不重新抽取；事实返回预算、答题与判题模型及指令不变。交给答题模型的材料上限仍为8K，事实与原文配额各约4K。</p>
 <details class="settings"><summary>实验设置与实现细节</summary><p>选窗在Python评测客户端完成，不额外调用大模型、不读取整库原文、不修改核心引擎。最终记忆上限8192 token，事实与原文配额各4000；评分使用BM25式词项匹配、相邻词奖励、停用词和Porter词干处理。另一路#112实验在写入时从concise改为verbose，并增加retain_mission，要求保留短答的主题、时间、说话人及具体细节，结果为94.29%；它与本段93.64%实验采用不同配置，分别记录。</p></details>
 <p class="label"><strong>验证结果：</strong>两轮各1540题，92.14%→93.64%，净多答对23题。候选扩展与选窗一起改变，尚未拆分各自贡献。</p>
 <p class="label"><strong>下一步：</strong>保留完整问答上下文，减少挑选原文时漏掉关键回复；用未参与调优的新会话及重复全量测试验证效果。</p>
@@ -88,7 +88,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <ul class="measures" aria-label="具体优化措施">
 <li><strong>从数据库补充原文：</strong>recall之后，客户端另用只读SQL读取该题记忆库的全部已存储原文，再执行安全过滤；读取范围不限于recall命中的记录。</li>
 <li><strong>客户端BM25选窗与角色分组：</strong>用户原话按时间排列；助手回复连同前置问题用BM25挑选；“两次”等短答与它所回答的原始问题一起保留。</li>
-<li><strong>调整客户端打包预算：</strong>将用户／助手／摘要配额从24K／14K／8K改为30K／16K／0，总上限48K；即不把抽取摘要正文放入答题材料，不修改recall响应。</li>
+<li><strong>调整答题材料预算：</strong>评测客户端在调用答题模型前，将用户原话上限从24K增至30K、助手回复从14K增至16K，抽取摘要从8K减为0，总上限仍为48K。这是答题输入的组装预算，不是recall返回预算；这一步只改评测脚本，不改recall接口或ContextBase源码。</li>
 </ul>
 <p class="label"><strong>对照条件：</strong>原文组织方案复用已建记忆和冻结的原生recall结果；v5与v7使用相同答题模型、固定模板及作者判题协议，每轮重新答题、判题。ContextBase核心引擎和concise抽取模式不变，优化发生在评测客户端。</p>
 <details class="settings"><summary>实验设置与实现细节</summary><p>原生前40条事实对应文档的排名仍辅助选择来源；BM25选择“前置用户发言＋助手回复”窗口。安全过滤后，能容纳全部用户发言的题目从477题增至500题；平均上下文40.7K→34.8K，减少约14.3%，不代表总费用同比下降。抽取为GLM 5.3、concise、low；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash。</p></details>
@@ -105,7 +105,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <ul class="measures" aria-label="具体优化措施">
 <li><strong>客户端BM25排序：</strong>按问题与原文块的关键词相关度重排整块原文；同分保持原顺序，不增加大模型调用。</li>
 </ul>
-<p class="label"><strong>对照条件：</strong>两组使用同一次recall返回的相同事实和原文块；答题与判题模型、提示词、40K客户端打包预算均不变。复用检索结果是控制变量的方法，不是优化措施。</p>
+<p class="label"><strong>对照条件：</strong>两组使用同一次recall返回的相同事实和原文块；答题与判题模型、提示词、交给答题模型的材料上限40K均不变。复用检索结果是控制变量的方法，不是优化措施。</p>
 <p class="label"><strong>沿用的编排：</strong>对“总结／演变”类问题，按来源编号把事实与对应原文放在一起，再按来源会话日期和片段序号排列。这是讨论记录的顺序，不代表事件完成顺序。角色信息沿用原文，答题指令要求区分用户陈述、助手建议、计划与已完成事项；本轮没有新增角色识别或标注算法。</p>
 <details class="settings"><summary>实验设置与实现细节</summary><p>本轮只调整客户端原文排序，未改引擎、未重导数据、未扩大候选池。BM25参数k1＝1.2、b＝0.75，固定停用词、统一大小写、不做词干处理；实际平均材料约29.6K token。答题为GLM 5.3，判题为DeepSeek V4.1 Flash。上述来源分组和答题规则两组均沿用，不计作本轮新增措施。</p></details>
 <p class="label"><strong>验证结果：</strong>两组各400题全部重新答题、判题，74.53→77.03分，净增2.50分；81题上涨、58题下降。尚未验证重复运行的稳定性。</p>
@@ -114,13 +114,18 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <section id="validation" aria-labelledby="validation-title"><h2 id="validation-title">优化是如何验证的</h2>
 <p>先用少量代表题检查改法，再冻结配置跑全量，逐题记录收益、回退和失败。LongMemEval首阶段比较了14组全量配置，每组按500题统计；加大思考强度、改写提示词、二次核对并未稳定超过最终方案。后续重点是复测稳定性，而非只保留最好的一轮。</p>
 </section>
-<section id="next" aria-labelledby="next-title"><h2 id="next-title">后续投入重点</h2>
-<p>将已有初步收益的原文选择、排序和来源标注，逐步做成统一服务能力；固定答题与评分设置，在新会话和重复全量测试中同时检查准确性、响应时间与成本，避免只追最好的一轮分数。</p>
+<section id="next" aria-labelledby="next-title"><h2 id="next-title">产品化与客户复测</h2>
+<p class="label"><strong>落地方向：</strong>三项优化都可以转为通用服务端能力。数据库负责按索引找相关原文和相邻消息，ContextBase服务层负责BM25选窗、排序和答题材料预算，客户端直接使用整理好的材料；不必把所有处理都写进数据库算子。</p>
+<p class="label"><strong>LoCoMo进展：</strong>已有可选的服务端消息选窗实现，完成历史上下文等价重放及81题子集配对测试；还需在交付版本和客户环境中完成全量复测。</p>
+<p class="label"><strong>LongMemEval进展：</strong>95.2%仍依赖评测客户端读取整题记忆库原文。有界索引检索原型已完成500题、94.4%的测试，尚未稳定追平95.2%，不能直接将当前成绩当作通用产品能力。</p>
+<p class="label"><strong>BEAM进展：</strong>客户端BM25原文块排序可以迁入服务端；77.03分仍是客户端方案结果，尚未完成对应的服务端等价复测。</p>
+<p class="label"><strong>客户复测条件：</strong>交付固定产品版本、可直接运行的评测脚本，以及相同的数据、模型、提示词、预算和评分设置，并披露语料安全处理。先核对服务端与客户端提供给模型的材料是否一致，再做全量答题与多轮复测；模型和裁判会波动，不能承诺每次得到完全相同的分数。</p>
 </section>
 <section id="sources" class="sources" aria-labelledby="sources-title"><h2 id="sources-title">实验记录与数据来源</h2>
 <p><strong>内部实验</strong><br>
 <a href="https://github.com/RSIXDB/hindsight/issues/117">LoCoMo 原文组织 #117</a>
 <a href="https://github.com/RSIXDB/hindsight/issues/112">LoCoMo 写入配置 #112</a>
+<a href="https://github.com/ZhuQingping/hindsight/blob/memory-benchmark/benchmarks/memory/recall-profiles/validation.md">服务端选窗验证</a>
 <a href="https://github.com/RSIXDB/hindsight/issues/115">LongMemEval #115</a>
 <a href="https://github.com/RSIXDB/hindsight/issues/113">BEAM #113</a>
 </p>
