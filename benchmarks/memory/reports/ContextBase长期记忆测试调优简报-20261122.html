@@ -88,7 +88,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <ul class="measures" aria-label="具体优化措施">
 <li><strong>从数据库补充原文：</strong>recall之后，客户端另用只读SQL读取该题记忆库的全部已存储原文，再执行安全过滤；读取范围不限于recall命中的记录。</li>
 <li><strong>客户端BM25选窗与角色分组：</strong>用户原话按时间排列；助手回复连同前置问题用BM25挑选；“两次”等短答与它所回答的原始问题一起保留。</li>
-<li><strong>调整答题材料预算：</strong>评测客户端在调用答题模型前，将用户原话上限从24K增至30K、助手回复从14K增至16K，抽取摘要从8K减为0，总上限仍为48K。这是答题输入的组装预算，不是recall返回预算；这一步只改评测脚本，不改recall接口或ContextBase源码。</li>
+<li><strong>调整答题材料的内容分配：</strong>客户端在调用答题模型前，增加用户原话和相关助手回复，去掉抽取摘要，把有限的阅读空间留给原始对话。最终材料仍不超过48K token；这一步只调整评测脚本，不改变recall返回内容，也不修改ContextBase源码。</li>
 </ul>
 <p class="label"><strong>对照条件：</strong>原文组织方案复用已建记忆和冻结的原生recall结果；v5与v7使用相同答题模型、固定模板及作者判题协议，每轮重新答题、判题。ContextBase核心引擎和concise抽取模式不变，优化发生在评测客户端。</p>
 <details class="settings"><summary>实验设置与实现细节</summary><p>原生前40条事实对应文档的排名仍辅助选择来源；BM25选择“前置用户发言＋助手回复”窗口。安全过滤后，能容纳全部用户发言的题目从477题增至500题；平均上下文40.7K→34.8K，减少约14.3%，不代表总费用同比下降。抽取为GLM 5.3、concise、low；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash。</p></details>
