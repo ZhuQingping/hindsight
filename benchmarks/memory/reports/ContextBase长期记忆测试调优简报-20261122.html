@@ -23,7 +23,7 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 @media(max-width:700px){body{background:#fff;font-size:15px;line-height:1.9}main{margin:0;padding:28px 20px 30px;border:0;border-radius:0}.intro{font-size:16px}h2{font-size:21px}section{margin-top:25px;padding-top:25px}.table-wrap{margin-left:0;margin-right:0}nav{gap:7px}nav a{padding:4px 10px}.notes{font-size:13px}.example{padding-left:13px}.example .question{font-size:16px}}
 @media print{@page{size:A4;margin:16mm}html{scroll-behavior:auto}body{background:white;font-size:10pt;line-height:1.55;color:#000}main{max-width:none;border:0;border-radius:0;margin:0;padding:0}header{margin-bottom:18px}h1{font-size:22pt}.date{font-size:9pt;margin-bottom:12px}.intro{font-size:10.5pt;line-height:1.6}nav{display:none}h2{font-size:14pt;break-after:avoid}h2 span{font-size:9pt}section{margin-top:18px;padding-top:18px}p{orphans:3;widows:3}.example{break-inside:avoid}.table-wrap{overflow:visible;border-radius:0}table{min-width:0;font-size:8.5pt}th{font-size:8pt}th,td{padding:8px 6px}td:last-child{font-size:10pt}thead{display:table-header-group}tr{break-inside:avoid}.notes,.sources{font-size:8.5pt}a{color:inherit}footer{font-size:8pt}}
 </style></head><body><main>
-<header><h1>ContextBase 长期记忆测试进展</h1><p class="date">2026年11月22日</p><p class="intro">ContextBase 帮助 AI 保存和找回过去交流中的信息。我们用三类公开测试，检查它能否记住具体细节、合并多次对话的线索，以及识别后来更新的决定。三项测试均已有完整结果；下一步重点是让最佳成绩能够重复出现，并把有效方法转成可扩展的产品能力。</p>
+<header><h1>ContextBase 长期记忆测试进展</h1><p class="date">实验数据截至2026年11月22日 · 文稿更新2026年11月23日</p><p class="intro">ContextBase 帮助 AI 保存和找回过去交流中的信息。我们用三类公开测试，检查它能否记住具体细节、合并多次对话的线索，以及识别后来更新的决定。三项测试均已有完整结果；下一步重点是让最佳成绩能够重复出现，并把有效方法转成可扩展的产品能力。</p>
 <nav aria-label="简报目录"><a href="#scores">成绩对比</a><a href="#locomo">LoCoMo</a><a href="#longmemeval">LongMemEval</a><a href="#beam">BEAM</a><a href="#validation">验证方式</a><a href="#next">下一步</a><a href="#sources">资料来源</a></nav></header>
 <section id="scores" aria-labelledby="scores-title"><h2 id="scores-title"><span>所选配置与结果</span>ContextBase 实测与友商公开结果参考</h2>
 <div class="table-wrap" role="region" aria-label="成绩对比表，可横向滚动" tabindex="0"><table><thead><tr>
@@ -68,47 +68,48 @@ td small,td:first-child small{display:block;font-size:12px;font-weight:400;color
 <p class="label"><strong>测什么：</strong>“10”指10组长期人物对话，每组包含多次不同日期的交流，不是10道题。本轮评估1540道问答题，不含对抗题。</p>
 <div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
 <p class="question">“Evan建议Sam看什么来理解自己的梦？”</p><p>标准答案是“解梦书”。这考察能否从过去聊天里找回一个具体建议。</p></div>
-<p class="label"><strong>优化思路：</strong>解决“检索到了相关话题，却没有把关键原话交给模型”的问题。先扩大候选范围，再选择完整发言及相邻上下文，而不是把更多资料全部塞给模型。</p>
+<p class="label"><strong>优化思路：</strong>扩大原文候选范围，用BM25挑出相关消息，并保留前后文，减少关键答案在截取材料时丢失。</p>
 <ul class="measures" aria-label="具体优化措施">
-<li><strong>扩大原文候选池：</strong>将API关联原文的候选预算从8K提高至64K token，增加可供选择的材料；最终给答题模型的记忆上限仍为8K。</li>
-<li><strong>客户端BM25式选窗：</strong>按问题与原文的关键词相关度给完整消息评分，再保留前后各一条、合并重叠窗口。这种BM25式选窗在Python评测客户端完成，不额外调用大模型，重点保住短答所需的前文。</li>
-<li><strong>写入配置的另一条路线：</strong>#112将concise（简要抽取）改为verbose（详细抽取），并设置retain_mission（抽取任务提示），要求保留短回复所指的主题与时间、说话人、相对日期、计划和具体细节。该实验为94.29%，采用不同模型配置，与93.64%原文选窗方案分开记录。</li>
+<li><strong>扩大候选范围：</strong>关联原文的返回预算从8K提高到64K，让客户端有更多原文可选。</li>
+<li><strong>BM25选择消息：</strong>按问题与原文的关键词相关度，选出相关的完整消息，保留前后各一条。</li>
+<li><strong>合并并控制长度：</strong>合并重叠片段，最终交给模型的记忆仍不超过8K。</li>
 </ul>
-<details class="settings"><summary>实验设置与实现细节</summary><p>最终记忆上限8192 token，事实／原文配额各4000 token；消息评分结合相邻词奖励、固定停用词和Porter词干处理。只处理本次检索返回的原文，不读取整库额外原文、不重新排列事实列表。</p></details>
-<p class="label"><strong>验证结果：</strong>93.64%方案复用原记忆，不修改核心引擎或重新抽取；两轮各1540题，92.14%→93.64%，36题转对、13题回退，净增23题。收益来自“候选扩展＋消息选窗”的组合，尚未拆出BM25的单独贡献。</p>
+<details class="settings"><summary>实验设置与实现细节</summary><p>选窗在Python评测客户端完成，不额外调用大模型，不读取整库原文，不修改核心引擎；最终记忆上限8192 token，事实与原文配额各4000。评分使用BM25式词项匹配、相邻词奖励、停用词和Porter词干处理。另一路#112实验在写入时从concise改为verbose，并增加retain_mission，要求保留短答的主题、时间、说话人及具体细节，结果为94.29%；它与本段93.64%实验采用不同配置，分别记录。</p></details>
+<p class="label"><strong>验证结果：</strong>两轮各1540题，92.14%→93.64%，净多答对23题。候选扩展与选窗一起改变，尚未拆分各自贡献。</p>
 <p class="label"><strong>下一步：</strong>保留完整问答上下文，减少挑选原文时漏掉关键回复；用未参与调优的新会话及重复全量测试验证效果。</p>
 </section>
 <section id="longmemeval" aria-labelledby="longmemeval-title"><h2 id="longmemeval-title"><span>02 · LongMemEval-S</span>综合多次对话中的信息</h2>
 <p class="label"><strong>测什么：</strong>“S”表示较短的历史长度档位，仍有500道题；每题附带数十次历史会话，每题历史约11.5万 token（模型衡量文字量的单位）。</p>
 <div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
 <p class="question">“今年我在美国的几次露营旅行，一共花了多少天？”</p><p>标准答案是“8天”。需要合并不同对话里的经历，并避免重复统计。</p></div>
-<p class="label"><strong>优化思路：</strong>跨会话问题需要保住用户原话及事件背景，不能只依赖压缩后的事实摘要。本轮主要改评测客户端的证据读取、选择与编排；记忆抽取仍为concise，本轮没有像#112那样改用verbose并新增retain_mission。</p>
+<p class="label"><strong>优化思路：</strong>直接用历史原话补足摘要遗漏的细节，让模型能合并多次对话中的信息。</p>
 <ul class="measures" aria-label="具体优化措施">
-<li><strong>扩展证据来源：</strong>通过客户端只读SQL读取每题已存储原文，再按既定安全规则筛选，突破只看原生检索返回片段的范围；利用原生前40条事实对应文档的排序线索，辅助选择来源。这是客户端增强，没有修改ContextBase核心引擎代码。</li>
-<li><strong>BM25编排与上下文补全：</strong>优先按日期和消息顺序保留用户发言，用客户端BM25选择“前置用户发言＋助手回复”窗口；为“是的”“两次”等真正的简短回答补足前文，明确角色归属，压缩重复的会话标题。</li>
-<li><strong>重分配阅读预算：</strong>把更多阅读空间留给用户原话及必要的助手回复，移除抽取摘要正文，最终总上限48K token。仍使用原生检索的来源排序线索；经安全筛选后，用户发言能完整容纳的题目由477题增至500题。</li>
+<li><strong>补取原文：</strong>客户端用只读SQL读取每题已存储的历史原文，再执行既定安全过滤。</li>
+<li><strong>按角色整理：</strong>用户发言按时间排列；相关助手回复用BM25挑选；“是的”“两次”等短答补上前文。</li>
+<li><strong>把空间留给原话：</strong>移除交给模型的摘要正文，增加用户原话和必要回复的配额，总上限48K。</li>
 </ul>
-<details class="settings"><summary>实验设置与实现细节</summary><p>v5分配为用户原话24K／助手回复14K／摘要8K；v7调整为30K／16K／0，最终总上限48K token。抽取为GLM 5.3、concise、low思考强度；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash，沿用固定答题模板及作者判题协议。</p></details>
-<p class="label"><strong>验证结果：</strong>以91.0%为起点，多轮组合调优后最佳为476/500＝95.2%；v5→v7平均上下文由约40.7K降至34.8K token，减少约14.3%。这描述材料组织效率，不代表总模型费用同比下降，也不能把分差全部归因于某个参数。</p>
-<p class="label"><strong>成绩范围：</strong>95.2%包含500题全部重新答题和判题，但沿用已建记忆与检索结果，额外读取全部合格原文，语料经过安全处理。它并非从导入到答题全部重跑，也不代表记忆引擎单独效果。同配置四轮平均约94.5%。</p>
+<p class="label"><strong>实施位置：</strong>修改的是评测客户端Python代码。ContextBase核心引擎和concise抽取模式保持不变，最佳轮沿用固定答题模板与作者判题协议。</p>
+<details class="settings"><summary>实验设置与实现细节</summary><p>原生前40条事实对应文档的排名仍辅助选择来源；BM25选择“前置用户发言＋助手回复”窗口。v5用户／助手／摘要配额为24K／14K／8K，v7为30K／16K／0，总上限48K。安全过滤后，能容纳全部用户发言的题目从477题增至500题；平均上下文40.7K→34.8K，减少约14.3%，不代表总费用同比下降。抽取为GLM 5.3、concise、low；最佳轮答题为GLM 5.3、high，判题为DeepSeek V4.1 Flash。</p></details>
+<p class="label"><strong>验证结果：</strong>从91.0%的起点，经多轮组合调优，最佳476/500＝95.2%；同配置四轮平均约94.5%。</p>
+<p class="label"><strong>成绩范围：</strong>最佳轮500题均重新答题、判题，但复用已建记忆和原生检索结果，并使用安全处理后的语料。它不是从导入开始全部重跑的成绩，也不代表核心引擎单独效果。</p>
 <p class="label"><strong>下一步：</strong>按索引读取相关片段的500题测试为94.4%（一次空输出按错计）。补完另一轮剩余242题后，重点改进跨对话事件去重，以及数量、时间判断，再以至少三轮完整测试争取稳定96%以上。当前续跑受模型接口访问限制。</p>
 </section>
 <section id="beam" aria-labelledby="beam-title"><h2 id="beam-title"><span>03 · BEAM 100K</span>在长历史中识别最新决定</h2>
 <p class="label"><strong>测什么：</strong>“100K”是历史长度档位，官方约128K token，不是题数，也不是每次回答都输入全部历史。本轮包含20段长对话、400题，覆盖信息更新、时间、偏好、总结等能力。</p>
 <div class="example"><p class="eyebrow">真实测试题目 · 中文翻译</p>
 <p class="question">“我申请高级制片人岗位的截止日期是哪天？”</p><p>历史中先说5月10日，后来延期至5月20日，正确答案是“5月20日”。这要求找出最新决定。</p></div>
-<p class="label"><strong>优化思路：</strong>证据已经找到了，仍可能因顺序和归属不清而被模型误用。因此固定同一批召回结果，重点改进原文排列与来源对应，检验“材料怎么摆”是否影响答题。</p>
+<p class="label"><strong>优化思路：</strong>保持找到的材料不变，把更相关的原文放在前面，帮助模型优先读到关键证据。</p>
 <ul class="measures" aria-label="具体优化措施">
-<li><strong>客户端BM25整块排序：</strong>按当前问题与原文块的相关度重新排序，相关内容优先；分数相同保持原顺序，不额外调用大模型选择证据。</li>
-<li><strong>固定证据量做对照：</strong>两组共享每题一次新检索，保持相同事实与原文块集合；阅读上限同为40K token，实际平均约29.6K。该轮没有扩大候选池，没有重新导入，也没有新增服务端BM25或数据库算子。</li>
-<li><strong>保留来源与时间约束：</strong>总结／演变类问题沿用“事实与对应原文就近分组”，按来源日期和片段顺序组织；答题指令要求区分用户陈述、助手建议与示例，以及计划和已完成事项。这些是既有设置，不单独算作本轮新增收益。</li>
+<li><strong>复用同一份检索结果：</strong>两组使用完全相同的事实和原文块，排除材料多少不同带来的影响。</li>
+<li><strong>客户端BM25排序：</strong>按问题与原文块的关键词相关度重排整块原文；同分保持原顺序，不增加大模型调用。</li>
+<li><strong>保持其他条件一致：</strong>模型、提示词及40K阅读上限不变，沿用事实与出处分组、日期和角色标注。</li>
 </ul>
-<details class="settings"><summary>实验设置与实现细节</summary><p>客户端BM25参数k1＝1.2、b＝0.75，固定停用词、统一大小写，不做词干处理。两组均使用GLM 5.3答题、DeepSeek V4.1 Flash判题，模型与提示词不变；与服务端原有全文检索BM25是两个层次。</p></details>
-<p class="label"><strong>验证结果：</strong>两组各400题全部重新答题、判题，74.53→77.03分，81题上涨、58题下降，净增2.50分。这是单轮完整对照，仍需复测。</p>
+<details class="settings"><summary>实验设置与实现细节</summary><p>本轮只调整客户端原文排序，未改引擎、未重导数据、未扩大候选池。BM25参数k1＝1.2、b＝0.75，固定停用词、统一大小写、不做词干处理；实际平均材料约29.6K token。答题为GLM 5.3，判题为DeepSeek V4.1 Flash。来源分组和区分“用户陈述／助手建议、计划／已完成”的答题规则均为既有设置，不计作本轮新增措施。</p></details>
+<p class="label"><strong>验证结果：</strong>两组各400题全部重新答题、判题，74.53→77.03分，净增2.50分；81题上涨、58题下降。尚未验证重复运行的稳定性。</p>
 <p class="label"><strong>下一步：</strong>重点改进知识更新和总结，分清助手建议、用户计划与已经完成的事实，检查提分是否伴随其他题目退步。</p>
 </section>
 <section id="validation" aria-labelledby="validation-title"><h2 id="validation-title">优化是如何验证的</h2>
-<p>先做少量代表题的机制检查，再冻结候选方案做全量对照，并保留上涨、回退和失败记录。LongMemEval首阶段比较了14组全量配置，每组按500题统计；更强推理、改写答题提示词、二次证据核对均未稳定超过最终方案，小样本有效的规则也曾在全量测试中回退。完整结果同时保留收益、回退和失败，后续以重复测试检验这些方法能否稳定奏效。</p>
+<p>先用少量代表题检查改法，再冻结配置跑全量，逐题记录收益、回退和失败。LongMemEval首阶段比较了14组全量配置，每组按500题统计；加大思考强度、改写提示词、二次核对并未稳定超过最终方案。后续重点是复测稳定性，而非只保留最好的一轮。</p>
 </section>
 <section id="next" aria-labelledby="next-title"><h2 id="next-title">后续投入重点</h2>
 <p>将已有初步收益的原文选择、排序和来源标注，逐步做成统一服务能力；固定答题与评分设置，在新会话和重复全量测试中同时检查准确性、响应时间与成本，避免只追最好的一轮分数。</p>
